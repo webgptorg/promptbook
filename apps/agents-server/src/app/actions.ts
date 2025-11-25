@@ -34,6 +34,12 @@ export async function loginAction(formData: FormData) {
     }
 }
 
+export async function logoutAction() {
+    const cookieStore = await cookies();
+    cookieStore.delete('adminToken');
+    revalidatePath('/', 'layout');
+}
+
 /**
  * TODO: !!!! Reorganize actions.ts files
  * TODO: !!! [🧠] Study how Next.js actions work

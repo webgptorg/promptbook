@@ -2,6 +2,7 @@ import faviconLogoImage from '@/public/favicon.ico';
 import { Header } from '@/src/components/Header/Header';
 import type { Metadata } from 'next';
 import { Barlow_Condensed } from 'next/font/google';
+import { isUserAdmin } from '../utils/isUserAdmin';
 import './globals.css';
 
 const barlowCondensed = Barlow_Condensed({
@@ -38,11 +39,13 @@ export const metadata: Metadata = {
     },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
     children,
 }: Readonly<{
     children: React.ReactNode;
 }>) {
+    const isAdmin = await isUserAdmin();
+
     return (
         <html lang="en">
             <head>
@@ -68,7 +71,7 @@ export default function RootLayout({
                 <link rel="icon" href={faviconLogoImage.src} type="image/x-icon" />
             </head>
             <body className={`${barlowCondensed.className} antialiased bg-white text-gray-900`}>
-                <Header />
+                <Header isAdmin={isAdmin} />
                 <main className="pt-16">{children}</main>
             </body>
         </html>

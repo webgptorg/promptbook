@@ -11,7 +11,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🍛] Add logging in / out on the right end of the heading bar
 

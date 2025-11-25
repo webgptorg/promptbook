@@ -1,7 +1,8 @@
 'use client';
 
+import { loginAction, logoutAction } from '@/src/app/actions';
 import promptbookLogoBlueTransparent from '@/public/logo-blue-white-256.png';
-import { ArrowRight, Menu, X } from 'lucide-react';
+import { ArrowRight, LogIn, LogOut, Menu, X } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
@@ -16,6 +17,11 @@ type HeaderProps = {
     integrationsText?: string;
     pricingText?: string;
     getStartedText?: string;
+
+    /**
+     * Is the user an admin
+     */
+    isAdmin?: boolean;
 };
 
 /* TODO: !!!!! Make this Agents server native  */
@@ -28,9 +34,29 @@ export function Header(props: HeaderProps) {
         integrationsText = 'Integrations',
         pricingText = 'Pricing',
         getStartedText = 'Get Started',
+        isAdmin = false,
     } = props;
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+    const handleLogin = async () => {
+        const password = window.prompt('Enter admin password');
+        if (!password) {
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('password', password);
+        const result = await loginAction(formData);
+
+        if (!result.success) {
+            alert(result.message);
+        }
+    };
+
+    const handleLogout = async () => {
+        await logoutAction();
+    };
 
     return (
         <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200">
@@ -87,12 +113,38 @@ export function Header(props: HeaderProps) {
                     {/* CTA Button & Mobile Menu Toggle */}
                     <div className="flex items-center gap-4">
                         {!isBare && (
-                            <Link href="https://ptbk.io/?modal=get-started" target="_blank" className="hidden md:block">
-                                <button className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 bg-promptbook-blue-dark text-white hover:bg-promptbook-blue-dark/90">
-                                    {getStartedText}
-                                    <ArrowRight className="ml-2 w-4 h-4" />
-                                </button>
-                            </Link>
+                            <div className="flex items-center gap-2">
+                                <Link
+                                    href="https://ptbk.io/?modal=get-started"
+                                    target="_blank"
+                                    className="hidden md:block"
+                                >
+                                    <button className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 bg-promptbook-blue-dark text-white hover:bg-promptbook-blue-dark/90">
+                                        {getStartedText}
+                                        <ArrowRight className="ml-2 w-4 h-4" />
+                                    </button>
+                                </Link>
+
+                                {isAdmin ? (
+                                    <button
+                                        onClick={handleLogout}
+                                        className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                                        title="Log out"
+                                    >
+                                        <LogOut className="w-5 h-5" />
+                                        <span className="sr-only">Log out</span>
+                                    </button>
+                                ) : (
+                                    <button
+                                        onClick={handleLogin}
+                                        className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                                        title="Log in"
+                                    >
+                                        <LogIn className="w-5 h-5" />
+                                        <span className="sr-only">Log in</span>
+                                    </button>
+                                )}
+                            </div>
                         )}
 
                         {/* Mobile Menu Toggle */}
@@ -153,6 +205,30 @@ export function Header(props: HeaderProps) {
                                     <ArrowRight className="ml-2 w-4 h-4" />
                                 </button>
                             </Link>
+
+                            {isAdmin ? (
+                                <button
+                                    onClick={() => {
+                                        handleLogout();
+                                        setIsMenuOpen(false);
+                                    }}
+                                    className="w-full inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium h-10 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                                >
+                                    Log out
+                                    <LogOut className="ml-2 w-4 h-4" />
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={() => {
+                                        handleLogin();
+                                        setIsMenuOpen(false);
+                                    }}
+                                    className="w-full inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium h-10 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                                >
+                                    Log in
+                                    <LogIn className="ml-2 w-4 h-4" />
+                                </button>
+                            )}
                         </nav>
                     </div>
                 )}
