@@ -39,6 +39,8 @@ export default async function HomePage() {
     const executionTools = await $provideExecutionToolsForServer();
     const models = await getSingleLlmExecutionTools(executionTools.llm).listModels();
 
+    const host = (await headers()).get('host');
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
             <div className="container mx-auto px-4 py-16">
@@ -88,7 +90,7 @@ export default async function HomePage() {
 
                 {isAdmin && (
                     <>
-                        <h2 className="text-3xl text-gray-900 mt-16 mb-4">About Promptbook</h2>
+                        {/* Note: Shown in <AboutPromptbookInformation />: <h2 className="text-3xl text-gray-900 mt-16 mb-4">About Promptbook</h2> */}
                         <AboutPromptbookInformation />
                     </>
                 )}
@@ -136,7 +138,8 @@ export default async function HomePage() {
                             >
                                 <h2 className="text-2xl font-semibold text-gray-900 mb-2">HTTP Information</h2>
 
-                                <p className="text-gray-600">Host: {(await headers()).get('host')}</p>
+                                <p className="text-gray-600">Host: {host}</p>
+                                <p className="text-gray-600">HOST: {HOST}</p>
                             </Link>
                         </div>
                     </>

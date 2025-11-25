@@ -1,4 +1,5 @@
 import { ConfigChecker } from 'configchecker';
+import { headers } from 'next/headers';
 
 const config = ConfigChecker.from({
     ...process.env,
@@ -20,3 +21,6 @@ export const NEXT_PUBLIC_VERCEL_BRANCH_URL = config.get('NEXT_PUBLIC_VERCEL_BRAN
  * List of servers where agents can be hosted
  */
 export const SERVERS = config.get('SERVERS').list().value;
+
+
+export const HOST = (await headers()).get('host');
