@@ -5,7 +5,7 @@ import { PromptbookQrCode } from '@promptbook-local/components';
 // import { BookEditor } from '@promptbook-local/components';
 import { $provideServer } from '@/src/tools/$provideServer';
 import { parseAgentSource } from '@promptbook-local/core';
-import { ChartAreaIcon, Edit2Icon } from 'lucide-react';
+import { ChartAreaIcon, Columns2Icon, Edit2Icon } from 'lucide-react';
 import { headers } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { Color } from '../../../../../../src/utils/color/Color';
@@ -113,6 +113,14 @@ export default async function AgentPage({ params }: { params: Promise<{ agentNam
                         >
                             <ChartAreaIcon className="ml-2 w-4 h-4 mr-2" />
                             Chat
+                        </a>
+                        <a
+                            href={`${agentUrl}/book+chat`}
+                            // <- TODO: [🧠] Can I append path like this on current browser URL in href?
+                            className="inline-flex items-center justify-center whitespace-nowrap bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded shadow font-semibold transition"
+                        >
+                            <Columns2Icon className="ml-2 w-4 h-4 mr-2" />
+                            Book + Chat
                         </a>
                         <a
                             href={`${agentUrl}/book`}
