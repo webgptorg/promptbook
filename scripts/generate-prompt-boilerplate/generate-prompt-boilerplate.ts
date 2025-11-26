@@ -32,6 +32,18 @@ generatePromptBoilerplate()
 async function generatePromptBoilerplate() {
     console.info(`🚀  Generate prompt boilerplate files`);
 
+    // Determine how many files to generate from CLI arg (default: 5)
+    const cliArg = process.argv[2];
+    const filesCount = (() => {
+        if (!cliArg) return 5;
+        const n = Number(cliArg);
+        if (!Number.isFinite(n) || n <= 0) {
+            console.info(colors.yellow(`Invalid count '${cliArg}'. Falling back to default 5.`));
+            return 5;
+        }
+        return Math.floor(n);
+    })();
+
     // Generate current date in YYYY-MM format
     const now = new Date();
     const year = now.getFullYear();
@@ -86,19 +98,19 @@ async function generatePromptBoilerplate() {
     }
 
     const freshEmojis = difference(EMOJIS_OF_SINGLE_PICTOGRAM, usedEmojis);
-    const selectedEmojis = $shuffleItems(...Array.from(freshEmojis)).slice(0, 5);
+    const selectedEmojis = $shuffleItems(...Array.from(freshEmojis)).slice(0, filesCount);
 
     console.info(colors.green(`Found ${freshEmojis.size} available fresh emojis`));
     console.info(colors.green(`Selected emojis: ${selectedEmojis.map((emoji) => `[✨${emoji}]`).join(' ')}`));
 
     // Placeholder titles
-    const titles = ['foo', 'bar', 'baz', 'qux', 'quux'];
+    const titles = ['foo', 'bar', 'baz', 'qux', 'brr'];
 
-    // Generate 5 files
+    // Generate files
     const filesToCreate = [];
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < filesCount; i++) {
         const number = (startNumber + i * 10).toString().padStart(4, '0');
-        const title = titles[i];
+        const title = titles[i % titles.length];
         const emoji = selectedEmojis[i];
         const filename = `${datePrefix}-${number}-${title}.md`;
         const filepath = join('prompts', filename);

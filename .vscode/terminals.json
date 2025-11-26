@@ -225,7 +225,7 @@
         },
         {
             "name": "🏭✨ Generate prompt boilerplates",
-            "command": "npm run generate-prompt-boilerplates",
+            "command": "npm run generate-prompt-boilerplates -- 5",
             "execute": true,
             "onlySingle": true,
             "focus": true
