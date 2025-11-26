@@ -4,6 +4,7 @@ import type { WithTake } from '../take/interfaces/ITakeChain';
 import { take } from '../take/take';
 import { CSS_COLORS } from './css-colors';
 import { checkChannelValue } from './internal-utils/checkChannelValue';
+import { rgbToHsl } from './internal-utils/rgbToHsl';
 
 /**
  * Color object represents an RGB color with alpha channel
@@ -427,7 +428,7 @@ export class Color {
     }
 
     public toString(): string_color {
-        return this.toHex();
+        return this.toHsl();
     }
 
     public toHex(): string_color {
@@ -451,7 +452,13 @@ export class Color {
     }
 
     public toHsl(): string_color {
-        throw new Error(`Getting HSL is not implemented`);
+        const [h, s, l] = rgbToHsl(this.red, this.green, this.blue);
+        // Convert hue from [0-1] to degrees [0-360]
+        // Convert saturation and lightness from [0-1] to percentage [0-100]
+        const hDegrees = Math.round(h * 360);
+        const sPercent = Math.round(s * 100);
+        const lPercent = Math.round(l * 100);
+        return `hsl(${hDegrees}, ${sPercent}%, ${lPercent}%)`;
     }
 }
 
