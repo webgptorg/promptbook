@@ -112,6 +112,10 @@ export class Color {
             return Color.fromHex3(hex);
         }
 
+        if (hex.length === 4) {
+            return Color.fromHex4(hex);
+        }
+
         if (hex.length === 6) {
             return Color.fromHex6(hex);
         }
@@ -134,6 +138,20 @@ export class Color {
         const g = parseInt(hex.substr(1, 1), 16) * 16;
         const b = parseInt(hex.substr(2, 1), 16) * 16;
         return take(new Color(r, g, b));
+    }
+
+    /**
+     * Creates a new Color instance from color in hex format with 4 digits (with alpha channel)
+     *
+     * @param color in hex for example `09df`
+     * @returns Color object
+     */
+    private static fromHex4(hex: string_color): WithTake<Color> {
+        const r = parseInt(hex.substr(0, 1), 16) * 16;
+        const g = parseInt(hex.substr(1, 1), 16) * 16;
+        const b = parseInt(hex.substr(2, 1), 16) * 16;
+        const a = parseInt(hex.substr(3, 1), 16) * 16;
+        return take(new Color(r, g, b, a));
     }
 
     /**
@@ -345,7 +363,10 @@ export class Color {
      * @returns true if the value is a valid hex color string (e.g., `#009edd`, `#fff`, etc.)
      */
     public static isHexColorString(value: unknown): value is string_color {
-        return typeof value === 'string' && /^#(?:[0-9a-fA-F]{3}){1,2}$/.test(value);
+        return (
+            typeof value === 'string' &&
+            /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(value)
+        );
     }
 
     /**
