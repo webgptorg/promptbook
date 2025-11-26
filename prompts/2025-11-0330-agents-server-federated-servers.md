@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🪓] Create federated servers logic to Agents Server
 

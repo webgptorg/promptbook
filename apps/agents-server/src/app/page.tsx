@@ -10,10 +10,12 @@ import { $sideEffect } from '../../../../src/utils/organization/$sideEffect';
 import { AuthControls } from '../components/Auth/AuthControls';
 import { UsersList } from '../components/UsersList/UsersList';
 import VercelDeploymentCard from '../components/VercelDeploymentCard/VercelDeploymentCard';
+import { getMetadata } from '../database/getMetadata';
 import { getLongRunningTask } from '../deamons/longRunningTask';
 import { $provideAgentCollectionForServer } from '../tools/$provideAgentCollectionForServer';
 import { $provideExecutionToolsForServer } from '../tools/$provideExecutionToolsForServer';
 import { $provideServer } from '../tools/$provideServer';
+import { getFederatedAgents } from '../utils/getFederatedAgents';
 import { getCurrentUser } from '../utils/getCurrentUser';
 import { isUserAdmin } from '../utils/isUserAdmin';
 import { AddAgentButton } from './AddAgentButton';
@@ -36,6 +38,14 @@ export default async function HomePage() {
 
     const collection = await $provideAgentCollectionForServer();
     const agents = await collection.listAgents();
+
+    const federatedServersString = (await getMetadata('FEDERATED_SERVERS')) || '';
+    const federatedServers = federatedServersString
+        .split(',')
+        .map((s) => s.trim())
+        .filter((s) => s !== '');
+
+    const externalAgents = await getFederatedAgents(federatedServers);
 
     const longRunningTask = getLongRunningTask();
 
@@ -72,6 +82,29 @@ export default async function HomePage() {
                         {isAdmin && <AddAgentButton />}
                     </div>
                 </>
+
+                {externalAgents.length > 0 && (
+                    <>
+                        <h2 className="text-3xl text-gray-900 mt-16 mb-4">External Agents ({externalAgents.length})</h2>
+                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                            {externalAgents.map((agent) => (
+                                <Link key={agent.url} href={agent.url}>
+                                    <AvatarProfile
+                                        {...{ agent }}
+                                        style={
+                                            !agent.meta.color
+                                                ? {}
+                                                : {
+                                                      backgroundColor: `${agent.meta.color}22`, // <- TODO: Use Color object here
+                                                  }
+                                        }
+                                        className="block p-6 bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 border border-gray-200 hover:border-blue-400"
+                                    />
+                                </Link>
+                            ))}
+                        </div>
+                    </>
+                )}
 
                 {isAdmin && <UsersList />}
 

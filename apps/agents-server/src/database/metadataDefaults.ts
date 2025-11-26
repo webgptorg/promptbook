@@ -29,4 +29,9 @@ export const metadataDefaults = [
         value: '',
         note: 'Comma separated list of allowed IPs or CIDR ranges. If set, only clients from these IPs are allowed to access the server.',
     },
+    {
+        key: 'FEDERATED_SERVERS',
+        value: '',
+        note: 'Comma separated list of federated servers URLs. The server will look to all federated servers and list their agents.',
+    },
 ] as const;
