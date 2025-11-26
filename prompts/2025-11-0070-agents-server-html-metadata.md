@@ -12,19 +12,21 @@
 
 [ ]
 
-[✨💟] baz
-
-... Design of agent page not just `META IMAGE` ...
+[✨💟] Open Graph image / Twitter Card image of the agent should have generated design from agent page
 
 -   You are working with the `Agents Server` application `/apps/agents-server`
+-   Agent pages are `/[agentName]`, `/agents/[agentName]`, `/agents/[agentName]/chat`, `/agents/[agentName]/chat+book` and `/agents/[agentName]/book`
+-   They have `META IMAGE` used as Open Graph image and Twitter Card image
+-   But you should put there a screenshot (or visially simmilar elements) of the actual `/[agentName]` page, so it has more context about the agent directly in post previews on social media
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
 ---
 
 [ ]
 
-[✨💟] baz
+[✨💟] Favicon of agent should be their `META IMAGE`
 
+-   For agent pages `/[agentName]`, `/agents/[agentName]`, `/agents/[agentName]/chat`, `/agents/[agentName]/chat+book`, `/agents/[agentName]/book`, the favicon should be set to the agent's `META IMAGE` (if available) if not, fallback to default favicon as is now
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
