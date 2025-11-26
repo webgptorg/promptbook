@@ -1,6 +1,6 @@
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import { readFile, writeFile } from 'fs';
-import glob from 'glob-promise';
+import glob from 'glob-promise'; // <- TODO: [🚰] Use just 'glob'
 import JSON5 from 'json5';
 import { join } from 'path';
 import { spaceTrim } from 'spacetrim';

@@ -7,7 +7,7 @@ dotenv.config({ path: '.env' });
 import colors from 'colors';
 import commander from 'commander';
 import { readFile } from 'fs/promises';
-import glob from 'glob-promise';
+import glob from 'glob-promise'; // <- TODO: [🚰] Use just 'glob'
 import { basename, dirname, join } from 'path';
 import { compilePipeline } from '../../src/conversion/compilePipeline';
 import { usageToHuman } from '../../src/execution/utils/usageToHuman';

@@ -1,4 +1,4 @@
-import glob from 'glob-promise';
+import glob from 'glob-promise'; // <- TODO: [🚰] Use just 'glob'
 import { join } from 'path';
 
 /**

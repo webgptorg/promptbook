@@ -4,7 +4,7 @@
 import colors from 'colors';
 import commander from 'commander';
 import fs, { mkdir, readFile, writeFile } from 'fs/promises';
-import glob from 'glob-promise';
+import glob from 'glob-promise'; // <- TODO: [🚰] Use just 'glob'
 import { basename, dirname, join, relative } from 'path';
 import spaceTrim from 'spacetrim';
 import type { PackageJson } from 'type-fest';

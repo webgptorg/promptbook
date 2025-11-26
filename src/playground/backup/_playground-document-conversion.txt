@@ -6,7 +6,7 @@ dotenv.config({ path: '.env' });
 
 import colors from 'colors';
 import { copyFile, rm } from 'fs/promises';
-import glob from 'glob-promise';
+import glob from 'glob-promise'; // <- TODO: [🚰] Use just 'glob'
 import { basename, join } from 'path';
 import { $provideExecutablesForNode } from '../executables/$provideExecutablesForNode';
 import { $provideFilesystemForNode } from '../scrapers/_common/register/$provideFilesystemForNode';

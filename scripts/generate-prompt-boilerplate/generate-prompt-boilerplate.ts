@@ -6,7 +6,7 @@ dotenv.config({ path: '.env' });
 
 import colors from 'colors';
 import { writeFileSync } from 'fs';
-import glob from 'glob-promise'; // <- TODO: [🚰] Use just 'glob'
+import glob from 'glob-promise'; // <- TODO: [🚰] Use just 'glob' // <- TODO: [🚰] Use just 'glob'
 import { join } from 'path';
 import { spaceTrim } from 'spacetrim';
 import type { string_char_emoji } from '../../src/types/typeAliasEmoji';
@@ -52,7 +52,7 @@ async function generatePromptBoilerplate() {
 
     // Find the highest existing number in prompts for the current month only
     const promptFiles = await glob('prompts/**/*.md', {
-        ignore: '**/node_modules/**',
+        ignore: '**/node_modules/**', // <- TODO: [🚰] Ignore also hidden folders like *(`.promptbook`, `.next`, `.git`,...)*
     });
 
     let highestNumber = -10; // So first will be 0000 if none found
