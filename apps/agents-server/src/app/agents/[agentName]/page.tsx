@@ -1,7 +1,6 @@
 'use server';
 
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
-import { PromptbookQrCode } from '@promptbook-local/components';
 // import { BookEditor } from '@promptbook-local/components';
 import { $provideServer } from '@/src/tools/$provideServer';
 import { parseAgentSource } from '@promptbook-local/core';
@@ -12,6 +11,7 @@ import { Color } from '../../../../../../src/utils/color/Color';
 import { withAlpha } from '../../../../../../src/utils/color/operators/withAlpha';
 import { $sideEffect } from '../../../../../../src/utils/organization/$sideEffect';
 import { AgentChatWrapper } from './AgentChatWrapper';
+import { AgentQrCode } from './AgentQrCode';
 import { CopyField } from './CopyField';
 import { generateAgentMetadata } from './generateAgentMetadata';
 // import { Agent } from '@promptbook-local/core';
@@ -135,8 +135,12 @@ export default async function AgentPage({ params }: { params: Promise<{ agentNam
 
                 <div className="flex flex-col items-center gap-4 pt-6 border-t border-gray-200 w-full">
                     <div className="bg-white rounded-lg p-4 flex flex-col items-center shadow-sm border border-gray-100">
-                        <PromptbookQrCode value={agentUrl} />
-                        <span className="mt-2 text-xs text-gray-500">Scan to open agent</span>
+                        <AgentQrCode
+                            agentName={agentProfile.agentName || 'Agent'}
+                            personaDescription={agentProfile.personaDescription}
+                            agentUrl={agentUrl}
+                            agentEmail={agentEmail}
+                        />
                     </div>
                     <div className="flex flex-col gap-2 w-full">
                         <CopyField label="Agent Page URL" value={agentUrl} />

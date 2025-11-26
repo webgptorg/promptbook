@@ -11,7 +11,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🐾] On Agent page, the QR code should show valid VCARD of the agent, not just its url
 
