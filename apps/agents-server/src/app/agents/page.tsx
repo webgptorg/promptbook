@@ -7,5 +7,5 @@ export default async function AgentsPage() {
 }
 
 /**
- * TODO: !!! Distinguish between `/` and `/agents` pages
+ * TODO: [🐱‍🚀] Distinguish between `/` and `/agents` pages
  */

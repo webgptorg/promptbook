@@ -113,7 +113,6 @@ export default function () {
                 // 'react',
                 // 'react-dom',
                 // 'react/jsx-runtime',
-                // <- TODO: !!! Was rich UI fixed by this
             ];
 
             const packageFullname = `@promptbook/${packageBasename}`;

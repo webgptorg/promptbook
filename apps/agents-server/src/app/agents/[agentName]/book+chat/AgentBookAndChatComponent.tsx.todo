@@ -16,7 +16,7 @@ export function AgentBookAndChatComponent() {
 
     const [agentSource, setAgentSource] = useStateInLocalStorage<string_book>(
         'marigold-agentSource-1',
-        // TODO: !!! Uplad image to ptbk.io CDN
+        // TODO: [🐱‍🚀] Uplad image to ptbk.io CDN
         () => book`
             Marigold
 
@@ -53,7 +53,7 @@ export function AgentBookAndChatComponent() {
 
     const agent = useMemo(() => {
         /*/
-        // TODO: !!! Try working with `RemoteLlmExecutionTools`
+        // TODO: [🐱‍🚀] Try working with `RemoteLlmExecutionTools`
         const llm = new RemoteLlmExecutionTools({
             remoteServerUrl: 'https://promptbook.s5.ptbk.io/',
             identification: {
@@ -66,7 +66,7 @@ export function AgentBookAndChatComponent() {
         /**/
         const llm = new OpenAiAssistantExecutionTools({
             dangerouslyAllowBrowser: true,
-            isCreatingNewAssistantsAllowed: true, // <- TODO: !!! Test without whether warning is shown
+            isCreatingNewAssistantsAllowed: true, // <- TODO: [🐱‍🚀] Test without whether warning is shown
             apiKey,
             assistantId: 'asst_xI94Elk27nssnwAUkG2Cmok8', // <- TODO: [🧠] Make dynamic
             isVerbose: true,
@@ -155,6 +155,6 @@ export function AgentBookAndChatComponent() {
 }
 
 /**
- * TODO: !!!! Make self-learning book createAgentLlmExecutionTools, use bidirectional agentSource
+ * TODO: [🐱‍🚀] Make self-learning book createAgentLlmExecutionTools, use bidirectional agentSource
  * TODO: [🚗] Components and pages here should be just tiny UI wraper around proper agent logic and conponents
  */

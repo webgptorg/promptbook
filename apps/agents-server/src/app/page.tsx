@@ -7,15 +7,15 @@ import Link from 'next/link';
 import { AvatarProfile } from '../../../../src/book-components/AvatarProfile/AvatarProfile/AvatarProfile';
 import { AboutPromptbookInformation } from '../../../../src/utils/misc/xAboutPromptbookInformation';
 import { $sideEffect } from '../../../../src/utils/organization/$sideEffect';
+import { AuthControls } from '../components/Auth/AuthControls';
+import { UsersList } from '../components/UsersList/UsersList';
 import VercelDeploymentCard from '../components/VercelDeploymentCard/VercelDeploymentCard';
 import { getLongRunningTask } from '../deamons/longRunningTask';
 import { $provideAgentCollectionForServer } from '../tools/$provideAgentCollectionForServer';
 import { $provideExecutionToolsForServer } from '../tools/$provideExecutionToolsForServer';
 import { $provideServer } from '../tools/$provideServer';
-import { isUserAdmin } from '../utils/isUserAdmin';
 import { getCurrentUser } from '../utils/getCurrentUser';
-import { AuthControls } from '../components/Auth/AuthControls';
-import { UsersList } from '../components/UsersList/UsersList';
+import { isUserAdmin } from '../utils/isUserAdmin';
 import { AddAgentButton } from './AddAgentButton';
 
 // Add calendar formats that include seconds
@@ -73,16 +73,14 @@ export default async function HomePage() {
                     </div>
                 </>
 
-                {isAdmin && (
-                    <UsersList />
-                )}
+                {isAdmin && <UsersList />}
 
                 {isAdmin && (
                     <>
                         <h2 className="text-3xl text-gray-900 mt-16 mb-4">Models ({models.length})</h2>
                         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                             {models.map(({ modelName, modelTitle, modelDescription }) => (
-                                <Link key={modelName} href={`#!!!`}>
+                                <Link key={modelName} href={`#[🐱‍🚀]`}>
                                     <div className="block p-6 bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 border border-gray-200 hover:border-blue-400">
                                         <h2 className="text-2xl font-semibold text-gray-900 mb-2">{modelTitle}</h2>
                                         <code>{modelName}</code>

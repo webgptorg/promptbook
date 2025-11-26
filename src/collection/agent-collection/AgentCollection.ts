@@ -24,7 +24,7 @@ export type AgentCollection = AgentCollectionInSupabase;
     /**
      * Get one agent by its name
      *
-     * Note: !!!! Agents are existing independently of you getting them or not, you can get the same agent multiple times.
+     * Note: [🐱‍🚀] Agents are existing independently of you getting them or not, you can get the same agent multiple times.
      * Note: Agents are changed by interacting with `Agent` objects directly. Only creation and deletion is done via the collection.
      * /
     spawnAgent(agentName: string_agent_name): Promisable<Agent>;

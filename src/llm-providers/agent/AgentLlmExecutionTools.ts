@@ -20,11 +20,12 @@ import type { CreateAgentLlmExecutionToolsOptions } from './CreateAgentLlmExecut
  * Execution Tools for calling LLM models with a predefined agent "soul"
  * This wraps underlying LLM execution tools and applies agent-specific system prompts and requirements
  *
- * !!! Note: [🦖] There are several different things in Promptbook:
+ * Note: [🦖] There are several different things in Promptbook:
  * - `Agent` - which represents an AI Agent with its source, memories, actions, etc. Agent is a higher-level abstraction which is internally using:
  * - `LlmExecutionTools` - which wraps one or more LLM models and provides an interface to execute them
  * - `AgentLlmExecutionTools` - which is a specific implementation of `LlmExecutionTools` that wraps another LlmExecutionTools and applies agent-specific system prompts and requirements
  * - `OpenAiAssistantExecutionTools` - which is a specific implementation of `LlmExecutionTools` for OpenAI models with assistant capabilities, recommended for usage in `Agent` or `AgentLlmExecutionTools`
+ * - `RemoteAgent` - which is an `Agent` that connects to a Promptbook Agents Server
  *
  * @public exported from `@promptbook/core`
  */
@@ -195,7 +196,7 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
                 if (this.options.isVerbose) {
                     console.log(`1️⃣ Creating new OpenAI Assistant for agent ${this.title}...`);
                 }
-                // <- TODO: !!! Check also `isCreatingNewAssistantsAllowed` and warn about it
+                // <- TODO: [🐱‍🚀] Check also `isCreatingNewAssistantsAllowed` and warn about it
                 assistant = await this.options.llmTools.createNewAssistant({
                     name: this.title,
                     instructions: modelRequirements.systemMessage,

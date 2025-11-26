@@ -14,11 +14,12 @@ import type { AgentOptions } from './AgentOptions';
 /**
  * Represents one AI Agent
  *
- * !!! Note: [🦖] There are several different things in Promptbook:
+ * Note: [🦖] There are several different things in Promptbook:
  * - `Agent` - which represents an AI Agent with its source, memories, actions, etc. Agent is a higher-level abstraction which is internally using:
  * - `LlmExecutionTools` - which wraps one or more LLM models and provides an interface to execute them
  * - `AgentLlmExecutionTools` - which is a specific implementation of `LlmExecutionTools` that wraps another LlmExecutionTools and applies agent-specific system prompts and requirements
  * - `OpenAiAssistantExecutionTools` - which is a specific implementation of `LlmExecutionTools` for OpenAI models with assistant capabilities, recommended for usage in `Agent` or `AgentLlmExecutionTools`
+ * - `RemoteAgent` - which is an `Agent` that connects to a Promptbook Agents Server
  *
  * @public exported from `@promptbook/core`
  */
@@ -42,11 +43,10 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
      */
     public initialMessage: string | null = null;
 
-  /**
+    /**
      * Links found in the agent source
      */
-   public links: Array<string_agent_url> = [];
-
+    public links: Array<string_agent_url> = [];
 
     /**
      * Computed hash of the agent source for integrity verification
@@ -83,14 +83,14 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
         super({
             isVerbose: options.isVerbose,
             llmTools: getSingleLlmExecutionTools(options.executionTools.llm),
-            agentSource: agentSource.value, // <- TODO: !!!! Allow to pass BehaviorSubject<string_book> OR refresh llmExecutionTools.callChat on agentSource change
+            agentSource: agentSource.value, // <- TODO: [🐱‍🚀] Allow to pass BehaviorSubject<string_book> OR refresh llmExecutionTools.callChat on agentSource change
         });
-        // TODO: !!!!! Add `Agent` simple "mocked" learning by appending to agent source
-        // TODO: !!!!! Add `Agent` learning by promptbookAgent
+        // TODO: [🐱‍🚀] Add `Agent` simple "mocked" learning by appending to agent source
+        // TODO: [🐱‍🚀] Add `Agent` learning by promptbookAgent
 
         this.agentSource = agentSource;
         this.agentSource.subscribe((source) => {
-            const { agentName, personaDescription, initialMessage,links, meta } = parseAgentSource(source);
+            const { agentName, personaDescription, initialMessage, links, meta } = parseAgentSource(source);
             this._agentName = agentName;
             this.personaDescription = personaDescription;
             this.initialMessage = initialMessage;
@@ -102,5 +102,4 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
 
 /**
  * TODO: [🧠][😰]Agent is not working with the parameters, should it be?
- * TODO: !!! Agent on remote server
  */

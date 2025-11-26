@@ -27,13 +27,13 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
         return new Response(
             JSON.stringify(
                 serializeError(error),
-                // <- TODO: !!! Rename `serializeError` to `errorToJson`
+                // <- TODO: [🐱‍🚀] Rename `serializeError` to `errorToJson`
                 null,
                 4,
-                // <- TODO: !!! Allow to configure pretty print for agent server
+                // <- TODO: [🐱‍🚀] Allow to configure pretty print for agent server
             ),
             {
-                status: 400, // <- TODO: !!! Make `errorToHttpStatusCode`
+                status: 400, // <- TODO: [🐱‍🚀] Make `errorToHttpStatusCode`
                 headers: { 'Content-Type': 'application/json' },
             },
         );

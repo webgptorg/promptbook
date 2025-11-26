@@ -306,12 +306,7 @@ export function BookEditorMonaco(props: BookEditorProps) {
                 const endPos = model.getPositionAt(match.index + match[0].length);
 
                 newDecorations.push({
-                    range: new monaco.Range(
-                        startPos.lineNumber,
-                        startPos.column,
-                        endPos.lineNumber,
-                        endPos.column,
-                    ),
+                    range: new monaco.Range(startPos.lineNumber, startPos.column, endPos.lineNumber, endPos.column),
                     options: {
                         isWholeLine: true,
                         className: 'separator-line',
@@ -511,7 +506,7 @@ export function BookEditorMonaco(props: BookEditorProps) {
                     }}
                     loading={
                         <div className={styles.loading}>
-                            📖{/* <- TODO: !!!!! Better visual of loading of `<BookEditor/>` */}
+                            📖{/* <- TODO: [🐱‍🚀] Better visual of loading of `<BookEditor/>` */}
                         </div>
                     }
                 />

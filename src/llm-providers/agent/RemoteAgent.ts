@@ -11,25 +11,25 @@ import type { RemoteAgentOptions } from './RemoteAgentOptions';
 /**
  * Represents one AI Agent
  *
- * !!!!!! Note: [🦖] There are several different things in Promptbook:
+ * Note: [🦖] There are several different things in Promptbook:
  * - `Agent` - which represents an AI Agent with its source, memories, actions, etc. Agent is a higher-level abstraction which is internally using:
- * !!!!!! `RemoteAgent`
  * - `LlmExecutionTools` - which wraps one or more LLM models and provides an interface to execute them
  * - `AgentLlmExecutionTools` - which is a specific implementation of `LlmExecutionTools` that wraps another LlmExecutionTools and applies agent-specific system prompts and requirements
  * - `OpenAiAssistantExecutionTools` - which is a specific implementation of `LlmExecutionTools` for OpenAI models with assistant capabilities, recommended for usage in `Agent` or `AgentLlmExecutionTools`
+ * - `RemoteAgent` - which is an `Agent` that connects to a Promptbook Agents Server
  *
  * @public exported from `@promptbook/core`
  */
 export class RemoteAgent extends Agent {
     public static async connect(options: RemoteAgentOptions) {
-        console.log('!!!!!', `${options.agentUrl}/api/book`);
+        console.log('[🐱‍🚀]', `${options.agentUrl}/api/book`);
         const bookResponse = await fetch(`${options.agentUrl}/api/book`);
-        // <- TODO: !!!! What about closed-source agents?
-        // <- TODO: !!!! Maybe use promptbookFetch
+        // <- TODO: [🐱‍🚀] What about closed-source agents?
+        // <- TODO: [🐱‍🚀] Maybe use promptbookFetch
 
         const agentSourceValue = (await bookResponse.text()) as string_book;
         const agentSource: BehaviorSubject<string_book> = new BehaviorSubject<string_book>(agentSourceValue);
-        // <- TODO: !!!! Support updating and self-updating
+        // <- TODO: [🐱‍🚀] Support updating and self-updating
 
         return new RemoteAgent({
             ...options,
@@ -91,8 +91,8 @@ export class RemoteAgent extends Agent {
                 thread: chatPrompt.thread,
             }),
         });
-        // <- TODO: !!!! What about closed-source agents?
-        // <- TODO: !!!! Maybe use promptbookFetch
+        // <- TODO: [🐱‍🚀] What about closed-source agents?
+        // <- TODO: [🐱‍🚀] Maybe use promptbookFetch
 
         let content = '';
 
@@ -142,7 +142,7 @@ export class RemoteAgent extends Agent {
             }
         }
 
-        // <- TODO: !!!! Transfer metadata
+        // <- TODO: [🐱‍🚀] Transfer metadata
 
         const agentResult: ChatPromptResult = {
             content,
@@ -152,7 +152,7 @@ export class RemoteAgent extends Agent {
             rawPromptContent: {} as TODO_any,
             rawRequest: {} as TODO_any,
             rawResponse: {} as TODO_any,
-            // <- TODO: !!!! Transfer and proxy the metadata
+            // <- TODO: [🐱‍🚀] Transfer and proxy the metadata
         };
 
         return agentResult;

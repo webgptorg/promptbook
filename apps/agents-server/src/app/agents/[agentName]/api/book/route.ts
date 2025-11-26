@@ -26,13 +26,13 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
         return new Response(
             JSON.stringify(
                 serializeError(error),
-                // <- TODO: !!! Rename `serializeError` to `errorToJson`
+                // <- TODO: [🐱‍🚀] Rename `serializeError` to `errorToJson`
                 null,
                 4,
-                // <- TODO: !!! Allow to configure pretty print for agent server
+                // <- TODO: [🐱‍🚀] Allow to configure pretty print for agent server
             ),
             {
-                status: 400, // <- TODO: !!! Make `errorToHttpStatusCode`
+                status: 400, // <- TODO: [🐱‍🚀] Make `errorToHttpStatusCode`
                 headers: { 'Content-Type': 'application/json' },
             },
         );
@@ -51,13 +51,13 @@ export async function PUT(request: Request, { params }: { params: Promise<{ agen
         agentSource = padBook(agentSource);
 
         await collection.updateAgentSource(agentName, agentSource);
-        // <- TODO: !!! Properly type as string_book
+        // <- TODO: [🐱‍🚀] Properly type as string_book
 
         return new Response(
             JSON.stringify({
                 isSuccessful: true,
                 message: `Agent "${agentName}" updated successfully`,
-                agentSource, // <- TODO: !!! Remove from response
+                agentSource, // <- TODO: [🐱‍🚀] Remove from response
             }),
             {
                 status: 200,
@@ -72,13 +72,13 @@ export async function PUT(request: Request, { params }: { params: Promise<{ agen
         return new Response(
             JSON.stringify(
                 serializeError(error),
-                // <- TODO: !!! Rename `serializeError` to `errorToJson`
+                // <- TODO: [🐱‍🚀] Rename `serializeError` to `errorToJson`
                 null,
                 4,
-                // <- TODO: !!! Allow to configure pretty print for agent server
+                // <- TODO: [🐱‍🚀] Allow to configure pretty print for agent server
             ),
             {
-                status: 400, // <- TODO: !!! Make `errorToHttpStatusCode`
+                status: 400, // <- TODO: [🐱‍🚀] Make `errorToHttpStatusCode`
                 headers: { 'Content-Type': 'application/json' },
             },
         );

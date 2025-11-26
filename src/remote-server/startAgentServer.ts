@@ -13,7 +13,7 @@ type AgentsServerOptions = {
 };
 
 /**
- * !!!!!
+ * [🐱‍🚀]
  * Remote server is a proxy server that uses its execution tools internally and exposes the executor interface externally.
  *
  * You can simply use `RemoteExecutionTools` on client-side javascript and connect to your remote server.
@@ -21,12 +21,12 @@ type AgentsServerOptions = {
  *
  * @see https://github.com/webgptorg/promptbook#remote-server
  * @public exported from `@promptbook/remote-server`
- * <- TODO: !!!! Change to `@promptbook/agent-server`
+ * <- TODO: [🐱‍🚀] Change to `@promptbook/agent-server`
  */
 export async function startAgentServer(options: AgentsServerOptions): Promise<TODO_any> {
     const { port = 4440 } = options;
 
-    // TODO: !!!! [🌕]
+    // TODO: [🐱‍🚀] [🌕]
 
     const agentsServerRoot = join(__dirname, '../apps/agents-server');
 

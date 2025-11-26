@@ -41,7 +41,7 @@ export function $initializeStartAgentsServerCommand(program: Program): $side_eff
         handleActionErrors(async (path, cliOptions) => {
             const { port: portRaw, reload: isCacheReloaded, verbose: isVerbose } = cliOptions;
 
-            // TODO: !!!! [🌕] DRY
+            // TODO: [🐱‍🚀] [🌕] DRY
 
             const port: number_port = parseInt(portRaw, 10);
             if (isNaN(port) || port <= 0 || port > 65535) {
@@ -87,13 +87,13 @@ export function $initializeStartAgentsServerCommand(program: Program): $side_eff
             TODO_USE(collection);
             */
 
-            // TODO: !!!! Use
+            // TODO: [🐱‍🚀] Use
 
-            // TODO: !!!! Pass collection and tools to the server starter
-            // TODO: !!!! The Next app should be build during the package build step not here
+            // TODO: [🐱‍🚀] Pass collection and tools to the server starter
+            // TODO: [🐱‍🚀] The Next app should be build during the package build step not here
 
             /*
-            // TODO: !!!! Run this conditionally only in production mode in dev mode use `next dev`
+            // TODO: [🐱‍🚀] Run this conditionally only in production mode in dev mode use `next dev`
             await $execCommand({
                 cwd: './apps/agents-server',
                 command: `next build`,

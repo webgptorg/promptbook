@@ -14,7 +14,7 @@
 
 [ ] _<- TODO: Maybe already done?_
 
-[✨🌺] Fix !!!
+[✨🌺] Fix [🐱‍🚀]
 
 ```log
  GET /agents/ava-blue 200 in 184ms

@@ -176,4 +176,4 @@ ALTER TABLE "prefix_ChatFeedback"
     REFERENCES "prefix_Agent"("agentName") 
     ON DELETE CASCADE;
 
--- TODO: !!!! Create propper database migrations
+-- TODO: [🐱‍🚀] Create propper database migrations

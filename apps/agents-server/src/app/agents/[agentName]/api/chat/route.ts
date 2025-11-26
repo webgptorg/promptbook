@@ -17,7 +17,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
 
     const body = await request.json();
     const { message = 'Tell me more about yourself.', thread } = body;
-    //      <- TODO: !!!! To configuration DEFAULT_INITIAL_HIDDEN_MESSAGE
+    //      <- TODO: [🐱‍🚀] To configuration DEFAULT_INITIAL_HIDDEN_MESSAGE
 
     try {
         const collection = await $provideAgentCollectionForServer();
@@ -25,7 +25,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         const openAiAssistantExecutionTools = await $provideOpenAiAssistantExecutionToolsForServer();
         const agentSource = await collection.getAgentSource(agentName);
         const agent = new Agent({
-            isVerbose: true, // <- TODO: !!! From environment variable
+            isVerbose: true, // <- TODO: [🐱‍🚀] From environment variable
             executionTools: {
                 // [▶️] ...executionTools,
                 llm: openAiAssistantExecutionTools, // Note: Providing the OpenAI Assistant LLM tools to the Agent to be able to create its own Assistants GPTs
@@ -130,20 +130,15 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         return new Response(
             JSON.stringify(
                 serializeError(error),
-                // <- TODO: !!! Rename `serializeError` to `errorToJson`
+                // <- TODO: [🐱‍🚀] Rename `serializeError` to `errorToJson`
                 null,
                 4,
-                // <- TODO: !!! Allow to configure pretty print for agent server
+                // <- TODO: [🐱‍🚀] Allow to configure pretty print for agent server
             ),
             {
-                status: 400, // <- TODO: !!! Make `errorToHttpStatusCode`
+                status: 400, // <- TODO: [🐱‍🚀] Make `errorToHttpStatusCode`
                 headers: { 'Content-Type': 'application/json' },
             },
         );
     }
 }
-
-/**
- * TODO: !!!!!! Increase limit on run livetime of requests to this endpoint to 2 minutes
- * TODO: !!!!!! Make api endpoint for feedback on agent responses `/apps/agents-server/src/app/agents/[agentName]/api/feedback/route.ts` and record to `ChatFeedback`
- */

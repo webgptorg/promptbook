@@ -111,7 +111,7 @@ export class AgentCollectionInDirectory implements AgentCollection {
                         .pop()!
                         .replace(/\.book$/, '') as string_agent_name,
             );
-        // <- TODO: !!! ENOENT: no such file or directory, open 'C:\Users\me\work\ai\promptbook\agents\examples\Asistent pro LŠVP.book
+        // <- TODO: [🐱‍🚀] ENOENT: no such file or directory, open 'C:\Users\me\work\ai\promptbook\agents\examples\Asistent pro LŠVP.book
 
         if (isVerbose) {
             console.info(
@@ -133,7 +133,7 @@ export class AgentCollectionInDirectory implements AgentCollection {
      * Note: Agents are changed by interacting with `Agent` objects directly. Only creation and deletion is done via the collection.
      */
     public async getAgentByName(agentName: string_agent_name): Promise<Agent> {
-        // <- TODO: !!! ENOENT: no such file or directory, open 'C:\Users\me\work\ai\promptbook\agents\examples\Asistent pro LŠVP.book
+        // <- TODO: [🐱‍🚀] ENOENT: no such file or directory, open 'C:\Users\me\work\ai\promptbook\agents\examples\Asistent pro LŠVP.book
         const { isVerbose = DEFAULT_IS_VERBOSE } = this.options || {};
         const tools = await this.getTools();
 
@@ -147,13 +147,13 @@ export class AgentCollectionInDirectory implements AgentCollection {
             if (isVerbose) {
                 console.info(colors.cyan(`Writing agent source to file ${agentSourcePath}`));
             }
-            await forTime(500); // <- TODO: [🙌] !!! Remove
+            await forTime(500); // <- TODO: [🙌] Remove
             await tools.fs!.writeFile(agentSourcePath, newSource, 'utf-8');
         });
 
         // Note: Watch file for external changes
         for await (const event of tools.fs!.watch(agentSourcePath)) {
-            // <- TODO: !!!! Solve the memory freeing when the watching is no longer needed
+            // <- TODO: [🐱‍🚀] Solve the memory freeing when the watching is no longer needed
 
             if (event.eventType !== 'change') {
                 continue;
@@ -164,12 +164,12 @@ export class AgentCollectionInDirectory implements AgentCollection {
                     colors.cyan(`Detected external change in agent source file ${agentSourcePath}, reloading`),
                 );
             }
-            await forTime(500); // <- TODO: [🙌] !!! Remove
+            await forTime(500); // <- TODO: [🙌] Remove
             const newSource = validateBook(await tools.fs!.readFile(agentSourcePath, 'utf-8'));
             agentSource.next(newSource);
         }
 
-        // TODO: [🙌] !!!! Debug the infinite loop when file is changed externally and agent source is updated which causes file to be written again
+        // TODO: [🙌] [🐱‍🚀] Debug the infinite loop when file is changed externally and agent source is updated which causes file to be written again
 
         const agent = new Agent({
             ...this.options,

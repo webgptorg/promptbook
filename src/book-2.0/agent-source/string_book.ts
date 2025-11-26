@@ -49,6 +49,6 @@ export const DEFAULT_BOOK = padBook(
 );
 // <- Note: Not using book`...` notation to avoid strange error in jest unit tests `TypeError: (0 , book_notation_1.book) is not a function`
 
-// <- TODO: !!! `GENESIS_BOOK` / `ADAM_BOOK` in `/agents/adam.book`
-//                  <- !!! Buttons into genesis book
-// <- TODO: !!! generateBookBoilerplate and deprecate `DEFAULT_BOOK`
+// <- TODO: [🐱‍🚀] `GENESIS_BOOK` / `ADAM_BOOK` in `/agents/adam.book`
+//                  <- [🐱‍🚀] Buttons into genesis book
+// <- TODO: [🐱‍🚀] generateBookBoilerplate and deprecate `DEFAULT_BOOK`

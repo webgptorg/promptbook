@@ -51,11 +51,11 @@ export default async function AgentPage({ params }: { params: Promise<{ agentNam
 
     // Build agent page URL for QR and copy
     const agentUrl = `${publicUrl.href}${encodeURIComponent(agentName)}`;
-    // <- TODO: !!! Better
+    // <- TODO: [🐱‍🚀] Better
 
     const agentEmail = `${agentName}@${publicUrl.hostname}`;
 
-    console.log('!!!!', { pageUrl: agentUrl });
+    console.log('[🐱‍🚀]', { pageUrl: agentUrl });
 
     // Extract brand color from meta
     const brandColor = Color.from(agentProfile.meta.color || '#3b82f6'); // Default to blue-600
@@ -158,8 +158,8 @@ export default async function AgentPage({ params }: { params: Promise<{ agentNam
 }
 
 /**
- * TODO: !!! Make this page look nice - 🃏
- * TODO: !!! Show usage of LLM
+ * TODO: [🐱‍🚀] Make this page look nice - 🃏
+ * TODO: [🐱‍🚀] Show usage of LLM
  * TODO: [🚗] Components and pages here should be just tiny UI wraper around proper agent logic and conponents
  * TODO: [🎣][🧠] Maybe do API / Page for transpilers, Allow to export each agent
  */

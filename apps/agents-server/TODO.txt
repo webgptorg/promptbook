@@ -1,6 +1,7 @@
-TODO: !!!! Tests of the agents server should be in main testing pipeline
-TODO: !!!! Make the agents live here and act here
-TODO: !!!! Publish `agents-server` this as Docker container
-TODO: !!!! Publish `@promptbook/agents-server` to npm
-TODO: !!!! Work `ptbk start-pipelines-server` / `ptbk start-agents-server` CLI command to start this server
+TODO: [🐱‍🚀] Theese are TODOs connected with the agents and Agents server
+TODO: [🐱‍🚀] Tests of the agents server should be in main testing pipeline
+TODO: [🐱‍🚀] Make the agents live here and act here
+TODO: [🐱‍🚀] Publish `agents-server` this as Docker container
+TODO: [🐱‍🚀] Publish `@promptbook/agents-server` to npm
+TODO: [🐱‍🚀] Work `ptbk start-pipelines-server` / `ptbk start-agents-server` CLI command to start this server
 TODO: [🧠][🚙] `AgentXxx` vs `AgentsXxx` naming convention

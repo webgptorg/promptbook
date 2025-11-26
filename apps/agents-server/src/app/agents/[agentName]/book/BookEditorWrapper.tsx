@@ -9,7 +9,7 @@ type BookEditorWrapperProps = {
     initialAgentSource: string_book;
 };
 
-// TODO: !!!! Rename to BookEditorSavingWrapper
+// TODO: [🐱‍🚀] Rename to BookEditorSavingWrapper
 
 export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorWrapperProps) {
     const [agentSource, setAgentSource] = useState<string_book>(initialAgentSource);
@@ -134,6 +134,6 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
 /**
  * TODO: Prompt: Use `import { debounce } from '@promptbook-local/utils';` instead of custom debounce implementation
  * TODO: [🚗] Transfer the saving logic to `<BookEditor/>` be aware of CRDT / yjs approach to be implementable in future
- * TODO: !!! Add error handling and retry logic
- * TODO: !!! Show save status indicator
+ * TODO: [🐱‍🚀] Add error handling and retry logic
+ * TODO: [🐱‍🚀] Show save status indicator
  */

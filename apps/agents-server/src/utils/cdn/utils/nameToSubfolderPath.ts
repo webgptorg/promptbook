@@ -5,5 +5,5 @@ export function nameToSubfolderPath(name: string_name): Array<string> {
 }
 
 /**
- * TODO: !!! Use `nameToSubfolderPath` from src
+ * TODO: [🐱‍🚀] Use `nameToSubfolderPath` from src
  */

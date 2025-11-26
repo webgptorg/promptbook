@@ -26,7 +26,7 @@ type HeaderProps = {
     serverLogoUrl: string | null;
 };
 
-/* TODO: !!!!! Make this Agents server native  */
+/* TODO: [🐱‍🚀] Make this Agents server native  */
 
 export function Header(props: HeaderProps) {
     const { isAdmin = false, serverName, serverLogoUrl } = props;
@@ -59,7 +59,10 @@ export function Header(props: HeaderProps) {
                     {/* Desktop Navigation */}
                     <nav className="hidden md:flex items-center gap-8">
                         {isAdmin && (
-                            <Link href="/metadata" className="text-gray-600 hover:text-gray-900 transition-colors cursor-pointer">
+                            <Link
+                                href="/metadata"
+                                className="text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
+                            >
                                 Metadata
                             </Link>
                         )}

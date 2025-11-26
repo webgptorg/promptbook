@@ -26,11 +26,12 @@ import { OpenAiExecutionTools } from './OpenAiExecutionTools';
  *
  * This is useful for calling OpenAI API with a single assistant, for more wide usage use `OpenAiExecutionTools`.
  *
- * !!! Note: [🦖] There are several different things in Promptbook:
+ * Note: [🦖] There are several different things in Promptbook:
  * - `Agent` - which represents an AI Agent with its source, memories, actions, etc. Agent is a higher-level abstraction which is internally using:
  * - `LlmExecutionTools` - which wraps one or more LLM models and provides an interface to execute them
  * - `AgentLlmExecutionTools` - which is a specific implementation of `LlmExecutionTools` that wraps another LlmExecutionTools and applies agent-specific system prompts and requirements
  * - `OpenAiAssistantExecutionTools` - which is a specific implementation of `LlmExecutionTools` for OpenAI models with assistant capabilities, recommended for usage in `Agent` or `AgentLlmExecutionTools`
+ * - `RemoteAgent` - which is an `Agent` that connects to a Promptbook Agents Server
  *
  * @public exported from `@promptbook/openai`
  */
@@ -315,7 +316,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
          */
         readonly knowledgeSources?: ReadonlyArray<string>;
 
-        // <- TODO: [🧠] !!!! Add also other assistant creation parameters like tools, name, description, model, ...
+        // <- TODO: [🧠] [🐱‍🚀] Add also other assistant creation parameters like tools, name, description, model, ...
     }): Promise<OpenAiAssistantExecutionTools> {
         if (!this.isCreatingNewAssistantsAllowed) {
             throw new NotAllowed(
@@ -413,9 +414,9 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
 
         console.log(`✅ Assistant created: ${assistant.id}`);
 
-        // TODO: !!!! Try listing existing assistants
-        // TODO: !!!! Try marking existing assistants by DISCRIMINANT
-        // TODO: !!!! Allow to update and reconnect to existing assistants
+        // TODO: [🐱‍🚀] Try listing existing assistants
+        // TODO: [🐱‍🚀] Try marking existing assistants by DISCRIMINANT
+        // TODO: [🐱‍🚀] Allow to update and reconnect to existing assistants
 
         return new OpenAiAssistantExecutionTools({
             ...this.options,

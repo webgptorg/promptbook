@@ -10,7 +10,7 @@ type AgentChatWrapperProps = {
     agentUrl: string_agent_url;
 };
 
-// TODO: !!!! Rename to AgentChatSomethingWrapper
+// TODO: [🐱‍🚀] Rename to AgentChatSomethingWrapper
 
 export function AgentChatWrapper(props: AgentChatWrapperProps) {
     const { agentUrl } = props;
@@ -57,7 +57,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
     );
 
     if (!agent) {
-        return <>{/* <- TODO: !!! <PromptbookLoading /> */}</>;
+        return <>{/* <- TODO: [🐱‍🚀] <PromptbookLoading /> */}</>;
     }
 
     return <AgentChat className={`w-full h-full`} agent={agent} onFeedback={handleFeedback} />;

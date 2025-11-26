@@ -43,11 +43,11 @@ $sideEffect(
     _MarkitdownScraperMetadataRegistration,
     _PdfScraperMetadataRegistration,
     _WebsiteScraperMetadataRegistration,
-    // <- TODO: !!! Export all registrations from one variabile in `@promptbook/core`
+    // <- TODO: [🐱‍🚀] Export all registrations from one variabile in `@promptbook/core`
 );
 $sideEffect(/* [㊗] */ _OpenAiRegistration);
 $sideEffect(/* [㊗] */ _GoogleRegistration);
-// <- TODO: !!!! Allow to dynamically install required metadata
+// <- TODO: [🐱‍🚀] Allow to dynamically install required metadata
 
 /**
  * Cache of provided execution tools
@@ -55,8 +55,6 @@ $sideEffect(/* [㊗] */ _GoogleRegistration);
  * @private internal cache for `$provideExecutionToolsForServer`
  */
 let executionTools: null | ExecutionTools = null;
-
-
 
 /*
 TODO: [▶️]
@@ -66,25 +64,25 @@ type ProvideExecutionToolsForServerOptions = {
 */
 
 /**
- * !!!!
+ * [🐱‍🚀]
  */
 export async function $provideExecutionToolsForServer(): Promise<ExecutionTools> {
-    // TODO: !!!! [🌕] DRY
+    // TODO: [🐱‍🚀] [🌕] DRY
 
-    // const path = '../../agents'; // <- TODO: !!!! Pass
-    const isVerbose = true; // <- TODO: !!!! Pass
-    const isCacheReloaded = false; // <- TODO: !!!! Pass
+    // const path = '../../agents'; // <- TODO: [🐱‍🚀] Pass
+    const isVerbose = true; // <- TODO: [🐱‍🚀] Pass
+    const isCacheReloaded = false; // <- TODO: [🐱‍🚀] Pass
     const cliOptions = {
         provider: 'BRING_YOUR_OWN_KEYS',
-    } as TODO_any; // <- TODO: !!!! Pass
+    } as TODO_any; // <- TODO: [🐱‍🚀] Pass
 
     if (executionTools !== null) {
-        console.log('!!! Returning cached execution tools');
+        console.log('[🐱‍🚀] Returning cached execution tools');
         return executionTools;
-        // TODO: !!!! Be aware of options changes
+        // TODO: [🐱‍🚀] Be aware of options changes
     }
 
-    console.log('!!! Creating NEW execution tools');
+    console.log('[🐱‍🚀] Creating NEW execution tools');
 
     // TODO: DRY [◽]
     const prepareAndScrapeOptions = {

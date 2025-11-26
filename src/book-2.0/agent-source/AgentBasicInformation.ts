@@ -87,6 +87,6 @@ export type AgentBasicInformation = {
 };
 
 /**
- * TODO: !!!!! Make all properties of `AgentBasicInformation` readonly
+ * TODO: [🐱‍🚀] Make all properties of `AgentBasicInformation` readonly
  * TODO: [🕛] Unite `AgentBasicInformation`, `ChatParticipant`, `LlmExecutionTools` +  `LlmToolsMetadata`
  */

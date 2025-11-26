@@ -15,7 +15,7 @@ import { AgentCollectionInSupabaseOptions } from './AgentCollectionInSupabaseOpt
 import type { AgentsDatabaseSchema } from './AgentsDatabaseSchema';
 
 // import { getTableName } from '../../../../../apps/agents-server/src/database/getTableName';
-// <- TODO: !!!!! Prevent imports from `/apps` -> `/src`
+// <- TODO: [🐱‍🚀] Prevent imports from `/apps` -> `/src`
 
 /**
  * Agent collection stored in Supabase table
@@ -23,17 +23,17 @@ import type { AgentsDatabaseSchema } from './AgentsDatabaseSchema';
  * Note: This object can work both from Node.js and browser environment depending on the Supabase client provided
  *
  * @public exported from `@promptbook/core`
- * <- TODO: !!! Move to `@promptbook/supabase` package
+ * <- TODO: [🐱‍🚀] Move to `@promptbook/supabase` package
  */
-export class AgentCollectionInSupabase /* TODO: !!!!!! implements Agent */ {
+export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent */ {
     /**
      * @param rootPath - path to the directory with agents
-     * @param tools - Execution tools to be used in !!! `Agent` itself and listing the agents
+     * @param tools - Execution tools to be used in [🐱‍🚀] `Agent` itself and listing the agents
      * @param options - Options for the collection creation
      */
     public constructor(
         private readonly supabaseClient: SupabaseClient<AgentsDatabaseSchema>,
-        /// TODO: !!! Remove> private readonly tools?: Pick<ExecutionTools, 'llm' | 'fs' | 'scrapers'>,
+        /// TODO: [🐱‍🚀] Remove> private readonly tools?: Pick<ExecutionTools, 'llm' | 'fs' | 'scrapers'>,
         public readonly options?: AgentCollectionInSupabaseOptions,
     ) {
         const { isVerbose = DEFAULT_IS_VERBOSE } = options || {};
@@ -91,7 +91,7 @@ export class AgentCollectionInSupabase /* TODO: !!!!!! implements Agent */ {
     }
 
     /**
-     * !!!@@@
+     * [🐱‍🚀]@@@
      */
     public async getAgentSource(agentName: string_agent_name): Promise<string_book> {
         const selectResult = await this.supabaseClient
@@ -117,7 +117,7 @@ export class AgentCollectionInSupabase /* TODO: !!!!!! implements Agent */ {
                     `,
                 ),
             );
-            // <- TODO: !!! First check if the error is "not found" and throw `NotFoundError` instead then throw `DatabaseError`
+            // <- TODO: [🐱‍🚀] First check if the error is "not found" and throw `NotFoundError` instead then throw `DatabaseError`
         }
 
         return selectResult.data.agentSource as string_book;
@@ -192,7 +192,7 @@ export class AgentCollectionInSupabase /* TODO: !!!!!! implements Agent */ {
                     `,
                 ),
             );
-            // <- TODO: !!! First check if the error is "not found" and throw `NotFoundError` instead then throw `DatabaseError`
+            // <- TODO: [🐱‍🚀] First check if the error is "not found" and throw `NotFoundError` instead then throw `DatabaseError`
         }
 
         const previousAgentName = selectPreviousAgentResult.data.agentName;
@@ -202,16 +202,16 @@ export class AgentCollectionInSupabase /* TODO: !!!!!! implements Agent */ {
         //     <- TODO: [🕛]
         const { agentHash } = agentProfile;
 
-        // TODO: !!!!!!!! What about agentName change
+        // TODO: [🐱‍🚀] What about agentName change
 
-        // console.log('!!! agentName', agentName);
+        // console.log('[🐱‍🚀] agentName', agentName);
 
         TODO_USE(previousAgentName); // <- Do some extra action on name change
 
         const updateAgentResult = await this.supabaseClient
             .from(this.getTableName('Agent'))
             .update({
-                // TODO: !!!! Compare not update> agentName: agentProfile.agentName || '!!!!!' /* <- TODO: !!!! Remove */,
+                // TODO: [🐱‍🚀] Compare not update> agentName: agentProfile.agentName || '[🐱‍🚀]' /* <- TODO: [🐱‍🚀] Remove */,
                 agentProfile,
                 updatedAt: new Date().toISOString(),
                 agentHash: agentProfile.agentHash,
@@ -220,9 +220,9 @@ export class AgentCollectionInSupabase /* TODO: !!!!!! implements Agent */ {
             })
             .eq('agentName', agentName);
 
-        // console.log('!!! updateAgent', updateResult);
-        // console.log('!!! old', oldAgentSource);
-        // console.log('!!! new', newAgentSource);
+        // console.log('[🐱‍🚀] updateAgent', updateResult);
+        // console.log('[🐱‍🚀] old', oldAgentSource);
+        // console.log('[🐱‍🚀] new', newAgentSource);
 
         if (updateAgentResult.error) {
             throw new DatabaseError(
@@ -249,7 +249,7 @@ export class AgentCollectionInSupabase /* TODO: !!!!!! implements Agent */ {
         // <- TODO: [🧠] What to do with `insertAgentHistoryResult.error`, ignore? wait?
     }
 
-    // TODO: !!!! public async getAgentSourceSubject(agentName: string_agent_name): Promise<BehaviorSubject<string_book>>
+    // TODO: [🐱‍🚀] public async getAgentSourceSubject(agentName: string_agent_name): Promise<BehaviorSubject<string_book>>
     //            Use Supabase realtime logic
 
     /**
@@ -274,7 +274,7 @@ export class AgentCollectionInSupabase /* TODO: !!!!!! implements Agent */ {
 }
 
 /**
- * TODO: !!!! Implement it here correctly and update JSDoc comments here, and on interface + other implementations
+ * TODO: [🐱‍🚀] Implement it here correctly and update JSDoc comments here, and on interface + other implementations
  * TODO: Write unit test
  * TODO: [🧠][🚙] `AgentXxx` vs `AgentsXxx` naming convention
  */

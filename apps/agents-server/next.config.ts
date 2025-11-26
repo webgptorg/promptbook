@@ -3,7 +3,7 @@ import path from 'path';
 
 const nextConfig: NextConfig = {
     output: 'standalone',
-    // <- TODO: !!!! How to propperly build Next.js app
+    // <- TODO: [🐱‍🚀] How to propperly build Next.js app
 
     experimental: {
         externalDir: true,
