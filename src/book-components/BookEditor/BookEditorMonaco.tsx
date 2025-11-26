@@ -263,10 +263,10 @@ export function BookEditorMonaco(props: BookEditorProps) {
             .${instanceClass} .monaco-editor .separator-line {
                 background: linear-gradient(
                     to bottom, 
-                    transparent calc(50% - 1px), 
-                    ${PROMPTBOOK_SYNTAX_COLORS.SEPARATOR.toHex()} calc(50% - 1px), 
-                    ${PROMPTBOOK_SYNTAX_COLORS.SEPARATOR.toHex()} calc(50% + 1px), 
-                    transparent calc(50% + 1px)
+                    transparent ${scaledLineHeight * 0.9 - 2}px, 
+                    ${PROMPTBOOK_SYNTAX_COLORS.SEPARATOR.toHex()} ${scaledLineHeight * 0.9 - 2}px, 
+                    ${PROMPTBOOK_SYNTAX_COLORS.SEPARATOR.toHex()} ${scaledLineHeight * 0.9 + 1}px, 
+                    transparent ${scaledLineHeight * 0.9 + 1}px
                 );
             }
             

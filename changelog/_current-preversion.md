@@ -33,7 +33,7 @@
 -   Added `isReadonly` prop to `<BookEditor />` to allow read-only mode.
 -   Refactored `ChatMessageItem.tsx` to move all inline static styles to `Chat.module.css` and use CSS modules. DRY principle applied.
 -   Allow passing a chat thread into `OpenAiAssistantExecutionTools` via the `prompt.thread` property.  
-    This enables multi-message conversations and aligns thread handling with `OpenAiExecutionTools`.  
+    This enables multi-message conversations and aligns thread handling with `OpenAiAssistantExecutionTools`.  
     [2025-10-14]
     -   Remove problematic usage of `chalk` and `yoctocolors` and use only `colors`
 -   Allow passing a chat thread into `createExecutionToolsFromVercelProvider` via the `prompt.thread` property.  
@@ -47,3 +47,4 @@
 -   Added dependencies: `katex`, `@types/katex`.
 -   **New:** Added `INITIAL MESSAGE` commitment to define the initial message for the chat in the agent source.
 -   **New:** `AgentChat` now supports rendering the initial message defined in the agent source.
+-   **Style:** Separators `---` in `BookEditor` are now aligned with notebook lines and appear thicker and darker.

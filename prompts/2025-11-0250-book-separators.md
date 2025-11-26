@@ -7,11 +7,9 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
 
-![unaligned horizontal lines](screenshots/2025-11-0250-book-separators.png)
-
 ---
 
-[ ]
+[x]
 
 [✨➿] Separators `---` in `BookEditor` should be aligned with notebook lines
 
@@ -19,6 +17,8 @@
 -   It should look like the notebook line with `---` is thicker and darker
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
+
+![unaligned horizontal lines](screenshots/2025-11-0250-book-separators.png)
 
 ---
 
