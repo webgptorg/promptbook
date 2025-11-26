@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🍴] Add chat directly on Agent page
 

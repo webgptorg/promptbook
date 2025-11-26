@@ -3,7 +3,7 @@
 import { headers } from 'next/headers';
 import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
 import { generateAgentMetadata } from '../generateAgentMetadata';
-import { AgentChatWrapper } from './AgentChatWrapper';
+import { AgentChatWrapper } from '../AgentChatWrapper';
 
 export const generateMetadata = generateAgentMetadata;
 

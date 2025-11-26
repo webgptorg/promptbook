@@ -3,7 +3,7 @@
 import { ResizablePanelsAuto } from '@common/components/ResizablePanelsAuto/ResizablePanelsAuto';
 import { string_agent_url, string_book } from '@promptbook-local/types';
 import { BookEditorWrapper } from '../book/BookEditorWrapper';
-import { AgentChatWrapper } from '../chat/AgentChatWrapper';
+import { AgentChatWrapper } from '../AgentChatWrapper';
 
 type AgentBookAndChatProps = {
     agentName: string;
