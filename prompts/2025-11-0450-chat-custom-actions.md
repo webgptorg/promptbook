@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🥝] Chat component can recieve additional action via prop `extraActions`
 

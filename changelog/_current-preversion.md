@@ -1,3 +1,4 @@
+-   **New:** Chat component can receive additional action via prop `extraActions` [✨🥝]
 -   **New:** Allow to prefix Supabase database tables used in Agents Server via `SUPABASE_TABLE_PREFIX` environment variable.
 -   **New:** Record conversations to `ChatHistory` table in `Agents Server` application.
 -   **New:** Allowed to upload files to `<BookEditor/>` and created `DigitalOceanSpaces` CDN.
