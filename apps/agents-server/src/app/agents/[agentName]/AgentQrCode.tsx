@@ -25,7 +25,7 @@ export function AgentQrCode({ agentName, agentUrl, agentEmail, personaDescriptio
     `);
 
     const qrValue = mode === 'contact' ? vcard : agentUrl;
-    const label = mode === 'contact' ? 'Scan to contact' : 'Scan to open agent';
+    const label = mode === 'contact' ? 'Scan to add contact' : 'Scan to open agent';
 
     return (
         <div className="flex flex-col items-center">
@@ -48,7 +48,7 @@ export function AgentQrCode({ agentName, agentUrl, agentEmail, personaDescriptio
                 </button>
             </div>
 
-            <PromptbookQrCode value={qrValue} />
+            <PromptbookQrCode value={qrValue} className="" size={250} />
             <span className="mt-2 text-xs text-gray-500">{label}</span>
         </div>
     );

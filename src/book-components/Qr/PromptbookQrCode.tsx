@@ -61,7 +61,9 @@ export function PromptbookQrCode(props: PromptbookQrCodeProps) {
                 // Let's estimate based on version 10 (57 modules) as a starting point,
                 // as it was used in previous attempts and might be close.
 
-                const estimatedModulesPerSide = 57; // Modules in the QR code pattern itself
+                const estimatedModulesPerSide = Math.ceil(
+                    (Math.sqrt(value.toString().length) / Math.sqrt('http://ptbk.io/xxxxxx'.length)) * 57,
+                ); // Rough estimate based on data length
                 const totalModuleUnits = estimatedModulesPerSide + 2 * (options.margin || 0); // Total units including margin
                 const moduleSize = canvasElement.width / totalModuleUnits; // Size of one module in canvas pixels
 
@@ -159,21 +161,14 @@ export function PromptbookQrCode(props: PromptbookQrCodeProps) {
     return (
         <div className={className}>
             <canvas
-                width={size}
-                height={size}
                 ref={(canvasElement) => {
                     if (!canvasElement) {
                         return;
                     }
 
-                    // Set canvas dimensions if size is specified
-                    if (size) {
-                        canvasElement.width = size;
-                        canvasElement.height = size;
-                    }
-
                     // Display options - keep original size for display
                     const displayOptions: QRCodeRenderersOptions = {
+                        width: size,
                         ...props,
                         color: {
                             dark: '#000080',
