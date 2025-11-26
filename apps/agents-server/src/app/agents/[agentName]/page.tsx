@@ -106,7 +106,7 @@ export default async function AgentPage({ params }: { params: Promise<{ agentNam
                     </div>
                     <div className="flex gap-4 mt-6">
                         <a
-                            href={`${agentUrl}/chat`}
+                            href={`/agents/${encodeURIComponent(agentName)}/chat`}
                             // <- TODO: [🧠] Can I append path like this on current browser URL in href?
                             className="inline-flex items-center justify-center whitespace-nowrap bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow font-semibold transition"
                             style={{ backgroundColor: brandColor.toHex(), color: brandColor.then(textColor).toHex() }}
@@ -115,7 +115,7 @@ export default async function AgentPage({ params }: { params: Promise<{ agentNam
                             Chat
                         </a>
                         <a
-                            href={`${agentUrl}/book+chat`}
+                            href={`/agents/${encodeURIComponent(agentName)}/book+chat`}
                             // <- TODO: [🧠] Can I append path like this on current browser URL in href?
                             className="inline-flex items-center justify-center whitespace-nowrap bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded shadow font-semibold transition"
                         >
@@ -123,7 +123,7 @@ export default async function AgentPage({ params }: { params: Promise<{ agentNam
                             Book + Chat
                         </a>
                         <a
-                            href={`${agentUrl}/book`}
+                            href={`/agents/${encodeURIComponent(agentName)}/book`}
                             // <- TODO: [🧠] Can I append path like this on current browser URL in href?
                             className="inline-flex items-center justify-center whitespace-nowrap bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded shadow font-semibold transition"
                         >
