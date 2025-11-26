@@ -12,7 +12,7 @@ import { Color } from '../../../../../../src/utils/color/Color';
 import { withAlpha } from '../../../../../../src/utils/color/operators/withAlpha';
 import { $sideEffect } from '../../../../../../src/utils/organization/$sideEffect';
 import { AgentChatWrapper } from './AgentChatWrapper';
-import { AgentUrlCopy } from './AgentUrlCopy';
+import { CopyField } from './CopyField';
 import { generateAgentMetadata } from './generateAgentMetadata';
 // import { Agent } from '@promptbook-local/core';
 // import { RemoteLlmExecutionTools } from '@promptbook-local/remote-client';
@@ -52,6 +52,8 @@ export default async function AgentPage({ params }: { params: Promise<{ agentNam
     // Build agent page URL for QR and copy
     const agentUrl = `${publicUrl.href}${encodeURIComponent(agentName)}`;
     // <- TODO: !!! Better
+
+    const agentEmail = `${agentName}@${publicUrl.hostname}`;
 
     console.log('!!!!', { pageUrl: agentUrl });
 
@@ -131,12 +133,15 @@ export default async function AgentPage({ params }: { params: Promise<{ agentNam
                     </div>
                 </div>
 
-                <div className="flex flex-col items-center gap-4 pt-6 border-t border-gray-200">
+                <div className="flex flex-col items-center gap-4 pt-6 border-t border-gray-200 w-full">
                     <div className="bg-white rounded-lg p-4 flex flex-col items-center shadow-sm border border-gray-100">
                         <PromptbookQrCode value={agentUrl} />
                         <span className="mt-2 text-xs text-gray-500">Scan to open agent</span>
                     </div>
-                    <AgentUrlCopy agentUrl={agentUrl} />
+                    <div className="flex flex-col gap-2 w-full">
+                        <CopyField label="Agent Page URL" value={agentUrl} />
+                        <CopyField label="Agent Email" value={agentEmail} />
+                    </div>
                 </div>
             </div>
 

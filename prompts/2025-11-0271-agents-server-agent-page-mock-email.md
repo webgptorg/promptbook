@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🐾] On Agent page add email adress of the agent
 
