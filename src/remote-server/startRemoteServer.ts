@@ -24,7 +24,7 @@ import { $provideScrapersForNode } from '../scrapers/_common/register/$provideSc
 import { $provideScriptingForNode } from '../scrapers/_common/register/$provideScriptingForNode';
 import { promptbookFetch } from '../scrapers/_common/utils/promptbookFetch';
 import { keepTypeImported } from '../utils/organization/keepTypeImported';
-import type { really_any } from '../utils/organization/really_any';
+import type { chococake } from '../utils/organization/really_any';
 import type { TODO_any } from '../utils/organization/TODO_any';
 import type { TODO_narrow } from '../utils/organization/TODO_narrow';
 import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
@@ -265,7 +265,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
                 runningExecutions: runningExecutionTasks.length,
                 paths: [
                     ...app._router.stack
-                        .map(({ route }: really_any) => route?.path || null)
+                        .map(({ route }: chococake) => route?.path || null)
                         .filter((path: string) => path !== null),
                     '/api-docs',
                 ],
@@ -308,7 +308,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
                         ${block(
                             [
                                 ...app._router.stack
-                                    .map(({ route }: really_any) => route?.path || null)
+                                    .map(({ route }: chococake) => route?.path || null)
                                     .filter((path: string) => path !== null),
                                 '/api-docs',
                             ]
@@ -359,7 +359,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
                 message,
                 error: error ? (serializeError(error) as TODO_any) : undefined,
                 identification,
-            } satisfies LoginResponse<really_any>);
+            } satisfies LoginResponse<chococake>);
             return;
         } catch (error) {
             assertsError(error);
@@ -369,7 +369,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
                     isSuccess: false,
                     message: error.message,
                     error: serializeError(error) as TODO_any,
-                } satisfies LoginResponse<really_any>);
+                } satisfies LoginResponse<chococake>);
             }
 
             console.warn(`Login function thrown different error than AuthenticationError`, {
@@ -466,7 +466,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
                 updatedAt,
                 currentValue,
                 ptbkNonce: 0,
-            } satisfies Omit<AbstractTask<really_any>, 'asPromise' | 'asObservable'>;
+            } satisfies Omit<AbstractTask<chococake>, 'asPromise' | 'asObservable'>;
         } else {
             return {
                 taskId,
@@ -480,7 +480,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
                 llmCalls,
                 ptbkNonce: 0,
             } satisfies Omit<
-                AbstractTask<really_any>,
+                AbstractTask<chococake>,
                 'asPromise' | 'asObservable' | 'currentValue' | 'errors' | 'warnings'
             >;
         }
@@ -660,7 +660,7 @@ export function startRemoteServer<TCustomOptions = undefined>(
 
                     default:
                         throw new PipelineExecutionError(
-                            `Unknown model variant "${(prompt as really_any).modelRequirements.modelVariant}"`,
+                            `Unknown model variant "${(prompt as chococake).modelRequirements.modelVariant}"`,
                         );
                 }
 

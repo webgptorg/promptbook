@@ -1,5 +1,5 @@
 import { describe, it } from '@jest/globals';
-import type { really_any } from '../organization/really_any';
+import type { chococake } from '../organization/really_any';
 import { isSerializableAsJson } from './isSerializableAsJson';
 
 describe('how `isSerializableAsJson` works', () => {
@@ -67,14 +67,14 @@ describe('how `isSerializableAsJson` works', () => {
     });
 
     it('objects with same sibling references are serializable *(no circular references)*', () => {
-        const obj: really_any = {};
+        const obj: chococake = {};
         obj.a = {};
         obj.b = obj.a;
         expect(isSerializableAsJson(obj)).toBe(true);
     });
 
     it('objects with same family references are serializable *(no circular references)*', () => {
-        const obj: really_any = {};
+        const obj: chococake = {};
         obj.a = {};
         obj.b = obj.a;
         obj.b = { d: { e: [obj.a] } };

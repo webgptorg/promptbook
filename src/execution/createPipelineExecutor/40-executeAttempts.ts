@@ -14,7 +14,7 @@ import type { ChatPrompt, CompletionPrompt, Prompt } from '../../types/Prompt';
 import type { Parameters, string_parameter_name } from '../../types/typeAliases';
 import { arrayableToArray } from '../../utils/misc/arrayableToArray';
 import { keepTypeImported } from '../../utils/organization/keepTypeImported';
-import type { really_any } from '../../utils/organization/really_any';
+import type { chococake } from '../../utils/organization/really_any';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import type { TODO_string } from '../../utils/organization/TODO_string';
 import { templateParameters } from '../../utils/parameters/templateParameters';
@@ -252,7 +252,7 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
                                         spaceTrim(
                                             (block) => `
                                                 Unknown model variant "${
-                                                    (task as really_any).modelRequirements.modelVariant
+                                                    (task as chococake).modelRequirements.modelVariant
                                                 }"
 
                                                 ${block(pipelineIdentification)}
@@ -469,7 +469,7 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
                     prompt: {
                         ...$ongoingTaskResult.$prompt,
                         // <- TODO: [🧠] How to pick everyhing except `pipelineUrl`
-                    } as really_any,
+                    } as chococake,
                     result: $ongoingTaskResult.$result || undefined,
                     error:
                         $ongoingTaskResult.$expectError === null

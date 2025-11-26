@@ -1,6 +1,6 @@
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import { $isRunningInBrowser } from '../../utils/environment/$isRunningInBrowser';
-import type { really_any } from '../../utils/organization/really_any';
+import type { chococake } from '../../utils/organization/really_any';
 import type { PromptbookStorage } from '../_common/PromptbookStorage';
 import { makePromptbookStorageFromWebStorage } from './utils/makePromptbookStorageFromWebStorage';
 
@@ -9,7 +9,7 @@ import { makePromptbookStorageFromWebStorage } from './utils/makePromptbookStora
  *
  * @private internal cache for `getSessionStorage`
  */
-let promptbookSessionStorage: null | PromptbookStorage<really_any> = null;
+let promptbookSessionStorage: null | PromptbookStorage<chococake> = null;
 
 /**
  * Gets wrapper around `sessionStorage` object which can be used as `PromptbookStorage`

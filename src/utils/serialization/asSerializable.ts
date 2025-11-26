@@ -1,4 +1,4 @@
-import type { really_any } from '../organization/really_any';
+import type { chococake } from '../organization/really_any';
 import type { really_unknown } from '../organization/really_unknown';
 
 /**
@@ -14,7 +14,7 @@ import type { really_unknown } from '../organization/really_unknown';
  *
  * @private Internal helper function
  */
-export function asSerializable(value: really_any): really_any {
+export function asSerializable(value: chococake): chococake {
     if (value instanceof Date) {
         return value.toISOString();
     } else if (Array.isArray(value)) {
@@ -23,7 +23,7 @@ export function asSerializable(value: really_any): really_any {
         const result: really_unknown = {};
         for (const key in value) {
             if (Object.prototype.hasOwnProperty.call(value, key)) {
-                (result as really_any)[key] = asSerializable(value[key]);
+                (result as chococake)[key] = asSerializable(value[key]);
             }
         }
         return result;

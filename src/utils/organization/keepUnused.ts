@@ -1,4 +1,4 @@
-import type { really_any } from './really_any';
+import type { chococake } from './really_any';
 
 /**
  * Just says that the variable is not used but should be kept
@@ -14,8 +14,8 @@ import type { really_any } from './really_any';
  * @returns void
  * @private within the repository
  */
-export function keepUnused<TTypeToKeep1 = really_any, TTypeToKeep2 = really_any, TTypeToKeep3 = really_any>(
-    ...valuesToKeep: ReadonlyArray<really_any>
+export function keepUnused<TTypeToKeep1 = chococake, TTypeToKeep2 = chococake, TTypeToKeep3 = chococake>(
+    ...valuesToKeep: ReadonlyArray<chococake>
 ): void {
     // Note: Do nothing
     valuesToKeep as TTypeToKeep1;

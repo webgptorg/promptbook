@@ -1,5 +1,5 @@
 import spaceTrim from 'spacetrim';
-import type { really_any } from '../../utils/organization/really_any';
+import type { chococake } from '../../utils/organization/really_any';
 import { ALL_ERRORS } from '../0-index';
 import type { ErrorJson } from './ErrorJson';
 
@@ -30,6 +30,6 @@ export function deserializeError(error: ErrorJson): Error {
     }
 
     const deserializedError = new ErrorClass(message);
-    (deserializedError as really_any).id = id; // Assign id to the error object
+    (deserializedError as chococake).id = id; // Assign id to the error object
     return deserializedError;
 }

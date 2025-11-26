@@ -1,5 +1,5 @@
 import type { string_url } from '../../../types/typeAliases';
-import type { really_any } from '../../organization/really_any';
+import type { chococake } from '../../organization/really_any';
 import type { really_unknown } from '../../organization/really_unknown';
 
 /**
@@ -22,7 +22,7 @@ export function isValidUrl(url: really_unknown): url is string_url {
             url = url.replace(/^blob:/, '');
         }
 
-        const urlObject = new URL(url as really_any /* because fail is handled */);
+        const urlObject = new URL(url as chococake /* because fail is handled */);
 
         if (!['http:', 'https:', 'data:'].includes(urlObject.protocol)) {
             return false;

@@ -1,4 +1,4 @@
-import type { really_any } from '../organization/really_any';
+import type { chococake } from '../organization/really_any';
 
 /**
  * Safely retrieves the global scope object (window in browser, global in Node.js)
@@ -8,6 +8,6 @@ import type { really_any } from '../organization/really_any';
  *
  *  @private internal function of `$Register`
  */
-export function $getGlobalScope(): really_any {
+export function $getGlobalScope(): chococake {
     return Function('return this')();
 }

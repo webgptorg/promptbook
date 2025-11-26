@@ -1,6 +1,6 @@
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import { $isRunningInBrowser } from '../../utils/environment/$isRunningInBrowser';
-import type { really_any } from '../../utils/organization/really_any';
+import type { chococake } from '../../utils/organization/really_any';
 import type { PromptbookStorage } from '../_common/PromptbookStorage';
 import type { IndexedDbStorageOptions } from './utils/IndexedDbStorageOptions';
 import { makePromptbookStorageFromIndexedDb } from './utils/makePromptbookStorageFromIndexedDb';
@@ -10,7 +10,7 @@ import { makePromptbookStorageFromIndexedDb } from './utils/makePromptbookStorag
  *
  * @private internal cache for `getIndexedDbStorage`
  */
-const indexedDbStorageCache = new Map<string, PromptbookStorage<really_any>>();
+const indexedDbStorageCache = new Map<string, PromptbookStorage<chococake>>();
 
 /**
  * Gets wrapper around IndexedDB which can be used as PromptbookStorage

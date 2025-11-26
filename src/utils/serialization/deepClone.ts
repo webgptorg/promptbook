@@ -17,7 +17,7 @@ export function deepClone<TObject>(objectValue: TObject): WritableDeep<TObject> 
     TODO: [🧠] Is there a better implementation?
     > const propertyNames = Object.getOwnPropertyNames(objectValue);
     > for (const propertyName of propertyNames) {
-    >     const value = (objectValue as really_any)[propertyName];
+    >     const value = (objectValue as chococake)[propertyName];
     >     if (value && typeof value === 'object') {
     >         deepClone(value);
     >     }

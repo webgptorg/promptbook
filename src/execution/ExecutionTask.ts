@@ -6,7 +6,7 @@ import { assertsError } from '../errors/assertsError';
 import type { LlmCall } from '../types/LlmCall';
 import type { number_percent, task_id } from '../types/typeAliases';
 import type { string_SCREAMING_CASE } from '../utils/normalization/normalizeTo_SCREAMING_CASE';
-import type { really_any } from '../utils/organization/really_any';
+import type { chococake } from '../utils/organization/really_any';
 import type { TODO_any } from '../utils/organization/TODO_any';
 import type { TODO_remove_as } from '../utils/organization/TODO_remove_as';
 import { $randomToken } from '../utils/random/$randomToken';
@@ -124,7 +124,7 @@ export function createTask<TTaskResult extends AbstractTaskResult>(
                     currentValue = jsonStringsToJsons(executionResult) as TODO_remove_as<PartialDeep<TTaskResult>>;
                     // <- TODO: [🧠] Is this a good idea to convert JSON strins to JSONs?
 
-                    partialResultSubject.next(executionResult as really_any);
+                    partialResultSubject.next(executionResult as chococake);
                 } catch (error) {
                     assertsError(error);
                     status = 'ERROR';
@@ -169,7 +169,7 @@ export function createTask<TTaskResult extends AbstractTaskResult>(
             }
 
             // Fallback to default implementation
-            const cv: really_any = currentValue as really_any;
+            const cv: chococake = currentValue as chococake;
 
             // If explicit percent is provided, use it
             let percentRaw: unknown = cv?.tldr?.percent ?? cv?.usage?.percent ?? cv?.progress?.percent ?? cv?.percent;
@@ -394,7 +394,7 @@ export type AbstractTask<TTaskResult extends AbstractTaskResult> = {
     /**
      * Optional nonce to correlate logs with version of the Promptbook engine
      */
-    readonly ptbkNonce?: really_any;
+    readonly ptbkNonce?: chococake;
 
     // <- TODO: asMutableObject(): PartialDeep<TTaskResult>;
 };

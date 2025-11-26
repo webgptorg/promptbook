@@ -6,13 +6,17 @@ import { DEFAULT_IS_VERBOSE, MAX_FILENAME_LENGTH } from '../../../../config';
 import { PipelineExecutionError } from '../../../../errors/PipelineExecutionError';
 import type { AvailableModel } from '../../../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../../../execution/LlmExecutionTools';
-import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult } from '../../../../execution/PromptResult';
+import type {
+    ChatPromptResult,
+    CompletionPromptResult,
+    EmbeddingPromptResult,
+} from '../../../../execution/PromptResult';
 import { validatePromptResult } from '../../../../execution/utils/validatePromptResult';
 import { MemoryStorage } from '../../../../storage/memory/MemoryStorage';
 import type { Prompt } from '../../../../types/Prompt';
 import { $getCurrentDate } from '../../../../utils/misc/$getCurrentDate';
 import { titleToName } from '../../../../utils/normalization/titleToName';
-import type { really_any } from '../../../../utils/organization/really_any';
+import type { chococake } from '../../../../utils/organization/really_any';
 import type { TODO_any } from '../../../../utils/organization/TODO_any';
 import { extractParameterNames } from '../../../../utils/parameters/extractParameterNames';
 import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../../../../version';
@@ -119,7 +123,7 @@ export function cacheLlmTools<TLlmTools extends LlmExecutionTools>(
 
             default:
                 throw new PipelineExecutionError(
-                    `Unknown model variant "${(prompt as really_any).modelRequirements.modelVariant}"`,
+                    `Unknown model variant "${(prompt as chococake).modelRequirements.modelVariant}"`,
                 );
         }
 
@@ -135,8 +139,8 @@ export function cacheLlmTools<TLlmTools extends LlmExecutionTools>(
         const isBasicFailedResult =
             promptResult.content === null ||
             promptResult.content === undefined ||
-            (promptResult as really_any).error ||
-            (promptResult as really_any).success === false;
+            (promptResult as chococake).error ||
+            (promptResult as chococake).success === false;
 
         let shouldCache = !isBasicFailedResult;
 
@@ -191,8 +195,8 @@ export function cacheLlmTools<TLlmTools extends LlmExecutionTools>(
         } else if (isVerbose && isBasicFailedResult) {
             console.info('Not caching failed result for key:', key, {
                 content: promptResult.content,
-                error: (promptResult as really_any).error,
-                success: (promptResult as really_any).success,
+                error: (promptResult as chococake).error,
+                success: (promptResult as chococake).success,
             });
         }
 

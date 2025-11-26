@@ -12,7 +12,7 @@ import { $EnvStorage } from '../../../storage/env-storage/$EnvStorage';
 import { FileCacheStorage } from '../../../storage/file-cache-storage/FileCacheStorage';
 import type { string_app_id, string_promptbook_token, string_url } from '../../../types/typeAliases';
 import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
-import type { really_any } from '../../../utils/organization/really_any';
+import type { chococake } from '../../../utils/organization/really_any';
 import { RemoteLlmExecutionTools } from '../../remote/RemoteLlmExecutionTools';
 import { cacheLlmTools } from '../utils/cache/cacheLlmTools';
 import type { CacheLlmToolsOptions } from '../utils/cache/CacheLlmToolsOptions';
@@ -60,7 +60,7 @@ type ProvideLlmToolsForWizardOrCliOptions = {
                *
                * Note: When login prompt fails, `process.exit(1)` is called
                */
-              loginPrompt(): Promisable<Identification<really_any>>;
+              loginPrompt(): Promisable<Identification<chococake>>;
           }
     );
 
@@ -96,7 +96,7 @@ export async function $provideLlmToolsForWizardOrCli(
             key = `${key}_${remoteServerUrl.replace(/^https?:\/\//i, '')}`;
         }
 
-        let identification: Identification<really_any> | null = null;
+        let identification: Identification<chococake> | null = null;
         let promptbookToken = await storage.getItem(key);
 
         if (promptbookToken === null || isLoginloaded) {

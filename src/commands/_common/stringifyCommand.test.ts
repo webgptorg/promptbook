@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import type { really_any } from '../../utils/organization/really_any';
+import type { chococake } from '../../utils/organization/really_any';
 import { stringifyCommand } from './stringifyCommand';
 
 describe('stringify the commands', () => {
@@ -25,11 +25,11 @@ describe('stringify the commands', () => {
     */
 
     it('should fail stringifying unknown command', () => {
-        expect(() => stringifyCommand({} as really_any)).toThrowError(/parser is not found/i);
-        expect(() => stringifyCommand({ type: 'UNKNOWN' } as really_any)).toThrowError(
+        expect(() => stringifyCommand({} as chococake)).toThrowError(/parser is not found/i);
+        expect(() => stringifyCommand({ type: 'UNKNOWN' } as chococake)).toThrowError(
             /Command UNKNOWN parser is not found/i,
         );
-        expect(() => stringifyCommand({ type: 'NOTHING' } as really_any)).toThrowError(
+        expect(() => stringifyCommand({ type: 'NOTHING' } as chococake)).toThrowError(
             /Command NOTHING parser is not found/i,
         );
     });

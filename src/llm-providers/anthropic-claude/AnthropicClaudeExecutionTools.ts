@@ -12,9 +12,16 @@ import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
-import type { string_date_iso8601, string_markdown, string_markdown_text, string_model_name, string_name, string_title } from '../../types/typeAliases';
+import type {
+    string_date_iso8601,
+    string_markdown,
+    string_markdown_text,
+    string_model_name,
+    string_name,
+    string_title,
+} from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/misc/$getCurrentDate';
-import type { really_any } from '../../utils/organization/really_any';
+import type { chococake } from '../../utils/organization/really_any';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import { templateParameters } from '../../utils/parameters/templateParameters';
 import { exportJson } from '../../utils/serialization/exportJson';
@@ -72,8 +79,8 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools /* <- TO
         if (this.client === null) {
             // Note: Passing only Anthropic Claude relevant options to Anthropic constructor
             const anthropicOptions: ClientOptions = { ...this.options };
-            delete (anthropicOptions as really_any).isVerbose;
-            delete (anthropicOptions as really_any).isProxied;
+            delete (anthropicOptions as chococake).isVerbose;
+            delete (anthropicOptions as chococake).isProxied;
             this.client = new Anthropic(anthropicOptions);
         }
 
