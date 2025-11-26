@@ -43,4 +43,15 @@ describe('Color.toHsl', () => {
         const color = Color.fromString(hslInput);
         expect(color.toHsl()).toBe(hslInput);
     });
+
+    it(`converts color with alpha to HSLA`, () => {
+        // Create color with alpha channel using hex format with alpha (8 digits)
+        const color = Color.fromValues(255, 0, 0, 128); // Red with ~50% alpha
+        expect(color.toHsl()).toBe('hsla(0, 100%, 50%, 50%)');
+    });
+
+    it(`converts fully transparent color to HSLA`, () => {
+        const color = Color.fromValues(0, 255, 0, 0); // Green with 0% alpha
+        expect(color.toHsl()).toBe('hsla(120, 100%, 50%, 0%)');
+    });
 });

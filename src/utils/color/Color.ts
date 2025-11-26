@@ -458,7 +458,11 @@ export class Color {
         const hDegrees = Math.round(h * 360);
         const sPercent = Math.round(s * 100);
         const lPercent = Math.round(l * 100);
-        return `hsl(${hDegrees}, ${sPercent}%, ${lPercent}%)`;
+        if (this.alpha === 255) {
+            return `hsl(${hDegrees}, ${sPercent}%, ${lPercent}%)`;
+        } else {
+            return `hsla(${hDegrees}, ${sPercent}%, ${lPercent}%, ${Math.round((this.alpha / 255) * 100)}%)`;
+        }
     }
 }
 
