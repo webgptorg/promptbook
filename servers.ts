@@ -61,5 +61,6 @@ export const REMOTE_SERVER_URLS: Array<ServerConfiguration> = [
 ];
 
 /**
+ * TODO: [🐱‍🚀] Auto-federated server from url in here
  * Note: [💞] Ignore a discrepancy between file name and entity name
  */
