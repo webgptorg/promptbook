@@ -5,7 +5,7 @@ import { createDefaultAgentName } from '../../book-2.0/agent-source/createDefaul
 import { parseAgentSource } from '../../book-2.0/agent-source/parseAgentSource';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { string_agent_hash, string_agent_name, string_url_image } from '../../types/typeAliases';
+import type { string_agent_hash, string_agent_name, string_agent_url, string_url_image } from '../../types/typeAliases';
 import { asUpdatableSubject } from '../../types/Updatable';
 import { getSingleLlmExecutionTools } from '../_multiple/getSingleLlmExecutionTools';
 import { AgentLlmExecutionTools } from './AgentLlmExecutionTools';
@@ -41,6 +41,12 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
      * The initial message shown to the user when the chat starts
      */
     public initialMessage: string | null = null;
+
+  /**
+     * Links found in the agent source
+     */
+   public links: Array<string_agent_url> = [];
+
 
     /**
      * Computed hash of the agent source for integrity verification
@@ -84,10 +90,11 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
 
         this.agentSource = agentSource;
         this.agentSource.subscribe((source) => {
-            const { agentName, personaDescription, initialMessage, meta } = parseAgentSource(source);
+            const { agentName, personaDescription, initialMessage,links, meta } = parseAgentSource(source);
             this._agentName = agentName;
             this.personaDescription = personaDescription;
             this.initialMessage = initialMessage;
+            this.links = links;
             this.meta = { ...this.meta, ...meta };
         });
     }

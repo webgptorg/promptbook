@@ -1,4 +1,10 @@
-import type { string_agent_hash, string_agent_name, string_color, string_url_image } from '../../types/typeAliases';
+import type {
+    string_agent_hash,
+    string_agent_name,
+    string_agent_url,
+    string_color,
+    string_url_image,
+} from '../../types/typeAliases';
 
 /**
  * Unified parameter representation that supports two different notations:
@@ -68,7 +74,7 @@ export type AgentBasicInformation = {
      * Links found in the agent source
      * This corresponds to META LINK commitments
      */
-    links: string[]; // <- TODO: !!!! Better type for URLs
+    links: Array<string_agent_url>;
 
     /**
      * Parameters found in the agent source
