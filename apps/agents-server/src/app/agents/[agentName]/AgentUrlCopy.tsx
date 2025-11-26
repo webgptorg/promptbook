@@ -1,14 +1,14 @@
 'use client';
 
+import { string_agent_url } from '@promptbook-local/types';
 import { useState } from 'react';
 
-export function AgentUrlCopy({ url }: { url: string; }) {
+export function AgentUrlCopy({ agentUrl }: { agentUrl: string_agent_url }) {
     const [copied, setCopied] = useState(false);
-
 
     const handleCopy = async () => {
         try {
-            await navigator.clipboard.writeText(url);
+            await navigator.clipboard.writeText(agentUrl);
             setCopied(true);
             setTimeout(() => setCopied(false), 2000);
         } catch (err) {
@@ -22,7 +22,7 @@ export function AgentUrlCopy({ url }: { url: string; }) {
             <div className="flex gap-2 items-center">
                 <input
                     type="text"
-                    value={url}
+                    value={agentUrl}
                     readOnly
                     className="flex-1 px-2 py-1 border rounded text-sm bg-gray-50 text-gray-700"
                     onFocus={(e) => e.target.select()}
@@ -30,7 +30,6 @@ export function AgentUrlCopy({ url }: { url: string; }) {
                 <button
                     type="button"
                     className="px-2 py-1 text-white rounded text-xs font-semibold transition hover:opacity-90"
-                 
                     onClick={handleCopy}
                 >
                     {copied ? '✓ Copied' : 'Copy'}

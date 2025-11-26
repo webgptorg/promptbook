@@ -49,10 +49,10 @@ export default async function AgentPage({ params }: { params: Promise<{ agentNam
     const { publicUrl } = await $provideServer();
 
     // Build agent page URL for QR and copy
-    const pageUrl = `${publicUrl.href}/${encodeURIComponent(agentName)}`;
+    const agentUrl = `${publicUrl.href}${encodeURIComponent(agentName)}`;
     // <- TODO: !!! Better
 
-    console.log('!!!!', { pageUrl });
+    console.log('!!!!', { pageUrl: agentUrl });
 
     // Extract brand color from meta
     const brandColor = Color.from(agentProfile.meta.color || '#3b82f6'); // Default to blue-600
@@ -106,7 +106,7 @@ export default async function AgentPage({ params }: { params: Promise<{ agentNam
                     </div>
                     <div className="flex gap-4 mt-6">
                         <a
-                            href={`${pageUrl}/chat`}
+                            href={`${agentUrl}/chat`}
                             // <- TODO: [🧠] Can I append path like this on current browser URL in href?
                             className="inline-flex items-center justify-center whitespace-nowrap bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow font-semibold transition"
                             style={{ backgroundColor: brandColor.toHex(), color: brandColor.then(textColor).toHex() }}
@@ -115,7 +115,7 @@ export default async function AgentPage({ params }: { params: Promise<{ agentNam
                             Chat
                         </a>
                         <a
-                            href={`${pageUrl}/book`}
+                            href={`${agentUrl}/book`}
                             // <- TODO: [🧠] Can I append path like this on current browser URL in href?
                             className="inline-flex items-center justify-center whitespace-nowrap bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded shadow font-semibold transition"
                         >
@@ -127,10 +127,10 @@ export default async function AgentPage({ params }: { params: Promise<{ agentNam
                 {/* Right column: QR, source, copy */}
                 <div className="flex flex-col items-center gap-6 min-w-[260px]">
                     <div className="bg-gray-100 rounded-lg p-4 flex flex-col items-center">
-                        <PromptbookQrCode value={pageUrl} />
+                        <PromptbookQrCode value={agentUrl} />
                         <span className="mt-2 text-xs text-gray-500">Scan to open agent</span>
                     </div>
-                    <AgentUrlCopy url={pageUrl} />
+                    <AgentUrlCopy agentUrl={agentUrl} />
                 </div>
             </div>
         </div>
