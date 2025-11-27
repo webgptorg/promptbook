@@ -1,4 +1,5 @@
-[x]
+[x] _<- TODO: Problemeatic, not working_
+[ ]
 
 [✨🍥] Reflect changes from book to chat in real time
 
@@ -15,10 +16,11 @@
 
 [ ]
 
-[✨🍥] Show BookEditor saving indicator next to the menu inside a book editor 
+[✨🍥] Show BookEditor saving indicator next to the menu inside a book editor
 
-Pass it as savingIndicator prop to the BookEditor 
-pass is saved when false prevent browser close 
+Pass it as savingIndicator prop to the BookEditor
+pass is saved when false prevent browser close
+
 -   You are working on the page `/agents/[agentName]/book+chat` where book and chat are shown side by side
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
