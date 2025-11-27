@@ -95,3 +95,8 @@ export function PromptbookAgent(props: PromptbookAgentProps) {
         </div>
     );
 }
+
+/**
+ * TODO: !!! Load the full branding
+ * TODO: !!! <promptbook-agent> element
+ */
