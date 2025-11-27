@@ -4,7 +4,9 @@ import { parseAgentSource } from '../../../../book-2.0/agent-source/parseAgentSo
 import type { string_book } from '../../../../book-2.0/agent-source/string_book';
 import { DEFAULT_IS_VERBOSE } from '../../../../config';
 import { DatabaseError } from '../../../../errors/DatabaseError';
+import { NotFoundError } from '../../../../errors/NotFoundError';
 import { NotYetImplementedError } from '../../../../errors/NotYetImplementedError';
+import { UnexpectedError } from '../../../../errors/UnexpectedError';
 import { ZERO_USAGE } from '../../../../execution/utils/usage-constants';
 import type { string_agent_name } from '../../../../types/typeAliases';
 import { keepUnused } from '../../../../utils/organization/keepUnused';
@@ -97,30 +99,25 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
         const selectResult = await this.supabaseClient
             .from(this.getTableName('Agent'))
             .select('agentSource')
-            .eq('agentName', agentName)
-            .single();
+            .eq('agentName', agentName);
 
-        /*
-        if (selectResult.data===null) {
+        if (selectResult.data && selectResult.data.length === 0) {
             throw new NotFoundError(`Agent "${agentName}" not found`);
-        }
-        */
-
-        if (selectResult.error) {
+        } else if (selectResult.data && selectResult.data.length > 1) {
+            throw new UnexpectedError(`More agents with agentName="${agentName}" found`);
+        } else if (selectResult.error) {
             throw new DatabaseError(
                 spaceTrim(
                     (block) => `
-                
                         Error fetching agent "${agentName}" from Supabase:
                         
                         ${block(selectResult.error.message)}
                     `,
                 ),
             );
-            // <- TODO: [🐱‍🚀] First check if the error is "not found" and throw `NotFoundError` instead then throw `DatabaseError`
         }
 
-        return selectResult.data.agentSource as string_book;
+        return selectResult.data[0].agentSource as string_book;
     }
 
     /**
@@ -192,7 +189,7 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
                     `,
                 ),
             );
-            // <- TODO: [🐱‍🚀] First check if the error is "not found" and throw `NotFoundError` instead then throw `DatabaseError`
+            // <- TODO: [🐱‍🚀] First check if the error is "not found" and throw `NotFoundError` instead then throw `DatabaseError`, look at `getAgentSource` implementation
         }
 
         const previousAgentName = selectPreviousAgentResult.data.agentName;

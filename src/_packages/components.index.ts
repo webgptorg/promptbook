@@ -59,6 +59,7 @@ import { TemplateIcon } from '../book-components/icons/TemplateIcon';
 import { BrandedQrCode } from '../book-components/Qr/BrandedQrCode';
 import { GenericQrCode } from '../book-components/Qr/GenericQrCode';
 import { PromptbookQrCode } from '../book-components/Qr/PromptbookQrCode';
+import { PromptbookAgent } from '../book-components/PromptbookAgent/PromptbookAgent';
 import { injectCssModuleIntoShadowRoot } from '../utils/misc/injectCssModuleIntoShadowRoot';
 import { AboutPromptbookInformation } from '../utils/misc/xAboutPromptbookInformation';
 
@@ -123,5 +124,6 @@ export { TemplateIcon };
 export { BrandedQrCode };
 export { GenericQrCode };
 export { PromptbookQrCode };
+export { PromptbookAgent };
 export { injectCssModuleIntoShadowRoot };
 export { AboutPromptbookInformation };
