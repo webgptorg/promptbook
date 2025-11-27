@@ -8,7 +8,6 @@ import { string_agent_url } from '../../../../../../src/types/typeAliases';
 
 type AgentChatWrapperProps = {
     agentUrl: string_agent_url;
-    onAgentLearned?: () => void;
 };
 
 // TODO: [🐱‍🚀] Rename to AgentChatSomethingWrapper
@@ -53,12 +52,8 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
                     agentHash: agent.agentHash,
                 }),
             });
-
-            if (props.onAgentLearned) {
-                props.onAgentLearned();
-            }
         },
-        [agent, agentUrl, props],
+        [agent, agentUrl],
     );
 
     if (!agent) {

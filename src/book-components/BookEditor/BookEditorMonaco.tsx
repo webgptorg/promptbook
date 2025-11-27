@@ -43,7 +43,6 @@ export function BookEditorMonaco(props: BookEditorProps) {
         onFullscreenClick,
         isFullscreen,
         zoom = 1,
-        savingIndicator,
         // [🚱]> sync,
     } = props;
 
@@ -417,7 +416,6 @@ export function BookEditorMonaco(props: BookEditorProps) {
                         isFullscreenButtonShown,
                         onFullscreenClick,
                         isFullscreen,
-                        savingIndicator,
                     }}
                 />
             )}

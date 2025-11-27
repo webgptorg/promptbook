@@ -139,11 +139,6 @@ export type BookEditorProps = {
     readonly isFullscreen?: boolean;
 
     /**
-     * Element to display the saving status
-     */
-    readonly savingIndicator?: React.ReactNode;
-
-    /**
      * If defined, the editor will be synced with other editors with the same sync configuration.
      */
     readonly sync?: {
@@ -173,7 +168,6 @@ export function BookEditor(props: BookEditorProps) {
         value,
         onChange,
         onFileUpload,
-        savingIndicator,
         isVerbose = DEFAULT_IS_VERBOSE,
         isBorderRadiusDisabled = false,
         isReadonly = false,
@@ -232,7 +226,6 @@ export function BookEditor(props: BookEditorProps) {
                 isFullscreen={isFullscreen}
                 sync={sync}
                 zoom={zoom}
-                savingIndicator={savingIndicator}
             />
         </div>
     );
