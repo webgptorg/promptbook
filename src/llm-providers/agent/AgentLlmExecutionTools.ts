@@ -2,6 +2,7 @@ import { SHA256 as sha256 } from 'crypto-js';
 import hexEncoder from 'crypto-js/enc-hex';
 import type { Promisable } from 'type-fest';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
+import type { string_book } from '../../book-2.0/agent-source/string_book';
 import { createAgentModelRequirements } from '../../book-2.0/agent-source/createAgentModelRequirements';
 import { parseAgentSource } from '../../book-2.0/agent-source/parseAgentSource';
 import type { ChatParticipant } from '../../book-components/Chat/types/ChatParticipant';
@@ -58,6 +59,17 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
      * @param agentSource The agent source string that defines the agent's behavior
      */
     constructor(private readonly options: CreateAgentLlmExecutionToolsOptions) {}
+
+    /**
+     * Updates the agent source and clears the cache
+     *
+     * @param agentSource The new agent source string
+     */
+    protected updateAgentSource(agentSource: string_book): void {
+        this.options.agentSource = agentSource;
+        this._cachedAgentInfo = null;
+        this._cachedModelRequirements = null;
+    }
 
     /**
      * Get cached or parse agent information

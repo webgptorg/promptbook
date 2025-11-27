@@ -110,6 +110,12 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                             platform,
                         });
 
+                        // Note: [🐱‍🚀] Save the learned data
+                        const newAgentSource = agent.agentSource.value;
+                        if (newAgentSource !== agentSource) {
+                            await collection.updateAgentSource(agentName, newAgentSource);
+                        }
+
                         controller.close();
                     })
                     .catch((error) => {

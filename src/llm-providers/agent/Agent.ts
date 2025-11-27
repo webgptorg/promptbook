@@ -1,10 +1,14 @@
 import { BehaviorSubject } from 'rxjs';
+import spaceTrim from 'spacetrim';
+import { padBook, validateBook } from '../../_packages/core.index';
 import type { AgentBasicInformation, BookParameter } from '../../book-2.0/agent-source/AgentBasicInformation';
 import { computeAgentHash } from '../../book-2.0/agent-source/computeAgentHash';
 import { createDefaultAgentName } from '../../book-2.0/agent-source/createDefaultAgentName';
 import { parseAgentSource } from '../../book-2.0/agent-source/parseAgentSource';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type { ChatPromptResult } from '../../execution/PromptResult';
+import type { Prompt } from '../../types/Prompt';
 import type { string_agent_hash, string_agent_name, string_agent_url, string_url_image } from '../../types/typeAliases';
 import { asUpdatableSubject } from '../../types/Updatable';
 import { getSingleLlmExecutionTools } from '../_multiple/getSingleLlmExecutionTools';
@@ -90,6 +94,8 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
 
         this.agentSource = agentSource;
         this.agentSource.subscribe((source) => {
+            this.updateAgentSource(source);
+
             const { agentName, personaDescription, initialMessage, links, meta } = parseAgentSource(source);
             this._agentName = agentName;
             this.personaDescription = personaDescription;
@@ -97,6 +103,45 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
             this.links = links;
             this.meta = { ...this.meta, ...meta };
         });
+    }
+
+    /**
+     * Calls the chat model with agent-specific system prompt and requirements with streaming
+     *
+     * Note: This method also implements the learning mechanism
+     */
+    public async callChatModelStream(
+        prompt: Prompt,
+        onProgress: (chunk: ChatPromptResult) => void,
+    ): Promise<ChatPromptResult> {
+        const result = await super.callChatModelStream(prompt, onProgress);
+
+        // TODO: !!! Extract learning to separate method
+        // Learning: Append the conversation sample to the agent source
+        const learningExample = spaceTrim(
+            (block) => `
+
+                ---
+
+                SAMPLE
+
+                User:
+                ${block(prompt.content)}
+
+                ${this.title} (Me, the Agent):
+                ${block(result.content)}
+
+            `,
+        );
+
+        // Append to the current source
+        const currentSource = this.agentSource.value;
+        const newSource = padBook(validateBook(spaceTrim(currentSource) + '\n\n' + learningExample));
+
+        // Update the source (which will trigger the subscription and update the underlying tools)
+        this.agentSource.next(newSource as string_book);
+
+        return result;
     }
 }
 
