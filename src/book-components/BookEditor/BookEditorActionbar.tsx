@@ -8,12 +8,12 @@ import { useState } from 'react';
 import { DEFAULT_BOOK, validateBook } from '../../book-2.0/agent-source/string_book';
 import { $induceBookDownload } from '../../utils/files/$induceBookDownload';
 import { AboutPromptbookInformation } from '../../utils/misc/xAboutPromptbookInformation';
+import { Dropdown } from '../_common/Dropdown/Dropdown';
+import { Modal } from '../_common/Modal/Modal';
 import { AboutIcon } from '../icons/AboutIcon';
 import { DownloadIcon } from '../icons/DownloadIcon';
 import { ExitFullscreenIcon } from '../icons/ExitFullscreenIcon';
 import { FullscreenIcon } from '../icons/FullscreenIcon';
-import { Dropdown } from '../_common/Dropdown/Dropdown';
-import { Modal } from '../_common/Modal/Modal';
 import styles from './BookEditor.module.css';
 
 type BookEditorActionbarProps = {
@@ -23,6 +23,7 @@ type BookEditorActionbarProps = {
     isFullscreenButtonShown?: boolean;
     onFullscreenClick?: () => void;
     isFullscreen?: boolean;
+    savingIndicator?: React.ReactNode;
 };
 
 /**
@@ -37,6 +38,7 @@ export function BookEditorActionbar(props: BookEditorActionbarProps) {
         isFullscreenButtonShown,
         onFullscreenClick,
         isFullscreen,
+        savingIndicator,
     } = props;
     const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
 
@@ -83,6 +85,8 @@ export function BookEditorActionbar(props: BookEditorActionbarProps) {
 
     return (
         <div className={styles.bookEditorActionbar}>
+            {savingIndicator && <div className={styles.savingIndicator}>{savingIndicator}</div>}
+
             {actions.length >= 2 ? (
                 <Dropdown actions={actions} />
             ) : (

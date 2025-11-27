@@ -8,7 +8,7 @@
 
 ---
 
-[ ]
+[x] <- TODO: Problemeatic, not working >
 
 [✨🖋] When learning from conversations, show the updated agent source right away in the book
 

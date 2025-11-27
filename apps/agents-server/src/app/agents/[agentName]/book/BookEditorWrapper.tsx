@@ -6,13 +6,13 @@ import { useEffect, useRef, useState } from 'react';
 
 type BookEditorWrapperProps = {
     agentName: string;
-    initialAgentSource: string_book;
+    agentSource: string_book;
+    onAgentSourceChange: (source: string_book) => void;
 };
 
 // TODO: [🐱‍🚀] Rename to BookEditorSavingWrapper
 
-export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorWrapperProps) {
-    const [agentSource, setAgentSource] = useState<string_book>(initialAgentSource);
+export function BookEditorWrapper({ agentName, agentSource, onAgentSourceChange }: BookEditorWrapperProps) {
     const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
     // Debounce timer ref so we can clear previous pending save
@@ -53,7 +53,7 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
     };
 
     const handleChange = (newSource: string_book) => {
-        setAgentSource(newSource);
+        onAgentSourceChange(newSource);
         scheduleSave(newSource);
     };
 
@@ -66,32 +66,39 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
         };
     }, []);
 
+    // Prevent browser close when not saved
+    useEffect(() => {
+        const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+            if (saveStatus === 'saving' || saveStatus === 'error') {
+                event.preventDefault();
+                event.returnValue = '';
+            }
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+        };
+    }, [saveStatus]);
+
+    const savingIndicator = (
+        <div className="text-sm text-gray-500">
+            {saveStatus === 'saving' && '💾 Saving...'}
+            {saveStatus === 'saved' && '✅ Saved'}
+            {saveStatus === 'error' && '❌ Failed to save'}
+        </div>
+    );
+
     return (
         <div className="w-full h-full">
-            {saveStatus !== 'idle' && (
-                <div
-                    role="status"
-                    aria-live="polite"
-                    className={`fixed top-5 right-28 z-50 px-4 py-2 text-sm rounded shadow-md ${
-                        saveStatus === 'saving'
-                            ? 'bg-blue-100 text-blue-800'
-                            : saveStatus === 'saved'
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-red-100 text-red-800'
-                    }`}
-                >
-                    {saveStatus === 'saving' && '💾 Saving...'}
-                    {saveStatus === 'saved' && '✅ Saved'}
-                    {saveStatus === 'error' && '❌ Failed to save'}
-                </div>
-            )}
-
             <BookEditor
                 className="w-full h-full"
                 isBorderRadiusDisabled
                 height={null}
                 value={agentSource}
                 onChange={handleChange}
+                savingIndicator={savingIndicator}
                 onFileUpload={async (file) => {
                     const formData = new FormData();
                     formData.append('file', file);
