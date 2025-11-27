@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🧿] Create `<promptbook-agent agent-url="http://s6.ptbk.io/benjamin-white" />` element
 

@@ -12,6 +12,11 @@ type PromptbookAgentProps = {
      * @example "http://s6.ptbk.io/benjamin-white"
      */
     agentUrl: string;
+
+    /**
+     * Callback when the window is opened or closed
+     */
+    onOpenChange?: (isOpen: boolean) => void;
 };
 
 /**
@@ -20,8 +25,14 @@ type PromptbookAgentProps = {
  * @public exported from `@promptbook/components`
  */
 export function PromptbookAgent(props: PromptbookAgentProps) {
-    const { agentUrl } = props;
+    const { agentUrl, onOpenChange } = props;
     const [isOpen, setIsOpen] = useState(false);
+
+    useEffect(() => {
+        if (onOpenChange) {
+            onOpenChange(isOpen);
+        }
+    }, [isOpen, onOpenChange]);
     const [agent, setAgent] = useState<RemoteAgent | null>(null);
     const [error, setError] = useState<Error | null>(null);
 
