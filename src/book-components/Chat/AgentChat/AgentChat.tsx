@@ -3,6 +3,7 @@
 //          this would not be here because the `@promptbook/components` package should be React library independent of Next.js specifics
 
 /* Context removed – using attachable sendMessage from hook */
+import { useMemo } from 'react';
 import spaceTrim from 'spacetrim';
 import { asUpdatableSubject } from '../../../types/Updatable';
 import { LlmChat } from '../LlmChat/LlmChat';
@@ -23,25 +24,33 @@ import type { AgentChatProps } from './AgentChatProps';
 export function AgentChat(props: AgentChatProps) {
     const { agent, title, persistenceKey, onChange, sendMessage, ...restProps } = props;
 
+    const initialMessageContent =
+        agent.initialMessage ||
+        spaceTrim(`
+            
+            Hello! I am ${agent.agentName || 'an AI Agent'}.
+            
+            [Hello](?message=Hello, can you tell me about yourself?)
+        `);
+
+    const initialMessages = useMemo(
+        () => [
+            {
+                id: `initial_${Date.now()}_${Math.random()}`,
+                from: 'AGENT',
+                content: initialMessageContent,
+            },
+        ],
+        [initialMessageContent],
+    );
+
     return (
         <LlmChat
             title={title || `Chat with ${agent.agentName || 'Agent'}`}
             persistenceKey={persistenceKey || `agent-chat-${agent.agentName}`}
             userParticipantName="USER"
             llmParticipantName="AGENT" // <- TODO: [🧠] Maybe dynamic agent id
-            initialMessages={[
-                {
-                    from: 'AGENT',
-                    content:
-                        agent.initialMessage ||
-                        spaceTrim(`
-                                
-                        Hello! I am ${agent.agentName || 'an AI Agent'}.
-                        
-                        [Hello](?message=Hello, can you tell me about yourself?)
-                    `),
-                },
-            ]}
+            initialMessages={initialMessages}
             participants={[
                 {
                     name: 'AGENT',

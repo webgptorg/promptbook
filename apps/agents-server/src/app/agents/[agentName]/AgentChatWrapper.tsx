@@ -4,7 +4,7 @@ import { usePromise } from '@common/hooks/usePromise';
 import { AgentChat } from '@promptbook-local/components';
 import { RemoteAgent } from '@promptbook-local/core';
 import { string_book } from '@promptbook-local/types';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import type { ChatMessage } from '../../../../../../src/book-components/Chat/types/ChatMessage';
 import type { ChatParticipant } from '../../../../../../src/book-components/Chat/types/ChatParticipant';
 import { asUpdatableSubject } from '../../../../../../src/types/Updatable';
@@ -64,27 +64,21 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
     );
 
     // Wrap messages to mark them as outdated if needed
-    const [wrappedMessages, setWrappedMessages] = useState<ReadonlyArray<ChatMessage>>([]);
+    const transformMessage = useCallback(
+        (message: ChatMessage) => {
+            const messageVersion = message.id ? messageSourceVersions.current.get(String(message.id)) : undefined;
+            const isFromOutdatedSource =
+                messageVersion !== undefined && messageVersion < currentSourceVersionRef.current;
 
-    const handleMessagesWithOutdatedFlag = useCallback(
-        (messages: ReadonlyArray<ChatMessage>, participants: ReadonlyArray<ChatParticipant>) => {
-            const messagesWithFlags = messages.map((message) => {
-                const messageVersion = message.id
-                    ? messageSourceVersions.current.get(String(message.id))
-                    : undefined;
-                const isFromOutdatedSource =
-                    messageVersion !== undefined && messageVersion < currentSourceVersionRef.current;
-
+            if (isFromOutdatedSource) {
                 return {
                     ...message,
-                    isFromOutdatedSource,
+                    isFromOutdatedSource: true,
                 };
-            });
-
-            setWrappedMessages(messagesWithFlags);
-            handleChange(messages, participants);
+            }
+            return message;
         },
-        [handleChange],
+        [sourceVersion], // <- Re-create when sourceVersion changes to trigger re-render in LlmChat
     );
 
     const handleFeedback = useCallback(
@@ -129,7 +123,8 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
         <AgentChat
             className={`w-full h-full`}
             agent={agent}
-            onChange={handleMessagesWithOutdatedFlag}
+            onChange={handleChange}
+            transformMessage={transformMessage}
             onFeedback={handleFeedback}
         />
     );

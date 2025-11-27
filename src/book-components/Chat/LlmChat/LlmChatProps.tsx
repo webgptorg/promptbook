@@ -65,4 +65,10 @@ export type LlmChatProps = Omit<ChatProps, 'messages' | 'onMessage' | 'onChange'
      * @default 'ASSISTANT'
      */
     readonly llmParticipantName?: id;
+
+    /**
+     * Optional function to transform messages before they are passed to the inner Chat component.
+     * This allows external components (like AgentChatWrapper) to add metadata or flags (e.g. isFromOutdatedSource) without managing the message state directly.
+     */
+    readonly transformMessage?: (message: ChatMessage) => ChatMessage;
 };
