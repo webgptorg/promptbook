@@ -1,11 +1,12 @@
 import { BehaviorSubject } from 'rxjs';
 import spaceTrim from 'spacetrim';
-import { padBook, validateBook } from '../../_packages/core.index';
 import type { AgentBasicInformation, BookParameter } from '../../book-2.0/agent-source/AgentBasicInformation';
 import { computeAgentHash } from '../../book-2.0/agent-source/computeAgentHash';
 import { createDefaultAgentName } from '../../book-2.0/agent-source/createDefaultAgentName';
+import { padBook } from '../../book-2.0/agent-source/padBook';
 import { parseAgentSource } from '../../book-2.0/agent-source/parseAgentSource';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
+import { validateBook } from '../../book-2.0/agent-source/string_book';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
