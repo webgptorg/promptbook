@@ -4,7 +4,7 @@ import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentColle
 // import { BookEditor } from '@promptbook-local/components';
 import { $provideServer } from '@/src/tools/$provideServer';
 import { parseAgentSource } from '@promptbook-local/core';
-import { Columns2Icon, Edit2Icon } from 'lucide-react';
+import { Columns2Icon, MessagesSquareIcon, NotebookPenIcon } from 'lucide-react';
 import { headers } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { Color } from '../../../../../../src/utils/color/Color';
@@ -115,6 +115,14 @@ export default async function AgentPage({ params }: { params: Promise<{ agentNam
                 <div className="flex flex-col gap-2 mt-auto">
                     <div className="flex gap-2">
                         <a
+                            href={`/agents/${encodeURIComponent(agentName)}/chat`}
+                            // <- TODO: [🧠] Can I append path like this on current browser URL in href?
+                            className="flex-1 inline-flex items-center justify-center whitespace-nowrap bg-white hover:bg-gray-100 text-gray-800 px-4 py-2 rounded shadow font-semibold transition border border-gray-200"
+                        >
+                            <MessagesSquareIcon className="ml-2 w-4 h-4 mr-2" />
+                            Chat
+                        </a>
+                        <a
                             href={`/agents/${encodeURIComponent(agentName)}/book+chat`}
                             // <- TODO: [🧠] Can I append path like this on current browser URL in href?
                             className="flex-1 inline-flex items-center justify-center whitespace-nowrap bg-white hover:bg-gray-100 text-gray-800 px-4 py-2 rounded shadow font-semibold transition border border-gray-200"
@@ -127,7 +135,7 @@ export default async function AgentPage({ params }: { params: Promise<{ agentNam
                             // <- TODO: [🧠] Can I append path like this on current browser URL in href?
                             className="flex-1 inline-flex items-center justify-center whitespace-nowrap bg-white hover:bg-gray-100 text-gray-800 px-4 py-2 rounded shadow font-semibold transition border border-gray-200"
                         >
-                            <Edit2Icon className="ml-2 w-4 h-4 mr-2" />
+                            <NotebookPenIcon className="ml-2 w-4 h-4 mr-2" />
                             Edit
                         </a>
                     </div>
