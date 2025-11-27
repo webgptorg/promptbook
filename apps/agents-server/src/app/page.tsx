@@ -86,7 +86,7 @@ export default async function HomePage() {
                             <ModelCard
                                 key={modelName}
                                 modelName={modelName}
-                                modelTitle={modelTitle}
+                                modelTitle={modelTitle || modelName}
                                 modelDescription={modelDescription}
                             />
                         ))}
@@ -105,12 +105,10 @@ export default async function HomePage() {
                         <TechInfoCard title={`Long running task ${longRunningTask.taskId}`}>
                             <p className="text-gray-600">Tick: {longRunningTask.tick}</p>
                             <p className="text-gray-600">
-                                Created At:{' '}
-                                {moment(longRunningTask.createdAt).calendar(undefined, calendarWithSeconds)}
+                                Created At: {moment(longRunningTask.createdAt).calendar(undefined, calendarWithSeconds)}
                             </p>
                             <p className="text-gray-600">
-                                Updated At:{' '}
-                                {moment(longRunningTask.updatedAt).calendar(undefined, calendarWithSeconds)}
+                                Updated At: {moment(longRunningTask.updatedAt).calendar(undefined, calendarWithSeconds)}
                             </p>
                         </TechInfoCard>
 
