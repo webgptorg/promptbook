@@ -33,7 +33,6 @@ export function LlmChat(props: LlmChatProps) {
         sendMessage,
         userParticipantName = 'USER',
         llmParticipantName = 'ASSISTANT',
-        transformMessage,
         ...restProps
     } = props;
 
@@ -66,13 +65,6 @@ export function LlmChat(props: LlmChatProps) {
             }
         }
     }, [persistenceKey]); // Only depend on persistenceKey, not participants or onChange to avoid infinite loops
-
-    // Update messages when initialMessages change and no user interaction yet
-    useEffect(() => {
-        if (!hasUserInteractedRef.current && initialMessages) {
-            setMessages(buildInitialMessages());
-        }
-    }, [initialMessages, buildInitialMessages]);
 
     // Save messages to localStorage whenever messages change (and persistence is enabled)
     useEffect(() => {
@@ -267,18 +259,10 @@ export function LlmChat(props: LlmChatProps) {
         }
     }, [sendMessage, handleMessage]);
 
-    // Transform messages if a transformer is provided
-    const displayMessages = useMemo(() => {
-        if (!transformMessage) {
-            return messages;
-        }
-        return messages.map(transformMessage);
-    }, [messages, transformMessage]);
-
     return (
         <Chat
             {...restProps}
-            {...{ messages: displayMessages, onReset, tasksProgress, participants }}
+            {...{ messages, onReset, tasksProgress, participants }}
             onMessage={handleMessage}
             onReset={handleReset}
         />
