@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { Card } from '../Homepage/Card';
+import { Section } from '../Homepage/Section';
 
 type User = {
     id: number;
@@ -111,13 +113,11 @@ export function UsersList() {
 
     return (
         <div className="space-y-6">
-            <h2 className="text-3xl text-gray-900 mt-16 mb-4">Users ({users.length})</h2>
-            
             {error && <div className="bg-red-100 text-red-700 p-3 rounded">{error}</div>}
 
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <Section title={`Users (${users.length})`}>
                 {users.map((user) => (
-                    <div key={user.id} className="block p-6 bg-white rounded-lg shadow-md border border-gray-200">
+                    <Card key={user.id}>
                         <div className="flex justify-between items-start">
                             <div>
                                 <h3 className="text-xl font-semibold text-gray-900">{user.username}</h3>
@@ -139,7 +139,7 @@ export function UsersList() {
                                 </button>
                             </div>
                         </div>
-                    </div>
+                    </Card>
                 ))}
                 
                 {/* Create User Form */}
@@ -184,7 +184,7 @@ export function UsersList() {
                         </button>
                     </form>
                 </div>
-            </div>
+            </Section>
         </div>
     );
 }
