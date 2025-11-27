@@ -15,23 +15,35 @@ type AgentBookAndChatProps = {
 export function AgentBookAndChat(props: AgentBookAndChatProps) {
     const { agentName, initialAgentSource, agentUrl } = props;
     const [currentAgentSource, setCurrentAgentSource] = useState(initialAgentSource);
+    const [sourceVersion, setSourceVersion] = useState(0);
+
+    const handleAgentSourceChange = useCallback((newSource: string_book) => {
+        setCurrentAgentSource(newSource);
+        // Increment version to mark existing messages as outdated
+        setSourceVersion((prev) => prev + 1);
+    }, []);
 
     const handleAgentLearned = useCallback(async () => {
         const response = await fetch(`/agents/${agentName}/api/book?t=${Date.now()}`, {
             cache: 'no-store',
         });
         const newAgentSource = (await response.text()) as string_book;
-        setCurrentAgentSource(newAgentSource);
-    }, [agentName]);
+        handleAgentSourceChange(newAgentSource);
+    }, [agentName, handleAgentSourceChange]);
 
     return (
         <ResizablePanelsAuto name={`agent-book-and-chat-${agentName}`} className="w-full h-full">
             <BookEditorWrapper
                 agentName={agentName}
                 agentSource={currentAgentSource}
-                onAgentSourceChange={setCurrentAgentSource}
+                onAgentSourceChange={handleAgentSourceChange}
             />
-            <AgentChatWrapper agentUrl={agentUrl} onAgentLearned={handleAgentLearned} />
+            <AgentChatWrapper
+                agentUrl={agentUrl}
+                agentSource={currentAgentSource}
+                sourceVersion={sourceVersion}
+                onAgentLearned={handleAgentLearned}
+            />
         </ResizablePanelsAuto>
     );
 }

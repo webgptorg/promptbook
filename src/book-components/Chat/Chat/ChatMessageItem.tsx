@@ -171,7 +171,16 @@ export const ChatMessageItem = memo(
                     styles.chatMessage,
                     isMe && styles.isMe,
                     !message.isComplete && styles.isNotCompleteMessage,
+                    message.isFromOutdatedSource && styles.isFromOutdatedSource,
                 )}
+                style={
+                    message.isFromOutdatedSource
+                        ? ({
+                              opacity: 0.5,
+                              filter: 'grayscale(1)',
+                          } as React.CSSProperties)
+                        : undefined
+                }
                 onClick={() => {
                     console.group('💬', message.content);
                     console.info('message', message);
@@ -447,6 +456,10 @@ export const ChatMessageItem = memo(
         }
 
         if (prev.handleRating !== next.handleRating) {
+            return false;
+        }
+
+        if ((prev.message.isFromOutdatedSource ?? false) !== (next.message.isFromOutdatedSource ?? false)) {
             return false;
         }
 

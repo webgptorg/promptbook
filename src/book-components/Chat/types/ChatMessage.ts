@@ -42,6 +42,16 @@ export type ChatMessage = {
      * @@@
      */
     isVoiceCall?: boolean;
+
+    /**
+     * Whether the message was generated from an outdated source
+     * 
+     * When the agent source changes (e.g., editing the book), existing messages
+     * are marked as outdated to indicate they were generated with a previous version
+     * 
+     * @default false
+     */
+    isFromOutdatedSource?: boolean;
 };
 
 /**

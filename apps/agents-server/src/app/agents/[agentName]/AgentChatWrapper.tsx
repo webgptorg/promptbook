@@ -3,18 +3,24 @@
 import { usePromise } from '@common/hooks/usePromise';
 import { AgentChat } from '@promptbook-local/components';
 import { RemoteAgent } from '@promptbook-local/core';
-import { useCallback, useMemo } from 'react';
+import { string_book } from '@promptbook-local/types';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { ChatMessage } from '../../../../../../src/book-components/Chat/types/ChatMessage';
+import type { ChatParticipant } from '../../../../../../src/book-components/Chat/types/ChatParticipant';
+import { asUpdatableSubject } from '../../../../../../src/types/Updatable';
 import { string_agent_url } from '../../../../../../src/types/typeAliases';
 
 type AgentChatWrapperProps = {
     agentUrl: string_agent_url;
+    agentSource: string_book;
+    sourceVersion: number;
     onAgentLearned?: () => void;
 };
 
 // TODO: [🐱‍🚀] Rename to AgentChatSomethingWrapper
 
 export function AgentChatWrapper(props: AgentChatWrapperProps) {
-    const { agentUrl } = props;
+    const { agentUrl, agentSource, sourceVersion } = props;
 
     const agentPromise = useMemo(
         () =>
@@ -26,6 +32,60 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
     );
 
     const { value: agent } = usePromise(agentPromise, [agentPromise]);
+
+    // Track the source version when each message was created
+    const messageSourceVersions = useRef<Map<string, number>>(new Map());
+    const currentSourceVersionRef = useRef(sourceVersion);
+
+    // Update the agent's source when it changes
+    useEffect(() => {
+        if (agent) {
+            const agentSourceSubject = asUpdatableSubject(agent.agentSource);
+            agentSourceSubject.next(agentSource);
+        }
+    }, [agent, agentSource]);
+
+    // Update current source version ref
+    useEffect(() => {
+        currentSourceVersionRef.current = sourceVersion;
+    }, [sourceVersion]);
+
+    // Handle message changes to track their source versions
+    const handleChange = useCallback(
+        (messages: ReadonlyArray<ChatMessage>, _participants: ReadonlyArray<ChatParticipant>) => {
+            // Track source version for new messages
+            messages.forEach((message) => {
+                if (message.id && !messageSourceVersions.current.has(String(message.id))) {
+                    messageSourceVersions.current.set(String(message.id), currentSourceVersionRef.current);
+                }
+            });
+        },
+        [],
+    );
+
+    // Wrap messages to mark them as outdated if needed
+    const [wrappedMessages, setWrappedMessages] = useState<ReadonlyArray<ChatMessage>>([]);
+
+    const handleMessagesWithOutdatedFlag = useCallback(
+        (messages: ReadonlyArray<ChatMessage>, participants: ReadonlyArray<ChatParticipant>) => {
+            const messagesWithFlags = messages.map((message) => {
+                const messageVersion = message.id
+                    ? messageSourceVersions.current.get(String(message.id))
+                    : undefined;
+                const isFromOutdatedSource =
+                    messageVersion !== undefined && messageVersion < currentSourceVersionRef.current;
+
+                return {
+                    ...message,
+                    isFromOutdatedSource,
+                };
+            });
+
+            setWrappedMessages(messagesWithFlags);
+            handleChange(messages, participants);
+        },
+        [handleChange],
+    );
 
     const handleFeedback = useCallback(
         async (feedback: {
@@ -65,7 +125,14 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
         return <>{/* <- TODO: [🐱‍🚀] <PromptbookLoading /> */}</>;
     }
 
-    return <AgentChat className={`w-full h-full`} agent={agent} onFeedback={handleFeedback} />;
+    return (
+        <AgentChat
+            className={`w-full h-full`}
+            agent={agent}
+            onChange={handleMessagesWithOutdatedFlag}
+            onFeedback={handleFeedback}
+        />
+    );
 }
 
 /**

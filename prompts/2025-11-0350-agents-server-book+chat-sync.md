@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🍥] Reflect changes from book to chat in real time
 
