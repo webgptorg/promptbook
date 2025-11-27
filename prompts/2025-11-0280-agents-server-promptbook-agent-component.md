@@ -10,7 +10,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🌕] It is failing on CORS and permitions
 

@@ -1,8 +1,20 @@
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
-import { parseAgentSource } from '@promptbook-local/core';
+import { computeAgentHash, parseAgentSource } from '@promptbook-local/core';
 import { serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
 import { keepUnused } from '../../../../../../../../src/utils/organization/keepUnused';
+
+export async function OPTIONS(request: Request) {
+    keepUnused(request);
+    return new Response(null, {
+        status: 200,
+        headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type',
+        },
+    });
+}
 
 export async function GET(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
     keepUnused(request /* <- Note: We dont need `request` parameter */);
@@ -13,10 +25,15 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
         const collection = await $provideAgentCollectionForServer();
         const agentSource = await collection.getAgentSource(agentName);
         const agentProfile = parseAgentSource(agentSource);
+        const agentHash = computeAgentHash(agentSource);
 
         return new Response(
             JSON.stringify(
-                agentProfile,
+                {
+                    ...agentProfile,
+                    agentHash,
+                    parameters: [], // <- TODO: [😰] Implement parameters
+                },
                 // <- TODO: [🐱‍🚀] Rename `serializeError` to `errorToJson`
                 null,
                 4,
@@ -24,7 +41,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
             ),
             {
                 status: 200,
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*', // <- Note: Allow embedding on other websites
+                },
             },
         );
     } catch (error) {

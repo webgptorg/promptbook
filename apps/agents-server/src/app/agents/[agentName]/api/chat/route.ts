@@ -11,6 +11,17 @@ import { assertsError } from '../../../../../../../../src/errors/assertsError';
  */
 export const maxDuration = 300;
 
+export async function OPTIONS(request: Request) {
+    return new Response(null, {
+        status: 200,
+        headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type',
+        },
+    });
+}
+
 export async function POST(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
     let { agentName } = await params;
     agentName = decodeURIComponent(agentName);
@@ -126,7 +137,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
 
         return new Response(readableStream, {
             status: 200,
-            headers: { 'Content-Type': 'text/markdown' },
+            headers: {
+                'Content-Type': 'text/markdown',
+                'Access-Control-Allow-Origin': '*', // <- Note: Allow embedding on other websites
+            },
         });
     } catch (error) {
         assertsError(error);

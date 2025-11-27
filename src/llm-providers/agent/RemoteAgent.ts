@@ -2,7 +2,7 @@ import { BehaviorSubject } from 'rxjs';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import type { ChatPromptResult } from '../../execution/PromptResult';
 import type { ChatPrompt, Prompt } from '../../types/Prompt';
-import type { string_agent_url } from '../../types/typeAliases';
+import type { string_agent_hash, string_agent_name, string_agent_url } from '../../types/typeAliases';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import { Agent } from './Agent';
 import type { AgentOptions } from './AgentOptions';
@@ -22,16 +22,23 @@ import type { RemoteAgentOptions } from './RemoteAgentOptions';
  */
 export class RemoteAgent extends Agent {
     public static async connect(options: RemoteAgentOptions) {
-        console.log('[🐱‍🚀]', `${options.agentUrl}/api/book`);
-        const bookResponse = await fetch(`${options.agentUrl}/api/book`);
+        console.log('[🐱‍🚀]', `${options.agentUrl}/api/profile`);
+        const profileResponse = await fetch(`${options.agentUrl}/api/profile`);
         // <- TODO: [🐱‍🚀] What about closed-source agents?
         // <- TODO: [🐱‍🚀] Maybe use promptbookFetch
 
-        const agentSourceValue = (await bookResponse.text()) as string_book;
-        const agentSource: BehaviorSubject<string_book> = new BehaviorSubject<string_book>(agentSourceValue);
+        const profile = await profileResponse.json();
+
+        // Note: We are creating dummy agent source because we don't have the source from the remote agent
+        //       But we populate the metadata from the profile
+        const agentSource: BehaviorSubject<string_book> = new BehaviorSubject<string_book>(`
+# ${profile.agentName}
+
+${profile.personaDescription}
+        ` as string_book);
         // <- TODO: [🐱‍🚀] Support updating and self-updating
 
-        return new RemoteAgent({
+        const remoteAgent = new RemoteAgent({
             ...options,
             executionTools: {
                 /* Note: These tools are not used */
@@ -48,16 +55,35 @@ export class RemoteAgent extends Agent {
             },
             agentSource,
         });
+
+        remoteAgent._remoteAgentName = profile.agentName;
+        remoteAgent._remoteAgentHash = profile.agentHash;
+        remoteAgent.personaDescription = profile.personaDescription;
+        remoteAgent.initialMessage = profile.initialMessage;
+        remoteAgent.links = profile.links;
+        remoteAgent.meta = profile.meta;
+
+        return remoteAgent;
     }
 
     /**
      * The source of the agent
      */
     private agentUrl: string_agent_url;
+    private _remoteAgentName: string_agent_name | undefined;
+    private _remoteAgentHash: string_agent_hash | undefined;
 
     private constructor(options: AgentOptions & RemoteAgentOptions) {
         super(options);
         this.agentUrl = options.agentUrl;
+    }
+
+    public override get agentName(): string_agent_name {
+        return this._remoteAgentName || super.agentName;
+    }
+
+    public override get agentHash(): string_agent_hash {
+        return this._remoteAgentHash || super.agentHash;
     }
 
     /**
