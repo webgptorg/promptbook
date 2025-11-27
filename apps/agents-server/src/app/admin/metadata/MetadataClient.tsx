@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { metadataDefaults } from '../../database/metadataDefaults';
+import { metadataDefaults } from '../../../database/metadataDefaults';
 
 type MetadataEntry = {
     id: number;
@@ -132,15 +132,11 @@ export function MetadataClient() {
             <h1 className="text-3xl font-bold mb-8">Metadata Management</h1>
 
             {error && (
-                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
-                    {error}
-                </div>
+                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">{error}</div>
             )}
 
             <div className="bg-white shadow rounded-lg p-6 mb-8">
-                <h2 className="text-xl font-semibold mb-4">
-                    {editingId ? 'Edit Metadata' : 'Add New Metadata'}
-                </h2>
+                <h2 className="text-xl font-semibold mb-4">{editingId ? 'Edit Metadata' : 'Add New Metadata'}</h2>
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
                         <label htmlFor="key" className="block text-sm font-medium text-gray-700 mb-1">
@@ -235,12 +231,8 @@ export function MetadataClient() {
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                         {entry.key}
                                     </td>
-                                    <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
-                                        {entry.value}
-                                    </td>
-                                    <td className="px-6 py-4 text-sm text-gray-500">
-                                        {entry.note || '-'}
-                                    </td>
+                                    <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">{entry.value}</td>
+                                    <td className="px-6 py-4 text-sm text-gray-500">{entry.note || '-'}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <button
                                             onClick={() => handleEdit(entry)}

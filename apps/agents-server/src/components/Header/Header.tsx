@@ -59,21 +59,41 @@ export function Header(props: HeaderProps) {
                     {/* Desktop Navigation */}
                     <nav className="hidden md:flex items-center gap-8">
                         {isAdmin && (
-                            <Link
-                                href="/metadata"
-                                className="text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
-                            >
-                                Metadata
-                            </Link>
+                            <>
+                                <Link
+                                    href="/"
+                                    className="text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
+                                >
+                                    Agents
+                                </Link>
+                                <Link
+                                    href="/"
+                                    className="text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
+                                >
+                                    Models
+                                </Link>
+                                <Link
+                                    href="/admin/metadata"
+                                    className="text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
+                                >
+                                    Metadata
+                                </Link>
+                                <Link
+                                    href="https://ptbk.io/"
+                                    className="text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
+                                >
+                                    About
+                                </Link>
+                            </>
                         )}
 
                         {just(false /* TODO: [🧠] Figure out what to do with theese links */) && (
                             <Link
-                                href="https://ptbk.io/#try-it-yourself"
+                                href="https://ptbk.io/"
                                 target="_blank"
                                 className="text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
                             >
-                                Try it yourself
+                                Create your server
                             </Link>
                         )}
                     </nav>
