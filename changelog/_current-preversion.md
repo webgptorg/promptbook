@@ -1,4 +1,5 @@
 -   **New:** Chat component can receive additional action via prop `extraActions` [✨🥝]
+-   **Fix:** Fixed CORS preflight issue in Agents Server middleware that was blocking cross-origin API requests with "Redirect is not allowed for a preflight request" error.
 -   **New:** Allow to prefix Supabase database tables used in Agents Server via `SUPABASE_TABLE_PREFIX` environment variable.
 -   **New:** Record conversations to `ChatHistory` table in `Agents Server` application.
 -   **New:** Allowed to upload files to `<BookEditor/>` and created `DigitalOceanSpaces` CDN.
