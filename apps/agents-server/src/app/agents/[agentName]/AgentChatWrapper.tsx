@@ -8,21 +8,24 @@ import { string_agent_url } from '../../../../../../src/types/typeAliases';
 
 type AgentChatWrapperProps = {
     agentUrl: string_agent_url;
+    agent?: RemoteAgent;
 };
 
 // TODO: [🐱‍🚀] Rename to AgentChatSomethingWrapper
 
 export function AgentChatWrapper(props: AgentChatWrapperProps) {
-    const { agentUrl } = props;
+    const { agentUrl, agent: propsAgent } = props;
 
-    const agentPromise = useMemo(
-        () =>
-            RemoteAgent.connect({
-                agentUrl,
-                isVerbose: true,
-            }),
-        [agentUrl],
-    );
+    const agentPromise = useMemo(() => {
+        if (propsAgent) {
+            return Promise.resolve(propsAgent);
+        }
+
+        return RemoteAgent.connect({
+            agentUrl,
+            isVerbose: true,
+        });
+    }, [agentUrl, propsAgent]);
 
     const { value: agent } = usePromise(agentPromise, [agentPromise]);
 

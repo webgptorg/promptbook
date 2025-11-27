@@ -15,6 +15,10 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
     const [agentSource, setAgentSource] = useState<string_book>(initialAgentSource);
     const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
+    useEffect(() => {
+        setAgentSource(initialAgentSource);
+    }, [initialAgentSource]);
+
     // Debounce timer ref so we can clear previous pending save
     const debounceTimerRef = useRef<number | null>(null);
     // Configurable debounce delay (ms) - tweak if needed

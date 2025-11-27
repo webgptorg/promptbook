@@ -181,6 +181,19 @@ ${profile.personaDescription}
             // <- TODO: [🐱‍🚀] Transfer and proxy the metadata
         };
 
+        // Note: [🐱‍🚀] Update the agent source after the chat
+        //       (We need to fetch the new source because the chat might have triggered learning)
+        //       (We are not waiting for this to finish to return the result)
+        //       (This is a side-effect)
+        /* not await */ fetch(`${this.agentUrl}/api/book`)
+            .then((response) => response.text())
+            .then((newAgentSource) => {
+                this.agentSource.next(newAgentSource as string_book);
+            })
+            .catch((error) => {
+                console.error('Failed to update agent source after chat', error);
+            });
+
         return agentResult;
     }
 }
