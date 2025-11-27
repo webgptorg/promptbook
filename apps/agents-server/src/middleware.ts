@@ -75,7 +75,31 @@ export async function middleware(req: NextRequest) {
     const allowedIps = allowedIpsMetadata !== null && allowedIpsMetadata !== undefined ? allowedIpsMetadata : allowedIpsEnv;
 
     if (isIpAllowed(ip, allowedIps)) {
-        // 3. Custom Domain Routing
+        // 3. Redirect /:agentName/* to /agents/:agentName/*
+        //    This enables accessing agents from the root path
+        const pathParts = req.nextUrl.pathname.split('/');
+        const potentialAgentName = pathParts[1];
+
+        if (
+            potentialAgentName &&
+            !['agents', 'api', '_next', 'favicon.ico'].includes(potentialAgentName) &&
+            !potentialAgentName.startsWith('.') &&
+            // Note: Other static files are excluded by the matcher configuration below
+            true
+        ) {
+            const url = req.nextUrl.clone();
+            url.pathname = `/agents${req.nextUrl.pathname}`;
+            const response = NextResponse.redirect(url);
+
+            // Enable CORS for the redirect
+            response.headers.set('Access-Control-Allow-Origin', '*');
+            response.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+            response.headers.set('Access-Control-Allow-Headers', 'Content-Type');
+
+            return response;
+        }
+
+        // 4. Custom Domain Routing
         //    If the host is not one of the configured SERVERS, try to find an agent with a matching META LINK
 
         if (host && SERVERS && !SERVERS.some((server) => server === host)) {

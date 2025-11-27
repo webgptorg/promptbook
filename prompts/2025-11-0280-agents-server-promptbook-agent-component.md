@@ -42,6 +42,11 @@ Update it such:
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
+<!--
+Note: This has absurd cost of $5.8508 via Cline + `google-gemini-3-pro-preview`
+![alt text](screenshots/2025-11-0280-agents-server-promptbook-agent-component.png)
+-->
+
 ---
 
 [ ]

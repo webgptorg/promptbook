@@ -117,7 +117,7 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
             );
         }
 
-        return selectResult.data[0].agentSource as string_book;
+        return selectResult.data[0]!.agentSource as string_book;
     }
 
     /**
