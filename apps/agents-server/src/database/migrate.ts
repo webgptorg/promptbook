@@ -80,31 +80,42 @@ async function migrate() {
             );
             const appliedMigrations = new Set(appliedMigrationsRows.map((row) => row.filename));
 
-            // 4.3 Apply new migrations
-            for (const file of migrationFiles) {
-                if (appliedMigrations.has(file)) {
-                    // console.info(`  ⏭️  Skipping ${file} (already applied)`);
-                    continue;
+            // 4.3 Apply new migrations in one big transaction
+            let migrationError = null;
+            await client.query('BEGIN');
+            try {
+                for (const file of migrationFiles) {
+                    if (appliedMigrations.has(file)) {
+                        // console.info(`  ⏭️  Skipping ${file} (already applied)`);
+                        continue;
+                    }
+
+                    console.info(`  🚀 Applying ${file}...`);
+                    const filePath = path.join(migrationsDir, file);
+                    let sql = fs.readFileSync(filePath, 'utf-8');
+
+                    // Replace prefix placeholder
+                    sql = sql.replace(/prefix_/g, prefix);
+
+                    try {
+                        await client.query(sql);
+                        await client.query(`INSERT INTO "${migrationsTableName}" ("filename") VALUES ($1)`, [file]);
+                        console.info(`  ✅ Applied ${file}`);
+                    } catch (error) {
+                        console.error(`  ❌ Failed to apply ${file}:`, error);
+                        migrationError = error;
+                        break;
+                    }
                 }
-
-                console.info(`  🚀 Applying ${file}...`);
-                const filePath = path.join(migrationsDir, file);
-                let sql = fs.readFileSync(filePath, 'utf-8');
-
-                // Replace prefix placeholder
-                sql = sql.replace(/prefix_/g, prefix);
-
-                try {
-                    await client.query('BEGIN');
-                    await client.query(sql);
-                    await client.query(`INSERT INTO "${migrationsTableName}" ("filename") VALUES ($1)`, [file]);
-                    await client.query('COMMIT');
-                    console.info(`  ✅ Applied ${file}`);
-                } catch (error) {
+                if (migrationError) {
                     await client.query('ROLLBACK');
-                    console.error(`  ❌ Failed to apply ${file}:`, error);
-                    throw error;
+                    throw migrationError;
+                } else {
+                    await client.query('COMMIT');
                 }
+            } catch (error) {
+                await client.query('ROLLBACK');
+                throw error;
             }
         }
 
