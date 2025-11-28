@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { RemoteAgent } from '../../llm-providers/agent/RemoteAgent';
 import { AgentChat } from '../Chat/AgentChat/AgentChat';
-import './PromptbookAgent.css';
+import styles from './PromptbookAgent.module.css';
 
 type PromptbookAgentProps = {
     /**
@@ -66,9 +66,9 @@ export function PromptbookAgent(props: PromptbookAgentProps) {
     // TODO: [🧠] Handle error state (show error message in the chat window)
 
     return (
-        <div className={`promptbook-agent ${isOpen ? 'open' : 'closed'}`}>
-            <div className="promptbook-agent-button" onClick={() => setIsOpen(!isOpen)}>
-                <div className="promptbook-agent-avatar">
+        <div className={`${styles.promptbookAgent} ${isOpen ? styles.open : styles.closed}`}>
+            <div className={styles.promptbookAgentButton} onClick={() => setIsOpen(!isOpen)}>
+                <div className={styles.promptbookAgentAvatar}>
                     {/* TODO: Use agent avatar if available */}
                     <img
                         src={
@@ -78,24 +78,26 @@ export function PromptbookAgent(props: PromptbookAgentProps) {
                         alt="Agent"
                     />
                 </div>
-                <div className="promptbook-agent-label">CHAT</div>
+                <div className={styles.promptbookAgentLabel}>CHAT</div>
             </div>
 
             {isOpen && (
-                <div className="promptbook-agent-window">
-                    <div className="promptbook-agent-header">
-                        <div className="promptbook-agent-title">{agent?.agentName || 'Chat with Agent'}</div>
-                        <button className="promptbook-agent-close" onClick={() => setIsOpen(false)}>
+                <div className={styles.promptbookAgentWindow}>
+                    <div className={styles.promptbookAgentHeader}>
+                        <div className={styles.promptbookAgentTitle}>{agent?.agentName || 'Chat with Agent'}</div>
+                        <button className={styles.promptbookAgentClose} onClick={() => setIsOpen(false)}>
                             ✕
                         </button>
                     </div>
-                    <div className="promptbook-agent-content">
+                    <div className={styles.promptbookAgentContent}>
                         {agent ? (
                             <AgentChat agent={agent} />
                         ) : error ? (
-                            <div className="promptbook-agent-error">Failed to connect to agent: {error.message}</div>
+                            <div className={styles.promptbookAgentError}>
+                                Failed to connect to agent: {error.message}
+                            </div>
                         ) : (
-                            <div className="promptbook-agent-loading">
+                            <div className={styles.promptbookAgentLoading}>
                                 {/* TODO: Skeleton loader */}
                                 Connecting to agent...
                             </div>

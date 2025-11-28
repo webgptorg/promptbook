@@ -1,0 +1,145 @@
+.promptbookAgent {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 10000;
+    font-family: sans-serif;
+}
+
+.promptbookAgentButton {
+    display: flex;
+    align-items: center;
+    background-color: #007bff;
+    color: white;
+    border-radius: 30px;
+    padding: 10px 20px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.promptbookAgentButton:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+.promptbookAgentAvatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-right: 10px;
+    background-color: #eee;
+
+    transform: translate(-10px, 0) scale(1.3);
+}
+
+.promptbookAgentAvatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.promptbookAgentLabel {
+    font-weight: bold;
+}
+
+/* State classes (empty to allow module mapping) */
+.open {
+}
+.closed {
+}
+
+.promptbookAgent.open .promptbookAgentButton {
+    display: none;
+}
+
+.promptbookAgentWindow {
+    width: 380px;
+    height: 600px;
+    max-height: 80vh;
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: promptbook-agent-slide-up 0.3s ease-out;
+}
+
+@keyframes promptbook-agent-slide-up {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.promptbookAgentHeader {
+    background-color: #007bff;
+    color: white;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.promptbookAgentTitle {
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
+.promptbookAgentClose {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.2em;
+    cursor: pointer;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+}
+
+.promptbookAgentClose:hover {
+    opacity: 1;
+}
+
+.promptbookAgentContent {
+    flex: 1;
+    overflow-y: auto;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.promptbookAgentLoading,
+.promptbookAgentError {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    text-align: center;
+    color: #666;
+}
+
+.promptbookAgentError {
+    color: #d32f2f;
+}
+
+@media (max-width: 480px) {
+    .promptbookAgent {
+        bottom: 0;
+        right: 0;
+        left: 0;
+    }
+
+    .promptbookAgentWindow {
+        width: 100%;
+        height: 100vh;
+        max-height: 100vh;
+        border-radius: 0;
+    }
+}
