@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🙅] Implement propper server migrations in Agents Server
 
