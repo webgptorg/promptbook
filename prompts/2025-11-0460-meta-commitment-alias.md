@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🤝] Create aliases for meta commitments
 
