@@ -60,6 +60,16 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
             continue;
         }
 
+        if (commitment.type === 'META IMAGE') {
+            meta.image = spaceTrim(commitment.content);
+            continue;
+        }
+
+        if (commitment.type === 'META COLOR') {
+            meta.color = spaceTrim(commitment.content);
+            continue;
+        }
+
         if (commitment.type !== 'META') {
             continue;
         }

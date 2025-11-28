@@ -50,3 +50,4 @@
 -   **New:** Added `INITIAL MESSAGE` commitment to define the initial message for the chat in the agent source.
 -   **New:** `AgentChat` now supports rendering the initial message defined in the agent source.
 -   **Style:** Separators `---` in `BookEditor` are now aligned with notebook lines and appear thicker and darker.
+-   **New:** Created aliases for meta commitments: `IMAGE` as an alias for `META IMAGE` and `COLOR` as an alias for `META COLOR`.

@@ -11,9 +11,11 @@ import type { CommitmentDefinition } from './CommitmentDefinition';
  */
 export abstract class BaseCommitmentDefinition<TBookCommitment extends string> implements CommitmentDefinition {
     public readonly type: TBookCommitment;
+    public readonly aliases: string[];
 
-    constructor(type: TBookCommitment) {
+    constructor(type: TBookCommitment, aliases: string[] = []) {
         this.type = type;
+        this.aliases = aliases;
     }
 
     /**
@@ -33,7 +35,7 @@ export abstract class BaseCommitmentDefinition<TBookCommitment extends string> i
      * Uses the existing createCommitmentRegex function as internal helper
      */
     createRegex(): RegExp {
-        return createCommitmentRegex(this.type as BookCommitment);
+        return createCommitmentRegex(this.type as BookCommitment, this.aliases as BookCommitment[]);
     }
 
     /**
@@ -41,7 +43,7 @@ export abstract class BaseCommitmentDefinition<TBookCommitment extends string> i
      * Uses the existing createCommitmentTypeRegex function as internal helper
      */
     createTypeRegex(): RegExp {
-        return createCommitmentTypeRegex(this.type as BookCommitment);
+        return createCommitmentTypeRegex(this.type as BookCommitment, this.aliases as BookCommitment[]);
     }
 
     /**

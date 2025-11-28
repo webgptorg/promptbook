@@ -12,6 +12,8 @@ import { MemoryCommitmentDefinition } from './MEMORY/MEMORY';
 import { InitialMessageCommitmentDefinition } from './MESSAGE/InitialMessageCommitmentDefinition';
 import { MessageCommitmentDefinition } from './MESSAGE/MESSAGE';
 import { MetaCommitmentDefinition } from './META/META';
+import { MetaColorCommitmentDefinition } from './META_COLOR/META_COLOR';
+import { MetaImageCommitmentDefinition } from './META_IMAGE/META_IMAGE';
 import { ModelCommitmentDefinition } from './MODEL/MODEL';
 import { NoteCommitmentDefinition } from './NOTE/NOTE';
 import { PersonaCommitmentDefinition } from './PERSONA/PERSONA';
@@ -47,6 +49,8 @@ export const COMMITMENT_REGISTRY = [
     new ModelCommitmentDefinition('MODELS'),
     new ActionCommitmentDefinition('ACTION'),
     new ActionCommitmentDefinition('ACTIONS'),
+    new MetaImageCommitmentDefinition(),
+    new MetaColorCommitmentDefinition(),
     new MetaCommitmentDefinition(),
     new NoteCommitmentDefinition('NOTE'),
     new NoteCommitmentDefinition('NOTES'),

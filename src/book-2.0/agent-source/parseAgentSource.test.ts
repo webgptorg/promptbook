@@ -206,4 +206,17 @@ describe('parseAgentSource', () => {
         const result = parseAgentSource(agentSource);
         expect(result.initialMessage).toBe('Second message (override)');
     });
+
+    it('parses IMAGE and COLOR aliases', () => {
+        const agentSource = validateBook(
+            spaceTrim(`
+                Agent Name
+                IMAGE https://example.com/image.png
+                COLOR #ff0000
+            `),
+        );
+        const result = parseAgentSource(agentSource);
+        expect(result.meta.image).toBe('https://example.com/image.png');
+        expect(result.meta.color).toBe('#ff0000');
+    });
 });
