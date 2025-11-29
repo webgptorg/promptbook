@@ -78,7 +78,7 @@ export default async function AgentPage({ params }: { params: Promise<{ agentNam
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
                             src={agentProfile.meta.image as string}
-                            alt={agentProfile.agentName || 'Agent'}
+                            alt={agentProfile.meta.fullname || agentProfile.agentName || 'Agent'}
                             width={64}
                             height={64}
                             className="rounded-full object-cover border-2 aspect-square w-16 h-16"
@@ -86,7 +86,9 @@ export default async function AgentPage({ params }: { params: Promise<{ agentNam
                         />
                     )}
                     <div className="flex-1">
-                        <h1 className="text-3xl font-bold text-gray-900 break-words">{agentProfile.agentName}</h1>
+                        <h1 className="text-3xl font-bold text-gray-900 break-words">
+                            {agentProfile.meta.fullname || agentProfile.agentName}
+                        </h1>
                         <span
                             className="inline-block mt-1 px-2 py-1 rounded text-xs font-semibold text-white"
                             style={{ backgroundColor: brandColor.toHex() }}
@@ -145,6 +147,7 @@ export default async function AgentPage({ params }: { params: Promise<{ agentNam
                     <div className="bg-white rounded-lg p-4 flex flex-col items-center shadow-sm border border-gray-100">
                         <AgentQrCode
                             agentName={agentProfile.agentName || 'Agent'}
+                            meta={agentProfile.meta}
                             personaDescription={agentProfile.personaDescription}
                             agentUrl={agentUrl}
                             agentEmail={agentEmail}

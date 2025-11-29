@@ -11,7 +11,7 @@ export async function generateAgentMetadata({ params }: { params: Promise<{ agen
         const agentSource = await collection.getAgentSource(agentName);
         const agentProfile = parseAgentSource(agentSource);
 
-        const title = agentProfile.meta.title || agentProfile.agentName;
+        const title = agentProfile.meta.fullname || agentProfile.agentName;
         const description = agentProfile.meta.description || agentProfile.personaDescription || undefined;
 
         // Extract image from meta

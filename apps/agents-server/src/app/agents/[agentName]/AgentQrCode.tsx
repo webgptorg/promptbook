@@ -5,19 +5,19 @@ import { AgentBasicInformation } from '@promptbook-local/types';
 import { useState } from 'react';
 import spaceTrim from 'spacetrim';
 
-type AgentQrCodeProps = Pick<AgentBasicInformation, 'agentName' | 'personaDescription'> & {
+type AgentQrCodeProps = Pick<AgentBasicInformation, 'agentName' | 'personaDescription' | 'meta'> & {
     agentUrl: string;
     agentEmail: string;
 };
 
-export function AgentQrCode({ agentName, agentUrl, agentEmail, personaDescription }: AgentQrCodeProps) {
+export function AgentQrCode({ agentName, agentUrl, agentEmail, personaDescription, meta }: AgentQrCodeProps) {
     const [mode, setMode] = useState<'contact' | 'link'>('contact');
 
     // TODO: [🧠] Should we include more info in VCARD?
     const vcard = spaceTrim(`
         BEGIN:VCARD
         VERSION:3.0
-        FN:${agentName}
+        FN:${meta.fullname || agentName}
         URL:${agentUrl}
         EMAIL:${agentEmail}
         NOTE:${personaDescription}
