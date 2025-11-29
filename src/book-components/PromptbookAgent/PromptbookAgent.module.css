@@ -87,23 +87,52 @@
     align-items: center;
 }
 
+/* 
+   Override chat action buttons to look like the close button 
+   when rendered inside the header via portal
+*/
+.promptbookAgentHeader button {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    color: inherit !important;
+    cursor: pointer;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+    padding: 5px !important;
+    margin: 0 2px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 32px !important;
+    height: 32px !important;
+    border-radius: 50% !important;
+}
+
+.promptbookAgentHeader button:hover {
+    opacity: 1;
+    background-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Hide text labels inside buttons in header (New Chat, Save) */
+.promptbookAgentHeader button span {
+    display: none !important;
+}
+
+/* Ensure SVG icons are visible and sized correctly */
+.promptbookAgentHeader button svg {
+    width: 20px;
+    height: 20px;
+}
+
 .promptbookAgentTitle {
     font-weight: bold;
     font-size: 1.1em;
 }
 
 .promptbookAgentClose {
-    background: none;
-    border: none;
-    color: white;
+    /* Use same styles as above override, but keep specific if needed */
     font-size: 1.2em;
-    cursor: pointer;
-    opacity: 0.8;
-    transition: opacity 0.2s;
-}
-
-.promptbookAgentClose:hover {
-    opacity: 1;
 }
 
 .promptbookAgentContent {
