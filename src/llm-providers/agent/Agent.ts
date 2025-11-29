@@ -124,12 +124,10 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
 
                 ---
 
-                SAMPLE
-
-                User:
+                USER MESSAGE
                 ${block(prompt.content)}
 
-                ${this.title} (Me, the Agent):
+                AGENT MESSAGE
                 ${block(result.content)}
 
             `,

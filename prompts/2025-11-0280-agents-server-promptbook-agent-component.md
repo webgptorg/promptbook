@@ -51,16 +51,73 @@ Note: This has absurd cost of $5.8508 via Cline + `google-gemini-3-pro-preview`
 
 [ ]
 
-[✨🌕] foo
+[✨🌕] Allow to pass agent meta-information into props of `<PromptbookAgent/>`
 
--   You are working with the `Agents Server` application `/apps/agents-server`
+-   Purpose of this is to be able to show the agent information right away without fetching it from the server or showing some provisional avatar image and color
+-   Allow to pass Partial optional `AgentBasicInformation` via props to `<PromptbookAgent meta={...}/>`
+-   Information loaded from the server will override the passed props
+-   When there is conflict, server information has priority but warn in the console about it
+-   Usage will look like: `<PromptbookAgent agentUrl="http://s6.ptbk.io/benjamin-white" meta={{image: "https://www.gravatar.com/avatar/353123459?default=robohash&size=200&rating=x", color: "#00ffff"}} />`
+-   You are working with the `PromptbookAgent` component in `/src/book-components/PromptbookAgent/PromptbookAgent.tsx`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
 ---
 
 [ ]
 
-[✨🌕] foo
+[✨🌕] Enhance `<PromptbookAgent/>` mobile UI and UX
 
--   You are working with the `Agents Server` application `/apps/agents-server`
+-   On mobile, when chat is closet it should show only small floating button on the bottom right not fill the whole width
+-   You are working with the `PromptbookAgent` component in `/src/book-components/PromptbookAgent/PromptbookAgent.tsx`
+
+---
+
+[ ]
+
+[✨🌕] Move the actions of the chat to the top bar and add there a close icon via extra actions
+
+-   Move the chat actions (like New chat and Download) from the chat area to the top bar of the floating chat window
+-   This should be only for PromptbookAgent not for every Chat component
+-   Add a close icons in the Chat actions to be able to close the chat
+-   Use `ChatProps.extraActions` to add this custom action
+-   You are working with the `PromptbookAgent` component in `/src/book-components/PromptbookAgent/PromptbookAgent.tsx`
+-   Create some system which will allow to move the existing chat actions to the top bar when used inside PromptbookAgent but keep them in the chat area when used normally
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[ ]
+
+[✨🌕] Add connected indicator to `<PromptbookAgent/>`
+
+-   Show litterle green dot on the agent avatar when connected to the server _(able to fetch agent profile)_
+-   For pending state show gray dot, when failed to connect show red dot
+-   You are working with the `PromptbookAgent` component in `/src/book-components/PromptbookAgent/PromptbookAgent.tsx`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[ ]
+
+[✨🌕] Foo `<PromptbookAgent/>`
+
+-   You are working with the `PromptbookAgent` component in `/src/book-components/PromptbookAgent/PromptbookAgent.tsx`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[ ]
+
+[✨🌕] Foo `<PromptbookAgent/>`
+
+-   You are working with the `PromptbookAgent` component in `/src/book-components/PromptbookAgent/PromptbookAgent.tsx`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[ ]
+
+[✨🌕] Foo `<PromptbookAgent/>`
+
+-   You are working with the `PromptbookAgent` component in `/src/book-components/PromptbookAgent/PromptbookAgent.tsx`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
