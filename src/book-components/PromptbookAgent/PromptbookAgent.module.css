@@ -130,7 +130,7 @@
 }
 
 @media (max-width: 480px) {
-    .promptbookAgent {
+    .promptbookAgent.open {
         bottom: 0;
         right: 0;
         left: 0;

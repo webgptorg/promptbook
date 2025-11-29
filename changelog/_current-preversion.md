@@ -1,3 +1,4 @@
+-   **Style:** On mobile devices, the closed `PromptbookAgent` chat now displays as a small floating button in the bottom right corner instead of spanning the full width, improving UX and screen real estate usage.
 -   **New:** Chat component can receive additional action via prop `extraActions` [✨🥝]
 -   **Fix:** Fixed CORS preflight issue in Agents Server middleware that was blocking cross-origin API requests with "Redirect is not allowed for a preflight request" error.
 -   **New:** Allow to prefix Supabase database tables used in Agents Server via `SUPABASE_TABLE_PREFIX` environment variable.
