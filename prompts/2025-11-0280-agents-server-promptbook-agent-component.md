@@ -58,6 +58,7 @@ Note: This has absurd cost of $5.8508 via Cline + `google-gemini-3-pro-preview`
 -   Information loaded from the server will override the passed props
 -   When there is conflict, server information has priority but warn in the console about it
 -   Usage will look like: `<PromptbookAgent agentUrl="http://s6.ptbk.io/benjamin-white" meta={{image: "https://www.gravatar.com/avatar/353123459?default=robohash&size=200&rating=x", color: "#00ffff"}} />`
+-   The agent chip has now generic blue background color, use the `meta.color` instead
 -   You are working with the `PromptbookAgent` component in `/src/book-components/PromptbookAgent/PromptbookAgent.tsx`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 

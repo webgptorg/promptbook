@@ -10,7 +10,7 @@ export default function TwoEditorsPage() {
                 </p>
             </main>
 
-            <PromptbookAgent agentUrl="http://localhost:4440/benjamin-white" />
+            <PromptbookAgent agentUrl="http://localhost:4440/benjamin-white" meta={{ color: `#ffff00` }} />
         </div>
     );
 }
