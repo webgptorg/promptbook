@@ -93,6 +93,13 @@ export type ChatProps = {
     readonly extraActions?: ReactNode;
 
     /**
+     * Optional container to render the actions into (using React Portal).
+     * If provided, the actions toolbar will be rendered inside this element
+     * instead of its default position within the chat.
+     */
+    readonly actionsContainer?: HTMLElement | null;
+
+    /**
      * Optional CSS class name which will be added to root <div/> element
      */
     readonly className?: string;

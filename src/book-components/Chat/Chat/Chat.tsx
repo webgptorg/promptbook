@@ -3,6 +3,7 @@
 //          this would not be here because the `@promptbook/components` package should be React library independent of Next.js specifics
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import spaceTrim from 'spacetrim';
 import { USER_CHAT_COLOR } from '../../../config';
 import type { id } from '../../../types/typeAliases';
@@ -69,6 +70,7 @@ export function Chat(props: ChatProps) {
         // exportHeaderMarkdown,
         participants = [],
         extraActions,
+        actionsContainer,
         saveFormats,
         isSaveButtonEnabled = true,
         isCopyButtonEnabled = true,
@@ -431,65 +433,75 @@ export function Chat(props: ChatProps) {
                         </div>
                     )}
 
-                    <div className={classNames(actionsAlignmentClass)}>
-                        {onReset && postprocessedMessages.length !== 0 && (
-                            <button
-                                className={classNames(styles.chatButton)}
-                                onClick={() => {
-                                    if (!confirm(`Do you really want to reset the chat?`)) {
-                                        return;
-                                    }
+                    {(() => {
+                        const actionsContent = (
+                            <div className={classNames(actionsAlignmentClass)}>
+                                {onReset && postprocessedMessages.length !== 0 && (
+                                    <button
+                                        className={classNames(styles.chatButton)}
+                                        onClick={() => {
+                                            if (!confirm(`Do you really want to reset the chat?`)) {
+                                                return;
+                                            }
 
-                                    onReset();
-                                }}
-                            >
-                                <ResetIcon />
-                                <span className={styles.chatButtonText}>New chat</span>
-                            </button>
-                        )}
+                                            onReset();
+                                        }}
+                                    >
+                                        <ResetIcon />
+                                        <span className={styles.chatButtonText}>New chat</span>
+                                    </button>
+                                )}
 
-                        {isSaveButtonEnabled && postprocessedMessages.length !== 0 && (
-                            <div className={styles.saveButtonContainer}>
-                                <button
-                                    className={classNames(styles.chatButton)}
-                                    onClick={() => setShowSaveMenu((v) => !v)}
-                                    aria-haspopup="true"
-                                    aria-expanded={showSaveMenu}
-                                >
-                                    <SaveIcon size={18} />
-                                    <span className={styles.chatButtonText}>Save</span>
-                                </button>
-                                {showSaveMenu && (
-                                    <div className={styles.saveMenu}>
-                                        {getChatSaveFormatDefinitions(saveFormats).map((formatDefinition) => (
-                                            <button
-                                                key={formatDefinition.formatName}
-                                                className={styles.saveMenuItem}
-                                                onClick={() =>
-                                                    // TODO: !!! Use here `$induceFileDownload`
-                                                    handleDownload(
-                                                        formatDefinition.formatName as string_chat_format_name,
-                                                    )
-                                                }
-                                            >
-                                                {formatDefinition.label}
-                                            </button>
-                                        ))}
+                                {isSaveButtonEnabled && postprocessedMessages.length !== 0 && (
+                                    <div className={styles.saveButtonContainer}>
+                                        <button
+                                            className={classNames(styles.chatButton)}
+                                            onClick={() => setShowSaveMenu((v) => !v)}
+                                            aria-haspopup="true"
+                                            aria-expanded={showSaveMenu}
+                                        >
+                                            <SaveIcon size={18} />
+                                            <span className={styles.chatButtonText}>Save</span>
+                                        </button>
+                                        {showSaveMenu && (
+                                            <div className={styles.saveMenu}>
+                                                {getChatSaveFormatDefinitions(saveFormats).map((formatDefinition) => (
+                                                    <button
+                                                        key={formatDefinition.formatName}
+                                                        className={styles.saveMenuItem}
+                                                        onClick={() =>
+                                                            // TODO: !!! Use here `$induceFileDownload`
+                                                            handleDownload(
+                                                                formatDefinition.formatName as string_chat_format_name,
+                                                            )
+                                                        }
+                                                    >
+                                                        {formatDefinition.label}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
                                 )}
+
+                                {onUseTemplate && (
+                                    <button className={classNames(styles.useTemplateButton)} onClick={onUseTemplate}>
+                                        <span className={styles.chatButtonText}>Use this template</span>
+                                        <TemplateIcon size={16} />
+                                    </button>
+                                )}
+
+                                {/* Extra custom action buttons (e.g. Pause/Resume for MockedChat) */}
+                                {extraActions}
                             </div>
-                        )}
+                        );
 
-                        {onUseTemplate && (
-                            <button className={classNames(styles.useTemplateButton)} onClick={onUseTemplate}>
-                                <span className={styles.chatButtonText}>Use this template</span>
-                                <TemplateIcon size={16} />
-                            </button>
-                        )}
+                        if (actionsContainer) {
+                            return createPortal(actionsContent, actionsContainer);
+                        }
 
-                        {/* Extra custom action buttons (e.g. Pause/Resume for MockedChat) */}
-                        {extraActions}
-                    </div>
+                        return actionsContent;
+                    })()}
 
                     <div
                         className={classNames(

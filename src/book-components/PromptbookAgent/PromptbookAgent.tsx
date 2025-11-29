@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import type { AgentBasicInformation } from '../../book-2.0/agent-source/AgentBasicInformation';
 import { RemoteAgent } from '../../llm-providers/agent/RemoteAgent';
+import { CloseIcon } from '../icons/CloseIcon';
 import { AgentChat } from '../Chat/AgentChat/AgentChat';
 import styles from './PromptbookAgent.module.css';
 
@@ -34,6 +35,7 @@ type PromptbookAgentProps = {
 export function PromptbookAgent(props: PromptbookAgentProps) {
     const { agentUrl, meta, onOpenChange } = props;
     const [isOpen, setIsOpen] = useState(false);
+    const [headerElement, setHeaderElement] = useState<HTMLDivElement | null>(null);
 
     useEffect(() => {
         if (onOpenChange) {
@@ -105,15 +107,28 @@ export function PromptbookAgent(props: PromptbookAgentProps) {
 
             {isOpen && (
                 <div className={styles.promptbookAgentWindow}>
-                    <div className={styles.promptbookAgentHeader} style={{ backgroundColor: color }}>
+                    <div
+                        className={styles.promptbookAgentHeader}
+                        style={{ backgroundColor: color }}
+                        ref={setHeaderElement}
+                    >
                         <div className={styles.promptbookAgentTitle}>{agent?.agentName || 'Chat with Agent'}</div>
-                        <button className={styles.promptbookAgentClose} onClick={() => setIsOpen(false)}>
-                            ✕
-                        </button>
                     </div>
                     <div className={styles.promptbookAgentContent}>
                         {agent ? (
-                            <AgentChat agent={agent} />
+                            <AgentChat
+                                agent={agent}
+                                actionsContainer={headerElement}
+                                extraActions={
+                                    <button
+                                        className={styles.promptbookAgentClose}
+                                        onClick={() => setIsOpen(false)}
+                                        title="Close"
+                                    >
+                                        <CloseIcon />
+                                    </button>
+                                }
+                            />
                         ) : error ? (
                             <div className={styles.promptbookAgentError}>
                                 Failed to connect to agent: {error.message}

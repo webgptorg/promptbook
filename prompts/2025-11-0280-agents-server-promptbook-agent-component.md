@@ -73,7 +73,7 @@ Note: This has absurd cost of $5.8508 via Cline + `google-gemini-3-pro-preview`
 
 ---
 
-[ ]
+[x]
 
 [✨🌕] Move the actions of the chat to the top bar and add there a close icon via extra actions
 
