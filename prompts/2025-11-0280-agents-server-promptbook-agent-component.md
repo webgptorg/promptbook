@@ -87,7 +87,7 @@ Note: This has absurd cost of $5.8508 via Cline + `google-gemini-3-pro-preview`
 
 ---
 
-[ ]
+[x]
 
 [✨🌕] Add connected indicator to `<PromptbookAgent/>`
 

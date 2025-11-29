@@ -58,6 +58,8 @@ export function PromptbookAgent(props: PromptbookAgentProps) {
 
     useEffect(() => {
         let isMounted = true;
+        setAgent(null);
+        setError(null);
 
         const connectToAgent = async () => {
             try {
@@ -91,6 +93,13 @@ export function PromptbookAgent(props: PromptbookAgentProps) {
         'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y';
     const color = agent?.meta?.color || meta?.color;
 
+    let connectionStatus: 'connected' | 'pending' | 'error' = 'pending';
+    if (agent) {
+        connectionStatus = 'connected';
+    } else if (error) {
+        connectionStatus = 'error';
+    }
+
     return (
         <div className={`${styles.promptbookAgent} ${isOpen ? styles.open : styles.closed}`}>
             <div
@@ -102,6 +111,15 @@ export function PromptbookAgent(props: PromptbookAgentProps) {
                     {/* TODO: Use agent avatar if available */}
                     <img src={image} alt="Agent" />
                 </div>
+                <div
+                    className={`${styles.promptbookAgentStatus} ${
+                        connectionStatus === 'connected'
+                            ? styles.promptbookAgentStatusConnected
+                            : connectionStatus === 'error'
+                            ? styles.promptbookAgentStatusError
+                            : styles.promptbookAgentStatusPending
+                    }`}
+                />
                 <div className={styles.promptbookAgentLabel}>CHAT</div>
             </div>
 
