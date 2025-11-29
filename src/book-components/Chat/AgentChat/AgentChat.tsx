@@ -25,7 +25,7 @@ export function AgentChat(props: AgentChatProps) {
 
     return (
         <LlmChat
-            title={title || `Chat with ${agent.agentName || 'Agent'}`}
+            title={title || `Chat with ${agent.meta.fullname || agent.agentName || 'Agent'}`}
             persistenceKey={persistenceKey || `agent-chat-${agent.agentName}`}
             userParticipantName="USER"
             llmParticipantName="AGENT" // <- TODO: [🧠] Maybe dynamic agent id
@@ -36,7 +36,7 @@ export function AgentChat(props: AgentChatProps) {
                         agent.initialMessage ||
                         spaceTrim(`
                                 
-                        Hello! I am ${agent.agentName || 'an AI Agent'}.
+                        Hello! I am ${agent.meta.fullname || agent.agentName || 'an AI Agent'}.
                         
                         [Hello](?message=Hello, can you tell me about yourself?)
                     `),
@@ -45,7 +45,7 @@ export function AgentChat(props: AgentChatProps) {
             participants={[
                 {
                     name: 'AGENT',
-                    fullname: agent.agentName || 'Agent',
+                    fullname: agent.meta.fullname || agent.agentName || 'Agent',
                     avatarSrc: agent.meta.image,
                     color: agent.meta.color,
                     isMe: false,

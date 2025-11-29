@@ -219,4 +219,31 @@ describe('parseAgentSource', () => {
         expect(result.meta.image).toBe('https://example.com/image.png');
         expect(result.meta.color).toBe('#ff0000');
     });
+
+    it('parses META FULLNAME', () => {
+        const agentSource = validateBook(
+            spaceTrim(`
+                Pavol Hejný
+
+                PERSONA Developer with 10 years of experience in building AI applications.
+                META FULLNAME Dr. Ing. Pavol Hejný, PhD.
+            `),
+        );
+        const result = parseAgentSource(agentSource);
+        expect(result.agentName).toBe('pavol-hejny');
+        expect(result.meta.fullname).toBe('Dr. Ing. Pavol Hejný, PhD.');
+    });
+
+    it('uses agent name as fallback for fullname', () => {
+        const agentSource = validateBook(
+            spaceTrim(`
+                Pavol Hejný
+
+                PERSONA Developer with 10 years of experience in building AI applications.
+            `),
+        );
+        const result = parseAgentSource(agentSource);
+        expect(result.agentName).toBe('pavol-hejny');
+        expect(result.meta.fullname).toBe('Pavol Hejný');
+    });
 });

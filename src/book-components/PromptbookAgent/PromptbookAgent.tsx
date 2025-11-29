@@ -130,7 +130,9 @@ export function PromptbookAgent(props: PromptbookAgentProps) {
                         style={{ backgroundColor: color }}
                         ref={setHeaderElement}
                     >
-                        <div className={styles.promptbookAgentTitle}>{agent?.agentName || 'Chat with Agent'}</div>
+                        <div className={styles.promptbookAgentTitle}>
+                            {agent?.meta.fullname || meta?.fullname || agent?.agentName || 'Chat with Agent'}
+                        </div>
                     </div>
                     <div className={styles.promptbookAgentContent}>
                         {agent ? (

@@ -52,3 +52,7 @@
 -   **New:** `AgentChat` now supports rendering the initial message defined in the agent source.
 -   **Style:** Separators `---` in `BookEditor` are now aligned with notebook lines and appear thicker and darker.
 -   **New:** Created aliases for meta commitments: `IMAGE` as an alias for `META IMAGE` and `COLOR` as an alias for `META COLOR`.
+-   **New:** Add `fullname` to `AgentBasicInformation` to represent the agent's full name in the UI. [✨🈶]
+    -   Keep using `agentName` as a identifier
+    -   Keep using `agentName` as fallback if `meta.fullname` is not provided
+    -   This can be overrided by `META FULLNAME` commitment

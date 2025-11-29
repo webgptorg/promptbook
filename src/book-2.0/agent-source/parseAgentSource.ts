@@ -90,6 +90,11 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
         meta.image = generatePlaceholderAgentProfileImageUrl(parseResult.agentName || '!!');
     }
 
+    // Generate fullname fallback if no meta fullname specified
+    if (!meta.fullname) {
+        meta.fullname = parseResult.agentName || createDefaultAgentName(agentSource);
+    }
+
     // Parse parameters using unified approach - both @Parameter and {parameter} notations
     // are treated as the same syntax feature with unified representation
     const parameters = parseParameters(agentSource);

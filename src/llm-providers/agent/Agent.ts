@@ -64,6 +64,7 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
      * Metadata like image or color
      */
     public meta: {
+        fullname?: string;
         image?: string_url_image;
         link?: string;
         title?: string;

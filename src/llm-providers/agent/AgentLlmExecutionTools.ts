@@ -99,7 +99,7 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
 
     public get title(): string_title & string_markdown_text {
         const agentInfo = this.getAgentInfo();
-        return (agentInfo.agentName || 'Agent') as string_title & string_markdown_text;
+        return (agentInfo.meta.fullname || agentInfo.agentName || 'Agent') as string_title & string_markdown_text;
     }
 
     public get description(): string_markdown {
@@ -116,7 +116,7 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
 
         return {
             name: agentInfo.agentName.toUpperCase().replace(/\s+/g, '_'),
-            fullname: agentInfo.agentName,
+            fullname: agentInfo.meta.fullname || agentInfo.agentName,
             color: agentInfo.meta.color || '#6366f1', // Default indigo color
             avatarSrc: agentInfo.meta.image,
         };

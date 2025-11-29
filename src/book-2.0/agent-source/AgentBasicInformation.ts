@@ -65,6 +65,7 @@ export type AgentBasicInformation = {
      * When there are multiple meta commitments of the same type, later overrides earlier
      */
     meta: {
+        fullname?: string;
         image?: string_url_image;
         color?: string_color;
         [key: string]: string | undefined;
