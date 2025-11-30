@@ -8,7 +8,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🐝] When Agent is replying, look at its `USER MESSAGE` and `AGENT MESSAGE` message samples and use them if the user asks the same thing
 

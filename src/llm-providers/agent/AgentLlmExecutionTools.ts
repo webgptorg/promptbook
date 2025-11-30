@@ -84,7 +84,7 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
     /**
      * Get cached or create agent model requirements
      */
-    private async getAgentModelRequirements(): Promise<AgentModelRequirements> {
+    protected async getAgentModelRequirements(): Promise<AgentModelRequirements> {
         if (this._cachedModelRequirements === null) {
             // Get available models from underlying LLM tools for best model selection
             const availableModels = await this.options.llmTools.listModels();

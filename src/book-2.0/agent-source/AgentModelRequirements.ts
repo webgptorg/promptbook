@@ -28,6 +28,11 @@ export type AgentModelRequirements = {
     readonly knowledgeSources?: ReadonlyArray<string_knowledge_source_link>;
 
     /**
+     * List of sample conversations (question/answer pairs)
+     */
+    readonly samples?: ReadonlyArray<{ question: string; answer: string }>;
+
+    /**
      * Temperature for the agent's responses, controlling randomness
      */
     readonly temperature?: number;

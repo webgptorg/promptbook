@@ -61,6 +61,12 @@ export class UserMessageCommitmentDefinition extends BaseCommitmentDefinition<'U
 
         keepUnused(content);
 
-        return requirements;
+        return {
+            ...requirements,
+            metadata: {
+                ...requirements.metadata,
+                pendingUserMessage: content,
+            },
+        };
     }
 }

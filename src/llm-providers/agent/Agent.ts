@@ -10,8 +10,17 @@ import { validateBook } from '../../book-2.0/agent-source/string_book';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
-import type { string_agent_hash, string_agent_name, string_agent_url, string_url_image } from '../../types/typeAliases';
+import type {
+    string_agent_hash,
+    string_agent_name,
+    string_agent_url,
+    string_date_iso8601,
+    string_markdown,
+    string_prompt,
+    string_url_image,
+} from '../../types/typeAliases';
 import { asUpdatableSubject } from '../../types/Updatable';
+import { normalizeMessageText } from '../../utils/normalization/normalizeMessageText';
 import { getSingleLlmExecutionTools } from '../_multiple/getSingleLlmExecutionTools';
 import { AgentLlmExecutionTools } from './AgentLlmExecutionTools';
 import type { AgentOptions } from './AgentOptions';
@@ -116,6 +125,53 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
         prompt: Prompt,
         onProgress: (chunk: ChatPromptResult) => void,
     ): Promise<ChatPromptResult> {
+        // [1] Check if the user is asking the same thing as in the samples
+        const modelRequirements = await this.getAgentModelRequirements();
+        if (modelRequirements.samples) {
+            const normalizedPrompt = normalizeMessageText(prompt.content);
+            const sample = modelRequirements.samples.find(
+                (s) => normalizeMessageText(s.question) === normalizedPrompt,
+            );
+
+            if (sample) {
+                const now = new Date().toISOString() as string_date_iso8601;
+                const result: ChatPromptResult = {
+                    content: sample.answer as string_markdown,
+                    modelName: this.modelName,
+                    timing: {
+                        start: now,
+                        complete: now,
+                    },
+                    usage: {
+                        price: { value: 0, isUncertain: true },
+                        input: {
+                            tokensCount: { value: 0, isUncertain: true },
+                            charactersCount: { value: 0, isUncertain: true },
+                            wordsCount: { value: 0, isUncertain: true },
+                            linesCount: { value: 0, isUncertain: true },
+                            sentencesCount: { value: 0, isUncertain: true },
+                            paragraphsCount: { value: 0, isUncertain: true },
+                            pagesCount: { value: 0, isUncertain: true },
+                        },
+                        output: {
+                            tokensCount: { value: 0, isUncertain: true },
+                            charactersCount: { value: 0, isUncertain: true },
+                            wordsCount: { value: 0, isUncertain: true },
+                            linesCount: { value: 0, isUncertain: true },
+                            sentencesCount: { value: 0, isUncertain: true },
+                            paragraphsCount: { value: 0, isUncertain: true },
+                            pagesCount: { value: 0, isUncertain: true },
+                        },
+                    },
+                    rawPromptContent: prompt.content as string_prompt,
+                    rawRequest: null,
+                    rawResponse: { sample },
+                };
+                onProgress(result);
+                return result;
+            }
+        }
+
         const result = await super.callChatModelStream(prompt, onProgress);
 
         // TODO: !!! Extract learning to separate method
