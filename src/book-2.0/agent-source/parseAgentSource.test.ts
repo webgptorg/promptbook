@@ -167,6 +167,7 @@ describe('parseAgentSource', () => {
         const agentSource = validateBook(
             spaceTrim(`
                 AI Avatar
+
                 META TITLE My Title
                 META title Another Title
                 META Link https://example.com
@@ -178,6 +179,7 @@ describe('parseAgentSource', () => {
         const result = parseAgentSource(agentSource);
         expect(result.meta).toEqual({
             image: expect.stringMatching(/gravatar/), // Should be a gravatar URL fallback
+            fullname: 'AI Avatar',
             title: 'Another Title', // Later should override earlier
             link: 'https://example2.com', // Later should override earlier
             description: 'Second description', // Later should override earlier
