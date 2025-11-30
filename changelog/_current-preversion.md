@@ -49,6 +49,7 @@
 -   Enhanced `renderMarkdown` utility to support math rendering.
 -   Added dependencies: `katex`, `@types/katex`.
 -   **New:** Added `INITIAL MESSAGE` commitment to define the initial message for the chat in the agent source.
+-   **New:** Added `USER MESSAGE` and `AGENT MESSAGE` commitments to define conversation history or few-shot examples in the agent source.
 -   **New:** `AgentChat` now supports rendering the initial message defined in the agent source.
 -   **Style:** Separators `---` in `BookEditor` are now aligned with notebook lines and appear thicker and darker.
 -   **New:** Created aliases for meta commitments: `IMAGE` as an alias for `META IMAGE` and `COLOR` as an alias for `META COLOR`.

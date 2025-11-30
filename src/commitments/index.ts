@@ -9,8 +9,10 @@ import { FormatCommitmentDefinition } from './FORMAT/FORMAT';
 import { GoalCommitmentDefinition } from './GOAL/GOAL';
 import { KnowledgeCommitmentDefinition } from './KNOWLEDGE/KNOWLEDGE';
 import { MemoryCommitmentDefinition } from './MEMORY/MEMORY';
+import { AgentMessageCommitmentDefinition } from './MESSAGE/AgentMessageCommitmentDefinition';
 import { InitialMessageCommitmentDefinition } from './MESSAGE/InitialMessageCommitmentDefinition';
 import { MessageCommitmentDefinition } from './MESSAGE/MESSAGE';
+import { UserMessageCommitmentDefinition } from './MESSAGE/UserMessageCommitmentDefinition';
 import { MetaCommitmentDefinition } from './META/META';
 import { MetaColorCommitmentDefinition } from './META_COLOR/META_COLOR';
 import { MetaImageCommitmentDefinition } from './META_IMAGE/META_IMAGE';
@@ -59,6 +61,8 @@ export const COMMITMENT_REGISTRY = [
     new GoalCommitmentDefinition('GOAL'),
     new GoalCommitmentDefinition('GOALS'),
     new InitialMessageCommitmentDefinition(),
+    new UserMessageCommitmentDefinition(),
+    new AgentMessageCommitmentDefinition(),
     new MessageCommitmentDefinition('MESSAGE'),
     new MessageCommitmentDefinition('MESSAGES'),
     new ScenarioCommitmentDefinition('SCENARIO'),

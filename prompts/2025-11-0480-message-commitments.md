@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🐝] Create commitments `USER MESSAGE` and `AGENT MESSAGE`
 
