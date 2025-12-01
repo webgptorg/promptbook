@@ -5,6 +5,8 @@ import { ImageResponse } from 'next/og';
 import { Color } from '../../../../../../src/utils/color/Color';
 import { withAlpha } from '../../../../../../src/utils/color/operators/withAlpha';
 import { AGENT_ACTIONS, getAgentName, getAgentProfile } from './_utils';
+import { assertsError } from '../../../../../../src/errors/assertsError';
+import { serializeError } from '@promptbook-local/utils';
 
 // export const runtime = 'edge';
 // <- Note: On Vercel Edge runtime some modules are not working *(like `crypto`)*
@@ -266,9 +268,22 @@ export default async function Image({ params }: { params: Promise<{ agentName: s
             },
         );
     } catch (error) {
+        assertsError(error);
+
         console.error(error);
-        return new Response(`Failed to generate the Agent Open Graph image`, {
-            status: 500,
-        });
+
+        return new Response(
+            JSON.stringify(
+                serializeError(error),
+                // <- TODO: [🐱‍🚀] Rename `serializeError` to `errorToJson`
+                null,
+                4,
+                // <- TODO: [🐱‍🚀] Allow to configure pretty print for agent server
+            ),
+            {
+                status: 400, // <- TODO: [🐱‍🚀] Make `errorToHttpStatusCode`
+                headers: { 'Content-Type': 'application/json' },
+            },
+        );
     }
 }

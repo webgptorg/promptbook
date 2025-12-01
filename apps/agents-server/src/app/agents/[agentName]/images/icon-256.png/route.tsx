@@ -5,6 +5,8 @@ import { ImageResponse } from 'next/og';
 import { Color } from '../../../../../../../../src/utils/color/Color';
 import { keepUnused } from '../../../../../../../../src/utils/organization/keepUnused';
 import { getAgentName, getAgentProfile } from '../../_utils';
+import { assertsError } from '../../../../../../../../src/errors/assertsError';
+import { serializeError } from '@promptbook-local/utils';
 
 const size = {
     width: 256,
@@ -55,10 +57,23 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
             },
         );
     } catch (error) {
+        assertsError(error);
+
         console.error(error);
-        return new Response(`Failed to generate the Agent icon`, {
-            status: 500,
-        });
+
+        return new Response(
+            JSON.stringify(
+                serializeError(error),
+                // <- TODO: [🐱‍🚀] Rename `serializeError` to `errorToJson`
+                null,
+                4,
+                // <- TODO: [🐱‍🚀] Allow to configure pretty print for agent server
+            ),
+            {
+                status: 400, // <- TODO: [🐱‍🚀] Make `errorToHttpStatusCode`
+                headers: { 'Content-Type': 'application/json' },
+            },
+        );
     }
 }
 
