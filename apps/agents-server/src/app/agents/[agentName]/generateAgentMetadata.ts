@@ -18,7 +18,6 @@ export async function generateAgentMetadata({ params }: { params: Promise<{ agen
             metadataBase: NEXT_PUBLIC_SITE_URL,
             title,
             description,
-            manifest: `/agents/${encodeURIComponent(agentName)}/manifest.webmanifest`,
             icons: image ? { icon: image } : undefined,
             openGraph: {
                 title,

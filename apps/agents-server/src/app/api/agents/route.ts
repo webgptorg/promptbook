@@ -1,3 +1,4 @@
+import { NEXT_PUBLIC_SITE_URL } from '@/config';
 import { NextResponse } from 'next/server';
 import { getMetadata } from '../../../database/getMetadata';
 import { $provideAgentCollectionForServer } from '../../../tools/$provideAgentCollectionForServer';
@@ -8,7 +9,6 @@ export async function GET() {
     try {
         const collection = await $provideAgentCollectionForServer();
         const agents = await collection.listAgents();
-        const serverUrl = (await getMetadata('SERVER_URL')) || '';
         const federatedServersString = (await getMetadata('FEDERATED_SERVERS')) || '';
         const federatedServers = federatedServersString
             .split(',')
@@ -17,7 +17,7 @@ export async function GET() {
 
         const agentsWithUrl = agents.map((agent) => ({
             ...agent,
-            url: `${serverUrl}/${agent.agentName}`,
+            url: `${NEXT_PUBLIC_SITE_URL.href}agents/${encodeURIComponent(agent.agentName)}`,
         }));
 
         return NextResponse.json({
@@ -26,9 +26,6 @@ export async function GET() {
         });
     } catch (error) {
         console.error('Error fetching agents:', error);
-        return NextResponse.json(
-            { error: 'Failed to fetch agents' },
-            { status: 500 },
-        );
+        return NextResponse.json({ error: 'Failed to fetch agents' }, { status: 500 });
     }
 }

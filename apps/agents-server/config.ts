@@ -31,7 +31,7 @@ const config = ConfigChecker.from({
  *
  * Note: When `SERVERS` are used, this URL will be overridden by the server URL.
  */
-export const NEXT_PUBLIC_SITE_URL = config.get('NEXT_PUBLIC_SITE_URL').url().value;
+export const NEXT_PUBLIC_SITE_URL = config.get('NEXT_PUBLIC_SITE_URL').url().required().value;
 
 /**
  * [♐️] Vercel environment: "development" | "preview" | "production"

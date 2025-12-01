@@ -2,15 +2,16 @@
 
 // import { BookEditor } from '@promptbook-local/components';
 import { $provideServer } from '@/src/tools/$provideServer';
+import { PROMPTBOOK_COLOR } from '@promptbook-local/core';
 import { Columns2Icon, MessagesSquareIcon, NotebookPenIcon } from 'lucide-react';
 import { headers } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { Color } from '../../../../../../src/utils/color/Color';
 import { withAlpha } from '../../../../../../src/utils/color/operators/withAlpha';
 import { $sideEffect } from '../../../../../../src/utils/organization/$sideEffect';
+import { AGENT_ACTIONS, getAgentName, getAgentProfile } from './_utils';
 import { AgentChatWrapper } from './AgentChatWrapper';
 import { AgentQrCode } from './AgentQrCode';
-import { AGENT_ACTIONS, getAgentName, getAgentProfile } from './_utils';
 import { CopyField } from './CopyField';
 import { generateAgentMetadata } from './generateAgentMetadata';
 import { ServiceWorkerRegister } from './ServiceWorkerRegister';
@@ -55,7 +56,7 @@ export default async function AgentPage({ params }: { params: Promise<{ agentNam
     console.log('[🐱‍🚀]', { pageUrl: agentUrl });
 
     // Extract brand color from meta
-    const brandColor = Color.from(agentProfile.meta.color || '#3b82f6'); // Default to blue-600
+    const brandColor = Color.from(agentProfile.meta.color || PROMPTBOOK_COLOR);
 
     // Mock agent actions
     const agentActions = AGENT_ACTIONS;

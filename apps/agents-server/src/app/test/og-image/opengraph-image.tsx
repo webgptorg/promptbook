@@ -27,6 +27,7 @@ export default async function Image() {
         ),
         {
             ...size,
+            emoji: 'openmoji',
         },
     );
 }

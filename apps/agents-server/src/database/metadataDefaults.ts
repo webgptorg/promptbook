@@ -10,11 +10,6 @@ export const metadataDefaults = [
         note: 'The description of the server displayed in the search engine results',
     },
     {
-        key: 'SERVER_URL',
-        value: 'https://ptbk.io',
-        note: 'The URL of the server',
-    },
-    {
         key: 'SERVER_LOGO_URL',
         value: '',
         note: 'The URL of the logo displayed in the heading bar',

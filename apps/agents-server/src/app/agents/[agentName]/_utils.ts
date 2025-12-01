@@ -13,3 +13,7 @@ export async function getAgentProfile(agentName: string) {
     const agentSource = await collection.getAgentSource(agentName);
     return parseAgentSource(agentSource);
 }
+
+/**
+ * TODO: Split to multiple files
+ */

@@ -1,5 +1,6 @@
 // TODO: !!!! Make it work
 
+import { PROMPTBOOK_COLOR } from '@promptbook-local/core';
 import { ImageResponse } from 'next/og';
 import { Color } from '../../../../../../src/utils/color/Color';
 import { withAlpha } from '../../../../../../src/utils/color/operators/withAlpha';
@@ -22,7 +23,7 @@ export default async function Image({ params }: { params: Promise<{ agentName: s
     // const { publicUrl } = await $provideServer();
 
     // Extract brand color from meta
-    const brandColor = Color.from(agentProfile.meta.color || '#3b82f6'); // Default to blue-600
+    const brandColor = Color.from(agentProfile.meta.color || PROMPTBOOK_COLOR);
     const bgColor = brandColor.then(withAlpha(0.05)).toHex();
     const borderColor = brandColor.then(withAlpha(0.1)).toHex();
     const badgeColor = brandColor.toHex();
@@ -260,6 +261,7 @@ export default async function Image({ params }: { params: Promise<{ agentName: s
         ),
         {
             ...size,
+            emoji: 'openmoji',
         },
     );
 }
