@@ -34,6 +34,37 @@
 
 [ ]
 
+[✨💟] Agents should be installable as PWA app
+
+-   Add proper manifest and service worker to make agent pages installable as PWA (Progressive Web App)
+-   We really want to make app from agent pages `/[agentName]` not the whole Agents Server
+-   Each agent page should be installable separately as its own PWA app
+-   Each agent page should have its own manifest with proper name, icons, etc.
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[ ]
+
+[✨💟] baz
+
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[ ]
+
+[✨💟] baz
+
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[ ]
+
 [✨💟] baz
 
 -   You are working with the `Agents Server` application `/apps/agents-server`
