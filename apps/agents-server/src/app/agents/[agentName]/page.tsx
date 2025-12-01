@@ -1,9 +1,7 @@
 'use server';
 
-import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 // import { BookEditor } from '@promptbook-local/components';
 import { $provideServer } from '@/src/tools/$provideServer';
-import { parseAgentSource } from '@promptbook-local/core';
 import { Columns2Icon, MessagesSquareIcon, NotebookPenIcon } from 'lucide-react';
 import { headers } from 'next/headers';
 import { notFound } from 'next/navigation';
@@ -12,6 +10,7 @@ import { withAlpha } from '../../../../../../src/utils/color/operators/withAlpha
 import { $sideEffect } from '../../../../../../src/utils/organization/$sideEffect';
 import { AgentChatWrapper } from './AgentChatWrapper';
 import { AgentQrCode } from './AgentQrCode';
+import { AGENT_ACTIONS, getAgentName, getAgentProfile } from './_utils';
 import { CopyField } from './CopyField';
 import { generateAgentMetadata } from './generateAgentMetadata';
 // import { Agent } from '@promptbook-local/core';
@@ -27,13 +26,11 @@ export default async function AgentPage({ params }: { params: Promise<{ agentNam
 
     $sideEffect(headers());
 
-    let { agentName } = await params;
-    agentName = decodeURIComponent(agentName);
+    const agentName = await getAgentName(params);
 
-    const collection = await $provideAgentCollectionForServer();
-    let agentSource;
+    let agentProfile;
     try {
-        agentSource = await collection.getAgentSource(agentName);
+        agentProfile = await getAgentProfile(agentName);
     } catch (error) {
         if (
             error instanceof Error &&
@@ -45,7 +42,6 @@ export default async function AgentPage({ params }: { params: Promise<{ agentNam
         }
         throw error;
     }
-    const agentProfile = parseAgentSource(agentSource);
 
     const { publicUrl } = await $provideServer();
 
@@ -61,7 +57,7 @@ export default async function AgentPage({ params }: { params: Promise<{ agentNam
     const brandColor = Color.from(agentProfile.meta.color || '#3b82f6'); // Default to blue-600
 
     // Mock agent actions
-    const agentActions = ['Emails', 'Web chat', 'Read documents', 'Browser', 'WhatsApp', '<Coding/>'];
+    const agentActions = AGENT_ACTIONS;
 
     return (
         <div className="flex flex-col md:flex-row h-[calc(100vh-60px)] w-full overflow-hidden">

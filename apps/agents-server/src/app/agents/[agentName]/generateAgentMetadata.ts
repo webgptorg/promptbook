@@ -1,15 +1,11 @@
-import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
-import { parseAgentSource } from '@promptbook-local/core';
 import { Metadata } from 'next';
+import { getAgentName, getAgentProfile } from './_utils';
 
 export async function generateAgentMetadata({ params }: { params: Promise<{ agentName: string }> }): Promise<Metadata> {
-    let { agentName } = await params;
-    agentName = decodeURIComponent(agentName);
+    const agentName = await getAgentName(params);
 
     try {
-        const collection = await $provideAgentCollectionForServer();
-        const agentSource = await collection.getAgentSource(agentName);
-        const agentProfile = parseAgentSource(agentSource);
+        const agentProfile = await getAgentProfile(agentName);
 
         const title = agentProfile.meta.fullname || agentProfile.agentName;
         const description = agentProfile.meta.description || agentProfile.personaDescription || undefined;
@@ -25,13 +21,11 @@ export async function generateAgentMetadata({ params }: { params: Promise<{ agen
                 title,
                 description,
                 type: 'website',
-                images: image ? [{ url: image }] : undefined,
             },
             twitter: {
                 card: 'summary_large_image',
                 title,
                 description,
-                images: image ? [image] : undefined,
             },
         };
     } catch (error) {

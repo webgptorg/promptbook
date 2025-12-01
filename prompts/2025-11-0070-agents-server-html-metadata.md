@@ -10,7 +10,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨💟] Open Graph image / Twitter Card image of the agent should have generated design from agent page
 
