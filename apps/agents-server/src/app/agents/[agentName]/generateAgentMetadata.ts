@@ -20,6 +20,7 @@ export async function generateAgentMetadata({ params }: { params: Promise<{ agen
         return {
             title,
             description,
+            icons: image ? { icon: image } : undefined,
             openGraph: {
                 title,
                 description,

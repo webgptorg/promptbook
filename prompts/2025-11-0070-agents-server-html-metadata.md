@@ -22,7 +22,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨💟] Favicon of agent should be their `META IMAGE`
 

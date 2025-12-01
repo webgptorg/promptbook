@@ -5,7 +5,10 @@ import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentColle
 import { isUserAdmin } from '@/src/utils/isUserAdmin';
 import { headers } from 'next/headers';
 import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
+import { generateAgentMetadata } from '../generateAgentMetadata';
 import { BookEditorWrapper } from './BookEditorWrapper';
+
+export const generateMetadata = generateAgentMetadata;
 
 export default async function AgentBookPage({ params }: { params: Promise<{ agentName: string }> }) {
     $sideEffect(headers());
