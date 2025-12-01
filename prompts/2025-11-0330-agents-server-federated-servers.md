@@ -12,7 +12,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🪓] On home page of Agents server are shown external agents from federated servers
 

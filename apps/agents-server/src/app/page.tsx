@@ -7,6 +7,7 @@ import { AboutPromptbookInformation } from '../../../../src/utils/misc/xAboutPro
 import { $sideEffect } from '../../../../src/utils/organization/$sideEffect';
 import { AuthControls } from '../components/Auth/AuthControls';
 import { AgentCard } from '../components/Homepage/AgentCard';
+import { ExternalAgentsSection } from '../components/Homepage/ExternalAgentsSection';
 import { ModelCard } from '../components/Homepage/ModelCard';
 import { Section } from '../components/Homepage/Section';
 import { TechInfoCard } from '../components/Homepage/TechInfoCard';
@@ -47,7 +48,7 @@ export default async function HomePage() {
         .map((s) => s.trim())
         .filter((s) => s !== '');
 
-    const externalAgents = await getFederatedAgents(federatedServers);
+    const agentsByServer = await getFederatedAgents(federatedServers);
 
     const longRunningTask = getLongRunningTask();
 
@@ -70,13 +71,7 @@ export default async function HomePage() {
                     {isAdmin && <AddAgentButton />}
                 </Section>
 
-                {externalAgents.length > 0 && (
-                    <Section title={`External Agents (${externalAgents.length})`}>
-                        {externalAgents.map((agent) => (
-                            <AgentCard key={agent.url} agent={agent} href={agent.url} />
-                        ))}
-                    </Section>
-                )}
+                <ExternalAgentsSection agentsByServer={agentsByServer} />
 
                 {isAdmin && <UsersList />}
 
