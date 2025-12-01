@@ -3,6 +3,7 @@ import type { PartialDeep } from 'type-fest';
 import type { AgentBasicInformation } from '../../book-2.0/agent-source/AgentBasicInformation';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import { validateBook } from '../../book-2.0/agent-source/string_book';
+import { PROMPTBOOK_COLOR } from '../../config';
 import type { string_agent_name_in_book } from '../../types/typeAliases';
 import { TODO_USE } from '../organization/TODO_USE';
 import { $randomAgentPersona } from './$randomAgentPersona';
@@ -51,7 +52,7 @@ export function $generateBookBoilerplate(options?: GenerateBookBoilerplateOption
             (block) => `
                 ${agentName}
     
-                META COLOR ${color || '#3498db' /* <- TODO: [🧠] [🐱‍🚀] Best default color */}
+                META COLOR ${color || PROMPTBOOK_COLOR.toHex()}
                 PERSONA ${block(personaDescription!)}
             `,
         ),

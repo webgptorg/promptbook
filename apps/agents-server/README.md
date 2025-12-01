@@ -1,3 +1,3 @@
 # 🔠 Promptbook Agents server
 
--   TODO: [🐱‍🚀] Search for [🔠] to find all places where new app should be registered
+Agents Server is the main web application where Promptbook agents live

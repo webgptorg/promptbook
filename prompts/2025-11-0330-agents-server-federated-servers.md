@@ -14,8 +14,10 @@
 
 [ ]
 
-[✨🪓] qux
+[✨🪓] On home page of Agents server are shown external agents from federated servers
 
+-   Now they are mixed together with all external agents
+-   Separate them into their own section by server they come from
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 

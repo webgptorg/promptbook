@@ -162,6 +162,8 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
             promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
         });
 
+        // TODO: !!!! Distinct self-learning vs manual changes
+
         keepUnused(insertAgentHistoryResult);
         // <- TODO: [🧠] What to do with `insertAgentHistoryResult.error`, ignore? wait?
 
