@@ -6,7 +6,8 @@ import { Color } from '../../../../../../src/utils/color/Color';
 import { withAlpha } from '../../../../../../src/utils/color/operators/withAlpha';
 import { AGENT_ACTIONS, getAgentName, getAgentProfile } from './_utils';
 
-export const runtime = 'edge';
+// export const runtime = 'edge';
+// <- Note: !!!!!
 
 export const alt = 'Agent Profile';
 export const size = {
