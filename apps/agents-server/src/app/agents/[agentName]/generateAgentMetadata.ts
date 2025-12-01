@@ -1,3 +1,4 @@
+import { NEXT_PUBLIC_SITE_URL } from '@/config';
 import { Metadata } from 'next';
 import { getAgentName, getAgentProfile } from './_utils';
 
@@ -13,7 +14,8 @@ export async function generateAgentMetadata({ params }: { params: Promise<{ agen
         // Extract image from meta
         const image = agentProfile.meta.image;
 
-        return {
+        const metadata = {
+            metadataBase: NEXT_PUBLIC_SITE_URL,
             title,
             description,
             icons: image ? { icon: image } : undefined,
@@ -27,7 +29,9 @@ export async function generateAgentMetadata({ params }: { params: Promise<{ agen
                 title,
                 description,
             },
-        };
+        } satisfies Metadata;
+
+        return metadata;
     } catch (error) {
         console.warn(`Failed to generate metadata for agent ${agentName}`, error);
         return {
