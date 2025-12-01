@@ -9,6 +9,7 @@ const barlowCondensed = Barlow_Condensed({
 });
 
 export const metadata: Metadata = {
+    // metadataBase: NEXT_PUBLIC_SITE_URL,
     title: 'Promptbook boilerplate app',
     description: '@@@',
     keywords: ['@@@'],

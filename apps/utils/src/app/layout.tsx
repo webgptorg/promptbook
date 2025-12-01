@@ -1,3 +1,4 @@
+import { NEXT_PUBLIC_SITE_URL } from '@/config';
 import faviconLogoImage from '@/public/favicon.ico';
 import type { Metadata } from 'next';
 import { Barlow_Condensed } from 'next/font/google';
@@ -9,6 +10,7 @@ const barlowCondensed = Barlow_Condensed({
 });
 
 export const metadata: Metadata = {
+    metadataBase: NEXT_PUBLIC_SITE_URL,
     title: 'Promptbook utils app',
     description: '@@@',
     keywords: ['@@@'],

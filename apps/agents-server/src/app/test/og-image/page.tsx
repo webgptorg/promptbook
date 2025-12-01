@@ -1,6 +1,8 @@
+import { NEXT_PUBLIC_SITE_URL } from '@/config';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
+    metadataBase: NEXT_PUBLIC_SITE_URL,
     title: 'Test OG Image',
     description: 'Testing og-image',
 };
