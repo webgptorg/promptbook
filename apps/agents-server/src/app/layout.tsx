@@ -3,6 +3,7 @@ import { LayoutWrapper } from '@/src/components/LayoutWrapper/LayoutWrapper';
 import type { Metadata } from 'next';
 import { Barlow_Condensed } from 'next/font/google';
 import { getMetadata } from '../database/getMetadata';
+import { $provideAgentCollectionForServer } from '../tools/$provideAgentCollectionForServer';
 import { isUserAdmin } from '../utils/isUserAdmin';
 import './globals.css';
 
@@ -58,6 +59,9 @@ export default async function RootLayout({
     const serverLogoUrl = (await getMetadata('SERVER_LOGO_URL')) || null;
     const serverFaviconUrl = (await getMetadata('SERVER_FAVICON_URL')) || faviconLogoImage.src;
 
+    const collection = await $provideAgentCollectionForServer();
+    const agents = await collection.listAgents();
+
     return (
         <html lang="en">
             <head>
@@ -83,7 +87,12 @@ export default async function RootLayout({
                 <link rel="icon" href={serverFaviconUrl} type="image/x-icon" />
             </head>
             <body className={`${barlowCondensed.variable} antialiased bg-white text-gray-900`}>
-                <LayoutWrapper isAdmin={isAdmin} serverName={serverName} serverLogoUrl={serverLogoUrl}>
+                <LayoutWrapper
+                    isAdmin={isAdmin}
+                    serverName={serverName}
+                    serverLogoUrl={serverLogoUrl}
+                    agents={JSON.parse(JSON.stringify(agents))}
+                >
                     {children}
                 </LayoutWrapper>
             </body>

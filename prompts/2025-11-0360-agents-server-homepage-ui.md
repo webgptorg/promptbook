@@ -19,7 +19,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨⛱] Add link to every agent in the header
 

@@ -6,6 +6,8 @@ import { ArrowRight, LogIn, LogOut, Menu, X } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
+import { ChevronDown } from 'lucide-react';
+import { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
 import { just } from '../../../../../src/utils/organization/just';
 import { LoginDialog } from '../LoginDialog/LoginDialog';
 
@@ -24,15 +26,21 @@ type HeaderProps = {
      * The URL of the logo displayed in the heading bar
      */
     serverLogoUrl: string | null;
+
+    /**
+     * List of agents
+     */
+    agents: Array<AgentBasicInformation>;
 };
 
 /* TODO: [🐱‍🚀] Make this Agents server native  */
 
 export function Header(props: HeaderProps) {
-    const { isAdmin = false, serverName, serverLogoUrl } = props;
+    const { isAdmin = false, serverName, serverLogoUrl, agents } = props;
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isLoginOpen, setIsLoginOpen] = useState(false);
+    const [isAgentsOpen, setIsAgentsOpen] = useState(false);
 
     const handleLogout = async () => {
         await logoutAction();
@@ -59,12 +67,37 @@ export function Header(props: HeaderProps) {
                     <nav className="hidden md:flex items-center gap-8">
                         {isAdmin && (
                             <>
-                                <Link
-                                    href="/"
-                                    className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
-                                >
-                                    Agents
-                                </Link>
+                                <div className="relative">
+                                    <button
+                                        className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
+                                        onClick={() => setIsAgentsOpen(!isAgentsOpen)}
+                                        onBlur={() => setTimeout(() => setIsAgentsOpen(false), 200)}
+                                    >
+                                        Agents
+                                        <ChevronDown className="w-4 h-4" />
+                                    </button>
+                                    
+                                    {isAgentsOpen && (
+                                        <div className="absolute top-full left-0 mt-2 w-56 bg-white rounded-md shadow-lg border border-gray-100 py-1 z-50 animate-in fade-in zoom-in-95 duration-200">
+                                            {agents.map((agent) => (
+                                                <Link
+                                                    key={agent.agentName}
+                                                    href={`/${agent.agentName}`}
+                                                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                                                >
+                                                    {agent.meta.fullname || agent.agentName}
+                                                </Link>
+                                            ))}
+                                            <div className="border-t border-gray-100 my-1"></div>
+                                            <Link
+                                                href="/"
+                                                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 font-medium"
+                                            >
+                                                View all agents
+                                            </Link>
+                                        </div>
+                                    )}
+                                </div>
                                 <Link
                                     href="/"
                                     className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
