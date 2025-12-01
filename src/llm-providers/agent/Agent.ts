@@ -174,6 +174,10 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
 
         const result = await super.callChatModelStream(prompt, onProgress);
 
+        if (result.rawResponse && 'sample' in result.rawResponse) {
+            return result;
+        }
+
         // TODO: !!! Extract learning to separate method
         // Learning: Append the conversation sample to the agent source
         const learningExample = spaceTrim(

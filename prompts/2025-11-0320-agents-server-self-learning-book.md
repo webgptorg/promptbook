@@ -30,7 +30,7 @@
 
 ---
 
-[ ]
+[x] *<- Note: Already done*
 
 [✨🖋] Do not add pair of learned `USER MESSAGE` and `AGENT MESSAGE` when the response came from there
 
