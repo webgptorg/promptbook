@@ -1,6 +1,5 @@
 // TODO: !!!! Make it work
 
-import { $provideServer } from '@/src/tools/$provideServer';
 import { ImageResponse } from 'next/og';
 import { Color } from '../../../../../../src/utils/color/Color';
 import { withAlpha } from '../../../../../../src/utils/color/operators/withAlpha';
@@ -20,7 +19,7 @@ export const contentType = 'image/png';
 export default async function Image({ params }: { params: Promise<{ agentName: string }> }) {
     const agentName = await getAgentName(params);
     const agentProfile = await getAgentProfile(agentName);
-    const { publicUrl } = await $provideServer();
+    // const { publicUrl } = await $provideServer();
 
     // Extract brand color from meta
     const brandColor = Color.from(agentProfile.meta.color || '#3b82f6'); // Default to blue-600
