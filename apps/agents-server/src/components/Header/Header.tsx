@@ -39,11 +39,11 @@ export function Header(props: HeaderProps) {
     };
 
     return (
-        <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200 h-[60px]">
+        <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200 h-16">
             <LoginDialog isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
-            <div className="container mx-auto px-4">
-                <div className="flex items-center justify-between h-16">
-                    {/* Logo <- TODO: This should be <h1>*/}
+            <div className="container mx-auto px-4 h-full">
+                <div className="flex items-center justify-between h-full">
+                    {/* Logo */}
                     <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
                         <Image
                             src={serverLogoUrl || promptbookLogoBlueTransparent}
@@ -52,35 +52,34 @@ export function Header(props: HeaderProps) {
                             height={32}
                             className="w-8 h-8 object-contain"
                         />
-                        <span className="text-xl text-gray-900">{serverName}</span>
+                        <h1 className="text-xl font-bold tracking-tight text-gray-900">{serverName}</h1>
                     </Link>
 
-                    {/* Desktop Navigation */}
                     {/* Desktop Navigation */}
                     <nav className="hidden md:flex items-center gap-8">
                         {isAdmin && (
                             <>
                                 <Link
                                     href="/"
-                                    className="text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
+                                    className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
                                 >
                                     Agents
                                 </Link>
                                 <Link
                                     href="/"
-                                    className="text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
+                                    className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
                                 >
                                     Models
                                 </Link>
                                 <Link
                                     href="/admin/metadata"
-                                    className="text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
+                                    className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
                                 >
                                     Metadata
                                 </Link>
                                 <Link
                                     href="https://ptbk.io/"
-                                    className="text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
+                                    className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
                                 >
                                     About
                                 </Link>
@@ -91,7 +90,7 @@ export function Header(props: HeaderProps) {
                             <Link
                                 href="https://ptbk.io/"
                                 target="_blank"
-                                className="text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
+                                className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
                             >
                                 Create your server
                             </Link>
@@ -115,7 +114,7 @@ export function Header(props: HeaderProps) {
                                     setIsLoginOpen(true);
                                     setIsMenuOpen(false);
                                 }}
-                                className="w-full inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium h-10 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                                className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium h-10 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
                             >
                                 Log in
                                 <LogIn className="ml-2 w-4 h-4" />
@@ -126,7 +125,7 @@ export function Header(props: HeaderProps) {
                                     handleLogout();
                                     setIsMenuOpen(false);
                                 }}
-                                className="w-full inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium h-10 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                                className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium h-10 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
                             >
                                 Log out
                                 <LogOut className="ml-2 w-4 h-4" />
