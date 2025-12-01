@@ -13,6 +13,7 @@ import { AgentQrCode } from './AgentQrCode';
 import { AGENT_ACTIONS, getAgentName, getAgentProfile } from './_utils';
 import { CopyField } from './CopyField';
 import { generateAgentMetadata } from './generateAgentMetadata';
+import { ServiceWorkerRegister } from './ServiceWorkerRegister';
 // import { Agent } from '@promptbook-local/core';
 // import { RemoteLlmExecutionTools } from '@promptbook-local/remote-client';
 // import { OpenAiAssistantExecutionTools } from '@promptbook-local/openai';
@@ -61,6 +62,8 @@ export default async function AgentPage({ params }: { params: Promise<{ agentNam
 
     return (
         <div className="flex flex-col md:flex-row h-[calc(100vh-60px)] w-full overflow-hidden">
+            <ServiceWorkerRegister scope={`/agents/${encodeURIComponent(agentName)}/`} />
+
             {/* Left sidebar: Profile info */}
             <div
                 className="w-full md:w-[400px] flex flex-col gap-6 p-6 overflow-y-auto border-r bg-gray-50 flex-shrink-0"

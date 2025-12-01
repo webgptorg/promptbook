@@ -32,7 +32,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨💟] Agents should be installable as PWA app
 
