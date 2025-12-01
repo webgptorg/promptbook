@@ -56,10 +56,9 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
 
         const screenshots: MetadataRoute.Manifest['screenshots'] = [
             {
-                src: '/public/screenshot-agent-dashboard.png',
-                sizes: '512x512',
+                src: `${agentUrl}/images/screenshot-fullhd.png`,
+                sizes: '1920x1080',
                 type: 'image/png',
-                // <- TODO: !!!! Make this real screenshot of the agent
             },
         ];
 
