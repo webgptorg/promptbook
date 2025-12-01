@@ -41,6 +41,7 @@ export function Header(props: HeaderProps) {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isLoginOpen, setIsLoginOpen] = useState(false);
     const [isAgentsOpen, setIsAgentsOpen] = useState(false);
+    const [isMobileAgentsOpen, setIsMobileAgentsOpen] = useState(false);
 
     const handleLogout = async () => {
         await logoutAction();
@@ -76,7 +77,7 @@ export function Header(props: HeaderProps) {
                                         Agents
                                         <ChevronDown className="w-4 h-4" />
                                     </button>
-                                    
+
                                     {isAgentsOpen && (
                                         <div className="absolute top-full left-0 mt-2 w-56 bg-white rounded-md shadow-lg border border-gray-100 py-1 z-50 animate-in fade-in zoom-in-95 duration-200">
                                             {agents.map((agent) => (
@@ -166,7 +167,7 @@ export function Header(props: HeaderProps) {
                         )}
 
                         {/* Mobile Menu Toggle */}
-                        {just(false /* TODO: [🧠] Figure out whether we want a menu */) && (
+                        {isAdmin && (
                             <button
                                 className="md:hidden p-2 text-gray-600 hover:text-gray-900"
                                 onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -178,17 +179,76 @@ export function Header(props: HeaderProps) {
                 </div>
 
                 {/* Mobile Navigation */}
-                {just(false /* TODO: [🧠] Figure out whether we want a menu */) && isMenuOpen && (
-                    <div className="md:hidden py-4 border-t border-gray-100 animate-in slide-in-from-top-2">
-                        <nav className="flex flex-col gap-4">
+                {isAdmin && isMenuOpen && (
+                    <div className="md:hidden py-4 border-t border-gray-100 animate-in slide-in-from-top-2 h-[calc(100vh-4rem)] overflow-y-auto">
+                        <nav className="flex flex-col gap-4 px-2">
+                            <div className="flex flex-col">
+                                <button
+                                    className="w-full flex items-center justify-between text-base font-medium text-gray-600 hover:text-gray-900 py-2"
+                                    onClick={() => setIsMobileAgentsOpen(!isMobileAgentsOpen)}
+                                >
+                                    Agents
+                                    <ChevronDown
+                                        className={`w-4 h-4 transition-transform duration-200 ${
+                                            isMobileAgentsOpen ? 'rotate-180' : ''
+                                        }`}
+                                    />
+                                </button>
+                                {isMobileAgentsOpen && (
+                                    <div className="pl-4 flex flex-col gap-2 border-l-2 border-gray-100 ml-1 mt-1">
+                                        {agents.map((agent) => (
+                                            <Link
+                                                key={agent.agentName}
+                                                href={`/${agent.agentName}`}
+                                                className="block text-sm text-gray-600 hover:text-gray-900 py-2"
+                                                onClick={() => setIsMenuOpen(false)}
+                                            >
+                                                {agent.meta.fullname || agent.agentName}
+                                            </Link>
+                                        ))}
+                                        <Link
+                                            href="/"
+                                            className="block text-sm font-medium text-gray-900 hover:text-gray-700 py-2"
+                                            onClick={() => setIsMenuOpen(false)}
+                                        >
+                                            View all agents
+                                        </Link>
+                                    </div>
+                                )}
+                            </div>
+
                             <Link
-                                href="https://ptbk.io/#try-it-yourself"
-                                target="_blank"
-                                className="text-gray-600 hover:text-gray-900 transition-colors py-2"
+                                href="/"
+                                className="block text-base font-medium text-gray-600 hover:text-gray-900 py-2"
                                 onClick={() => setIsMenuOpen(false)}
                             >
-                                Try it yourself
+                                Models
                             </Link>
+                            <Link
+                                href="/admin/metadata"
+                                className="block text-base font-medium text-gray-600 hover:text-gray-900 py-2"
+                                onClick={() => setIsMenuOpen(false)}
+                            >
+                                Metadata
+                            </Link>
+                            <Link
+                                href="https://ptbk.io/"
+                                className="block text-base font-medium text-gray-600 hover:text-gray-900 py-2"
+                                onClick={() => setIsMenuOpen(false)}
+                            >
+                                About
+                            </Link>
+
+                            {just(false /* TODO: [🧠] Figure out what to do with these links */) && (
+                                <Link
+                                    href="https://ptbk.io/"
+                                    target="_blank"
+                                    className="text-base font-medium text-gray-600 hover:text-gray-900 py-2"
+                                    onClick={() => setIsMenuOpen(false)}
+                                >
+                                    Create your server
+                                </Link>
+                            )}
                         </nav>
                     </div>
                 )}

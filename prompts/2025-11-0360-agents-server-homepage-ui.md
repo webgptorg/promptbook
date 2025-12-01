@@ -32,7 +32,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨⛱] Enhance the header menu on mobile
 
@@ -46,7 +46,7 @@
 
 [ ]
 
-[✨⛱] xxx
+[✨⛱] xxx !!!! hamburger menu 2x
 
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
