@@ -6,13 +6,10 @@ import { Color } from '../../../../../../../../src/utils/color/Color';
 import { keepUnused } from '../../../../../../../../src/utils/organization/keepUnused';
 import { getAgentName, getAgentProfile } from '../../_utils';
 
-export const alt = 'Agent Icon';
-export const size = {
+const size = {
     width: 256,
     height: 256,
 };
-
-export const contentType = 'image/png';
 
 export async function GET(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
     keepUnused(request /* <- Note: We dont need `request` parameter */);
