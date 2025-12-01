@@ -1,5 +1,3 @@
-// TODO: !!!! Make it work
-
 import { ImageResponse } from 'next/og';
 
 export const runtime = 'edge';

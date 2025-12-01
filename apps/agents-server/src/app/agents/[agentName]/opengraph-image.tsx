@@ -6,7 +6,7 @@ import { withAlpha } from '../../../../../../src/utils/color/operators/withAlpha
 import { AGENT_ACTIONS, getAgentName, getAgentProfile } from './_utils';
 
 // export const runtime = 'edge';
-// <- Note: !!!!!
+// <- Note: On Vercel Edge runtime some modules are not working *(like `crypto`)*
 
 export const alt = 'Agent Profile';
 export const size = {

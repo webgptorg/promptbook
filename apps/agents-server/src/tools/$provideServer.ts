@@ -1,11 +1,11 @@
-import { NEXT_PUBLIC_URL, SERVERS, SUPABASE_TABLE_PREFIX } from '@/config';
+import { NEXT_PUBLIC_SITE_URL, SERVERS, SUPABASE_TABLE_PREFIX } from '@/config';
 import { normalizeTo_PascalCase } from '@promptbook-local/utils';
 import { headers } from 'next/headers';
 
 export async function $provideServer() {
     if (!SERVERS) {
         return {
-            publicUrl: NEXT_PUBLIC_URL || new URL(`https://${(await headers()).get('host') || 'localhost:4440'}`),
+            publicUrl: NEXT_PUBLIC_SITE_URL || new URL(`https://${(await headers()).get('host') || 'localhost:4440'}`),
             tablePrefix: SUPABASE_TABLE_PREFIX,
         };
     }

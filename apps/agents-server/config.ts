@@ -5,7 +5,7 @@ const config = ConfigChecker.from({
 
     // Note: To expose env variables to the browser, using this seemingly strange syntax:
     //       @see https://nextjs.org/docs/pages/building-your-application/configuring/environment-variables#exposing-environment-variables-to-the-browser
-    NEXT_PUBLIC_URL: process.env.NEXT_PUBLIC_URL,
+    NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
 
     // Note: [🌇] Defa
     NEXT_PUBLIC_VERCEL_ENV: process.env.NEXT_PUBLIC_VERCEL_ENV,
@@ -31,7 +31,7 @@ const config = ConfigChecker.from({
  *
  * Note: When `SERVERS` are used, this URL will be overridden by the server URL.
  */
-export const NEXT_PUBLIC_URL = config.get('NEXT_PUBLIC_URL').url().value;
+export const NEXT_PUBLIC_SITE_URL = config.get('NEXT_PUBLIC_SITE_URL').url().value;
 
 /**
  * [♐️] Vercel environment: "development" | "preview" | "production"
@@ -118,7 +118,7 @@ export const NEXT_PUBLIC_VERCEL_GIT_PULL_REQUEST_ID = config.get('NEXT_PUBLIC_VE
 /**
  * List of servers where agents can be hosted
  *
- * List of domains where the agents-server is deployed, this overrides the `NEXT_PUBLIC_URL` and `SUPABASE_TABLE_PREFIX` for each server.
+ * List of domains where the agents-server is deployed, this overrides the `NEXT_PUBLIC_SITE_URL` and `SUPABASE_TABLE_PREFIX` for each server.
  */
 export const SERVERS = config.get('SERVERS').list().value;
 
