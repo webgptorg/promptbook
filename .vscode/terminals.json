@@ -24,10 +24,10 @@
             "focus": false
         },
         {
-            "name": "👨‍💻🟣⏩ Migrate agents server",
+            "name": "👨‍💻🟣⏩ Migrate agents server (💤)",
             "cwd": "./apps/agents-server/",
             "command": "npm run migrate-database",
-            "execute": true,
+            "execute": false,
             "onlySingle": false,
             "focus": false
         },
@@ -71,24 +71,24 @@
             "cwd": "./apps/book-components/",
             "command": "npm run dev",
             "execute": true,
-            "onlySingle": false,
-            "focus": false
+            "onlySingle": true,
+            "focus": true
         },
         {
             "name": "🧸🔠 Run Playground web app",
             "cwd": "./apps/playground/",
             "command": "npm run dev",
             "execute": true,
-            "onlySingle": false,
-            "focus": false
+            "onlySingle": true,
+            "focus": true
         },
         {
             "name": "🧸🔠 Run Utils web app",
             "cwd": "./apps/utils/",
             "command": "npm run dev",
             "execute": true,
-            "onlySingle": false,
-            "focus": false
+            "onlySingle": true,
+            "focus": true
         },
         {
             "--note": " <- Note: [🔠] Register new apps here "
