@@ -1,3 +1,5 @@
+// TODO: !!!! Make it work
+
 import { $provideServer } from '@/src/tools/$provideServer';
 import { ImageResponse } from 'next/og';
 import { Color } from '../../../../../../src/utils/color/Color';
@@ -18,7 +20,7 @@ export default async function Image({ params }: { params: Promise<{ agentName: s
     const agentName = await getAgentName(params);
     const agentProfile = await getAgentProfile(agentName);
     const { publicUrl } = await $provideServer();
-    
+
     // Extract brand color from meta
     const brandColor = Color.from(agentProfile.meta.color || '#3b82f6'); // Default to blue-600
     const bgColor = brandColor.then(withAlpha(0.05)).toHex();
@@ -139,57 +141,125 @@ export default async function Image({ params }: { params: Promise<{ agentName: s
                     </div>
 
                     <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                         {/* QR Code Placeholder / Visual */}
-                         <div style={{
-                             display: 'flex',
-                             backgroundColor: 'white',
-                             padding: '16px',
-                             borderRadius: '8px',
-                             border: '1px solid #f3f4f6',
-                             justifyContent: 'center',
-                             alignItems: 'center'
-                         }}>
-                             <div style={{ color: '#9ca3af', fontSize: '14px' }}>
-                                 {/* Just a visual representation since generating actual QR might be complex/heavy for OG */}
-                                 Scan to Chat
-                             </div>
-                         </div>
+                        {/* QR Code Placeholder / Visual */}
+                        <div
+                            style={{
+                                display: 'flex',
+                                backgroundColor: 'white',
+                                padding: '16px',
+                                borderRadius: '8px',
+                                border: '1px solid #f3f4f6',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                            }}
+                        >
+                            <div style={{ color: '#9ca3af', fontSize: '14px' }}>
+                                {/* Just a visual representation since generating actual QR might be complex/heavy for OG */}
+                                Scan to Chat
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 {/* Main content area representation */}
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: 'white', position: 'relative' }}>
+                <div
+                    style={{
+                        flex: 1,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        backgroundColor: 'white',
+                        position: 'relative',
+                    }}
+                >
                     {/* Mock Header */}
-                    <div style={{ height: '60px', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', paddingLeft: '24px' }}>
-                         <span style={{ fontSize: '18px', fontWeight: 600, color: '#111827' }}>Chat with {agentProfile.meta.fullname || agentProfile.agentName}</span>
+                    <div
+                        style={{
+                            height: '60px',
+                            borderBottom: '1px solid #e5e7eb',
+                            display: 'flex',
+                            alignItems: 'center',
+                            paddingLeft: '24px',
+                        }}
+                    >
+                        <span style={{ fontSize: '18px', fontWeight: 600, color: '#111827' }}>
+                            Chat with {agentProfile.meta.fullname || agentProfile.agentName}
+                        </span>
                     </div>
-                    
+
                     {/* Mock Chat bubbles */}
                     <div style={{ padding: '40px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
                         <div style={{ display: 'flex', gap: '12px' }}>
-                             <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: badgeColor, opacity: 0.1 }}></div>
-                             <div style={{ backgroundColor: '#f3f4f6', padding: '16px', borderRadius: '0 16px 16px 16px', maxWidth: '80%' }}>
-                                 <p style={{ margin: 0, color: '#374151' }}>Hello! I am {agentProfile.meta.fullname || agentProfile.agentName}. How can I help you today?</p>
-                             </div>
+                            <div
+                                style={{
+                                    width: '40px',
+                                    height: '40px',
+                                    borderRadius: '50%',
+                                    backgroundColor: badgeColor,
+                                    opacity: 0.1,
+                                }}
+                            ></div>
+                            <div
+                                style={{
+                                    backgroundColor: '#f3f4f6',
+                                    padding: '16px',
+                                    borderRadius: '0 16px 16px 16px',
+                                    maxWidth: '80%',
+                                }}
+                            >
+                                <p style={{ margin: 0, color: '#374151' }}>
+                                    Hello! I am {agentProfile.meta.fullname || agentProfile.agentName}. How can I help
+                                    you today?
+                                </p>
+                            </div>
                         </div>
-                        
+
                         <div style={{ display: 'flex', gap: '12px', flexDirection: 'row-reverse' }}>
-                             <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#e5e7eb' }}></div>
-                             <div style={{ backgroundColor: badgeColor, padding: '16px', borderRadius: '16px 0 16px 16px', maxWidth: '80%' }}>
-                                 <p style={{ margin: 0, color: 'white' }}>...</p>
-                             </div>
+                            <div
+                                style={{
+                                    width: '40px',
+                                    height: '40px',
+                                    borderRadius: '50%',
+                                    backgroundColor: '#e5e7eb',
+                                }}
+                            ></div>
+                            <div
+                                style={{
+                                    backgroundColor: badgeColor,
+                                    padding: '16px',
+                                    borderRadius: '16px 0 16px 16px',
+                                    maxWidth: '80%',
+                                }}
+                            >
+                                <p style={{ margin: 0, color: 'white' }}>...</p>
+                            </div>
                         </div>
                     </div>
 
                     {/* Input area mock */}
-                    <div style={{ position: 'absolute', bottom: '0', left: '0', right: '0', padding: '24px', borderTop: '1px solid #e5e7eb' }}>
-                        <div style={{ height: '50px', borderRadius: '8px', border: '1px solid #e5e7eb', backgroundColor: '#f9fafb' }}></div>
+                    <div
+                        style={{
+                            position: 'absolute',
+                            bottom: '0',
+                            left: '0',
+                            right: '0',
+                            padding: '24px',
+                            borderTop: '1px solid #e5e7eb',
+                        }}
+                    >
+                        <div
+                            style={{
+                                height: '50px',
+                                borderRadius: '8px',
+                                border: '1px solid #e5e7eb',
+                                backgroundColor: '#f9fafb',
+                            }}
+                        ></div>
                     </div>
                 </div>
             </div>
         ),
         {
             ...size,
-        }
+        },
     );
 }
