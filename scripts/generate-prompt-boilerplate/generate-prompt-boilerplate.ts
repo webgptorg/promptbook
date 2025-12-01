@@ -5,7 +5,7 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 
 import colors from 'colors';
-import { writeFileSync } from 'fs';
+import { readFileSync, writeFileSync } from 'fs';
 import glob from 'glob-promise'; // <- TODO: [🚰] Use just 'glob' // <- TODO: [🚰] Use just 'glob'
 import { join } from 'path';
 import { spaceTrim } from 'spacetrim';
@@ -86,14 +86,18 @@ async function generatePromptBoilerplate() {
     const usedEmojis = new Set<string_char_emoji>();
 
     for (const file of allFiles) {
-        const fs = await import('fs');
-        const content = fs.readFileSync(file, 'utf-8');
+        try {
+            const content = readFileSync(file, 'utf-8'); /* <- Note: Its OK to use sync in tooling for scripts */
 
-        for (const emoji of EMOJIS_OF_SINGLE_PICTOGRAM) {
-            const tag = `[✨${emoji}]`;
-            if (content.includes(tag)) {
-                usedEmojis.add(emoji);
+            for (const emoji of EMOJIS_OF_SINGLE_PICTOGRAM) {
+                const tag = `[✨${emoji}]`;
+                if (content.includes(tag)) {
+                    usedEmojis.add(emoji);
+                }
             }
+        } catch (error) {
+            console.error(colors.red('Error in checking file file /' + file));
+            console.error(error);
         }
     }
 

@@ -45,13 +45,18 @@ async function findFreshEmojiTag() {
     const usedEmojis = new Set<string_char_emoji>();
 
     for (const file of allFiles) {
-        const content = readFileSync(file, 'utf-8'); /* <- Note: Its OK to use sync in tooling for scripts */
+        try {
+            const content = readFileSync(file, 'utf-8'); /* <- Note: Its OK to use sync in tooling for scripts */
 
-        for (const emoji of allEmojis) {
-            const tag = `[${emoji}]`;
-            if (content.includes(tag)) {
-                usedEmojis.add(emoji);
+            for (const emoji of allEmojis) {
+                const tag = `[${emoji}]`;
+                if (content.includes(tag)) {
+                    usedEmojis.add(emoji);
+                }
             }
+        } catch (error) {
+            console.error(colors.red('Error in checking file file /' + file));
+            console.error(error);
         }
     }
 

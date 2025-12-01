@@ -5,12 +5,14 @@ import { serializeError } from '@promptbook-local/utils';
 import { ImageResponse } from 'next/og';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
 import { Color } from '../../../../../../../../src/utils/color/Color';
+import { textColor } from '../../../../../../../../src/utils/color/operators/furthest';
+import { grayscale } from '../../../../../../../../src/utils/color/operators/grayscale';
 import { keepUnused } from '../../../../../../../../src/utils/organization/keepUnused';
 import { getAgentName, getAgentProfile } from '../../_utils';
 
 const size = {
-    width: 256,
-    height: 256,
+    width: 1920,
+    height: 1080,
 };
 
 export async function GET(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
@@ -20,6 +22,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
         const agentName = await getAgentName(params);
         const agentProfile = await getAgentProfile(agentName);
         const agentColor = Color.from(agentProfile.meta.color || PROMPTBOOK_COLOR);
+        const backgroundColor = agentColor.then(grayscale(0.5));
 
         return new ImageResponse(
             (
@@ -27,19 +30,16 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
                     style={{
                         width: '100%',
                         height: '100%',
-                        backgroundColor: 'transparent',
+                        backgroundColor: backgroundColor.toHex(),
+                        color: agentColor.then(textColor).toHex(),
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        borderRadius: '50%',
-                        overflow: 'hidden',
                     }}
                 >
                     <div
                         style={{
-                            width: '100%',
-                            height: '100%',
-                            backgroundColor: agentColor.toHex(),
+                            width: '40%',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
@@ -47,7 +47,18 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
                     >
                         {/* Note: `next/image` is not working propperly with `next/og` */}
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={agentProfile.meta.image!} alt="Agent Icon" />
+                        <img
+                            style={{
+                                width: '80%',
+                                backgroundColor: agentColor.toHex(),
+                                borderRadius: '50%',
+                            }}
+                            src={agentProfile.meta.image!}
+                            alt="Agent Icon"
+                        />
+                    </div>
+                    <div style={{ width: '60%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <h1 style={{ fontSize: '110px' }}>{agentProfile.meta.fullname || agentName}</h1>
                     </div>
                 </div>
             ),
@@ -79,4 +90,5 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
 
 /**
  * TODO: [🦚] DRY
+ * TODO: [🦚] This should be the true screenshot NOT just image + Agent name
  */
