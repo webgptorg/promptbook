@@ -2,17 +2,19 @@
 
 import { usePathname } from 'next/navigation';
 import { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
+import type { UserInfo } from '../../utils/getCurrentUser';
 import { Header } from '../Header/Header';
 
 type LayoutWrapperProps = {
     children: React.ReactNode;
     isAdmin: boolean;
+    currentUser: UserInfo | null;
     serverName: string;
     serverLogoUrl: string | null;
     agents: Array<AgentBasicInformation>;
 };
 
-export function LayoutWrapper({ children, isAdmin, serverName, serverLogoUrl, agents }: LayoutWrapperProps) {
+export function LayoutWrapper({ children, isAdmin, currentUser, serverName, serverLogoUrl, agents }: LayoutWrapperProps) {
     const pathname = usePathname();
     const isHeaderHidden = pathname?.includes('/chat');
 
@@ -22,7 +24,13 @@ export function LayoutWrapper({ children, isAdmin, serverName, serverLogoUrl, ag
 
     return (
         <>
-            <Header isAdmin={isAdmin} serverName={serverName} serverLogoUrl={serverLogoUrl} agents={agents} />
+            <Header
+                isAdmin={isAdmin}
+                currentUser={currentUser}
+                serverName={serverName}
+                serverLogoUrl={serverLogoUrl}
+                agents={agents}
+            />
             <main className={`pt-[60px]`}>{children}</main>
         </>
     );

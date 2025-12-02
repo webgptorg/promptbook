@@ -1,3 +1,4 @@
+-   **Refactor:** Centralized login status and controls into the Agents Server header, removing duplicate login UI from the `/` page and following the DRY principle.
 -   **New:** Agents Server now allows deleting agents from `/admin/agents` page ([✨🧱])
 -   **Style:** On mobile devices, the closed `PromptbookAgent` chat now displays as a small floating button in the bottom right corner instead of spanning the full width, improving UX and screen real estate usage.
 -   **New:** Chat component can receive additional action via prop `extraActions` [✨🥝]

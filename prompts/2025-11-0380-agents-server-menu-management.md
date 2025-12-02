@@ -55,7 +55,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🧱] All information about login should be on header menu
 

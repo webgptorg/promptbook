@@ -6,6 +6,7 @@ import { getMetadata } from '../database/getMetadata';
 import { $provideAgentCollectionForServer } from '../tools/$provideAgentCollectionForServer';
 import { $provideServer } from '../tools/$provideServer';
 import { isUserAdmin } from '../utils/isUserAdmin';
+import { getCurrentUser } from '../utils/getCurrentUser';
 import './globals.css';
 
 const barlowCondensed = Barlow_Condensed({
@@ -56,6 +57,7 @@ export default async function RootLayout({
     children: React.ReactNode;
 }>) {
     const isAdmin = await isUserAdmin();
+    const currentUser = await getCurrentUser();
     const serverName = (await getMetadata('SERVER_NAME')) || 'Promptbook Agents Server';
     const serverLogoUrl = (await getMetadata('SERVER_LOGO_URL')) || null;
     const serverFaviconUrl = (await getMetadata('SERVER_FAVICON_URL')) || faviconLogoImage.src;
@@ -90,6 +92,7 @@ export default async function RootLayout({
             <body className={`${barlowCondensed.variable} antialiased bg-white text-gray-900`}>
                 <LayoutWrapper
                     isAdmin={isAdmin}
+                    currentUser={currentUser}
                     serverName={serverName}
                     serverLogoUrl={serverLogoUrl}
                     agents={JSON.parse(JSON.stringify(agents))}

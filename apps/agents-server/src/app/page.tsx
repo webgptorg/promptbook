@@ -5,7 +5,6 @@ import moment from 'moment';
 import { headers } from 'next/headers';
 import { AboutPromptbookInformation } from '../../../../src/utils/misc/xAboutPromptbookInformation';
 import { $sideEffect } from '../../../../src/utils/organization/$sideEffect';
-import { AuthControls } from '../components/Auth/AuthControls';
 import { AgentsList } from '../components/Homepage/AgentsList';
 import { ExternalAgentsSection } from '../components/Homepage/ExternalAgentsSection';
 import { ModelCard } from '../components/Homepage/ModelCard';
@@ -18,7 +17,6 @@ import { getLongRunningTask } from '../deamons/longRunningTask';
 import { $provideAgentCollectionForServer } from '../tools/$provideAgentCollectionForServer';
 import { $provideExecutionToolsForServer } from '../tools/$provideExecutionToolsForServer';
 import { $provideServer } from '../tools/$provideServer';
-import { getCurrentUser } from '../utils/getCurrentUser';
 import { getFederatedAgents } from '../utils/getFederatedAgents';
 import { isUserAdmin } from '../utils/isUserAdmin';
 import { AddAgentButton } from './AddAgentButton';
@@ -37,7 +35,6 @@ export default async function HomePage() {
     $sideEffect(/* Note: [🐶] This will ensure dynamic rendering of page and avoid Next.js pre-render */ headers());
 
     const isAdmin = await isUserAdmin(); /* <- TODO: [👹] Here should be user permissions */
-    const currentUser = await getCurrentUser();
 
     const collection = await $provideAgentCollectionForServer();
     const agents = await collection.listAgents();
@@ -60,11 +57,7 @@ export default async function HomePage() {
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
             <div className="container mx-auto px-4 py-16">
-                <div className="flex justify-end mb-4">
-                    <AuthControls initialUser={currentUser} />
-                </div>
-
-                <AgentsList agents={agents} isAdmin={isAdmin} />
+                <AgentsList agents={[...agents]} isAdmin={isAdmin} />
 
                 <ExternalAgentsSection agentsByServer={agentsByServer} />
 

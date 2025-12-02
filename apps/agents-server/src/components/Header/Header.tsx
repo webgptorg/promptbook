@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
+import type { UserInfo } from '../../utils/getCurrentUser';
 import { COMMITMENT_REGISTRY } from '../../../../../src/commitments';
 import { just } from '../../../../../src/utils/organization/just';
 import { LoginDialog } from '../LoginDialog/LoginDialog';
@@ -18,6 +19,11 @@ type HeaderProps = {
      * Is the user an admin
      */
     isAdmin?: boolean;
+
+    /**
+     * Current user info (if logged in)
+     */
+    currentUser?: UserInfo | null;
 
     /**
      * The name of the server
@@ -38,7 +44,7 @@ type HeaderProps = {
 /* TODO: [🐱‍🚀] Make this Agents server native  */
 
 export function Header(props: HeaderProps) {
-    const { isAdmin = false, serverName, serverLogoUrl, agents } = props;
+    const { isAdmin = false, currentUser = null, serverName, serverLogoUrl, agents } = props;
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isLoginOpen, setIsLoginOpen] = useState(false);
@@ -191,7 +197,7 @@ export function Header(props: HeaderProps) {
                             </Link>
                         )}
 
-                        {!isAdmin ? (
+                        {(!currentUser && !isAdmin) && (
                             <button
                                 onClick={() => {
                                     setIsLoginOpen(true);
@@ -202,17 +208,30 @@ export function Header(props: HeaderProps) {
                                 Log in
                                 <LogIn className="ml-2 w-4 h-4" />
                             </button>
-                        ) : (
-                            <button
-                                onClick={() => {
-                                    handleLogout();
-                                    setIsMenuOpen(false);
-                                }}
-                                className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium h-10 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
-                            >
-                                Log out
-                                <LogOut className="ml-2 w-4 h-4" />
-                            </button>
+                        )}
+
+                        {(currentUser || isAdmin) && (
+                            <div className="flex items-center gap-3">
+                                <span className="hidden md:inline text-sm text-gray-600">
+                                    Logged in as{' '}
+                                    <strong>{currentUser?.username || 'Admin'}</strong>
+                                    {(currentUser?.isAdmin || isAdmin) && (
+                                        <span className="ml-2 bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                                            Admin
+                                        </span>
+                                    )}
+                                </span>
+                                <button
+                                    onClick={() => {
+                                        handleLogout();
+                                        setIsMenuOpen(false);
+                                    }}
+                                    className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium h-10 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+                                >
+                                    Log out
+                                    <LogOut className="ml-2 w-4 h-4" />
+                                </button>
+                            </div>
                         )}
 
                         {/* Mobile Menu Toggle */}
