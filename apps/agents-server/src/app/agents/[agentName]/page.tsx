@@ -17,6 +17,7 @@ import { generateAgentMetadata } from './generateAgentMetadata';
 import { InstallPwaButton } from './InstallPwaButton';
 import { ServiceWorkerRegister } from './ServiceWorkerRegister';
 import { ClearAgentChatHistoryButton } from './ClearAgentChatHistoryButton';
+import { ClearAgentChatFeedbackButton } from './ClearAgentChatFeedbackButton';
 import { isUserAdmin } from '../../../utils/isUserAdmin';
 // import { Agent } from '@promptbook-local/core';
 // import { RemoteLlmExecutionTools } from '@promptbook-local/remote-client';
@@ -144,7 +145,10 @@ export default async function AgentPage({ params }: { params: Promise<{ agentNam
                             <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-600">
                                 Maintenance
                             </h2>
-                            <ClearAgentChatHistoryButton agentName={agentName} />
+                            <div className="flex flex-col gap-2">
+                                <ClearAgentChatHistoryButton agentName={agentName} />
+                                <ClearAgentChatFeedbackButton agentName={agentName} />
+                            </div>
                         </div>
                     )}
                 </div>

@@ -80,7 +80,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🧱] Create `/admin/chat-feedback` page that will allow viewing and managing chat feedbacks
 

@@ -212,6 +212,12 @@ export function Header(props: HeaderProps) {
                                     Metadata
                                 </Link>
                                 <Link
+                                    href="/admin/chat-feedback"
+                                    className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
+                                >
+                                    Chat feedback
+                                </Link>
+                                <Link
                                     href="https://ptbk.io/"
                                     className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
                                 >
@@ -436,6 +442,13 @@ export function Header(props: HeaderProps) {
                                         onClick={() => setIsMenuOpen(false)}
                                     >
                                         Chat history
+                                    </Link>
+                                    <Link
+                                        href="/admin/chat-feedback"
+                                        className="block text-base font-medium text-gray-600 hover:text-gray-900 py-2"
+                                        onClick={() => setIsMenuOpen(false)}
+                                    >
+                                        Chat feedback
                                     </Link>
                                     <Link
                                         href="https://ptbk.io/"
