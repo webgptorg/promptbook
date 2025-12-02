@@ -6,6 +6,7 @@
 -   **New:** Record conversations to `ChatHistory` table in `Agents Server` application.
 -   **New:** Allowed to upload files to `<BookEditor/>` and created `DigitalOceanSpaces` CDN.
 -   **New:** Updated all LLM models to the latest versions, including adding Gemini 3, OpenAI's GPT-5.1, and Anthropic's Claude 4.5. Deprecated older models as necessary.
+-   **New:** After creating a new agent, the UI automatically navigates to the agent's page. This works from the Header, `/`, and `/admin/agents` pages using a DRY approach.
 -   **New:** BookEditor fullscreen now renders above all content using a React portal ([DRY], inspired by Tooltip). This bypasses overflow/stacking issues and ensures proper fullscreen behavior.
 -   Split collection into pipeline and agent collections.
 -   **New:** Allow passing CORS settings into `startRemoteServer` via the `cors` option in `RemoteServerOptions`.  

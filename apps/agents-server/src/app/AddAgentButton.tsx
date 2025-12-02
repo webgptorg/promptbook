@@ -8,9 +8,13 @@ export function AddAgentButton() {
     const router = useRouter();
 
     const handleAddAgent = async () => {
-        await $createAgentAction();
+        const agentName = await $createAgentAction();
         // TODO: Add proper error handling and UI feedback
-        router.refresh();
+        if (agentName) {
+            router.push(`/agents/${agentName}`);
+        } else {
+            router.refresh();
+        }
     };
 
     return (

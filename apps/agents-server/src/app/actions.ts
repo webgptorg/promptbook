@@ -13,7 +13,11 @@ export async function $createAgentAction() {
     }
 
     const collection = await $provideAgentCollectionForServer();
-    await collection.createAgent($generateBookBoilerplate());
+    const boilerplate = $generateBookBoilerplate();
+    await collection.createAgent(boilerplate);
+    // Extract agent name from the first line of the boilerplate string
+    const agentName = boilerplate.split('\n')[0].trim();// !!!!! parse
+    return agentName || null;
 }
 
 export async function loginAction(formData: FormData) {

@@ -8,7 +8,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🧱] When the new agent is created, navigate to its page
 
