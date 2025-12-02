@@ -28,9 +28,7 @@ export function LoginDialog(props: LoginDialogProps) {
 
                 <div className="mb-6">
                     <h2 className="text-xl font-semibold text-gray-900">Log in</h2>
-                    <p className="text-sm text-gray-500 mt-1">
-                        Enter your credentials to access the admin area
-                    </p>
+                    <p className="text-sm text-gray-500 mt-1">Enter your credentials to access the admin area</p>
                 </div>
 
                 <LoginForm onSuccess={onClose} />
@@ -38,3 +36,7 @@ export function LoginDialog(props: LoginDialogProps) {
         </div>
     );
 }
+
+/**
+ * TODO: !!!! Always on top
+ */
