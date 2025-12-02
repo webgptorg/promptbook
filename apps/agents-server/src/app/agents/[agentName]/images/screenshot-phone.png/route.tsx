@@ -1,5 +1,3 @@
-// TODO: !!!! Make it work
-
 import { PROMPTBOOK_COLOR } from '@promptbook-local/core';
 import { serializeError } from '@promptbook-local/utils';
 import { ImageResponse } from 'next/og';
