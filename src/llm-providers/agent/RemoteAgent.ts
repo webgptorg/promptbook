@@ -96,8 +96,53 @@ export class RemoteAgent extends Agent {
     }
 
     /**
-     * Calls the agent on agents remote server with streaming
+     * Calls the agent on agents remote server with voice
      */
+    public async callVoiceChatModel(
+        audio: Blob,
+        prompt: Prompt,
+    ): Promise<{ text: string; audio: Blob; userMessage?: string; agentMessage?: string }> {
+        // Ensure we're working with a chat prompt
+        if (prompt.modelRequirements.modelVariant !== 'CHAT') {
+            throw new Error('Agents only supports chat prompts');
+        }
+
+        const chatPrompt = prompt as ChatPrompt;
+
+        const formData = new FormData();
+        formData.append('audio', audio, 'voice.webm');
+        formData.append('message', prompt.content);
+        if (chatPrompt.thread) {
+            formData.append('thread', JSON.stringify(chatPrompt.thread));
+        }
+
+        const response = await fetch(`${this.agentUrl}/api/voice`, {
+            method: 'POST',
+            body: formData,
+        });
+
+        if (!response.ok) {
+            throw new Error(`Voice chat failed: ${response.statusText}`);
+        }
+
+        const result = await response.json();
+
+        // Convert base64 audio back to Blob
+        const binaryString = atob(result.audio);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+        }
+        const audioBlob = new Blob([bytes], { type: 'audio/mp3' });
+
+        return {
+            text: result.agentMessage || result.text,
+            userMessage: result.userMessage,
+            agentMessage: result.agentMessage || result.text,
+            audio: audioBlob,
+        };
+    }
+
     public async callChatModelStream(
         prompt: Prompt,
         onProgress: (chunk: ChatPromptResult) => void,

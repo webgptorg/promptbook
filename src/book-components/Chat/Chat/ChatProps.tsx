@@ -58,6 +58,11 @@ export type ChatProps = {
     readonly isVoiceRecognitionButtonShown?: boolean;
 
     /**
+     * Optional callback to trigger voice input
+     */
+    onVoiceInput?(): void;
+
+    /**
      * The language code to use for voice recognition
      */
     readonly voiceLanguage?: string;

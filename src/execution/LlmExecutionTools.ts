@@ -69,6 +69,14 @@ export type LlmExecutionTools = {
     ): Promise<ChatPromptResult>;
 
     /**
+     * Calls a voice chat model
+     */
+    callVoiceChatModel?(
+        audio: Blob,
+        prompt: Prompt,
+    ): Promise<{ text: string; audio: Blob; userMessage?: string; agentMessage?: string }>;
+
+    /**
      * Calls a completion model
      */
     callCompletionModel?(prompt: Prompt /* <- TODO: [🩱] CompletionPrompt */): Promise<CompletionPromptResult>;

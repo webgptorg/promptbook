@@ -44,6 +44,9 @@ export function LlmChat(props: LlmChatProps) {
     );
     const [messages, setMessages] = useState<ChatMessage[]>(() => buildInitialMessages());
     const [tasksProgress, setTasksProgress] = useState<Array<{ id: string; name: string; progress?: number }>>([]);
+    const [isVoiceCalling, setIsVoiceCalling] = useState(false);
+    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+    const audioChunksRef = useRef<Blob[]>([]);
 
     /**
      * Tracks whether the user (or system via persistence restoration) has interacted.
@@ -92,6 +95,98 @@ export function LlmChat(props: LlmChatProps) {
             ],
         [llmTools.profile, llmTools.title],
     );
+
+    // Handle voice input
+    const handleVoiceInput = useCallback(async () => {
+        if (!llmTools.callVoiceChatModel) return;
+
+        if (isVoiceCalling) {
+            // Stop recording
+            mediaRecorderRef.current?.stop();
+            setIsVoiceCalling(false);
+        } else {
+            // Start recording
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                const mediaRecorder = new MediaRecorder(stream);
+                mediaRecorderRef.current = mediaRecorder;
+                audioChunksRef.current = [];
+
+                mediaRecorder.ondataavailable = (event) => {
+                    audioChunksRef.current.push(event.data);
+                };
+
+                mediaRecorder.onstop = async () => {
+                    const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+
+                    const taskId = `voice_call_${Date.now()}`;
+                    setTasksProgress([{ id: taskId, name: 'Processing voice...', progress: 50 }]);
+
+                    try {
+                        const thread = props.thread ? [...props.thread] : [...messages];
+                        const result = await llmTools.callVoiceChatModel(audioBlob, {
+                            title: 'Voice Message',
+                            content: '',
+                            parameters: {},
+                            modelRequirements: { modelVariant: 'CHAT' },
+                            thread,
+                        });
+
+                        setTasksProgress([{ id: taskId, name: 'Playing response...', progress: 100 }]);
+
+                        const userMessage: ChatMessage = {
+                            id: `user_${Date.now()}`,
+                            date: new Date(),
+                            from: userParticipantName,
+                            content: (result.userMessage || '(Voice message)') as string_markdown,
+                            isComplete: true,
+                            isVoiceCall: true,
+                        };
+
+                        const agentMessage: ChatMessage = {
+                            id: `agent_${Date.now()}`,
+                            date: new Date(),
+                            from: llmParticipantName,
+                            content: (result.agentMessage || result.text) as string_markdown,
+                            isComplete: true,
+                            isVoiceCall: true,
+                        };
+
+                        const newMessages = [...messages, userMessage, agentMessage];
+                        setMessages(newMessages);
+
+                        if (onChange) {
+                            onChange(newMessages, participants);
+                        }
+
+                        // Play audio
+                        const audioUrl = URL.createObjectURL(result.audio);
+                        const audioEl = new Audio(audioUrl);
+                        audioEl.play();
+
+                        setTimeout(() => setTasksProgress([]), 1000);
+                    } catch (error) {
+                        console.error('Error calling Voice LLM:', error);
+                        setTasksProgress([]);
+                    }
+                };
+
+                mediaRecorder.start();
+                setIsVoiceCalling(true);
+            } catch (err) {
+                console.error('Error accessing microphone:', err);
+            }
+        }
+    }, [
+        isVoiceCalling,
+        llmTools,
+        messages,
+        onChange,
+        participants,
+        userParticipantName,
+        llmParticipantName,
+        props.thread,
+    ]);
 
     // Handle user messages and LLM responses
     const handleMessage = useCallback(
@@ -265,6 +360,8 @@ export function LlmChat(props: LlmChatProps) {
             {...{ messages, onReset, tasksProgress, participants }}
             onMessage={handleMessage}
             onReset={handleReset}
+            onVoiceInput={llmTools.callVoiceChatModel ? handleVoiceInput : undefined}
+            isVoiceCalling={isVoiceCalling}
         />
     );
 }

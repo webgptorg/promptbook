@@ -19,6 +19,7 @@ import { classNames } from '../../_common/react-utils/classNames';
 import { ArrowIcon } from '../../icons/ArrowIcon';
 import { AttachmentIcon } from '../../icons/AttachmentIcon';
 import { CloseIcon } from '../../icons/CloseIcon';
+import { MicIcon } from '../../icons/MicIcon';
 import { ResetIcon } from '../../icons/ResetIcon';
 import { SaveIcon } from '../../icons/SaveIcon';
 import { SendIcon } from '../../icons/SendIcon';
@@ -53,6 +54,7 @@ export function Chat(props: ChatProps) {
         onReset,
         onFeedback,
         onFileUpload,
+        onVoiceInput,
         // isVoiceRecognitionButtonShown,
         // voiceLanguage = 'en-US',
         placeholderMessageContent,
@@ -686,6 +688,20 @@ export function Chat(props: ChatProps) {
                                                     <AttachmentIcon size={20} />
                                                 </button>
                                             </>
+                                        )}
+
+                                        {onVoiceInput && (
+                                            <button
+                                                data-button-type="voice"
+                                                className={classNames(styles.voiceButton, isVoiceCalling && styles.voiceButtonActive)}
+                                                onClick={(event) => {
+                                                    event.preventDefault();
+                                                    onVoiceInput();
+                                                }}
+                                                title={isVoiceCalling ? 'Stop voice call' : 'Start voice call'}
+                                            >
+                                                <MicIcon size={25} />
+                                            </button>
                                         )}
 
                                         <button

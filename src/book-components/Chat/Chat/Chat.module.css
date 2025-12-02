@@ -878,6 +878,49 @@ margin: 0;
     transform: none;
 }
 
+/* Voice Button */
+.voiceButton {
+    width: 40px;
+    height: 40px;
+    border: 1px solid rgba(125, 125, 125, 0.2);
+    background: rgba(125, 125, 125, 0.05);
+    color: #6b7280;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(10px);
+    flex-shrink: 0;
+}
+
+.voiceButton:hover {
+    background: rgba(0, 132, 255, 0.1);
+    border-color: rgba(0, 132, 255, 0.3);
+    color: #0084ff;
+    transform: scale(1.05);
+}
+
+.voiceButtonActive {
+    background: rgba(255, 0, 0, 0.1) !important;
+    border-color: rgba(255, 0, 0, 0.3) !important;
+    color: #ff0000 !important;
+    animation: voiceRecordingPulse 1.5s infinite;
+}
+
+@keyframes voiceRecordingPulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(255, 0, 0, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 0, 0, 0);
+    }
+}
+
 /* Upload progress indicator */
 .uploadProgress {
     display: flex;
