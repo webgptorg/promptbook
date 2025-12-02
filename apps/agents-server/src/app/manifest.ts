@@ -83,7 +83,7 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
             name,
             short_name,
             description,
-            start_url: agentUrl,
+            start_url: `${agentUrl}/chat`,
             scope: agentUrl,
             display_override: ['fullscreen', 'minimal-ui'],
             display: 'standalone',
@@ -97,7 +97,7 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
         return {
             name: agentName,
             short_name: agentName,
-            start_url: `${NEXT_PUBLIC_SITE_URL.href}agents/${encodeURIComponent(agentName)}`,
+            start_url: `${NEXT_PUBLIC_SITE_URL.href}agents/${encodeURIComponent(agentName)}/chat`,
             display_override: ['fullscreen', 'minimal-ui'],
             display: 'standalone',
             background_color: '#ffffff',

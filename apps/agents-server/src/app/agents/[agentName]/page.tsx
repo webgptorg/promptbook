@@ -3,7 +3,7 @@
 // import { BookEditor } from '@promptbook-local/components';
 import { $provideServer } from '@/src/tools/$provideServer';
 import { PROMPTBOOK_COLOR } from '@promptbook-local/core';
-import { Columns2Icon, MessagesSquareIcon, NotebookPenIcon } from 'lucide-react';
+import { NotebookPenIcon } from 'lucide-react';
 import { headers } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { Color } from '../../../../../../src/utils/color/Color';
@@ -14,6 +14,7 @@ import { AgentChatWrapper } from './AgentChatWrapper';
 import { AgentQrCode } from './AgentQrCode';
 import { CopyField } from './CopyField';
 import { generateAgentMetadata } from './generateAgentMetadata';
+import { InstallPwaButton } from './InstallPwaButton';
 import { ServiceWorkerRegister } from './ServiceWorkerRegister';
 // import { Agent } from '@promptbook-local/core';
 // import { RemoteLlmExecutionTools } from '@promptbook-local/remote-client';
@@ -117,29 +118,14 @@ export default async function AgentPage({ params }: { params: Promise<{ agentNam
                 <div className="flex flex-col gap-2 mt-auto">
                     <div className="flex gap-2">
                         <a
-                            href={`/agents/${encodeURIComponent(agentName)}/chat`}
-                            // <- TODO: [🧠] Can I append path like this on current browser URL in href?
-                            className="flex-1 inline-flex items-center justify-center whitespace-nowrap bg-white hover:bg-gray-100 text-gray-800 px-4 py-2 rounded shadow font-semibold transition border border-gray-200"
-                        >
-                            <MessagesSquareIcon className="ml-2 w-4 h-4 mr-2" />
-                            Chat
-                        </a>
-                        <a
                             href={`/agents/${encodeURIComponent(agentName)}/book+chat`}
-                            // <- TODO: [🧠] Can I append path like this on current browser URL in href?
-                            className="flex-1 inline-flex items-center justify-center whitespace-nowrap bg-white hover:bg-gray-100 text-gray-800 px-4 py-2 rounded shadow font-semibold transition border border-gray-200"
-                        >
-                            <Columns2Icon className="ml-2 w-4 h-4 mr-2" />
-                            Book + Chat
-                        </a>
-                        <a
-                            href={`/agents/${encodeURIComponent(agentName)}/book`}
                             // <- TODO: [🧠] Can I append path like this on current browser URL in href?
                             className="flex-1 inline-flex items-center justify-center whitespace-nowrap bg-white hover:bg-gray-100 text-gray-800 px-4 py-2 rounded shadow font-semibold transition border border-gray-200"
                         >
                             <NotebookPenIcon className="ml-2 w-4 h-4 mr-2" />
                             Edit
                         </a>
+                        <InstallPwaButton />
                     </div>
                 </div>
 
