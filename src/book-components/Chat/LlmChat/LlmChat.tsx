@@ -124,7 +124,7 @@ export function LlmChat(props: LlmChatProps) {
 
                     try {
                         const thread = props.thread ? [...props.thread] : [...messages];
-                        const result = await llmTools.callVoiceChatModel(audioBlob, {
+                        const result = await llmTools.callVoiceChatModel!(audioBlob, {
                             title: 'Voice Message',
                             content: '',
                             parameters: {},
