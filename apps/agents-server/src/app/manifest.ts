@@ -27,7 +27,7 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
                 /* TODO: !!!! */
             ],
             scope: `${NEXT_PUBLIC_SITE_URL.href}`,
-        };
+        } satisfies MetadataRoute.Manifest;
     }
 
     const agentName = decodeURIComponent(referer.split('/agents/')[1]?.split('/')[0]);
@@ -51,6 +51,12 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
                 src: `${agentUrl}/images/icon-256.png`,
                 sizes: '256x256',
                 type: 'image/png',
+                purpose: 'any',
+            },
+            {
+                src: `${agentUrl}/images/icon-256.png`,
+                sizes: '256x256',
+                type: 'image/png',
                 purpose: 'maskable',
             },
         ];
@@ -60,10 +66,20 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
                 src: `${agentUrl}/images/screenshot-fullhd.png`,
                 sizes: '1920x1080',
                 type: 'image/png',
+                form_factor: 'wide',
+                label: 'Full HD Screenshot',
+            },
+            {
+                src: `${agentUrl}/images/screenshot-phone.png`,
+                sizes: '1080x1920',
+                type: 'image/png',
+                form_factor: 'narrow',
+                label: 'Phone Screenshot',
             },
         ];
 
         return {
+            id: agentUrl,
             name,
             short_name,
             description,
@@ -75,7 +91,7 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
             theme_color,
             icons,
             screenshots,
-        };
+        } satisfies MetadataRoute.Manifest;
     } catch (error) {
         console.warn(`Failed to generate manifest for agent ${agentName}`, error);
         return {
@@ -87,6 +103,6 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
             background_color: '#ffffff',
             theme_color: PROMPTBOOK_COLOR.toHex(),
             icons: [],
-        };
+        } satisfies MetadataRoute.Manifest;
     }
 }
