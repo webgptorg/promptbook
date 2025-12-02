@@ -1,6 +1,7 @@
 import { BehaviorSubject } from 'rxjs';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import type { ChatPromptResult } from '../../execution/PromptResult';
+import { book } from '../../pipeline/book-notation';
 import type { ChatPrompt, Prompt } from '../../types/Prompt';
 import type { string_agent_hash, string_agent_name, string_agent_url } from '../../types/typeAliases';
 import type { TODO_any } from '../../utils/organization/TODO_any';
@@ -31,11 +32,12 @@ export class RemoteAgent extends Agent {
 
         // Note: We are creating dummy agent source because we don't have the source from the remote agent
         //       But we populate the metadata from the profile
-        const agentSource: BehaviorSubject<string_book> = new BehaviorSubject<string_book>(`
-# ${profile.agentName}
+        const agentSource: BehaviorSubject<string_book> = new BehaviorSubject<string_book>(book`
+            ${profile.agentName}
 
-${profile.personaDescription}
-        ` as string_book);
+            ${profile.personaDescription}
+        `);
+        // <- TODO: [🐱‍🚀] createBookFromProfile
         // <- TODO: [🐱‍🚀] Support updating and self-updating
 
         const remoteAgent = new RemoteAgent({
