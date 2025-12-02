@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🧱] In the header, there is a menu item Agents, add "Create new agent" on the bottom after "View all agents"
 

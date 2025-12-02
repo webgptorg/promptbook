@@ -1,10 +1,11 @@
 'use client';
 
 import promptbookLogoBlueTransparent from '@/public/logo-blue-white-256.png';
-import { logoutAction } from '@/src/app/actions';
+import { $createAgentAction, logoutAction } from '@/src/app/actions';
 import { ArrowRight, LogIn, LogOut, Menu, X } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
@@ -42,9 +43,17 @@ export function Header(props: HeaderProps) {
     const [isLoginOpen, setIsLoginOpen] = useState(false);
     const [isAgentsOpen, setIsAgentsOpen] = useState(false);
     const [isMobileAgentsOpen, setIsMobileAgentsOpen] = useState(false);
+    const router = useRouter();
 
     const handleLogout = async () => {
         await logoutAction();
+    };
+
+    const handleCreateAgent = async () => {
+        await $createAgentAction();
+        router.refresh();
+        setIsAgentsOpen(false);
+        setIsMenuOpen(false);
     };
 
     return (
@@ -96,6 +105,12 @@ export function Header(props: HeaderProps) {
                                             >
                                                 View all agents
                                             </Link>
+                                            <button
+                                                onClick={handleCreateAgent}
+                                                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 font-medium"
+                                            >
+                                                Create new agent
+                                            </button>
                                         </div>
                                     )}
                                 </div>
@@ -213,6 +228,12 @@ export function Header(props: HeaderProps) {
                                         >
                                             View all agents
                                         </Link>
+                                        <button
+                                            className="block w-full text-left text-sm font-medium text-gray-900 hover:text-gray-700 py-2"
+                                            onClick={handleCreateAgent}
+                                        >
+                                            Create new agent
+                                        </button>
                                     </div>
                                 )}
                             </div>
