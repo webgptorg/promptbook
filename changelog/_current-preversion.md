@@ -64,3 +64,5 @@
     -   This can be overrided by `META FULLNAME` commitment
 -   **New:** Agents Server admin UI for managing users: header "Users" menu, `/admin/users` list & creation, `/admin/users/[userId]` profile pages, and delete/toggle-admin actions. User creation is restricted to `/admin/users` so the `/` homepage stays read-only for users. [✨👥]
 -   **New:** Agents Server `/admin/models` page listing all available LLM models, linked from the header "Models" menu. The `/` homepage now shows only the first 11 models with a "View all models" link to keep the UI compact while still exposing full model details for admins. [✨🧠]
+-   **New:** Agents Server `/admin/chat-history` page with a searchable, filterable, and paginated table of chat messages stored in `ChatHistory`, including per-message deletion and agent filters, powered by shared Supabase utilities to stay DRY. [✨💬]
+-   **New:** Admins can clear all chat history for a specific agent from both the `/admin/chat-history` page and each `/agents/[agentName]` page via a dedicated maintenance action, reusing the same API surface for bulk deletes.

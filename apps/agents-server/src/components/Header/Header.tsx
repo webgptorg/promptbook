@@ -431,6 +431,13 @@ export function Header(props: HeaderProps) {
                                         Metadata
                                     </Link>
                                     <Link
+                                        href="/admin/chat-history"
+                                        className="block text-base font-medium text-gray-600 hover:text-gray-900 py-2"
+                                        onClick={() => setIsMenuOpen(false)}
+                                    >
+                                        Chat history
+                                    </Link>
+                                    <Link
                                         href="https://ptbk.io/"
                                         className="block text-base font-medium text-gray-600 hover:text-gray-900 py-2"
                                         onClick={() => setIsMenuOpen(false)}

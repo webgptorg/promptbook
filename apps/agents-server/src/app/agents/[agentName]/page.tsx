@@ -16,6 +16,8 @@ import { CopyField } from './CopyField';
 import { generateAgentMetadata } from './generateAgentMetadata';
 import { InstallPwaButton } from './InstallPwaButton';
 import { ServiceWorkerRegister } from './ServiceWorkerRegister';
+import { ClearAgentChatHistoryButton } from './ClearAgentChatHistoryButton';
+import { isUserAdmin } from '../../../utils/isUserAdmin';
 // import { Agent } from '@promptbook-local/core';
 // import { RemoteLlmExecutionTools } from '@promptbook-local/remote-client';
 // import { OpenAiAssistantExecutionTools } from '@promptbook-local/openai';
@@ -30,6 +32,7 @@ export default async function AgentPage({ params }: { params: Promise<{ agentNam
     $sideEffect(headers());
 
     const agentName = await getAgentName(params);
+    const isAdmin = await isUserAdmin();
 
     let agentProfile;
     try {
@@ -115,7 +118,7 @@ export default async function AgentPage({ params }: { params: Promise<{ agentNam
                     </div>
                 </div>
 
-                <div className="flex flex-col gap-2 mt-auto">
+                <div className="flex flex-col gap-3 mt-auto">
                     <div className="flex gap-2">
                         <a
                             href={`/agents/${encodeURIComponent(agentName)}/book+chat`}
@@ -135,6 +138,15 @@ export default async function AgentPage({ params }: { params: Promise<{ agentNam
                         </a>
                         <InstallPwaButton />
                     </div>
+
+                    {isAdmin && (
+                        <div className="border-t border-dashed border-gray-300 pt-3">
+                            <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-600">
+                                Maintenance
+                            </h2>
+                            <ClearAgentChatHistoryButton agentName={agentName} />
+                        </div>
+                    )}
                 </div>
 
                 <div className="flex flex-col items-center gap-4 pt-6 border-t border-gray-200 w-full">

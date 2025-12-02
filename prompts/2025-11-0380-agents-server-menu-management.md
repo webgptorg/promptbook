@@ -67,7 +67,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🧱] Create `/admin/chat-history` page that will allow viewing and managing chat history
 
