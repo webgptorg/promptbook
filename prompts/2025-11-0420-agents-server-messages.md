@@ -3,7 +3,7 @@
 [✨🦄] Create object that represents message from any source, inbound / outbound
 
 ```
-!!!!!
+@@@@
 id: number;
 createdAt: string;
 updatedAt: string;

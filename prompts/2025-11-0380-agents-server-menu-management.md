@@ -49,6 +49,40 @@
 
 [ ]
 
+[✨🧱] Create `/admin/chat-history` page that will allow viewing and managing chat history
+
+-   It should be smart table with filters, search, pagination, etc.
+-   You should be filter by agent
+-   You are working with the [Header component](/apps/agents-server/src/components/Header/Header.tsx)
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[ ]
+
+[✨🧱] Create `/admin/chat-feedback` page that will allow viewing and managing chat feedbacks
+
+-   It should be smart table with filters, search, pagination, etc.
+-   You should be filter by agent
+-   You are working with the [Header component](/apps/agents-server/src/components/Header/Header.tsx)
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[ ]
+
+[✨🧱] qux
+
+-   You are working with the [Header component](/apps/agents-server/src/components/Header/Header.tsx)
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[ ]
+
 [✨🧱] qux
 
 -   You are working with the [Header component](/apps/agents-server/src/components/Header/Header.tsx)
