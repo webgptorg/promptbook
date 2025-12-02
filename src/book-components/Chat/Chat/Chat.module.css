@@ -91,10 +91,14 @@
     z-index: 200;
     align-self: self-start;
     justify-self: self-end;
-    /* !!!!! margin: 16px 20px 0; */
+   margin: 16px 20px 0;
     display: flex;
     align-items: center;
     gap: 8px;
+}
+
+.actions.portal{
+margin: 0;
 }
 
 .actions.left {

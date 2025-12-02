@@ -435,7 +435,7 @@ export function Chat(props: ChatProps) {
 
                     {(() => {
                         const actionsContent = (
-                            <div className={classNames(actionsAlignmentClass)}>
+                            <div className={classNames(actionsAlignmentClass, actionsContainer && styles.portal)}>
                                 {onReset && postprocessedMessages.length !== 0 && (
                                     <button
                                         className={classNames(styles.chatButton)}
