@@ -96,9 +96,17 @@ export async function middleware(req: NextRequest) {
 
         if (
             potentialAgentName &&
-            !['agents', 'api', 'admin', 'manifest.webmanifest','sw.js', 'test', 'embed', '_next', 'favicon.ico'].includes(
-                potentialAgentName,
-            ) &&
+            ![
+                'agents',
+                'api',
+                'admin',
+                'manifest.webmanifest',
+                'sw.js',
+                'test',
+                'embed',
+                '_next',
+                'favicon.ico',
+            ].includes(potentialAgentName) &&
             !potentialAgentName.startsWith('.') &&
             // Note: Other static files are excluded by the matcher configuration below
             true
