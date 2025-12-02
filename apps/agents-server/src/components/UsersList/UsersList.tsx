@@ -1,112 +1,51 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { FormEvent, useState } from 'react';
 import { Card } from '../Homepage/Card';
 import { Section } from '../Homepage/Section';
+import { useUsersAdmin } from './useUsersAdmin';
 
-type User = {
-    id: number;
-    username: string;
-    createdAt: string;
-    updatedAt: string;
-    isAdmin: boolean;
+type UsersListProps = {
+    /**
+     * Whether the UI should allow creating new users.
+     *
+     * On the main `/` page this should be `false` so that users
+     * can only be created from the `/admin/users` page.
+     */
+    allowCreate?: boolean;
 };
 
-export function UsersList() {
-    const [users, setUsers] = useState<User[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+export function UsersList({ allowCreate = true }: UsersListProps) {
+    const { users, loading, error, createUser, deleteUser, toggleAdmin } = useUsersAdmin();
+
     const [newUsername, setNewUsername] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [newIsAdmin, setNewIsAdmin] = useState(false);
 
-    const fetchUsers = async () => {
-        try {
-            setLoading(true);
-            const response = await fetch('/api/users');
-            if (!response.ok) {
-                if (response.status === 401) {
-                     // Not authorized, maybe session expired
-                     return;
-                }
-                throw new Error('Failed to fetch users');
-            }
-            const data = await response.json();
-            setUsers(data);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'An error occurred');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchUsers();
-    }, []);
-
-    const handleCreateUser = async (e: React.FormEvent) => {
+    const handleCreateUser = async (e: FormEvent) => {
         e.preventDefault();
-        setError(null);
 
         try {
-            const response = await fetch('/api/users', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    username: newUsername,
-                    password: newPassword,
-                    isAdmin: newIsAdmin,
-                }),
+            await createUser({
+                username: newUsername,
+                password: newPassword,
+                isAdmin: newIsAdmin,
             });
-
-            if (!response.ok) {
-                 const data = await response.json();
-                 throw new Error(data.error || 'Failed to create user');
-            }
 
             setNewUsername('');
             setNewPassword('');
             setNewIsAdmin(false);
-            fetchUsers();
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'An error occurred');
+        } catch {
+            // Error is already handled and exposed via `error` state from the hook
         }
     };
 
     const handleDeleteUser = async (username: string) => {
-        if (!confirm(`Are you sure you want to delete user ${username}?`)) return;
-
-        try {
-            const response = await fetch(`/api/users/${username}`, {
-                method: 'DELETE',
-            });
-
-            if (!response.ok) {
-                const data = await response.json();
-                throw new Error(data.error || 'Failed to delete user');
-            }
-            fetchUsers();
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'An error occurred');
-        }
+        await deleteUser(username);
     };
 
     const handleToggleAdmin = async (username: string, currentIsAdmin: boolean) => {
-         try {
-            const response = await fetch(`/api/users/${username}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ isAdmin: !currentIsAdmin }),
-            });
-
-            if (!response.ok) {
-                const data = await response.json();
-                throw new Error(data.error || 'Failed to update user');
-            }
-            fetchUsers();
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'An error occurred');
-        }
+        await toggleAdmin(username, currentIsAdmin);
     };
 
     if (loading) return <div>Loading users...</div>;
@@ -121,17 +60,23 @@ export function UsersList() {
                         <div className="flex justify-between items-start">
                             <div>
                                 <h3 className="text-xl font-semibold text-gray-900">{user.username}</h3>
-                                {user.isAdmin && <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded mt-1">Admin</span>}
-                                <p className="text-gray-500 text-sm mt-2">Created: {new Date(user.createdAt).toLocaleDateString()}</p>
+                                {user.isAdmin && (
+                                    <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded mt-1">
+                                        Admin
+                                    </span>
+                                )}
+                                <p className="text-gray-500 text-sm mt-2">
+                                    Created: {new Date(user.createdAt).toLocaleDateString()}
+                                </p>
                             </div>
                             <div className="space-x-2">
-                                <button 
+                                <button
                                     onClick={() => handleToggleAdmin(user.username, user.isAdmin)}
                                     className="text-sm text-blue-600 hover:text-blue-800"
                                 >
                                     {user.isAdmin ? 'Remove Admin' : 'Make Admin'}
                                 </button>
-                                <button 
+                                <button
                                     onClick={() => handleDeleteUser(user.username)}
                                     className="text-sm text-red-600 hover:text-red-800"
                                 >
@@ -141,49 +86,55 @@ export function UsersList() {
                         </div>
                     </Card>
                 ))}
-                
-                {/* Create User Form */}
-                <div className="block p-6 bg-gray-50 rounded-lg border border-dashed border-gray-300">
-                    <h3 className="text-lg font-semibold text-gray-700 mb-4">Add New User</h3>
-                    <form onSubmit={handleCreateUser} className="space-y-3">
-                        <div>
-                            <input
-                                type="text"
-                                placeholder="Username"
-                                value={newUsername}
-                                onChange={(e) => setNewUsername(e.target.value)}
-                                className="w-full p-2 border border-gray-300 rounded"
-                                required
-                            />
-                        </div>
-                        <div>
-                            <input
-                                type="password"
-                                placeholder="Password"
-                                value={newPassword}
-                                onChange={(e) => setNewPassword(e.target.value)}
-                                className="w-full p-2 border border-gray-300 rounded"
-                                required
-                            />
-                        </div>
-                        <div className="flex items-center">
-                            <input
-                                type="checkbox"
-                                id="newIsAdmin"
-                                checked={newIsAdmin}
-                                onChange={(e) => setNewIsAdmin(e.target.checked)}
-                                className="mr-2"
-                            />
-                            <label htmlFor="newIsAdmin" className="text-gray-700">Is Admin</label>
-                        </div>
-                        <button 
-                            type="submit"
-                            className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition-colors"
-                        >
-                            Create User
-                        </button>
-                    </form>
-                </div>
+
+                {allowCreate && (
+                    <div
+                        id="create-user"
+                        className="block p-6 bg-gray-50 rounded-lg border border-dashed border-gray-300"
+                    >
+                        <h3 className="text-lg font-semibold text-gray-700 mb-4">Add New User</h3>
+                        <form onSubmit={handleCreateUser} className="space-y-3">
+                            <div>
+                                <input
+                                    type="text"
+                                    placeholder="Username"
+                                    value={newUsername}
+                                    onChange={(e) => setNewUsername(e.target.value)}
+                                    className="w-full p-2 border border-gray-300 rounded"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <input
+                                    type="password"
+                                    placeholder="Password"
+                                    value={newPassword}
+                                    onChange={(e) => setNewPassword(e.target.value)}
+                                    className="w-full p-2 border border-gray-300 rounded"
+                                    required
+                                />
+                            </div>
+                            <div className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    id="newIsAdmin"
+                                    checked={newIsAdmin}
+                                    onChange={(e) => setNewIsAdmin(e.target.checked)}
+                                    className="mr-2"
+                                />
+                                <label htmlFor="newIsAdmin" className="text-gray-700">
+                                    Is Admin
+                                </label>
+                            </div>
+                            <button
+                                type="submit"
+                                className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition-colors"
+                            >
+                                Create User
+                            </button>
+                        </form>
+                    </div>
+                )}
             </Section>
         </div>
     );

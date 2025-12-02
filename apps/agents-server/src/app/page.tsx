@@ -61,7 +61,7 @@ export default async function HomePage() {
 
                 <ExternalAgentsSection agentsByServer={agentsByServer} />
 
-                {isAdmin && <UsersList />}
+                {isAdmin && <UsersList allowCreate={false} />}
 
                 {isAdmin && (
                     <Section title={`Models (${models.length})`}>

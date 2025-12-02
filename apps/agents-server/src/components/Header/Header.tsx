@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
+import { useUsersAdmin } from '../UsersList/useUsersAdmin';
 import { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
 import type { UserInfo } from '../../utils/getCurrentUser';
 import { COMMITMENT_REGISTRY } from '../../../../../src/commitments';
@@ -50,9 +51,13 @@ export function Header(props: HeaderProps) {
     const [isLoginOpen, setIsLoginOpen] = useState(false);
     const [isAgentsOpen, setIsAgentsOpen] = useState(false);
     const [isDocsOpen, setIsDocsOpen] = useState(false);
+    const [isUsersOpen, setIsUsersOpen] = useState(false);
     const [isMobileAgentsOpen, setIsMobileAgentsOpen] = useState(false);
     const [isMobileDocsOpen, setIsMobileDocsOpen] = useState(false);
+    const [isMobileUsersOpen, setIsMobileUsersOpen] = useState(false);
     const router = useRouter();
+
+    const { users: adminUsers } = useUsersAdmin();
 
     const handleLogout = async () => {
         await logoutAction();
@@ -160,6 +165,46 @@ export function Header(props: HeaderProps) {
                                 >
                                     Models
                                 </Link>
+                                <div className="relative">
+                                    <button
+                                        className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
+                                        onClick={() => setIsUsersOpen(!isUsersOpen)}
+                                        onBlur={() => setTimeout(() => setIsUsersOpen(false), 200)}
+                                    >
+                                        Users
+                                        <ChevronDown className="w-4 h-4" />
+                                    </button>
+
+                                    {isUsersOpen && (
+                                        <div className="absolute top-full left-0 mt-2 w-56 bg-white rounded-md shadow-lg border border-gray-100 py-1 z-50 animate-in fade-in zoom-in-95 duration-200 max-h-[80vh] overflow-y-auto">
+                                            {adminUsers.map((user) => (
+                                                <Link
+                                                    key={user.id}
+                                                    href={`/admin/users/${encodeURIComponent(user.username)}`}
+                                                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                                                    onClick={() => setIsUsersOpen(false)}
+                                                >
+                                                    {user.username}
+                                                </Link>
+                                            ))}
+                                            <div className="border-t border-gray-100 my-1"></div>
+                                            <Link
+                                                href="/admin/users"
+                                                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 font-medium"
+                                                onClick={() => setIsUsersOpen(false)}
+                                            >
+                                                View all users
+                                            </Link>
+                                            <Link
+                                                href="/admin/users#create-user"
+                                                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 font-medium"
+                                                onClick={() => setIsUsersOpen(false)}
+                                            >
+                                                Create new user
+                                            </Link>
+                                        </div>
+                                    )}
+                                </div>
                                 <Link
                                     href="/admin/metadata"
                                     className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
@@ -337,6 +382,47 @@ export function Header(props: HeaderProps) {
                                     >
                                         Models
                                     </Link>
+                                    <div className="flex flex-col">
+                                        <button
+                                            className="w-full flex items-center justify-between text-base font-medium text-gray-600 hover:text-gray-900 py-2"
+                                            onClick={() => setIsMobileUsersOpen(!isMobileUsersOpen)}
+                                        >
+                                            Users
+                                            <ChevronDown
+                                                className={`w-4 h-4 transition-transform duration-200 ${
+                                                    isMobileUsersOpen ? 'rotate-180' : ''
+                                                }`}
+                                            />
+                                        </button>
+                                        {isMobileUsersOpen && (
+                                            <div className="pl-4 flex flex-col gap-2 border-l-2 border-gray-100 ml-1 mt-1">
+                                                {adminUsers.map((user) => (
+                                                    <Link
+                                                        key={user.id}
+                                                        href={`/admin/users/${encodeURIComponent(user.username)}`}
+                                                        className="block text-sm text-gray-600 hover:text-gray-900 py-2"
+                                                        onClick={() => setIsMenuOpen(false)}
+                                                    >
+                                                        {user.username}
+                                                    </Link>
+                                                ))}
+                                                <Link
+                                                    href="/admin/users"
+                                                    className="block text-sm font-medium text-gray-900 hover:text-gray-700 py-2"
+                                                    onClick={() => setIsMenuOpen(false)}
+                                                >
+                                                    View all users
+                                                </Link>
+                                                <Link
+                                                    href="/admin/users#create-user"
+                                                    className="block text-sm font-medium text-gray-900 hover:text-gray-700 py-2"
+                                                    onClick={() => setIsMenuOpen(false)}
+                                                >
+                                                    Create new user
+                                                </Link>
+                                            </div>
+                                        )}
+                                    </div>
                                     <Link
                                         href="/admin/metadata"
                                         className="block text-base font-medium text-gray-600 hover:text-gray-900 py-2"

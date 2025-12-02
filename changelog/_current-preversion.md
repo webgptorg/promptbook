@@ -62,3 +62,4 @@
     -   Keep using `agentName` as a identifier
     -   Keep using `agentName` as fallback if `meta.fullname` is not provided
     -   This can be overrided by `META FULLNAME` commitment
+-   **New:** Agents Server admin UI for managing users: header "Users" menu, `/admin/users` list & creation, `/admin/users/[userId]` profile pages, and delete/toggle-admin actions. User creation is restricted to `/admin/users` so the `/` homepage stays read-only for users. [✨👥]
