@@ -6,7 +6,7 @@ import { headers } from 'next/headers';
 import { AboutPromptbookInformation } from '../../../../src/utils/misc/xAboutPromptbookInformation';
 import { $sideEffect } from '../../../../src/utils/organization/$sideEffect';
 import { AuthControls } from '../components/Auth/AuthControls';
-import { AgentCard } from '../components/Homepage/AgentCard';
+import { AgentsList } from '../components/Homepage/AgentsList';
 import { ExternalAgentsSection } from '../components/Homepage/ExternalAgentsSection';
 import { ModelCard } from '../components/Homepage/ModelCard';
 import { Section } from '../components/Homepage/Section';
@@ -64,12 +64,7 @@ export default async function HomePage() {
                     <AuthControls initialUser={currentUser} />
                 </div>
 
-                <Section title={`Agents (${agents.length})`}>
-                    {agents.map((agent) => (
-                        <AgentCard key={agent.agentName} agent={agent} href={`/${agent.agentName}`} />
-                    ))}
-                    {isAdmin && <AddAgentButton />}
-                </Section>
+                <AgentsList agents={agents} isAdmin={isAdmin} />
 
                 <ExternalAgentsSection agentsByServer={agentsByServer} />
 

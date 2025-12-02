@@ -1,3 +1,4 @@
+-   **New:** Agents Server now allows deleting agents from `/admin/agents` page ([✨🧱])
 -   **Style:** On mobile devices, the closed `PromptbookAgent` chat now displays as a small floating button in the bottom right corner instead of spanning the full width, improving UX and screen real estate usage.
 -   **New:** Chat component can receive additional action via prop `extraActions` [✨🥝]
 -   **New:** Added metadata field `IS_VOICE_CALLING_ENABLED` to enable/disable voice calling features for agents. When disabled, the voice button is hidden in the chat UI and API endpoints return 403 Forbidden [✨✷]

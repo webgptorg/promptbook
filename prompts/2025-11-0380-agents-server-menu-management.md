@@ -18,7 +18,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🧱] Allow to delete agents from `/admin/agents` page
 
