@@ -1,3 +1,4 @@
+import { getMetadata } from '@/src/database/getMetadata';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { computeAgentHash, parseAgentSource } from '@promptbook-local/core';
 import { serializeError } from '@promptbook-local/utils';
@@ -26,6 +27,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
         const agentSource = await collection.getAgentSource(agentName);
         const agentProfile = parseAgentSource(agentSource);
         const agentHash = computeAgentHash(agentSource);
+        const isVoiceCallingEnabled = (await getMetadata('IS_VOICE_CALLING_ENABLED')) === 'true';
 
         return new Response(
             JSON.stringify(
@@ -33,6 +35,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
                     ...agentProfile,
                     agentHash,
                     parameters: [], // <- TODO: [😰] Implement parameters
+                    isVoiceCallingEnabled, // [✨✷] Add voice calling status
                 },
                 // <- TODO: [🐱‍🚀] Rename `serializeError` to `errorToJson`
                 null,

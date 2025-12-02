@@ -11,7 +11,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨✷] Add metadata field `IS_VOICE_CALLING_ENABLED`
 

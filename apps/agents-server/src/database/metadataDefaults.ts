@@ -29,4 +29,9 @@ export const metadataDefaults = [
         value: '',
         note: 'Comma separated list of federated servers URLs. The server will look to all federated servers and list their agents.',
     },
+    {
+        key: 'IS_VOICE_CALLING_ENABLED',
+        value: 'false',
+        note: 'Enable or disable voice calling features for agents. When disabled, voice API endpoints will return 403 Forbidden.',
+    },
 ] as const;

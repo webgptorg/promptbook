@@ -64,6 +64,7 @@ export class RemoteAgent extends Agent {
         remoteAgent.initialMessage = profile.initialMessage;
         remoteAgent.links = profile.links;
         remoteAgent.meta = profile.meta;
+        remoteAgent._isVoiceCallingEnabled = profile.isVoiceCallingEnabled === true; // [✨✷] Store voice calling status
 
         return remoteAgent;
     }
@@ -74,6 +75,7 @@ export class RemoteAgent extends Agent {
     private agentUrl: string_agent_url;
     private _remoteAgentName: string_agent_name | undefined;
     private _remoteAgentHash: string_agent_hash | undefined;
+    private _isVoiceCallingEnabled: boolean = false; // [✨✷] Track voice calling status
 
     private constructor(options: AgentOptions & RemoteAgentOptions) {
         super(options);
@@ -97,49 +99,59 @@ export class RemoteAgent extends Agent {
 
     /**
      * Calls the agent on agents remote server with voice
+     * [✨✷] Only available when voice calling is enabled on the server
+     * Returns undefined if voice calling is disabled
      */
-    public async callVoiceChatModel(
-        audio: Blob,
-        prompt: Prompt,
-    ): Promise<{ text: string; audio: Blob; userMessage?: string; agentMessage?: string }> {
-        // Ensure we're working with a chat prompt
-        if (prompt.modelRequirements.modelVariant !== 'CHAT') {
-            throw new Error('Agents only supports chat prompts');
+    public get callVoiceChatModel():
+        | ((
+              audio: Blob,
+              prompt: Prompt,
+          ) => Promise<{ text: string; audio: Blob; userMessage?: string; agentMessage?: string }>)
+        | undefined {
+        if (!this._isVoiceCallingEnabled) {
+            return undefined;
         }
 
-        const chatPrompt = prompt as ChatPrompt;
+        return async (audio: Blob, prompt: Prompt) => {
+            // Ensure we're working with a chat prompt
+            if (prompt.modelRequirements.modelVariant !== 'CHAT') {
+                throw new Error('Agents only supports chat prompts');
+            }
 
-        const formData = new FormData();
-        formData.append('audio', audio, 'voice.webm');
-        formData.append('message', prompt.content);
-        if (chatPrompt.thread) {
-            formData.append('thread', JSON.stringify(chatPrompt.thread));
-        }
+            const chatPrompt = prompt as ChatPrompt;
 
-        const response = await fetch(`${this.agentUrl}/api/voice`, {
-            method: 'POST',
-            body: formData,
-        });
+            const formData = new FormData();
+            formData.append('audio', audio, 'voice.webm');
+            formData.append('message', prompt.content);
+            if (chatPrompt.thread) {
+                formData.append('thread', JSON.stringify(chatPrompt.thread));
+            }
 
-        if (!response.ok) {
-            throw new Error(`Voice chat failed: ${response.statusText}`);
-        }
+            const response = await fetch(`${this.agentUrl}/api/voice`, {
+                method: 'POST',
+                body: formData,
+            });
 
-        const result = await response.json();
+            if (!response.ok) {
+                throw new Error(`Voice chat failed: ${response.statusText}`);
+            }
 
-        // Convert base64 audio back to Blob
-        const binaryString = atob(result.audio);
-        const bytes = new Uint8Array(binaryString.length);
-        for (let i = 0; i < binaryString.length; i++) {
-            bytes[i] = binaryString.charCodeAt(i);
-        }
-        const audioBlob = new Blob([bytes], { type: 'audio/mp3' });
+            const result = await response.json();
 
-        return {
-            text: result.agentMessage || result.text,
-            userMessage: result.userMessage,
-            agentMessage: result.agentMessage || result.text,
-            audio: audioBlob,
+            // Convert base64 audio back to Blob
+            const binaryString = atob(result.audio);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            const audioBlob = new Blob([bytes], { type: 'audio/mp3' });
+
+            return {
+                text: result.agentMessage || result.text,
+                userMessage: result.userMessage,
+                agentMessage: result.agentMessage || result.text,
+                audio: audioBlob,
+            };
         };
     }
 

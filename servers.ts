@@ -61,7 +61,7 @@ export const REMOTE_SERVER_URLS: Array<ServerConfiguration> = [
 ];
 
 /**
- * TODO: [🐱‍🚀] !!!! Make Promptbook core agents server which will be auto-federated
+ * TODO: [🐱‍🚀] !!!!@@@@ Auto-Federate https://core.ptbk.io/
  * TODO: [🐱‍🚀] Auto-federated server from url in here
  * Note: [💞] Ignore a discrepancy between file name and entity name
  */

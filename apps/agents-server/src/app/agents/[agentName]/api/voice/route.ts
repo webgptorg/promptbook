@@ -1,5 +1,6 @@
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
+import { getMetadata } from '@/src/database/getMetadata';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideOpenAiAssistantExecutionToolsForServer } from '@/src/tools/$provideOpenAiAssistantExecutionToolsForServer';
 import { Agent, computeAgentHash, PROMPTBOOK_ENGINE_VERSION } from '@promptbook-local/core';
@@ -20,6 +21,15 @@ export async function OPTIONS(request: Request) {
 }
 
 export async function POST(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
+    // Check if voice calling is enabled
+    const isVoiceCallingEnabled = (await getMetadata('IS_VOICE_CALLING_ENABLED')) === 'true';
+    if (!isVoiceCallingEnabled) {
+        return new Response(JSON.stringify({ error: 'Voice calling is disabled on this server' }), {
+            status: 403,
+            headers: { 'Content-Type': 'application/json' },
+        });
+    }
+
     let { agentName } = await params;
     agentName = decodeURIComponent(agentName);
 
@@ -58,7 +68,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         const message = transcription.text;
 
         // --- Common Chat Logic Start (TODO: Extract) ---
-        
+
         const agentHash = computeAgentHash(agentSource);
         const userAgent = request.headers.get('user-agent');
         const ip =
@@ -141,28 +151,27 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         const buffer = Buffer.from(await mp3.arrayBuffer());
         const base64Audio = buffer.toString('base64');
 
-        return new Response(JSON.stringify({
-            userMessage: message,
-            agentMessage: response.content,
-            audio: base64Audio,
-            audioFormat: 'mp3'
-        }), {
-            status: 200,
-            headers: {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*',
+        return new Response(
+            JSON.stringify({
+                userMessage: message,
+                agentMessage: response.content,
+                audio: base64Audio,
+                audioFormat: 'mp3',
+            }),
+            {
+                status: 200,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*',
+                },
             },
-        });
-
+        );
     } catch (error) {
         assertsError(error);
         console.error(error);
-        return new Response(
-            JSON.stringify(serializeError(error), null, 4),
-            {
-                status: 400,
-                headers: { 'Content-Type': 'application/json' },
-            },
-        );
+        return new Response(JSON.stringify(serializeError(error), null, 4), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json' },
+        });
     }
 }
