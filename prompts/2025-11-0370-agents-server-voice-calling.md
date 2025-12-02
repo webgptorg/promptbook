@@ -16,6 +16,7 @@
 [✨✷] Add metadata field `IS_VOICE_CALLING_ENABLED`
 
 -   By default it is false
+-   This should enable/disable voice calling features for agents
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
