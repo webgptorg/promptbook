@@ -10,6 +10,25 @@
 
 [ ]
 
+[✨🧱] When the new agent is created, navigate to its page
+
+-   This should work same from agent creation from [Header component](/apps/agents-server/src/components/Header/Header.tsx), `/` or `/admin/agents` page
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[ ]
+
+[✨🧱] Allow to delete agents from `/admin/agents` page
+
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[ ]
+
 [✨🧱] Create user management
 
 -   In the Header add menu item "Users" after "Models"
@@ -17,6 +36,7 @@
 -   There should be page `/admin/users` listing all users registered in the system
 -   Do not allow to create new users from main `/` page, only from `/admin/users` page
 -   Each user should have page `/admin/users/[userId]` showing their profile, list of created agents, activity, etc.
+-   Allow to delete users
 -   You are working with the [Header component](/apps/agents-server/src/components/Header/Header.tsx)
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
@@ -53,6 +73,7 @@
 
 -   It should be smart table with filters, search, pagination, etc.
 -   You should be filter by agent
+-   Allow to clear chat history for specific agent from the agent page `/agents/[agentName]`
 -   You are working with the [Header component](/apps/agents-server/src/components/Header/Header.tsx)
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
@@ -65,6 +86,7 @@
 
 -   It should be smart table with filters, search, pagination, etc.
 -   You should be filter by agent
+-   Allow to clear chat feedback for specific agent from the agent page `/agents/[agentName]`
 -   You are working with the [Header component](/apps/agents-server/src/components/Header/Header.tsx)
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
@@ -73,8 +95,13 @@
 
 [ ]
 
-[✨🧱] qux
+[✨🧱] Create manual
 
+-   Add tab "Documentation" in thr header menu before
+-   The link should have N sublinlks each for one commitment
+-   Links should lead to `/docs` or `/docs/[docId]` pages
+-   Look how commitments docs are done in [the playground page](/apps/playground/src/app/voice-instructions-to-create-book/page.tsx)
+-   Render `documentation` from ComitmentDefinition as markdown
 -   You are working with the [Header component](/apps/agents-server/src/components/Header/Header.tsx)
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.

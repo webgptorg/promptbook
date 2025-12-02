@@ -100,6 +100,7 @@ export async function middleware(req: NextRequest) {
                 'agents',
                 'api',
                 'admin',
+                'docs',
                 'manifest.webmanifest',
                 'sw.js',
                 'test',
