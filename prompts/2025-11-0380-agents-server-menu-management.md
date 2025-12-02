@@ -43,7 +43,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🧱] Create `/admin/models` page that will list all models available in the system
 

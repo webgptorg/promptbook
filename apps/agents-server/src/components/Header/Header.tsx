@@ -160,7 +160,7 @@ export function Header(props: HeaderProps) {
                                     )}
                                 </div>
                                 <Link
-                                    href="/"
+                                    href="/admin/models"
                                     className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
                                 >
                                     Models
@@ -376,7 +376,7 @@ export function Header(props: HeaderProps) {
                             {isAdmin && (
                                 <>
                                     <Link
-                                        href="/"
+                                        href="/admin/models"
                                         className="block text-base font-medium text-gray-600 hover:text-gray-900 py-2"
                                         onClick={() => setIsMenuOpen(false)}
                                     >

@@ -7,7 +7,7 @@ import { AboutPromptbookInformation } from '../../../../src/utils/misc/xAboutPro
 import { $sideEffect } from '../../../../src/utils/organization/$sideEffect';
 import { AgentsList } from '../components/Homepage/AgentsList';
 import { ExternalAgentsSection } from '../components/Homepage/ExternalAgentsSection';
-import { ModelCard } from '../components/Homepage/ModelCard';
+import { ModelsSection } from '../components/Homepage/ModelsSection';
 import { Section } from '../components/Homepage/Section';
 import { TechInfoCard } from '../components/Homepage/TechInfoCard';
 import { UsersList } from '../components/UsersList/UsersList';
@@ -64,16 +64,7 @@ export default async function HomePage() {
                 {isAdmin && <UsersList allowCreate={false} />}
 
                 {isAdmin && (
-                    <Section title={`Models (${models.length})`}>
-                        {models.map(({ modelName, modelTitle, modelDescription }) => (
-                            <ModelCard
-                                key={modelName}
-                                modelName={modelName}
-                                modelTitle={modelTitle || modelName}
-                                modelDescription={modelDescription}
-                            />
-                        ))}
-                    </Section>
+                    <ModelsSection models={models} maxVisible={11} showViewAllLink />
                 )}
 
                 {isAdmin && (

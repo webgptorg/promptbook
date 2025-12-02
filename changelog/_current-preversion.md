@@ -63,3 +63,4 @@
     -   Keep using `agentName` as fallback if `meta.fullname` is not provided
     -   This can be overrided by `META FULLNAME` commitment
 -   **New:** Agents Server admin UI for managing users: header "Users" menu, `/admin/users` list & creation, `/admin/users/[userId]` profile pages, and delete/toggle-admin actions. User creation is restricted to `/admin/users` so the `/` homepage stays read-only for users. [✨👥]
+-   **New:** Agents Server `/admin/models` page listing all available LLM models, linked from the header "Models" menu. The `/` homepage now shows only the first 11 models with a "View all models" link to keep the UI compact while still exposing full model details for admins. [✨🧠]
