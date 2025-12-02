@@ -1,5 +1,6 @@
 'use client';
 
+import { TODO_any } from '@promptbook-local/types';
 import { ShoppingBagIcon } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 
@@ -22,7 +23,7 @@ export function InstallPwaButton() {
 
         function updateInstalledStatus() {
             const mediaMatch = window.matchMedia('(display-mode: standalone)');
-            const standalone = mediaMatch.matches || (window.navigator as any).standalone === true;
+            const standalone = mediaMatch.matches || (window.navigator as TODO_any).standalone === true;
             setIsInstalled(standalone);
         }
 

@@ -364,12 +364,15 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                         const file = new File([blob], filename);
                         fileStreams.push(file);
                     } else {
+                        /*
+                        TODO: [🐱‍🚀] Resolve problem with browser environment
                         // Assume it's a local file path
                         // Note: This will work in Node.js environment
                         // For browser environments, this would need different handling
                         const fs = await import('fs');
                         const fileStream = fs.createReadStream(source);
                         fileStreams.push(fileStream);
+                        */
                     }
                 } catch (error) {
                     console.error(`Error processing knowledge source ${source}:`, error);
@@ -494,12 +497,15 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                         const file = new File([blob], filename);
                         fileStreams.push(file);
                     } else {
+                        /*
+                        TODO: [🐱‍🚀] Resolve problem with browser environment
                         // Assume it's a local file path
                         // Note: This will work in Node.js environment
                         // For browser environments, this would need different handling
                         const fs = await import('fs');
                         const fileStream = fs.createReadStream(source);
                         fileStreams.push(fileStream);
+                        */
                     }
                 } catch (error) {
                     console.error(`Error processing knowledge source ${source}:`, error);
