@@ -1,4 +1,4 @@
-import { NEXT_PUBLIC_SITE_URL } from '@/config';
+import { $provideServer } from '@/src/tools/$provideServer';
 import { NextResponse } from 'next/server';
 import { getMetadata } from '../../../database/getMetadata';
 import { $provideAgentCollectionForServer } from '../../../tools/$provideAgentCollectionForServer';
@@ -10,6 +10,8 @@ export async function GET() {
         const collection = await $provideAgentCollectionForServer();
         const agents = await collection.listAgents();
         const federatedServersString = (await getMetadata('FEDERATED_SERVERS')) || '';
+        const { publicUrl } = await $provideServer();
+
         const federatedServers = federatedServersString
             .split(',')
             .map((s) => s.trim())
@@ -17,7 +19,7 @@ export async function GET() {
 
         const agentsWithUrl = agents.map((agent) => ({
             ...agent,
-            url: `${NEXT_PUBLIC_SITE_URL.href}agents/${encodeURIComponent(agent.agentName)}`,
+            url: `${publicUrl.href}agents/${encodeURIComponent(agent.agentName)}`,
         }));
 
         return NextResponse.json({

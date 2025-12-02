@@ -1,10 +1,10 @@
-import { NEXT_PUBLIC_SITE_URL } from '@/config';
 import faviconLogoImage from '@/public/favicon.ico';
 import { LayoutWrapper } from '@/src/components/LayoutWrapper/LayoutWrapper';
 import type { Metadata } from 'next';
 import { Barlow_Condensed } from 'next/font/google';
 import { getMetadata } from '../database/getMetadata';
 import { $provideAgentCollectionForServer } from '../tools/$provideAgentCollectionForServer';
+import { $provideServer } from '../tools/$provideServer';
 import { isUserAdmin } from '../utils/isUserAdmin';
 import './globals.css';
 
@@ -15,6 +15,7 @@ const barlowCondensed = Barlow_Condensed({
 });
 
 export async function generateMetadata(): Promise<Metadata> {
+    const { publicUrl } = await $provideServer();
     const serverName = (await getMetadata('SERVER_NAME')) || 'Promptbook Agents Server';
     const serverDescription = (await getMetadata('SERVER_DESCRIPTION')) || 'Agents server powered by Promptbook';
 
@@ -45,7 +46,7 @@ export async function generateMetadata(): Promise<Metadata> {
             description: serverDescription,
             // TODO: images: ['https://www.ptbk.io/design'],
         },
-        metadataBase: NEXT_PUBLIC_SITE_URL,
+        metadataBase: publicUrl,
     };
 }
 

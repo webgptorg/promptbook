@@ -10,7 +10,7 @@ export function ExternalAgentsSection({ agentsByServer }: ExternalAgentsSectionP
     return (
         <>
             {agentsByServer.map(({ serverUrl, agents }) => (
-                <Section key={serverUrl} title={`Agents from ${serverUrl} (${agents.length})`}>
+                <Section key={serverUrl} title={`Agents from ${new URL(serverUrl).hostname} (${agents.length})`}>
                     {agents.map((agent) => (
                         <AgentCard key={agent.url} agent={agent} href={agent.url} />
                     ))}

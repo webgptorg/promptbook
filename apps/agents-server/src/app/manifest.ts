@@ -1,12 +1,13 @@
-import { NEXT_PUBLIC_SITE_URL } from '@/config';
 import { PROMPTBOOK_COLOR } from '@promptbook-local/core';
 import { MetadataRoute } from 'next';
 import { headers } from 'next/headers';
 import { Color } from '../../../../src/utils/color/Color';
 import { getMetadata } from '../database/getMetadata';
+import { $provideServer } from '../tools/$provideServer';
 import { getAgentProfile } from './agents/[agentName]/_utils';
 
 export default async function manifest(): Promise<MetadataRoute.Manifest> {
+    const { publicUrl } = await $provideServer();
     const serverName = (await getMetadata('SERVER_NAME')) || 'Promptbook Agents Server';
     const serverDescription = (await getMetadata('SERVER_DESCRIPTION')) || 'Agents server powered by Promptbook';
 
@@ -18,7 +19,7 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
             name: serverName,
             short_name: serverName,
             description: serverDescription,
-            start_url: `${NEXT_PUBLIC_SITE_URL.href}`,
+            start_url: publicUrl.href,
             display_override: ['fullscreen', 'minimal-ui'],
             display: 'standalone',
             background_color: PROMPTBOOK_COLOR.toHex(),
@@ -26,7 +27,7 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
             icons: [
                 /* TODO: !!!! */
             ],
-            scope: `${NEXT_PUBLIC_SITE_URL.href}`,
+            scope: publicUrl.href,
         } satisfies MetadataRoute.Manifest;
     }
 
@@ -44,7 +45,7 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
         const theme_color = brandColor.toHex();
         const background_color = '#ffffff';
 
-        const agentUrl = `${NEXT_PUBLIC_SITE_URL.href}agents/${encodeURIComponent(agentName)}`;
+        const agentUrl = `${publicUrl.href}agents/${encodeURIComponent(agentName)}`;
 
         const icons: MetadataRoute.Manifest['icons'] = [
             {
@@ -97,7 +98,7 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
         return {
             name: agentName,
             short_name: agentName,
-            start_url: `${NEXT_PUBLIC_SITE_URL.href}agents/${encodeURIComponent(agentName)}/chat`,
+            start_url: `${publicUrl.href}agents/${encodeURIComponent(agentName)}/chat`,
             display_override: ['fullscreen', 'minimal-ui'],
             display: 'standalone',
             background_color: '#ffffff',

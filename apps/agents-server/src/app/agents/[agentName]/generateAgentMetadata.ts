@@ -1,8 +1,8 @@
-import { NEXT_PUBLIC_SITE_URL } from '@/config';
 import { Metadata } from 'next';
 import { getAgentName, getAgentProfile } from './_utils';
 
 export async function generateAgentMetadata({ params }: { params: Promise<{ agentName: string }> }): Promise<Metadata> {
+    const { publicUrl } = await $provideServer();
     const agentName = await getAgentName(params);
 
     try {
@@ -15,7 +15,7 @@ export async function generateAgentMetadata({ params }: { params: Promise<{ agen
         const image = agentProfile.meta.image;
 
         const metadata = {
-            metadataBase: NEXT_PUBLIC_SITE_URL,
+            metadataBase: publicUrl,
             title,
             description,
             icons: image ? { icon: image } : undefined,
