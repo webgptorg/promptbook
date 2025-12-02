@@ -96,7 +96,7 @@ export async function middleware(req: NextRequest) {
 
         if (
             potentialAgentName &&
-            !['agents', 'api', 'admin', 'manifest.webmanifest', 'test', 'embed', '_next', 'favicon.ico'].includes(
+            !['agents', 'api', 'admin', 'manifest.webmanifest','sw.js', 'test', 'embed', '_next', 'favicon.ico'].includes(
                 potentialAgentName,
             ) &&
             !potentialAgentName.startsWith('.') &&
