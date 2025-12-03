@@ -18,6 +18,7 @@ import { $provideAgentCollectionForServer } from '../tools/$provideAgentCollecti
 import { $provideExecutionToolsForServer } from '../tools/$provideExecutionToolsForServer';
 import { $provideServer } from '../tools/$provideServer';
 import { getFederatedAgents } from '../utils/getFederatedAgents';
+import { getEffectiveFederatedServers } from '../utils/getEffectiveFederatedServers';
 import { isUserAdmin } from '../utils/isUserAdmin';
 import { AddAgentButton } from './AddAgentButton';
 
@@ -40,10 +41,7 @@ export default async function HomePage() {
     const agents = await collection.listAgents();
 
     const federatedServersString = (await getMetadata('FEDERATED_SERVERS')) || '';
-    const federatedServers = federatedServersString
-        .split(',')
-        .map((s) => s.trim())
-        .filter((s) => s !== '');
+    const federatedServers = getEffectiveFederatedServers(federatedServersString);
 
     const agentsByServer = await getFederatedAgents(federatedServers);
 

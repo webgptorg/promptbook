@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🤡] Auto-Federate https://core.ptbk.io/
 
