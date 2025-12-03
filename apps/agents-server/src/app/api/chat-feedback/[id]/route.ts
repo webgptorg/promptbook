@@ -6,12 +6,13 @@ import { isUserAdmin } from '../../../../utils/isUserAdmin';
 /**
  * Delete a single chat feedback entry by ID.
  */
-export async function DELETE(request: NextRequest, context: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, context: { params: Promise<{ id: string }> }) {
     if (!(await isUserAdmin())) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const rawId = context.params.id;
+    const rawParams = await context.params;
+    const rawId = rawParams.id;
     const id = Number.parseInt(rawId, 10);
 
     if (!Number.isFinite(id) || id <= 0) {
