@@ -3,9 +3,9 @@ import { isUserAdmin } from '../../../utils/isUserAdmin';
 import { ChatFeedbackClient } from './ChatFeedbackClient';
 
 type AdminChatFeedbackPageProps = {
-    searchParams?: {
+    searchParams?: Promise<{
         agentName?: string;
-    };
+    }>;
 };
 
 export default async function AdminChatFeedbackPage({ searchParams }: AdminChatFeedbackPageProps) {
@@ -15,7 +15,8 @@ export default async function AdminChatFeedbackPage({ searchParams }: AdminChatF
         return <ForbiddenPage />;
     }
 
-    const initialAgentName = searchParams?.agentName || undefined;
+    const resolvedSearchParams = searchParams ? await searchParams : undefined;
+    const initialAgentName = resolvedSearchParams?.agentName || undefined;
 
     return <ChatFeedbackClient initialAgentName={initialAgentName} />;
 }
