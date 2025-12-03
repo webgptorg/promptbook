@@ -13,6 +13,35 @@ type MetadataEntry = {
     isDefault?: boolean;
 };
 
+function mergeMetadataWithDefaults(data: MetadataEntry[]): MetadataEntry[] {
+    const byKey = new Map<string, MetadataEntry>();
+
+    // First prefer existing (non-default) metadata coming from the database
+    for (const entry of data) {
+        const existing = byKey.get(entry.key);
+        if (!existing || existing.isDefault) {
+            byKey.set(entry.key, entry);
+        }
+    }
+
+    // Then add defaults only for keys that are missing
+    for (const def of metadataDefaults) {
+        if (!byKey.has(def.key)) {
+            byKey.set(def.key, {
+                id: -1,
+                key: def.key,
+                value: def.value,
+                note: def.note,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                isDefault: true,
+            });
+        }
+    }
+
+    return Array.from(byKey.values()).sort((a, b) => a.key.localeCompare(b.key));
+}
+
 export function MetadataClient() {
     const [metadata, setMetadata] = useState<MetadataEntry[]>([]);
     const [loading, setLoading] = useState(true);
@@ -33,23 +62,7 @@ export function MetadataClient() {
             }
             const data: MetadataEntry[] = await response.json();
 
-            // Merge defaults
-            const mergedData = [...data];
-            for (const def of metadataDefaults) {
-                if (!mergedData.find((m) => m.key === def.key)) {
-                    mergedData.push({
-                        id: -1,
-                        key: def.key,
-                        value: def.value,
-                        note: def.note,
-                        createdAt: new Date().toISOString(),
-                        updatedAt: new Date().toISOString(),
-                        isDefault: true,
-                    });
-                }
-            }
-            // Sort by key
-            mergedData.sort((a, b) => a.key.localeCompare(b.key));
+            const mergedData = mergeMetadataWithDefaults(data);
 
             setMetadata(mergedData);
         } catch (err) {

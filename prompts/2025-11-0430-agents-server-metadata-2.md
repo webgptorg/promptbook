@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🛃] Do not show the default value of metadata when there is already set value
 
