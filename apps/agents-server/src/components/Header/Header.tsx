@@ -97,6 +97,11 @@ export function Header(props: HeaderProps) {
     // Menu items configuration (DRY principle)
     const menuItems: MenuItem[] = [
         {
+            type: 'link' as const,
+            label: 'Home',
+            href: '/',
+        },
+        {
             type: 'dropdown' as const,
             label: 'Documentation',
             isOpen: isDocsOpen,
