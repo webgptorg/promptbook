@@ -1,7 +1,8 @@
 'use client';
 
+import { FileText, Hash, ToggleLeft, Type } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { metadataDefaults } from '../../../database/metadataDefaults';
+import { metadataDefaults, MetadataType } from '../../../database/metadataDefaults';
 
 type MetadataEntry = {
     id: number;
@@ -11,6 +12,7 @@ type MetadataEntry = {
     createdAt: string;
     updatedAt: string;
     isDefault?: boolean;
+    type?: MetadataType;
 };
 
 function mergeMetadataWithDefaults(data: MetadataEntry[]): MetadataEntry[] {
@@ -20,7 +22,9 @@ function mergeMetadataWithDefaults(data: MetadataEntry[]): MetadataEntry[] {
     for (const entry of data) {
         const existing = byKey.get(entry.key);
         if (!existing || existing.isDefault) {
-            byKey.set(entry.key, entry);
+            // Find type from defaults
+            const def = metadataDefaults.find((d) => d.key === entry.key);
+            byKey.set(entry.key, { ...entry, type: def?.type });
         }
     }
 
@@ -35,6 +39,7 @@ function mergeMetadataWithDefaults(data: MetadataEntry[]): MetadataEntry[] {
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
                 isDefault: true,
+                type: def.type,
             });
         }
     }
@@ -51,6 +56,7 @@ export function MetadataClient() {
         key: string;
         value: string;
         note: string;
+        type?: MetadataType;
     }>({ key: '', value: '', note: '' });
 
     const fetchMetadata = async () => {
@@ -109,6 +115,7 @@ export function MetadataClient() {
             key: entry.key,
             value: entry.value,
             note: entry.note || '',
+            type: entry.type,
         });
     };
 
@@ -134,6 +141,21 @@ export function MetadataClient() {
     const handleCancel = () => {
         setEditingId(null);
         setFormState({ key: '', value: '', note: '' });
+    };
+
+    const getTypeIcon = (type?: MetadataType) => {
+        switch (type) {
+            case 'TEXT_SINGLE_LINE':
+                return <Type className="w-4 h-4" />;
+            case 'TEXT':
+                return <FileText className="w-4 h-4" />;
+            case 'NUMBER':
+                return <Hash className="w-4 h-4" />;
+            case 'BOOLEAN':
+                return <ToggleLeft className="w-4 h-4" />;
+            default:
+                return <Type className="w-4 h-4" />;
+        }
     };
 
     if (loading && metadata.length === 0) {
@@ -171,14 +193,46 @@ export function MetadataClient() {
                         <label htmlFor="value" className="block text-sm font-medium text-gray-700 mb-1">
                             Value
                         </label>
-                        <textarea
-                            id="value"
-                            value={formState.value}
-                            onChange={(e) => setFormState({ ...formState, value: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[100px]"
-                            required
-                            placeholder="Metadata value..."
-                        />
+                        {formState.type === 'TEXT_SINGLE_LINE' ? (
+                            <input
+                                type="text"
+                                id="value"
+                                value={formState.value}
+                                onChange={(e) => setFormState({ ...formState, value: e.target.value })}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                required
+                                placeholder="Metadata value..."
+                            />
+                        ) : formState.type === 'BOOLEAN' ? (
+                            <select
+                                id="value"
+                                value={formState.value}
+                                onChange={(e) => setFormState({ ...formState, value: e.target.value })}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                                <option value="true">True</option>
+                                <option value="false">False</option>
+                            </select>
+                        ) : formState.type === 'NUMBER' ? (
+                            <input
+                                type="number"
+                                id="value"
+                                value={formState.value}
+                                onChange={(e) => setFormState({ ...formState, value: e.target.value })}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                required
+                                placeholder="Metadata value..."
+                            />
+                        ) : (
+                            <textarea
+                                id="value"
+                                value={formState.value}
+                                onChange={(e) => setFormState({ ...formState, value: e.target.value })}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[100px]"
+                                required
+                                placeholder="Metadata value..."
+                            />
+                        )}
                     </div>
                     <div>
                         <label htmlFor="note" className="block text-sm font-medium text-gray-700 mb-1">
@@ -218,6 +272,9 @@ export function MetadataClient() {
                     <thead className="bg-gray-50">
                         <tr>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Type
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Key
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -241,6 +298,11 @@ export function MetadataClient() {
                         ) : (
                             metadata.map((entry) => (
                                 <tr key={entry.id}>
+                                    <td className="px-6 py-4 whitespace-nowrap text-gray-500">
+                                        <div className="flex items-center" title={entry.type || 'Unknown'}>
+                                            {getTypeIcon(entry.type)}
+                                        </div>
+                                    </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                         {entry.key}
                                     </td>

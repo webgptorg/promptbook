@@ -10,7 +10,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🛃] Add a type for metadata values
 
