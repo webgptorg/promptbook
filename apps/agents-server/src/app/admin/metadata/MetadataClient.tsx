@@ -1,7 +1,7 @@
 'use client';
 
-import { FileText, Hash, ToggleLeft, Type } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { FileText, Hash, Image, ToggleLeft, Type, Upload } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { metadataDefaults, MetadataType } from '../../../database/metadataDefaults';
 
 type MetadataEntry = {
@@ -52,6 +52,8 @@ export function MetadataClient() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [editingId, setEditingId] = useState<number | null>(null);
+    const [isUploading, setIsUploading] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const [formState, setFormState] = useState<{
         key: string;
         value: string;
@@ -153,8 +155,47 @@ export function MetadataClient() {
                 return <Hash className="w-4 h-4" />;
             case 'BOOLEAN':
                 return <ToggleLeft className="w-4 h-4" />;
+            case 'IMAGE_URL':
+                return <Image className="w-4 h-4" />;
             default:
                 return <Type className="w-4 h-4" />;
+        }
+    };
+
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        try {
+            setIsUploading(true);
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const response = await fetch('/api/upload', {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to upload file: ${response.statusText}`);
+            }
+
+            const { fileUrl: longFileUrl } = await response.json();
+
+            const LONG_URL = `${process.env.NEXT_PUBLIC_CDN_PUBLIC_URL!}/${process.env
+                .NEXT_PUBLIC_CDN_PATH_PREFIX!}/user/files/`;
+            const SHORT_URL = `https://ptbk.io/k/`;
+            // <- TODO: [🌍] Unite this logic in one place
+
+            const shortFileUrl = longFileUrl.split(LONG_URL).join(SHORT_URL);
+            setFormState((prev) => ({ ...prev, value: shortFileUrl }));
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to upload image');
+        } finally {
+            setIsUploading(false);
+            if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+            }
         }
     };
 
@@ -203,6 +244,48 @@ export function MetadataClient() {
                                 required
                                 placeholder="Metadata value..."
                             />
+                        ) : formState.type === 'IMAGE_URL' ? (
+                            <div className="space-y-2">
+                                <div className="flex space-x-2">
+                                    <input
+                                        type="text"
+                                        id="value"
+                                        value={formState.value}
+                                        onChange={(e) => setFormState({ ...formState, value: e.target.value })}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        placeholder="Image URL..."
+                                    />
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        ref={fileInputRef}
+                                        onChange={handleFileUpload}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => fileInputRef.current?.click()}
+                                        disabled={isUploading}
+                                        className="bg-gray-100 text-gray-700 px-3 py-2 rounded-md border border-gray-300 hover:bg-gray-200 flex items-center space-x-2 min-w-max"
+                                    >
+                                        <Upload className="w-4 h-4" />
+                                        <span>{isUploading ? 'Uploading...' : 'Upload Image'}</span>
+                                    </button>
+                                </div>
+                                {formState.value && (
+                                    <div className="mt-2 p-2 border border-gray-200 rounded-md bg-gray-50 inline-block">
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                        <img
+                                            src={formState.value}
+                                            alt="Preview"
+                                            className="max-w-full h-auto max-h-[200px] object-contain"
+                                            onError={(e) => {
+                                                (e.target as HTMLImageElement).style.display = 'none';
+                                            }}
+                                        />
+                                    </div>
+                                )}
+                            </div>
                         ) : formState.type === 'BOOLEAN' ? (
                             <select
                                 id="value"

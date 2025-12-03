@@ -27,7 +27,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🛃] Create a type of metadata `IMAGE_URL` and use it in key `SERVER_LOGO_URL` and `SERVER_FAVICON_URL`
 

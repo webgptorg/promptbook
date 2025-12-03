@@ -1,4 +1,4 @@
-export type MetadataType = 'TEXT_SINGLE_LINE' | 'TEXT' | 'NUMBER' | 'BOOLEAN';
+export type MetadataType = 'TEXT_SINGLE_LINE' | 'TEXT' | 'NUMBER' | 'BOOLEAN' | 'IMAGE_URL';
 
 export const metadataDefaults = [
     {
@@ -17,13 +17,13 @@ export const metadataDefaults = [
         key: 'SERVER_LOGO_URL',
         value: '',
         note: 'The URL of the logo displayed in the heading bar',
-        type: 'TEXT_SINGLE_LINE',
+        type: 'IMAGE_URL',
     },
     {
         key: 'SERVER_FAVICON_URL',
         value: '',
         note: 'The URL of the favicon',
-        type: 'TEXT_SINGLE_LINE',
+        type: 'IMAGE_URL',
     },
     {
         key: 'RESTRICT_IP',
