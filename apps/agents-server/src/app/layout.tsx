@@ -99,6 +99,8 @@ export default async function RootLayout({
                 >
                     {children}
                 </LayoutWrapper>
+                {/* Global portal root for modals/popups */}
+                <div id="portal-root" />
             </body>
         </html>
     );
