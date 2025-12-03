@@ -37,6 +37,78 @@
 
 [ ]
 
+[✨✷] When voice calling the first request to `/agents/[agentName]/api/voice` is ok and others fails on 400 "Error: 400 Invalid file format. Supported formats: ['flac', 'm4a', 'mp3', 'mp4', 'mpeg', 'mpga', 'oga', 'ogg', 'wav', ,..."
+
+-   You are working on voice calling feature for Agents Server with api endpoint `/agents/[agentName]/api/voice`
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+![broken second call to voice endpoint](screenshots/2025-11-0370-agents-server-voice-calling.png)
+
+---
+
+[ ]
+
+[✨✷] baz
+
+-   You are working on voice calling feature for Agents Server with api endpoint `/agents/[agentName]/api/voice`
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[ ]
+
+[✨✷] baz
+
+-   You are working on voice calling feature for Agents Server with api endpoint `/agents/[agentName]/api/voice`
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[ ]
+
+[✨✷] baz
+
+-   You are working on voice calling feature for Agents Server with api endpoint `/agents/[agentName]/api/voice`
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[ ]
+
+[✨✷] baz
+
+-   You are working on voice calling feature for Agents Server with api endpoint `/agents/[agentName]/api/voice`
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[ ]
+
+[✨✷] baz
+
+-   You are working on voice calling feature for Agents Server with api endpoint `/agents/[agentName]/api/voice`
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[ ]
+
+[✨✷] baz
+
+-   You are working on voice calling feature for Agents Server with api endpoint `/agents/[agentName]/api/voice`
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[ ]
+
 [✨✷] Real-time transcription @@@@
 
 -   You are working with the `Agents Server` application `/apps/agents-server`
