@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🦧] Enhance design of Agents server boxes
 

@@ -18,8 +18,10 @@ export function AddAgentButton() {
     };
 
     return (
-        <div onClick={handleAddAgent} className="cursor-pointer">
-            <Card>+ Add New Agent</Card>
+        <div onClick={handleAddAgent} className="cursor-pointer h-full group">
+            <Card className="flex items-center justify-center text-lg font-medium text-gray-500 group-hover:text-blue-500 group-hover:border-blue-400 border-dashed border-2">
+                + Add New Agent
+            </Card>
         </div>
     );
 }

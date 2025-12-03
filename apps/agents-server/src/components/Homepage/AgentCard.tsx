@@ -12,10 +12,13 @@ type AgentCardProps = {
     onClone?: (agentName: string) => void;
 };
 
+const ACTION_BUTTON_CLASSES =
+    'text-white px-3 py-1 rounded shadow text-xs font-medium transition-colors uppercase tracking-wider opacity-80 hover:opacity-100';
+
 export function AgentCard({ agent, href, isAdmin, onDelete, onClone }: AgentCardProps) {
     return (
-        <div style={{ position: 'relative' }}>
-            <Link href={href}>
+        <div className="relative h-full group">
+            <Link href={href} className="block h-full">
                 <Card
                     style={
                         !agent.meta.color
@@ -29,44 +32,28 @@ export function AgentCard({ agent, href, isAdmin, onDelete, onClone }: AgentCard
                 </Card>
             </Link>
             {isAdmin && (
-                <>
+                <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                     <button
-                        style={{
-                            position: 'absolute',
-                            top: 8,
-                            right: 8 + 60,
-                            background: '#3182ce',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: 4,
-                            padding: '4px 8px',
-                            cursor: 'pointer',
-                            zIndex: 2,
+                        className={`bg-blue-500 hover:bg-blue-600 ${ACTION_BUTTON_CLASSES}`}
+                        onClick={(e) => {
+                            e.preventDefault();
+                            onClone?.(agent.agentName);
                         }}
-                        onClick={() => onClone?.(agent.agentName)}
                         title="Clone agent"
                     >
                         Clone
                     </button>
                     <button
-                        style={{
-                            position: 'absolute',
-                            top: 8,
-                            right: 8,
-                            background: '#e53e3e',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: 4,
-                            padding: '4px 8px',
-                            cursor: 'pointer',
-                            zIndex: 2,
+                        className={`bg-red-500 hover:bg-red-600 ${ACTION_BUTTON_CLASSES}`}
+                        onClick={(e) => {
+                            e.preventDefault();
+                            onDelete?.(agent.agentName);
                         }}
-                        onClick={() => onDelete?.(agent.agentName)}
                         title="Delete agent"
                     >
                         Delete
                     </button>
-                </>
+                </div>
             )}
         </div>
     );
