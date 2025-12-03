@@ -75,125 +75,167 @@ export async function middleware(req: NextRequest) {
     const allowedIps =
         allowedIpsMetadata !== null && allowedIpsMetadata !== undefined ? allowedIpsMetadata : allowedIpsEnv;
 
-    if (isIpAllowed(ip, allowedIps)) {
-        // Handle OPTIONS (preflight) requests before any redirects
-        // to avoid CORS issues ("Redirect is not allowed for a preflight request")
-        if (req.method === 'OPTIONS') {
-            return new NextResponse(null, {
-                status: 200,
-                headers: {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-                    'Access-Control-Allow-Headers': 'Content-Type',
+    const isIpAllowedResult = isIpAllowed(ip, allowedIps);
+    const isLoggedIn = req.cookies.has('sessionToken');
+    const isAccessRestricted = !isIpAllowedResult && !isLoggedIn;
+
+    // Handle OPTIONS (preflight) requests globally
+    if (req.method === 'OPTIONS') {
+        return new NextResponse(null, {
+            status: 200,
+            headers: {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type',
+            },
+        });
+    }
+
+    if (isAccessRestricted) {
+        const path = req.nextUrl.pathname;
+
+        // Allow specific paths for restricted users
+        // - /: Homepage / Agent List
+        // - /agents: Agent List
+        // - /api/agents: Agent List API
+        // - /api/federated-agents: Federated Agent List API
+        // - /api/auth/*: Auth endpoints
+        // - /restricted: Restricted Access Page
+        // - /docs: Documentation
+        // - /manifest.webmanifest: Manifest
+        // - /sw.js: Service Worker
+        const isAllowedPath =
+            path === '/' ||
+            path === '/agents' ||
+            path.startsWith('/api/agents') ||
+            path.startsWith('/api/federated-agents') ||
+            path.startsWith('/api/auth') ||
+            path === '/restricted' ||
+            path.startsWith('/docs') ||
+            path === '/manifest.webmanifest' ||
+            path === '/sw.js';
+
+        if (isAllowedPath) {
+            return NextResponse.next();
+        }
+
+        // Block access to other paths (e.g. Chat)
+        if (req.headers.get('accept')?.includes('text/html')) {
+            const url = req.nextUrl.clone();
+            url.pathname = '/restricted';
+            return NextResponse.rewrite(url);
+        }
+        return new NextResponse('Forbidden', { status: 403 });
+    }
+
+    // If we are here, the user is allowed (either by IP or session)
+    // Proceed with normal logic
+
+    // 3. Redirect /:agentName/* to /agents/:agentName/*
+    //    This enables accessing agents from the root path
+    const pathParts = req.nextUrl.pathname.split('/');
+    const potentialAgentName = pathParts[1];
+
+    if (
+        potentialAgentName &&
+        ![
+            'agents',
+            'api',
+            'admin',
+            'docs',
+            'manifest.webmanifest',
+            'sw.js',
+            'test',
+            'embed',
+            '_next',
+            'favicon.ico',
+        ].includes(potentialAgentName) &&
+        !potentialAgentName.startsWith('.') &&
+        // Note: Other static files are excluded by the matcher configuration below
+        true
+    ) {
+        const url = req.nextUrl.clone();
+        url.pathname = `/agents${req.nextUrl.pathname}`;
+        const response = NextResponse.redirect(url);
+
+        // Enable CORS for the redirect
+        response.headers.set('Access-Control-Allow-Origin', '*');
+        response.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+        response.headers.set('Access-Control-Allow-Headers', 'Content-Type');
+
+        return response;
+    }
+
+    // 4. Custom Domain Routing
+    //    If the host is not one of the configured SERVERS, try to find an agent with a matching META LINK
+
+    if (host && SERVERS && !SERVERS.some((server) => server === host)) {
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+        if (supabaseUrl && supabaseKey) {
+            const supabase = createClient(supabaseUrl, supabaseKey, {
+                auth: {
+                    persistSession: false,
+                    autoRefreshToken: false,
                 },
             });
-        }
 
-        // 3. Redirect /:agentName/* to /agents/:agentName/*
-        //    This enables accessing agents from the root path
-        const pathParts = req.nextUrl.pathname.split('/');
-        const potentialAgentName = pathParts[1];
+            // Determine prefixes to check
+            // We check all configured servers because the custom domain could point to any of them
+            // (or if they share the database, we need to check the relevant tables)
+            const serversToCheck = SERVERS;
 
-        if (
-            potentialAgentName &&
-            ![
-                'agents',
-                'api',
-                'admin',
-                'docs',
-                'manifest.webmanifest',
-                'sw.js',
-                'test',
-                'embed',
-                '_next',
-                'favicon.ico',
-            ].includes(potentialAgentName) &&
-            !potentialAgentName.startsWith('.') &&
-            // Note: Other static files are excluded by the matcher configuration below
-            true
-        ) {
-            const url = req.nextUrl.clone();
-            url.pathname = `/agents${req.nextUrl.pathname}`;
-            const response = NextResponse.redirect(url);
+            // TODO: [🧠] If there are many servers, this loop might be slow. Optimize if needed.
+            for (const serverHost of serversToCheck) {
+                let serverName = serverHost;
+                serverName = serverName.replace(/\.ptbk\.io$/, '');
+                serverName = normalizeTo_PascalCase(serverName);
+                const prefix = `server_${serverName}_`;
 
-            // Enable CORS for the redirect
-            response.headers.set('Access-Control-Allow-Origin', '*');
-            response.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-            response.headers.set('Access-Control-Allow-Headers', 'Content-Type');
+                // Search for agent with matching META LINK
+                // agentProfile->links is an array of strings
+                // We check if it contains the host, or https://host, or http://host
 
-            return response;
-        }
+                const searchLinks = [host, `https://${host}`, `http://${host}`];
 
-        // 4. Custom Domain Routing
-        //    If the host is not one of the configured SERVERS, try to find an agent with a matching META LINK
+                // Construct OR filter: agentProfile.cs.{"links":["link1"]},agentProfile.cs.{"links":["link2"]},...
+                const orFilter = searchLinks.map((link) => `agentProfile.cs.{"links":["${link}"]}`).join(',');
 
-        if (host && SERVERS && !SERVERS.some((server) => server === host)) {
-            const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-            const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+                try {
+                    const { data } = await supabase
+                        .from(`${prefix}Agent`)
+                        .select('agentName')
+                        .or(orFilter)
+                        .limit(1)
+                        .single();
 
-            if (supabaseUrl && supabaseKey) {
-                const supabase = createClient(supabaseUrl, supabaseKey, {
-                    auth: {
-                        persistSession: false,
-                        autoRefreshToken: false,
-                    },
-                });
+                    if (data && data.agentName) {
+                        // Found the agent!
+                        const url = req.nextUrl.clone();
+                        url.pathname = `/${data.agentName}`;
 
-                // Determine prefixes to check
-                // We check all configured servers because the custom domain could point to any of them
-                // (or if they share the database, we need to check the relevant tables)
-                const serversToCheck = SERVERS;
+                        // Pass the server context to the app via header
+                        const requestHeaders = new Headers(req.headers);
+                        requestHeaders.set('x-promptbook-server', serverHost);
 
-                // TODO: [🧠] If there are many servers, this loop might be slow. Optimize if needed.
-                for (const serverHost of serversToCheck) {
-                    let serverName = serverHost;
-                    serverName = serverName.replace(/\.ptbk\.io$/, '');
-                    serverName = normalizeTo_PascalCase(serverName);
-                    const prefix = `server_${serverName}_`;
-
-                    // Search for agent with matching META LINK
-                    // agentProfile->links is an array of strings
-                    // We check if it contains the host, or https://host, or http://host
-
-                    const searchLinks = [host, `https://${host}`, `http://${host}`];
-
-                    // Construct OR filter: agentProfile.cs.{"links":["link1"]},agentProfile.cs.{"links":["link2"]},...
-                    const orFilter = searchLinks.map((link) => `agentProfile.cs.{"links":["${link}"]}`).join(',');
-
-                    try {
-                        const { data } = await supabase
-                            .from(`${prefix}Agent`)
-                            .select('agentName')
-                            .or(orFilter)
-                            .limit(1)
-                            .single();
-
-                        if (data && data.agentName) {
-                            // Found the agent!
-                            const url = req.nextUrl.clone();
-                            url.pathname = `/${data.agentName}`;
-
-                            // Pass the server context to the app via header
-                            const requestHeaders = new Headers(req.headers);
-                            requestHeaders.set('x-promptbook-server', serverHost);
-
-                            return NextResponse.rewrite(url, {
-                                request: {
-                                    headers: requestHeaders,
-                                },
-                            });
-                        }
-                    } catch (error) {
-                        // Ignore error (e.g. table not found, or agent not found) and continue to next server
-                        // console.error(`Error checking server ${serverHost} for custom domain ${host}:`, error);
+                        return NextResponse.rewrite(url, {
+                            request: {
+                                headers: requestHeaders,
+                            },
+                        });
                     }
+                } catch (error) {
+                    // Ignore error (e.g. table not found, or agent not found) and continue to next server
+                    // console.error(`Error checking server ${serverHost} for custom domain ${host}:`, error);
                 }
             }
         }
-
-        return NextResponse.next();
     }
 
+    return NextResponse.next();
+
+    // This part should be unreachable due to logic above, but keeping as fallback
     return new NextResponse('Forbidden', { status: 403 });
 }
 

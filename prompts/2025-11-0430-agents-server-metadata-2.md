@@ -59,7 +59,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🛃] When the `IP_RANGE` and client is restricted show ruch UI page not just "Forbidden"
 
