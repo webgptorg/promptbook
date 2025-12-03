@@ -38,7 +38,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🛃] Allow to delete metadata item
 
