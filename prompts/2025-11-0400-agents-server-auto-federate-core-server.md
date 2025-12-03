@@ -22,7 +22,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🤡] Fix Federated agents loading on home page
 

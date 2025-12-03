@@ -51,37 +51,62 @@ export function ExternalAgentsSectionClient() {
         };
 
         const fetchAgentsForServer = async (serverUrl: string) => {
+            const normalizedUrl = serverUrl.replace(/\/$/, '');
+
             try {
-                // Ensure URL doesn't end with slash for consistency
-                const normalizedUrl = serverUrl.replace(/\/$/, '');
+                // 1. Try direct connection
                 const response = await fetch(`${normalizedUrl}/api/agents`);
-                
-                if (!response.ok) throw new Error(`Failed to fetch agents from ${serverUrl}`);
-                
+
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch agents from ${serverUrl} (Status: ${response.status})`);
+                }
+
                 const data = await response.json();
-                
+
                 if (isCancelled) return;
 
-                setServers(prev => ({
+                setServers((prev) => ({
                     ...prev,
-                    [serverUrl]: { 
-                        status: 'success', 
-                        agents: data.agents || [] 
-                    }
+                    [serverUrl]: {
+                        status: 'success',
+                        agents: data.agents || [],
+                    },
                 }));
+            } catch (directError) {
+                // 2. Try proxy through our server
+                try {
+                    // Note: We are using encodeURIComponent to ensure the URL is passed correctly as a parameter
+                    const proxyUrl = `/agents/${encodeURIComponent(normalizedUrl)}/api/agents`;
+                    const response = await fetch(proxyUrl);
 
-            } catch (error) {
-                if (isCancelled) return;
-                console.warn(`Failed to load agents from ${serverUrl}`, error);
-                
-                setServers(prev => ({
-                    ...prev,
-                    [serverUrl]: { 
-                        status: 'error', 
-                        agents: [],
-                        error: error instanceof Error ? error.message : 'Unknown error'
+                    if (!response.ok) {
+                        throw new Error(`Failed to fetch agents from ${serverUrl} via proxy (Status: ${response.status})`);
                     }
-                }));
+
+                    const data = await response.json();
+
+                    if (isCancelled) return;
+
+                    setServers((prev) => ({
+                        ...prev,
+                        [serverUrl]: {
+                            status: 'success',
+                            agents: data.agents || [],
+                        },
+                    }));
+                } catch (proxyError) {
+                    if (isCancelled) return;
+                    console.warn(`Failed to load agents from ${serverUrl} (Direct & Proxy)`, directError, proxyError);
+
+                    setServers((prev) => ({
+                        ...prev,
+                        [serverUrl]: {
+                            status: 'error',
+                            agents: [],
+                            error: proxyError instanceof Error ? proxyError.message : 'Unknown error',
+                        },
+                    }));
+                }
             }
         };
 
