@@ -24,7 +24,7 @@
 
 ---
 
-[ ]
+[-]
 
 [✨🏏] bar
 
@@ -34,7 +34,7 @@
 
 ---
 
-[ ]
+[-]
 
 [✨🏏] bar
 
@@ -44,7 +44,7 @@
 
 ---
 
-[ ]
+[-]
 
 [✨🏏] bar
 
@@ -54,7 +54,27 @@
 
 ---
 
-[ ]
+[-]
+
+[✨🏏] bar
+
+-   You are enhancing the mobile UI of Agents server
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[-]
+
+[✨🏏] bar
+
+-   You are enhancing the mobile UI of Agents server
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[-]
 
 [✨🏏] bar
 

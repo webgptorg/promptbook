@@ -6,18 +6,18 @@ Each message in the chat can is in markdown format. The chat component should re
 
 ---
 
-[ ]
+[-]
 
 [✨🐔] quux
 
 ---
 
-[ ]
+[-]
 
 [✨🐔] quux
 
 ---
 
-[ ]
+[-]
 
 [✨🐔] quux

@@ -8,7 +8,7 @@
 
 ---
 
-[ ]
+[-]
 
 [✨🐚] Refactor implementation of `LlmExecutionTools.callChatModel` streaming
 
@@ -38,7 +38,7 @@ export type LlmExecutionTools = {
 Target implementation:
 
 ```typescript
-// @@@
+// @@@@
 ```
 
 -   It should work same as now but @@@
@@ -54,7 +54,7 @@ Target implementation:
 
 ---
 
-[ ]
+[-]
 
 [✨🐚] quux
 
@@ -63,7 +63,7 @@ Target implementation:
 
 ---
 
-[ ]
+[-]
 
 [✨🐚] quux
 

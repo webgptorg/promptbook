@@ -31,7 +31,7 @@ META FULLNAME Dr. Ing. Pavol Hejný, PhD.
 
 ---
 
-[ ]
+[-]
 
 [✨🈶] baz
 
@@ -40,7 +40,7 @@ META FULLNAME Dr. Ing. Pavol Hejný, PhD.
 
 ---
 
-[ ]
+[-]
 
 [✨🈶] baz
 
@@ -49,7 +49,7 @@ META FULLNAME Dr. Ing. Pavol Hejný, PhD.
 
 ---
 
-[ ]
+[-]
 
 [✨🈶] baz
 

@@ -86,7 +86,7 @@
 
 ---
 
-[ ]
+[-]
 
 [✨🪢] Enhance the `<table>` in `<Chat />`
 
@@ -110,7 +110,7 @@
 
 ---
 
-[ ]
+[-]
 
 [✨🪢] Enhance the ... in `<Chat />`
 

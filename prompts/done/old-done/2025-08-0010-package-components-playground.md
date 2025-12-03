@@ -35,6 +35,6 @@ Not some inlined version which is hardcoded in the source code of the playground
 
 ---
 
-[ ]
+[-]
 
 [✨📶] Playground should show the preview of the `<BookEditor />` and then the source code.

@@ -32,7 +32,7 @@ MODEL MAX_TOKENS 2048
 
 ---
 
-[ ]
+[-]
 
 [✨↖️] bar
 
@@ -41,7 +41,7 @@ MODEL MAX_TOKENS 2048
 
 ---
 
-[ ]
+[-]
 
 [✨↖️] bar
 
@@ -50,7 +50,7 @@ MODEL MAX_TOKENS 2048
 
 ---
 
-[ ]
+[-]
 
 [✨↖️] bar
 

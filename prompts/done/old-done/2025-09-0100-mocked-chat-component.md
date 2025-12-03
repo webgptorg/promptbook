@@ -27,18 +27,18 @@ This should show the same chat as `<Chat/>` but emulate ongoing discussion
 
 ---
 
-[ ]
+[-]
 
 [✨☯️] foo
 
 ---
 
-[ ]
+[-]
 
 [✨☯️] foo
 
 ---
 
-[ ]
+[-]
 
 [✨☯️] foo

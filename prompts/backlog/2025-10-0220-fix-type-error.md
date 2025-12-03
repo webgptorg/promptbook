@@ -1,4 +1,4 @@
-[ ]
+[-]
 
 [✨🍊] When running `npx ptbk` it fails BUT `npx ptbk --help` or `npx ptbk about` are not failing
 
@@ -66,7 +66,7 @@ PS C:\Users\me>
 
 ---
 
-[ ]
+[-]
 
 [✨🍊] qux
 
@@ -75,7 +75,7 @@ PS C:\Users\me>
 
 ---
 
-[ ]
+[-]
 
 [✨🍊] qux
 
@@ -84,7 +84,7 @@ PS C:\Users\me>
 
 ---
 
-[ ]
+[-]
 
 [✨🍊] qux
 

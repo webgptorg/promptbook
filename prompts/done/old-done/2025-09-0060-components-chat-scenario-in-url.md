@@ -8,18 +8,18 @@ When user refreshes the page, the chat scenario should persist in the URL as a G
 
 ---
 
-[ ]
+[-]
 
 [✨😹] bar
 
 ---
 
-[ ]
+[-]
 
 [✨😹] bar
 
 ---
 
-[ ]
+[-]
 
 [✨😹] bar

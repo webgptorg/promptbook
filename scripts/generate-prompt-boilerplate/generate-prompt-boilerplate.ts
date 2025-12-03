@@ -120,7 +120,7 @@ async function generatePromptBoilerplate() {
         const filepath = join('prompts', filename);
         const one = spaceTrim(`
 
-            [ ]
+            [-]
 
             [✨${emoji}] ${title}
 

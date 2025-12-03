@@ -1,4 +1,4 @@
-[ ]
+[-]
 
 [✨🕳] Refactor components to Keep in mind DRY (Don't Repeat Yourself) principle
 
@@ -44,18 +44,18 @@ Now do this refactoring
 
 ---
 
-[ ]
+[-]
 
 [✨🕳] foo
 
 ---
 
-[ ]
+[-]
 
 [✨🕳] foo
 
 ---
 
-[ ]
+[-]
 
 [✨🕳] foo

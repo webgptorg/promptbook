@@ -12,7 +12,7 @@
 
 ---
 
-[ ]
+[-]
 
 [✨🐣] Chat shouldnt have any custom background color
 
@@ -21,7 +21,7 @@
 
 ---
 
-[ ]
+[-]
 
 [✨🐣] baz
 
@@ -30,7 +30,7 @@
 
 ---
 
-[ ]
+[-]
 
 [✨🐣] baz
 

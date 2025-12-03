@@ -48,7 +48,7 @@ Something like this:
 
 ---
 
-[ ]
+[-]
 
 [✨🛩] foo
 
@@ -57,7 +57,7 @@ Something like this:
 
 ---
 
-[ ]
+[-]
 
 [✨🛩] foo
 
@@ -66,7 +66,7 @@ Something like this:
 
 ---
 
-[ ]
+[-]
 
 [✨🛩] foo
 

@@ -39,7 +39,7 @@
 
 ---
 
-[ ]
+[-]
 
 [✨🧇] Allow to pass chat thread into `GoogleExecutionTools`
 
@@ -49,7 +49,7 @@
 
 ---
 
-[ ]
+[-]
 
 [✨🧇] Allow to pass chat thread into all LLM providers
 
@@ -58,7 +58,7 @@
 
 ---
 
-[ ]
+[-]
 
 [✨🧇] baz
 
@@ -67,7 +67,7 @@
 
 ---
 
-[ ]
+[-]
 
 [✨🧇] baz
 

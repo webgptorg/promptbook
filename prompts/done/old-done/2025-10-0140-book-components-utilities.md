@@ -111,7 +111,7 @@ of alchemists, lovers, and kings.
 
 ---
 
-[ ]
+[-]
 
 [✨🕢] quux
 
@@ -119,7 +119,7 @@ of alchemists, lovers, and kings.
 
 ---
 
-[ ]
+[-]
 
 [✨🕢] quux
 
@@ -127,7 +127,7 @@ of alchemists, lovers, and kings.
 
 ---
 
-[ ]
+[-]
 
 [✨🕢] quux
 
@@ -135,7 +135,7 @@ of alchemists, lovers, and kings.
 
 ---
 
-[ ]
+[-]
 
 [✨🕢] quux
 

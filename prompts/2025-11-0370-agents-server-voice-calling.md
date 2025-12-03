@@ -47,7 +47,24 @@
 
 ---
 
-[ ]
+[-]
+
+[✨✷] Fix voicecalling:
+
+-   It should work such as:
+    -   User presses "Start Voice Call" button
+    -   User speaks, audio is live transcribed and partial transcription is shown in the chat input
+    -   When user stops speaking for 2 seconds, the final transcription is sent as message to the agent
+    -   Agent responds with text message and also voice message (TTS)
+    -   User hears the agent's voice message played back
+    -   User presses "End Call" button to end the call, no transcription or speech is happening anymore
+-   You are working on voice calling feature for Agents Server with api endpoint `/agents/[agentName]/api/voice`
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[-]
 
 [✨✷] baz
 
@@ -57,7 +74,7 @@
 
 ---
 
-[ ]
+[-]
 
 [✨✷] baz
 
@@ -67,7 +84,7 @@
 
 ---
 
-[ ]
+[-]
 
 [✨✷] baz
 
@@ -77,7 +94,7 @@
 
 ---
 
-[ ]
+[-]
 
 [✨✷] baz
 
@@ -87,7 +104,7 @@
 
 ---
 
-[ ]
+[-]
 
 [✨✷] baz
 
@@ -97,17 +114,7 @@
 
 ---
 
-[ ]
-
-[✨✷] baz
-
--   You are working on voice calling feature for Agents Server with api endpoint `/agents/[agentName]/api/voice`
--   You are working with the `Agents Server` application `/apps/agents-server`
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
-
----
-
-[ ]
+[-]
 
 [✨✷] Real-time transcription @@@@
 
@@ -116,7 +123,7 @@
 
 ---
 
-[ ]
+[-]
 
 [✨✷] baz
 
@@ -125,7 +132,7 @@
 
 ---
 
-[ ]
+[-]
 
 [✨✷] baz
 
@@ -134,7 +141,7 @@
 
 ---
 
-[ ]
+[-]
 
 [✨✷] baz
 

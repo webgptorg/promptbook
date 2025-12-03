@@ -22,7 +22,7 @@ This is message text with _some formatting_
 
 ---
 
-[ ]
+[-]
 
 [✨🎆] baz
 
@@ -31,7 +31,7 @@ This is message text with _some formatting_
 
 ---
 
-[ ]
+[-]
 
 [✨🎆] baz
 
@@ -40,7 +40,7 @@ This is message text with _some formatting_
 
 ---
 
-[ ]
+[-]
 
 [✨🎆] baz
 

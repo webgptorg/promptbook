@@ -1,5 +1,5 @@
 [x] _<- TODO: Problemeatic, not working_
-[ ]
+[-]
 
 [✨🍥] Reflect changes from book to chat in real time
 
@@ -15,7 +15,7 @@
 
 ---
 
-[ ]
+[-]
 
 [✨🍥] Show BookEditor saving indicator next to the menu inside a book editor
 
@@ -28,7 +28,7 @@ pass is saved when false prevent browser close
 
 ---
 
-[ ]
+[-]
 
 [✨🍥] foo
 
@@ -37,7 +37,7 @@ pass is saved when false prevent browser close
 
 ---
 
-[ ]
+[-]
 
 [✨🍥] foo
 

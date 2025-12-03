@@ -42,18 +42,18 @@ https://nextjs.org/docs/messages/module-not-found
 
 ---
 
-[ ]
+[-]
 
 [✨🦪] qux
 
 ---
 
-[ ]
+[-]
 
 [✨🦪] qux
 
 ---
 
-[ ]
+[-]
 
 [✨🦪] qux

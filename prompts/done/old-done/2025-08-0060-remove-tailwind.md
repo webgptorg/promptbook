@@ -35,7 +35,7 @@ function App() {
 
 ---
 
-[ ]
+[-]
 
 [✨🌇] Use CSS modules
 
@@ -47,13 +47,13 @@ function App() {
 
 ---
 
-[ ]
+[-]
 
 [✨🌇] bar
 
 ---
 
-[ ]
+[-]
 
 [✨🌇] bar
 

@@ -27,7 +27,7 @@ PERSONA Friendly assistant
 
 ---
 
-[ ]
+[-]
 
 [✨🐢] baz
 
@@ -36,7 +36,7 @@ PERSONA Friendly assistant
 
 ---
 
-[ ]
+[-]
 
 [✨🐢] baz
 
@@ -45,7 +45,7 @@ PERSONA Friendly assistant
 
 ---
 
-[ ]
+[-]
 
 [✨🐢] baz
 

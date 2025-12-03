@@ -119,7 +119,7 @@ export default function Home() {
 
 ---
 
-[ ]
+[-]
 
 [✨🪛] quux
 
@@ -128,7 +128,7 @@ export default function Home() {
 
 ---
 
-[ ]
+[-]
 
 [✨🪛] quux
 

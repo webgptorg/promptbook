@@ -15,12 +15,12 @@
 
 ---
 
-[ ]
+[-]
 
 [✨⤴️] When testing `<BookEditor>` in `scripts/components-playground-server.ts` use `useState` for `value` of the component.
 
 ---
 
-[ ]
+[-]
 
 [✨⤴️] foo

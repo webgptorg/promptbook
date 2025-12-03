@@ -8,7 +8,16 @@
 
 ---
 
-[ ]
+[-]
+
+[✨🤡] Load agents from federated servers dynamically @@@
+
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[-]
 
 [✨🤡] foo
 
@@ -17,16 +26,7 @@
 
 ---
 
-[ ]
-
-[✨🤡] foo
-
--   You are working with the `Agents Server` application `/apps/agents-server`
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
-
----
-
-[ ]
+[-]
 
 [✨🤡] foo
 

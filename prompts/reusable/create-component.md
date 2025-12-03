@@ -20,7 +20,7 @@ Its bit similar to the `<AvatarChip />` component but larger and with bit more d
 
 ---
 
-[ ]
+[-]
 
 [✨💞] Create component `TeamGraph`
 

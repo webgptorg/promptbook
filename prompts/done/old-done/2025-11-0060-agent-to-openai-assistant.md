@@ -25,7 +25,7 @@ Each knowledge source should be used in vector store created and used for the cr
 
 ---
 
-[ ]
+[-]
 
 [✨🚩] bars
 
@@ -34,7 +34,7 @@ Each knowledge source should be used in vector store created and used for the cr
 
 ---
 
-[ ]
+[-]
 
 [✨🚩] bar
 

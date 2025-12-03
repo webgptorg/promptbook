@@ -65,24 +65,24 @@ This is mechanism for picking the best model from available models when I know a
 
 ---
 
-[ ]
+[-]
 
 [✨🌮] quux
 
 ---
 
-[ ]
+[-]
 
 [✨🌮] quux
 
 ---
 
-[ ]
+[-]
 
 [✨🌮] quux
 
 ---
 
-[ ]
+[-]
 
 [✨🌮] quux

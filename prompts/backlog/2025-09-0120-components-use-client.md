@@ -1,4 +1,4 @@
-[ ] <- Note: Maybe not solution
+[-] <- Note: Maybe not solution
 
 [✨🥶] When the component Chat is used in Next.js page, it end up with the error:
 
@@ -124,12 +124,12 @@ export default function Home() {
 
 ---
 
-[ ]
+[-]
 
 [✨🥶] baz
 
 ---
 
-[ ]
+[-]
 
 [✨🥶] baz

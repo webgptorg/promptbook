@@ -24,7 +24,7 @@ metadata: Json | null;
 
 ---
 
-[ ]
+[-]
 
 [✨🦄] baz
 
@@ -33,7 +33,7 @@ metadata: Json | null;
 
 ---
 
-[ ]
+[-]
 
 [✨🦄] baz
 
@@ -42,7 +42,7 @@ metadata: Json | null;
 
 ---
 
-[ ]
+[-]
 
 [✨🦄] baz
 

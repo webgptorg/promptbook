@@ -44,7 +44,7 @@ Sorry, I encountered an error: All execution tools of LLM Tools from Configurati
 
 ---
 
-[ ]
+[-]
 
 [✨🎷] When `OpenAiCompatibleExecutionTools` gets the error that some value _(like `temperature`)_ is not supported, they should try again with stripped down that value.
 
@@ -436,7 +436,7 @@ Final error: 400 Unsupported value: 'temperature' does not support 1.5 with this
 
 ---
 
-[ ]
+[-]
 
 [✨🎷] foo
 

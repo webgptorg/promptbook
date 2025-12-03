@@ -207,18 +207,18 @@ created ./packages/wizard/esm/index.es.js, ./packages/wizard/umd/index.umd.js in
 
 ---
 
-[ ]
+[-]
 
 [✨🤯] foo
 
 ---
 
-[ ]
+[-]
 
 [✨🤯] foo
 
 ---
 
-[ ]
+[-]
 
 [✨🤯] foo

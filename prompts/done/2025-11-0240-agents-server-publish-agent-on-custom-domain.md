@@ -32,7 +32,7 @@ META LINK myagent.example.com
 
 ---
 
-[ ]
+[-]
 
 [✨🍲] quux
 
@@ -41,7 +41,7 @@ META LINK myagent.example.com
 
 ---
 
-[ ]
+[-]
 
 [✨🍲] quux
 
@@ -50,7 +50,7 @@ META LINK myagent.example.com
 
 ---
 
-[ ]
+[-]
 
 [✨🍲] quux
 

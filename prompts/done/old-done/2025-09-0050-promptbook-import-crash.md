@@ -14,18 +14,18 @@ Analyze the problem and fix it
 
 ---
 
-[ ]
+[-]
 
 [✨🎡] foo
 
 ---
 
-[ ]
+[-]
 
 [✨🎡] foo
 
 ---
 
-[ ]
+[-]
 
 [✨🎡] foo
