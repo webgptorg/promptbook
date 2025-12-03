@@ -11,8 +11,8 @@ export async function DELETE(request: NextRequest, context: { params: Promise<{ 
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const rawParams = await context.params;
-    const rawId = rawParams.id;
+
+    const rawId = (await context.params).id;
     const id = Number.parseInt(rawId, 10);
 
     if (!Number.isFinite(id) || id <= 0) {
