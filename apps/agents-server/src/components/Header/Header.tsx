@@ -87,7 +87,7 @@ export function Header(props: HeaderProps) {
                     </Link>
 
                     {/* Desktop Navigation */}
-                    <nav className="hidden md:flex items-center gap-8">
+                    <nav className="hidden lg:flex items-center gap-8">
                         <div className="relative">
                             <button
                                 className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
@@ -259,7 +259,7 @@ export function Header(props: HeaderProps) {
                                     setIsLoginOpen(true);
                                     setIsMenuOpen(false);
                                 }}
-                                className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium h-10 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+                                className="hidden lg:inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium h-10 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
                             >
                                 Log in
                                 <LogIn className="ml-2 w-4 h-4" />
@@ -267,8 +267,8 @@ export function Header(props: HeaderProps) {
                         )}
 
                         {(currentUser || isAdmin) && (
-                            <div className="flex items-center gap-3">
-                                <span className="hidden md:inline text-sm text-gray-600">
+                            <div className="hidden lg:flex items-center gap-3">
+                                <span className="inline text-sm text-gray-600">
                                     Logged in as <strong>{currentUser?.username || 'Admin'}</strong>
                                     {(currentUser?.isAdmin || isAdmin) && (
                                         <span className="ml-2 bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
@@ -290,20 +290,18 @@ export function Header(props: HeaderProps) {
                         )}
 
                         {/* Mobile Menu Toggle */}
-                        {isAdmin && (
-                            <button
-                                className="md:hidden p-2 text-gray-600 hover:text-gray-900"
-                                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                            >
-                                {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-                            </button>
-                        )}
+                        <button
+                            className="lg:hidden p-2 text-gray-600 hover:text-gray-900"
+                            onClick={() => setIsMenuOpen(!isMenuOpen)}
+                        >
+                            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                        </button>
                     </div>
                 </div>
 
                 {/* Mobile Navigation */}
                 {isMenuOpen && (
-                    <div className="md:hidden py-4 border-t border-gray-100 animate-in slide-in-from-top-2 h-[calc(100vh-4rem)] overflow-y-auto">
+                    <div className="lg:hidden py-4 border-t border-gray-100 animate-in slide-in-from-top-2 h-[calc(100vh-4rem)] overflow-y-auto">
                         <nav className="flex flex-col gap-4 px-2">
                             <div className="flex flex-col">
                                 <button
