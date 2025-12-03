@@ -11,7 +11,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🏏] Opened menu should have background color and dropoff blur effect
 
