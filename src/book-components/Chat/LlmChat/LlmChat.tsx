@@ -52,6 +52,7 @@ export function LlmChat(props: LlmChatProps) {
     const participantsRef = useRef<ReadonlyArray<ChatParticipant>>([]);
     const isProcessingVoiceChunkRef = useRef<boolean>(false);
     const pendingVoiceChunksRef = useRef<Blob[]>([]);
+    const allVoiceChunksRef = useRef<Blob[]>([]);
 
     /**
      * Tracks whether the user (or system via persistence restoration) has interacted.
@@ -212,13 +213,22 @@ export function LlmChat(props: LlmChatProps) {
 
                 pendingVoiceChunksRef.current = [];
                 isProcessingVoiceChunkRef.current = false;
+                allVoiceChunksRef.current = [];
 
                 mediaRecorder.ondataavailable = (event) => {
-                    if (!event.data || event.data.size === 0) {
+                    const chunk = event.data;
+                    if (!chunk || chunk.size === 0) {
                         return;
                     }
 
-                    pendingVoiceChunksRef.current.push(event.data);
+                    // Accumulate all chunks so every request is a complete audio file
+                    allVoiceChunksRef.current.push(chunk);
+
+                    const combinedBlob = new Blob(allVoiceChunksRef.current, {
+                        type: chunk.type || 'audio/webm',
+                    });
+
+                    pendingVoiceChunksRef.current.push(combinedBlob);
                     void processNextVoiceChunk();
                 };
 

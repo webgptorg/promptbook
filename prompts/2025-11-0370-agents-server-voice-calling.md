@@ -35,7 +35,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨✷] When voice calling the first request to `/agents/[agentName]/api/voice` is ok and others fails on 400 "Error: 400 Invalid file format. Supported formats: ['flac', 'm4a', 'mp3', 'mp4', 'mpeg', 'mpga', 'oga', 'ogg', 'wav', ,..."
 

@@ -3,6 +3,7 @@
 -   **Style:** On mobile devices, the closed `PromptbookAgent` chat now displays as a small floating button in the bottom right corner instead of spanning the full width, improving UX and screen real estate usage.
 -   **New:** Chat component can receive additional action via prop `extraActions` [✨🥝]
 -   **New:** Added metadata field `IS_VOICE_CALLING_ENABLED` to enable/disable voice calling features for agents. When disabled, the voice button is hidden in the chat UI and API endpoints return 403 Forbidden [✨✷]
+-   **Fix:** Fixed an issue where subsequent voice calls to `/agents/[agentName]/api/voice` failed with `400 Invalid file format` when using fluent voice calling. The `LlmChat` component now aggregates `MediaRecorder` chunks into a complete audio `Blob` for each request, ensuring Whisper receives a valid audio file while keeping the DRY RemoteAgent + Agents Server flow. [✨✷]
 -   **Fix:** Fixed CORS preflight issue in Agents Server middleware that was blocking cross-origin API requests with "Redirect is not allowed for a preflight request" error.
 -   **New:** Allow to prefix Supabase database tables used in Agents Server via `SUPABASE_TABLE_PREFIX` environment variable.
 -   **New:** Record conversations to `ChatHistory` table in `Agents Server` application.
