@@ -1,4 +1,4 @@
-export type MetadataType = 'TEXT_SINGLE_LINE' | 'TEXT' | 'NUMBER' | 'BOOLEAN' | 'IMAGE_URL';
+export type MetadataType = 'TEXT_SINGLE_LINE' | 'TEXT' | 'NUMBER' | 'BOOLEAN' | 'IMAGE_URL' | 'IP_RANGE';
 
 export const metadataDefaults = [
     {
@@ -29,7 +29,7 @@ export const metadataDefaults = [
         key: 'RESTRICT_IP',
         value: '',
         note: 'Comma separated list of allowed IPs or CIDR ranges. If set, only clients from these IPs are allowed to access the server.',
-        type: 'TEXT_SINGLE_LINE',
+        type: 'IP_RANGE',
     },
     {
         key: 'FEDERATED_SERVERS',

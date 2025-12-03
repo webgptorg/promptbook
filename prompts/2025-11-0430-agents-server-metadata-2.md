@@ -47,7 +47,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🛃] Create a type of metadata `IP_RANGE` and use it in key `RESTRICT_IP`
 

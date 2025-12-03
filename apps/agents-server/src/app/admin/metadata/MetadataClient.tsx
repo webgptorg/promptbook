@@ -1,6 +1,6 @@
 'use client';
 
-import { FileText, Hash, Image, ToggleLeft, Type, Upload } from 'lucide-react';
+import { FileText, Hash, Image, Shield, ToggleLeft, Type, Upload } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { metadataDefaults, MetadataType } from '../../../database/metadataDefaults';
 
@@ -157,9 +157,26 @@ export function MetadataClient() {
                 return <ToggleLeft className="w-4 h-4" />;
             case 'IMAGE_URL':
                 return <Image className="w-4 h-4" />;
+            case 'IP_RANGE':
+                return <Shield className="w-4 h-4" />;
             default:
                 return <Type className="w-4 h-4" />;
         }
+    };
+
+    const validateIpOrCidr = (ip: string) => {
+        const ipv4Regex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+        const cidrV4Regex =
+            /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\/(?:3[0-2]|[12]?[0-9])$/;
+        // Simple IPv6 check (allows :: abbreviation)
+        const ipv6Regex =
+            /^(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))$/;
+        const cidrV6Regex = /^([0-9a-fA-F:.]{2,})\/(12[0-8]|1[0-1][0-9]|[1-9][0-9]|[0-9])$/;
+
+        if (ip.includes('/')) {
+            return cidrV4Regex.test(ip) || cidrV6Regex.test(ip);
+        }
+        return ipv4Regex.test(ip) || ipv6Regex.test(ip);
     };
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -306,6 +323,45 @@ export function MetadataClient() {
                                 required
                                 placeholder="Metadata value..."
                             />
+                        ) : formState.type === 'IP_RANGE' ? (
+                            <div className="space-y-2">
+                                <textarea
+                                    id="value"
+                                    value={formState.value.split(',').join('\n')}
+                                    onChange={(e) => {
+                                        const newValue = e.target.value
+                                            .split('\n')
+                                            .map((line) => line.trim())
+                                            .filter((line) => line !== '')
+                                            .join(',');
+                                        setFormState({ ...formState, value: newValue });
+                                    }}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[100px] font-mono"
+                                    placeholder="e.g. 192.168.1.1&#10;10.0.0.0/24"
+                                />
+                                <div className="flex flex-wrap gap-2">
+                                    {formState.value
+                                        .split(',')
+                                        .filter((ip) => ip.trim() !== '')
+                                        .map((ip, i) => {
+                                            const isValid = validateIpOrCidr(ip.trim());
+                                            return (
+                                                <span
+                                                    key={i}
+                                                    className={`px-2 py-1 rounded text-xs font-mono border ${
+                                                        isValid
+                                                            ? 'bg-green-100 text-green-800 border-green-200'
+                                                            : 'bg-red-100 text-red-800 border-red-200'
+                                                    }`}
+                                                >
+                                                    {ip}
+                                                    {!isValid && ' (Invalid)'}
+                                                </span>
+                                            );
+                                        })}
+                                </div>
+                                <p className="text-xs text-gray-500">Enter each IP or CIDR range on a new line.</p>
+                            </div>
                         ) : (
                             <textarea
                                 id="value"
