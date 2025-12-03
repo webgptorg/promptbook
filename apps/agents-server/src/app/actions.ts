@@ -1,23 +1,24 @@
 'use server';
 
 import { $generateBookBoilerplate } from '@promptbook-local/core';
+import { string_agent_name } from '@promptbook-local/types';
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import { $provideAgentCollectionForServer } from '../tools/$provideAgentCollectionForServer';
 import { isUserAdmin } from '../utils/isUserAdmin';
 
-export async function $createAgentAction() {
+export async function $createAgentAction(): Promise<string_agent_name> {
     // TODO: [👹] Check permissions here
     if (!(await isUserAdmin())) {
         throw new Error('You are not authorized to create agents');
     }
 
     const collection = await $provideAgentCollectionForServer();
-    const boilerplate = $generateBookBoilerplate();
-    await collection.createAgent(boilerplate);
-    // Extract agent name from the first line of the boilerplate string
-    const agentName = boilerplate.split('\n')[0].trim();// !!!!! parse
-    return agentName || null;
+    const agentSource = $generateBookBoilerplate();
+
+    const { agentName } = await collection.createAgent(agentSource);
+
+    return agentName;
 }
 
 export async function loginAction(formData: FormData) {
