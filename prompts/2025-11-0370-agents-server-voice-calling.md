@@ -22,7 +22,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨✷] Make the voice calling fluent
 
