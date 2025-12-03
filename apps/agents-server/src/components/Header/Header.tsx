@@ -301,7 +301,7 @@ export function Header(props: HeaderProps) {
 
                 {/* Mobile Navigation */}
                 {isMenuOpen && (
-                    <div className="lg:hidden absolute top-16 left-0 right-0 z-50 bg-white/80 backdrop-blur-md py-4 border-t border-gray-100 animate-in slide-in-from-top-2 h-[calc(100vh-4rem)] overflow-y-auto">
+                    <div className="lg:hidden absolute top-16 left-0 right-0 z-50 bg-white/60 backdrop-blur-xl shadow-xl py-4 border-t border-gray-100 animate-in slide-in-from-top-2 h-[calc(100vh-4rem)] overflow-y-auto">
                         <nav className="container mx-auto flex flex-col gap-4 px-6">
                             <div className="flex flex-col">
                                 <button
