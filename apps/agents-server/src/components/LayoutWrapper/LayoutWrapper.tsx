@@ -16,7 +16,9 @@ type LayoutWrapperProps = {
 
 export function LayoutWrapper({ children, isAdmin, currentUser, serverName, serverLogoUrl, agents }: LayoutWrapperProps) {
     const pathname = usePathname();
-    const isHeaderHidden = pathname?.includes('/chat');
+    const isAdminChatPage =
+        pathname?.startsWith('/admin/chat-history') || pathname?.startsWith('/admin/chat-feedback');
+    const isHeaderHidden = pathname?.includes('/chat') && !isAdminChatPage;
 
     if (isHeaderHidden) {
         return <main className={`pt-0`}>{children}</main>;

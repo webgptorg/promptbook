@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { Card } from '../../../components/Homepage/Card';
-import { Section } from '../../../components/Homepage/Section';
 import {
     $clearAgentChatFeedback,
     $deleteChatFeedbackRow,
@@ -253,8 +252,23 @@ export function ChatFeedbackClient({ initialAgentName }: ChatFeedbackClientProps
 
     return (
         <div className="container mx-auto px-4 py-8 space-y-6">
-            <Section title="Chat feedback">
-                <Card>
+            <div className="mt-20 mb-4 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+                <div>
+                    <h1 className="text-3xl text-gray-900 font-light">Chat feedback</h1>
+                    <p className="mt-1 text-sm text-gray-500">
+                        Review and triage user feedback collected from your agents.
+                    </p>
+                </div>
+                <div className="text-sm text-gray-500 md:text-right">
+                    <div className="text-xl font-semibold text-gray-900">
+                        {total.toLocaleString()}
+                    </div>
+                    <div className="text-xs uppercase tracking-wide text-gray-400">
+                        Total feedback entries
+                    </div>
+                </div>
+            </div>
+            <Card>
                     <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                         <form onSubmit={handleSearchSubmit} className="flex flex-col gap-2 md:flex-row md:items-end">
                             <div className="flex flex-col gap-1">
@@ -336,10 +350,13 @@ export function ChatFeedbackClient({ initialAgentName }: ChatFeedbackClientProps
                         </div>
                     )}
                 </Card>
-            </Section>
 
-            <Section title={`Feedback entries (${total})`}>
-                <Card>
+            <Card>
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-medium text-gray-900">
+                        Feedback entries ({total})
+                    </h2>
+                </div>
                     {error && (
                         <div className="mb-4 rounded-md bg-red-50 px-4 py-3 text-sm text-red-800">
                             {error}
@@ -519,7 +536,6 @@ export function ChatFeedbackClient({ initialAgentName }: ChatFeedbackClientProps
                         </div>
                     </div>
                 </Card>
-            </Section>
         </div>
     );
 }

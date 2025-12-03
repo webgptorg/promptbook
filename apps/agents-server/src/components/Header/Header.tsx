@@ -2,18 +2,17 @@
 
 import promptbookLogoBlueTransparent from '@/public/logo-blue-white-256.png';
 import { $createAgentAction, logoutAction } from '@/src/app/actions';
-import { ArrowRight, LogIn, LogOut, Menu, X } from 'lucide-react';
+import { ArrowRight, ChevronDown, LogIn, LogOut, Menu, X } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { ChevronDown } from 'lucide-react';
-import { useUsersAdmin } from '../UsersList/useUsersAdmin';
 import { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
-import type { UserInfo } from '../../utils/getCurrentUser';
 import { COMMITMENT_REGISTRY } from '../../../../../src/commitments';
 import { just } from '../../../../../src/utils/organization/just';
+import type { UserInfo } from '../../utils/getCurrentUser';
 import { LoginDialog } from '../LoginDialog/LoginDialog';
+import { useUsersAdmin } from '../UsersList/useUsersAdmin';
 
 type HeaderProps = {
     /**
@@ -212,6 +211,12 @@ export function Header(props: HeaderProps) {
                                     Metadata
                                 </Link>
                                 <Link
+                                    href="/admin/chat-history"
+                                    className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
+                                >
+                                    Chat history
+                                </Link>
+                                <Link
                                     href="/admin/chat-feedback"
                                     className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
                                 >
@@ -248,7 +253,7 @@ export function Header(props: HeaderProps) {
                             </Link>
                         )}
 
-                        {(!currentUser && !isAdmin) && (
+                        {!currentUser && !isAdmin && (
                             <button
                                 onClick={() => {
                                     setIsLoginOpen(true);
@@ -264,8 +269,7 @@ export function Header(props: HeaderProps) {
                         {(currentUser || isAdmin) && (
                             <div className="flex items-center gap-3">
                                 <span className="hidden md:inline text-sm text-gray-600">
-                                    Logged in as{' '}
-                                    <strong>{currentUser?.username || 'Admin'}</strong>
+                                    Logged in as <strong>{currentUser?.username || 'Admin'}</strong>
                                     {(currentUser?.isAdmin || isAdmin) && (
                                         <span className="ml-2 bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
                                             Admin
@@ -343,39 +347,39 @@ export function Header(props: HeaderProps) {
                                         onClick={() => setIsMobileAgentsOpen(!isMobileAgentsOpen)}
                                     >
                                         Agents
-                                    <ChevronDown
-                                        className={`w-4 h-4 transition-transform duration-200 ${
-                                            isMobileAgentsOpen ? 'rotate-180' : ''
-                                        }`}
-                                    />
-                                </button>
-                                {isMobileAgentsOpen && (
-                                    <div className="pl-4 flex flex-col gap-2 border-l-2 border-gray-100 ml-1 mt-1">
-                                        {agents.map((agent) => (
+                                        <ChevronDown
+                                            className={`w-4 h-4 transition-transform duration-200 ${
+                                                isMobileAgentsOpen ? 'rotate-180' : ''
+                                            }`}
+                                        />
+                                    </button>
+                                    {isMobileAgentsOpen && (
+                                        <div className="pl-4 flex flex-col gap-2 border-l-2 border-gray-100 ml-1 mt-1">
+                                            {agents.map((agent) => (
+                                                <Link
+                                                    key={agent.agentName}
+                                                    href={`/${agent.agentName}`}
+                                                    className="block text-sm text-gray-600 hover:text-gray-900 py-2"
+                                                    onClick={() => setIsMenuOpen(false)}
+                                                >
+                                                    {agent.meta.fullname || agent.agentName}
+                                                </Link>
+                                            ))}
                                             <Link
-                                                key={agent.agentName}
-                                                href={`/${agent.agentName}`}
-                                                className="block text-sm text-gray-600 hover:text-gray-900 py-2"
+                                                href="/"
+                                                className="block text-sm font-medium text-gray-900 hover:text-gray-700 py-2"
                                                 onClick={() => setIsMenuOpen(false)}
                                             >
-                                                {agent.meta.fullname || agent.agentName}
+                                                View all agents
                                             </Link>
-                                        ))}
-                                        <Link
-                                            href="/"
-                                            className="block text-sm font-medium text-gray-900 hover:text-gray-700 py-2"
-                                            onClick={() => setIsMenuOpen(false)}
-                                        >
-                                            View all agents
-                                        </Link>
-                                        <button
-                                            className="block w-full text-left text-sm font-medium text-gray-900 hover:text-gray-700 py-2"
-                                            onClick={handleCreateAgent}
-                                        >
-                                            Create new agent
-                                        </button>
-                                    </div>
-                                )}
+                                            <button
+                                                className="block w-full text-left text-sm font-medium text-gray-900 hover:text-gray-700 py-2"
+                                                onClick={handleCreateAgent}
+                                            >
+                                                Create new agent
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
                             )}
 
