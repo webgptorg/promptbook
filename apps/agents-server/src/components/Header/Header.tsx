@@ -8,11 +8,11 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
+import { HamburgerMenu } from '../../../../../src/book-components/_common/HamburgerMenu/HamburgerMenu';
 import { COMMITMENT_REGISTRY } from '../../../../../src/commitments';
 import { just } from '../../../../../src/utils/organization/just';
 import type { UserInfo } from '../../utils/getCurrentUser';
 import { LoginDialog } from '../LoginDialog/LoginDialog';
-import { HamburgerMenu } from '../../../../../src/book-components/_common/HamburgerMenu/HamburgerMenu';
 import { useUsersAdmin } from '../UsersList/useUsersAdmin';
 
 type HeaderProps = {
@@ -44,6 +44,30 @@ type HeaderProps = {
 
 /* TODO: [🐱‍🚀] Make this Agents server native  */
 
+type SubMenuItem = {
+    label: string;
+    href?: string;
+    onClick?: () => void | Promise<void>;
+    isBold?: boolean;
+    isBordered?: boolean;
+};
+
+type MenuItem =
+    | {
+          type: 'link';
+          label: string;
+          href: string;
+      }
+    | {
+          type: 'dropdown';
+          label: string;
+          isOpen: boolean;
+          setIsOpen: (isOpen: boolean) => void;
+          isMobileOpen: boolean;
+          setIsMobileOpen: (isOpen: boolean) => void;
+          items: Array<SubMenuItem>;
+      };
+
 export function Header(props: HeaderProps) {
     const { isAdmin = false, currentUser = null, serverName, serverLogoUrl, agents } = props;
 
@@ -70,6 +94,118 @@ export function Header(props: HeaderProps) {
         setIsMenuOpen(false);
     };
 
+    // Menu items configuration (DRY principle)
+    const menuItems: MenuItem[] = [
+        {
+            type: 'dropdown' as const,
+            label: 'Documentation',
+            isOpen: isDocsOpen,
+            setIsOpen: setIsDocsOpen,
+            isMobileOpen: isMobileDocsOpen,
+            setIsMobileOpen: setIsMobileDocsOpen,
+            items: [
+                {
+                    label: 'Overview',
+                    href: '/docs',
+                    isBold: true,
+                    isBordered: true,
+                } as SubMenuItem,
+                ...COMMITMENT_REGISTRY.map(
+                    (commitment) =>
+                        ({
+                            label: commitment.type,
+                            href: `/docs/${commitment.type}`,
+                        } as SubMenuItem),
+                ),
+            ],
+        },
+        ...(isAdmin
+            ? [
+                  {
+                      type: 'dropdown' as const,
+                      label: 'Agents',
+                      isOpen: isAgentsOpen,
+                      setIsOpen: setIsAgentsOpen,
+                      isMobileOpen: isMobileAgentsOpen,
+                      setIsMobileOpen: setIsMobileAgentsOpen,
+                      items: [
+                          ...agents.map(
+                              (agent) =>
+                                  ({
+                                      label: agent.meta.fullname || agent.agentName,
+                                      href: `/${agent.agentName}`,
+                                  } as SubMenuItem),
+                          ),
+                          {
+                              label: 'View all agents',
+                              href: '/',
+                              isBold: true,
+                              isBordered: true,
+                          } as SubMenuItem,
+                          {
+                              label: 'Create new agent',
+                              onClick: handleCreateAgent,
+                              isBold: true,
+                          } as SubMenuItem,
+                      ],
+                  },
+                  {
+                      type: 'link' as const,
+                      label: 'Models',
+                      href: '/admin/models',
+                  },
+                  {
+                      type: 'dropdown' as const,
+                      label: 'Users',
+                      isOpen: isUsersOpen,
+                      setIsOpen: setIsUsersOpen,
+                      isMobileOpen: isMobileUsersOpen,
+                      setIsMobileOpen: setIsMobileUsersOpen,
+                      items: [
+                          ...adminUsers.map(
+                              (user) =>
+                                  ({
+                                      label: user.username,
+                                      href: `/admin/users/${encodeURIComponent(user.username)}`,
+                                  } as SubMenuItem),
+                          ),
+                          {
+                              label: 'View all users',
+                              href: '/admin/users',
+                              isBold: true,
+                              isBordered: true,
+                          } as SubMenuItem,
+                          {
+                              label: 'Create new user',
+                              href: '/admin/users#create-user',
+                              isBold: true,
+                          } as SubMenuItem,
+                      ],
+                  },
+                  {
+                      type: 'link' as const,
+                      label: 'Metadata',
+                      href: '/admin/metadata',
+                  },
+                  {
+                      type: 'link' as const,
+                      label: 'Chat history',
+                      href: '/admin/chat-history',
+                  },
+                  {
+                      type: 'link' as const,
+                      label: 'Chat feedback',
+                      href: '/admin/chat-feedback',
+                  },
+                  {
+                      type: 'link' as const,
+                      label: 'About',
+                      href: 'https://ptbk.io/',
+                  },
+              ]
+            : []),
+    ];
+
     return (
         <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200 h-16">
             <LoginDialog isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
@@ -77,160 +213,93 @@ export function Header(props: HeaderProps) {
                 <div className="flex items-center justify-between h-full">
                     {/* Logo */}
                     <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-                        <Image
-                            src={serverLogoUrl || promptbookLogoBlueTransparent}
-                            alt={serverName}
-                            width={32}
-                            height={32}
-                            className="w-8 h-8 object-contain"
-                        />
+                        {serverLogoUrl ? (
+                            // Note: `next/image` does not load external images well without extra config
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                                src={serverLogoUrl}
+                                alt={serverName}
+                                width={32}
+                                height={32}
+                                className="w-8 h-8 object-contain"
+                            />
+                        ) : (
+                            <Image
+                                src={promptbookLogoBlueTransparent}
+                                alt={serverName}
+                                width={32}
+                                height={32}
+                                className="w-8 h-8 object-contain"
+                            />
+                        )}
                         <h1 className="text-xl font-bold tracking-tight text-gray-900">{serverName}</h1>
                     </Link>
 
                     {/* Desktop Navigation */}
                     <nav className="hidden lg:flex items-center gap-8">
-                        <div className="relative">
-                            <button
-                                className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
-                                onClick={() => setIsDocsOpen(!isDocsOpen)}
-                                onBlur={() => setTimeout(() => setIsDocsOpen(false), 200)}
-                            >
-                                Documentation
-                                <ChevronDown className="w-4 h-4" />
-                            </button>
-
-                            {isDocsOpen && (
-                                <div className="absolute top-full left-0 mt-2 w-56 bg-white rounded-md shadow-lg border border-gray-100 py-1 z-50 animate-in fade-in zoom-in-95 duration-200 max-h-[80vh] overflow-y-auto">
+                        {menuItems.map((item, index) => {
+                            if (item.type === 'link') {
+                                return (
                                     <Link
-                                        href="/docs"
-                                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 font-medium border-b border-gray-100"
+                                        key={index}
+                                        href={item.href}
+                                        className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
                                     >
-                                        Overview
+                                        {item.label}
                                     </Link>
-                                    {COMMITMENT_REGISTRY.map((commitment) => (
-                                        <Link
-                                            key={commitment.type}
-                                            href={`/docs/${commitment.type}`}
-                                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                                );
+                            }
+
+                            if (item.type === 'dropdown') {
+                                return (
+                                    <div key={index} className="relative">
+                                        <button
+                                            className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
+                                            onClick={() => item.setIsOpen(!item.isOpen)}
+                                            onBlur={() => setTimeout(() => item.setIsOpen(false), 200)}
                                         >
-                                            {commitment.type}
-                                        </Link>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
+                                            {item.label}
+                                            <ChevronDown className="w-4 h-4" />
+                                        </button>
 
-                        {isAdmin && (
-                            <>
-                                <div className="relative">
-                                    <button
-                                        className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
-                                        onClick={() => setIsAgentsOpen(!isAgentsOpen)}
-                                        onBlur={() => setTimeout(() => setIsAgentsOpen(false), 200)}
-                                    >
-                                        Agents
-                                        <ChevronDown className="w-4 h-4" />
-                                    </button>
+                                        {item.isOpen && (
+                                            <div className="absolute top-full left-0 mt-2 w-56 bg-white rounded-md shadow-lg border border-gray-100 py-1 z-50 animate-in fade-in zoom-in-95 duration-200 max-h-[80vh] overflow-y-auto">
+                                                {item.items.map((subItem, subIndex) => {
+                                                    const className = `block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 ${
+                                                        subItem.isBold ? 'font-medium' : ''
+                                                    } ${subItem.isBordered ? 'border-b border-gray-100' : ''}`;
 
-                                    {isAgentsOpen && (
-                                        <div className="absolute top-full left-0 mt-2 w-56 bg-white rounded-md shadow-lg border border-gray-100 py-1 z-50 animate-in fade-in zoom-in-95 duration-200">
-                                            {agents.map((agent) => (
-                                                <Link
-                                                    key={agent.agentName}
-                                                    href={`/${agent.agentName}`}
-                                                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-                                                >
-                                                    {agent.meta.fullname || agent.agentName}
-                                                </Link>
-                                            ))}
-                                            <div className="border-t border-gray-100 my-1"></div>
-                                            <Link
-                                                href="/"
-                                                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 font-medium"
-                                            >
-                                                View all agents
-                                            </Link>
-                                            <button
-                                                onClick={handleCreateAgent}
-                                                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 font-medium"
-                                            >
-                                                Create new agent
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                                <Link
-                                    href="/admin/models"
-                                    className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
-                                >
-                                    Models
-                                </Link>
-                                <div className="relative">
-                                    <button
-                                        className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
-                                        onClick={() => setIsUsersOpen(!isUsersOpen)}
-                                        onBlur={() => setTimeout(() => setIsUsersOpen(false), 200)}
-                                    >
-                                        Users
-                                        <ChevronDown className="w-4 h-4" />
-                                    </button>
+                                                    if (subItem.onClick) {
+                                                        return (
+                                                            <button
+                                                                key={subIndex}
+                                                                onClick={subItem.onClick}
+                                                                className={`${className} w-full text-left`}
+                                                            >
+                                                                {subItem.label}
+                                                            </button>
+                                                        );
+                                                    }
 
-                                    {isUsersOpen && (
-                                        <div className="absolute top-full left-0 mt-2 w-56 bg-white rounded-md shadow-lg border border-gray-100 py-1 z-50 animate-in fade-in zoom-in-95 duration-200 max-h-[80vh] overflow-y-auto">
-                                            {adminUsers.map((user) => (
-                                                <Link
-                                                    key={user.id}
-                                                    href={`/admin/users/${encodeURIComponent(user.username)}`}
-                                                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-                                                    onClick={() => setIsUsersOpen(false)}
-                                                >
-                                                    {user.username}
-                                                </Link>
-                                            ))}
-                                            <div className="border-t border-gray-100 my-1"></div>
-                                            <Link
-                                                href="/admin/users"
-                                                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 font-medium"
-                                                onClick={() => setIsUsersOpen(false)}
-                                            >
-                                                View all users
-                                            </Link>
-                                            <Link
-                                                href="/admin/users#create-user"
-                                                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 font-medium"
-                                                onClick={() => setIsUsersOpen(false)}
-                                            >
-                                                Create new user
-                                            </Link>
-                                        </div>
-                                    )}
-                                </div>
-                                <Link
-                                    href="/admin/metadata"
-                                    className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
-                                >
-                                    Metadata
-                                </Link>
-                                <Link
-                                    href="/admin/chat-history"
-                                    className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
-                                >
-                                    Chat history
-                                </Link>
-                                <Link
-                                    href="/admin/chat-feedback"
-                                    className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
-                                >
-                                    Chat feedback
-                                </Link>
-                                <Link
-                                    href="https://ptbk.io/"
-                                    className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
-                                >
-                                    About
-                                </Link>
-                            </>
-                        )}
+                                                    return (
+                                                        <Link
+                                                            key={subIndex}
+                                                            href={subItem.href!}
+                                                            className={className}
+                                                            onClick={() => item.setIsOpen(false)}
+                                                        >
+                                                            {subItem.label}
+                                                        </Link>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            }
+
+                            return null;
+                        })}
 
                         {just(false /* TODO: [🧠] Figure out what to do with theese links */) && (
                             <Link
@@ -303,164 +372,74 @@ export function Header(props: HeaderProps) {
                 {isMenuOpen && (
                     <div className="lg:hidden absolute top-16 left-0 right-0 z-50 bg-white/60 backdrop-blur-xl shadow-xl py-4 border-t border-gray-100 animate-in slide-in-from-top-2 h-[calc(100vh-4rem)] overflow-y-auto">
                         <nav className="container mx-auto flex flex-col gap-4 px-6">
-                            <div className="flex flex-col">
-                                <button
-                                    className="w-full flex items-center justify-between text-base font-medium text-gray-600 hover:text-gray-900 py-2"
-                                    onClick={() => setIsMobileDocsOpen(!isMobileDocsOpen)}
-                                >
-                                    Documentation
-                                    <ChevronDown
-                                        className={`w-4 h-4 transition-transform duration-200 ${
-                                            isMobileDocsOpen ? 'rotate-180' : ''
-                                        }`}
-                                    />
-                                </button>
-                                {isMobileDocsOpen && (
-                                    <div className="pl-4 flex flex-col gap-2 border-l-2 border-gray-100 ml-1 mt-1">
+                            {menuItems.map((item, index) => {
+                                if (item.type === 'link') {
+                                    return (
                                         <Link
-                                            href="/docs"
-                                            className="block text-sm font-medium text-gray-900 hover:text-gray-700 py-2"
+                                            key={index}
+                                            href={item.href}
+                                            className="block text-base font-medium text-gray-600 hover:text-gray-900 py-2"
                                             onClick={() => setIsMenuOpen(false)}
                                         >
-                                            Overview
+                                            {item.label}
                                         </Link>
-                                        {COMMITMENT_REGISTRY.map((commitment) => (
-                                            <Link
-                                                key={commitment.type}
-                                                href={`/docs/${commitment.type}`}
-                                                className="block text-sm text-gray-600 hover:text-gray-900 py-2"
-                                                onClick={() => setIsMenuOpen(false)}
-                                            >
-                                                {commitment.type}
-                                            </Link>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
+                                    );
+                                }
 
-                            {isAdmin && (
-                                <div className="flex flex-col">
-                                    <button
-                                        className="w-full flex items-center justify-between text-base font-medium text-gray-600 hover:text-gray-900 py-2"
-                                        onClick={() => setIsMobileAgentsOpen(!isMobileAgentsOpen)}
-                                    >
-                                        Agents
-                                        <ChevronDown
-                                            className={`w-4 h-4 transition-transform duration-200 ${
-                                                isMobileAgentsOpen ? 'rotate-180' : ''
-                                            }`}
-                                        />
-                                    </button>
-                                    {isMobileAgentsOpen && (
-                                        <div className="pl-4 flex flex-col gap-2 border-l-2 border-gray-100 ml-1 mt-1">
-                                            {agents.map((agent) => (
-                                                <Link
-                                                    key={agent.agentName}
-                                                    href={`/${agent.agentName}`}
-                                                    className="block text-sm text-gray-600 hover:text-gray-900 py-2"
-                                                    onClick={() => setIsMenuOpen(false)}
-                                                >
-                                                    {agent.meta.fullname || agent.agentName}
-                                                </Link>
-                                            ))}
-                                            <Link
-                                                href="/"
-                                                className="block text-sm font-medium text-gray-900 hover:text-gray-700 py-2"
-                                                onClick={() => setIsMenuOpen(false)}
-                                            >
-                                                View all agents
-                                            </Link>
+                                if (item.type === 'dropdown') {
+                                    return (
+                                        <div key={index} className="flex flex-col">
                                             <button
-                                                className="block w-full text-left text-sm font-medium text-gray-900 hover:text-gray-700 py-2"
-                                                onClick={handleCreateAgent}
+                                                className="w-full flex items-center justify-between text-base font-medium text-gray-600 hover:text-gray-900 py-2"
+                                                onClick={() => item.setIsMobileOpen(!item.isMobileOpen)}
                                             >
-                                                Create new agent
+                                                {item.label}
+                                                <ChevronDown
+                                                    className={`w-4 h-4 transition-transform duration-200 ${
+                                                        item.isMobileOpen ? 'rotate-180' : ''
+                                                    }`}
+                                                />
                                             </button>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
+                                            {item.isMobileOpen && (
+                                                <div className="pl-4 flex flex-col gap-2 border-l-2 border-gray-100 ml-1 mt-1">
+                                                    {item.items.map((subItem, subIndex) => {
+                                                        const className = `block text-sm ${
+                                                            subItem.isBold
+                                                                ? 'font-medium text-gray-900 hover:text-gray-700'
+                                                                : 'text-gray-600 hover:text-gray-900'
+                                                        } py-2`;
 
-                            {isAdmin && (
-                                <>
-                                    <Link
-                                        href="/admin/models"
-                                        className="block text-base font-medium text-gray-600 hover:text-gray-900 py-2"
-                                        onClick={() => setIsMenuOpen(false)}
-                                    >
-                                        Models
-                                    </Link>
-                                    <div className="flex flex-col">
-                                        <button
-                                            className="w-full flex items-center justify-between text-base font-medium text-gray-600 hover:text-gray-900 py-2"
-                                            onClick={() => setIsMobileUsersOpen(!isMobileUsersOpen)}
-                                        >
-                                            Users
-                                            <ChevronDown
-                                                className={`w-4 h-4 transition-transform duration-200 ${
-                                                    isMobileUsersOpen ? 'rotate-180' : ''
-                                                }`}
-                                            />
-                                        </button>
-                                        {isMobileUsersOpen && (
-                                            <div className="pl-4 flex flex-col gap-2 border-l-2 border-gray-100 ml-1 mt-1">
-                                                {adminUsers.map((user) => (
-                                                    <Link
-                                                        key={user.id}
-                                                        href={`/admin/users/${encodeURIComponent(user.username)}`}
-                                                        className="block text-sm text-gray-600 hover:text-gray-900 py-2"
-                                                        onClick={() => setIsMenuOpen(false)}
-                                                    >
-                                                        {user.username}
-                                                    </Link>
-                                                ))}
-                                                <Link
-                                                    href="/admin/users"
-                                                    className="block text-sm font-medium text-gray-900 hover:text-gray-700 py-2"
-                                                    onClick={() => setIsMenuOpen(false)}
-                                                >
-                                                    View all users
-                                                </Link>
-                                                <Link
-                                                    href="/admin/users#create-user"
-                                                    className="block text-sm font-medium text-gray-900 hover:text-gray-700 py-2"
-                                                    onClick={() => setIsMenuOpen(false)}
-                                                >
-                                                    Create new user
-                                                </Link>
-                                            </div>
-                                        )}
-                                    </div>
-                                    <Link
-                                        href="/admin/metadata"
-                                        className="block text-base font-medium text-gray-600 hover:text-gray-900 py-2"
-                                        onClick={() => setIsMenuOpen(false)}
-                                    >
-                                        Metadata
-                                    </Link>
-                                    <Link
-                                        href="/admin/chat-history"
-                                        className="block text-base font-medium text-gray-600 hover:text-gray-900 py-2"
-                                        onClick={() => setIsMenuOpen(false)}
-                                    >
-                                        Chat history
-                                    </Link>
-                                    <Link
-                                        href="/admin/chat-feedback"
-                                        className="block text-base font-medium text-gray-600 hover:text-gray-900 py-2"
-                                        onClick={() => setIsMenuOpen(false)}
-                                    >
-                                        Chat feedback
-                                    </Link>
-                                    <Link
-                                        href="https://ptbk.io/"
-                                        className="block text-base font-medium text-gray-600 hover:text-gray-900 py-2"
-                                        onClick={() => setIsMenuOpen(false)}
-                                    >
-                                        About
-                                    </Link>
-                                </>
-                            )}
+                                                        if (subItem.onClick) {
+                                                            return (
+                                                                <button
+                                                                    key={subIndex}
+                                                                    className={`${className} w-full text-left`}
+                                                                    onClick={subItem.onClick}
+                                                                >
+                                                                    {subItem.label}
+                                                                </button>
+                                                            );
+                                                        }
+
+                                                        return (
+                                                            <Link
+                                                                key={subIndex}
+                                                                href={subItem.href!}
+                                                                className={className}
+                                                                onClick={() => setIsMenuOpen(false)}
+                                                            >
+                                                                {subItem.label}
+                                                            </Link>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                }
+
+                                return null;
+                            })}
 
                             {just(false /* TODO: [🧠] Figure out what to do with these links */) && (
                                 <Link
