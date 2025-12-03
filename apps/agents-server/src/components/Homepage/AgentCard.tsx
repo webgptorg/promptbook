@@ -9,9 +9,10 @@ type AgentCardProps = {
     href: string;
     isAdmin?: boolean;
     onDelete?: (agentName: string) => void;
+    onClone?: (agentName: string) => void;
 };
 
-export function AgentCard({ agent, href, isAdmin, onDelete }: AgentCardProps) {
+export function AgentCard({ agent, href, isAdmin, onDelete, onClone }: AgentCardProps) {
     return (
         <div style={{ position: 'relative' }}>
             <Link href={href}>
@@ -28,24 +29,44 @@ export function AgentCard({ agent, href, isAdmin, onDelete }: AgentCardProps) {
                 </Card>
             </Link>
             {isAdmin && (
-                <button
-                    style={{
-                        position: 'absolute',
-                        top: 8,
-                        right: 8,
-                        background: '#e53e3e',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: 4,
-                        padding: '4px 8px',
-                        cursor: 'pointer',
-                        zIndex: 2,
-                    }}
-                    onClick={() => onDelete?.(agent.agentName)}
-                    title="Delete agent"
-                >
-                    Delete
-                </button>
+                <>
+                    <button
+                        style={{
+                            position: 'absolute',
+                            top: 8,
+                            right: 8 + 60,
+                            background: '#3182ce',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: 4,
+                            padding: '4px 8px',
+                            cursor: 'pointer',
+                            zIndex: 2,
+                        }}
+                        onClick={() => onClone?.(agent.agentName)}
+                        title="Clone agent"
+                    >
+                        Clone
+                    </button>
+                    <button
+                        style={{
+                            position: 'absolute',
+                            top: 8,
+                            right: 8,
+                            background: '#e53e3e',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: 4,
+                            padding: '4px 8px',
+                            cursor: 'pointer',
+                            zIndex: 2,
+                        }}
+                        onClick={() => onDelete?.(agent.agentName)}
+                        title="Delete agent"
+                    >
+                        Delete
+                    </button>
+                </>
             )}
         </div>
     );

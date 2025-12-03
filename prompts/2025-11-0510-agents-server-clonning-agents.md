@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🐆] Allow to clone agents
 

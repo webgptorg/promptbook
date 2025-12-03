@@ -18,6 +18,7 @@ import { InstallPwaButton } from './InstallPwaButton';
 import { ServiceWorkerRegister } from './ServiceWorkerRegister';
 import { ClearAgentChatHistoryButton } from './ClearAgentChatHistoryButton';
 import { ClearAgentChatFeedbackButton } from './ClearAgentChatFeedbackButton';
+import { CloneAgentButton } from './CloneAgentButton';
 import { isUserAdmin } from '../../../utils/isUserAdmin';
 // import { Agent } from '@promptbook-local/core';
 // import { RemoteLlmExecutionTools } from '@promptbook-local/remote-client';
@@ -137,6 +138,7 @@ export default async function AgentPage({ params }: { params: Promise<{ agentNam
                             <CodeIcon className="ml-2 w-4 h-4 mr-2" />
                             Integration
                         </a>
+                        {isAdmin && <CloneAgentButton agentName={agentName} />}
                         <InstallPwaButton />
                     </div>
 

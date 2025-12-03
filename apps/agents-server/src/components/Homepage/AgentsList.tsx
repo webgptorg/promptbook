@@ -22,6 +22,13 @@ export function AgentsList({ agents: initialAgents, isAdmin }: AgentsListProps) 
         setAgents(agents.filter(a => a.agentName !== agentName));
     };
 
+    const handleClone = async (agentName: string) => {
+        if (!window.confirm(`Clone agent "${agentName}"?`)) return;
+        const response = await fetch(`/api/agents/${encodeURIComponent(agentName)}/clone`, { method: 'POST' });
+        const newAgent = await response.json();
+        setAgents([...agents, newAgent]);
+    };
+
     return (
         <Section title={`Agents (${agents.length})`}>
             {agents.map((agent) => (
@@ -31,6 +38,7 @@ export function AgentsList({ agents: initialAgents, isAdmin }: AgentsListProps) 
                     href={`/${agent.agentName}`}
                     isAdmin={isAdmin}
                     onDelete={handleDelete}
+                    onClone={handleClone}
                 />
             ))}
             {isAdmin && <AddAgentButton />}
