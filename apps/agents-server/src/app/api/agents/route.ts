@@ -17,12 +17,27 @@ export async function GET() {
             url: `${publicUrl.href}agents/${encodeURIComponent(agent.agentName)}`,
         }));
 
-        return NextResponse.json({
+        const response = NextResponse.json({
             agents: agentsWithUrl,
             federatedServers,
         });
+
+        // Add CORS headers
+        response.headers.set('Access-Control-Allow-Origin', '*');
+        response.headers.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
+        response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+        return response;
     } catch (error) {
         console.error('Error fetching agents:', error);
         return NextResponse.json({ error: 'Failed to fetch agents' }, { status: 500 });
     }
+}
+
+export async function OPTIONS() {
+    const response = new NextResponse(null, { status: 200 });
+    response.headers.set('Access-Control-Allow-Origin', '*');
+    response.headers.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    return response;
 }
