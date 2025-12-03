@@ -51,8 +51,8 @@ export function LlmChat(props: LlmChatProps) {
     const messagesRef = useRef<ChatMessage[]>([]);
     const participantsRef = useRef<ReadonlyArray<ChatParticipant>>([]);
     const isProcessingVoiceChunkRef = useRef<boolean>(false);
-    const pendingVoiceChunksRef = useRef<Blob[]>([]);
     const allVoiceChunksRef = useRef<Blob[]>([]);
+    const utteranceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     /**
      * Tracks whether the user (or system via persistence restoration) has interacted.
@@ -111,8 +111,11 @@ export function LlmChat(props: LlmChatProps) {
         participantsRef.current = participants;
     }, [participants]);
 
-    // Handle voice input in a fluent, multi-message way
-    const processNextVoiceChunk = useCallback(async () => {
+    // Handle voice input in a fluent, multi-message way:
+    // - While the call is active we keep recording audio.
+    // - When the user is silent for ~2 seconds, we treat it as the end of an utterance
+    //   and send one combined audio blob to the agent (one agent turn per utterance).
+    const processCurrentUtterance = useCallback(async () => {
         if (!llmTools.callVoiceChatModel) {
             return;
         }
@@ -121,12 +124,17 @@ export function LlmChat(props: LlmChatProps) {
             return;
         }
 
-        const nextChunk = pendingVoiceChunksRef.current.shift();
-        if (!nextChunk) {
+        const chunks = allVoiceChunksRef.current;
+        if (!chunks.length) {
             return;
         }
 
         isProcessingVoiceChunkRef.current = true;
+        allVoiceChunksRef.current = [];
+
+        const blob = new Blob(chunks, {
+            type: chunks[0]?.type || 'audio/webm',
+        });
 
         const taskId = `voice_call_${Date.now()}`;
         setTasksProgress([{ id: taskId, name: 'Processing voice...', progress: 50 }]);
@@ -134,7 +142,7 @@ export function LlmChat(props: LlmChatProps) {
         try {
             const thread = props.thread ? [...props.thread] : [...messagesRef.current];
 
-            const result = await llmTools.callVoiceChatModel(nextChunk, {
+            const result = await llmTools.callVoiceChatModel(blob, {
                 title: 'Voice Message',
                 content: '',
                 parameters: {},
@@ -186,7 +194,6 @@ export function LlmChat(props: LlmChatProps) {
             setTasksProgress([]);
         } finally {
             isProcessingVoiceChunkRef.current = false;
-            void processNextVoiceChunk();
         }
     }, [llmTools, onChange, userParticipantName, llmParticipantName, props.thread]);
 
@@ -200,20 +207,29 @@ export function LlmChat(props: LlmChatProps) {
             const recorder = mediaRecorderRef.current;
             if (recorder) {
                 recorder.stop();
-                recorder.stream.getTracks().forEach((track) => track.stop());
             }
             mediaRecorderRef.current = null;
             setIsVoiceCalling(false);
+
+            // Process any remaining audio as the final utterance
+            if (utteranceTimeoutRef.current) {
+                clearTimeout(utteranceTimeoutRef.current);
+                utteranceTimeoutRef.current = null;
+            }
+            void processCurrentUtterance();
         } else {
-            // Start recording and keep sending chunks until user ends the call
+            // Start recording and keep listening for utterances separated by ~2s of silence
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 const mediaRecorder = new MediaRecorder(stream);
                 mediaRecorderRef.current = mediaRecorder;
 
-                pendingVoiceChunksRef.current = [];
-                isProcessingVoiceChunkRef.current = false;
                 allVoiceChunksRef.current = [];
+                isProcessingVoiceChunkRef.current = false;
+                if (utteranceTimeoutRef.current) {
+                    clearTimeout(utteranceTimeoutRef.current);
+                    utteranceTimeoutRef.current = null;
+                }
 
                 mediaRecorder.ondataavailable = (event) => {
                     const chunk = event.data;
@@ -221,29 +237,37 @@ export function LlmChat(props: LlmChatProps) {
                         return;
                     }
 
-                    // Accumulate all chunks so every request is a complete audio file
+                    // Accumulate chunks for the current utterance
                     allVoiceChunksRef.current.push(chunk);
 
-                    const combinedBlob = new Blob(allVoiceChunksRef.current, {
-                        type: chunk.type || 'audio/webm',
-                    });
-
-                    pendingVoiceChunksRef.current.push(combinedBlob);
-                    void processNextVoiceChunk();
+                    // Reset the silence timer; if there is no new audio for 2s,
+                    // treat it as the end of the current utterance.
+                    if (utteranceTimeoutRef.current) {
+                        clearTimeout(utteranceTimeoutRef.current);
+                    }
+                    utteranceTimeoutRef.current = setTimeout(() => {
+                        void processCurrentUtterance();
+                    }, 2000);
                 };
 
                 mediaRecorder.onstop = () => {
                     mediaRecorder.stream.getTracks().forEach((track) => track.stop());
+                    if (utteranceTimeoutRef.current) {
+                        clearTimeout(utteranceTimeoutRef.current);
+                        utteranceTimeoutRef.current = null;
+                    }
+                    // Process any remaining audio when the recorder stops
+                    void processCurrentUtterance();
                 };
 
                 // Use timeslices so ondataavailable is fired continuously
-                mediaRecorder.start(4000);
+                mediaRecorder.start(500);
                 setIsVoiceCalling(true);
             } catch (err) {
                 console.error('Error accessing microphone:', err);
             }
         }
-    }, [isVoiceCalling, llmTools, processNextVoiceChunk]);
+    }, [isVoiceCalling, llmTools, processCurrentUtterance]);
 
     // Handle user messages and LLM responses
     const handleMessage = useCallback(
