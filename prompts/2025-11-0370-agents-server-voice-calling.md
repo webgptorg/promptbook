@@ -24,8 +24,12 @@
 
 [ ]
 
-[✨✷] Fluent calling @@@@
+[✨✷] Make the voice calling fluent
 
+-   Now you have to manually press "Start Voice Call" button and the n end it manually by pressing same button, it waits and the transcribes single message
+-   Make it fluent, so when user starts voice call, it keeps listening and transcribing until user presses "End Call" button
+-   During the call, user can see the live transcription of what they are saying
+-   There can be multiple messages during single call
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
