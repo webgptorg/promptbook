@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { MenuIcon } from '../../icons/MenuIcon';
-import styles from './Dropdown.module.css';
+import { HamburgerMenu } from '../HamburgerMenu/HamburgerMenu';
 import { classNames } from '../react-utils/classNames';
+import styles from './Dropdown.module.css';
 import { JSX } from 'react';
 
 type DropdownProps = {
@@ -24,9 +24,11 @@ export function Dropdown({ actions }: DropdownProps) {
 
     return (
         <div className={styles.dropdown}>
-            <button className={classNames(styles.button, isOpen && styles.isOpen)} onClick={() => setIsOpen(!isOpen)}>
-                <MenuIcon />
-            </button>
+            <HamburgerMenu
+                className={classNames(styles.button, isOpen && styles.isOpen)}
+                isOpen={isOpen}
+                onClick={() => setIsOpen(!isOpen)}
+            />
             {isOpen && (
                 <div className={styles.menu}>
                     {actions.map(({ icon, name, onClick }) => (

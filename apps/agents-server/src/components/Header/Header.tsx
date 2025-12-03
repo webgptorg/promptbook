@@ -2,7 +2,7 @@
 
 import promptbookLogoBlueTransparent from '@/public/logo-blue-white-256.png';
 import { $createAgentAction, logoutAction } from '@/src/app/actions';
-import { ArrowRight, ChevronDown, LogIn, LogOut, Menu, X } from 'lucide-react';
+import { ArrowRight, ChevronDown, LogIn, LogOut } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -12,6 +12,7 @@ import { COMMITMENT_REGISTRY } from '../../../../../src/commitments';
 import { just } from '../../../../../src/utils/organization/just';
 import type { UserInfo } from '../../utils/getCurrentUser';
 import { LoginDialog } from '../LoginDialog/LoginDialog';
+import { HamburgerMenu } from '../../../../../src/book-components/_common/HamburgerMenu/HamburgerMenu';
 import { useUsersAdmin } from '../UsersList/useUsersAdmin';
 
 type HeaderProps = {
@@ -290,12 +291,11 @@ export function Header(props: HeaderProps) {
                         )}
 
                         {/* Mobile Menu Toggle */}
-                        <button
-                            className="lg:hidden p-2 text-gray-600 hover:text-gray-900"
+                        <HamburgerMenu
+                            isOpen={isMenuOpen}
                             onClick={() => setIsMenuOpen(!isMenuOpen)}
-                        >
-                            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-                        </button>
+                            className="lg:hidden p-2 text-gray-600 hover:text-gray-900"
+                        />
                     </div>
                 </div>
 
