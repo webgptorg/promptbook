@@ -2,8 +2,10 @@
 'use client';
 
 import React, { useState } from 'react';
-import { AgentCard } from './AgentCard';
+import { TrashIcon } from 'lucide-react';
+import Link from 'next/link';
 import { AddAgentButton } from '../../app/AddAgentButton';
+import { AgentCard } from './AgentCard';
 import { Section } from './Section';
 
 import { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
@@ -17,9 +19,9 @@ export function AgentsList({ agents: initialAgents, isAdmin }: AgentsListProps) 
     const [agents, setAgents] = useState(Array.from(initialAgents));
 
     const handleDelete = async (agentName: string) => {
-        if (!window.confirm(`Delete agent "${agentName}"? This action cannot be undone.`)) return;
+        if (!window.confirm(`Delete agent "${agentName}"? It will be moved to Recycle Bin.`)) return;
         await fetch(`/api/agents/${encodeURIComponent(agentName)}`, { method: 'DELETE' });
-        setAgents(agents.filter(a => a.agentName !== agentName));
+        setAgents(agents.filter((a) => a.agentName !== agentName));
     };
 
     const handleClone = async (agentName: string) => {
@@ -42,6 +44,15 @@ export function AgentsList({ agents: initialAgents, isAdmin }: AgentsListProps) 
                 />
             ))}
             {isAdmin && <AddAgentButton />}
+            {isAdmin && (
+                <Link
+                    href="/recycle-bin"
+                    className="flex items-center gap-2 px-4 py-2 mt-4 text-gray-600 hover:text-red-600 transition-colors"
+                >
+                    <TrashIcon className="w-4 h-4" />
+                    Open Recycle Bin
+                </Link>
+            )}
         </Section>
     );
 }

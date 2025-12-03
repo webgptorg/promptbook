@@ -3,7 +3,7 @@
 // import { BookEditor } from '@promptbook-local/components';
 import { $provideServer } from '@/src/tools/$provideServer';
 import { PROMPTBOOK_COLOR } from '@promptbook-local/core';
-import { CodeIcon, NotebookPenIcon } from 'lucide-react';
+import { CodeIcon, HistoryIcon, NotebookPenIcon } from 'lucide-react';
 import { headers } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { Color } from '../../../../../../src/utils/color/Color';
@@ -137,6 +137,13 @@ export default async function AgentPage({ params }: { params: Promise<{ agentNam
                         >
                             <CodeIcon className="ml-2 w-4 h-4 mr-2" />
                             Integration
+                        </a>
+                        <a
+                            href={`/agents/${encodeURIComponent(agentName)}/history`}
+                            className="flex-1 inline-flex items-center justify-center whitespace-nowrap bg-white hover:bg-gray-100 text-gray-800 px-4 py-2 rounded shadow font-semibold transition border border-gray-200"
+                        >
+                            <HistoryIcon className="ml-2 w-4 h-4 mr-2" />
+                            History
                         </a>
                         {isAdmin && <CloneAgentButton agentName={agentName} />}
                         <InstallPwaButton />

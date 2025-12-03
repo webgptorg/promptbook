@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🦣] Allow to see agent history and implement a recycle bin
 

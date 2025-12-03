@@ -5,7 +5,6 @@ import type { string_book } from '../../../../book-2.0/agent-source/string_book'
 import { DEFAULT_IS_VERBOSE } from '../../../../config';
 import { DatabaseError } from '../../../../errors/DatabaseError';
 import { NotFoundError } from '../../../../errors/NotFoundError';
-import { NotYetImplementedError } from '../../../../errors/NotYetImplementedError';
 import { UnexpectedError } from '../../../../errors/UnexpectedError';
 import { ZERO_USAGE } from '../../../../execution/utils/usage-constants';
 import type { string_agent_name } from '../../../../types/typeAliases';
@@ -253,8 +252,132 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
      * Deletes an agent from the collection
      */
     public async deleteAgent(agentName: string_agent_name): Promise<void> {
-        TODO_USE(agentName);
-        throw new NotYetImplementedError('Method not implemented.');
+        const deleteResult = await this.supabaseClient
+            .from(this.getTableName('Agent'))
+            .delete()
+            .eq('agentName', agentName);
+
+        if (deleteResult.error) {
+            throw new DatabaseError(
+                spaceTrim(
+                    (block) => `
+                        Error deleting agent "${agentName}" from Supabase:
+                        
+                        ${block(deleteResult.error.message)}
+                    `,
+                ),
+            );
+        }
+    }
+
+    /**
+     * List history of an agent
+     */
+    public async listAgentHistory(agentName: string_agent_name): Promise<
+        ReadonlyArray<{ id: number; createdAt: string; agentHash: string; promptbookEngineVersion: string }>
+    > {
+        const result = await this.supabaseClient
+            .from(this.getTableName('AgentHistory'))
+            .select('id, createdAt, agentHash, promptbookEngineVersion')
+            .eq('agentName', agentName)
+            .order('createdAt', { ascending: false });
+
+        if (result.error) {
+            throw new DatabaseError(
+                spaceTrim(
+                    (block) => `
+                    Error listing history for agent "${agentName}" from Supabase:
+                    
+                    ${block(result.error.message)}
+                `,
+                ),
+            );
+        }
+
+        return result.data;
+    }
+
+    /**
+     * List agents that are in history but not in the active agents list
+     */
+    public async listDeletedAgents(): Promise<ReadonlyArray<string_agent_name>> {
+        const historyNamesResult = await this.supabaseClient.from(this.getTableName('AgentHistory')).select('agentName');
+        const currentNamesResult = await this.supabaseClient.from(this.getTableName('Agent')).select('agentName');
+
+        if (historyNamesResult.error) {
+            throw new DatabaseError(
+                spaceTrim(
+                    (block) => `
+                    Error fetching agent history names from Supabase:
+                    
+                    ${block(historyNamesResult.error.message)}
+                `,
+                ),
+            );
+        }
+
+        if (currentNamesResult.error) {
+            throw new DatabaseError(
+                spaceTrim(
+                    (block) => `
+                    Error fetching current agent names from Supabase:
+                    
+                    ${block(currentNamesResult.error.message)}
+                `,
+                ),
+            );
+        }
+
+        const currentNames = new Set(currentNamesResult.data.map((d) => d.agentName));
+        const deletedNames = new Set<string_agent_name>();
+
+        for (const { agentName } of historyNamesResult.data) {
+            if (!currentNames.has(agentName)) {
+                deletedNames.add(agentName as string_agent_name);
+            }
+        }
+
+        return Array.from(deletedNames);
+    }
+
+    /**
+     * Restore an agent from history
+     */
+    public async restoreAgent(historyId: number): Promise<void> {
+        const historyResult = await this.supabaseClient
+            .from(this.getTableName('AgentHistory'))
+            .select('*')
+            .eq('id', historyId)
+            .single();
+
+        if (historyResult.error) {
+            throw new DatabaseError(
+                spaceTrim(
+                    (block) => `
+                    Error fetching agent history item "${historyId}" from Supabase:
+                    
+                    ${block(historyResult.error.message)}
+                `,
+                ),
+            );
+        }
+
+        const { agentName, agentSource } = historyResult.data;
+
+        // Check if agent exists
+        const agentResult = await this.supabaseClient
+            .from(this.getTableName('Agent'))
+            .select('id')
+            .eq('agentName', agentName)
+            .single();
+
+        if (agentResult.data) {
+            // Update
+            await this.updateAgentSource(agentName as string_agent_name, agentSource as string_book);
+        } else {
+            // Insert (Restore from deleted)
+            await this.createAgent(agentSource as string_book);
+        }
     }
 
     /**
