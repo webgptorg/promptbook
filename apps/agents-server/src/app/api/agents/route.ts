@@ -1,8 +1,7 @@
 import { $provideServer } from '@/src/tools/$provideServer';
 import { NextResponse } from 'next/server';
-import { getMetadata } from '../../../database/getMetadata';
 import { $provideAgentCollectionForServer } from '../../../tools/$provideAgentCollectionForServer';
-import { getEffectiveFederatedServers } from '../../../utils/getEffectiveFederatedServers';
+import { getFederatedServersFromMetadata } from '../../../utils/getFederatedServersFromMetadata';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,8 +9,7 @@ export async function GET() {
     try {
         const collection = await $provideAgentCollectionForServer();
         const agents = await collection.listAgents();
-        const federatedServersString = (await getMetadata('FEDERATED_SERVERS')) || '';
-        const federatedServers = getEffectiveFederatedServers(federatedServersString);
+        const federatedServers = await getFederatedServersFromMetadata();
         const { publicUrl } = await $provideServer();
 
         const agentsWithUrl = agents.map((agent) => ({

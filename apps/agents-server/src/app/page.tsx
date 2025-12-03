@@ -6,21 +6,17 @@ import { headers } from 'next/headers';
 import { AboutPromptbookInformation } from '../../../../src/utils/misc/xAboutPromptbookInformation';
 import { $sideEffect } from '../../../../src/utils/organization/$sideEffect';
 import { AgentsList } from '../components/Homepage/AgentsList';
-import { ExternalAgentsSection } from '../components/Homepage/ExternalAgentsSection';
+import { ExternalAgentsSectionClient } from '../components/Homepage/ExternalAgentsSectionClient';
 import { ModelsSection } from '../components/Homepage/ModelsSection';
 import { Section } from '../components/Homepage/Section';
 import { TechInfoCard } from '../components/Homepage/TechInfoCard';
 import { UsersList } from '../components/UsersList/UsersList';
 import VercelDeploymentCard from '../components/VercelDeploymentCard/VercelDeploymentCard';
-import { getMetadata } from '../database/getMetadata';
 import { getLongRunningTask } from '../deamons/longRunningTask';
 import { $provideAgentCollectionForServer } from '../tools/$provideAgentCollectionForServer';
 import { $provideExecutionToolsForServer } from '../tools/$provideExecutionToolsForServer';
 import { $provideServer } from '../tools/$provideServer';
-import { getFederatedAgents } from '../utils/getFederatedAgents';
-import { getEffectiveFederatedServers } from '../utils/getEffectiveFederatedServers';
 import { isUserAdmin } from '../utils/isUserAdmin';
-import { AddAgentButton } from './AddAgentButton';
 
 // Add calendar formats that include seconds
 const calendarWithSeconds = {
@@ -40,11 +36,6 @@ export default async function HomePage() {
     const collection = await $provideAgentCollectionForServer();
     const agents = await collection.listAgents();
 
-    const federatedServersString = (await getMetadata('FEDERATED_SERVERS')) || '';
-    const federatedServers = getEffectiveFederatedServers(federatedServersString);
-
-    const agentsByServer = await getFederatedAgents(federatedServers);
-
     const longRunningTask = getLongRunningTask();
 
     const executionTools = await $provideExecutionToolsForServer();
@@ -57,7 +48,7 @@ export default async function HomePage() {
             <div className="container mx-auto px-4 py-16">
                 <AgentsList agents={[...agents]} isAdmin={isAdmin} />
 
-                <ExternalAgentsSection agentsByServer={agentsByServer} />
+                <ExternalAgentsSectionClient />
 
                 {isAdmin && <UsersList allowCreate={false} />}
 
