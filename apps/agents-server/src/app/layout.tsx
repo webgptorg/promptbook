@@ -62,6 +62,14 @@ export default async function RootLayout({
     const serverLogoUrl = (await getMetadata('SERVER_LOGO_URL')) || null;
     const serverFaviconUrl = (await getMetadata('SERVER_FAVICON_URL')) || faviconLogoImage.src;
 
+    let footerLinks = [];
+    try {
+        const footerLinksString = (await getMetadata('FOOTER_LINKS')) || '[]';
+        footerLinks = JSON.parse(footerLinksString);
+    } catch (error) {
+        console.error('Failed to parse FOOTER_LINKS', error);
+    }
+
     const collection = await $provideAgentCollectionForServer();
     const agents = await collection.listAgents();
 
@@ -96,6 +104,7 @@ export default async function RootLayout({
                     serverName={serverName}
                     serverLogoUrl={serverLogoUrl}
                     agents={JSON.parse(JSON.stringify(agents))}
+                    footerLinks={footerLinks}
                 >
                     {children}
                 </LayoutWrapper>

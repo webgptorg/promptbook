@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨😦] Create Promptbook agents server footer
 

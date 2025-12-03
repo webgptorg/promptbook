@@ -43,6 +43,12 @@ export const metadataDefaults = [
         note: 'Enable or disable voice calling features for agents. When disabled, voice API endpoints will return 403 Forbidden.',
         type: 'BOOLEAN',
     },
+    {
+        key: 'FOOTER_LINKS',
+        value: '[]',
+        note: 'Extra links to display in the footer, as a JSON array of objects with title and url properties.',
+        type: 'TEXT',
+    },
 ] as const satisfies ReadonlyArray<{
     key: string;
     value: string;

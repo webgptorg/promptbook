@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation';
 import { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
 import type { UserInfo } from '../../utils/getCurrentUser';
+import { Footer, type FooterLink } from '../Footer/Footer';
 import { Header } from '../Header/Header';
 
 type LayoutWrapperProps = {
@@ -12,9 +13,18 @@ type LayoutWrapperProps = {
     serverName: string;
     serverLogoUrl: string | null;
     agents: Array<AgentBasicInformation>;
+    footerLinks: Array<FooterLink>;
 };
 
-export function LayoutWrapper({ children, isAdmin, currentUser, serverName, serverLogoUrl, agents }: LayoutWrapperProps) {
+export function LayoutWrapper({
+    children,
+    isAdmin,
+    currentUser,
+    serverName,
+    serverLogoUrl,
+    agents,
+    footerLinks,
+}: LayoutWrapperProps) {
     const pathname = usePathname();
     const isAdminChatPage =
         pathname?.startsWith('/admin/chat-history') || pathname?.startsWith('/admin/chat-feedback');
@@ -34,6 +44,7 @@ export function LayoutWrapper({ children, isAdmin, currentUser, serverName, serv
                 agents={agents}
             />
             <main className={`pt-[60px]`}>{children}</main>
+            <Footer extraLinks={footerLinks} />
         </>
     );
 }
