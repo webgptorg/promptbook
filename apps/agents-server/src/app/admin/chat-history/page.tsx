@@ -3,9 +3,9 @@ import { isUserAdmin } from '../../../utils/isUserAdmin';
 import { ChatHistoryClient } from './ChatHistoryClient';
 
 type AdminChatHistoryPageProps = {
-    searchParams?: {
+    searchParams?: Promise<{
         agentName?: string;
-    };
+    }>;
 };
 
 export default async function AdminChatHistoryPage({ searchParams }: AdminChatHistoryPageProps) {
@@ -15,7 +15,7 @@ export default async function AdminChatHistoryPage({ searchParams }: AdminChatHi
         return <ForbiddenPage />;
     }
 
-    const initialAgentName = searchParams?.agentName || undefined;
+    const initialAgentName = (await searchParams)?.agentName || undefined;
 
     return <ChatHistoryClient initialAgentName={initialAgentName} />;
 }
