@@ -1,6 +1,6 @@
 [-]
 
-[✨🙃] brr
+[✨🙃] When creating new agents, add some loading indication
 
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.

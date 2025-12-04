@@ -10,9 +10,9 @@
 
 ---
 
-[-]
+[ ]
 
-[✨😦] brr
+[✨😦] Add metadata `IS_FOOTER_SHOWN` with default value `true`
 
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
