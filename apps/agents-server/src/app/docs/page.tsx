@@ -1,51 +1,9 @@
 import { Section } from '../../components/Homepage/Section';
 import Link from 'next/link';
-import { COMMITMENT_REGISTRY } from '../../../../../src/commitments';
-import { NotYetImplementedCommitmentDefinition } from '../../../../../src/commitments/_base/NotYetImplementedCommitmentDefinition';
-import type { CommitmentDefinition } from '../../../../../src/commitments/_base/CommitmentDefinition';
+import { getGroupedCommitmentDefinitions } from '../../../../../src/commitments';
 
 export default function DocsPage() {
-    // Group commitments
-    const groupedCommitments: {
-        primary: CommitmentDefinition;
-        aliases: string[];
-    }[] = [];
-
-    for (const commitment of COMMITMENT_REGISTRY) {
-        const lastGroup = groupedCommitments[groupedCommitments.length - 1];
-        
-        // Check if we should group with the previous item
-        let shouldGroup = false;
-
-        if (lastGroup) {
-            const lastPrimary = lastGroup.primary;
-            
-            // Case 1: Same class constructor (except NotYetImplemented)
-            if (
-                !(commitment instanceof NotYetImplementedCommitmentDefinition) && 
-                commitment.constructor === lastPrimary.constructor
-            ) {
-                shouldGroup = true;
-            }
-            // Case 2: NotYetImplemented with prefix matching (e.g. BEHAVIOUR -> BEHAVIOURS)
-            else if (
-                commitment instanceof NotYetImplementedCommitmentDefinition &&
-                lastPrimary instanceof NotYetImplementedCommitmentDefinition &&
-                commitment.type.startsWith(lastPrimary.type)
-            ) {
-                shouldGroup = true;
-            }
-        }
-
-        if (shouldGroup && lastGroup) {
-            lastGroup.aliases.push(commitment.type);
-        } else {
-            groupedCommitments.push({
-                primary: commitment,
-                aliases: []
-            });
-        }
-    }
+    const groupedCommitments = getGroupedCommitmentDefinitions();
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">

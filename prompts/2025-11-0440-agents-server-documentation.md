@@ -1,6 +1,6 @@
-[x]
+[x][x]
 
-[x] Group aliased commitments together in the documentation
+[✨❣️] Group aliased commitments together in the documentation
 
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
