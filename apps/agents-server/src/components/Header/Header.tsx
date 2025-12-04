@@ -385,6 +385,45 @@ export function Header(props: HeaderProps) {
                         }}
                     >
                         <nav className="container mx-auto flex flex-col gap-4 px-6">
+                            {/* Login Status for Mobile */}
+                            <div className="py-2 border-b border-gray-100 mb-2">
+                                {!currentUser && !isAdmin && (
+                                    <button
+                                        onClick={() => {
+                                            setIsLoginOpen(true);
+                                            setIsMenuOpen(false);
+                                        }}
+                                        className="flex items-center gap-2 text-base font-medium text-gray-600 hover:text-gray-900 w-full"
+                                    >
+                                        <LogIn className="w-4 h-4" />
+                                        Log in
+                                    </button>
+                                )}
+
+                                {(currentUser || isAdmin) && (
+                                    <div className="flex flex-col gap-3">
+                                        <div className="text-sm text-gray-600">
+                                            Logged in as <strong>{currentUser?.username || 'Admin'}</strong>
+                                            {(currentUser?.isAdmin || isAdmin) && (
+                                                <span className="ml-2 bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                                                    Admin
+                                                </span>
+                                            )}
+                                        </div>
+                                        <button
+                                            onClick={() => {
+                                                handleLogout();
+                                                setIsMenuOpen(false);
+                                            }}
+                                            className="flex items-center gap-2 text-base font-medium text-red-600 hover:text-red-700 w-full"
+                                        >
+                                            <LogOut className="w-4 h-4" />
+                                            Log out
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+
                             {menuItems.map((item, index) => {
                                 if (item.type === 'link') {
                                     return (

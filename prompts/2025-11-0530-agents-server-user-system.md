@@ -10,7 +10,7 @@
 
 ---
 
-[ ]
+[?]
 
 [✨😁] User system should be scoped to domain
 
@@ -21,7 +21,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨😁] Login status isn't visible on mobile
 
