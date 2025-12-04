@@ -6,7 +6,7 @@ import { ArrowRight, ChevronDown, LogIn, LogOut } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { ReactNode, useState } from 'react';
 import { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
 import { HamburgerMenu } from '../../../../../src/book-components/_common/HamburgerMenu/HamburgerMenu';
 import { COMMITMENT_REGISTRY } from '../../../../../src/commitments';
@@ -45,7 +45,7 @@ type HeaderProps = {
 /* TODO: [🐱‍🚀] Make this Agents server native  */
 
 type SubMenuItem = {
-    label: string;
+    label: ReactNode;
     href?: string;
     onClick?: () => void | Promise<void>;
     isBold?: boolean;
@@ -55,12 +55,12 @@ type SubMenuItem = {
 type MenuItem =
     | {
           type: 'link';
-          label: string;
+          label: ReactNode;
           href: string;
       }
     | {
           type: 'dropdown';
-          label: string;
+          label: ReactNode;
           isOpen: boolean;
           setIsOpen: (isOpen: boolean) => void;
           isMobileOpen: boolean;
@@ -79,6 +79,7 @@ export function Header(props: HeaderProps) {
     const [isMobileAgentsOpen, setIsMobileAgentsOpen] = useState(false);
     const [isMobileDocsOpen, setIsMobileDocsOpen] = useState(false);
     const [isMobileUsersOpen, setIsMobileUsersOpen] = useState(false);
+    const [isCreatingAgent, setIsCreatingAgent] = useState(false);
     const router = useRouter();
 
     const { users: adminUsers } = useUsersAdmin();
@@ -88,10 +89,19 @@ export function Header(props: HeaderProps) {
     };
 
     const handleCreateAgent = async () => {
-        await $createAgentAction();
-        router.refresh();
-        setIsAgentsOpen(false);
-        setIsMenuOpen(false);
+        setIsCreatingAgent(true);
+        const agentName = await $createAgentAction();
+
+        if (agentName) {
+            router.push(`/agents/${agentName}`);
+            setIsAgentsOpen(false);
+            setIsMenuOpen(false);
+        } else {
+            router.refresh();
+            setIsCreatingAgent(false);
+            setIsAgentsOpen(false);
+            setIsMenuOpen(false);
+        }
     };
 
     // Menu items configuration (DRY principle)
@@ -148,8 +158,15 @@ export function Header(props: HeaderProps) {
                               isBordered: true,
                           } as SubMenuItem,
                           {
-                              label: 'Create new agent',
-                              onClick: handleCreateAgent,
+                              label: isCreatingAgent ? (
+                                  <div className="flex items-center">
+                                      <span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
+                                      Creating agent...
+                                  </div>
+                              ) : (
+                                  'Create new agent'
+                              ),
+                              onClick: isCreatingAgent ? undefined : handleCreateAgent,
                               isBold: true,
                           } as SubMenuItem,
                       ],

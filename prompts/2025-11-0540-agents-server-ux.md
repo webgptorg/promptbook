@@ -1,4 +1,4 @@
-[-]
+[x]
 
 [✨🙃] When creating new agents, add some loading indication
 
