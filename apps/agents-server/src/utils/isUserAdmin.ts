@@ -4,13 +4,13 @@ import { getSession } from './session';
 /**
  * Checks if the current user is an admin
  * 
- * Note: If `process.env.ADMIN_PASSWORD` is not set, everyone is admin
+ * Note: If `process.env.ADMIN_PASSWORD` is not set, no one is admin
  * 
  * @returns true if the user is admin
  */
 export async function isUserAdmin(): Promise<boolean> {
     if (!process.env.ADMIN_PASSWORD) {
-        return true;
+        return false;
     }
 
     // Check legacy admin token

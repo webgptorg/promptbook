@@ -5,7 +5,9 @@ import { string_agent_name } from '@promptbook-local/types';
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import { $provideAgentCollectionForServer } from '../tools/$provideAgentCollectionForServer';
+import { authenticateUser } from '../utils/authenticateUser';
 import { isUserAdmin } from '../utils/isUserAdmin';
+import { clearSession, setSession } from '../utils/session';
 
 export async function $createAgentAction(): Promise<string_agent_name> {
     // TODO: [👹] Check permissions here
@@ -27,24 +29,19 @@ export async function loginAction(formData: FormData) {
 
     console.info(`Login attempt for user: ${username}`);
 
-    if (password === process.env.ADMIN_PASSWORD) {
-        const cookieStore = await cookies();
-        cookieStore.set('adminToken', password, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            path: '/',
-            maxAge: 60 * 60 * 24 * 30, // 30 days
-        });
+    const user = await authenticateUser(username, password);
+
+    if (user) {
+        await setSession(user);
         revalidatePath('/', 'layout');
         return { success: true };
     } else {
-        return { success: false, message: 'Invalid password' };
+        return { success: false, message: 'Invalid credentials' };
     }
 }
 
 export async function logoutAction() {
-    const cookieStore = await cookies();
-    cookieStore.delete('adminToken');
+    await clearSession();
     revalidatePath('/', 'layout');
 }
 
