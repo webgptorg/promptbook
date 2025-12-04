@@ -49,6 +49,12 @@ export const metadataDefaults = [
         note: 'Extra links to display in the footer, as a JSON array of objects with title and url properties.',
         type: 'TEXT',
     },
+    {
+        key: 'MAX_FILE_UPLOAD_SIZE_MB',
+        value: '50', // <- TODO: [🌲] To /config.ts
+        note: 'Maximum size of file that can be uploaded in MB.',
+        type: 'NUMBER',
+    },
 ] as const satisfies ReadonlyArray<{
     key: string;
     value: string;

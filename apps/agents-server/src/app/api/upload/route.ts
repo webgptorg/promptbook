@@ -11,6 +11,7 @@ import { keepUnused } from '../../../../../../src/utils/organization/keepUnused'
 import { $provideCdnForServer } from '../../../../src/tools/$provideCdnForServer';
 import { getUserFileCdnKey } from '../../../../src/utils/cdn/utils/getUserFileCdnKey';
 import { validateMimeType } from '../../../../src/utils/validators/validateMimeType';
+import { getMetadata } from '../../../database/getMetadata';
 
 export async function POST(request: NextRequest) {
     try {
@@ -18,9 +19,16 @@ export async function POST(request: NextRequest) {
         // await forTime(5000);
 
         const nodeRequest = await nextRequestToNodeRequest(request);
+        let maxFileSizeMb = Number((await getMetadata('MAX_FILE_UPLOAD_SIZE_MB')) || '50'); // <- TODO: [🌲] To /config.ts
+
+        if (Number.isNaN(maxFileSizeMb)) {
+            maxFileSizeMb = 50; // <- TODO: [🌲] To /config.ts
+        }
+
+        const maxFileSize = maxFileSizeMb * 1024 * 1024;
 
         const files = await new Promise<formidable.Files>((resolve, reject) => {
-            const form = formidable({});
+            const form = formidable({ maxFileSize });
             form.parse(nodeRequest as TODO_any, (error, fields, files) => {
                 keepUnused(fields);
 
