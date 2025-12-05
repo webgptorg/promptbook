@@ -44,6 +44,12 @@ export const metadataDefaults = [
         type: 'BOOLEAN',
     },
     {
+        key: 'IS_FOOTER_SHOWN',
+        value: 'true',
+        note: 'Show or hide the footer.',
+        type: 'BOOLEAN',
+    },
+    {
         key: 'FOOTER_LINKS',
         value: '[]',
         note: 'Extra links to display in the footer, as a JSON array of objects with title and url properties.',

@@ -13,6 +13,7 @@ type LayoutWrapperProps = {
     serverName: string;
     serverLogoUrl: string | null;
     agents: Array<AgentBasicInformation>;
+    isFooterShown: boolean;
     footerLinks: Array<FooterLink>;
 };
 
@@ -23,6 +24,7 @@ export function LayoutWrapper({
     serverName,
     serverLogoUrl,
     agents,
+    isFooterShown,
     footerLinks,
 }: LayoutWrapperProps) {
     const pathname = usePathname();
@@ -44,7 +46,7 @@ export function LayoutWrapper({
                 agents={agents}
             />
             <main className={`pt-[60px]`}>{children}</main>
-            <Footer extraLinks={footerLinks} />
+            {isFooterShown && <Footer extraLinks={footerLinks} />}
         </>
     );
 }

@@ -10,7 +10,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨😦] Add metadata `IS_FOOTER_SHOWN` with default value `true`
 

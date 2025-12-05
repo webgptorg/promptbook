@@ -61,6 +61,7 @@ export default async function RootLayout({
     const serverName = (await getMetadata('SERVER_NAME')) || 'Promptbook Agents Server';
     const serverLogoUrl = (await getMetadata('SERVER_LOGO_URL')) || null;
     const serverFaviconUrl = (await getMetadata('SERVER_FAVICON_URL')) || faviconLogoImage.src;
+    const isFooterShown = ((await getMetadata('IS_FOOTER_SHOWN')) || 'true') === 'true';
 
     let footerLinks = [];
     try {
@@ -104,6 +105,7 @@ export default async function RootLayout({
                     serverName={serverName}
                     serverLogoUrl={serverLogoUrl}
                     agents={JSON.parse(JSON.stringify(agents))}
+                    isFooterShown={isFooterShown}
                     footerLinks={footerLinks}
                 >
                     {children}
