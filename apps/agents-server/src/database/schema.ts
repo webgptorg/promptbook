@@ -242,6 +242,30 @@ export type AgentsServerDatabase = {
                 };
                 Relationships: [];
             };
+            LlmCache: {
+                Row: {
+                    id: number;
+                    createdAt: string;
+                    updatedAt: string;
+                    hash: string;
+                    value: Json;
+                };
+                Insert: {
+                    id?: number;
+                    createdAt?: string;
+                    updatedAt?: string;
+                    hash: string;
+                    value: Json;
+                };
+                Update: {
+                    id?: number;
+                    createdAt?: string;
+                    updatedAt?: string;
+                    hash?: string;
+                    value?: Json;
+                };
+                Relationships: [];
+            };
         };
         Views: Record<string, never>;
         Functions: Record<string, never>;

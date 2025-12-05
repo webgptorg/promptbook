@@ -1,6 +1,7 @@
 'use server';
 
 import {
+    cacheLlmTools,
     _AnthropicClaudeMetadataRegistration,
     _AzureOpenAiMetadataRegistration,
     _BoilerplateScraperMetadataRegistration,
@@ -26,6 +27,7 @@ import { $provideFilesystemForNode } from '../../../../src/scrapers/_common/regi
 import { $provideScrapersForNode } from '../../../../src/scrapers/_common/register/$provideScrapersForNode';
 import { $provideScriptingForNode } from '../../../../src/scrapers/_common/register/$provideScriptingForNode';
 import { $sideEffect } from '../../../../src/utils/organization/$sideEffect';
+import { SupabaseCacheStorage } from '../utils/cache/SupabaseCacheStorage';
 
 $sideEffect(
     _AnthropicClaudeMetadataRegistration,
@@ -90,10 +92,17 @@ export async function $provideExecutionToolsForServer(): Promise<ExecutionTools>
         isCacheReloaded,
     }; /* <- TODO: ` satisfies PrepareAndScrapeOptions` */
     const fs = await $provideFilesystemForNode(prepareAndScrapeOptions);
-    const { /* [0] strategy,*/ llm } = await $provideLlmToolsForCli({
+    const { /* [0] strategy,*/ llm: llmUncached } = await $provideLlmToolsForCli({
         cliOptions,
         ...prepareAndScrapeOptions,
     });
+
+    const llm = cacheLlmTools(llmUncached, {
+        storage: new SupabaseCacheStorage(),
+        isVerbose,
+        isCacheReloaded,
+    });
+
     const executables = await $provideExecutablesForNode(prepareAndScrapeOptions);
 
     executionTools = {
