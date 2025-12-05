@@ -10,8 +10,11 @@
 
 .MenuHamburger .MenuHamburgerInner {
     width: 24px;
-    height: 18px; /* Approximate height of 3 bars + gaps */
+    height: 24px;
     position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .MenuHamburger .MenuHamburgerInner .bar {
@@ -20,35 +23,32 @@
     background-color: currentColor;
     display: block;
     border-radius: 2px;
-    transition: all 0.3s ease-in-out;
+    transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
     position: absolute;
-    left: 0;
-    transform-origin: center;
 }
 
 .MenuHamburger .MenuHamburgerInner .bar.bar1 {
-    top: 0;
+    transform: translateY(-7px);
 }
 
 .MenuHamburger .MenuHamburgerInner .bar.bar2 {
-    top: 50%;
-    transform: translateY(-50%);
+    transform: translateY(0);
+    opacity: 1;
 }
 
 .MenuHamburger .MenuHamburgerInner .bar.bar3 {
-    bottom: 0;
+    transform: translateY(7px);
 }
 
 .MenuHamburger .MenuHamburgerInner.open .bar.bar1 {
-    top: 50%;
-    transform: translateY(-50%) rotateZ(-45deg);
+    transform: translateY(0) rotate(45deg);
 }
 
 .MenuHamburger .MenuHamburgerInner.open .bar.bar2 {
     opacity: 0;
+    transform: translateX(-10px);
 }
 
 .MenuHamburger .MenuHamburgerInner.open .bar.bar3 {
-    bottom: 50%;
-    transform: translateY(50%) rotateZ(45deg);
+    transform: translateY(0) rotate(-45deg);
 }

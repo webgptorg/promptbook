@@ -24,13 +24,15 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🏏] Fix mobile design of agent page
 
 -   You are enhancing the mobile UI of Agents server
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+![alt text](screenshots/2025-11-0410-agents-server-mobile-ui-1.png)
 
 ---
 
