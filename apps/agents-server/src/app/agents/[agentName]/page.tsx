@@ -3,7 +3,7 @@
 // import { BookEditor } from '@promptbook-local/components';
 import { $provideServer } from '@/src/tools/$provideServer';
 import { PROMPTBOOK_COLOR } from '@promptbook-local/core';
-import { CodeIcon, HistoryIcon, NotebookPenIcon } from 'lucide-react';
+import { CodeIcon, HistoryIcon, MessageCircleQuestionIcon, MessageSquareIcon, NotebookPenIcon } from 'lucide-react';
 import { headers } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { Color } from '../../../../../../src/utils/color/Color';
@@ -162,6 +162,20 @@ export default async function AgentPage({
                                 Maintenance
                             </h2>
                             <div className="flex flex-col gap-2">
+                                <a
+                                    href={`/admin/chat-history?agentName=${encodeURIComponent(agentName)}`}
+                                    className="inline-flex items-center justify-center whitespace-nowrap rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 shadow-sm hover:bg-gray-50"
+                                >
+                                    <MessageSquareIcon className="mr-2 w-3 h-3" />
+                                    Chat history
+                                </a>
+                                <a
+                                    href={`/admin/chat-feedback?agentName=${encodeURIComponent(agentName)}`}
+                                    className="inline-flex items-center justify-center whitespace-nowrap rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 shadow-sm hover:bg-gray-50"
+                                >
+                                    <MessageCircleQuestionIcon className="mr-2 w-3 h-3" />
+                                    Chat feedback
+                                </a>
                                 <ClearAgentChatHistoryButton agentName={agentName} />
                                 <ClearAgentChatFeedbackButton agentName={agentName} />
                             </div>
