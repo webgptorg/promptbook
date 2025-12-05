@@ -1,6 +1,8 @@
 import { GetObjectCommand, PutObjectCommand, PutObjectCommandInput, S3Client } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { NotYetImplementedError } from '@promptbook-local/core';
 import { gzip, ungzip } from 'node-gzip';
+import { string_mime_type } from '../../../../../../src/types/typeAliases';
 import { TODO_USE } from '../../../../../../src/utils/organization/TODO_USE';
 import { validateMimeType } from '../../validators/validateMimeType';
 import type { IFile, IIFilesStorageWithCdn } from '../interfaces/IFilesStorage';
@@ -110,6 +112,17 @@ export class DigitalOceanSpaces implements IIFilesStorageWithCdn {
         if (!uploadResult.ETag) {
             throw new Error(`Upload result does not contain ETag`);
         }
+    }
+
+    public async getPresignedUrl(key: string, type: string_mime_type, size: number): Promise<string> {
+        const command = new PutObjectCommand({
+            Bucket: this.config.bucket,
+            Key: this.config.pathPrefix + '/' + key,
+            ContentType: type,
+            ContentLength: size,
+            ACL: 'public-read',
+        });
+        return await getSignedUrl(this.s3, command, { expiresIn: 3600 });
     }
 }
 

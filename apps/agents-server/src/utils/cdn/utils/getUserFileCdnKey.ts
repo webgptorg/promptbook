@@ -11,6 +11,13 @@ export function getUserFileCdnKey(file: Buffer, originalFilename: string): strin
     const hash = sha256(hexEncoder.parse(file.toString('hex'))).toString(/* hex */);
     //    <- TODO: [🥬] Encapsulate sha256 to some private utility function
 
+    return getUserFileCdnKeyFromHash(hash, originalFilename);
+}
+
+/**
+ * Generates a path for the user content from hash
+ */
+export function getUserFileCdnKeyFromHash(hash: string, originalFilename: string): string_uri {
     const originalFilenameParts = originalFilename.split('.');
     const extension = originalFilenameParts.pop();
     const name = titleToName(originalFilenameParts.join('.'));
