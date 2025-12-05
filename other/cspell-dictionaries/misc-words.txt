@@ -436,3 +436,5 @@ lastname
 lastnames
 pavel
 ivanov
+timeslice
+timeslices
