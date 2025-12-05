@@ -25,7 +25,7 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
             background_color: PROMPTBOOK_COLOR.toHex(),
             theme_color: PROMPTBOOK_COLOR.toHex(),
             icons: [
-                /* TODO: !!!! */
+                // TODO: Create icons for the server homepage
             ],
             scope: publicUrl.href,
         } satisfies MetadataRoute.Manifest;

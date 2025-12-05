@@ -39,7 +39,3 @@ export function LoginDialog(props: LoginDialogProps) {
         </Portal>
     );
 }
-
-/**
- * TODO: !!!! Always on top
- */
