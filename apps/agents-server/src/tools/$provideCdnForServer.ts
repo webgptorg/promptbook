@@ -1,4 +1,4 @@
-import { DigitalOceanSpaces } from '../utils/cdn/classes/DigitalOceanSpaces';
+import { VercelBlobStorage } from '../utils/cdn/classes/VercelBlobStorage';
 import { IIFilesStorageWithCdn } from '../utils/cdn/interfaces/IFilesStorage';
 
 /**
@@ -13,14 +13,10 @@ let cdn: IIFilesStorageWithCdn | null = null;
  */
 export function $provideCdnForServer(): IIFilesStorageWithCdn {
     if (!cdn) {
-        cdn = new DigitalOceanSpaces({
-            bucket: process.env.CDN_BUCKET!,
+        cdn = new VercelBlobStorage({
+            token: process.env.BLOB_READ_WRITE_TOKEN!,
             pathPrefix: process.env.NEXT_PUBLIC_CDN_PATH_PREFIX!,
-            endpoint: process.env.CDN_ENDPOINT!,
-            accessKeyId: process.env.CDN_ACCESS_KEY_ID!,
-            secretAccessKey: process.env.CDN_SECRET_ACCESS_KEY!,
             cdnPublicUrl: new URL(process.env.NEXT_PUBLIC_CDN_PUBLIC_URL!),
-            gzip: true,
         });
     }
 

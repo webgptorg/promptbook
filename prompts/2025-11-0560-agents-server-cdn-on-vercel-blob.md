@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🦑] There is a CDN implemented as DigitalOcean Spaces, implement same interface but using Vercel Blob system
 
