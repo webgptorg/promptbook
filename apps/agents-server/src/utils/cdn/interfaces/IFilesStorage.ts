@@ -18,7 +18,6 @@ export type IFilesStorage = Omit<IStorage<IFile>, 'length' | 'clear' | 'key'>;
 export type IIFilesStorageWithCdn = IFilesStorage & {
     readonly cdnPublicUrl: URL;
     getItemUrl(key: string): URL;
-    getPresignedUrl(key: string, type: string_mime_type, size: number): Promise<string>;
 };
 
 /**

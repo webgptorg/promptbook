@@ -11,14 +11,6 @@ type BookEditorWrapperProps = {
 
 // TODO: [🐱‍🚀] Rename to BookEditorSavingWrapper
 
-async function calculateSha256(file: File): Promise<string> {
-    const buffer = await file.arrayBuffer();
-    const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const hashHex = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
-    return hashHex;
-}
-
 export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorWrapperProps) {
     const [agentSource, setAgentSource] = useState<string_book>(initialAgentSource);
     const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
@@ -101,32 +93,19 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
                 value={agentSource}
                 onChange={handleChange}
                 onFileUpload={async (file) => {
-                    const sha256 = await calculateSha256(file);
+                    const formData = new FormData();
+                    formData.append('file', file);
 
                     const response = await fetch('/api/upload', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ filename: file.name, mimeType: file.type, size: file.size, sha256 }),
+                        body: formData,
                     });
 
                     if (!response.ok) {
-                        throw new Error(`Failed to get upload URL: ${response.statusText}`);
+                        throw new Error(`Failed to upload file: ${response.statusText}`);
                     }
 
-                    const { uploadUrl, fileUrl: longFileUrl } = await response.json();
-
-                    const uploadResponse = await fetch(uploadUrl, {
-                        method: 'PUT',
-                        body: file,
-                        headers: {
-                            'Content-Type': file.type,
-                            'x-amz-acl': 'public-read',
-                        },
-                    });
-
-                    if (!uploadResponse.ok) {
-                        throw new Error(`Failed to upload file to storage: ${uploadResponse.statusText}`);
-                    }
+                    const { fileUrl: longFileUrl } = await response.json();
 
                     const LONG_URL = `${process.env.NEXT_PUBLIC_CDN_PUBLIC_URL!}/${process.env
                         .NEXT_PUBLIC_CDN_PATH_PREFIX!}/user/files/`;
@@ -141,6 +120,7 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
                         longFileUrl,
                         shortFileUrl,
                         file,
+                        formData,
                         response,
                     });
 

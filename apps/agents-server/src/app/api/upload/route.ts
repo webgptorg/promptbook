@@ -9,7 +9,7 @@ import { assertsError } from '../../../../../../src/errors/assertsError';
 import { string_url } from '../../../../../../src/types/typeAliases';
 import { keepUnused } from '../../../../../../src/utils/organization/keepUnused';
 import { $provideCdnForServer } from '../../../../src/tools/$provideCdnForServer';
-import { getUserFileCdnKey, getUserFileCdnKeyFromHash } from '../../../../src/utils/cdn/utils/getUserFileCdnKey';
+import { getUserFileCdnKey } from '../../../../src/utils/cdn/utils/getUserFileCdnKey';
 import { validateMimeType } from '../../../../src/utils/validators/validateMimeType';
 import { getMetadata } from '../../../database/getMetadata';
 
@@ -17,35 +17,6 @@ export async function POST(request: NextRequest) {
     try {
         await forTime(1);
         // await forTime(5000);
-
-        if (request.headers.get('content-type')?.includes('application/json')) {
-            const { filename, mimeType, size, sha256 } = await request.json();
-
-            // Validate input
-            if (!filename || !mimeType || !size || !sha256) {
-                return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
-            }
-
-            let maxFileSizeMb = Number((await getMetadata('MAX_FILE_UPLOAD_SIZE_MB')) || '50');
-            if (Number.isNaN(maxFileSizeMb)) {
-                maxFileSizeMb = 50;
-            }
-            const maxFileSize = maxFileSizeMb * 1024 * 1024;
-
-            if (size > maxFileSize) {
-                return NextResponse.json(
-                    { message: `File size exceeds limit of ${maxFileSizeMb}MB` },
-                    { status: 400 },
-                );
-            }
-
-            const cdn = $provideCdnForServer();
-            const key = getUserFileCdnKeyFromHash(sha256, filename);
-            const uploadUrl = await cdn.getPresignedUrl(key, validateMimeType(mimeType), size);
-            const fileUrl = cdn.getItemUrl(key);
-
-            return NextResponse.json({ uploadUrl, fileUrl: fileUrl.href as string_url }, { status: 200 });
-        }
 
         const nodeRequest = await nextRequestToNodeRequest(request);
         let maxFileSizeMb = Number((await getMetadata('MAX_FILE_UPLOAD_SIZE_MB')) || '50'); // <- TODO: [🌲] To /config.ts
