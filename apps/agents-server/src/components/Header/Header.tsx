@@ -211,6 +211,11 @@ export function Header(props: HeaderProps) {
                   },
                   {
                       type: 'link' as const,
+                      label: 'API Tokens',
+                      href: '/admin/api-tokens',
+                  },
+                  {
+                      type: 'link' as const,
                       label: 'Metadata',
                       href: '/admin/metadata',
                   },

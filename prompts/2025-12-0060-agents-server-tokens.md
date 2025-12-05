@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨ 🉑] Implement token system in Agents server
 

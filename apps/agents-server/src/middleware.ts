@@ -75,9 +75,57 @@ export async function middleware(req: NextRequest) {
     const allowedIps =
         allowedIpsMetadata !== null && allowedIpsMetadata !== undefined ? allowedIpsMetadata : allowedIpsEnv;
 
+    let isValidToken = false;
+    const authHeader = req.headers.get('authorization');
+
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+        const token = authHeader.split(' ')[1];
+
+        if (token.startsWith('ptbk_')) {
+            const host = req.headers.get('host');
+            let tablePrefix = SUPABASE_TABLE_PREFIX;
+
+            if (host && SERVERS && SERVERS.length > 0) {
+                if (SERVERS.some((server) => server === host)) {
+                    let serverName = host;
+                    serverName = serverName.replace(/\.ptbk\.io$/, '');
+                    serverName = normalizeTo_PascalCase(serverName);
+                    tablePrefix = `server_${serverName}_`;
+                }
+            }
+
+            const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+            const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+            if (supabaseUrl && supabaseKey) {
+                try {
+                    const supabase = createClient(supabaseUrl, supabaseKey, {
+                        auth: {
+                            persistSession: false,
+                            autoRefreshToken: false,
+                        },
+                    });
+
+                    const { data } = await supabase
+                        .from(`${tablePrefix}ApiTokens`)
+                        .select('id')
+                        .eq('token', token)
+                        .eq('isRevoked', false)
+                        .single();
+
+                    if (data) {
+                        isValidToken = true;
+                    }
+                } catch (error) {
+                    console.error('Error validating token in middleware:', error);
+                }
+            }
+        }
+    }
+
     const isIpAllowedResult = isIpAllowed(ip, allowedIps);
     const isLoggedIn = req.cookies.has('sessionToken');
-    const isAccessRestricted = !isIpAllowedResult && !isLoggedIn;
+    const isAccessRestricted = !isIpAllowedResult && !isLoggedIn && !isValidToken;
 
     // Handle OPTIONS (preflight) requests globally
     if (req.method === 'OPTIONS') {

@@ -266,6 +266,33 @@ export type AgentsServerDatabase = {
                 };
                 Relationships: [];
             };
+            ApiTokens: {
+                Row: {
+                    id: number;
+                    createdAt: string;
+                    updatedAt: string;
+                    token: string;
+                    note: string | null;
+                    isRevoked: boolean;
+                };
+                Insert: {
+                    id?: number;
+                    createdAt?: string;
+                    updatedAt?: string;
+                    token: string;
+                    note?: string | null;
+                    isRevoked?: boolean;
+                };
+                Update: {
+                    id?: number;
+                    createdAt?: string;
+                    updatedAt?: string;
+                    token?: string;
+                    note?: string | null;
+                    isRevoked?: boolean;
+                };
+                Relationships: [];
+            };
         };
         Views: Record<string, never>;
         Functions: Record<string, never>;
