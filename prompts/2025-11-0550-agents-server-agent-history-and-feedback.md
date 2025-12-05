@@ -1,4 +1,4 @@
-[-]
+[ ]
 
 [✨🐞] Link directly from agent page to agent history and feedback
 

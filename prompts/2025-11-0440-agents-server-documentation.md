@@ -38,10 +38,11 @@
 
 ---
 
-[-]
+[ ]
 
-[✨❣️] quux
+[✨❣️] Create icon for each commitment and show it in the documentation
 
+-   The icon should be in `CommitmentDefinition`
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
