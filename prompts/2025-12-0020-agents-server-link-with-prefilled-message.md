@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🪱] Allow to navigate to Agent page with prefilled message through URL
 

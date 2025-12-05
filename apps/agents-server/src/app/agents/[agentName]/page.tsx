@@ -26,13 +26,20 @@ import { isUserAdmin } from '../../../utils/isUserAdmin';
 
 export const generateMetadata = generateAgentMetadata;
 
-export default async function AgentPage({ params }: { params: Promise<{ agentName: string }> }) {
+export default async function AgentPage({
+    params,
+    searchParams,
+}: {
+    params: Promise<{ agentName: string }>;
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
     // const [apiKey, setApiKey] = useStateInLocalStorage<string>('openai-apiKey', () => '');
     // const [isApiKeyVisible, setIsApiKeyVisible] = useState(false);
     // const [isApiKeySectionCollapsed, setIsApiKeySectionCollapsed] = useState(!!apiKey);
 
     $sideEffect(headers());
 
+    const { message } = await searchParams;
     const agentName = await getAgentName(params);
     const isAdmin = await isUserAdmin();
 
@@ -181,7 +188,7 @@ export default async function AgentPage({ params }: { params: Promise<{ agentNam
 
             {/* Main content: Chat */}
             <div className="flex-1 relative h-full bg-white">
-                <AgentChatWrapper agentUrl={agentUrl} />
+                <AgentChatWrapper agentUrl={agentUrl} defaultMessage={message as string} />
             </div>
         </div>
     );
