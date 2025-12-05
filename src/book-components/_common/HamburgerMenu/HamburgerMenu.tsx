@@ -8,6 +8,12 @@ type HamburgerMenuProps = {
     className?: string;
 };
 
+
+/**
+ * @@@
+ * 
+ * @private Internal component
+ */
 export function HamburgerMenu({ isOpen, onClick, className }: HamburgerMenuProps) {
     return (
         <div className={classNames(styles.MenuHamburger, className)} onClick={onClick}>

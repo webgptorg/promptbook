@@ -14,6 +14,8 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * ```book
  * AGENT MESSAGE What seems to be the issue?
  * ```
+ * 
+ * @private [🪔] Maybe export the commitments through some package
  */
 export class AgentMessageCommitmentDefinition extends BaseCommitmentDefinition<'AGENT MESSAGE'> {
     constructor() {
