@@ -25,6 +25,13 @@ export class NotYetImplementedCommitmentDefinition<
     }
 
     /**
+     * Icon for this commitment.
+     */
+    get icon(): string {
+        return '🚧';
+    }
+
+    /**
      * Markdown documentation available at runtime.
      */
     get documentation(): string {

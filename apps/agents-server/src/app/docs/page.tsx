@@ -14,6 +14,7 @@ export default function DocsPage() {
                         <Link key={primary.type} href={`/docs/${primary.type}`} className="block h-full group">
                             <Card className="h-full group-hover:border-blue-500 transition-colors">
                                 <h3 className="text-xl font-semibold mb-2 group-hover:text-blue-600 transition-colors">
+                                    <span className="mr-2">{primary.icon}</span>
                                     {primary.type}
                                     {aliases.length > 0 && (
                                         <span className="text-gray-400 font-normal text-lg">

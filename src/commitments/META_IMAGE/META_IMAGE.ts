@@ -32,6 +32,13 @@ export class MetaImageCommitmentDefinition extends BaseCommitmentDefinition<'MET
     }
 
     /**
+     * Icon for this commitment.
+     */
+    get icon(): string {
+        return '🖼️';
+    }
+
+    /**
      * Markdown documentation for META IMAGE commitment.
      */
     get documentation(): string {

@@ -30,6 +30,13 @@ export class StyleCommitmentDefinition extends BaseCommitmentDefinition<'STYLE' 
     }
 
     /**
+     * Icon for this commitment.
+     */
+    get icon(): string {
+        return '🖋️';
+    }
+
+    /**
      * Markdown documentation for STYLE commitment.
      */
     get documentation(): string {

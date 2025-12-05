@@ -21,6 +21,12 @@ export type CommitmentDefinition = {
     readonly description: string;
 
     /**
+     * Icon for this commitment.
+     * It should be a single emoji.
+     */
+    readonly icon: string;
+
+    /**
      * Human-readable markdown documentation for this commitment.
      * Should explain what the commitment does and include example usage.
      * This is available at runtime for UIs, docs, and tooling.

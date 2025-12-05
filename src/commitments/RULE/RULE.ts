@@ -30,6 +30,13 @@ export class RuleCommitmentDefinition extends BaseCommitmentDefinition<'RULE' | 
     }
 
     /**
+     * Icon for this commitment.
+     */
+    get icon(): string {
+        return '⚖️';
+    }
+
+    /**
      * Markdown documentation for RULE/RULES commitment.
      */
     get documentation(): string {

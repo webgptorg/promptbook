@@ -31,6 +31,13 @@ export class GoalCommitmentDefinition extends BaseCommitmentDefinition<'GOAL' | 
     }
 
     /**
+     * Icon for this commitment.
+     */
+    get icon(): string {
+        return '🎯';
+    }
+
+    /**
      * Markdown documentation for GOAL commitment.
      */
     get documentation(): string {

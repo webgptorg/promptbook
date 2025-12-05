@@ -30,6 +30,13 @@ export class InitialMessageCommitmentDefinition extends BaseCommitmentDefinition
     }
 
     /**
+     * Icon for this commitment.
+     */
+    get icon(): string {
+        return '👋';
+    }
+
+    /**
      * Markdown documentation for INITIAL MESSAGE commitment.
      */
     get documentation(): string {

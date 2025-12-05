@@ -40,6 +40,13 @@ export class MetaLinkCommitmentDefinition extends BaseCommitmentDefinition<'META
     }
 
     /**
+     * Icon for this commitment.
+     */
+    get icon(): string {
+        return '🔗';
+    }
+
+    /**
      * Markdown documentation for META LINK commitment.
      */
     get documentation(): string {

@@ -38,7 +38,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨❣️] Create icon for each commitment and show it in the documentation
 

@@ -33,6 +33,13 @@ export class DeleteCommitmentDefinition extends BaseCommitmentDefinition<'DELETE
     }
 
     /**
+     * Icon for this commitment.
+     */
+    get icon(): string {
+        return '🗑️';
+    }
+
+    /**
      * Markdown documentation for DELETE commitment.
      */
     get documentation(): string {

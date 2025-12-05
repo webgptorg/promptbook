@@ -30,6 +30,13 @@ export class AgentMessageCommitmentDefinition extends BaseCommitmentDefinition<'
     }
 
     /**
+     * Icon for this commitment.
+     */
+    get icon(): string {
+        return '🤖';
+    }
+
+    /**
      * Markdown documentation for AGENT MESSAGE commitment.
      */
     get documentation(): string {

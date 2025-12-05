@@ -32,6 +32,13 @@ export class MetaColorCommitmentDefinition extends BaseCommitmentDefinition<'MET
     }
 
     /**
+     * Icon for this commitment.
+     */
+    get icon(): string {
+        return '🎨';
+    }
+
+    /**
      * Markdown documentation for META COLOR commitment.
      */
     get documentation(): string {

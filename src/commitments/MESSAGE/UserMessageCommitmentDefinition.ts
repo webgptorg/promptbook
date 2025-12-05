@@ -30,6 +30,13 @@ export class UserMessageCommitmentDefinition extends BaseCommitmentDefinition<'U
     }
 
     /**
+     * Icon for this commitment.
+     */
+    get icon(): string {
+        return '🧑';
+    }
+
+    /**
      * Markdown documentation for USER MESSAGE commitment.
      */
     get documentation(): string {

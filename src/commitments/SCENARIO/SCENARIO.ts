@@ -32,6 +32,13 @@ export class ScenarioCommitmentDefinition extends BaseCommitmentDefinition<'SCEN
     }
 
     /**
+     * Icon for this commitment.
+     */
+    get icon(): string {
+        return '🎭';
+    }
+
+    /**
      * Markdown documentation for SCENARIO commitment.
      */
     get documentation(): string {

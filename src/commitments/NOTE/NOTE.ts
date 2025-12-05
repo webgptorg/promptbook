@@ -41,6 +41,13 @@ export class NoteCommitmentDefinition extends BaseCommitmentDefinition<'NOTE' | 
     }
 
     /**
+     * Icon for this commitment.
+     */
+    get icon(): string {
+        return '📝';
+    }
+
+    /**
      * Markdown documentation for NOTE commitment.
      */
     get documentation(): string {

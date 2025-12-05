@@ -30,6 +30,13 @@ export class ActionCommitmentDefinition extends BaseCommitmentDefinition<'ACTION
     }
 
     /**
+     * Icon for this commitment.
+     */
+    get icon(): string {
+        return '⚡';
+    }
+
+    /**
      * Markdown documentation for ACTION commitment.
      */
     get documentation(): string {

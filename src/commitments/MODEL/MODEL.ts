@@ -41,6 +41,13 @@ export class ModelCommitmentDefinition extends BaseCommitmentDefinition<'MODEL' 
     }
 
     /**
+     * Icon for this commitment.
+     */
+    get icon(): string {
+        return '⚙️';
+    }
+
+    /**
      * Markdown documentation for MODEL commitment.
      */
     get documentation(): string {

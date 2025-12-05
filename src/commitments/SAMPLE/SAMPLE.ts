@@ -30,6 +30,13 @@ export class SampleCommitmentDefinition extends BaseCommitmentDefinition<'SAMPLE
     }
 
     /**
+     * Icon for this commitment.
+     */
+    get icon(): string {
+        return '🔍';
+    }
+
+    /**
      * Markdown documentation for SAMPLE/EXAMPLE commitment.
      */
     get documentation(): string {

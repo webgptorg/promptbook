@@ -31,6 +31,13 @@ export class FormatCommitmentDefinition extends BaseCommitmentDefinition<'FORMAT
     }
 
     /**
+     * Icon for this commitment.
+     */
+    get icon(): string {
+        return '📜';
+    }
+
+    /**
      * Markdown documentation for FORMAT commitment.
      */
     get documentation(): string {

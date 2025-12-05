@@ -42,6 +42,13 @@ export class MetaCommitmentDefinition extends BaseCommitmentDefinition<`META${st
     }
 
     /**
+     * Icon for this commitment.
+     */
+    get icon(): string {
+        return 'ℹ️';
+    }
+
+    /**
      * Markdown documentation for META commitment.
      */
     get documentation(): string {

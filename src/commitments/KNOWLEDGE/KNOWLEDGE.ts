@@ -35,6 +35,13 @@ export class KnowledgeCommitmentDefinition extends BaseCommitmentDefinition<'KNO
     }
 
     /**
+     * Icon for this commitment.
+     */
+    get icon(): string {
+        return '🧠';
+    }
+
+    /**
      * Markdown documentation for KNOWLEDGE commitment.
      */
     get documentation(): string {

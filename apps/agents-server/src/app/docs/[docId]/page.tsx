@@ -30,6 +30,7 @@ export default async function DocPage(props: DocPageProps) {
                     <div className="p-8 border-b border-gray-100 bg-gray-50/50">
                         <div className="flex items-center gap-4 mb-4">
                             <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
+                                <span className="mr-3">{primary.icon}</span>
                                 {primary.type}
                                 {aliases.length > 0 && (
                                     <span className="text-gray-400 font-normal ml-4 text-2xl">

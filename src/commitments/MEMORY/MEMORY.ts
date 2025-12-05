@@ -32,6 +32,13 @@ export class MemoryCommitmentDefinition extends BaseCommitmentDefinition<'MEMORY
     }
 
     /**
+     * Icon for this commitment.
+     */
+    get icon(): string {
+        return '🧠';
+    }
+
+    /**
      * Markdown documentation for MEMORY commitment.
      */
     get documentation(): string {

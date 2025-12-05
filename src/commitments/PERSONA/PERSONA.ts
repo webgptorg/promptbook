@@ -38,6 +38,13 @@ export class PersonaCommitmentDefinition extends BaseCommitmentDefinition<'PERSO
     }
 
     /**
+     * Icon for this commitment.
+     */
+    get icon(): string {
+        return '👤';
+    }
+
+    /**
      * Markdown documentation for PERSONA commitment.
      */
     get documentation(): string {

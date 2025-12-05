@@ -25,6 +25,12 @@ export abstract class BaseCommitmentDefinition<TBookCommitment extends string> i
     abstract get description(): string;
 
     /**
+     * Icon for this commitment.
+     * It should be a single emoji.
+     */
+    abstract get icon(): string;
+
+    /**
      * Human-readable markdown documentation for this commitment, available at runtime.
      * Must be implemented by each concrete commitment.
      */
