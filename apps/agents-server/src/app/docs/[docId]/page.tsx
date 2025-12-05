@@ -1,7 +1,7 @@
-import { getGroupedCommitmentDefinitions } from '../../../../../../src/commitments';
-import { BookCommitment } from '../../../../../../src/commitments/_base/BookCommitment';
 import { notFound } from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
+import { BookCommitment } from '../../../../../../src/commitments/_base/BookCommitment';
+import { getVisibleCommitmentDefinitions } from '../../../utils/getVisibleCommitmentDefinitions';
 
 type DocPageProps = {
     params: Promise<{
@@ -11,13 +11,11 @@ type DocPageProps = {
 
 export default async function DocPage(props: DocPageProps) {
     const { docId } = await props.params;
-    
+
     // Decode the docId in case it contains encoded characters (though types usually don't)
     const commitmentType = decodeURIComponent(docId) as BookCommitment;
-    const groupedCommitments = getGroupedCommitmentDefinitions();
-    const group = groupedCommitments.find(
-        (g) => g.primary.type === commitmentType || g.aliases.includes(commitmentType),
-    );
+    const groupedCommitments = getVisibleCommitmentDefinitions();
+    const group = groupedCommitments.find((g) => g.primary.type === commitmentType || g.aliases.includes(commitmentType));
 
     if (!group) {
         notFound();

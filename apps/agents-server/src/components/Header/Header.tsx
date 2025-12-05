@@ -9,9 +9,9 @@ import { useRouter } from 'next/navigation';
 import { ReactNode, useState } from 'react';
 import { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
 import { HamburgerMenu } from '../../../../../src/book-components/_common/HamburgerMenu/HamburgerMenu';
-import { getGroupedCommitmentDefinitions } from '../../../../../src/commitments';
 import { just } from '../../../../../src/utils/organization/just';
 import type { UserInfo } from '../../utils/getCurrentUser';
+import { getVisibleCommitmentDefinitions } from '../../utils/getVisibleCommitmentDefinitions';
 import { LoginDialog } from '../LoginDialog/LoginDialog';
 import { useUsersAdmin } from '../UsersList/useUsersAdmin';
 
@@ -125,7 +125,7 @@ export function Header(props: HeaderProps) {
                     isBold: true,
                     isBordered: true,
                 } as SubMenuItem,
-                ...getGroupedCommitmentDefinitions().map(
+                ...getVisibleCommitmentDefinitions().map(
                     ({ primary, aliases }) =>
                         ({
                             label: (

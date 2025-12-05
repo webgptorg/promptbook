@@ -1,10 +1,10 @@
 import Link from 'next/link';
-import { getGroupedCommitmentDefinitions } from '../../../../../src/commitments';
 import { Card } from '../../components/Homepage/Card';
 import { Section } from '../../components/Homepage/Section';
+import { getVisibleCommitmentDefinitions } from '../../utils/getVisibleCommitmentDefinitions';
 
 export default function DocsPage() {
-    const groupedCommitments = getGroupedCommitmentDefinitions();
+    const groupedCommitments = getVisibleCommitmentDefinitions();
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">

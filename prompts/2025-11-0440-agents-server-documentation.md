@@ -17,7 +17,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨❣️] Exclude commitmeents which are `NotYetImplementedCommitmentDefinition` from the documentation
 
