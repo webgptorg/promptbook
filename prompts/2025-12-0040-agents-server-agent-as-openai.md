@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🧚] Allow to expose agent as OpenAI API compatible API
 
