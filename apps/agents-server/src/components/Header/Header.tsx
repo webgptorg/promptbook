@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation';
 import { ReactNode, useState } from 'react';
 import { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
 import { HamburgerMenu } from '../../../../../src/book-components/_common/HamburgerMenu/HamburgerMenu';
-import { COMMITMENT_REGISTRY } from '../../../../../src/commitments';
+import { getGroupedCommitmentDefinitions } from '../../../../../src/commitments';
 import { just } from '../../../../../src/utils/organization/just';
 import type { UserInfo } from '../../utils/getCurrentUser';
 import { LoginDialog } from '../LoginDialog/LoginDialog';
@@ -125,11 +125,16 @@ export function Header(props: HeaderProps) {
                     isBold: true,
                     isBordered: true,
                 } as SubMenuItem,
-                ...COMMITMENT_REGISTRY.map(
-                    (commitment) =>
+                ...getGroupedCommitmentDefinitions().map(
+                    ({ primary, aliases }) =>
                         ({
-                            label: commitment.type,
-                            href: `/docs/${commitment.type}`,
+                            label: (
+                                <>
+                                    {primary.type}
+                                    {aliases.length > 0 && <span className="text-gray-400 font-normal"> / {aliases.join(' / ')}</span>}
+                                </>
+                            ),
+                            href: `/docs/${primary.type}`,
                         } as SubMenuItem),
                 ),
             ],

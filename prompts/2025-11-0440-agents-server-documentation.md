@@ -7,7 +7,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨❣️] Group aliased commitments together in the documentation menu
 
