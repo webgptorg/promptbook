@@ -31,6 +31,7 @@ export function LayoutWrapper({
     const isAdminChatPage =
         pathname?.startsWith('/admin/chat-history') || pathname?.startsWith('/admin/chat-feedback');
     const isHeaderHidden = pathname?.includes('/chat') && !isAdminChatPage;
+    const isFooterHiddenOnPage = pathname ? /^\/agents\/[^/]+\/book(\+chat)?$/.test(pathname) : false;
 
     if (isHeaderHidden) {
         return <main className={`pt-0`}>{children}</main>;
@@ -46,7 +47,7 @@ export function LayoutWrapper({
                 agents={agents}
             />
             <main className={`pt-[60px]`}>{children}</main>
-            {isFooterShown && <Footer extraLinks={footerLinks} />}
+            {isFooterShown && !isFooterHiddenOnPage && <Footer extraLinks={footerLinks} />}
         </>
     );
 }
