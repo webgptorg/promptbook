@@ -77,6 +77,8 @@ export const REMOTE_SERVER_URLS: Array<ServerConfiguration> = [
  * Remote servers that are auto-federated by the Agents Server.
  *
  * These servers are always added in addition to the `FEDERATED_SERVERS` metadata.
+ * 
+ * @public exported from `@promptbook/core`
  */
 export const AUTO_FEDERATED_AGENT_SERVER_URLS: Array<string_promptbook_server_url> = CORE_SERVER.urls;
 
