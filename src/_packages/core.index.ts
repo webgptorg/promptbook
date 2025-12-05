@@ -28,6 +28,8 @@ import { getCommitmentDefinition } from '../commitments/index';
 import { getAllCommitmentDefinitions } from '../commitments/index';
 import { getAllCommitmentTypes } from '../commitments/index';
 import { isCommitmentSupported } from '../commitments/index';
+import type { GroupedCommitmentDefinition } from '../commitments/index';
+import { getGroupedCommitmentDefinitions } from '../commitments/index';
 import { NAME } from '../config';
 import { ADMIN_EMAIL } from '../config';
 import { ADMIN_GITHUB_NAME } from '../config';
@@ -193,6 +195,7 @@ import { TaskTypes } from '../types/TaskType';
 import { aboutPromptbookInformation } from '../utils/misc/aboutPromptbookInformation';
 import { $generateBookBoilerplate } from '../utils/random/$generateBookBoilerplate';
 import { REMOTE_SERVER_URLS } from '../../servers';
+import { AUTO_FEDERATED_AGENT_SERVER_URLS } from '../../servers';
 
 
 // Note: Exporting version from each package
@@ -226,6 +229,8 @@ export { getCommitmentDefinition };
 export { getAllCommitmentDefinitions };
 export { getAllCommitmentTypes };
 export { isCommitmentSupported };
+export type { GroupedCommitmentDefinition };
+export { getGroupedCommitmentDefinitions };
 export { NAME };
 export { ADMIN_EMAIL };
 export { ADMIN_GITHUB_NAME };
@@ -391,3 +396,4 @@ export { TaskTypes };
 export { aboutPromptbookInformation };
 export { $generateBookBoilerplate };
 export { REMOTE_SERVER_URLS };
+export { AUTO_FEDERATED_AGENT_SERVER_URLS };

@@ -50,6 +50,7 @@ import type { MessageButton } from '../book-components/Chat/utils/parseMessageBu
 import { parseMessageButtons } from '../book-components/Chat/utils/parseMessageButtons';
 import { ArrowIcon } from '../book-components/icons/ArrowIcon';
 import { AttachmentIcon } from '../book-components/icons/AttachmentIcon';
+import { MicIcon } from '../book-components/icons/MicIcon';
 import { PauseIcon } from '../book-components/icons/PauseIcon';
 import { PlayIcon } from '../book-components/icons/PlayIcon';
 import { ResetIcon } from '../book-components/icons/ResetIcon';
@@ -115,6 +116,7 @@ export type { MessageButton };
 export { parseMessageButtons };
 export { ArrowIcon };
 export { AttachmentIcon };
+export { MicIcon };
 export { PauseIcon };
 export { PlayIcon };
 export { ResetIcon };
