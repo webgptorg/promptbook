@@ -11,6 +11,7 @@ import { FormatCommitmentDefinition } from './FORMAT/FORMAT';
 import { FromCommitmentDefinition } from './FROM/FROM';
 import { GoalCommitmentDefinition } from './GOAL/GOAL';
 import { KnowledgeCommitmentDefinition } from './KNOWLEDGE/KNOWLEDGE';
+import { LanguageCommitmentDefinition } from './LANGUAGE/LANGUAGE';
 import { MemoryCommitmentDefinition } from './MEMORY/MEMORY';
 import { AgentMessageCommitmentDefinition } from './MESSAGE/AgentMessageCommitmentDefinition';
 import { InitialMessageCommitmentDefinition } from './MESSAGE/InitialMessageCommitmentDefinition';
@@ -47,6 +48,8 @@ export const COMMITMENT_REGISTRY = [
     new StyleCommitmentDefinition('STYLES'),
     new RuleCommitmentDefinition('RULE'),
     new RuleCommitmentDefinition('RULES'),
+    new LanguageCommitmentDefinition('LANGUAGE'),
+    new LanguageCommitmentDefinition('LANGUAGES'),
     new SampleCommitmentDefinition('SAMPLE'),
     new SampleCommitmentDefinition('EXAMPLE'),
     new FormatCommitmentDefinition('FORMAT'),
