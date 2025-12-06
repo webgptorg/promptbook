@@ -33,6 +33,13 @@ export class MessageCommitmentDefinition extends BaseCommitmentDefinition<'MESSA
     }
 
     /**
+     * Icon for this commitment.
+     */
+    get icon(): string {
+        return '💬';
+    }
+
+    /**
      * Markdown documentation for MESSAGE commitment.
      */
     get documentation(): string {
