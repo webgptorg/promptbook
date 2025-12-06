@@ -64,3 +64,8 @@ export class ComponentCommitmentDefinition extends BaseCommitmentDefinition<'COM
         return this.appendToSystemMessage(requirements, componentSection, '\n\n');
     }
 }
+
+
+/**
+ * Note: [💞] Ignore a discrepancy between file name and entity name
+ */

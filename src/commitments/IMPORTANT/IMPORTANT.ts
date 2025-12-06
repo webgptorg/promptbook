@@ -127,3 +127,8 @@ export class ImportantCommitmentDefinition extends BaseCommitmentDefinition<'IMP
         return requirements;
     }
 }
+
+
+/**
+ * Note: [💞] Ignore a discrepancy between file name and entity name
+ */

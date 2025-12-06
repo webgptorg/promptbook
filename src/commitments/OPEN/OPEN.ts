@@ -58,7 +58,7 @@ export class OpenCommitmentDefinition extends BaseCommitmentDefinition<'OPEN'> {
     applyToAgentModelRequirements(requirements: AgentModelRequirements, _content: string): AgentModelRequirements {
         // Since OPEN is default, we can just ensure isClosed is false
         // But to be explicit we can set it
-        
+
         const updatedMetadata = {
             ...requirements.metadata,
             isClosed: false,
@@ -70,3 +70,7 @@ export class OpenCommitmentDefinition extends BaseCommitmentDefinition<'OPEN'> {
         };
     }
 }
+
+/**
+ * Note: [💞] Ignore a discrepancy between file name and entity name
+ */

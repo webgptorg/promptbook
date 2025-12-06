@@ -76,3 +76,8 @@ export class LanguageCommitmentDefinition extends BaseCommitmentDefinition<'LANG
         return this.appendToSystemMessage(requirements, languageSection, '\n\n');
     }
 }
+
+
+/**
+ * Note: [💞] Ignore a discrepancy between file name and entity name
+ */
