@@ -14,6 +14,8 @@ import { getAllCommitmentDefinitions } from '../registry';
  * ```book
  * IMPORTANT RULE Never provide medical advice
  * ```
+ * 
+ * @private [🪔] Maybe export the commitments through some package
  */
 export class ImportantCommitmentDefinition extends BaseCommitmentDefinition<'IMPORTANT'> {
     constructor() {

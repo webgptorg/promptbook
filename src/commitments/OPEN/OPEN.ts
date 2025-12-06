@@ -14,6 +14,8 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * ```book
  * OPEN
  * ```
+ * 
+ * @private [🪔] Maybe export the commitments through some package
  */
 export class OpenCommitmentDefinition extends BaseCommitmentDefinition<'OPEN'> {
     constructor() {

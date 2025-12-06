@@ -6,6 +6,8 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * COMPONENT commitment definition
  *
  * The COMPONENT commitment defines a UI component that the agent can render in the chat.
+ *
+ * @private [🪔] Maybe export the commitments through some package
  */
 export class ComponentCommitmentDefinition extends BaseCommitmentDefinition<'COMPONENT'> {
     constructor() {
@@ -64,7 +66,6 @@ export class ComponentCommitmentDefinition extends BaseCommitmentDefinition<'COM
         return this.appendToSystemMessage(requirements, componentSection, '\n\n');
     }
 }
-
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name

@@ -1,7 +1,7 @@
 import { spaceTrim } from 'spacetrim';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
-import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 import { keepUnused } from '../../utils/organization/keepUnused';
+import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 
 /**
  * CLOSED commitment definition
@@ -14,6 +14,8 @@ import { keepUnused } from '../../utils/organization/keepUnused';
  * ```book
  * CLOSED
  * ```
+ *
+ * @private [🪔] Maybe export the commitments through some package
  */
 export class ClosedCommitmentDefinition extends BaseCommitmentDefinition<'CLOSED'> {
     constructor() {

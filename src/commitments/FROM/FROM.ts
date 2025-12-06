@@ -13,6 +13,8 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * ```book
  * FROM https://s6.ptbk.io/benjamin-white
  * ```
+ *
+ * @private [🪔] Maybe export the commitments through some package
  */
 export class FromCommitmentDefinition extends BaseCommitmentDefinition<'FROM'> {
     constructor(type: 'FROM' = 'FROM') {
@@ -76,7 +78,6 @@ export class FromCommitmentDefinition extends BaseCommitmentDefinition<'FROM'> {
         };
     }
 }
-
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name

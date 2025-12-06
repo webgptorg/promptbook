@@ -15,6 +15,8 @@ export const COMMITMENT_REGISTRY: CommitmentDefinition[] = [];
 /**
  * Registers a new commitment definition
  * @param definition The commitment definition to register
+ *
+ * @public exported from `@promptbook/core`
  */
 export function registerCommitment(definition: CommitmentDefinition): void {
     COMMITMENT_REGISTRY.push(definition);
@@ -48,7 +50,9 @@ export function getAllCommitmentDefinitions(): ReadonlyArray<CommitmentDefinitio
  * @public exported from `@promptbook/core`
  */
 export function getAllCommitmentTypes(): ReadonlyArray<BookCommitment> {
-    return $deepFreeze(COMMITMENT_REGISTRY.map((commitmentDefinition) => commitmentDefinition.type)) as ReadonlyArray<BookCommitment>;
+    return $deepFreeze(
+        COMMITMENT_REGISTRY.map((commitmentDefinition) => commitmentDefinition.type),
+    ) as ReadonlyArray<BookCommitment>;
 }
 
 /**
@@ -124,8 +128,6 @@ export function getGroupedCommitmentDefinitions(): ReadonlyArray<GroupedCommitme
 
     return $deepFreeze(groupedCommitments);
 }
-
-
 
 /**
  * TODO: !!!! Proofread this file
