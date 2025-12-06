@@ -1,9 +1,9 @@
+import { NextResponse } from 'next/server';
 import { $getTableName } from '../../../../database/$getTableName';
 import { $provideSupabaseForServer } from '../../../../database/$provideSupabaseForServer';
 import { AgentsServerDatabase } from '../../../../database/schema';
 import { hashPassword, verifyPassword } from '../../../../utils/auth';
 import { getCurrentUser } from '../../../../utils/getCurrentUser';
-import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
     try {
@@ -24,8 +24,10 @@ export async function POST(request: Request) {
             // Environment admin cannot change password through this API
             // They must change the env variable
             return NextResponse.json(
-                { error: 'Environment admin password cannot be changed through API. Please update the ADMIN_PASSWORD environment variable.' },
-                { status: 403 }
+                {
+                    error: 'You cannot change the admin password. Please update the `ADMIN_PASSWORD` environment variable.',
+                },
+                { status: 403 },
             );
         }
 
@@ -41,7 +43,7 @@ export async function POST(request: Request) {
         }
 
         const userRow = userData as AgentsServerDatabase['public']['Tables']['User']['Row'];
-        
+
         // Verify current password
         const isValid = await verifyPassword(currentPassword, userRow.passwordHash);
         if (!isValid) {
@@ -54,9 +56,9 @@ export async function POST(request: Request) {
         // Update password
         const { error: updateError } = await supabase
             .from(await $getTableName('User'))
-            .update({ 
+            .update({
                 passwordHash: newPasswordHash,
-                updatedAt: new Date().toISOString()
+                updatedAt: new Date().toISOString(),
             })
             .eq('id', userRow.id);
 
