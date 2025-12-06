@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🧉] Allow to expose agent as OpenRouter compatible MCP server running on http(s)
 
