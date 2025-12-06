@@ -177,6 +177,8 @@ describe('parseAgentSource', () => {
             `),
         );
         const result = parseAgentSource(agentSource);
+        // console.log('!!!!', { result });
+
         expect(result.meta).toMatchObject({
             image: expect.stringMatching(/gravatar/), // Should be a gravatar URL fallback
             fullname: 'AI Avatar',

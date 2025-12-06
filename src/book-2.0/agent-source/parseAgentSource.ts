@@ -3,11 +3,11 @@ import { normalizeTo_camelCase } from '../../utils/normalization/normalizeTo_cam
 import { generatePlaceholderAgentProfileImageUrl } from '../utils/generatePlaceholderAgentProfileImageUrl';
 import type { AgentBasicInformation } from './AgentBasicInformation';
 import { computeAgentHash } from './computeAgentHash';
+import { createDefaultAgentName } from './createDefaultAgentName';
 import { normalizeAgentName } from './normalizeAgentName';
 import { parseAgentSourceWithCommitments } from './parseAgentSourceWithCommitments';
 import { parseParameters } from './parseParameters';
 import type { string_book } from './string_book';
-import { createDefaultAgentName } from './createDefaultAgentName';
 
 /**
  * Parses basic information from agent source
@@ -56,7 +56,9 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
 
     for (const commitment of parseResult.commitments) {
         if (commitment.type === 'META LINK') {
-            links.push(spaceTrim(commitment.content));
+            const linkValue = spaceTrim(commitment.content);
+            links.push(linkValue);
+            meta.link = linkValue;
             continue;
         }
 
