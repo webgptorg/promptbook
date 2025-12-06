@@ -6,5 +6,5 @@ export async function POST(
     { params }: { params: Promise<{ agentName: string }> },
 ) {
     const { agentName } = await params;
-    return handleChatCompletion(request, { agentName }, 'OpenAI API Chat Completion');
+    return handleChatCompletion(request, { agentName }, 'OpenRouter API Chat Completion');
 }
