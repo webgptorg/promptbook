@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🧃] Creare page `/agents/[agentName]/links`
 
