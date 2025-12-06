@@ -12,7 +12,7 @@ import { generateAgentMetadata } from '../generateAgentMetadata';
 
 export const generateMetadata = generateAgentMetadata;
 
-export default async function AgentChatPage({ params }: { params: Promise<{ agentName: string }> }) {
+export default async function WebsiteIntegrationAgentPage({ params }: { params: Promise<{ agentName: string }> }) {
     $sideEffect(headers());
     let { agentName } = await params;
     agentName = decodeURIComponent(agentName);

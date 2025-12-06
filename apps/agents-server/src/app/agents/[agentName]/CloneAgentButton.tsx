@@ -12,10 +12,10 @@ export function CloneAgentButton({ agentName }: CloneAgentButtonProps) {
 
     const handleClone = async () => {
         if (!window.confirm(`Clone agent "${agentName}"?`)) return;
-        
+
         try {
             const response = await fetch(`/api/agents/${encodeURIComponent(agentName)}/clone`, { method: 'POST' });
-            
+
             if (!response.ok) {
                 throw new Error('Failed to clone agent');
             }
