@@ -48,10 +48,11 @@
 
 ---
 
-[-]
+[ ]
 
-[✨❣️] quux
+[✨❣️] There are some commitments that should be grouped together in the documentation despite not being aliased
 
+-   For example `OPEN` and `CLOSED` are tightly related and should be shown together and interlinked
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
