@@ -1,4 +1,5 @@
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
+import { resolveInheritedAgentSource } from '@/src/utils/resolveInheritedAgentSource';
 import { createAgentModelRequirements } from '@promptbook-local/core';
 import { serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../../src/errors/assertsError';
@@ -12,7 +13,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
     try {
         const collection = await $provideAgentCollectionForServer();
         const agentSource = await collection.getAgentSource(agentName);
-        const modelRequirements = await createAgentModelRequirements(agentSource);
+        const effectiveAgentSource = await resolveInheritedAgentSource(agentSource, collection);
+        const modelRequirements = await createAgentModelRequirements(effectiveAgentSource);
         const { systemMessage } = modelRequirements;
 
         return new Response(systemMessage, {

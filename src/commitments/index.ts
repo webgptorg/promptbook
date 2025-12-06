@@ -6,6 +6,7 @@ import { $deepFreeze } from '../utils/serialization/$deepFreeze';
 import { ActionCommitmentDefinition } from './ACTION/ACTION';
 import { DeleteCommitmentDefinition } from './DELETE/DELETE';
 import { FormatCommitmentDefinition } from './FORMAT/FORMAT';
+import { FromCommitmentDefinition } from './FROM/FROM';
 import { GoalCommitmentDefinition } from './GOAL/GOAL';
 import { KnowledgeCommitmentDefinition } from './KNOWLEDGE/KNOWLEDGE';
 import { MemoryCommitmentDefinition } from './MEMORY/MEMORY';
@@ -47,6 +48,7 @@ export const COMMITMENT_REGISTRY = [
     new SampleCommitmentDefinition('EXAMPLE'),
     new FormatCommitmentDefinition('FORMAT'),
     new FormatCommitmentDefinition('FORMATS'),
+    new FromCommitmentDefinition('FROM'),
     new ModelCommitmentDefinition('MODEL'),
     new ModelCommitmentDefinition('MODELS'),
     new ActionCommitmentDefinition('ACTION'),

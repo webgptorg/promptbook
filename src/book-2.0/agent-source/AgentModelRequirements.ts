@@ -23,6 +23,11 @@ export type AgentModelRequirements = {
     readonly mcpServers?: ReadonlyArray<string>;
 
     /**
+     * Optional link to the parent agent from which this agent inherits
+     */
+    readonly parentAgentUrl?: string_knowledge_source_link;
+
+    /**
      * Optional list of knowledge source links that the agent can use
      */
     readonly knowledgeSources?: ReadonlyArray<string_knowledge_source_link>;
