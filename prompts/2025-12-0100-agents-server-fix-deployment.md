@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨⭐️] Fix the deployment of Agents Server after CVE-2025-55182
 

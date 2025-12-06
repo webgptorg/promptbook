@@ -10,3 +10,7 @@
     -   Allows inheriting from both internal and external agents
 -   Implement `COMPONENT` commitment to define UI components that the agent can render in the chat
     -   Allows defining component name and syntax/usage description
+
+### 🔒 Security
+
+-   Update `next` to `15.4.8` and `react` to `19.1.2` to fix CVE-2025-55182
