@@ -1,5 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
+import { keepUnused } from '../../utils/organization/keepUnused';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 
 /**
@@ -56,6 +57,8 @@ export class OpenCommitmentDefinition extends BaseCommitmentDefinition<'OPEN'> {
     }
 
     applyToAgentModelRequirements(requirements: AgentModelRequirements, _content: string): AgentModelRequirements {
+        keepUnused(_content);
+
         // Since OPEN is default, we can just ensure isClosed is false
         // But to be explicit we can set it
 

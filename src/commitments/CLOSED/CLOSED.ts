@@ -1,6 +1,7 @@
 import { spaceTrim } from 'spacetrim';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
+import { keepUnused } from '../../utils/organization/keepUnused';
 
 /**
  * CLOSED commitment definition
@@ -56,6 +57,8 @@ export class ClosedCommitmentDefinition extends BaseCommitmentDefinition<'CLOSED
     }
 
     applyToAgentModelRequirements(requirements: AgentModelRequirements, _content: string): AgentModelRequirements {
+        keepUnused(_content);
+
         const updatedMetadata = {
             ...requirements.metadata,
             isClosed: true,
