@@ -4,6 +4,7 @@ import type { CommitmentDefinition } from './_base/CommitmentDefinition';
 // Import all commitment definition classes
 import { $deepFreeze } from '../utils/serialization/$deepFreeze';
 import { ActionCommitmentDefinition } from './ACTION/ACTION';
+import { ClosedCommitmentDefinition } from './CLOSED/CLOSED';
 import { ComponentCommitmentDefinition } from './COMPONENT/COMPONENT';
 import { DeleteCommitmentDefinition } from './DELETE/DELETE';
 import { FormatCommitmentDefinition } from './FORMAT/FORMAT';
@@ -20,6 +21,7 @@ import { MetaColorCommitmentDefinition } from './META_COLOR/META_COLOR';
 import { MetaImageCommitmentDefinition } from './META_IMAGE/META_IMAGE';
 import { ModelCommitmentDefinition } from './MODEL/MODEL';
 import { NoteCommitmentDefinition } from './NOTE/NOTE';
+import { OpenCommitmentDefinition } from './OPEN/OPEN';
 import { PersonaCommitmentDefinition } from './PERSONA/PERSONA';
 import { RuleCommitmentDefinition } from './RULE/RULE';
 import { SampleCommitmentDefinition } from './SAMPLE/SAMPLE';
@@ -75,6 +77,8 @@ export const COMMITMENT_REGISTRY = [
     new DeleteCommitmentDefinition('CANCEL'),
     new DeleteCommitmentDefinition('DISCARD'),
     new DeleteCommitmentDefinition('REMOVE'),
+    new OpenCommitmentDefinition(),
+    new ClosedCommitmentDefinition(),
 
     // Not yet implemented commitments (using placeholder)
     new NotYetImplementedCommitmentDefinition('EXPECT'),

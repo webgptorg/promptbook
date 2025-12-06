@@ -178,6 +178,10 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
             return result;
         }
 
+        if (modelRequirements.metadata?.isClosed) {
+            return result;
+        }
+
         // TODO: !!! Extract learning to separate method
         // Learning: Append the conversation sample to the agent source
         const learningExample = spaceTrim(

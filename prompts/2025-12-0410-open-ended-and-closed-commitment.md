@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🚊] Make `OPEN` and `CLOSED` commitments
 

@@ -10,6 +10,9 @@
     -   Allows inheriting from both internal and external agents
 -   Implement `COMPONENT` commitment to define UI components that the agent can render in the chat
     -   Allows defining component name and syntax/usage description
+-   Implement `OPEN` and `CLOSED` commitments to control agent learning
+    -   `OPEN` (default) allows agent to learn from conversation and modify its source
+    -   `CLOSED` prevents agent from being modified by conversation
 
 ### 🔒 Security
 
