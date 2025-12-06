@@ -2,7 +2,7 @@
 
 import promptbookLogoBlueTransparent from '@/public/logo-blue-white-256.png';
 import { $createAgentAction, logoutAction } from '@/src/app/actions';
-import { ArrowRight, ChevronDown, Lock, LogIn, LogOut } from 'lucide-react';
+import { ArrowRight, ChevronDown, Lock, LogIn, LogOut, User } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -78,9 +78,12 @@ export function Header(props: HeaderProps) {
     const [isAgentsOpen, setIsAgentsOpen] = useState(false);
     const [isDocsOpen, setIsDocsOpen] = useState(false);
     const [isUsersOpen, setIsUsersOpen] = useState(false);
+    const [isSystemOpen, setIsSystemOpen] = useState(false);
+    const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [isMobileAgentsOpen, setIsMobileAgentsOpen] = useState(false);
     const [isMobileDocsOpen, setIsMobileDocsOpen] = useState(false);
     const [isMobileUsersOpen, setIsMobileUsersOpen] = useState(false);
+    const [isMobileSystemOpen, setIsMobileSystemOpen] = useState(false);
     const [isCreatingAgent, setIsCreatingAgent] = useState(false);
     const router = useRouter();
 
@@ -214,24 +217,30 @@ export function Header(props: HeaderProps) {
                       ],
                   },
                   {
-                      type: 'link' as const,
-                      label: 'API Tokens',
-                      href: '/admin/api-tokens',
-                  },
-                  {
-                      type: 'link' as const,
-                      label: 'Metadata',
-                      href: '/admin/metadata',
-                  },
-                  {
-                      type: 'link' as const,
-                      label: 'Chat history',
-                      href: '/admin/chat-history',
-                  },
-                  {
-                      type: 'link' as const,
-                      label: 'Chat feedback',
-                      href: '/admin/chat-feedback',
+                      type: 'dropdown' as const,
+                      label: 'System',
+                      isOpen: isSystemOpen,
+                      setIsOpen: setIsSystemOpen,
+                      isMobileOpen: isMobileSystemOpen,
+                      setIsMobileOpen: setIsMobileSystemOpen,
+                      items: [
+                          {
+                              label: 'API Tokens',
+                              href: '/admin/api-tokens',
+                          },
+                          {
+                              label: 'Metadata',
+                              href: '/admin/metadata',
+                          },
+                          {
+                              label: 'Chat history',
+                              href: '/admin/chat-history',
+                          },
+                          {
+                              label: 'Chat feedback',
+                              href: '/admin/chat-feedback',
+                          },
+                      ],
                   },
                   {
                       type: 'link' as const,
@@ -375,31 +384,56 @@ export function Header(props: HeaderProps) {
 
                         {(currentUser || isAdmin) && (
                             <div className="hidden lg:flex items-center gap-3">
-                                <span className="inline text-sm text-gray-600">
-                                    Logged in as <strong>{currentUser?.username || 'Admin'}</strong>
-                                    {(currentUser?.isAdmin || isAdmin) && (
-                                        <span className="ml-2 bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
-                                            Admin
-                                        </span>
+                                <div className="relative">
+                                    <button
+                                        onClick={() => setIsProfileOpen(!isProfileOpen)}
+                                        onBlur={() => setTimeout(() => setIsProfileOpen(false), 200)}
+                                        className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors px-3 py-2 rounded-md hover:bg-gray-50"
+                                    >
+                                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                                            <User className="w-4 h-4" />
+                                        </div>
+                                        <div className="flex flex-col items-start">
+                                            <span className="leading-none">{currentUser?.username || 'Admin'}</span>
+                                            {(currentUser?.isAdmin || isAdmin) && (
+                                                <span className="text-xs text-blue-600">Admin</span>
+                                            )}
+                                        </div>
+                                        <ChevronDown className="w-4 h-4 ml-1 opacity-50" />
+                                    </button>
+
+                                    {isProfileOpen && (
+                                        <div className="absolute top-full right-0 mt-2 w-56 bg-white rounded-md shadow-lg border border-gray-100 py-1 z-50 animate-in fade-in zoom-in-95 duration-200">
+                                            <div className="px-4 py-3 border-b border-gray-100">
+                                                <p className="text-sm font-medium text-gray-900">
+                                                    {currentUser?.username || 'Admin'}
+                                                </p>
+                                                {(currentUser?.isAdmin || isAdmin) && (
+                                                    <p className="text-xs text-blue-600 mt-1">Administrator</p>
+                                                )}
+                                            </div>
+
+                                            <button
+                                                onClick={() => setIsChangePasswordOpen(true)}
+                                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 flex items-center gap-2"
+                                            >
+                                                <Lock className="w-4 h-4" />
+                                                Change Password
+                                            </button>
+
+                                            <button
+                                                onClick={() => {
+                                                    handleLogout();
+                                                    setIsMenuOpen(false);
+                                                }}
+                                                className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 flex items-center gap-2"
+                                            >
+                                                <LogOut className="w-4 h-4" />
+                                                Log out
+                                            </button>
+                                        </div>
                                     )}
-                                </span>
-                                <button
-                                    onClick={() => setIsChangePasswordOpen(true)}
-                                    className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium h-10 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
-                                    title="Change Password"
-                                >
-                                    <Lock className="w-4 h-4" />
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        handleLogout();
-                                        setIsMenuOpen(false);
-                                    }}
-                                    className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium h-10 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
-                                >
-                                    Log out
-                                    <LogOut className="ml-2 w-4 h-4" />
-                                </button>
+                                </div>
                             </div>
                         )}
 
