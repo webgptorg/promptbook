@@ -58,9 +58,9 @@
 
 ---
 
-[-]
+[ ]
 
-[✨❣️] quux
+[✨❣️] `/docs` documentation page is broken, no commitments are shown, fix it
 
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
