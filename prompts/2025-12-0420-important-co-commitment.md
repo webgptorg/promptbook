@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🏰] Make system for commitment modifiers, the "co-commitments"
 
