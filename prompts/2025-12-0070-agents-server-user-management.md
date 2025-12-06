@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🍨] Allow to change passwords for logged in users
 

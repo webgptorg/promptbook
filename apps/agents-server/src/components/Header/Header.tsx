@@ -2,7 +2,7 @@
 
 import promptbookLogoBlueTransparent from '@/public/logo-blue-white-256.png';
 import { $createAgentAction, logoutAction } from '@/src/app/actions';
-import { ArrowRight, ChevronDown, LogIn, LogOut } from 'lucide-react';
+import { ArrowRight, ChevronDown, Lock, LogIn, LogOut } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -12,6 +12,7 @@ import { HamburgerMenu } from '../../../../../src/book-components/_common/Hambur
 import { just } from '../../../../../src/utils/organization/just';
 import type { UserInfo } from '../../utils/getCurrentUser';
 import { getVisibleCommitmentDefinitions } from '../../utils/getVisibleCommitmentDefinitions';
+import { ChangePasswordDialog } from '../ChangePasswordDialog/ChangePasswordDialog';
 import { LoginDialog } from '../LoginDialog/LoginDialog';
 import { useUsersAdmin } from '../UsersList/useUsersAdmin';
 
@@ -73,6 +74,7 @@ export function Header(props: HeaderProps) {
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isLoginOpen, setIsLoginOpen] = useState(false);
+    const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
     const [isAgentsOpen, setIsAgentsOpen] = useState(false);
     const [isDocsOpen, setIsDocsOpen] = useState(false);
     const [isUsersOpen, setIsUsersOpen] = useState(false);
@@ -241,6 +243,7 @@ export function Header(props: HeaderProps) {
     return (
         <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200 h-16">
             <LoginDialog isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
+            <ChangePasswordDialog isOpen={isChangePasswordOpen} onClose={() => setIsChangePasswordOpen(false)} />
             <div className="container mx-auto px-4 h-full">
                 <div className="flex items-center justify-between h-full">
                     {/* Logo */}
@@ -379,6 +382,13 @@ export function Header(props: HeaderProps) {
                                     )}
                                 </span>
                                 <button
+                                    onClick={() => setIsChangePasswordOpen(true)}
+                                    className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium h-10 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+                                    title="Change Password"
+                                >
+                                    <Lock className="w-4 h-4" />
+                                </button>
+                                <button
                                     onClick={() => {
                                         handleLogout();
                                         setIsMenuOpen(false);
@@ -435,6 +445,16 @@ export function Header(props: HeaderProps) {
                                                 </span>
                                             )}
                                         </div>
+                                        <button
+                                            onClick={() => {
+                                                setIsChangePasswordOpen(true);
+                                                setIsMenuOpen(false);
+                                            }}
+                                            className="flex items-center gap-2 text-base font-medium text-gray-600 hover:text-gray-900 w-full"
+                                        >
+                                            <Lock className="w-4 h-4" />
+                                            Change Password
+                                        </button>
                                         <button
                                             onClick={() => {
                                                 handleLogout();
