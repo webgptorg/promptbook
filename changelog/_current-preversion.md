@@ -8,3 +8,5 @@
     -   Enable CORS on `/api/agents` to allow direct browser calls
 -   Implement `FROM` commitment to inherit agent source from another agent
     -   Allows inheriting from both internal and external agents
+-   Implement `COMPONENT` commitment to define UI components that the agent can render in the chat
+    -   Allows defining component name and syntax/usage description

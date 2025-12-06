@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🚙] Create commitment called `COMPONENT`
 

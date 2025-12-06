@@ -4,6 +4,7 @@ import type { CommitmentDefinition } from './_base/CommitmentDefinition';
 // Import all commitment definition classes
 import { $deepFreeze } from '../utils/serialization/$deepFreeze';
 import { ActionCommitmentDefinition } from './ACTION/ACTION';
+import { ComponentCommitmentDefinition } from './COMPONENT/COMPONENT';
 import { DeleteCommitmentDefinition } from './DELETE/DELETE';
 import { FormatCommitmentDefinition } from './FORMAT/FORMAT';
 import { FromCommitmentDefinition } from './FROM/FROM';
@@ -53,6 +54,7 @@ export const COMMITMENT_REGISTRY = [
     new ModelCommitmentDefinition('MODELS'),
     new ActionCommitmentDefinition('ACTION'),
     new ActionCommitmentDefinition('ACTIONS'),
+    new ComponentCommitmentDefinition(),
     new MetaImageCommitmentDefinition(),
     new MetaColorCommitmentDefinition(),
     new MetaCommitmentDefinition(),
