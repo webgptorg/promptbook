@@ -45,6 +45,8 @@ export class ClosedCommitmentDefinition extends BaseCommitmentDefinition<'CLOSED
 
             By default (if not specified), agents are \`OPEN\` to modification.
 
+            > See also [OPEN](/docs/OPEN)
+
             ## Example
 
             \`\`\`book
@@ -53,7 +55,7 @@ export class ClosedCommitmentDefinition extends BaseCommitmentDefinition<'CLOSED
         `);
     }
 
-    applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
+    applyToAgentModelRequirements(requirements: AgentModelRequirements, _content: string): AgentModelRequirements {
         const updatedMetadata = {
             ...requirements.metadata,
             isClosed: true,

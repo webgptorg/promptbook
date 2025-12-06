@@ -45,6 +45,8 @@ export class OpenCommitmentDefinition extends BaseCommitmentDefinition<'OPEN'> {
             
             This is the default behavior if neither \`OPEN\` nor \`CLOSED\` is specified.
 
+            > See also [CLOSED](/docs/CLOSED)
+
             ## Example
 
             \`\`\`book
@@ -53,7 +55,7 @@ export class OpenCommitmentDefinition extends BaseCommitmentDefinition<'OPEN'> {
         `);
     }
 
-    applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
+    applyToAgentModelRequirements(requirements: AgentModelRequirements, _content: string): AgentModelRequirements {
         // Since OPEN is default, we can just ensure isClosed is false
         // But to be explicit we can set it
         

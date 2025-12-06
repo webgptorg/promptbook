@@ -106,6 +106,10 @@ export function getGroupedCommitmentDefinitions(): ReadonlyArray<GroupedCommitme
             ) {
                 shouldGroup = true;
             }
+            // Case 3: OPEN and CLOSED are related
+            else if (lastPrimary.type === 'OPEN' && commitment.type === 'CLOSED') {
+                shouldGroup = true;
+            }
         }
 
         if (shouldGroup && lastGroup) {
