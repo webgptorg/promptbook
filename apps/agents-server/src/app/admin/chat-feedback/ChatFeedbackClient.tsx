@@ -1,5 +1,7 @@
 'use client';
 
+import { Chat } from '@promptbook-local/components';
+import type { ChatMessage } from '@promptbook-local/types';
 import { useEffect, useMemo, useState } from 'react';
 import { Card } from '../../../components/Homepage/Card';
 import {
@@ -62,6 +64,7 @@ export function ChatFeedbackClient({ initialAgentName }: ChatFeedbackClientProps
     const [search, setSearch] = useState('');
     const [sortBy, setSortBy] = useState<ChatFeedbackSortField>('createdAt');
     const [sortOrder, setSortOrder] = useState<ChatFeedbackSortOrder>('desc');
+    const [selectedThread, setSelectedThread] = useState<ChatMessage[] | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -189,6 +192,25 @@ export function ChatFeedbackClient({ initialAgentName }: ChatFeedbackClientProps
         } else {
             setSortBy(field);
             setSortOrder(field === 'createdAt' ? 'desc' : 'asc');
+        }
+    };
+
+    const handleViewChat = (row: ChatFeedbackRow) => {
+        if (!row.chatThread) {
+            alert('No chat thread available for this feedback.');
+            return;
+        }
+        try {
+            // Ensure dates are Date objects
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const thread = (row.chatThread as unknown as any[]).map((msg) => ({
+                ...msg,
+                date: msg.date ? new Date(msg.date) : (msg.createdAt ? new Date(msg.createdAt) : undefined),
+            })) as ChatMessage[];
+            setSelectedThread(thread);
+        } catch (e) {
+            console.error('Failed to parse chat thread', e);
+            alert('Failed to parse chat thread.');
         }
     };
 
@@ -488,7 +510,16 @@ export function ChatFeedbackClient({ initialAgentName }: ChatFeedbackClientProps
                                                     {row.platform || '-'}
                                                 </div>
                                             </td>
-                                            <td className="whitespace-nowrap px-4 py-3 text-right text-xs font-medium">
+                                            <td className="whitespace-nowrap px-4 py-3 text-right text-xs font-medium space-x-2">
+                                                {row.chatThread && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleViewChat(row)}
+                                                        className="text-blue-600 hover:text-blue-800"
+                                                    >
+                                                        View Chat
+                                                    </button>
+                                                )}
                                                 <button
                                                     type="button"
                                                     onClick={() => handleDeleteRow(row)}
@@ -556,6 +587,28 @@ export function ChatFeedbackClient({ initialAgentName }: ChatFeedbackClientProps
                         </div>
                     </div>
                 </Card>
+
+            {selectedThread && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+                    <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl h-[80vh] flex flex-col overflow-hidden">
+                        <div className="flex justify-between items-center p-4 border-b border-gray-200">
+                            <h3 className="text-lg font-medium text-gray-900">Chat Thread</h3>
+                            <button
+                                onClick={() => setSelectedThread(null)}
+                                className="text-gray-400 hover:text-gray-500"
+                            >
+                                <span className="sr-only">Close</span>
+                                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div className="flex-1 overflow-hidden relative">
+                            <Chat messages={selectedThread} />
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

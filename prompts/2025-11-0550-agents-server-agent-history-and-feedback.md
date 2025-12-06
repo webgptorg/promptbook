@@ -8,7 +8,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🐞] Both chat history and chat feedback should have view that shows the conversation in the chat
 

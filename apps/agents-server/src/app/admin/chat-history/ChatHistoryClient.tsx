@@ -1,5 +1,7 @@
 'use client';
 
+import { MockedChat } from '@promptbook-local/components';
+import type { ChatMessage } from '@promptbook-local/types';
 import { useEffect, useMemo, useState } from 'react';
 import { Card } from '../../../components/Homepage/Card';
 import {
@@ -83,6 +85,7 @@ export function ChatHistoryClient({ initialAgentName }: ChatHistoryClientProps) 
     const [search, setSearch] = useState('');
     const [sortBy, setSortBy] = useState<ChatHistorySortField>('createdAt');
     const [sortOrder, setSortOrder] = useState<ChatHistorySortOrder>('desc');
+    const [viewMode, setViewMode] = useState<'table' | 'chat'>('table');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -213,6 +216,21 @@ export function ChatHistoryClient({ initialAgentName }: ChatHistoryClientProps) 
         }
     };
 
+    const handleViewModeChange = (mode: 'table' | 'chat') => {
+        setViewMode(mode);
+        if (mode === 'chat') {
+            // When switching to chat view, sort by creation date ascending to make sense of conversation flow
+            setSortBy('createdAt');
+            setSortOrder('asc');
+            setPageSize(100); // Show more messages in chat view
+        } else {
+            // Default back to desc when switching to table
+            setSortBy('createdAt');
+            setSortOrder('desc');
+            setPageSize(20);
+        }
+    };
+
     const handleDeleteRow = async (row: ChatHistoryRow) => {
         if (!row.id) return;
 
@@ -279,6 +297,67 @@ export function ChatHistoryClient({ initialAgentName }: ChatHistoryClientProps) 
         return `/api/chat-history/export?${params.toString()}`;
     };
 
+    const chatMessages = useMemo(() => {
+        if (viewMode !== 'chat') return [];
+        return items.map((row) => {
+            const message = row.message as { role?: string; content?: string };
+            const role = (message.role || 'USER').toUpperCase();
+            return {
+                id: String(row.id),
+                from: role === 'USER' ? 'USER' : 'ASSISTANT',
+                content: message.content || JSON.stringify(message),
+                isComplete: true,
+                date: new Date(row.createdAt),
+            } satisfies ChatMessage;
+        });
+    }, [items, viewMode]);
+
+    const pagination = (
+        <div className="mt-4 flex flex-col items-center justify-between gap-3 border-t border-gray-100 pt-4 text-xs text-gray-600 md:flex-row">
+            <div>
+                {total > 0 ? (
+                    <>
+                        Showing{' '}
+                        <span className="font-semibold">
+                            {Math.min((page - 1) * pageSize + 1, total)}
+                        </span>{' '}
+                        –{' '}
+                        <span className="font-semibold">
+                            {Math.min(page * pageSize, total)}
+                        </span>{' '}
+                        of{' '}
+                        <span className="font-semibold">{total}</span>{' '}
+                        messages
+                    </>
+                ) : (
+                    'No messages'
+                )}
+            </div>
+            <div className="flex items-center gap-2">
+                <button
+                    type="button"
+                    onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                    disabled={page <= 1}
+                    className="inline-flex items-center justify-center rounded-md border border-gray-300 px-2 py-1 text-xs font-medium text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                    Previous
+                </button>
+                <span>
+                    Page <span className="font-semibold">{page}</span> of{' '}
+                    <span className="font-semibold">{totalPages}</span>
+                </span>
+                <button
+                    type="button"
+                    onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+                    disabled={page >= totalPages}
+                    className="inline-flex items-center justify-center rounded-md border border-gray-300 px-2 py-1 text-xs font-medium text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                    Next
+                </button>
+            </div>
+        </div>
+    );
+
     return (
         <div className="container mx-auto px-4 py-8 space-y-6">
             <div className="mt-20 mb-4 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
@@ -289,6 +368,30 @@ export function ChatHistoryClient({ initialAgentName }: ChatHistoryClientProps) 
                     </p>
                 </div>
                 <div className="flex items-end gap-4 text-sm text-gray-500 md:text-right">
+                    <div className="flex rounded-md shadow-sm" role="group">
+                        <button
+                            type="button"
+                            onClick={() => handleViewModeChange('table')}
+                            className={`px-4 py-2 text-sm font-medium border border-gray-300 rounded-l-lg ${
+                                viewMode === 'table'
+                                    ? 'bg-blue-600 text-white border-blue-600'
+                                    : 'bg-white text-gray-700 hover:bg-gray-50'
+                            }`}
+                        >
+                            Table
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => handleViewModeChange('chat')}
+                            className={`px-4 py-2 text-sm font-medium border border-gray-300 rounded-r-lg border-l-0 ${
+                                viewMode === 'chat'
+                                    ? 'bg-blue-600 text-white border-blue-600'
+                                    : 'bg-white text-gray-700 hover:bg-gray-50'
+                            }`}
+                        >
+                            Chat
+                        </button>
+                    </div>
                     <div>
                         <a
                             href={getExportUrl()}
@@ -392,12 +495,27 @@ export function ChatHistoryClient({ initialAgentName }: ChatHistoryClientProps) 
                     )}
                 </Card>
 
-            <Card>
-                <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-lg font-medium text-gray-900">
-                        Messages ({total})
-                    </h2>
+            {viewMode === 'chat' ? (
+                <div className="bg-white rounded-lg shadow border border-gray-200 overflow-hidden flex flex-col">
+                    <div className="h-[800px] relative">
+                        <MockedChat
+                            messages={chatMessages}
+                            isPausable={true}
+                            isResettable={false}
+                            isSaveButtonEnabled={true}
+                        />
+                    </div>
+                    <div className="p-4 bg-gray-50 border-t border-gray-200">
+                        {pagination}
+                    </div>
                 </div>
+            ) : (
+                <Card>
+                    <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-lg font-medium text-gray-900">
+                            Messages ({total})
+                        </h2>
+                    </div>
                     {error && (
                         <div className="mb-4 rounded-md bg-red-50 px-4 py-3 text-sm text-red-800">
                             {error}
@@ -437,13 +555,27 @@ export function ChatHistoryClient({ initialAgentName }: ChatHistoryClientProps) 
                                                 )}
                                             </button>
                                         </th>
-                                        <th className="px-4 py-3 text-left font-medium text-gray-500">Role</th>
-                                        <th className="px-4 py-3 text-left font-medium text-gray-500">Message</th>
-                                        <th className="px-4 py-3 text-left font-medium text-gray-500">URL</th>
-                                        <th className="px-4 py-3 text-left font-medium text-gray-500">IP</th>
-                                        <th className="px-4 py-3 text-left font-medium text-gray-500">Language</th>
-                                        <th className="px-4 py-3 text-left font-medium text-gray-500">Platform</th>
-                                        <th className="px-4 py-3 text-right font-medium text-gray-500">Actions</th>
+                                        <th className="px-4 py-3 text-left font-medium text-gray-500">
+                                            Role
+                                        </th>
+                                        <th className="px-4 py-3 text-left font-medium text-gray-500">
+                                            Message
+                                        </th>
+                                        <th className="px-4 py-3 text-left font-medium text-gray-500">
+                                            URL
+                                        </th>
+                                        <th className="px-4 py-3 text-left font-medium text-gray-500">
+                                            IP
+                                        </th>
+                                        <th className="px-4 py-3 text-left font-medium text-gray-500">
+                                            Language
+                                        </th>
+                                        <th className="px-4 py-3 text-left font-medium text-gray-500">
+                                            Platform
+                                        </th>
+                                        <th className="px-4 py-3 text-right font-medium text-gray-500">
+                                            Actions
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-200 bg-white">
@@ -494,59 +626,9 @@ export function ChatHistoryClient({ initialAgentName }: ChatHistoryClientProps) 
                             </table>
                         </div>
                     )}
-
-                    <div className="mt-4 flex flex-col items-center justify-between gap-3 border-t border-gray-100 pt-4 text-xs text-gray-600 md:flex-row">
-                        <div>
-                            {total > 0 ? (
-                                <>
-                                    Showing{' '}
-                                    <span className="font-semibold">
-                                        {Math.min((page - 1) * pageSize + 1, total)}
-                                    </span>{' '}
-                                    –{' '}
-                                    <span className="font-semibold">
-                                        {Math.min(page * pageSize, total)}
-                                    </span>{' '}
-                                    of{' '}
-                                    <span className="font-semibold">
-                                        {total}
-                                    </span>{' '}
-                                    messages
-                                </>
-                            ) : (
-                                'No messages'
-                            )}
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <button
-                                type="button"
-                                onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-                                disabled={page <= 1}
-                                className="inline-flex items-center justify-center rounded-md border border-gray-300 px-2 py-1 text-xs font-medium text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                                Previous
-                            </button>
-                            <span>
-                                Page{' '}
-                                <span className="font-semibold">
-                                    {page}
-                                </span>{' '}
-                                of{' '}
-                                <span className="font-semibold">
-                                    {totalPages}
-                                </span>
-                            </span>
-                            <button
-                                type="button"
-                                onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
-                                disabled={page >= totalPages}
-                                className="inline-flex items-center justify-center rounded-md border border-gray-300 px-2 py-1 text-xs font-medium text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                                Next
-                            </button>
-                        </div>
-                    </div>
+                    {pagination}
                 </Card>
+            )}
         </div>
     );
 }
