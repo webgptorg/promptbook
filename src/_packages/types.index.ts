@@ -60,7 +60,7 @@ import type { InstrumentCommand } from '../commands/X_INSTRUMENT/InstrumentComma
 import type { BookCommitment } from '../commitments/_base/BookCommitment';
 import type { CommitmentDefinition } from '../commitments/_base/CommitmentDefinition';
 import type { ParsedCommitment } from '../commitments/_base/ParsedCommitment';
-import type { GroupedCommitmentDefinition } from '../commitments/index';
+import type { GroupedCommitmentDefinition } from '../commitments/registry';
 import type { PrettifyOptions } from '../conversion/prettify/PrettifyOptions';
 import type { renderPipelineMermaidOptions } from '../conversion/prettify/renderPipelineMermaidOptions';
 import type { CallbackInterfaceToolsOptions } from '../dialogs/callback/CallbackInterfaceToolsOptions';
