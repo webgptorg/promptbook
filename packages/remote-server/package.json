@@ -99,7 +99,7 @@
     },
     "dependencies": {
         "bottleneck": "2.19.5",
-        "colors": "^1.4.0",
+        "colors": "1.4.0",
         "crypto": "1.0.1",
         "crypto-js": "4.2.0",
         "express": "4.21.2",

@@ -98,7 +98,7 @@
         "@promptbook/core": "0.103.0-53"
     },
     "dependencies": {
-        "colors": "^1.4.0",
+        "colors": "1.4.0",
         "crypto": "1.0.1",
         "crypto-js": "4.2.0",
         "papaparse": "5.4.1",

@@ -97,7 +97,7 @@
     "dependencies": {
         "@monaco-editor/react": "4.7.0",
         "bottleneck": "2.19.5",
-        "colors": "^1.4.0",
+        "colors": "1.4.0",
         "crypto": "1.0.1",
         "crypto-js": "4.2.0",
         "destroyable": "0.12.141",
@@ -105,7 +105,7 @@
         "katex": "0.16.25",
         "openai": "4.63.0",
         "papaparse": "5.4.1",
-        "qrcode": "^1.5.4",
+        "qrcode": "1.5.4",
         "rxjs": "7.8.2",
         "showdown": "2.1.0",
         "spacetrim": "0.11.60",

@@ -106,7 +106,7 @@
     },
     "dependencies": {
         "bottleneck": "2.19.5",
-        "colors": "^1.4.0",
+        "colors": "1.4.0",
         "crypto": "1.0.1",
         "openai": "4.63.0",
         "socket.io-client": "4.7.5",
