@@ -271,6 +271,14 @@ export function ChatHistoryClient({ initialAgentName }: ChatHistoryClientProps) 
 
     const isSortedBy = (field: ChatHistorySortField) => sortBy === field;
 
+    const getExportUrl = () => {
+        const params = new URLSearchParams();
+        if (agentName) {
+            params.set('agentName', agentName);
+        }
+        return `/api/chat-history/export?${params.toString()}`;
+    };
+
     return (
         <div className="container mx-auto px-4 py-8 space-y-6">
             <div className="mt-20 mb-4 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
@@ -280,12 +288,24 @@ export function ChatHistoryClient({ initialAgentName }: ChatHistoryClientProps) 
                         Inspect and manage all recorded chat messages across your agents.
                     </p>
                 </div>
-                <div className="text-sm text-gray-500 md:text-right">
-                    <div className="text-xl font-semibold text-gray-900">
-                        {total.toLocaleString()}
+                <div className="flex items-end gap-4 text-sm text-gray-500 md:text-right">
+                    <div>
+                        <a
+                            href={getExportUrl()}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                        >
+                            Download CSV
+                        </a>
                     </div>
-                    <div className="text-xs uppercase tracking-wide text-gray-400">
-                        Total messages
+                    <div>
+                        <div className="text-xl font-semibold text-gray-900">
+                            {total.toLocaleString()}
+                        </div>
+                        <div className="text-xs uppercase tracking-wide text-gray-400">
+                            Total messages
+                        </div>
                     </div>
                 </div>
             </div>

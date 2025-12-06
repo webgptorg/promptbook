@@ -19,7 +19,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🐞] Allow to download chat history and feedback as `csv`
 
