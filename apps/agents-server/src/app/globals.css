@@ -54,6 +54,11 @@ body {
     font-family: var(--font-barlow-condensed), 'OpenMojiBlack', Arial, Helvetica, sans-serif;
 }
 
+/* Poppins font for agent names and headings */
+.font-poppins {
+    font-family: var(--font-poppins), 'Poppins', system-ui, -apple-system, sans-serif;
+}
+
 /* Custom utilities */
 .line-clamp-2 {
     display: -webkit-box;
@@ -133,6 +138,53 @@ textarea:focus-visible {
 
 .animate-spin {
     animation: spin 1s linear infinite;
+}
+
+/* Tailwind CSS animation utilities */
+@keyframes fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slide-in-from-top-2 {
+    from {
+        transform: translateY(-0.5rem);
+    }
+    to {
+        transform: translateY(0);
+    }
+}
+
+@keyframes zoom-in-95 {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.animate-in {
+    animation-duration: 200ms;
+    animation-fill-mode: both;
+}
+
+.fade-in {
+    animation-name: fade-in;
+}
+
+.slide-in-from-top-2 {
+    animation-name: slide-in-from-top-2;
+}
+
+.zoom-in-95 {
+    animation-name: zoom-in-95;
 }
 
 /* Gradient backgrounds */

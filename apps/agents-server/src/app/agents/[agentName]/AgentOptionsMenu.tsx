@@ -1,0 +1,203 @@
+'use client';
+
+import {
+    CodeIcon,
+    CopyIcon,
+    CopyPlusIcon,
+    HistoryIcon,
+    LinkIcon,
+    MoreHorizontalIcon,
+    NotebookPenIcon,
+    QrCodeIcon,
+    SquareSplitHorizontalIcon,
+    MessageSquareShareIcon,
+    MailIcon,
+    MessageCircleQuestionIcon,
+    MessageSquareIcon,
+    DownloadIcon,
+} from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+
+type AgentOptionsMenuProps = {
+    agentName: string;
+    agentUrl: string;
+    agentEmail: string;
+    brandColorHex: string;
+    isAdmin?: boolean;
+    onShowQrCode?: () => void;
+};
+
+export function AgentOptionsMenu({
+    agentName,
+    agentUrl,
+    agentEmail,
+    brandColorHex,
+    isAdmin = false,
+    onShowQrCode,
+}: AgentOptionsMenuProps) {
+    const [isOpen, setIsOpen] = useState(false);
+    const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
+    const menuRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+                setIsOpen(false);
+            }
+        }
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const handleCopy = async (value: string, label: string) => {
+        try {
+            await navigator.clipboard.writeText(value);
+            setCopyFeedback(label);
+            setTimeout(() => setCopyFeedback(null), 2000);
+        } catch (error) {
+            console.error('Failed to copy:', error);
+        }
+    };
+
+    const menuItems = [
+        {
+            type: 'link' as const,
+            href: `/agents/${encodeURIComponent(agentName)}/chat`,
+            icon: MessageSquareShareIcon,
+            label: 'Standalone Chat',
+        },
+        {
+            type: 'link' as const,
+            href: `/agents/${encodeURIComponent(agentName)}/book+chat`,
+            icon: SquareSplitHorizontalIcon,
+            label: 'Edit Book & Chat',
+        },
+        {
+            type: 'link' as const,
+            href: `/agents/${encodeURIComponent(agentName)}/book`,
+            icon: NotebookPenIcon,
+            label: 'Edit Book',
+        },
+        { type: 'divider' as const },
+        {
+            type: 'link' as const,
+            href: `/agents/${encodeURIComponent(agentName)}/integration`,
+            icon: CodeIcon,
+            label: 'Integration',
+        },
+        {
+            type: 'link' as const,
+            href: `/agents/${encodeURIComponent(agentName)}/history`,
+            icon: HistoryIcon,
+            label: 'History',
+        },
+        {
+            type: 'link' as const,
+            href: `/agents/${encodeURIComponent(agentName)}/links`,
+            icon: LinkIcon,
+            label: 'All Links',
+        },
+        { type: 'divider' as const },
+        {
+            type: 'action' as const,
+            icon: CopyIcon,
+            label: copyFeedback === 'URL' ? 'Copied!' : 'Copy Agent URL',
+            onClick: () => handleCopy(agentUrl, 'URL'),
+        },
+        {
+            type: 'action' as const,
+            icon: MailIcon,
+            label: copyFeedback === 'Email' ? 'Copied!' : 'Copy Agent Email',
+            onClick: () => handleCopy(agentEmail, 'Email'),
+        },
+        {
+            type: 'action' as const,
+            icon: QrCodeIcon,
+            label: 'Show QR Code',
+            onClick: onShowQrCode,
+        },
+        // Admin-only items
+        ...(isAdmin
+            ? [
+                  { type: 'divider' as const },
+                  {
+                      type: 'link' as const,
+                      href: `/admin/chat-history?agentName=${encodeURIComponent(agentName)}`,
+                      icon: MessageSquareIcon,
+                      label: 'Chat History',
+                  },
+                  {
+                      type: 'link' as const,
+                      href: `/admin/chat-feedback?agentName=${encodeURIComponent(agentName)}`,
+                      icon: MessageCircleQuestionIcon,
+                      label: 'Chat Feedback',
+                  },
+                  {
+                      type: 'link' as const,
+                      href: `/agents/${encodeURIComponent(agentName)}/clone`,
+                      icon: CopyPlusIcon,
+                      label: 'Clone Agent',
+                  },
+                  {
+                      type: 'link' as const,
+                      href: `/agents/${encodeURIComponent(agentName)}/export`,
+                      icon: DownloadIcon,
+                      label: 'Export Agent',
+                  },
+              ]
+            : []),
+    ];
+
+    return (
+        <div ref={menuRef} className="relative">
+            <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="p-3 rounded-full bg-white/20 hover:bg-white/30 transition-all duration-200 backdrop-blur-sm"
+                aria-label="More options"
+            >
+                <MoreHorizontalIcon className="w-5 h-5 text-white" />
+            </button>
+
+            {isOpen && (
+                <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-2xl border border-gray-100 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                    {menuItems.map((item, index) => {
+                        if (item.type === 'divider') {
+                            return <div key={index} className="h-px bg-gray-100 my-2" />;
+                        }
+
+                        if (item.type === 'link') {
+                            return (
+                                <a
+                                    key={index}
+                                    href={item.href}
+                                    className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition-colors"
+                                    onClick={() => setIsOpen(false)}
+                                >
+                                    <item.icon className="w-4 h-4 text-gray-500" />
+                                    <span className="text-sm font-medium">{item.label}</span>
+                                </a>
+                            );
+                        }
+
+                        return (
+                            <button
+                                key={index}
+                                onClick={() => {
+                                    item.onClick?.();
+                                    if (item.label !== 'Show QR Code') {
+                                        // Keep menu open for copy feedback
+                                    }
+                                }}
+                                className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition-colors w-full text-left"
+                            >
+                                <item.icon className="w-4 h-4 text-gray-500" />
+                                <span className="text-sm font-medium">{item.label}</span>
+                            </button>
+                        );
+                    })}
+                </div>
+            )}
+        </div>
+    );
+}

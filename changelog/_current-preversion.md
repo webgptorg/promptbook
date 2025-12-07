@@ -1,5 +1,13 @@
 ### 🐇 Agents Server
 
+-   Simplify agent page design (`/agents/[agentName]`)
+    -   New visually appealing profile view with agent's color theme as gradient background
+    -   Large rounded card with agent image (or initial letter fallback)
+    -   Poppins font for agent name display
+    -   Prominent "Start Chat" button
+    -   All secondary actions (standalone chat, edit book, integration, etc.) moved to dropdown "More options" menu
+    -   QR code available via modal dialog from options menu
+    -   Admin-only menu items for chat history, feedback, clone, and export
 -   Add `/models` endpoint to OpenAI-compatible API (`/agents/[agentName]/api/openai/models`)
     -   Required for OpenAI-compatible clients (Jan, LM Studio, etc.) to discover available models
 -   Fix OpenAI API compatibility route (`/agents/[agentName]/api/openai`) to use server's API keys instead of BYOK (Bring Your Own Keys) strategy

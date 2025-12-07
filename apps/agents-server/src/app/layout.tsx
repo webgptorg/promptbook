@@ -1,7 +1,7 @@
 import faviconLogoImage from '@/public/favicon.ico';
 import { LayoutWrapper } from '@/src/components/LayoutWrapper/LayoutWrapper';
 import type { Metadata } from 'next';
-import { Barlow_Condensed } from 'next/font/google';
+import { Barlow_Condensed, Poppins } from 'next/font/google';
 import { getMetadata } from '../database/getMetadata';
 import { $provideAgentCollectionForServer } from '../tools/$provideAgentCollectionForServer';
 import { $provideServer } from '../tools/$provideServer';
@@ -13,6 +13,12 @@ const barlowCondensed = Barlow_Condensed({
     subsets: ['latin'],
     weight: ['300', '400', '500', '600', '700'],
     variable: '--font-barlow-condensed',
+});
+
+const poppins = Poppins({
+    subsets: ['latin'],
+    weight: ['400', '500', '600', '700', '800'],
+    variable: '--font-poppins',
 });
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -98,7 +104,7 @@ export default async function RootLayout({
                 {/* Default favicon as a fallback */}
                 <link rel="icon" href={serverFaviconUrl} type="image/x-icon" />
             </head>
-            <body className={`${barlowCondensed.variable} antialiased bg-white text-gray-900`}>
+            <body className={`${barlowCondensed.variable} ${poppins.variable} antialiased bg-white text-gray-900`}>
                 <LayoutWrapper
                     isAdmin={isAdmin}
                     currentUser={currentUser}
