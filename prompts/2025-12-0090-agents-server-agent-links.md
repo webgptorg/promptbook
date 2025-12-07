@@ -14,7 +14,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🧃] Create Agent integration page which should all the aviable options how to integrate your agent
 
@@ -32,6 +32,16 @@
 -   Update link into the `/agents/[agentName]/integration` on the [Agent page](http://localhost:4440/agents/jack-green) and [Agent links page](http://localhost:4440/agents/jack-green/links)
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+Show variants cURL, Python SDK, JavaScript/TypeScript SDK in tabs
+
+---
+
+You are showing URLs like `http://localhost:4440/api/openrouter` BUT it should be definitelly `https://localhost:4440/agents/jack-green/api/openrouter`
+The OpenAI compatible endpoint, MCP and OpenRouter endpoints are per-agent, so the URL should contain the agent name in path.
+Fix it everywhere.
 
 ---
 

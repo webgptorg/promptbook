@@ -166,14 +166,14 @@ export default async function AgentLinksPage({ params }: { params: Promise<{ age
                             </Link>
 
                             <Link
-                                href={`/agents/${encodeURIComponent(agentName)}/website-integration`}
+                                href={`/agents/${encodeURIComponent(agentName)}/integration`}
                                 className="block p-4 rounded-lg border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all group bg-white"
                             >
                                 <div className="flex items-center gap-3 mb-2">
                                     <div className="p-2 rounded-lg bg-green-50 text-green-600 group-hover:bg-green-100 transition-colors">
                                         <CodeIcon className="w-5 h-5" />
                                     </div>
-                                    <span className="font-medium text-gray-900">Website Integration Guide</span>
+                                    <span className="font-medium text-gray-900">Integration Options</span>
                                 </div>
                                 <p className="text-sm text-gray-500">
                                     Learn how to integrate this agent into your applications.
