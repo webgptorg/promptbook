@@ -102,7 +102,7 @@ or CLI with BYOK strategy failed:
 
 ---
 
-[ ]
+[x]
 
 [✨🧚] Add OpenAI compatible endpoint which contain all the agents NOT just single agent
 

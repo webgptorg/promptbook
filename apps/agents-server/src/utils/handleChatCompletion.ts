@@ -10,10 +10,10 @@ import { validateApiKey } from './validateApiKey';
 
 export async function handleChatCompletion(
     request: NextRequest,
-    params: { agentName: string },
+    params: { agentName?: string },
     title: string = 'API Chat Completion',
 ) {
-    const { agentName } = params;
+    const { agentName: agentNameFromParams } = params;
 
     // Validate API key explicitly (in addition to middleware)
     const apiKeyValidation = await validateApiKey(request);
@@ -33,6 +33,20 @@ export async function handleChatCompletion(
     try {
         const body = await request.json();
         const { messages, stream, model } = body;
+
+        const agentName = agentNameFromParams || model;
+
+        if (!agentName) {
+            return NextResponse.json(
+                {
+                    error: {
+                        message: 'Agent name is required. Please provide it in the URL or as the "model" parameter.',
+                        type: 'invalid_request_error',
+                    },
+                },
+                { status: 400 },
+            );
+        }
 
         if (!messages || !Array.isArray(messages) || messages.length === 0) {
             return NextResponse.json(
