@@ -6,6 +6,7 @@
 -   Current design has too much information and clutter, it should have just:
     -   Visually appealing and good looking agent profile
     -   Ability to start chat with the agent
+-   All the links and complexity should be hidden in a dropdown menu or "More options" menu
 -   Look for inspiration at attachment photo
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
