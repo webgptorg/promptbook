@@ -197,3 +197,80 @@ textarea:focus-visible {
     background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
     border: 1px solid #e2e8f0;
 }
+
+/* Print styles */
+@media print {
+    @page {
+        margin: 2cm;
+    }
+
+    /* Hide UI elements */
+    header,
+    footer,
+    nav,
+    aside,
+    button:not(.print:block),
+    .no-print,
+    [role="complementary"],
+    #portal-root {
+        display: none !important;
+    }
+
+    /* Reset layout */
+    body,
+    main {
+        padding: 0 !important;
+        margin: 0 !important;
+        background: white !important;
+        min-height: auto !important;
+        width: 100% !important;
+        color: black !important;
+    }
+
+    /* Remove shadows and backgrounds for clean print */
+    * {
+        box-shadow: none !important;
+        text-shadow: none !important;
+        background-color: transparent !important;
+        background-image: none !important;
+    }
+
+    /* Ensure text visibility */
+    h1, h2, h3, h4, h5, h6, p, li, span, div {
+        color: black !important;
+    }
+
+    /* Links */
+    a {
+        text-decoration: underline;
+        color: black !important;
+    }
+
+    /* Preserve borders */
+    .border, .border-b, .border-t, .border-l, .border-r {
+        border-color: #ddd !important;
+    }
+
+    /* Page break control */
+    h1, h2 {
+        break-after: avoid;
+        page-break-after: avoid;
+    }
+
+    p, li, pre, code {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    /* Specific component overrides */
+    .card, .bg-white {
+        border: none !important;
+    }
+
+    /* Code blocks */
+    pre, code {
+        background-color: #f5f5f5 !important;
+        border: 1px solid #ddd !important;
+        white-space: pre-wrap !important;
+    }
+}

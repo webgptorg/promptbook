@@ -106,7 +106,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨❣️] Allow to print the documentation
 
