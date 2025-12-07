@@ -113,7 +113,7 @@ or CLI with BYOK strategy failed:
 
 ---
 
-[ ]
+[x]
 
 [✨🧚] Be aware that when chatting through OpenAI compatible API, client can pass system message / system instructions
 

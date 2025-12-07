@@ -78,6 +78,27 @@ export async function handleChatCompletion(
             );
         }
 
+        // Note: Handle system messages as CONTEXT
+        const systemMessages = messages.filter((msg: TODO_any) => msg.role === 'system');
+        if (systemMessages.length > 0) {
+            const contextString = systemMessages.map((msg: TODO_any) => `CONTEXT ${msg.content}`).join('\n');
+            agentSource = `${agentSource}\n\n${contextString}` as string_book;
+        }
+
+        const threadMessages = messages.filter((msg: TODO_any) => msg.role !== 'system');
+
+        if (threadMessages.length === 0) {
+            return NextResponse.json(
+                {
+                    error: {
+                        message: 'Messages array must contain at least one non-system message.',
+                        type: 'invalid_request_error',
+                    },
+                },
+                { status: 400 },
+            );
+        }
+
         const openAiAssistantExecutionTools = await $provideOpenAiAssistantExecutionToolsForServer();
         const agent = new Agent({
             agentSource,
@@ -100,8 +121,8 @@ export async function handleChatCompletion(
         const platform = userAgent ? userAgent.match(/\(([^)]+)\)/)?.[1] : undefined; // <- TODO: [🧠] Improve platform parsing
 
         // Prepare thread and content
-        const lastMessage = messages[messages.length - 1];
-        const previousMessages = messages.slice(0, -1);
+        const lastMessage = threadMessages[threadMessages.length - 1];
+        const previousMessages = threadMessages.slice(0, -1);
 
         const thread: ChatMessage[] = previousMessages.map((msg: TODO_any, index: number) => ({
             id: `msg-${index}`, // Placeholder ID
