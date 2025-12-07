@@ -60,13 +60,14 @@ export default async function AgentPage({ params }: { params: Promise<{ agentNam
     const color1 = brandColors[0]!;
     const color2 = brandColors[1] || brandColors[0]!; // Use secondary color or fallback to primary
 
-    const color1Light = color1.then(lighten(0.2)).toHex();
-    const color1Main = color1.toHex();
-    const color1Dark = color1.then(darken(0.2)).toHex();
+    // [🧠] Make colors much lighter for the background as per feedback
+    const color1Light = color1.then(lighten(0.8)).toHex();
+    const color1Main = color1.then(lighten(0.6)).toHex();
+    const color1Dark = color1.then(lighten(0.4)).toHex();
 
-    const color2Light = color2.then(lighten(0.2)).toHex();
-    const color2Main = color2.toHex();
-    const color2Dark = color2.then(darken(0.2)).toHex();
+    const color2Light = color2.then(lighten(0.8)).toHex();
+    const color2Main = color2.then(lighten(0.6)).toHex();
+    const color2Dark = color2.then(lighten(0.4)).toHex();
 
     const svgContent = `
 <svg xmlns="http://www.w3.org/2000/svg"

@@ -20,6 +20,7 @@
 -   Simplify agent page design (`/agents/[agentName]`)
     -   New visually appealing profile view with agent's color theme as gradient background
     -   Added noisy texture to the background for better visual appeal
+    -   Restored quick access links to agent capabilities (Edit Book, Integration, History)
     -   Large rounded card with agent image (or initial letter fallback)
     -   Poppins font for agent name display
     -   Prominent "Start Chat" button

@@ -1,7 +1,14 @@
 'use client';
 
 import { AgentBasicInformation } from '@promptbook-local/types';
-import { MessageCircleIcon, RepeatIcon } from 'lucide-react';
+import {
+    CodeIcon,
+    HistoryIcon,
+    LinkIcon,
+    MessageCircleIcon,
+    NotebookPenIcon,
+    RepeatIcon,
+} from 'lucide-react';
 import { useState } from 'react';
 import { AgentOptionsMenu } from './AgentOptionsMenu';
 import { AgentQrCode } from './AgentQrCode';
@@ -170,36 +177,80 @@ export function AgentProfileView({
                     </div>
 
                     {/* Agent info */}
-                    <div className="flex flex-col items-center md:items-start text-center md:text-left gap-4">
+                    <div className="flex flex-col items-center md:items-start text-center md:text-left gap-6">
                         {/* Agent name with custom font */}
                         <h1
-                            className="text-4xl md:text-5xl lg:text-6xl font-bold text-white tracking-tight"
+                            className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 tracking-tight"
                             style={{
                                 // fontFamily: 'var(--font-poppins), Poppins, sans-serif', // <- [🧠] Should we keep this fallback or just use inherited font?
                                 // Using inherited font from the wrapper div which has dynamic font
-                                textShadow: '0 2px 20px rgba(0, 0, 0, 0.2)',
+                                textShadow: '0 2px 20px rgba(255, 255, 255, 0.5)',
                             }}
                         >
                             {fullname}
                         </h1>
 
                         {/* Short description */}
-                        <p className="text-lg md:text-xl text-white/90 max-w-lg leading-relaxed">
+                        <p className="text-lg md:text-xl text-gray-700 max-w-lg leading-relaxed font-medium">
                             {personaDescription}
                         </p>
 
                         {/* Start Chat button */}
                         <a
                             href={`/agents/${encodeURIComponent(agentName)}/chat`}
-                            className="mt-4 inline-flex items-center gap-3 px-8 py-4 rounded-full text-lg font-semibold shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-200"
+                            className="inline-flex items-center gap-3 px-8 py-4 rounded-full text-lg font-semibold shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-200"
                             style={{
-                                backgroundColor: 'white',
-                                color: brandColorHex,
+                                backgroundColor: brandColorHex,
+                                color: 'white',
                             }}
                         >
                             <MessageCircleIcon className="w-6 h-6" />
                             Start Chat
                         </a>
+
+                        {/* Secondary Actions */}
+                        <div className="flex flex-wrap justify-center md:justify-start items-center gap-4 md:gap-6 mt-2">
+                            <a
+                                href={`/agents/${encodeURIComponent(agentName)}/book`}
+                                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors group"
+                                title="Edit Book"
+                            >
+                                <div className="p-2 rounded-full bg-white/40 group-hover:bg-white/60 transition-colors shadow-sm">
+                                    <NotebookPenIcon className="w-5 h-5" />
+                                </div>
+                                <span className="font-medium text-sm">Edit Book</span>
+                            </a>
+                            <a
+                                href={`/agents/${encodeURIComponent(agentName)}/integration`}
+                                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors group"
+                                title="Integration"
+                            >
+                                <div className="p-2 rounded-full bg-white/40 group-hover:bg-white/60 transition-colors shadow-sm">
+                                    <CodeIcon className="w-5 h-5" />
+                                </div>
+                                <span className="font-medium text-sm">Integration</span>
+                            </a>
+                            <a
+                                href={`/agents/${encodeURIComponent(agentName)}/history`}
+                                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors group"
+                                title="History"
+                            >
+                                <div className="p-2 rounded-full bg-white/40 group-hover:bg-white/60 transition-colors shadow-sm">
+                                    <HistoryIcon className="w-5 h-5" />
+                                </div>
+                                <span className="font-medium text-sm">History</span>
+                            </a>
+                            <a
+                                href={`/agents/${encodeURIComponent(agentName)}/links`}
+                                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors group"
+                                title="All Links"
+                            >
+                                <div className="p-2 rounded-full bg-white/40 group-hover:bg-white/60 transition-colors shadow-sm">
+                                    <LinkIcon className="w-5 h-5" />
+                                </div>
+                                <span className="font-medium text-sm">All Links</span>
+                            </a>
+                        </div>
                     </div>
                 </div>
 
