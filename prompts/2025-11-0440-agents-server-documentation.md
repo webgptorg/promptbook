@@ -67,7 +67,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨❣️] Documentation pages should use OpenMoji black and white icons instead of default emojis
 
