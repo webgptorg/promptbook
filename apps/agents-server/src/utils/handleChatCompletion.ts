@@ -3,7 +3,7 @@ import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForSer
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideOpenAiAssistantExecutionToolsForServer } from '@/src/tools/$provideOpenAiAssistantExecutionToolsForServer';
 import { Agent, computeAgentHash, PROMPTBOOK_ENGINE_VERSION } from '@promptbook-local/core';
-import { ChatMessage, ChatPromptResult, Prompt, TODO_any } from '@promptbook-local/types';
+import { ChatMessage, ChatPromptResult, Prompt, string_book, TODO_any } from '@promptbook-local/types';
 import { computeHash } from '@promptbook-local/utils';
 import { NextRequest, NextResponse } from 'next/server';
 import { validateApiKey } from './validateApiKey';
@@ -47,7 +47,7 @@ export async function handleChatCompletion(
         }
 
         const collection = await $provideAgentCollectionForServer();
-        let agentSource;
+        let agentSource: string_book;
         try {
             agentSource = await collection.getAgentSource(agentName);
         } catch (error) {
