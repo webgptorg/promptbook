@@ -1,4 +1,4 @@
-[ ] _<- Note: Do it afrer [✨🦄] Message object and table is done_
+[!] _<- Note: Do it afrer [✨🦄] Message object and table is done_
 
 [✨🚃] Create system for sending and receiving emails
 
