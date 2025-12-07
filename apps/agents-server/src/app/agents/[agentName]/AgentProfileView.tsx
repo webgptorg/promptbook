@@ -85,17 +85,6 @@ export function AgentProfileView({
                     ...fontStyle,
                 }}
             >
-                {/* Decorative background elements */}
-                {/* [🧠] Are these needed when we have the noisy background? Maybe yes, for extra depth. */}
-                <div
-                    className="absolute top-0 left-0 w-96 h-96 rounded-full opacity-20 blur-3xl"
-                    style={{ backgroundColor: brandColorLightHex }}
-                />
-                <div
-                    className="absolute bottom-0 right-0 w-80 h-80 rounded-full opacity-15 blur-3xl"
-                    style={{ backgroundColor: brandColorLightHex }}
-                />
-
                 {/* Options menu in top right */}
                 <div className="absolute top-4 right-4 z-10">
                     <AgentOptionsMenu
