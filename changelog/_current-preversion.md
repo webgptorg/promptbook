@@ -11,6 +11,9 @@
 -   Implement `META FONT` commitment to set the agent's font
     -   Allows setting custom font family for the agent page
     -   Dynamically loads fonts from Google Fonts
+-   Update `META COLOR` commitment to support multiple colors
+    -   Allows specifying multiple colors separated by comma (e.g., `#FF5733, #33FF57`)
+    -   Used to create a gradient background on the agent page
 
 ### 🐇 Agents Server
 
@@ -24,6 +27,8 @@
     -   Admin-only menu items for chat history, feedback, clone, and export
 -   Support `META FONT` on agent page
     -   Agent page now uses the font specified in `META FONT` commitment for agent name and other text
+-   Support multiple colors in `META COLOR` on agent page
+    -   Agent page background now uses a gradient of all colors specified in `META COLOR`
 -   Add `/models` endpoint to OpenAI-compatible API (`/agents/[agentName]/api/openai/models`)
     -   Required for OpenAI-compatible clients (Jan, LM Studio, etc.) to discover available models
 -   Fix OpenAI API compatibility route (`/agents/[agentName]/api/openai`) to use server's API keys instead of BYOK (Bring Your Own Keys) strategy

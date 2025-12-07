@@ -17,6 +17,12 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * META COLOR #00ff00
  * ```
  *
+ * You can also specify multiple colors separated by comma:
+ *
+ * ```book
+ * META COLOR #ff0000, #00ff00, #0000ff
+ * ```
+ *
  * @private [🪔] Maybe export the commitments through some package
  */
 export class MetaColorCommitmentDefinition extends BaseCommitmentDefinition<'META COLOR'> {
@@ -28,7 +34,7 @@ export class MetaColorCommitmentDefinition extends BaseCommitmentDefinition<'MET
      * Short one-line description of META COLOR.
      */
     get description(): string {
-        return "Set the agent's accent color.";
+        return "Set the agent's accent color or gradient.";
     }
 
     /**
@@ -45,7 +51,7 @@ export class MetaColorCommitmentDefinition extends BaseCommitmentDefinition<'MET
         return spaceTrim(`
             # META COLOR
 
-            Sets the agent's accent color.
+            Sets the agent's accent color or gradient.
 
             ## Key aspects
 
@@ -53,6 +59,7 @@ export class MetaColorCommitmentDefinition extends BaseCommitmentDefinition<'MET
             - Only one \`META COLOR\` should be used per agent.
             - If multiple are specified, the last one takes precedence.
             - Used for visual representation in user interfaces.
+            - Can specify multiple colors separated by comma to create a gradient.
 
             ## Examples
 
@@ -68,6 +75,13 @@ export class MetaColorCommitmentDefinition extends BaseCommitmentDefinition<'MET
 
             META COLOR #e74c3c
             PERSONA You are a creative and inspiring assistant
+            \`\`\`
+
+            \`\`\`book
+            Gradient Agent
+
+            META COLOR #ff0000, #00ff00, #0000ff
+            PERSONA You are a colorful agent
             \`\`\`
         `);
     }

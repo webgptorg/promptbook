@@ -42,10 +42,19 @@ export default async function AgentPage({ params }: { params: Promise<{ agentNam
     const agentEmail = `${agentName}@${publicUrl.hostname}`;
 
     // Extract brand color from meta and create color variations
-    const brandColor = Color.from(agentProfile.meta.color || PROMPTBOOK_COLOR);
+    const brandColorString = agentProfile.meta.color || PROMPTBOOK_COLOR.toHex();
+    const brandColors = brandColorString.split(',').map((c) => Color.fromSafe(c.trim()));
+
+    // Ensure at least one color
+    if (brandColors.length === 0) {
+        brandColors.push(PROMPTBOOK_COLOR);
+    }
+
+    const brandColor = brandColors[0]!;
     const brandColorHex = brandColor.toHex();
     const brandColorLightHex = brandColor.then(lighten(0.2)).toHex();
     const brandColorDarkHex = brandColor.then(darken(0.15)).toHex();
+    const brandColorsHex = brandColors.map((c) => c.toHex());
 
     const fullname = (agentProfile.meta.fullname || agentProfile.agentName || 'Agent') as string;
     const imageUrl = (agentProfile.meta.image as string) || null;
@@ -63,6 +72,7 @@ export default async function AgentPage({ params }: { params: Promise<{ agentNam
                 brandColorHex={brandColorHex}
                 brandColorLightHex={brandColorLightHex}
                 brandColorDarkHex={brandColorDarkHex}
+                brandColorsHex={brandColorsHex}
                 meta={agentProfile.meta}
                 isAdmin={isAdmin}
             />

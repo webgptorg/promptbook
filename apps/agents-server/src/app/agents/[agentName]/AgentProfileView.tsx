@@ -16,6 +16,7 @@ type AgentProfileViewProps = {
     brandColorHex: string;
     brandColorLightHex: string;
     brandColorDarkHex: string;
+    brandColorsHex: string[];
     meta: AgentBasicInformation['meta'];
     isAdmin?: boolean;
 };
@@ -30,6 +31,7 @@ export function AgentProfileView({
     brandColorHex,
     brandColorLightHex,
     brandColorDarkHex,
+    brandColorsHex,
     meta,
     isAdmin = false,
 }: AgentProfileViewProps) {
@@ -66,7 +68,10 @@ export function AgentProfileView({
             <div
                 className="min-h-[calc(100vh-60px)] w-full flex flex-col items-center justify-center p-6 md:p-12 relative overflow-hidden"
                 style={{
-                    background: `linear-gradient(135deg, ${brandColorHex} 0%, ${brandColorDarkHex} 100%)`,
+                    background:
+                        brandColorsHex.length > 1
+                            ? `linear-gradient(135deg, ${brandColorsHex.join(', ')})`
+                            : `linear-gradient(135deg, ${brandColorHex} 0%, ${brandColorDarkHex} 100%)`,
                     ...fontStyle,
                 }}
             >

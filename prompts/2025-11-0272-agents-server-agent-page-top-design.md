@@ -34,7 +34,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🏦] Allow multiple agent colors and use them all on the agent page
 
