@@ -25,6 +25,10 @@
     -   OpenRouter integration
     -   MCP integration
 -   Create nice cards for each integration option with short description and link to detailed guide
+-   Show also code snippets how to use each integration option
+-   For OpenRouter integration and OpenAI API compatible endpoint, show also the endpoint URL, api key _(take first from existing API keys or link to quickcreate)_ and model name to use
+    -   Also show simple code snippet how to call the OpenAI compatible endpoint via curl, python and javascript official OpenAI SDK
+-   For all code snippets show nice Monaco editor with syntax highlighting _(look how its done on website-integration page)_
 -   Update link into the `/agents/[agentName]/integration` on the [Agent page](http://localhost:4440/agents/jack-green) and [Agent links page](http://localhost:4440/agents/jack-green/links)
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
