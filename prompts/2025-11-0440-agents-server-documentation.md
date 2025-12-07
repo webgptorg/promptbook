@@ -58,7 +58,7 @@
 
 ---
 
-[ ]
+[.]
 
 [✨❣️] `/docs` documentation page is broken, no commitments are shown, fix it
 
