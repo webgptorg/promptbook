@@ -18,37 +18,46 @@
 
 ---
 
-[-]
-
-[✨🏦] Enhance the design of the agent page
-
--   You are working with the `Agents Server` application `/apps/agents-server`
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
-
----
-
-[-]
+[ ]
 
 [✨🏦] Use the agents font on the agent page
 
+-   Create new `META` commitment `META FONT` to set the font(s) for the agent
+-   Syntax of the commitment is `META FONT Poppins, Arial, sans-serif`
+-   Dynamically support all the fonts from Google Fonts
+-   This font should be used on the agent page `/agents/[agentName]` for the agent name and other agent text
+    -   But not for the header and footer on the agent page
+-   Commitments are in the folder `/src/commitments`
+-   Add the changes of the commitment into the `/changelog/_current-preversion.md`
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
 ---
 
-[-]
+[ ]
 
 [✨🏦] Allow multiple agent colors and use them all on the agent page
 
+-   Update commitment `META COLOR` to be able to set multiple colors
+-   Syntax of the commitment is `META COLOR #FF5733, #33FF57, #3357FF`
+-   Theese colors are used on the agent page `/agents/[agentName]` for design
+    -   But not for the header and footer on the agent page
+-   Commitments are in the folder `/src/commitments`
+-   It is still perfectly fine to not set `META COLOR` commitment at all or use just one color
+-   Add the changes of the commitment into the `/changelog/_current-preversion.md`
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
 ---
 
-[-]
+[ ]
 
-[✨🏦] Make agent avatar card flippable, on the back is the QR code with VCard
+[✨🏦] Enhance the design of the card on agent page
 
+-   Make the agent card look more visually appealing
+-   The background should be separate gradient from entire page gradient using the agent color
+-   Make it 1:1.62 ratio (golden ratio, height = 1.62 \* width)
+-   Make agent avatar card flippable, on the back is the QR code with VCard
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
@@ -57,6 +66,13 @@
 [-]
 
 [✨🏦] Make the background of agent page noisy
+
+-   Now the background of the agent page is just smooth gradient using agent color(s)
+-   It looks nice, but it would look even better with some grainy noise on top of the gradient
+-   Create ad-hoc SVG background with strong grainy noise on top of the gradient
+-   This should push the design of the agent page from nice to awesome
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
 ```svg
 <?xml version="1.0" encoding="UTF-8"?>
@@ -112,9 +128,6 @@
     style="mix-blend-mode:soft-light; opacity:1.2" />
 </svg>
 ```
-
--   You are working with the `Agents Server` application `/apps/agents-server`
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
 ---
 
