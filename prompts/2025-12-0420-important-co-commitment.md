@@ -14,7 +14,9 @@ IMPORTANT RULE You are knowledgeable, professional, and detail-oriented.
 -   Co-commitments modify the behavior of the main commitment they are attached to.
 -   Co-commitments can be stacked, e.g., `FINAL IMPORTANT RULE ...`
 -   Co-commitments affect only the commitment they are attached to and do not influence other commitments in the prompt.
--   For the commitments create its folder in `/src/commitments` and register it in the `/src/commitments/index.ts`
+-   Implement the system for co-commitments and also first co-commitment `IMPORTANT`.
+-   `IMPORTANT` co-commitment makes the associated commitment a high-priority instruction that should be strictly followed by the agent.
+-   Commitments are in folder `/src/commitments`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
 
