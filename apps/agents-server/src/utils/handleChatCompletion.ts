@@ -7,7 +7,7 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function handleChatCompletion(
     request: NextRequest,
     params: { agentName: string },
-    title: string = 'API Chat Completion'
+    title: string = 'API Chat Completion',
 ) {
     const { agentName } = params;
 
@@ -184,7 +184,7 @@ export async function handleChatCompletion(
     }
 }
 
-
 /**
  * TODO: !!!! Same self-learning as in web version
+ * TODO: [🈹] Maybe move chat thread handling here
  */

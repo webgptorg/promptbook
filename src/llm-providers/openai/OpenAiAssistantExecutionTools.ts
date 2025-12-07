@@ -138,6 +138,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
         // Build thread messages: include previous thread messages + current user message
         const threadMessages: Array<{ role: 'user' | 'assistant'; content: string }> = [];
 
+        // TODO: [🈹] Maybe this shouldnt be here but in other place, look at commit 39d705e75e5bcf7a818c3af36bc13e1c8475c30c
         // Add previous messages from thread (if any)
         if (
             'thread' in prompt &&
