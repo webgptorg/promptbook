@@ -3,6 +3,7 @@ import { $provideOpenAiAssistantExecutionToolsForServer } from '@/src/tools/$pro
 import { Agent } from '@promptbook-local/core';
 import { ChatMessage, ChatPromptResult, Prompt, TODO_any } from '@promptbook-local/types';
 import { NextRequest, NextResponse } from 'next/server';
+import { validateApiKey } from './validateApiKey';
 
 export async function handleChatCompletion(
     request: NextRequest,
@@ -11,8 +12,19 @@ export async function handleChatCompletion(
 ) {
     const { agentName } = params;
 
-    // Note: Authentication is handled by middleware
-    // If we are here, the request is either authenticated or public access is allowed (but middleware blocks it if not)
+    // Validate API key explicitly (in addition to middleware)
+    const apiKeyValidation = await validateApiKey(request);
+    if (!apiKeyValidation.isValid) {
+        return NextResponse.json(
+            {
+                error: {
+                    message: apiKeyValidation.error || 'Invalid API key',
+                    type: 'authentication_error',
+                },
+            },
+            { status: 401 },
+        );
+    }
 
     try {
         const body = await request.json();
