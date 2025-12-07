@@ -92,7 +92,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨❣️] Books the documentation should be rendered via <BookEditor /> component
 
@@ -101,6 +101,8 @@
 -   You are working on page `/docs/[commitmentName]`
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+![alt text](screenshots/2025-11-0440-agents-server-documentation-3.png)
 
 ---
 
