@@ -1,4 +1,4 @@
-[ ] _<- Note: Wait after `USE BROWSER` implementation_
+[x] _<- Note: Wait after `USE BROWSER` implementation_
 
 [✨🏐] Allow to add MCP server to agent via `USE MCP` commitment
 

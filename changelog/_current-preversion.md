@@ -13,6 +13,11 @@
     -   Content following `USE SEARCH ENGINE` is ignored (similar to `NOTE`)
     -   Part of the `USE` family of commitments
     -   Stores `useSearchEngine: true` and `tools: ['search-engine']` in agent metadata
+-   Implement `USE MCP` commitment to connect agent to MCP servers
+    -   Allows specifying an MCP server URL which the agent will connect to for retrieving additional instructions and actions
+    -   Content following `USE MCP` is the URL of the MCP server
+    -   Part of the `USE` family of commitments
+    -   Stores the server URL in `mcpServers` list in agent model requirements
 -   Implement `META FONT` commitment to set the agent's font
     -   Allows setting custom font family for the agent page
     -   Dynamically loads fonts from Google Fonts
