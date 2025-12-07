@@ -94,6 +94,18 @@
 
 [ ]
 
+[✨❣️] Books the documentation should be rendered via <BookEditor /> component
+
+-   Now we are rendering it via generic clack code box
+-   The `<BookEditor />` in read-only mode should be used to render `book` code blocks in the documentation
+-   You are working on page `/docs/[commitmentName]`
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[ ]
+
 [✨❣️] Allow to print the documentation
 
 -   On pages `/docs` and `/docs/[commitmentName]` add button `Print` which will open print dialog to print the page
