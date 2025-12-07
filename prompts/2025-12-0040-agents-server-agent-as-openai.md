@@ -80,9 +80,139 @@ or CLI with BYOK strategy failed:
 
 ---
 
+[ ]
+
+[✨🧚] Agent OpenAI compatible endpoint should have version suffix
+
+-   Agent OpenAI compatible endpoint is `/agents/[agentName]/api/openai` and its implemented in `/apps/agents-server/src/utils/handleChatCompletion.ts`
+-   Move `/agents/[agentName]/api/openai` to `/agents/[agentName]/api/openai/v1` to allow versioning in future
+-   Update the link to this endpoint in `/agents/[agentName]/integration` and other places accordingly
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[*]
+
+[✨🧚] When calling via Agent OpenAI compatible endpoint,
+
+-   Agent OpenAI compatible endpoint is `/agents/[agentName]/api/openai/v1` and its implemented in `/apps/agents-server/src/utils/handleChatCompletion.ts`
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[ ]
+
+[✨🧚] Add OpenAI compatible endpoint which contain all the agents NOT just single agent
+
+-   There is Agent OpenAI compatible endpoint is `/agents/[agentName]/api/openai/v1` and its implemented in `/apps/agents-server/src/utils/handleChatCompletion.ts`
+-   There should be also endpoint `/api/openai/v1` which will contain all the agents
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle, do not implement anything twice, reuse existing logic and/or create common abstractions between both endpoints.
+
+---
+
+[ ]
+
+[✨🧚] Be aware that when chatting through OpenAI compatible API, client can pass system message / system instructions
+
+-   The passed system message should behave like `CONTEXT` commitment in Promptbook agent source appended to the agent source to the bottom
+-   There is Agent OpenAI compatible endpoint is `/agents/[agentName]/api/openai/v1` and its implemented in `/apps/agents-server/src/utils/handleChatCompletion.ts`
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+For example, when calling:
+
+```typescript
+const response = await client.chat.completions.create({
+    model: 'agent:jack-green',
+    messages: [
+        { role: 'system', content: 'You are helping users of abc.com' },
+        { role: 'user', content: 'Hello!' },
+    ],
+});
+```
+
+And the agent `jack-green` has source:
+
+```book
+Jack Green
+
+RULE Always speak in modern English.
+```
+
+**Then the final source used for the agent should be:**
+
+```book
+Jack Green
+
+RULE Always speak in modern English.
+CONTEXT You are helping users of abc.com
+```
+
+**And model requirements should be created accordingly.**
+
+---
+
+[ ]
+
+[✨🧚] When using extarnal application [Jan](https://www.jan.ai/) to chat with Promptbook Agent via Agent OpenAI compatible endpoint, it scrambles the response messages.
+
+-   The messages are not scrambled when using OpenAI client directly, for example: "Hello! How can I assist you today?"
+-   But when using Jan.ai application, same message look like this: "HelloHowssistay"
+-   There is Agent OpenAI compatible endpoint is `/agents/[agentName]/api/openai/v1` and its implemented in `/apps/agents-server/src/utils/handleChatCompletion.ts`
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+![alt text](screenshots/2025-12-0040-agents-server-agent-as-openai.png)
+
+---
+
 [-]
 
 [✨🧚] brr
 
+-   There is Agent OpenAI compatible endpoint is `/agents/[agentName]/api/openai/v1` and its implemented in `/apps/agents-server/src/utils/handleChatCompletion.ts`
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[-]
+
+[✨🧚] brr
+
+-   There is Agent OpenAI compatible endpoint is `/agents/[agentName]/api/openai/v1` and its implemented in `/apps/agents-server/src/utils/handleChatCompletion.ts`
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[-]
+
+[✨🧚] brr
+
+-   There is Agent OpenAI compatible endpoint is `/agents/[agentName]/api/openai/v1` and its implemented in `/apps/agents-server/src/utils/handleChatCompletion.ts`
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[-]
+
+[✨🧚] brr
+
+-   There is Agent OpenAI compatible endpoint is `/agents/[agentName]/api/openai/v1` and its implemented in `/apps/agents-server/src/utils/handleChatCompletion.ts`
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[-]
+
+[✨🧚] brr
+
+-   There is Agent OpenAI compatible endpoint is `/agents/[agentName]/api/openai/v1` and its implemented in `/apps/agents-server/src/utils/handleChatCompletion.ts`
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.

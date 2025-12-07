@@ -30,7 +30,7 @@ async function playground() {
     //========================================>
 
     const client = new OpenAI({
-        baseURL: 'http://localhost:4440/agents/jack-green/api/openai',
+        baseURL: 'http://localhost:4440/api/openai/v1', //'http://localhost:4440/agents/jack-green/api/openai',
         apiKey: 'ptbk_6135a159114a40b99bdbf2d52db59e59',
     });
 
