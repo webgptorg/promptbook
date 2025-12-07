@@ -1,9 +1,10 @@
 'use client';
 
 import { AgentBasicInformation } from '@promptbook-local/types';
-import { MessageCircleIcon } from 'lucide-react';
+import { MessageCircleIcon, RepeatIcon } from 'lucide-react';
 import { useState } from 'react';
 import { AgentOptionsMenu } from './AgentOptionsMenu';
+import { AgentQrCode } from './AgentQrCode';
 import { QrCodeModal } from './QrCodeModal';
 
 type AgentProfileViewProps = {
@@ -17,6 +18,7 @@ type AgentProfileViewProps = {
     brandColorLightHex: string;
     brandColorDarkHex: string;
     brandColorsHex: string[];
+    backgroundImage: string;
     meta: AgentBasicInformation['meta'];
     isAdmin?: boolean;
 };
@@ -32,10 +34,12 @@ export function AgentProfileView({
     brandColorLightHex,
     brandColorDarkHex,
     brandColorsHex,
+    backgroundImage,
     meta,
     isAdmin = false,
 }: AgentProfileViewProps) {
     const [isQrModalOpen, setIsQrModalOpen] = useState(false);
+    const [isFlipped, setIsFlipped] = useState(false);
 
     // Dynamic Font Loading
     const fontString = meta.font;
@@ -68,14 +72,14 @@ export function AgentProfileView({
             <div
                 className="min-h-[calc(100vh-60px)] w-full flex flex-col items-center justify-center p-6 md:p-12 relative overflow-hidden"
                 style={{
-                    background:
-                        brandColorsHex.length > 1
-                            ? `linear-gradient(135deg, ${brandColorsHex.join(', ')})`
-                            : `linear-gradient(135deg, ${brandColorHex} 0%, ${brandColorDarkHex} 100%)`,
+                    background: backgroundImage,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
                     ...fontStyle,
                 }}
             >
                 {/* Decorative background elements */}
+                {/* [🧠] Are these needed when we have the noisy background? Maybe yes, for extra depth. */}
                 <div
                     className="absolute top-0 left-0 w-96 h-96 rounded-full opacity-20 blur-3xl"
                     style={{ backgroundColor: brandColorLightHex }}
@@ -98,30 +102,70 @@ export function AgentProfileView({
                 </div>
 
                 {/* Main profile content */}
-                <div className="relative z-10 flex flex-col md:flex-row items-center gap-8 md:gap-12 max-w-4xl w-full">
-                    {/* Agent image card */}
-                    <div className="flex-shrink-0">
+                <div className="relative z-10 flex flex-col md:flex-row items-center gap-8 md:gap-12 max-w-5xl w-full">
+                    {/* Agent image card (Flippable) */}
+                    <div className="flex-shrink-0 perspective-1000 group" style={{ perspective: '1000px' }}>
                         <div
-                            className="w-48 h-48 md:w-64 md:h-64 rounded-3xl shadow-2xl overflow-hidden border-4 border-white/20 backdrop-blur-sm"
+                            className="relative w-72 md:w-80 transition-all duration-700 transform-style-3d cursor-pointer"
                             style={{
-                                boxShadow: `0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px ${brandColorLightHex}40`,
+                                aspectRatio: '1 / 1.62', // Golden Ratio
+                                transformStyle: 'preserve-3d',
+                                transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
                             }}
+                            onClick={() => setIsFlipped(!isFlipped)}
                         >
-                            {imageUrl ? (
-                                // eslint-disable-next-line @next/next/no-img-element
-                                <img
-                                    src={imageUrl}
-                                    alt={fullname}
-                                    className="w-full h-full object-cover"
-                                />
-                            ) : (
-                                <div
-                                    className="w-full h-full flex items-center justify-center text-6xl md:text-7xl font-bold text-white/80"
-                                    style={{ backgroundColor: brandColorDarkHex }}
-                                >
-                                    {fullname.charAt(0).toUpperCase()}
+                            {/* Front of Card (Image) */}
+                            <div
+                                className="absolute inset-0 w-full h-full backface-hidden rounded-3xl shadow-2xl overflow-hidden border-4 border-white/20 backdrop-blur-sm"
+                                style={{
+                                    backfaceVisibility: 'hidden',
+                                    backgroundColor: brandColorDarkHex,
+                                    boxShadow: `0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px ${brandColorLightHex}40`,
+                                }}
+                            >
+                                {imageUrl ? (
+                                    // eslint-disable-next-line @next/next/no-img-element
+                                    <img src={imageUrl} alt={fullname} className="w-full h-full object-cover" />
+                                ) : (
+                                    <div
+                                        className="w-full h-full flex items-center justify-center text-8xl font-bold text-white/80"
+                                        style={{ backgroundColor: brandColorDarkHex }}
+                                    >
+                                        {fullname.charAt(0).toUpperCase()}
+                                    </div>
+                                )}
+
+                                {/* Flip hint icon */}
+                                <div className="absolute bottom-4 right-4 bg-black/30 p-2 rounded-full text-white/80 backdrop-blur-md opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <RepeatIcon className="w-5 h-5" />
                                 </div>
-                            )}
+                            </div>
+
+                            {/* Back of Card (QR Code) */}
+                            <div
+                                className="absolute inset-0 w-full h-full backface-hidden rounded-3xl shadow-2xl overflow-hidden border-4 border-white/20 backdrop-blur-sm flex flex-col items-center justify-center p-6"
+                                style={{
+                                    backfaceVisibility: 'hidden',
+                                    transform: 'rotateY(180deg)',
+                                    background: `linear-gradient(135deg, ${brandColorLightHex} 0%, #ffffff 100%)`,
+                                    boxShadow: `0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px ${brandColorLightHex}40`,
+                                }}
+                            >
+                                <div className="transform scale-90 md:scale-100">
+                                    <AgentQrCode
+                                        agentName={agentName}
+                                        agentUrl={agentUrl}
+                                        agentEmail={agentEmail}
+                                        personaDescription={personaDescription}
+                                        meta={meta}
+                                    />
+                                </div>
+                                
+                                {/* Flip hint icon */}
+                                <div className="absolute bottom-4 right-4 bg-black/10 p-2 rounded-full text-black/50 backdrop-blur-md">
+                                    <RepeatIcon className="w-5 h-5" />
+                                </div>
+                            </div>
                         </div>
                     </div>
 

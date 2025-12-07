@@ -50,7 +50,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🏦] Enhance the design of the card on agent page
 
