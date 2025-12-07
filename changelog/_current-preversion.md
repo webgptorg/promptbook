@@ -3,6 +3,11 @@
 -   Horizontal lines (`---`) now end commitments
     -   Allows separating metadata/configuration from conversation flow
     -   Supports various horizontal line formats: `---`, `-----`, `- - -`, `___`, `***`
+-   Implement `USE BROWSER` commitment to enable browser tool capability
+    -   Indicates that the agent should utilize a web browser tool to access and retrieve up-to-date information from the internet
+    -   Content following `USE BROWSER` is ignored (similar to `NOTE`)
+    -   First commitment in the `USE` family (future: `USE SEARCH ENGINE`, `USE FILE SYSTEM`, `USE MCP`)
+    -   Stores `useBrowser: true` and `tools: ['browser']` in agent metadata
 
 ### 🐇 Agents Server
 

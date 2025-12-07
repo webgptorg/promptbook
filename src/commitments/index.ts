@@ -20,6 +20,7 @@ import { UserMessageCommitmentDefinition } from './MESSAGE/UserMessageCommitment
 import { MetaCommitmentDefinition } from './META/META';
 import { MetaColorCommitmentDefinition } from './META_COLOR/META_COLOR';
 import { MetaImageCommitmentDefinition } from './META_IMAGE/META_IMAGE';
+import { MetaLinkCommitmentDefinition } from './META_LINK/META_LINK';
 import { ModelCommitmentDefinition } from './MODEL/MODEL';
 import { NoteCommitmentDefinition } from './NOTE/NOTE';
 import { OpenCommitmentDefinition } from './OPEN/OPEN';
@@ -28,6 +29,8 @@ import { RuleCommitmentDefinition } from './RULE/RULE';
 import { SampleCommitmentDefinition } from './SAMPLE/SAMPLE';
 import { ScenarioCommitmentDefinition } from './SCENARIO/SCENARIO';
 import { StyleCommitmentDefinition } from './STYLE/STYLE';
+import { UseCommitmentDefinition } from './USE/USE';
+import { UseBrowserCommitmentDefinition } from './USE_BROWSER/USE_BROWSER';
 import { NotYetImplementedCommitmentDefinition } from './_base/NotYetImplementedCommitmentDefinition';
 
 /**
@@ -62,6 +65,7 @@ export const COMMITMENT_REGISTRY = [
     new ComponentCommitmentDefinition(),
     new MetaImageCommitmentDefinition(),
     new MetaColorCommitmentDefinition(),
+    new MetaLinkCommitmentDefinition(),
     new MetaCommitmentDefinition(),
     new NoteCommitmentDefinition('NOTE'),
     new NoteCommitmentDefinition('NOTES'),
@@ -82,6 +86,8 @@ export const COMMITMENT_REGISTRY = [
     new DeleteCommitmentDefinition('REMOVE'),
     new OpenCommitmentDefinition(),
     new ClosedCommitmentDefinition(),
+    new UseBrowserCommitmentDefinition(),
+    new UseCommitmentDefinition(),
 
     // Not yet implemented commitments (using placeholder)
     new NotYetImplementedCommitmentDefinition('EXPECT'),

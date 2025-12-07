@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🤸] Implement `USE BROWSER` commitment
 
@@ -23,7 +23,7 @@ USE BROWSER
 
 [-]
 
-[✨🤸] qux
+[✨🤸] When `USE BROWSER` agent should be able to use browser
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
