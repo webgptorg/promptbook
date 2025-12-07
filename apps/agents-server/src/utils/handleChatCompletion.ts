@@ -192,6 +192,12 @@ export async function handleChatCompletion(
                             apiKey,
                         });
 
+                        // Note: [🐱‍🚀] Save the learned data
+                        const newAgentSource = agent.agentSource.value;
+                        if (newAgentSource !== agentSource) {
+                            await collection.updateAgentSource(agentName, newAgentSource);
+                        }
+
                         const doneChunkData = {
                             id: runId,
                             object: 'chat.completion.chunk',
@@ -251,6 +257,12 @@ export async function handleChatCompletion(
                 apiKey,
             });
 
+            // Note: [🐱‍🚀] Save the learned data
+            const newAgentSource = agent.agentSource.value;
+            if (newAgentSource !== agentSource) {
+                await collection.updateAgentSource(agentName, newAgentSource);
+            }
+
             return NextResponse.json({
                 id: `chatcmpl-${Math.random().toString(36).substring(2, 15)}`,
                 object: 'chat.completion',
@@ -285,6 +297,5 @@ export async function handleChatCompletion(
 }
 
 /**
- * TODO: !!!! Same self-learning as in web version
  * TODO: [🈹] Maybe move chat thread handling here
  */
