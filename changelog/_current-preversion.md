@@ -1,5 +1,7 @@
 ### 🐇 Agents Server
 
+-   Add `/models` endpoint to OpenAI-compatible API (`/agents/[agentName]/api/openai/models`)
+    -   Required for OpenAI-compatible clients (Jan, LM Studio, etc.) to discover available models
 -   Fix OpenAI API compatibility route (`/agents/[agentName]/api/openai`) to use server's API keys instead of BYOK (Bring Your Own Keys) strategy
     -   The route now uses the same `OpenAiAssistantExecutionTools` as the web chat interface
 -   Fix `OpenAiAssistantExecutionTools` to always include current user message in thread
