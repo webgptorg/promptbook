@@ -8,6 +8,9 @@
     -   Content following `USE BROWSER` is ignored (similar to `NOTE`)
     -   First commitment in the `USE` family (future: `USE SEARCH ENGINE`, `USE FILE SYSTEM`, `USE MCP`)
     -   Stores `useBrowser: true` and `tools: ['browser']` in agent metadata
+-   Implement `META FONT` commitment to set the agent's font
+    -   Allows setting custom font family for the agent page
+    -   Dynamically loads fonts from Google Fonts
 
 ### 🐇 Agents Server
 
@@ -19,6 +22,8 @@
     -   All secondary actions (standalone chat, edit book, integration, etc.) moved to dropdown "More options" menu
     -   QR code available via modal dialog from options menu
     -   Admin-only menu items for chat history, feedback, clone, and export
+-   Support `META FONT` on agent page
+    -   Agent page now uses the font specified in `META FONT` commitment for agent name and other text
 -   Add `/models` endpoint to OpenAI-compatible API (`/agents/[agentName]/api/openai/models`)
     -   Required for OpenAI-compatible clients (Jan, LM Studio, etc.) to discover available models
 -   Fix OpenAI API compatibility route (`/agents/[agentName]/api/openai`) to use server's API keys instead of BYOK (Bring Your Own Keys) strategy

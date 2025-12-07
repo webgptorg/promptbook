@@ -35,13 +35,39 @@ export function AgentProfileView({
 }: AgentProfileViewProps) {
     const [isQrModalOpen, setIsQrModalOpen] = useState(false);
 
+    // Dynamic Font Loading
+    const fontString = meta.font;
+    let fontStyle: React.CSSProperties = {};
+
+    if (fontString) {
+        const primaryFont = fontString.split(',')[0].trim().replace(/['"]/g, '');
+        const googleFontUrl = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(primaryFont)}:wght@400;600;700&display=swap`;
+
+        fontStyle = {
+            fontFamily: fontString,
+        };
+
+        // TODO: [🧠] Is this the best way to load fonts? Maybe use next/font/google?
+        // But next/font/google requires known font at build time or generic loader which might be tricky dynamically.
+        // Inserting a link tag is a simple dynamic solution.
+    }
+
     return (
         <>
+            {fontString && (
+                <style jsx global>{`
+                    @import url('https://fonts.googleapis.com/css2?family=${encodeURIComponent(
+                        fontString.split(',')[0].trim().replace(/['"]/g, ''),
+                    )}:wght@400;600;700&display=swap');
+                `}</style>
+            )}
+
             {/* Full-screen background with agent color */}
             <div
                 className="min-h-[calc(100vh-60px)] w-full flex flex-col items-center justify-center p-6 md:p-12 relative overflow-hidden"
                 style={{
                     background: `linear-gradient(135deg, ${brandColorHex} 0%, ${brandColorDarkHex} 100%)`,
+                    ...fontStyle,
                 }}
             >
                 {/* Decorative background elements */}
@@ -100,7 +126,8 @@ export function AgentProfileView({
                         <h1
                             className="text-4xl md:text-5xl lg:text-6xl font-bold text-white tracking-tight"
                             style={{
-                                fontFamily: 'var(--font-poppins), Poppins, sans-serif',
+                                // fontFamily: 'var(--font-poppins), Poppins, sans-serif', // <- [🧠] Should we keep this fallback or just use inherited font?
+                                // Using inherited font from the wrapper div which has dynamic font
                                 textShadow: '0 2px 20px rgba(0, 0, 0, 0.2)',
                             }}
                         >

@@ -72,6 +72,11 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
             continue;
         }
 
+        if (commitment.type === 'META FONT') {
+            meta.font = spaceTrim(commitment.content);
+            continue;
+        }
+
         if (commitment.type !== 'META') {
             continue;
         }

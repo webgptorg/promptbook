@@ -19,6 +19,7 @@ import { MessageCommitmentDefinition } from './MESSAGE/MESSAGE';
 import { UserMessageCommitmentDefinition } from './MESSAGE/UserMessageCommitmentDefinition';
 import { MetaCommitmentDefinition } from './META/META';
 import { MetaColorCommitmentDefinition } from './META_COLOR/META_COLOR';
+import { MetaFontCommitmentDefinition } from './META_FONT/META_FONT';
 import { MetaImageCommitmentDefinition } from './META_IMAGE/META_IMAGE';
 import { MetaLinkCommitmentDefinition } from './META_LINK/META_LINK';
 import { ModelCommitmentDefinition } from './MODEL/MODEL';
@@ -65,6 +66,7 @@ export const COMMITMENT_REGISTRY = [
     new ComponentCommitmentDefinition(),
     new MetaImageCommitmentDefinition(),
     new MetaColorCommitmentDefinition(),
+    new MetaFontCommitmentDefinition(),
     new MetaLinkCommitmentDefinition(),
     new MetaCommitmentDefinition(),
     new NoteCommitmentDefinition('NOTE'),

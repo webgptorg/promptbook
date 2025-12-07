@@ -18,7 +18,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🏦] Use the agents font on the agent page
 
