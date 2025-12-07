@@ -87,7 +87,7 @@ export default async function AgentIntegrationPage({ params }: { params: Promise
 
     // OpenAI Compatible Curl
     const curlCode = spaceTrim(`
-        curl ${agentApiBase}/api/openai/chat/completions \\
+        curl ${agentApiBase}/api/openai/v1/chat/completions \\
           -H "Content-Type: application/json" \\
           -H "Authorization: Bearer ${apiKey}" \\
           -d '{
@@ -103,7 +103,7 @@ export default async function AgentIntegrationPage({ params }: { params: Promise
         from openai import OpenAI
 
         client = OpenAI(
-            base_url="${agentApiBase}/api/openai",
+            base_url="${agentApiBase}/api/openai/v1",
             api_key="${apiKey}",
         )
 
@@ -122,7 +122,7 @@ export default async function AgentIntegrationPage({ params }: { params: Promise
         import OpenAI from 'openai';
 
         const client = new OpenAI({
-            baseURL: '${agentApiBase}/api/openai',
+            baseURL: '${agentApiBase}/api/openai/v1',
             apiKey: '${apiKey}',
         });
 
@@ -227,7 +227,7 @@ export default async function AgentIntegrationPage({ params }: { params: Promise
                                     Use the agent as a drop-in replacement for OpenAI API in your existing applications.
                                 </p>
                                 <div className="grid md:grid-cols-3 gap-4 mt-4 mb-2">
-                                    <CopyField label="Endpoint URL" value={`${agentApiBase}/api/openai`} />
+                                    <CopyField label="Endpoint URL" value={`${agentApiBase}/api/openai/v1`} />
                                     <CopyField label="Model Name" value={`agent:${agentName}`} />
                                     {isAdmin ? (
                                         <CopyField label="API Key" value={apiKey} />

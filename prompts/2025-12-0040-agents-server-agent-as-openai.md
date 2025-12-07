@@ -80,7 +80,7 @@ or CLI with BYOK strategy failed:
 
 ---
 
-[ ]
+[x]
 
 [✨🧚] Agent OpenAI compatible endpoint should have version suffix
 

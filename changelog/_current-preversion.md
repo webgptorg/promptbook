@@ -41,9 +41,10 @@
     -   Agent page now uses the font specified in `META FONT` commitment for agent name and other text
 -   Support multiple colors in `META COLOR` on agent page
     -   Agent page background now uses a gradient of all colors specified in `META COLOR`
--   Add `/models` endpoint to OpenAI-compatible API (`/agents/[agentName]/api/openai/models`)
+-   Add `/models` endpoint to OpenAI-compatible API (`/agents/[agentName]/api/openai/v1/models`)
     -   Required for OpenAI-compatible clients (Jan, LM Studio, etc.) to discover available models
--   Fix OpenAI API compatibility route (`/agents/[agentName]/api/openai`) to use server's API keys instead of BYOK (Bring Your Own Keys) strategy
+-   Fix OpenAI API compatibility route (`/agents/[agentName]/api/openai/v1`) to use server's API keys instead of BYOK (Bring Your Own Keys) strategy
+    -   Moved OpenAI API compatible endpoints to versioned path `/agents/[agentName]/api/openai/v1` (e.g., `/agents/[agentName]/api/openai/v1/chat/completions`)
     -   The route now uses the same `OpenAiAssistantExecutionTools` as the web chat interface
 -   Fix `OpenAiAssistantExecutionTools` to always include current user message in thread
     -   Previously, when a thread was provided (even empty), the current message was ignored

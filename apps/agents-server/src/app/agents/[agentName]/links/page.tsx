@@ -101,7 +101,7 @@ export default async function AgentLinksPage({ params }: { params: Promise<{ age
                                 <p className="text-xs text-gray-500 mb-2">
                                     Standard OpenAI API endpoint for chat completions.
                                 </p>
-                                <CopyField label="Endpoint URL" value={`${baseUrl}/api/openai/chat/completions`} />
+                                <CopyField label="Endpoint URL" value={`${baseUrl}/api/openai/v1/chat/completions`} />
                             </div>
 
                             <div>
