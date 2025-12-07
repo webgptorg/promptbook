@@ -1,4 +1,7 @@
+import { PROMPTBOOK_COLOR } from '../../config';
+import { assertsError } from '../../errors/assertsError';
 import type { string_color, string_url_image } from '../../types/typeAliases';
+import { spaceTrim } from '../organization/spaceTrim';
 import { TODO_USE } from '../organization/TODO_USE';
 import type { WithTake } from '../take/interfaces/ITakeChain';
 import { take } from '../take/take';
@@ -33,6 +36,33 @@ export class Color {
         } else {
             console.error({ color });
             throw new Error(`Can not create color from given object`);
+        }
+    }
+
+    /**
+     * Creates a new Color instance from miscellaneous formats
+     * It just does not throw error when it fails, it returns PROMPTBOOK_COLOR instead
+     *
+     * @param color
+     * @returns Color object
+     */
+    public static fromSafe(color: string_color | Color): WithTake<Color> {
+        try {
+            return Color.from(color);
+        } catch (error) {
+            assertsError(error);
+            console.warn(
+                spaceTrim(
+                    (block) => `
+                        Color.fromSafe error:
+                        ${block(error.message)}
+
+                        Returning default PROMPTBOOK_COLOR.
+                    `,
+                ),
+            );
+
+            return PROMPTBOOK_COLOR;
         }
     }
 

@@ -146,7 +146,7 @@ export const ChatMessageItem = memo(
         };
 
         const isMe = participant?.isMe;
-        const color = Color.from(
+        const color = Color.fromSafe(
             (participant && participant.color) || (isMe ? USER_CHAT_COLOR : PROMPTBOOK_CHAT_COLOR),
         );
         const colorOfText = color.then(textColor);

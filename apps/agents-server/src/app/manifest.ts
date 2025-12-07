@@ -41,7 +41,7 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
         const description = agentProfile.meta.description || agentProfile.personaDescription || `Agent ${name}`;
 
         // Extract brand color from meta
-        const brandColor = Color.from(agentProfile.meta.color || PROMPTBOOK_COLOR);
+        const brandColor = Color.fromSafe(agentProfile.meta.color || PROMPTBOOK_COLOR);
         const theme_color = brandColor.toHex();
         const background_color = '#ffffff';
 
