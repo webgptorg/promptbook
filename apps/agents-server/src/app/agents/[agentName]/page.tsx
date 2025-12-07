@@ -14,11 +14,7 @@ import { ServiceWorkerRegister } from './ServiceWorkerRegister';
 
 export const generateMetadata = generateAgentMetadata;
 
-export default async function AgentPage({
-    params,
-}: {
-    params: Promise<{ agentName: string }>;
-}) {
+export default async function AgentPage({ params }: { params: Promise<{ agentName: string }> }) {
     const agentName = await getAgentName(params);
     const isAdmin = await isUserAdmin();
 
@@ -60,7 +56,7 @@ export default async function AgentPage({
             <AgentProfileView
                 agentName={agentName}
                 fullname={fullname}
-                personaDescription={agentProfile.personaDescription}
+                personaDescription={agentProfile.personaDescription || ''}
                 imageUrl={imageUrl}
                 agentUrl={agentUrl}
                 agentEmail={agentEmail}
