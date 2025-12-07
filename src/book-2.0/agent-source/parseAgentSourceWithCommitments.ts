@@ -7,6 +7,12 @@ import type { AgentSourceParseResult } from './AgentSourceParseResult';
 import type { string_book } from './string_book';
 
 /**
+ * Regex pattern to match horizontal lines (markdown thematic breaks)
+ * Matches 3 or more hyphens, underscores, or asterisks (with optional spaces between)
+ */
+const HORIZONTAL_LINE_PATTERN = /^[\s]*[-_*][\s]*[-_*][\s]*[-_*][\s]*[-_*]*[\s]*$/;
+
+/**
  * Parses agent source using the new commitment system with multiline support
  * This function replaces the hardcoded commitment parsing in the original parseAgentSource
  *
@@ -79,6 +85,25 @@ export function parseAgentSourceWithCommitments(agentSource: string_book): Omit<
                 foundNewCommitment = true;
                 break;
             }
+        }
+
+        // Check if this is a horizontal line (ends any current commitment)
+        const isHorizontalLine = HORIZONTAL_LINE_PATTERN.test(line);
+        if (isHorizontalLine) {
+            // Save the current commitment if it exists
+            if (currentCommitment) {
+                const fullContent = currentCommitment.contentLines.join('\n');
+                commitments.push({
+                    type: currentCommitment.type as BookCommitment,
+                    content: spaceTrim(fullContent),
+                    originalLine: currentCommitment.originalStartLine,
+                    lineNumber: currentCommitment.startLineNumber,
+                });
+                currentCommitment = null;
+            }
+            // Add horizontal line to non-commitment lines
+            nonCommitmentLines.push(line);
+            continue;
         }
 
         if (!foundNewCommitment) {

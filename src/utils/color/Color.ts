@@ -55,7 +55,7 @@ export class Color {
                 spaceTrim(
                     (block) => `
                         Color.fromSafe error:
-                        ${block(error.message)}
+                        ${block((error as Error).message)}
 
                         Returning default PROMPTBOOK_COLOR.
                     `,

@@ -1,3 +1,9 @@
+### 📖 Book Format
+
+-   Horizontal lines (`---`) now end commitments
+    -   Allows separating metadata/configuration from conversation flow
+    -   Supports various horizontal line formats: `---`, `-----`, `- - -`, `___`, `***`
+
 ### 🐇 Agents Server
 
 -   Simplify agent page design (`/agents/[agentName]`)

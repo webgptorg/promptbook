@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🐁] Horizontal lines should end the commitment
 

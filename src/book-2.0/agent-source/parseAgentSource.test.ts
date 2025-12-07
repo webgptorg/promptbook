@@ -250,4 +250,66 @@ describe('parseAgentSource', () => {
         expect(result.agentName).toBe('pavol-hejny');
         expect(result.meta.fullname).toBe('Pavol Hejný');
     });
+
+    it('horizontal line ends commitment', () => {
+        const agentSource = validateBook(
+            spaceTrim(`
+                Benjamin Brown
+
+                FROM http://localhost:4440/agents/benjamin-white
+                META COLOR #A52A2A
+
+                ---
+
+                USER MESSAGE
+                Hello, can you tell me about yourself?
+
+                AGENT MESSAGE
+                Hello! I'm an AI language model designed to assist with a wide range of inquiries.
+            `),
+        );
+        const result = parseAgentSource(agentSource);
+        expect(result.agentName).toBe('benjamin-brown');
+        expect(result.meta.color).toBe('#A52A2A');
+        // The META COLOR should end at ---, not include the messages as content
+        expect(result.meta.color).not.toContain('USER MESSAGE');
+    });
+
+    it('horizontal line with various formats ends commitment', () => {
+        // Test with simple ---
+        let agentSource = validateBook(
+            spaceTrim(`
+                Agent Name
+                META TITLE My Title
+                ---
+                Some non-commitment text
+            `),
+        );
+        let result = parseAgentSource(agentSource);
+        expect(result.meta.title).toBe('My Title');
+
+        // Test with more hyphens -----
+        agentSource = validateBook(
+            spaceTrim(`
+                Agent Name
+                META TITLE My Title
+                -----
+                Some non-commitment text
+            `),
+        );
+        result = parseAgentSource(agentSource);
+        expect(result.meta.title).toBe('My Title');
+
+        // Test with spaces between hyphens
+        agentSource = validateBook(
+            spaceTrim(`
+                Agent Name
+                META TITLE My Title
+                - - -
+                Some non-commitment text
+            `),
+        );
+        result = parseAgentSource(agentSource);
+        expect(result.meta.title).toBe('My Title');
+    });
 });
