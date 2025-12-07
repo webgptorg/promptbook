@@ -52,10 +52,29 @@ or CLI with BYOK strategy failed:
 
 ---
 
-[-]
+[ ]
 
-[✨🧚] brr
+[✨🧚] When chatting with Agent via OpenAI API compatible route record the history of the chat in a same way as when chatting via web
 
+-   There is endpoint `/agents/[agentName]/api/openai` that exposes the Promptbook agent as OpenAI compatible API
+-   When chatting with the agent via this route, the chat history should be recorded in the same way as when chatting via web chat interface
+-   Add new column `source`and `apiKey` to the `ChatHistory` table
+    -   `source` can have values `AGENT_PAGE_CHAT` and `OPENAI_API_COMPATIBILITY`
+    -   `apiKey` is the api key used for identification of the requestor, for web chat its `NULL`, for OpenAI API compatibility its the `ptbk_...` api key provided in the request
+-   OpenAI API compatible route is in `/apps/agents-server/src/utils/handleChatCompletion.ts`
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[ ]
+
+[✨🧚] When chatting with Agent via OpenAI API compatible route self-learning should work in a same way as when chatting via web chat interface
+
+-   Agent has self-learning capability from conversations
+-   There is endpoint `/agents/[agentName]/api/openai` that exposes the Promptbook agent as OpenAI compatible API
+-   Make sure that when chatting with the agent via this route, the self-learning from conversations works in the same way as when chatting via web chat interface
+-   There should be no difference between web chat and OpenAI API compatible route in this regard
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
