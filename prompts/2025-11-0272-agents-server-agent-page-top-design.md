@@ -8,6 +8,9 @@
     -   Ability to start chat with the agent
 -   All the links and complexity should be hidden in a dropdown menu or "More options" menu
 -   Look for inspiration at attachment photo
+-   It should visually match the Agent color theme, use `Color` object to create matching colors for background, buttons, etc.
+-   Use some nice font for the agent name, like `Poppins`, `Montserrat`, `Raleway`, `Nunito`, etc.
+-   Use nice rounded cards with Agent image
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
