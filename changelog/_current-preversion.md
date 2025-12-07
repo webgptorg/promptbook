@@ -8,6 +8,11 @@
     -   Content following `USE BROWSER` is ignored (similar to `NOTE`)
     -   First commitment in the `USE` family (future: `USE SEARCH ENGINE`, `USE FILE SYSTEM`, `USE MCP`)
     -   Stores `useBrowser: true` and `tools: ['browser']` in agent metadata
+-   Implement `USE SEARCH ENGINE` commitment to enable search engine tool capability
+    -   Indicates that the agent should utilize a search engine tool to access and retrieve up-to-date information from the internet
+    -   Content following `USE SEARCH ENGINE` is ignored (similar to `NOTE`)
+    -   Part of the `USE` family of commitments
+    -   Stores `useSearchEngine: true` and `tools: ['search-engine']` in agent metadata
 -   Implement `META FONT` commitment to set the agent's font
     -   Allows setting custom font family for the agent page
     -   Dynamically loads fonts from Google Fonts

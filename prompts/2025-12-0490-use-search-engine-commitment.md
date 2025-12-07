@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🥡] Implement `USE SEARCH ENGINE` commitment
 

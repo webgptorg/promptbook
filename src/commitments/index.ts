@@ -32,6 +32,7 @@ import { ScenarioCommitmentDefinition } from './SCENARIO/SCENARIO';
 import { StyleCommitmentDefinition } from './STYLE/STYLE';
 import { UseCommitmentDefinition } from './USE/USE';
 import { UseBrowserCommitmentDefinition } from './USE_BROWSER/USE_BROWSER';
+import { UseSearchEngineCommitmentDefinition } from './USE_SEARCH_ENGINE/USE_SEARCH_ENGINE';
 import { NotYetImplementedCommitmentDefinition } from './_base/NotYetImplementedCommitmentDefinition';
 
 /**
@@ -89,6 +90,7 @@ export const COMMITMENT_REGISTRY = [
     new OpenCommitmentDefinition(),
     new ClosedCommitmentDefinition(),
     new UseBrowserCommitmentDefinition(),
+    new UseSearchEngineCommitmentDefinition(),
     new UseCommitmentDefinition(),
 
     // Not yet implemented commitments (using placeholder)
