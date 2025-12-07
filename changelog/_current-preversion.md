@@ -14,8 +14,6 @@
     -   `OPEN` (default) allows agent to learn from conversation and modify its source
     -   `CLOSED` prevents agent from being modified by conversation
 -   Implement `LANGUAGE` commitment to specify the language(s) the agent should use in its responses
--   Implement system for commitment modifiers, the "co-commitments"
-    -   Add `IMPORTANT` co-commitment to emphasize other commitments (e.g., `IMPORTANT RULE`)
 
 ### 🔒 Security
 
