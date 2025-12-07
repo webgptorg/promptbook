@@ -35,13 +35,20 @@ export async function resolveInheritedAgentSource(
         // So we might need to parse the URL to extract agent name if it matches expected pattern.
         // For now, let's rely on fetch for external and check collection if it looks like a local reference (though FROM expects URL)
 
-        // If the URL is valid, we try to fetch it
-        // TODO: Handle authentication/tokens for private agents if needed
-        const response = await fetch(parentUrl);
+    // If the URL is valid, we try to fetch it
+    // TODO: Handle authentication/tokens for private agents if needed
 
-        if (!response.ok) {
-            throw new Error(`Failed to fetch parent agent from ${parentUrl}: ${response.status} ${response.statusText}`);
-        }
+    // TODO: [🧠] Do this logic more robustly
+    let fetchUrl = parentUrl;
+    if (!fetchUrl.endsWith('/api/book') && !fetchUrl.endsWith('.book') && !fetchUrl.endsWith('.md')) {
+        fetchUrl = `${fetchUrl.replace(/\/$/, '')}/api/book`;
+    }
+
+    const response = await fetch(fetchUrl);
+
+    if (!response.ok) {
+        throw new Error(`Failed to fetch parent agent from ${fetchUrl}: ${response.status} ${response.statusText}`);
+    }
 
         // We assume the response is the agent source text
         // TODO: Handle content negotiation or JSON responses if the server returns JSON

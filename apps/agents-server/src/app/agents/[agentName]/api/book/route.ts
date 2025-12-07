@@ -1,4 +1,5 @@
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
+import { resolveInheritedAgentSource } from '@/src/utils/resolveInheritedAgentSource';
 import { padBook, validateBook } from '@promptbook-local/core';
 import { serializeError } from '@promptbook-local/utils';
 import spaceTrim from 'spacetrim';
@@ -13,8 +14,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
     try {
         const collection = await $provideAgentCollectionForServer();
         const agentSource = await collection.getAgentSource(agentName);
+        const effectiveAgentSource = await resolveInheritedAgentSource(agentSource, collection);
 
-        return new Response(agentSource, {
+        return new Response(effectiveAgentSource, {
             status: 200,
             headers: { 'Content-Type': 'text/plain' /* <- TODO: [🎳] Mime type of book */ },
         });

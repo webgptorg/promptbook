@@ -20,7 +20,7 @@ RULE Speak only in English.
 
 ---
 
-[ ]
+[x]
 
 [✨💴] Make commitment `FROM` work
 
