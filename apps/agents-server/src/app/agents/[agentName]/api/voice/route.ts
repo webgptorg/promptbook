@@ -98,6 +98,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             userAgent,
             language,
             platform,
+            source: 'AGENT_PAGE_CHAT',
+            apiKey: null,
         });
 
         // Call Agent
@@ -131,6 +133,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             userAgent,
             language,
             platform,
+            source: 'AGENT_PAGE_CHAT',
+            apiKey: null,
         });
 
         // Learning

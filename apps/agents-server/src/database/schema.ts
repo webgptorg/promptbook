@@ -128,6 +128,8 @@ export type AgentsServerDatabase = {
                     userAgent: string | null;
                     language: string | null;
                     platform: string | null;
+                    source: 'AGENT_PAGE_CHAT' | 'OPENAI_API_COMPATIBILITY' | null;
+                    apiKey: string | null;
                 };
                 Insert: {
                     id?: number;
@@ -143,6 +145,8 @@ export type AgentsServerDatabase = {
                     userAgent?: string | null;
                     language?: string | null;
                     platform?: string | null;
+                    source?: 'AGENT_PAGE_CHAT' | 'OPENAI_API_COMPATIBILITY' | null;
+                    apiKey?: string | null;
                 };
                 Update: {
                     id?: number;
@@ -158,6 +162,8 @@ export type AgentsServerDatabase = {
                     userAgent?: string | null;
                     language?: string | null;
                     platform?: string | null;
+                    source?: 'AGENT_PAGE_CHAT' | 'OPENAI_API_COMPATIBILITY' | null;
+                    apiKey?: string | null;
                 };
                 Relationships: [];
             };

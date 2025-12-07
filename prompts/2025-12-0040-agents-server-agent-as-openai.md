@@ -52,7 +52,7 @@ or CLI with BYOK strategy failed:
 
 ---
 
-[ ]
+[x]
 
 [✨🧚] When chatting with Agent via OpenAI API compatible route record the history of the chat in a same way as when chatting via web
 

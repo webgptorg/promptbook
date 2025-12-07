@@ -77,6 +77,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             userAgent,
             language,
             platform,
+            source: 'AGENT_PAGE_CHAT',
+            apiKey: null,
         });
 
         const encoder = new TextEncoder();
@@ -119,6 +121,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                             userAgent,
                             language,
                             platform,
+                            source: 'AGENT_PAGE_CHAT',
+                            apiKey: null,
                         });
 
                         // Note: [🐱‍🚀] Save the learned data

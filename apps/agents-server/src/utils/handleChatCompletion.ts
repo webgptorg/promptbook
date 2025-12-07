@@ -1,7 +1,10 @@
+import { $getTableName } from '@/src/database/$getTableName';
+import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideOpenAiAssistantExecutionToolsForServer } from '@/src/tools/$provideOpenAiAssistantExecutionToolsForServer';
-import { Agent } from '@promptbook-local/core';
+import { Agent, computeAgentHash, PROMPTBOOK_ENGINE_VERSION } from '@promptbook-local/core';
 import { ChatMessage, ChatPromptResult, Prompt, TODO_any } from '@promptbook-local/types';
+import { computeHash } from '@promptbook-local/utils';
 import { NextRequest, NextResponse } from 'next/server';
 import { validateApiKey } from './validateApiKey';
 
@@ -25,6 +28,7 @@ export async function handleChatCompletion(
             { status: 401 },
         );
     }
+    const apiKey = apiKeyValidation.token || null;
 
     try {
         const body = await request.json();
@@ -69,6 +73,18 @@ export async function handleChatCompletion(
             isVerbose: true, // or false
         });
 
+        const agentHash = computeAgentHash(agentSource);
+        const userAgent = request.headers.get('user-agent');
+        const ip =
+            request.headers.get('x-forwarded-for') ||
+            request.headers.get('x-real-ip') ||
+            request.headers.get('x-client-ip');
+
+        // Note: Capture language and platform information
+        const language = request.headers.get('accept-language');
+        // Simple platform extraction from userAgent parentheses content (e.g., Windows NT 10.0; Win64; x64)
+        const platform = userAgent ? userAgent.match(/\(([^)]+)\)/)?.[1] : undefined; // <- TODO: [🧠] Improve platform parsing
+
         // Prepare thread and content
         const lastMessage = messages[messages.length - 1];
         const previousMessages = messages.slice(0, -1);
@@ -80,6 +96,30 @@ export async function handleChatCompletion(
             isComplete: true,
             date: new Date(), // We don't have the real date, using current
         }));
+
+        // Note: Identify the user message
+        const userMessageContent = {
+            role: 'USER',
+            content: lastMessage.content,
+        };
+
+        const supabase = $provideSupabaseForServer();
+        await supabase.from(await $getTableName('ChatHistory')).insert({
+            createdAt: new Date().toISOString(),
+            messageHash: computeHash(userMessageContent),
+            previousMessageHash: null,
+            agentName,
+            agentHash,
+            message: userMessageContent,
+            promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
+            url: request.url,
+            ip,
+            userAgent,
+            language,
+            platform,
+            source: 'OPENAI_API_COMPATIBILITY',
+            apiKey,
+        });
 
         const prompt: Prompt = {
             title,
@@ -103,7 +143,7 @@ export async function handleChatCompletion(
                     let previousContent = '';
 
                     try {
-                        await agent.callChatModelStream(prompt, (chunk: ChatPromptResult) => {
+                        const result = await agent.callChatModelStream(prompt, (chunk: ChatPromptResult) => {
                             const fullContent = chunk.content;
                             const deltaContent = fullContent.substring(previousContent.length);
                             previousContent = fullContent;
@@ -126,6 +166,30 @@ export async function handleChatCompletion(
                                 };
                                 controller.enqueue(encoder.encode(`data: ${JSON.stringify(chunkData)}\n\n`));
                             }
+                        });
+
+                        // Note: Identify the agent message
+                        const agentMessageContent = {
+                            role: 'MODEL',
+                            content: result.content,
+                        };
+
+                        // Record the agent message
+                        await supabase.from(await $getTableName('ChatHistory')).insert({
+                            createdAt: new Date().toISOString(),
+                            messageHash: computeHash(agentMessageContent),
+                            previousMessageHash: computeHash(userMessageContent),
+                            agentName,
+                            agentHash,
+                            message: agentMessageContent,
+                            promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
+                            url: request.url,
+                            ip,
+                            userAgent,
+                            language,
+                            platform,
+                            source: 'OPENAI_API_COMPATIBILITY',
+                            apiKey,
                         });
 
                         const doneChunkData = {
@@ -162,6 +226,30 @@ export async function handleChatCompletion(
             });
         } else {
             const result = await agent.callChatModel(prompt);
+
+            // Note: Identify the agent message
+            const agentMessageContent = {
+                role: 'MODEL',
+                content: result.content,
+            };
+
+            // Record the agent message
+            await supabase.from(await $getTableName('ChatHistory')).insert({
+                createdAt: new Date().toISOString(),
+                messageHash: computeHash(agentMessageContent),
+                previousMessageHash: computeHash(userMessageContent),
+                agentName,
+                agentHash,
+                message: agentMessageContent,
+                promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
+                url: request.url,
+                ip,
+                userAgent,
+                language,
+                platform,
+                source: 'OPENAI_API_COMPATIBILITY',
+                apiKey,
+            });
 
             return NextResponse.json({
                 id: `chatcmpl-${Math.random().toString(36).substring(2, 15)}`,
