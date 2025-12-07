@@ -1,5 +1,10 @@
 ### 🐇 Agents Server
 
+-   Fix OpenAI API compatibility route (`/agents/[agentName]/api/openai`) to use server's API keys instead of BYOK (Bring Your Own Keys) strategy
+    -   The route now uses the same `OpenAiAssistantExecutionTools` as the web chat interface
+-   Fix `OpenAiAssistantExecutionTools` to always include current user message in thread
+    -   Previously, when a thread was provided (even empty), the current message was ignored
+    -   Now the current message is always appended to the thread messages
 -   Load federated agents dynamically after page load to improve performance
     -   Add `ExternalAgentsSectionClient` component
     -   Add `/api/federated-agents` endpoint to list federated servers

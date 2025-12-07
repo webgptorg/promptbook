@@ -135,25 +135,33 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             modelName: 'assistant',
             //          <- [🧠] What is the best value here
         });
+        // Build thread messages: include previous thread messages + current user message
+        const threadMessages: Array<{ role: 'user' | 'assistant'; content: string }> = [];
+
+        // Add previous messages from thread (if any)
+        if (
+            'thread' in prompt &&
+            Array.isArray((prompt as { thread?: Array<{ role: string; content: string }> }).thread)
+        ) {
+            const previousMessages = (
+                prompt as { thread: Array<{ role: string; content: string }> }
+            ).thread.map((msg) => ({
+                role: (msg.role === 'assistant' ? 'assistant' : 'user') as 'user' | 'assistant',
+                content: msg.content,
+            }));
+            threadMessages.push(...previousMessages);
+        }
+
+        // Always add the current user message
+        threadMessages.push({ role: 'user', content: rawPromptContent });
+
         const rawRequest: OpenAI.Beta.ThreadCreateAndRunStreamParams = {
             // TODO: [👨‍👨‍👧‍👧] ...modelSettings,
             // TODO: [👨‍👨‍👧‍👧][🧠] What about system message for assistants, does it make sense - combination of OpenAI assistants with Promptbook Personas
 
             assistant_id: this.assistantId,
             thread: {
-                messages:
-                    'thread' in prompt &&
-                    Array.isArray((prompt as { thread?: Array<{ role: string; content: string }> }).thread)
-                        ? (
-                              (prompt as { thread: Array<{ role: string; content: string }> }).thread as Array<{
-                                  role: string;
-                                  content: string;
-                              }>
-                          ).map((msg) => ({
-                              role: msg.role === 'assistant' ? 'assistant' : 'user',
-                              content: msg.content,
-                          }))
-                        : [{ role: 'user', content: rawPromptContent }],
+                messages: threadMessages,
             },
 
             // <- TODO: Add user identification here> user: this.options.user,

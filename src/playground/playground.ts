@@ -36,7 +36,7 @@ async function playground() {
 
     const response = await client.chat.completions.create({
         model: 'agent:jack-green',
-        messages: [{ role: 'user', content: 'Hello!' }],
+        messages: [{ role: 'user', content: 'Tell me more about you.' }],
     });
 
     console.log(response.choices[0].message.content);

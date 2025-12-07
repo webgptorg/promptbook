@@ -1,5 +1,5 @@
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
-import { $provideExecutionToolsForServer } from '@/src/tools/$provideExecutionToolsForServer';
+import { $provideOpenAiAssistantExecutionToolsForServer } from '@/src/tools/$provideOpenAiAssistantExecutionToolsForServer';
 import { Agent } from '@promptbook-local/core';
 import { ChatMessage, ChatPromptResult, Prompt, TODO_any } from '@promptbook-local/types';
 import { NextRequest, NextResponse } from 'next/server';
@@ -48,10 +48,12 @@ export async function handleChatCompletion(
             );
         }
 
-        const executionTools = await $provideExecutionToolsForServer();
+        const openAiAssistantExecutionTools = await $provideOpenAiAssistantExecutionToolsForServer();
         const agent = new Agent({
             agentSource,
-            executionTools,
+            executionTools: {
+                llm: openAiAssistantExecutionTools, // Note: Use the same OpenAI Assistant LLM tools as the chat route
+            },
             isVerbose: true, // or false
         });
 
@@ -181,3 +183,8 @@ export async function handleChatCompletion(
         );
     }
 }
+
+
+/**
+ * TODO: !!!! Same self-learning as in web version
+ */
