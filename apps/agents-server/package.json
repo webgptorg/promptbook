@@ -8,5 +8,11 @@
         "start": "next start -p 4440",
         "lint": "next lint",
         "postinstall": "cd ../../ && npm ci"
+    },
+    "devDependencies": {
+        "@tailwindcss/typography": "^0.5.19"
+    },
+    "dependencies": {
+        "remark-gfm": "^4.0.1"
     }
 }
