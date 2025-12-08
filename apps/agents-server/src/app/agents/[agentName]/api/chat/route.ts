@@ -84,6 +84,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         const encoder = new TextEncoder();
         const readableStream = new ReadableStream({
             start(controller) {
+                let previousContent = '';
+
                 agent.callChatModelStream!(
                     {
                         title: `Chat with agent ${
@@ -97,7 +99,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                         thread,
                     },
                     (chunk) => {
-                        controller.enqueue(encoder.encode(chunk.content));
+                        const fullContent = chunk.content;
+                        const deltaContent = fullContent.substring(previousContent.length);
+                        previousContent = fullContent;
+
+                        controller.enqueue(encoder.encode(deltaContent));
                     },
                 )
                     .then(async (response) => {
