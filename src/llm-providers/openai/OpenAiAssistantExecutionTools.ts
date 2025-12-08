@@ -138,18 +138,18 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
         // Build thread messages: include previous thread messages + current user message
         const threadMessages: Array<{ role: 'user' | 'assistant'; content: string }> = [];
 
-        // TODO: [🈹] Maybe this shouldnt be here but in other place, look at commit 39d705e75e5bcf7a818c3af36bc13e1c8475c30c
+        // TODO: [🈹] Maybe this should not be here but in other place, look at commit 39d705e75e5bcf7a818c3af36bc13e1c8475c30c
         // Add previous messages from thread (if any)
         if (
             'thread' in prompt &&
             Array.isArray((prompt as { thread?: Array<{ role: string; content: string }> }).thread)
         ) {
-            const previousMessages = (
-                prompt as { thread: Array<{ role: string; content: string }> }
-            ).thread.map((msg) => ({
-                role: (msg.role === 'assistant' ? 'assistant' : 'user') as 'user' | 'assistant',
-                content: msg.content,
-            }));
+            const previousMessages = (prompt as { thread: Array<{ role: string; content: string }> }).thread.map(
+                (msg) => ({
+                    role: (msg.role === 'assistant' ? 'assistant' : 'user') as 'user' | 'assistant',
+                    content: msg.content,
+                }),
+            );
             threadMessages.push(...previousMessages);
         }
 

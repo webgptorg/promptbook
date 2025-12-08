@@ -39,7 +39,7 @@ async function playground() {
         messages: [{ role: 'user', content: 'Tell me more about you.' }],
     });
 
-    console.log(response.choices[0].message.content);
+    console.log(response.choices[0]!.message.content);
 
     //========================================/
 
