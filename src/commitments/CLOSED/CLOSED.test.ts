@@ -1,8 +1,8 @@
 import { describe, expect, it } from '@jest/globals';
-import { ClosedCommitmentDefinition } from './CLOSED';
-import { parseAgentSourceWithCommitments } from '../../book-2.0/agent-source/parseAgentSourceWithCommitments';
 import { spaceTrim } from 'spacetrim';
+import { parseAgentSourceWithCommitments } from '../../book-2.0/agent-source/parseAgentSourceWithCommitments';
 import { string_book } from '../../book-2.0/agent-source/string_book';
+import { ClosedCommitmentDefinition } from './CLOSED';
 
 describe('CLOSED commitment', () => {
     const commitment = new ClosedCommitmentDefinition();
@@ -23,9 +23,13 @@ describe('CLOSED commitment', () => {
         `) as string_book;
 
         const result = parseAgentSourceWithCommitments(source);
-        const parsedCommitment = result.commitments.find(c => c.type === 'CLOSED');
-        
+        const parsedCommitment = result.commitments.find((c) => c.type === 'CLOSED');
+
         expect(parsedCommitment).toBeDefined();
         expect(parsedCommitment?.content).toBe('');
     });
 });
+
+/**
+ * TODO: !!!! Must be last commitment to take effect
+ */
