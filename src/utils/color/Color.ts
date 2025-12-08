@@ -48,8 +48,8 @@ export class Color {
         try {
             return Color.from(color);
         } catch (error) {
-            // assertsError(error);
-            // <- Note: !!!! Can not use `assertsError` here because it causes circular dependency
+            // <- Note: Can not use `assertsError(error)` here because it causes circular dependency
+
             console.warn(
                 spaceTrim(
                     (block) => `
