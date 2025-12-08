@@ -68,12 +68,12 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
         }
 
         if (commitment.type === 'META COLOR') {
-            meta.color = spaceTrim(commitment.content);
+            meta.color = normalizeSeparator(commitment.content);
             continue;
         }
 
         if (commitment.type === 'META FONT') {
-            meta.font = spaceTrim(commitment.content);
+            meta.font = normalizeSeparator(commitment.content);
             continue;
         }
 
@@ -116,6 +116,20 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
         links,
         parameters,
     };
+}
+
+/**
+ * Normalizes the separator in the content
+ *
+ * @param content - The content to normalize
+ * @returns The content with normalized separators
+ */
+function normalizeSeparator(content: string): string {
+    const trimmed = spaceTrim(content);
+    if (trimmed.includes(',')) {
+        return trimmed;
+    }
+    return trimmed.split(/\s+/).join(', ');
 }
 
 /**

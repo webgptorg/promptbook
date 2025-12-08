@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨♠️] `COLOR` and `FONT` coomitments should be separatable both by "," and " "
 

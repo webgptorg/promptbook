@@ -24,6 +24,9 @@
 -   Update `META COLOR` commitment to support multiple colors
     -   Allows specifying multiple colors separated by comma (e.g., `#FF5733, #33FF57`)
     -   Used to create a gradient background on the agent page
+-   Allow both comma and space separators in `META COLOR` and `META FONT` commitments
+    -   Example: `META COLOR red, blue, green` and `META COLOR red blue green` now work the same
+    -   Example: `META FONT Arial, sans-serif` and `META FONT Arial sans-serif` now work the same
 
 ### 🐇 Agents Server
 

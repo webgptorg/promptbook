@@ -311,4 +311,49 @@ describe('parseAgentSource', () => {
         result = parseAgentSource(agentSource);
         expect(result.meta.title).toBe('My Title');
     });
+
+    it('parses COLOR with comma separator', () => {
+        const agentSource = validateBook(`
+            COLOR red, blue, green
+            PERSONA You are a helper
+        `);
+        const result = parseAgentSource(agentSource);
+        expect(result.meta.color).toBe('red, blue, green');
+    });
+
+    it('parses COLOR with space separator', () => {
+        const agentSource = validateBook(`
+            COLOR red blue green
+            PERSONA You are a helper
+        `);
+        const result = parseAgentSource(agentSource);
+        expect(result.meta.color).toBe('red, blue, green');
+    });
+
+    it('parses FONT with comma separator', () => {
+        const agentSource = validateBook(`
+            FONT Arial, sans-serif
+            PERSONA You are a helper
+        `);
+        const result = parseAgentSource(agentSource);
+        expect(result.meta.font).toBe('Arial, sans-serif');
+    });
+
+    it('parses FONT with space separator', () => {
+        const agentSource = validateBook(`
+            FONT Arial sans-serif
+            PERSONA You are a helper
+        `);
+        const result = parseAgentSource(agentSource);
+        expect(result.meta.font).toBe('Arial, sans-serif');
+    });
+
+    it('parses FONT with spaces in name (treated as list)', () => {
+        const agentSource = validateBook(`
+            FONT Times New Roman
+            PERSONA You are a helper
+        `);
+        const result = parseAgentSource(agentSource);
+        expect(result.meta.font).toBe('Times, New, Roman');
+    });
 });
