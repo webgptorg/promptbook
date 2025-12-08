@@ -4,19 +4,19 @@ import {
     CodeIcon,
     CopyIcon,
     CopyPlusIcon,
+    DownloadIcon,
     HistoryIcon,
     LinkIcon,
+    MailIcon,
+    MessageCircleQuestionIcon,
+    MessageSquareIcon,
+    MessageSquareShareIcon,
     MoreHorizontalIcon,
     NotebookPenIcon,
     QrCodeIcon,
     SquareSplitHorizontalIcon,
-    MessageSquareShareIcon,
-    MailIcon,
-    MessageCircleQuestionIcon,
-    MessageSquareIcon,
-    DownloadIcon,
 } from 'lucide-react';
-import { useState, useRef, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 type AgentOptionsMenuProps = {
     agentName: string;
@@ -154,6 +154,7 @@ export function AgentOptionsMenu({
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="p-3 rounded-full bg-white/20 hover:bg-white/30 transition-all duration-200 backdrop-blur-sm"
+                style={{backgroundColor: brandColorHex}}
                 aria-label="More options"
             >
                 <MoreHorizontalIcon className="w-5 h-5 text-white" />
