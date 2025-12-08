@@ -131,6 +131,19 @@
 
 ---
 
+[ ]
+
+[✨🏦] Instead of "Start Chat" button allow to write reply / quick button of agent initial message directly from here
+
+-   Use <Chat/> component for this
+-   User should be able to click on quick button or write reply
+-   When user sends the message, redirect to full chat page `/agents/[agentName]/chat` with the written messsage which will be sent right away
+-   The Agent profile is on url `/agents/[agentName]` in file `/apps/agents-server/src/app/agents/[agentName]/AgentProfileView.tsx`
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
 [-]
 
 [✨🏦] quux
@@ -144,5 +157,26 @@
 
 [✨🏦] quux
 
+-   The Agent profile is on url `/agents/[agentName]` in file `/apps/agents-server/src/app/agents/[agentName]/AgentProfileView.tsx`
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[-]
+
+[✨🏦] quux
+
+-   The Agent profile is on url `/agents/[agentName]` in file `/apps/agents-server/src/app/agents/[agentName]/AgentProfileView.tsx`
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[-]
+
+[✨🏦] quux
+
+-   The Agent profile is on url `/agents/[agentName]` in file `/apps/agents-server/src/app/agents/[agentName]/AgentProfileView.tsx`
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
