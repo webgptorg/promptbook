@@ -31,6 +31,10 @@ describe('USE BROWSER commitment', () => {
         expect(commitment.createTypeRegex().test('BROWSER')).toBe(true);
         expect(commitment.createTypeRegex().test('use browser')).toBe(true);
         expect(commitment.createTypeRegex().test('Use Browser')).toBe(true);
+
+        // createRegex matches standalone commitment
+        expect(commitment.createRegex().test('USE BROWSER')).toBe(true);
+        expect(commitment.createRegex().test('BROWSER')).toBe(true);
     });
 
     it('sets useBrowser flag in metadata', () => {

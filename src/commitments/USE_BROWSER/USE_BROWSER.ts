@@ -26,6 +26,13 @@ export class UseBrowserCommitmentDefinition extends BaseCommitmentDefinition<'US
     }
 
     /**
+     * The `USE BROWSER` commitment is standalone.
+     */
+    override get requiresContent(): boolean {
+        return false;
+    }
+
+    /**
      * Short one-line description of USE BROWSER.
      */
     get description(): string {

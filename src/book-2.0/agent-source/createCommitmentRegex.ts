@@ -8,15 +8,23 @@ import type { BookCommitment } from '../../commitments/_base/BookCommitment';
  *
  * @private - TODO: [🧠] Maybe should be public?
  */
-export function createCommitmentRegex(commitment: BookCommitment, aliases: BookCommitment[] = []): RegExp {
+export function createCommitmentRegex(
+    commitment: BookCommitment,
+    aliases: BookCommitment[] = [],
+    requiresContent = true,
+): RegExp {
     const allCommitments = [commitment, ...aliases];
     const patterns = allCommitments.map((c) => {
         const escapedCommitment = c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         return escapedCommitment.split(/\s+/).join('\\s+');
     });
     const keywordPattern = patterns.join('|');
-    const regex = new RegExp(`^\\s*(?<type>${keywordPattern})\\b\\s+(?<contents>.+)$`, 'gim');
-    return regex;
+
+    if (requiresContent) {
+        return new RegExp(`^\\s*(?<type>${keywordPattern})\\b\\s+(?<contents>.+)$`, 'gim');
+    } else {
+        return new RegExp(`^\\s*(?<type>${keywordPattern})\\b(?:\\s+(?<contents>.+))?$`, 'gim');
+    }
 }
 
 /**

@@ -23,6 +23,13 @@ export class ClosedCommitmentDefinition extends BaseCommitmentDefinition<'CLOSED
     }
 
     /**
+     * The `CLOSED` commitment is standalone.
+     */
+    override get requiresContent(): boolean {
+        return false;
+    }
+
+    /**
      * Short one-line description of CLOSED.
      */
     get description(): string {

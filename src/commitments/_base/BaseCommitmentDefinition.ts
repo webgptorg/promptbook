@@ -25,6 +25,15 @@ export abstract class BaseCommitmentDefinition<TBookCommitment extends string> i
     abstract get description(): string;
 
     /**
+     * Whether this commitment requires content.
+     * If true, regex will match only if there is content after the commitment keyword.
+     * If false, regex will match even if there is no content.
+     */
+    get requiresContent(): boolean {
+        return true;
+    }
+
+    /**
      * Icon for this commitment.
      * It should be a single emoji.
      */
@@ -41,7 +50,11 @@ export abstract class BaseCommitmentDefinition<TBookCommitment extends string> i
      * Uses the existing createCommitmentRegex function as internal helper
      */
     createRegex(): RegExp {
-        return createCommitmentRegex(this.type as BookCommitment, this.aliases as BookCommitment[]);
+        return createCommitmentRegex(
+            this.type as BookCommitment,
+            this.aliases as BookCommitment[],
+            this.requiresContent,
+        );
     }
 
     /**

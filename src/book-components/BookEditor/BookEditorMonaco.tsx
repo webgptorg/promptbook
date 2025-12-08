@@ -145,7 +145,7 @@ export function BookEditorMonaco(props: BookEditorProps) {
 
         const commitmentTypes = [...new Set(getAllCommitmentDefinitions().map(({ type }) => type))];
         const commitmentRegex = new RegExp(
-            `^(${commitmentTypes.map((type) => (type === 'META' ? 'META\\s+\\w+' : type)).join('|')})\\s`,
+            `^(${commitmentTypes.map((type) => (type === 'META' ? 'META\\s+\\w+' : type)).join('|')})`,
         );
 
         // Note: Using a broad character set for Latin and Cyrillic to support international characters in parameters.

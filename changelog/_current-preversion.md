@@ -66,6 +66,9 @@
 -   Implement `OPEN` and `CLOSED` commitments to control agent learning
     -   `OPEN` (default) allows agent to learn from conversation and modify its source
     -   `CLOSED` prevents agent from being modified by conversation
+-   Support standalone `USE BROWSER` and `CLOSED` commitments
+    -   These commitments can now be used without any following content (e.g., just `USE BROWSER` on a line)
+    -   This improves readability and consistency in agent source files
 -   Implement `LANGUAGE` commitment to specify the language(s) the agent should use in its responses
 
 ### 🔒 Security

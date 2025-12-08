@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🎭] Commitments should be highlited and work without the content
 
