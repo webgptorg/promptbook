@@ -4,6 +4,7 @@
  * @public exported from `@promptbook/color`
  */
 export const CSS_COLORS = {
+    promptbook: '#79EAFD',
     transparent: 'rgba(0,0,0,0)',
     aliceblue: '#f0f8ff',
     antiquewhite: '#faebd7',

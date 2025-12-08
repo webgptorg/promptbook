@@ -1,5 +1,3 @@
-import { PROMPTBOOK_COLOR } from '../../config';
-import { assertsError } from '../../errors/assertsError';
 import type { string_color, string_url_image } from '../../types/typeAliases';
 import { spaceTrim } from '../organization/spaceTrim';
 import { TODO_USE } from '../organization/TODO_USE';
@@ -50,7 +48,8 @@ export class Color {
         try {
             return Color.from(color);
         } catch (error) {
-            assertsError(error);
+            // assertsError(error);
+            // <- Note: !!!! Can not use `assertsError` here because it causes circular dependency
             console.warn(
                 spaceTrim(
                     (block) => `
@@ -62,7 +61,7 @@ export class Color {
                 ),
             );
 
-            return PROMPTBOOK_COLOR;
+            return Color.fromString('promptbook');
         }
     }
 

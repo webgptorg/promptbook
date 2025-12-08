@@ -33,18 +33,15 @@ export async function prettify(fileContents: string, parser = 'typescript'): Pro
         return spaceTrim(
             (block) => `
 
-            ${block(spaceTrim(fileContents))}
+                ${block(spaceTrim(fileContents))}
 
-            /*
-                TODO: ${'!'}${'!'}${'!'} ${error.name} occurred during prettify:
+                /*
+                TODO: ${'!'.repeat(3)} ${(error as Error).name} occurred during prettify:
 
+                ${block((error as Error).message)}
+                */
 
-                ${block(error.message)}
-
-
-            */
-
-        `,
+            `,
         );
     }
 }

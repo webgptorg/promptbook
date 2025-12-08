@@ -55,7 +55,7 @@ export const CLAIM = `Turn your company's scattered knowledge into AI ready book
  *
  * @public exported from `@promptbook/core`
  */
-export const PROMPTBOOK_COLOR = Color.fromHex('#79EAFD');
+export const PROMPTBOOK_COLOR = Color.fromString('promptbook');
 // <- TODO: [🧠][🈵] Using `Color` here increases the package size approx 3kb, maybe remove it
 
 /**
