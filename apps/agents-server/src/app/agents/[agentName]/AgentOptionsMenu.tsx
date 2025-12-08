@@ -17,6 +17,7 @@ import {
     SquareSplitHorizontalIcon,
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { string_data_url, string_url_image } from '../../../../../../src/types/typeAliases';
 
 type AgentOptionsMenuProps = {
     agentName: string;
@@ -24,6 +25,7 @@ type AgentOptionsMenuProps = {
     agentEmail: string;
     brandColorHex: string;
     isAdmin?: boolean;
+    backgroundImage: string_url_image & string_data_url;
     onShowQrCode?: () => void;
 };
 
@@ -33,6 +35,7 @@ export function AgentOptionsMenu({
     agentEmail,
     brandColorHex,
     isAdmin = false,
+    backgroundImage,
     onShowQrCode,
 }: AgentOptionsMenuProps) {
     const [isOpen, setIsOpen] = useState(false);
@@ -145,6 +148,12 @@ export function AgentOptionsMenu({
                       icon: DownloadIcon,
                       label: 'Export Agent',
                   },
+                  // {
+                  //     type: 'link' as const,
+                  //     href: backgroundImage,
+                  //     icon: DownloadIcon,
+                  //     label: 'Download Background Image',
+                  // },
               ]
             : []),
     ];
@@ -154,7 +163,7 @@ export function AgentOptionsMenu({
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="p-3 rounded-full bg-white/20 hover:bg-white/30 transition-all duration-200 backdrop-blur-sm"
-                style={{backgroundColor: brandColorHex}}
+                style={{ backgroundColor: brandColorHex }}
                 aria-label="More options"
             >
                 <MoreHorizontalIcon className="w-5 h-5 text-white" />

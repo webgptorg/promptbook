@@ -1,14 +1,7 @@
 'use client';
 
-import { AgentBasicInformation } from '@promptbook-local/types';
-import {
-    CodeIcon,
-    HistoryIcon,
-    LinkIcon,
-    MessageCircleIcon,
-    NotebookPenIcon,
-    RepeatIcon,
-} from 'lucide-react';
+import { AgentBasicInformation, string_data_url, string_url_image } from '@promptbook-local/types';
+import { CodeIcon, LinkIcon, MessageCircleIcon, NotebookPenIcon, RepeatIcon } from 'lucide-react';
 import { useState } from 'react';
 import { AgentOptionsMenu } from './AgentOptionsMenu';
 import { AgentQrCode } from './AgentQrCode';
@@ -25,7 +18,7 @@ type AgentProfileViewProps = {
     brandColorLightHex: string;
     brandColorDarkHex: string;
     brandColorsHex: string[];
-    backgroundImage: string;
+    backgroundImage: string_url_image & string_data_url;
     meta: AgentBasicInformation['meta'];
     isAdmin?: boolean;
 };
@@ -54,7 +47,9 @@ export function AgentProfileView({
 
     if (fontString) {
         const primaryFont = fontString.split(',')[0].trim().replace(/['"]/g, '');
-        const googleFontUrl = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(primaryFont)}:wght@400;600;700&display=swap`;
+        const googleFontUrl = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(
+            primaryFont,
+        )}:wght@400;600;700&display=swap`;
 
         fontStyle = {
             fontFamily: fontString,
@@ -79,7 +74,7 @@ export function AgentProfileView({
             <div
                 className="min-h-[calc(100vh-60px)] w-full flex flex-col items-center justify-center p-6 md:p-12 relative overflow-hidden"
                 style={{
-                    background: backgroundImage,
+                    background: `url("${backgroundImage}")`,
                     backgroundSize: 'cover',
                     backgroundPosition: 'center',
                     ...fontStyle,
@@ -94,6 +89,7 @@ export function AgentProfileView({
                         brandColorHex={brandColorHex}
                         isAdmin={isAdmin}
                         onShowQrCode={() => setIsQrModalOpen(true)}
+                        backgroundImage={backgroundImage}
                     />
                 </div>
 
@@ -156,7 +152,7 @@ export function AgentProfileView({
                                         meta={meta}
                                     />
                                 </div>
-                                
+
                                 {/* Flip hint icon */}
                                 <div className="absolute bottom-4 right-4 bg-black/10 p-2 rounded-full text-black/50 backdrop-blur-md">
                                     <RepeatIcon className="w-5 h-5" />
@@ -219,7 +215,7 @@ export function AgentProfileView({
                                 </div>
                                 <span className="font-medium text-sm">Integration</span>
                             </a>
-                            <a
+                            {/* <a
                                 href={`/agents/${encodeURIComponent(agentName)}/history`}
                                 className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors group"
                                 title="History"
@@ -228,7 +224,7 @@ export function AgentProfileView({
                                     <HistoryIcon className="w-5 h-5" />
                                 </div>
                                 <span className="font-medium text-sm">History</span>
-                            </a>
+                            </a> */}
                             <a
                                 href={`/agents/${encodeURIComponent(agentName)}/links`}
                                 className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors group"
