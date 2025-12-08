@@ -5,10 +5,9 @@ import { isUserAdmin } from '@/src/utils/isUserAdmin';
 import { PROMPTBOOK_COLOR } from '@promptbook-local/core';
 import { notFound } from 'next/navigation';
 import { Color } from '../../../../../../src/utils/color/Color';
-import { AgentProfile } from '../../../components/AgentProfile/AgentProfile';
 import { getAgentLinks } from './agentLinks';
-import { AgentOptionsMenu } from './AgentOptionsMenu';
 import { AgentProfileChat } from './AgentProfileChat';
+import { AgentProfileWrapper } from './AgentProfileWrapper';
 import { getAgentName, getAgentProfile } from './_utils';
 import { generateAgentMetadata } from './generateAgentMetadata';
 import { ServiceWorkerRegister } from './ServiceWorkerRegister';
@@ -57,21 +56,13 @@ export default async function AgentPage({ params }: { params: Promise<{ agentNam
     return (
         <>
             <ServiceWorkerRegister scope={`/agents/${encodeURIComponent(agentName)}/`} />
-            <AgentProfile
+            <AgentProfileWrapper
                 agent={agentProfile}
                 agentUrl={agentUrl}
                 agentEmail={agentEmail}
-                renderMenu={({ onShowQrCode }) => (
-                    <AgentOptionsMenu
-                        agentName={agentName}
-                        agentUrl={agentUrl}
-                        agentEmail={agentEmail}
-                        brandColorHex={brandColorHex}
-                        isAdmin={isAdmin}
-                        onShowQrCode={onShowQrCode}
-                        backgroundImage="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAA1JREFUGFdjYJh39z8ABJgCe/ZvAS4AAAAASUVORK5CYII="
-                    />
-                )}
+                agentName={agentName}
+                brandColorHex={brandColorHex}
+                isAdmin={isAdmin}
                 actions={
                     <>
                         {getAgentLinks(agentName)
@@ -93,7 +84,7 @@ export default async function AgentPage({ params }: { params: Promise<{ agentNam
                 }
             >
                 <AgentProfileChat agentUrl={agentUrl} agentName={agentName} fullname={fullname} />
-            </AgentProfile>
+            </AgentProfileWrapper>
         </>
     );
 }

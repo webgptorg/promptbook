@@ -12,7 +12,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🧁] Fix Agent profile page
 
