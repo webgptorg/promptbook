@@ -188,7 +188,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             }
 
             const chunk: ChatPromptResult = {
-                content: textDelta.value || '',
+                content: snapshot.value,
                 modelName: 'assistant',
                 timing: {
                     start,

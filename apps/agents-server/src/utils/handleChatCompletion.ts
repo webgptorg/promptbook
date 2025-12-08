@@ -175,6 +175,25 @@ export async function handleChatCompletion(
                     const runId = `chatcmpl-${Math.random().toString(36).substring(2, 15)}`;
                     const created = Math.floor(Date.now() / 1000);
 
+                    // Note: Send the initial chunk with role
+                    const initialChunkData = {
+                        id: runId,
+                        object: 'chat.completion.chunk',
+                        created,
+                        model: model || 'promptbook-agent',
+                        choices: [
+                            {
+                                index: 0,
+                                delta: {
+                                    role: 'assistant',
+                                    content: '',
+                                },
+                                finish_reason: null,
+                            },
+                        ],
+                    };
+                    controller.enqueue(encoder.encode(`data: ${JSON.stringify(initialChunkData)}\n\n`));
+
                     let previousContent = '';
 
                     try {

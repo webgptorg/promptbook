@@ -155,7 +155,7 @@ CONTEXT You are helping users of abc.com
 
 ---
 
-[ ]
+[x]
 
 [✨🧚] When using extarnal application [Jan](https://www.jan.ai/) to chat with Promptbook Agent via Agent OpenAI compatible endpoint, it scrambles the response messages.
 
