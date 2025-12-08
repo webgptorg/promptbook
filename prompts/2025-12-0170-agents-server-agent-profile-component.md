@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🧁] Create components `AgentProfile` and `AgentProfileFromSource`
 
