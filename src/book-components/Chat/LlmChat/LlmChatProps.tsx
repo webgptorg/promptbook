@@ -65,4 +65,10 @@ export type LlmChatProps = Omit<ChatProps, 'messages' | 'onMessage' | 'onChange'
      * @default 'ASSISTANT'
      */
     readonly llmParticipantName?: id;
+
+    /**
+     * Optional message to be automatically sent as if the user typed it.
+     * This is useful for seamless transitions from other pages.
+     */
+    readonly autoExecuteMessage?: string;
 };

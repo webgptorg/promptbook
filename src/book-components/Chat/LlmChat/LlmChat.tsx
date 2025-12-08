@@ -33,6 +33,7 @@ export function LlmChat(props: LlmChatProps) {
         sendMessage,
         userParticipantName = 'USER',
         llmParticipantName = 'ASSISTANT',
+        autoExecuteMessage,
         ...restProps
     } = props;
 
@@ -434,6 +435,15 @@ export function LlmChat(props: LlmChatProps) {
             sendMessage._attach(handleMessage);
         }
     }, [sendMessage, handleMessage]);
+
+    // Handle autoExecuteMessage
+    const hasAutoExecutedRef = useRef(false);
+    useEffect(() => {
+        if (autoExecuteMessage && !hasAutoExecutedRef.current) {
+            hasAutoExecutedRef.current = true;
+            handleMessage(autoExecuteMessage);
+        }
+    }, [autoExecuteMessage, handleMessage]);
 
     return (
         <Chat

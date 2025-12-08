@@ -131,7 +131,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🏦] Instead of "Start Chat" button allow to write first message directly from here
 

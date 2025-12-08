@@ -9,12 +9,13 @@ import { string_agent_url } from '../../../../../../src/types/typeAliases';
 type AgentChatWrapperProps = {
     agentUrl: string_agent_url;
     defaultMessage?: string;
+    autoExecuteMessage?: string;
 };
 
 // TODO: [🐱‍🚀] Rename to AgentChatSomethingWrapper
 
 export function AgentChatWrapper(props: AgentChatWrapperProps) {
-    const { agentUrl, defaultMessage } = props;
+    const { agentUrl, defaultMessage, autoExecuteMessage } = props;
 
     const agentPromise = useMemo(
         () =>
@@ -67,6 +68,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
             agent={agent}
             onFeedback={handleFeedback}
             defaultMessage={defaultMessage}
+            autoExecuteMessage={autoExecuteMessage}
         />
     );
 }

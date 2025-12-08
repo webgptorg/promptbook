@@ -4,6 +4,7 @@ import { AgentBasicInformation, string_data_url, string_url_image } from '@promp
 import { CodeIcon, LinkIcon, MessageCircleIcon, NotebookPenIcon, RepeatIcon } from 'lucide-react';
 import { useState } from 'react';
 import { AgentOptionsMenu } from './AgentOptionsMenu';
+import { AgentProfileChat } from './AgentProfileChat';
 import { AgentQrCode } from './AgentQrCode';
 import { QrCodeModal } from './QrCodeModal';
 
@@ -180,18 +181,10 @@ export function AgentProfileView({
                             {personaDescription}
                         </p>
 
-                        {/* Start Chat button */}
-                        <a
-                            href={`/agents/${encodeURIComponent(agentName)}/chat`}
-                            className="inline-flex items-center gap-3 px-8 py-4 rounded-full text-lg font-semibold shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-200"
-                            style={{
-                                backgroundColor: brandColorHex,
-                                color: 'white',
-                            }}
-                        >
-                            <MessageCircleIcon className="w-6 h-6" />
-                            Start Chat
-                        </a>
+                        {/* Chat */}
+                        <div className="w-full">
+                            <AgentProfileChat agentUrl={agentUrl} agentName={agentName} fullname={fullname} />
+                        </div>
 
                         {/* Secondary Actions */}
                         <div className="flex flex-wrap justify-center md:justify-start items-center gap-4 md:gap-6 mt-2">

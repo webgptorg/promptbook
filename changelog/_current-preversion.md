@@ -37,6 +37,10 @@
     -   All secondary actions (standalone chat, edit book, integration, etc.) moved to dropdown "More options" menu
     -   QR code available via modal dialog from options menu
     -   Admin-only menu items for chat history, feedback, clone, and export
+    -   Replaced "Start Chat" button with an interactive `<Chat/>` component
+        -   Displays the agent's initial message
+        -   Allows users to send a message directly from the profile
+        -   Seamlessly redirects to the full chat page with the message automatically sent
 -   Support `META FONT` on agent page
     -   Agent page now uses the font specified in `META FONT` commitment for agent name and other text
 -   Support multiple colors in `META COLOR` on agent page

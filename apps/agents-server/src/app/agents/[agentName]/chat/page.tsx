@@ -7,16 +7,23 @@ import { AgentChatWrapper } from '../AgentChatWrapper';
 
 export const generateMetadata = generateAgentMetadata;
 
-export default async function AgentChatPage({ params }: { params: Promise<{ agentName: string }> }) {
+export default async function AgentChatPage({
+    params,
+    searchParams,
+}: {
+    params: Promise<{ agentName: string }>;
+    searchParams: Promise<{ message?: string }>;
+}) {
     $sideEffect(headers());
     let { agentName } = await params;
     agentName = decodeURIComponent(agentName);
+    const { message } = await searchParams;
 
     const agentUrl = `/agents/${agentName}`;
 
     return (
         <main className={`w-screen h-screen`}>
-            <AgentChatWrapper agentUrl={agentUrl} />
+            <AgentChatWrapper agentUrl={agentUrl} autoExecuteMessage={message} />
         </main>
     );
 }
