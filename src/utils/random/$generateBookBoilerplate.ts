@@ -53,6 +53,7 @@ export function $generateBookBoilerplate(options?: GenerateBookBoilerplateOption
                 ${agentName}
     
                 META COLOR ${color || PROMPTBOOK_COLOR.toHex()}
+                META FONT Playfair Display, sans-serif
                 PERSONA ${block(personaDescription!)}
             `,
         ),
