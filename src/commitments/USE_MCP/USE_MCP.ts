@@ -15,6 +15,8 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * ```book
  * USE MCP http://mcp-server-url.com
  * ```
+ *
+ * @private [🪔] Maybe export the commitments through some package
  */
 export class UseMcpCommitmentDefinition extends BaseCommitmentDefinition<'USE MCP'> {
     constructor() {
@@ -81,3 +83,7 @@ export class UseMcpCommitmentDefinition extends BaseCommitmentDefinition<'USE MC
         };
     }
 }
+
+/**
+ * Note: [💞] Ignore a discrepancy between file name and entity name
+ */
