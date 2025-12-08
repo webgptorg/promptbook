@@ -133,11 +133,15 @@
 
 [ ]
 
-[✨🏦] Instead of "Start Chat" button allow to write reply / quick button of agent initial message directly from here
+[✨🏦] Instead of "Start Chat" button allow to write first message directly from here
 
--   Use <Chat/> component for this
--   User should be able to click on quick button or write reply
--   When user sends the message, redirect to full chat page `/agents/[agentName]/chat` with the written messsage which will be sent right away
+-   On `/agents/[agentName]` it should show the chat component with same initial message as in `/agents/[agentName]/chat`
+    -   Use <Chat/> component for this
+    -   User should be able to click on quick message button or write reply
+    -   The <Chat/> component shouldnt have any buttons _(like new chat, download chat or save chat)_
+    -   The <Chat/> component should have transparent background to fit nicely into the agent page design
+-   When user sends the message (no matter if through quick button or writes it manually), redirect to full chat page `/agents/[agentName]/chat` with the written messsage which will be sent right away
+-   This redirection should happen seamlessly with some nice transition
 -   The Agent profile is on url `/agents/[agentName]` in file `/apps/agents-server/src/app/agents/[agentName]/AgentProfileView.tsx`
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
