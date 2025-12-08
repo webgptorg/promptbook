@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/website-crawler",
-    "version": "0.103.0-55",
+    "version": "0.103.0-56",
     "description": "Promptbook: Turn your company's scattered knowledge into AI ready books",
     "private": false,
     "sideEffects": false,
@@ -95,7 +95,7 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/website-crawler.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.103.0-55"
+        "@promptbook/core": "0.103.0-56"
     },
     "dependencies": {
         "@mozilla/readability": "0.6.0",
