@@ -1,23 +1,20 @@
 'use client';
 
 import {
-    CodeIcon,
     CopyIcon,
     CopyPlusIcon,
     DownloadIcon,
-    HistoryIcon,
-    LinkIcon,
     MailIcon,
     MessageCircleQuestionIcon,
     MessageSquareIcon,
     MessageSquareShareIcon,
     MoreHorizontalIcon,
-    NotebookPenIcon,
     QrCodeIcon,
     SquareSplitHorizontalIcon,
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { string_data_url, string_url_image } from '../../../../../../src/types/typeAliases';
+import { getAgentLinks } from './agentLinks';
 
 type AgentOptionsMenuProps = {
     agentName: string;
@@ -63,6 +60,12 @@ export function AgentOptionsMenu({
         }
     };
 
+    const links = getAgentLinks(agentName);
+    const editBookLink = links.find((l) => l.title === 'Edit Book')!;
+    const integrationLink = links.find((l) => l.title === 'Integration')!;
+    const historyLink = links.find((l) => l.title === 'History & Feedback')!;
+    const allLinksLink = links.find((l) => l.title === 'All Links')!;
+
     const menuItems = [
         {
             type: 'link' as const,
@@ -78,28 +81,28 @@ export function AgentOptionsMenu({
         },
         {
             type: 'link' as const,
-            href: `/agents/${encodeURIComponent(agentName)}/book`,
-            icon: NotebookPenIcon,
-            label: 'Edit Book',
+            href: editBookLink.href,
+            icon: editBookLink.icon,
+            label: editBookLink.title,
         },
         { type: 'divider' as const },
         {
             type: 'link' as const,
-            href: `/agents/${encodeURIComponent(agentName)}/integration`,
-            icon: CodeIcon,
-            label: 'Integration',
+            href: integrationLink.href,
+            icon: integrationLink.icon,
+            label: integrationLink.title,
         },
         {
             type: 'link' as const,
-            href: `/agents/${encodeURIComponent(agentName)}/history`,
-            icon: HistoryIcon,
-            label: 'History',
+            href: historyLink.href,
+            icon: historyLink.icon,
+            label: historyLink.title, // 'History & Feedback'
         },
         {
             type: 'link' as const,
-            href: `/agents/${encodeURIComponent(agentName)}/links`,
-            icon: LinkIcon,
-            label: 'All Links',
+            href: allLinksLink.href,
+            icon: allLinksLink.icon,
+            label: allLinksLink.title,
         },
         { type: 'divider' as const },
         {

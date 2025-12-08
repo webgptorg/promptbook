@@ -2,22 +2,14 @@
 
 import { $provideServer } from '@/src/tools/$provideServer';
 import { PROMPTBOOK_COLOR } from '@promptbook-local/core';
-import {
-    ArrowLeftIcon,
-    BookOpenIcon,
-    CodeIcon,
-    HistoryIcon,
-    HomeIcon,
-    LinkIcon,
-    MessageSquareIcon,
-    ShareIcon,
-} from 'lucide-react';
+import { ArrowLeftIcon, CodeIcon, HomeIcon, LinkIcon, ShareIcon } from 'lucide-react';
 import { headers } from 'next/headers';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Color } from '../../../../../../../src/utils/color/Color';
 import { withAlpha } from '../../../../../../../src/utils/color/operators/withAlpha';
 import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
+import { getAgentExternalLinks, getAgentLinks } from '../agentLinks';
 import { CopyField } from '../CopyField';
 import { getAgentName, getAgentProfile } from '../_utils';
 import { generateAgentMetadata } from '../generateAgentMetadata';
@@ -137,48 +129,25 @@ export default async function AgentLinksPage({ params }: { params: Promise<{ age
                             Agent Resources
                         </h2>
                         <div className="grid md:grid-cols-2 gap-4">
-                            <Link
-                                href={`/agents/${encodeURIComponent(agentName)}`}
-                                className="block p-4 rounded-lg border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all group bg-white"
-                            >
-                                <div className="flex items-center gap-3 mb-2">
-                                    <div className="p-2 rounded-lg bg-blue-50 text-blue-600 group-hover:bg-blue-100 transition-colors">
-                                        <MessageSquareIcon className="w-5 h-5" />
-                                    </div>
-                                    <span className="font-medium text-gray-900">Chat with Agent</span>
-                                </div>
-                                <p className="text-sm text-gray-500">
-                                    Direct interface to converse with {agentProfile.meta.fullname || agentName}.
-                                </p>
-                            </Link>
-
-                            <Link
-                                href={`/agents/${encodeURIComponent(agentName)}/history`}
-                                className="block p-4 rounded-lg border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all group bg-white"
-                            >
-                                <div className="flex items-center gap-3 mb-2">
-                                    <div className="p-2 rounded-lg bg-purple-50 text-purple-600 group-hover:bg-purple-100 transition-colors">
-                                        <HistoryIcon className="w-5 h-5" />
-                                    </div>
-                                    <span className="font-medium text-gray-900">History & Feedback</span>
-                                </div>
-                                <p className="text-sm text-gray-500">View past conversations and provide feedback.</p>
-                            </Link>
-
-                            <Link
-                                href={`/agents/${encodeURIComponent(agentName)}/integration`}
-                                className="block p-4 rounded-lg border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all group bg-white"
-                            >
-                                <div className="flex items-center gap-3 mb-2">
-                                    <div className="p-2 rounded-lg bg-green-50 text-green-600 group-hover:bg-green-100 transition-colors">
-                                        <CodeIcon className="w-5 h-5" />
-                                    </div>
-                                    <span className="font-medium text-gray-900">Integration Options</span>
-                                </div>
-                                <p className="text-sm text-gray-500">
-                                    Learn how to integrate this agent into your applications.
-                                </p>
-                            </Link>
+                            {getAgentLinks(agentName)
+                                .filter((link) =>
+                                    ['Chat with Agent', 'History & Feedback', 'Integration'].includes(link.title),
+                                )
+                                .map((link) => (
+                                    <Link
+                                        key={link.href}
+                                        href={link.href}
+                                        className="block p-4 rounded-lg border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all group bg-white"
+                                    >
+                                        <div className="flex items-center gap-3 mb-2">
+                                            <div className="p-2 rounded-lg bg-gray-50 text-gray-600 group-hover:bg-gray-100 transition-colors">
+                                                <link.icon className="w-5 h-5" />
+                                            </div>
+                                            <span className="font-medium text-gray-900">{link.title}</span>
+                                        </div>
+                                        <p className="text-sm text-gray-500">{link.description}</p>
+                                    </Link>
+                                ))}
                         </div>
                     </div>
 
@@ -189,31 +158,21 @@ export default async function AgentLinksPage({ params }: { params: Promise<{ age
                             Promptbook Ecosystem
                         </h2>
                         <div className="grid md:grid-cols-2 gap-4">
-                            <a
-                                href="https://promptbook.studio"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center gap-3 p-3 rounded-lg bg-white border border-gray-200 hover:border-gray-300 transition-colors"
-                            >
-                                <BookOpenIcon className="w-5 h-5 text-gray-400" />
-                                <div>
-                                    <div className="font-medium text-gray-900">Promptbook Studio</div>
-                                    <div className="text-xs text-gray-500">Create and manage your own agents</div>
-                                </div>
-                            </a>
-
-                            <a
-                                href="https://github.com/webgptorg/promptbook"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center gap-3 p-3 rounded-lg bg-white border border-gray-200 hover:border-gray-300 transition-colors"
-                            >
-                                <CodeIcon className="w-5 h-5 text-gray-400" />
-                                <div>
-                                    <div className="font-medium text-gray-900">GitHub Repository</div>
-                                    <div className="text-xs text-gray-500">Star us and contribute to the project</div>
-                                </div>
-                            </a>
+                            {getAgentExternalLinks().map((link) => (
+                                <a
+                                    key={link.href}
+                                    href={link.href}
+                                    target={link.target}
+                                    rel={link.rel}
+                                    className="flex items-center gap-3 p-3 rounded-lg bg-white border border-gray-200 hover:border-gray-300 transition-colors"
+                                >
+                                    <link.icon className="w-5 h-5 text-gray-400" />
+                                    <div>
+                                        <div className="font-medium text-gray-900">{link.title}</div>
+                                        <div className="text-xs text-gray-500">{link.description}</div>
+                                    </div>
+                                </a>
+                            ))}
                         </div>
                     </div>
                 </div>

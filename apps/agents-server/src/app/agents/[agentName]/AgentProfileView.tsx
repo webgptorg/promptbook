@@ -1,8 +1,9 @@
 'use client';
 
 import { AgentBasicInformation, string_data_url, string_url_image } from '@promptbook-local/types';
-import { CodeIcon, LinkIcon, MessageCircleIcon, NotebookPenIcon, RepeatIcon } from 'lucide-react';
+import { RepeatIcon } from 'lucide-react';
 import { useState } from 'react';
+import { getAgentLinks } from './agentLinks';
 import { AgentOptionsMenu } from './AgentOptionsMenu';
 import { AgentProfileChat } from './AgentProfileChat';
 import { AgentQrCode } from './AgentQrCode';
@@ -188,46 +189,21 @@ export function AgentProfileView({
 
                         {/* Secondary Actions */}
                         <div className="flex flex-wrap justify-center md:justify-start items-center gap-4 md:gap-6 mt-2">
-                            <a
-                                href={`/agents/${encodeURIComponent(agentName)}/book`}
-                                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors group"
-                                title="Edit Book"
-                            >
-                                <div className="p-2 rounded-full bg-white/40 group-hover:bg-white/60 transition-colors shadow-sm">
-                                    <NotebookPenIcon className="w-5 h-5" />
-                                </div>
-                                <span className="font-medium text-sm">Edit Book</span>
-                            </a>
-                            <a
-                                href={`/agents/${encodeURIComponent(agentName)}/integration`}
-                                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors group"
-                                title="Integration"
-                            >
-                                <div className="p-2 rounded-full bg-white/40 group-hover:bg-white/60 transition-colors shadow-sm">
-                                    <CodeIcon className="w-5 h-5" />
-                                </div>
-                                <span className="font-medium text-sm">Integration</span>
-                            </a>
-                            {/* <a
-                                href={`/agents/${encodeURIComponent(agentName)}/history`}
-                                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors group"
-                                title="History"
-                            >
-                                <div className="p-2 rounded-full bg-white/40 group-hover:bg-white/60 transition-colors shadow-sm">
-                                    <HistoryIcon className="w-5 h-5" />
-                                </div>
-                                <span className="font-medium text-sm">History</span>
-                            </a> */}
-                            <a
-                                href={`/agents/${encodeURIComponent(agentName)}/links`}
-                                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors group"
-                                title="All Links"
-                            >
-                                <div className="p-2 rounded-full bg-white/40 group-hover:bg-white/60 transition-colors shadow-sm">
-                                    <LinkIcon className="w-5 h-5" />
-                                </div>
-                                <span className="font-medium text-sm">All Links</span>
-                            </a>
+                            {getAgentLinks(agentName)
+                                .filter((link) => ['Edit Book', 'Integration', 'All Links'].includes(link.title))
+                                .map((link) => (
+                                    <a
+                                        key={link.href}
+                                        href={link.href}
+                                        className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors group"
+                                        title={link.title}
+                                    >
+                                        <div className="p-2 rounded-full bg-white/40 group-hover:bg-white/60 transition-colors shadow-sm">
+                                            <link.icon className="w-5 h-5" />
+                                        </div>
+                                        <span className="font-medium text-sm">{link.title}</span>
+                                    </a>
+                                ))}
                         </div>
                     </div>
                 </div>

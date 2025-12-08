@@ -14,6 +14,7 @@ import { Color } from '../../../../../../../src/utils/color/Color';
 import { withAlpha } from '../../../../../../../src/utils/color/operators/withAlpha';
 import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
 import { CodePreview } from '../../../../../../_common/components/CodePreview/CodePreview';
+import { getAgentLinks } from '../agentLinks';
 import { CopyField } from '../CopyField';
 import { getAgentName, getAgentProfile } from '../_utils';
 import { generateAgentMetadata } from '../generateAgentMetadata';
@@ -155,6 +156,10 @@ export default async function AgentIntegrationPage({ params }: { params: Promise
         }
     `);
 
+    const agentLinks = getAgentLinks(agentName);
+    const chatLink = agentLinks.find((l) => l.title === 'Chat with Agent')!;
+    const websiteIntegrationLink = agentLinks.find((l) => l.title === 'Website Integration')!;
+
     return (
         <div
             className="min-h-screen p-6 md:p-12 flex flex-col items-center"
@@ -182,7 +187,7 @@ export default async function AgentIntegrationPage({ params }: { params: Promise
                         </p>
                     </div>
                     <Link
-                        href={`/agents/${encodeURIComponent(agentName)}`}
+                        href={chatLink.href}
                         className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
                         title="Back to Agent"
                     >
@@ -203,10 +208,7 @@ export default async function AgentIntegrationPage({ params }: { params: Promise
                                     Embed the agent chat widget directly into your React application.
                                 </p>
                                 <p className="text-sm text-gray-500 mt-1">
-                                    <Link
-                                        href={`/agents/${encodeURIComponent(agentName)}/website-integration`}
-                                        className="text-blue-600 hover:underline"
-                                    >
+                                    <Link href={websiteIntegrationLink.href} className="text-blue-600 hover:underline">
                                         View detailed guide &rarr;
                                     </Link>
                                 </p>
