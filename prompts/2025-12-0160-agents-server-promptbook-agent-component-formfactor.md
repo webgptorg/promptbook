@@ -1,4 +1,4 @@
-[x] _<- Note: Wait for AgentProfile component to be implemented_
+[ ] _<- Note: Wait for AgentProfile component to be implemented_
 
 [✨👔] Add prop `formfactor` to `PromptbookAgent` component
 

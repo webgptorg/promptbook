@@ -63,10 +63,6 @@ import { GenericQrCode } from '../book-components/Qr/GenericQrCode';
 import { PromptbookQrCode } from '../book-components/Qr/PromptbookQrCode';
 import { injectCssModuleIntoShadowRoot } from '../utils/misc/injectCssModuleIntoShadowRoot';
 import { AboutPromptbookInformation } from '../utils/misc/xAboutPromptbookInformation';
-import { AgentProfile } from '../book-components/AgentProfile/AgentProfile';
-import { AgentProfileFromSource } from '../book-components/AgentProfile/AgentProfileFromSource';
-import { AgentQrCode } from '../book-components/AgentProfile/AgentQrCode';
-import { QrCodeModal } from '../book-components/AgentProfile/QrCodeModal';
 
 
 // Note: Exporting version from each package
@@ -133,7 +129,3 @@ export { GenericQrCode };
 export { PromptbookQrCode };
 export { injectCssModuleIntoShadowRoot };
 export { AboutPromptbookInformation };
-export { AgentProfile };
-export { AgentProfileFromSource };
-export { AgentQrCode };
-export { QrCodeModal };

@@ -1,63 +1,172 @@
-import React, { useState, useEffect } from 'react';
-import { BookEditor } from '../BookEditor/BookEditor';
-import { AgentProfile } from '../AgentProfile/AgentProfile';
-import { AgentChat } from '../Chat/AgentChat/AgentChat';
+'use client';
+
+import { useEffect, useState } from 'react';
+import type { AgentBasicInformation } from '../../book-2.0/agent-source/AgentBasicInformation';
 import { RemoteAgent } from '../../llm-providers/agent/RemoteAgent';
-import type { Agent } from '../../llm-providers/agent/Agent';
+import { CloseIcon } from '../icons/CloseIcon';
+import { AgentChat } from '../Chat/AgentChat/AgentChat';
+import styles from './PromptbookAgent.module.css';
 
-type PromptbookAgentFormfactor = 'seamless' | 'book' | 'chat' | 'profile';
-
-export type PromptbookAgentProps = {
+type PromptbookAgentProps = {
+    /**
+     * URL of the agent to connect to
+     *
+     * @example "http://s6.ptbk.io/benjamin-white"
+     */
     agentUrl: string;
-    formfactor?: PromptbookAgentFormfactor;
-    // ...other props...
+
+    /**
+     * Optional metadata to show before the agent is connected
+     * Or to override the agent metadata if the agent does not provide it
+     */
+    meta?: Partial<AgentBasicInformation['meta']>;
+
+    /**
+     * Callback when the window is opened or closed
+     */
+    onOpenChange?: (isOpen: boolean) => void;
 };
 
+/**
+ * Renders a floating agent button that opens a chat window with the remote agent.
+ *
+ * @public exported from `@promptbook/components`
+ */
 export function PromptbookAgent(props: PromptbookAgentProps) {
-    const { agentUrl, formfactor = 'seamless', ...rest } = props;
-    const [agent, setAgent] = useState<Agent | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const { agentUrl, meta, onOpenChange } = props;
+    const [isOpen, setIsOpen] = useState(false);
+    const [headerElement, setHeaderElement] = useState<HTMLDivElement | null>(null);
 
     useEffect(() => {
-        let cancelled = false;
-        setLoading(true);
+        if (onOpenChange) {
+            onOpenChange(isOpen);
+        }
+    }, [isOpen, onOpenChange]);
+    const [agent, setAgent] = useState<RemoteAgent | null>(null);
+    const [error, setError] = useState<Error | null>(null);
+
+    useEffect(() => {
+        if (agent && meta) {
+            if (agent.meta.image && meta.image && agent.meta.image !== meta.image) {
+                console.warn('Conflict in agent meta image:', { server: agent.meta.image, props: meta.image });
+            }
+            if (agent.meta.color && meta.color && agent.meta.color !== meta.color) {
+                console.warn('Conflict in agent meta color:', { server: agent.meta.color, props: meta.color });
+            }
+        }
+    }, [agent, meta]);
+
+    useEffect(() => {
+        let isMounted = true;
+        setAgent(null);
         setError(null);
-        RemoteAgent.connect({ agentUrl })
-            .then((a) => {
-                if (!cancelled) {
-                    setAgent(a);
-                    setLoading(false);
+
+        const connectToAgent = async () => {
+            try {
+                // TODO: [🧠] Maybe we should not connect immediately but only when the user clicks the button or hovers?
+                //            But for now, to have a fast response when clicking, we connect immediately.
+                const connectedAgent = await RemoteAgent.connect({ agentUrl });
+                if (isMounted) {
+                    setAgent(connectedAgent);
                 }
-            })
-            .catch((e) => {
-                if (!cancelled) {
-                    setError(e.message || 'Failed to connect to agent');
-                    setLoading(false);
+            } catch (err) {
+                console.error('Failed to connect to agent:', err);
+                if (isMounted) {
+                    setError(err instanceof Error ? err : new Error(String(err)));
                 }
-            });
-        return () => { cancelled = true; };
+            }
+        };
+
+        connectToAgent();
+
+        return () => {
+            isMounted = false;
+        };
     }, [agentUrl]);
 
-    if (loading) return <div>Loading agent...</div>;
-    if (error) return <div>Error: {error}</div>;
-    if (!agent) return null;
+    // TODO: [🧠] Handle loading state better (show spinner or skeleton in the chat window)
+    // TODO: [🧠] Handle error state (show error message in the chat window)
 
-    switch (formfactor) {
-        case 'book':
-            return <BookEditor agentSource={agent.agentSource.value} {...rest} />;
-        case 'chat':
-            return <AgentChat agent={agent} {...rest} />;
-        case 'profile':
-            return <AgentProfile agent={agent} {...rest} />;
-        case 'seamless':
-        default:
-            // ...existing seamless floating chat logic...
-            return (
-                <div>
-                    {/* TODO: Insert existing seamless UI here, using agent */}
-                    <AgentChat agent={agent} {...rest} />
-                </div>
-            );
+    const image =
+        agent?.meta?.image ||
+        meta?.image ||
+        'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y';
+    const color = agent?.meta?.color || meta?.color;
+
+    let connectionStatus: 'connected' | 'pending' | 'error' = 'pending';
+    if (agent) {
+        connectionStatus = 'connected';
+    } else if (error) {
+        connectionStatus = 'error';
     }
+
+    return (
+        <div className={`${styles.promptbookAgent} ${isOpen ? styles.open : styles.closed}`}>
+            <div
+                className={styles.promptbookAgentButton}
+                onClick={() => setIsOpen(!isOpen)}
+                style={{ backgroundColor: color }}
+            >
+                <div className={styles.promptbookAgentAvatar}>
+                    {/* TODO: Use agent avatar if available */}
+                    <img src={image} alt="Agent" />
+                </div>
+                <div
+                    className={`${styles.promptbookAgentStatus} ${
+                        connectionStatus === 'connected'
+                            ? styles.promptbookAgentStatusConnected
+                            : connectionStatus === 'error'
+                            ? styles.promptbookAgentStatusError
+                            : styles.promptbookAgentStatusPending
+                    }`}
+                />
+                <div className={styles.promptbookAgentLabel}>CHAT</div>
+            </div>
+
+            {isOpen && (
+                <div className={styles.promptbookAgentWindow}>
+                    <div
+                        className={styles.promptbookAgentHeader}
+                        style={{ backgroundColor: color }}
+                        ref={setHeaderElement}
+                    >
+                        <div className={styles.promptbookAgentTitle}>
+                            {agent?.meta.fullname || meta?.fullname || agent?.agentName || 'Chat with Agent'}
+                        </div>
+                    </div>
+                    <div className={styles.promptbookAgentContent}>
+                        {agent ? (
+                            <AgentChat
+                                agent={agent}
+                                actionsContainer={headerElement}
+                                extraActions={
+                                    <button
+                                        className={styles.promptbookAgentClose}
+                                        onClick={() => setIsOpen(false)}
+                                        title="Close"
+                                    >
+                                        <CloseIcon />
+                                    </button>
+                                }
+                            />
+                        ) : error ? (
+                            <div className={styles.promptbookAgentError}>
+                                Failed to connect to agent: {error.message}
+                            </div>
+                        ) : (
+                            <div className={styles.promptbookAgentLoading}>
+                                {/* TODO: Skeleton loader */}
+                                Connecting to agent...
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
 }
+
+/**
+ * TODO: !!! Load the full branding
+ * TODO: !!! <promptbook-agent> element
+ */
