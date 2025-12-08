@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🦍] Use Czech names for new agents
 

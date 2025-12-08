@@ -4,6 +4,7 @@ import { $generateBookBoilerplate } from '@promptbook-local/core';
 import { string_agent_name } from '@promptbook-local/types';
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
+import { getMetadata } from '../database/getMetadata';
 import { $provideAgentCollectionForServer } from '../tools/$provideAgentCollectionForServer';
 import { authenticateUser } from '../utils/authenticateUser';
 import { isUserAdmin } from '../utils/isUserAdmin';
@@ -16,7 +17,8 @@ export async function $createAgentAction(): Promise<string_agent_name> {
     }
 
     const collection = await $provideAgentCollectionForServer();
-    const agentSource = $generateBookBoilerplate();
+    const namePool = (await getMetadata('NAME_POOL')) || 'ENGLISH';
+    const agentSource = $generateBookBoilerplate({ namePool });
 
     const { agentName } = await collection.createAgent(agentSource);
 

@@ -61,6 +61,12 @@ export const metadataDefaults = [
         note: 'Maximum size of file that can be uploaded in MB.',
         type: 'NUMBER',
     },
+    {
+        key: 'NAME_POOL',
+        value: 'ENGLISH',
+        note: 'Language for generating new agent names. Possible values: ENGLISH, CZECH.',
+        type: 'TEXT_SINGLE_LINE',
+    },
 ] as const satisfies ReadonlyArray<{
     key: string;
     value: string;

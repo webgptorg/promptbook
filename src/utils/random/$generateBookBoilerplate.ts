@@ -7,7 +7,7 @@ import { PROMPTBOOK_COLOR } from '../../config';
 import type { string_agent_name_in_book } from '../../types/typeAliases';
 import { TODO_USE } from '../organization/TODO_USE';
 import { $randomAgentPersona } from './$randomAgentPersona';
-import { $randomFullnameWithColor } from './$randomFullnameWithColor';
+import { getNamePool } from './getNamePool';
 
 type GenerateBookBoilerplateOptions = PartialDeep<Omit<AgentBasicInformation, 'parameters'>> & {
     /**
@@ -16,6 +16,13 @@ type GenerateBookBoilerplateOptions = PartialDeep<Omit<AgentBasicInformation, 'p
      * @default 'Adam'
      */
     parentAgentName?: string_agent_name_in_book;
+
+    /**
+     * Name pool to use for generating agent name
+     *
+     * @default 'ENGLISH'
+     */
+    namePool?: string;
 };
 
 /**
@@ -28,12 +35,13 @@ type GenerateBookBoilerplateOptions = PartialDeep<Omit<AgentBasicInformation, 'p
  */
 export function $generateBookBoilerplate(options?: GenerateBookBoilerplateOptions): string_book {
     // eslint-disable-next-line prefer-const
-    let { agentName, parentAgentName = 'Adam', personaDescription, meta } = options || {};
+    let { agentName, parentAgentName = 'Adam', personaDescription, meta, namePool = 'ENGLISH' } = options || {};
     // eslint-disable-next-line prefer-const
     let { image, color, ...restMeta } = meta || {};
 
     if (!agentName) {
-        const randomFullnameWithColor = $randomFullnameWithColor();
+        const namePoolInstance = getNamePool(namePool);
+        const randomFullnameWithColor = namePoolInstance.generateName();
         agentName = randomFullnameWithColor.fullname as string_agent_name_in_book;
         color = color || randomFullnameWithColor.color;
     }
