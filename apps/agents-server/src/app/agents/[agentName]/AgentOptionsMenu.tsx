@@ -1,5 +1,6 @@
 'use client';
 
+import { TODO_any } from '@promptbook-local/types';
 import {
     CopyIcon,
     CopyPlusIcon,
@@ -10,12 +11,18 @@ import {
     MessageSquareShareIcon,
     MoreHorizontalIcon,
     QrCodeIcon,
+    SmartphoneIcon,
     SquareSplitHorizontalIcon,
 } from 'lucide-react';
 import { Barlow_Condensed } from 'next/font/google';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { string_data_url, string_url_image } from '../../../../../../src/types/typeAliases';
 import { getAgentLinks } from './agentLinks';
+
+type BeforeInstallPromptEvent = Event & {
+    prompt: () => Promise<void>;
+    userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
+};
 
 const barlowCondensed = Barlow_Condensed({
     subsets: ['latin'],
@@ -45,6 +52,45 @@ export function AgentOptionsMenu({
     const [isOpen, setIsOpen] = useState(false);
     const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
     const menuRef = useRef<HTMLDivElement>(null);
+
+    // PWA Install state
+    const [installPromptEvent, setInstallPromptEvent] = useState<BeforeInstallPromptEvent | null>(null);
+    const [isInstalled, setIsInstalled] = useState(false);
+
+    useEffect(() => {
+        function handleBeforeInstallPrompt(e: Event) {
+            e.preventDefault();
+            setInstallPromptEvent(e as BeforeInstallPromptEvent);
+        }
+
+        function updateInstalledStatus() {
+            const mediaMatch = window.matchMedia('(display-mode: standalone)');
+            const standalone = mediaMatch.matches || (window.navigator as TODO_any).standalone === true;
+            setIsInstalled(standalone);
+        }
+
+        window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+        updateInstalledStatus();
+        window.matchMedia('(display-mode: standalone)').addEventListener('change', updateInstalledStatus);
+
+        return () => {
+            window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+            window.matchMedia('(display-mode: standalone)').removeEventListener('change', updateInstalledStatus);
+        };
+    }, []);
+
+    const handleInstallApp = useCallback(async () => {
+        if (!installPromptEvent) return;
+        try {
+            installPromptEvent.prompt();
+            const choice = await installPromptEvent.userChoice.catch(() => null);
+            if (choice?.outcome === 'accepted') {
+                setIsInstalled(true);
+            }
+        } finally {
+            setInstallPromptEvent(null);
+        }
+    }, [installPromptEvent]);
 
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
@@ -130,6 +176,17 @@ export function AgentOptionsMenu({
             label: 'Show QR Code',
             onClick: onShowQrCode,
         },
+        // Install App - only show if PWA is installable and not already installed
+        ...(!isInstalled && installPromptEvent
+            ? [
+                  {
+                      type: 'action' as const,
+                      icon: SmartphoneIcon,
+                      label: 'Install App',
+                      onClick: handleInstallApp,
+                  },
+              ]
+            : []),
         // Admin-only items
         ...(isAdmin
             ? [
