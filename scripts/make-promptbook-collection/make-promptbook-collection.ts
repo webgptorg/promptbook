@@ -116,9 +116,7 @@ async function makePipelineCollection({
     content = content
         .split(`@promptbook/core`)
         .join(`../../collection/pipeline-collection/constructors/createPipelineCollectionFromJson`);
-    content = content
-        .split(`@promptbook/types`)
-        .join(`../../collection/pipeline-collection/pipeline-collection/PipelineCollection`);
+    content = content.split(`@promptbook/types`).join(`../../collection/pipeline-collection/PipelineCollection`);
     await writeFile(filePath, content, 'utf-8');
 
     if (isCommited) {
