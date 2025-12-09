@@ -328,3 +328,7 @@ export function AgentProfile(props: AgentProfileProps) {
         </>
     );
 }
+
+/**
+ * TODO: !!!! Use 3D badge @see https://vercel.com/blog/building-an-interactive-3d-event-badge-with-react-three-fiber
+ */
