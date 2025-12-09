@@ -12,9 +12,16 @@ import {
     QrCodeIcon,
     SquareSplitHorizontalIcon,
 } from 'lucide-react';
+import { Barlow_Condensed } from 'next/font/google';
 import { useEffect, useRef, useState } from 'react';
 import { string_data_url, string_url_image } from '../../../../../../src/types/typeAliases';
 import { getAgentLinks } from './agentLinks';
+
+const barlowCondensed = Barlow_Condensed({
+    subsets: ['latin'],
+    weight: ['300', '400', '500', '600', '700'],
+    variable: '--font-barlow-condensed',
+});
 
 type AgentOptionsMenuProps = {
     agentName: string;
@@ -173,7 +180,9 @@ export function AgentOptionsMenu({
             </button>
 
             {isOpen && (
-                <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-2xl border border-gray-100 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                <div
+                    className={`absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-2xl border border-gray-100 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200 ${barlowCondensed.className}`}
+                >
                     {menuItems.map((item, index) => {
                         if (item.type === 'divider') {
                             return <div key={index} className="h-px bg-gray-100 my-2" />;
