@@ -8,9 +8,12 @@ import spaceTrim from 'spacetrim';
 type AgentQrCodeProps = Pick<AgentBasicInformation, 'agentName' | 'personaDescription' | 'meta'> & {
     agentUrl: string;
     agentEmail: string;
+
+    isJustVcardShown?: boolean;
 };
 
-export function AgentQrCode({ agentName, agentUrl, agentEmail, personaDescription, meta }: AgentQrCodeProps) {
+export function AgentQrCode(props: AgentQrCodeProps) {
+    const { agentName, agentUrl, agentEmail, personaDescription, meta, isJustVcardShown } = props;
     const [mode, setMode] = useState<'contact' | 'link'>('contact');
 
     // TODO: [🧠] Should we include more info in VCARD?
@@ -26,6 +29,10 @@ export function AgentQrCode({ agentName, agentUrl, agentEmail, personaDescriptio
 
     const qrValue = mode === 'contact' ? vcard : agentUrl;
     const label = mode === 'contact' ? 'Scan to add contact' : 'Scan to open agent';
+
+    if (isJustVcardShown) {
+        return <PromptbookQrCode value={vcard} className="" size={250} />;
+    }
 
     return (
         <div className="flex flex-col items-center">

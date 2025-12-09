@@ -222,7 +222,7 @@ export function AgentProfile(props: AgentProfileProps) {
                         >
                             {/* Front of Card (Image) */}
                             <div
-                                className="absolute inset-0 w-full h-full backface-hidden rounded-3xl shadow-2xl overflow-hidden border-4 border-white/20 backdrop-blur-sm"
+                                className="absolute inset-0 w-full h-full backface-hidden rounded-3xl shadow-2xl overflow-hidden backdrop-blur-sm"
                                 style={{
                                     backfaceVisibility: 'hidden',
                                     backgroundColor: brandColorDarkHex,
@@ -249,7 +249,7 @@ export function AgentProfile(props: AgentProfileProps) {
 
                             {/* Back of Card (QR Code) */}
                             <div
-                                className="absolute inset-0 w-full h-full backface-hidden rounded-3xl shadow-2xl overflow-hidden border-4 border-white/20 backdrop-blur-sm flex flex-col items-center justify-center p-6"
+                                className="absolute inset-0 w-full h-full backface-hidden rounded-3xl shadow-2xl overflow-hidden backdrop-blur-sm flex flex-col items-center justify-center p-6"
                                 style={{
                                     backfaceVisibility: 'hidden',
                                     transform: 'rotateY(180deg)',
@@ -264,6 +264,7 @@ export function AgentProfile(props: AgentProfileProps) {
                                         agentEmail={agentEmail}
                                         personaDescription={personaDescription}
                                         meta={meta}
+                                        isJustVcardShown
                                     />
                                 </div>
 
