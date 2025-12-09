@@ -4,12 +4,12 @@ import { CSSProperties } from 'react';
 import type { AgentBasicInformation } from '../../book-2.0/agent-source/AgentBasicInformation';
 import { string_css_class } from '../../types/typeAliases';
 import { just } from '../../utils/organization/just';
-import { PromptbookAgentSeamless } from './PromptbookAgentSeamless';
+import { PromptbookAgentSeamlessIntegration } from './PromptbookAgentSeamlessIntegration';
 
 /**
- * @private props of PromptbookAgent component
+ * @private props of PromptbookAgentIntegration component
  */
-export type PromptbookAgentProps = {
+export type PromptbookAgentIntegrationProps = {
     /**
      * URL of the agent to connect to
      *
@@ -56,13 +56,13 @@ export type PromptbookAgentProps = {
  *
  * @public exported from `@promptbook/components`
  */
-export function PromptbookAgent(props: PromptbookAgentProps) {
+export function PromptbookAgentIntegration(props: PromptbookAgentIntegrationProps) {
     const { agentUrl, formfactor = 'seamless', meta, onOpenChange, className, style } = props;
 
     if (just(false)) {
         /* IGNORE */
     } else if (formfactor === 'seamless') {
-        return <PromptbookAgentSeamless {...{ agentUrl, meta, onOpenChange, className, style }} />;
+        return <PromptbookAgentSeamlessIntegration {...{ agentUrl, meta, onOpenChange, className, style }} />;
     } else if (formfactor === 'book') {
         return <iframe src={agentUrl + '/book?headless'} className={className} style={style} />;
     } else if (formfactor === 'chat') {
@@ -70,7 +70,7 @@ export function PromptbookAgent(props: PromptbookAgentProps) {
     } else if (formfactor === 'profile') {
         return <iframe src={agentUrl + '?headless'} className={className} style={style} />;
     } else {
-        throw new Error(`PromptbookAgent: Unsupported formfactor "${formfactor}"`);
+        throw new Error(`PromptbookAgentIntegration: Unsupported formfactor "${formfactor}"`);
     }
 }
 
