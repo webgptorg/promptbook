@@ -1,6 +1,6 @@
 'use client';
 
-import { PromptbookAgent } from '@promptbook-local/components';
+import { PromptbookAgentIntegration } from '@promptbook-local/components';
 import { useSearchParams } from 'next/navigation';
 
 export default function EmbedPage() {
@@ -13,7 +13,7 @@ export default function EmbedPage() {
 
     return (
         <div className="w-full h-full bg-transparent">
-            <PromptbookAgent
+            <PromptbookAgentIntegration
                 agentUrl={agentUrl}
                 onOpenChange={(isOpen) => {
                     window.parent.postMessage({ type: 'PROMPTBOOK_AGENT_RESIZE', isOpen }, '*');
