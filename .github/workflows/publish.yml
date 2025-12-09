@@ -12,39 +12,6 @@ jobs:
         permissions:
             contents: read
             id-token: write
-        strategy:
-            matrix:
-                package:
-                    - anthropic-claude
-                    - azure-openai
-                    - browser
-                    - cli
-                    - color
-                    - components
-                    - core
-                    - deepseek
-                    - documents
-                    - editable
-                    - fake-llm
-                    - google
-                    - javascript
-                    - legacy-documents
-                    - markdown-utils
-                    - markitdown
-                    - node
-                    - ollama
-                    - openai
-                    - pdf
-                    - remote-client
-                    - remote-server
-                    - templates
-                    - types
-                    - utils
-                    - vercel
-                    - website-crawler
-                    - wizard
-                    - promptbook
-                    - ptbk
         steps:
             - name: 🔽 Checkout
               uses: actions/checkout@v4
@@ -89,8 +56,153 @@ jobs:
               run: npm run import-markdowns
             - name: 🏭 Make | Generate OpenAPI Types
               run: npm run generate-openapi-types
-            - name: 🔼 Publish ${{ matrix.package }}
-              working-directory: ./packages/${{ matrix.package }}
+            - name: 🔼 Publish @promptbook/anthropic-claude
+              working-directory: ./packages/anthropic-claude
+              run: npm publish --provenance --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: 🔼 Publish @promptbook/azure-openai
+              working-directory: ./packages/azure-openai
+              run: npm publish --provenance --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: 🔼 Publish @promptbook/browser
+              working-directory: ./packages/browser
+              run: npm publish --provenance --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: 🔼 Publish @promptbook/cli
+              working-directory: ./packages/cli
+              run: npm publish --provenance --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: 🔼 Publish @promptbook/color
+              working-directory: ./packages/color
+              run: npm publish --provenance --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: 🔼 Publish @promptbook/components
+              working-directory: ./packages/components
+              run: npm publish --provenance --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: 🔼 Publish @promptbook/core
+              working-directory: ./packages/core
+              run: npm publish --provenance --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: 🔼 Publish @promptbook/deepseek
+              working-directory: ./packages/deepseek
+              run: npm publish --provenance --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: 🔼 Publish @promptbook/documents
+              working-directory: ./packages/documents
+              run: npm publish --provenance --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: 🔼 Publish @promptbook/editable
+              working-directory: ./packages/editable
+              run: npm publish --provenance --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: 🔼 Publish @promptbook/fake-llm
+              working-directory: ./packages/fake-llm
+              run: npm publish --provenance --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: 🔼 Publish @promptbook/google
+              working-directory: ./packages/google
+              run: npm publish --provenance --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: 🔼 Publish @promptbook/javascript
+              working-directory: ./packages/javascript
+              run: npm publish --provenance --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: 🔼 Publish @promptbook/legacy-documents
+              working-directory: ./packages/legacy-documents
+              run: npm publish --provenance --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: 🔼 Publish @promptbook/markdown-utils
+              working-directory: ./packages/markdown-utils
+              run: npm publish --provenance --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: 🔼 Publish @promptbook/markitdown
+              working-directory: ./packages/markitdown
+              run: npm publish --provenance --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: 🔼 Publish @promptbook/node
+              working-directory: ./packages/node
+              run: npm publish --provenance --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: 🔼 Publish @promptbook/ollama
+              working-directory: ./packages/ollama
+              run: npm publish --provenance --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: 🔼 Publish @promptbook/openai
+              working-directory: ./packages/openai
+              run: npm publish --provenance --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: 🔼 Publish @promptbook/pdf
+              working-directory: ./packages/pdf
+              run: npm publish --provenance --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: 🔼 Publish @promptbook/remote-client
+              working-directory: ./packages/remote-client
+              run: npm publish --provenance --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: 🔼 Publish @promptbook/remote-server
+              working-directory: ./packages/remote-server
+              run: npm publish --provenance --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: 🔼 Publish @promptbook/templates
+              working-directory: ./packages/templates
+              run: npm publish --provenance --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: 🔼 Publish @promptbook/types
+              working-directory: ./packages/types
+              run: npm publish --provenance --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: 🔼 Publish @promptbook/utils
+              working-directory: ./packages/utils
+              run: npm publish --provenance --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: 🔼 Publish @promptbook/vercel
+              working-directory: ./packages/vercel
+              run: npm publish --provenance --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: 🔼 Publish @promptbook/website-crawler
+              working-directory: ./packages/website-crawler
+              run: npm publish --provenance --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: 🔼 Publish @promptbook/wizard
+              working-directory: ./packages/wizard
+              run: npm publish --provenance --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: 🔼 Publish promptbook
+              working-directory: ./packages/promptbook
+              run: npm publish --provenance --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+            - name: 🔼 Publish ptbk
+              working-directory: ./packages/ptbk
               run: npm publish --provenance --access public
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
@@ -102,17 +214,17 @@ jobs:
         steps:
             - name: 🔽 Checkout
               uses: actions/checkout@v4
-            - name: � Login to DockerHub
+            - name: 🔑 Login to DockerHub
               uses: docker/login-action@v2
               with:
                   username: ${{ secrets.DOCKERHUB_USER }}
                   password: ${{ secrets.DOCKERHUB_TOKEN }}
-            - name: � Setup Node.js
+            - name: 🔽 Setup Node.js
               uses: actions/setup-node@v4
               with:
                   node-version: 22
                   registry-url: https://registry.npmjs.org/
-            - name: � Install dependencies
+            - name: 🔽 Install dependencies
               run: npm ci
             - name: 🔽 Clone book submodule
               run: git submodule update --init --recursive
@@ -121,7 +233,7 @@ jobs:
             - name: 🆚 Load current version into the environment
               run: echo "VERSION=$(node -p 'require(`./package.json`).version')" >>
                   $GITHUB_ENV
-            - name: 👁‍� Log version from previous step
+            - name: 👁‍🗨 Log version from previous step
               run: echo $VERSION
             - name: 👁‍🗨 Log contents of the Dockerfile
               run: cat Dockerfile
