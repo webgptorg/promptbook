@@ -7,6 +7,8 @@ import type { Promisable } from 'type-fest';
 import type { string_chat_format_name } from '../save/_common/string_chat_format_name';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
+import { string_color } from '../../../types/typeAliases';
+import { Color } from '../../../_packages/color.index';
 
 /**
  * @public exported from `@promptbook/components`
@@ -103,6 +105,11 @@ export type ChatProps = {
      * instead of its default position within the chat.
      */
     readonly actionsContainer?: HTMLElement | null;
+
+    /**
+     * Color of the action buttons (send, reset, voice, etc.)
+     */
+    readonly buttonColor?: string_color | Color;
 
     /**
      * Optional CSS class name which will be added to root <div/> element

@@ -3,6 +3,7 @@ import type {
     string_agent_name,
     string_agent_url,
     string_color,
+    string_fonts,
     string_url_image,
 } from '../../types/typeAliases';
 
@@ -67,6 +68,7 @@ export type AgentBasicInformation = {
     meta: {
         fullname?: string;
         image?: string_url_image;
+        font?: string_fonts;
         color?: string_color;
         [key: string]: string | undefined;
     };

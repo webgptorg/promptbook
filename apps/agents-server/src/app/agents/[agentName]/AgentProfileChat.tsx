@@ -1,20 +1,21 @@
 'use client';
 
+import { usePromise } from '@common/hooks/usePromise';
 import { Chat } from '@promptbook-local/components';
 import { RemoteAgent } from '@promptbook-local/core';
-import spaceTrim from 'spacetrim';
-import { useCallback, useMemo } from 'react';
-import { usePromise } from '@common/hooks/usePromise';
 import { useRouter } from 'next/navigation';
-import { string_agent_url } from '../../../../../../src/types/typeAliases';
+import { useCallback, useMemo } from 'react';
+import spaceTrim from 'spacetrim';
+import { string_agent_url, string_color } from '../../../../../../src/types/typeAliases';
 
 type AgentProfileChatProps = {
     agentUrl: string_agent_url;
     agentName: string;
     fullname: string;
+    brandColorHex: string_color;
 };
 
-export function AgentProfileChat({ agentUrl, agentName, fullname }: AgentProfileChatProps) {
+export function AgentProfileChat({ agentUrl, agentName, fullname, brandColorHex }: AgentProfileChatProps) {
     const router = useRouter();
 
     const agentPromise = useMemo(
@@ -56,21 +57,23 @@ export function AgentProfileChat({ agentUrl, agentName, fullname }: AgentProfile
 
     return (
         <div className="w-full h-[400px] md:h-[500px]">
-             <Chat
+            <Chat
                 title={`Chat with ${fullname}`}
+                participants={[{ name: 'AGENT', fullname, isMe: false, color: brandColorHex }]}
                 messages={[
                     {
                         from: 'AGENT',
                         content: initialMessage,
                         date: new Date(),
                         id: 'initial-message',
-                        isComplete: true
+                        isComplete: true,
                     },
                 ]}
                 onMessage={handleMessage}
                 isSaveButtonEnabled={false}
                 isCopyButtonEnabled={false}
                 className="bg-transparent"
+                buttonColor={brandColorHex}
                 style={{ background: 'transparent' }}
             />
         </div>

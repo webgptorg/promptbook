@@ -14,7 +14,9 @@ import type {
     string_agent_hash,
     string_agent_name,
     string_agent_url,
+    string_color,
     string_date_iso8601,
+    string_fonts,
     string_markdown,
     string_prompt,
     string_url_image,
@@ -76,6 +78,8 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
         fullname?: string;
         image?: string_url_image;
         link?: string;
+        font?: string_fonts;
+        color?: string_color;
         title?: string;
         description?: string;
         [key: string]: string | undefined;
@@ -129,9 +133,7 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
         const modelRequirements = await this.getAgentModelRequirements();
         if (modelRequirements.samples) {
             const normalizedPrompt = normalizeMessageText(prompt.content);
-            const sample = modelRequirements.samples.find(
-                (s) => normalizeMessageText(s.question) === normalizedPrompt,
-            );
+            const sample = modelRequirements.samples.find((s) => normalizeMessageText(s.question) === normalizedPrompt);
 
             if (sample) {
                 const now = new Date().toISOString() as string_date_iso8601;

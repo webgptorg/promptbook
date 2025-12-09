@@ -76,9 +76,11 @@ export function Chat(props: ChatProps) {
         saveFormats,
         isSaveButtonEnabled = true,
         isCopyButtonEnabled = true,
+        buttonColor: buttonColorRaw,
+        onUseTemplate,
     } = props;
 
-    const { onUseTemplate } = props;
+    const buttonColor = useMemo(() => Color.from(buttonColorRaw || '#0066cc'), [buttonColorRaw]);
 
     // Use the auto-scroll hook
     const {
@@ -680,6 +682,10 @@ export function Chat(props: ChatProps) {
                                                 />
                                                 <button
                                                     type="button"
+                                                    style={{
+                                                        backgroundColor: buttonColor.toHex(),
+                                                        color: buttonColor.then(textColor).toHex(),
+                                                    }}
                                                     className={styles.attachmentButton}
                                                     onClick={() => fileInputRef.current?.click()}
                                                     disabled={isUploading}
@@ -693,7 +699,14 @@ export function Chat(props: ChatProps) {
                                         {onVoiceInput && (
                                             <button
                                                 data-button-type="voice"
-                                                className={classNames(styles.voiceButton, isVoiceCalling && styles.voiceButtonActive)}
+                                                style={{
+                                                    backgroundColor: buttonColor.toHex(),
+                                                    color: buttonColor.then(textColor).toHex(),
+                                                }}
+                                                className={classNames(
+                                                    styles.voiceButton,
+                                                    isVoiceCalling && styles.voiceButtonActive,
+                                                )}
                                                 onClick={(event) => {
                                                     event.preventDefault();
                                                     onVoiceInput();
@@ -706,6 +719,10 @@ export function Chat(props: ChatProps) {
 
                                         <button
                                             data-button-type="call-to-action"
+                                            style={{
+                                                backgroundColor: buttonColor.toHex(),
+                                                color: buttonColor.then(textColor).toHex(),
+                                            }}
                                             ref={buttonSendRef}
                                             onClick={(event) => {
                                                 if (!onMessage) {

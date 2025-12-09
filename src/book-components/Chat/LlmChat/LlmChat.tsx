@@ -34,6 +34,7 @@ export function LlmChat(props: LlmChatProps) {
         userParticipantName = 'USER',
         llmParticipantName = 'ASSISTANT',
         autoExecuteMessage,
+        buttonColor,
         ...restProps
     } = props;
 
@@ -446,13 +447,15 @@ export function LlmChat(props: LlmChatProps) {
     }, [autoExecuteMessage, handleMessage]);
 
     return (
-        <Chat
-            {...restProps}
-            {...{ messages, onReset, tasksProgress, participants }}
-            onMessage={handleMessage}
-            onReset={handleReset}
-            onVoiceInput={llmTools.callVoiceChatModel ? handleVoiceInput : undefined}
-            isVoiceCalling={isVoiceCalling}
-        />
+        <>
+            <Chat
+                {...restProps}
+                {...{ messages, onReset, tasksProgress, participants, buttonColor }}
+                onMessage={handleMessage}
+                onReset={handleReset}
+                onVoiceInput={llmTools.callVoiceChatModel ? handleVoiceInput : undefined}
+                isVoiceCalling={isVoiceCalling}
+            />
+        </>
     );
 }

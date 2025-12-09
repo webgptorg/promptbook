@@ -2,6 +2,7 @@
 
 import { $provideServer } from '@/src/tools/$provideServer';
 import { isUserAdmin } from '@/src/utils/isUserAdmin';
+import { saturate } from '@promptbook-local/color';
 import { PROMPTBOOK_COLOR } from '@promptbook-local/core';
 import { notFound } from 'next/navigation';
 import { Color } from '../../../../../../src/utils/color/Color';
@@ -49,15 +50,8 @@ export default async function AgentPage({
 
     const agentEmail = `${agentName}@${publicUrl.hostname}`;
 
-    // Extract brand color for menu
-    const brandColorString = agentProfile.meta.color || PROMPTBOOK_COLOR.toHex();
-    let brandColor;
-    try {
-        brandColor = Color.fromSafe(brandColorString.split(',')[0].trim());
-    } catch {
-        brandColor = Color.fromHex(PROMPTBOOK_COLOR.toHex());
-    }
-    const brandColorHex = brandColor.toHex();
+    const brandColor = Color.fromSafe(agentProfile.meta.color || PROMPTBOOK_COLOR);
+    const brandColorHex = brandColor.then(saturate(-0.5)).toHex();
 
     const fullname = (agentProfile.meta.fullname || agentProfile.agentName || 'Agent') as string;
 
@@ -92,7 +86,12 @@ export default async function AgentPage({
                     </>
                 }
             >
-                <AgentProfileChat agentUrl={agentUrl} agentName={agentName} fullname={fullname} />
+                <AgentProfileChat
+                    agentUrl={agentUrl}
+                    agentName={agentName}
+                    fullname={fullname}
+                    brandColorHex={brandColorHex}
+                />
             </AgentProfileWrapper>
         </>
     );

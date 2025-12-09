@@ -24,13 +24,29 @@ export class Color {
      * @param color
      * @returns Color object
      */
-    public static from(color: string_color | Color): WithTake<Color> {
-        if (color instanceof Color) {
+    public static from(color: string_color | Color, _isSingleValue: boolean = false): WithTake<Color> {
+        if (color === '') {
+            throw new Error(`Can not create color from empty string`);
+        } else if (color instanceof Color) {
             return take(color);
         } else if (Color.isColor(color)) {
             return take(color);
         } else if (typeof color === 'string') {
-            return Color.fromString(color);
+            try {
+                return Color.fromString(color);
+            } catch (error) {
+                // <- Note: Can not use `assertsError(error)` here because it causes circular dependency
+                if (_isSingleValue) {
+                    throw error;
+                }
+
+                const parts = color.split(/[\s+\,\;\|]/);
+                if (parts.length > 0) {
+                    return Color.from(parts[0]!.trim(), true);
+                } else {
+                    throw new Error(`Can not create color from given string "${color}"`);
+                }
+            }
         } else {
             console.error({ color });
             throw new Error(`Can not create color from given object`);

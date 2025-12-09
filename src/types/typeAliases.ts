@@ -404,6 +404,13 @@ export type string_css_property = string;
 /**
  * Semantic helper
  *
+ * For example `"Arial, sans-serif"`
+ */
+export type string_fonts = string;
+
+/**
+ * Semantic helper
+ *
  * For example `13px`
  */
 export type string_css_value = string | number;
