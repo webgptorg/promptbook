@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/remote-server",
-    "version": "0.103.0-55",
+    "version": "0.103.0-99",
     "description": "Promptbook: Turn your company's scattered knowledge into AI ready books",
     "private": false,
     "sideEffects": false,
@@ -95,16 +95,14 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/remote-server.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.103.0-55"
+        "@promptbook/core": "0.103.0-99"
     },
     "dependencies": {
-        "bottleneck": "2.19.5",
         "colors": "1.4.0",
         "crypto": "1.0.1",
         "crypto-js": "4.2.0",
         "express": "4.21.2",
         "express-openapi-validator": "5.4.9",
-        "openai": "4.63.0",
         "papaparse": "5.4.1",
         "react": "18.2.0",
         "rxjs": "7.8.2",

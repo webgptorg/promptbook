@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/openai",
-    "version": "0.103.0-55",
+    "version": "0.103.0-99",
     "description": "Promptbook: Turn your company's scattered knowledge into AI ready books",
     "private": false,
     "sideEffects": false,
@@ -102,7 +102,7 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/openai.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.103.0-55"
+        "@promptbook/core": "0.103.0-99"
     },
     "dependencies": {
         "bottleneck": "2.19.5",
@@ -110,7 +110,6 @@
         "crypto": "1.0.1",
         "openai": "4.63.0",
         "socket.io-client": "4.7.5",
-        "spacetrim": "0.11.60",
-        "waitasecond": "1.11.160"
+        "spacetrim": "0.11.60"
     }
 }

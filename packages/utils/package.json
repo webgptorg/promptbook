@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/utils",
-    "version": "0.103.0-55",
+    "version": "0.103.0-99",
     "description": "Promptbook: Turn your company's scattered knowledge into AI ready books",
     "private": false,
     "sideEffects": false,
@@ -97,6 +97,7 @@
     "typings": "./esm/typings/src/_packages/utils.index.d.ts",
     "dependencies": {
         "crypto": "1.0.1",
+        "crypto-js": "4.2.0",
         "spacetrim": "0.11.60",
         "type-fest": "4.5.0"
     }
