@@ -5,8 +5,8 @@ import { Barlow_Condensed, Poppins } from 'next/font/google';
 import { getMetadata } from '../database/getMetadata';
 import { $provideAgentCollectionForServer } from '../tools/$provideAgentCollectionForServer';
 import { $provideServer } from '../tools/$provideServer';
-import { isUserAdmin } from '../utils/isUserAdmin';
 import { getCurrentUser } from '../utils/getCurrentUser';
+import { isUserAdmin } from '../utils/isUserAdmin';
 import './globals.css';
 
 const barlowCondensed = Barlow_Condensed({
@@ -25,12 +25,18 @@ export async function generateMetadata(): Promise<Metadata> {
     const { publicUrl } = await $provideServer();
     const serverName = (await getMetadata('SERVER_NAME')) || 'Promptbook Agents Server';
     const serverDescription = (await getMetadata('SERVER_DESCRIPTION')) || 'Agents server powered by Promptbook';
+    const serverFaviconUrl = (await getMetadata('SERVER_FAVICON_URL')) || faviconLogoImage.src;
 
     return {
         title: serverName,
         description: serverDescription,
         // TODO: keywords: ['@@@'],
         authors: [{ name: 'Promptbook Team' }],
+        icons: {
+            icon: serverFaviconUrl,
+            shortcut: serverFaviconUrl,
+            apple: serverFaviconUrl,
+        },
         openGraph: {
             title: serverName,
             description: serverDescription,
@@ -66,7 +72,6 @@ export default async function RootLayout({
     const currentUser = await getCurrentUser();
     const serverName = (await getMetadata('SERVER_NAME')) || 'Promptbook Agents Server';
     const serverLogoUrl = (await getMetadata('SERVER_LOGO_URL')) || null;
-    const serverFaviconUrl = (await getMetadata('SERVER_FAVICON_URL')) || faviconLogoImage.src;
     const isFooterShown = ((await getMetadata('IS_FOOTER_SHOWN')) || 'true') === 'true';
 
     let footerLinks = [];
@@ -82,28 +87,7 @@ export default async function RootLayout({
 
     return (
         <html lang="en">
-            <head>
-                {/* Favicon for light mode */}
-                {/*
-                <link
-                    rel="icon"
-                    href="https://www.ptbk.io/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Flogo-blue-transparent-256.493b7e49.png&w=64&q=75"
-                    media="(prefers-color-scheme: light)"
-                    type="image/svg+xml"
-                />
-                */}
-                {/* Favicon for dark mode */}
-                {/*
-                <link
-                    rel="icon"
-                    href="https://www.ptbk.io/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Flogo-blue-transparent-256.493b7e49.png&w=64&q=75"
-                    media="(prefers-color-scheme: dark)"
-                    type="image/svg+xml"
-                />
-                */}
-                {/* Default favicon as a fallback */}
-                <link rel="icon" href={serverFaviconUrl} type="image/x-icon" />
-            </head>
+            {/* Note: Icon is set via metadata to allow agent-page specific icons to override it */}
             <body className={`${barlowCondensed.variable} ${poppins.variable} antialiased bg-white text-gray-900`}>
                 <LayoutWrapper
                     isAdmin={isAdmin}
