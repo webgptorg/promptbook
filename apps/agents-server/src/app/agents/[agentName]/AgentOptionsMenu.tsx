@@ -226,7 +226,7 @@ export function AgentOptionsMenu({
     ];
 
     return (
-        <div ref={menuRef} className="relative">
+        <div ref={menuRef} className="relative z-[9999]">
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="p-3 rounded-full hover:bg-white/30 transition-all duration-200"
@@ -238,7 +238,7 @@ export function AgentOptionsMenu({
 
             {isOpen && (
                 <div
-                    className={`absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-2xl border border-gray-100 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200 ${barlowCondensed.className}`}
+                    className={`absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-2xl border border-gray-100 py-2 z-[9999] animate-in fade-in slide-in-from-top-2 duration-200 ${barlowCondensed.className}`}
                 >
                     {menuItems.map((item, index) => {
                         if (item.type === 'divider') {

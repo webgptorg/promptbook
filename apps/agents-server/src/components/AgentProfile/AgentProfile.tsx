@@ -202,7 +202,7 @@ export function AgentProfile(props: AgentProfileProps) {
             >
                 {/* Options menu in top right */}
                 {!isHeadless && renderMenu && (
-                    <div className="absolute top-4 right-4 z-10">
+                    <div className="absolute top-4 right-4 z-[9999]">
                         {renderMenu({ onShowQrCode: () => setIsQrModalOpen(true) })}
                     </div>
                 )}
