@@ -208,13 +208,13 @@ export function AgentProfile(props: AgentProfileProps) {
                 )}
 
                 {/* Main profile content */}
-                <div className="relative z-10 flex flex-col md:flex-row items-center gap-8 md:gap-12 max-w-5xl w-full">
+                <div className="relative z-10 flex flex-col md:flex-row items-center md:items-start gap-8 md:gap-12 max-w-5xl w-full">
                     {/* Agent image card (Flippable) */}
                     <div className="flex-shrink-0 perspective-1000 group" style={{ perspective: '1000px' }}>
                         <div
                             className="relative w-72 md:w-80 transition-all duration-700 transform-style-3d cursor-pointer"
                             style={{
-                                aspectRatio: '1 / 1.62', // Golden Ratio
+                                aspectRatio: '1 / 1.618', // Golden Ratio
                                 transformStyle: 'preserve-3d',
                                 transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
                             }}

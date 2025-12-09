@@ -165,11 +165,11 @@ export function AgentOptionsMenu({
         <div ref={menuRef} className="relative">
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="p-3 rounded-full bg-white/20 hover:bg-white/30 transition-all duration-200 backdrop-blur-sm"
-                style={{ backgroundColor: brandColorHex }}
+                className="p-3 rounded-full hover:bg-white/30 transition-all duration-200"
+                // style={{ backgroundColor: brandColorHex }}
                 aria-label="More options"
             >
-                <MoreHorizontalIcon className="w-5 h-5 text-white" />
+                <MoreHorizontalIcon className="w-5 h-5 text-black" />
             </button>
 
             {isOpen && (
