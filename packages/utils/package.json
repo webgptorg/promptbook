@@ -97,6 +97,7 @@
     "typings": "./esm/typings/src/_packages/utils.index.d.ts",
     "dependencies": {
         "crypto": "1.0.1",
+        "crypto-js": "4.2.0",
         "spacetrim": "0.11.60",
         "type-fest": "4.5.0"
     }

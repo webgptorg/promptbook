@@ -92,5 +92,8 @@
     "typings": "./esm/typings/src/_packages/color.index.d.ts",
     "peerDependencies": {
         "@promptbook/core": "0.103.0-61"
+    },
+    "dependencies": {
+        "spacetrim": "0.11.60"
     }
 }
