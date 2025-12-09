@@ -40,7 +40,7 @@ export class Color {
                     throw error;
                 }
 
-                const parts = color.split(/[\s+\,\;\|]/);
+                const parts = color.split(/[\s+,;|]/);
                 if (parts.length > 0) {
                     return Color.from(parts[0]!.trim(), true);
                 } else {
