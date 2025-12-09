@@ -12,14 +12,18 @@ export async function generateAgentMetadata({ params }: { params: Promise<{ agen
         const title = agentProfile.meta.fullname || agentProfile.agentName;
         const description = agentProfile.meta.description || agentProfile.personaDescription || undefined;
 
-        // Extract image from meta
-        const image = agentProfile.meta.image;
+        // Use the agent's icon-256.png as the favicon
+        const iconUrl = `/agents/${encodeURIComponent(agentName)}/images/icon-256.png`;
 
         const metadata = {
             metadataBase: publicUrl,
             title,
             description,
-            icons: image ? { icon: image } : undefined,
+            icons: {
+                icon: iconUrl,
+                shortcut: iconUrl,
+                apple: iconUrl,
+            },
             openGraph: {
                 title,
                 description,
