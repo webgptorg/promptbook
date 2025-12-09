@@ -2,7 +2,7 @@
 
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideServer } from '@/src/tools/$provideServer';
-import { PromptbookAgent } from '@promptbook-local/components';
+import { PromptbookAgentIntegration } from '@promptbook-local/components';
 import { parseAgentSource } from '@promptbook-local/core';
 import { headers } from 'next/headers';
 import spaceTrim from 'spacetrim';
@@ -50,7 +50,7 @@ export default async function WebsiteIntegrationAgentPage({ params }: { params: 
             </p>
 
             <CodePreview code={code} />
-            <PromptbookAgent
+            <PromptbookAgentIntegration
                 formfactor="profile"
                 agentUrl={agentUrl}
                 meta={meta}

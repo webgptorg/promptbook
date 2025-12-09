@@ -12,6 +12,8 @@ type PromptbookAgentSeamlessIntegrationProps = Omit<PromptbookAgentIntegrationPr
 
 /**
  * Renders a floating agent button that opens a chat window with the remote agent.
+ *
+ * @private component of PromptbookAgentIntegration
  */
 export function PromptbookAgentSeamlessIntegration(props: PromptbookAgentSeamlessIntegrationProps) {
     const { agentUrl, meta, onOpenChange, className, style } = props;

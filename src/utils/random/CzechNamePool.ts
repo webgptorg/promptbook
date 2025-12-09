@@ -176,6 +176,8 @@ const COLORS: ReadonlyArray<string_color> = [
 
 /**
  * Name pool for Czech names
+ *
+ * @private [🍇] Maybe expose via some package
  */
 export const CzechNamePool: NamePool = {
     generateName(): GenerateNameResult {

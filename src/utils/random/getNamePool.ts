@@ -7,6 +7,8 @@ import type { NamePool } from './NamePool';
  *
  * @param language - The language code (e.g. 'ENGLISH', 'CZECH')
  * @returns The name pool
+ *
+ * @private [🍇] Maybe expose via some package
  */
 export function getNamePool(language: string): NamePool {
     const normalizedLanguage = language.toUpperCase().trim();
