@@ -12,5 +12,5 @@ export const SendIcon = ({ size }: { size: number }) => (
 );
 
 /**
- * TODO: !!!! Search ACRY for "currentColor", it probbaly does not work and make no sense to have it in project
+ * TODO: !!!! Search ACRY for "currentColor", it probably does not work and make no sense to have it in project
  */
