@@ -13,9 +13,10 @@ type AgentProfileChatProps = {
     agentName: string;
     fullname: string;
     brandColorHex: string_color;
+    avatarSrc: string;
 };
 
-export function AgentProfileChat({ agentUrl, agentName, fullname, brandColorHex }: AgentProfileChatProps) {
+export function AgentProfileChat({ agentUrl, agentName, fullname, brandColorHex, avatarSrc }: AgentProfileChatProps) {
     const router = useRouter();
 
     const agentPromise = useMemo(
@@ -59,7 +60,16 @@ export function AgentProfileChat({ agentUrl, agentName, fullname, brandColorHex 
         <div className="w-full h-[400px] md:h-[500px]">
             <Chat
                 title={`Chat with ${fullname}`}
-                participants={[{ name: 'AGENT', fullname, isMe: false, color: brandColorHex }]}
+                participants={[
+                    {
+                        name: 'AGENT',
+                        fullname,
+                        isMe: false,
+                        color: brandColorHex,
+                        avatarSrc,
+                        // <- TODO: [🧠] Maybe this shouldnt be there
+                    },
+                ]}
                 messages={[
                     {
                         from: 'AGENT',

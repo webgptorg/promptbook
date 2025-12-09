@@ -91,6 +91,7 @@ export default async function AgentPage({
                     agentName={agentName}
                     fullname={fullname}
                     brandColorHex={brandColorHex}
+                    avatarSrc={agentProfile.meta.image!}
                 />
             </AgentProfileWrapper>
         </>
