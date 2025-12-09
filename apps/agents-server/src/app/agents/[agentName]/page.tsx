@@ -5,18 +5,26 @@ import { isUserAdmin } from '@/src/utils/isUserAdmin';
 import { PROMPTBOOK_COLOR } from '@promptbook-local/core';
 import { notFound } from 'next/navigation';
 import { Color } from '../../../../../../src/utils/color/Color';
+import { getAgentName, getAgentProfile } from './_utils';
 import { getAgentLinks } from './agentLinks';
 import { AgentProfileChat } from './AgentProfileChat';
 import { AgentProfileWrapper } from './AgentProfileWrapper';
-import { getAgentName, getAgentProfile } from './_utils';
 import { generateAgentMetadata } from './generateAgentMetadata';
 import { ServiceWorkerRegister } from './ServiceWorkerRegister';
 
 export const generateMetadata = generateAgentMetadata;
 
-export default async function AgentPage({ params }: { params: Promise<{ agentName: string }> }) {
+export default async function AgentPage({
+    params,
+    searchParams,
+}: {
+    params: Promise<{ agentName: string }>;
+    searchParams: Promise<{ headless?: string }>;
+}) {
     const agentName = await getAgentName(params);
     const isAdmin = await isUserAdmin();
+    const { headless: headlessParam } = await searchParams;
+    const isHeadless = headlessParam !== undefined;
 
     let agentProfile;
     try {
@@ -63,6 +71,7 @@ export default async function AgentPage({ params }: { params: Promise<{ agentNam
                 agentName={agentName}
                 brandColorHex={brandColorHex}
                 isAdmin={isAdmin}
+                isHeadless={isHeadless}
                 actions={
                     <>
                         {getAgentLinks(agentName)

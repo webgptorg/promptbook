@@ -1,7 +1,6 @@
 'use client';
 
 import { AgentBasicInformation } from '@promptbook-local/types';
-import { string_data_url, string_url_image } from '../../../../../../src/types/typeAliases';
 import { AgentProfile } from '../../../components/AgentProfile/AgentProfile';
 import { AgentOptionsMenu } from './AgentOptionsMenu';
 
@@ -12,18 +11,20 @@ type AgentProfileWrapperProps = {
     agentName: string;
     brandColorHex: string;
     isAdmin: boolean;
+    isHeadless: boolean;
     actions: React.ReactNode;
     children: React.ReactNode;
 };
 
 export function AgentProfileWrapper(props: AgentProfileWrapperProps) {
-    const { agent, agentUrl, agentEmail, agentName, brandColorHex, isAdmin, actions, children } = props;
+    const { agent, agentUrl, agentEmail, agentName, brandColorHex, isAdmin, isHeadless, actions, children } = props;
 
     return (
         <AgentProfile
             agent={agent}
             agentUrl={agentUrl}
             agentEmail={agentEmail}
+            isHeadless={isHeadless}
             renderMenu={({ onShowQrCode }) => (
                 <AgentOptionsMenu
                     agentName={agentName}

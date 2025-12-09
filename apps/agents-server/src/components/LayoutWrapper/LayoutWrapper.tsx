@@ -1,6 +1,6 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
 import type { UserInfo } from '../../utils/getCurrentUser';
 import { Footer, type FooterLink } from '../Footer/Footer';
@@ -28,12 +28,13 @@ export function LayoutWrapper({
     footerLinks,
 }: LayoutWrapperProps) {
     const pathname = usePathname();
-    const isAdminChatPage =
-        pathname?.startsWith('/admin/chat-history') || pathname?.startsWith('/admin/chat-feedback');
-    const isHeaderHidden = pathname?.includes('/chat') && !isAdminChatPage;
-    const isFooterHiddenOnPage = pathname ? /^\/agents\/[^/]+\/book(\+chat)?$/.test(pathname) : false;
+    const searchParams = useSearchParams();
+    const isHeadless = searchParams.has('headless');
+    // const isAdminChatPage = pathname?.startsWith('/admin/chat-history') || pathname?.startsWith('/admin/chat-feedback');
+    const isHeaderHidden = false; // pathname?.includes('/chat') && !isAdminChatPage;
+    const isFooterHiddenOnPage = pathname ? /^\/agents\/[^/]+\/(book|chat|book\+chat)$/.test(pathname) : false;
 
-    if (isHeaderHidden) {
+    if (isHeaderHidden || isHeadless) {
         return <main className={`pt-0`}>{children}</main>;
     }
 

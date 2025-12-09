@@ -1,4 +1,4 @@
-.promptbookAgent {
+.PromptbookAgentSeamless {
     position: fixed;
     bottom: 20px;
     right: 20px;
@@ -6,7 +6,7 @@
     font-family: sans-serif;
 }
 
-.promptbookAgentButton {
+.PromptbookAgentSeamlessButton {
     display: flex;
     align-items: center;
     background-color: #007bff;
@@ -19,12 +19,12 @@
     position: relative;
 }
 
-.promptbookAgentButton:hover {
+.PromptbookAgentSeamlessButton:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
 }
 
-.promptbookAgentAvatar {
+.PromptbookAgentSeamlessAvatar {
     width: 32px;
     height: 32px;
     border-radius: 50%;
@@ -35,17 +35,17 @@
     transform: translate(-10px, 0) scale(1.3);
 }
 
-.promptbookAgentAvatar img {
+.PromptbookAgentSeamlessAvatar img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
-.promptbookAgentLabel {
+.PromptbookAgentSeamlessLabel {
     font-weight: bold;
 }
 
-.promptbookAgentStatus {
+.PromptbookAgentSeamlessStatus {
     position: absolute;
     width: 12px;
     height: 12px;
@@ -56,15 +56,15 @@
     z-index: 10;
 }
 
-.promptbookAgentStatusConnected {
+.PromptbookAgentSeamlessStatusConnected {
     background-color: #57b660;
 }
 
-.promptbookAgentStatusPending {
+.PromptbookAgentSeamlessStatusPending {
     background-color: #9e9e9e;
 }
 
-.promptbookAgentStatusError {
+.PromptbookAgentSeamlessStatusError {
     background-color: #f44336;
 }
 
@@ -74,11 +74,11 @@
 .closed {
 }
 
-.promptbookAgent.open .promptbookAgentButton {
+.PromptbookAgentSeamless.open .PromptbookAgentSeamlessButton {
     display: none;
 }
 
-.promptbookAgentWindow {
+.PromptbookAgentSeamlessWindow {
     width: 380px;
     height: 600px;
     max-height: 80vh;
@@ -102,7 +102,7 @@
     }
 }
 
-.promptbookAgentHeader {
+.PromptbookAgentSeamlessHeader {
     background-color: #007bff;
     color: white;
     padding: 15px;
@@ -115,7 +115,7 @@
    Override chat action buttons to look like the close button 
    when rendered inside the header via portal
 */
-.promptbookAgentHeader button {
+.PromptbookAgentSeamlessHeader button {
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
@@ -133,33 +133,33 @@
     border-radius: 50% !important;
 }
 
-.promptbookAgentHeader button:hover {
+.PromptbookAgentSeamlessHeader button:hover {
     opacity: 1;
     background-color: rgba(255, 255, 255, 0.2) !important;
 }
 
 /* Hide text labels inside buttons in header (New Chat, Save) */
-.promptbookAgentHeader button span {
+.PromptbookAgentSeamlessHeader button span {
     display: none !important;
 }
 
 /* Ensure SVG icons are visible and sized correctly */
-.promptbookAgentHeader button svg {
+.PromptbookAgentSeamlessHeader button svg {
     width: 20px;
     height: 20px;
 }
 
-.promptbookAgentTitle {
+.PromptbookAgentSeamlessTitle {
     font-weight: bold;
     font-size: 1.1em;
 }
 
-.promptbookAgentClose {
+.PromptbookAgentSeamlessClose {
     /* Use same styles as above override, but keep specific if needed */
     font-size: 1.2em;
 }
 
-.promptbookAgentContent {
+.PromptbookAgentSeamlessContent {
     flex: 1;
     overflow-y: auto;
     position: relative;
@@ -167,8 +167,8 @@
     flex-direction: column;
 }
 
-.promptbookAgentLoading,
-.promptbookAgentError {
+.PromptbookAgentSeamlessLoading,
+.PromptbookAgentSeamlessError {
     flex: 1;
     display: flex;
     justify-content: center;
@@ -178,18 +178,18 @@
     color: #666;
 }
 
-.promptbookAgentError {
+.PromptbookAgentSeamlessError {
     color: #d32f2f;
 }
 
 @media (max-width: 480px) {
-    .promptbookAgent.open {
+    .PromptbookAgentSeamless.open {
         bottom: 0;
         right: 0;
         left: 0;
     }
 
-    .promptbookAgentWindow {
+    .PromptbookAgentSeamlessWindow {
         width: 100%;
         height: 100vh;
         max-height: 100vh;

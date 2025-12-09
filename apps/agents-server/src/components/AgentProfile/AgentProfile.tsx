@@ -2,7 +2,7 @@
 
 import { AgentBasicInformation } from '@promptbook-local/types';
 import { RepeatIcon } from 'lucide-react';
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import spaceTrim from 'spacetrim';
 import { Color } from '../../../../../src/utils/color/Color';
 import { darken } from '../../../../../src/utils/color/operators/darken';
@@ -18,7 +18,7 @@ type AgentProfileProps = {
 
     /**
      * URL of the agent page
-     * 
+     *
      * @default undefined - If not provided, some features like QR code for link might be disabled or use generic link
      */
     readonly agentUrl?: string;
@@ -30,7 +30,7 @@ type AgentProfileProps = {
 
     /**
      * Content for the menu (top right)
-     * 
+     *
      * @param props.onShowQrCode - Function to open QR code modal
      */
     readonly renderMenu?: (props: { onShowQrCode: () => void }) => React.ReactNode;
@@ -46,13 +46,27 @@ type AgentProfileProps = {
     readonly actions?: React.ReactNode;
 
     /**
+     * If true, hides the menu and actions for fullscreen/embedded view
+     */
+    readonly isHeadless?: boolean;
+
+    /**
      * CSS class name
      */
     readonly className?: string;
 };
 
 export function AgentProfile(props: AgentProfileProps) {
-    const { agent, agentUrl = '', agentEmail = '', renderMenu, children, actions, className } = props;
+    const {
+        agent,
+        agentUrl = '',
+        agentEmail = '',
+        renderMenu,
+        children,
+        actions,
+        isHeadless = false,
+        className,
+    } = props;
     const { meta, agentName } = agent;
     const fullname = (meta.fullname as string) || agentName || 'Agent';
     const personaDescription = agent.personaDescription || '';
@@ -78,7 +92,7 @@ export function AgentProfile(props: AgentProfileProps) {
         // [🧠] Default color should be imported constant, but for now hardcoded fallback
         const PROMPTBOOK_COLOR_HEX = '#f15b24'; // TODO: Import PROMPTBOOK_COLOR
         const brandColorString = meta.color || PROMPTBOOK_COLOR_HEX;
-        
+
         let brandColor;
         try {
             brandColor = Color.fromSafe(brandColorString.split(',')[0].trim());
@@ -92,9 +106,9 @@ export function AgentProfile(props: AgentProfileProps) {
 
         // Generate Noisy SVG Background
         const color1 = brandColor;
-        // const color2 = brandColors[1] || brandColors[0]!; // Use secondary color if available? 
+        // const color2 = brandColors[1] || brandColors[0]!; // Use secondary color if available?
         // For simplicity using primary color for now or derive second one
-        const color2 = brandColor; 
+        const color2 = brandColor;
 
         // [🧠] Make colors much lighter for the background
         const color1Light = color1.then(lighten(0.3)).toHex();
@@ -176,7 +190,9 @@ export function AgentProfile(props: AgentProfileProps) {
 
             {/* Full-screen background with agent color */}
             <div
-                className={`min-h-[calc(100vh-60px)] w-full flex flex-col items-center justify-center p-6 md:p-12 relative overflow-hidden ${className || ''}`}
+                className={`w-full flex flex-col items-center justify-center p-6 md:p-12 relative overflow-hidden ${
+                    isHeadless ? 'min-h-screen' : 'min-h-[calc(100vh-60px)]'
+                } ${className || ''}`}
                 style={{
                     background: `url("${backgroundImage}")`,
                     backgroundSize: 'cover',
@@ -185,7 +201,7 @@ export function AgentProfile(props: AgentProfileProps) {
                 }}
             >
                 {/* Options menu in top right */}
-                {renderMenu && (
+                {!isHeadless && renderMenu && (
                     <div className="absolute top-4 right-4 z-10">
                         {renderMenu({ onShowQrCode: () => setIsQrModalOpen(true) })}
                     </div>
@@ -277,14 +293,14 @@ export function AgentProfile(props: AgentProfileProps) {
                         </p>
 
                         {/* Chat */}
-                        <div className="w-full">
-                            {children}
-                        </div>
+                        <div className="w-full">{children}</div>
 
                         {/* Secondary Actions */}
-                        <div className="flex flex-wrap justify-center md:justify-start items-center gap-4 md:gap-6 mt-2">
-                            {actions}
-                        </div>
+                        {!isHeadless && (
+                            <div className="flex flex-wrap justify-center md:justify-start items-center gap-4 md:gap-6 mt-2">
+                                {actions}
+                            </div>
+                        )}
                     </div>
                 </div>
 

@@ -50,7 +50,16 @@ export default async function WebsiteIntegrationAgentPage({ params }: { params: 
             </p>
 
             <CodePreview code={code} />
-            <PromptbookAgent agentUrl={agentUrl} meta={meta} />
+            <PromptbookAgent
+                formfactor="profile"
+                agentUrl={agentUrl}
+                meta={meta}
+                style={{
+                    width: '400px',
+                    height: '600px',
+                    // outline: `2px solid red`
+                }}
+            />
         </main>
     );
 }
