@@ -152,7 +152,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
 
         // TODO: `entryIndexFilePathContent = await prettifyTypeScript(entryIndexFilePathContent)`
 
-        writeFile(entryIndexFilePath, entryIndexFilePathContent, 'utf-8');
+        await writeFile(entryIndexFilePath, entryIndexFilePathContent, 'utf-8');
         console.info(colors.green('Generated index file ' + entryIndexFilePath.split('\\').join('/')));
     }
 
