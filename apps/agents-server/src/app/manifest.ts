@@ -6,6 +6,9 @@ import { getMetadata } from '../database/getMetadata';
 import { $provideServer } from '../tools/$provideServer';
 import { getAgentProfile } from './agents/[agentName]/_utils';
 
+/**
+ * Manifest for PWA Progressive Web App
+ */
 export default async function manifest(): Promise<MetadataRoute.Manifest> {
     const { publicUrl } = await $provideServer();
     const serverName = (await getMetadata('SERVER_NAME')) || 'Promptbook Agents Server';
@@ -19,7 +22,7 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
             name: serverName,
             short_name: serverName,
             description: serverDescription,
-            start_url: publicUrl.href,
+            start_url: publicUrl.href + '?utm_source=pwa&utm_medium=install&utm_campaign=agents_server_app',
             display_override: ['fullscreen', 'minimal-ui'],
             display: 'standalone',
             background_color: PROMPTBOOK_COLOR.toHex(),
@@ -84,7 +87,7 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
             name,
             short_name,
             description,
-            start_url: `${agentUrl}/chat`,
+            start_url: `${agentUrl}?headless&utm_source=pwa&utm_medium=install&utm_campaign=agent_app`,
             scope: agentUrl,
             display_override: ['fullscreen', 'minimal-ui'],
             display: 'standalone',
@@ -98,7 +101,9 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
         return {
             name: agentName,
             short_name: agentName,
-            start_url: `${publicUrl.href}agents/${encodeURIComponent(agentName)}/chat`,
+            start_url: `${publicUrl.href}agents/${encodeURIComponent(
+                agentName,
+            )}?headless&utm_source=pwa&utm_medium=install&utm_campaign=agent_app`,
             display_override: ['fullscreen', 'minimal-ui'],
             display: 'standalone',
             background_color: '#ffffff',
