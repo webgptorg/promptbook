@@ -842,6 +842,8 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                         'publish-npm': {
                             name: 'Publish on NPM package registry',
                             'runs-on': 'ubuntu-latest',
+                            'timeout-minutes': 120,
+                            // <- Note: The bundler can take a long time, so we need to set a higher timeout
                             permissions: {
                                 contents: 'read',
                                 'id-token': 'write',
@@ -885,6 +887,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                             name: 'Publish Docker image to DockerHub',
                             needs: 'publish-npm',
                             'runs-on': 'ubuntu-latest',
+                            'timeout-minutes': 30,
                             steps: [
                                 {
                                     name: '🔽 Checkout',
