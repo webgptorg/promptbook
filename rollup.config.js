@@ -243,6 +243,12 @@ export function getPackagesMetadataForRollup() {
     /**/
 
     /**/
+    // Note: Support building a single package via PACKAGE_BASENAME environment variable
+    const singlePackageBasename = process.env.PACKAGE_BASENAME;
+    if (singlePackageBasename) {
+        return packagesMetadata.filter(({ packageBasename }) => packageBasename === singlePackageBasename);
+    }
+
     return packagesMetadata;
     /**/
 }

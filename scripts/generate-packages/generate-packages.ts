@@ -523,12 +523,26 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
         }, 60 * 1000);
 
         try {
-            await $execCommand({
-                isVerbose: true,
-                command: `node --max-old-space-size=32000 ./node_modules/rollup/dist/bin/rollup --config rollup.config.js`,
-            });
+            // Note: Build each package separately to avoid memory issues and improve build reliability
+            const buildablePackages = packagesMetadata.filter(({ isBuilded }) => isBuilded);
 
-            console.info(colors.green('Build completed successfully'));
+            for (let i = 0; i < buildablePackages.length; i++) {
+                const { packageBasename, packageFullname } = buildablePackages[i];
+
+                console.info(`--- ${packageFullname} ---`);
+                console.info(
+                    colors.blue(`📦 Building package ${i + 1}/${buildablePackages.length}: ${packageFullname}`),
+                );
+
+                await $execCommand({
+                    isVerbose: true,
+                    command: `PACKAGE_BASENAME=${packageBasename} node --max-old-space-size=32000 ./node_modules/rollup/dist/bin/rollup --config rollup.config.js`,
+                });
+
+                console.info(colors.green(`✅ Package ${packageFullname} built successfully`));
+            }
+
+            console.info(colors.green('✅✅ All packages built successfully'));
         } finally {
             clearInterval(timeReportingInterval);
         }
