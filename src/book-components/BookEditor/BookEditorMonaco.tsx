@@ -37,6 +37,8 @@ export function BookEditorMonaco(props: BookEditorProps) {
         isReadonly,
         translations,
         onFileUpload,
+        isUploadButtonShown,
+        isCameraButtonShown,
         isDownloadButtonShown,
         isAboutButtonShown = true,
         isFullscreenButtonShown = true,
@@ -68,6 +70,9 @@ export function BookEditorMonaco(props: BookEditorProps) {
 
     // [1] Track touch start position to differentiate tap from drag
     const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+
+    const fileUploadInputRef = useRef<HTMLInputElement>(null);
+    const cameraInputRef = useRef<HTMLInputElement>(null);
 
     /*
     Note+TODO: [🚱] Yjs logic is commented out because it causes errors in the build of Next.js projects:
@@ -329,14 +334,9 @@ export function BookEditorMonaco(props: BookEditorProps) {
         };
     }, [editor, monaco]);
 
-    const handleDrop = useCallback(
-        async (event: React.DragEvent<HTMLDivElement>) => {
-            event.preventDefault();
-            setIsDragOver(false);
-
+    const handleFiles = useCallback(
+        async (files: File[]) => {
             if (!onFileUpload) return;
-
-            const files = Array.from(event.dataTransfer.files);
             if (files.length === 0) return;
 
             // [1] Inject placeholders
@@ -384,6 +384,39 @@ export function BookEditorMonaco(props: BookEditorProps) {
         [onFileUpload, value, onChange, editor],
     );
 
+    const handleDrop = useCallback(
+        async (event: React.DragEvent<HTMLDivElement>) => {
+            event.preventDefault();
+            setIsDragOver(false);
+
+            const files = Array.from(event.dataTransfer.files);
+            await handleFiles(files);
+        },
+        [handleFiles],
+    );
+
+    const handleUploadDocument = useCallback(() => {
+        if (fileUploadInputRef.current) {
+            fileUploadInputRef.current.click();
+        }
+    }, []);
+
+    const handleTakePhoto = useCallback(() => {
+        if (cameraInputRef.current) {
+            cameraInputRef.current.click();
+        }
+    }, []);
+
+    const handleFileInputChange = useCallback(
+        (event: React.ChangeEvent<HTMLInputElement>) => {
+            const files = Array.from(event.target.files || []);
+            handleFiles(files);
+            // Reset the input value so the same file can be selected again
+            event.target.value = '';
+        },
+        [handleFiles],
+    );
+
     const handleDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
         event.preventDefault();
         setIsDragOver(true);
@@ -407,18 +440,41 @@ export function BookEditorMonaco(props: BookEditorProps) {
             onDragEnter={handleDragEnter}
             onDragLeave={handleDragLeave}
         >
-            {(isDownloadButtonShown || isAboutButtonShown || isFullscreenButtonShown) && (
+            {(isUploadButtonShown ||
+                isCameraButtonShown ||
+                isDownloadButtonShown ||
+                isAboutButtonShown ||
+                isFullscreenButtonShown) && (
                 <BookEditorActionbar
                     {...{
                         value,
+                        isUploadButtonShown,
+                        isCameraButtonShown: isCameraButtonShown ?? isTouchDevice,
                         isDownloadButtonShown,
                         isAboutButtonShown,
                         isFullscreenButtonShown,
                         onFullscreenClick,
+                        onUploadDocument: handleUploadDocument,
+                        onTakePhoto: handleTakePhoto,
                         isFullscreen,
                     }}
                 />
             )}
+            <input
+                type="file"
+                ref={fileUploadInputRef}
+                style={{ display: 'none' }}
+                onChange={handleFileInputChange}
+                multiple
+            />
+            <input
+                type="file"
+                ref={cameraInputRef}
+                style={{ display: 'none' }}
+                accept="image/*"
+                capture="environment"
+                onChange={handleFileInputChange}
+            />
             {isDragOver && <div className={styles.dropOverlay}>Drop files to upload</div>}
             <div
                 style={{

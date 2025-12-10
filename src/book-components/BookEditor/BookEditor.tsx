@@ -107,6 +107,18 @@ export type BookEditorProps = {
     };
 
     /**
+     * If true, shows the upload button in the action bar.
+     * By default, the upload button is shown.
+     */
+    readonly isUploadButtonShown?: boolean;
+
+    /**
+     * If true, shows the camera button in the action bar.
+     * By default, the camera button is shown on mobile devices.
+     */
+    readonly isCameraButtonShown?: boolean;
+
+    /**
      * If true, shows the download button in the action bar.
      * By default, the download button is shown.
      */
@@ -172,6 +184,8 @@ export function BookEditor(props: BookEditorProps) {
         isBorderRadiusDisabled = false,
         isReadonly = false,
         translations,
+        isUploadButtonShown = true,
+        isCameraButtonShown,
         isDownloadButtonShown = true,
         isAboutButtonShown = true,
         isFullscreenButtonShown = true,
@@ -219,6 +233,8 @@ export function BookEditor(props: BookEditorProps) {
                 isBorderRadiusDisabled={isBorderRadiusDisabled}
                 isReadonly={isReadonly}
                 translations={translations}
+                isUploadButtonShown={isUploadButtonShown}
+                isCameraButtonShown={isCameraButtonShown}
                 isDownloadButtonShown={isDownloadButtonShown}
                 isAboutButtonShown={isAboutButtonShown}
                 isFullscreenButtonShown={isFullscreenButtonShown}

@@ -9,6 +9,8 @@ import { DEFAULT_BOOK, validateBook } from '../../book-2.0/agent-source/string_b
 import { $induceBookDownload } from '../../utils/files/$induceBookDownload';
 import { AboutPromptbookInformation } from '../../utils/misc/xAboutPromptbookInformation';
 import { AboutIcon } from '../icons/AboutIcon';
+import { AttachmentIcon } from '../icons/AttachmentIcon';
+import { CameraIcon } from '../icons/CameraIcon';
 import { DownloadIcon } from '../icons/DownloadIcon';
 import { ExitFullscreenIcon } from '../icons/ExitFullscreenIcon';
 import { FullscreenIcon } from '../icons/FullscreenIcon';
@@ -19,9 +21,13 @@ import styles from './BookEditor.module.css';
 type BookEditorActionbarProps = {
     value: string | undefined;
     isDownloadButtonShown?: boolean;
+    isUploadButtonShown?: boolean;
+    isCameraButtonShown?: boolean;
     isAboutButtonShown?: boolean;
     isFullscreenButtonShown?: boolean;
     onFullscreenClick?: () => void;
+    onUploadDocument?: () => void;
+    onTakePhoto?: () => void;
     isFullscreen?: boolean;
 };
 
@@ -33,9 +39,13 @@ export function BookEditorActionbar(props: BookEditorActionbarProps) {
     const {
         value,
         isDownloadButtonShown,
+        isUploadButtonShown,
+        isCameraButtonShown,
         isAboutButtonShown,
         isFullscreenButtonShown,
         onFullscreenClick,
+        onUploadDocument,
+        onTakePhoto,
         isFullscreen,
     } = props;
     const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
@@ -46,6 +56,22 @@ export function BookEditorActionbar(props: BookEditorActionbarProps) {
     };
 
     const actions = [];
+
+    if (isUploadButtonShown && onUploadDocument) {
+        actions.push({
+            icon: <AttachmentIcon />,
+            name: 'Upload document',
+            onClick: onUploadDocument,
+        });
+    }
+
+    if (isCameraButtonShown && onTakePhoto) {
+        actions.push({
+            icon: <CameraIcon />,
+            name: 'Take photo',
+            onClick: onTakePhoto,
+        });
+    }
 
     if (isDownloadButtonShown) {
         actions.push({
