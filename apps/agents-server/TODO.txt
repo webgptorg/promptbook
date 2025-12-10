@@ -8,4 +8,4 @@ TODO: [🧠][🚙] `AgentXxx` vs `AgentsXxx` naming convention
 
 
 TODO: !!!! No dependencies should be here
-TODO: !!!! Check react and next for critical error
+TODO: !!!! Check react and next for react2shell critical error

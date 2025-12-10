@@ -1,4 +1,4 @@
-[-]
+[ ]
 
 [✨🦀] Allow to change `agentName`
 

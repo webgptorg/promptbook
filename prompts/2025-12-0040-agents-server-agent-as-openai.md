@@ -90,15 +90,6 @@ or CLI with BYOK strategy failed:
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
----
-
-[*]
-
-[✨🧚] When calling via Agent OpenAI compatible endpoint,
-
--   Agent OpenAI compatible endpoint is `/agents/[agentName]/api/openai/v1` and its implemented in `/apps/agents-server/src/utils/handleChatCompletion.ts`
--   You are working with the `Agents Server` application `/apps/agents-server`
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
 ---
 
