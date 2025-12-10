@@ -19,6 +19,9 @@ type AgentProfileWrapperProps = {
 export function AgentProfileWrapper(props: AgentProfileWrapperProps) {
     const { agent, agentUrl, agentEmail, agentName, brandColorHex, isAdmin, isHeadless, actions, children } = props;
 
+    // Derived agentName from agent data
+    const derivedAgentName = agent.agentName;
+
     return (
         <AgentProfile
             agent={agent}
@@ -28,6 +31,7 @@ export function AgentProfileWrapper(props: AgentProfileWrapperProps) {
             renderMenu={({ onShowQrCode }) => (
                 <AgentOptionsMenu
                     agentName={agentName}
+                    derivedAgentName={derivedAgentName}
                     agentUrl={agentUrl}
                     agentEmail={agentEmail}
                     brandColorHex={brandColorHex}

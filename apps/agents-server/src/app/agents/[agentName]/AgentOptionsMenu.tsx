@@ -32,6 +32,7 @@ const barlowCondensed = Barlow_Condensed({
 
 type AgentOptionsMenuProps = {
     agentName: string;
+    derivedAgentName: string;
     agentUrl: string;
     agentEmail: string;
     brandColorHex: string;
@@ -42,6 +43,7 @@ type AgentOptionsMenuProps = {
 
 export function AgentOptionsMenu({
     agentName,
+    derivedAgentName,
     agentUrl,
     agentEmail,
     brandColorHex,
@@ -119,7 +121,33 @@ export function AgentOptionsMenu({
     const historyLink = links.find((l) => l.title === 'History & Feedback')!;
     const allLinksLink = links.find((l) => l.title === 'All Links')!;
 
+    // "Update URL" logic
+    const showUpdateUrl = agentName !== derivedAgentName;
+    const updateUrlHref = `/agents/${encodeURIComponent(derivedAgentName)}`;
+
+    const handleUpdateUrl = () => {
+        if (
+            window.confirm(
+                `Are you sure you want to change the agent URL from "/agents/${agentName}" to "/agents/${derivedAgentName}"?`
+            )
+        ) {
+            window.location.href = updateUrlHref;
+        }
+    };
+
     const menuItems = [
+        ...(showUpdateUrl
+            ? [
+                  {
+                      type: 'action' as const,
+                      icon: MoreHorizontalIcon,
+                      label: 'Update URL',
+                      onClick: handleUpdateUrl,
+                      highlight: true,
+                  },
+                  { type: 'divider' as const },
+              ]
+            : []),
         {
             type: 'link' as const,
             href: `/agents/${encodeURIComponent(agentName)}/chat`,
@@ -268,9 +296,13 @@ export function AgentOptionsMenu({
                                         // Keep menu open for copy feedback
                                     }
                                 }}
-                                className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition-colors w-full text-left"
+                                className={`flex items-center gap-3 px-4 py-2.5 w-full text-left transition-colors
+                                    ${item.highlight
+                                        ? 'bg-yellow-100 text-yellow-900 font-bold hover:bg-yellow-200'
+                                        : 'text-gray-700 hover:bg-gray-50'}
+                                `}
                             >
-                                <item.icon className="w-4 h-4 text-gray-500" />
+                                <item.icon className={`w-4 h-4 ${item.highlight ? 'text-yellow-700' : 'text-gray-500'}`} />
                                 <span className="text-sm font-medium">{item.label}</span>
                             </button>
                         );
