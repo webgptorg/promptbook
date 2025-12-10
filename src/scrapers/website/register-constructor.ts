@@ -7,9 +7,10 @@ import { createWebsiteScraper } from './createWebsiteScraper';
  *
  * Warning: This is not useful for the end user, it is just a side effect of the mechanism that handles all available known scrapers
  *
- * @public exported from `@promptbook/website-crawler`
- * @public exported from `@promptbook/wizard`
- * @public exported from `@promptbook/cli`
+ * @private !!!! Temporarly made private until we fix publishing on GitHub Packages
+ * @xpublic exported from `@promptbook/website-crawler`
+ * @xpublic exported from `@promptbook/wizard`
+ * @xpublic exported from `@promptbook/cli`
  */
 export const _WebsiteScraperRegistration: Registration = $scrapersRegister.register(createWebsiteScraper);
 
