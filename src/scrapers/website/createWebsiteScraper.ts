@@ -11,8 +11,7 @@ keepTypeImported<ScraperConstructor>();
  * Factory function to create an instance of WebsiteScraper.
  * It bundles the scraper class with its metadata.
  *
- * @private !!!! Temporarily made private until we fix publishing on GitHub Packages
- * @xpublic exported from `@promptbook/website-crawler`
+ * @public exported from `@promptbook/website-crawler`
  */
 export const createWebsiteScraper = Object.assign(
     (tools: Pick<ExecutionTools, 'llm'>, options: PrepareAndScrapeOptions): WebsiteScraper => {

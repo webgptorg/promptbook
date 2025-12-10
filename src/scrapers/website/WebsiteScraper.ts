@@ -1,13 +1,16 @@
 import type { KnowledgePiecePreparedJson } from '../../pipeline/PipelineJson/KnowledgePieceJson';
 import type { string_markdown } from '../../types/typeAliases';
 import type { Converter } from '../_common/Converter';
-import type { Scraper, ScraperSourceHandler } from '../_common/Scraper';
+import type { Scraper } from '../_common/Scraper';
+import type { ScraperSourceHandler } from '../_common/Scraper';
 // TODO: [🏳‍🌈] Finally take pick of .json vs .ts
 // import PipelineCollection from '../../../books/books';
 import { Readability } from '@mozilla/readability';
 import { JSDOM } from 'jsdom';
 import { Converter as ShowdownConverter } from 'showdown';
-import { DEFAULT_INTERMEDIATE_FILES_STRATEGY, DEFAULT_IS_VERBOSE, DEFAULT_SCRAPE_CACHE_DIRNAME } from '../../config';
+import { DEFAULT_INTERMEDIATE_FILES_STRATEGY } from '../../config';
+import { DEFAULT_IS_VERBOSE } from '../../config';
+import { DEFAULT_SCRAPE_CACHE_DIRNAME } from '../../config';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import { KnowledgeScrapeError } from '../../errors/KnowledgeScrapeError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
@@ -24,9 +27,7 @@ import { createShowdownConverter } from './utils/createShowdownConverter';
  * Scraper for websites
  *
  * @see `documentationUrl` for more details
- *
- * @private !!!! Temporarily made private until we fix publishing on GitHub Packages
- * @xpublic exported from `@promptbook/website-crawler`
+ * @public exported from `@promptbook/website-crawler`
  */
 export class WebsiteScraper implements Converter, Scraper {
     /**
