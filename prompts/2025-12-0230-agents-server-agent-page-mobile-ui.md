@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🫕] Enhance UI of agent page on mobile
 

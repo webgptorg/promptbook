@@ -208,11 +208,14 @@ export function AgentProfile(props: AgentProfileProps) {
                 )}
 
                 {/* Main profile content */}
-                <div className="relative z-10 flex flex-col md:flex-row items-center md:items-start gap-8 md:gap-12 max-w-5xl w-full">
+                <div className="relative z-10 grid grid-cols-[auto_1fr] gap-x-6 gap-y-4 md:gap-12 max-w-5xl w-full items-start">
                     {/* Agent image card (Flippable) */}
-                    <div className="flex-shrink-0 perspective-1000 group" style={{ perspective: '1000px' }}>
+                    <div
+                        className="flex-shrink-0 perspective-1000 group row-start-1 col-start-1 md:row-span-3"
+                        style={{ perspective: '1000px' }}
+                    >
                         <div
-                            className="relative w-72 md:w-80 transition-all duration-700 transform-style-3d cursor-pointer"
+                            className="relative w-24 md:w-80 transition-all duration-700 transform-style-3d cursor-pointer"
                             style={{
                                 aspectRatio: '1 / 1.618', // Golden Ratio
                                 transformStyle: 'preserve-3d',
@@ -222,7 +225,7 @@ export function AgentProfile(props: AgentProfileProps) {
                         >
                             {/* Front of Card (Image) */}
                             <div
-                                className="absolute inset-0 w-full h-full backface-hidden rounded-3xl shadow-2xl overflow-hidden backdrop-blur-sm"
+                                className="absolute inset-0 w-full h-full backface-hidden rounded-lg md:rounded-3xl shadow-lg md:shadow-2xl overflow-hidden backdrop-blur-sm"
                                 style={{
                                     backfaceVisibility: 'hidden',
                                     backgroundColor: brandColorDarkHex,
@@ -234,7 +237,7 @@ export function AgentProfile(props: AgentProfileProps) {
                                     <img src={imageUrl} alt={fullname} className="w-full h-full object-cover" />
                                 ) : (
                                     <div
-                                        className="w-full h-full flex items-center justify-center text-8xl font-bold text-white/80"
+                                        className="w-full h-full flex items-center justify-center text-3xl md:text-8xl font-bold text-white/80"
                                         style={{ backgroundColor: brandColorDarkHex }}
                                     >
                                         {fullname.charAt(0).toUpperCase()}
@@ -242,14 +245,14 @@ export function AgentProfile(props: AgentProfileProps) {
                                 )}
 
                                 {/* Flip hint icon */}
-                                <div className="absolute bottom-4 right-4 bg-black/30 p-2 rounded-full text-white/80 backdrop-blur-md opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <RepeatIcon className="w-5 h-5" />
+                                <div className="absolute bottom-2 md:bottom-4 right-2 md:right-4 bg-black/30 p-1 md:p-2 rounded-full text-white/80 backdrop-blur-md opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <RepeatIcon className="w-3 h-3 md:w-5 md:h-5" />
                                 </div>
                             </div>
 
                             {/* Back of Card (QR Code) */}
                             <div
-                                className="absolute inset-0 w-full h-full backface-hidden rounded-3xl shadow-2xl overflow-hidden backdrop-blur-sm flex flex-col items-center justify-center p-6"
+                                className="absolute inset-0 w-full h-full backface-hidden rounded-lg md:rounded-3xl shadow-lg md:shadow-2xl overflow-hidden backdrop-blur-sm flex flex-col items-center justify-center p-2 md:p-6"
                                 style={{
                                     backfaceVisibility: 'hidden',
                                     transform: 'rotateY(180deg)',
@@ -269,18 +272,18 @@ export function AgentProfile(props: AgentProfileProps) {
                                 </div>
 
                                 {/* Flip hint icon */}
-                                <div className="absolute bottom-4 right-4 bg-black/10 p-2 rounded-full text-black/50 backdrop-blur-md">
-                                    <RepeatIcon className="w-5 h-5" />
+                                <div className="absolute bottom-2 md:bottom-4 right-2 md:right-4 bg-black/10 p-1 md:p-2 rounded-full text-black/50 backdrop-blur-md">
+                                    <RepeatIcon className="w-3 h-3 md:w-5 md:h-5" />
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Agent info */}
-                    <div className="flex flex-col items-center md:items-start text-center md:text-left gap-6">
+                    {/* Agent info - Header Area */}
+                    <div className="row-start-1 col-start-2 flex flex-col justify-center md:justify-start h-full md:h-auto gap-1 md:gap-6">
                         {/* Agent name with custom font */}
                         <h1
-                            className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 tracking-tight"
+                            className="text-2xl md:text-5xl lg:text-6xl font-bold text-gray-900 tracking-tight leading-tight"
                             style={{
                                 textShadow: '0 2px 20px rgba(255, 255, 255, 0.5)',
                             }}
@@ -289,20 +292,22 @@ export function AgentProfile(props: AgentProfileProps) {
                         </h1>
 
                         {/* Short description */}
-                        <p className="text-lg md:text-xl text-gray-700 max-w-lg leading-relaxed font-medium">
+                        <p className="text-sm md:text-xl text-gray-700 max-w-lg leading-relaxed font-medium line-clamp-3 md:line-clamp-none">
                             {personaDescription}
                         </p>
-
-                        {/* Chat */}
-                        <div className="w-full">{children}</div>
-
-                        {/* Secondary Actions */}
-                        {!isHeadless && (
-                            <div className="flex flex-wrap justify-center md:justify-start items-center gap-4 md:gap-6 mt-2">
-                                {actions}
-                            </div>
-                        )}
                     </div>
+
+                    {/* Chat Area */}
+                    <div className="col-span-2 md:col-span-1 md:col-start-2 w-full mt-2 md:mt-0">
+                        {children}
+                    </div>
+
+                    {/* Secondary Actions */}
+                    {!isHeadless && (
+                        <div className="col-span-2 md:col-span-1 md:col-start-2 flex flex-wrap justify-center md:justify-start items-center gap-4 md:gap-6 mt-2">
+                            {actions}
+                        </div>
+                    )}
                 </div>
 
                 {/* Subtle gradient overlay at bottom */}

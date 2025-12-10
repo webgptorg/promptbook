@@ -57,7 +57,7 @@ export function AgentProfileChat({ agentUrl, agentName, fullname, brandColorHex,
     // The fallback above matches AgentChat.tsx default.
 
     return (
-        <div className="w-full h-[400px] md:h-[500px]">
+        <div className="w-full h-[calc(100dvh-300px)] min-h-[350px] md:h-[500px]">
             <Chat
                 title={`Chat with ${fullname}`}
                 participants={[
