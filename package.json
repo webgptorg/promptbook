@@ -7,7 +7,7 @@
     "sideEffects": false,
     "repository": {
         "type": "git",
-        "url": "https://github.com/webgptorg/promptbook"
+        "url": "git+https://github.com/webgptorg/promptbook.git"
     },
     "author": "Pavol Hejný <pavol@ptbk.io> (https://www.pavolhejny.com/)",
     "contributors": [
