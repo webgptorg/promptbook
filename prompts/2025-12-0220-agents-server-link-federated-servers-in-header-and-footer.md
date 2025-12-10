@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🛹] List federated servers in footer
 

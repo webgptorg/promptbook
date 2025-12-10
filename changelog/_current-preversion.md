@@ -30,6 +30,7 @@
 
 ### 🐇 Agents Server
 
+-   List federated servers in footer (DRY, merged via layout.tsx)
 -   Simplify agent page design (`/agents/[agentName]`)
     -   New visually appealing profile view with agent's color theme as gradient background
     -   Added noisy texture to the background for better visual appeal

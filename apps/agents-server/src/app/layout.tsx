@@ -7,6 +7,7 @@ import { $provideAgentCollectionForServer } from '../tools/$provideAgentCollecti
 import { $provideServer } from '../tools/$provideServer';
 import { getCurrentUser } from '../utils/getCurrentUser';
 import { isUserAdmin } from '../utils/isUserAdmin';
+import { getFederatedServersFromMetadata } from '../utils/getFederatedServersFromMetadata';
 import './globals.css';
 
 const barlowCondensed = Barlow_Condensed({
@@ -80,6 +81,18 @@ export default async function RootLayout({
         footerLinks = JSON.parse(footerLinksString);
     } catch (error) {
         console.error('Failed to parse FOOTER_LINKS', error);
+    }
+
+    // Fetch federated servers and add to footerLinks
+    try {
+        const federatedServers = await getFederatedServersFromMetadata();
+        const federatedLinks = federatedServers.map((url: string) => ({
+            title: `Federated: ${new URL(url).hostname}`,
+            url,
+        }));
+        footerLinks = [...footerLinks, ...federatedLinks];
+    } catch (error) {
+        console.error('Failed to fetch federated servers for footer', error);
     }
 
     const collection = await $provideAgentCollectionForServer();
