@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/cli",
-    "version": "0.103.0-65",
+    "version": "0.103.0-66",
     "description": "Promptbook: Turn your company's scattered knowledge into AI ready books",
     "private": false,
     "sideEffects": false,
