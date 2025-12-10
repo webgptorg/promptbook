@@ -7,7 +7,7 @@
 
 ---
 
-[-]
+[x]
 
 [✨🛹] Allow to navigate to one of federated servers from header
 

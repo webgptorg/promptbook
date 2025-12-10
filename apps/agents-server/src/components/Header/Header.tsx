@@ -41,6 +41,11 @@ type HeaderProps = {
      * List of agents
      */
     agents: Array<AgentBasicInformation>;
+
+    /**
+     * List of federated servers for navigation dropdown
+     */
+    federatedServers: Array<{ url: string; title: string }>;
 };
 
 /* TODO: [🐱‍🚀] Make this Agents server native  */
@@ -70,7 +75,7 @@ type MenuItem =
       };
 
 export function Header(props: HeaderProps) {
-    const { isAdmin = false, currentUser = null, serverName, serverLogoUrl, agents } = props;
+    const { isAdmin = false, currentUser = null, serverName, serverLogoUrl, agents, federatedServers } = props;
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isLoginOpen, setIsLoginOpen] = useState(false);
@@ -108,6 +113,37 @@ export function Header(props: HeaderProps) {
             setIsMenuOpen(false);
         }
     };
+
+    // Federated servers dropdown items (respect logo, only current is not clickable)
+    const [isFederatedOpen, setIsFederatedOpen] = useState(false);
+    const [isMobileFederatedOpen, setIsMobileFederatedOpen] = useState(false);
+
+    const federatedDropdownItems: SubMenuItem[] = federatedServers.map(server => {
+        const isCurrent = server.url === (typeof window !== 'undefined' ? window.location.origin : '');
+        return isCurrent
+            ? {
+                  label: (
+                      <span className="flex items-center gap-2">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={server.logoUrl || serverLogoUrl || promptbookLogoBlueTransparent.src} alt={server.title} width={20} height={20} className="w-5 h-5 object-contain rounded-full" />
+                          <span className="font-semibold">{server.title.replace(/^Federated: /, '')}</span>
+                          <span className="ml-1 text-xs text-blue-600">(current)</span>
+                      </span>
+                  ),
+                  isBold: true,
+                  isBordered: true,
+              }
+            : {
+                  label: (
+                      <span className="flex items-center gap-2">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={server.logoUrl || promptbookLogoBlueTransparent.src} alt={server.title} width={20} height={20} className="w-5 h-5 object-contain rounded-full" />
+                          <span>{server.title.replace(/^Federated: /, '')}</span>
+                      </span>
+                  ),
+                  href: server.url,
+              };
+    });
 
     // Menu items configuration (DRY principle)
     const menuItems: MenuItem[] = [
@@ -257,7 +293,7 @@ export function Header(props: HeaderProps) {
             <ChangePasswordDialog isOpen={isChangePasswordOpen} onClose={() => setIsChangePasswordOpen(false)} />
             <div className="container mx-auto px-4 h-full">
                 <div className="flex items-center justify-between h-full">
-                    {/* Logo */}
+                    {/* Logo and heading */}
                     <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
                         {serverLogoUrl ? (
                             // Note: `next/image` does not load external images well without extra config
@@ -283,6 +319,44 @@ export function Header(props: HeaderProps) {
 
                     {/* Desktop Navigation */}
                     <nav className="hidden lg:flex items-center gap-8">
+                        {/* Federated servers dropdown */}
+                        <div className="relative">
+                            <button
+                                className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
+                                onClick={() => setIsFederatedOpen(!isFederatedOpen)}
+                                onBlur={() => setTimeout(() => setIsFederatedOpen(false), 200)}
+                            >
+                                <ChevronDown className="w-4 h-4" />
+                                <span>Switch server</span>
+                            </button>
+                            {isFederatedOpen && (
+                                <div className="absolute top-full left-0 mt-2 w-56 bg-white rounded-md shadow-lg border border-gray-100 py-1 z-50 animate-in fade-in zoom-in-95 duration-200 max-h-[80vh] overflow-y-auto">
+                                    {federatedDropdownItems.map((subItem, subIndex) => {
+                                        const className = `block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 ${
+                                            subItem.isBold ? 'font-medium' : ''
+                                        } ${subItem.isBordered ? 'border-b border-gray-100' : ''}`;
+
+                                        if (subItem.href) {
+                                            return (
+                                                <Link
+                                                    key={subIndex}
+                                                    href={subItem.href}
+                                                    className={className}
+                                                    onClick={() => setIsFederatedOpen(false)}
+                                                >
+                                                    {subItem.label}
+                                                </Link>
+                                            );
+                                        }
+                                        return (
+                                            <span key={subIndex} className={className}>
+                                                {subItem.label}
+                                            </span>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
                         {menuItems.map((item, index) => {
                             if (item.type === 'link') {
                                 return (

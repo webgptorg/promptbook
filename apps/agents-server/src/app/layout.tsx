@@ -84,13 +84,30 @@ export default async function RootLayout({
     }
 
     // Fetch federated servers and add to footerLinks
+    let federatedServers: Array<{ url: string; title: string; logoUrl: string | null }> = [];
     try {
-        const federatedServers = await getFederatedServersFromMetadata();
-        const federatedLinks = federatedServers.map((url: string) => ({
-            title: `Federated: ${new URL(url).hostname}`,
-            url,
-        }));
-        footerLinks = [...footerLinks, ...federatedLinks];
+        const federatedServersRaw = await getFederatedServersFromMetadata();
+        federatedServers = await Promise.all(
+            federatedServersRaw.map(async (url: string) => {
+                let logoUrl: string | null = null;
+                try {
+                    // Try to fetch logo from metadata endpoint if available
+                    const res = await fetch(`${url}/api/metadata`);
+                    if (res.ok) {
+                        const meta = await res.json();
+                        logoUrl = meta.SERVER_LOGO_URL || null;
+                    }
+                } catch {
+                    logoUrl = null;
+                }
+                return {
+                    title: `Federated: ${new URL(url).hostname}`,
+                    url,
+                    logoUrl,
+                };
+            })
+        );
+        footerLinks = [...footerLinks, ...federatedServers];
     } catch (error) {
         console.error('Failed to fetch federated servers for footer', error);
     }
@@ -110,6 +127,7 @@ export default async function RootLayout({
                     agents={JSON.parse(JSON.stringify(agents))}
                     isFooterShown={isFooterShown}
                     footerLinks={footerLinks}
+                    federatedServers={federatedServers}
                 >
                     {children}
                 </LayoutWrapper>

@@ -15,6 +15,7 @@ type LayoutWrapperProps = {
     agents: Array<AgentBasicInformation>;
     isFooterShown: boolean;
     footerLinks: Array<FooterLink>;
+    federatedServers: Array<{ url: string; title: string }>;
 };
 
 export function LayoutWrapper({
@@ -26,6 +27,7 @@ export function LayoutWrapper({
     agents,
     isFooterShown,
     footerLinks,
+    federatedServers,
 }: LayoutWrapperProps) {
     const pathname = usePathname();
     const searchParams = useSearchParams();
@@ -46,6 +48,7 @@ export function LayoutWrapper({
                 serverName={serverName}
                 serverLogoUrl={serverLogoUrl}
                 agents={agents}
+                federatedServers={federatedServers}
             />
             <main className={`pt-[60px]`}>{children}</main>
             {isFooterShown && !isFooterHiddenOnPage && <Footer extraLinks={footerLinks} />}
