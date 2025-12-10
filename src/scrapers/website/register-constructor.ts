@@ -7,7 +7,7 @@ import { createWebsiteScraper } from './createWebsiteScraper';
  *
  * Warning: This is not useful for the end user, it is just a side effect of the mechanism that handles all available known scrapers
  *
- * @private !!!! Temporarly made private until we fix publishing on GitHub Packages
+ * @private !!!! Temporarily made private until we fix publishing on GitHub Packages
  * @xpublic exported from `@promptbook/website-crawler`
  * @xpublic exported from `@promptbook/wizard`
  * @xpublic exported from `@promptbook/cli`

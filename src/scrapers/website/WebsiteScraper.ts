@@ -25,7 +25,7 @@ import { createShowdownConverter } from './utils/createShowdownConverter';
  *
  * @see `documentationUrl` for more details
  *
- * @private !!!! Temporarly made private until we fix publishing on GitHub Packages
+ * @private !!!! Temporarily made private until we fix publishing on GitHub Packages
  * @xpublic exported from `@promptbook/website-crawler`
  */
 export class WebsiteScraper implements Converter, Scraper {
