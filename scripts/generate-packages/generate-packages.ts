@@ -5,6 +5,7 @@ import colors from 'colors';
 import commander from 'commander';
 import fs, { mkdir, readFile, writeFile } from 'fs/promises';
 import glob from 'glob-promise'; // <- TODO: [🚰] Use just 'glob'
+import os from 'os';
 import { basename, dirname, join, relative } from 'path';
 import spaceTrim from 'spacetrim';
 import type { PackageJson } from 'type-fest';
@@ -116,7 +117,9 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                 (block) => `
                     ${useClientDirective}
 
-                    // ${block(GENERATOR_WARNING)}
+                    // ${block(
+                        GENERATOR_WARNING /* <- TODO: !!!! Make function getGeneratorWarning and always pass the generator file + instructions for AI */,
+                    )}
                     // \`${packageFullname}\`
 
                     import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
@@ -493,11 +496,30 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
     } else {
         await forTime(1000 * 60 * 60 * 0);
 
-        // Note: Every minute report a time
+        // Note: Every minute report time + resources (GitHub Actions friendly)
         let minutesCount = 0;
+
+        let lastTick = Date.now();
+
         const timeReportingInterval = setInterval(() => {
             minutesCount++;
-            console.error(colors.yellow(`⏹ Building ${minutesCount} minutes`));
+
+            const mem = process.memoryUsage();
+            const rss = (mem.rss / 1024 / 1024).toFixed(1);
+            const heapUsed = (mem.heapUsed / 1024 / 1024).toFixed(1);
+            const heapTotal = (mem.heapTotal / 1024 / 1024).toFixed(1);
+            const load = os.loadavg()[0].toFixed(2);
+
+            const now = Date.now();
+            const eventLoopLag = now - lastTick - 60_000;
+            lastTick = now;
+
+            console.error(`::group::Node Used resources`);
+            console.error(colors.yellow(`🕑 Building ${minutesCount} minutes`));
+            console.error(`🧠 Memory: rss=${rss}MB heapUsed=${heapUsed}MB heapTotal=${heapTotal}MB`);
+            console.error(`⚙️ CPU load (1m): ${load}`);
+            console.error(`⌛ Event loop lag: ${eventLoopLag}ms`);
+            console.error(`::endgroup::`);
         }, 60 * 1000);
 
         try {
@@ -951,7 +973,6 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
             ),
     );
     // <- Note: All changes affects up to version folowing the next one, so it is safe to run "🏭📦 Generate packages" script to affect the next version
-    // <- TODO: Add GENERATOR_WARNING to publish.yml
 
     // ==============================
     // 🔟 Commit the changes
