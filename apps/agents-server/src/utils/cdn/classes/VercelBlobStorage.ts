@@ -51,12 +51,13 @@ export class VercelBlobStorage implements IIFilesStorageWithCdn {
 
     public async setItem(key: string, file: IFile): Promise<void> {
         const path = this.config.pathPrefix ? `${this.config.pathPrefix}/${key}` : key;
-        
+
         await put(path, file.data, {
             access: 'public',
             addRandomSuffix: false,
             contentType: file.type,
             token: this.config.token,
+            allowOverwrite: true, // <- TODO: This is inefficient, we should check first if the file exists and only then decide to overwrite or not
             // Note: We rely on Vercel Blob for compression
         });
     }
