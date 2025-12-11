@@ -227,6 +227,7 @@
         "npm": ">=8.0.0"
     },
     "devDependencies": {
+        "@tailwindcss/typography": "^0.5.19",
         "@eslint/eslintrc": "3",
         "@next/bundle-analyzer": "16.0.1",
         "@rollup/plugin-json": "6.1.0",
@@ -274,7 +275,6 @@
         "prettier": "2.8.8",
         "react": "19.1.2",
         "react-dom": "19.1.2",
-        "react-markdown": "10.1.0",
         "readline-sync": "1.4.10",
         "rollup": "2.79.2",
         "rollup-plugin-polyfill-node": "0.13.0",
