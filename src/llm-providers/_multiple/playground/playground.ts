@@ -88,8 +88,8 @@ async function playground() {
     const chatPromptResult = await llmTools.callChatModel(chatPrompt);
     console.info({ chatPromptResult });
     console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
-    console.info(chalk.bgBlue(' User: ') + chalk.blue(chatPrompt.content));
-    console.info(chalk.bgGreen(' Completion: ') + chalk.green(chatPromptResult.content));
+    console.info(colors.bgBlue(' User: ') + colors.blue(chatPrompt.content));
+    console.info(colors.bgGreen(' Completion: ') + colors.green(chatPromptResult.content));
     /**/
 
     /*/
@@ -104,7 +104,7 @@ async function playground() {
     const completionPromptResult = await llmTools.callCompletionModel(completionPrompt);
     console.info({ completionPromptResult });
     console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
-    console.info(chalk.green(completionPrompt.content + completionPromptResult.content));
+    console.info(colors.green(completionPrompt.content + completionPromptResult.content));
     /**/
 
     /*/
@@ -124,8 +124,8 @@ async function playground() {
     const promptResult = await llmTools.callEmbeddingModel(prompt);
     console.info({ promptResult });
     console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
-    console.info(chalk.bgBlue(' User: ') + chalk.blue(prompt.content));
-    console.info(chalk.bgGreen(' Embedding: ') + chalk.green(embeddingVectorToString(promptResult.content)));
+    console.info(colors.bgBlue(' User: ') + colors.blue(prompt.content));
+    console.info(colors.bgGreen(' Embedding: ') + colors.green(embeddingVectorToString(promptResult.content)));
     /**/
 
     /*/

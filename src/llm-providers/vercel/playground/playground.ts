@@ -95,7 +95,7 @@ async function playground() {
     const completionPromptResult = await openaiPromptbookExecutionTools.callCompletionModel(completionPrompt);
     console.info({ completionPromptResult });
     console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
-    console.info(chalk.green(completionPrompt.content + completionPromptResult.content));
+    console.info(colors.green(completionPrompt.content + completionPromptResult.content));
     /**/
 
     /*/
@@ -115,8 +115,8 @@ async function playground() {
     const promptResult = await openaiPromptbookExecutionTools.callEmbeddingModel(prompt);
     console.info({ promptResult });
     console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
-    console.info(chalk.bgBlue(' User: ') + chalk.blue(prompt.content));
-    console.info(chalk.bgGreen(' Embedding: ') + chalk.green(embeddingVectorToString(promptResult.content)));
+    console.info(colors.bgBlue(' User: ') + colors.blue(prompt.content));
+    console.info(colors.bgGreen(' Embedding: ') + colors.green(embeddingVectorToString(promptResult.content)));
     /**/
 
     /*/

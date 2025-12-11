@@ -76,7 +76,7 @@ async function playground() {
     const completionPromptResult = await azureOpenAiExecutionTools.callCompletionModel(completionPrompt);
     console.info({ completionPromptResult });
     console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
-    console.info(chalk.green(completionPrompt.content + completionPromptResult.content));
+    console.info(colors.green(completionPrompt.content + completionPromptResult.content));
     /**/
 
     /*/
