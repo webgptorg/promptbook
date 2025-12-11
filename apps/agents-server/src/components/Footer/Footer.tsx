@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { HeadlessLink } from '../_utils/headlessParam';
 
 export type FooterLink = {
     title: string;
@@ -33,14 +33,14 @@ export function Footer(props: FooterProps) {
                         <h3 className="font-bold">Product</h3>
                         <ul className="space-y-2 text-sm">
                             <li>
-                                <Link href="/get-started" className="text-gray-500 hover:text-gray-900">
+                                <HeadlessLink href="/get-started" className="text-gray-500 hover:text-gray-900">
                                     Get started
-                                </Link>
+                                </HeadlessLink>
                             </li>
                             <li>
-                                <Link href="/manifest" className="text-gray-500 hover:text-gray-900">
+                                <HeadlessLink href="/manifest" className="text-gray-500 hover:text-gray-900">
                                     Manifest
-                                </Link>
+                                </HeadlessLink>
                             </li>
                             <li>
                                 <a
@@ -51,14 +51,14 @@ export function Footer(props: FooterProps) {
                                 </a>
                             </li>
                             <li>
-                                <Link href="/terms" className="text-gray-500 hover:text-gray-900">
+                                <HeadlessLink href="/terms" className="text-gray-500 hover:text-gray-900">
                                     Terms of Service
-                                </Link>
+                                </HeadlessLink>
                             </li>
                             <li>
-                                <Link href="/privacy" className="text-gray-500 hover:text-gray-900">
+                                <HeadlessLink href="/privacy" className="text-gray-500 hover:text-gray-900">
                                     Privacy Policy
-                                </Link>
+                                </HeadlessLink>
                             </li>
                         </ul>
                     </div>
@@ -86,9 +86,9 @@ export function Footer(props: FooterProps) {
                                 </a>
                             </li>
                             <li>
-                                <Link href="/design" className="text-gray-500 hover:text-gray-900">
+                                <HeadlessLink href="/design" className="text-gray-500 hover:text-gray-900">
                                     Logos & Branding
-                                </Link>
+                                </HeadlessLink>
                             </li>
                         </ul>
                     </div>
@@ -122,9 +122,9 @@ export function Footer(props: FooterProps) {
                                 </a>
                             </li>
                             <li>
-                                <Link href="/contact" className="text-gray-500 hover:text-gray-900">
+                                <HeadlessLink href="/contact" className="text-gray-500 hover:text-gray-900">
                                     More
-                                </Link>
+                                </HeadlessLink>
                             </li>
                         </ul>
                     </div>

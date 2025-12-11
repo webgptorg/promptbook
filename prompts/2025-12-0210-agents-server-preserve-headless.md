@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🧙] Preserve headless mode
 

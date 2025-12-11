@@ -4,7 +4,7 @@ import promptbookLogoBlueTransparent from '@/public/logo-blue-white-256.png';
 import { $createAgentAction, logoutAction } from '@/src/app/actions';
 import { ArrowRight, ChevronDown, Lock, LogIn, LogOut, User } from 'lucide-react';
 import Image from 'next/image';
-import Link from 'next/link';
+import { HeadlessLink, useIsHeadless, pushWithHeadless } from '../_utils/headlessParam';
 import { useRouter } from 'next/navigation';
 import { ReactNode, useState } from 'react';
 import { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
@@ -45,7 +45,7 @@ type HeaderProps = {
     /**
      * List of federated servers for navigation dropdown
      */
-    federatedServers: Array<{ url: string; title: string }>;
+    federatedServers: Array<{ url: string; title: string; logoUrl?: string | null }>;
 };
 
 /* TODO: [🐱‍🚀] Make this Agents server native  */
@@ -91,6 +91,7 @@ export function Header(props: HeaderProps) {
     const [isMobileSystemOpen, setIsMobileSystemOpen] = useState(false);
     const [isCreatingAgent, setIsCreatingAgent] = useState(false);
     const router = useRouter();
+    const isHeadless = useIsHeadless();
 
     const { users: adminUsers } = useUsersAdmin();
 
@@ -103,7 +104,7 @@ export function Header(props: HeaderProps) {
         const agentName = await $createAgentAction();
 
         if (agentName) {
-            router.push(`/agents/${agentName}`);
+            pushWithHeadless(router, `/agents/${agentName}`, isHeadless);
             setIsAgentsOpen(false);
             setIsMenuOpen(false);
         } else {
@@ -294,7 +295,7 @@ export function Header(props: HeaderProps) {
             <div className="container mx-auto px-4 h-full">
                 <div className="flex items-center justify-between h-full">
                     {/* Logo and heading */}
-                    <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                    <HeadlessLink href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
                         {serverLogoUrl ? (
                             // Note: `next/image` does not load external images well without extra config
                             // eslint-disable-next-line @next/next/no-img-element
@@ -315,7 +316,7 @@ export function Header(props: HeaderProps) {
                             />
                         )}
                         <h1 className="text-xl font-bold tracking-tight text-gray-900">{serverName}</h1>
-                    </Link>
+                    </HeadlessLink>
 
                     {/* Desktop Navigation */}
                     <nav className="hidden lg:flex items-center gap-8">
@@ -338,14 +339,14 @@ export function Header(props: HeaderProps) {
 
                                         if (subItem.href) {
                                             return (
-                                                <Link
+                                                <HeadlessLink
                                                     key={subIndex}
                                                     href={subItem.href}
                                                     className={className}
                                                     onClick={() => setIsFederatedOpen(false)}
                                                 >
                                                     {subItem.label}
-                                                </Link>
+                                                </HeadlessLink>
                                             );
                                         }
                                         return (
@@ -360,13 +361,13 @@ export function Header(props: HeaderProps) {
                         {menuItems.map((item, index) => {
                             if (item.type === 'link') {
                                 return (
-                                    <Link
+                                    <HeadlessLink
                                         key={index}
                                         href={item.href}
                                         className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
                                     >
                                         {item.label}
-                                    </Link>
+                                    </HeadlessLink>
                                 );
                             }
 
@@ -402,14 +403,14 @@ export function Header(props: HeaderProps) {
                                                     }
 
                                                     return (
-                                                        <Link
+                                                        <HeadlessLink
                                                             key={subIndex}
                                                             href={subItem.href!}
                                                             className={className}
                                                             onClick={() => item.setIsOpen(false)}
                                                         >
                                                             {subItem.label}
-                                                        </Link>
+                                                        </HeadlessLink>
                                                     );
                                                 })}
                                             </div>
@@ -422,25 +423,25 @@ export function Header(props: HeaderProps) {
                         })}
 
                         {just(false /* TODO: [🧠] Figure out what to do with theese links */) && (
-                            <Link
+                            <a
                                 href="https://ptbk.io/"
                                 target="_blank"
                                 className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
                             >
                                 Create your server
-                            </Link>
+                            </a>
                         )}
                     </nav>
 
                     {/* CTA Button & Mobile Menu Toggle */}
                     <div className="flex items-center gap-4">
                         {just(false /* TODO: [🧠] Figure out what to do with call to action */) && (
-                            <Link href="https://ptbk.io/?modal=get-started" target="_blank" className="hidden md:block">
+                            <a href="https://ptbk.io/?modal=get-started" target="_blank" className="hidden md:block">
                                 <button className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 bg-promptbook-blue-dark text-white hover:bg-promptbook-blue-dark/90">
                                     Get Started
                                     <ArrowRight className="ml-2 w-4 h-4" />
                                 </button>
-                            </Link>
+                            </a>
                         )}
 
                         {!currentUser && !isAdmin && (
@@ -582,14 +583,14 @@ export function Header(props: HeaderProps) {
                             {menuItems.map((item, index) => {
                                 if (item.type === 'link') {
                                     return (
-                                        <Link
+                                        <HeadlessLink
                                             key={index}
                                             href={item.href}
                                             className="block text-base font-medium text-gray-600 hover:text-gray-900 py-2"
                                             onClick={() => setIsMenuOpen(false)}
                                         >
                                             {item.label}
-                                        </Link>
+                                        </HeadlessLink>
                                     );
                                 }
 
@@ -629,14 +630,14 @@ export function Header(props: HeaderProps) {
                                                         }
 
                                                         return (
-                                                            <Link
+                                                            <HeadlessLink
                                                                 key={subIndex}
                                                                 href={subItem.href!}
                                                                 className={className}
                                                                 onClick={() => setIsMenuOpen(false)}
                                                             >
                                                                 {subItem.label}
-                                                            </Link>
+                                                            </HeadlessLink>
                                                         );
                                                     })}
                                                 </div>
@@ -649,14 +650,14 @@ export function Header(props: HeaderProps) {
                             })}
 
                             {just(false /* TODO: [🧠] Figure out what to do with these links */) && (
-                                <Link
+                                <a
                                     href="https://ptbk.io/"
                                     target="_blank"
                                     className="text-base font-medium text-gray-600 hover:text-gray-900 py-2"
                                     onClick={() => setIsMenuOpen(false)}
                                 >
                                     Create your server
-                                </Link>
+                                </a>
                             )}
                         </nav>
                     </div>

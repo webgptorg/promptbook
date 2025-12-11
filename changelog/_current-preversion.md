@@ -31,6 +31,7 @@
 
 ### 🐇 Agents Server
 
+-   Preserve `headless` GET param across all internal navigation (Header, Footer, router navigation). Uses DRY utility and custom Link component for consistent behavior.
 -   List federated servers in footer (DRY, merged via layout.tsx)
 -   Simplify agent page design (`/agents/[agentName]`)
     -   New visually appealing profile view with agent's color theme as gradient background
