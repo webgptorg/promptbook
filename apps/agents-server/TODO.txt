@@ -5,7 +5,3 @@ TODO: [🐱‍🚀] Publish `agents-server` this as Docker container
 TODO: [🐱‍🚀] Publish `@promptbook/agents-server` to npm
 TODO: [🐱‍🚀] Work `ptbk start-pipelines-server` / `ptbk start-agents-server` CLI command to start this server
 TODO: [🧠][🚙] `AgentXxx` vs `AgentsXxx` naming convention
-
-
-TODO: !!!! No dependencies should be here
-TODO: !!!! Check react and next for react2shell critical error
