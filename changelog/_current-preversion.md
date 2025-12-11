@@ -31,6 +31,7 @@
 
 ### 🐇 Agents Server
 
+-   Add dynamic `/sitemap.xml` endpoint that lists all available agents. Uses DRY agent discovery logic via `$provideAgentCollectionForServer` and outputs valid XML for search engines.
 -   Preserve `headless` GET param across all internal navigation (Header, Footer, router navigation). Uses DRY utility and custom Link component for consistent behavior.
 -   List federated servers in footer (DRY, merged via layout.tsx)
 -   Simplify agent page design (`/agents/[agentName]`)

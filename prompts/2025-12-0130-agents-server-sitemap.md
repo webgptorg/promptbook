@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🍳] Create `sitemap.xml` for Agents server
 
