@@ -16,7 +16,7 @@ type PromptbookAgentSeamlessIntegrationProps = Omit<PromptbookAgentIntegrationPr
  * @private component of PromptbookAgentIntegration
  */
 export function PromptbookAgentSeamlessIntegration(props: PromptbookAgentSeamlessIntegrationProps) {
-    const { agentUrl, meta, onOpenChange, className, style } = props;
+    const { agentUrl, meta, onOpenChange, className, style, isFocusedOnLoad } = props;
     const [isOpen, setIsOpen] = useState(false);
     const [headerElement, setHeaderElement] = useState<HTMLDivElement | null>(null);
 
@@ -128,6 +128,7 @@ export function PromptbookAgentSeamlessIntegration(props: PromptbookAgentSeamles
                             <AgentChat
                                 agent={agent}
                                 actionsContainer={headerElement}
+                                isFocusedOnLoad={isFocusedOnLoad}
                                 extraActions={
                                     <button
                                         className={styles.PromptbookAgentSeamlessIntegrationClose}

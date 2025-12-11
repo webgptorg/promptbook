@@ -49,6 +49,13 @@ export type PromptbookAgentIntegrationProps = {
      * Optional CSS style which will be added to root element
      */
     readonly style?: CSSProperties;
+
+    /**
+     * Is the writing textarea automatically focused?
+     *
+     * @default false (to prevent focus being stolen when widget loads)
+     */
+    readonly isFocusedOnLoad?: boolean;
 };
 
 /**
@@ -57,18 +64,22 @@ export type PromptbookAgentIntegrationProps = {
  * @public exported from `@promptbook/components`
  */
 export function PromptbookAgentIntegration(props: PromptbookAgentIntegrationProps) {
-    const { agentUrl, formfactor = 'seamless', meta, onOpenChange, className, style } = props;
+    const { agentUrl, formfactor = 'seamless', meta, onOpenChange, className, style, isFocusedOnLoad = false } = props;
 
     if (just(false)) {
         /* IGNORE */
     } else if (formfactor === 'seamless') {
-        return <PromptbookAgentSeamlessIntegration {...{ agentUrl, meta, onOpenChange, className, style }} />;
+        return (
+            <PromptbookAgentSeamlessIntegration
+                {...{ agentUrl, meta, onOpenChange, className, style, isFocusedOnLoad }}
+            />
+        );
     } else if (formfactor === 'book') {
-        return <iframe src={agentUrl + '/book?headless'} className={className} style={style} />;
+        return <iframe src={agentUrl + '/book?headless'} className={className} style={style} tabIndex={-1} />;
     } else if (formfactor === 'chat') {
-        return <iframe src={agentUrl + '/chat?headless'} className={className} style={style} />;
+        return <iframe src={agentUrl + '/chat?headless'} className={className} style={style} tabIndex={-1} />;
     } else if (formfactor === 'profile') {
-        return <iframe src={agentUrl + '?headless'} className={className} style={style} />;
+        return <iframe src={agentUrl + '?headless'} className={className} style={style} tabIndex={-1} />;
     } else {
         throw new Error(`PromptbookAgentIntegration: Unsupported formfactor "${formfactor}"`);
     }
