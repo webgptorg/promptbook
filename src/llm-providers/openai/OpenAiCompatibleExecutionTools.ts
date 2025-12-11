@@ -8,7 +8,12 @@ import { assertsError } from '../../errors/assertsError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult } from '../../execution/PromptResult';
+import type {
+    ChatPromptResult,
+    CompletionPromptResult,
+    EmbeddingPromptResult,
+    ImagePromptResult,
+} from '../../execution/PromptResult';
 import type { Usage } from '../../execution/Usage';
 import type { Prompt } from '../../types/Prompt';
 import type {
@@ -21,6 +26,8 @@ import type {
 import { $getCurrentDate } from '../../utils/misc/$getCurrentDate';
 import type { chococake } from '../../utils/organization/really_any';
 import type { TODO_any } from '../../utils/organization/TODO_any';
+import { computeUsageCounts } from '../../execution/utils/computeUsageCounts';
+import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import { templateParameters } from '../../utils/parameters/templateParameters';
 import { exportJson } from '../../utils/serialization/exportJson';
 import {
@@ -761,6 +768,217 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
         }
     }
 
+    /**
+     * Calls OpenAI compatible API to use a image generation model
+     */
+    public async callImageGenerationModel(
+        prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements'>,
+    ): Promise<ImagePromptResult> {
+        // Deep clone prompt and modelRequirements to avoid mutation across calls
+        const clonedPrompt = JSON.parse(JSON.stringify(prompt));
+        const retriedUnsupportedParameters = new Set<string>();
+        return this.callImageGenerationModelWithRetry(
+            clonedPrompt,
+            clonedPrompt.modelRequirements,
+            [],
+            retriedUnsupportedParameters,
+        );
+    }
+
+    /**
+     * Internal method that handles parameter retry for image generation model calls
+     */
+    private async callImageGenerationModelWithRetry(
+        prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements'>,
+        currentModelRequirements: typeof prompt.modelRequirements,
+        attemptStack: Array<{
+            modelName: string;
+            unsupportedParameter?: string;
+            errorMessage: string;
+            stripped: boolean;
+        }> = [],
+        retriedUnsupportedParameters: Set<string> = new Set(),
+    ): Promise<ImagePromptResult> {
+        if (this.options.isVerbose) {
+            console.info(`🎨 ${this.title} callImageGenerationModel call`, { prompt, currentModelRequirements });
+        }
+
+        const { content, parameters } = prompt;
+
+        const client = await this.getClient();
+
+        // TODO: [☂] Use here more modelRequirements
+        if (currentModelRequirements.modelVariant !== 'IMAGE_GENERATION') {
+            throw new PipelineExecutionError('Use callImageGenerationModel only for IMAGE_GENERATION variant');
+        }
+
+        const modelName = currentModelRequirements.modelName || this.getDefaultImageGenerationModel().modelName;
+        const modelSettings = {
+            model: modelName,
+            // size: currentModelRequirements.size,
+            // quality: currentModelRequirements.quality,
+            // style: currentModelRequirements.style,
+        };
+
+        const rawPromptContent = templateParameters(content, { ...parameters, modelName });
+        const rawRequest: OpenAI.Images.ImageGenerateParams = {
+            ...modelSettings,
+            prompt: rawPromptContent,
+            user: this.options.userId?.toString(),
+            response_format: 'url', // TODO: [🧠] Maybe allow b64_json
+        };
+        const start: string_date_iso8601 = $getCurrentDate();
+
+        if (this.options.isVerbose) {
+            console.info(colors.bgWhite('rawRequest'), JSON.stringify(rawRequest, null, 4));
+        }
+
+        try {
+            const rawResponse = await this.limiter
+                .schedule(() => this.makeRequestWithNetworkRetry(() => client.images.generate(rawRequest)))
+                .catch((error) => {
+                    assertsError(error);
+                    if (this.options.isVerbose) {
+                        console.info(colors.bgRed('error'), error);
+                    }
+                    throw error;
+                });
+
+            if (this.options.isVerbose) {
+                console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
+            }
+            const complete: string_date_iso8601 = $getCurrentDate();
+
+            if (!rawResponse.data[0]) {
+                throw new PipelineExecutionError(`No choises from ${this.title}`);
+            }
+
+            if (rawResponse.data.length > 1) {
+                throw new PipelineExecutionError(`More than one choise from ${this.title}`);
+            }
+
+            const resultContent = rawResponse.data[0].url!;
+            
+            const modelInfo = this.HARDCODED_MODELS.find((model) => model.modelName === modelName);
+            const price = modelInfo?.pricing?.output ? uncertainNumber(modelInfo.pricing.output) : uncertainNumber();
+
+
+            return exportJson({
+                name: 'promptResult',
+                message: `Result of \`OpenAiCompatibleExecutionTools.callImageGenerationModel\``,
+                order: [],
+                value: {
+                    content: resultContent,
+                    modelName: modelName,
+                    timing: {
+                        start,
+                        complete,
+                    },
+                    usage: {
+                        price,
+                        input: {
+                            tokensCount: uncertainNumber(0),
+                            ...computeUsageCounts(rawPromptContent),
+                        },
+                        output: {
+                            tokensCount: uncertainNumber(0),
+                            ...computeUsageCounts(''),
+                        },
+                    },
+                    rawPromptContent,
+                    rawRequest,
+                    rawResponse,
+                },
+            });
+        } catch (error) {
+            assertsError(error);
+
+            if (!isUnsupportedParameterError(error)) {
+                if (attemptStack.length > 0) {
+                    throw new PipelineExecutionError(
+                        `All attempts failed. Attempt history:\n` +
+                            attemptStack
+                                .map(
+                                    (a, i) =>
+                                        `  ${i + 1}. Model: ${a.modelName}` +
+                                        (a.unsupportedParameter ? `, Stripped: ${a.unsupportedParameter}` : '') +
+                                        `, Error: ${a.errorMessage}` +
+                                        (a.stripped ? ' (stripped and retried)' : ''),
+                                )
+                                .join('\n') +
+                            `\nFinal error: ${error.message}`,
+                    );
+                }
+                throw error;
+            }
+
+            const unsupportedParameter = parseUnsupportedParameterError(error.message);
+
+            if (!unsupportedParameter) {
+                if (this.options.isVerbose) {
+                    console.warn(
+                        colors.bgYellow('Warning'),
+                        'Could not parse unsupported parameter from error:',
+                        error.message,
+                    );
+                }
+                throw error;
+            }
+
+            const retryKey = `${modelName}-${unsupportedParameter}`;
+
+            if (retriedUnsupportedParameters.has(retryKey)) {
+                attemptStack.push({
+                    modelName,
+                    unsupportedParameter,
+                    errorMessage: error.message,
+                    stripped: true,
+                });
+                throw new PipelineExecutionError(
+                    `All attempts failed. Attempt history:\n` +
+                        attemptStack
+                            .map(
+                                (a, i) =>
+                                    `  ${i + 1}. Model: ${a.modelName}` +
+                                    (a.unsupportedParameter ? `, Stripped: ${a.unsupportedParameter}` : '') +
+                                    `, Error: ${a.errorMessage}` +
+                                    (a.stripped ? ' (stripped and retried)' : ''),
+                            )
+                            .join('\n') +
+                        `\nFinal error: ${error.message}`,
+                );
+            }
+
+            retriedUnsupportedParameters.add(retryKey);
+
+            if (this.options.isVerbose) {
+                console.warn(
+                    colors.bgYellow('Warning'),
+                    `Removing unsupported parameter '${unsupportedParameter}' for model '${modelName}' and retrying request`,
+                );
+            }
+
+            attemptStack.push({
+                modelName,
+                unsupportedParameter,
+                errorMessage: error.message,
+                stripped: true,
+            });
+
+            const modifiedModelRequirements = removeUnsupportedModelRequirement(
+                currentModelRequirements,
+                unsupportedParameter,
+            );
+
+            return this.callImageGenerationModelWithRetry(
+                prompt,
+                modifiedModelRequirements,
+                attemptStack,
+                retriedUnsupportedParameters,
+            );
+        }
+    }
+
     // <- Note: [🤖] callXxxModel
 
     /**
@@ -819,6 +1037,11 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
      * Default model for completion variant.
      */
     protected abstract getDefaultEmbeddingModel(): AvailableModel;
+
+    /**
+     * Default model for image generation variant.
+     */
+    protected abstract getDefaultImageGenerationModel(): AvailableModel;
     // <- Note: [🤖] getDefaultXxxModel
 
     /**

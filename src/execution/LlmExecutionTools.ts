@@ -3,7 +3,7 @@ import type { ChatParticipant } from '../book-components/Chat/types/ChatParticip
 import type { Prompt } from '../types/Prompt';
 import type { string_markdown, string_markdown_text, string_title } from '../types/typeAliases';
 import type { AvailableModel } from './AvailableModel';
-import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult } from './PromptResult';
+import type { ChatPromptResult, CompletionPromptResult, EmbeddingPromptResult, ImagePromptResult } from './PromptResult';
 
 /**
  * Container for all the tools needed to execute prompts to large language models like GPT-4
@@ -80,6 +80,11 @@ export type LlmExecutionTools = {
      * Calls a completion model
      */
     callCompletionModel?(prompt: Prompt /* <- TODO: [🩱] CompletionPrompt */): Promise<CompletionPromptResult>;
+
+    /**
+     * Calls a image generation model
+     */
+    callImageGenerationModel?(prompt: Prompt /* <- TODO: [🩱] ImagePrompt */): Promise<ImagePromptResult>;
 
     /**
      * Calls an embedding model

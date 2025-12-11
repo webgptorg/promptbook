@@ -14,4 +14,4 @@ export type ModelVariant = TupleToUnion<typeof MODEL_VARIANTS>;
  * @see {@link ModelVariant}
  * @public exported from `@promptbook/core`
  */
-export const MODEL_VARIANTS = ['COMPLETION', 'CHAT', 'EMBEDDING' /* <- TODO [🏳] */ /* <- [🤖] */] as const;
+export const MODEL_VARIANTS = ['COMPLETION', 'CHAT', 'IMAGE_GENERATION', 'EMBEDDING' /* <- TODO [🏳] */ /* <- [🤖] */] as const;

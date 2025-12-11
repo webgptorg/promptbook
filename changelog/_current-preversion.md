@@ -1,6 +1,11 @@
 ### 📖 Book Format- Added a federated servers dropdown to the header in Agents Server. The dropdown lists all federated servers, with the current server shown as selected and not clickable. Navigation is DRY and uses shared logic with the footer.- Allow changing agent URL if agentName in URL differs from derived agentName.  
   - Shows highlighted "Update URL" in Agent menu if discrepancy exists, with confirmation dialog and redirect.
 
+-   Add support for image generation models
+    -   Added `IMAGE_GENERATION` model variant
+    -   Added `callImageGenerationModel` to `LlmExecutionTools`
+    -   Implemented support for DALL-E 2 and DALL-E 3 in `OpenAiExecutionTools`
+    -   Added `ImagePrompt` and `ImagePromptResult` types
 -   Horizontal lines (`---`) now end commitments
     -   Allows separating metadata/configuration from conversation flow
     -   Supports various horizontal line formats: `---`, `-----`, `- - -`, `___`, `***`

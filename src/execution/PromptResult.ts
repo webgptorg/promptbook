@@ -9,7 +9,7 @@ import type { Usage } from './Usage';
  *
  * @see https://github.com/webgptorg/promptbook#prompt-result
  */
-export type PromptResult = CompletionPromptResult | ChatPromptResult | EmbeddingPromptResult /* <- [🤖] */;
+export type PromptResult = CompletionPromptResult | ChatPromptResult | ImagePromptResult | EmbeddingPromptResult /* <- [🤖] */;
 
 /**
  * Completion prompt result
@@ -27,6 +27,13 @@ export type CompletionPromptResult = CommonPromptResult;
 export type ChatPromptResult = CommonPromptResult & {
     // TODO: [🗯][🧠] Figure out way how to pass thread / previous messages
 };
+
+/**
+ * Image prompt result
+ *
+ * Note: [🚉] This is fully serializable as JSON
+ */
+export type ImagePromptResult = CommonPromptResult;
 
 /**
  * Embedding prompt  result

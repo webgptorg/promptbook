@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🥋] Add support for image models
 

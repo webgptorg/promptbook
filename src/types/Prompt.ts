@@ -4,6 +4,7 @@ import type { Expectations } from '../pipeline/PipelineJson/Expectations';
 import type { ChatModelRequirements } from './ModelRequirements';
 import type { CompletionModelRequirements } from './ModelRequirements';
 import type { EmbeddingModelRequirements } from './ModelRequirements';
+import type { ImageGenerationModelRequirements } from './ModelRequirements';
 import type { ModelRequirements } from './ModelRequirements';
 import type { Parameters } from './typeAliases';
 import type { string_pipeline_url_with_task_hash } from './typeAliases';
@@ -18,7 +19,7 @@ import type { string_title } from './typeAliases';
  * Note: [🚉] This is fully serializable as JSON
  * @see https://github.com/webgptorg/promptbook#prompt
  */
-export type Prompt = CompletionPrompt | ChatPrompt | EmbeddingPrompt /* <- [🤖] */;
+export type Prompt = CompletionPrompt | ChatPrompt | ImagePrompt | EmbeddingPrompt /* <- [🤖] */;
 
 /**
  * Completion prompt
@@ -47,6 +48,18 @@ export type ChatPrompt = CommonPrompt & {
      * Optional chat thread (history of previous messages)
      */
     thread?: ChatMessage[];
+};
+
+/**
+ * Image prompt
+ *
+ * Note: [🚉] This is fully serializable as JSON
+ */
+export type ImagePrompt = CommonPrompt & {
+    /**
+     * Requirements for image generation model
+     */
+    modelRequirements: ImageGenerationModelRequirements;
 };
 
 /**

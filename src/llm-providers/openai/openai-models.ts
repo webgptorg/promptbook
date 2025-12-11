@@ -178,12 +178,19 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
         },
         /**/
 
-        /*/
-          {
-              modelTitle: 'dall-e-3',
-              modelName: 'dall-e-3',
-          },
-          /**/
+        /**/
+        {
+            modelVariant: 'IMAGE_GENERATION',
+            modelTitle: 'dall-e-3',
+            modelName: 'dall-e-3',
+            modelDescription:
+                'DALL·E 3 is the latest version of the DALL·E art generation model. It understands significantly more nuance and detail than our previous systems, allowing you to easily translate your ideas into exceptionally accurate images.',
+            pricing: {
+                prompt: 0,
+                output: 0.04,
+            },
+        },
+        /**/
 
         /*/
           {
@@ -206,12 +213,19 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
         },
         /**/
 
-        /*/
-      {
-          modelTitle: 'dall-e-2',
-          modelName: 'dall-e-2',
-      },
-      /**/
+        /**/
+        {
+            modelVariant: 'IMAGE_GENERATION',
+            modelTitle: 'dall-e-2',
+            modelName: 'dall-e-2',
+            modelDescription:
+                'DALL·E 2 is an AI system that can create realistic images and art from a description in natural language.',
+            pricing: {
+                prompt: 0,
+                output: 0.02,
+            },
+        },
+        /**/
 
         /**/
         {

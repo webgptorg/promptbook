@@ -11,6 +11,7 @@ import type { number_model_temperature, number_seed, string_model_name, string_s
 export type ModelRequirements =
     | CompletionModelRequirements
     | ChatModelRequirements
+    | ImageGenerationModelRequirements
     | EmbeddingModelRequirements /* <- [🤖] */;
 
 /**
@@ -43,6 +44,18 @@ export type ChatModelRequirements = CommonModelRequirements & {
 };
 
 /**
+ * Model requirements for the image generation variant
+ *
+ * Note: [🚉] This is fully serializable as JSON
+ */
+export type ImageGenerationModelRequirements = CommonModelRequirements & {
+    /**
+     * Image generation model variant
+     */
+    modelVariant: 'IMAGE_GENERATION';
+};
+
+/**
  * Model requirements for the embedding variant
  *
  * Note: [🚉] This is fully serializable as JSON
@@ -70,6 +83,7 @@ export type CommonModelRequirements = {
      * There are 3 variants:
      * - **COMPLETION** - model that takes prompt and writes the rest of the text
      * - **CHAT** - model that takes prompt and previous messages and returns response
+     * - **IMAGE_GENERATION** - model that takes prompt and returns image
      * - **EMBEDDING** - model that takes prompt and returns embedding
      * <- [🤖]
      */

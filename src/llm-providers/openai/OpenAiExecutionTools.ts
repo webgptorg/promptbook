@@ -82,5 +82,12 @@ export class OpenAiExecutionTools extends OpenAiCompatibleExecutionTools impleme
         return this.getDefaultModel('text-embedding-3-large');
     }
 
+    /**
+     * Default model for image generation variant.
+     */
+    protected getDefaultImageGenerationModel(): AvailableModel {
+        return this.getDefaultModel('dall-e-3');
+    }
+
     // <- Note: [🤖] getDefaultXxxModel
 }

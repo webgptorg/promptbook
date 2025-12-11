@@ -70,6 +70,21 @@ async function playground() {
     console.info({ models });
     /**/
 
+    /**/
+    const imagePrompt = {
+        title: 'Hello',
+        parameters: {},
+        content: `Coffee cup floating in space, surrealistic, vibrant colors, high detail`,
+        modelRequirements: {
+            modelVariant: 'IMAGE_GENERATION',
+        },
+    } as const satisfies Prompt;
+    const imagePromptResult = await openAiExecutionTools.callImageGenerationModel(imagePrompt);
+    console.info({ imagePromptResult });
+    console.info(colors.cyan(usageToHuman(imagePromptResult.usage)));
+    console.info(colors.green(imagePromptResult.content));
+    /**/
+
     /*/
     const completionPrompt = {
         title: 'Hello',
@@ -85,7 +100,7 @@ async function playground() {
     console.info(chalk.green(completionPrompt.content + completionPromptResult.content));
     /**/
 
-    /**/
+    /*/
     const chatPrompt = {
         title: 'Prague',
         parameters: {},
@@ -108,14 +123,15 @@ async function playground() {
             modelName: 'gpt-5',
             temperature: 1.5,
         },
-    } /* as const */ satisfies Prompt;
+    } /* as const * / satisfies Prompt;
     const chatPromptResult = await openAiExecutionToolsWithUsage.callChatModel!(chatPrompt);
     console.info({ chatPromptResult });
     console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
     console.info(colors.bgBlue(' User: ') + colors.blue(chatPrompt.content));
     console.info(colors.bgGreen(' Chat: ') + colors.green(chatPromptResult.content));
-
     /**/
+
+    /*/
     const chatPromptResult2 = await openAiExecutionToolsWithUsage.callChatModel!(chatPrompt);
     console.info({ chatPromptResult2 });
     console.info(colors.cyan(usageToHuman(chatPromptResult2.usage)));
