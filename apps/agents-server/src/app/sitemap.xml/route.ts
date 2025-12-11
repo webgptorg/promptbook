@@ -1,5 +1,6 @@
 // Dynamic sitemap.xml for Agents Server
 
+import { NEXT_PUBLIC_SITE_URL } from '@/config';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { spaceTrim } from '@promptbook-local/utils';
 import { NextResponse } from 'next/server';
@@ -13,10 +14,10 @@ export async function GET() {
     const agentNames = await collection.listAgents();
 
     // Get base URL from environment or config
-    const baseUrl = process.env.PUBLIC_URL || 'https://your-agents-server-domain.com';
+    const baseUrl = NEXT_PUBLIC_SITE_URL?.href || process.env.PUBLIC_URL || 'https://ptbk.io';
 
     const urls = agentNames
-        .map(({ agentName }) => `<url><loc>${baseUrl}/agents/${encodeURIComponent(agentName)}</loc></url>`)
+        .map(({ agentName }) => `<url><loc>${baseUrl}agents/${encodeURIComponent(agentName)}</loc></url>`)
         .join('\n');
 
     const xml = spaceTrim(
