@@ -191,12 +191,16 @@ export async function middleware(req: NextRequest) {
             'api',
             'admin',
             'docs',
-            'manifest.webmanifest',
-            'sw.js',
             'test',
             'embed',
             '_next',
+            'manifest.webmanifest',
+            'sw.js',
             'favicon.ico',
+            'sitemap.xml',
+            'robots.txt',
+            'security.txt',
+            'humans.txt',
         ].includes(potentialAgentName) &&
         !potentialAgentName.startsWith('.') &&
         // Note: Other static files are excluded by the matcher configuration below
