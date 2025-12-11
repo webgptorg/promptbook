@@ -8,7 +8,17 @@ import { CloseIcon } from '../icons/CloseIcon';
 import { PromptbookAgentIntegrationProps } from './PromptbookAgentIntegration';
 import styles from './PromptbookAgentSeamlessIntegration.module.css';
 
-type PromptbookAgentSeamlessIntegrationProps = Omit<PromptbookAgentIntegrationProps, 'formfactor'>;
+type PromptbookAgentSeamlessIntegrationProps = Omit<PromptbookAgentIntegrationProps, 'formfactor'> & {
+    /**
+     * Use iframe instead of implementing the chat directly
+     *
+     * When `true`, the chat will be rendered in an iframe pointing to the agent's chat endpoint.
+     * When `false`, the chat will be rendered directly using React components.
+     *
+     * @default false
+     */
+    readonly isIframeUsed?: boolean;
+};
 
 /**
  * Renders a floating agent button that opens a chat window with the remote agent.
@@ -16,7 +26,7 @@ type PromptbookAgentSeamlessIntegrationProps = Omit<PromptbookAgentIntegrationPr
  * @private component of PromptbookAgentIntegration
  */
 export function PromptbookAgentSeamlessIntegration(props: PromptbookAgentSeamlessIntegrationProps) {
-    const { agentUrl, meta, onOpenChange, className, style, isFocusedOnLoad } = props;
+    const { agentUrl, meta, onOpenChange, className, style, isFocusedOnLoad, isIframeUsed = false } = props;
     const [isOpen, setIsOpen] = useState(false);
     const [headerElement, setHeaderElement] = useState<HTMLDivElement | null>(null);
 
@@ -124,7 +134,13 @@ export function PromptbookAgentSeamlessIntegration(props: PromptbookAgentSeamles
                         </div>
                     </div>
                     <div className={styles.PromptbookAgentSeamlessIntegrationContent}>
-                        {agent ? (
+                        {isIframeUsed ? (
+                            <iframe
+                                src={agentUrl + '/chat?headless'}
+                                className={styles.PromptbookAgentSeamlessIntegrationIframe}
+                                tabIndex={-1}
+                            />
+                        ) : agent ? (
                             <AgentChat
                                 agent={agent}
                                 actionsContainer={headerElement}
@@ -157,7 +173,6 @@ export function PromptbookAgentSeamlessIntegration(props: PromptbookAgentSeamles
 }
 
 /**
- * TODO: !!!! Use iframe here instead of implementing the chat directly, allow to switch between seamless and iframe mode via `isIframeUsed` prop
  * TODO: !!! Load the full branding
  * TODO: !!! <promptbook-agent> element
  */

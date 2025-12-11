@@ -56,6 +56,16 @@ export type PromptbookAgentIntegrationProps = {
      * @default false (to prevent focus being stolen when widget loads)
      */
     readonly isFocusedOnLoad?: boolean;
+
+    /**
+     * Use iframe instead of implementing the chat directly
+     *
+     * When `true`, the chat will be rendered in an iframe pointing to the agent's chat endpoint.
+     * When `false`, the chat will be rendered directly using React components.
+     *
+     * @default true
+     */
+    readonly isIframeUsed?: boolean;
 };
 
 /**
@@ -64,14 +74,23 @@ export type PromptbookAgentIntegrationProps = {
  * @public exported from `@promptbook/components`
  */
 export function PromptbookAgentIntegration(props: PromptbookAgentIntegrationProps) {
-    const { agentUrl, formfactor = 'seamless', meta, onOpenChange, className, style, isFocusedOnLoad = false } = props;
+    const {
+        agentUrl,
+        formfactor = 'seamless',
+        meta,
+        onOpenChange,
+        className,
+        style,
+        isFocusedOnLoad = false,
+        isIframeUsed = true,
+    } = props;
 
     if (just(false)) {
         /* IGNORE */
     } else if (formfactor === 'seamless') {
         return (
             <PromptbookAgentSeamlessIntegration
-                {...{ agentUrl, meta, onOpenChange, className, style, isFocusedOnLoad }}
+                {...{ agentUrl, meta, onOpenChange, className, style, isFocusedOnLoad, isIframeUsed }}
             />
         );
     } else if (formfactor === 'book') {

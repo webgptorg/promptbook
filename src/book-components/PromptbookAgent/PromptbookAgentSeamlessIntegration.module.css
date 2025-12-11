@@ -182,6 +182,13 @@
     color: #d32f2f;
 }
 
+.PromptbookAgentSeamlessIntegrationIframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    flex: 1;
+}
+
 @media (max-width: 480px) {
     .PromptbookAgentSeamlessIntegration.open {
         bottom: 0;
