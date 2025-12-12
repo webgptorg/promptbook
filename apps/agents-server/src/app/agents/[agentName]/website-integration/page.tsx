@@ -7,8 +7,9 @@ import { parseAgentSource } from '@promptbook-local/core';
 import { headers } from 'next/headers';
 import spaceTrim from 'spacetrim';
 import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
-import { CodePreview } from '../../../../../../_common/components/CodePreview/CodePreview';
+import { just } from '../../../../../../../src/utils/organization/just';
 import { generateAgentMetadata } from '../generateAgentMetadata';
+import { WebsiteIntegrationTabs } from '../integration/WebsiteIntegrationTabs';
 
 export const generateMetadata = generateAgentMetadata;
 
@@ -24,9 +25,8 @@ export default async function WebsiteIntegrationAgentPage({ params }: { params: 
     const { publicUrl } = await $provideServer();
     const agentUrl = `${publicUrl.href}agents/${encodeURIComponent(agentName)}`;
 
-    const code = spaceTrim(
+    const reactCode = spaceTrim(
         (block) => `
-
             import { PromptbookAgentIntegration } from '@promptbook/components';
 
             export function YourComponent() {
@@ -37,7 +37,18 @@ export default async function WebsiteIntegrationAgentPage({ params }: { params: 
                     />
                 );
             }
-            
+        `,
+    );
+
+    // HTML Integration Code (duplicated from React for now)
+    const htmlCode = spaceTrim(
+        (block) => `
+            <script src="${publicUrl.href}api/embed.js" async defer></script>
+
+            <promptbook-agent-integration
+                agent-url="${agentUrl}"
+                meta="${block(JSON.stringify({ fullname, color, image, ...restMeta }, null, 4))}"
+            />
         `,
     );
 
@@ -49,19 +60,24 @@ export default async function WebsiteIntegrationAgentPage({ params }: { params: 
                 React application using the <code>{'<PromptbookAgent />'}</code> component.
             </p>
 
-            <CodePreview code={code} />
-            <PromptbookAgentIntegration
-                // formfactor="profile"
-                agentUrl={agentUrl}
-                meta={meta}
-                style={
-                    {
-                        // width: '400px',
-                        // height: '600px',
-                        // outline: `2px solid red`
+            <WebsiteIntegrationTabs reactCode={reactCode} htmlCode={htmlCode} />
+            {just(false) && (
+                <PromptbookAgentIntegration
+                    // formfactor="profile"
+                    agentUrl={agentUrl}
+                    meta={meta}
+                    style={
+                        {
+                            // width: '400px',
+                            // height: '600px',
+                            // outline: `2px solid red`
+                        }
                     }
-                }
-            />
+                />
+            )}
+            {htmlCode}
+            {just(true) && <div dangerouslySetInnerHTML={{ __html: htmlCode }} />}
+            {just(true) && <div dangerouslySetInnerHTML={{ __html: `<h1>Test</h1>` }} />}
         </main>
     );
 }

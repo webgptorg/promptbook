@@ -19,6 +19,7 @@ import { getAgentLinks } from '../agentLinks';
 import { CopyField } from '../CopyField';
 import { generateAgentMetadata } from '../generateAgentMetadata';
 import { SdkCodeTabs } from './SdkCodeTabs';
+import { WebsiteIntegrationTabs } from './WebsiteIntegrationTabs';
 
 export const generateMetadata = generateAgentMetadata;
 
@@ -71,7 +72,7 @@ export default async function AgentIntegrationPage({ params }: { params: Promise
 
     // Website Integration Code
     const { fullname, color, image, ...restMeta } = agentProfile.meta;
-    const websiteIntegrationCode = spaceTrim(
+    const websiteIntegrationReactCode = spaceTrim(
         (block) => `
             import { PromptbookAgentIntegration } from '@promptbook/components';
 
@@ -83,6 +84,18 @@ export default async function AgentIntegrationPage({ params }: { params: Promise
                     />
                 );
             }
+        `,
+    );
+
+    // HTML Integration Code (duplicated from React for now)
+    const websiteIntegrationHtmlCode = spaceTrim(
+        (block) => `
+            <script src="${publicUrl.href}api/embed.js" async defer></script>
+
+            <promptbook-agent-integration
+                agent-url="${baseUrl}"
+                meta="${block(JSON.stringify({ fullname, color, image, ...restMeta }, null, 4))}"
+            />
         `,
     );
 
@@ -214,7 +227,10 @@ export default async function AgentIntegrationPage({ params }: { params: Promise
                                 </p>
                             </div>
                         </div>
-                        <CodePreview code={websiteIntegrationCode} language="typescript" />
+                        <WebsiteIntegrationTabs
+                            reactCode={websiteIntegrationReactCode}
+                            htmlCode={websiteIntegrationHtmlCode}
+                        />
                     </div>
 
                     {/* OpenAI API Compatible Endpoint */}
