@@ -14,9 +14,9 @@ import { Color } from '../../../../../../../src/utils/color/Color';
 import { withAlpha } from '../../../../../../../src/utils/color/operators/withAlpha';
 import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
 import { CodePreview } from '../../../../../../_common/components/CodePreview/CodePreview';
+import { getAgentName, getAgentProfile } from '../_utils';
 import { getAgentLinks } from '../agentLinks';
 import { CopyField } from '../CopyField';
-import { getAgentName, getAgentProfile } from '../_utils';
 import { generateAgentMetadata } from '../generateAgentMetadata';
 import { SdkCodeTabs } from './SdkCodeTabs';
 
@@ -73,11 +73,11 @@ export default async function AgentIntegrationPage({ params }: { params: Promise
     const { fullname, color, image, ...restMeta } = agentProfile.meta;
     const websiteIntegrationCode = spaceTrim(
         (block) => `
-            import { PromptbookAgent } from '@promptbook/components';
+            import { PromptbookAgentIntegration } from '@promptbook/components';
 
             export function YourComponent() {
                 return(
-                    <PromptbookAgent
+                    <PromptbookAgentIntegration
                         agentUrl="${baseUrl}"
                         meta={${block(JSON.stringify({ fullname, color, image, ...restMeta }, null, 4))}}
                     />

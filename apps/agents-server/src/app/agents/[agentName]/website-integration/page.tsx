@@ -27,11 +27,11 @@ export default async function WebsiteIntegrationAgentPage({ params }: { params: 
     const code = spaceTrim(
         (block) => `
 
-            import { PromptbookAgent } from '@promptbook/components';
+            import { PromptbookAgentIntegration } from '@promptbook/components';
 
             export function YourComponent() {
                 return(
-                    <PromptbookAgent
+                    <PromptbookAgentIntegration
                         agentUrl="${agentUrl}"
                         meta={${block(JSON.stringify({ fullname, color, image, ...restMeta }, null, 4))}}
                     />
