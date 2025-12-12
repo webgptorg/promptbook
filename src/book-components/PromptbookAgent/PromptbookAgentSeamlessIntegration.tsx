@@ -29,10 +29,14 @@ export function PromptbookAgentSeamlessIntegration(props: PromptbookAgentSeamles
     const { agentUrl, meta, onOpenChange, className, style, isFocusedOnLoad, isIframeUsed = false } = props;
     const [isOpen, setIsOpen] = useState(false);
     const [headerElement, setHeaderElement] = useState<HTMLDivElement | null>(null);
+    const [isIframeLoaded, setIsIframeLoaded] = useState(false);
 
     useEffect(() => {
         if (onOpenChange) {
             onOpenChange(isOpen);
+        }
+        if (!isOpen) {
+            setIsIframeLoaded(false);
         }
     }, [isOpen, onOpenChange]);
     const [agent, setAgent] = useState<RemoteAgent | null>(null);
@@ -144,11 +148,20 @@ export function PromptbookAgentSeamlessIntegration(props: PromptbookAgentSeamles
                     </div>
                     <div className={styles.PromptbookAgentSeamlessIntegrationContent}>
                         {isIframeUsed ? (
-                            <iframe
-                                src={agentUrl + '/chat?headless'}
-                                className={styles.PromptbookAgentSeamlessIntegrationIframe}
-                                tabIndex={-1}
-                            />
+                            <>
+                                {!isIframeLoaded && (
+                                    <div className={styles.PromptbookAgentSeamlessIntegrationLoading}>
+                                        Loading chat...
+                                    </div>
+                                )}
+                                <iframe
+                                    src={agentUrl + '/chat?headless'}
+                                    className={styles.PromptbookAgentSeamlessIntegrationIframe}
+                                    style={{ opacity: isIframeLoaded ? 1 : 0 }}
+                                    tabIndex={-1}
+                                    onLoad={() => setIsIframeLoaded(true)}
+                                />
+                            </>
                         ) : agent ? (
                             <AgentChat
                                 agent={agent}
