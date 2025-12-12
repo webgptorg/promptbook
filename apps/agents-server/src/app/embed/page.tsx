@@ -22,18 +22,16 @@ export default function EmbedPage() {
     }, [metaParam]);
 
     if (!agentUrl) {
-        return <div className="text-red-500">Missing agentUrl parameter</div>;
+        return <div style={{ color: 'red' }}>Missing agentUrl parameter</div>;
     }
 
     return (
-        <div className="w-full h-full bg-transparent">
-            <PromptbookAgentIntegration
-                agentUrl={agentUrl}
-                meta={meta}
-                onOpenChange={(isOpen) => {
-                    window.parent.postMessage({ type: 'PROMPTBOOK_AGENT_RESIZE', isOpen }, '*');
-                }}
-            />
-        </div>
+        <PromptbookAgentIntegration
+            agentUrl={agentUrl}
+            meta={meta}
+            onOpenChange={(isOpen) => {
+                window.parent.postMessage({ type: 'PROMPTBOOK_AGENT_RESIZE', isOpen }, '*');
+            }}
+        />
     );
 }
