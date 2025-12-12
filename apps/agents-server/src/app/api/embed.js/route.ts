@@ -44,14 +44,16 @@ export async function GET(request: NextRequest) {
                     if (event.data && event.data.type === 'PROMPTBOOK_AGENT_RESIZE') {
                         if (event.data.isOpen) {
                             // Match PromptbookAgentSeamlessIntegration.module.css dimensions
-                            this.iframe.style.width = '400px';
-                            this.iframe.style.height = '620px';
-                            this.iframe.style.maxHeight = '80vh';
-                            this.iframe.style.maxWidth = 'calc(100vw - 40px)';
+                            // Window is 380x600 + 20px padding on each side
+                            this.iframe.style.width = '420px';
+                            this.iframe.style.height = '640px';
+                            this.iframe.style.maxHeight = 'calc(80vh + 40px)';
+                            this.iframe.style.maxWidth = 'calc(100vw - 20px)';
                         } else {
-                            // Closed state - just the button area
-                            this.iframe.style.width = '140px';
-                            this.iframe.style.height = '60px';
+                            // Closed state - button area with padding and shadow space
+                            // Button is ~140px wide + 20px right margin + shadow space
+                            this.iframe.style.width = '180px';
+                            this.iframe.style.height = '100px';
                             this.iframe.style.maxHeight = 'none';
                             this.iframe.style.maxWidth = 'none';
                         }
@@ -69,9 +71,9 @@ export async function GET(request: NextRequest) {
                         this.iframe.style.position = 'fixed';
                         this.iframe.style.bottom = '0';
                         this.iframe.style.right = '0';
-                        // Initial size for the closed button state
-                        this.iframe.style.width = '140px';
-                        this.iframe.style.height = '60px';
+                        // Initial size for the closed button state (with padding and shadow space)
+                        this.iframe.style.width = '180px';
+                        this.iframe.style.height = '100px';
                         this.iframe.style.zIndex = '2147483647'; // Max z-index
                         this.iframe.style.transition = 'width 0.3s ease, height 0.3s ease';
                         this.iframe.style.backgroundColor = 'transparent';
