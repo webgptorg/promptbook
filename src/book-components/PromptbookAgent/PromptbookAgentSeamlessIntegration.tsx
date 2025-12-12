@@ -132,6 +132,15 @@ export function PromptbookAgentSeamlessIntegration(props: PromptbookAgentSeamles
                         <div className={styles.PromptbookAgentSeamlessIntegrationTitle}>
                             {agent?.meta.fullname || meta?.fullname || agent?.agentName || 'Chat with Agent'}
                         </div>
+                        {isIframeUsed && (
+                            <button
+                                className={styles.PromptbookAgentSeamlessIntegrationClose}
+                                onClick={() => setIsOpen(false)}
+                                title="Close"
+                            >
+                                <CloseIcon />
+                            </button>
+                        )}
                     </div>
                     <div className={styles.PromptbookAgentSeamlessIntegrationContent}>
                         {isIframeUsed ? (
