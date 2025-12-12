@@ -87,14 +87,15 @@ export default async function AgentIntegrationPage({ params }: { params: Promise
         `,
     );
 
-    // HTML Integration Code (duplicated from React for now)
+    // HTML Integration Code - use single quotes for meta attribute to allow JSON with double quotes inside
+    const metaJsonString = JSON.stringify({ fullname, color, image, ...restMeta }, null, 4);
     const websiteIntegrationHtmlCode = spaceTrim(
         (block) => `
             <script src="${publicUrl.href}api/embed.js" async defer></script>
 
             <promptbook-agent-integration
                 agent-url="${baseUrl}"
-                meta="${block(JSON.stringify({ fullname, color, image, ...restMeta }, null, 4))}"
+                meta='${block(metaJsonString)}'
             />
         `,
     );

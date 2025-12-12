@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
                 }
 
                 static get observedAttributes() {
-                    return ['agent-url'];
+                    return ['agent-url', 'meta'];
                 }
 
                 connectedCallback() {
@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
                 }
 
                 attributeChangedCallback(name, oldValue, newValue) {
-                    if (name === 'agent-url' && oldValue !== newValue) {
+                    if ((name === 'agent-url' || name === 'meta') && oldValue !== newValue) {
                         this.render();
                     }
                 }
@@ -43,17 +43,17 @@ export async function GET(request: NextRequest) {
                 handleMessage(event) {
                     if (event.data && event.data.type === 'PROMPTBOOK_AGENT_RESIZE') {
                         if (event.data.isOpen) {
-                            this.iframe.style.width = '450px';
-                            this.iframe.style.height = '650px';
-                            this.iframe.style.maxHeight = '90vh';
-                            this.iframe.style.maxWidth = '90vw';
-                            this.iframe.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
-                            this.iframe.style.borderRadius = '12px';
+                            // Match PromptbookAgentSeamlessIntegration.module.css dimensions
+                            this.iframe.style.width = '400px';
+                            this.iframe.style.height = '620px';
+                            this.iframe.style.maxHeight = '80vh';
+                            this.iframe.style.maxWidth = 'calc(100vw - 40px)';
                         } else {
-                            this.iframe.style.width = '60px';
+                            // Closed state - just the button area
+                            this.iframe.style.width = '140px';
                             this.iframe.style.height = '60px';
-                            this.iframe.style.boxShadow = 'none';
-                            this.iframe.style.borderRadius = '0';
+                            this.iframe.style.maxHeight = 'none';
+                            this.iframe.style.maxWidth = 'none';
                         }
                     }
                 }
@@ -67,9 +67,10 @@ export async function GET(request: NextRequest) {
                         this.iframe = document.createElement('iframe');
                         this.iframe.style.border = 'none';
                         this.iframe.style.position = 'fixed';
-                        this.iframe.style.bottom = '20px';
-                        this.iframe.style.right = '20px';
-                        this.iframe.style.width = '60px';
+                        this.iframe.style.bottom = '0';
+                        this.iframe.style.right = '0';
+                        // Initial size for the closed button state
+                        this.iframe.style.width = '140px';
                         this.iframe.style.height = '60px';
                         this.iframe.style.zIndex = '2147483647'; // Max z-index
                         this.iframe.style.transition = 'width 0.3s ease, height 0.3s ease';
@@ -79,7 +80,20 @@ export async function GET(request: NextRequest) {
                     }
 
                     // Construct embed URL pointing to the Next.js page we created
-                    const embedUrl = '${baseUrl}/embed?agentUrl=' + encodeURIComponent(agentUrl);
+                    let embedUrl = '${baseUrl}/embed?agentUrl=' + encodeURIComponent(agentUrl);
+                    
+                    // Add meta parameter if provided
+                    const metaAttr = this.getAttribute('meta');
+                    if (metaAttr) {
+                        try {
+                            // Validate that it's valid JSON
+                            JSON.parse(metaAttr);
+                            embedUrl += '&meta=' + encodeURIComponent(metaAttr);
+                        } catch (e) {
+                            console.error('[🔌] Invalid meta JSON:', e);
+                        }
+                    }
+                    
                     this.iframe.src = embedUrl;
                 }
             }
