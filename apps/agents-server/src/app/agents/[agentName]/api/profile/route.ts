@@ -27,7 +27,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
         const agentSource = await collection.getAgentSource(agentName);
         const agentProfile = parseAgentSource(agentSource);
         const agentHash = computeAgentHash(agentSource);
-        const isVoiceCallingEnabled = (await getMetadata('IS_VOICE_CALLING_ENABLED')) === 'true';
+        const isVoiceCallingEnabled = (await getMetadata('IS_EXPERIMENTAL_VOICE_CALLING_ENABLED')) === 'true';
 
         return new Response(
             JSON.stringify(

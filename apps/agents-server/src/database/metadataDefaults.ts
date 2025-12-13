@@ -38,7 +38,7 @@ export const metadataDefaults = [
         type: 'TEXT',
     },
     {
-        key: 'IS_VOICE_CALLING_ENABLED',
+        key: 'IS_EXPERIMENTAL_VOICE_CALLING_ENABLED',
         value: 'false',
         note: 'Enable or disable voice calling features for agents. When disabled, voice API endpoints will return 403 Forbidden.',
         type: 'BOOLEAN',

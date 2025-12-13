@@ -22,7 +22,7 @@ export async function OPTIONS(request: Request) {
 
 export async function POST(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
     // Check if voice calling is enabled
-    const isVoiceCallingEnabled = (await getMetadata('IS_VOICE_CALLING_ENABLED')) === 'true';
+    const isVoiceCallingEnabled = (await getMetadata('IS_EXPERIMENTAL_VOICE_CALLING_ENABLED')) === 'true';
     if (!isVoiceCallingEnabled) {
         return new Response(JSON.stringify({ error: 'Voice calling is disabled on this server' }), {
             status: 403,
