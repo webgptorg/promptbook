@@ -23,6 +23,7 @@ export type AgentsDatabaseSchema = {
                     agentName: string; // <- `string_agent_name`
                     createdAt: string; // <- `string_date_iso8601`
                     updatedAt: string | null; // <- `string_date_iso8601`
+                    permanentId: string | null;
                     agentHash: string; // <- `string_agent_hash`
                     agentSource: string; // <- `string_book`
                     agentProfile: Json; // <- `AgentBasicInformation` (serialized)
@@ -36,6 +37,7 @@ export type AgentsDatabaseSchema = {
                     agentName: string;
                     createdAt: string;
                     updatedAt?: string | null;
+                    permanentId?: string | null;
                     agentHash: string;
                     agentSource: string;
                     agentProfile: Json;
@@ -49,6 +51,7 @@ export type AgentsDatabaseSchema = {
                     agentName?: string;
                     createdAt?: string;
                     updatedAt?: string | null;
+                    permanentId?: string | null;
                     agentHash?: string;
                     agentSource?: string;
                     agentProfile?: Json;

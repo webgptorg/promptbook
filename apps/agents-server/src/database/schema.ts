@@ -47,6 +47,7 @@ export type AgentsServerDatabase = {
                     agentName: string;
                     createdAt: string;
                     updatedAt: string | null;
+                    permanentId: string | null;
                     agentHash: string;
                     agentSource: string;
                     agentProfile: Json;
@@ -60,6 +61,7 @@ export type AgentsServerDatabase = {
                     agentName: string;
                     createdAt: string;
                     updatedAt?: string | null;
+                    permanentId?: string | null;
                     agentHash: string;
                     agentSource: string;
                     agentProfile: Json;
@@ -73,6 +75,7 @@ export type AgentsServerDatabase = {
                     agentName?: string;
                     createdAt?: string;
                     updatedAt?: string | null;
+                    permanentId?: string | null;
                     agentHash?: string;
                     agentSource?: string;
                     agentProfile?: Json;

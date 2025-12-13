@@ -48,6 +48,12 @@ export type AgentBasicInformation = {
     agentHash: string_agent_hash;
 
     /**
+     * Unique identifier of the agent
+     * This is a random base58 string assigned by the server
+     */
+    permanentId?: string;
+
+    /**
      * Optional description of the agent
      * This is the line starting with "PERSONA"
      */

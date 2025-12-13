@@ -33,6 +33,7 @@ const barlowCondensed = Barlow_Condensed({
 type AgentOptionsMenuProps = {
     agentName: string;
     derivedAgentName: string;
+    permanentId?: string;
     agentUrl: string;
     agentEmail: string;
     brandColorHex: string;
@@ -44,6 +45,7 @@ type AgentOptionsMenuProps = {
 export function AgentOptionsMenu({
     agentName,
     derivedAgentName,
+    permanentId,
     agentUrl,
     agentEmail,
     brandColorHex,
@@ -128,7 +130,7 @@ export function AgentOptionsMenu({
     const handleUpdateUrl = () => {
         if (
             window.confirm(
-                `Are you sure you want to change the agent URL from "/agents/${agentName}" to "/agents/${derivedAgentName}"?`
+                `Are you sure you want to change the agent URL from "/agents/${agentName}" to "/agents/${derivedAgentName}"?`,
             )
         ) {
             window.location.href = updateUrlHref;
@@ -297,12 +299,16 @@ export function AgentOptionsMenu({
                                     }
                                 }}
                                 className={`flex items-center gap-3 px-4 py-2.5 w-full text-left transition-colors
-                                    ${item.highlight
-                                        ? 'bg-yellow-100 text-yellow-900 font-bold hover:bg-yellow-200'
-                                        : 'text-gray-700 hover:bg-gray-50'}
+                                    ${
+                                        item.highlight
+                                            ? 'bg-yellow-100 text-yellow-900 font-bold hover:bg-yellow-200'
+                                            : 'text-gray-700 hover:bg-gray-50'
+                                    }
                                 `}
                             >
-                                <item.icon className={`w-4 h-4 ${item.highlight ? 'text-yellow-700' : 'text-gray-500'}`} />
+                                <item.icon
+                                    className={`w-4 h-4 ${item.highlight ? 'text-yellow-700' : 'text-gray-500'}`}
+                                />
                                 <span className="text-sm font-medium">{item.label}</span>
                             </button>
                         );

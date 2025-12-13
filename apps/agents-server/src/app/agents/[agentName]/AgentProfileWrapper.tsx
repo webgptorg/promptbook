@@ -21,6 +21,7 @@ export function AgentProfileWrapper(props: AgentProfileWrapperProps) {
 
     // Derived agentName from agent data
     const derivedAgentName = agent.agentName;
+    const permanentId = agent.permanentId;
 
     return (
         <AgentProfile
@@ -32,6 +33,7 @@ export function AgentProfileWrapper(props: AgentProfileWrapperProps) {
                 <AgentOptionsMenu
                     agentName={agentName}
                     derivedAgentName={derivedAgentName}
+                    permanentId={permanentId}
                     agentUrl={agentUrl}
                     agentEmail={agentEmail}
                     brandColorHex={brandColorHex}

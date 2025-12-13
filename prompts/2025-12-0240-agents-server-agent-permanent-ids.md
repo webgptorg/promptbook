@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🥏] Identify agents via random ids not `agentName` derrived from the first line of `agentSource`
 
@@ -13,10 +13,14 @@
 
 ---
 
-[-]
+[ ]
 
-[✨🥏] brr
+[✨🥏] After new agent is created, redirect to agent `permanentId` not `agentName`
 
+-   When a new agent is created in the Agents Server, after creation redirect the user not to the URL with the `agentName` derrived from the first line of `agentSource` but to the URL with the permanent unique identifier.
+-   Keep supporting both ways of accessing agents:
+    -   By `agentName` derrived from the first line of `agentSource` e.g., `/agents/noah-green`
+    -   By permanent unique identifier e.g., `/agents/3mJr7AoUXx2Wqd`
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 

@@ -11,6 +11,7 @@ import type { string_agent_name } from '../../../../types/typeAliases';
 import { keepUnused } from '../../../../utils/organization/keepUnused';
 import { spaceTrim } from '../../../../utils/organization/spaceTrim';
 import { TODO_USE } from '../../../../utils/organization/TODO_USE';
+import { $randomBase58 } from '../../../../utils/random/$randomBase58';
 import { PROMPTBOOK_ENGINE_VERSION } from '../../../../version';
 import { AgentCollectionInSupabaseOptions } from './AgentCollectionInSupabaseOptions';
 import type { AgentsDatabaseSchema } from './AgentsDatabaseSchema';
@@ -53,7 +54,7 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
         const { isVerbose = DEFAULT_IS_VERBOSE } = this.options || {};
         const selectResult = await this.supabaseClient
             .from(this.getTableName('Agent'))
-            .select('agentName,agentProfile');
+            .select('agentName,agentProfile,permanentId');
 
         if (selectResult.error) {
             throw new DatabaseError(
@@ -72,7 +73,7 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
             console.info(`Found ${selectResult.data.length} agents in directory`);
         }
 
-        return selectResult.data.map(({ agentName, agentProfile }) => {
+        return selectResult.data.map(({ agentName, agentProfile, permanentId }) => {
             if (isVerbose && (agentProfile as AgentBasicInformation).agentName !== agentName) {
                 console.warn(
                     spaceTrim(`
@@ -87,6 +88,7 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
             return {
                 ...(agentProfile as AgentBasicInformation),
                 agentName,
+                permanentId: permanentId || (agentProfile as AgentBasicInformation).permanentId,
             };
         });
     }
@@ -98,7 +100,7 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
         const selectResult = await this.supabaseClient
             .from(this.getTableName('Agent'))
             .select('agentSource')
-            .eq('agentName', agentName);
+            .or(`agentName.eq.${agentName},permanentId.eq.${agentName}`);
 
         if (selectResult.data && selectResult.data.length === 0) {
             throw new NotFoundError(`Agent "${agentName}" not found`);
@@ -125,13 +127,27 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
      * Note: You can set 'PARENT' in the agent source to inherit from another agent in the collection.
      */
     public async createAgent(agentSource: string_book): Promise<AgentBasicInformation> {
-        const agentProfile = parseAgentSource(agentSource as string_book);
+        let agentProfile = parseAgentSource(agentSource as string_book);
         //     <- TODO: [🕛]
         const { agentName, agentHash } = agentProfile;
+        let { permanentId } = agentProfile;
+
+        if (!permanentId) {
+            permanentId = $randomBase58(14);
+            const lines = agentSource.split('\n');
+            if (lines.length > 0) {
+                lines.splice(1, 0, `META ID ${permanentId}`);
+                agentSource = lines.join('\n') as string_book;
+            } else {
+                agentSource = `META ID ${permanentId}\n${agentSource}` as string_book;
+            }
+            agentProfile = parseAgentSource(agentSource as string_book);
+        }
 
         const insertAgentResult = await this.supabaseClient.from(this.getTableName('Agent')).insert({
             agentName,
             agentHash,
+            permanentId,
             agentProfile,
             createdAt: new Date().toISOString(),
             updatedAt: null,
@@ -173,7 +189,7 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
     public async updateAgentSource(agentName: string_agent_name, agentSource: string_book): Promise<void> {
         const selectPreviousAgentResult = await this.supabaseClient
             .from(this.getTableName('Agent'))
-            .select('agentHash,agentName')
+            .select('agentHash,agentName,permanentId')
             .eq('agentName', agentName)
             .single();
 
@@ -193,10 +209,24 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
 
         const previousAgentName = selectPreviousAgentResult.data.agentName;
         const previousAgentHash = selectPreviousAgentResult.data.agentHash;
+        const previousPermanentId = selectPreviousAgentResult.data.permanentId;
 
-        const agentProfile = parseAgentSource(agentSource as string_book);
+        let agentProfile = parseAgentSource(agentSource as string_book);
         //     <- TODO: [🕛]
         const { agentHash } = agentProfile;
+        let { permanentId } = agentProfile;
+
+        if (!permanentId && previousPermanentId) {
+            permanentId = previousPermanentId;
+            const lines = agentSource.split('\n');
+            if (lines.length > 0) {
+                lines.splice(1, 0, `META ID ${permanentId}`);
+                agentSource = lines.join('\n') as string_book;
+            } else {
+                agentSource = `META ID ${permanentId}\n${agentSource}` as string_book;
+            }
+            agentProfile = parseAgentSource(agentSource as string_book);
+        }
 
         // TODO: [🐱‍🚀] What about agentName change
 
@@ -208,6 +238,7 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
             .from(this.getTableName('Agent'))
             .update({
                 // TODO: [🐱‍🚀] Compare not update> agentName: agentProfile.agentName || '[🐱‍🚀]' /* <- TODO: [🐱‍🚀] Remove */,
+                permanentId,
                 agentProfile,
                 updatedAt: new Date().toISOString(),
                 agentHash: agentProfile.agentHash,

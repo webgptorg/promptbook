@@ -110,6 +110,7 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
     return {
         agentName: normalizeAgentName(parseResult.agentName || createDefaultAgentName(agentSource)),
         agentHash,
+        permanentId: meta.id,
         personaDescription,
         initialMessage,
         meta,
