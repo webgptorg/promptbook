@@ -9,7 +9,7 @@
     -   `fileSize` (in bytes)
     -   `fileType` (mime type)
     -   `cdnUrl` (url to the file in CDN)
-    -   `purpose` (e.g., "KNOWLEDGE", "SERVER_FAVICON_URL", "SERVER_LOGO_URL")
+    -   `purpose` (e.g., "KNOWLEDGE", "SERVER_FAVICON_URL", "SERVER_LOGO_URL", "IMAGE_GENERATION", etc.)
     -   `createdAt`
 -   Create database migration for the change
     -   Migrations are located in `/apps/agents-server/src/database/migrations`
