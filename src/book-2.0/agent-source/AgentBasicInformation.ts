@@ -51,7 +51,7 @@ export type AgentBasicInformation = {
      * Unique identifier of the agent
      * This is a random base58 string assigned by the server
      */
-    permanentId?: string;
+    permanentId: string;
 
     /**
      * Optional description of the agent

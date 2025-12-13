@@ -13,7 +13,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🥏] After new agent is created, redirect to agent `permanentId` not `agentName`
 

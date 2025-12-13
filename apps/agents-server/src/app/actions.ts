@@ -10,7 +10,7 @@ import { authenticateUser } from '../utils/authenticateUser';
 import { isUserAdmin } from '../utils/isUserAdmin';
 import { clearSession, setSession } from '../utils/session';
 
-export async function $createAgentAction(): Promise<string_agent_name> {
+export async function $createAgentAction(): Promise<{ agentName: string_agent_name; permanentId: string /* <- TODO: [1] Type from propper library */ }> {
     // TODO: [👹] Check permissions here
     if (!(await isUserAdmin())) {
         throw new Error('You are not authorized to create agents');
@@ -20,9 +20,9 @@ export async function $createAgentAction(): Promise<string_agent_name> {
     const namePool = (await getMetadata('NAME_POOL')) || 'ENGLISH';
     const agentSource = $generateBookBoilerplate({ namePool });
 
-    const { agentName } = await collection.createAgent(agentSource);
+    const { agentName, permanentId } = await collection.createAgent(agentSource);
 
-    return agentName;
+    return { agentName, permanentId };
 }
 
 export async function loginAction(formData: FormData) {
