@@ -25,17 +25,19 @@ export async function GET(request: NextRequest) {
                         const documentation = primary.documentation;
                         const aliasList = aliases.length > 0 ? `**Aliases:** ${aliases.join(', ')}` : '';
 
-                        return `
-                            ### ${title}
+                        return spaceTrim(
+                            (block) => `
+                                ### ${title}
 
-                            ${description}
+                                ${description}
 
-                            ${aliasList}
+                                ${aliasList}
 
-                            #### Usage
+                                #### Usage
 
-                            ${block(getSafeCodeBlock(documentation))}
-                        `;
+                                ${block(getSafeCodeBlock(documentation))}
+                            `,
+                        );
                     })
                     .join('\n\n'),
             )}
