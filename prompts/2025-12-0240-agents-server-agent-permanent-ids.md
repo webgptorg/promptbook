@@ -39,7 +39,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🥏] Agent should have canonical url based on `permanentId`
 

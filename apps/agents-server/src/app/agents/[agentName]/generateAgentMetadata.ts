@@ -15,6 +15,8 @@ export async function generateAgentMetadata({ params }: { params: Promise<{ agen
         // Use the agent's icon-256.png as the favicon
         const iconUrl = `/agents/${encodeURIComponent(agentName)}/images/icon-256.png`;
 
+        const canonicalUrl = `/agents/${encodeURIComponent(agentProfile.permanentId || agentName)}`;
+
         const metadata = {
             metadataBase: publicUrl,
             title,
@@ -23,6 +25,9 @@ export async function generateAgentMetadata({ params }: { params: Promise<{ agen
                 icon: iconUrl,
                 shortcut: iconUrl,
                 apple: iconUrl,
+            },
+            alternates: {
+                canonical: canonicalUrl,
             },
             openGraph: {
                 title,
