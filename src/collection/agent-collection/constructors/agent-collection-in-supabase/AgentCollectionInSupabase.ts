@@ -380,6 +380,41 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
     }
 
     /**
+     * Restore an agent from a specific history entry
+     *
+     * This will update the current agent with the source from the history entry
+     */
+    public async restoreAgentFromHistory(historyId: number): Promise<void> {
+        // First, get the history entry
+        const historyResult = await this.supabaseClient
+            .from(this.getTableName('AgentHistory'))
+            .select('agentName, agentSource')
+            .eq('id', historyId)
+            .single();
+
+        if (historyResult.error) {
+            throw new DatabaseError(
+                spaceTrim(
+                    (block) => `
+                    Error fetching history entry with id "${historyId}" from Supabase:
+
+                    ${block(historyResult.error.message)}
+                `,
+                ),
+            );
+        }
+
+        if (!historyResult.data) {
+            throw new NotFoundError(`History entry with id "${historyId}" not found`);
+        }
+
+        const { agentName, agentSource } = historyResult.data;
+
+        // Update the agent with the source from the history entry
+        await this.updateAgentSource(agentName as string_agent_name, agentSource as string_book);
+    }
+
+    /**
      * Get the Supabase table name with prefix
      *
      * @param tableName - The original table name
