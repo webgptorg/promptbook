@@ -9,9 +9,9 @@ import { notFound } from 'next/navigation';
 import { Color } from '../../../../../../../src/utils/color/Color';
 import { withAlpha } from '../../../../../../../src/utils/color/operators/withAlpha';
 import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
+import { getAgentName, getAgentProfile } from '../_utils';
 import { getAgentExternalLinks, getAgentLinks } from '../agentLinks';
 import { CopyField } from '../CopyField';
-import { getAgentName, getAgentProfile } from '../_utils';
 import { generateAgentMetadata } from '../generateAgentMetadata';
 
 export const generateMetadata = generateAgentMetadata;
@@ -129,7 +129,7 @@ export default async function AgentLinksPage({ params }: { params: Promise<{ age
                             Agent Resources
                         </h2>
                         <div className="grid md:grid-cols-2 gap-4">
-                            {getAgentLinks(agentName)
+                            {getAgentLinks(agentProfile.permanentId || agentName)
                                 .filter((link) =>
                                     ['Chat with Agent', 'History & Feedback', 'Integration'].includes(link.title),
                                 )

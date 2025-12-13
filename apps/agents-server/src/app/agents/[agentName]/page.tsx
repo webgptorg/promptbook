@@ -70,7 +70,7 @@ export default async function AgentPage({
                 isHeadless={isHeadless}
                 actions={
                     <>
-                        {getAgentLinks(agentName)
+                        {getAgentLinks(agentProfile.permanentId || agentName)
                             .filter((link) => ['Edit Book', 'Integration', 'All Links'].includes(link.title))
                             .map((link) => (
                                 <a

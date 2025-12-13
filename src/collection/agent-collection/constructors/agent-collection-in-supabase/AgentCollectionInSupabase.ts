@@ -126,7 +126,9 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
      *
      * Note: You can set 'PARENT' in the agent source to inherit from another agent in the collection.
      */
-    public async createAgent(agentSource: string_book): Promise<AgentBasicInformation> {
+    public async createAgent(
+        agentSource: string_book,
+    ): Promise<AgentBasicInformation & Required<Pick<AgentBasicInformation, 'permanentId'>>> {
         let agentProfile = parseAgentSource(agentSource as string_book);
         //     <- TODO: [🕛]
         const { agentName, agentHash } = agentProfile;
@@ -180,7 +182,7 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
         keepUnused(insertAgentHistoryResult);
         // <- TODO: [🧠] What to do with `insertAgentHistoryResult.error`, ignore? wait?
 
-        return agentProfile;
+        return { ...agentProfile, permanentId };
     }
 
     /**
@@ -304,9 +306,9 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
     /**
      * List history of an agent
      */
-    public async listAgentHistory(agentName: string_agent_name): Promise<
-        ReadonlyArray<{ id: number; createdAt: string; agentHash: string; promptbookEngineVersion: string }>
-    > {
+    public async listAgentHistory(
+        agentName: string_agent_name,
+    ): Promise<ReadonlyArray<{ id: number; createdAt: string; agentHash: string; promptbookEngineVersion: string }>> {
         const result = await this.supabaseClient
             .from(this.getTableName('AgentHistory'))
             .select('id, createdAt, agentHash, promptbookEngineVersion')
@@ -332,7 +334,9 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
      * List agents that are in history but not in the active agents list
      */
     public async listDeletedAgents(): Promise<ReadonlyArray<string_agent_name>> {
-        const historyNamesResult = await this.supabaseClient.from(this.getTableName('AgentHistory')).select('agentName');
+        const historyNamesResult = await this.supabaseClient
+            .from(this.getTableName('AgentHistory'))
+            .select('agentName');
         const currentNamesResult = await this.supabaseClient.from(this.getTableName('Agent')).select('agentName');
 
         if (historyNamesResult.error) {

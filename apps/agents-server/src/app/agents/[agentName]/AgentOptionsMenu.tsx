@@ -117,7 +117,7 @@ export function AgentOptionsMenu({
         }
     };
 
-    const links = getAgentLinks(agentName);
+    const links = getAgentLinks(permanentId || agentName);
     const editBookLink = links.find((l) => l.title === 'Edit Book')!;
     const integrationLink = links.find((l) => l.title === 'Integration')!;
     const historyLink = links.find((l) => l.title === 'History & Feedback')!;

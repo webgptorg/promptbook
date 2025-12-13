@@ -11,13 +11,16 @@ export async function GET() {
     const collection = await $provideAgentCollectionForServer();
 
     // Assume collection.listAgents() returns an array of agent names
-    const agentNames = await collection.listAgents();
+    const agents = await collection.listAgents();
 
     // Get base URL from environment or config
     const baseUrl = NEXT_PUBLIC_SITE_URL?.href || process.env.PUBLIC_URL || 'https://ptbk.io';
 
-    const urls = agentNames
-        .map(({ agentName }) => `<url><loc>${baseUrl}agents/${encodeURIComponent(agentName)}</loc></url>`)
+    const urls = agents
+        .map(
+            ({ permanentId, agentName }) =>
+                `<url><loc>${baseUrl}agents/${encodeURIComponent(permanentId || agentName)}</loc></url>`,
+        )
         .join('\n');
 
     const xml = spaceTrim(
