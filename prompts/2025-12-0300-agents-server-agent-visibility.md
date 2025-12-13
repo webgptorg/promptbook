@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🚀] Add `visibility` to `Agent` table
 

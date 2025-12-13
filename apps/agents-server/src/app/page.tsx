@@ -16,7 +16,9 @@ import { getLongRunningTask } from '../deamons/longRunningTask';
 import { $provideAgentCollectionForServer } from '../tools/$provideAgentCollectionForServer';
 import { $provideExecutionToolsForServer } from '../tools/$provideExecutionToolsForServer';
 import { $provideServer } from '../tools/$provideServer';
+import { getCurrentUser } from '../utils/getCurrentUser';
 import { isUserAdmin } from '../utils/isUserAdmin';
+import { $provideSupabaseForServer } from '../database/$provideSupabaseForServer';
 
 // Add calendar formats that include seconds
 const calendarWithSeconds = {
@@ -31,10 +33,50 @@ const calendarWithSeconds = {
 export default async function HomePage() {
     $sideEffect(/* Note: [🐶] This will ensure dynamic rendering of page and avoid Next.js pre-render */ headers());
 
+    const currentUser = await getCurrentUser();
     const isAdmin = await isUserAdmin(); /* <- TODO: [👹] Here should be user permissions */
 
     const collection = await $provideAgentCollectionForServer();
-    const agents = await collection.listAgents();
+    const allAgents = await collection.listAgents();
+
+    // Filter agents based on visibility and user authentication
+    const supabase = $provideSupabaseForServer();
+    const { tablePrefix } = await $provideServer();
+
+    // Get visibility for all agents
+    const visibilityResult = await supabase
+        .from(`${tablePrefix}Agent`)
+        .select('agentName, visibility')
+        .is('deletedAt', null);
+
+    let agents: typeof allAgents;
+    if (visibilityResult.error) {
+        console.error('Error fetching agent visibility:', visibilityResult.error);
+        // Fallback to showing all agents if visibility fetch fails
+        agents = allAgents;
+    } else {
+        const visibilityMap = new Map(
+            visibilityResult.data.map((item: { agentName: string; visibility: 'PUBLIC' | 'PRIVATE' }) => [item.agentName, item.visibility])
+        );
+
+        // Filter agents based on user authentication and visibility
+        agents = allAgents.filter(agent => {
+            const visibility = visibilityMap.get(agent.agentName);
+            if (!visibility) return false; // If no visibility info, hide the agent
+
+            // Admins can see all agents
+            if (currentUser?.isAdmin) return true;
+
+            // Authenticated users can see PUBLIC and PRIVATE agents
+            if (currentUser) return true;
+
+            // Unauthenticated users can only see PUBLIC agents
+            return visibility === 'PUBLIC';
+        }).map(agent => ({
+            ...agent,
+            visibility: visibilityMap.get(agent.agentName) as 'PUBLIC' | 'PRIVATE'
+        }));
+    }
 
     const longRunningTask = getLongRunningTask();
 

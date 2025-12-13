@@ -1,6 +1,7 @@
 import { $provideServer } from '@/src/tools/$provideServer';
 import { NextResponse } from 'next/server';
 import { $provideAgentCollectionForServer } from '../../../tools/$provideAgentCollectionForServer';
+import { $provideSupabaseForServer } from '../../../database/$provideSupabaseForServer';
 import { getFederatedServersFromMetadata } from '../../../utils/getFederatedServersFromMetadata';
 
 export const dynamic = 'force-dynamic';
@@ -8,11 +9,31 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
     try {
         const collection = await $provideAgentCollectionForServer();
-        const agents = await collection.listAgents();
+        const allAgents = await collection.listAgents();
         const federatedServers = await getFederatedServersFromMetadata();
-        const { publicUrl } = await $provideServer();
+        const { publicUrl, tablePrefix } = await $provideServer();
 
-        const agentsWithUrl = agents.map((agent) => ({
+        // Filter to only include PUBLIC agents for federated API
+        const supabase = $provideSupabaseForServer();
+        const visibilityResult = await supabase
+            .from(`${tablePrefix}Agent`)
+            .select('agentName, visibility')
+            .is('deletedAt', null);
+
+        let publicAgents = allAgents;
+        if (!visibilityResult.error) {
+            const visibilityMap = new Map(
+                visibilityResult.data.map((item: { agentName: string; visibility: 'PUBLIC' | 'PRIVATE' }) => [item.agentName, item.visibility])
+            );
+
+            // Only include PUBLIC agents in federated API
+            publicAgents = allAgents.filter(agent => {
+                const visibility = visibilityMap.get(agent.agentName);
+                return visibility === 'PUBLIC';
+            });
+        }
+
+        const agentsWithUrl = publicAgents.map((agent) => ({
             ...agent,
             url: `${publicUrl.href}agents/${encodeURIComponent(agent.permanentId || agent.agentName)}`,
         }));

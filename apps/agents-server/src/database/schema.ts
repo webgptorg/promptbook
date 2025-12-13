@@ -56,6 +56,7 @@ export type AgentsServerDatabase = {
                     preparedModelRequirements: Json | null;
                     preparedExternals: Json | null;
                     deletedAt: string | null;
+                    visibility: 'PUBLIC' | 'PRIVATE';
                 };
                 Insert: {
                     id?: number;
@@ -71,6 +72,7 @@ export type AgentsServerDatabase = {
                     preparedModelRequirements?: Json | null;
                     preparedExternals?: Json | null;
                     deletedAt?: string | null;
+                    visibility?: 'PUBLIC' | 'PRIVATE';
                 };
                 Update: {
                     id?: number;
@@ -86,6 +88,7 @@ export type AgentsServerDatabase = {
                     preparedModelRequirements?: Json | null;
                     preparedExternals?: Json | null;
                     deletedAt?: string | null;
+                    visibility?: 'PUBLIC' | 'PRIVATE';
                 };
                 Relationships: [];
             };

@@ -10,8 +10,12 @@ import { Section } from './Section';
 
 import { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
 
+type AgentWithVisibility = AgentBasicInformation & {
+    visibility?: 'PUBLIC' | 'PRIVATE';
+};
+
 type AgentsListProps = {
-    agents: AgentBasicInformation[];
+    agents: AgentWithVisibility[];
     isAdmin: boolean;
 };
 
@@ -35,6 +39,31 @@ export function AgentsList({ agents: initialAgents, isAdmin }: AgentsListProps) 
         setAgents([...agents, newAgent]);
     };
 
+    const handleToggleVisibility = async (agentIdentifier: string) => {
+        const agent = agents.find(a => a.permanentId === agentIdentifier || a.agentName === agentIdentifier);
+        if (!agent) return;
+
+        const newVisibility = agent.visibility === 'PUBLIC' ? 'PRIVATE' : 'PUBLIC';
+        if (!window.confirm(`Make agent "${agent.agentName}" ${newVisibility.toLowerCase()}?`)) return;
+
+        const response = await fetch(`/api/agents/${encodeURIComponent(agentIdentifier)}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ visibility: newVisibility }),
+        });
+
+        if (response.ok) {
+            // Update the local state
+            setAgents(agents.map(a =>
+                a.permanentId === agent.permanentId || a.agentName === agent.agentName
+                    ? { ...a, visibility: newVisibility }
+                    : a
+            ));
+        } else {
+            alert('Failed to update agent visibility');
+        }
+    };
+
     return (
         <Section title={`Agents (${agents.length})`}>
             {agents.map((agent) => (
@@ -45,6 +74,8 @@ export function AgentsList({ agents: initialAgents, isAdmin }: AgentsListProps) 
                     isAdmin={isAdmin}
                     onDelete={handleDelete}
                     onClone={handleClone}
+                    onToggleVisibility={handleToggleVisibility}
+                    visibility={agent.visibility}
                 />
             ))}
             {isAdmin && <AddAgentButton />}

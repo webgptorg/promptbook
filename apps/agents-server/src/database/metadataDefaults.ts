@@ -73,6 +73,12 @@ export const metadataDefaults = [
         note: 'Administrator email address used for password reset and user registration requests.',
         type: 'TEXT_SINGLE_LINE',
     },
+    {
+        key: 'DEFAULT_AGENT_VISIBILITY',
+        value: 'PRIVATE',
+        note: 'Default visibility for new agents. Can be PUBLIC or PRIVATE.',
+        type: 'TEXT_SINGLE_LINE',
+    },
 ] as const satisfies ReadonlyArray<{
     key: string;
     value: string;
