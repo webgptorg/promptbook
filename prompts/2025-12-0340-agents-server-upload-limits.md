@@ -1,4 +1,4 @@
-[x][ ]
+[x][.]
 
 [✨🧯] Increase upload limit in Agents server
 
