@@ -39,6 +39,20 @@
 
 ---
 
+[ ]
+
+[✨🥏] Agent should have canonical url based on `permanentId`
+
+-   Agents have both `agentName` and `permanentId`
+-   Both can be used to access the agent:
+    -   http://localhost:4440/agents/olga-stetinova
+    -   http://localhost:4440/agents/3mJr7AoUXx2Wqd
+-   But on every agent page, add `<link rel="canonical" href="...">` tag in the `<head>` section that points to the URL with `permanentId`, so search engines always see the canonical URL based on `permanentId`
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
 [-]
 
 [✨🥏] brr
