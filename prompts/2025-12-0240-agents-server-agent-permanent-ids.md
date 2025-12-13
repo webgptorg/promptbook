@@ -26,10 +26,14 @@
 
 ---
 
-[-]
+[ ]
 
-[✨🥏] brr
+[✨🥏] When listing agents, use `permanentId` not `agentName`
 
+-   When listing agents in the Agents Server, use the permanent unique identifier for links and references instead of the `agentName` derrived from the first line of `agentSource`.
+-   It should be used in all places where agents are listed, such as:
+    -   Home page `/` and agent page `/agents`
+    -   Federated agents API
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
