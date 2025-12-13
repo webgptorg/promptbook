@@ -4,6 +4,7 @@ import { $provideServer } from '@/src/tools/$provideServer';
 import { isUserAdmin } from '@/src/utils/isUserAdmin';
 import { saturate } from '@promptbook-local/color';
 import { PROMPTBOOK_COLOR } from '@promptbook-local/core';
+import { NotFoundError } from '@promptbook-local/core';
 import { notFound } from 'next/navigation';
 import { Color } from '../../../../../../src/utils/color/Color';
 import { getAgentName, getAgentProfile } from './_utils';
@@ -32,10 +33,11 @@ export default async function AgentPage({
         agentProfile = await getAgentProfile(agentName);
     } catch (error) {
         if (
-            error instanceof Error &&
-            // Note: This is a bit hacky, but valid way to check for specific error message
-            (error.message.includes('Cannot coerce the result to a single JSON object') ||
-                error.message.includes('JSON object requested, multiple (or no) results returned'))
+            error instanceof NotFoundError ||
+            (error instanceof Error &&
+                // Note: This is a bit hacky, but valid way to check for specific error message
+                (error.message.includes('Cannot coerce the result to a single JSON object') ||
+                    error.message.includes('JSON object requested, multiple (or no) results returned')))
         ) {
             notFound();
         }
