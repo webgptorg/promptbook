@@ -13,14 +13,16 @@ const BASE58_ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvw
  *
  * @param length - length of the string
  * @returns secure random base58 string
+ *
+ * @private internal helper function
  */
 export function $randomBase58(length: number): string {
     let result = '';
     while (result.length < length) {
         // Generate enough bytes to cover the remaining length, plus some extra buffer to reduce calls
         // But simply generating `length - result.length` is fine for small lengths
-        const bytes = randomBytes(length - result.length); 
-        
+        const bytes = randomBytes(length - result.length);
+
         for (let i = 0; i < bytes.length; i++) {
             const byte = bytes[i]!;
 
