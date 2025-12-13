@@ -18,15 +18,19 @@ type AgentsListProps = {
 export function AgentsList({ agents: initialAgents, isAdmin }: AgentsListProps) {
     const [agents, setAgents] = useState(Array.from(initialAgents));
 
-    const handleDelete = async (agentName: string) => {
-        if (!window.confirm(`Delete agent "${agentName}"? It will be moved to Recycle Bin.`)) return;
-        await fetch(`/api/agents/${encodeURIComponent(agentName)}`, { method: 'DELETE' });
-        setAgents(agents.filter((a) => a.agentName !== agentName));
+    const handleDelete = async (agentIdentifier: string) => {
+        const agent = agents.find(a => a.permanentId === agentIdentifier || a.agentName === agentIdentifier);
+        if (!agent) return;
+        if (!window.confirm(`Delete agent "${agent.agentName}"? It will be moved to Recycle Bin.`)) return;
+        await fetch(`/api/agents/${encodeURIComponent(agentIdentifier)}`, { method: 'DELETE' });
+        setAgents(agents.filter((a) => a.permanentId !== agent.permanentId && a.agentName !== agent.agentName));
     };
 
-    const handleClone = async (agentName: string) => {
-        if (!window.confirm(`Clone agent "${agentName}"?`)) return;
-        const response = await fetch(`/api/agents/${encodeURIComponent(agentName)}/clone`, { method: 'POST' });
+    const handleClone = async (agentIdentifier: string) => {
+        const agent = agents.find(a => a.permanentId === agentIdentifier || a.agentName === agentIdentifier);
+        if (!agent) return;
+        if (!window.confirm(`Clone agent "${agent.agentName}"?`)) return;
+        const response = await fetch(`/api/agents/${encodeURIComponent(agentIdentifier)}/clone`, { method: 'POST' });
         const newAgent = await response.json();
         setAgents([...agents, newAgent]);
     };
@@ -35,9 +39,9 @@ export function AgentsList({ agents: initialAgents, isAdmin }: AgentsListProps) 
         <Section title={`Agents (${agents.length})`}>
             {agents.map((agent) => (
                 <AgentCard
-                    key={agent.agentName}
+                    key={agent.permanentId || agent.agentName}
                     agent={agent}
-                    href={`/${agent.agentName}`}
+                    href={`/agents/${encodeURIComponent(agent.permanentId || agent.agentName)}`}
                     isAdmin={isAdmin}
                     onDelete={handleDelete}
                     onClone={handleClone}

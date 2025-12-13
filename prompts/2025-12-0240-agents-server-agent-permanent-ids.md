@@ -26,7 +26,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🥏] When listing agents, use `permanentId` not `agentName`
 

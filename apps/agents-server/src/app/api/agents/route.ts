@@ -14,7 +14,7 @@ export async function GET() {
 
         const agentsWithUrl = agents.map((agent) => ({
             ...agent,
-            url: `${publicUrl.href}agents/${encodeURIComponent(agent.agentName)}`,
+            url: `${publicUrl.href}agents/${encodeURIComponent(agent.permanentId || agent.agentName)}`,
         }));
 
         const response = NextResponse.json({

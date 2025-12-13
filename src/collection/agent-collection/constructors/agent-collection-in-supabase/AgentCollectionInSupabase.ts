@@ -282,18 +282,18 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
     /**
      * Deletes an agent from the collection
      */
-    public async deleteAgent(agentName: string_agent_name): Promise<void> {
+    public async deleteAgent(agentIdentifier: string): Promise<void> {
         const deleteResult = await this.supabaseClient
             .from(this.getTableName('Agent'))
             .delete()
-            .eq('agentName', agentName);
+            .or(`agentName.eq.${agentIdentifier},permanentId.eq.${agentIdentifier}`);
 
         if (deleteResult.error) {
             throw new DatabaseError(
                 spaceTrim(
                     (block) => `
-                        Error deleting agent "${agentName}" from Supabase:
-                        
+                        Error deleting agent "${agentIdentifier}" from Supabase:
+
                         ${block(deleteResult.error.message)}
                     `,
                 ),

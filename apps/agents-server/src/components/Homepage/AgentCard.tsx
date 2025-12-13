@@ -8,8 +8,8 @@ type AgentCardProps = {
     agent: AgentBasicInformation;
     href: string;
     isAdmin?: boolean;
-    onDelete?: (agentName: string) => void;
-    onClone?: (agentName: string) => void;
+    onDelete?: (agentIdentifier: string) => void;
+    onClone?: (agentIdentifier: string) => void;
 };
 
 const ACTION_BUTTON_CLASSES =
@@ -37,7 +37,7 @@ export function AgentCard({ agent, href, isAdmin, onDelete, onClone }: AgentCard
                         className={`bg-blue-500 hover:bg-blue-600 ${ACTION_BUTTON_CLASSES}`}
                         onClick={(e) => {
                             e.preventDefault();
-                            onClone?.(agent.agentName);
+                            onClone?.(agent.permanentId || agent.agentName);
                         }}
                         title="Clone agent"
                     >
@@ -47,7 +47,7 @@ export function AgentCard({ agent, href, isAdmin, onDelete, onClone }: AgentCard
                         className={`bg-red-500 hover:bg-red-600 ${ACTION_BUTTON_CLASSES}`}
                         onClick={(e) => {
                             e.preventDefault();
-                            onDelete?.(agent.agentName);
+                            onDelete?.(agent.permanentId || agent.agentName);
                         }}
                         title="Delete agent"
                     >
