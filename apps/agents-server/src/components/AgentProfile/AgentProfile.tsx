@@ -230,6 +230,8 @@ export function AgentProfile(props: AgentProfileProps) {
                                     backfaceVisibility: 'hidden',
                                     backgroundColor: brandColorDarkHex,
                                     boxShadow: `0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px ${brandColorLightHex}40`,
+                                    // borderRadius: '50%',
+                                    // ['cornerShape' as really_any]: 'squircle ',
                                 }}
                             >
                                 {imageUrl ? (
@@ -298,9 +300,7 @@ export function AgentProfile(props: AgentProfileProps) {
                     </div>
 
                     {/* Chat Area */}
-                    <div className="col-span-2 md:col-span-1 md:col-start-2 w-full mt-2 md:mt-0">
-                        {children}
-                    </div>
+                    <div className="col-span-2 md:col-span-1 md:col-start-2 w-full mt-2 md:mt-0">{children}</div>
 
                     {/* Secondary Actions */}
                     {!isHeadless && (
