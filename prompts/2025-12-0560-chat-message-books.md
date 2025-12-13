@@ -33,17 +33,21 @@ RULE Always speak in modern English.
 CONTEXT You are helping users of abc.com
 ```
 
+-   This is using <BookEditor/> component to show the book
+-   Alongside the embedded book, there should be a download button to download the book as
 -   <Chat/> component is [located in this file](/src/book-components/Chat/Chat/Chat.tsx)
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
 
 ---
 
-[-]
+[ ]
 
-[✨🐛] bar
+[✨🐛] Use <BookEditor/> in `/docs/...`
 
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Documentation pages in `/docs/...` can have embedded `book` code snippets
+-   When showing such `book` code snippets in documentation pages, use <BookEditor/> in read-only mode
+-   Keep in mind the DRY _(don't repeat yourself)_ principle, especially reuse the code from <Chat/> when rendering books inside messages if possible
 -   Add the changes into the `/changelog/_current-preversion.md`
 
 ---

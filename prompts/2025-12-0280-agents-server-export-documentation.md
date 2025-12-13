@@ -25,12 +25,16 @@
 
 ---
 
-[-]
+[ ]
 
-[✨🛫] qux
+[✨🛫] Enhance pdf / printed documentation in `/docs`
 
+-   When printing or exporting to pdf from `/docs`, improve the visual of the document
+-   There are extreme unreasonable left and right margins, reduce them to reasonable size
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+![alt text](screenshots/2025-12-0280-agents-server-export-documentation.png)
 
 ---
 
