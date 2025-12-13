@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🏭] Create `/api/images` route
 

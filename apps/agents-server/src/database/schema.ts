@@ -305,6 +305,36 @@ export type AgentsServerDatabase = {
                 };
                 Relationships: [];
             };
+            Image: {
+                Row: {
+                    id: number;
+                    createdAt: string;
+                    updatedAt: string;
+                    filename: string;
+                    prompt: string;
+                    cdnUrl: string;
+                    cdnKey: string;
+                };
+                Insert: {
+                    id?: number;
+                    createdAt?: string;
+                    updatedAt?: string;
+                    filename: string;
+                    prompt: string;
+                    cdnUrl: string;
+                    cdnKey: string;
+                };
+                Update: {
+                    id?: number;
+                    createdAt?: string;
+                    updatedAt?: string;
+                    filename?: string;
+                    prompt?: string;
+                    cdnUrl?: string;
+                    cdnKey?: string;
+                };
+                Relationships: [];
+            };
         };
         Views: Record<string, never>;
         Functions: Record<string, never>;

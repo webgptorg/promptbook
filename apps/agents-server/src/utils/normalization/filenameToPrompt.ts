@@ -1,0 +1,21 @@
+import { capitalize } from '../../../../../src/utils/normalization/capitalize';
+
+/**
+ * Converts a filename like "cat-sitting-on-keyboard.png" to a prompt like "Cat sitting on keyboard"
+ *
+ * @param filename - The filename to convert
+ * @returns The normalized prompt
+ */
+export function filenameToPrompt(filename: string): string {
+    // Remove file extension
+    const withoutExtension = filename.replace(/\.[^/.]+$/, '');
+
+    // Replace dashes and underscores with spaces
+    const withSpaces = withoutExtension.replace(/[-_]/g, ' ');
+
+    // Capitalize each word
+    const words = withSpaces.split(' ');
+    const capitalizedWords = words.map(word => capitalize(word));
+
+    return capitalizedWords.join(' ');
+}
