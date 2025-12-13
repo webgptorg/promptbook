@@ -55,6 +55,7 @@ export type AgentsServerDatabase = {
                     usage: Json | null;
                     preparedModelRequirements: Json | null;
                     preparedExternals: Json | null;
+                    deletedAt: string | null;
                 };
                 Insert: {
                     id?: number;
@@ -69,6 +70,7 @@ export type AgentsServerDatabase = {
                     usage?: Json | null;
                     preparedModelRequirements?: Json | null;
                     preparedExternals?: Json | null;
+                    deletedAt?: string | null;
                 };
                 Update: {
                     id?: number;
@@ -83,6 +85,7 @@ export type AgentsServerDatabase = {
                     usage?: Json | null;
                     preparedModelRequirements?: Json | null;
                     preparedExternals?: Json | null;
+                    deletedAt?: string | null;
                 };
                 Relationships: [];
             };

@@ -54,15 +54,16 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
         const { isVerbose = DEFAULT_IS_VERBOSE } = this.options || {};
         const selectResult = await this.supabaseClient
             .from(this.getTableName('Agent'))
-            .select('agentName,agentProfile,permanentId');
+            .select('agentName,agentProfile,permanentId')
+            .is('deletedAt', null);
 
         if (selectResult.error) {
             throw new DatabaseError(
                 spaceTrim(
                     (block) => `
-                
+
                         Error fetching agents from Supabase:
-                        
+
                         ${block(selectResult.error.message)}
                     `,
                 ),
@@ -282,21 +283,22 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
     //            Use Supabase realtime logic
 
     /**
-     * Deletes an agent from the collection
+     * Soft deletes an agent from the collection
      */
     public async deleteAgent(agentIdentifier: string): Promise<void> {
-        const deleteResult = await this.supabaseClient
+        const updateResult = await this.supabaseClient
             .from(this.getTableName('Agent'))
-            .delete()
-            .or(`agentName.eq.${agentIdentifier},permanentId.eq.${agentIdentifier}`);
+            .update({ deletedAt: new Date().toISOString() })
+            .or(`agentName.eq.${agentIdentifier},permanentId.eq.${agentIdentifier}`)
+            .is('deletedAt', null);
 
-        if (deleteResult.error) {
+        if (updateResult.error) {
             throw new DatabaseError(
                 spaceTrim(
                     (block) => `
-                        Error deleting agent "${agentIdentifier}" from Supabase:
+                        Error soft deleting agent "${agentIdentifier}" from Supabase:
 
-                        ${block(deleteResult.error.message)}
+                        ${block(updateResult.error.message)}
                     `,
                 ),
             );
@@ -331,87 +333,49 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
     }
 
     /**
-     * List agents that are in history but not in the active agents list
+     * List agents that are soft deleted (deletedAt IS NOT NULL)
      */
     public async listDeletedAgents(): Promise<ReadonlyArray<string_agent_name>> {
-        const historyNamesResult = await this.supabaseClient
-            .from(this.getTableName('AgentHistory'))
-            .select('agentName');
-        const currentNamesResult = await this.supabaseClient.from(this.getTableName('Agent')).select('agentName');
+        const deletedAgentsResult = await this.supabaseClient
+            .from(this.getTableName('Agent'))
+            .select('agentName')
+            .not('deletedAt', 'is', null);
 
-        if (historyNamesResult.error) {
+        if (deletedAgentsResult.error) {
             throw new DatabaseError(
                 spaceTrim(
                     (block) => `
-                    Error fetching agent history names from Supabase:
-                    
-                    ${block(historyNamesResult.error.message)}
+                    Error fetching deleted agents from Supabase:
+
+                    ${block(deletedAgentsResult.error.message)}
                 `,
                 ),
             );
         }
 
-        if (currentNamesResult.error) {
-            throw new DatabaseError(
-                spaceTrim(
-                    (block) => `
-                    Error fetching current agent names from Supabase:
-                    
-                    ${block(currentNamesResult.error.message)}
-                `,
-                ),
-            );
-        }
-
-        const currentNames = new Set(currentNamesResult.data.map((d) => d.agentName));
-        const deletedNames = new Set<string_agent_name>();
-
-        for (const { agentName } of historyNamesResult.data) {
-            if (!currentNames.has(agentName)) {
-                deletedNames.add(agentName as string_agent_name);
-            }
-        }
-
-        return Array.from(deletedNames);
+        return deletedAgentsResult.data.map((d) => d.agentName as string_agent_name);
     }
 
     /**
-     * Restore an agent from history
+     * Restore a soft-deleted agent by setting deletedAt to NULL
      */
-    public async restoreAgent(historyId: number): Promise<void> {
-        const historyResult = await this.supabaseClient
-            .from(this.getTableName('AgentHistory'))
-            .select('*')
-            .eq('id', historyId)
-            .single();
+    public async restoreAgent(agentIdentifier: string): Promise<void> {
+        const updateResult = await this.supabaseClient
+            .from(this.getTableName('Agent'))
+            .update({ deletedAt: null })
+            .or(`agentName.eq.${agentIdentifier},permanentId.eq.${agentIdentifier}`)
+            .not('deletedAt', 'is', null);
 
-        if (historyResult.error) {
+        if (updateResult.error) {
             throw new DatabaseError(
                 spaceTrim(
                     (block) => `
-                    Error fetching agent history item "${historyId}" from Supabase:
-                    
-                    ${block(historyResult.error.message)}
+                    Error restoring agent "${agentIdentifier}" from Supabase:
+
+                    ${block(updateResult.error.message)}
                 `,
                 ),
             );
-        }
-
-        const { agentName, agentSource } = historyResult.data;
-
-        // Check if agent exists
-        const agentResult = await this.supabaseClient
-            .from(this.getTableName('Agent'))
-            .select('id')
-            .eq('agentName', agentName)
-            .single();
-
-        if (agentResult.data) {
-            // Update
-            await this.updateAgentSource(agentName as string_agent_name, agentSource as string_book);
-        } else {
-            // Insert (Restore from deleted)
-            await this.createAgent(agentSource as string_book);
         }
     }
 

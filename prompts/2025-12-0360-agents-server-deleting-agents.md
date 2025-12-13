@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨📗] Change deleting logic of agents to mark deleted agents by timestamp
 

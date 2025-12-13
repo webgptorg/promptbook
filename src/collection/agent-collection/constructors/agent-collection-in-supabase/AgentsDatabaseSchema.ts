@@ -31,6 +31,7 @@ export type AgentsDatabaseSchema = {
                     usage: Json | null; // <- `Usage`
                     preparedModelRequirements: Json | null; // <- `ModelRequirements` (prepared)
                     preparedExternals: Json | null; // <- `PreparedExternals`
+                    deletedAt: string | null;
                 };
                 Insert: {
                     id?: number;
@@ -45,6 +46,7 @@ export type AgentsDatabaseSchema = {
                     usage?: Json | null;
                     preparedModelRequirements?: Json | null;
                     preparedExternals?: Json | null;
+                    deletedAt?: string | null;
                 };
                 Update: {
                     id?: number;
@@ -59,6 +61,7 @@ export type AgentsDatabaseSchema = {
                     usage?: Json | null;
                     preparedModelRequirements?: Json | null;
                     preparedExternals?: Json | null;
+                    deletedAt?: string | null;
                 };
                 Relationships: [];
             };

@@ -13,11 +13,13 @@ import {
     QrCodeIcon,
     SmartphoneIcon,
     SquareSplitHorizontalIcon,
+    TrashIcon,
 } from 'lucide-react';
 import { Barlow_Condensed } from 'next/font/google';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { string_agent_permanent_id, string_data_url, string_url_image } from '../../../../../../src/types/typeAliases';
 import { getAgentLinks } from './agentLinks';
+import { deleteAgent } from '../../recycle-bin/actions';
 
 type BeforeInstallPromptEvent = Event & {
     prompt: () => Promise<void>;
@@ -137,6 +139,22 @@ export function AgentOptionsMenu({
         }
     };
 
+    const handleDeleteAgent = async () => {
+        if (
+            window.confirm(
+                `Are you sure you want to delete the agent "${agentName}"? This action can be undone by restoring it from the recycle bin.`,
+            )
+        ) {
+            try {
+                await deleteAgent(agentName);
+                window.location.href = '/';
+            } catch (error) {
+                console.error('Failed to delete agent:', error);
+                alert('Failed to delete agent. Please try again.');
+            }
+        }
+    };
+
     const menuItems = [
         ...(showUpdateUrl
             ? [
@@ -244,6 +262,12 @@ export function AgentOptionsMenu({
                       href: `/agents/${encodeURIComponent(agentName)}/export`,
                       icon: DownloadIcon,
                       label: 'Export Agent',
+                  },
+                  {
+                      type: 'action' as const,
+                      icon: TrashIcon,
+                      label: 'Delete Agent',
+                      onClick: handleDeleteAgent,
                   },
                   // {
                   //     type: 'link' as const,
