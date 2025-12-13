@@ -170,7 +170,7 @@ export default async function AgentIntegrationPage({ params }: { params: Promise
         }
     `);
 
-    const agentLinks = getAgentLinks(permanentId || agentName);
+    const agentLinks = getAgentLinks(agentProfile.permanentId || agentName);
     const chatLink = agentLinks.find((l) => l.title === 'Chat with Agent')!;
     const websiteIntegrationLink = agentLinks.find((l) => l.title === 'Website Integration')!;
 
