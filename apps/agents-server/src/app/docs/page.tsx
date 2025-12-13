@@ -3,7 +3,7 @@ import { Card } from '../../components/Homepage/Card';
 import { Section } from '../../components/Homepage/Section';
 import { OpenMojiIcon } from '../../components/OpenMojiIcon/OpenMojiIcon';
 import { getVisibleCommitmentDefinitions } from '../../utils/getVisibleCommitmentDefinitions';
-import { PrintButton } from '../../components/PrintButton/PrintButton';
+import { DocsToolbar } from '../../components/DocsToolbar/DocsToolbar';
 import { PrintHeader } from '../../components/PrintHeader/PrintHeader';
 import { DocumentationContent } from '../../components/DocumentationContent/DocumentationContent';
 
@@ -12,9 +12,8 @@ export default function DocsPage() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-            <PrintButton />
-            
             <div className="container mx-auto px-4 py-16">
+                <DocsToolbar />
                 <PrintHeader title="Full Documentation" />
 
                 {/* Screen view: Cards */}

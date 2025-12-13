@@ -11,7 +11,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🛫] Link the `/api/docs/book.md` in `/docs`
 
