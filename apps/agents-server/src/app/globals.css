@@ -233,7 +233,7 @@ textarea:focus-visible {
 /* Print styles */
 @media print {
     @page {
-        margin: 2cm;
+        margin: 1cm;
     }
 
     /* Hide UI elements */
@@ -257,6 +257,13 @@ textarea:focus-visible {
         min-height: auto !important;
         width: 100% !important;
         color: black !important;
+    }
+
+    /* Remove container padding for full width printing */
+    .container {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        max-width: none !important;
     }
 
     /* Remove shadows and backgrounds for clean print */
