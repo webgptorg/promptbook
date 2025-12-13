@@ -1,8 +1,13 @@
 [ ]
 
-[✨🥏] brr
+[✨🥏] Identify agents via random ids not `agentName` derrived from the first line of `agentSource`
 
--   base 58
+-   Add base 58 based unique identifiers to each agent in the Agents Server
+-   In the `agentSource` keep generating random names for agents like "Noah Green" or "Sophia Brown" but also add a permanent unique identifier to each agent, such as a base58-encoded string (e.g., "3mJr7AoUXx2Wqd").
+-   Also keep `agentName` derrived from the first line of `agentSource` for backward compatibility and easy human readability.
+-   When accessing agents via URL or API, support both ways:
+    -   By `agentName` derrived from the first line of `agentSource` e.g., `/agents/noah-green`
+    -   By permanent unique identifier e.g., `/agents/3mJr7AoUXx2Wqd`
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
