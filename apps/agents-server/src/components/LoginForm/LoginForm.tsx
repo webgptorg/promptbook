@@ -1,8 +1,10 @@
 'use client';
 
 import { loginAction } from '@/src/app/actions';
+import { ForgottenPasswordDialog } from '../ForgottenPasswordDialog/ForgottenPasswordDialog';
+import { RegisterUserDialog } from '../RegisterUserDialog/RegisterUserDialog';
 import { Loader2, Lock, User } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 type LoginFormProps = {
     onSuccess?: () => void;
@@ -13,6 +15,24 @@ export function LoginForm(props: LoginFormProps) {
     const { onSuccess, className } = props;
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [adminEmail, setAdminEmail] = useState<string>('support@ptbk.io');
+    const [isForgottenPasswordOpen, setIsForgottenPasswordOpen] = useState(false);
+    const [isRegisterUserOpen, setIsRegisterUserOpen] = useState(false);
+
+    useEffect(() => {
+        // Fetch admin email on component mount
+        fetch('/api/admin-email')
+            .then(response => response.json())
+            .then(data => {
+                if (data.adminEmail) {
+                    setAdminEmail(data.adminEmail);
+                }
+            })
+            .catch(error => {
+                console.error('Failed to fetch admin email:', error);
+                // Keep default value
+            });
+    }, []);
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -104,6 +124,35 @@ export function LoginForm(props: LoginFormProps) {
                     'Log in'
                 )}
             </button>
+
+            <div className="flex justify-between text-sm">
+                <button
+                    type="button"
+                    onClick={() => setIsForgottenPasswordOpen(true)}
+                    className="text-promptbook-blue hover:text-promptbook-blue-dark underline focus:outline-none focus:ring-2 focus:ring-promptbook-blue focus:ring-offset-2 rounded-sm"
+                >
+                    Forgotten password?
+                </button>
+                <button
+                    type="button"
+                    onClick={() => setIsRegisterUserOpen(true)}
+                    className="text-promptbook-blue hover:text-promptbook-blue-dark underline focus:outline-none focus:ring-2 focus:ring-promptbook-blue focus:ring-offset-2 rounded-sm"
+                >
+                    Register new user
+                </button>
+            </div>
+
+            <ForgottenPasswordDialog
+                isOpen={isForgottenPasswordOpen}
+                onClose={() => setIsForgottenPasswordOpen(false)}
+                adminEmail={adminEmail}
+            />
+
+            <RegisterUserDialog
+                isOpen={isRegisterUserOpen}
+                onClose={() => setIsRegisterUserOpen(false)}
+                adminEmail={adminEmail}
+            />
         </form>
     );
 }

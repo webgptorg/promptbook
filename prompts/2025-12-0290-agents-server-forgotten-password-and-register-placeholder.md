@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🚇] On user login form, add forgotten password link and register user
 

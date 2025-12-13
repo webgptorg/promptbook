@@ -67,6 +67,12 @@ export const metadataDefaults = [
         note: 'Language for generating new agent names. Possible values: ENGLISH, CZECH.',
         type: 'TEXT_SINGLE_LINE',
     },
+    {
+        key: 'ADMIN_EMAIL',
+        value: 'support@ptbk.io',
+        note: 'Administrator email address used for password reset and user registration requests.',
+        type: 'TEXT_SINGLE_LINE',
+    },
 ] as const satisfies ReadonlyArray<{
     key: string;
     value: string;
