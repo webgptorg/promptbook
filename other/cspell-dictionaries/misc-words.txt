@@ -441,3 +441,5 @@ timeslices
 Associés
 Playfair
 xpublic
+ABCDEFGHJKLMNPQRSTUVWXY
+Zabcdefghijkmnopqrstuvwxyz
