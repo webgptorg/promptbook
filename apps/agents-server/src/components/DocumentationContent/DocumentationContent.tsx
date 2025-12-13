@@ -26,7 +26,7 @@ export function DocumentationContent({ primary, aliases = [], isPrintOnly = fals
             >
                 <div className="flex items-center gap-4 mb-4">
                     <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
-                        <OpenMojiIcon icon={primary.icon} className="mr-3" />
+                        <OpenMojiIcon icon={primary.icon} variant="color" className="mr-3" />
                         {primary.type}
                         {aliases.length > 0 && (
                             <span className="text-gray-400 font-normal ml-4 text-2xl">/ {aliases.join(' / ')}</span>

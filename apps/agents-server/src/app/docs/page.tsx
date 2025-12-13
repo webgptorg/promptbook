@@ -1,11 +1,12 @@
+import { MarkdownContent } from '@promptbook-local/components';
 import Link from 'next/link';
+import { DocsToolbar } from '../../components/DocsToolbar/DocsToolbar';
+import { DocumentationContent } from '../../components/DocumentationContent/DocumentationContent';
 import { Card } from '../../components/Homepage/Card';
 import { Section } from '../../components/Homepage/Section';
 import { OpenMojiIcon } from '../../components/OpenMojiIcon/OpenMojiIcon';
-import { getVisibleCommitmentDefinitions } from '../../utils/getVisibleCommitmentDefinitions';
-import { DocsToolbar } from '../../components/DocsToolbar/DocsToolbar';
 import { PrintHeader } from '../../components/PrintHeader/PrintHeader';
-import { DocumentationContent } from '../../components/DocumentationContent/DocumentationContent';
+import { getVisibleCommitmentDefinitions } from '../../utils/getVisibleCommitmentDefinitions';
 
 export default function DocsPage() {
     const groupedCommitments = getVisibleCommitmentDefinitions();
@@ -23,7 +24,7 @@ export default function DocsPage() {
                             <Link key={primary.type} href={`/docs/${primary.type}`} className="block h-full group">
                                 <Card className="h-full group-hover:border-blue-500 transition-colors">
                                     <h3 className="text-xl font-semibold mb-2 group-hover:text-blue-600 transition-colors">
-                                        <OpenMojiIcon icon={primary.icon} className="mr-2" />
+                                        <OpenMojiIcon icon={primary.icon} variant="color" className="mr-2" />
                                         {primary.type}
                                         {aliases.length > 0 && (
                                             <span className="text-gray-400 font-normal text-lg">
@@ -32,7 +33,11 @@ export default function DocsPage() {
                                             </span>
                                         )}
                                     </h3>
-                                    {primary.description && <p className="text-gray-600 line-clamp-3">{primary.description}</p>}
+                                    {primary.description && (
+                                        <p className="text-gray-600 line-clamp-3">
+                                            <MarkdownContent content={primary.description} />
+                                        </p>
+                                    )}
                                 </Card>
                             </Link>
                         ))}
@@ -43,11 +48,7 @@ export default function DocsPage() {
                 <div className="hidden print:block space-y-12">
                     {groupedCommitments.map(({ primary, aliases }) => (
                         <div key={primary.type} className="break-inside-avoid page-break-after-always">
-                            <DocumentationContent 
-                                primary={primary} 
-                                aliases={aliases} 
-                                isPrintOnly={true} 
-                            />
+                            <DocumentationContent primary={primary} aliases={aliases} isPrintOnly={true} />
                             <hr className="my-8 border-gray-200" />
                         </div>
                     ))}
