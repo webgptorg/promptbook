@@ -2,6 +2,7 @@ import { TODO_any } from '@promptbook-local/types';
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 import { SERVERS, SUPABASE_TABLE_PREFIX } from '../config';
+import { RESERVED_PATHS } from './generated/reservedPaths';
 import { isIpAllowed } from './utils/isIpAllowed';
 
 // Note: Re-implementing normalizeTo_PascalCase to avoid importing from @promptbook-local/utils which might have Node.js dependencies
@@ -186,22 +187,7 @@ export async function middleware(req: NextRequest) {
 
     if (
         potentialAgentName &&
-        ![
-            'agents',
-            'api',
-            'admin',
-            'docs',
-            'test',
-            'embed',
-            '_next',
-            'manifest.webmanifest',
-            'sw.js',
-            'favicon.ico',
-            'sitemap.xml',
-            'robots.txt',
-            'security.txt',
-            'humans.txt',
-        ].includes(potentialAgentName) &&
+        !RESERVED_PATHS.includes(potentialAgentName) &&
         !potentialAgentName.startsWith('.') &&
         // Note: Other static files are excluded by the matcher configuration below
         true
