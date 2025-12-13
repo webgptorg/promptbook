@@ -1,6 +1,7 @@
 import type {
     string_agent_hash,
     string_agent_name,
+    string_agent_permanent_id,
     string_agent_url,
     string_color,
     string_fonts,
@@ -51,7 +52,7 @@ export type AgentBasicInformation = {
      * Unique identifier of the agent
      * This is a random base58 string assigned by the server
      */
-    permanentId: string;
+    permanentId?: string_agent_permanent_id;
 
     /**
      * Optional description of the agent

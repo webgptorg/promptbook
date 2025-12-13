@@ -203,6 +203,13 @@ export type string_agent_hash = string_sha256;
 // <- TODO: [🧠] Maybe only first X characters of SHA-256
 
 /**
+ * Semantic helper
+ *
+ * For example `"3mJr7AoUXx2Wqd"`
+ */
+export type string_agent_permanent_id = string_base_58;
+
+/**
  * Unstructured description of the persona
  *
  * For example `"Skilled copywriter"`
@@ -596,6 +603,13 @@ export type string_user_id = id | string_email;
  * For example `"b126926439c5fcb83609888a11283723c1ef137c0ad599a77a1be81812bd221d"`
  */
 export type string_sha256 = string;
+
+/**
+ * Semantic helper
+ *
+ * For example `"4JmF3b2J5dGVz"`
+ */
+export type string_base_58 = string;
 
 /**
  * Semantic helper

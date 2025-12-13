@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { Barlow_Condensed } from 'next/font/google';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { string_data_url, string_url_image } from '../../../../../../src/types/typeAliases';
+import { string_agent_permanent_id, string_data_url, string_url_image } from '../../../../../../src/types/typeAliases';
 import { getAgentLinks } from './agentLinks';
 
 type BeforeInstallPromptEvent = Event & {
@@ -33,7 +33,7 @@ const barlowCondensed = Barlow_Condensed({
 type AgentOptionsMenuProps = {
     agentName: string;
     derivedAgentName: string;
-    permanentId?: string;
+    permanentId?: string_agent_permanent_id;
     agentUrl: string;
     agentEmail: string;
     brandColorHex: string;
