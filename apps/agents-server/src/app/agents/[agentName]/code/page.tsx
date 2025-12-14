@@ -1,7 +1,9 @@
-import { CodeIcon, ArrowLeftIcon, ChevronDownIcon } from 'lucide-react';
+'use client';
+
+import Editor from '@monaco-editor/react';
+import { ArrowLeftIcon, ChevronDownIcon, CodeIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import Editor from '@monaco-editor/react';
 
 type Transpiler = {
     name: string;
@@ -35,7 +37,7 @@ export default function AgentCodePage({ params }: { params: Promise<{ agentName:
     const [error, setError] = useState<string>('');
 
     useEffect(() => {
-        params.then(p => setAgentName(p.agentName));
+        params.then((p) => setAgentName(p.agentName));
     }, [params]);
 
     useEffect(() => {
@@ -43,20 +45,20 @@ export default function AgentCodePage({ params }: { params: Promise<{ agentName:
 
         // Fetch agent profile
         fetch(`/api/agents/${encodeURIComponent(agentName)}`)
-            .then(res => res.json())
-            .then(data => setAgentProfile(data))
-            .catch(err => console.error('Error fetching agent profile:', err));
+            .then((res) => res.json())
+            .then((data) => setAgentProfile(data))
+            .catch((err) => console.error('Error fetching agent profile:', err));
 
         // Fetch available transpilers
         fetch(`/agents/${encodeURIComponent(agentName)}/code/api`)
-            .then(res => res.json())
-            .then(data => {
+            .then((res) => res.json())
+            .then((data) => {
                 setTranspilers(data.transpilers || []);
                 if (data.transpilers && data.transpilers.length > 0) {
                     setSelectedTranspiler(data.transpilers[0]);
                 }
             })
-            .catch(err => console.error('Error fetching transpilers:', err));
+            .catch((err) => console.error('Error fetching transpilers:', err));
     }, [agentName]);
 
     useEffect(() => {
@@ -112,13 +114,15 @@ export default function AgentCodePage({ params }: { params: Promise<{ agentName:
                     {(agentProfile as any)?.meta?.image && (
                         <img
                             src={(agentProfile as any).meta.image as string}
-                            alt={((agentProfile as any).meta.fullname || agentName)}
+                            alt={(agentProfile as any).meta.fullname || agentName}
                             className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
                         />
                     )}
                     <div className="flex-1">
                         {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                        <h1 className="text-2xl font-bold text-gray-900">{(agentProfile as any)?.meta?.fullname || agentName}</h1>
+                        <h1 className="text-2xl font-bold text-gray-900">
+                            {(agentProfile as any)?.meta?.fullname || agentName}
+                        </h1>
                         <p className="text-gray-500 flex items-center gap-2">
                             <CodeIcon className="w-4 h-4" />
                             Generated Code
@@ -136,14 +140,12 @@ export default function AgentCodePage({ params }: { params: Promise<{ agentName:
                 <div className="p-6">
                     {/* Transpiler Selector */}
                     <div className="mb-6">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Select Transpiler
-                        </label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Select Transpiler</label>
                         <div className="relative">
                             <select
                                 value={selectedTranspiler?.name || ''}
                                 onChange={(e) => {
-                                    const transpiler = transpilers.find(t => t.name === e.target.value);
+                                    const transpiler = transpilers.find((t) => t.name === e.target.value);
                                     if (transpiler) setSelectedTranspiler(transpiler);
                                 }}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -164,9 +166,7 @@ export default function AgentCodePage({ params }: { params: Promise<{ agentName:
                             <h2 className="text-lg font-semibold text-gray-900">
                                 {selectedTranspiler?.title || 'Generated Code'}
                             </h2>
-                            {loading && (
-                                <div className="text-sm text-gray-500">Generating...</div>
-                            )}
+                            {loading && <div className="text-sm text-gray-500">Generating...</div>}
                         </div>
                         <div className="p-4">
                             {error && (
@@ -198,7 +198,9 @@ export default function AgentCodePage({ params }: { params: Promise<{ agentName:
                             ) : loading ? (
                                 <div className="text-gray-500 text-center py-8">Generating code...</div>
                             ) : (
-                                <div className="text-gray-500 text-center py-8">Select a transpiler to generate code</div>
+                                <div className="text-gray-500 text-center py-8">
+                                    Select a transpiler to generate code
+                                </div>
                             )}
                         </div>
                     </div>
