@@ -7,6 +7,15 @@ import { getFederatedServersFromMetadata } from '../../../utils/getFederatedServ
 
 export const dynamic = 'force-dynamic';
 
+/**
+ * @swagger
+ * /api/agents:
+ *   get:
+ *     description: Returns a list of agents
+ *     responses:
+ *       200:
+ *         description: List of agents
+ */
 export async function GET() {
     try {
         const collection = await $provideAgentCollectionForServer();
