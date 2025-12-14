@@ -78,6 +78,7 @@ export function Chat(props: ChatProps) {
         isCopyButtonEnabled = true,
         buttonColor: buttonColorRaw,
         onUseTemplate,
+        onCreateAgent,
     } = props;
 
     const buttonColor = useMemo(() => Color.from(buttonColorRaw || '#0066cc'), [buttonColorRaw]);
@@ -562,6 +563,7 @@ export function Chat(props: ChatProps) {
                                     isCopyButtonEnabled={isCopyButtonEnabled}
                                     isFeedbackEnabled={isFeedbackEnabled}
                                     onCopy={handleCopy}
+                                    onCreateAgent={onCreateAgent}
                                 />
                             );
                         })}

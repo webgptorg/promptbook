@@ -1,7 +1,7 @@
 'use server';
 
 import { $generateBookBoilerplate } from '@promptbook-local/core';
-import { string_agent_name } from '@promptbook-local/types';
+import { string_agent_name, string_book } from '@promptbook-local/types';
 import { revalidatePath } from 'next/cache';
 import { string_agent_permanent_id } from '../../../../src/types/typeAliases';
 import { getMetadata } from '../database/getMetadata';
@@ -21,6 +21,18 @@ export async function $createAgentAction(): Promise<{ agentName: string_agent_na
     const agentSource = $generateBookBoilerplate({ namePool });
 
     const { agentName, permanentId } = await collection.createAgent(agentSource);
+
+    return { agentName, permanentId };
+}
+
+export async function $createAgentFromBookAction(bookContent: string_book): Promise<{ agentName: string_agent_name; permanentId: string_agent_permanent_id }> {
+    // TODO: [👹] Check permissions here
+    if (!(await isUserAdmin())) {
+        throw new Error('You are not authorized to create agents');
+    }
+
+    const collection = await $provideAgentCollectionForServer();
+    const { agentName, permanentId } = await collection.createAgent(bookContent);
 
     return { agentName, permanentId };
 }

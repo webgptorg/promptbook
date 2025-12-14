@@ -3,10 +3,12 @@
 import { usePromise } from '@common/hooks/usePromise';
 import { Chat } from '@promptbook-local/components';
 import { RemoteAgent } from '@promptbook-local/core';
+import { string_book } from '@promptbook-local/types';
 import { useRouter } from 'next/navigation';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import spaceTrim from 'spacetrim';
 import { string_agent_url, string_color } from '../../../../../../src/types/typeAliases';
+import { $createAgentFromBookAction } from '../../../app/actions';
 import { DeletedAgentBanner } from '../../../components/DeletedAgentBanner';
 
 type AgentProfileChatProps = {
@@ -20,6 +22,7 @@ type AgentProfileChatProps = {
 
 export function AgentProfileChat({ agentUrl, agentName, fullname, brandColorHex, avatarSrc, isDeleted = false }: AgentProfileChatProps) {
     const router = useRouter();
+    const [isCreatingAgent, setIsCreatingAgent] = useState(false);
 
     const agentPromise = useMemo(
         () =>
@@ -39,6 +42,21 @@ export function AgentProfileChat({ agentUrl, agentName, fullname, brandColorHex,
         },
         [agentName, router],
     );
+
+    const handleCreateAgent = useCallback(async (bookContent: string) => {
+        setIsCreatingAgent(true);
+        try {
+            const { permanentId } = await $createAgentFromBookAction(bookContent as string_book);
+            if (permanentId) {
+                router.push(`/agents/${permanentId}`);
+            }
+        } catch (error) {
+            console.error('Failed to create agent:', error);
+            alert('Failed to create agent. Please try again.');
+        } finally {
+            setIsCreatingAgent(false);
+        }
+    }, [router]);
 
     const initialMessage = useMemo(() => {
         if (!agent) {
@@ -91,6 +109,7 @@ export function AgentProfileChat({ agentUrl, agentName, fullname, brandColorHex,
                     },
                 ]}
                 onMessage={handleMessage}
+                onCreateAgent={handleCreateAgent}
                 isSaveButtonEnabled={false}
                 isCopyButtonEnabled={false}
                 className="bg-transparent"

@@ -218,6 +218,12 @@ export type ChatProps = {
      * @default true
      */
     isCopyButtonEnabled?: boolean;
+
+    /**
+     * Optional callback for creating an agent from a book code block.
+     * When provided, "Create Agent" buttons will be shown for book code blocks.
+     */
+    onCreateAgent?: (bookContent: string) => void;
 };
 
 /**

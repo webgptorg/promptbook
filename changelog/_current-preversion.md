@@ -5,6 +5,7 @@
 -   Added **Download button** for code blocks in `<Chat/>` component
 -   Added **Download button** for embedded books in `<Chat/>` component
 -   Added **Copy to clipboard button** for code blocks in `<Chat/>` component (works for both Monaco Editor and Book Editor)
+-   Added **Create Agent button** for embedded books in `<Chat/>` component (only in Agents Server)
 
 ### 🐇 Agents Server
 

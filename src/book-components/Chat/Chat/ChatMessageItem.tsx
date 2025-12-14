@@ -43,6 +43,10 @@ type ChatMessageItemProps = Pick<ChatProps, 'onMessage' | 'participants'> & {
      * Called when the copy button is pressed.
      */
     onCopy?: () => void;
+    /**
+     * Called when the create agent button is pressed for book code blocks.
+     */
+    onCreateAgent?: (bookContent: string) => void;
 };
 
 /**
@@ -65,6 +69,7 @@ export const ChatMessageItem = memo(
         isCopyButtonEnabled,
         isFeedbackEnabled,
         onCopy,
+        onCreateAgent,
     }: ChatMessageItemProps) => {
         const avatarSrc = participant?.avatarSrc || '';
         const [isAvatarTooltipVisible, setIsAvatarTooltipVisible] = useState(false);
@@ -326,7 +331,7 @@ export const ChatMessageItem = memo(
                         </>
                     ) : (
                         <div ref={contentWithoutButtonsRef}>
-                            <MarkdownContent content={contentWithoutButtons} />
+                            <MarkdownContent content={contentWithoutButtons} onCreateAgent={onCreateAgent} />
                         </div>
                     )}
 

@@ -150,6 +150,7 @@ type MarkdownContentProps = {
     content: string_markdown;
 
     className?: string;
+    onCreateAgent?: (bookContent: string) => void;
 };
 
 /**
@@ -158,7 +159,7 @@ type MarkdownContentProps = {
  * @public exported from `@promptbook/components`
  */
 export function MarkdownContent(props: MarkdownContentProps) {
-    const { content, className } = props;
+    const { content, className, onCreateAgent } = props;
     const htmlContent = useMemo(() => renderMarkdown(content), [content]);
     const containerRef = useRef<HTMLDivElement>(null);
     const rootsRef = useRef<Root[]>([]);
@@ -201,7 +202,7 @@ export function MarkdownContent(props: MarkdownContentProps) {
 
             // Render CodeBlock
             const root = createRoot(mountPoint);
-            root.render(<CodeBlock code={code} language={language} />);
+            root.render(<CodeBlock code={code} language={language} onCreateAgent={onCreateAgent} />);
             rootsRef.current.push(root);
         });
 
@@ -210,7 +211,7 @@ export function MarkdownContent(props: MarkdownContentProps) {
             rootsRef.current.forEach((root) => root.unmount());
             rootsRef.current = [];
         };
-    }, [htmlContent]);
+    }, [htmlContent, onCreateAgent]);
 
     return (
         <div

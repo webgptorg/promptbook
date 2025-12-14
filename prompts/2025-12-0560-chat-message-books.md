@@ -52,7 +52,7 @@ CONTEXT You are helping users of abc.com
 
 ---
 
-[ ]
+[x]
 
 [✨🐛] Allow to create instant agent from <Chat/> component
 

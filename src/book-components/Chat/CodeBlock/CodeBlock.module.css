@@ -22,7 +22,8 @@
 }
 
 .CopyButton,
-.DownloadButton {
+.DownloadButton,
+.CreateAgentButton {
     background: transparent;
     border: none;
     color: #aaa;
@@ -36,6 +37,7 @@
 }
 
 .CopyButton:hover,
-.DownloadButton:hover {
+.DownloadButton:hover,
+.CreateAgentButton:hover {
     color: #fff;
 }

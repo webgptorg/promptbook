@@ -12,6 +12,7 @@ type CodeBlockProps = {
     code: string;
     language?: string;
     className?: string;
+    onCreateAgent?: (bookContent: string) => void;
 };
 
 const LANGUAGE_EXTENSIONS: Record<string, string> = {
@@ -33,7 +34,7 @@ const LANGUAGE_EXTENSIONS: Record<string, string> = {
     book: 'book',
 };
 
-export function CodeBlock({ code, language, className }: CodeBlockProps) {
+export function CodeBlock({ code, language, className, onCreateAgent }: CodeBlockProps) {
     const lines = useMemo(() => code.split('\n').length, [code]);
     // Note: 19px is approx line height for fontSize 14. +20 for padding.
     // We cap at 400px to avoid taking too much space, allowing scroll.
@@ -67,6 +68,11 @@ export function CodeBlock({ code, language, className }: CodeBlockProps) {
                 <button onClick={handleDownload} className={styles.DownloadButton} title="Download code">
                     Download
                 </button>
+                {language?.trim().toLowerCase() === 'book' && onCreateAgent && (
+                    <button onClick={() => onCreateAgent(code)} className={styles.CreateAgentButton} title="Create agent from this book">
+                        Create Agent
+                    </button>
+                )}
             </div>
         </div>
     ) : null;
