@@ -1,7 +1,7 @@
 'use client';
 
 import katex from 'katex';
-import { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { Converter as ShowdownConverter } from 'showdown';
 import type { string_html, string_markdown } from '../../../types/typeAliases';
@@ -150,6 +150,13 @@ type MarkdownContentProps = {
     content: string_markdown;
 
     className?: string;
+
+    /**
+     * Custom renderer for code blocks.
+     * If provided and returns an element, it will be used instead of the default CodeBlock.
+     * If it returns undefined, the default CodeBlock will be used.
+     */
+    codeRenderer?: (code: string, language?: string) => React.ReactElement | undefined;
 };
 
 /**
@@ -158,7 +165,7 @@ type MarkdownContentProps = {
  * @public exported from `@promptbook/components`
  */
 export function MarkdownContent(props: MarkdownContentProps) {
-    const { content, className } = props;
+    const { content, className, codeRenderer } = props;
     const htmlContent = useMemo(() => renderMarkdown(content), [content]);
     const containerRef = useRef<HTMLDivElement>(null);
     const rootsRef = useRef<Root[]>([]);
@@ -199,9 +206,18 @@ export function MarkdownContent(props: MarkdownContentProps) {
             const mountPoint = document.createElement('div');
             pre.appendChild(mountPoint);
 
-            // Render CodeBlock
+            // Render CodeBlock or custom renderer
             const root = createRoot(mountPoint);
-            root.render(<CodeBlock code={code} language={language} />);
+            if (codeRenderer) {
+                const element = codeRenderer(code, language);
+                if (element) {
+                    root.render(element);
+                } else {
+                    root.render(<CodeBlock code={code} language={language} />);
+                }
+            } else {
+                root.render(<CodeBlock code={code} language={language} />);
+            }
             rootsRef.current.push(root);
         });
 
@@ -210,7 +226,7 @@ export function MarkdownContent(props: MarkdownContentProps) {
             rootsRef.current.forEach((root) => root.unmount());
             rootsRef.current = [];
         };
-    }, [htmlContent]);
+    }, [htmlContent, codeRenderer]);
 
     return (
         <div
