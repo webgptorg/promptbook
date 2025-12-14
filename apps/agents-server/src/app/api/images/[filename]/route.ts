@@ -9,9 +9,9 @@ import { $provideExecutionToolsForServer } from '../../../../tools/$provideExecu
 import { $provideCdnForServer } from '../../../../tools/$provideCdnForServer';
 import { filenameToPrompt } from '../../../../utils/normalization/filenameToPrompt';
 
-export async function GET(request: NextRequest, { params }: { params: { filename: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ filename: string }> }) {
     try {
-        const { filename } = params;
+        const { filename } = await params;
 
         if (!filename) {
             return NextResponse.json({ error: 'Filename is required' }, { status: 400 });

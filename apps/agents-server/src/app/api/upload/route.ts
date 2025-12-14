@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
         const key = getUserFileCdnKey(Buffer.from([]), filename); // Empty buffer for key generation
 
         // Generate signed upload URL using Vercel Blob's put function
-        const path = (cdn as any).config.pathPrefix ? `${(cdn as any).config.pathPrefix}/${key}` : key;
+        const path = cdn.pathPrefix ? `${cdn.pathPrefix}/${key}` : key;
 
         const { url } = await put(path, new Blob(), {
             access: 'public',

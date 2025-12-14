@@ -412,6 +412,29 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
     }
 
     /**
+     * Soft delete an agent by setting deletedAt to current timestamp
+     */
+    public async deleteAgent(agentIdentifier: string): Promise<void> {
+        const updateResult = await this.supabaseClient
+            .from(this.getTableName('Agent'))
+            .update({ deletedAt: new Date().toISOString() })
+            .or(`agentName.eq.${agentIdentifier},permanentId.eq.${agentIdentifier}`)
+            .is('deletedAt', null);
+
+        if (updateResult.error) {
+            throw new DatabaseError(
+                spaceTrim(
+                    (block) => `
+                    Error deleting agent "${agentIdentifier}" from Supabase:
+
+                    ${block(updateResult.error.message)}
+                `,
+                ),
+            );
+        }
+    }
+
+    /**
      * Get the Supabase table name with prefix
      *
      * @param tableName - The original table name

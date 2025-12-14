@@ -26,6 +26,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ ag
 
         const updateResult = await supabase
             .from(`${tablePrefix}Agent`)
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             .update({ visibility } as any)
             .or(`agentName.eq.${agentName},permanentId.eq.${agentName}`)
             .is('deletedAt', null);
