@@ -1,7 +1,8 @@
 [ ]
 
-[✨💺] Add API documentation link to menu
+[✨💺] Create Agents server Open API documentation using swagger 
 
+- Add API documentation link to menu
 -   Create API documentation for the Agents Server using Swagger and OpenAPI standards
 -   It should be available at `/swagger` endpoint
 -   In the Agents Server application, in the top menu, add a link to the API documentation
