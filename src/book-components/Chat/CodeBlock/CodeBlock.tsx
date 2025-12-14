@@ -30,6 +30,7 @@ const LANGUAGE_EXTENSIONS: Record<string, string> = {
     zsh: 'sh',
     yaml: 'yaml',
     yml: 'yaml',
+    book: 'book',
 };
 
 export function CodeBlock({ code, language, className }: CodeBlockProps) {
@@ -45,9 +46,19 @@ export function CodeBlock({ code, language, className }: CodeBlockProps) {
         downloadFile(code, filename, 'text/plain');
     };
 
+    const header = language ? (
+        <div className={styles.CodeBlockHeader}>
+            <span>{language}</span>
+            <button onClick={handleDownload} className={styles.DownloadButton} title="Download code">
+                Download
+            </button>
+        </div>
+    ) : null;
+
     if (language?.trim().toLowerCase() === 'book') {
         return (
             <div className={classNames(styles.CodeBlock, className)}>
+                {header}
                 <BookEditor
                     value={code as string_book}
                     isReadonly={true}
@@ -59,14 +70,7 @@ export function CodeBlock({ code, language, className }: CodeBlockProps) {
 
     return (
         <div className={classNames(styles.CodeBlock, className)}>
-            {language && (
-                <div className={styles.CodeBlockHeader}>
-                    <span>{language}</span>
-                    <button onClick={handleDownload} className={styles.DownloadButton} title="Download code">
-                        Download
-                    </button>
-                </div>
-            )}
+            {header}
             <Editor
                 height={`${height}px`}
                 language={language || 'plaintext'}

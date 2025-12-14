@@ -1,7 +1,7 @@
 import spaceTrim from 'spacetrim';
 import { ParseError } from '../../errors/ParseError';
 import type { string_markdown } from '../../types/typeAliases';
-import type { CodeBlock } from './extractAllBlocksFromMarkdown';
+import type { MarkdownCodeBlock } from './extractAllBlocksFromMarkdown';
 import { extractAllBlocksFromMarkdown } from './extractAllBlocksFromMarkdown';
 
 /**
@@ -20,7 +20,7 @@ import { extractAllBlocksFromMarkdown } from './extractAllBlocksFromMarkdown';
  * @public exported from `@promptbook/markdown-utils`
  * @throws {ParseError} if there is not exactly one code block in the markdown
  */
-export function extractOneBlockFromMarkdown(markdown: string_markdown): CodeBlock {
+export function extractOneBlockFromMarkdown(markdown: string_markdown): MarkdownCodeBlock {
     const codeBlocks = extractAllBlocksFromMarkdown(markdown);
 
     if (codeBlocks.length !== 1) {

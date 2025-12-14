@@ -20,7 +20,7 @@ CONTEXT You are helping users of abc.com
 
 ---
 
-[ ]
+[x]
 
 [✨🐛] Allow to download book file embeddded in chat message in <Chat/> component
 

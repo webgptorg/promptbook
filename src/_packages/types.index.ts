@@ -342,7 +342,7 @@ import type { ColorTransformer } from '../utils/color/operators/ColorTransformer
 import type { PipelineEditableSerialized } from '../utils/editable/types/PipelineEditableSerialized';
 import type { ExecCommandOptions } from '../utils/execCommand/ExecCommandOptions';
 import type { ExecCommandOptionsAdvanced } from '../utils/execCommand/ExecCommandOptions';
-import type { CodeBlock } from '../utils/markdown/extractAllBlocksFromMarkdown';
+import type { MarkdownCodeBlock } from '../utils/markdown/extractAllBlocksFromMarkdown';
 import type { MarkdownSection } from '../utils/markdown/parseMarkdownSection';
 import type { Registered } from '../utils/misc/$Register';
 import type { Registration } from '../utils/misc/$Register';
@@ -710,7 +710,7 @@ export type { ColorTransformer };
 export type { PipelineEditableSerialized };
 export type { ExecCommandOptions };
 export type { ExecCommandOptionsAdvanced };
-export type { CodeBlock };
+export type { MarkdownCodeBlock };
 export type { MarkdownSection };
 export type { Registered };
 export type { Registration };

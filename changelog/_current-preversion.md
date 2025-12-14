@@ -3,6 +3,7 @@
 -   Use **Monaco Editor** for syntax highlighting in `<Chat/>` component (instead of `highlight.js`)
 -   Use **Book Editor** for displaying `book` code snippets in `<Chat/>` component
 -   Added **Download button** for code blocks in `<Chat/>` component
+-   Added **Download button** for embedded books in `<Chat/>` component
 
 ### 🐇 Agents Server
 
