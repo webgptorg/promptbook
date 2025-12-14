@@ -5,17 +5,18 @@
  *
  * @public exported from `@promptbook/utils`
  */
-export const $isRunningInWebWorker = new Function(`
+export function $isRunningInWebWorker(): boolean {
     try {
-        if (typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope) {
-            return true;
-        } else {
-            return false;
-        }
+        // Note: Check for importScripts which is specific to workers
+        //       and not available in the main browser thread
+        return (
+            typeof self !== 'undefined' &&
+            typeof (self as unknown as Record<string, unknown>).importScripts === 'function'
+        );
     } catch (e) {
         return false;
     }
-`);
+}
 
 /**
  * TODO: [🎺]

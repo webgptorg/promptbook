@@ -5,13 +5,13 @@
  *
  * @public exported from `@promptbook/utils`
  */
-export const $isRunningInJest = new Function(`
+export function $isRunningInJest(): boolean {
     try {
-        return process.env.JEST_WORKER_ID !== undefined;
+        return typeof process !== 'undefined' && process.env?.JEST_WORKER_ID !== undefined;
     } catch (e) {
         return false;
     }
-`);
+}
 
 /**
  * TODO: [🎺]
