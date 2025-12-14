@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🌖] When showing code in <Chat/> component, use syntax highliting
 

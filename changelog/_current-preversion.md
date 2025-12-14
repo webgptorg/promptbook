@@ -1,3 +1,7 @@
+### 📖 Book Components
+
+-   Use **Monaco Editor** for syntax highlighting in `<Chat/>` component (instead of `highlight.js`)
+
 ### 🐇 Agents Server
 
 -   Export entire book documentation as one coherent markdown file to `/api/docs/book.md`

@@ -1,11 +1,12 @@
 'use client';
 
-import hljs from 'highlight.js';
 import katex from 'katex';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
+import { createRoot, type Root } from 'react-dom/client';
 import { Converter as ShowdownConverter } from 'showdown';
 import type { string_html, string_markdown } from '../../../types/typeAliases';
 import { classNames } from '../../_common/react-utils/classNames';
+import { CodeBlock } from '../CodeBlock/CodeBlock';
 import styles from './MarkdownContent.module.css';
 
 /**
@@ -109,35 +110,7 @@ function renderMarkdown(markdown: string_markdown): string_html {
         const processedMarkdown = renderMathInMarkdown(markdown);
         let html = chatMarkdownConverter.makeHtml(processedMarkdown);
 
-        if (typeof window === 'undefined') {
-            html = html.replace(
-                /<pre><code( class="language-([^"]+)")?>([\s\S]*?)<\/code><\/pre>/g,
-                (match, _langClass, lang, code) => {
-                    const decoded = code
-                        .replace(/&/g, '&')
-                        .replace(/</g, '<')
-                        .replace(/>/g, '>')
-                        .replace(/"/g, '"')
-                        .replace(/&#39;/g, "'");
-                    const highlighted = lang
-                        ? hljs.highlight(decoded, { language: lang }).value
-                        : hljs.highlightAuto(decoded).value;
-                    return `<pre class="chat-code-block"><code class="hljs${
-                        lang ? ' language-' + lang : ''
-                    }">${highlighted}</code></pre>`;
-                },
-            );
-        } else {
-            if (html.match(/<pre><code/)) {
-                const cssId = 'hljs-github-dark-css';
-                if (!window.document.getElementById(cssId)) {
-                    const link = window.document.createElement('link');
-                    link.id = cssId;
-                    link.rel = 'stylesheet';
-                    link.href = 'https://book-components.ptbk.io/cdn/highlightjs/github-dark.css';
-                    window.document.head.appendChild(link);
-                }
-            }
+        if (typeof window !== 'undefined') {
             if (html.match(/class="katex/)) {
                 const katexCssId = 'katex-css';
                 if (!window.document.getElementById(katexCssId)) {
@@ -148,35 +121,6 @@ function renderMarkdown(markdown: string_markdown): string_html {
                     window.document.head.appendChild(link);
                 }
             }
-            const parser = new window.DOMParser();
-            const doc = parser.parseFromString(html, 'text/html');
-            doc.querySelectorAll('pre > code').forEach((codeEl) => {
-                const preEl = codeEl.parentElement;
-                if (!preEl) return;
-                const lang = Array.from(codeEl.classList)
-                    .find((cls) => cls.startsWith('language-'))
-                    ?.replace('language-', '');
-                const code = codeEl.innerHTML;
-                let highlighted = '';
-                try {
-                    const decoded = code
-                        .replace(/&/g, '&')
-                        .replace(/</g, '<')
-                        .replace(/>/g, '>')
-                        .replace(/"/g, '"')
-                        .replace(/&#39;/g, "'");
-                    highlighted = lang
-                        ? hljs.highlight(decoded, { language: lang }).value
-                        : hljs.highlightAuto(decoded).value;
-                } catch {
-                    highlighted = code;
-                }
-                codeEl.innerHTML = highlighted;
-                codeEl.classList.add('hljs');
-                if (lang) codeEl.classList.add(`language-${lang}`);
-                preEl.classList.add('chat-code-block');
-            });
-            html = doc.body.innerHTML;
         }
 
         const sanitizedHtml = html
@@ -216,9 +160,61 @@ type MarkdownContentProps = {
 export function MarkdownContent(props: MarkdownContentProps) {
     const { content, className } = props;
     const htmlContent = useMemo(() => renderMarkdown(content), [content]);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const rootsRef = useRef<Root[]>([]);
+
+    useEffect(() => {
+        // Cleanup previous roots
+        rootsRef.current.forEach((root) => root.unmount());
+        rootsRef.current = [];
+
+        if (!containerRef.current) {
+            return;
+        }
+
+        const preElements = containerRef.current.querySelectorAll('pre');
+
+        preElements.forEach((pre) => {
+            // Check if it is a code block (has code element)
+            const codeElement = pre.querySelector('code');
+            if (!codeElement) {
+                return;
+            }
+
+            // Get language and code
+            const className = codeElement.className; // e.g. language-python
+            const match = className.match(/language-([^\s]+)/);
+            const language = match ? match[1] : undefined;
+            const code = codeElement.textContent || '';
+
+            // Clear the pre element content
+            pre.innerHTML = '';
+            pre.className = ''; // remove existing classes if any
+            pre.style.background = 'none'; // reset styles
+            pre.style.padding = '0';
+            pre.style.margin = '0';
+            pre.style.overflow = 'visible';
+
+            // Create a container for the CodeBlock
+            const mountPoint = document.createElement('div');
+            pre.appendChild(mountPoint);
+
+            // Render CodeBlock
+            const root = createRoot(mountPoint);
+            root.render(<CodeBlock code={code} language={language} />);
+            rootsRef.current.push(root);
+        });
+
+        return () => {
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+            rootsRef.current.forEach((root) => root.unmount());
+            rootsRef.current = [];
+        };
+    }, [htmlContent]);
 
     return (
         <div
+            ref={containerRef}
             className={classNames(styles.MarkdownContent, className)}
             dangerouslySetInnerHTML={{
                 __html: htmlContent,

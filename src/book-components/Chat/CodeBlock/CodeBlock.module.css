@@ -1,0 +1,16 @@
+.CodeBlock {
+    margin: 10px 0;
+    border-radius: 5px;
+    overflow: hidden;
+    border: 1px solid #444; /* Dark mode border */
+}
+
+.CodeBlockHeader {
+    background-color: #2d2d2d;
+    color: #ccc;
+    padding: 5px 10px;
+    font-size: 0.8em;
+    border-bottom: 1px solid #444;
+    display: flex;
+    justify-content: space-between;
+}
