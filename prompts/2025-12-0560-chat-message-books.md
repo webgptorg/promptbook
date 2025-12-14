@@ -52,10 +52,12 @@ CONTEXT You are helping users of abc.com
 
 ---
 
-[-]
+[ ]
 
-[✨🐛] bar
+[✨🐛] When showing placed `book` insite a message in  <Chat/> compo
 
+-   <Chat/> component is [located in this file](/src/book-components/Chat/Chat/Chat.tsx)
+-   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
 
