@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest } from 'next/server';
 import { SERVERS, SUPABASE_TABLE_PREFIX } from '../../config';
+import { $getTableName } from '../database/$getTableName';
 
 // Note: Re-implementing normalizeTo_PascalCase to avoid importing from @promptbook-local/utils which might have Node.js dependencies
 function normalizeTo_PascalCase(text: string): string {
@@ -95,7 +96,7 @@ export async function validateApiKey(request: NextRequest): Promise<ApiKeyValida
         });
 
         const { data, error } = await supabase
-            .from(`${tablePrefix}ApiTokens`)
+            .from(await $getTableName(`ApiTokens`))
             .select('id, isRevoked')
             .eq('token', token)
             .single();

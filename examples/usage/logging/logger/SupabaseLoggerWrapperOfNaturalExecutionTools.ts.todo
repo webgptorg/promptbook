@@ -82,7 +82,7 @@ export class SupabaseLoggerWrapperOfLlmExecutionTools
 
         // Note: We do not want to wait for the insert to the database
         /* not await */ $provideSupabaseForServer()
-            .from('PromptExecution')
+            .from(await $getTableName(`PromptExecution`))
             .insert(
                 {
                     userId: this.options.userId,// <- TODO: [🧠][🤺] Maybe allow overriding of `userId` for each prompt

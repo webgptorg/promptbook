@@ -1,12 +1,13 @@
+import { $getTableName } from '@/src/database/$getTableName';
+import { serializeError } from '@promptbook-local/utils';
 import { NextRequest, NextResponse } from 'next/server';
 import { assertsError } from '../../../../../../../src/errors/assertsError';
-import { string_url } from '../../../../../../../src/types/typeAliases';
-import { serializeError } from '@promptbook-local/utils';
 import type { LlmExecutionTools } from '../../../../../../../src/execution/LlmExecutionTools';
 import { getSingleLlmExecutionTools } from '../../../../../../../src/llm-providers/_multiple/getSingleLlmExecutionTools';
+import { string_url } from '../../../../../../../src/types/typeAliases';
 import { $provideSupabaseForServer } from '../../../../database/$provideSupabaseForServer';
-import { $provideExecutionToolsForServer } from '../../../../tools/$provideExecutionToolsForServer';
 import { $provideCdnForServer } from '../../../../tools/$provideCdnForServer';
+import { $provideExecutionToolsForServer } from '../../../../tools/$provideExecutionToolsForServer';
 import { filenameToPrompt } from '../../../../utils/normalization/filenameToPrompt';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ filename: string }> }) {
@@ -21,12 +22,13 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
         // Check if image already exists in database
         const { data: existingImage, error: selectError } = await supabase
-            .from('Image')
+            .from(await $getTableName(`Image`))
             .select('cdnUrl')
             .eq('filename', filename)
             .single();
 
-        if (selectError && selectError.code !== 'PGRST116') { // PGRST116 is "not found"
+        if (selectError && selectError.code !== 'PGRST116') {
+            // PGRST116 is "not found"
             throw selectError;
         }
 
@@ -79,14 +81,12 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         const cdnUrl = cdn.getItemUrl(cdnKey);
 
         // Save to database
-        const { error: insertError } = await supabase
-            .from('Image')
-            .insert({
-                filename,
-                prompt,
-                cdnUrl: cdnUrl.href,
-                cdnKey,
-            });
+        const { error: insertError } = await supabase.from(await $getTableName(`Image`)).insert({
+            filename,
+            prompt,
+            cdnUrl: cdnUrl.href,
+            cdnKey,
+        });
 
         if (insertError) {
             throw insertError;
@@ -94,22 +94,14 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
         // Redirect to the newly created image
         return NextResponse.redirect(cdnUrl.href as string_url);
-
     } catch (error) {
         assertsError(error);
 
         console.error('Error serving image:', error);
 
-        return new Response(
-            JSON.stringify(
-                serializeError(error),
-                null,
-                4,
-            ),
-            {
-                status: 500,
-                headers: { 'Content-Type': 'application/json' },
-            },
-        );
+        return new Response(JSON.stringify(serializeError(error), null, 4), {
+            status: 500,
+            headers: { 'Content-Type': 'application/json' },
+        });
     }
 }

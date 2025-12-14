@@ -2,6 +2,7 @@ import { TODO_any } from '@promptbook-local/types';
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 import { SERVERS, SUPABASE_TABLE_PREFIX } from '../config';
+import { $getTableName } from './database/$getTableName';
 import { RESERVED_PATHS } from './generated/reservedPaths';
 import { isIpAllowed } from './utils/isIpAllowed';
 
@@ -59,7 +60,7 @@ export async function middleware(req: NextRequest) {
                 });
 
                 const { data } = await supabase
-                    .from(`${tablePrefix}Metadata`)
+                    .from(await $getTableName(`Metadata`))
                     .select('value')
                     .eq('key', 'RESTRICT_IP')
                     .single();
@@ -108,7 +109,7 @@ export async function middleware(req: NextRequest) {
                     });
 
                     const { data } = await supabase
-                        .from(`${tablePrefix}ApiTokens`)
+                        .from(await $getTableName(`ApiTokens`))
                         .select('id')
                         .eq('token', token)
                         .eq('isRevoked', false)
@@ -242,7 +243,7 @@ export async function middleware(req: NextRequest) {
 
                 try {
                     const { data } = await supabase
-                        .from(`${prefix}Agent`)
+                        .from(await $getTableName(`Agent`))
                         .select('agentName')
                         .or(orFilter)
                         .limit(1)

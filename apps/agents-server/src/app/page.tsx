@@ -12,13 +12,14 @@ import { Section } from '../components/Homepage/Section';
 import { TechInfoCard } from '../components/Homepage/TechInfoCard';
 import { UsersList } from '../components/UsersList/UsersList';
 import VercelDeploymentCard from '../components/VercelDeploymentCard/VercelDeploymentCard';
+import { $getTableName } from '../database/$getTableName';
+import { $provideSupabaseForServer } from '../database/$provideSupabaseForServer';
 import { getLongRunningTask } from '../deamons/longRunningTask';
 import { $provideAgentCollectionForServer } from '../tools/$provideAgentCollectionForServer';
 import { $provideExecutionToolsForServer } from '../tools/$provideExecutionToolsForServer';
 import { $provideServer } from '../tools/$provideServer';
 import { getCurrentUser } from '../utils/getCurrentUser';
 import { isUserAdmin } from '../utils/isUserAdmin';
-import { $provideSupabaseForServer } from '../database/$provideSupabaseForServer';
 
 // Add calendar formats that include seconds
 const calendarWithSeconds = {
@@ -45,7 +46,7 @@ export default async function HomePage() {
 
     // Get visibility for all agents
     const visibilityResult = await supabase
-        .from(`${tablePrefix}Agent`)
+        .from(await $getTableName(`Agent`))
         .select('agentName, visibility')
         .is('deletedAt', null);
 
@@ -56,26 +57,31 @@ export default async function HomePage() {
         agents = allAgents;
     } else {
         const visibilityMap = new Map(
-            visibilityResult.data.map((item: { agentName: string; visibility: 'PUBLIC' | 'PRIVATE' }) => [item.agentName, item.visibility])
+            visibilityResult.data.map((item: { agentName: string; visibility: 'PUBLIC' | 'PRIVATE' }) => [
+                item.agentName,
+                item.visibility,
+            ]),
         );
 
         // Filter agents based on user authentication and visibility
-        agents = allAgents.filter(agent => {
-            const visibility = visibilityMap.get(agent.agentName);
-            if (!visibility) return false; // If no visibility info, hide the agent
+        agents = allAgents
+            .filter((agent) => {
+                const visibility = visibilityMap.get(agent.agentName);
+                if (!visibility) return false; // If no visibility info, hide the agent
 
-            // Admins can see all agents
-            if (currentUser?.isAdmin) return true;
+                // Admins can see all agents
+                if (currentUser?.isAdmin) return true;
 
-            // Authenticated users can see PUBLIC and PRIVATE agents
-            if (currentUser) return true;
+                // Authenticated users can see PUBLIC and PRIVATE agents
+                if (currentUser) return true;
 
-            // Unauthenticated users can only see PUBLIC agents
-            return visibility === 'PUBLIC';
-        }).map(agent => ({
-            ...agent,
-            visibility: visibilityMap.get(agent.agentName) as 'PUBLIC' | 'PRIVATE'
-        }));
+                // Unauthenticated users can only see PUBLIC agents
+                return visibility === 'PUBLIC';
+            })
+            .map((agent) => ({
+                ...agent,
+                visibility: visibilityMap.get(agent.agentName) as 'PUBLIC' | 'PRIVATE',
+            }));
     }
 
     const longRunningTask = getLongRunningTask();
@@ -94,9 +100,7 @@ export default async function HomePage() {
 
                 {isAdmin && <UsersList allowCreate={false} />}
 
-                {isAdmin && (
-                    <ModelsSection models={models} maxVisible={11} showViewAllLink />
-                )}
+                {isAdmin && <ModelsSection models={models} maxVisible={11} showViewAllLink />}
 
                 {isAdmin && (
                     <>

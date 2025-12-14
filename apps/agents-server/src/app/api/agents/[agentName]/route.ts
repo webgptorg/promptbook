@@ -1,8 +1,8 @@
 // DELETE /api/agents/[agentName]
 // PATCH /api/agents/[agentName] - update agent visibility
 // POST /api/agents/[agentName]/restore - restore deleted agent
-import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
+import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideServer } from '@/src/tools/$provideServer';
 import { TODO_any } from '@promptbook-local/types';
 import { NextResponse } from 'next/server';
@@ -25,17 +25,14 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ ag
         const { tablePrefix } = await $provideServer();
 
         const updateResult = await supabase
-            .from(`${tablePrefix}Agent`)
+            .from(await $getTableName(`Agent`))
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             .update({ visibility } as any)
             .or(`agentName.eq.${agentName},permanentId.eq.${agentName}`)
             .is('deletedAt', null);
 
         if (updateResult.error) {
-            return NextResponse.json(
-                { success: false, error: updateResult.error.message },
-                { status: 500 },
-            );
+            return NextResponse.json({ success: false, error: updateResult.error.message }, { status: 500 });
         }
 
         return NextResponse.json({ success: true });

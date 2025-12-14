@@ -14,6 +14,7 @@
 -   Create database migration for the change
     -   Migrations are located in `/apps/agents-server/src/database/migrations`
     -   Be aware that table names in migrations have prefix `prefix_` _(look at existing migrations for reference)_
+    -   When using table names in supabase queries, use the `$getTableName` utility function to get the correct table name with prefix, for example: `await supabase.from(await $getTableName('Agent')).select('...')`
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 

@@ -1,6 +1,7 @@
+import { $getTableName } from '@/src/database/$getTableName';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
-import { $provideSupabaseForServer } from '../../../database/$provideSupabaseForServer';
 import { parseAgentSource } from '@promptbook-local/core';
+import { $provideSupabaseForServer } from '../../../database/$provideSupabaseForServer';
 
 export const AGENT_ACTIONS = ['Emails', 'Web chat', 'Read documents', 'Browser', 'WhatsApp', '<Coding/>'];
 
@@ -17,10 +18,9 @@ export async function getAgentProfile(agentName: string) {
 
 export async function isAgentDeleted(agentName: string): Promise<boolean> {
     const supabase = $provideSupabaseForServer();
-    const { tablePrefix } = await import('../../../tools/$provideServer').then(m => m.$provideServer());
 
     const result = await supabase
-        .from(`${tablePrefix}Agent`)
+        .from(await $getTableName(`Agent`))
         .select('deletedAt')
         .eq('agentName', agentName)
         .single();
