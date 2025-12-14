@@ -7,6 +7,7 @@ import { ActionCommitmentDefinition } from './ACTION/ACTION';
 import { ClosedCommitmentDefinition } from './CLOSED/CLOSED';
 import { ComponentCommitmentDefinition } from './COMPONENT/COMPONENT';
 import { DeleteCommitmentDefinition } from './DELETE/DELETE';
+import { DictionaryCommitmentDefinition } from './DICTIONARY/DICTIONARY';
 import { FormatCommitmentDefinition } from './FORMAT/FORMAT';
 import { FromCommitmentDefinition } from './FROM/FROM';
 import { GoalCommitmentDefinition } from './GOAL/GOAL';
@@ -88,6 +89,7 @@ export const COMMITMENT_REGISTRY = [
     new DeleteCommitmentDefinition('CANCEL'),
     new DeleteCommitmentDefinition('DISCARD'),
     new DeleteCommitmentDefinition('REMOVE'),
+    new DictionaryCommitmentDefinition(),
     new OpenCommitmentDefinition(),
     new ClosedCommitmentDefinition(),
     new UseBrowserCommitmentDefinition(),

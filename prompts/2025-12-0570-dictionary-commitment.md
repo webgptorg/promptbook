@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🧈] Implement `DICTIONARY` commitment
 

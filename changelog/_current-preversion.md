@@ -13,3 +13,7 @@
 ### 🛝 Playground
 
 -   New `textarea-to-chat` page: Shows a textarea on the left and Chat component on the right with 1:1 message mirroring
+
+### 📚 Book
+
+-   Added `DICTIONARY` commitment for defining terms and their meanings that agents should use consistently in reasoning and responses
