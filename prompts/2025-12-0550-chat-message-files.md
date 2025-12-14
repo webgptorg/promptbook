@@ -48,7 +48,7 @@ allow to download all files from message
 
 ---
 
-[ ]
+[x]
 
 [✨🌖] Allow to copy to clipboard from embedded code
 

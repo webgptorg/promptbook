@@ -1,7 +1,7 @@
 'use client';
 
 import Editor from '@monaco-editor/react';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import type { string_book } from '../../../book-2.0/agent-source/string_book';
 import { BookEditor } from '../../BookEditor/BookEditor';
 import { downloadFile } from '../utils/downloadFile';
@@ -38,6 +38,7 @@ export function CodeBlock({ code, language, className }: CodeBlockProps) {
     // Note: 19px is approx line height for fontSize 14. +20 for padding.
     // We cap at 400px to avoid taking too much space, allowing scroll.
     const height = Math.min(Math.max(lines * 19, 19), 400);
+    const [copied, setCopied] = useState(false);
 
     const handleDownload = () => {
         const lang = language?.trim().toLowerCase() || 'text';
@@ -46,12 +47,27 @@ export function CodeBlock({ code, language, className }: CodeBlockProps) {
         downloadFile(code, filename, 'text/plain');
     };
 
+    const handleCopy = async () => {
+        try {
+            await navigator.clipboard.writeText(code);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        } catch (error) {
+            console.error('Failed to copy code to clipboard:', error);
+        }
+    };
+
     const header = language ? (
         <div className={styles.CodeBlockHeader}>
             <span>{language}</span>
-            <button onClick={handleDownload} className={styles.DownloadButton} title="Download code">
-                Download
-            </button>
+            <div className={styles.CodeBlockButtons}>
+                <button onClick={handleCopy} className={styles.CopyButton} title="Copy to clipboard">
+                    {copied ? 'Copied!' : 'Copy'}
+                </button>
+                <button onClick={handleDownload} className={styles.DownloadButton} title="Download code">
+                    Download
+                </button>
+            </div>
         </div>
     ) : null;
 

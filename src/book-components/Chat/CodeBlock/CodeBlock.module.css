@@ -16,6 +16,12 @@
     align-items: center;
 }
 
+.CodeBlockButtons {
+    display: flex;
+    gap: 8px;
+}
+
+.CopyButton,
 .DownloadButton {
     background: transparent;
     border: none;
@@ -29,6 +35,7 @@
     transition: color 0.2s;
 }
 
+.CopyButton:hover,
 .DownloadButton:hover {
     color: #fff;
 }
