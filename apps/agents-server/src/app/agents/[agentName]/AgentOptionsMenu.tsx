@@ -2,6 +2,7 @@
 
 import { TODO_any } from '@promptbook-local/types';
 import {
+    CodeIcon,
     CopyIcon,
     CopyPlusIcon,
     DownloadIcon,
@@ -192,6 +193,12 @@ export function AgentOptionsMenu({
             href: `/agents/${encodeURIComponent(agentName)}/system-message`,
             icon: FileTextIcon,
             label: 'System Message',
+        },
+        {
+            type: 'link' as const,
+            href: `/agents/${encodeURIComponent(agentName)}/code`,
+            icon: CodeIcon,
+            label: 'View Code',
         },
         { type: 'divider' as const },
         {
