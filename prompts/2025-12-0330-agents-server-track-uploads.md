@@ -2,6 +2,9 @@
 
 [✨💶] Create table that tracks uploads
 
+-   Whenever user uploads a file, we need to track these uploads in the database.
+-   Implement this tracking as a wrapper of `IIFilesStorageWithCdn`, make function that wraps any `IIFilesStorageWithCdn` implementation to add tracking of uploads to the database.
+-   `$provideCdnForServer` should use this wrapper and return the wrapped `IIFilesStorageWithCdn` instance.
 -   For each upload we need to track:
     -   `id` (primary key)
     -   `userId` (reference to `User` table)
