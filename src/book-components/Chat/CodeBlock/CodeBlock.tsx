@@ -2,6 +2,8 @@
 
 import Editor from '@monaco-editor/react';
 import { useMemo } from 'react';
+import type { string_book } from '../../../book-2.0/agent-source/string_book';
+import { BookEditor } from '../../BookEditor/BookEditor';
 import { classNames } from '../../_common/react-utils/classNames';
 import styles from './CodeBlock.module.css';
 
@@ -15,7 +17,19 @@ export function CodeBlock({ code, language, className }: CodeBlockProps) {
     const lines = useMemo(() => code.split('\n').length, [code]);
     // Note: 19px is approx line height for fontSize 14. +20 for padding.
     // We cap at 400px to avoid taking too much space, allowing scroll.
-    const height = Math.min(Math.max(lines * 19, 19), 400); 
+    const height = Math.min(Math.max(lines * 19, 19), 400);
+
+    if (language?.trim().toLowerCase() === 'book') {
+        return (
+            <div className={classNames(styles.CodeBlock, className)}>
+                <BookEditor
+                    value={code as string_book}
+                    isReadonly={true}
+                    height={lines * 25 /* <- [🧠] A bit more than 19px to accommodate BookEditor lines */}
+                />
+            </div>
+        );
+    }
 
     return (
         <div className={classNames(styles.CodeBlock, className)}>

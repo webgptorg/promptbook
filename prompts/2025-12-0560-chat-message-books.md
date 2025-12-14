@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🐛] When showing `book` code in <Chat/> component, use syntax via `<BookEditor/>`
 

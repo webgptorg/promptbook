@@ -1,6 +1,7 @@
 ### 📖 Book Components
 
 -   Use **Monaco Editor** for syntax highlighting in `<Chat/>` component (instead of `highlight.js`)
+-   Use **Book Editor** for displaying `book` code snippets in `<Chat/>` component
 
 ### 🐇 Agents Server
 
