@@ -93,35 +93,52 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
                 value={agentSource}
                 onChange={handleChange}
                 onFileUpload={async (file) => {
-                    const formData = new FormData();
-                    formData.append('file', file);
-
+                    // First, request a signed upload URL
                     const response = await fetch('/api/upload', {
                         method: 'POST',
-                        body: formData,
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            filename: file.name,
+                            contentType: file.type,
+                            fileSize: file.size,
+                        }),
                     });
 
                     if (!response.ok) {
-                        throw new Error(`Failed to upload file: ${response.statusText}`);
+                        throw new Error(`Failed to get upload URL: ${response.statusText}`);
                     }
 
-                    const { fileUrl: longFileUrl } = await response.json();
+                    const { uploadUrl, fileUrl } = await response.json();
+
+                    // Upload directly to Vercel Blob
+                    const uploadResponse = await fetch(uploadUrl, {
+                        method: 'PUT',
+                        body: file,
+                        headers: {
+                            'Content-Type': file.type,
+                        },
+                    });
+
+                    if (!uploadResponse.ok) {
+                        throw new Error(`Failed to upload file: ${uploadResponse.statusText}`);
+                    }
 
                     const LONG_URL = `${process.env.NEXT_PUBLIC_CDN_PUBLIC_URL!}/${process.env
                         .NEXT_PUBLIC_CDN_PATH_PREFIX!}/user/files/`;
                     const SHORT_URL = `https://ptbk.io/k/`;
                     // <- TODO: [🌍] Unite this logic in one place
 
-                    const shortFileUrl = longFileUrl.split(LONG_URL).join(SHORT_URL);
+                    const shortFileUrl = fileUrl.split(LONG_URL).join(SHORT_URL);
 
                     console.log(`File uploaded:`, {
                         LONG_URL,
                         SHORT_URL,
-                        longFileUrl,
+                        fileUrl,
                         shortFileUrl,
                         file,
-                        formData,
+                        uploadUrl,
                         response,
+                        uploadResponse,
                     });
 
                     return shortFileUrl;

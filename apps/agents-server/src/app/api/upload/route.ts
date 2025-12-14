@@ -1,24 +1,24 @@
-import { nextRequestToNodeRequest } from '@/src/utils/cdn/utils/nextRequestToNodeRequest';
-import { TODO_any } from '@promptbook-local/types';
+import { put, createMultipartUpload } from '@vercel/blob';
 import { serializeError } from '@promptbook-local/utils';
-import formidable from 'formidable';
-import { readFile } from 'fs/promises';
 import { NextRequest, NextResponse } from 'next/server';
-import { forTime } from 'waitasecond';
 import { assertsError } from '../../../../../../src/errors/assertsError';
 import { string_url } from '../../../../../../src/types/typeAliases';
-import { keepUnused } from '../../../../../../src/utils/organization/keepUnused';
 import { $provideCdnForServer } from '../../../../src/tools/$provideCdnForServer';
 import { getUserFileCdnKey } from '../../../../src/utils/cdn/utils/getUserFileCdnKey';
-import { validateMimeType } from '../../../../src/utils/validators/validateMimeType';
 import { getMetadata } from '../../../database/getMetadata';
 
 export async function POST(request: NextRequest) {
     try {
-        await forTime(1);
-        // await forTime(5000);
+        // Parse the request to get filename, content type, and file size
+        const { filename, contentType, fileSize } = await request.json();
 
-        const nodeRequest = await nextRequestToNodeRequest(request);
+        if (!filename || !contentType) {
+            return NextResponse.json(
+                { message: 'Missing filename or contentType in request body' },
+                { status: 400 },
+            );
+        }
+
         let maxFileSizeMb = Number((await getMetadata('MAX_FILE_UPLOAD_SIZE_MB')) || '50'); // <- TODO: [🌲] To /config.ts
 
         if (Number.isNaN(maxFileSizeMb)) {
@@ -27,40 +27,34 @@ export async function POST(request: NextRequest) {
 
         const maxFileSize = maxFileSizeMb * 1024 * 1024;
 
-        const files = await new Promise<formidable.Files>((resolve, reject) => {
-            const form = formidable({ maxFileSize });
-            form.parse(nodeRequest as TODO_any, (error, fields, files) => {
-                keepUnused(fields);
-
-                if (error) {
-                    return reject(error);
-                }
-                resolve(files);
-            });
-        });
-
-        const uploadedFiles = files.file;
-
-        if (!uploadedFiles || uploadedFiles.length !== 1) {
+        // Validate file size
+        if (fileSize && fileSize > maxFileSize) {
             return NextResponse.json(
-                { message: 'In form data there is not EXACTLY one "file" field' },
+                { message: `File size exceeds maximum allowed size of ${maxFileSizeMb}MB` },
                 { status: 400 },
             );
         }
 
-        const uploadedFile = uploadedFiles[0]!;
-        const fileBuffer = await readFile(uploadedFile.filepath);
+        // Get CDN configuration
         const cdn = $provideCdnForServer();
-        const key = getUserFileCdnKey(fileBuffer, uploadedFile.originalFilename || uploadedFile.newFilename);
+        const key = getUserFileCdnKey(Buffer.from([]), filename); // Empty buffer for key generation
 
-        await cdn.setItem(key, {
-            type: validateMimeType(uploadedFile.mimetype),
-            data: fileBuffer,
+        // Generate signed upload URL using Vercel Blob's put function
+        const path = (cdn as any).config.pathPrefix ? `${(cdn as any).config.pathPrefix}/${key}` : key;
+
+        const { url } = await put(path, new Blob(), {
+            access: 'public',
+            contentType,
+            token: process.env.VERCEL_BLOB_READ_WRITE_TOKEN!,
+            addRandomSuffix: false,
+            allowOverwrite: true,
         });
 
-        const fileUrl = cdn.getItemUrl(key);
+        return NextResponse.json({
+            uploadUrl: url as string_url,
+            fileUrl: cdn.getItemUrl(key).href as string_url
+        }, { status: 200 });
 
-        return NextResponse.json({ fileUrl: fileUrl.href as string_url }, { status: 201 });
     } catch (error) {
         assertsError(error);
 

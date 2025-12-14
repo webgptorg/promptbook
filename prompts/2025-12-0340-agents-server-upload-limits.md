@@ -11,7 +11,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🧯] Upload files directly to Vercel Blob via signed upload to allow uploading bigger files
 
