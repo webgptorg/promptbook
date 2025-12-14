@@ -283,26 +283,47 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
     //            Use Supabase realtime logic
 
     /**
-     * Soft deletes an agent from the collection
+     * List agents that are soft deleted (deletedAt IS NOT NULL)
      */
-    public async deleteAgent(agentIdentifier: string): Promise<void> {
-        const updateResult = await this.supabaseClient
+    public async listDeletedAgents(): Promise<ReadonlyArray<AgentBasicInformation>> {
+        const { isVerbose = DEFAULT_IS_VERBOSE } = this.options || {};
+        const selectResult = await this.supabaseClient
             .from(this.getTableName('Agent'))
-            .update({ deletedAt: new Date().toISOString() })
-            .or(`agentName.eq.${agentIdentifier},permanentId.eq.${agentIdentifier}`)
-            .is('deletedAt', null);
+            .select('agentName,agentProfile,permanentId')
+            .not('deletedAt', 'is', null);
 
-        if (updateResult.error) {
+        if (selectResult.error) {
             throw new DatabaseError(
-                spaceTrim(
-                    (block) => `
-                        Error soft deleting agent "${agentIdentifier}" from Supabase:
+                spaceTrim((block) => `
+                    Error fetching deleted agents from Supabase:
 
-                        ${block(updateResult.error.message)}
-                    `,
-                ),
+                    ${block(selectResult.error.message)}
+                `),
             );
         }
+
+        if (isVerbose) {
+            console.info(`Found ${selectResult.data.length} deleted agents in directory`);
+        }
+
+        return selectResult.data.map(({ agentName, agentProfile, permanentId }) => {
+            if (isVerbose && (agentProfile as AgentBasicInformation).agentName !== agentName) {
+                console.warn(
+                    spaceTrim(`
+                        Agent name mismatch for agent "${agentName}". Using name from database.
+
+                        agentName: "${agentName}"
+                        agentProfile.agentName: "${(agentProfile as AgentBasicInformation).agentName}"
+                    `),
+                );
+            }
+
+            return {
+                ...(agentProfile as AgentBasicInformation),
+                agentName,
+                permanentId: permanentId || (agentProfile as AgentBasicInformation).permanentId,
+            };
+        });
     }
 
     /**
@@ -322,7 +343,7 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
                 spaceTrim(
                     (block) => `
                     Error listing history for agent "${agentName}" from Supabase:
-                    
+
                     ${block(result.error.message)}
                 `,
                 ),
@@ -330,30 +351,6 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
         }
 
         return result.data;
-    }
-
-    /**
-     * List agents that are soft deleted (deletedAt IS NOT NULL)
-     */
-    public async listDeletedAgents(): Promise<ReadonlyArray<string_agent_name>> {
-        const deletedAgentsResult = await this.supabaseClient
-            .from(this.getTableName('Agent'))
-            .select('agentName')
-            .not('deletedAt', 'is', null);
-
-        if (deletedAgentsResult.error) {
-            throw new DatabaseError(
-                spaceTrim(
-                    (block) => `
-                    Error fetching deleted agents from Supabase:
-
-                    ${block(deletedAgentsResult.error.message)}
-                `,
-                ),
-            );
-        }
-
-        return deletedAgentsResult.data.map((d) => d.agentName as string_agent_name);
     }
 
     /**

@@ -31,7 +31,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨📗] Visual of `/recycle-bin` should be same as `/`
 

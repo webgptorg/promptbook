@@ -1,5 +1,6 @@
 // DELETE /api/agents/[agentName]
 // PATCH /api/agents/[agentName] - update agent visibility
+// POST /api/agents/[agentName]/restore - restore deleted agent
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import { $provideServer } from '@/src/tools/$provideServer';
