@@ -38,6 +38,12 @@ export const metadataDefaults = [
         type: 'TEXT',
     },
     {
+        key: 'SHOW_FEDERATED_SERVERS_PUBLICLY',
+        value: 'false',
+        note: 'Whether to show federated servers and their agents to anonymous users. When false, federated servers are only visible to authenticated users.',
+        type: 'BOOLEAN',
+    },
+    {
         key: 'IS_EXPERIMENTAL_VOICE_CALLING_ENABLED',
         value: 'false',
         note: 'Enable or disable voice calling features for agents. When disabled, voice API endpoints will return 403 Forbidden.',

@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨💾] Allow to hide agents from federated servers for anonymous users
 

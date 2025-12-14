@@ -320,44 +320,46 @@ export function Header(props: HeaderProps) {
 
                     {/* Desktop Navigation */}
                     <nav className="hidden lg:flex items-center gap-8">
-                        {/* Federated servers dropdown */}
-                        <div className="relative">
-                            <button
-                                className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
-                                onClick={() => setIsFederatedOpen(!isFederatedOpen)}
-                                onBlur={() => setTimeout(() => setIsFederatedOpen(false), 200)}
-                            >
-                                <ChevronDown className="w-4 h-4" />
-                                <span>Switch server</span>
-                            </button>
-                            {isFederatedOpen && (
-                                <div className="absolute top-full left-0 mt-2 w-56 bg-white rounded-md shadow-lg border border-gray-100 py-1 z-50 animate-in fade-in zoom-in-95 duration-200 max-h-[80vh] overflow-y-auto">
-                                    {federatedDropdownItems.map((subItem, subIndex) => {
-                                        const className = `block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 ${
-                                            subItem.isBold ? 'font-medium' : ''
-                                        } ${subItem.isBordered ? 'border-b border-gray-100' : ''}`;
+                        {/* Federated servers dropdown - only show if there are federated servers */}
+                        {federatedServers.length > 0 && (
+                            <div className="relative">
+                                <button
+                                    className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
+                                    onClick={() => setIsFederatedOpen(!isFederatedOpen)}
+                                    onBlur={() => setTimeout(() => setIsFederatedOpen(false), 200)}
+                                >
+                                    <ChevronDown className="w-4 h-4" />
+                                    <span>Switch server</span>
+                                </button>
+                                {isFederatedOpen && (
+                                    <div className="absolute top-full left-0 mt-2 w-56 bg-white rounded-md shadow-lg border border-gray-100 py-1 z-50 animate-in fade-in zoom-in-95 duration-200 max-h-[80vh] overflow-y-auto">
+                                        {federatedDropdownItems.map((subItem, subIndex) => {
+                                            const className = `block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 ${
+                                                subItem.isBold ? 'font-medium' : ''
+                                            } ${subItem.isBordered ? 'border-b border-gray-100' : ''}`;
 
-                                        if (subItem.href) {
+                                            if (subItem.href) {
+                                                return (
+                                                    <HeadlessLink
+                                                        key={subIndex}
+                                                        href={subItem.href}
+                                                        className={className}
+                                                        onClick={() => setIsFederatedOpen(false)}
+                                                    >
+                                                        {subItem.label}
+                                                    </HeadlessLink>
+                                                );
+                                            }
                                             return (
-                                                <HeadlessLink
-                                                    key={subIndex}
-                                                    href={subItem.href}
-                                                    className={className}
-                                                    onClick={() => setIsFederatedOpen(false)}
-                                                >
+                                                <span key={subIndex} className={className}>
                                                     {subItem.label}
-                                                </HeadlessLink>
+                                                </span>
                                             );
-                                        }
-                                        return (
-                                            <span key={subIndex} className={className}>
-                                                {subItem.label}
-                                            </span>
-                                        );
-                                    })}
-                                </div>
-                            )}
-                        </div>
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        )}
                         {menuItems.map((item, index) => {
                             if (item.type === 'link') {
                                 return (

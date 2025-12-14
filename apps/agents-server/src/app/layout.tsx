@@ -83,31 +83,36 @@ export default async function RootLayout({
         console.error('Failed to parse FOOTER_LINKS', error);
     }
 
-    // Fetch federated servers and add to footerLinks
+    // Fetch federated servers and add to footerLinks (only if user is authenticated or SHOW_FEDERATED_SERVERS_PUBLICLY is true)
     let federatedServers: Array<{ url: string; title: string; logoUrl: string | null }> = [];
     try {
-        const federatedServersRaw = await getFederatedServersFromMetadata();
-        federatedServers = await Promise.all(
-            federatedServersRaw.map(async (url: string) => {
-                let logoUrl: string | null = null;
-                try {
-                    // Try to fetch logo from metadata endpoint if available
-                    const res = await fetch(`${url}/api/metadata`);
-                    if (res.ok) {
-                        const meta = await res.json();
-                        logoUrl = meta.SERVER_LOGO_URL || null;
+        const showFederatedServersPublicly = ((await getMetadata('SHOW_FEDERATED_SERVERS_PUBLICLY')) || 'false') === 'true';
+
+        // Only show federated servers in footer if user is authenticated or if SHOW_FEDERATED_SERVERS_PUBLICLY is true
+        if (currentUser || showFederatedServersPublicly) {
+            const federatedServersRaw = await getFederatedServersFromMetadata();
+            federatedServers = await Promise.all(
+                federatedServersRaw.map(async (url: string) => {
+                    let logoUrl: string | null = null;
+                    try {
+                        // Try to fetch logo from metadata endpoint if available
+                        const res = await fetch(`${url}/api/metadata`);
+                        if (res.ok) {
+                            const meta = await res.json();
+                            logoUrl = meta.SERVER_LOGO_URL || null;
+                        }
+                    } catch {
+                        logoUrl = null;
                     }
-                } catch {
-                    logoUrl = null;
-                }
-                return {
-                    title: `Federated: ${new URL(url).hostname}`,
-                    url,
-                    logoUrl,
-                };
-            })
-        );
-        footerLinks = [...footerLinks, ...federatedServers];
+                    return {
+                        title: `Federated: ${new URL(url).hostname}`,
+                        url,
+                        logoUrl,
+                    };
+                })
+            );
+            footerLinks = [...footerLinks, ...federatedServers];
+        }
     } catch (error) {
         console.error('Failed to fetch federated servers for footer', error);
     }
