@@ -42,7 +42,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨📗] When agent is deleted or restored, update the agent list right away
 

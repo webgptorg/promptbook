@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { TrashIcon } from 'lucide-react';
 import Link from 'next/link';
 import { AddAgentButton } from '../../app/AddAgentButton';
@@ -20,23 +21,44 @@ type AgentsListProps = {
 };
 
 export function AgentsList({ agents: initialAgents, isAdmin }: AgentsListProps) {
+    const router = useRouter();
     const [agents, setAgents] = useState(Array.from(initialAgents));
 
     const handleDelete = async (agentIdentifier: string) => {
         const agent = agents.find(a => a.permanentId === agentIdentifier || a.agentName === agentIdentifier);
         if (!agent) return;
         if (!window.confirm(`Delete agent "${agent.agentName}"? It will be moved to Recycle Bin.`)) return;
-        await fetch(`/api/agents/${encodeURIComponent(agentIdentifier)}`, { method: 'DELETE' });
-        setAgents(agents.filter((a) => a.permanentId !== agent.permanentId && a.agentName !== agent.agentName));
+
+        try {
+            const response = await fetch(`/api/agents/${encodeURIComponent(agentIdentifier)}`, { method: 'DELETE' });
+            if (response.ok) {
+                setAgents(agents.filter((a) => a.permanentId !== agent.permanentId && a.agentName !== agent.agentName));
+                router.refresh(); // Refresh server data to ensure consistency
+            } else {
+                alert('Failed to delete agent');
+            }
+        } catch (error) {
+            alert('Failed to delete agent');
+        }
     };
 
     const handleClone = async (agentIdentifier: string) => {
         const agent = agents.find(a => a.permanentId === agentIdentifier || a.agentName === agentIdentifier);
         if (!agent) return;
         if (!window.confirm(`Clone agent "${agent.agentName}"?`)) return;
-        const response = await fetch(`/api/agents/${encodeURIComponent(agentIdentifier)}/clone`, { method: 'POST' });
-        const newAgent = await response.json();
-        setAgents([...agents, newAgent]);
+
+        try {
+            const response = await fetch(`/api/agents/${encodeURIComponent(agentIdentifier)}/clone`, { method: 'POST' });
+            if (response.ok) {
+                const newAgent = await response.json();
+                setAgents([...agents, newAgent]);
+                router.refresh(); // Refresh server data to ensure consistency
+            } else {
+                alert('Failed to clone agent');
+            }
+        } catch (error) {
+            alert('Failed to clone agent');
+        }
     };
 
     const handleToggleVisibility = async (agentIdentifier: string) => {
@@ -59,6 +81,7 @@ export function AgentsList({ agents: initialAgents, isAdmin }: AgentsListProps) 
                     ? { ...a, visibility: newVisibility }
                     : a
             ));
+            router.refresh(); // Refresh server data to ensure consistency
         } else {
             alert('Failed to update agent visibility');
         }
