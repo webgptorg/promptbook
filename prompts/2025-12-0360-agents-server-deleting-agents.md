@@ -16,7 +16,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨📗] Update behavior of deleted agent
 

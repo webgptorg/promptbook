@@ -5,6 +5,7 @@ import { $provideOpenAiAssistantExecutionToolsForServer } from '@/src/tools/$pro
 import { Agent, computeAgentHash, PROMPTBOOK_ENGINE_VERSION } from '@promptbook-local/core';
 import { computeHash, serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
+import { isAgentDeleted } from '../../_utils';
 
 /**
  * Allow long-running streams: set to platform maximum (seconds)
@@ -25,6 +26,22 @@ export async function OPTIONS(request: Request) {
 export async function POST(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
     let { agentName } = await params;
     agentName = decodeURIComponent(agentName);
+
+    // Check if agent is deleted
+    if (await isAgentDeleted(agentName)) {
+        return new Response(
+            JSON.stringify({
+                error: {
+                    message: 'This agent has been deleted. You can restore it from the Recycle Bin.',
+                    type: 'agent_deleted',
+                },
+            }),
+            {
+                status: 410, // Gone - indicates the resource is no longer available
+                headers: { 'Content-Type': 'application/json' },
+            },
+        );
+    }
 
     const body = await request.json();
     const { message = 'Tell me more about yourself.', thread } = body;

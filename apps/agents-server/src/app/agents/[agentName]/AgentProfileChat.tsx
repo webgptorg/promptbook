@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useMemo } from 'react';
 import spaceTrim from 'spacetrim';
 import { string_agent_url, string_color } from '../../../../../../src/types/typeAliases';
+import { DeletedAgentBanner } from '../../../components/DeletedAgentBanner';
 
 type AgentProfileChatProps = {
     agentUrl: string_agent_url;
@@ -14,9 +15,10 @@ type AgentProfileChatProps = {
     fullname: string;
     brandColorHex: string_color;
     avatarSrc: string;
+    isDeleted?: boolean;
 };
 
-export function AgentProfileChat({ agentUrl, agentName, fullname, brandColorHex, avatarSrc }: AgentProfileChatProps) {
+export function AgentProfileChat({ agentUrl, agentName, fullname, brandColorHex, avatarSrc, isDeleted = false }: AgentProfileChatProps) {
     const router = useRouter();
 
     const agentPromise = useMemo(
@@ -51,6 +53,15 @@ export function AgentProfileChat({ agentUrl, agentName, fullname, brandColorHex,
             `)
         );
     }, [agent, fullname, agentName]);
+
+    // If agent is deleted, show banner instead of chat
+    if (isDeleted) {
+        return (
+            <div className="w-full min-h-[350px] md:min-h-[500px] flex items-center justify-center">
+                <DeletedAgentBanner message="This agent has been deleted. You can restore it from the Recycle Bin." />
+            </div>
+        );
+    }
 
     // If agent is not loaded yet, we can show a skeleton or just the default Chat structure
     // But to match "same initial message", we need the agent loaded or at least the default fallback.

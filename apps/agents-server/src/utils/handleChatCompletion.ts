@@ -7,6 +7,7 @@ import { ChatMessage, ChatPromptResult, Prompt, string_book, TODO_any } from '@p
 import { computeHash } from '@promptbook-local/utils';
 import { NextRequest, NextResponse } from 'next/server';
 import { validateApiKey } from './validateApiKey';
+import { isAgentDeleted } from '../app/agents/[agentName]/_utils';
 
 export async function handleChatCompletion(
     request: NextRequest,
@@ -57,6 +58,19 @@ export async function handleChatCompletion(
                     },
                 },
                 { status: 400 },
+            );
+        }
+
+        // Check if agent is deleted
+        if (await isAgentDeleted(agentName)) {
+            return NextResponse.json(
+                {
+                    error: {
+                        message: 'This agent has been deleted. You can restore it from the Recycle Bin.',
+                        type: 'agent_deleted',
+                    },
+                },
+                { status: 410 }, // Gone - indicates the resource is no longer available
             );
         }
 

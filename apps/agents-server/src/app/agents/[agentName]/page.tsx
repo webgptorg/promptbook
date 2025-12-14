@@ -7,12 +7,13 @@ import { PROMPTBOOK_COLOR } from '@promptbook-local/core';
 import { NotFoundError } from '@promptbook-local/core';
 import { notFound } from 'next/navigation';
 import { Color } from '../../../../../../src/utils/color/Color';
-import { getAgentName, getAgentProfile } from './_utils';
+import { getAgentName, getAgentProfile, isAgentDeleted } from './_utils';
 import { getAgentLinks } from './agentLinks';
 import { AgentProfileChat } from './AgentProfileChat';
 import { AgentProfileWrapper } from './AgentProfileWrapper';
 import { generateAgentMetadata } from './generateAgentMetadata';
 import { ServiceWorkerRegister } from './ServiceWorkerRegister';
+import { DeletedAgentBanner } from '../../../components/DeletedAgentBanner';
 
 export const generateMetadata = generateAgentMetadata;
 
@@ -56,6 +57,7 @@ export default async function AgentPage({
     const brandColorHex = brandColor.then(saturate(-0.5)).toHex();
 
     const fullname = (agentProfile.meta.fullname || agentProfile.agentName || 'Agent') as string;
+    const isDeleted = await isAgentDeleted(agentName);
 
     return (
         <>
@@ -88,12 +90,14 @@ export default async function AgentPage({
                     </>
                 }
             >
+                {isDeleted && <DeletedAgentBanner />}
                 <AgentProfileChat
                     agentUrl={agentUrl}
                     agentName={agentName}
                     fullname={fullname}
                     brandColorHex={brandColorHex}
                     avatarSrc={agentProfile.meta.image!}
+                    isDeleted={isDeleted}
                 />
             </AgentProfileWrapper>
         </>
