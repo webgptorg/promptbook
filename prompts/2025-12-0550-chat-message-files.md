@@ -19,7 +19,7 @@ def hello_world():
 
 ---
 
-[ ]
+[x]
 
 [✨🌖] Allow to download file embeddded in chat message in <Chat/> component
 

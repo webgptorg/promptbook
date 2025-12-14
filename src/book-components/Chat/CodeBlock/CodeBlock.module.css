@@ -13,4 +13,22 @@
     border-bottom: 1px solid #444;
     display: flex;
     justify-content: space-between;
+    align-items: center;
+}
+
+.DownloadButton {
+    background: transparent;
+    border: none;
+    color: #aaa;
+    cursor: pointer;
+    font-size: inherit;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: color 0.2s;
+}
+
+.DownloadButton:hover {
+    color: #fff;
 }
