@@ -41,7 +41,7 @@ CONTEXT You are helping users of abc.com
 
 ---
 
-[ ]
+[.] _<- Note: Already done_
 
 [✨🐛] Use <BookEditor/> in `/docs/...`
 
@@ -54,10 +54,12 @@ CONTEXT You are helping users of abc.com
 
 [ ]
 
-[✨🐛] When showing placed `book` insite a message in  <Chat/> compo
+[✨🐛] Allow to create instant agent from <Chat/> component
 
+-   When showing embedded `book` in a chat message in <Chat/> component, alongside the download and copy button, also show a "Create agent" button to instantly create an agent from the book
 -   <Chat/> component is [located in this file](/src/book-components/Chat/Chat/Chat.tsx)
 -   You are working with the `Agents Server` application `/apps/agents-server`
+    -   <Chat/> component can work also outside of Agents Server, but this feature is only relevant for Agents Server
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
 

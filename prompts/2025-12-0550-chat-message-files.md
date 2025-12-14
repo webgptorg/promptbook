@@ -48,10 +48,13 @@ allow to download all files from message
 
 ---
 
-[-]
+[ ]
 
-[✨🌖] foo
+[✨🌖] Allow to copy to clipboard from embedded code
 
+-   When showing embedded code inchat message in <Chat/> component, show also a "Copy to Clipboard" button to copy the file content to clipboard
+-   This should work both for Monaco Editor rendered code snippets and for BookEditor rendered book code snippets
+-   <Chat/> component is [located in this file](/src/book-components/Chat/Chat/Chat.tsx)
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
 
