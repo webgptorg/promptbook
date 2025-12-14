@@ -5,6 +5,7 @@ import {
     CopyIcon,
     CopyPlusIcon,
     DownloadIcon,
+    FileTextIcon,
     MailIcon,
     MessageCircleQuestionIcon,
     MessageSquareIcon,
@@ -185,6 +186,12 @@ export function AgentOptionsMenu({
             href: editBookLink.href,
             icon: editBookLink.icon,
             label: editBookLink.title,
+        },
+        {
+            type: 'link' as const,
+            href: `/agents/${encodeURIComponent(agentName)}/system-message`,
+            icon: FileTextIcon,
+            label: 'System Message',
         },
         { type: 'divider' as const },
         {
