@@ -2,8 +2,8 @@ import type { NextConfig } from 'next';
 import path from 'path';
 
 const nextConfig: NextConfig = {
-    output: 'standalone',
-    // <- TODO: [🐱‍🚀][🧠] How to propperly build Next.js app
+    // output: 'standalone',
+    // <- TODO: [🐱‍🚀][🧠] How to propperly build Next.js app, for both Vercel and Doceker?
 
     experimental: {
         externalDir: true,
