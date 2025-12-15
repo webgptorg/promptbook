@@ -95,12 +95,11 @@ export class OllamaExecutionTools extends OpenAiCompatibleExecutionTools impleme
         // <- TODO: [🛄]
     }
 
-
     /**
-     * Default model for image generation variant.
+     * Default model for completion variant.
      */
     protected getDefaultImageGenerationModel(): AvailableModel {
-        return this.getDefaultModel('!!!'); // <- TODO: [🧠] Pick the best default model
+        return this.getDefaultModel('dall-e-3');
         // <- TODO: [🛄]
     }
 

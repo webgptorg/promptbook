@@ -10,7 +10,10 @@ import { $isRunningInWebWorker } from '../../utils/environment/$isRunningInWebWo
 import { RemoteLlmExecutionTools } from '../remote/RemoteLlmExecutionTools';
 import { computeOpenAiUsage } from './computeOpenAiUsage';
 import { OpenAiCompatibleExecutionTools } from './OpenAiCompatibleExecutionTools';
-import type { OpenAiCompatibleExecutionToolsNonProxiedOptions, OpenAiCompatibleExecutionToolsOptions } from './OpenAiCompatibleExecutionToolsOptions';
+import type {
+    OpenAiCompatibleExecutionToolsNonProxiedOptions,
+    OpenAiCompatibleExecutionToolsOptions,
+} from './OpenAiCompatibleExecutionToolsOptions';
 
 /**
  * Execution Tools for calling OpenAI compatible API
@@ -139,11 +142,10 @@ export class HardcodedOpenAiCompatibleExecutionTools
     }
 
     /**
-     * Default model for image generation variant.
+     * Default model for completion variant.
      */
     protected getDefaultImageGenerationModel(): AvailableModel {
-        return this.getDefaultModel('!!!'); // <- TODO: [🧠] Pick the best default model
-        // <- TODO: [🛄]
+        throw new PipelineExecutionError(`${this.title} does not support IMAGE_GENERATION model variant`);
     }
 
     // <- Note: [🤖] getDefaultXxxModel
