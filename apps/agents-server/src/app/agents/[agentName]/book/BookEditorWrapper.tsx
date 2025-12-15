@@ -2,6 +2,7 @@
 
 import { BookEditor } from '@promptbook-local/components';
 import { string_book } from '@promptbook-local/types';
+import { upload } from '@vercel/blob/client';
 import { useEffect, useRef, useState } from 'react';
 
 type BookEditorWrapperProps = {
@@ -93,37 +94,23 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
                 value={agentSource}
                 onChange={handleChange}
                 onFileUpload={async (file) => {
-                    // First, request a signed upload URL
-                    const response = await fetch('/api/upload', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            filename: file.name,
-                            contentType: file.type,
-                            fileSize: file.size,
+                    console.info('🔼 Uploading file', file);
+
+                    // Build the full path including prefix and user/files directory
+                    const pathPrefix = process.env.NEXT_PUBLIC_CDN_PATH_PREFIX || '';
+                    const uploadPath = pathPrefix ? `${pathPrefix}/user/files/${file.name}` : `user/files/${file.name}`;
+
+                    // Upload directly to Vercel Blob using client upload
+                    const blob = await upload(uploadPath, file, {
+                        access: 'public',
+                        handleUploadUrl: '/api/upload',
+                        clientPayload: JSON.stringify({
                             purpose: 'KNOWLEDGE',
+                            contentType: file.type,
                         }),
                     });
 
-                    if (!response.ok) {
-                        throw new Error(`Failed to get upload URL: ${response.statusText}`);
-                    }
-
-                    const { uploadUrl, fileUrl } = await response.json();
-
-                    // Upload directly to Vercel Blob
-                    const uploadResponse = await fetch(uploadUrl, {
-                        method: 'PUT',
-                        body: file,
-                        headers: {
-                            'Content-Type': file.type,
-                            'Content-Length': file.size.toString(),
-                        },
-                    });
-
-                    if (!uploadResponse.ok) {
-                        throw new Error(`Failed to upload file: ${uploadResponse.statusText}`);
-                    }
+                    const fileUrl = blob.url;
 
                     const LONG_URL = `${process.env.NEXT_PUBLIC_CDN_PUBLIC_URL!}/${process.env
                         .NEXT_PUBLIC_CDN_PATH_PREFIX!}/user/files/`;
@@ -132,15 +119,13 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
 
                     const shortFileUrl = fileUrl.split(LONG_URL).join(SHORT_URL);
 
-                    console.log(`File uploaded:`, {
+                    console.log(`🔼 File uploaded:`, {
                         LONG_URL,
                         SHORT_URL,
                         fileUrl,
                         shortFileUrl,
                         file,
-                        uploadUrl,
-                        response,
-                        uploadResponse,
+                        blob,
                     });
 
                     return shortFileUrl;

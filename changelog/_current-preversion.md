@@ -9,9 +9,9 @@
 
 ### 🐇 Agents Server
 
--   Fix build error `ENOENT: no such file or directory, lstat .../.next/export-detail.json` on Vercel by disabling `output: 'standalone'`
 -   Export entire book documentation as one coherent markdown file to `/api/docs/book.md`
 -   Better UI for documentation actions (Print, Download Markdown) in `/docs`
+-   Fixed file upload to Vercel Blob: Using proper client upload protocol with `handleUpload` instead of direct PUT requests
 
 ### 🛝 Playground
 

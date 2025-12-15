@@ -1,5 +1,6 @@
 'use client';
 
+import { upload } from '@vercel/blob/client';
 import { FileText, Hash, Image, Shield, ToggleLeft, Type, Upload } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { metadataDefaults, MetadataType } from '../../../database/metadataDefaults';
@@ -186,36 +187,21 @@ export function MetadataClient() {
         try {
             setIsUploading(true);
 
-            // First, request a signed upload URL
-            const response = await fetch('/api/upload', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    filename: file.name,
-                    contentType: file.type,
-                    fileSize: file.size,
+            // Build the full path including prefix and user/files directory
+            const pathPrefix = process.env.NEXT_PUBLIC_CDN_PATH_PREFIX || '';
+            const uploadPath = pathPrefix ? `${pathPrefix}/user/files/${file.name}` : `user/files/${file.name}`;
+
+            // Upload directly to Vercel Blob using client upload
+            const blob = await upload(uploadPath, file, {
+                access: 'public',
+                handleUploadUrl: '/api/upload',
+                clientPayload: JSON.stringify({
                     purpose: formState.key || 'METADATA_IMAGE',
+                    contentType: file.type,
                 }),
             });
 
-            if (!response.ok) {
-                throw new Error(`Failed to get upload URL: ${response.statusText}`);
-            }
-
-            const { uploadUrl, fileUrl } = await response.json();
-
-            // Upload directly to Vercel Blob
-            const uploadResponse = await fetch(uploadUrl, {
-                method: 'PUT',
-                body: file,
-                headers: {
-                    'Content-Type': file.type,
-                },
-            });
-
-            if (!uploadResponse.ok) {
-                throw new Error(`Failed to upload file: ${uploadResponse.statusText}`);
-            }
+            const fileUrl = blob.url;
 
             const LONG_URL = `${process.env.NEXT_PUBLIC_CDN_PUBLIC_URL!}/${process.env
                 .NEXT_PUBLIC_CDN_PATH_PREFIX!}/user/files/`;

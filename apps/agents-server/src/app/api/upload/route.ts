@@ -1,62 +1,58 @@
 import { serializeError } from '@promptbook-local/utils';
+import { handleUpload, type HandleUploadBody } from '@vercel/blob/client';
 import { NextRequest, NextResponse } from 'next/server';
 import { assertsError } from '../../../../../../src/errors/assertsError';
-import { string_url } from '../../../../../../src/types/typeAliases';
-import { $provideCdnForServer } from '../../../../src/tools/$provideCdnForServer';
-import { getUserFileCdnKey } from '../../../../src/utils/cdn/utils/getUserFileCdnKey';
 import { getUserIdFromRequest } from '../../../../src/utils/getUserIdFromRequest';
 import { getMetadata } from '../../../database/getMetadata';
 
 export async function POST(request: NextRequest) {
     try {
-        // Parse the request to get filename, content type, and file size
-        const { filename, contentType, fileSize, purpose } = await request.json();
+        const body = (await request.json()) as HandleUploadBody;
 
-        if (!filename || !contentType) {
-            return NextResponse.json(
-                { message: 'Missing filename or contentType in request body' },
-                { status: 400 },
-            );
-        }
+        // Handle Vercel Blob client upload protocol
+        const jsonResponse = await handleUpload({
+            body,
+            request,
+            token: process.env.VERCEL_BLOB_READ_WRITE_TOKEN!,
+            onBeforeGenerateToken: async (pathname, clientPayload) => {
+                // Authenticate user and validate upload
+                const userId = await getUserIdFromRequest(request);
 
-        let maxFileSizeMb = Number((await getMetadata('MAX_FILE_UPLOAD_SIZE_MB')) || '50'); // <- TODO: [🌲] To /config.ts
+                // Parse client payload for additional metadata
+                const payload = clientPayload ? JSON.parse(clientPayload) : {};
+                const { purpose, contentType } = payload;
 
-        if (Number.isNaN(maxFileSizeMb)) {
-            maxFileSizeMb = 50; // <- TODO: [🌲] To /config.ts
-        }
+                let maxFileSizeMb = Number((await getMetadata('MAX_FILE_UPLOAD_SIZE_MB')) || '50'); // <- TODO: [🌲] To /config.ts
+                if (Number.isNaN(maxFileSizeMb)) {
+                    maxFileSizeMb = 50; // <- TODO: [🌲] To /config.ts
+                }
+                const maxFileSize = maxFileSizeMb * 1024 * 1024;
 
-        const maxFileSize = maxFileSizeMb * 1024 * 1024;
+                // Generate the proper path with prefix
+                // Note: With client uploads, we use the original filename provided by the client
+                // The file will be stored at: {pathPrefix}/user/files/{filename}
+                const pathPrefix = process.env.NEXT_PUBLIC_CDN_PATH_PREFIX || '';
 
-        // Validate file size
-        if (fileSize && fileSize > maxFileSize) {
-            return NextResponse.json(
-                { message: `File size exceeds maximum allowed size of ${maxFileSizeMb}MB` },
-                { status: 400 },
-            );
-        }
+                return {
+                    allowedContentTypes: contentType ? [contentType] : undefined,
+                    maximumSizeInBytes: maxFileSize,
+                    addRandomSuffix: true, // Add random suffix to avoid filename collisions since we can't hash content
+                    tokenPayload: JSON.stringify({
+                        userId: userId || null,
+                        purpose: purpose || 'GENERIC_UPLOAD',
+                    }),
+                };
+            },
+            onUploadCompleted: async ({ blob, tokenPayload }) => {
+                // This callback is called after the upload completes
+                // Can be used to update database with final blob URL
+                console.info('Upload completed:', { blob, tokenPayload });
 
-        // Get CDN configuration
-        const cdn = $provideCdnForServer();
-        const key = getUserFileCdnKey(Buffer.from([]), filename); // Empty buffer for key generation
-
-        const userId = await getUserIdFromRequest(request);
-
-        // Track upload intent and create placeholder/url using setItem
-        await cdn.setItem(key, {
-            type: contentType,
-            data: Buffer.from([]),
-            userId: userId || undefined,
-            purpose: purpose || 'GENERIC_UPLOAD', // Default purpose
-            fileSize, // Pass the declared file size
+                // TODO: [🦑] Track the uploaded file in database if needed
+            },
         });
 
-        const url = cdn.getItemUrl(key).href;
-
-        return NextResponse.json({
-            uploadUrl: url as string_url,
-            fileUrl: url as string_url
-        }, { status: 200 });
-
+        return NextResponse.json(jsonResponse);
     } catch (error) {
         assertsError(error);
 
