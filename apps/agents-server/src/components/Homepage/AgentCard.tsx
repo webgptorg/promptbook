@@ -1,9 +1,9 @@
-import Link from 'next/link';
-import React from 'react';
+'use client';
+
 import { EyeIcon, EyeOffIcon, RotateCcwIcon } from 'lucide-react';
+import Link from 'next/link';
 import { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
-import { AvatarProfile } from '../../../../../src/book-components/AvatarProfile/AvatarProfile/AvatarProfile';
-import { Card } from './Card';
+import { useAgentBackground } from '../AgentProfile/useAgentBackground';
 
 type AgentCardProps = {
     agent: AgentBasicInformation;
@@ -20,20 +20,57 @@ const ACTION_BUTTON_CLASSES =
     'text-white px-3 py-1 rounded shadow text-xs font-medium transition-colors uppercase tracking-wider opacity-80 hover:opacity-100';
 
 export function AgentCard({ agent, href, isAdmin, onDelete, onClone, onToggleVisibility, onRestore, visibility }: AgentCardProps) {
+    const { meta, agentName } = agent;
+    const fullname = (meta.fullname as string) || agentName || 'Agent';
+    const imageUrl = (meta.image as string) || null;
+    const personaDescription = agent.personaDescription || '';
+
+    const { brandColorLightHex, brandColorDarkHex, backgroundImage } = useAgentBackground(meta.color);
+
     return (
         <div className="relative h-full group">
-            <Link href={href} className="block h-full">
-                <Card
-                    style={
-                        !agent.meta.color
-                            ? {}
-                            : {
-                                  backgroundColor: `${agent.meta.color}22`,
-                              }
-                    }
+            <Link href={href} className="block h-full transition-transform hover:scale-[1.02] duration-300">
+                <div
+                    className="h-full rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col border border-white/20"
+                    style={{
+                        background: `url("${backgroundImage}")`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                    }}
                 >
-                    <AvatarProfile agent={agent} />
-                </Card>
+                    <div className="p-6 flex flex-col items-center flex-grow backdrop-blur-[2px]">
+                        {/* Image container */}
+                        <div
+                            className="w-32 h-32 mb-4 rounded-xl shadow-lg overflow-hidden flex-shrink-0 bg-black/20"
+                            style={{
+                                boxShadow: `0 10px 20px -5px rgba(0, 0, 0, 0.2), 0 0 0 1px ${brandColorLightHex}40`,
+                            }}
+                        >
+                            {imageUrl ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src={imageUrl} alt={fullname} className="w-full h-full object-cover" />
+                            ) : (
+                                <div
+                                    className="w-full h-full flex items-center justify-center text-4xl font-bold text-white/80"
+                                    style={{ backgroundColor: brandColorDarkHex }}
+                                >
+                                    {fullname.charAt(0).toUpperCase()}
+                                </div>
+                            )}
+                        </div>
+
+                        <h3
+                            className="text-lg font-bold text-gray-900 text-center leading-tight mb-2"
+                            style={{ textShadow: '0 1px 2px rgba(255,255,255,0.8)' }}
+                        >
+                            {fullname}
+                        </h3>
+
+                        <p className="text-sm text-gray-800 text-center line-clamp-3 leading-relaxed font-medium mix-blend-hard-light">
+                            {personaDescription}
+                        </p>
+                    </div>
+                </div>
             </Link>
             {isAdmin && onRestore && (
                 <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">

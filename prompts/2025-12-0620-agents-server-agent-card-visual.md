@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🦕] <AgentCard/> should look better
 
@@ -13,9 +13,11 @@
 
 ---
 
-[-]
+[ ]
 
 [✨🦕] baz
+
+Make it more compact - the image should be on the left side of the card and name on the right, use just the grained background not double bg
 
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
