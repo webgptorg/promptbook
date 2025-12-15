@@ -25,7 +25,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🛫] Enhance pdf / printed documentation in `/docs`
 
