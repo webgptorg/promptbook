@@ -281,6 +281,30 @@ export type AgentsServerDatabase = {
                 };
                 Relationships: [];
             };
+            OpenAiAssistantCache: {
+                Row: {
+                    id: number;
+                    createdAt: string;
+                    updatedAt: string;
+                    agentHash: string;
+                    assistantId: string;
+                };
+                Insert: {
+                    id?: number;
+                    createdAt?: string;
+                    updatedAt?: string;
+                    agentHash: string;
+                    assistantId: string;
+                };
+                Update: {
+                    id?: number;
+                    createdAt?: string;
+                    updatedAt?: string;
+                    agentHash?: string;
+                    assistantId?: string;
+                };
+                Relationships: [];
+            };
             ApiTokens: {
                 Row: {
                     id: number;

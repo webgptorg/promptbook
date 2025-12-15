@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨⛺️] Optimize Assistants usage
 

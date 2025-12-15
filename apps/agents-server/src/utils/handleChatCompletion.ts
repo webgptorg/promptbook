@@ -2,7 +2,8 @@ import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideOpenAiAssistantExecutionToolsForServer } from '@/src/tools/$provideOpenAiAssistantExecutionToolsForServer';
-import { Agent, computeAgentHash, PROMPTBOOK_ENGINE_VERSION } from '@promptbook-local/core';
+import { Agent, computeAgentHash, parseAgentSource, PROMPTBOOK_ENGINE_VERSION } from '@promptbook-local/core';
+import { OpenAiAssistantExecutionTools } from '@promptbook-local/openai';
 import { ChatMessage, ChatPromptResult, Prompt, string_book, TODO_any } from '@promptbook-local/types';
 import { computeHash } from '@promptbook-local/utils';
 import { NextRequest, NextResponse } from 'next/server';
@@ -113,7 +114,50 @@ export async function handleChatCompletion(
             );
         }
 
-        const openAiAssistantExecutionTools = await $provideOpenAiAssistantExecutionToolsForServer();
+        const agentHash = computeAgentHash(agentSource);
+        const supabase = $provideSupabaseForServer();
+        const { data: assistantCache } = await supabase
+            .from(await $getTableName('OpenAiAssistantCache'))
+            .select('assistantId')
+            .eq('agentHash', agentHash)
+            .single();
+
+        let openAiAssistantExecutionTools = await $provideOpenAiAssistantExecutionToolsForServer();
+
+        if (assistantCache?.assistantId) {
+            console.log(`[🐱‍🚀] Reusing assistant ${assistantCache.assistantId} for agent ${agentName} (hash: ${agentHash})`);
+            openAiAssistantExecutionTools = openAiAssistantExecutionTools.getAssistant(assistantCache.assistantId);
+        } else {
+            console.log(`[🐱‍🚀] Creating NEW assistant for agent ${agentName} (hash: ${agentHash})`);
+            // Parse to get instructions and name
+            const parsed = parseAgentSource(agentSource);
+            const name = parsed.agentName || agentName;
+            // Extract PERSONA
+            const baseInstructions = parsed.personaDescription || 'You are a helpful assistant.';
+
+            // Note: Append context to instructions
+            const contextLines = agentSource.split('\n').filter((line) => line.startsWith('CONTEXT '));
+            const contextInstructions = contextLines.join('\n');
+            const instructions = contextInstructions ? `${baseInstructions}\n\n${contextInstructions}` : baseInstructions;
+
+            // Create assistant
+            const newAssistantTools = await openAiAssistantExecutionTools.createNewAssistant({
+                name,
+                instructions,
+                // knowledgeSources?
+            });
+
+            // Save to cache
+            const newAssistantId = newAssistantTools.assistantId;
+            if (newAssistantId) {
+                await supabase.from(await $getTableName('OpenAiAssistantCache')).insert({
+                    agentHash,
+                    assistantId: newAssistantId,
+                });
+                openAiAssistantExecutionTools = newAssistantTools;
+            }
+        }
+
         const agent = new Agent({
             agentSource,
             executionTools: {
@@ -122,7 +166,6 @@ export async function handleChatCompletion(
             isVerbose: true, // or false
         });
 
-        const agentHash = computeAgentHash(agentSource);
         const userAgent = request.headers.get('user-agent');
         const ip =
             request.headers.get('x-forwarded-for') ||
@@ -152,7 +195,6 @@ export async function handleChatCompletion(
             content: lastMessage.content,
         };
 
-        const supabase = $provideSupabaseForServer();
         await supabase.from(await $getTableName('ChatHistory')).insert({
             createdAt: new Date().toISOString(),
             messageHash: computeHash(userMessageContent),
