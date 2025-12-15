@@ -77,26 +77,32 @@ export async function POST(request: NextRequest) {
                 };
             },
             onUploadCompleted: async ({ blob, tokenPayload }) => {
-                // This callback is called after the upload completes
-                // Update the database record with final blob URL and details
-                console.info('🔼 Upload completed:', { blob, tokenPayload });
+                // !!!!
+                // ⚠️ IMPORTANT: This callback is a WEBHOOK called by Vercel's servers AFTER the upload completes
+                // - It runs in a DIFFERENT request context (not the original user request)
+                // - It WON'T work in local development (Vercel can't reach localhost)
+                // - All data must come from tokenPayload (userId, fileId, etc.)
+                // - Need to create a fresh supabase client here
+                console.info('🔼 Upload completed (webhook callback):', { blob, tokenPayload });
 
                 try {
                     const payload = tokenPayload ? JSON.parse(tokenPayload) : {};
-                    const { fileId, uploadPath } = payload;
+                    const { fileId, userId: tokenUserId, purpose: tokenPurpose, uploadPath } = payload;
+
+                    // Create fresh supabase client for this webhook context
+                    const supabase = $provideSupabase();
 
                     if (fileId) {
                         // Update the existing record by ID
                         const { error: updateError } = await supabase
                             .from(await $getTableName('File'))
                             .update({
-                                userId: userId || null,
-                                fileName: '!!!!',
+                                userId: tokenUserId || null,
                                 fileSize: 0, // <- !!!!
                                 fileType: blob.contentType,
                                 storageUrl: blob.url,
                                 // <- TODO: !!!! Split between storageUrl and shortUrl
-                                purpose: '!!!!', // || 'UNKNOWN',
+                                purpose: tokenPurpose || 'GENERIC_UPLOAD',
                                 status: 'COMPLETED',
                             })
                             .eq('id', fileId);
