@@ -54,7 +54,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨📗] Fix update of agent list after agent is deleted or restored
 

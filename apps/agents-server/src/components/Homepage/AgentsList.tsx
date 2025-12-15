@@ -32,8 +32,10 @@ export function AgentsList({ agents: initialAgents, isAdmin }: AgentsListProps) 
         try {
             const response = await fetch(`/api/agents/${encodeURIComponent(agentIdentifier)}`, { method: 'DELETE' });
             if (response.ok) {
+                // Update local state immediately
                 setAgents(agents.filter((a) => a.permanentId !== agent.permanentId && a.agentName !== agent.agentName));
-                router.refresh(); // Refresh server data to ensure consistency
+                // Note: router.refresh() is not needed here as the local state update is sufficient
+                // and prevents the brief empty list issue during refresh
             } else {
                 alert('Failed to delete agent');
             }

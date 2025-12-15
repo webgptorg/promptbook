@@ -2,7 +2,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { AgentCard } from './AgentCard';
 
 import { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
@@ -13,7 +12,6 @@ type DeletedAgentsListProps = {
 };
 
 export function DeletedAgentsList({ agents: initialAgents, isAdmin }: DeletedAgentsListProps) {
-    const router = useRouter();
     const [agents, setAgents] = useState(Array.from(initialAgents));
 
     const handleRestore = async (agentIdentifier: string) => {
@@ -24,8 +22,10 @@ export function DeletedAgentsList({ agents: initialAgents, isAdmin }: DeletedAge
         try {
             const response = await fetch(`/api/agents/${encodeURIComponent(agentIdentifier)}/restore`, { method: 'POST' });
             if (response.ok) {
+                // Update local state immediately
                 setAgents(agents.filter((a) => a.permanentId !== agent.permanentId && a.agentName !== agent.agentName));
-                router.refresh(); // Refresh server data to ensure consistency
+                // Note: router.refresh() is not needed here as the local state update is sufficient
+                // and prevents the brief empty list issue during refresh
             } else {
                 alert('Failed to restore agent');
             }
