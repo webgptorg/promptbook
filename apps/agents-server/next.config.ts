@@ -2,8 +2,8 @@ import type { NextConfig } from 'next';
 import path from 'path';
 
 const nextConfig: NextConfig = {
-    output: 'standalone',
-    // <- TODO: [🐱‍🚀][🧠] How to propperly build Next.js app
+    // output: 'standalone',
+    // <- Note: [🐱‍🚀][🧠] Standalone output is not needed for Vercel deployment and causes "Error: ENOENT: no such file or directory, lstat .../.next/export-detail.json"
 
     experimental: {
         externalDir: true,
