@@ -441,7 +441,12 @@
         },
         {
             "name": "🔪👨🏽‍💻 Force reinstall of node modules (⏳)",
-            "commands": ["rm -f ./package-lock.json", "rm -rf ./node_modules", "npm cache clean", "npm install"],
+            "commands": [
+                "rm -f ./package-lock.json",
+                "rm -rf ./node_modules ./.next ./apps/**/node_modules ./apps/**/.next",
+                "npm cache clean",
+                "npm install"
+            ],
             "execute": true,
             "onlySingle": true,
             "focus": true
