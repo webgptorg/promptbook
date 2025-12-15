@@ -1,20 +1,19 @@
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
-import { UNCERTAIN_ZERO_VALUE } from '../../execution/utils/usage-constants';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { LlmExecutionToolsConstructor } from '../../execution/LlmExecutionToolsConstructor';
 import type { Usage } from '../../execution/Usage';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
-import type { string_model_name } from '../../types/typeAliases';
-import type { string_title } from '../../types/typeAliases';
+import { UNCERTAIN_ZERO_VALUE } from '../../execution/utils/usage-constants';
+import type { string_markdown, string_markdown_text, string_model_name, string_title } from '../../types/typeAliases';
 import { $isRunningInBrowser } from '../../utils/environment/$isRunningInBrowser';
 import { $isRunningInWebWorker } from '../../utils/environment/$isRunningInWebWorker';
 import { RemoteLlmExecutionTools } from '../remote/RemoteLlmExecutionTools';
 import { computeOpenAiUsage } from './computeOpenAiUsage';
 import { OpenAiCompatibleExecutionTools } from './OpenAiCompatibleExecutionTools';
-import type { OpenAiCompatibleExecutionToolsNonProxiedOptions } from './OpenAiCompatibleExecutionToolsOptions';
-import type { OpenAiCompatibleExecutionToolsOptions } from './OpenAiCompatibleExecutionToolsOptions';
+import type {
+    OpenAiCompatibleExecutionToolsNonProxiedOptions,
+    OpenAiCompatibleExecutionToolsOptions,
+} from './OpenAiCompatibleExecutionToolsOptions';
 
 /**
  * Execution Tools for calling OpenAI compatible API
@@ -140,6 +139,13 @@ export class HardcodedOpenAiCompatibleExecutionTools
      */
     protected getDefaultEmbeddingModel(): AvailableModel {
         throw new PipelineExecutionError(`${this.title} does not support EMBEDDING model variant`);
+    }
+
+    /**
+     * Default model for completion variant.
+     */
+    protected getDefaultImageGenerationModel(): AvailableModel {
+        throw new PipelineExecutionError(`${this.title} does not support IMAGE_GENERATION model variant`);
     }
 
     // <- Note: [🤖] getDefaultXxxModel
