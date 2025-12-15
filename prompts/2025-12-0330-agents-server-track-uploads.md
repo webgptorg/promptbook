@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨💶] Create table that tracks uploads
 

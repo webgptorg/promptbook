@@ -338,6 +338,46 @@ export type AgentsServerDatabase = {
                 };
                 Relationships: [];
             };
+            File: {
+                Row: {
+                    id: number;
+                    createdAt: string;
+                    userId: number | null;
+                    fileName: string;
+                    fileSize: number;
+                    fileType: string;
+                    cdnUrl: string;
+                    purpose: string;
+                };
+                Insert: {
+                    id?: number;
+                    createdAt?: string;
+                    userId?: number | null;
+                    fileName: string;
+                    fileSize: number;
+                    fileType: string;
+                    cdnUrl: string;
+                    purpose: string;
+                };
+                Update: {
+                    id?: number;
+                    createdAt?: string;
+                    userId?: number | null;
+                    fileName?: string;
+                    fileSize?: number;
+                    fileType?: string;
+                    cdnUrl?: string;
+                    purpose?: string;
+                };
+                Relationships: [
+                    {
+                        foreignKeyName: 'File_userId_fkey';
+                        columns: ['userId'];
+                        referencedRelation: 'User';
+                        referencedColumns: ['id'];
+                    },
+                ];
+            };
         };
         Views: Record<string, never>;
         Functions: Record<string, never>;

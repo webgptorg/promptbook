@@ -194,6 +194,7 @@ export function MetadataClient() {
                     filename: file.name,
                     contentType: file.type,
                     fileSize: file.size,
+                    purpose: formState.key || 'METADATA_IMAGE',
                 }),
             });
 

@@ -101,6 +101,7 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
                             filename: file.name,
                             contentType: file.type,
                             fileSize: file.size,
+                            purpose: 'KNOWLEDGE',
                         }),
                     });
 
@@ -116,6 +117,7 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
                         body: file,
                         headers: {
                             'Content-Type': file.type,
+                            'Content-Length': file.size.toString(),
                         },
                     });
 

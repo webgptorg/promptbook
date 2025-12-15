@@ -1,16 +1,16 @@
-import { put, createMultipartUpload } from '@vercel/blob';
 import { serializeError } from '@promptbook-local/utils';
 import { NextRequest, NextResponse } from 'next/server';
 import { assertsError } from '../../../../../../src/errors/assertsError';
 import { string_url } from '../../../../../../src/types/typeAliases';
 import { $provideCdnForServer } from '../../../../src/tools/$provideCdnForServer';
 import { getUserFileCdnKey } from '../../../../src/utils/cdn/utils/getUserFileCdnKey';
+import { getUserIdFromRequest } from '../../../../src/utils/getUserIdFromRequest';
 import { getMetadata } from '../../../database/getMetadata';
 
 export async function POST(request: NextRequest) {
     try {
         // Parse the request to get filename, content type, and file size
-        const { filename, contentType, fileSize } = await request.json();
+        const { filename, contentType, fileSize, purpose } = await request.json();
 
         if (!filename || !contentType) {
             return NextResponse.json(
@@ -39,20 +39,22 @@ export async function POST(request: NextRequest) {
         const cdn = $provideCdnForServer();
         const key = getUserFileCdnKey(Buffer.from([]), filename); // Empty buffer for key generation
 
-        // Generate signed upload URL using Vercel Blob's put function
-        const path = cdn.pathPrefix ? `${cdn.pathPrefix}/${key}` : key;
+        const userId = await getUserIdFromRequest(request);
 
-        const { url } = await put(path, new Blob(), {
-            access: 'public',
-            contentType,
-            token: process.env.VERCEL_BLOB_READ_WRITE_TOKEN!,
-            addRandomSuffix: false,
-            allowOverwrite: true,
+        // Track upload intent and create placeholder/url using setItem
+        await cdn.setItem(key, {
+            type: contentType,
+            data: Buffer.from([]),
+            userId: userId || undefined,
+            purpose: purpose || 'GENERIC_UPLOAD', // Default purpose
+            fileSize, // Pass the declared file size
         });
+
+        const url = cdn.getItemUrl(key).href;
 
         return NextResponse.json({
             uploadUrl: url as string_url,
-            fileUrl: cdn.getItemUrl(key).href as string_url
+            fileUrl: url as string_url
         }, { status: 200 });
 
     } catch (error) {
