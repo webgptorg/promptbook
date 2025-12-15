@@ -190,6 +190,8 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
      * Updates an existing agent in the collection
      */
     public async updateAgentSource(agentName: string_agent_name, agentSource: string_book): Promise<void> {
+        console.log('!!! updateAgentSource', { agentName });
+
         const selectPreviousAgentResult = await this.supabaseClient
             .from(this.getTableName('Agent'))
             .select('agentHash,agentName,permanentId')
@@ -294,11 +296,13 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
 
         if (selectResult.error) {
             throw new DatabaseError(
-                spaceTrim((block) => `
+                spaceTrim(
+                    (block) => `
                     Error fetching deleted agents from Supabase:
 
                     ${block(selectResult.error.message)}
-                `),
+                `,
+                ),
             );
         }
 

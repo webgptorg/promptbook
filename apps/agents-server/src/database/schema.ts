@@ -346,8 +346,10 @@ export type AgentsServerDatabase = {
                     fileName: string;
                     fileSize: number;
                     fileType: string;
-                    cdnUrl: string;
+                    storageUrl: string | null;
+                    shortUrl: string | null;
                     purpose: string;
+                    status: 'UPLOADING' | 'COMPLETED' | 'FAILED';
                 };
                 Insert: {
                     id?: number;
@@ -356,8 +358,10 @@ export type AgentsServerDatabase = {
                     fileName: string;
                     fileSize: number;
                     fileType: string;
-                    cdnUrl: string;
+                    storageUrl?: string | null;
+                    shortUrl?: string | null;
                     purpose: string;
+                    status?: 'UPLOADING' | 'COMPLETED' | 'FAILED';
                 };
                 Update: {
                     id?: number;
@@ -366,8 +370,10 @@ export type AgentsServerDatabase = {
                     fileName?: string;
                     fileSize?: number;
                     fileType?: string;
-                    cdnUrl?: string;
+                    storageUrl?: string | null;
+                    shortUrl?: string | null;
                     purpose?: string;
+                    status?: 'UPLOADING' | 'COMPLETED' | 'FAILED';
                 };
                 Relationships: [
                     {
