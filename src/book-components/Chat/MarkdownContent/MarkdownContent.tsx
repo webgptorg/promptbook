@@ -108,7 +108,7 @@ function renderMarkdown(markdown: string_markdown): string_html {
 
     try {
         const processedMarkdown = renderMathInMarkdown(markdown);
-        let html = chatMarkdownConverter.makeHtml(processedMarkdown);
+        const html = chatMarkdownConverter.makeHtml(processedMarkdown);
 
         if (typeof window !== 'undefined') {
             if (html.match(/class="katex/)) {
@@ -207,7 +207,6 @@ export function MarkdownContent(props: MarkdownContentProps) {
         });
 
         return () => {
-            // eslint-disable-next-line react-hooks/exhaustive-deps
             rootsRef.current.forEach((root) => root.unmount());
             rootsRef.current = [];
         };

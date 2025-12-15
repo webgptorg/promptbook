@@ -34,6 +34,12 @@ const LANGUAGE_EXTENSIONS: Record<string, string> = {
     book: 'book',
 };
 
+
+/**
+ * Component to render a code block with syntax highlighting, copy, download, and create agent options.
+ * 
+ * @private Internal utility of `<ChatMessage />` component
+ */
 export function CodeBlock({ code, language, className, onCreateAgent }: CodeBlockProps) {
     const lines = useMemo(() => code.split('\n').length, [code]);
     // Note: 19px is approx line height for fontSize 14. +20 for padding.
