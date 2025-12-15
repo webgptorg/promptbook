@@ -54,10 +54,14 @@
 
 ---
 
-[-]
+[ ]
 
-[✨📗] bar
+[✨📗] Fix update of agent list after agent is deleted or restored
 
+-   When the agent is deleted or restored, it updates the agent list or Recycle Bin right away
+-   But it does not work well because it shows empty list (bot in agents and recycle bin) until the page is refreshed
+-   The deleting / restoring works well in the backend, but the frontend does not update the list properly
+-   It should show the updated list right away with correct agents without the deleted / restored agent, but only that one agent
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 

@@ -31,6 +31,10 @@
 
 -   When printing or exporting to pdf from `/docs`, improve the visual of the document
 -   There are extreme unreasonable left and right margins, reduce them to reasonable size
+-   It has also extremere large internal spacing between inside elements
+-   Also the font is tinytiny, fix it to reasonable size
+-   Content should fit better on the page
+-   It shouldnt matter the browser, the pdf / printed document should look good in all major browsers
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
