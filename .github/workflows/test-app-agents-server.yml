@@ -27,4 +27,4 @@ jobs:
 
             - name: Test build
               working-directory: ./apps/agents-server
-              run: npm run test-build"
+              run: npm run test-build
