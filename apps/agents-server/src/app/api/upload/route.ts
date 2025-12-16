@@ -158,5 +158,8 @@ export async function POST(request: NextRequest) {
 
 /**
  * TODO: !!!! Change uploaded URLs from `storageUrl` to `shortUrl`
- * TODO: !!!! Record both `storageUrl` (actual storage location) and `shortUrl`
+ * TODO: !!!! Record both `storageUrl` (actual storage location) and `shortUrl` in `File` table
+ * TODO: !!!! Record `purpose` in `File` table
+ * TODO: !!!! Record `userId` in `File` table
+ * TODO: !!!! Record all things into `File` table
  */
