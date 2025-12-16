@@ -181,7 +181,7 @@
         }
     ],
     "scripts": {
-        "test": "echo \"Note: Running from most lightweight to heaviest tests\" && npm run test-name-discrepancies && npm run test-spellcheck && npm run test-lint && npm run test-types && npm run test-books && npm run test-book-components-build && npm run test-package-generation && npm run test-unit",
+        "test": "echo \"Note: Running from most lightweight to heaviest tests\" && npm run test-name-discrepancies && npm run test-spellcheck && npm run test-lint && npm run test-types && npm run test-books && npm run test-book-components-build && npm run test-package-generation && npm run test-unit && npm run test-app-agents-server && echo \"🎉 All tests passed!\"",
         "test-without-package-generation": "echo \"Note: Running from most lightweight to heaviest tests\" && npm run test-name-discrepancies && npm run test-spellcheck && npm run test-lint && npm run test-types && npm run test-books && npm run test-book-components-build && npm run test-unit",
         "test-without-package-generation-and-unit": "echo \"Note: Running from most lightweight to heaviest tests\" && npm run test-name-discrepancies && npm run test-spellcheck && npm run test-lint && npm run test-types && npm run test-books && npm run test-book-components-build",
         "test-unit": "jest --forceExit",
@@ -194,6 +194,7 @@
         "test-name-discrepancies": "ts-node ./scripts/find-name-discrepancies/find-name-discrepancies.ts",
         "test-book-components-build": "echo \"Note: Skipping book components build tests because of constants problems with this test\"",
         "_TODO-test-book-components-build": "(cd ./apps/book-components/ && npm run test-build)",
+        "test-app-agents-server": "(cd ./apps/agents-server/ && npm run test)",
         "preversion": "git pull && git pull --tags && npm run test-without-package-generation && echo \"<- Note: In next command the packages are generated\" && npm run generate-packages-commit",
         "postversion": "git push && git push --tags && npm run update-version-in-config-commit && npm run generate-packages-commit && npm run use-packages",
         "make": "npm run make-promptbook-collection && npm run update-version-in-config && npm run generate-packages && npm run generate-examples-bookc && npm run generate-documentation && npm run import-markdowns && npm run generate-openapi-types",

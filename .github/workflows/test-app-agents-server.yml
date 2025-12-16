@@ -1,0 +1,30 @@
+name: 🧪 Test Agents server app
+
+on:
+    push:
+        branches:
+            - main
+    pull_request:
+        branches:
+            - main
+
+jobs:
+    test-app-agents-server:
+        name: 🧪 Test Agents server app
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Test Lint
+              working-directory: ./apps/agents-server
+              run: npm run lint
+
+            - name: Test build
+              working-directory: ./apps/agents-server
+              run: npm run test-build"
