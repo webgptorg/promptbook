@@ -155,3 +155,8 @@ export async function POST(request: NextRequest) {
         );
     }
 }
+
+/**
+ * TODO: !!!! Change uploaded URLs from `storageUrl` to `shortUrl`
+ * TODO: !!!! Record both `storageUrl` (actual storage location) and `shortUrl`
+ */
