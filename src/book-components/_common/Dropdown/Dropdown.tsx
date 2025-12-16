@@ -1,14 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { ReactNode, useState } from 'react';
 import { HamburgerMenu } from '../HamburgerMenu/HamburgerMenu';
 import { classNames } from '../react-utils/classNames';
 import styles from './Dropdown.module.css';
-import { JSX } from 'react';
 
 type DropdownProps = {
     actions: Array<{
-        icon: JSX.Element;
+        icon: ReactNode;
         name: string;
         onClick: () => void;
     }>;

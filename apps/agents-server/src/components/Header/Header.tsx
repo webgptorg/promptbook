@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation';
 import { ReactNode, useState } from 'react';
 import { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
 import { HamburgerMenu } from '../../../../../src/book-components/_common/HamburgerMenu/HamburgerMenu';
+import { useMenuHoisting } from '../../../../../src/book-components/_common/MenuHoisting/MenuHoistingContext';
 import { just } from '../../../../../src/utils/organization/just';
 import type { UserInfo } from '../../utils/getCurrentUser';
 import { getVisibleCommitmentDefinitions } from '../../utils/getVisibleCommitmentDefinitions';
@@ -92,6 +93,7 @@ export function Header(props: HeaderProps) {
     const [isCreatingAgent, setIsCreatingAgent] = useState(false);
     const router = useRouter();
     const isHeadless = useIsHeadless();
+    const menuHoisting = useMenuHoisting();
 
     const { users: adminUsers } = useUsersAdmin();
 
@@ -435,6 +437,24 @@ export function Header(props: HeaderProps) {
                         )}
                     </nav>
 
+                    {/* Hoisted Menu Items */}
+                    {menuHoisting && menuHoisting.menu.length > 0 && (
+                        <div className="hidden lg:flex items-center gap-2 border-r border-gray-200 pr-4 mr-2">
+                            {menuHoisting.menu.map((item, index) => (
+                                <button
+                                    key={index}
+                                    onClick={item.onClick}
+                                    className={`p-2 rounded-md hover:bg-gray-100 transition-colors text-gray-600 hover:text-gray-900 ${
+                                        item.isActive ? 'bg-gray-100 text-gray-900' : ''
+                                    }`}
+                                    title={item.name}
+                                >
+                                    {item.icon}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+
                     {/* CTA Button & Mobile Menu Toggle */}
                     <div className="flex items-center gap-4">
                         {just(false /* TODO: [🧠] Figure out what to do with call to action */) && (
@@ -533,6 +553,28 @@ export function Header(props: HeaderProps) {
                         }}
                     >
                         <nav className="container mx-auto flex flex-col gap-4 px-6">
+                            {/* Hoisted Menu Items for Mobile */}
+                            {menuHoisting && menuHoisting.menu.length > 0 && (
+                                <div className="py-2 border-b border-gray-100 mb-2 flex gap-2 overflow-x-auto">
+                                    {menuHoisting.menu.map((item, index) => (
+                                        <button
+                                            key={index}
+                                            onClick={() => {
+                                                item.onClick();
+                                                setIsMenuOpen(false);
+                                            }}
+                                            className={`p-2 rounded-md hover:bg-gray-100 transition-colors text-gray-600 hover:text-gray-900 ${
+                                                item.isActive ? 'bg-gray-100 text-gray-900' : ''
+                                            }`}
+                                            title={item.name}
+                                        >
+                                            {item.icon}
+                                            <span className="sr-only">{item.name}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+
                             {/* Login Status for Mobile */}
                             <div className="py-2 border-b border-gray-100 mb-2">
                                 {!currentUser && !isAdmin && (

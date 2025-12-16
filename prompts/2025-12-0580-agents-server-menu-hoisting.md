@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🙆] Allow to hoist the menu in the <BookEditor/> component outside to some external menu
 
