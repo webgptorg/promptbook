@@ -139,8 +139,10 @@ export function AgentProfile(props: AgentProfileProps) {
                                     backfaceVisibility: 'hidden',
                                     backgroundColor: brandColorDarkHex,
                                     boxShadow: `0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px ${brandColorLightHex}40`,
+
+                                    // Note: Make it squircle
                                     // borderRadius: '50%',
-                                    // ['cornerShape' as really_any]: 'squircle ',
+                                    // ['cornerShape' as really_any /* <- Note: `cornerShape` is non standard CSS property */]: 'squircle ',
                                 }}
                             >
                                 {imageUrl ? (

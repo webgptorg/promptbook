@@ -1,5 +1,6 @@
 'use client';
 
+import { really_any } from '@promptbook-local/types';
 import { EyeIcon, EyeOffIcon, RotateCcwIcon } from 'lucide-react';
 import Link from 'next/link';
 import { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
@@ -19,7 +20,16 @@ type AgentCardProps = {
 const ACTION_BUTTON_CLASSES =
     'text-white px-3 py-1 rounded shadow text-xs font-medium transition-colors uppercase tracking-wider opacity-80 hover:opacity-100';
 
-export function AgentCard({ agent, href, isAdmin, onDelete, onClone, onToggleVisibility, onRestore, visibility }: AgentCardProps) {
+export function AgentCard({
+    agent,
+    href,
+    isAdmin,
+    onDelete,
+    onClone,
+    onToggleVisibility,
+    onRestore,
+    visibility,
+}: AgentCardProps) {
     const { meta, agentName } = agent;
     const fullname = (meta.fullname as string) || agentName || 'Agent';
     const imageUrl = (meta.image as string) || null;
@@ -41,9 +51,14 @@ export function AgentCard({ agent, href, isAdmin, onDelete, onClone, onToggleVis
                     <div className="p-6 flex flex-col items-center flex-grow backdrop-blur-[2px]">
                         {/* Image container */}
                         <div
-                            className="w-32 h-32 mb-4 rounded-xl shadow-lg overflow-hidden flex-shrink-0 bg-black/20"
+                            className="w-32 h-32 mb-4 shadow-lg overflow-hidden flex-shrink-0 bg-black/20"
                             style={{
                                 boxShadow: `0 10px 20px -5px rgba(0, 0, 0, 0.2), 0 0 0 1px ${brandColorLightHex}40`,
+
+                                // Note: Make it squircle
+                                borderRadius: '50%',
+                                ['cornerShape' as really_any /* <- Note: `cornerShape` is non standard CSS property */]:
+                                    'squircle ',
                             }}
                         >
                             {imageUrl ? (
@@ -89,7 +104,11 @@ export function AgentCard({ agent, href, isAdmin, onDelete, onClone, onToggleVis
             {isAdmin && !onRestore && (
                 <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                     <button
-                        className={`${visibility === 'PUBLIC' ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-500 hover:bg-gray-600'} ${ACTION_BUTTON_CLASSES}`}
+                        className={`${
+                            visibility === 'PUBLIC'
+                                ? 'bg-green-500 hover:bg-green-600'
+                                : 'bg-gray-500 hover:bg-gray-600'
+                        } ${ACTION_BUTTON_CLASSES}`}
                         onClick={(e) => {
                             e.preventDefault();
                             onToggleVisibility?.(agent.permanentId || agent.agentName);
