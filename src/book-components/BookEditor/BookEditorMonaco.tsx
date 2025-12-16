@@ -159,6 +159,7 @@ export function BookEditorMonaco(props: BookEditorProps) {
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const bookRules: any = [
+            [/^---[-]*$/, ''], // Horizontal lines get no highlighting
             [parameterRegex, 'parameter'],
             [/\{[^}]+\}/, 'parameter'],
             [commitmentRegex, 'commitment'],
@@ -168,7 +169,12 @@ export function BookEditorMonaco(props: BookEditorProps) {
         const tokenProvider = monaco.languages.setMonarchTokensProvider(BOOK_LANGUAGE_ID, {
             ignoreCase: true,
             tokenizer: {
-                root: [[/^.*$/, 'title', '@body']],
+                root: [
+                    [/^\s*$/, 'empty'], // Empty token whitespace lines
+                    [/^-*$/, 'line'], // Horizontal lines get no highlighting
+                    [/^.*$/, 'title', '@body'], // First non-empty, non-horizontal line is title
+                    [commitmentRegex, 'commitment'],
+                ],
                 body: bookRules,
             },
         });

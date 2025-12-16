@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨✯] Book language should parse `agentName` from first non-empty line
 

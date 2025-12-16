@@ -356,4 +356,52 @@ describe('parseAgentSource', () => {
         const result = parseAgentSource(agentSource);
         expect(result.meta.font).toBe('Times, New, Roman');
     });
+
+    it('parses agentName from first non-empty line that is not a commitment or horizontal line', () => {
+        // First non-empty is agent name
+        let agentSource = validateBook(`
+            John Doe
+            PERSONA You are a helpful assistant.
+        `);
+        let result = parseAgentSource(agentSource);
+        expect(result.agentName).toBe('john-doe');
+
+        // Empty lines before agent name
+        agentSource = validateBook(`
+
+
+            John Doe
+            PERSONA You are a helpful assistant.
+        `);
+        result = parseAgentSource(agentSource);
+        expect(result.agentName).toBe('john-doe');
+
+        // Horizontal line before agent name
+        agentSource = validateBook(`
+            ---
+
+            John Doe
+            PERSONA You are a helpful assistant.
+        `);
+        result = parseAgentSource(agentSource);
+        expect(result.agentName).toBe('john-doe');
+
+        // Non-commitment line before agent name (should take first one)
+        agentSource = validateBook(`
+            x
+
+            John Doe
+            PERSONA You are a helpful assistant.
+        `);
+        result = parseAgentSource(agentSource);
+        expect(result.agentName).toBe('x');
+
+        // Commitment as first non-empty (agentName should be null, fallback to default)
+        agentSource = validateBook(`
+            COLOR red, blue, green
+            PERSONA You are a helper
+        `);
+        result = parseAgentSource(agentSource);
+        expect(result.agentName).toBe('agent-3daa54'); // Default hash since no name
+    });
 });
