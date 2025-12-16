@@ -2,6 +2,8 @@ import { createContext, ReactNode, useContext, useState } from 'react';
 
 /**
  * Item that can be hoisted to the top menu
+ *
+ * @private mechanism inside Promptbook
  */
 export type HoistedMenuItem = {
     /**
@@ -46,6 +48,8 @@ const MenuHoistingContext = createContext<MenuHoistingContextType | null>(null);
 
 /**
  * Provider for menu hoisting
+ *
+ * @private mechanism inside Promptbook
  */
 export function MenuHoistingProvider({ children }: { children: ReactNode }) {
     const [menu, setMenu] = useState<HoistedMenuItem[]>([]);
@@ -55,6 +59,8 @@ export function MenuHoistingProvider({ children }: { children: ReactNode }) {
 
 /**
  * Hook to use the menu hoisting system
+ *
+ * @private mechanism inside Promptbook
  */
 export function useMenuHoisting() {
     return useContext(MenuHoistingContext);
