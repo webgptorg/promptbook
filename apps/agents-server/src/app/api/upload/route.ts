@@ -162,4 +162,5 @@ export async function POST(request: NextRequest) {
  * TODO: !!!! Record `purpose` in `File` table
  * TODO: !!!! Record `userId` in `File` table
  * TODO: !!!! Record all things into `File` table
+ * TODO: !!!! File type (mime type) of `.book` files should be `application/book` <- [🧠] !!!! Best mime type?!
  */
