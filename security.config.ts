@@ -1,20 +1,4 @@
 /**
- * Scrypt configuration for maximum security
- * - N: CPU/memory cost parameter (must be power of 2). Higher = more secure but slower
- * - r: Block size parameter. Affects memory and CPU cost
- * - p: Parallelization parameter
- * - maxmem: Maximum memory allowed (in bytes)
- *
- * @public exported from `@promptbook/core`
- */
-export const SCRYPT_OPTIONS = {
-    N: 32768, // 2^15 - High CPU/memory cost for strong protection against brute-force
-    r: 8, // Block size
-    p: 2, // Parallelization factor
-    maxmem: 256 * 1024 * 1024, // 256 MB max memory
-} as const;
-
-/**
  * Password security configuration
  *
  * @public exported from `@promptbook/core`

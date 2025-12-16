@@ -40,7 +40,6 @@ export async function hashPassword(password: string): Promise<string> {
         password,
         salt,
         PASSWORD_SECURITY_CONFIG.KEY_LENGTH,
-        SCRYPT_OPTIONS,
     )) as Buffer;
 
     // Clear password from memory as soon as possible (best effort)
@@ -94,7 +93,6 @@ export async function verifyPassword(password: string, storedHash: string): Prom
             password,
             salt,
             PASSWORD_SECURITY_CONFIG.KEY_LENGTH,
-            SCRYPT_OPTIONS,
         )) as Buffer;
         const keyBuffer = Buffer.from(key, 'hex');
 
