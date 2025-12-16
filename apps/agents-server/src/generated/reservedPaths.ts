@@ -4,7 +4,8 @@
  *
  * ⚠️ WARNING: This code has been generated so that any manual changes will be overwritten
  *
- * @see /apps/agents-server/src/app - source directory
+ * @see /apps/agents-server/src/app - source directory for routes
+ * @see /apps/agents-server/public - source directory for static files
  * @see /apps/agents-server/src/middleware.ts - where this is used
  */
 export const RESERVED_PATHS: readonly string[] = [
@@ -15,7 +16,9 @@ export const RESERVED_PATHS: readonly string[] = [
     "docs",
     "embed",
     "favicon.ico",
+    "fonts",
     "humans.txt",
+    "logo-blue-white-256.png",
     "manifest.webmanifest",
     "recycle-bin",
     "restricted",
@@ -23,5 +26,7 @@ export const RESERVED_PATHS: readonly string[] = [
     "security.txt",
     "sitemap.xml",
     "sw.js",
+    "swagger",
+    "swagger.json",
     "test"
 ] as const;

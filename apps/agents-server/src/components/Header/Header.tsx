@@ -169,6 +169,12 @@ export function Header(props: HeaderProps) {
                     isBold: true,
                     isBordered: true,
                 } as SubMenuItem,
+                {
+                    label: 'API Reference',
+                    href: '/swagger',
+                    isBold: true,
+                    isBordered: true,
+                } as SubMenuItem,
                 ...getVisibleCommitmentDefinitions().map(
                     ({ primary, aliases }) =>
                         ({

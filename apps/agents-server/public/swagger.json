@@ -1,0 +1,115 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Agents Server API",
+        "version": "1.0.0",
+        "description": "API documentation for the Agents Server"
+    },
+    "servers": [
+        {
+            "url": "/",
+            "description": "Current Server"
+        }
+    ],
+    "paths": {
+        "/api/agents": {
+            "get": {
+                "summary": "List all agents",
+                "tags": ["Agents"],
+                "responses": {
+                    "200": {
+                        "description": "A list of agents",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "name": { "type": "string" },
+                                            "title": { "type": "string" },
+                                            "description": { "type": "string" }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/chat": {
+            "post": {
+                "summary": "Chat with an agent",
+                "tags": ["Chat"],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "agentName": { "type": "string" },
+                                    "message": { "type": "string" }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Chat response"
+                    }
+                }
+            }
+        },
+        "/api/agents/{agentName}": {
+            "get": {
+                "summary": "Get agent details",
+                "tags": ["Agents"],
+                "parameters": [
+                    {
+                        "name": "agentName",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Agent details"
+                    }
+                }
+            }
+        },
+        "/api/upload": {
+            "post": {
+                "summary": "Upload a file",
+                "tags": ["Upload"],
+                "requestBody": {
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "file": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "File uploaded"
+                    }
+                }
+            }
+        }
+    },
+    "--0": "<- TODO: !!!! Generate this file dynamically from the codebase of the Agents server app"
+}
