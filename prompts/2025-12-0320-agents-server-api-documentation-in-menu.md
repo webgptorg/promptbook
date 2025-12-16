@@ -16,7 +16,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨💺] Add `/swagger` to the menu under System
 

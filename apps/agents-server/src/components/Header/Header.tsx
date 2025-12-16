@@ -4,7 +4,6 @@ import promptbookLogoBlueTransparent from '@/public/logo-blue-white-256.png';
 import { $createAgentAction, logoutAction } from '@/src/app/actions';
 import { ArrowRight, ChevronDown, Lock, LogIn, LogOut, User } from 'lucide-react';
 import Image from 'next/image';
-import { HeadlessLink, useIsHeadless, pushWithHeadless } from '../_utils/headlessParam';
 import { useRouter } from 'next/navigation';
 import { ReactNode, useState } from 'react';
 import { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
@@ -13,6 +12,7 @@ import { useMenuHoisting } from '../../../../../src/book-components/_common/Menu
 import { just } from '../../../../../src/utils/organization/just';
 import type { UserInfo } from '../../utils/getCurrentUser';
 import { getVisibleCommitmentDefinitions } from '../../utils/getVisibleCommitmentDefinitions';
+import { HeadlessLink, pushWithHeadless, useIsHeadless } from '../_utils/headlessParam';
 import { ChangePasswordDialog } from '../ChangePasswordDialog/ChangePasswordDialog';
 import { LoginDialog } from '../LoginDialog/LoginDialog';
 import { useUsersAdmin } from '../UsersList/useUsersAdmin';
@@ -121,14 +121,20 @@ export function Header(props: HeaderProps) {
     const [isFederatedOpen, setIsFederatedOpen] = useState(false);
     const [isMobileFederatedOpen, setIsMobileFederatedOpen] = useState(false);
 
-    const federatedDropdownItems: SubMenuItem[] = federatedServers.map(server => {
+    const federatedDropdownItems: SubMenuItem[] = federatedServers.map((server) => {
         const isCurrent = server.url === (typeof window !== 'undefined' ? window.location.origin : '');
         return isCurrent
             ? {
                   label: (
                       <span className="flex items-center gap-2">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={server.logoUrl || serverLogoUrl || promptbookLogoBlueTransparent.src} alt={server.title} width={20} height={20} className="w-5 h-5 object-contain rounded-full" />
+                          <img
+                              src={server.logoUrl || serverLogoUrl || promptbookLogoBlueTransparent.src}
+                              alt={server.title}
+                              width={20}
+                              height={20}
+                              className="w-5 h-5 object-contain rounded-full"
+                          />
                           <span className="font-semibold">{server.title.replace(/^Federated: /, '')}</span>
                           <span className="ml-1 text-xs text-blue-600">(current)</span>
                       </span>
@@ -140,7 +146,13 @@ export function Header(props: HeaderProps) {
                   label: (
                       <span className="flex items-center gap-2">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={server.logoUrl || promptbookLogoBlueTransparent.src} alt={server.title} width={20} height={20} className="w-5 h-5 object-contain rounded-full" />
+                          <img
+                              src={server.logoUrl || promptbookLogoBlueTransparent.src}
+                              alt={server.title}
+                              width={20}
+                              height={20}
+                              className="w-5 h-5 object-contain rounded-full"
+                          />
                           <span>{server.title.replace(/^Federated: /, '')}</span>
                       </span>
                   ),
@@ -269,6 +281,10 @@ export function Header(props: HeaderProps) {
                       isMobileOpen: isMobileSystemOpen,
                       setIsMobileOpen: setIsMobileSystemOpen,
                       items: [
+                          {
+                              label: 'OpenAPI Documentation',
+                              href: '/swagger',
+                          },
                           {
                               label: 'API Tokens',
                               href: '/admin/api-tokens',
