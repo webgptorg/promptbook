@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🧕] Remove prefilled message when the message is send
 
