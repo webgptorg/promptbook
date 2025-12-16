@@ -59,3 +59,7 @@ export function MenuHoistingProvider({ children }: { children: ReactNode }) {
 export function useMenuHoisting() {
     return useContext(MenuHoistingContext);
 }
+
+/**
+ * Note: [💞] Ignore a discrepancy between file name and entity name
+ */
