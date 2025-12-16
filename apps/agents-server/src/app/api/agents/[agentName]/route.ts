@@ -4,7 +4,6 @@
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
-import { $provideServer } from '@/src/tools/$provideServer';
 import { TODO_any } from '@promptbook-local/types';
 import { NextResponse } from 'next/server';
 
@@ -23,7 +22,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ ag
         }
 
         const supabase = $provideSupabaseForServer();
-        const { tablePrefix } = await $provideServer();
+        // const { tablePrefix } = await $provideServer();
 
         const updateResult = await supabase
             .from(await $getTableName(`Agent`))

@@ -4,7 +4,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 import { JSONRPCMessage } from '@modelcontextprotocol/sdk/types.js';
 import { Agent } from '@promptbook-local/core';
-import { ChatMessage, ChatPromptResult, Prompt, TODO_any } from '@promptbook-local/types';
+import { ChatMessage, Prompt, TODO_any } from '@promptbook-local/types';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
@@ -51,10 +51,7 @@ class SSENextJsTransport implements Transport {
     }
 }
 
-export async function GET(
-    request: NextRequest,
-    { params }: { params: Promise<{ agentName: string }> },
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ agentName: string }> }) {
     const { agentName } = await params;
 
     // Check if agent exists
@@ -98,7 +95,7 @@ export async function GET(
                     ),
                     model: z.string().optional(),
                 },
-                async ({ messages, model }) => {
+                async ({ messages }) => {
                     try {
                         const collection = await $provideAgentCollectionForServer();
                         const agentSource = await collection.getAgentSource(agentName);
@@ -177,10 +174,7 @@ export async function GET(
     });
 }
 
-export async function POST(
-    request: NextRequest,
-    { params }: { params: Promise<{ agentName: string }> },
-) {
+export async function POST(request: NextRequest /*, { params }: { params: Promise<{ agentName: string }> }*/) {
     const { searchParams } = new URL(request.url);
     const sessionId = searchParams.get('sessionId');
 

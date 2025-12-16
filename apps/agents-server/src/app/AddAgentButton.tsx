@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useRouter } from 'next/navigation';
@@ -12,7 +11,7 @@ export function AddAgentButton() {
 
     const handleAddAgent = async () => {
         setIsLoading(true);
-        const { agentName, permanentId } = await $createAgentAction();
+        const { /*agentName,*/ permanentId } = await $createAgentAction();
         // TODO: Add proper error handling and UI feedback
         if (permanentId) {
             router.push(`/agents/${permanentId}`);

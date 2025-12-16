@@ -1,16 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest } from 'next/server';
-import { SERVERS, SUPABASE_TABLE_PREFIX } from '../../config';
 import { $getTableName } from '../database/$getTableName';
-
-// Note: Re-implementing normalizeTo_PascalCase to avoid importing from @promptbook-local/utils which might have Node.js dependencies
-function normalizeTo_PascalCase(text: string): string {
-    return text
-        .replace(/(?:^\w|[A-Z]|\b\w)/g, (word) => {
-            return word.toUpperCase();
-        })
-        .replace(/\s+/g, '');
-}
 
 export type ApiKeyValidationResult = {
     isValid: boolean;
@@ -63,10 +53,14 @@ export async function validateApiKey(request: NextRequest): Promise<ApiKeyValida
         };
     }
 
+    /*
+    Note: [🐔] This code was commented out because results of it are unused
+    
     // Determine the table prefix based on the host
     const host = request.headers.get('host');
     let tablePrefix = SUPABASE_TABLE_PREFIX;
 
+    
     if (host && SERVERS && SERVERS.length > 0) {
         if (SERVERS.some((server) => server === host)) {
             let serverName = host;
@@ -75,6 +69,7 @@ export async function validateApiKey(request: NextRequest): Promise<ApiKeyValida
             tablePrefix = `server_${serverName}_`;
         }
     }
+    */
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;

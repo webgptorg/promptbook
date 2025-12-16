@@ -6,10 +6,13 @@ import { $provideOpenAiAssistantExecutionToolsForServer } from '@/src/tools/$pro
 import { Agent, computeAgentHash, PROMPTBOOK_ENGINE_VERSION } from '@promptbook-local/core';
 import { computeHash, serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
+import { keepUnused } from '../../../../../../../../src/utils/organization/keepUnused';
 
 export const maxDuration = 300;
 
 export async function OPTIONS(request: Request) {
+    keepUnused(request);
+
     return new Response(null, {
         status: 200,
         headers: {
@@ -38,7 +41,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
     const audioFile = formData.get('audio') as File | null;
     const threadString = formData.get('thread') as string | null;
     const thread = threadString ? JSON.parse(threadString) : undefined;
-    const messageContext = formData.get('message') as string | null; // Optional text context or previous message?
+    // const messageContext = formData.get('message') as string | null; // Optional text context or previous message?
 
     if (!audioFile) {
         return new Response(JSON.stringify({ error: 'No audio file provided' }), {

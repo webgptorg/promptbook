@@ -119,7 +119,7 @@ export function Header(props: HeaderProps) {
 
     // Federated servers dropdown items (respect logo, only current is not clickable)
     const [isFederatedOpen, setIsFederatedOpen] = useState(false);
-    const [isMobileFederatedOpen, setIsMobileFederatedOpen] = useState(false);
+    // const [isMobileFederatedOpen, setIsMobileFederatedOpen] = useState(false);
 
     const federatedDropdownItems: SubMenuItem[] = federatedServers.map((server) => {
         const isCurrent = server.url === (typeof window !== 'undefined' ? window.location.origin : '');

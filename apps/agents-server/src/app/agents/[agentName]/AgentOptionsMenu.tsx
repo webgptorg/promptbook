@@ -20,8 +20,8 @@ import {
 import { Barlow_Condensed } from 'next/font/google';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { string_agent_permanent_id, string_data_url, string_url_image } from '../../../../../../src/types/typeAliases';
-import { getAgentLinks } from './agentLinks';
 import { deleteAgent } from '../../recycle-bin/actions';
+import { getAgentLinks } from './agentLinks';
 
 type BeforeInstallPromptEvent = Event & {
     prompt: () => Promise<void>;
@@ -52,9 +52,7 @@ export function AgentOptionsMenu({
     permanentId,
     agentUrl,
     agentEmail,
-    brandColorHex,
     isAdmin = false,
-    backgroundImage,
     onShowQrCode,
 }: AgentOptionsMenuProps) {
     const [isOpen, setIsOpen] = useState(false);

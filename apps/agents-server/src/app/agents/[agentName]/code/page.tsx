@@ -3,7 +3,7 @@
 import Editor from '@monaco-editor/react';
 import { ArrowLeftIcon, ChevronDownIcon, CodeIcon } from 'lucide-react';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 type Transpiler = {
     name: string;
@@ -61,39 +61,42 @@ export default function AgentCodePage({ params }: { params: Promise<{ agentName:
             .catch((err) => console.error('Error fetching transpilers:', err));
     }, [agentName]);
 
+    const transpileCode = useCallback(
+        async (transpilerName: string) => {
+            setLoading(true);
+            setError('');
+
+            try {
+                const response = await fetch(`/agents/${encodeURIComponent(agentName)}/code/api`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ transpilerName }),
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to transpile code');
+                }
+
+                const result: TranspilationResult = await response.json();
+                setTranspiledCode(result.code);
+            } catch (err) {
+                setError(err instanceof Error ? err.message : 'Failed to transpile code');
+                setTranspiledCode('');
+            } finally {
+                setLoading(false);
+            }
+        },
+        [agentName],
+    );
+
     useEffect(() => {
         if (selectedTranspiler && agentName) {
             transpileCode(selectedTranspiler.name);
         }
-    }, [selectedTranspiler, agentName]);
-
-    const transpileCode = async (transpilerName: string) => {
-        setLoading(true);
-        setError('');
-
-        try {
-            const response = await fetch(`/agents/${encodeURIComponent(agentName)}/code/api`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ transpilerName }),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to transpile code');
-            }
-
-            const result: TranspilationResult = await response.json();
-            setTranspiledCode(result.code);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to transpile code');
-            setTranspiledCode('');
-        } finally {
-            setLoading(false);
-        }
-    };
+    }, [selectedTranspiler, agentName, transpileCode]);
 
     if (!agentProfile) {
         return (

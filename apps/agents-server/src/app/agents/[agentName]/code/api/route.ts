@@ -1,14 +1,17 @@
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideExecutionToolsForServer } from '@/src/tools/$provideExecutionToolsForServer';
-import { $bookTranspilersRegister } from '../../../../../../../../src/transpilers/_common/register/$bookTranspilersRegister';
 import { NextRequest, NextResponse } from 'next/server';
+import { $bookTranspilersRegister } from '../../../../../../../../src/transpilers/_common/register/$bookTranspilersRegister';
+import { keepUnused } from '../../../../../../../../src/utils/organization/keepUnused';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ agentName: string }> }) {
-    const agentName = (await params).agentName;
+    keepUnused(request);
+    keepUnused(params);
+    // const agentName = (await params).agentName;
 
     try {
         // Get available transpilers
-        const transpilers = $bookTranspilersRegister.list().map(transpiler => ({
+        const transpilers = $bookTranspilersRegister.list().map((transpiler) => ({
             name: transpiler.name,
             title: transpiler.title,
         }));
@@ -32,7 +35,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
         // Get the transpiler
         const allTranspilers = $bookTranspilersRegister.list();
-        const transpiler = allTranspilers.find(t => t.name === transpilerName);
+        const transpiler = allTranspilers.find((t) => t.name === transpilerName);
         if (!transpiler) {
             return NextResponse.json({ error: 'Transpiler not found' }, { status: 404 });
         }
@@ -56,9 +59,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
             transpiler: {
                 name: transpiler.name,
                 title: transpiler.title,
-            }
+            },
         });
-
     } catch (error) {
         console.error('Error transpiling code:', error);
         return NextResponse.json({ error: 'Failed to transpile code' }, { status: 500 });

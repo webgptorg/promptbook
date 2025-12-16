@@ -3,12 +3,11 @@ import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForSer
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideOpenAiAssistantExecutionToolsForServer } from '@/src/tools/$provideOpenAiAssistantExecutionToolsForServer';
 import { Agent, computeAgentHash, parseAgentSource, PROMPTBOOK_ENGINE_VERSION } from '@promptbook-local/core';
-import { OpenAiAssistantExecutionTools } from '@promptbook-local/openai';
 import { ChatMessage, ChatPromptResult, Prompt, string_book, TODO_any } from '@promptbook-local/types';
 import { computeHash } from '@promptbook-local/utils';
 import { NextRequest, NextResponse } from 'next/server';
-import { validateApiKey } from './validateApiKey';
 import { isAgentDeleted } from '../app/agents/[agentName]/_utils';
+import { validateApiKey } from './validateApiKey';
 
 export async function handleChatCompletion(
     request: NextRequest,
@@ -125,7 +124,9 @@ export async function handleChatCompletion(
         let openAiAssistantExecutionTools = await $provideOpenAiAssistantExecutionToolsForServer();
 
         if (assistantCache?.assistantId) {
-            console.log(`[🐱‍🚀] Reusing assistant ${assistantCache.assistantId} for agent ${agentName} (hash: ${agentHash})`);
+            console.log(
+                `[🐱‍🚀] Reusing assistant ${assistantCache.assistantId} for agent ${agentName} (hash: ${agentHash})`,
+            );
             openAiAssistantExecutionTools = openAiAssistantExecutionTools.getAssistant(assistantCache.assistantId);
         } else {
             console.log(`[🐱‍🚀] Creating NEW assistant for agent ${agentName} (hash: ${agentHash})`);
@@ -138,7 +139,9 @@ export async function handleChatCompletion(
             // Note: Append context to instructions
             const contextLines = agentSource.split('\n').filter((line) => line.startsWith('CONTEXT '));
             const contextInstructions = contextLines.join('\n');
-            const instructions = contextInstructions ? `${baseInstructions}\n\n${contextInstructions}` : baseInstructions;
+            const instructions = contextInstructions
+                ? `${baseInstructions}\n\n${contextInstructions}`
+                : baseInstructions;
 
             // Create assistant
             const newAssistantTools = await openAiAssistantExecutionTools.createNewAssistant({

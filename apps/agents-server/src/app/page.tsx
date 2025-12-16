@@ -42,7 +42,7 @@ export default async function HomePage() {
 
     // Filter agents based on visibility and user authentication
     const supabase = $provideSupabaseForServer();
-    const { tablePrefix } = await $provideServer();
+    // const { tablePrefix } = await $provideServer();
 
     // Get visibility for all agents
     const visibilityResult = await supabase

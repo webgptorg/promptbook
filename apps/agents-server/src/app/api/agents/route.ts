@@ -12,7 +12,7 @@ export async function GET() {
         const collection = await $provideAgentCollectionForServer();
         const allAgents = await collection.listAgents();
         const federatedServers = await getFederatedServersFromMetadata();
-        const { publicUrl, tablePrefix } = await $provideServer();
+        const { publicUrl } = await $provideServer();
 
         // Filter to only include PUBLIC agents for federated API
         const supabase = $provideSupabaseForServer();

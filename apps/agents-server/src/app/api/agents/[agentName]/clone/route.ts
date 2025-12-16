@@ -1,9 +1,7 @@
-// POST /api/agents/[agentName]/clone
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
-import { AgentBasicInformation } from '../../../../../../../../src/book-2.0/agent-source/AgentBasicInformation';
-import { string_book } from '../../../../../../../../src/book-2.0/agent-source/string_book';
 import { TODO_any } from '@promptbook-local/types';
 import { NextResponse } from 'next/server';
+import { string_book } from '../../../../../../../../src/book-2.0/agent-source/string_book';
 
 export async function POST(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
     const { agentName } = await params;
@@ -21,14 +19,14 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         while (true) {
             try {
                 await collection.getAgentSource(newAgentName);
-                 // If success, it means it exists, so we try next one
-                 counter++;
-                 newAgentName = `${agentName} (Copy ${counter})`;
-             } catch (error) {
-                 // If error, it likely means it does not exist (NotFoundError), so we can use it
-                 // TODO: [🧠] Check if it is really NotFoundError
-                 break;
-             }
+                // If success, it means it exists, so we try next one
+                counter++;
+                newAgentName = `${agentName} (Copy ${counter})`;
+            } catch (error) {
+                // If error, it likely means it does not exist (NotFoundError), so we can use it
+                // TODO: [🧠] Check if it is really NotFoundError
+                break;
+            }
         }
 
         const lines = source.split('\n');
@@ -36,7 +34,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         const newSource = lines.join('\n') as string_book;
 
         const newAgent = await collection.createAgent(newSource);
-        
+
         return NextResponse.json(newAgent);
     } catch (error) {
         return NextResponse.json(

@@ -24,7 +24,6 @@ export function QrCodeModal({
     personaDescription,
     agentUrl,
     agentEmail,
-    brandColorHex,
 }: QrCodeModalProps) {
     useEffect(() => {
         if (isOpen) {

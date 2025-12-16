@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import spaceTrim from 'spacetrim';
 import { getGroupedCommitmentDefinitions } from '../../../../../../../src/commitments';
+import { keepUnused } from '../../../../../../../src/utils/organization/keepUnused';
 
 export const dynamic = 'force-static';
 
 export async function GET(request: NextRequest) {
+    keepUnused(request);
+
     const groupedCommitments = getGroupedCommitmentDefinitions();
 
     const content = spaceTrim(

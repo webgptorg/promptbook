@@ -78,7 +78,7 @@ export function AgentProfile(props: AgentProfileProps) {
 
     if (fontString) {
         // [🧠] TODO: Properly parse font string to get family name
-        const primaryFont = fontString.split(',')[0].trim().replace(/['"]/g, '');
+        // const primaryFont = fontString.split(',')[0].trim().replace(/['"]/g, '');
         fontStyle = {
             fontFamily: fontString,
         };

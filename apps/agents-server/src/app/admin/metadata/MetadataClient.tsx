@@ -1,7 +1,7 @@
 'use client';
 
 import { upload } from '@vercel/blob/client';
-import { FileText, Hash, Image, Shield, ToggleLeft, Type, Upload } from 'lucide-react';
+import { FileTextIcon, HashIcon, ImageIcon, ShieldIcon, ToggleLeftIcon, TypeIcon, Upload } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { metadataDefaults, MetadataType } from '../../../database/metadataDefaults';
 
@@ -149,19 +149,19 @@ export function MetadataClient() {
     const getTypeIcon = (type?: MetadataType) => {
         switch (type) {
             case 'TEXT_SINGLE_LINE':
-                return <Type className="w-4 h-4" />;
+                return <TypeIcon className="w-4 h-4" />;
             case 'TEXT':
-                return <FileText className="w-4 h-4" />;
+                return <FileTextIcon className="w-4 h-4" />;
             case 'NUMBER':
-                return <Hash className="w-4 h-4" />;
+                return <HashIcon className="w-4 h-4" />;
             case 'BOOLEAN':
-                return <ToggleLeft className="w-4 h-4" />;
+                return <ToggleLeftIcon className="w-4 h-4" />;
             case 'IMAGE_URL':
-                return <Image className="w-4 h-4" />;
+                return <ImageIcon className="w-4 h-4" />;
             case 'IP_RANGE':
-                return <Shield className="w-4 h-4" />;
+                return <ShieldIcon className="w-4 h-4" />;
             default:
-                return <Type className="w-4 h-4" />;
+                return <TypeIcon className="w-4 h-4" />;
         }
     };
 

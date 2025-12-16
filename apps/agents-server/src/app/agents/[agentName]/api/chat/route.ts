@@ -5,6 +5,7 @@ import { $provideOpenAiAssistantExecutionToolsForServer } from '@/src/tools/$pro
 import { Agent, computeAgentHash, PROMPTBOOK_ENGINE_VERSION } from '@promptbook-local/core';
 import { computeHash, serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
+import { keepUnused } from '../../../../../../../../src/utils/organization/keepUnused';
 import { isAgentDeleted } from '../../_utils';
 
 /**
@@ -13,6 +14,8 @@ import { isAgentDeleted } from '../../_utils';
 export const maxDuration = 300;
 
 export async function OPTIONS(request: Request) {
+    keepUnused(request);
+
     return new Response(null, {
         status: 200,
         headers: {

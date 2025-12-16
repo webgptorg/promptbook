@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useMemo, useState } from 'react';
 import spaceTrim from 'spacetrim';
 import { string_agent_url, string_color } from '../../../../../../src/types/typeAliases';
+import { keepUnused } from '../../../../../../src/utils/organization/keepUnused';
 import { $createAgentFromBookAction } from '../../../app/actions';
 import { DeletedAgentBanner } from '../../../components/DeletedAgentBanner';
 
@@ -20,9 +21,18 @@ type AgentProfileChatProps = {
     isDeleted?: boolean;
 };
 
-export function AgentProfileChat({ agentUrl, agentName, fullname, brandColorHex, avatarSrc, isDeleted = false }: AgentProfileChatProps) {
+export function AgentProfileChat({
+    agentUrl,
+    agentName,
+    fullname,
+    brandColorHex,
+    avatarSrc,
+    isDeleted = false,
+}: AgentProfileChatProps) {
     const router = useRouter();
     const [isCreatingAgent, setIsCreatingAgent] = useState(false);
+
+    keepUnused(isCreatingAgent);
 
     const agentPromise = useMemo(
         () =>
@@ -43,20 +53,23 @@ export function AgentProfileChat({ agentUrl, agentName, fullname, brandColorHex,
         [agentName, router],
     );
 
-    const handleCreateAgent = useCallback(async (bookContent: string) => {
-        setIsCreatingAgent(true);
-        try {
-            const { permanentId } = await $createAgentFromBookAction(bookContent as string_book);
-            if (permanentId) {
-                router.push(`/agents/${permanentId}`);
+    const handleCreateAgent = useCallback(
+        async (bookContent: string) => {
+            setIsCreatingAgent(true);
+            try {
+                const { permanentId } = await $createAgentFromBookAction(bookContent as string_book);
+                if (permanentId) {
+                    router.push(`/agents/${permanentId}`);
+                }
+            } catch (error) {
+                console.error('Failed to create agent:', error);
+                alert('Failed to create agent. Please try again.');
+            } finally {
+                setIsCreatingAgent(false);
             }
-        } catch (error) {
-            console.error('Failed to create agent:', error);
-            alert('Failed to create agent. Please try again.');
-        } finally {
-            setIsCreatingAgent(false);
-        }
-    }, [router]);
+        },
+        [router],
+    );
 
     const initialMessage = useMemo(() => {
         if (!agent) {
