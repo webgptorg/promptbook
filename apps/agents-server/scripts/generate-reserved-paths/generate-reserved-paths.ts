@@ -3,26 +3,29 @@ import path from 'path';
 import { GENERATOR_WARNING } from '../../../../src/config';
 
 const appDir = path.join(__dirname, '..', '..', 'src', 'app');
+const publicDir = path.join(__dirname, '..', '..', 'public');
 const outputFile = path.join(__dirname, '..', '..', 'src', 'generated', 'reservedPaths.ts');
 
 // Read the app directory
-const entries = fs.readdirSync(appDir, { withFileTypes: true });
+const appEntries = fs.readdirSync(appDir, { withFileTypes: true });
 
 // Filter to get only directories (excluding dynamic routes like [agentName])
-const reservedPaths = entries
+const reservedPaths = appEntries
     .filter((entry) => entry.isDirectory())
     .map((entry) => entry.name)
     .filter((name) => !name.startsWith('[') && !name.endsWith(']'));
 
-// Add additional paths that are not folders but should be reserved
+// Read the public directory (files and folders)
+const publicEntries = fs.readdirSync(publicDir, { withFileTypes: true });
+const publicPaths = publicEntries.map((entry) => entry.name).filter((name) => !name.startsWith('.'));
+
+// Add additional paths that are not in app or public but should be reserved
 const additionalPaths = [
     '_next', // Next.js internal paths
     'manifest.webmanifest', // PWA manifest
-    'sw.js', // Service Worker
-    'favicon.ico', // Favicon
 ];
 
-const allReservedPaths = [...new Set([...reservedPaths, ...additionalPaths])].sort();
+const allReservedPaths = [...new Set([...reservedPaths, ...publicPaths, ...additionalPaths])].sort();
 
 // Generate the TypeScript file
 const content = `/**
@@ -31,7 +34,8 @@ const content = `/**
  *
  * ${GENERATOR_WARNING}
  *
- * @see /apps/agents-server/src/app - source directory
+ * @see /apps/agents-server/src/app - source directory for routes
+ * @see /apps/agents-server/public - source directory for static files
  * @see /apps/agents-server/src/middleware.ts - where this is used
  */
 export const RESERVED_PATHS: readonly string[] = ${JSON.stringify(allReservedPaths, null, 4)} as const;
