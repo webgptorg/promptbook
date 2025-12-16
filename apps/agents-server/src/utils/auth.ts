@@ -1,6 +1,6 @@
-import { randomBytes, scrypt, timingSafeEqual } from 'crypto';
+import { createHash, randomBytes, scrypt, timingSafeEqual } from 'crypto';
 import { promisify } from 'util';
-import { PASSWORD_SECURITY_CONFIG, SCRYPT_OPTIONS } from '../../../../security.config';
+import { PASSWORD_SECURITY_CONFIG } from '../../../../security.config';
 
 const scryptAsync = promisify(scrypt);
 
@@ -20,27 +20,51 @@ function validatePasswordInput(password: string): void {
     if (password.length < PASSWORD_SECURITY_CONFIG.MIN_PASSWORD_LENGTH) {
         throw new Error(`Password must be at least ${PASSWORD_SECURITY_CONFIG.MIN_PASSWORD_LENGTH} characters`);
     }
-    if (password.length > PASSWORD_SECURITY_CONFIG.MAX_PASSWORD_LENGTH) {
-        throw new Error(`Password cannot exceed ${PASSWORD_SECURITY_CONFIG.MAX_PASSWORD_LENGTH} characters`);
+    // Note: No hard max limit - long passwords are compacted via compactPassword()
+}
+
+/**
+ * Compacts a password for secure processing
+ *
+ * If the password is within MAX_PASSWORD_LENGTH, it is returned as-is.
+ * If longer, the password is split at MAX_PASSWORD_LENGTH and the second part
+ * is hashed with SHA256 before being appended to the first part.
+ *
+ * This prevents DoS attacks via extremely long passwords while still utilizing
+ * the full entropy of longer passwords.
+ *
+ * @param password The password to compact
+ * @returns The compacted password
+ */
+function compactPassword(password: string): string {
+    if (password.length <= PASSWORD_SECURITY_CONFIG.MAX_PASSWORD_LENGTH) {
+        return password;
     }
+
+    const firstPart = password.slice(0, PASSWORD_SECURITY_CONFIG.MAX_PASSWORD_LENGTH);
+    const secondPart = password.slice(PASSWORD_SECURITY_CONFIG.MAX_PASSWORD_LENGTH);
+
+    // Hash the overflow part with SHA256 to bound its length while preserving entropy
+    const secondPartHash = createHash('sha256').update(secondPart, 'utf8').digest('hex');
+
+    return firstPart + secondPartHash;
 }
 
 /**
  * Hashes a password using scrypt with secure parameters
  *
- * @param password The plain text password (8-1024 characters)
+ * @param password The plain text password (minimum 8 characters, no maximum - long passwords are compacted)
  * @returns The salt and hash formatted as "salt:hash"
  * @throws Error if password validation fails
  */
 export async function hashPassword(password: string): Promise<string> {
     validatePasswordInput(password);
 
+    // Compact long passwords to prevent DoS while preserving entropy
+    const compactedPassword = compactPassword(password);
+
     const salt = randomBytes(PASSWORD_SECURITY_CONFIG.SALT_LENGTH).toString('hex');
-    const derivedKey = (await scryptAsync(
-        password,
-        salt,
-        PASSWORD_SECURITY_CONFIG.KEY_LENGTH,
-    )) as Buffer;
+    const derivedKey = (await scryptAsync(compactedPassword, salt, PASSWORD_SECURITY_CONFIG.KEY_LENGTH)) as Buffer;
 
     // Clear password from memory as soon as possible (best effort)
     // Note: JavaScript strings are immutable, so this is limited in effectiveness
@@ -60,9 +84,12 @@ export async function verifyPassword(password: string, storedHash: string): Prom
         return false;
     }
 
-    if (password.length === 0 || password.length > PASSWORD_SECURITY_CONFIG.MAX_PASSWORD_LENGTH) {
+    if (password.length === 0) {
         return false;
     }
+
+    // Compact long passwords the same way as during hashing
+    const compactedPassword = compactPassword(password);
 
     const parts = storedHash.split(':');
     if (parts.length !== 2) {
@@ -89,11 +116,7 @@ export async function verifyPassword(password: string, storedHash: string): Prom
     }
 
     try {
-        const derivedKey = (await scryptAsync(
-            password,
-            salt,
-            PASSWORD_SECURITY_CONFIG.KEY_LENGTH,
-        )) as Buffer;
+        const derivedKey = (await scryptAsync(compactedPassword, salt, PASSWORD_SECURITY_CONFIG.KEY_LENGTH)) as Buffer;
         const keyBuffer = Buffer.from(key, 'hex');
 
         // Ensure buffers are same length before timing-safe comparison

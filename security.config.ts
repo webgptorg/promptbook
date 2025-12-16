@@ -28,6 +28,8 @@ export const PASSWORD_SECURITY_CONFIG = {
     /**
      * Maximum allowed password length
      *
+     * Note: This is just sorft limit to avoid excessive resource usage
+     *       When user uses longer passwords, they are compacted
      * Note: Prevent DoS via extremely long passwords
      */
     MAX_PASSWORD_LENGTH: 1024,
