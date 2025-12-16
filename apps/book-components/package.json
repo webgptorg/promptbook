@@ -5,7 +5,7 @@
         "test-build": "npm run build",
         "build": "(npx kill-port 4022 || true) && next build",
         "start": "next start -p 4022",
-        "lint": "next lint",
+        "lint": "next lint --max-warnings=0",
         "postinstall": "cd ../../ && npm ci"
     }
 }
