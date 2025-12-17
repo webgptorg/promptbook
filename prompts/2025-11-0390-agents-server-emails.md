@@ -6,7 +6,7 @@
 -   Make plugin structure for that, see how for example LLM providers or scrapers are structured
 -   Bring the logic from [WebGPT app](C:/Users/me/work/webgpt/webgpt-app/scripts/send-emails)
 -   Look on abstract [Message object](/src/types/Message.ts) and base the logic and structure of messages on that
--   Create table `Message`, there should be place for inbound messages and queue for outbound messages \_(structure of this table should be based on `Message` object)
+-   Create table `Message`, there should be place for inbound messages and queue for outbound messages /\_(structure of this table should be based on `Message` object)
 -   Create table `MessageSendAttempt` that will store each attempt to send the message
 -   Create database migration for the change
     -   Migrations are located in `/apps/agents-server/src/database/migrations`
@@ -29,7 +29,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🚃] Add option to send email directly from administration
 
@@ -46,7 +46,7 @@
 [✨🚃] Add ability to recieve emails
 
 -   There is implemented logic for sending emails, now add also ability to receive emails
--   Bring the logic from [WebGPT app](C:/Users/me/work/webgpt/webgpt-app/scripts/send-emails)
+-   Bring the logic from [WebGPT app](C:/Users/me/work/webgpt/webgpt-app/scripts/send-emails), look especially on [parseInboundSendgridEmail.ts](C:/Users/me/work/webgpt/webgpt-app/src/utils/emails/providers/sendgrid/parseInboundSendgridEmail.ts)
 -   Look on abstract [Message object](/src/types/Message.ts) and base the logic and structure of messages on that
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
