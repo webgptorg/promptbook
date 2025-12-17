@@ -15,11 +15,10 @@ export function filenameToPrompt(filename: string): string {
 
     // Capitalize each word
     const words = withSpaces.split(' ');
-    const capitalizedWords = words.map(word => capitalize(word));
+    const capitalizedWords = words.map((word, index) => (index === 0 ? capitalize(word) : word.toLowerCase()));
 
     return capitalizedWords.join(' ');
 }
-
 
 /**
  * TODO: [🧠][🏰] Make standard normalization function exported from `@promptbook/utils`
