@@ -5,6 +5,7 @@ export const assistantsOnlyScenario = {
     name: 'AI Avatars discussing together (without user)',
     messages: [
         {
+            channel: 'PROMPTBOOK_CHAT',
             id: '1',
             createdAt: new Date(),
             sender: 'ASSISTANT_1',
@@ -12,6 +13,7 @@ export const assistantsOnlyScenario = {
             isComplete: true,
         },
         {
+            channel: 'PROMPTBOOK_CHAT',
             id: '2',
             createdAt: new Date(),
             sender: 'ASSISTANT_2',
@@ -29,6 +31,7 @@ export const assistantsOnlyScenario = {
             isComplete: true,
         },
         {
+            channel: 'PROMPTBOOK_CHAT',
             id: '3',
             createdAt: new Date(),
             sender: 'ASSISTANT_3',
@@ -37,6 +40,7 @@ export const assistantsOnlyScenario = {
             isComplete: true,
         },
         {
+            channel: 'PROMPTBOOK_CHAT',
             id: '4',
             createdAt: new Date(),
             sender: 'ASSISTANT_1',
@@ -44,5 +48,5 @@ export const assistantsOnlyScenario = {
                 'Excellent suggestions from both of you. This collaborative approach will give the user the best solution.',
             isComplete: true,
         },
-    ] as ChatMessage[],
+    ] satisfies Array<ChatMessage>,
 };

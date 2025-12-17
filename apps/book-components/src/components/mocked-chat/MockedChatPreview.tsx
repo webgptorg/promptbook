@@ -43,6 +43,7 @@ export default function MockedChatPreview() {
     // Sample messages for demonstration
     const messages: ChatMessage[] = [
         {
+            channel: 'PROMPTBOOK_CHAT',
             id: '1',
             createdAt: new Date(),
             sender: 'USER',
@@ -50,6 +51,7 @@ export default function MockedChatPreview() {
             isComplete: true,
         },
         {
+            channel: 'PROMPTBOOK_CHAT',
             id: '2',
             createdAt: new Date(),
             sender: 'ASSISTANT',
@@ -58,6 +60,7 @@ export default function MockedChatPreview() {
             isComplete: true,
         },
         {
+            channel: 'PROMPTBOOK_CHAT',
             id: '3',
             createdAt: new Date(),
             sender: 'USER',
@@ -65,6 +68,7 @@ export default function MockedChatPreview() {
             isComplete: true,
         },
         {
+            channel: 'PROMPTBOOK_CHAT',
             id: '4',
             createdAt: new Date(),
             sender: 'ASSISTANT',
@@ -73,6 +77,7 @@ export default function MockedChatPreview() {
             isComplete: true,
         },
         {
+            channel: 'PROMPTBOOK_CHAT',
             id: '5',
             createdAt: new Date(),
             sender: 'USER',
@@ -80,6 +85,7 @@ export default function MockedChatPreview() {
             isComplete: true,
         },
         {
+            channel: 'PROMPTBOOK_CHAT',
             id: '6',
             createdAt: new Date(),
             sender: 'ASSISTANT',
@@ -88,6 +94,7 @@ export default function MockedChatPreview() {
             isComplete: true,
         },
         {
+            channel: 'PROMPTBOOK_CHAT',
             id: '7',
             createdAt: new Date(),
             sender: 'USER',
@@ -95,6 +102,7 @@ export default function MockedChatPreview() {
             isComplete: true,
         },
         {
+            channel: 'PROMPTBOOK_CHAT',
             id: '8',
             createdAt: new Date(),
             sender: 'ASSISTANT',
@@ -102,6 +110,7 @@ export default function MockedChatPreview() {
             isComplete: true,
         },
         {
+            channel: 'PROMPTBOOK_CHAT',
             id: '9',
             createdAt: new Date(),
             sender: 'USER',
@@ -109,6 +118,7 @@ export default function MockedChatPreview() {
             isComplete: true,
         },
         {
+            channel: 'PROMPTBOOK_CHAT',
             id: '10',
             createdAt: new Date(),
             sender: 'ASSISTANT',

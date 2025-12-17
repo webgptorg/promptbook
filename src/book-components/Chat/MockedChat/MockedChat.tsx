@@ -244,6 +244,7 @@ export function MockedChat(props: MockedChatProps) {
 
                 // Show incomplete message first (for typing effect)
                 const incompleteMessage: ChatMessage = {
+                    channel: 'PROMPTBOOK_CHAT',
                     id: currentMessage.id,
                     createdAt: currentMessage.createdAt,
                     sender: currentMessage.sender,
@@ -268,6 +269,7 @@ export function MockedChat(props: MockedChatProps) {
 
                     // Update the message with current content
                     const updatingMessage: ChatMessage = {
+                        channel: 'PROMPTBOOK_CHAT',
                         id: currentMessage.id,
                         createdAt: currentMessage.createdAt,
                         sender: currentMessage.sender,
@@ -290,6 +292,7 @@ export function MockedChat(props: MockedChatProps) {
 
                 // Mark message as complete
                 const completeMessage: ChatMessage = {
+                    channel: 'PROMPTBOOK_CHAT',
                     id: currentMessage.id,
                     createdAt: currentMessage.createdAt,
                     sender: currentMessage.sender,

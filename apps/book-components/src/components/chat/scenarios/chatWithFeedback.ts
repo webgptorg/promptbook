@@ -4,18 +4,20 @@ export const chatWithFeedbackScenario = {
     name: 'Chat with feedback',
     messages: [
         {
+            channel: 'PROMPTBOOK_CHAT',
             id: '1',
-            date: new Date(),
+            createdAt: new Date(),
             sender: 'USER',
             content: 'Hello! Can you help me?',
             isComplete: true,
         },
         {
+            channel: 'PROMPTBOOK_CHAT',
             id: '2',
-            date: new Date(),
+            createdAt: new Date(),
             sender: 'ASSISTANT_1',
             content: 'Of course! What do you need help with?',
             isComplete: true,
         },
-    ] as ChatMessage[],
+    ] satisfies Array<ChatMessage>,
 };

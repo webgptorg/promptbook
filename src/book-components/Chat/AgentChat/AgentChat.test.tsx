@@ -133,7 +133,7 @@ describe('AgentChat', () => {
         expect(capturedProps?.initialMessages).toBeDefined();
         expect(Array.isArray(capturedProps?.initialMessages)).toBe(true);
 
-        const initialMessages = capturedProps?.initialMessages as ChatMessage[];
+        const initialMessages = capturedProps?.initialMessages as Array<ChatMessage>; // <- TODO: Change to `satisfies Array<ChatMessage>`
         expect(initialMessages.length).toBeGreaterThan(0);
 
         const firstMessage = initialMessages[0];

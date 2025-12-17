@@ -4,18 +4,20 @@ export const loadingScenario = {
     name: 'Loading Message',
     messages: [
         {
+            channel: 'PROMPTBOOK_CHAT',
             id: '1',
-            date: new Date(),
+            createdAt: new Date(),
             sender: 'USER',
             content: "What's the weather like today?",
             isComplete: true,
         },
         {
+            channel: 'PROMPTBOOK_CHAT',
             id: '2',
-            date: new Date(),
+            createdAt: new Date(),
             sender: 'ASSISTANT_1',
             content: 'Let me check the current weather conditions for you...',
             isComplete: false,
         },
-    ] as ChatMessage[],
+    ] satisfies Array<ChatMessage>,
 };

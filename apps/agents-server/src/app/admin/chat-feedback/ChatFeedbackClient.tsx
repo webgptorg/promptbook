@@ -46,10 +46,10 @@ function getTextPreview(value: unknown, maxLength = 160): string {
         typeof value === 'string'
             ? value
             : Array.isArray(value)
-                ? value.map((part) => String(part)).join(' ')
-                : typeof value === 'object'
-                    ? JSON.stringify(value)
-                    : String(value);
+            ? value.map((part) => String(part)).join(' ')
+            : typeof value === 'object'
+            ? JSON.stringify(value)
+            : String(value);
 
     return text.length > maxLength ? `${text.slice(0, maxLength)}…` : text;
 }
@@ -205,8 +205,8 @@ export function ChatFeedbackClient({ initialAgentName }: ChatFeedbackClientProps
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const thread = (row.chatThread as unknown as any[]).map((msg) => ({
                 ...msg,
-                date: msg.date ? new Date(msg.date) : (msg.createdAt ? new Date(msg.createdAt) : undefined),
-            })) as ChatMessage[];
+                date: msg.date ? new Date(msg.date) : msg.createdAt ? new Date(msg.createdAt) : undefined,
+            })) satisfies Array<ChatMessage>;
             setSelectedThread(thread);
         } catch (e) {
             console.error('Failed to parse chat thread', e);
@@ -301,292 +301,234 @@ export function ChatFeedbackClient({ initialAgentName }: ChatFeedbackClientProps
                         </a>
                     </div>
                     <div>
-                        <div className="text-xl font-semibold text-gray-900">
-                            {total.toLocaleString()}
-                        </div>
-                        <div className="text-xs uppercase tracking-wide text-gray-400">
-                            Total feedback entries
-                        </div>
+                        <div className="text-xl font-semibold text-gray-900">{total.toLocaleString()}</div>
+                        <div className="text-xs uppercase tracking-wide text-gray-400">Total feedback entries</div>
                     </div>
                 </div>
             </div>
             <Card>
-                    <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-                        <form onSubmit={handleSearchSubmit} className="flex flex-col gap-2 md:flex-row md:items-end">
-                            <div className="flex flex-col gap-1">
-                                <label htmlFor="search" className="text-sm font-medium text-gray-700">
-                                    Search
-                                </label>
-                                <input
-                                    id="search"
-                                    type="text"
-                                    value={searchInput}
-                                    onChange={(event) => setSearchInput(event.target.value)}
-                                    placeholder="Search by agent, URL, IP, rating or note"
-                                    className="w-full md:w-72 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                />
-                            </div>
-                            <button
-                                type="submit"
-                                className="mt-2 inline-flex items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 md:mt-0 md:ml-3"
+                <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+                    <form onSubmit={handleSearchSubmit} className="flex flex-col gap-2 md:flex-row md:items-end">
+                        <div className="flex flex-col gap-1">
+                            <label htmlFor="search" className="text-sm font-medium text-gray-700">
+                                Search
+                            </label>
+                            <input
+                                id="search"
+                                type="text"
+                                value={searchInput}
+                                onChange={(event) => setSearchInput(event.target.value)}
+                                placeholder="Search by agent, URL, IP, rating or note"
+                                className="w-full md:w-72 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                        </div>
+                        <button
+                            type="submit"
+                            className="mt-2 inline-flex items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 md:mt-0 md:ml-3"
+                        >
+                            Apply
+                        </button>
+                    </form>
+
+                    <div className="flex flex-col gap-2 md:flex-row md:items-end md:gap-4">
+                        <div className="flex flex-col gap-1">
+                            <label htmlFor="agentFilter" className="text-sm font-medium text-gray-700">
+                                Agent filter
+                            </label>
+                            <select
+                                id="agentFilter"
+                                value={agentName}
+                                onChange={handleAgentChange}
+                                className="w-full md:w-64 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                             >
-                                Apply
-                            </button>
-                        </form>
+                                <option value="">All agents</option>
+                                {agents.map((agent) => (
+                                    <option key={agent.agentName} value={agent.agentName}>
+                                        {agent.fullname || agent.agentName}
+                                    </option>
+                                ))}
+                            </select>
+                            {agentsLoading && <span className="text-xs text-gray-400">Loading agents…</span>}
+                        </div>
 
-                        <div className="flex flex-col gap-2 md:flex-row md:items-end md:gap-4">
-                            <div className="flex flex-col gap-1">
-                                <label htmlFor="agentFilter" className="text-sm font-medium text-gray-700">
-                                    Agent filter
-                                </label>
-                                <select
-                                    id="agentFilter"
-                                    value={agentName}
-                                    onChange={handleAgentChange}
-                                    className="w-full md:w-64 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                >
-                                    <option value="">All agents</option>
-                                    {agents.map((agent) => (
-                                        <option key={agent.agentName} value={agent.agentName}>
-                                            {agent.fullname || agent.agentName}
-                                        </option>
-                                    ))}
-                                </select>
-                                {agentsLoading && (
-                                    <span className="text-xs text-gray-400">Loading agents…</span>
-                                )}
-                            </div>
-
-                            <div className="flex flex-col gap-1">
-                                <label htmlFor="pageSize" className="text-sm font-medium text-gray-700">
-                                    Page size
-                                </label>
-                                <select
-                                    id="pageSize"
-                                    value={pageSize}
-                                    onChange={handlePageSizeChange}
-                                    className="w-28 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                >
-                                    <option value={10}>10</option>
-                                    <option value={20}>20</option>
-                                    <option value={50}>50</option>
-                                    <option value={100}>100</option>
-                                </select>
-                            </div>
+                        <div className="flex flex-col gap-1">
+                            <label htmlFor="pageSize" className="text-sm font-medium text-gray-700">
+                                Page size
+                            </label>
+                            <select
+                                id="pageSize"
+                                value={pageSize}
+                                onChange={handlePageSizeChange}
+                                className="w-28 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                                <option value={10}>10</option>
+                                <option value={20}>20</option>
+                                <option value={50}>50</option>
+                                <option value={100}>100</option>
+                            </select>
                         </div>
                     </div>
+                </div>
 
-                    {agentName && (
-                        <div className="mt-4 flex items-center justify-between gap-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-3">
-                            <p className="text-sm text-amber-800">
-                                Showing feedback for agent{' '}
-                                <span className="font-semibold break-all">{agentName}</span>.
-                            </p>
-                            <button
-                                type="button"
-                                onClick={handleClearAgentFeedback}
-                                className="inline-flex items-center justify-center rounded-md border border-red-300 bg-white px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50"
-                            >
-                                Clear feedback for this agent
-                            </button>
-                        </div>
-                    )}
-                </Card>
+                {agentName && (
+                    <div className="mt-4 flex items-center justify-between gap-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-3">
+                        <p className="text-sm text-amber-800">
+                            Showing feedback for agent <span className="font-semibold break-all">{agentName}</span>.
+                        </p>
+                        <button
+                            type="button"
+                            onClick={handleClearAgentFeedback}
+                            className="inline-flex items-center justify-center rounded-md border border-red-300 bg-white px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50"
+                        >
+                            Clear feedback for this agent
+                        </button>
+                    </div>
+                )}
+            </Card>
 
             <Card>
                 <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-lg font-medium text-gray-900">
-                        Feedback entries ({total})
-                    </h2>
+                    <h2 className="text-lg font-medium text-gray-900">Feedback entries ({total})</h2>
                 </div>
-                    {error && (
-                        <div className="mb-4 rounded-md bg-red-50 px-4 py-3 text-sm text-red-800">
-                            {error}
-                        </div>
-                    )}
+                {error && <div className="mb-4 rounded-md bg-red-50 px-4 py-3 text-sm text-red-800">{error}</div>}
 
-                    {loading && items.length === 0 ? (
-                        <div className="py-8 text-center text-gray-500">Loading feedback…</div>
-                    ) : items.length === 0 ? (
-                        <div className="py-8 text-center text-gray-500">No feedback found.</div>
-                    ) : (
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200 text-sm">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="px-4 py-3 text-left font-medium text-gray-500">
-                                            <button
-                                                type="button"
-                                                onClick={() => handleSortChange('createdAt')}
-                                                className="inline-flex items-center gap-1"
-                                            >
-                                                Time
-                                                {isSortedBy('createdAt') && (
-                                                    <span>{sortOrder === 'asc' ? '▲' : '▼'}</span>
-                                                )}
-                                            </button>
-                                        </th>
-                                        <th className="px-4 py-3 text-left font-medium text-gray-500">
-                                            <button
-                                                type="button"
-                                                onClick={() => handleSortChange('agentName')}
-                                                className="inline-flex items-center gap-1"
-                                            >
-                                                Agent
-                                                {isSortedBy('agentName') && (
-                                                    <span>{sortOrder === 'asc' ? '▲' : '▼'}</span>
-                                                )}
-                                            </button>
-                                        </th>
-                                        <th className="px-4 py-3 text-left font-medium text-gray-500">
-                                            Rating
-                                        </th>
-                                        <th className="px-4 py-3 text-left font-medium text-gray-500">
-                                            Text rating
-                                        </th>
-                                        <th className="px-4 py-3 text-left font-medium text-gray-500">
-                                            User note
-                                        </th>
-                                        <th className="px-4 py-3 text-left font-medium text-gray-500">
-                                            Expected answer
-                                        </th>
-                                        <th className="px-4 py-3 text-left font-medium text-gray-500">
-                                            URL
-                                        </th>
-                                        <th className="px-4 py-3 text-left font-medium text-gray-500">
-                                            IP
-                                        </th>
-                                        <th className="px-4 py-3 text-left font-medium text-gray-500">
-                                            Language
-                                        </th>
-                                        <th className="px-4 py-3 text-left font-medium text-gray-500">
-                                            Platform
-                                        </th>
-                                        <th className="px-4 py-3 text-right font-medium text-gray-500">
-                                            Actions
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-200 bg-white">
-                                    {items.map((row) => (
-                                        <tr key={row.id}>
-                                            <td className="whitespace-nowrap px-4 py-3 text-gray-700">
-                                                {formatDate(row.createdAt)}
-                                            </td>
-                                            <td className="whitespace-nowrap px-4 py-3 text-gray-700">
-                                                {row.agentName}
-                                            </td>
-                                            <td className="whitespace-nowrap px-4 py-3 text-gray-700">
-                                                {row.rating || '-'}
-                                            </td>
-                                            <td className="max-w-xs px-4 py-3 text-gray-700">
-                                                <div className="max-h-24 overflow-hidden overflow-ellipsis text-xs leading-snug">
-                                                    {row.textRating ? getTextPreview(row.textRating) : '-'}
-                                                </div>
-                                            </td>
-                                            <td className="max-w-xs px-4 py-3 text-gray-700">
-                                                <div className="max-h-24 overflow-hidden overflow-ellipsis text-xs leading-snug">
-                                                    {row.userNote ? getTextPreview(row.userNote) : '-'}
-                                                </div>
-                                            </td>
-                                            <td className="max-w-xs px-4 py-3 text-gray-700">
-                                                <div className="max-h-24 overflow-hidden overflow-ellipsis text-xs leading-snug">
-                                                    {row.expectedAnswer ? getTextPreview(row.expectedAnswer) : '-'}
-                                                </div>
-                                            </td>
-                                            <td className="max-w-xs px-4 py-3 text-gray-500">
-                                                <div className="truncate text-xs">
-                                                    {row.url || '-'}
-                                                </div>
-                                            </td>
-                                            <td className="whitespace-nowrap px-4 py-3 text-gray-500">
-                                                {row.ip || '-'}
-                                            </td>
-                                            <td className="whitespace-nowrap px-4 py-3 text-gray-500">
-                                                {row.language || '-'}
-                                            </td>
-                                            <td className="max-w-xs px-4 py-3 text-gray-500">
-                                                <div className="truncate text-xs">
-                                                    {row.platform || '-'}
-                                                </div>
-                                            </td>
-                                            <td className="whitespace-nowrap px-4 py-3 text-right text-xs font-medium space-x-2">
-                                                {row.chatThread && (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => handleViewChat(row)}
-                                                        className="text-blue-600 hover:text-blue-800"
-                                                    >
-                                                        View Chat
-                                                    </button>
-                                                )}
+                {loading && items.length === 0 ? (
+                    <div className="py-8 text-center text-gray-500">Loading feedback…</div>
+                ) : items.length === 0 ? (
+                    <div className="py-8 text-center text-gray-500">No feedback found.</div>
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200 text-sm">
+                            <thead className="bg-gray-50">
+                                <tr>
+                                    <th className="px-4 py-3 text-left font-medium text-gray-500">
+                                        <button
+                                            type="button"
+                                            onClick={() => handleSortChange('createdAt')}
+                                            className="inline-flex items-center gap-1"
+                                        >
+                                            Time
+                                            {isSortedBy('createdAt') && <span>{sortOrder === 'asc' ? '▲' : '▼'}</span>}
+                                        </button>
+                                    </th>
+                                    <th className="px-4 py-3 text-left font-medium text-gray-500">
+                                        <button
+                                            type="button"
+                                            onClick={() => handleSortChange('agentName')}
+                                            className="inline-flex items-center gap-1"
+                                        >
+                                            Agent
+                                            {isSortedBy('agentName') && <span>{sortOrder === 'asc' ? '▲' : '▼'}</span>}
+                                        </button>
+                                    </th>
+                                    <th className="px-4 py-3 text-left font-medium text-gray-500">Rating</th>
+                                    <th className="px-4 py-3 text-left font-medium text-gray-500">Text rating</th>
+                                    <th className="px-4 py-3 text-left font-medium text-gray-500">User note</th>
+                                    <th className="px-4 py-3 text-left font-medium text-gray-500">Expected answer</th>
+                                    <th className="px-4 py-3 text-left font-medium text-gray-500">URL</th>
+                                    <th className="px-4 py-3 text-left font-medium text-gray-500">IP</th>
+                                    <th className="px-4 py-3 text-left font-medium text-gray-500">Language</th>
+                                    <th className="px-4 py-3 text-left font-medium text-gray-500">Platform</th>
+                                    <th className="px-4 py-3 text-right font-medium text-gray-500">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-200 bg-white">
+                                {items.map((row) => (
+                                    <tr key={row.id}>
+                                        <td className="whitespace-nowrap px-4 py-3 text-gray-700">
+                                            {formatDate(row.createdAt)}
+                                        </td>
+                                        <td className="whitespace-nowrap px-4 py-3 text-gray-700">{row.agentName}</td>
+                                        <td className="whitespace-nowrap px-4 py-3 text-gray-700">
+                                            {row.rating || '-'}
+                                        </td>
+                                        <td className="max-w-xs px-4 py-3 text-gray-700">
+                                            <div className="max-h-24 overflow-hidden overflow-ellipsis text-xs leading-snug">
+                                                {row.textRating ? getTextPreview(row.textRating) : '-'}
+                                            </div>
+                                        </td>
+                                        <td className="max-w-xs px-4 py-3 text-gray-700">
+                                            <div className="max-h-24 overflow-hidden overflow-ellipsis text-xs leading-snug">
+                                                {row.userNote ? getTextPreview(row.userNote) : '-'}
+                                            </div>
+                                        </td>
+                                        <td className="max-w-xs px-4 py-3 text-gray-700">
+                                            <div className="max-h-24 overflow-hidden overflow-ellipsis text-xs leading-snug">
+                                                {row.expectedAnswer ? getTextPreview(row.expectedAnswer) : '-'}
+                                            </div>
+                                        </td>
+                                        <td className="max-w-xs px-4 py-3 text-gray-500">
+                                            <div className="truncate text-xs">{row.url || '-'}</div>
+                                        </td>
+                                        <td className="whitespace-nowrap px-4 py-3 text-gray-500">{row.ip || '-'}</td>
+                                        <td className="whitespace-nowrap px-4 py-3 text-gray-500">
+                                            {row.language || '-'}
+                                        </td>
+                                        <td className="max-w-xs px-4 py-3 text-gray-500">
+                                            <div className="truncate text-xs">{row.platform || '-'}</div>
+                                        </td>
+                                        <td className="whitespace-nowrap px-4 py-3 text-right text-xs font-medium space-x-2">
+                                            {row.chatThread && (
                                                 <button
                                                     type="button"
-                                                    onClick={() => handleDeleteRow(row)}
-                                                    className="text-red-600 hover:text-red-800"
+                                                    onClick={() => handleViewChat(row)}
+                                                    className="text-blue-600 hover:text-blue-800"
                                                 >
-                                                    Delete
+                                                    View Chat
                                                 </button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    )}
-
-                    <div className="mt-4 flex flex-col items-center justify-between gap-3 border-t border-gray-100 pt-4 text-xs text-gray-600 md:flex-row">
-                        <div>
-                            {total > 0 ? (
-                                <>
-                                    Showing{' '}
-                                    <span className="font-semibold">
-                                        {Math.min((page - 1) * pageSize + 1, total)}
-                                    </span>{' '}
-                                    –{' '}
-                                    <span className="font-semibold">
-                                        {Math.min(page * pageSize, total)}
-                                    </span>{' '}
-                                    of{' '}
-                                    <span className="font-semibold">
-                                        {total}
-                                    </span>{' '}
-                                    feedback entries
-                                </>
-                            ) : (
-                                'No feedback'
-                            )}
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <button
-                                type="button"
-                                onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-                                disabled={page <= 1}
-                                className="inline-flex items-center justify-center rounded-md border border-gray-300 px-2 py-1 text-xs font-medium text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                                Previous
-                            </button>
-                            <span>
-                                Page{' '}
-                                <span className="font-semibold">
-                                    {page}
-                                </span>{' '}
-                                of{' '}
-                                <span className="font-semibold">
-                                    {totalPages}
-                                </span>
-                            </span>
-                            <button
-                                type="button"
-                                onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
-                                disabled={page >= totalPages}
-                                className="inline-flex items-center justify-center rounded-md border border-gray-300 px-2 py-1 text-xs font-medium text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                                Next
-                            </button>
-                        </div>
+                                            )}
+                                            <button
+                                                type="button"
+                                                onClick={() => handleDeleteRow(row)}
+                                                className="text-red-600 hover:text-red-800"
+                                            >
+                                                Delete
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                     </div>
-                </Card>
+                )}
+
+                <div className="mt-4 flex flex-col items-center justify-between gap-3 border-t border-gray-100 pt-4 text-xs text-gray-600 md:flex-row">
+                    <div>
+                        {total > 0 ? (
+                            <>
+                                Showing{' '}
+                                <span className="font-semibold">{Math.min((page - 1) * pageSize + 1, total)}</span> –{' '}
+                                <span className="font-semibold">{Math.min(page * pageSize, total)}</span> of{' '}
+                                <span className="font-semibold">{total}</span> feedback entries
+                            </>
+                        ) : (
+                            'No feedback'
+                        )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <button
+                            type="button"
+                            onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                            disabled={page <= 1}
+                            className="inline-flex items-center justify-center rounded-md border border-gray-300 px-2 py-1 text-xs font-medium text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            Previous
+                        </button>
+                        <span>
+                            Page <span className="font-semibold">{page}</span> of{' '}
+                            <span className="font-semibold">{totalPages}</span>
+                        </span>
+                        <button
+                            type="button"
+                            onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+                            disabled={page >= totalPages}
+                            className="inline-flex items-center justify-center rounded-md border border-gray-300 px-2 py-1 text-xs font-medium text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            Next
+                        </button>
+                    </div>
+                </div>
+            </Card>
 
             {selectedThread && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
@@ -599,7 +541,12 @@ export function ChatFeedbackClient({ initialAgentName }: ChatFeedbackClientProps
                             >
                                 <span className="sr-only">Close</span>
                                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M6 18L18 6M6 6l12 12"
+                                    />
                                 </svg>
                             </button>
                         </div>

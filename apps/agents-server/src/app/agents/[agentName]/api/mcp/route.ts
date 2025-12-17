@@ -112,6 +112,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
                         const previousMessages = messages.slice(0, -1);
 
                         const thread: ChatMessage[] = previousMessages.map((msg: TODO_any, index: number) => ({
+                            channel: 'PROMPTBOOK_CHAT',
                             id: `msg-${index}`,
                             sender: msg.role === 'assistant' ? 'agent' : 'user', // Mapping standard roles
                             content: msg.content,

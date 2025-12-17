@@ -6,7 +6,14 @@ import type { id, string_markdown } from '../../../types/typeAliases';
  *
  * @public exported from `@promptbook/components`
  */
-export type ChatMessage = Omit<Message<id>, 'channel' | 'direction' | 'recipients' | 'threadId' | 'metadata'> & {
+export type ChatMessage = Omit<Message<id>, 'direction' | 'recipients' | 'threadId' | 'metadata'> & {
+    /**
+     * Force the channel to be 'PROMPTBOOK_CHAT'
+     *
+     * !!!! Make it non mandatory
+     */
+    channel: 'PROMPTBOOK_CHAT';
+
     /**
      * The content of the message with optional markdown formatting
      */

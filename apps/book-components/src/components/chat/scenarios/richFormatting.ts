@@ -5,15 +5,17 @@ export const richFormattingScenario = {
     name: 'Rich Formatting Showcase',
     messages: [
         {
+            channel: 'PROMPTBOOK_CHAT',
             id: 1,
-            date: new Date(),
+            createdAt: new Date(),
             sender: 'USER',
             content: 'Hi @assistant! Can you show me all the *rich formatting* features you support? 😄 #formatting',
             isComplete: true,
         },
         {
+            channel: 'PROMPTBOOK_CHAT',
             id: 2,
-            date: new Date(),
+            createdAt: new Date(),
             sender: 'ASSISTANT_1',
             content:
                 '**Absolutely!** Here’s a quick overview:\n\n' +
@@ -51,24 +53,27 @@ export const richFormattingScenario = {
             isComplete: true,
         },
         {
+            channel: 'PROMPTBOOK_CHAT',
             id: 3,
-            date: new Date(),
+            createdAt: new Date(),
             sender: 'USER',
             content:
                 "Wow, that's a lot! Can you combine some of them?\n\n**Bold _italic_ and `inline code`**\n\nOr maybe:\n> _Blockquote with a [link](https://example.com)_\n\nAnd a table:\n\n| Name | Value |\n|------|-------|\n| Pi   | $\\pi$ |\n\n---",
             isComplete: true,
         },
         {
+            channel: 'PROMPTBOOK_CHAT',
             id: 4,
-            date: new Date(),
+            createdAt: new Date(),
             sender: 'ASSISTANT_1',
             content:
                 'Of course! Here’s a creative mix:\n\n- ~~Strikethrough~~ and __underline__\n- 1. Numbered with *italic* and emoji 🚀\n- - Nested `inline code`\n\n> Blockquote with math: $a^2 + b^2 = c^2$\n\n---\n\nLet me know if you want to see more! #rich #features',
             isComplete: true,
         },
         {
+            channel: 'PROMPTBOOK_CHAT',
             id: 5,
-            date: new Date(),
+            createdAt: new Date(),
             sender: 'ASSISTANT_1',
             content: spaceTrim(`
                 And here are some more emojis:
@@ -83,8 +88,9 @@ export const richFormattingScenario = {
             isComplete: true,
         },
         {
+            channel: 'PROMPTBOOK_CHAT',
             id: 6,
-            date: new Date(),
+            createdAt: new Date(),
             sender: 'ASSISTANT_1',
             content: spaceTrim(`
                 ## And lists:
@@ -104,5 +110,5 @@ export const richFormattingScenario = {
             `),
             isComplete: true,
         },
-    ] as ChatMessage[],
+    ] satisfies Array<ChatMessage>,
 };

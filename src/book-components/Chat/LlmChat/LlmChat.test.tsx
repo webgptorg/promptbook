@@ -42,6 +42,7 @@ describe('LlmChat', () => {
 
         const thread: ChatMessage[] = [
             {
+                channel: 'PROMPTBOOK_CHAT',
                 id: 't1',
                 createdAt: new Date(),
                 sender: 'USER',
@@ -49,6 +50,7 @@ describe('LlmChat', () => {
                 isComplete: true,
             },
             {
+                channel: 'PROMPTBOOK_CHAT',
                 id: 't2',
                 createdAt: new Date(),
                 sender: 'ASSISTANT',
@@ -182,6 +184,7 @@ describe('LlmChat', () => {
     it('should accept initialMessages with USER and ASSISTANT messages', () => {
         const initialMessages: ChatMessage[] = [
             {
+                channel: 'PROMPTBOOK_CHAT',
                 id: 'seed-user',
                 createdAt: new Date(),
                 sender: 'USER',
@@ -189,6 +192,7 @@ describe('LlmChat', () => {
                 isComplete: true,
             },
             {
+                channel: 'PROMPTBOOK_CHAT',
                 id: 'seed-assistant',
                 createdAt: new Date(),
                 sender: 'ASSISTANT',
@@ -245,6 +249,7 @@ describe('LlmChat', () => {
     it('should re-seed initialMessages after reset (New chat)', async () => {
         const initialMessages: ChatMessage[] = [
             {
+                channel: 'PROMPTBOOK_CHAT',
                 id: 'init-user',
                 createdAt: new Date(),
                 sender: 'USER',
@@ -252,6 +257,7 @@ describe('LlmChat', () => {
                 isComplete: true,
             },
             {
+                channel: 'PROMPTBOOK_CHAT',
                 id: 'init-assistant',
                 createdAt: new Date(),
                 sender: 'ASSISTANT',

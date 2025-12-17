@@ -185,6 +185,7 @@ export async function handleChatCompletion(
         const previousMessages = threadMessages.slice(0, -1);
 
         const thread: ChatMessage[] = previousMessages.map((msg: TODO_any, index: number) => ({
+            channel: 'PROMPTBOOK_CHAT',
             id: `msg-${index}`, // Placeholder ID
             sender: msg.role === 'assistant' ? 'agent' : 'user', // Mapping standard OpenAI roles
             content: msg.content,
