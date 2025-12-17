@@ -110,3 +110,8 @@ describe('how parseEmailAddresses works', () => {
         expect(() => parseEmailAddresses('Pavol Hejný <a@b>,')).toThrowError(/Invalid email address/);
     });
 });
+
+
+/**
+ * TODO: [🐫] This test fails because of aliased imports `import type { string_emails } from '@promptbook-local/types';`, fix it
+ */

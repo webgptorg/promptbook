@@ -112,3 +112,8 @@ describe('how stringifyEmailAddress works', () => {
 
     // TODO: [🎾] Implement and test here escaping
 });
+
+
+/**
+ * TODO: [🐫] This test fails because of aliased imports `import type { string_emails } from '@promptbook-local/types';`, fix it
+ */
