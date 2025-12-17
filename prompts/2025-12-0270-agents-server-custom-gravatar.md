@@ -15,7 +15,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🏭] Create default image for agents
 

@@ -29,6 +29,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
         const agentHash = computeAgentHash(agentSource);
         const isVoiceCallingEnabled = (await getMetadata('IS_EXPERIMENTAL_VOICE_CALLING_ENABLED')) === 'true';
 
+        if (!agentProfile.meta.image) {
+            agentProfile.meta.image = `/agents/${encodeURIComponent(agentName)}/images/default-avatar.png`;
+        }
+
         return new Response(
             JSON.stringify(
                 {
