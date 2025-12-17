@@ -1,0 +1,69 @@
+import { describe, expect, it } from '@jest/globals';
+import { stringifyEmailAddresses } from './stringifyEmailAddresses';
+
+describe('how stringifyEmailAddresses works', () => {
+    it('should work with single email', () => {
+        expect(
+            stringifyEmailAddresses([
+                {
+                    fullName: null,
+                    baseEmail: 'pavol@webgpt.cz',
+                    fullEmail: 'pavol@webgpt.cz',
+                    plus: [],
+                },
+            ]),
+        ).toEqual('pavol@webgpt.cz');
+    });
+
+    it('should work with simple emails', () => {
+        expect(
+            stringifyEmailAddresses([
+                {
+                    fullName: null,
+                    baseEmail: 'pavol@webgpt.cz',
+                    fullEmail: 'pavol@webgpt.cz',
+                    plus: [],
+                },
+                {
+                    fullName: null,
+                    baseEmail: 'jirka@webgpt.cz',
+                    fullEmail: 'jirka@webgpt.cz',
+                    plus: [],
+                },
+                {
+                    fullName: null,
+                    baseEmail: 'tomas@webgpt.cz',
+                    fullEmail: 'tomas@webgpt.cz',
+                    plus: [],
+                },
+            ]),
+        ).toEqual('pavol@webgpt.cz, jirka@webgpt.cz, tomas@webgpt.cz');
+    });
+
+    it('should work with fullname', () => {
+        expect(
+            stringifyEmailAddresses([
+                {
+                    fullName: 'Pavol Hejný',
+                    baseEmail: 'pavol@webgpt.cz',
+                    fullEmail: 'pavol@webgpt.cz',
+                    plus: [],
+                },
+                {
+                    fullName: 'Jiří Jahn',
+                    baseEmail: 'jirka@webgpt.cz',
+                    fullEmail: 'jirka@webgpt.cz',
+                    plus: [],
+                },
+                {
+                    fullName: 'Tomáš Studeník',
+                    baseEmail: 'tomas@webgpt.cz',
+                    fullEmail: 'tomas@webgpt.cz',
+                    plus: [],
+                },
+            ]),
+        ).toEqual('"Pavol Hejný" <pavol@webgpt.cz>, "Jiří Jahn" <jirka@webgpt.cz>, "Tomáš Studeník" <tomas@webgpt.cz>');
+    });
+
+    // TODO: [🎾] Implement and test here escaping
+});

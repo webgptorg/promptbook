@@ -1,0 +1,114 @@
+import { describe, expect, it } from '@jest/globals';
+import { stringifyEmailAddress } from './stringifyEmailAddress';
+
+describe('how stringifyEmailAddress works', () => {
+    it('should work with simple email', () => {
+        expect(
+            stringifyEmailAddress({
+                fullName: null,
+                baseEmail: 'pavol@webgpt.cz',
+                fullEmail: 'pavol@webgpt.cz',
+                plus: [],
+            }),
+        ).toBe('pavol@webgpt.cz');
+        expect(
+            stringifyEmailAddress({
+                fullName: null,
+                baseEmail: 'jirka@webgpt.cz',
+                fullEmail: 'jirka@webgpt.cz',
+                plus: [],
+            }),
+        ).toBe('jirka@webgpt.cz');
+        expect(
+            stringifyEmailAddress({
+                fullName: null,
+                baseEmail: 'tomas@webgpt.cz',
+                fullEmail: 'tomas@webgpt.cz',
+                plus: [],
+            }),
+        ).toBe('tomas@webgpt.cz');
+    });
+
+    it('should work with fullname', () => {
+        expect(
+            stringifyEmailAddress({
+                fullName: 'Pavol Hejný',
+                baseEmail: 'pavol@webgpt.cz',
+                fullEmail: 'pavol@webgpt.cz',
+                plus: [],
+            }),
+        ).toBe('"Pavol Hejný" <pavol@webgpt.cz>');
+        expect(
+            stringifyEmailAddress({
+                fullName: 'Jirka',
+                baseEmail: 'jirka@webgpt.cz',
+                fullEmail: 'jirka@webgpt.cz',
+                plus: [],
+            }),
+        ).toBe('"Jirka" <jirka@webgpt.cz>');
+        expect(
+            stringifyEmailAddress({
+                fullName: 'Tomáš Studeník',
+                baseEmail: 'tomas@webgpt.cz',
+                fullEmail: 'tomas@webgpt.cz',
+                plus: [],
+            }),
+        ).toBe('"Tomáš Studeník" <tomas@webgpt.cz>');
+    });
+
+    it('should work with plus', () => {
+        expect(
+            stringifyEmailAddress({
+                fullName: null,
+                baseEmail: 'pavol@webgpt.cz',
+                fullEmail: 'pavol+test@webgpt.cz',
+                plus: ['test'],
+            }),
+        ).toBe('pavol+test@webgpt.cz');
+        expect(
+            stringifyEmailAddress({
+                fullName: null,
+                baseEmail: 'jirka@webgpt.cz',
+                fullEmail: 'jirka+test@webgpt.cz',
+                plus: ['test'],
+            }),
+        ).toBe('jirka+test@webgpt.cz');
+        expect(
+            stringifyEmailAddress({
+                fullName: null,
+                baseEmail: 'tomas@webgpt.cz',
+                fullEmail: 'tomas+test+ainautes@webgpt.cz',
+                plus: ['test', 'ainautes'],
+            }),
+        ).toBe('tomas+test+ainautes@webgpt.cz');
+    });
+
+    it('should work with both fullname and plus', () => {
+        expect(
+            stringifyEmailAddress({
+                fullName: 'Pavol Hejný',
+                baseEmail: 'pavol@webgpt.cz',
+                fullEmail: 'pavol+test@webgpt.cz',
+                plus: ['test'],
+            }),
+        ).toBe('"Pavol Hejný" <pavol+test@webgpt.cz>');
+        expect(
+            stringifyEmailAddress({
+                fullName: 'Jirka',
+                baseEmail: 'jirka@webgpt.cz',
+                fullEmail: 'jirka+test@webgpt.cz',
+                plus: ['test'],
+            }),
+        ).toBe('"Jirka" <jirka+test@webgpt.cz>');
+        expect(
+            stringifyEmailAddress({
+                fullName: 'Tomáš Studeník',
+                baseEmail: 'tomas@webgpt.cz',
+                fullEmail: 'tomas+test+ainautes@webgpt.cz',
+                plus: ['test', 'ainautes'],
+            }),
+        ).toBe('"Tomáš Studeník" <tomas+test+ainautes@webgpt.cz>');
+    });
+
+    // TODO: [🎾] Implement and test here escaping
+});

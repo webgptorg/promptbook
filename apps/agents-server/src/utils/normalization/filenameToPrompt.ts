@@ -19,3 +19,8 @@ export function filenameToPrompt(filename: string): string {
 
     return capitalizedWords.join(' ');
 }
+
+
+/**
+ * TODO: [🧠][🏰] Make standard normalization function exported from `@promptbook/utils`
+ */

@@ -1,12 +1,13 @@
-import type { Message, really_any } from '@promptbook-local/types';
+import type { really_any } from '@promptbook-local/types';
 import { $getTableName } from '../../database/$getTableName';
 import { $provideSupabaseForServer } from '../../database/$provideSupabaseForServer';
-import { MESSAGE_PROVIDERS } from '../../message-providers';
+import { EMAIL_PROVIDERS } from '../../message-providers';
+import { OutboundEmail } from '../../message-providers/email/_common/Email';
 
 /**
  * Sends a message
  */
-export async function sendMessage(message: Message<really_any>): Promise<void> {
+export async function sendMessage(message: OutboundEmail): Promise<void> {
     const supabase = await $provideSupabaseForServer();
     // @ts-expect-error: Tables are not yet in types
     const messageTable = await $getTableName('Message');
@@ -40,17 +41,17 @@ export async function sendMessage(message: Message<really_any>): Promise<void> {
 
     // 2. If outbound and email, try to send
     if (message.direction === 'OUTBOUND' && message.channel === 'EMAIL') {
-        const providers = Object.keys(MESSAGE_PROVIDERS);
-        
+        const providers = Object.keys(EMAIL_PROVIDERS);
+
         if (providers.length === 0) {
-             console.warn('No email providers configured');
-             return;
+            console.warn('No email providers configured');
+            return;
         }
 
         let isSent = false;
-        
+
         for (const providerName of providers) {
-            const provider = MESSAGE_PROVIDERS[providerName];
+            const provider = EMAIL_PROVIDERS[providerName];
             let isSuccessful = false;
             let raw: really_any = null;
 
@@ -70,7 +71,7 @@ export async function sendMessage(message: Message<really_any>): Promise<void> {
                 messageId: insertedMessage.id,
                 providerName,
                 isSuccessful,
-                raw
+                raw,
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } as any);
 
@@ -78,9 +79,13 @@ export async function sendMessage(message: Message<really_any>): Promise<void> {
                 break;
             }
         }
-        
+
         if (!isSent) {
             throw new Error('Failed to send email via any provider');
         }
     }
 }
+
+/**
+ * TODO: !!!! Move to `message-providers` and rename `message-providers` -> `messages`
+ */
