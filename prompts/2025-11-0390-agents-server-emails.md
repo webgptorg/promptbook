@@ -17,6 +17,42 @@
 
 ---
 
+[ ]
+
+[✨🚃] Create a page that will show list of all messages (inbound and outbound) and their send statuses
+
+-   The page should be located on `/admin/messages`
+-   Data should be based on tables `Message` and `MessageSendAttempt`
+-   Add this in the menu under "System -> Messages & Emails"
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[ ]
+
+[✨🚃] Add option to send email directly from administration
+
+-   The page should be located on `/admin/messages/send-email`
+-   This page will be primarily for testing purposes, to test that the Agents Server is able to send emails correctly
+-   Data should be based on tables `Message` and `MessageSendAttempt` using [sendMessage function](/apps/agents-server/src/utils/messages/sendMessage.ts)
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[ ]
+
+[✨🚃] Add ability to recieve emails
+
+-   There is implemented logic for sending emails, now add also ability to receive emails
+-   Bring the logic from [WebGPT app](C:/Users/me/work/webgpt/webgpt-app/scripts/send-emails)
+-   Look on abstract [Message object](/src/types/Message.ts) and base the logic and structure of messages on that
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
 [-]
 
 [✨🚃] quux
