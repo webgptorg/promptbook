@@ -2,15 +2,16 @@ import { Subject, type Observable } from 'rxjs';
 import type { Promisable } from 'type-fest';
 import type { AvailableModel } from '../../../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../../../execution/LlmExecutionTools';
-import type { ChatPromptResult } from '../../../../execution/PromptResult';
-import type { CompletionPromptResult } from '../../../../execution/PromptResult';
-import type { EmbeddingPromptResult } from '../../../../execution/PromptResult';
+import type {
+    ChatPromptResult,
+    CompletionPromptResult,
+    EmbeddingPromptResult,
+    ImagePromptResult,
+} from '../../../../execution/PromptResult';
 import type { Usage } from '../../../../execution/Usage';
 import { addUsage } from '../../../../execution/utils/addUsage';
 import { ZERO_USAGE } from '../../../../execution/utils/usage-constants';
-import type { ChatPrompt } from '../../../../types/Prompt';
-import type { CompletionPrompt } from '../../../../types/Prompt';
-import type { EmbeddingPrompt } from '../../../../types/Prompt';
+import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt, ImagePrompt } from '../../../../types/Prompt';
 import type { LlmExecutionToolsWithTotalUsage } from './LlmExecutionToolsWithTotalUsage';
 
 /**
@@ -79,6 +80,16 @@ export function countUsage(llmTools: LlmExecutionTools): LlmExecutionToolsWithTo
         proxyTools.callEmbeddingModel = async (prompt: EmbeddingPrompt): Promise<EmbeddingPromptResult> => {
             // console.info('[🚕] callEmbeddingModel through countTotalUsage');
             const promptResult = await llmTools.callEmbeddingModel!(prompt);
+            totalUsage = addUsage(totalUsage, promptResult.usage);
+            spending.next(promptResult.usage);
+            return promptResult;
+        };
+    }
+
+    if (llmTools.callImageGenerationModel !== undefined) {
+        proxyTools.callImageGenerationModel = async (prompt: ImagePrompt): Promise<ImagePromptResult> => {
+            // console.info('[🚕] callImageGenerationModel through countTotalUsage');
+            const promptResult = await llmTools.callImageGenerationModel!(prompt);
             totalUsage = addUsage(totalUsage, promptResult.usage);
             spending.next(promptResult.usage);
             return promptResult;

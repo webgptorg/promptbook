@@ -119,6 +119,10 @@ export function cacheLlmTools<TLlmTools extends LlmExecutionTools>(
                 promptResult = await llmTools.callEmbeddingModel!(prompt);
                 break variant;
 
+            case 'IMAGE_GENERATION':
+                promptResult = await llmTools.callImageGenerationModel!(prompt);
+                break variant;
+
             // <- case [🤖]:
 
             default:
@@ -217,6 +221,12 @@ export function cacheLlmTools<TLlmTools extends LlmExecutionTools>(
 
     if (llmTools.callEmbeddingModel !== undefined) {
         proxyTools.callEmbeddingModel = async (prompt: Prompt): Promise<EmbeddingPromptResult> => {
+            return /* not await */ callCommonModel(prompt);
+        };
+    }
+
+    if (llmTools.callImageGenerationModel !== undefined) {
+        proxyTools.callImageGenerationModel = async (prompt: Prompt): Promise<TODO_any> => {
             return /* not await */ callCommonModel(prompt);
         };
     }

@@ -231,10 +231,11 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
                                     break variant;
 
                                 case 'EMBEDDING':
+                                case 'IMAGE_GENERATION':
                                     throw new PipelineExecutionError(
                                         spaceTrim(
                                             (block) => `
-                                                Embedding model can not be used in pipeline
+                                                ${modelRequirements.modelVariant} model can not be used in pipeline
 
                                                 This should be catched during parsing
 
