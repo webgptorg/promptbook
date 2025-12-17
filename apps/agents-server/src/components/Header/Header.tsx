@@ -298,6 +298,10 @@ export function Header(props: HeaderProps) {
                               href: '/admin/chat-history',
                           },
                           {
+                              label: 'Messages & Emails',
+                              href: '/admin/messages',
+                          },
+                          {
                               label: 'Chat feedback',
                               href: '/admin/chat-feedback',
                           },

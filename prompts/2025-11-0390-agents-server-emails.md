@@ -17,7 +17,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🚃] Create a page that will show list of all messages (inbound and outbound) and their send statuses
 

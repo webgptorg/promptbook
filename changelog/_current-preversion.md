@@ -12,6 +12,7 @@
 -   Export entire book documentation as one coherent markdown file to `/api/docs/book.md`
 -   Better UI for documentation actions (Print, Download Markdown) in `/docs`
 -   Fixed file upload to Vercel Blob: Using proper client upload protocol with `handleUpload` instead of direct PUT requests
+-   New **Messages & Emails** admin page: Allows inspecting all inbound and outbound messages and their delivery status
 
 ### 🛝 Playground
 
