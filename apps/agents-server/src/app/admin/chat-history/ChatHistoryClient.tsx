@@ -300,6 +300,7 @@ export function ChatHistoryClient({ initialAgentName }: ChatHistoryClientProps) 
             const message = row.message as { role?: string; content?: string };
             const role = (message.role || 'USER').toUpperCase();
             return {
+                // channel: 'PROMPTBOOK_CHAT',
                 id: String(row.id),
                 sender: role === 'USER' ? 'USER' : 'ASSISTANT',
                 content: message.content || JSON.stringify(message),
