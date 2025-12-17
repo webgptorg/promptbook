@@ -21,10 +21,10 @@ export function messagesToHtml(
     const customHeaderHtml = headerMarkdown ? `<div class="customHeader">${escapeHtml(headerMarkdown)}</div>` : '';
     const content = messages
         .map((message) => {
-            const participant = (participants || []).find((participant) => participant.name === message.from);
+            const participant = (participants || []).find((participant) => participant.name === message.sender);
             const isUser = participant?.isMe || false;
             const senderClass = isUser ? 'user' : 'assistant';
-            const name = participant?.fullname || message.from;
+            const name = participant?.fullname || message.sender;
             const avatarSrc = participant?.avatarSrc;
             const messageContent = message.content
                 .replace(/&/g, '&amp;')

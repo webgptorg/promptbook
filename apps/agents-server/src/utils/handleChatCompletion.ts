@@ -186,7 +186,7 @@ export async function handleChatCompletion(
 
         const thread: ChatMessage[] = previousMessages.map((msg: TODO_any, index: number) => ({
             id: `msg-${index}`, // Placeholder ID
-            from: msg.role === 'assistant' ? 'agent' : 'user', // Mapping standard OpenAI roles
+            sender: msg.role === 'assistant' ? 'agent' : 'user', // Mapping standard OpenAI roles
             content: msg.content,
             isComplete: true,
             date: new Date(), // We don't have the real date, using current

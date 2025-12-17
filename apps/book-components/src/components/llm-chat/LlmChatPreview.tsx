@@ -111,8 +111,8 @@ export default function LlmChatPreview() {
         return [
             {
                 id: `seed-${kind}-user-${now}`,
-                date: new Date(),
-                from: 'ASSISTANT',
+                createdAt: new Date(),
+                sender: 'ASSISTANT',
                 content:
                     (
                         {

@@ -6,14 +6,14 @@ export const chatWithChildrenScenario = {
         {
             id: '1',
             date: new Date(),
-            from: 'USER',
+            sender: 'USER',
             content: 'What is the meaning of life?',
             isComplete: true,
         },
         {
             id: '2',
             date: new Date(),
-            from: 'ASSISTANT_1',
+            sender: 'ASSISTANT_1',
             content: "That's a deep question! The meaning of life is often considered to be 42.",
             isComplete: true,
         },

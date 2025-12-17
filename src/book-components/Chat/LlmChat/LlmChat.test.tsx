@@ -43,15 +43,15 @@ describe('LlmChat', () => {
         const thread: ChatMessage[] = [
             {
                 id: 't1',
-                date: new Date(),
-                from: 'USER',
+                createdAt: new Date(),
+                sender: 'USER',
                 content: 'First',
                 isComplete: true,
             },
             {
                 id: 't2',
-                date: new Date(),
-                from: 'ASSISTANT',
+                createdAt: new Date(),
+                sender: 'ASSISTANT',
                 content: 'Second',
                 isComplete: true,
             },
@@ -183,15 +183,15 @@ describe('LlmChat', () => {
         const initialMessages: ChatMessage[] = [
             {
                 id: 'seed-user',
-                date: new Date(),
-                from: 'USER',
+                createdAt: new Date(),
+                sender: 'USER',
                 content: 'Hello assistant, are you initialized?',
                 isComplete: true,
             },
             {
                 id: 'seed-assistant',
-                date: new Date(),
-                from: 'ASSISTANT',
+                createdAt: new Date(),
+                sender: 'ASSISTANT',
                 content: 'Initialization complete. Ready to echo your thoughts.',
                 isComplete: true,
             },
@@ -205,8 +205,8 @@ describe('LlmChat', () => {
 
         expect(props.initialMessages).toBeDefined();
         expect(props.initialMessages?.length).toBe(2);
-        expect(props.initialMessages?.[0]?.from).toBe('USER');
-        expect(props.initialMessages?.[1]?.from).toBe('ASSISTANT');
+        expect(props.initialMessages?.[0]?.sender).toBe('USER');
+        expect(props.initialMessages?.[1]?.sender).toBe('ASSISTANT');
     });
 
     it('should allow optional external sendMessage prop in LlmChatProps', () => {
@@ -246,15 +246,15 @@ describe('LlmChat', () => {
         const initialMessages: ChatMessage[] = [
             {
                 id: 'init-user',
-                date: new Date(),
-                from: 'USER',
+                createdAt: new Date(),
+                sender: 'USER',
                 content: 'Hi assistant (seed)',
                 isComplete: true,
             },
             {
                 id: 'init-assistant',
-                date: new Date(),
-                from: 'ASSISTANT',
+                createdAt: new Date(),
+                sender: 'ASSISTANT',
                 content: 'Hello user (seed)',
                 isComplete: true,
             },

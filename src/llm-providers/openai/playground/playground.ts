@@ -107,11 +107,11 @@ async function playground() {
         thread: [
             // <- TODO: !!! Maybe rename to `previousMessages`
             {
-                from: 'user', // <- TODO: Standardize to `role: 'USER' | 'ASSISTANT'
+                sender: 'user', // <- [👥] TODO: Standardize to `role: 'USER' | 'ASSISTANT'
                 content: 'Where is Prague ',
             },
             {
-                from: 'assistant',
+                sender: 'assistant',
                 content: 'Prague is a beautiful city located in the Czech Republic.',
             },
         ],

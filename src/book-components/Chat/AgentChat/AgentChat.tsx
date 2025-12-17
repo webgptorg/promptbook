@@ -36,7 +36,7 @@ export function AgentChat(props: AgentChatProps) {
                 llmParticipantName="AGENT" // <- TODO: [🧠] Maybe dynamic agent id
                 initialMessages={[
                     {
-                        from: 'AGENT',
+                        sender: 'AGENT',
                         content:
                             agent.initialMessage ||
                             spaceTrim(`

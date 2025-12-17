@@ -65,12 +65,12 @@ const chatPrompt = {
     thread: [
         {
             id: 'msg1',
-            from: 'user',
+            sender: 'user',
             content: 'Where is Prague ',
         },
         {
             id: 'msg2',
-            from: 'assistant',
+            sender: 'assistant',
             content: 'Prague is a beautiful city located in the Czech Republic.',
         },
     ],

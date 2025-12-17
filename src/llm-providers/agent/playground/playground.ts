@@ -89,12 +89,12 @@ async function playground() {
             // <- TODO: !!! Maybe rename to `previousMessages`
             {
                 // id: 'msg1',
-                from: 'user', // <- TODO: Standardize to `role: 'USER' | 'ASSISTANT'
+                sender: 'user', // <- TODO: [👥] Standardize to `role: 'USER' | 'ASSISTANT'
                 content: 'Hello! Can you tell me a fun fact about TypeScript?',
             },
             {
                 // id: 'msg2',
-                from: 'assistant',
+                sender: 'assistant',
                 content: 'TypeScript is a superset of JavaScript that adds static types.',
             },
         ],

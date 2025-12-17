@@ -54,10 +54,7 @@ function getMessagePreview(message: unknown, maxLength = 120): string {
     }
 
     if (typeof message === 'object') {
-        const content =
-            (message as { content?: unknown }).content ??
-            (message as { text?: unknown }).text ??
-            message;
+        const content = (message as { content?: unknown }).content ?? (message as { text?: unknown }).text ?? message;
 
         let text: string;
 
@@ -304,10 +301,10 @@ export function ChatHistoryClient({ initialAgentName }: ChatHistoryClientProps) 
             const role = (message.role || 'USER').toUpperCase();
             return {
                 id: String(row.id),
-                from: role === 'USER' ? 'USER' : 'ASSISTANT',
+                sender: role === 'USER' ? 'USER' : 'ASSISTANT',
                 content: message.content || JSON.stringify(message),
                 isComplete: true,
-                date: new Date(row.createdAt),
+                createdAt: new Date(row.createdAt),
             } satisfies ChatMessage;
         });
     }, [items, viewMode]);
@@ -317,17 +314,9 @@ export function ChatHistoryClient({ initialAgentName }: ChatHistoryClientProps) 
             <div>
                 {total > 0 ? (
                     <>
-                        Showing{' '}
-                        <span className="font-semibold">
-                            {Math.min((page - 1) * pageSize + 1, total)}
-                        </span>{' '}
-                        –{' '}
-                        <span className="font-semibold">
-                            {Math.min(page * pageSize, total)}
-                        </span>{' '}
-                        of{' '}
-                        <span className="font-semibold">{total}</span>{' '}
-                        messages
+                        Showing <span className="font-semibold">{Math.min((page - 1) * pageSize + 1, total)}</span> –{' '}
+                        <span className="font-semibold">{Math.min(page * pageSize, total)}</span> of{' '}
+                        <span className="font-semibold">{total}</span> messages
                     </>
                 ) : (
                     'No messages'
@@ -403,97 +392,90 @@ export function ChatHistoryClient({ initialAgentName }: ChatHistoryClientProps) 
                         </a>
                     </div>
                     <div>
-                        <div className="text-xl font-semibold text-gray-900">
-                            {total.toLocaleString()}
-                        </div>
-                        <div className="text-xs uppercase tracking-wide text-gray-400">
-                            Total messages
-                        </div>
+                        <div className="text-xl font-semibold text-gray-900">{total.toLocaleString()}</div>
+                        <div className="text-xs uppercase tracking-wide text-gray-400">Total messages</div>
                     </div>
                 </div>
             </div>
             <Card>
-                    <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-                        <form onSubmit={handleSearchSubmit} className="flex flex-col gap-2 md:flex-row md:items-end">
-                            <div className="flex flex-col gap-1">
-                                <label htmlFor="search" className="text-sm font-medium text-gray-700">
-                                    Search
-                                </label>
-                                <input
-                                    id="search"
-                                    type="text"
-                                    value={searchInput}
-                                    onChange={(event) => setSearchInput(event.target.value)}
-                                    placeholder="Search by agent name, URL or IP"
-                                    className="w-full md:w-72 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                />
-                            </div>
-                            <button
-                                type="submit"
-                                className="mt-2 inline-flex items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 md:mt-0 md:ml-3"
+                <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+                    <form onSubmit={handleSearchSubmit} className="flex flex-col gap-2 md:flex-row md:items-end">
+                        <div className="flex flex-col gap-1">
+                            <label htmlFor="search" className="text-sm font-medium text-gray-700">
+                                Search
+                            </label>
+                            <input
+                                id="search"
+                                type="text"
+                                value={searchInput}
+                                onChange={(event) => setSearchInput(event.target.value)}
+                                placeholder="Search by agent name, URL or IP"
+                                className="w-full md:w-72 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                        </div>
+                        <button
+                            type="submit"
+                            className="mt-2 inline-flex items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 md:mt-0 md:ml-3"
+                        >
+                            Apply
+                        </button>
+                    </form>
+
+                    <div className="flex flex-col gap-2 md:flex-row md:items-end md:gap-4">
+                        <div className="flex flex-col gap-1">
+                            <label htmlFor="agentFilter" className="text-sm font-medium text-gray-700">
+                                Agent filter
+                            </label>
+                            <select
+                                id="agentFilter"
+                                value={agentName}
+                                onChange={handleAgentChange}
+                                className="w-full md:w-64 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                             >
-                                Apply
-                            </button>
-                        </form>
+                                <option value="">All agents</option>
+                                {agents.map((agent) => (
+                                    <option key={agent.agentName} value={agent.agentName}>
+                                        {agent.fullname || agent.agentName}
+                                    </option>
+                                ))}
+                            </select>
+                            {agentsLoading && <span className="text-xs text-gray-400">Loading agents…</span>}
+                        </div>
 
-                        <div className="flex flex-col gap-2 md:flex-row md:items-end md:gap-4">
-                            <div className="flex flex-col gap-1">
-                                <label htmlFor="agentFilter" className="text-sm font-medium text-gray-700">
-                                    Agent filter
-                                </label>
-                                <select
-                                    id="agentFilter"
-                                    value={agentName}
-                                    onChange={handleAgentChange}
-                                    className="w-full md:w-64 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                >
-                                    <option value="">All agents</option>
-                                    {agents.map((agent) => (
-                                        <option key={agent.agentName} value={agent.agentName}>
-                                            {agent.fullname || agent.agentName}
-                                        </option>
-                                    ))}
-                                </select>
-                                {agentsLoading && (
-                                    <span className="text-xs text-gray-400">Loading agents…</span>
-                                )}
-                            </div>
-
-                            <div className="flex flex-col gap-1">
-                                <label htmlFor="pageSize" className="text-sm font-medium text-gray-700">
-                                    Page size
-                                </label>
-                                <select
-                                    id="pageSize"
-                                    value={pageSize}
-                                    onChange={handlePageSizeChange}
-                                    className="w-28 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                >
-                                    <option value={10}>10</option>
-                                    <option value={20}>20</option>
-                                    <option value={50}>50</option>
-                                    <option value={100}>100</option>
-                                </select>
-                            </div>
+                        <div className="flex flex-col gap-1">
+                            <label htmlFor="pageSize" className="text-sm font-medium text-gray-700">
+                                Page size
+                            </label>
+                            <select
+                                id="pageSize"
+                                value={pageSize}
+                                onChange={handlePageSizeChange}
+                                className="w-28 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                                <option value={10}>10</option>
+                                <option value={20}>20</option>
+                                <option value={50}>50</option>
+                                <option value={100}>100</option>
+                            </select>
                         </div>
                     </div>
+                </div>
 
-                    {agentName && (
-                        <div className="mt-4 flex items-center justify-between gap-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-3">
-                            <p className="text-sm text-amber-800">
-                                Showing chat history for agent{' '}
-                                <span className="font-semibold break-all">{agentName}</span>.
-                            </p>
-                            <button
-                                type="button"
-                                onClick={handleClearAgentHistory}
-                                className="inline-flex items-center justify-center rounded-md border border-red-300 bg-white px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50"
-                            >
-                                Clear history for this agent
-                            </button>
-                        </div>
-                    )}
-                </Card>
+                {agentName && (
+                    <div className="mt-4 flex items-center justify-between gap-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-3">
+                        <p className="text-sm text-amber-800">
+                            Showing chat history for agent <span className="font-semibold break-all">{agentName}</span>.
+                        </p>
+                        <button
+                            type="button"
+                            onClick={handleClearAgentHistory}
+                            className="inline-flex items-center justify-center rounded-md border border-red-300 bg-white px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50"
+                        >
+                            Clear history for this agent
+                        </button>
+                    </div>
+                )}
+            </Card>
 
             {viewMode === 'chat' ? (
                 <div className="bg-white rounded-lg shadow border border-gray-200 overflow-hidden flex flex-col">
@@ -505,22 +487,14 @@ export function ChatHistoryClient({ initialAgentName }: ChatHistoryClientProps) 
                             isSaveButtonEnabled={true}
                         />
                     </div>
-                    <div className="p-4 bg-gray-50 border-t border-gray-200">
-                        {pagination}
-                    </div>
+                    <div className="p-4 bg-gray-50 border-t border-gray-200">{pagination}</div>
                 </div>
             ) : (
                 <Card>
                     <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-lg font-medium text-gray-900">
-                            Messages ({total})
-                        </h2>
+                        <h2 className="text-lg font-medium text-gray-900">Messages ({total})</h2>
                     </div>
-                    {error && (
-                        <div className="mb-4 rounded-md bg-red-50 px-4 py-3 text-sm text-red-800">
-                            {error}
-                        </div>
-                    )}
+                    {error && <div className="mb-4 rounded-md bg-red-50 px-4 py-3 text-sm text-red-800">{error}</div>}
 
                     {loading && items.length === 0 ? (
                         <div className="py-8 text-center text-gray-500">Loading chat history…</div>
@@ -555,27 +529,13 @@ export function ChatHistoryClient({ initialAgentName }: ChatHistoryClientProps) 
                                                 )}
                                             </button>
                                         </th>
-                                        <th className="px-4 py-3 text-left font-medium text-gray-500">
-                                            Role
-                                        </th>
-                                        <th className="px-4 py-3 text-left font-medium text-gray-500">
-                                            Message
-                                        </th>
-                                        <th className="px-4 py-3 text-left font-medium text-gray-500">
-                                            URL
-                                        </th>
-                                        <th className="px-4 py-3 text-left font-medium text-gray-500">
-                                            IP
-                                        </th>
-                                        <th className="px-4 py-3 text-left font-medium text-gray-500">
-                                            Language
-                                        </th>
-                                        <th className="px-4 py-3 text-left font-medium text-gray-500">
-                                            Platform
-                                        </th>
-                                        <th className="px-4 py-3 text-right font-medium text-gray-500">
-                                            Actions
-                                        </th>
+                                        <th className="px-4 py-3 text-left font-medium text-gray-500">Role</th>
+                                        <th className="px-4 py-3 text-left font-medium text-gray-500">Message</th>
+                                        <th className="px-4 py-3 text-left font-medium text-gray-500">URL</th>
+                                        <th className="px-4 py-3 text-left font-medium text-gray-500">IP</th>
+                                        <th className="px-4 py-3 text-left font-medium text-gray-500">Language</th>
+                                        <th className="px-4 py-3 text-left font-medium text-gray-500">Platform</th>
+                                        <th className="px-4 py-3 text-right font-medium text-gray-500">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-200 bg-white">
@@ -596,9 +556,7 @@ export function ChatHistoryClient({ initialAgentName }: ChatHistoryClientProps) 
                                                 </div>
                                             </td>
                                             <td className="max-w-xs px-4 py-3 text-gray-500">
-                                                <div className="truncate text-xs">
-                                                    {row.url || '-'}
-                                                </div>
+                                                <div className="truncate text-xs">{row.url || '-'}</div>
                                             </td>
                                             <td className="whitespace-nowrap px-4 py-3 text-gray-500">
                                                 {row.ip || '-'}
@@ -607,9 +565,7 @@ export function ChatHistoryClient({ initialAgentName }: ChatHistoryClientProps) 
                                                 {row.language || '-'}
                                             </td>
                                             <td className="max-w-xs px-4 py-3 text-gray-500">
-                                                <div className="truncate text-xs">
-                                                    {row.platform || '-'}
-                                                </div>
+                                                <div className="truncate text-xs">{row.platform || '-'}</div>
                                             </td>
                                             <td className="whitespace-nowrap px-4 py-3 text-right text-xs font-medium">
                                                 <button

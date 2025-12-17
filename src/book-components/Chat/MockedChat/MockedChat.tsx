@@ -224,7 +224,7 @@ export function MockedChat(props: MockedChatProps) {
                         delays.longPauseChance &&
                         Math.random() < delays.longPauseChance &&
                         i > 0 &&
-                        originalMessages[i]!.from !== originalMessages[i - 1]!.from
+                        originalMessages[i]!.sender !== originalMessages[i - 1]!.sender
                     ) {
                         await forTime(getDelay(delays.longPauseDuration, 2000));
                         didLongPause = true;
@@ -245,8 +245,8 @@ export function MockedChat(props: MockedChatProps) {
                 // Show incomplete message first (for typing effect)
                 const incompleteMessage: ChatMessage = {
                     id: currentMessage.id,
-                    date: currentMessage.date,
-                    from: currentMessage.from,
+                    createdAt: currentMessage.createdAt,
+                    sender: currentMessage.sender,
                     content: '',
                     isComplete: false,
                     expectedAnswer: currentMessage.expectedAnswer,
@@ -269,8 +269,8 @@ export function MockedChat(props: MockedChatProps) {
                     // Update the message with current content
                     const updatingMessage: ChatMessage = {
                         id: currentMessage.id,
-                        date: currentMessage.date,
-                        from: currentMessage.from,
+                        createdAt: currentMessage.createdAt,
+                        sender: currentMessage.sender,
                         content: currentContent,
                         isComplete: false,
                         expectedAnswer: currentMessage.expectedAnswer,
@@ -291,8 +291,8 @@ export function MockedChat(props: MockedChatProps) {
                 // Mark message as complete
                 const completeMessage: ChatMessage = {
                     id: currentMessage.id,
-                    date: currentMessage.date,
-                    from: currentMessage.from,
+                    createdAt: currentMessage.createdAt,
+                    sender: currentMessage.sender,
                     content: currentMessage.content,
                     isComplete: true,
                     expectedAnswer: currentMessage.expectedAnswer,

@@ -350,7 +350,7 @@ export function Chat(props: ChatProps) {
     }, [ratingModalOpen, isMobile]);
 
     // Determine alignment for actions (Reset button) based on the first message
-    const firstMessageFromUser = messages[0]?.from === 'USER';
+    const firstMessageFromUser = messages[0]?.sender === 'USER';
     const actionsAlignmentClass = firstMessageFromUser
         ? styles.actions + ' ' + styles.left
         : styles.actions + ' ' + styles.right;
@@ -542,7 +542,7 @@ export function Chat(props: ChatProps) {
                         onScroll={handleScroll}
                     >
                         {postprocessedMessages.map((message, i) => {
-                            const participant = participants.find((participant) => participant.name === message.from);
+                            const participant = participants.find((participant) => participant.name === message.sender);
                             const isLastMessage = i === postprocessedMessages.length - 1;
                             const isExpanded = expandedMessageId === message.id;
                             const currentRating = messageRatings.get(message.id || message.content /* <-[💃] */) || 0;
@@ -821,13 +821,13 @@ export function Chat(props: ChatProps) {
                                 if (idx > 0) {
                                     const prev = postprocessedMessages[idx - 1];
 
-                                    if (prev!.from === 'USER') {
+                                    if (prev!.sender === 'USER') {
                                         return prev!.content;
                                     }
                                 }
                                 // fallback: find last USER message before selectedMessage
                                 for (let i = messages.findIndex((m) => m.id === selectedMessage.id) - 1; i >= 0; i--) {
-                                    if (messages![i]!.from === 'USER') {
+                                    if (messages![i]!.sender === 'USER') {
                                         return messages![i]!.content;
                                     }
                                 }

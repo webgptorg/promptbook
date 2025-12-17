@@ -6,14 +6,14 @@ export const chatWithFeedbackScenario = {
         {
             id: '1',
             date: new Date(),
-            from: 'USER',
+            sender: 'USER',
             content: 'Hello! Can you help me?',
             isComplete: true,
         },
         {
             id: '2',
             date: new Date(),
-            from: 'ASSISTANT_1',
+            sender: 'ASSISTANT_1',
             content: 'Of course! What do you need help with?',
             isComplete: true,
         },

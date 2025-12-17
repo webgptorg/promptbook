@@ -1,3 +1,4 @@
+import { Message } from '../../../types/Message';
 import type { id, string_markdown } from '../../../types/typeAliases';
 
 /**
@@ -5,22 +6,7 @@ import type { id, string_markdown } from '../../../types/typeAliases';
  *
  * @public exported from `@promptbook/components`
  */
-export type ChatMessage = {
-    /**
-     * Unique identifier of the message
-     */
-    id?: id;
-
-    /**
-     * Date when the message was created
-     */
-    date?: Date;
-
-    /**
-     * The name of the participant who sent the message
-     */
-    from: id;
-
+export type ChatMessage = Omit<Message<id>, 'channel' | 'direction' | 'recipients' | 'threadId' | 'metadata'> & {
     /**
      * The content of the message with optional markdown formatting
      */
@@ -45,6 +31,7 @@ export type ChatMessage = {
 };
 
 /**
+ * TODO: Make all fields readonly
  * TODO: Delete `expectedAnswer` from ChatMessage
  * TODO: Rename `date` into `created`+`modified`
  */

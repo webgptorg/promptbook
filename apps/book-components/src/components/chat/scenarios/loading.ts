@@ -6,14 +6,14 @@ export const loadingScenario = {
         {
             id: '1',
             date: new Date(),
-            from: 'USER',
+            sender: 'USER',
             content: "What's the weather like today?",
             isComplete: true,
         },
         {
             id: '2',
             date: new Date(),
-            from: 'ASSISTANT_1',
+            sender: 'ASSISTANT_1',
             content: 'Let me check the current weather conditions for you...',
             isComplete: false,
         },

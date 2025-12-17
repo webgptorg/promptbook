@@ -114,9 +114,9 @@ export function AgentProfileChat({
                 ]}
                 messages={[
                     {
-                        from: 'AGENT',
+                        sender: 'AGENT',
                         content: initialMessage,
-                        date: new Date(),
+                        createdAt: new Date(),
                         id: 'initial-message',
                         isComplete: true,
                     },

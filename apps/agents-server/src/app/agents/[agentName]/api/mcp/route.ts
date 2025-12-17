@@ -113,7 +113,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
                         const thread: ChatMessage[] = previousMessages.map((msg: TODO_any, index: number) => ({
                             id: `msg-${index}`,
-                            from: msg.role === 'assistant' ? 'agent' : 'user', // Mapping standard roles
+                            sender: msg.role === 'assistant' ? 'agent' : 'user', // Mapping standard roles
                             content: msg.content,
                             isComplete: true,
                             date: new Date(),

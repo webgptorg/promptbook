@@ -15,9 +15,9 @@ export default function TextareaToChatPage() {
         return [
             {
                 id: 'textarea-message',
-                from: 'USER',
+                sender: 'USER',
                 content: textareaContent,
-                date: new Date(),
+                createdAt: new Date(),
                 isComplete: true,
             },
         ];

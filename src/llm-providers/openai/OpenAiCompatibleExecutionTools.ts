@@ -15,6 +15,8 @@ import type {
     ImagePromptResult,
 } from '../../execution/PromptResult';
 import type { Usage } from '../../execution/Usage';
+import { computeUsageCounts } from '../../execution/utils/computeUsageCounts';
+import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import type { Prompt } from '../../types/Prompt';
 import type {
     string_date_iso8601,
@@ -26,8 +28,6 @@ import type {
 import { $getCurrentDate } from '../../utils/misc/$getCurrentDate';
 import type { chococake } from '../../utils/organization/really_any';
 import type { TODO_any } from '../../utils/organization/TODO_any';
-import { computeUsageCounts } from '../../execution/utils/computeUsageCounts';
-import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import { templateParameters } from '../../utils/parameters/templateParameters';
 import { exportJson } from '../../utils/serialization/exportJson';
 import {
@@ -204,8 +204,8 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
         // Convert thread to OpenAI format if present
         let threadMessages: OpenAI.Chat.Completions.CompletionCreateParamsNonStreaming['messages'] = [];
         if ('thread' in prompt && Array.isArray((prompt as TODO_any).thread)) {
-            threadMessages = (prompt as TODO_any).thread.map((msg: TODO_any) => ({
-                role: msg.role === 'assistant' ? 'assistant' : 'user', // <- TODO: Standardize to `role: 'USER' | 'ASSISTANT'
+            threadMessages = prompt.thread!.map((msg) => ({
+                role: msg.sender === 'assistant' ? 'assistant' : 'user', // <- TODO: [👥] Standardize to `role: 'USER' | 'ASSISTANT'
                 content: msg.content,
             }));
         }
@@ -858,10 +858,9 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
             }
 
             const resultContent = rawResponse.data[0].url!;
-            
+
             const modelInfo = this.HARDCODED_MODELS.find((model) => model.modelName === modelName);
             const price = modelInfo?.pricing?.output ? uncertainNumber(modelInfo.pricing.output) : uncertainNumber();
-
 
             return exportJson({
                 name: 'promptResult',

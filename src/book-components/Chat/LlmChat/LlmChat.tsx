@@ -158,8 +158,8 @@ export function LlmChat(props: LlmChatProps) {
 
             const userMessage: ChatMessage = {
                 id: `user_${now}`,
-                date: new Date(),
-                from: userParticipantName,
+                createdAt: new Date(),
+                sender: userParticipantName,
                 content: (result.userMessage || '(Voice message)') as string_markdown,
                 isComplete: true,
                 isVoiceCall: true,
@@ -167,8 +167,8 @@ export function LlmChat(props: LlmChatProps) {
 
             const agentMessage: ChatMessage = {
                 id: `agent_${now}`,
-                date: new Date(),
-                from: llmParticipantName,
+                createdAt: new Date(),
+                sender: llmParticipantName,
                 content: (result.agentMessage || result.text) as string_markdown,
                 isComplete: true,
                 isVoiceCall: true,
@@ -279,8 +279,8 @@ export function LlmChat(props: LlmChatProps) {
             // Add user message
             const userMessage: ChatMessage = {
                 id: `user_${Date.now()}`,
-                date: new Date(),
-                from: userParticipantName,
+                createdAt: new Date(),
+                sender: userParticipantName,
                 content: messageContent as string_markdown,
                 isComplete: true,
             };
@@ -296,8 +296,8 @@ export function LlmChat(props: LlmChatProps) {
             // Add loading message for assistant
             const loadingMessage: ChatMessage = {
                 id: `assistant_${Date.now()}`,
-                date: new Date(),
-                from: llmParticipantName,
+                createdAt: new Date(),
+                sender: llmParticipantName,
                 content: 'Thinking...' as string_markdown,
                 isComplete: false,
             };
@@ -336,8 +336,8 @@ export function LlmChat(props: LlmChatProps) {
                     result = await llmTools.callChatModelStream(prompt, (chunk) => {
                         const assistantMessage: ChatMessage = {
                             id: loadingMessage.id,
-                            date: new Date(),
-                            from: llmParticipantName,
+                            createdAt: new Date(),
+                            sender: llmParticipantName,
                             content: chunk.content as string_markdown,
                             isComplete: false,
                         };
@@ -361,8 +361,8 @@ export function LlmChat(props: LlmChatProps) {
                 // Replace loading message with actual response
                 const assistantMessage: ChatMessage = {
                     id: loadingMessage.id,
-                    date: new Date(),
-                    from: llmParticipantName,
+                    createdAt: new Date(),
+                    sender: llmParticipantName,
                     content: result.content as string_markdown,
                     isComplete: true,
                 };
@@ -385,8 +385,8 @@ export function LlmChat(props: LlmChatProps) {
                 // Replace loading message with error message
                 const errorMessage: ChatMessage = {
                     id: loadingMessage.id,
-                    date: new Date(),
-                    from: llmParticipantName,
+                    createdAt: new Date(),
+                    sender: llmParticipantName,
                     content: `Sorry, I encountered an error: ${
                         error instanceof Error ? error.message : 'Unknown error'
                     }` as string_markdown,

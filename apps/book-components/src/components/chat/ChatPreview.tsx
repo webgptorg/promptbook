@@ -102,8 +102,8 @@ export default function ChatPreview() {
         // Add user message
         const userMessage: ChatMessage = {
             id: Date.now().toString(),
-            date: new Date(),
-            from: 'USER',
+            createdAt: new Date(),
+            sender: 'USER',
             content,
             isComplete: true,
         };
@@ -122,7 +122,7 @@ export default function ChatPreview() {
             const assistantMessage: ChatMessage = {
                 id: (Date.now() + 1).toString(),
                 date: new Date(),
-                from: 'ASSISTANT_1',
+                sender: 'ASSISTANT_1',
                 content: responses[Math.floor(Math.random() * responses.length)],
                 isComplete: true,
             };

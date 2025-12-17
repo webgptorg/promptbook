@@ -7,14 +7,14 @@ export const chatButtonsScenario = {
         {
             id: '1',
             date: new Date('2025-01-01T10:00:00Z'),
-            from: 'USER',
+            sender: 'USER',
             content: 'Hi there! Can you help me get started?',
             isComplete: true,
         },
         {
             id: '2',
             date: new Date('2025-01-01T10:00:30Z'),
-            from: 'ASSISTANT_1',
+            sender: 'ASSISTANT_1',
             content: spaceTrim(`
                     Hello! I'd be happy to help you get started. Here are some quick options to get you going:
 

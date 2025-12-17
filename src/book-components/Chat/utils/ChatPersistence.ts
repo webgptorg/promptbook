@@ -1,11 +1,12 @@
+import { string_date_iso8601 } from '../../../types/typeAliases';
 import type { ChatMessage } from '../types/ChatMessage';
 
 /**
  * Serializable version of ChatMessage for localStorage
  * Date objects need to be converted to strings for JSON serialization
  */
-type SerializableChatMessage = Omit<ChatMessage, 'date'> & {
-    date: string;
+type SerializableChatMessage = Omit<ChatMessage, 'createdAt'> & {
+    createdAt: string_date_iso8601;
 };
 
 /**
@@ -23,7 +24,10 @@ export class ChatPersistence {
         try {
             const serializableMessages: SerializableChatMessage[] = messages.map((message) => ({
                 ...message,
-                date: (message.date || new Date()).toISOString(),
+                createdAt: (typeof message.createdAt === 'string'
+                    ? new Date(message.createdAt)
+                    : message.createdAt || new Date()
+                ).toISOString() as string_date_iso8601,
             }));
 
             const storageKey = this.STORAGE_PREFIX + persistenceKey;
@@ -50,7 +54,7 @@ export class ChatPersistence {
             // Convert date strings back to Date objects
             return serializableMessages.map((message) => ({
                 ...message,
-                date: new Date(message.date),
+                createdAt: new Date(message.createdAt),
             }));
         } catch (error) {
             console.warn('Failed to load chat messages from localStorage:', error);

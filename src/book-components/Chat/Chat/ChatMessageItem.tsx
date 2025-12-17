@@ -198,7 +198,7 @@ export const ChatMessageItem = memo(
                         <img
                             width={AVATAR_SIZE}
                             src={avatarSrc}
-                            alt={`Avatar of ${message.from.toString().toLocaleLowerCase()}`}
+                            alt={`Avatar of ${message.sender.toString().toLocaleLowerCase()}`}
                             style={
                                 {
                                     '--avatar-bg-color': color.toHex(),
