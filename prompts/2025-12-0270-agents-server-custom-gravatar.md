@@ -23,6 +23,7 @@
 -   It should be located at `/agents/joe-doe/images/default-avatar.png` where `joe-doe` is the agent's slug
 -   The `default-avatar.png` should be dynamically generated based on agent's name and persona, the image prompt should be like: "Image of {agent.name}, {agent.persona}, portrait, use color ${agent.meta.color}, detailed, high quality"
 -   Use the `/agents/joe-doe/images/default-avatar.png` instead of Gravatar for agents that do not have custom uploaded avatar
+-   Note that there are other images like `/agents/joe-doe/images/screenshot-phone.png`, the `default-avatar.png` is in the same route group but does not interact with those other images directly, just indirectly by `screenshot-phone` -> Looking for agent's avatar -> Default to `default-avatar.png` if no custom avatar
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle
     , Espetially reusing the logic like caching between the `/apps/agents-server/src/app/api/images/[filename]/route.ts` and the new route for agent images
