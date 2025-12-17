@@ -25,6 +25,7 @@
 -   Use the `/agents/joe-doe/images/default-avatar.png` instead of Gravatar for agents that do not have custom uploaded avatar
 -   Note that there are other images like `/agents/joe-doe/images/screenshot-phone.png`, the `default-avatar.png` is in the same route group but does not interact with those other images directly, just indirectly by `screenshot-phone` -> Looking for agent's avatar -> Default to `default-avatar.png` if no custom avatar
 -   You are working with the `Agents Server` application `/apps/agents-server`
+-   For `default-avatar.png` use vertical orientation, for generic images keep using square orientation
 -   Keep in mind the DRY _(don't repeat yourself)_ principle
     , Espetially reusing the logic like caching between the `/apps/agents-server/src/app/api/images/[filename]/route.ts` and the new route for agent images
     , Querying the `/api/images/coffee-in-space.png` will generate arbitrary image based on prompt in the url "Coffee in space"
