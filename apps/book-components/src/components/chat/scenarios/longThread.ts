@@ -4,7 +4,7 @@ export const longThreadScenario = {
     name: 'Looooooong Thread',
     messages: [
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '1',
             createdAt: new Date(),
             sender: 'USER',
@@ -12,7 +12,7 @@ export const longThreadScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '2',
             createdAt: new Date(),
             sender: 'ASSISTANT_1',
@@ -21,7 +21,7 @@ export const longThreadScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '3',
             createdAt: new Date(),
             sender: 'USER',
@@ -29,7 +29,7 @@ export const longThreadScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '4',
             createdAt: new Date(),
             sender: 'ASSISTANT_2',
@@ -37,7 +37,7 @@ export const longThreadScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '5',
             createdAt: new Date(),
             sender: 'ASSISTANT_1',
@@ -46,7 +46,7 @@ export const longThreadScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '6',
             createdAt: new Date(),
             sender: 'USER',
@@ -54,7 +54,7 @@ export const longThreadScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '7',
             createdAt: new Date(),
             sender: 'ASSISTANT_3',
@@ -62,7 +62,7 @@ export const longThreadScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '8',
             createdAt: new Date(),
             sender: 'ASSISTANT_2',
@@ -71,7 +71,7 @@ export const longThreadScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '9',
             createdAt: new Date(),
             sender: 'USER',
@@ -79,7 +79,7 @@ export const longThreadScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '10',
             createdAt: new Date(),
             sender: 'ASSISTANT_1',
@@ -88,7 +88,7 @@ export const longThreadScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '11',
             createdAt: new Date(),
             sender: 'ASSISTANT_3',
@@ -97,7 +97,7 @@ export const longThreadScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '12',
             createdAt: new Date(),
             sender: 'USER',
@@ -105,7 +105,7 @@ export const longThreadScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '13',
             createdAt: new Date(),
             sender: 'ASSISTANT_2',
@@ -114,7 +114,7 @@ export const longThreadScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '14',
             createdAt: new Date(),
             sender: 'ASSISTANT_1',
@@ -123,7 +123,7 @@ export const longThreadScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '15',
             createdAt: new Date(),
             sender: 'USER',
@@ -131,7 +131,7 @@ export const longThreadScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '16',
             createdAt: new Date(),
             sender: 'ASSISTANT_3',
@@ -139,7 +139,7 @@ export const longThreadScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '17',
             createdAt: new Date(),
             sender: 'ASSISTANT_2',
@@ -147,7 +147,7 @@ export const longThreadScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '18',
             createdAt: new Date(),
             sender: 'USER',
@@ -155,7 +155,7 @@ export const longThreadScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '19',
             createdAt: new Date(),
             sender: 'ASSISTANT_1',
@@ -164,7 +164,7 @@ export const longThreadScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '20',
             createdAt: new Date(),
             sender: 'ASSISTANT_3',
@@ -172,7 +172,7 @@ export const longThreadScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '21',
             createdAt: new Date(),
             sender: 'USER',
@@ -180,7 +180,7 @@ export const longThreadScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '22',
             createdAt: new Date(),
             sender: 'ASSISTANT_2',
@@ -188,7 +188,7 @@ export const longThreadScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '23',
             createdAt: new Date(),
             sender: 'ASSISTANT_1',
@@ -197,7 +197,7 @@ export const longThreadScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '24',
             createdAt: new Date(),
             sender: 'USER',
@@ -205,7 +205,7 @@ export const longThreadScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '25',
             createdAt: new Date(),
             sender: 'ASSISTANT_3',
@@ -213,7 +213,7 @@ export const longThreadScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '26',
             createdAt: new Date(),
             sender: 'ASSISTANT_2',
@@ -221,7 +221,7 @@ export const longThreadScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '27',
             createdAt: new Date(),
             sender: 'USER',
@@ -229,7 +229,7 @@ export const longThreadScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '28',
             createdAt: new Date(),
             sender: 'ASSISTANT_1',
@@ -238,7 +238,7 @@ export const longThreadScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '29',
             createdAt: new Date(),
             sender: 'ASSISTANT_3',
@@ -247,7 +247,7 @@ export const longThreadScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '30',
             createdAt: new Date(),
             sender: 'ASSISTANT_2',
@@ -255,7 +255,7 @@ export const longThreadScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '31',
             createdAt: new Date(),
             sender: 'USER',
@@ -263,7 +263,7 @@ export const longThreadScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '32',
             createdAt: new Date(),
             sender: 'ASSISTANT_1',
@@ -272,7 +272,7 @@ export const longThreadScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '33',
             createdAt: new Date(),
             sender: 'ASSISTANT_3',
@@ -280,7 +280,7 @@ export const longThreadScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '34',
             createdAt: new Date(),
             sender: 'USER',
@@ -288,7 +288,7 @@ export const longThreadScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '35',
             createdAt: new Date(),
             sender: 'ASSISTANT_2',
@@ -296,7 +296,7 @@ export const longThreadScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '36',
             createdAt: new Date(),
             sender: 'ASSISTANT_1',
@@ -304,7 +304,7 @@ export const longThreadScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '37',
             createdAt: new Date(),
             sender: 'USER',
@@ -312,7 +312,7 @@ export const longThreadScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '38',
             createdAt: new Date(),
             sender: 'ASSISTANT_3',
@@ -320,7 +320,7 @@ export const longThreadScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '39',
             createdAt: new Date(),
             sender: 'ASSISTANT_2',
@@ -328,7 +328,7 @@ export const longThreadScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '40',
             createdAt: new Date(),
             sender: 'USER',
@@ -336,7 +336,7 @@ export const longThreadScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '41',
             createdAt: new Date(),
             sender: 'ASSISTANT_1',
@@ -344,7 +344,7 @@ export const longThreadScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '42',
             createdAt: new Date(),
             sender: 'ASSISTANT_3',
@@ -352,7 +352,7 @@ export const longThreadScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '43',
             createdAt: new Date(),
             sender: 'USER',
@@ -360,7 +360,7 @@ export const longThreadScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '44',
             createdAt: new Date(),
             sender: 'ASSISTANT_2',
@@ -368,7 +368,7 @@ export const longThreadScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '45',
             createdAt: new Date(),
             sender: 'ASSISTANT_1',
@@ -376,7 +376,7 @@ export const longThreadScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '46',
             createdAt: new Date(),
             sender: 'USER',
@@ -384,7 +384,7 @@ export const longThreadScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '47',
             createdAt: new Date(),
             sender: 'ASSISTANT_3',
@@ -392,7 +392,7 @@ export const longThreadScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '48',
             createdAt: new Date(),
             sender: 'ASSISTANT_2',
@@ -400,7 +400,7 @@ export const longThreadScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '49',
             createdAt: new Date(),
             sender: 'ASSISTANT_1',
@@ -408,7 +408,7 @@ export const longThreadScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '50',
             createdAt: new Date(),
             sender: 'USER',

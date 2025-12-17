@@ -4,7 +4,7 @@ export const chatWithChildrenScenario = {
     name: 'Chat with children',
     messages: [
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '1',
             createdAt: new Date(),
             sender: 'USER',
@@ -12,7 +12,7 @@ export const chatWithChildrenScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '2',
             createdAt: new Date(),
             sender: 'ASSISTANT_1',

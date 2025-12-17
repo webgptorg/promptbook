@@ -14,7 +14,7 @@ export default function TextareaToChatPage() {
         }
         return [
             {
-                channel: 'PROMPTBOOK_CHAT',
+                // channel: 'PROMPTBOOK_CHAT',
                 id: 'textarea-message',
                 sender: 'USER',
                 content: textareaContent,

@@ -4,7 +4,7 @@ export const multiParticipantScenario = {
     name: 'Chat with multiple AI Avatars',
     messages: [
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '1',
             createdAt: new Date(),
             sender: 'USER',
@@ -12,7 +12,7 @@ export const multiParticipantScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '2',
             createdAt: new Date(),
             sender: 'ASSISTANT_2',
@@ -20,7 +20,7 @@ export const multiParticipantScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '3',
             createdAt: new Date(),
             sender: 'ASSISTANT_3',
@@ -28,7 +28,7 @@ export const multiParticipantScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '4',
             createdAt: new Date(),
             sender: 'USER',
@@ -37,7 +37,7 @@ export const multiParticipantScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '5',
             createdAt: new Date(),
             sender: 'ASSISTANT_2',

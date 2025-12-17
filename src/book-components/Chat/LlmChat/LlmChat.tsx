@@ -158,7 +158,7 @@ export function LlmChat(props: LlmChatProps) {
             const now = Date.now();
 
             const userMessage: ChatMessage = {
-                channel: 'PROMPTBOOK_CHAT',
+                // channel: 'PROMPTBOOK_CHAT',
                 id: `user_${now}`,
                 createdAt: new Date(),
                 sender: userParticipantName,
@@ -168,7 +168,7 @@ export function LlmChat(props: LlmChatProps) {
             };
 
             const agentMessage: ChatMessage = {
-                channel: 'PROMPTBOOK_CHAT',
+                // channel: 'PROMPTBOOK_CHAT',
                 id: `agent_${now}`,
                 createdAt: new Date(),
                 sender: llmParticipantName,
@@ -281,7 +281,7 @@ export function LlmChat(props: LlmChatProps) {
 
             // Add user message
             const userMessage: ChatMessage = {
-                channel: 'PROMPTBOOK_CHAT',
+                // channel: 'PROMPTBOOK_CHAT',
                 id: `user_${Date.now()}`,
                 createdAt: new Date(),
                 sender: userParticipantName,
@@ -299,7 +299,7 @@ export function LlmChat(props: LlmChatProps) {
 
             // Add loading message for assistant
             const loadingMessage: ChatMessage = {
-                channel: 'PROMPTBOOK_CHAT',
+                // channel: 'PROMPTBOOK_CHAT',
                 id: `assistant_${Date.now()}`,
                 createdAt: new Date(),
                 sender: llmParticipantName,
@@ -340,7 +340,7 @@ export function LlmChat(props: LlmChatProps) {
                 if (llmTools.callChatModelStream) {
                     result = await llmTools.callChatModelStream(prompt, (chunk) => {
                         const assistantMessage: ChatMessage = {
-                            channel: 'PROMPTBOOK_CHAT',
+                            // channel: 'PROMPTBOOK_CHAT',
                             id: loadingMessage.id,
                             createdAt: new Date(),
                             sender: llmParticipantName,
@@ -366,7 +366,7 @@ export function LlmChat(props: LlmChatProps) {
 
                 // Replace loading message with actual response
                 const assistantMessage: ChatMessage = {
-                    channel: 'PROMPTBOOK_CHAT',
+                    // channel: 'PROMPTBOOK_CHAT',
                     id: loadingMessage.id,
                     createdAt: new Date(),
                     sender: llmParticipantName,
@@ -391,7 +391,7 @@ export function LlmChat(props: LlmChatProps) {
 
                 // Replace loading message with error message
                 const errorMessage: ChatMessage = {
-                    channel: 'PROMPTBOOK_CHAT',
+                    // channel: 'PROMPTBOOK_CHAT',
                     id: loadingMessage.id,
                     createdAt: new Date(),
                     sender: llmParticipantName,

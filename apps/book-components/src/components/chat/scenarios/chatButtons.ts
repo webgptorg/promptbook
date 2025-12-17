@@ -5,7 +5,7 @@ export const chatButtonsScenario = {
     name: 'Chat with Buttons',
     messages: [
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '1',
             createdAt: new Date('2025-01-01T10:00:00Z'),
             sender: 'USER',
@@ -13,7 +13,7 @@ export const chatButtonsScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: '2',
             createdAt: new Date('2025-01-01T10:00:30Z'),
             sender: 'ASSISTANT_1',

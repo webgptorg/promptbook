@@ -10,9 +10,9 @@ export type ChatMessage = Omit<Message<id>, 'direction' | 'recipients' | 'thread
     /**
      * Force the channel to be 'PROMPTBOOK_CHAT'
      *
-     * !!!! Make it non mandatory
+     * @default 'PROMPTBOOK_CHAT'
      */
-    channel: 'PROMPTBOOK_CHAT';
+    channel?: 'PROMPTBOOK_CHAT';
 
     /**
      * The content of the message with optional markdown formatting

@@ -88,13 +88,13 @@ async function playground() {
         thread: [
             // <- TODO: !!! Maybe rename to `previousMessages`
             {
-                channel: 'PROMPTBOOK_CHAT',
+                // channel: 'PROMPTBOOK_CHAT',
                 // id: 'msg1',
                 sender: 'user', // <- TODO: [👥] Standardize to `role: 'USER' | 'ASSISTANT'
                 content: 'Hello! Can you tell me a fun fact about TypeScript?',
             },
             {
-                channel: 'PROMPTBOOK_CHAT',
+                // channel: 'PROMPTBOOK_CHAT',
                 // id: 'msg2',
                 sender: 'assistant',
                 content: 'TypeScript is a superset of JavaScript that adds static types.',

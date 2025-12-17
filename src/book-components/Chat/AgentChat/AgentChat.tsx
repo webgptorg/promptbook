@@ -36,7 +36,7 @@ export function AgentChat(props: AgentChatProps) {
                 llmParticipantName="AGENT" // <- TODO: [🧠] Maybe dynamic agent id
                 initialMessages={[
                     {
-                        channel: 'PROMPTBOOK_CHAT',
+                        // channel: 'PROMPTBOOK_CHAT',
                         sender: 'AGENT',
                         content:
                             agent.initialMessage ||

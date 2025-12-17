@@ -5,7 +5,7 @@ export const richFormattingScenario = {
     name: 'Rich Formatting Showcase',
     messages: [
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: 1,
             createdAt: new Date(),
             sender: 'USER',
@@ -13,7 +13,7 @@ export const richFormattingScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: 2,
             createdAt: new Date(),
             sender: 'ASSISTANT_1',
@@ -53,7 +53,7 @@ export const richFormattingScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: 3,
             createdAt: new Date(),
             sender: 'USER',
@@ -62,7 +62,7 @@ export const richFormattingScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: 4,
             createdAt: new Date(),
             sender: 'ASSISTANT_1',
@@ -71,7 +71,7 @@ export const richFormattingScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: 5,
             createdAt: new Date(),
             sender: 'ASSISTANT_1',
@@ -88,7 +88,7 @@ export const richFormattingScenario = {
             isComplete: true,
         },
         {
-            channel: 'PROMPTBOOK_CHAT',
+            // channel: 'PROMPTBOOK_CHAT',
             id: 6,
             createdAt: new Date(),
             sender: 'ASSISTANT_1',
