@@ -300,6 +300,7 @@
         "@modelcontextprotocol/sdk": "^1.24.3",
         "@monaco-editor/react": "4.7.0",
         "@mozilla/readability": "0.6.0",
+        "@sendgrid/mail": "^8.1.6",
         "@supabase/supabase-js": "2.81.1",
         "@types/formidable": "3.4.6",
         "@types/swagger-ui-react": "^5.18.0",
@@ -348,6 +349,7 @@
         "y-protocols": "1.0.6",
         "y-websocket": "3.0.0",
         "y-websocket-server": "1.0.2",
-        "yjs": "13.6.27"
+        "yjs": "13.6.27",
+        "zeptomail": "^7.0.0"
     }
 }
