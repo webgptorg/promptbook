@@ -15,12 +15,19 @@
 
 ---
 
-[-]
+[ ]
 
-[✨🏭] baz
+[✨🏭] Create default image for agents
 
+-   Based on the [image route](/apps/agents-server/src/app/api/images/[filename]/route.ts) create the route for the agent default profile image
+-   It should be located at `/agents/joe-doe/images/default-avatar.png` where `joe-doe` is the agent's slug
+-   The `default-avatar.png` should be dynamically generated based on agent's name and persona, the image prompt should be like: "Image of {agent.name}, {agent.persona}, portrait, use color ${agent.meta.color}, detailed, high quality"
+-   Use the `/agents/joe-doe/images/default-avatar.png` instead of Gravatar for agents that do not have custom uploaded avatar
 -   You are working with the `Agents Server` application `/apps/agents-server`
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Keep in mind the DRY _(don't repeat yourself)_ principle
+    , Espetially reusing the logic like caching between the `/apps/agents-server/src/app/api/images/[filename]/route.ts` and the new route for agent images
+    , Querying the `/api/images/coffee-in-space.png` will generate arbitrary image based on prompt in the url "Coffee in space"
+    , On the other hand the agent image route will generate image based on agent's data from database but all the behind the scenes logic for caching, storing in database, uploading to CDN **should be reused**
 
 ---
 
