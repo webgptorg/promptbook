@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨✉️] Add a testing page to run browser in Playground app
 
