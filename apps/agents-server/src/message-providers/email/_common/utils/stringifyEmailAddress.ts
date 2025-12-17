@@ -1,4 +1,4 @@
-import type { string_email } from '../../typeAliases';
+import type { string_email } from '@promptbook-local/types';
 import type { EmailAddress } from '../Email';
 
 /**

@@ -1,4 +1,4 @@
-import { capitalize } from '../../../../../src/utils/normalization/capitalize';
+import { capitalize } from '@promptbook/utils';
 
 /**
  * Converts a filename like "cat-sitting-on-keyboard.png" to a prompt like "Cat sitting on keyboard"

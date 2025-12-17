@@ -1,5 +1,5 @@
-import { spaceTrim } from '@promptbook/utils';
-import type { string_emails } from '../../typeAliases';
+import type { string_emails } from '@promptbook-local/types';
+import { spaceTrim } from 'spacetrim';
 import type { EmailAddress } from '../Email';
 import { parseEmailAddress } from './parseEmailAddress';
 
