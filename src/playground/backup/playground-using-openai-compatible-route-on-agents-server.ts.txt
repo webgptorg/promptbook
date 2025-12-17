@@ -5,9 +5,8 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 
 import colors from 'colors';
+import OpenAI from 'openai';
 import { join } from 'path';
-import spaceTrim from 'spacetrim';
-import { sendMessage } from '../../apps/agents-server/src/utils/messages/sendMessage';
 
 if (process.cwd() !== join(__dirname, '../..')) {
     console.error(colors.red(`CWD must be root of the project`));
@@ -30,16 +29,17 @@ async function playground() {
     // Do here stuff you want to test
     //========================================>
 
-    const sendingResult = await sendMessage({
-        channel: 'EMAIL',
-        direction: 'OUTBOUND',
-        sender: 'pavol@ptbk.io',
-        recipients: 'recipient@example.com',
-        content: spaceTrim(`
-            Hello from Promptbook playground!    
-        `),
+    const client = new OpenAI({
+        baseURL: 'http://localhost:4440/api/openai/v1', //'http://localhost:4440/agents/jack-green/api/openai',
+        apiKey: 'ptbk_6135a159114a40b99bdbf2d52db59e59',
     });
-    console.info(sendingResult);
+
+    const response = await client.chat.completions.create({
+        model: 'agent:jack-green',
+        messages: [{ role: 'user', content: 'Tell me more about you.' }],
+    });
+
+    console.log(response.choices[0]!.message.content);
 
     //========================================/
 
