@@ -6,8 +6,6 @@ dotenv.config({ path: '.env' });
 
 import colors from 'colors';
 import { join } from 'path';
-import spaceTrim from 'spacetrim';
-import { sendMessage } from '../../apps/agents-server/src/utils/messages/sendMessage';
 
 if (process.cwd() !== join(__dirname, '../..')) {
     console.error(colors.red(`CWD must be root of the project`));
@@ -29,17 +27,6 @@ async function playground() {
 
     // Do here stuff you want to test
     //========================================>
-
-    const sendingResult = await sendMessage({
-        channel: 'EMAIL',
-        direction: 'OUTBOUND',
-        sender: 'pavol@ptbk.io',
-        recipients: 'recipient@example.com',
-        content: spaceTrim(`
-            Hello from Promptbook playground!    
-        `),
-    });
-    console.info(sendingResult);
 
     //========================================/
 
