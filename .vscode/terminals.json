@@ -24,9 +24,17 @@
             "focus": false
         },
         {
-            "name": "🎭👨‍💻🟣⏩ Migrate agents server (💤)",
+            "name": "🎭👨‍💻🟣⏩ Migrate agents server",
             "cwd": "./apps/agents-server/",
             "command": "npm run migrate-database",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🎭👨‍💻🟣⏩ Migrate agents server development (💤)",
+            "cwd": "./apps/agents-server/",
+            "command": "npx tsx ./src/database/migrate.ts --only=local_,server_S6_,server_S7_,server_S8_,server_PavolHejny_",
             "execute": false,
             "onlySingle": false,
             "focus": false

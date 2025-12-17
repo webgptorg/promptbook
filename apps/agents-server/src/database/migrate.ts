@@ -8,13 +8,34 @@ dotenv.config();
 async function migrate() {
     console.info('🚀 Starting database migration');
 
+    // Parse CLI arguments for --only flag
+    const args = process.argv.slice(2);
+    let onlyPrefixes: string[] | null = null;
+
+    for (let i = 0; i < args.length; i++) {
+        if (args[i] === '--only' && args[i + 1]) {
+            onlyPrefixes = args[i + 1]
+                .split(',')
+                .map((p) => p.trim())
+                .filter((p) => p !== '');
+            break;
+        } else if (args[i]?.startsWith('--only=')) {
+            onlyPrefixes = args[i]
+                .substring('--only='.length)
+                .split(',')
+                .map((p) => p.trim())
+                .filter((p) => p !== '');
+            break;
+        }
+    }
+
     // 1. Get configuration
     const prefixesEnv = process.env.SUPABASE_MIGRATION_PREFIXES;
     if (!prefixesEnv) {
         console.warn('⚠️ SUPABASE_MIGRATION_PREFIXES is not defined. Skipping migration.');
         return;
     }
-    const prefixes = prefixesEnv
+    let prefixes = prefixesEnv
         .split(',')
         .map((p) => p.trim())
         .filter((p) => p !== '');
@@ -22,6 +43,18 @@ async function migrate() {
     if (prefixes.length === 0) {
         console.warn('⚠️ No prefixes found in SUPABASE_MIGRATION_PREFIXES. Skipping migration.');
         return;
+    }
+
+    // Filter prefixes if --only flag is provided
+    if (onlyPrefixes !== null) {
+        const invalidPrefixes = onlyPrefixes.filter((p) => !prefixes.includes(p));
+        if (invalidPrefixes.length > 0) {
+            console.error(`❌ Invalid prefixes specified in --only: ${invalidPrefixes.join(', ')}`);
+            console.error(`   Available prefixes: ${prefixes.join(', ')}`);
+            process.exit(1);
+        }
+        prefixes = onlyPrefixes;
+        console.info(`🎯 Running migrations only for: ${prefixes.join(', ')}`);
     }
 
     const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL;
