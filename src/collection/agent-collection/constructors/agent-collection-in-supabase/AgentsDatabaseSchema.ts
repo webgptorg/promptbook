@@ -3,7 +3,7 @@
  * Source of truth: `/apps/agents-server/src/database/schema.sql` *(do not edit table structure here manually)*
  *
  * [💽] Prompt:
- * Re-generate this sub-schema from `/apps/agents-server/src/database/migrations/*.sql`
+ * Re-generate this sub-schema from `/apps/agents-server/src/database/schema.ts` *(which was generated from `/apps/agents-server/src/database/migrations/*.sql`)*
  * Generate Supabase TypeScript schema which is a subset of `AgentsServerDatabase`
  * containing only tables `Agent` and `AgentHistory`
  *
