@@ -4,10 +4,11 @@
  *
  * [💽] Prompt:
  * Re-generate this sub-schema from `/apps/agents-server/src/database/schema.ts` *(which was generated from `/apps/agents-server/src/database/migrations/*.sql`)*
+ * `AgentsDatabaseSchema` is strict subset of `AgentsServerDatabase`
  * Generate Supabase TypeScript schema which is a subset of `AgentsServerDatabase`
  * containing only tables `Agent` and `AgentHistory`
  *
- * NOTE: This file intentionally omits all other tables (`EnvironmentVariable`, `ChatHistory`, `ChatFeedback`)
+ * NOTE: This file intentionally omits all other tables (`Metadata`, `ChatHistory`, `ChatFeedback`, `User`, `LlmCache`, etc.)
  *       and any extra schemas (e.g. `graphql_public`) to remain a strict subset.
  */
 
@@ -32,6 +33,7 @@ export type AgentsDatabaseSchema = {
                     preparedModelRequirements: Json | null; // <- `ModelRequirements` (prepared)
                     preparedExternals: Json | null; // <- `PreparedExternals`
                     deletedAt: string | null;
+                    visibility: 'PUBLIC' | 'PRIVATE';
                 };
                 Insert: {
                     id?: number;
@@ -47,6 +49,7 @@ export type AgentsDatabaseSchema = {
                     preparedModelRequirements?: Json | null;
                     preparedExternals?: Json | null;
                     deletedAt?: string | null;
+                    visibility?: 'PUBLIC' | 'PRIVATE';
                 };
                 Update: {
                     id?: number;
@@ -62,6 +65,7 @@ export type AgentsDatabaseSchema = {
                     preparedModelRequirements?: Json | null;
                     preparedExternals?: Json | null;
                     deletedAt?: string | null;
+                    visibility?: 'PUBLIC' | 'PRIVATE';
                 };
                 Relationships: [];
             };
@@ -93,21 +97,20 @@ export type AgentsDatabaseSchema = {
                     agentSource?: string;
                     promptbookEngineVersion?: string;
                 };
-                Relationships: [];
+                Relationships: [
+                    {
+                        foreignKeyName: 'AgentHistory_agentName_fkey';
+                        columns: ['agentName'];
+                        referencedRelation: 'Agent';
+                        referencedColumns: ['agentName'];
+                    },
+                ];
             };
         };
-        Views: {
-            [_ in never]: never;
-        };
-        Functions: {
-            [_ in never]: never;
-        };
-        Enums: {
-            [_ in never]: never;
-        };
-        CompositeTypes: {
-            [_ in never]: never;
-        };
+        Views: Record<string, never>;
+        Functions: Record<string, never>;
+        Enums: Record<string, never>;
+        CompositeTypes: Record<string, never>;
     };
 };
 
