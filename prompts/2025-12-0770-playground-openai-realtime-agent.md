@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🚥] Create a simple miniapp that can do realtime voicecall
 
@@ -9,7 +9,7 @@
 -   Allow to pass system message through prop into the <OpenAIRealtimeAgent systemMessage="..." /> component
 -   The sample should be located on `/openai-realtime-agent`, `http://localhost:4023/openai-realtime-agent`, place there the `<OpenAIRealtimeAgent />` component with some boilerplate configuration
 -   You are working with the `Playground app` application `/apps/playground`
--  In the repository there is lot of other code, do not be distracted by it, focus only on the task of creating the miniapp as described working standalone
+-   In the repository there is lot of other code, do not be distracted by it, focus only on the task of creating the miniapp as described working standalone
 -   Add the changes into the `/changelog/_current-preversion.md`
 
 ---
