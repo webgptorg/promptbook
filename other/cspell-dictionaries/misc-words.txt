@@ -443,3 +443,4 @@ Playfair
 xpublic
 ABCDEFGHJKLMNPQRSTUVWXY
 Zabcdefghijkmnopqrstuvwxyz
+fkey
