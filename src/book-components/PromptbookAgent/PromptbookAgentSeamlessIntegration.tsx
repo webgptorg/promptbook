@@ -87,7 +87,8 @@ export function PromptbookAgentSeamlessIntegration(props: PromptbookAgentSeamles
     const image =
         agent?.meta?.image ||
         meta?.image ||
-        'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y';
+        // Note: [🤹] Using default avatar from the agent server
+        `${agentUrl}/images/default-avatar.png`;
     const color = agent?.meta?.color || meta?.color;
 
     let connectionStatus: 'connected' | 'pending' | 'error' = 'pending';

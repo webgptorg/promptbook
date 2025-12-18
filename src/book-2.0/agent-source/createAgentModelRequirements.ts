@@ -139,9 +139,9 @@ export function extractAgentName(agentSource: string_book): string {
 }
 
 /**
- * Extracts the profile image URL from agent source or returns gravatar fallback
+ * Extracts the profile image URL from agent source or returns default avatar fallback
  * @param agentSource The agent source string that may contain META IMAGE line
- * @returns Profile image URL (from source or gravatar fallback)
+ * @returns Profile image URL (from source or default avatar fallback)
  * @deprecated Use parseAgentSource instead
  * @private
  */

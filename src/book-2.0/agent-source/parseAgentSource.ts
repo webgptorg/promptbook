@@ -92,7 +92,7 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
         meta[metaType] = spaceTrim(commitment.content.substring(metaTypeRaw.length));
     }
 
-    // Generate gravatar fallback if no meta image specified
+    // Generate default avatar fallback if no meta image specified
     if (!meta.image) {
         meta.image = generatePlaceholderAgentProfileImageUrl(
             parseResult.agentName || createDefaultAgentName(agentSource),
