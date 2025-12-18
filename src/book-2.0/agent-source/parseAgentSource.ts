@@ -94,7 +94,9 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
 
     // Generate gravatar fallback if no meta image specified
     if (!meta.image) {
-        meta.image = generatePlaceholderAgentProfileImageUrl(parseResult.agentName || '!!');
+        meta.image = generatePlaceholderAgentProfileImageUrl(
+            parseResult.agentName || createDefaultAgentName(agentSource),
+        );
     }
 
     // Generate fullname fallback if no meta fullname specified

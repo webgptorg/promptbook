@@ -9,7 +9,7 @@ describe('parseAgentSource', () => {
         const result = parseAgentSource(agentSource);
         expect(result.agentName).toBe('agent-name');
         expect(result.personaDescription).toBe(null);
-        expect(result.meta.image).toMatch(/gravatar/); // Should be a gravatar URL
+        expect(result.meta.image).toBe('/agents/agent-name/images/default-avatar.png'); // Should be a default avatar URL
         expect(result.parameters).toEqual([]);
     });
 
@@ -63,7 +63,7 @@ describe('parseAgentSource', () => {
         const result = parseAgentSource(agentSource);
         expect(result.agentName).toBe('agent-name');
         expect(result.personaDescription).toBe(null);
-        expect(result.meta.image).toMatch(/gravatar/); // Should be a gravatar URL
+        expect(result.meta.image).toBe('/agents/agent-name/images/default-avatar.png'); // Should be a default avatar URL
     });
 
     it('handles empty or whitespace input', () => {
@@ -72,7 +72,7 @@ describe('parseAgentSource', () => {
             parameters: [],
             personaDescription: null,
             meta: {
-                image: expect.stringMatching(/gravatar/), // Should be a gravatar URL for 'Anonymous Agent'
+                image: '/agents/agent-9bee7d/images/default-avatar.png', // Should be a default avatar URL
             },
         });
         expect(parseAgentSource(validateBook('   '))).toMatchObject({
@@ -81,7 +81,7 @@ describe('parseAgentSource', () => {
             parameters: [],
             personaDescription: null,
             meta: {
-                image: expect.stringMatching(/gravatar/), // Should be a gravatar URL for 'Anonymous Agent'
+                image: '/agents/agent-e3b0c4/images/default-avatar.png', // Should be a default avatar URL for 'Anonymous Agent'
             },
         });
     });
@@ -99,7 +99,7 @@ describe('parseAgentSource', () => {
         const result = parseAgentSource(agentSource);
         expect(result.agentName).toBe('agent-name');
         expect(result.personaDescription).toBe(null);
-        expect(result.meta.image).toMatch(/gravatar/); // Should be a gravatar URL
+        expect(result.meta.image).toBe('/agents/agent-name/images/default-avatar.png'); // Should be a default avatar URL
     });
 
     it('ignores malformed PERSONA and META IMAGE lines', () => {
@@ -114,7 +114,7 @@ describe('parseAgentSource', () => {
         const result = parseAgentSource(agentSource);
         expect(result.agentName).toBe('agent-name');
         expect(result.personaDescription).toBe('');
-        expect(result.meta.image).toMatch(/gravatar/); // Should be a gravatar URL
+        expect(result.meta.image).toBe('/agents/agent-name/images/default-avatar.png'); // Should be a default avatar URL
     });
 
     it('parses agent with custom META commitments', () => {
@@ -131,7 +131,7 @@ describe('parseAgentSource', () => {
             agentName: 'ai-avatar',
             personaDescription: 'A friendly AI assistant that helps you with your tasks',
             meta: {
-                image: expect.stringMatching(/gravatar/), // Should be a gravatar URL fallback
+                image: '/agents/ai-avatar/images/default-avatar.png', // Should be a default avatar URL
                 foo: 'foo',
             },
             parameters: [],
@@ -179,7 +179,7 @@ describe('parseAgentSource', () => {
         const result = parseAgentSource(agentSource);
 
         expect(result.meta).toMatchObject({
-            image: expect.stringMatching(/gravatar/), // Should be a gravatar URL fallback
+            image: '/agents/ai-avatar/images/default-avatar.png', // Should be a default avatar URL fallback
             fullname: 'AI Avatar',
             title: 'Another Title', // Later should override earlier
             link: 'https://example2.com', // Later should override earlier
