@@ -3,11 +3,11 @@
  * Source of truth: `/apps/agents-server/src/database/schema.sql` *(do not edit table structure here manually)*
  *
  * [💽] Prompt:
- * Re-generate this sub-schema
+ * Re-generate this sub-schema from `/apps/agents-server/src/database/migrations/*.sql`
  * Generate Supabase TypeScript schema which is a subset of `AgentsServerDatabase`
  * containing only tables `Agent` and `AgentHistory`
  *
- * NOTE: This file intentionally omits all other tables (EnvironmentVariable, ChatHistory, ChatFeedback)
+ * NOTE: This file intentionally omits all other tables (`EnvironmentVariable`, `ChatHistory`, `ChatFeedback`)
  *       and any extra schemas (e.g. `graphql_public`) to remain a strict subset.
  */
 

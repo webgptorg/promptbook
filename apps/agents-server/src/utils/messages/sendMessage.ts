@@ -1,4 +1,6 @@
 import type { really_any } from '@promptbook-local/types';
+import { serializeError } from '@promptbook-local/utils';
+import { assertsError } from '../../../../../src/errors/assertsError';
 import { $getTableName } from '../../database/$getTableName';
 import { $provideSupabaseForServer } from '../../database/$provideSupabaseForServer';
 import { EMAIL_PROVIDERS } from '../../message-providers';
@@ -9,15 +11,11 @@ import { OutboundEmail } from '../../message-providers/email/_common/Email';
  */
 export async function sendMessage(message: OutboundEmail): Promise<void> {
     const supabase = await $provideSupabaseForServer();
-    // @ts-expect-error: Tables are not yet in types
-    const messageTable = await $getTableName('Message');
-    // @ts-expect-error: Tables are not yet in types
-    const messageSendAttemptTable = await $getTableName('MessageSendAttempt');
 
     // 1. Insert message
     const { data: insertedMessage, error: insertError } = await supabase
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .from(messageTable as any)
+        .from(await $getTableName('Message'))
         .insert({
             channel: message.channel || 'UNKNOWN',
             direction: message.direction || 'OUTBOUND',
@@ -56,17 +54,19 @@ export async function sendMessage(message: OutboundEmail): Promise<void> {
             let raw: really_any = null;
 
             try {
+                console.log(`📤 Sending email via ${providerName}`);
                 raw = await provider.send(message);
                 isSuccessful = true;
                 isSent = true;
             } catch (error) {
+                assertsError(error);
                 console.error(`Failed to send email via ${providerName}`, error);
-                raw = { error: error instanceof Error ? error.message : String(error) };
+                raw = { error: serializeError(error) };
             }
 
             // 3. Log attempt
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            await supabase.from(messageSendAttemptTable as any).insert({
+            await supabase.from(await $getTableName('MessageSendAttempt')).insert({
                 // @ts-expect-error: insertedMessage is any
                 messageId: insertedMessage.id,
                 providerName,

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { assertsError } from '../../../../../../../src/errors/assertsError';
 import { sendEmailAction } from './actions';
 
 export function SendEmailClient() {
@@ -18,9 +19,10 @@ export function SendEmailClient() {
             await sendEmailAction(formData);
             setStatus('SUCCESS');
         } catch (error) {
+            assertsError(error);
             console.error(error);
             setStatus('ERROR');
-            setErrorMessage(error instanceof Error ? error.message : String(error));
+            setErrorMessage(error.message);
         }
     };
 

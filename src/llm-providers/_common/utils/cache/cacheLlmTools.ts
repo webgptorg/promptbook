@@ -2,7 +2,9 @@ import hexEncoder from 'crypto-js/enc-hex';
 import sha256 from 'crypto-js/sha256';
 import spaceTrim from 'spacetrim';
 import type { Promisable } from 'type-fest';
+import { serializeError } from '../../../../_packages/utils.index';
 import { DEFAULT_IS_VERBOSE, MAX_FILENAME_LENGTH } from '../../../../config';
+import { assertsError } from '../../../../errors/assertsError';
 import { PipelineExecutionError } from '../../../../errors/PipelineExecutionError';
 import type { AvailableModel } from '../../../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../../../execution/LlmExecutionTools';
@@ -168,12 +170,14 @@ export function cacheLlmTools<TLlmTools extends LlmExecutionTools>(
                     });
                 }
             } catch (error) {
+                assertsError(error);
+
                 // If validation throws an unexpected error, don't cache
                 shouldCache = false;
                 if (isVerbose) {
                     console.info('Not caching result due to validation error for key:', key, {
                         content: promptResult.content,
-                        validationError: error instanceof Error ? error.message : String(error),
+                        validationError: serializeError(error),
                     });
                 }
             }

@@ -25,22 +25,15 @@ export async function GET(request: NextRequest) {
         const searchParams = request.nextUrl.searchParams;
 
         const page = parsePositiveInt(searchParams.get('page'), 1);
-        const pageSize = Math.min(
-            MAX_PAGE_SIZE,
-            parsePositiveInt(searchParams.get('pageSize'), DEFAULT_PAGE_SIZE),
-        );
+        const pageSize = Math.min(MAX_PAGE_SIZE, parsePositiveInt(searchParams.get('pageSize'), DEFAULT_PAGE_SIZE));
         const search = searchParams.get('search')?.trim() || '';
         const channel = searchParams.get('channel');
         const direction = searchParams.get('direction');
 
         const supabase = $provideSupabase();
-        // @ts-expect-error: Tables are not yet in types
-        const messageTable = await $getTableName('Message');
-        // @ts-expect-error: Tables are not yet in types
-        const attemptTable = await $getTableName('MessageSendAttempt');
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        let query = supabase.from(messageTable as any).select('*', { count: 'exact' });
+        let query = supabase.from(await $getTableName('Message')).select('*', { count: 'exact' });
 
         if (channel) {
             query = query.eq('channel', channel);
@@ -80,7 +73,7 @@ export async function GET(request: NextRequest) {
             const messageIds = messages.map((m) => m.id);
             const { data: attempts, error: attemptsError } = await supabase
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                .from(attemptTable as any)
+                .from(await $getTableName('MessageSendAttempt'))
                 .select('*')
                 .in('messageId', messageIds);
 

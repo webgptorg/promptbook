@@ -3,7 +3,7 @@
  * Source of truth: `schema.sql` *(do not edit table structure here manually)*
  *
  * [💽] Prompt:
- * Re-generate supabase typescript schema from the `./schema.sql`
+ * Re-generate supabase typescript schema from `./migrations/*.sql`
  */
 
 // Json helper (Supabase style)
@@ -120,7 +120,14 @@ export type AgentsServerDatabase = {
                     agentSource?: string;
                     promptbookEngineVersion?: string;
                 };
-                Relationships: [];
+                Relationships: [
+                    {
+                        foreignKeyName: 'AgentHistory_agentName_fkey';
+                        columns: ['agentName'];
+                        referencedRelation: 'Agent';
+                        referencedColumns: ['agentName'];
+                    },
+                ];
             };
             ChatHistory: {
                 Row: {
@@ -174,7 +181,14 @@ export type AgentsServerDatabase = {
                     source?: 'AGENT_PAGE_CHAT' | 'OPENAI_API_COMPATIBILITY' | null;
                     apiKey?: string | null;
                 };
-                Relationships: [];
+                Relationships: [
+                    {
+                        foreignKeyName: 'ChatHistory_agentName_fkey';
+                        columns: ['agentName'];
+                        referencedRelation: 'Agent';
+                        referencedColumns: ['agentName'];
+                    },
+                ];
             };
             ChatFeedback: {
                 Row: {
@@ -228,7 +242,14 @@ export type AgentsServerDatabase = {
                     language?: string | null;
                     platform?: string | null;
                 };
-                Relationships: [];
+                Relationships: [
+                    {
+                        foreignKeyName: 'ChatFeedback_agentName_fkey';
+                        columns: ['agentName'];
+                        referencedRelation: 'Agent';
+                        referencedColumns: ['agentName'];
+                    },
+                ];
             };
             User: {
                 Row: {
@@ -404,6 +425,76 @@ export type AgentsServerDatabase = {
                         foreignKeyName: 'File_userId_fkey';
                         columns: ['userId'];
                         referencedRelation: 'User';
+                        referencedColumns: ['id'];
+                    },
+                ];
+            };
+            Message: {
+                Row: {
+                    id: number;
+                    createdAt: string;
+                    channel: string;
+                    direction: string;
+                    sender: Json;
+                    recipients: Json | null;
+                    content: string;
+                    threadId: string | null;
+                    metadata: Json | null;
+                };
+                Insert: {
+                    id?: number;
+                    createdAt?: string;
+                    channel: string;
+                    direction: string;
+                    sender: Json;
+                    recipients?: Json | null;
+                    content: string;
+                    threadId?: string | null;
+                    metadata?: Json | null;
+                };
+                Update: {
+                    id?: number;
+                    createdAt?: string;
+                    channel?: string;
+                    direction?: string;
+                    sender?: Json;
+                    recipients?: Json | null;
+                    content?: string;
+                    threadId?: string | null;
+                    metadata?: Json | null;
+                };
+                Relationships: [];
+            };
+            MessageSendAttempt: {
+                Row: {
+                    id: number;
+                    createdAt: string;
+                    messageId: number;
+                    providerName: string;
+                    isSuccessful: boolean;
+                    raw: Json | null;
+                };
+                Insert: {
+                    id?: number;
+                    createdAt?: string;
+                    messageId: number;
+                    providerName: string;
+                    isSuccessful: boolean;
+                    raw?: Json | null;
+                };
+                Update: {
+                    id?: number;
+                    createdAt?: string;
+                    messageId?: number;
+                    providerName?: string;
+                    isSuccessful?: boolean;
+                    raw?: Json | null;
+                };
+                Relationships: [
+                    {
+                        foreignKeyName: 'MessageSendAttempt_messageId_fkey';
+                        columns: ['messageId'];
+                        referencedRelation: 'Message';
                         referencedColumns: ['id'];
                     },
                 ];

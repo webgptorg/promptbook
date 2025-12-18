@@ -1,5 +1,7 @@
+import { serializeError } from '@promptbook-local/utils';
 import { NextResponse } from 'next/server';
-import { chromium, Browser } from 'playwright';
+import { Browser, chromium } from 'playwright';
+import { assertsError } from '../../../../../../../src/errors/assertsError';
 
 // Use globalThis to persist the browser instance across hot reloads in development
 const globalForBrowser = globalThis as unknown as {
@@ -35,7 +37,8 @@ export async function GET() {
             },
         });
     } catch (error) {
+        assertsError(error);
         console.error('Error taking screenshot:', error);
-        return NextResponse.json({ error: String(error) }, { status: 500 });
+        return NextResponse.json({ error: serializeError(error) }, { status: 500 });
     }
 }
