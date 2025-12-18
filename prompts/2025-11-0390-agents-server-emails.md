@@ -41,7 +41,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🚃] Add ability to recieve emails
 
