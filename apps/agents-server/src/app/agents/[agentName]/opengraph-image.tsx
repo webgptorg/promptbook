@@ -1,4 +1,4 @@
-import { PROMPTBOOK_COLOR } from '@promptbook-local/core';
+import { generatePlaceholderAgentProfileImageUrl, PROMPTBOOK_COLOR } from '@promptbook-local/core';
 import { serializeError } from '@promptbook-local/utils';
 import { ImageResponse } from 'next/og';
 import { assertsError } from '../../../../../../src/errors/assertsError';
@@ -54,7 +54,11 @@ export default async function Image({ params }: { params: Promise<{ agentName: s
                                 backgroundColor: agentColor.toHex(),
                                 borderRadius: '50%',
                             }}
-                            src={agentProfile.meta.image!}
+                            src={
+                                agentProfile.meta.image ||
+                                agentProfile.permanentId ||
+                                generatePlaceholderAgentProfileImageUrl(agentProfile.permanentId || agentName)
+                            }
                             alt="Agent Icon"
                         />
                     </div>

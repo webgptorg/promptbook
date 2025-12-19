@@ -4,7 +4,7 @@ import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabase } from '@/src/database/$provideSupabase';
 import { $provideServer } from '@/src/tools/$provideServer';
 import { isUserAdmin } from '@/src/utils/isUserAdmin';
-import { PROMPTBOOK_COLOR } from '@promptbook-local/core';
+import { generatePlaceholderAgentProfileImageUrl, PROMPTBOOK_COLOR } from '@promptbook-local/core';
 import { ArrowLeftIcon, BoxIcon, CodeIcon, GlobeIcon, ServerIcon, TerminalIcon } from 'lucide-react';
 import { headers } from 'next/headers';
 import Link from 'next/link';
@@ -187,7 +187,7 @@ export default async function AgentIntegrationPage({ params }: { params: Promise
                     {agentProfile.meta.image && (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
-                            src={agentProfile.meta.image as string}
+                            src={agentProfile.meta.image ||  agentProfile.permanentId ||generatePlaceholderAgentProfileImageUrl(agentName)}
                             alt={agentProfile.meta.fullname || agentName}
                             className="w-16 h-16 rounded-full object-cover border-2"
                             style={{ borderColor: primaryColor }}

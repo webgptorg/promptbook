@@ -1,6 +1,8 @@
 'use client';
 
 import Editor from '@monaco-editor/react';
+import { generatePlaceholderAgentProfileImageUrl } from '@promptbook-local/core';
+import { AgentBasicInformation } from '@promptbook-local/types';
 import { ArrowLeftIcon, ChevronDownIcon, CodeIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
@@ -29,7 +31,7 @@ function getLanguageFromTranspiler(transpilerName?: string): string {
 
 export default function AgentCodePage({ params }: { params: Promise<{ agentName: string }> }) {
     const [agentName, setAgentName] = useState<string>('');
-    const [agentProfile, setAgentProfile] = useState<unknown>(null);
+    const [agentProfile, setAgentProfile] = useState<AgentBasicInformation | null>(null);
     const [transpilers, setTranspilers] = useState<Transpiler[]>([]);
     const [selectedTranspiler, setSelectedTranspiler] = useState<Transpiler | null>(null);
     const [transpiledCode, setTranspiledCode] = useState<string>('');
@@ -114,13 +116,17 @@ export default function AgentCodePage({ params }: { params: Promise<{ agentName:
                 {/* Header */}
                 <div className="p-6 border-b border-gray-200 flex items-center gap-4">
                     {/* eslint-disable @typescript-eslint/no-explicit-any, @next/next/no-img-element */}
-                    {(agentProfile as any)?.meta?.image && (
-                        <img
-                            src={(agentProfile as any).meta.image as string}
-                            alt={(agentProfile as any).meta.fullname || agentName}
-                            className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
-                        />
-                    )}
+
+                    <img
+                        src={
+                            agentProfile.meta.image ||
+                            agentProfile.permanentId ||
+                            generatePlaceholderAgentProfileImageUrl(agentName)
+                        }
+                        alt={agentProfile.meta.fullname || agentName}
+                        className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
+                    />
+
                     <div className="flex-1">
                         {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                         <h1 className="text-2xl font-bold text-gray-900">

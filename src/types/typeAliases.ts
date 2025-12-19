@@ -181,6 +181,8 @@ export type string_title = string;
  * Semantic helper
  *
  * For example `"My AI Assistant"`
+ *
+ * TODO: !!!! Brand the type
  */
 export type string_agent_name = string;
 
@@ -206,6 +208,8 @@ export type string_agent_hash = string_sha256;
  * Semantic helper
  *
  * For example `"3mJr7AoUXx2Wqd"`
+ *
+ * TODO: !!!! Brand the type
  */
 export type string_agent_permanent_id = string_base_58;
 

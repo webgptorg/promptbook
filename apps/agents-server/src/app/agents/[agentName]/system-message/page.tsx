@@ -8,6 +8,7 @@ import { notFound } from 'next/navigation';
 import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
 import { getAgentName, getAgentProfile } from '../_utils';
 import { generateAgentMetadata } from '../generateAgentMetadata';
+import { generatePlaceholderAgentProfileImageUrl } from '@promptbook-local/core';
 
 export const generateMetadata = generateAgentMetadata;
 
@@ -44,7 +45,7 @@ export default async function AgentSystemMessagePage({ params }: { params: Promi
                     {agentProfile.meta.image && (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
-                            src={agentProfile.meta.image as string}
+                            src={agentProfile.meta.image||  agentProfile.permanentId ||generatePlaceholderAgentProfileImageUrl(agentName)}
                             alt={agentProfile.meta.fullname || agentName}
                             className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
                         />

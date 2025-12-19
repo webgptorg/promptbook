@@ -1,6 +1,7 @@
 'use client';
 
-import { AgentBasicInformation } from '@promptbook-local/types';
+import { generatePlaceholderAgentProfileImageUrl } from '@promptbook-local/core';
+import { AgentBasicInformation, string_agent_permanent_id } from '@promptbook-local/types';
 import { RepeatIcon } from 'lucide-react';
 import { useState } from 'react';
 import { AgentQrCode } from './AgentQrCode';
@@ -12,6 +13,11 @@ type AgentProfileProps = {
      * The agent to display
      */
     readonly agent: AgentBasicInformation;
+
+    /**
+     * The permanent ID of the agent
+     */
+    readonly permanentId: string_agent_permanent_id;
 
     /**
      * URL of the agent page
@@ -58,16 +64,18 @@ export function AgentProfile(props: AgentProfileProps) {
         agent,
         agentUrl = '',
         agentEmail = '',
+        permanentId,
         renderMenu,
         children,
         actions,
         isHeadless = false,
         className,
     } = props;
+    console.log('!!!!', { agent });
     const { meta, agentName } = agent;
     const fullname = (meta.fullname as string) || agentName || 'Agent';
     const personaDescription = agent.personaDescription || '';
-    const imageUrl = (meta.image as string) || null;
+    const imageUrl = meta.image || generatePlaceholderAgentProfileImageUrl(permanentId);
 
     const [isQrModalOpen, setIsQrModalOpen] = useState(false);
     const [isFlipped, setIsFlipped] = useState(false);

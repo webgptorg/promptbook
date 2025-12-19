@@ -1,6 +1,6 @@
 'use client';
 
-import { AgentBasicInformation } from '@promptbook-local/types';
+import { AgentBasicInformation, string_agent_name } from '@promptbook-local/types';
 import { AgentProfile } from '../../../components/AgentProfile/AgentProfile';
 import { AgentOptionsMenu } from './AgentOptionsMenu';
 
@@ -8,7 +8,7 @@ type AgentProfileWrapperProps = {
     agent: AgentBasicInformation;
     agentUrl: string;
     agentEmail: string;
-    agentName: string;
+    agentName: string_agent_name;
     brandColorHex: string;
     isAdmin: boolean;
     isHeadless: boolean;
@@ -27,6 +27,7 @@ export function AgentProfileWrapper(props: AgentProfileWrapperProps) {
         <AgentProfile
             agent={agent}
             agentUrl={agentUrl}
+            permanentId={permanentId || agentName}
             agentEmail={agentEmail}
             isHeadless={isHeadless}
             renderMenu={({ onShowQrCode }) => (

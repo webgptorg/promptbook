@@ -1,21 +1,17 @@
-import type { string_agent_name, string_url_image } from '../../types/typeAliases';
-import { normalizeAgentName } from '../agent-source/normalizeAgentName';
+import type { string_agent_name, string_agent_permanent_id, string_url_image } from '../../types/typeAliases';
 
 /**
  * Generates an image for the agent to use as profile image
  *
- * @param agentName The agent name to generate avatar for
+ * @param agentId - The permanent ID of the agent
  * @returns The placeholder profile image URL for the agent
  *
  * @public exported from `@promptbook/core`
  */
-export function generatePlaceholderAgentProfileImageUrl(agentName?: string_agent_name): string_url_image {
-    if (!agentName) {
-        // TODO: [🧠] What to return if agentName is not provided?
-        return '/agents/-/images/default-avatar.png';
-    }
-
-    return `/agents/${normalizeAgentName(agentName)}/images/default-avatar.png`;
+export function generatePlaceholderAgentProfileImageUrl(
+    agentIdOrName: string_agent_permanent_id | string_agent_name,
+): string_url_image {
+    return `/agents/${agentIdOrName}/images/default-avatar.png`;
 }
 
 /**

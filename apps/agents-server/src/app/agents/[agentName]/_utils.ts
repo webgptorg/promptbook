@@ -13,7 +13,11 @@ export async function getAgentName(params: Promise<{ agentName: string }>) {
 export async function getAgentProfile(agentName: string) {
     const collection = await $provideAgentCollectionForServer();
     const agentSource = await collection.getAgentSource(agentName);
-    return parseAgentSource(agentSource);
+    const agentProfile = parseAgentSource(agentSource);
+
+    console.log('!!!!', { agentSource, agentProfile });
+
+    return agentProfile;
 }
 
 export async function isAgentDeleted(agentName: string): Promise<boolean> {
@@ -33,5 +37,5 @@ export async function isAgentDeleted(agentName: string): Promise<boolean> {
 }
 
 /**
- * TODO: Split to multiple files
+ * TODO: Split to multiple files, refactor
  */

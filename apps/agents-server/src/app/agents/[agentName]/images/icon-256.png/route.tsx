@@ -1,4 +1,4 @@
-import { PROMPTBOOK_COLOR } from '@promptbook-local/core';
+import { generatePlaceholderAgentProfileImageUrl, PROMPTBOOK_COLOR } from '@promptbook-local/core';
 import { serializeError } from '@promptbook-local/utils';
 import { ImageResponse } from 'next/og';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
@@ -45,7 +45,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
                     >
                         {/* Note: `next/image` is not working propperly with `next/og` */}
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={agentProfile.meta.image!} alt="Agent Icon" />
+                        <img
+                            src={agentProfile.meta.image ||  agentProfile.permanentId ||generatePlaceholderAgentProfileImageUrl(agentName)}
+                            alt="Agent Icon"
+                        />
                     </div>
                 </div>
             ),

@@ -3,17 +3,16 @@
 import { $provideServer } from '@/src/tools/$provideServer';
 import { isUserAdmin } from '@/src/utils/isUserAdmin';
 import { saturate } from '@promptbook-local/color';
-import { PROMPTBOOK_COLOR } from '@promptbook-local/core';
-import { NotFoundError } from '@promptbook-local/core';
+import { generatePlaceholderAgentProfileImageUrl, NotFoundError, PROMPTBOOK_COLOR } from '@promptbook-local/core';
 import { notFound } from 'next/navigation';
 import { Color } from '../../../../../../src/utils/color/Color';
+import { DeletedAgentBanner } from '../../../components/DeletedAgentBanner';
 import { getAgentName, getAgentProfile, isAgentDeleted } from './_utils';
 import { getAgentLinks } from './agentLinks';
 import { AgentProfileChat } from './AgentProfileChat';
 import { AgentProfileWrapper } from './AgentProfileWrapper';
 import { generateAgentMetadata } from './generateAgentMetadata';
 import { ServiceWorkerRegister } from './ServiceWorkerRegister';
-import { DeletedAgentBanner } from '../../../components/DeletedAgentBanner';
 
 export const generateMetadata = generateAgentMetadata;
 
@@ -96,7 +95,11 @@ export default async function AgentPage({
                     agentName={agentName}
                     fullname={fullname}
                     brandColorHex={brandColorHex}
-                    avatarSrc={agentProfile.meta.image!}
+                    avatarSrc={
+                        agentProfile.meta.image ||
+                        agentProfile.permanentId ||
+                        generatePlaceholderAgentProfileImageUrl(agentName)
+                    }
                     isDeleted={isDeleted}
                 />
             </AgentProfileWrapper>

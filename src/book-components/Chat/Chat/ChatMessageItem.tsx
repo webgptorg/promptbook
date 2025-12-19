@@ -202,7 +202,10 @@ export const ChatMessageItem = memo(
                             style={
                                 {
                                     '--avatar-bg-color': color.toHex(),
+                                    objectFit: 'cover',
                                     width: AVATAR_SIZE,
+                                    height: AVATAR_SIZE,
+                                    aspectRatio: '1 / 1',
                                 } as React.CSSProperties
                             }
                         />

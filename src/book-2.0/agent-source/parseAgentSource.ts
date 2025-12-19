@@ -1,6 +1,5 @@
 import spaceTrim from 'spacetrim';
 import { normalizeTo_camelCase } from '../../utils/normalization/normalizeTo_camelCase';
-import { generatePlaceholderAgentProfileImageUrl } from '../utils/generatePlaceholderAgentProfileImageUrl';
 import type { AgentBasicInformation } from './AgentBasicInformation';
 import { computeAgentHash } from './computeAgentHash';
 import { createDefaultAgentName } from './createDefaultAgentName';
@@ -90,13 +89,6 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
 
         const metaType = normalizeTo_camelCase(metaTypeRaw);
         meta[metaType] = spaceTrim(commitment.content.substring(metaTypeRaw.length));
-    }
-
-    // Generate default avatar fallback if no meta image specified
-    if (!meta.image) {
-        meta.image = generatePlaceholderAgentProfileImageUrl(
-            parseResult.agentName || createDefaultAgentName(agentSource),
-        );
     }
 
     // Generate fullname fallback if no meta fullname specified
