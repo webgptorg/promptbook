@@ -297,6 +297,7 @@
         "@anthropic-ai/sdk": "0.68.0",
         "@aws-sdk/client-s3": "3.936.0",
         "@azure/openai": "1.0.0-beta.13",
+        "@elevenlabs/react": "^0.12.3",
         "@modelcontextprotocol/sdk": "^1.24.3",
         "@monaco-editor/react": "4.7.0",
         "@mozilla/readability": "0.6.0",

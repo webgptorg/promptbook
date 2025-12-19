@@ -17,6 +17,7 @@
 
 ### 🛝 Playground
 
+-   New `elevenlabs-realtime-agent` page: Simple miniapp for testing ElevenLabs Realtime API voice calls with abstract visual interface
 -   New `openai-realtime-agent` page: Simple miniapp for testing OpenAI Realtime API voice calls with abstract visual interface
 -   New `textarea-to-chat` page: Shows a textarea on the left and Chat component on the right with 1:1 message mirroring
 -   New `test-browser` page: Runs a Playwright browser instance, navigates to ptbk.io, and displays a screenshot

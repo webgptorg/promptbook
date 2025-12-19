@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨💎] Create a simple miniapp that can do realtime voicecall
 
