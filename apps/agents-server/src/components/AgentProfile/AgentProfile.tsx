@@ -5,7 +5,6 @@ import { colorToDataUrl } from '@promptbook-local/color';
 import { generatePlaceholderAgentProfileImageUrl } from '@promptbook-local/core';
 import { AgentBasicInformation, string_agent_permanent_id } from '@promptbook-local/types';
 import { RepeatIcon } from 'lucide-react';
-import Image from 'next/image';
 import { useState } from 'react';
 import { AgentQrCode } from './AgentQrCode';
 import { QrCodeModal } from './QrCodeModal';
@@ -156,15 +155,18 @@ export function AgentProfile(props: AgentProfileProps) {
                                     // ['cornerShape' as really_any /* <- Note: `cornerShape` is non standard CSS property */]: 'squircle ',
                                 }}
                             >
-                                <Image
-                                    src={imageUrl.replace(NEXT_PUBLIC_SITE_URL!.href, '')}
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                    src={imageUrl}
                                     alt={fullname}
                                     className="w-full h-full object-cover"
-                                    width={1024}
-                                    height={1792}
+                                    // width={1024}
+                                    // height={1792}
                                     // <- TODO: [🤐] DRY
-                                    placeholder="blur"
-                                    blurDataURL={colorToDataUrl(brandColorLightHex)}
+                                    style={{
+                                        objectFit: 'cover',
+                                        backgroundImage: `url(${colorToDataUrl(brandColorLightHex)})`,
+                                    }}
                                 />
 
                                 {/* Flip hint icon */}

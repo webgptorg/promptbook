@@ -98,7 +98,6 @@ export default async function AgentPage({
                     brandColorHex={brandColorHex}
                     avatarSrc={
                         agentProfile.meta.image ||
-                        agentProfile.permanentId ||
                         generatePlaceholderAgentProfileImageUrl(agentName, NEXT_PUBLIC_SITE_URL)
                     }
                     isDeleted={isDeleted}

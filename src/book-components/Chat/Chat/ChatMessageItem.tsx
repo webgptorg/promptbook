@@ -3,6 +3,7 @@
 //          this would not be here because the `@promptbook/components` package should be React library independent of Next.js specifics
 
 import { memo, useEffect, useRef, useState } from 'react';
+import { colorToDataUrl } from '../../../_packages/color.index';
 import { PROMPTBOOK_CHAT_COLOR, USER_CHAT_COLOR } from '../../../config';
 import type { id } from '../../../types/typeAliases';
 import { Color } from '../../../utils/color/Color';
@@ -71,7 +72,7 @@ export const ChatMessageItem = memo(
         onCopy,
         onCreateAgent,
     }: ChatMessageItemProps) => {
-        const avatarSrc = participant?.avatarSrc || '';
+        const avatarSrc = participant?.avatarSrc || '#!!!!';
         const [isAvatarTooltipVisible, setIsAvatarTooltipVisible] = useState(false);
         const [avatarTooltipPosition, setAvatarTooltipPosition] = useState<{ top: number; left: number } | null>(null);
         const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -206,6 +207,7 @@ export const ChatMessageItem = memo(
                                     width: AVATAR_SIZE,
                                     height: AVATAR_SIZE,
                                     aspectRatio: '1 / 1',
+                                    backgroundImage: `url(${colorToDataUrl(color)})`,
                                 } as React.CSSProperties
                             }
                         />
