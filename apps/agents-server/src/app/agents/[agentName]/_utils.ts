@@ -14,9 +14,6 @@ export async function getAgentProfile(agentName: string) {
     const collection = await $provideAgentCollectionForServer();
     const agentSource = await collection.getAgentSource(agentName);
     const agentProfile = parseAgentSource(agentSource);
-
-    console.log('!!!!', { agentSource, agentProfile });
-
     return agentProfile;
 }
 

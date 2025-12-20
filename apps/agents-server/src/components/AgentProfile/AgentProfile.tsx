@@ -73,7 +73,7 @@ export function AgentProfile(props: AgentProfileProps) {
         isHeadless = false,
         className,
     } = props;
-    console.log('!!!!', { agent });
+    
     const { meta, agentName } = agent;
     const fullname = (meta.fullname as string) || agentName || 'Agent';
     const personaDescription = agent.personaDescription || '';
