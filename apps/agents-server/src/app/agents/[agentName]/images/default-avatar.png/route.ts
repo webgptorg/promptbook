@@ -58,7 +58,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             // Image exists, fetch from CDN and return directly
             const imageResponse = await fetch(existingImage.cdnUrl as string_url);
             if (!imageResponse.ok) {
-                throw new Error(`Failed to fetch image from CDN: ${imageResponse.status}`);
+                console.warn(`Failed to fetch image from CDN: ${imageResponse.status}`);
+                return NextResponse.redirect(existingImage.cdnUrl);
             }
             const imageBuffer = await imageResponse.arrayBuffer();
             return new NextResponse(imageBuffer, {
@@ -134,7 +135,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         // Return the newly created image directly
         const finalImageResponse = await fetch(cdnUrl.href);
         if (!finalImageResponse.ok) {
-            throw new Error(`Failed to fetch newly created image from CDN: ${finalImageResponse.status}`);
+            console.warn(`Failed to fetch newly created image from CDN: ${finalImageResponse.status}`);
+            return NextResponse.redirect(cdnUrl.href);
         }
         const finalImageBuffer = await finalImageResponse.arrayBuffer();
         return new NextResponse(finalImageBuffer, {
