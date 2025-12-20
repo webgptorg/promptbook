@@ -54,6 +54,7 @@ export default async function Image({ params }: { params: Promise<{ agentName: s
                                 width: '80%',
                                 backgroundColor: agentColor.toHex(),
                                 borderRadius: '50%',
+                                aspectRatio: '1 / 1',
                             }}
                             src={
                                 agentProfile.meta.image ||

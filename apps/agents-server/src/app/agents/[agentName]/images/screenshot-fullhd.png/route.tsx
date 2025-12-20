@@ -49,6 +49,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
                         <img
                             style={{
                                 width: '80%',
+                                aspectRatio: '1 / 1',
                                 backgroundColor: agentColor.toHex(),
                                 borderRadius: '50%',
                             }}

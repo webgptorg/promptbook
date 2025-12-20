@@ -1,3 +1,4 @@
+import { NEXT_PUBLIC_SITE_URL } from '@/config';
 import { generatePlaceholderAgentProfileImageUrl, PROMPTBOOK_COLOR } from '@promptbook-local/core';
 import { serializeError } from '@promptbook-local/utils';
 import { ImageResponse } from 'next/og';
@@ -5,7 +6,6 @@ import { assertsError } from '../../../../../../../../src/errors/assertsError';
 import { Color } from '../../../../../../../../src/utils/color/Color';
 import { keepUnused } from '../../../../../../../../src/utils/organization/keepUnused';
 import { getAgentName, getAgentProfile } from '../../_utils';
-import { NEXT_PUBLIC_SITE_URL } from '@/config';
 
 const size = {
     width: 256,
@@ -31,6 +31,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
                         alignItems: 'center',
                         justifyContent: 'center',
                         borderRadius: '50%',
+                           aspectRatio: '1 / 1',
                         overflow: 'hidden',
                     }}
                 >

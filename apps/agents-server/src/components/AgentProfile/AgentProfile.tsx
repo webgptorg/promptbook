@@ -1,13 +1,15 @@
 'use client';
 
+import { NEXT_PUBLIC_SITE_URL } from '@/config';
+import { colorToDataUrl } from '@promptbook-local/color';
 import { generatePlaceholderAgentProfileImageUrl } from '@promptbook-local/core';
 import { AgentBasicInformation, string_agent_permanent_id } from '@promptbook-local/types';
 import { RepeatIcon } from 'lucide-react';
+import Image from 'next/image';
 import { useState } from 'react';
 import { AgentQrCode } from './AgentQrCode';
 import { QrCodeModal } from './QrCodeModal';
 import { useAgentBackground } from './useAgentBackground';
-import { NEXT_PUBLIC_SITE_URL } from '@/config';
 
 type AgentProfileProps = {
     /**
@@ -154,17 +156,16 @@ export function AgentProfile(props: AgentProfileProps) {
                                     // ['cornerShape' as really_any /* <- Note: `cornerShape` is non standard CSS property */]: 'squircle ',
                                 }}
                             >
-                                {imageUrl ? (
-                                    // eslint-disable-next-line @next/next/no-img-element
-                                    <img src={imageUrl} alt={fullname} className="w-full h-full object-cover" />
-                                ) : (
-                                    <div
-                                        className="w-full h-full flex items-center justify-center text-3xl md:text-8xl font-bold text-white/80"
-                                        style={{ backgroundColor: brandColorDarkHex }}
-                                    >
-                                        {fullname.charAt(0).toUpperCase()}
-                                    </div>
-                                )}
+                                <Image
+                                    src={imageUrl.replace(NEXT_PUBLIC_SITE_URL!.href, '')}
+                                    alt={fullname}
+                                    className="w-full h-full object-cover"
+                                    width={1024}
+                                    height={1792}
+                                    // <- TODO: [🤐] DRY
+                                    placeholder="blur"
+                                    blurDataURL={colorToDataUrl(brandColorLightHex)}
+                                />
 
                                 {/* Flip hint icon */}
                                 <div className="absolute bottom-2 md:bottom-4 right-2 md:right-4 bg-black/30 p-1 md:p-2 rounded-full text-white/80 backdrop-blur-md opacity-0 group-hover:opacity-100 transition-opacity">

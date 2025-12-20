@@ -88,6 +88,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
                 modelVariant: 'IMAGE_GENERATION',
                 modelName: 'dall-e-3',
                 size: '1024x1792', // <- Vertical orientation
+                // <- TODO: [🤐] DRY
                 quality: 'hd',
                 style: 'natural',
             },
