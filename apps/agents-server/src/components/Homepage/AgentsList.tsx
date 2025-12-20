@@ -1,10 +1,10 @@
 // Client Component for rendering and deleting agents
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { TrashIcon } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { AddAgentButton } from '../../app/AddAgentButton';
 import { AgentCard } from './AgentCard';
 import { Section } from './Section';
@@ -16,16 +16,29 @@ type AgentWithVisibility = AgentBasicInformation & {
 };
 
 type AgentsListProps = {
-    agents: AgentWithVisibility[];
-    isAdmin: boolean;
+    /**
+     * @@@
+     */
+    readonly agents: AgentWithVisibility[];
+
+    /**
+     * @@@
+     */
+    readonly isAdmin: boolean;
+
+    /**
+     * Base URL of the agents server
+     */
+    readonly publicUrl: URL;
 };
 
-export function AgentsList({ agents: initialAgents, isAdmin }: AgentsListProps) {
+export function AgentsList(props: AgentsListProps) {
+    const { agents: initialAgents, isAdmin, publicUrl } = props;
     const router = useRouter();
     const [agents, setAgents] = useState(Array.from(initialAgents));
 
     const handleDelete = async (agentIdentifier: string) => {
-        const agent = agents.find(a => a.permanentId === agentIdentifier || a.agentName === agentIdentifier);
+        const agent = agents.find((a) => a.permanentId === agentIdentifier || a.agentName === agentIdentifier);
         if (!agent) return;
         if (!window.confirm(`Delete agent "${agent.agentName}"? It will be moved to Recycle Bin.`)) return;
 
@@ -45,12 +58,14 @@ export function AgentsList({ agents: initialAgents, isAdmin }: AgentsListProps) 
     };
 
     const handleClone = async (agentIdentifier: string) => {
-        const agent = agents.find(a => a.permanentId === agentIdentifier || a.agentName === agentIdentifier);
+        const agent = agents.find((a) => a.permanentId === agentIdentifier || a.agentName === agentIdentifier);
         if (!agent) return;
         if (!window.confirm(`Clone agent "${agent.agentName}"?`)) return;
 
         try {
-            const response = await fetch(`/api/agents/${encodeURIComponent(agentIdentifier)}/clone`, { method: 'POST' });
+            const response = await fetch(`/api/agents/${encodeURIComponent(agentIdentifier)}/clone`, {
+                method: 'POST',
+            });
             if (response.ok) {
                 const newAgent = await response.json();
                 setAgents([...agents, newAgent]);
@@ -64,7 +79,7 @@ export function AgentsList({ agents: initialAgents, isAdmin }: AgentsListProps) 
     };
 
     const handleToggleVisibility = async (agentIdentifier: string) => {
-        const agent = agents.find(a => a.permanentId === agentIdentifier || a.agentName === agentIdentifier);
+        const agent = agents.find((a) => a.permanentId === agentIdentifier || a.agentName === agentIdentifier);
         if (!agent) return;
 
         const newVisibility = agent.visibility === 'PUBLIC' ? 'PRIVATE' : 'PUBLIC';
@@ -78,11 +93,13 @@ export function AgentsList({ agents: initialAgents, isAdmin }: AgentsListProps) 
 
         if (response.ok) {
             // Update the local state
-            setAgents(agents.map(a =>
-                a.permanentId === agent.permanentId || a.agentName === agent.agentName
-                    ? { ...a, visibility: newVisibility }
-                    : a
-            ));
+            setAgents(
+                agents.map((a) =>
+                    a.permanentId === agent.permanentId || a.agentName === agent.agentName
+                        ? { ...a, visibility: newVisibility }
+                        : a,
+                ),
+            );
             router.refresh(); // Refresh server data to ensure consistency
         } else {
             alert('Failed to update agent visibility');
@@ -95,6 +112,7 @@ export function AgentsList({ agents: initialAgents, isAdmin }: AgentsListProps) 
                 <AgentCard
                     key={agent.permanentId || agent.agentName}
                     agent={agent}
+                    publicUrl={publicUrl}
                     href={`/agents/${encodeURIComponent(agent.permanentId || agent.agentName)}`}
                     isAdmin={isAdmin}
                     onDelete={handleDelete}

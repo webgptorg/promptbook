@@ -34,6 +34,8 @@ const calendarWithSeconds = {
 export default async function HomePage() {
     $sideEffect(/* Note: [🐶] This will ensure dynamic rendering of page and avoid Next.js pre-render */ headers());
 
+    const { publicUrl } = await $provideServer();
+
     const currentUser = await getCurrentUser();
     const isAdmin = await isUserAdmin(); /* <- TODO: [👹] Here should be user permissions */
 
@@ -94,9 +96,9 @@ export default async function HomePage() {
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
             <div className="container mx-auto px-4 py-16">
-                <AgentsList agents={[...agents]} isAdmin={isAdmin} />
+                <AgentsList agents={[...agents]} isAdmin={isAdmin} publicUrl={publicUrl} />
 
-                <ExternalAgentsSectionClient />
+                <ExternalAgentsSectionClient publicUrl={publicUrl} />
 
                 {isAdmin && <UsersList allowCreate={false} />}
 

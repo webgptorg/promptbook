@@ -5,19 +5,57 @@ import { AgentProfile } from '../../../components/AgentProfile/AgentProfile';
 import { AgentOptionsMenu } from './AgentOptionsMenu';
 
 type AgentProfileWrapperProps = {
-    agent: AgentBasicInformation;
-    agentUrl: string;
-    agentEmail: string;
-    agentName: string_agent_name;
-    brandColorHex: string;
-    isAdmin: boolean;
-    isHeadless: boolean;
-    actions: React.ReactNode;
-    children: React.ReactNode;
+    /***
+     * @@@
+     */
+    readonly agent: AgentBasicInformation;
+
+    /***
+     * @@@
+     */
+    readonly agentUrl: string;
+
+    /**
+     * Base URL of the agents server
+     */
+    readonly publicUrl: URL;
+
+    /***
+     * @@@
+     */
+    readonly agentEmail: string;
+
+    /***
+     * @@@
+     */
+    readonly agentName: string_agent_name;
+
+    /***
+     * @@@
+     */
+    readonly brandColorHex: string;
+
+    /***
+     * @@@
+     */
+    readonly isAdmin: boolean;
+
+    /***
+     * @@@
+     */
+    readonly isHeadless: boolean;
+
+    readonly actions: React.ReactNode;
+
+    /***
+     * @@@
+     */
+    readonly children: React.ReactNode;
 };
 
 export function AgentProfileWrapper(props: AgentProfileWrapperProps) {
-    const { agent, agentUrl, agentEmail, agentName, brandColorHex, isAdmin, isHeadless, actions, children } = props;
+    const { agent, agentUrl, publicUrl, agentEmail, agentName, brandColorHex, isAdmin, isHeadless, actions, children } =
+        props;
 
     // Derived agentName from agent data
     const derivedAgentName = agent.agentName;
@@ -27,6 +65,7 @@ export function AgentProfileWrapper(props: AgentProfileWrapperProps) {
         <AgentProfile
             agent={agent}
             agentUrl={agentUrl}
+            publicUrl={publicUrl}
             permanentId={permanentId || agentName}
             agentEmail={agentEmail}
             isHeadless={isHeadless}

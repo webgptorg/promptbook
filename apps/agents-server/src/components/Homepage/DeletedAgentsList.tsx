@@ -1,26 +1,41 @@
 // Client Component for rendering deleted agents
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { AgentCard } from './AgentCard';
 
 import { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
 
 type DeletedAgentsListProps = {
-    agents: readonly AgentBasicInformation[];
-    isAdmin: boolean;
+    /**
+     * @@@
+     */
+    readonly agents: readonly AgentBasicInformation[];
+
+    /**
+     * @@@
+     */
+    readonly isAdmin: boolean;
+
+    /**
+     * Base URL of the agents server
+     */
+    readonly publicUrl: URL;
 };
 
-export function DeletedAgentsList({ agents: initialAgents, isAdmin }: DeletedAgentsListProps) {
+export function DeletedAgentsList(props: DeletedAgentsListProps) {
+    const { agents: initialAgents, isAdmin, publicUrl } = props;
     const [agents, setAgents] = useState(Array.from(initialAgents));
 
     const handleRestore = async (agentIdentifier: string) => {
-        const agent = agents.find(a => a.permanentId === agentIdentifier || a.agentName === agentIdentifier);
+        const agent = agents.find((a) => a.permanentId === agentIdentifier || a.agentName === agentIdentifier);
         if (!agent) return;
         if (!window.confirm(`Restore agent "${agent.agentName}"?`)) return;
 
         try {
-            const response = await fetch(`/api/agents/${encodeURIComponent(agentIdentifier)}/restore`, { method: 'POST' });
+            const response = await fetch(`/api/agents/${encodeURIComponent(agentIdentifier)}/restore`, {
+                method: 'POST',
+            });
             if (response.ok) {
                 // Update local state immediately
                 setAgents(agents.filter((a) => a.permanentId !== agent.permanentId && a.agentName !== agent.agentName));
@@ -40,6 +55,7 @@ export function DeletedAgentsList({ agents: initialAgents, isAdmin }: DeletedAge
                 <AgentCard
                     key={agent.permanentId || agent.agentName}
                     agent={agent}
+                    publicUrl={publicUrl}
                     href={`/agents/${encodeURIComponent(agent.permanentId || agent.agentName)}`}
                     isAdmin={isAdmin}
                     onRestore={handleRestore}

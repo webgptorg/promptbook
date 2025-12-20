@@ -1,4 +1,5 @@
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
+import { $provideServer } from '@/src/tools/$provideServer';
 import { TrashIcon } from 'lucide-react';
 import Link from 'next/link';
 import { DeletedAgentsList } from '../../components/Homepage/DeletedAgentsList';
@@ -9,6 +10,7 @@ export const metadata = {
 };
 
 export default async function RecycleBinPage() {
+    const { publicUrl } = await $provideServer();
     const collection = await $provideAgentCollectionForServer();
     const deletedAgents = await collection.listDeletedAgents();
     const isAdmin = await isUserAdmin();
@@ -34,7 +36,7 @@ export default async function RecycleBinPage() {
                         </Link>
                     </div>
                 ) : (
-                    <DeletedAgentsList agents={deletedAgents} isAdmin={isAdmin} />
+                    <DeletedAgentsList agents={deletedAgents} isAdmin={isAdmin} publicUrl={publicUrl} />
                 )}
             </div>
         </div>

@@ -1,6 +1,5 @@
 'use client';
 
-import { NEXT_PUBLIC_SITE_URL } from '@/config';
 import { colorToDataUrl } from '@promptbook-local/color';
 import { generatePlaceholderAgentProfileImageUrl } from '@promptbook-local/core';
 import { AgentBasicInformation, string_agent_permanent_id } from '@promptbook-local/types';
@@ -27,6 +26,11 @@ type AgentProfileProps = {
      * @default undefined - If not provided, some features like QR code for link might be disabled or use generic link
      */
     readonly agentUrl?: string;
+
+    /**
+     * Base URL of the agents server
+     */
+    readonly publicUrl: URL;
 
     /**
      * Email of the agent
@@ -66,6 +70,7 @@ export function AgentProfile(props: AgentProfileProps) {
         agent,
         agentUrl = '',
         agentEmail = '',
+        publicUrl,
         permanentId,
         renderMenu,
         children,
@@ -73,11 +78,11 @@ export function AgentProfile(props: AgentProfileProps) {
         isHeadless = false,
         className,
     } = props;
-    
+
     const { meta, agentName } = agent;
     const fullname = (meta.fullname as string) || agentName || 'Agent';
     const personaDescription = agent.personaDescription || '';
-    const imageUrl = meta.image || generatePlaceholderAgentProfileImageUrl(permanentId, NEXT_PUBLIC_SITE_URL);
+    const imageUrl = meta.image || generatePlaceholderAgentProfileImageUrl(permanentId, publicUrl);
 
     const [isQrModalOpen, setIsQrModalOpen] = useState(false);
     const [isFlipped, setIsFlipped] = useState(false);

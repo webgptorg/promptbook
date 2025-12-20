@@ -1,6 +1,5 @@
 'use client';
 
-import { NEXT_PUBLIC_SITE_URL } from '@/config';
 import { generatePlaceholderAgentProfileImageUrl } from '@promptbook-local/core';
 import { really_any } from '@promptbook-local/types';
 import { EyeIcon, EyeOffIcon, RotateCcwIcon } from 'lucide-react';
@@ -9,14 +8,50 @@ import { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/
 import { useAgentBackground } from '../AgentProfile/useAgentBackground';
 
 type AgentCardProps = {
-    agent: AgentBasicInformation;
-    href: string;
-    isAdmin?: boolean;
-    onDelete?: (agentIdentifier: string) => void;
-    onClone?: (agentIdentifier: string) => void;
-    onToggleVisibility?: (agentIdentifier: string) => void;
-    onRestore?: (agentIdentifier: string) => void;
-    visibility?: 'PUBLIC' | 'PRIVATE';
+    /**
+     * @@@
+     */
+    readonly agent: AgentBasicInformation;
+
+    /**
+     * @@@
+     */
+    readonly href: string;
+
+    /**
+     * Base URL of the agents server
+     */
+    readonly publicUrl: URL;
+
+    /**
+     * @@@
+     */
+    readonly isAdmin?: boolean;
+
+    /**
+     * @@@
+     */
+    readonly onDelete?: (agentIdentifier: string) => void;
+
+    /**
+     * @@@
+     */
+    readonly onClone?: (agentIdentifier: string) => void;
+
+    /**
+     * @@@
+     */
+    readonly onToggleVisibility?: (agentIdentifier: string) => void;
+
+    /**
+     * @@@
+     */
+    readonly onRestore?: (agentIdentifier: string) => void;
+
+    /**
+     * @@@
+     */
+    readonly visibility?: 'PUBLIC' | 'PRIVATE';
 };
 
 const ACTION_BUTTON_CLASSES =
@@ -26,6 +61,7 @@ export function AgentCard({
     agent,
     href,
     isAdmin,
+    publicUrl,
     onDelete,
     onClone,
     onToggleVisibility,
@@ -34,7 +70,7 @@ export function AgentCard({
 }: AgentCardProps) {
     const { meta, agentName } = agent;
     const fullname = (meta.fullname as string) || agentName || 'Agent';
-    const imageUrl = meta.image || generatePlaceholderAgentProfileImageUrl(agentName, NEXT_PUBLIC_SITE_URL);
+    const imageUrl = meta.image || generatePlaceholderAgentProfileImageUrl(agentName, publicUrl);
     const personaDescription = agent.personaDescription || '';
 
     const { brandColorLightHex, brandColorDarkHex, backgroundImage } = useAgentBackground(meta.color);
