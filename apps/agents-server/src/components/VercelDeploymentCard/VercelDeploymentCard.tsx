@@ -1,4 +1,5 @@
 import {
+    NEXT_PUBLIC_SITE_URL,
     NEXT_PUBLIC_VERCEL_BRANCH_URL,
     NEXT_PUBLIC_VERCEL_ENV,
     NEXT_PUBLIC_VERCEL_GIT_COMMIT_AUTHOR_LOGIN,
@@ -24,6 +25,7 @@ import { TechInfoCard } from '../Homepage/TechInfoCard';
 export default function VercelDeploymentCard() {
     return (
         <TechInfoCard title="Vercel Deployment">
+            <p className="text-gray-600">NEXT_PUBLIC_SITE_URL: {NEXT_PUBLIC_SITE_URL}</p>
             <p className="text-gray-600">NEXT_PUBLIC_VERCEL_ENV: {NEXT_PUBLIC_VERCEL_ENV}</p>
             <p className="text-gray-600">NEXT_PUBLIC_VERCEL_TARGET_ENV: {NEXT_PUBLIC_VERCEL_TARGET_ENV}</p>
             <p className="text-gray-600">NEXT_PUBLIC_VERCEL_URL: {NEXT_PUBLIC_VERCEL_URL}</p>

@@ -1,6 +1,8 @@
 'use server';
 
+import { NEXT_PUBLIC_SITE_URL } from '@/config';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
+import { generatePlaceholderAgentProfileImageUrl } from '@promptbook-local/core';
 import { ArrowLeftIcon, FileTextIcon } from 'lucide-react';
 import { headers } from 'next/headers';
 import Link from 'next/link';
@@ -8,8 +10,6 @@ import { notFound } from 'next/navigation';
 import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
 import { getAgentName, getAgentProfile } from '../_utils';
 import { generateAgentMetadata } from '../generateAgentMetadata';
-import { generatePlaceholderAgentProfileImageUrl } from '@promptbook-local/core';
-import { NEXT_PUBLIC_SITE_URL } from '@/config';
 
 export const generateMetadata = generateAgentMetadata;
 
@@ -46,7 +46,13 @@ export default async function AgentSystemMessagePage({ params }: { params: Promi
                     {agentProfile.meta.image && (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
-                            src={agentProfile.meta.image||  agentProfile.permanentId ||generatePlaceholderAgentProfileImageUrl(agentName, NEXT_PUBLIC_SITE_URL)}
+                            src={
+                                agentProfile.meta.image ||
+                                generatePlaceholderAgentProfileImageUrl(
+                                    agentProfile.permanentId || agentName,
+                                    NEXT_PUBLIC_SITE_URL,
+                                )
+                            }
                             alt={agentProfile.meta.fullname || agentName}
                             className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
                         />
@@ -78,7 +84,9 @@ export default async function AgentSystemMessagePage({ params }: { params: Promi
                     <div className="mt-6 bg-blue-50 rounded-lg p-4 border border-blue-200">
                         <h3 className="text-md font-semibold text-blue-900 mb-2">Model Requirements</h3>
                         <div className="text-sm text-blue-800">
-                            <p><strong>Model Variant:</strong> CHAT</p>
+                            <p>
+                                <strong>Model Variant:</strong> CHAT
+                            </p>
                             {/* TODO: [🧠] Add more model requirements if available */}
                         </div>
                     </div>

@@ -31,7 +31,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
                         alignItems: 'center',
                         justifyContent: 'center',
                         borderRadius: '50%',
-                           aspectRatio: '1 / 1',
+                        aspectRatio: '1 / 1',
                         overflow: 'hidden',
                     }}
                 >
@@ -48,7 +48,13 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
                         {/* Note: `next/image` is not working propperly with `next/og` */}
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
-                            src={agentProfile.meta.image ||  agentProfile.permanentId ||generatePlaceholderAgentProfileImageUrl(agentName, NEXT_PUBLIC_SITE_URL)}
+                            src={
+                                agentProfile.meta.image ||
+                                generatePlaceholderAgentProfileImageUrl(
+                                    agentProfile.permanentId || agentName,
+                                    NEXT_PUBLIC_SITE_URL,
+                                )
+                            }
                             alt="Agent Icon"
                         />
                     </div>

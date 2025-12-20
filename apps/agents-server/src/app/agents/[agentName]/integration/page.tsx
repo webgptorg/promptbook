@@ -1,5 +1,6 @@
 'use server';
 
+import { NEXT_PUBLIC_SITE_URL } from '@/config';
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabase } from '@/src/database/$provideSupabase';
 import { $provideServer } from '@/src/tools/$provideServer';
@@ -20,7 +21,6 @@ import { CopyField } from '../CopyField';
 import { generateAgentMetadata } from '../generateAgentMetadata';
 import { SdkCodeTabs } from './SdkCodeTabs';
 import { WebsiteIntegrationTabs } from './WebsiteIntegrationTabs';
-import { NEXT_PUBLIC_SITE_URL } from '@/config';
 
 export const generateMetadata = generateAgentMetadata;
 
@@ -188,7 +188,13 @@ export default async function AgentIntegrationPage({ params }: { params: Promise
                     {agentProfile.meta.image && (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
-                            src={agentProfile.meta.image ||  agentProfile.permanentId ||generatePlaceholderAgentProfileImageUrl(agentName, NEXT_PUBLIC_SITE_URL)}
+                            src={
+                                agentProfile.meta.image ||
+                                generatePlaceholderAgentProfileImageUrl(
+                                    agentProfile.permanentId || agentName,
+                                    NEXT_PUBLIC_SITE_URL,
+                                )
+                            }
                             alt={agentProfile.meta.fullname || agentName}
                             className="w-16 h-16 rounded-full object-cover border-2"
                             style={{ borderColor: primaryColor }}

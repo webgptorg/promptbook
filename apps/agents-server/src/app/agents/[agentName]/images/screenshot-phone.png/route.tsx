@@ -55,8 +55,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
                             }}
                             src={
                                 agentProfile.meta.image ||
-                                agentProfile.permanentId ||
-                                generatePlaceholderAgentProfileImageUrl(agentName, NEXT_PUBLIC_SITE_URL)
+                                generatePlaceholderAgentProfileImageUrl(
+                                    agentProfile.permanentId || agentName,
+                                    NEXT_PUBLIC_SITE_URL,
+                                )
                             }
                             alt="Agent Icon"
                         />

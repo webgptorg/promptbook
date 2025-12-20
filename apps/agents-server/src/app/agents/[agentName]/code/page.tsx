@@ -121,8 +121,10 @@ export default function AgentCodePage({ params }: { params: Promise<{ agentName:
                     <img
                         src={
                             agentProfile.meta.image ||
-                            agentProfile.permanentId ||
-                            generatePlaceholderAgentProfileImageUrl(agentName, NEXT_PUBLIC_SITE_URL)
+                            generatePlaceholderAgentProfileImageUrl(
+                                agentProfile.permanentId || agentName,
+                                NEXT_PUBLIC_SITE_URL,
+                            )
                         }
                         alt={agentProfile.meta.fullname || agentName}
                         className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"

@@ -1,3 +1,4 @@
+import { NEXT_PUBLIC_SITE_URL } from '@/config';
 import { generatePlaceholderAgentProfileImageUrl, PROMPTBOOK_COLOR } from '@promptbook-local/core';
 import { serializeError } from '@promptbook-local/utils';
 import { ImageResponse } from 'next/og';
@@ -7,7 +8,6 @@ import { textColor } from '../../../../../../../../src/utils/color/operators/fur
 import { grayscale } from '../../../../../../../../src/utils/color/operators/grayscale';
 import { keepUnused } from '../../../../../../../../src/utils/organization/keepUnused';
 import { getAgentName, getAgentProfile } from '../../_utils';
-import { NEXT_PUBLIC_SITE_URL } from '@/config';
 
 const size = {
     width: 1920,
@@ -53,7 +53,13 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
                                 backgroundColor: agentColor.toHex(),
                                 borderRadius: '50%',
                             }}
-                            src={agentProfile.meta.image ||  agentProfile.permanentId ||generatePlaceholderAgentProfileImageUrl(agentName, NEXT_PUBLIC_SITE_URL)}
+                            src={
+                                agentProfile.meta.image ||
+                                generatePlaceholderAgentProfileImageUrl(
+                                    agentProfile.permanentId || agentName,
+                                    NEXT_PUBLIC_SITE_URL,
+                                )
+                            }
                             alt="Agent Icon"
                         />
                     </div>
