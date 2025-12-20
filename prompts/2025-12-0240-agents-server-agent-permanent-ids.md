@@ -66,7 +66,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🥏] Identify agents in `AgentHistory` by `permanentId` (not `agentName`)
 

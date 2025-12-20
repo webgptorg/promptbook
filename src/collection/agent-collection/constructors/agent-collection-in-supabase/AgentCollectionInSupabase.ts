@@ -179,6 +179,7 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
         const insertAgentHistoryResult = await this.supabaseClient.from(this.getTableName('AgentHistory')).insert({
             createdAt: new Date().toISOString(),
             agentName,
+            agentId: permanentId,
             agentHash,
             previousAgentHash: null,
             agentSource,
@@ -243,6 +244,10 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
             permanentId = previousPermanentId;
         }
 
+        if (!permanentId) {
+            permanentId = $randomBase58(14);
+        }
+
         // TODO: [🐱‍🚀] What about agentName change
 
         // console.log('[🐱‍🚀] agentName', agentName);
@@ -281,6 +286,7 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
         const insertAgentHistoryResult = await this.supabaseClient.from(this.getTableName('AgentHistory')).insert({
             createdAt: new Date().toISOString(),
             agentName,
+            agentId: permanentId,
             agentHash,
             previousAgentHash,
             agentSource,
@@ -346,10 +352,39 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
     public async listAgentHistory(
         agentName: string_agent_name,
     ): Promise<ReadonlyArray<{ id: number; createdAt: string; agentHash: string; promptbookEngineVersion: string }>> {
+        const agentResult = await this.supabaseClient
+            .from(this.getTableName('Agent'))
+            .select('permanentId')
+            .eq('agentName', agentName)
+            .single();
+
+        if (agentResult.error) {
+            throw new DatabaseError(
+                spaceTrim(
+                    (block) => `
+                    Error fetching agent "${agentName}" from Supabase:
+
+                    ${block(agentResult.error.message)}
+                `,
+                ),
+            );
+        }
+
+        if (!agentResult.data) {
+            throw new NotFoundError(`Agent "${agentName}" not found`);
+        }
+
+        const { permanentId } = agentResult.data;
+
+        if (!permanentId) {
+            // Should not happen if data is consistent, but handle gracefully
+            throw new UnexpectedError(`Agent "${agentName}" has no permanentId`);
+        }
+
         const result = await this.supabaseClient
             .from(this.getTableName('AgentHistory'))
             .select('id, createdAt, agentHash, promptbookEngineVersion')
-            .eq('agentName', agentName)
+            .eq('agentId', permanentId)
             .order('createdAt', { ascending: false });
 
         if (result.error) {
@@ -399,7 +434,7 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
         // First, get the history entry
         const historyResult = await this.supabaseClient
             .from(this.getTableName('AgentHistory'))
-            .select('agentName, agentSource')
+            .select('agentId, agentSource')
             .eq('id', historyId)
             .single();
 
@@ -419,7 +454,32 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
             throw new NotFoundError(`History entry with id "${historyId}" not found`);
         }
 
-        const { agentName, agentSource } = historyResult.data;
+        const { agentId, agentSource } = historyResult.data;
+
+        // Get the current agent name
+        const agentResult = await this.supabaseClient
+            .from(this.getTableName('Agent'))
+            .select('agentName')
+            .eq('permanentId', agentId)
+            .single();
+
+        if (agentResult.error) {
+            throw new DatabaseError(
+                spaceTrim(
+                    (block) => `
+                    Error fetching agent with permanentId "${agentId}" from Supabase:
+
+                    ${block(agentResult.error.message)}
+                `,
+                ),
+            );
+        }
+
+        if (!agentResult.data) {
+            throw new NotFoundError(`Agent with permanentId "${agentId}" not found`);
+        }
+
+        const { agentName } = agentResult.data;
 
         // Update the agent with the source from the history entry
         await this.updateAgentSource(agentName as string_agent_name, agentSource as string_book);
