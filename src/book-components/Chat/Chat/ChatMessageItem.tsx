@@ -204,6 +204,7 @@ export const ChatMessageItem = memo(
                                 {
                                     '--avatar-bg-color': color.toHex(),
                                     objectFit: 'cover',
+                                    objectPosition: '50% 20%', // <- Note: Center avatar image to the head
                                     width: AVATAR_SIZE,
                                     height: AVATAR_SIZE,
                                     aspectRatio: '1 / 1',
