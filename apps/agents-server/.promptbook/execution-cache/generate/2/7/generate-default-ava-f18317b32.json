@@ -1,0 +1,94 @@
+{
+    "date": "2025-12-20T12:12:02.454Z",
+    "promptbookVersion": "0.104.0-6",
+    "bookVersion": "2.0.0",
+    "prompt": {
+        "title": "Generate default avatar for noah-green",
+        "content": "Professional corporate headshot of Noah Green\n\nStric lawyer\n\n- Professional business portrait photograph\n- Photorealistic, studio quality lighting\n- Shot with 85mm lens, shallow depth of field\n- Neutral gray or soft gradient background\n- Subject wearing professional attire with accent colors: #008000\n- Confident, approachable expression with slight smile\n- Eye-level camera angle, centered composition\n- Soft diffused lighting, subtle rim light\n- Sharp focus on eyes, cinematic color grading\n- 8K resolution, ultra detailed",
+        "parameters": {},
+        "modelRequirements": {
+            "modelVariant": "IMAGE_GENERATION",
+            "modelName": "dall-e-3",
+            "size": "1024x1792",
+            "quality": "hd",
+            "style": "natural"
+        }
+    },
+    "promptResult": {
+        "content": "https://oaidalleapiprodscus.blob.core.windows.net/private/org-Sddx3F2IYwJ3Xk4cbuUZ6dU5/user-1nOB0gL9nmmbD6rSUvEEEMFw/img-otY8eZrHQPtbu4DXiqswoZNc.png?st=2025-12-20T11%3A12%3A07Z&se=2025-12-20T13%3A12%3A07Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=9346e9b9-5d29-4d37-a0a9-c6f95f09f79d&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-12-20T08%3A35%3A02Z&ske=2025-12-21T08%3A35%3A02Z&sks=b&skv=2024-08-04&sig=BQHUMx5nw2sgqCxioEN8Wl92zCT5FQEjLzRwPZCB62A%3D",
+        "modelName": "dall-e-3",
+        "timing": {
+            "start": "2025-12-20T12:11:39.804Z",
+            "complete": "2025-12-20T12:12:02.452Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.04
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 0
+                },
+                "charactersCount": {
+                    "value": 525
+                },
+                "wordsCount": {
+                    "value": 67
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 15
+                },
+                "paragraphsCount": {
+                    "value": 3
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 0
+                },
+                "charactersCount": {
+                    "value": 0
+                },
+                "wordsCount": {
+                    "value": 0
+                },
+                "sentencesCount": {
+                    "value": 0
+                },
+                "linesCount": {
+                    "value": 0
+                },
+                "paragraphsCount": {
+                    "value": 0
+                },
+                "pagesCount": {
+                    "value": 0
+                }
+            }
+        },
+        "rawPromptContent": "Professional corporate headshot of Noah Green\n\nStric lawyer\n\n- Professional business portrait photograph\n- Photorealistic, studio quality lighting\n- Shot with 85mm lens, shallow depth of field\n- Neutral gray or soft gradient background\n- Subject wearing professional attire with accent colors: #008000\n- Confident, approachable expression with slight smile\n- Eye-level camera angle, centered composition\n- Soft diffused lighting, subtle rim light\n- Sharp focus on eyes, cinematic color grading\n- 8K resolution, ultra detailed",
+        "rawRequest": {
+            "model": "dall-e-3",
+            "size": "1024x1792",
+            "quality": "hd",
+            "style": "natural",
+            "prompt": "Professional corporate headshot of Noah Green\n\nStric lawyer\n\n- Professional business portrait photograph\n- Photorealistic, studio quality lighting\n- Shot with 85mm lens, shallow depth of field\n- Neutral gray or soft gradient background\n- Subject wearing professional attire with accent colors: #008000\n- Confident, approachable expression with slight smile\n- Eye-level camera angle, centered composition\n- Soft diffused lighting, subtle rim light\n- Sharp focus on eyes, cinematic color grading\n- 8K resolution, ultra detailed",
+            "response_format": "url"
+        },
+        "rawResponse": {
+            "created": 1766232727,
+            "data": [
+                {
+                    "revised_prompt": "Generate a professional corporate headshot of an individual. The said individual should be a focused Hispanic male lawyer, shot in photorealistic, studio quality lighting using an 85mm lens, hence giving it a shallow depth of field. The background ought to be neutral grey or present a soft gradient. The lawyer should be dressed in professional attire with accent colors of #008000, appearing confident and approachable with a subtle smile. The composition should be centered with an eye-level camera angle. The lighting should be soft and diffused, with a subtle rim light. The focus needs to be sharply on the eyes, with cinematic color grading. The image should be of 8K resolution, making it ultra-detailed.",
+                    "url": "https://oaidalleapiprodscus.blob.core.windows.net/private/org-Sddx3F2IYwJ3Xk4cbuUZ6dU5/user-1nOB0gL9nmmbD6rSUvEEEMFw/img-otY8eZrHQPtbu4DXiqswoZNc.png?st=2025-12-20T11%3A12%3A07Z&se=2025-12-20T13%3A12%3A07Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=9346e9b9-5d29-4d37-a0a9-c6f95f09f79d&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-12-20T08%3A35%3A02Z&ske=2025-12-21T08%3A35%3A02Z&sks=b&skv=2024-08-04&sig=BQHUMx5nw2sgqCxioEN8Wl92zCT5FQEjLzRwPZCB62A%3D"
+                }
+            ]
+        }
+    }
+}

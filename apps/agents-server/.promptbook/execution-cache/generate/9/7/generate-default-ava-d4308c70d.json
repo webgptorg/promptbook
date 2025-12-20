@@ -1,0 +1,94 @@
+{
+    "date": "2025-12-20T11:32:38.001Z",
+    "promptbookVersion": "0.104.0-6",
+    "bookVersion": "2.0.0",
+    "prompt": {
+        "title": "Generate default avatar for noah-green",
+        "content": "Image of noah-green\n\nStric lawyer\n\n- Portrait photograph\n- Photorealistic portrait\n- Use clothes with colors: #008000\n- Detailed, high quality",
+        "parameters": {},
+        "modelRequirements": {
+            "modelVariant": "IMAGE_GENERATION",
+            "modelName": "dall-e-3",
+            "size": "1024x1792",
+            "quality": "hd",
+            "style": "natural"
+        }
+    },
+    "promptResult": {
+        "content": "https://oaidalleapiprodscus.blob.core.windows.net/private/org-Sddx3F2IYwJ3Xk4cbuUZ6dU5/user-1nOB0gL9nmmbD6rSUvEEEMFw/img-Pwn6Syr9JiY0fxrQHdRwQFhU.png?st=2025-12-20T10%3A32%3A43Z&se=2025-12-20T12%3A32%3A43Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=8b33a531-2df9-46a3-bc02-d4b1430a422c&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-12-19T20%3A44%3A29Z&ske=2025-12-20T20%3A44%3A29Z&sks=b&skv=2024-08-04&sig=t9eGdhcHlsRfcm7GYwVRfAmOdQ7QBaygSIAbUG0Jg1o%3D",
+        "modelName": "dall-e-3",
+        "timing": {
+            "start": "2025-12-20T11:32:16.977Z",
+            "complete": "2025-12-20T11:32:37.999Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.04
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 0
+                },
+                "charactersCount": {
+                    "value": 142
+                },
+                "wordsCount": {
+                    "value": 18
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 8
+                },
+                "paragraphsCount": {
+                    "value": 3
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 0
+                },
+                "charactersCount": {
+                    "value": 0
+                },
+                "wordsCount": {
+                    "value": 0
+                },
+                "sentencesCount": {
+                    "value": 0
+                },
+                "linesCount": {
+                    "value": 0
+                },
+                "paragraphsCount": {
+                    "value": 0
+                },
+                "pagesCount": {
+                    "value": 0
+                }
+            }
+        },
+        "rawPromptContent": "Image of noah-green\n\nStric lawyer\n\n- Portrait photograph\n- Photorealistic portrait\n- Use clothes with colors: #008000\n- Detailed, high quality",
+        "rawRequest": {
+            "model": "dall-e-3",
+            "size": "1024x1792",
+            "quality": "hd",
+            "style": "natural",
+            "prompt": "Image of noah-green\n\nStric lawyer\n\n- Portrait photograph\n- Photorealistic portrait\n- Use clothes with colors: #008000\n- Detailed, high quality",
+            "response_format": "url"
+        },
+        "rawResponse": {
+            "created": 1766230363,
+            "data": [
+                {
+                    "revised_prompt": "Create a photorealistic portrait of a strict lawyer, not identified as any known figure. The person is wearing clothes colored with the hexadecimal value #008000, the design elements are detailed and of high quality.",
+                    "url": "https://oaidalleapiprodscus.blob.core.windows.net/private/org-Sddx3F2IYwJ3Xk4cbuUZ6dU5/user-1nOB0gL9nmmbD6rSUvEEEMFw/img-Pwn6Syr9JiY0fxrQHdRwQFhU.png?st=2025-12-20T10%3A32%3A43Z&se=2025-12-20T12%3A32%3A43Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=8b33a531-2df9-46a3-bc02-d4b1430a422c&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-12-19T20%3A44%3A29Z&ske=2025-12-20T20%3A44%3A29Z&sks=b&skv=2024-08-04&sig=t9eGdhcHlsRfcm7GYwVRfAmOdQ7QBaygSIAbUG0Jg1o%3D"
+                }
+            ]
+        }
+    }
+}
