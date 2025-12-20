@@ -27,10 +27,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         try {
             agentSource = await collection.getAgentSource(agentName);
         } catch (error) {
-            // If agent not found, return 404 or default generic image?
-            // User said: "Use the ... instead of Gravatar for agents that do not have custom uploaded avatar"
-            // If agent doesn't exist, we probably can't generate a specific avatar.
-            return NextResponse.json({ error: 'Agent not found' }, { status: 404 });
+            // If agent not found, redirect to pravatar with the agent name as unique identifier
+            const pravaratUrl = `https://i.pravatar.cc/1024?u=${encodeURIComponent(agentName)}`;
+            return NextResponse.redirect(pravaratUrl);
         }
 
         const agentProfile = parseAgentSource(agentSource);
