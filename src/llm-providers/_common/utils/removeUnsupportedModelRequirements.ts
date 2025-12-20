@@ -1,4 +1,4 @@
-import type { ModelRequirements } from '../../../types/ModelRequirements';
+import type { ChatModelRequirements, ModelRequirements } from '../../../types/ModelRequirements';
 
 /**
  * Parses an OpenAI error message to identify which parameter is unsupported
@@ -40,7 +40,7 @@ export function removeUnsupportedModelRequirement(
     const newRequirements = { ...modelRequirements };
 
     // Map of parameter names that might appear in error messages to ModelRequirements properties
-    const parameterMap: Record<string, keyof ModelRequirements> = {
+    const parameterMap: Record<string, keyof ModelRequirements | keyof ChatModelRequirements> = {
         temperature: 'temperature',
         max_tokens: 'maxTokens',
         maxTokens: 'maxTokens',
