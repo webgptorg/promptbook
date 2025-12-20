@@ -6,11 +6,11 @@ import { $provideExecutionToolsForServer } from '@/src/tools/$provideExecutionTo
 import { parseAgentSource } from '@promptbook-local/core';
 import { computeHash, serializeError } from '@promptbook-local/utils';
 import { NextRequest, NextResponse } from 'next/server';
-import spaceTrim from 'spacetrim';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
 import type { LlmExecutionTools } from '../../../../../../../../src/execution/LlmExecutionTools';
 import { getSingleLlmExecutionTools } from '../../../../../../../../src/llm-providers/_multiple/getSingleLlmExecutionTools';
 import type { string_url } from '../../../../../../../../src/types/typeAliases';
+import { getAgentDefaultAvatarPrompt } from './getAgentDefaultAvatarPrompt';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ agentName: string }> }) {
     try {
@@ -35,26 +35,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
         const agentProfile = parseAgentSource(agentSource);
 
-        // Extract required fields
-        const name = agentProfile.meta?.title || agentProfile.agentName || agentName;
-        const persona = agentProfile.personaDescription || 'an AI agent';
-        const color = agentProfile.meta?.color || 'blue';
-
-        // Construct prompt
-        // "Image of {agent.name}, {agent.persona}, portrait, use color ${agent.meta.color}, detailed, high quality"
-        const prompt = spaceTrim(
-            (block) => `
-                Image of ${name}
-                
-                ${block(persona)}
-                
-                - Portrait photograph
-                - Photorealistic portrait
-                - Use clothes with colors: ${color}
-                - Detailed, high quality
-                
-            `,
-        );
+        const prompt = getAgentDefaultAvatarPrompt(agentProfile);
 
         // Use hash of the prompt as cache key - this ensures regeneration when prompt changes
         const promptHash = computeHash(prompt);

@@ -35,9 +35,16 @@ export type string_model_name =
 /**
  * Semantic helper
  *
- * For example `"A cat wearing a hat"`
+ * For example `"How many eyes does a cat have?"`
  */
 export type string_prompt = string;
+
+/**
+ * Semantic helper
+ *
+ * For example `"A cat wearing a hat"`
+ */
+export type string_prompt_image = string;
 
 /**
  * Semantic helper
