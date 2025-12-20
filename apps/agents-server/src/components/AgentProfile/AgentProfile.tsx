@@ -132,14 +132,14 @@ export function AgentProfile(props: AgentProfileProps) {
                 )}
 
                 {/* Main profile content */}
-                <div className="relative z-10 grid grid-cols-[auto_1fr] gap-x-6 gap-y-4 md:gap-12 max-w-5xl w-full items-start">
+                <div className="relative z-10 flex flex-col md:grid md:grid-cols-[auto_1fr] gap-y-6 md:gap-y-4 md:gap-x-12 max-w-5xl w-full items-center md:items-start">
                     {/* Agent image card (Flippable) */}
                     <div
-                        className="flex-shrink-0 perspective-1000 group row-start-1 col-start-1 md:row-span-3"
+                        className="flex-shrink-0 perspective-1000 group w-full md:w-auto md:row-start-1 md:col-start-1 md:row-span-3"
                         style={{ perspective: '1000px' }}
                     >
                         <div
-                            className="relative w-24 md:w-80 transition-all duration-700 transform-style-3d cursor-pointer"
+                            className="relative w-full md:w-80 transition-all duration-700 transform-style-3d cursor-pointer max-w-sm mx-auto md:max-w-none md:mx-0"
                             style={{
                                 aspectRatio: '1 / 1.618', // Golden Ratio
                                 transformStyle: 'preserve-3d',
@@ -210,7 +210,7 @@ export function AgentProfile(props: AgentProfileProps) {
                     </div>
 
                     {/* Agent info - Header Area */}
-                    <div className="row-start-1 col-start-2 flex flex-col justify-center md:justify-start h-full md:h-auto gap-1 md:gap-6">
+                    <div className="w-full md:w-auto md:row-start-1 md:col-start-2 flex flex-col justify-center md:justify-start items-center md:items-start h-auto gap-4 md:gap-6 text-center md:text-left">
                         {/* Agent name with custom font */}
                         <h1
                             className="text-2xl md:text-5xl lg:text-6xl font-bold text-gray-900 tracking-tight leading-tight"
@@ -228,11 +228,11 @@ export function AgentProfile(props: AgentProfileProps) {
                     </div>
 
                     {/* Chat Area */}
-                    <div className="col-span-2 md:col-span-1 md:col-start-2 w-full mt-2 md:mt-0">{children}</div>
+                    <div className="w-full md:col-span-1 md:col-start-2 mt-4 md:mt-0">{children}</div>
 
                     {/* Secondary Actions */}
                     {!isHeadless && (
-                        <div className="col-span-2 md:col-span-1 md:col-start-2 flex flex-wrap justify-center md:justify-start items-center gap-4 md:gap-6 mt-2">
+                        <div className="w-full md:col-span-1 md:col-start-2 flex flex-wrap justify-center md:justify-start items-center gap-4 md:gap-6 mt-4 md:mt-2">
                             {actions}
                         </div>
                     )}

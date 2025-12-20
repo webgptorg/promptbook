@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🛵] Enhance the mobile design of the agent page
 
