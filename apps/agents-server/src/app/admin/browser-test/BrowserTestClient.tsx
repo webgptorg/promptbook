@@ -5,6 +5,7 @@ import { Card } from '../../../components/Homepage/Card';
 
 export function BrowserTestClient() {
     const [imageUrl, setImageUrl] = useState<string | null>(null);
+    const [facebookStreamUrl, setFacebookStreamUrl] = useState<string | null>(null);
 
     useEffect(() => {
         return () => {
@@ -17,6 +18,7 @@ export function BrowserTestClient() {
     const [error, setError] = useState<string | null>(null);
 
     const handleTakeScreenshot = async () => {
+        setFacebookStreamUrl(null);
         setIsLoading(true);
         setError(null);
         try {
@@ -42,6 +44,12 @@ export function BrowserTestClient() {
         }
     };
 
+    const handleScrollFacebook = () => {
+        setImageUrl(null);
+        setError(null);
+        setFacebookStreamUrl(`/api/browser-test/scroll-facebook?t=${Date.now()}`);
+    };
+
     return (
         <div className="container mx-auto px-4 py-8 space-y-6">
             <div className="mt-20 mb-4 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
@@ -63,6 +71,13 @@ export function BrowserTestClient() {
                     >
                         {isLoading ? 'Taking Screenshot...' : 'Take Screenshot'}
                     </button>
+                    <button
+                        onClick={handleScrollFacebook}
+                        disabled={isLoading}
+                        className="ml-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50"
+                    >
+                        Scroll Facebook
+                    </button>
                 </div>
 
                 {error && (
@@ -77,6 +92,14 @@ export function BrowserTestClient() {
                         <h2 className="text-xl font-semibold p-2 bg-gray-100">Screenshot</h2>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={imageUrl} alt="Screenshot of ptbk.io" className="w-full h-auto" />
+                    </div>
+                )}
+
+                {facebookStreamUrl && (
+                    <div className="border rounded shadow-lg overflow-hidden">
+                        <h2 className="text-xl font-semibold p-2 bg-gray-100">Facebook Scroll Stream</h2>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={facebookStreamUrl} alt="Live stream of Facebook scrolling" className="w-full h-auto" />
                     </div>
                 )}
             </Card>

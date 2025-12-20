@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨😋] Create test function that will scroll the Facebook
 
