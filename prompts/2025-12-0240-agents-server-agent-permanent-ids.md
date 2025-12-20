@@ -53,6 +53,34 @@
 
 ---
 
+[ ]
+
+[✨🥏] Permanent ID of the agent should live totally outside of the `agentSource`
+
+-   Currently when the new agent is created his permanent id is put both in `Agent` table in column `permanentId` and also inside the `agentSource` as `META ID` commitment
+-   There should be no such thing as `META ID` inside the `agentSource`
+-   Agent source should be totally agnostic of the permanent id, and permanent id should live only in the database layer
+-   Agent source should be 100% portable between different Agents Server instances without carrying any potentially conflicting information about permanent ids
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[ ]
+
+[✨🥏] Identify agents in `AgentHistory` by `permanentId` (not `agentName`)
+
+-   In the table `Agent` agents have both `agentName` and `permanentId` and their primaty identifier is `permanentId`
+-   In the table `AgentHistory` currently agents are identified by `agentName`, change it to use `permanentId` instead.
+-   Create database migration for the change
+    -   Migrations are located in `/apps/agents-server/src/database/migrations`
+    -   Be aware that table names in migrations have prefix `prefix_` _(look at existing migrations for reference)_
+    -   When using table names in supabase queries, use the `$getTableName` utility function to get the correct table name with prefix, for example: `await supabase.from(await $getTableName('Agent')).select('...')`
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
 [-]
 
 [✨🥏] brr
