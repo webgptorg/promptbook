@@ -8,6 +8,7 @@ import { textColor } from '../../../../../../../../src/utils/color/operators/fur
 import { grayscale } from '../../../../../../../../src/utils/color/operators/grayscale';
 import { keepUnused } from '../../../../../../../../src/utils/organization/keepUnused';
 import { getAgentName, getAgentProfile } from '../../_utils';
+import { $provideServer } from '@/src/tools/$provideServer';
 
 const size = {
     width: 1080,
@@ -22,6 +23,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
         const agentProfile = await getAgentProfile(agentName);
         const agentColor = Color.from(agentProfile.meta.color || PROMPTBOOK_COLOR);
         const backgroundColor = agentColor.then(grayscale(0.5));
+        const { publicUrl } = await $provideServer();
 
         return new ImageResponse(
             (
@@ -57,7 +59,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
                                 agentProfile.meta.image ||
                                 generatePlaceholderAgentProfileImageUrl(
                                     agentProfile.permanentId || agentName,
-                                    NEXT_PUBLIC_SITE_URL,
+                                    publicUrl,
                                 )
                             }
                             alt="Agent Icon"

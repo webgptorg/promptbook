@@ -1,7 +1,7 @@
 'use server';
 
-import { NEXT_PUBLIC_SITE_URL } from '@/config';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
+import { $provideServer } from '@/src/tools/$provideServer';
 import { generatePlaceholderAgentProfileImageUrl } from '@promptbook-local/core';
 import { ArrowLeftIcon, FileTextIcon } from 'lucide-react';
 import { headers } from 'next/headers';
@@ -15,6 +15,9 @@ export const generateMetadata = generateAgentMetadata;
 
 export default async function AgentSystemMessagePage({ params }: { params: Promise<{ agentName: string }> }) {
     $sideEffect(headers());
+
+    const { publicUrl } = await $provideServer();
+
     const agentName = await getAgentName(params);
 
     let agentProfile;
@@ -50,7 +53,7 @@ export default async function AgentSystemMessagePage({ params }: { params: Promi
                                 agentProfile.meta.image ||
                                 generatePlaceholderAgentProfileImageUrl(
                                     agentProfile.permanentId || agentName,
-                                    NEXT_PUBLIC_SITE_URL,
+                                    publicUrl,
                                 )
                             }
                             alt={agentProfile.meta.fullname || agentName}

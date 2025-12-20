@@ -123,7 +123,7 @@ export default function AgentCodePage({ params }: { params: Promise<{ agentName:
                             agentProfile.meta.image ||
                             generatePlaceholderAgentProfileImageUrl(
                                 agentProfile.permanentId || agentName,
-                                NEXT_PUBLIC_SITE_URL,
+                                NEXT_PUBLIC_SITE_URL, // <- TODO: !!!! Use here `const { publicUrl } = await $provideServer();`
                             )
                         }
                         alt={agentProfile.meta.fullname || agentName}

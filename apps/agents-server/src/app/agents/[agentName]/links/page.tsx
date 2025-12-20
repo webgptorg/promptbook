@@ -1,6 +1,5 @@
 'use server';
 
-import { NEXT_PUBLIC_SITE_URL } from '@/config';
 import { $provideServer } from '@/src/tools/$provideServer';
 import { generatePlaceholderAgentProfileImageUrl, PROMPTBOOK_COLOR } from '@promptbook-local/core';
 import { ArrowLeftIcon, CodeIcon, HomeIcon, LinkIcon, ShareIcon } from 'lucide-react';
@@ -19,6 +18,7 @@ export const generateMetadata = generateAgentMetadata;
 
 export default async function AgentLinksPage({ params }: { params: Promise<{ agentName: string }> }) {
     $sideEffect(headers());
+
     const agentName = await getAgentName(params);
 
     let agentProfile;
@@ -61,7 +61,7 @@ export default async function AgentLinksPage({ params }: { params: Promise<{ age
                                 agentProfile.meta.image ||
                                 generatePlaceholderAgentProfileImageUrl(
                                     agentProfile.permanentId || agentName,
-                                    NEXT_PUBLIC_SITE_URL,
+                                    publicUrl,
                                 )
                             }
                             alt={agentProfile.meta.fullname || agentName}

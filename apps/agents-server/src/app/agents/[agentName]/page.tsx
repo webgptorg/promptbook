@@ -1,6 +1,5 @@
 'use server';
 
-import { NEXT_PUBLIC_SITE_URL } from '@/config';
 import { $provideServer } from '@/src/tools/$provideServer';
 import { isUserAdmin } from '@/src/utils/isUserAdmin';
 import { saturate } from '@promptbook-local/color';
@@ -28,6 +27,7 @@ export default async function AgentPage({
     const isAdmin = await isUserAdmin();
     const { headless: headlessParam } = await searchParams;
     const isHeadless = headlessParam !== undefined;
+    const { publicUrl } = await $provideServer();
 
     let agentProfile;
     try {
@@ -44,8 +44,6 @@ export default async function AgentPage({
         }
         throw error;
     }
-
-    const { publicUrl } = await $provideServer();
 
     // Build agent page URL for QR and copy
     const agentUrl = `${publicUrl.href}${encodeURIComponent(agentName)}`;
@@ -98,10 +96,7 @@ export default async function AgentPage({
                     brandColorHex={brandColorHex}
                     avatarSrc={
                         agentProfile.meta.image ||
-                        generatePlaceholderAgentProfileImageUrl(
-                            agentProfile.permanentId || agentName,
-                            NEXT_PUBLIC_SITE_URL,
-                        )
+                        generatePlaceholderAgentProfileImageUrl(agentProfile.permanentId || agentName, publicUrl)
                     }
                     isDeleted={isDeleted}
                 />

@@ -1,6 +1,5 @@
 'use server';
 
-import { NEXT_PUBLIC_SITE_URL } from '@/config';
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabase } from '@/src/database/$provideSupabase';
 import { $provideServer } from '@/src/tools/$provideServer';
@@ -26,6 +25,7 @@ export const generateMetadata = generateAgentMetadata;
 
 export default async function AgentIntegrationPage({ params }: { params: Promise<{ agentName: string }> }) {
     $sideEffect(headers());
+
     const agentName = await getAgentName(params);
     const isAdmin = await isUserAdmin();
 
@@ -192,7 +192,7 @@ export default async function AgentIntegrationPage({ params }: { params: Promise
                                 agentProfile.meta.image ||
                                 generatePlaceholderAgentProfileImageUrl(
                                     agentProfile.permanentId || agentName,
-                                    NEXT_PUBLIC_SITE_URL,
+                                    publicUrl,
                                 )
                             }
                             alt={agentProfile.meta.fullname || agentName}

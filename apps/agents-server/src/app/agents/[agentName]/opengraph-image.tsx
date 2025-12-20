@@ -1,4 +1,4 @@
-import { NEXT_PUBLIC_SITE_URL } from '@/config';
+import { $provideServer } from '@/src/tools/$provideServer';
 import { generatePlaceholderAgentProfileImageUrl, PROMPTBOOK_COLOR } from '@promptbook-local/core';
 import { serializeError } from '@promptbook-local/utils';
 import { ImageResponse } from 'next/og';
@@ -25,6 +25,7 @@ export default async function Image({ params }: { params: Promise<{ agentName: s
         const agentProfile = await getAgentProfile(agentName);
         const agentColor = Color.from(agentProfile.meta.color || PROMPTBOOK_COLOR);
         const backgroundColor = agentColor.then(grayscale(0.5));
+        const { publicUrl } = await $provideServer();
 
         return new ImageResponse(
             (
@@ -60,7 +61,7 @@ export default async function Image({ params }: { params: Promise<{ agentName: s
                                 agentProfile.meta.image ||
                                 generatePlaceholderAgentProfileImageUrl(
                                     agentProfile.permanentId || agentName,
-                                    NEXT_PUBLIC_SITE_URL,
+                                    publicUrl,
                                 )
                             }
                             alt="Agent Icon"
