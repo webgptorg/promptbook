@@ -90,7 +90,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🥏] Identify agents in `AgentCollectionInSupabase` by `permanentId` (not `agentName`)
 

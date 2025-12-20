@@ -7,7 +7,7 @@ import { DatabaseError } from '../../../../errors/DatabaseError';
 import { NotFoundError } from '../../../../errors/NotFoundError';
 import { UnexpectedError } from '../../../../errors/UnexpectedError';
 import { ZERO_USAGE } from '../../../../execution/utils/usage-constants';
-import type { string_agent_name } from '../../../../types/typeAliases';
+import type { string_agent_name, string_agent_permanent_id } from '../../../../types/typeAliases';
 import { keepUnused } from '../../../../utils/organization/keepUnused';
 import { spaceTrim } from '../../../../utils/organization/spaceTrim';
 import { TODO_USE } from '../../../../utils/organization/TODO_USE';
@@ -97,21 +97,37 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
     /**
      * [🐱‍🚀]@@@
      */
-    public async getAgentSource(agentName: string_agent_name): Promise<string_book> {
+    public async getAgentIdByName(agentName: string_agent_name): Promise<string_agent_permanent_id> {
+        const selectResult = await this.supabaseClient
+            .from(this.getTableName('Agent'))
+            .select('permanentId')
+            .eq('agentName', agentName)
+            .single();
+
+        if (selectResult.error || !selectResult.data) {
+            throw new NotFoundError(`Agent with name "${agentName}" not found`);
+        }
+        return selectResult.data.permanentId as string_agent_permanent_id;
+    }
+
+    /**
+     * [🐱‍🚀]@@@
+     */
+    public async getAgentSource(permanentId: string_agent_permanent_id): Promise<string_book> {
         const selectResult = await this.supabaseClient
             .from(this.getTableName('Agent'))
             .select('agentSource')
-            .or(`agentName.eq.${agentName},permanentId.eq.${agentName}`);
+            .eq('permanentId', permanentId);
 
         if (selectResult.data && selectResult.data.length === 0) {
-            throw new NotFoundError(`Agent "${agentName}" not found`);
+            throw new NotFoundError(`Agent "${permanentId}" not found`);
         } else if (selectResult.data && selectResult.data.length > 1) {
-            throw new UnexpectedError(`More agents with agentName="${agentName}" found`);
+            throw new UnexpectedError(`More agents with permanentId="${permanentId}" found`);
         } else if (selectResult.error) {
             throw new DatabaseError(
                 spaceTrim(
                     (block) => `
-                        Error fetching agent "${agentName}" from Supabase:
+                        Error fetching agent "${permanentId}" from Supabase:
                         
                         ${block(selectResult.error.message)}
                     `,
@@ -195,13 +211,16 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
     /**
      * Updates an existing agent in the collection
      */
-    public async updateAgentSource(agentName: string_agent_name, agentSource: string_book): Promise<void> {
-        console.log('!!! updateAgentSource', { agentName });
+    public async updateAgentSource(
+        permanentId: string_agent_permanent_id,
+        agentSource: string_book,
+    ): Promise<void> {
+        console.log('!!! updateAgentSource', { permanentId });
 
         const selectPreviousAgentResult = await this.supabaseClient
             .from(this.getTableName('Agent'))
             .select('agentHash,agentName,permanentId')
-            .eq('agentName', agentName)
+            .eq('permanentId', permanentId)
             .single();
 
         if (selectPreviousAgentResult.error) {
@@ -209,7 +228,7 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
                 spaceTrim(
                     (block) => `
                 
-                        Error fetching agent "${agentName}" from Supabase:
+                        Error fetching agent "${permanentId}" from Supabase:
                         
                         ${block(selectPreviousAgentResult.error.message)}
                     `,
@@ -226,7 +245,7 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
         //     <- TODO: [🕛]
 
         // 1. Extract permanentId from the source if present
-        let { permanentId } = agentProfile;
+        let { permanentId: newPermanentId } = agentProfile;
 
         // 2. Remove META ID from the source
         const lines = agentSource.split('\n');
@@ -238,14 +257,21 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
             agentProfile = parseAgentSource(agentSource as string_book);
         }
 
-        const { agentHash } = agentProfile;
+        const { agentHash, agentName } = agentProfile;
 
-        if (!permanentId && previousPermanentId) {
-            permanentId = previousPermanentId;
+        if (!newPermanentId && previousPermanentId) {
+            newPermanentId = previousPermanentId;
         }
 
-        if (!permanentId) {
-            permanentId = $randomBase58(14);
+        if (!newPermanentId) {
+            newPermanentId = $randomBase58(14);
+        }
+
+        if (newPermanentId !== permanentId) {
+            // [🧠] Should be allowed to change permanentId?
+            throw new UnexpectedError(
+                `Permanent ID mismatch: "${permanentId}" (argument) !== "${newPermanentId}" (in source)`,
+            );
         }
 
         // TODO: [🐱‍🚀] What about agentName change
@@ -265,7 +291,7 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
                 agentSource,
                 promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
             })
-            .eq('agentName', agentName);
+            .eq('permanentId', permanentId);
 
         // console.log('[🐱‍🚀] updateAgent', updateResult);
         // console.log('[🐱‍🚀] old', oldAgentSource);
@@ -275,7 +301,7 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
             throw new DatabaseError(
                 spaceTrim(
                     (block) => `
-                        Error updating agent "${agentName}" in Supabase:
+                        Error updating agent "${permanentId}" in Supabase:
                         
                         ${block(updateAgentResult.error.message)}
                     `,
@@ -350,37 +376,8 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
      * List history of an agent
      */
     public async listAgentHistory(
-        agentName: string_agent_name,
+        permanentId: string_agent_permanent_id,
     ): Promise<ReadonlyArray<{ id: number; createdAt: string; agentHash: string; promptbookEngineVersion: string }>> {
-        const agentResult = await this.supabaseClient
-            .from(this.getTableName('Agent'))
-            .select('permanentId')
-            .eq('agentName', agentName)
-            .single();
-
-        if (agentResult.error) {
-            throw new DatabaseError(
-                spaceTrim(
-                    (block) => `
-                    Error fetching agent "${agentName}" from Supabase:
-
-                    ${block(agentResult.error.message)}
-                `,
-                ),
-            );
-        }
-
-        if (!agentResult.data) {
-            throw new NotFoundError(`Agent "${agentName}" not found`);
-        }
-
-        const { permanentId } = agentResult.data;
-
-        if (!permanentId) {
-            // Should not happen if data is consistent, but handle gracefully
-            throw new UnexpectedError(`Agent "${agentName}" has no permanentId`);
-        }
-
         const result = await this.supabaseClient
             .from(this.getTableName('AgentHistory'))
             .select('id, createdAt, agentHash, promptbookEngineVersion')
@@ -391,7 +388,7 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
             throw new DatabaseError(
                 spaceTrim(
                     (block) => `
-                    Error listing history for agent "${agentName}" from Supabase:
+                    Error listing history for agent "${permanentId}" from Supabase:
 
                     ${block(result.error.message)}
                 `,
@@ -405,18 +402,18 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
     /**
      * Restore a soft-deleted agent by setting deletedAt to NULL
      */
-    public async restoreAgent(agentIdentifier: string): Promise<void> {
+    public async restoreAgent(permanentId: string_agent_permanent_id): Promise<void> {
         const updateResult = await this.supabaseClient
             .from(this.getTableName('Agent'))
             .update({ deletedAt: null })
-            .or(`agentName.eq.${agentIdentifier},permanentId.eq.${agentIdentifier}`)
+            .eq('permanentId', permanentId)
             .not('deletedAt', 'is', null);
 
         if (updateResult.error) {
             throw new DatabaseError(
                 spaceTrim(
                     (block) => `
-                    Error restoring agent "${agentIdentifier}" from Supabase:
+                    Error restoring agent "${permanentId}" from Supabase:
 
                     ${block(updateResult.error.message)}
                 `,
@@ -456,50 +453,25 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
 
         const { agentId, agentSource } = historyResult.data;
 
-        // Get the current agent name
-        const agentResult = await this.supabaseClient
-            .from(this.getTableName('Agent'))
-            .select('agentName')
-            .eq('permanentId', agentId)
-            .single();
-
-        if (agentResult.error) {
-            throw new DatabaseError(
-                spaceTrim(
-                    (block) => `
-                    Error fetching agent with permanentId "${agentId}" from Supabase:
-
-                    ${block(agentResult.error.message)}
-                `,
-                ),
-            );
-        }
-
-        if (!agentResult.data) {
-            throw new NotFoundError(`Agent with permanentId "${agentId}" not found`);
-        }
-
-        const { agentName } = agentResult.data;
-
         // Update the agent with the source from the history entry
-        await this.updateAgentSource(agentName as string_agent_name, agentSource as string_book);
+        await this.updateAgentSource(agentId as string_agent_permanent_id, agentSource as string_book);
     }
 
     /**
      * Soft delete an agent by setting deletedAt to current timestamp
      */
-    public async deleteAgent(agentIdentifier: string): Promise<void> {
+    public async deleteAgent(permanentId: string_agent_permanent_id): Promise<void> {
         const updateResult = await this.supabaseClient
             .from(this.getTableName('Agent'))
             .update({ deletedAt: new Date().toISOString() })
-            .or(`agentName.eq.${agentIdentifier},permanentId.eq.${agentIdentifier}`)
+            .eq('permanentId', permanentId)
             .is('deletedAt', null);
 
         if (updateResult.error) {
             throw new DatabaseError(
                 spaceTrim(
                     (block) => `
-                    Error deleting agent "${agentIdentifier}" from Supabase:
+                    Error deleting agent "${permanentId}" from Supabase:
 
                     ${block(updateResult.error.message)}
                 `,

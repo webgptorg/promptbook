@@ -10,7 +10,8 @@ export const metadata = {
 export default async function AgentHistoryPage({ params }: { params: Promise<{ agentName: string }> }) {
     const { agentName } = await params;
     const collection = await $provideAgentCollectionForServer();
-    const history = await collection.listAgentHistory(agentName);
+    const agentId = await collection.getAgentIdByName(agentName);
+    const history = await collection.listAgentHistory(agentId);
 
     return (
         <div className="container mx-auto p-6 max-w-4xl">

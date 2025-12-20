@@ -49,7 +49,8 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ a
     const collection = await $provideAgentCollectionForServer();
 
     try {
-        await collection.deleteAgent(agentName);
+        const agentId = await collection.getAgentIdByName(agentName);
+        await collection.deleteAgent(agentId);
         return NextResponse.json({ success: true });
     } catch (error) {
         return NextResponse.json(

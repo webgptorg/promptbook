@@ -8,7 +8,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
     const collection = await $provideAgentCollectionForServer();
 
     try {
-        await collection.restoreAgent(agentName);
+        const agentId = await collection.getAgentIdByName(agentName);
+        await collection.restoreAgent(agentId);
         return NextResponse.json({ success: true });
     } catch (error) {
         return NextResponse.json(
