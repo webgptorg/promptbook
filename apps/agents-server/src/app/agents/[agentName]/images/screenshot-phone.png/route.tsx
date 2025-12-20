@@ -1,5 +1,5 @@
-import { NEXT_PUBLIC_SITE_URL } from '@/config';
-import { generatePlaceholderAgentProfileImageUrl, PROMPTBOOK_COLOR } from '@promptbook-local/core';
+import { $provideServer } from '@/src/tools/$provideServer';
+import { PROMPTBOOK_COLOR } from '@promptbook-local/core';
 import { serializeError } from '@promptbook-local/utils';
 import { ImageResponse } from 'next/og';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
@@ -8,7 +8,6 @@ import { textColor } from '../../../../../../../../src/utils/color/operators/fur
 import { grayscale } from '../../../../../../../../src/utils/color/operators/grayscale';
 import { keepUnused } from '../../../../../../../../src/utils/organization/keepUnused';
 import { getAgentName, getAgentProfile } from '../../_utils';
-import { $provideServer } from '@/src/tools/$provideServer';
 
 const size = {
     width: 1080,
@@ -51,17 +50,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
                         <img
                             style={{
                                 width: '80%',
-                                aspectRatio: '1 / 1',
                                 backgroundColor: agentColor.toHex(),
-                                borderRadius: '50%',
+                            
                             }}
-                            src={
-                                agentProfile.meta.image ||
-                                generatePlaceholderAgentProfileImageUrl(
-                                    agentProfile.permanentId || agentName,
-                                    publicUrl,
-                                )
-                            }
+                            src={`${publicUrl.href}agents/${agentProfile.permanentId || agentName}/images/icon-256.png`}
                             alt="Agent Icon"
                         />
                     </div>
