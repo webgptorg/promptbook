@@ -4,11 +4,12 @@ import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentColle
 import { $provideCdnForServer } from '@/src/tools/$provideCdnForServer';
 import { $provideExecutionToolsForServer } from '@/src/tools/$provideExecutionToolsForServer';
 import { parseAgentSource } from '@promptbook-local/core';
-import { serializeError } from '@promptbook-local/utils';
+import { computeHash, serializeError } from '@promptbook-local/utils';
 import { NextRequest, NextResponse } from 'next/server';
+import spaceTrim from 'spacetrim';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
-import { getSingleLlmExecutionTools } from '../../../../../../../../src/llm-providers/_multiple/getSingleLlmExecutionTools';
 import type { LlmExecutionTools } from '../../../../../../../../src/execution/LlmExecutionTools';
+import { getSingleLlmExecutionTools } from '../../../../../../../../src/llm-providers/_multiple/getSingleLlmExecutionTools';
 import type { string_url } from '../../../../../../../../src/types/typeAliases';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ agentName: string }> }) {
@@ -20,13 +21,45 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             return NextResponse.json({ error: 'Agent name is required' }, { status: 400 });
         }
 
-        // Define a unique filename/key for this agent's default avatar
-        // This is used for DB lookup and CDN storage, distinct from generic images
-        const internalFilename = `agent-${agentName}-default-avatar.png`;
+        // 1. Fetch agent data first to construct the prompt
+        const collection = await $provideAgentCollectionForServer();
+        let agentSource;
+        try {
+            agentSource = await collection.getAgentSource(agentName);
+        } catch (error) {
+            // If agent not found, return 404 or default generic image?
+            // User said: "Use the ... instead of Gravatar for agents that do not have custom uploaded avatar"
+            // If agent doesn't exist, we probably can't generate a specific avatar.
+            return NextResponse.json({ error: 'Agent not found' }, { status: 404 });
+        }
+
+        const agentProfile = parseAgentSource(agentSource);
+
+        // Extract required fields
+        const name = agentProfile.meta?.title || agentProfile.agentName || agentName;
+        const persona = agentProfile.personaDescription || 'an AI agent';
+        const color = agentProfile.meta?.color || 'blue';
+
+        // Construct prompt
+        // "Image of {agent.name}, {agent.persona}, portrait, use color ${agent.meta.color}, detailed, high quality"
+        const prompt = spaceTrim(
+            (block) => `
+                Image of ${name}
+                
+                ${block(persona)}
+                
+                Portrait photograph, use color ${color}, detailed, high quality
+                
+            `,
+        );
+
+        // Use hash of the prompt as cache key - this ensures regeneration when prompt changes
+        const promptHash = computeHash(prompt);
+        const internalFilename = `agent-avatar-${promptHash}.png`;
 
         const supabase = $provideSupabaseForServer();
 
-        // Check if image already exists in database
+        // Check if image with this prompt hash already exists in database
         const { data: existingImage, error: selectError } = await supabase
             .from(await $getTableName(`Image`))
             .select('cdnUrl')
@@ -45,29 +78,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
         // Image doesn't exist, generate it
 
-        // 1. Fetch agent data
-        const collection = await $provideAgentCollectionForServer();
-        let agentSource;
-        try {
-             agentSource = await collection.getAgentSource(agentName);
-        } catch (error) {
-            // If agent not found, return 404 or default generic image?
-            // User said: "Use the ... instead of Gravatar for agents that do not have custom uploaded avatar"
-            // If agent doesn't exist, we probably can't generate a specific avatar.
-            return NextResponse.json({ error: 'Agent not found' }, { status: 404 });
-        }
-
-        const agentProfile = parseAgentSource(agentSource);
-
-        // Extract required fields
-        const name = agentProfile.meta?.title || agentProfile.agentName || agentName;
-        const persona = agentProfile.personaDescription || 'an AI agent';
-        const color = agentProfile.meta?.color || 'blue';
-
-        // Construct prompt
-        // "Image of {agent.name}, {agent.persona}, portrait, use color ${agent.meta.color}, detailed, high quality"
-        const prompt = `Image of ${name}, ${persona}, portrait, use color ${color}, detailed, high quality`;
-
         // 2. Generate image
         const executionTools = await $provideExecutionToolsForServer();
         const llmTools = getSingleLlmExecutionTools(executionTools.llm) as LlmExecutionTools;
@@ -84,7 +94,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             },
             modelRequirements: {
                 modelVariant: 'IMAGE_GENERATION',
-                modelName: 'dall-e-3', 
+                modelName: 'dall-e-3',
             },
         });
 
@@ -127,7 +137,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
         // Redirect to the newly created image
         return NextResponse.redirect(cdnUrl.href as string_url);
-
     } catch (error) {
         assertsError(error);
         console.error('Error serving default avatar:', error);
