@@ -194,6 +194,7 @@ import { SectionTypes } from '../types/SectionType';
 import { TaskTypes } from '../types/TaskType';
 import { aboutPromptbookInformation } from '../utils/misc/aboutPromptbookInformation';
 import { $generateBookBoilerplate } from '../utils/random/$generateBookBoilerplate';
+import { CORE_SERVER } from '../../servers';
 import { REMOTE_SERVER_URLS } from '../../servers';
 import { AUTO_FEDERATED_AGENT_SERVER_URLS } from '../../servers';
 
@@ -395,5 +396,6 @@ export { SectionTypes };
 export { TaskTypes };
 export { aboutPromptbookInformation };
 export { $generateBookBoilerplate };
+export { CORE_SERVER };
 export { REMOTE_SERVER_URLS };
 export { AUTO_FEDERATED_AGENT_SERVER_URLS };
