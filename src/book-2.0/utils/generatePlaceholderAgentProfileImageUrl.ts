@@ -1,3 +1,4 @@
+import { CORE_SERVER } from '../../../servers';
 import type { string_agent_name, string_agent_permanent_id, string_url_image } from '../../types/typeAliases';
 
 /**
@@ -10,8 +11,9 @@ import type { string_agent_name, string_agent_permanent_id, string_url_image } f
  */
 export function generatePlaceholderAgentProfileImageUrl(
     agentIdOrName: string_agent_permanent_id | string_agent_name,
+    agentsServerUrl: URL = new URL(CORE_SERVER.urls[0]!),
 ): string_url_image {
-    return `/agents/${agentIdOrName}/images/default-avatar.png`;
+    return `${agentsServerUrl}agents/${agentIdOrName}/images/default-avatar.png`;
 }
 
 /**

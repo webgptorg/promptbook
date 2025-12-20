@@ -31,8 +31,10 @@ type ServerConfiguration = {
  * Core Promptbook server configuration.
  *
  * This server is also used for auto-federation in the Agents Server.
+ *
+ * @public exported from `@promptbook/core`
  */
-const CORE_SERVER: ServerConfiguration = {
+export const CORE_SERVER: ServerConfiguration = {
     title: 'Promptbook Core',
     description: `Core Promptbook server used for auto-federation`,
     owner: 'AI Web, LLC <legal@ptbk.io> (https://www.ptbk.io/)',
@@ -77,7 +79,7 @@ export const REMOTE_SERVER_URLS: Array<ServerConfiguration> = [
  * Remote servers that are auto-federated by the Agents Server.
  *
  * These servers are always added in addition to the `FEDERATED_SERVERS` metadata.
- * 
+ *
  * @public exported from `@promptbook/core`
  */
 export const AUTO_FEDERATED_AGENT_SERVER_URLS: Array<string_promptbook_server_url> = CORE_SERVER.urls;

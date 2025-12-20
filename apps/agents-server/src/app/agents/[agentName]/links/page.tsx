@@ -13,6 +13,7 @@ import { getAgentName, getAgentProfile } from '../_utils';
 import { getAgentExternalLinks, getAgentLinks } from '../agentLinks';
 import { CopyField } from '../CopyField';
 import { generateAgentMetadata } from '../generateAgentMetadata';
+import { NEXT_PUBLIC_SITE_URL } from '@/config';
 
 export const generateMetadata = generateAgentMetadata;
 
@@ -56,7 +57,7 @@ export default async function AgentLinksPage({ params }: { params: Promise<{ age
                     {agentProfile.meta.image && (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
-                            src={agentProfile.meta.image || agentProfile.permanentId || generatePlaceholderAgentProfileImageUrl(agentName)}
+                            src={agentProfile.meta.image || agentProfile.permanentId || generatePlaceholderAgentProfileImageUrl(agentName, NEXT_PUBLIC_SITE_URL)}
                             alt={agentProfile.meta.fullname || agentName}
                             className="w-16 h-16 rounded-full object-cover border-2"
                             style={{ borderColor: primaryColor }}

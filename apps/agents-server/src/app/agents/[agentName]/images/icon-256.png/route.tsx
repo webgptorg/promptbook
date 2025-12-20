@@ -5,6 +5,7 @@ import { assertsError } from '../../../../../../../../src/errors/assertsError';
 import { Color } from '../../../../../../../../src/utils/color/Color';
 import { keepUnused } from '../../../../../../../../src/utils/organization/keepUnused';
 import { getAgentName, getAgentProfile } from '../../_utils';
+import { NEXT_PUBLIC_SITE_URL } from '@/config';
 
 const size = {
     width: 256,
@@ -46,7 +47,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
                         {/* Note: `next/image` is not working propperly with `next/og` */}
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
-                            src={agentProfile.meta.image ||  agentProfile.permanentId ||generatePlaceholderAgentProfileImageUrl(agentName)}
+                            src={agentProfile.meta.image ||  agentProfile.permanentId ||generatePlaceholderAgentProfileImageUrl(agentName, NEXT_PUBLIC_SITE_URL)}
                             alt="Agent Icon"
                         />
                     </div>

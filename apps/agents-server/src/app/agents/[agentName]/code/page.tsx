@@ -1,5 +1,6 @@
 'use client';
 
+import { NEXT_PUBLIC_SITE_URL } from '@/config';
 import Editor from '@monaco-editor/react';
 import { generatePlaceholderAgentProfileImageUrl } from '@promptbook-local/core';
 import { AgentBasicInformation } from '@promptbook-local/types';
@@ -121,7 +122,7 @@ export default function AgentCodePage({ params }: { params: Promise<{ agentName:
                         src={
                             agentProfile.meta.image ||
                             agentProfile.permanentId ||
-                            generatePlaceholderAgentProfileImageUrl(agentName)
+                            generatePlaceholderAgentProfileImageUrl(agentName, NEXT_PUBLIC_SITE_URL)
                         }
                         alt={agentProfile.meta.fullname || agentName}
                         className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"

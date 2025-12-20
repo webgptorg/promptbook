@@ -1,5 +1,6 @@
 'use server';
 
+import { NEXT_PUBLIC_SITE_URL } from '@/config';
 import { $provideServer } from '@/src/tools/$provideServer';
 import { isUserAdmin } from '@/src/utils/isUserAdmin';
 import { saturate } from '@promptbook-local/color';
@@ -98,7 +99,7 @@ export default async function AgentPage({
                     avatarSrc={
                         agentProfile.meta.image ||
                         agentProfile.permanentId ||
-                        generatePlaceholderAgentProfileImageUrl(agentName)
+                        generatePlaceholderAgentProfileImageUrl(agentName, NEXT_PUBLIC_SITE_URL)
                     }
                     isDeleted={isDeleted}
                 />

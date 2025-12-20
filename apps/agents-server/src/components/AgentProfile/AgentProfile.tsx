@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { AgentQrCode } from './AgentQrCode';
 import { QrCodeModal } from './QrCodeModal';
 import { useAgentBackground } from './useAgentBackground';
+import { NEXT_PUBLIC_SITE_URL } from '@/config';
 
 type AgentProfileProps = {
     /**
@@ -75,7 +76,7 @@ export function AgentProfile(props: AgentProfileProps) {
     const { meta, agentName } = agent;
     const fullname = (meta.fullname as string) || agentName || 'Agent';
     const personaDescription = agent.personaDescription || '';
-    const imageUrl = meta.image || generatePlaceholderAgentProfileImageUrl(permanentId);
+    const imageUrl = meta.image || generatePlaceholderAgentProfileImageUrl(permanentId, NEXT_PUBLIC_SITE_URL);
 
     const [isQrModalOpen, setIsQrModalOpen] = useState(false);
     const [isFlipped, setIsFlipped] = useState(false);

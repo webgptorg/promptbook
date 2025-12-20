@@ -1,3 +1,4 @@
+import { NEXT_PUBLIC_SITE_URL } from '@/config';
 import { generatePlaceholderAgentProfileImageUrl, PROMPTBOOK_COLOR } from '@promptbook-local/core';
 import { serializeError } from '@promptbook-local/utils';
 import { ImageResponse } from 'next/og';
@@ -57,7 +58,10 @@ export default async function Image({ params }: { params: Promise<{ agentName: s
                             src={
                                 agentProfile.meta.image ||
                                 agentProfile.permanentId ||
-                                generatePlaceholderAgentProfileImageUrl(agentProfile.permanentId || agentName)
+                                generatePlaceholderAgentProfileImageUrl(
+                                    agentProfile.permanentId || agentName,
+                                    NEXT_PUBLIC_SITE_URL,
+                                )
                             }
                             alt="Agent Icon"
                         />
