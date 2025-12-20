@@ -50,7 +50,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
                 
                 - Portrait photograph
                 - Photorealistic portrait
-                - Use color ${color}
+                - Use clothes with colors: ${color}
                 - Detailed, high quality
                 
             `,
@@ -75,8 +75,19 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         }
 
         if (existingImage) {
-            // Image exists, redirect to CDN
-            return NextResponse.redirect(existingImage.cdnUrl as string_url);
+            // Image exists, fetch from CDN and return directly
+            const imageResponse = await fetch(existingImage.cdnUrl as string_url);
+            if (!imageResponse.ok) {
+                throw new Error(`Failed to fetch image from CDN: ${imageResponse.status}`);
+            }
+            const imageBuffer = await imageResponse.arrayBuffer();
+            return new NextResponse(imageBuffer, {
+                status: 200,
+                headers: {
+                    'Content-Type': 'image/png',
+                    'Cache-Control': 'public, max-age=31536000, immutable',
+                },
+            });
         }
 
         // Image doesn't exist, generate it
@@ -139,8 +150,19 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             throw insertError;
         }
 
-        // Redirect to the newly created image
-        return NextResponse.redirect(cdnUrl.href as string_url);
+        // Return the newly created image directly
+        const finalImageResponse = await fetch(cdnUrl.href);
+        if (!finalImageResponse.ok) {
+            throw new Error(`Failed to fetch newly created image from CDN: ${finalImageResponse.status}`);
+        }
+        const finalImageBuffer = await finalImageResponse.arrayBuffer();
+        return new NextResponse(finalImageBuffer, {
+            status: 200,
+            headers: {
+                'Content-Type': 'image/png',
+                'Cache-Control': 'public, max-age=31536000, immutable',
+            },
+        });
     } catch (error) {
         assertsError(error);
         console.error('Error serving default avatar:', error);
