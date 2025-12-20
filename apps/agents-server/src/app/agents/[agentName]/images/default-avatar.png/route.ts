@@ -48,7 +48,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
                 
                 ${block(persona)}
                 
-                Portrait photograph, use color ${color}, detailed, high quality
+                - Portrait photograph
+                - Photorealistic portrait
+                - Use color ${color}
+                - Detailed, high quality
                 
             `,
         );
