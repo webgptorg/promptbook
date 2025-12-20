@@ -50,7 +50,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
                         <img
                             style={{
                                 width: '80%',
-                                backgroundColor: agentColor.toHex(),
+                                // backgroundColor: agentColor.toHex(),
                             }}
                             src={`${publicUrl.href}agents/${agentProfile.permanentId || agentName}/images/icon-256.png`}
                             alt="Agent Icon"
