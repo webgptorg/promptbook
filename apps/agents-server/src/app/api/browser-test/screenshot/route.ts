@@ -5,19 +5,16 @@ import { assertsError } from '../../../../../../../src/errors/assertsError';
 
 export async function GET() {
     try {
-        const browser = await $provideBrowserForServer();
+        const browserContext = await $provideBrowserForServer();
 
-        let context = browser.contexts()[0];
-        if (!context) {
-            context = await browser.newContext();
-        }
-        const page = await context.newPage();
+        const page = await browserContext.newPage();
 
         await page.goto('https://ptbk.io');
         const screenshotBuffer = await page.screenshot();
 
-        await page.close();
+        // await page.close();
         // Do not close browser
+        // <- TODO: !!!! Fix
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return new NextResponse(new Blob([screenshotBuffer as any]), {

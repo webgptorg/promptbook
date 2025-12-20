@@ -1,17 +1,29 @@
 import { locateChrome } from 'locate-app';
-import { Browser, chromium } from 'playwright';
+import { join } from 'path';
+import { BrowserContext, chromium } from 'playwright';
 
-const globalForBrowser = globalThis as unknown as {
-    _browserInstance: Browser | undefined;
-};
+/**
+ * Cache of browser instance
+ *
+ * @private internal cache for `$provideBrowserForServer`
+ */
+let browserInstance: BrowserContext | null = null;
 
-export async function $provideBrowserForServer(): Promise<Browser> {
-    if (!globalForBrowser._browserInstance || !globalForBrowser._browserInstance.isConnected()) {
+/**
+ * @@@
+ */
+export async function $provideBrowserForServer(): Promise<BrowserContext> {
+    if (browserInstance === null /* || !browserInstance.isConnected() */) {
         console.log('Launching new browser instance...');
-        globalForBrowser._browserInstance = await chromium.launch({
-            executablePath: await locateChrome(),
-            headless: false,
-        });
+        browserInstance = await chromium.launchPersistentContext(
+            join(process.cwd(), '.promptbook', 'puppeteer', 'user-data'),
+            {
+                executablePath: await locateChrome(),
+                headless: false,
+                // defaultViewport: null,
+                // downloadsPath
+            },
+        );
     }
-    return globalForBrowser._browserInstance;
+    return browserInstance;
 }

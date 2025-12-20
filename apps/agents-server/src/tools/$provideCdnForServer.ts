@@ -11,7 +11,7 @@ import { IIFilesStorageWithCdn } from '../utils/cdn/interfaces/IFilesStorage';
 let cdn: IIFilesStorageWithCdn | null = null;
 
 /**
- * [🐱‍🚀]
+ * @@@
  */
 export function $provideCdnForServer(): IIFilesStorageWithCdn {
     if (!cdn) {
