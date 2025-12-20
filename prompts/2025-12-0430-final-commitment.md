@@ -1,4 +1,4 @@
-[ ] _<- Note: [🧠] Wait for the co-commitments system to be implemented_
+[.] _<- Note: [🧠] Wait for the co-commitments system to be implemented_
 
 [✨⚙️] Make `FINAL` Co-Commitment
 

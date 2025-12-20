@@ -1,6 +1,6 @@
 [ ]
 
-[✨🏡] foo
+[✨🏡] foo @@@
 
 
 -   When the `agentSource` book is `OPEN` *(not closed)* the `agentSource` is automatically modified during the conversation

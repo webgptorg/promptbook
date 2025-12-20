@@ -1,4 +1,4 @@
-[ ] *<- [🧠] Plan this better *
+[.] *<- [🧠] Plan this better *
 
 [✨🏰] Make system for commitment modifiers, the "co-commitments"
 
