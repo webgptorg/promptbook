@@ -132,19 +132,24 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
     ): Promise<AgentBasicInformation & Required<Pick<AgentBasicInformation, 'permanentId'>>> {
         let agentProfile = parseAgentSource(agentSource as string_book);
         //     <- TODO: [🕛]
-        const { agentName, agentHash } = agentProfile;
+
+        // 1. Extract permanentId from the source if present
         let { permanentId } = agentProfile;
+
+        // 2. Remove META ID from the source
+        const lines = agentSource.split('\n');
+        const strippedLines = lines.filter((line) => !line.trim().startsWith('META ID '));
+
+        if (lines.length !== strippedLines.length) {
+            agentSource = strippedLines.join('\n') as string_book;
+            // 3. Re-parse the agent source to get the correct hash and other info
+            agentProfile = parseAgentSource(agentSource as string_book);
+        }
+
+        const { agentName, agentHash } = agentProfile;
 
         if (!permanentId) {
             permanentId = $randomBase58(14);
-            const lines = agentSource.split('\n');
-            if (lines.length > 0) {
-                lines.splice(1, 0, `META ID ${permanentId}`);
-                agentSource = lines.join('\n') as string_book;
-            } else {
-                agentSource = `META ID ${permanentId}\n${agentSource}` as string_book;
-            }
-            agentProfile = parseAgentSource(agentSource as string_book);
         }
 
         const insertAgentResult = await this.supabaseClient.from(this.getTableName('Agent')).insert({
@@ -218,19 +223,24 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
 
         let agentProfile = parseAgentSource(agentSource as string_book);
         //     <- TODO: [🕛]
-        const { agentHash } = agentProfile;
+
+        // 1. Extract permanentId from the source if present
         let { permanentId } = agentProfile;
+
+        // 2. Remove META ID from the source
+        const lines = agentSource.split('\n');
+        const strippedLines = lines.filter((line) => !line.trim().startsWith('META ID '));
+
+        if (lines.length !== strippedLines.length) {
+            agentSource = strippedLines.join('\n') as string_book;
+            // 3. Re-parse the agent source to get the correct hash and other info
+            agentProfile = parseAgentSource(agentSource as string_book);
+        }
+
+        const { agentHash } = agentProfile;
 
         if (!permanentId && previousPermanentId) {
             permanentId = previousPermanentId;
-            const lines = agentSource.split('\n');
-            if (lines.length > 0) {
-                lines.splice(1, 0, `META ID ${permanentId}`);
-                agentSource = lines.join('\n') as string_book;
-            } else {
-                agentSource = `META ID ${permanentId}\n${agentSource}` as string_book;
-            }
-            agentProfile = parseAgentSource(agentSource as string_book);
         }
 
         // TODO: [🐱‍🚀] What about agentName change

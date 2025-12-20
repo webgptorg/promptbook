@@ -53,7 +53,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🥏] Permanent ID of the agent should live totally outside of the `agentSource`
 
