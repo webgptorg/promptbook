@@ -87,3 +87,41 @@
 
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[ ]
+
+[✨🥏] Identify agents in `AgentCollectionInSupabase` by `permanentId` (not `agentName`)
+
+-   In the [the connector `AgentCollectionInSupabase`](/src/collection/agent-collection/constructors/agent-collection-in-supabase/AgentCollectionInSupabase.ts) currently agents are identified by `agentName`, change it to use `permanentId` instead.
+-   Change both the implementation and the consumer side where agents are accessed via this connector.
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[-]
+
+[✨🥏] brr
+
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[-]
+
+[✨🥏] brr
+
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[-]
+
+[✨🥏] brr
+
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
