@@ -11,14 +11,20 @@ export function getAgentDefaultAvatarPrompt(agent: AgentBasicInformation): strin
 
     return spaceTrim(
         (block) => `
-            Image of ${fullname || agentName}
+            Professional corporate headshot of ${fullname || agentName}
             
             ${block(personaDescription || '')}
             
-            - Portrait photograph
-            - Photorealistic portrait
-            - Use clothes with colors: ${color}
-            - Detailed, high quality
+            - Professional business portrait photograph
+            - Photorealistic, studio quality lighting
+            - Shot with 85mm lens, shallow depth of field
+            - Neutral gray or soft gradient background
+            - Subject wearing professional attire with accent colors: ${color}
+            - Confident, approachable expression with slight smile
+            - Eye-level camera angle, centered composition
+            - Soft diffused lighting, subtle rim light
+            - Sharp focus on eyes, cinematic color grading
+            - 8K resolution, ultra detailed
             
         `,
     );
