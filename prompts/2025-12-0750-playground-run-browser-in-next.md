@@ -14,12 +14,14 @@
 
 ---
 
-[-]
+[ ]
 
-[✨✉️] bar
+[✨✉️] Copy browser opening logic from `/apps/playground` -> `/apps/agents-server`.
 
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the `/changelog/_current-preversion.md`
+-   There should be page in Agents server on /admin/browser-test that will open a browser instance using the same logic as in Playground app
+-   Add this page to the menu under "System -> Browser"
+-   The browser instance should be requested via `apps/agents-server/src/tools/$provideBrowserForServer.ts`
+-   You are working with the `Agents Server` application `/apps/agents-server`
 
 ---
 
