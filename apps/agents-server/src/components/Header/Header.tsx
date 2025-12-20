@@ -305,6 +305,10 @@ export function Header(props: HeaderProps) {
                               label: 'Chat feedback',
                               href: '/admin/chat-feedback',
                           },
+                          {
+                              label: 'Browser',
+                              href: '/admin/browser-test',
+                          },
                       ],
                   },
                   {

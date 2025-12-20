@@ -14,7 +14,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨✉️] Copy browser opening logic from `/apps/playground` -> `/apps/agents-server`.
 
