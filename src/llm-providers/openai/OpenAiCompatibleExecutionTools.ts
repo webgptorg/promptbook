@@ -815,14 +815,15 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
         const modelName = currentModelRequirements.modelName || this.getDefaultImageGenerationModel().modelName;
         const modelSettings = {
             model: modelName,
-            // size: currentModelRequirements.size,
-            // quality: currentModelRequirements.quality,
-            // style: currentModelRequirements.style,
+            size: currentModelRequirements.size,
+            quality: currentModelRequirements.quality,
+            style: currentModelRequirements.style,
         };
 
         const rawPromptContent = templateParameters(content, { ...parameters, modelName });
         const rawRequest: OpenAI.Images.ImageGenerateParams = {
             ...modelSettings,
+            size: (modelSettings.size as OpenAI.Images.ImageGenerateParams['size']) || '1024x1024',
             prompt: rawPromptContent,
             user: this.options.userId?.toString(),
             response_format: 'url', // TODO: [🧠] Maybe allow b64_json

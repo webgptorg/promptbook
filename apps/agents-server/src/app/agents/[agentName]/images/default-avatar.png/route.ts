@@ -92,12 +92,13 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         const imageResult = await llmTools.callImageGenerationModel({
             title: `Generate default avatar for ${agentName}`,
             content: prompt,
-            parameters: {
-                size: '1024x1792', // Vertical orientation
-            },
+            parameters: {},
             modelRequirements: {
                 modelVariant: 'IMAGE_GENERATION',
                 modelName: 'dall-e-3',
+                size: '1024x1792', // <- Vertical orientation
+                quality: 'hd',
+                style: 'natural',
             },
         });
 
