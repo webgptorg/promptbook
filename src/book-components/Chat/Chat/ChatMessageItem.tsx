@@ -72,7 +72,7 @@ export const ChatMessageItem = memo(
         onCopy,
         onCreateAgent,
     }: ChatMessageItemProps) => {
-        const avatarSrc = participant?.avatarSrc || '#!!!!';
+        const avatarSrc = participant?.avatarSrc || null;
         const [isAvatarTooltipVisible, setIsAvatarTooltipVisible] = useState(false);
         const [avatarTooltipPosition, setAvatarTooltipPosition] = useState<{ top: number; left: number } | null>(null);
         const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
