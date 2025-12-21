@@ -9,7 +9,7 @@ import type { string_book } from '../../book-2.0/agent-source/string_book';
 import { validateBook } from '../../book-2.0/agent-source/string_book';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { Prompt } from '../../types/Prompt';
+import type { ChatPrompt, Prompt } from '../../types/Prompt';
 import type {
     string_agent_hash,
     string_agent_name,
@@ -200,9 +200,55 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
             `,
         );
 
+        // Extract knowledge
+        let knowledgeBlock = '';
+        try {
+            const extractionPrompt: ChatPrompt = {
+                title: 'Knowledge Extraction',
+                modelRequirements: {
+                    modelVariant: 'CHAT',
+                },
+                content: spaceTrim(
+                    (block) => `
+                        You are an AI agent that is learning from a conversation.
+
+                        Here is the conversation so far:
+
+                        User: ${block(prompt.content)}
+                        Agent: ${block(result.content)}
+
+                        Extract any new knowledge, facts, or important information that should be remembered for future interactions.
+                        Format the output as a list of KNOWLEDGE blocks.
+                        If there is no new knowledge, return nothing.
+
+                        Example output:
+                        KNOWLEDGE The user's name is Alice.
+                        KNOWLEDGE The project deadline is next Friday.
+                    `,
+                ) as string_prompt,
+                pipelineUrl: 'https://github.com/webgptorg/promptbook/blob/main/prompts/knowledge-extraction.ptbk.md',
+                parameters: {},
+            };
+
+            if (this.options.llmTools.callChatModel) {
+                const extractionResult = await this.options.llmTools.callChatModel(extractionPrompt);
+                const extractedContent = extractionResult.content;
+
+                if (extractedContent.includes('KNOWLEDGE')) {
+                    knowledgeBlock = '\n\n' + spaceTrim(extractedContent);
+                }
+            } else {
+                // TODO: [🧠] Fallback to callChatModelStream if callChatModel is not available
+            }
+        } catch (error) {
+            if (this.options.isVerbose) {
+                console.warn('Failed to extract knowledge', error);
+            }
+        }
+
         // Append to the current source
         const currentSource = this.agentSource.value;
-        const newSource = padBook(validateBook(spaceTrim(currentSource) + '\n\n' + learningExample));
+        const newSource = padBook(validateBook(spaceTrim(currentSource) + '\n\n' + learningExample + knowledgeBlock));
 
         // Update the source (which will trigger the subscription and update the underlying tools)
         this.agentSource.next(newSource as string_book);

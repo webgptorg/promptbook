@@ -58,7 +58,7 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
      * @param llmTools The underlying LLM execution tools to wrap
      * @param agentSource The agent source string that defines the agent's behavior
      */
-    constructor(private readonly options: CreateAgentLlmExecutionToolsOptions) {}
+    constructor(protected readonly options: CreateAgentLlmExecutionToolsOptions) {}
 
     /**
      * Updates the agent source and clears the cache

@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🏡] Agents should be able to learn new knowledge
 
