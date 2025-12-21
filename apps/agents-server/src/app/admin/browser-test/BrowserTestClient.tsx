@@ -6,6 +6,9 @@ import { Card } from '../../../components/Homepage/Card';
 export function BrowserTestClient() {
     const [imageUrl, setImageUrl] = useState<string | null>(null);
     const [facebookStreamUrl, setFacebookStreamUrl] = useState<string | null>(null);
+    const [goal, setGoal] = useState<string>('');
+    const [plan, setPlan] = useState<string | null>(null);
+    const [isConfirming, setIsConfirming] = useState<boolean>(false);
 
     useEffect(() => {
         return () => {
@@ -50,6 +53,64 @@ export function BrowserTestClient() {
         setFacebookStreamUrl(`/api/browser-test/scroll-facebook?t=${Date.now()}`);
     };
 
+    const handleActOnFacebook = async () => {
+        setError(null);
+        setIsLoading(true);
+        // Start streaming view if not already started
+        if (!facebookStreamUrl) {
+            setFacebookStreamUrl(`/api/browser-test/scroll-facebook?t=${Date.now()}`);
+        }
+
+        try {
+            const response = await fetch('/api/browser-test/act', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ goal, action: 'plan' }),
+            });
+
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(`Error: ${response.status} ${text}`);
+            }
+
+            const data = await response.json();
+            setPlan(data.plan);
+            setIsConfirming(true);
+        } catch (err) {
+            setError(String(err));
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleConfirmAction = async () => {
+        setError(null);
+        setIsLoading(true);
+        setIsConfirming(false);
+        setPlan(null);
+
+        try {
+            const response = await fetch('/api/browser-test/act', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ goal, action: 'execute', plan }),
+            });
+
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(`Error: ${response.status} ${text}`);
+            }
+
+            const data = await response.json();
+            // Optionally show success message
+            console.log('Action executed:', data);
+        } catch (err) {
+            setError(String(err));
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     return (
         <div className="container mx-auto px-4 py-8 space-y-6">
             <div className="mt-20 mb-4 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
@@ -76,9 +137,51 @@ export function BrowserTestClient() {
                         disabled={isLoading}
                         className="ml-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50"
                     >
-                        Scroll Facebook
+                        View Facebook Stream
                     </button>
                 </div>
+
+                <div className="mb-4 space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">Goal for Agent</label>
+                    <div className="flex gap-2">
+                        <input
+                            type="text"
+                            value={goal}
+                            onChange={(e) => setGoal(e.target.value)}
+                            placeholder="e.g., Like 5 posts about AI"
+                            className="flex-1 p-2 border border-gray-300 rounded"
+                            disabled={isLoading}
+                        />
+                        <button
+                            onClick={handleActOnFacebook}
+                            disabled={isLoading || !goal}
+                            className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50"
+                        >
+                            {isLoading ? 'Processing...' : 'Act on Facebook'}
+                        </button>
+                    </div>
+                </div>
+
+                {isConfirming && plan && (
+                    <div className="bg-yellow-50 border border-yellow-200 p-4 rounded mb-4">
+                        <h3 className="font-bold text-lg mb-2">Confirm Plan</h3>
+                        <pre className="whitespace-pre-wrap bg-white p-3 border rounded mb-3 text-sm">{plan}</pre>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={handleConfirmAction}
+                                className="bg-green-600 hover:bg-green-800 text-white font-bold py-2 px-4 rounded"
+                            >
+                                Confirm & Execute
+                            </button>
+                            <button
+                                onClick={() => setIsConfirming(false)}
+                                className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                )}
 
                 {error && (
                     <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4" role="alert">
