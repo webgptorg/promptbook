@@ -5,6 +5,7 @@ import { generatePlaceholderAgentProfileImageUrl } from '@promptbook-local/core'
 import { AgentBasicInformation, string_agent_permanent_id } from '@promptbook-local/types';
 import { RepeatIcon } from 'lucide-react';
 import { useState } from 'react';
+import { AgentProfileImage } from './AgentProfileImage';
 import { AgentQrCode } from './AgentQrCode';
 import { QrCodeModal } from './QrCodeModal';
 import { useAgentBackground } from './useAgentBackground';
@@ -160,14 +161,10 @@ export function AgentProfile(props: AgentProfileProps) {
                                     // ['cornerShape' as really_any /* <- Note: `cornerShape` is non standard CSS property */]: 'squircle ',
                                 }}
                             >
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img
+                                <AgentProfileImage
                                     src={imageUrl}
                                     alt={fullname}
                                     className="w-full h-full object-cover"
-                                    // width={1024}
-                                    // height={1792}
-                                    // <- TODO: [🤐] DRY
                                     style={{
                                         objectFit: 'cover',
                                         backgroundImage: `url(${colorToDataUrl(brandColorLightHex)})`,
