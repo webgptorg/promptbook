@@ -10,7 +10,7 @@ export const metadata = {
 export default async function AgentHistoryPage({ params }: { params: Promise<{ agentName: string }> }) {
     const { agentName } = await params;
     const collection = await $provideAgentCollectionForServer();
-    const agentId = await collection.getAgentIdByName(agentName);
+    const agentId = await collection.getAgentPermanentId(agentName);
     const history = await collection.listAgentHistory(agentId);
 
     return (
@@ -22,7 +22,10 @@ export default async function AgentHistoryPage({ params }: { params: Promise<{ a
                 <div>
                     <h1 className="text-3xl font-bold text-gray-900">History: {agentName}</h1>
                     <p className="text-gray-600">
-                        Previous versions of this agent. <Link href={`/agents/${agentName}`} className="text-blue-600 hover:underline">Back to agent</Link>
+                        Previous versions of this agent.{' '}
+                        <Link href={`/agents/${agentName}`} className="text-blue-600 hover:underline">
+                            Back to agent
+                        </Link>
                     </p>
                 </div>
             </header>
@@ -48,7 +51,10 @@ export default async function AgentHistoryPage({ params }: { params: Promise<{ a
                                             Version {history.length - index}
                                         </h3>
                                         <p className="text-sm text-gray-500">
-                                            Hash: <code className="bg-gray-100 px-1 rounded">{item.agentHash.substring(0, 8)}</code>
+                                            Hash:{' '}
+                                            <code className="bg-gray-100 px-1 rounded">
+                                                {item.agentHash.substring(0, 8)}
+                                            </code>
                                         </p>
                                     </div>
                                     <RestoreVersionButton agentName={agentName} historyId={item.id} />

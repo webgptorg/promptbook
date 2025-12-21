@@ -13,7 +13,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
 
     try {
         const collection = await $provideAgentCollectionForServer();
-        const agentId = await collection.getAgentIdByName(agentName);
+        const agentId = await collection.getAgentPermanentId(agentName);
         const agentSource = await collection.getAgentSource(agentId);
         const effectiveAgentSource = await resolveInheritedAgentSource(agentSource, collection);
 
@@ -53,7 +53,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ agen
         let agentSource = validateBook(agentSourceUnchecked);
         agentSource = padBook(agentSource);
 
-        const agentId = await collection.getAgentIdByName(agentName);
+        const agentId = await collection.getAgentPermanentId(agentName);
         await collection.updateAgentSource(agentId, agentSource);
         // <- TODO: [🐱‍🚀] Properly type as string_book
 

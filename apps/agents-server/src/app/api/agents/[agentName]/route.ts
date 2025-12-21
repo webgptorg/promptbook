@@ -49,7 +49,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ a
     const collection = await $provideAgentCollectionForServer();
 
     try {
-        const agentId = await collection.getAgentIdByName(agentName);
+        const agentId = await collection.getAgentPermanentId(agentName);
         await collection.deleteAgent(agentId);
         return NextResponse.json({ success: true });
     } catch (error) {

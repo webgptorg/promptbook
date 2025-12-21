@@ -12,7 +12,7 @@ export async function getAgentName(params: Promise<{ agentName: string }>) {
 
 export async function getAgentProfile(agentName: string) {
     const collection = await $provideAgentCollectionForServer();
-    const agentId = await collection.getAgentIdByName(agentName);
+    const agentId = await collection.getAgentPermanentId(agentName);
     const agentSource = await collection.getAgentSource(agentId);
     const agentProfile = parseAgentSource(agentSource);
     return agentProfile;

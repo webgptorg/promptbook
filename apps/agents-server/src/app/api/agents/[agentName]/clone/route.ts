@@ -8,7 +8,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
     const collection = await $provideAgentCollectionForServer();
 
     try {
-        const agentId = await collection.getAgentIdByName(agentName);
+        const agentId = await collection.getAgentPermanentId(agentName);
         const source = await collection.getAgentSource(agentId);
 
         // Generate new name
@@ -19,7 +19,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         // eslint-disable-next-line no-constant-condition
         while (true) {
             try {
-                await collection.getAgentIdByName(newAgentName);
+                await collection.getAgentPermanentId(newAgentName);
                 // If success, it means it exists, so we try next one
                 counter++;
                 newAgentName = `${agentName} (Copy ${counter})`;

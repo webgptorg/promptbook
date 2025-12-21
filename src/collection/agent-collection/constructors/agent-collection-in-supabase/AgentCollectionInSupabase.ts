@@ -97,15 +97,17 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
     /**
      * [🐱‍🚀]@@@
      */
-    public async getAgentIdByName(agentName: string_agent_name): Promise<string_agent_permanent_id> {
+    public async getAgentPermanentId(
+        agentNameOrPermanentId: string_agent_name | string_agent_permanent_id,
+    ): Promise<string_agent_permanent_id> {
         const selectResult = await this.supabaseClient
             .from(this.getTableName('Agent'))
             .select('permanentId')
-            .eq('agentName', agentName)
+            .or(`agentName.eq.${agentNameOrPermanentId},permanentId.eq.${agentNameOrPermanentId}`)
             .single();
 
         if (selectResult.error || !selectResult.data) {
-            throw new NotFoundError(`Agent with name "${agentName}" not found`);
+            throw new NotFoundError(`Agent with name not id "${agentNameOrPermanentId}" not found`);
         }
         return selectResult.data.permanentId as string_agent_permanent_id;
     }
@@ -320,7 +322,7 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
         // <- TODO: [🧠] What to do with `insertAgentHistoryResult.error`, ignore? wait?
     }
 
-    // TODO: [🐱‍🚀] public async getAgentSourceSubject(agentName: string_agent_name): Promise<BehaviorSubject<string_book>>
+    // TODO: [🐱‍🚀] public async getAgentSourceSubject(permanentId: string_agent_permanent_id): Promise<BehaviorSubject<string_book>>
     //            Use Supabase realtime logic
 
     /**
