@@ -80,7 +80,14 @@ export async function createAgentModelRequirementsWithCommitments(
     }
 
     // Apply each commitment in order using reduce-like pattern
-    for (const commitment of filteredCommitments) {
+    for (let i = 0; i < filteredCommitments.length; i++) {
+        const commitment = filteredCommitments[i]!;
+
+        // CLOSED commitment should work only if its the last commitment in the book
+        if (commitment.type === 'CLOSED' && i !== filteredCommitments.length - 1) {
+            continue;
+        }
+
         const definition = getCommitmentDefinition(commitment.type);
         if (definition) {
             try {

@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🚏] `CLOSED` commitment should work only if its the last commitment in the book
 
