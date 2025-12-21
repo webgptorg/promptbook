@@ -13,17 +13,20 @@ let browserInstance: BrowserContext | null = null;
  * @@@
  */
 export async function $provideBrowserForServer(): Promise<BrowserContext> {
-    if (browserInstance === null /* || !browserInstance.isConnected() */) {
-        console.log('Launching new browser instance...');
-        browserInstance = await chromium.launchPersistentContext(
-            join(process.cwd(), '.promptbook', 'puppeteer', 'user-data'),
-            {
-                executablePath: await locateChrome(),
-                headless: false,
-                // defaultViewport: null,
-                // downloadsPath
-            },
-        );
+    if (browserInstance !== null && browserInstance.browser() && browserInstance.browser()!.isConnected()) {
+        return browserInstance;
     }
+
+    console.log('Launching new browser instance...');
+    browserInstance = await chromium.launchPersistentContext(
+        join(process.cwd(), '.promptbook', 'puppeteer', 'user-data'),
+        {
+            executablePath: await locateChrome(),
+            headless: false,
+            // defaultViewport: null,
+            // downloadsPath
+        },
+    );
+
     return browserInstance;
 }
