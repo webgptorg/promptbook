@@ -101,10 +101,17 @@
 
 ---
 
-[-]
+[x]
 
-[✨🥏] brr
+[✨🥏] Identify agents in table `AgentHistory` by `permanentId` (not `agentName`)
 
+-   Look and update in [the connector `AgentCollectionInSupabase`](/src/collection/agent-collection/constructors/agent-collection-in-supabase/AgentCollectionInSupabase.ts)
+-   Change both the implementation and the consumer side where agents are accessed via this connector.
+-   Create database migration for the change
+    -   Migrations are located in `/apps/agents-server/src/database/migrations`
+    -   Be aware that table names in migrations have prefix `prefix_` _(look at existing migrations for reference)_
+    -   When using table names in supabase queries, use the `$getTableName` utility function to get the correct table name with prefix, for example: `await supabase.from(await $getTableName('Agent')).select('...')`
+    -   Update the schemas in `/src/collection/agent-collection/constructors/agent-collection-in-supabase/AgentCollectionInSupabase.ts` and `/src/collection/agent-collection/constructors/agent-collection-in-supabase/AgentsDatabaseSchema.ts`
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 

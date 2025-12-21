@@ -195,7 +195,7 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
         const insertAgentHistoryResult = await this.supabaseClient.from(this.getTableName('AgentHistory')).insert({
             createdAt: new Date().toISOString(),
             agentName,
-            agentId: permanentId,
+            permanentId,
             agentHash,
             previousAgentHash: null,
             agentSource,
@@ -211,10 +211,7 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
     /**
      * Updates an existing agent in the collection
      */
-    public async updateAgentSource(
-        permanentId: string_agent_permanent_id,
-        agentSource: string_book,
-    ): Promise<void> {
+    public async updateAgentSource(permanentId: string_agent_permanent_id, agentSource: string_book): Promise<void> {
         console.log('!!! updateAgentSource', { permanentId });
 
         const selectPreviousAgentResult = await this.supabaseClient
@@ -312,7 +309,7 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
         const insertAgentHistoryResult = await this.supabaseClient.from(this.getTableName('AgentHistory')).insert({
             createdAt: new Date().toISOString(),
             agentName,
-            agentId: permanentId,
+            permanentId,
             agentHash,
             previousAgentHash,
             agentSource,
@@ -381,7 +378,7 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
         const result = await this.supabaseClient
             .from(this.getTableName('AgentHistory'))
             .select('id, createdAt, agentHash, promptbookEngineVersion')
-            .eq('agentId', permanentId)
+            .eq('permanentId', permanentId)
             .order('createdAt', { ascending: false });
 
         if (result.error) {
@@ -431,7 +428,7 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
         // First, get the history entry
         const historyResult = await this.supabaseClient
             .from(this.getTableName('AgentHistory'))
-            .select('agentId, agentSource')
+            .select('permanentId, agentSource')
             .eq('id', historyId)
             .single();
 
@@ -451,10 +448,10 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
             throw new NotFoundError(`History entry with id "${historyId}" not found`);
         }
 
-        const { agentId, agentSource } = historyResult.data;
+        const { permanentId, agentSource } = historyResult.data;
 
         // Update the agent with the source from the history entry
-        await this.updateAgentSource(agentId as string_agent_permanent_id, agentSource as string_book);
+        await this.updateAgentSource(permanentId as string_agent_permanent_id, agentSource as string_book);
     }
 
     /**

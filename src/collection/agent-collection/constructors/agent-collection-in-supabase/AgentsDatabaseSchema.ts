@@ -74,7 +74,7 @@ export type AgentsDatabaseSchema = {
                     id: number;
                     createdAt: string; // <- `string_date_iso8601`
                     agentName: string; // <- `string_agent_name`
-                    agentId: string;
+                    permanentId: string; // <- `string_agent_permanent_id`
                     agentHash: string; // <- `string_agent_hash`
                     previousAgentHash: string | null; // <- `string_agent_hash`
                     agentSource: string; // <- `string_book`
@@ -84,7 +84,7 @@ export type AgentsDatabaseSchema = {
                     id?: number;
                     createdAt: string;
                     agentName: string;
-                    agentId: string;
+                    permanentId: string;
                     agentHash: string;
                     previousAgentHash?: string | null;
                     agentSource: string;
@@ -94,7 +94,7 @@ export type AgentsDatabaseSchema = {
                     id?: number;
                     createdAt?: string;
                     agentName?: string;
-                    agentId?: string;
+                    permanentId?: string;
                     agentHash?: string;
                     previousAgentHash?: string | null;
                     agentSource?: string;
@@ -102,8 +102,8 @@ export type AgentsDatabaseSchema = {
                 };
                 Relationships: [
                     {
-                        foreignKeyName: 'AgentHistory_agentId_fkey';
-                        columns: ['agentId'];
+                        foreignKeyName: 'AgentHistory_permanentId_fkey';
+                        columns: ['permanentId'];
                         referencedRelation: 'Agent';
                         referencedColumns: ['permanentId'];
                     },

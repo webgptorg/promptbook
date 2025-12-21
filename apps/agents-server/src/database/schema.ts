@@ -97,6 +97,7 @@ export type AgentsServerDatabase = {
                     id: number;
                     createdAt: string;
                     agentName: string;
+                    permanentId: string;
                     agentHash: string;
                     previousAgentHash: string | null;
                     agentSource: string;
@@ -106,6 +107,7 @@ export type AgentsServerDatabase = {
                     id?: number;
                     createdAt: string;
                     agentName: string;
+                    permanentId: string;
                     agentHash: string;
                     previousAgentHash?: string | null;
                     agentSource: string;
@@ -115,6 +117,7 @@ export type AgentsServerDatabase = {
                     id?: number;
                     createdAt?: string;
                     agentName?: string;
+                    permanentId?: string;
                     agentHash?: string;
                     previousAgentHash?: string | null;
                     agentSource?: string;
@@ -122,10 +125,10 @@ export type AgentsServerDatabase = {
                 };
                 Relationships: [
                     {
-                        foreignKeyName: 'AgentHistory_agentName_fkey';
-                        columns: ['agentName'];
+                        foreignKeyName: 'AgentHistory_permanentId_fkey';
+                        columns: ['permanentId'];
                         referencedRelation: 'Agent';
-                        referencedColumns: ['agentName'];
+                        referencedColumns: ['permanentId'];
                     },
                 ];
             };
