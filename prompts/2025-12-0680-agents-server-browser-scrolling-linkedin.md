@@ -12,7 +12,7 @@
     -   Project the browser view on the page so the user can see the scrolling in action
         -   Note: Now the browser is not headless, so you can see both the projected view and the actual browser window but in the future the browser might be headless so the projected view is the only way to see what is happening
 -   You are working with the `Agents Server` application `/apps/agents-server`
--   Keep in mind the DRY _(don't repeat yourself)_ principle, reuse any existing code where possible, create abstractions if needed.
+-   Keep in mind the DRY _(don't repeat yourself)_ principle, reuse any existing code, logic, prompts,... where possible, create abstractions if needed.
 
 ---
 
