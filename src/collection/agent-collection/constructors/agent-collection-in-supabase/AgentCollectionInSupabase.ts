@@ -115,21 +115,24 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
     /**
      * [🐱‍🚀]@@@
      */
-    public async getAgentSource(permanentId: string_agent_permanent_id): Promise<string_book> {
+    public async getAgentSource(
+        agentNameOrPermanentId: string_agent_name | string_agent_permanent_id,
+    ): Promise<string_book> {
         const selectResult = await this.supabaseClient
             .from(this.getTableName('Agent'))
             .select('agentSource')
-            .eq('permanentId', permanentId);
+            .or(`agentName.eq.${agentNameOrPermanentId},permanentId.eq.${agentNameOrPermanentId}`)
+            .is('deletedAt', null);
 
         if (selectResult.data && selectResult.data.length === 0) {
-            throw new NotFoundError(`Agent "${permanentId}" not found`);
+            throw new NotFoundError(`Agent "${agentNameOrPermanentId}" not found`);
         } else if (selectResult.data && selectResult.data.length > 1) {
-            throw new UnexpectedError(`More agents with permanentId="${permanentId}" found`);
+            throw new UnexpectedError(`More agents with name or id "${agentNameOrPermanentId}" found`);
         } else if (selectResult.error) {
             throw new DatabaseError(
                 spaceTrim(
                     (block) => `
-                        Error fetching agent "${permanentId}" from Supabase:
+                        Error fetching agent "${agentNameOrPermanentId}" from Supabase:
                         
                         ${block(selectResult.error.message)}
                     `,
