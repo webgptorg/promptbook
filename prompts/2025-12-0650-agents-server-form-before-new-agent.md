@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨😛] When creating new agent open simple popup to confirm the newly created `agentSource`
 

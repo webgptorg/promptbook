@@ -25,6 +25,11 @@ export async function $createAgentAction(): Promise<{ agentName: string_agent_na
     return { agentName, permanentId };
 }
 
+export async function $generateAgentBoilerplateAction(): Promise<string_book> {
+    const namePool = (await getMetadata('NAME_POOL')) || 'ENGLISH';
+    return $generateBookBoilerplate({ namePool });
+}
+
 export async function $createAgentFromBookAction(bookContent: string_book): Promise<{ agentName: string_agent_name; permanentId: string_agent_permanent_id }> {
     // TODO: [👹] Check permissions here
     if (!(await isUserAdmin())) {
