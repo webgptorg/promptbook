@@ -314,6 +314,10 @@ export function Header(props: HeaderProps) {
                               href: '/admin/image-generator-test',
                           },
                           {
+                              label: 'Search Engine Test',
+                              href: '/admin/search-engine-test',
+                          },
+                          {
                               label: 'Images gallery',
                               href: '/admin/images',
                           },

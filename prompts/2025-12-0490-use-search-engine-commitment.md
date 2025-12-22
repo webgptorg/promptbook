@@ -21,7 +21,7 @@ USE SEARCH ENGINE
 
 ---
 
-[ ]
+[x]
 
 [✨🥡] Create a testing page for (dummy) search engine
 
