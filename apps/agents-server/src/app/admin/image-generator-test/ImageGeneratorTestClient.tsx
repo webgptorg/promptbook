@@ -5,7 +5,9 @@ import { Card } from '../../../components/Homepage/Card';
 
 export function ImageGeneratorTestClient() {
     const [prompt, setPrompt] = useState<string>('');
+    const [modelName, setModelName] = useState<string>('dall-e-3');
     const [imageUrl, setImageUrl] = useState<string | null>(null);
+    const [rawResult, setRawResult] = useState<unknown | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [generatedFilename, setGeneratedFilename] = useState<string | null>(null);
@@ -16,6 +18,7 @@ export function ImageGeneratorTestClient() {
         setIsLoading(true);
         setError(null);
         setImageUrl(null);
+        setRawResult(null);
         setGeneratedFilename(null);
 
         try {
@@ -28,15 +31,14 @@ export function ImageGeneratorTestClient() {
             
             setGeneratedFilename(filename);
 
-            // The image generation endpoint redirects to the image URL, so we can just set it as the src
-            // However, to handle errors better, we might want to fetch it first or use an img tag with error handling.
-            // But since it's a GET request that redirects, we can just use the URL.
-            // If the generation fails, the endpoint returns a JSON error or throws.
-            // Standard img tag won't show the JSON error.
-            
-            // Let's try fetching it first to check for success/error
-            fetch(`/api/images/${filename}`)
+            const queryParams = new URLSearchParams();
+            if (modelName) queryParams.set('modelName', modelName);
+            queryParams.set('raw', 'true');
+
+            fetch(`/api/images/${filename}?${queryParams.toString()}`)
                 .then(async (response) => {
+                    const contentType = response.headers.get('content-type');
+                    
                     if (!response.ok) {
                         const text = await response.text();
                         let errorMessage;
@@ -48,13 +50,19 @@ export function ImageGeneratorTestClient() {
                         }
                         throw new Error(`Error: ${response.status} ${errorMessage}`);
                     }
-                    // If successful, it returns the image (or redirect followed).
-                    // We can use the URL directly now that we know it works, or use the blob.
-                    // Using blob allows us to show it even if it's not a public URL (though here it redirects to CDN).
-                    // But wait, the API redirects to CDN. If we fetch, we follow redirect and get the image data.
-                    const blob = await response.blob();
-                    const url = URL.createObjectURL(blob);
-                    setImageUrl(url);
+                    
+                    if (contentType && contentType.includes('application/json')) {
+                        const data = await response.json();
+                        setRawResult(data);
+                        if (data.cdnUrl) {
+                            setImageUrl(data.cdnUrl);
+                        }
+                    } else {
+                        // Fallback if it returns blob/image directly (shouldn't with raw=true)
+                        const blob = await response.blob();
+                        const url = URL.createObjectURL(blob);
+                        setImageUrl(url);
+                    }
                 })
                 .catch((err) => {
                     setError(String(err));
@@ -81,15 +89,15 @@ export function ImageGeneratorTestClient() {
             </div>
 
             <Card>
-                <div className="mb-4 space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">Image Prompt</label>
-                    <div className="flex gap-2">
+                <div className="mb-4 space-y-4">
+                    <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700">Image Prompt</label>
                         <input
                             type="text"
                             value={prompt}
                             onChange={(e) => setPrompt(e.target.value)}
                             placeholder="e.g., A futuristic city with flying cars"
-                            className="flex-1 p-2 border border-gray-300 rounded"
+                            className="w-full p-2 border border-gray-300 rounded"
                             disabled={isLoading}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter') {
@@ -97,6 +105,24 @@ export function ImageGeneratorTestClient() {
                                 }
                             }}
                         />
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700">Model Name</label>
+                        <input
+                            type="text"
+                            value={modelName}
+                            onChange={(e) => setModelName(e.target.value)}
+                            placeholder="e.g., dall-e-3"
+                            className="w-full p-2 border border-gray-300 rounded"
+                            disabled={isLoading}
+                        />
+                         <p className="text-xs text-gray-500">
+                            Available models depend on the configured LLM provider. Common options: dall-e-3, dall-e-2, midjourney
+                        </p>
+                    </div>
+
+                    <div className="flex justify-end">
                         <button
                             onClick={handleGenerateImage}
                             disabled={isLoading || !prompt}
@@ -105,6 +131,7 @@ export function ImageGeneratorTestClient() {
                             {isLoading ? 'Generating...' : 'Generate Image'}
                         </button>
                     </div>
+
                     {generatedFilename && (
                         <p className="text-xs text-gray-500">
                             Generated filename: <code className="bg-gray-100 px-1 rounded">{generatedFilename}</code>
@@ -120,9 +147,20 @@ export function ImageGeneratorTestClient() {
                 )}
 
                 {imageUrl && (
-                    <div className="border rounded shadow-lg overflow-hidden bg-gray-50 flex justify-center items-center min-h-[200px]">
+                    <div className="mb-6 border rounded shadow-lg overflow-hidden bg-gray-50 flex justify-center items-center min-h-[200px]">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={imageUrl} alt={prompt} className="max-w-full h-auto" />
+                    </div>
+                )}
+
+                {rawResult !== null && (
+                    <div className="border rounded-md overflow-hidden">
+                        <div className="bg-gray-100 px-4 py-2 border-b">
+                            <h3 className="text-sm font-semibold text-gray-700">Raw Result</h3>
+                        </div>
+                        <pre className="p-4 bg-gray-50 text-xs overflow-auto max-h-[500px]">
+                            {JSON.stringify(rawResult, null, 2)}
+                        </pre>
                     </div>
                 )}
             </Card>

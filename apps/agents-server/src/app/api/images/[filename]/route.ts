@@ -13,6 +13,9 @@ import { filenameToPrompt } from '../../../../utils/normalization/filenameToProm
 export async function GET(request: NextRequest, { params }: { params: Promise<{ filename: string }> }) {
     try {
         const { filename } = await params;
+        const searchParams = request.nextUrl.searchParams;
+        const modelName = searchParams.get('modelName');
+        const isRaw = searchParams.get('raw') === 'true';
 
         if (!filename) {
             return NextResponse.json({ error: 'Filename is required' }, { status: 400 });
@@ -33,6 +36,13 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         }
 
         if (existingImage) {
+            if (isRaw) {
+                return NextResponse.json({
+                    source: 'cache',
+                    filename,
+                    cdnUrl: existingImage.cdnUrl,
+                });
+            }
             // Image exists, redirect to CDN
             return NextResponse.redirect(existingImage.cdnUrl as string_url);
         }
@@ -53,7 +63,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             parameters: {},
             modelRequirements: {
                 modelVariant: 'IMAGE_GENERATION',
-                modelName: 'dall-e-3', // Use DALL-E 3 for high quality
+                modelName: modelName || 'dall-e-3', // Use DALL-E 3 for high quality
             },
         });
 
@@ -90,6 +100,17 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
         if (insertError) {
             throw insertError;
+        }
+
+        if (isRaw) {
+            return NextResponse.json({
+                source: 'generated',
+                filename,
+                prompt,
+                modelName: modelName || 'dall-e-3',
+                cdnUrl: cdnUrl.href,
+                imageResult,
+            });
         }
 
         // Redirect to the newly created image
