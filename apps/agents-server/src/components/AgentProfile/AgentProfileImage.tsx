@@ -43,8 +43,21 @@ export function AgentProfileImage({ src, alt, className, style }: AgentProfileIm
             }
         };
 
-        setIsLoading(true);
-        fetchImage();
+        const isExternal = (() => {
+            try {
+                return new URL(src, window.location.href).origin !== window.location.origin;
+            } catch {
+                return false;
+            }
+        })();
+
+        if (isExternal) {
+            setImageSrc(src);
+            setIsLoading(false);
+        } else {
+            setIsLoading(true);
+            fetchImage();
+        }
 
         return () => {
             isMounted = false;

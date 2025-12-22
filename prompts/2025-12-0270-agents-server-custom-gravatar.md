@@ -46,7 +46,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🏭] When loading agent image on agent page, work with any external image despite of CORS
 
