@@ -2,7 +2,14 @@ import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideOpenAiAssistantExecutionToolsForServer } from '@/src/tools/$provideOpenAiAssistantExecutionToolsForServer';
-import { Agent, computeAgentHash, parseAgentSource, PROMPTBOOK_ENGINE_VERSION } from '@promptbook-local/core';
+import { BrowserExecutionTools } from '@/src/tools/BrowserExecutionTools';
+import {
+    Agent,
+    computeAgentHash,
+    createAgentModelRequirements,
+    parseAgentSource,
+    PROMPTBOOK_ENGINE_VERSION,
+} from '@promptbook-local/core';
 import { ChatMessage, ChatPromptResult, Prompt, string_book, TODO_any } from '@promptbook-local/types';
 import { computeHash } from '@promptbook-local/utils';
 import { NextRequest, NextResponse } from 'next/server';
@@ -123,6 +130,10 @@ export async function handleChatCompletion(
 
         let openAiAssistantExecutionTools = await $provideOpenAiAssistantExecutionToolsForServer();
 
+        // Parse requirements to get instructions and metadata (including useBrowser)
+        const requirements = await createAgentModelRequirements(agentSource);
+        const useBrowser = requirements.metadata && requirements.metadata.useBrowser === true;
+
         if (assistantCache?.assistantId) {
             console.log(
                 `[🐱‍🚀] Reusing assistant ${assistantCache.assistantId} for agent ${agentName} (hash: ${agentHash})`,
@@ -133,15 +144,16 @@ export async function handleChatCompletion(
             // Parse to get instructions and name
             const parsed = parseAgentSource(agentSource);
             const name = parsed.agentName || agentName;
-            // Extract PERSONA
-            const baseInstructions = parsed.personaDescription || 'You are a helpful assistant.';
 
-            // Note: Append context to instructions
-            const contextLines = agentSource.split('\n').filter((line) => line.startsWith('CONTEXT '));
-            const contextInstructions = contextLines.join('\n');
-            const instructions = contextInstructions
-                ? `${baseInstructions}\n\n${contextInstructions}`
-                : baseInstructions;
+            // Note: createAgentModelRequirements already includes commitments (like USE BROWSER instructions) in systemMessage.
+            // But we still need to append CONTEXT if it's not fully handled by requirements (requirements handle commitments, but CONTEXT was appended to string manually)
+            // Actually, handleChatCompletion appended CONTEXT to agentSource string above.
+            // createAgentModelRequirements(agentSource) will treat CONTEXT lines as part of the source.
+            // But parseAgentSource does not necessarily put non-commitment lines into systemMessage?
+            // createAgentModelRequirements DOES put non-commitment lines into systemMessage.
+            // So 'instructions' should be requirements.systemMessage.
+
+            const instructions = requirements.systemMessage;
 
             // Create assistant
             const newAssistantTools = await openAiAssistantExecutionTools.createNewAssistant({
@@ -161,10 +173,16 @@ export async function handleChatCompletion(
             }
         }
 
+        let llmTools: TODO_any = openAiAssistantExecutionTools;
+        if (useBrowser) {
+            console.log('[🐱‍🚀] Wrapping tools with BrowserExecutionTools');
+            llmTools = new BrowserExecutionTools(llmTools);
+        }
+
         const agent = new Agent({
             agentSource,
             executionTools: {
-                llm: openAiAssistantExecutionTools, // Note: Use the same OpenAI Assistant LLM tools as the chat route
+                llm: llmTools,
             },
             isVerbose: true, // or false
         });
