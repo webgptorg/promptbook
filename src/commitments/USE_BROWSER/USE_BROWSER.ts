@@ -1,5 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
+import { TODO_USE } from '../../utils/organization/TODO_USE';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 
 /**
@@ -92,6 +93,11 @@ export class UseBrowserCommitmentDefinition extends BaseCommitmentDefinition<'US
     }
 
     applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
+        // The content after USE BROWSER is ignored (similar to NOTE)
+        TODO_USE(content);
+
+        // We simply mark that browser capability is enabled in metadata
+
         // Get existing metadata
         const existingMetadata = requirements.metadata || {};
 
@@ -101,31 +107,9 @@ export class UseBrowserCommitmentDefinition extends BaseCommitmentDefinition<'US
         // Add 'browser' to tools if not already present
         const updatedTools = existingTools.includes('browser') ? existingTools : [...existingTools, 'browser'];
 
-        const browserInstructions = spaceTrim(`
-            You have access to a web browser automation tool.
-            ${content ? `Instructions: ${content}` : ''}
-
-            When you need to use the browser, output a JSON object with a key "actions" containing an array of actions to perform.
-            
-            Supported actions:
-            - { "type": "click", "selector": "css selector", "description": "reason" }
-            - { "type": "type", "selector": "css selector", "text": "text to type", "description": "reason" }
-            - { "type": "scroll", "amount": number, "description": "reason" }
-            - { "type": "wait", "ms": number, "description": "reason" }
-            - { "type": "navigate", "url": "url", "description": "reason" }
-
-            Example:
-            \`\`\`json
-            { "actions": [{ "type": "navigate", "url": "https://example.com", "description": "visiting example site" }] }
-            \`\`\`
-            
-            The system will execute these actions and provide you with the result or the page content.
-        `);
-
-        // Return requirements with updated metadata and system message
+        // Return requirements with updated metadata
         return {
             ...requirements,
-            systemMessage: requirements.systemMessage + '\n\n' + browserInstructions,
             metadata: {
                 ...existingMetadata,
                 tools: updatedTools,
