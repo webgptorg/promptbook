@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🥵] When the default agent avatar image is being generated, it generates multiple images instead of 1
 

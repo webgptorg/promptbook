@@ -356,6 +356,30 @@ export type AgentsServerDatabase = {
                 };
                 Relationships: [];
             };
+            GenerationLock: {
+                Row: {
+                    id: number;
+                    createdAt: string;
+                    updatedAt: string;
+                    lockKey: string;
+                    expiresAt: string;
+                };
+                Insert: {
+                    id?: number;
+                    createdAt?: string;
+                    updatedAt?: string;
+                    lockKey: string;
+                    expiresAt: string;
+                };
+                Update: {
+                    id?: number;
+                    createdAt?: string;
+                    updatedAt?: string;
+                    lockKey?: string;
+                    expiresAt?: string;
+                };
+                Relationships: [];
+            };
             Image: {
                 Row: {
                     id: number;
