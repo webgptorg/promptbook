@@ -313,6 +313,10 @@ export function Header(props: HeaderProps) {
                               label: 'Image Generator Test',
                               href: '/admin/image-generator-test',
                           },
+                          {
+                              label: 'Images gallery',
+                              href: '/admin/images',
+                          },
                       ],
                   },
                   {

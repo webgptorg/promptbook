@@ -389,6 +389,8 @@ export type AgentsServerDatabase = {
                     prompt: string;
                     cdnUrl: string;
                     cdnKey: string;
+                    agentId: number | null;
+                    purpose: 'AVATAR' | 'TESTING' | null;
                 };
                 Insert: {
                     id?: number;
@@ -398,6 +400,8 @@ export type AgentsServerDatabase = {
                     prompt: string;
                     cdnUrl: string;
                     cdnKey: string;
+                    agentId?: number | null;
+                    purpose?: 'AVATAR' | 'TESTING' | null;
                 };
                 Update: {
                     id?: number;
@@ -407,8 +411,17 @@ export type AgentsServerDatabase = {
                     prompt?: string;
                     cdnUrl?: string;
                     cdnKey?: string;
+                    agentId?: number | null;
+                    purpose?: 'AVATAR' | 'TESTING' | null;
                 };
-                Relationships: [];
+                Relationships: [
+                    {
+                        foreignKeyName: 'Image_agentId_fkey';
+                        columns: ['agentId'];
+                        referencedRelation: 'Agent';
+                        referencedColumns: ['id'];
+                    },
+                ];
             };
             File: {
                 Row: {

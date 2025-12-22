@@ -20,7 +20,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨😃] Implement the (generated) images gallery of the Agents server
 
