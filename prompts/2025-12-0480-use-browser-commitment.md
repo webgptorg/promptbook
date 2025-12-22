@@ -21,12 +21,30 @@ USE BROWSER
 
 ---
 
-[-]
+[ ]
 
-[✨🤸] When `USE BROWSER` agent should be able to use browser
+[✨🤸] Implement the browser usage for agents on agents server
 
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   There is already commitment `USE BROWSER` in the agent server
+
+```book
+Kosmas
+
+
+PERSONA Jsi historik specializující se na středověké dějiny českých zemí.
+USE BROWSER https://cs.wikipedia.org/wiki/P%C5%99emyslovci
+```
+
+-   The bowser commitment `USE BROWSER` allows the agent to use browser automation
+-   The content after `USE BROWSER` is arbitrary text that agent should know:
+    -   `USE BROWSER https://cs.wikipedia.org/wiki/P%C5%99emyslovci` means the agent should use the browser to visit the page `https://cs.wikipedia.org/wiki/P%C5%99emyslovci` and get information from there
+    -   `USE BROWSER find latest news about AI` means the agent should use the browser to search for latest news about AI
+-   On page `/admin/browser-test` there is a sample how to use browser automation in agent server, take the logic from there
+    -   Use function `$provideBrowserForServer` to get browser instance,
+-   The `USE BROWSER` should work in the `Agents Server` application `/apps/agents-server`
+-   [Commitments](/src/commitments) are syntax snippets that add specific functionalities to AI agents, they are used in `agentSource`, there are commitments like `PERSONA`, `RULE`, `KNOWLEDGE`, `USE BROWSER`, etc.
 -   Add the changes into the `/changelog/_current-preversion.md`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
 ---
 

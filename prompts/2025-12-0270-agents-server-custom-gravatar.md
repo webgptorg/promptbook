@@ -46,12 +46,25 @@
 
 ---
 
-[-]
+[ ]
 
-[✨🏭] baz
+[✨🏭] When loading agent image on agent page, work with any external image despite of CORS
 
+```
+Access to fetch at 'https://ptbk.io/k/6d/56cdf/jiri-jahn-transparent-square.png' from origin 'http://localhost:4440' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+```
+
+-   Agent page is for example http://localhost:4440/agents/uK2E8pFFQZDHqR
+-   Every agent has its default avatar image for example at http://localhost:4440/agents/uK2E8pFFQZDHqR/images/default-avatar.png
+-   But the avatar image can be overridden by custom uploaded image
+-   This image can have arbitrary URL, for example https://ptbk.io/k/6d/56cdf/jiri-jahn-transparent-square.png
+-   When loading such external image, CORS policy can block the image loading
+-   Bypass the spinning loader in this case and just show the image as is
+-   Keep showing the spinner loading only when loading internal images from Agents Server
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+![alt text](screenshots/2025-12-0270-agents-server-custom-gravatar.png)
 
 ---
 
