@@ -176,6 +176,61 @@ export type AgentsDatabaseSchema = {
                     },
                 ];
             };
+            File: {
+                Row: {
+                    id: number;
+                    createdAt: string;
+                    userId: number | null;
+                    fileName: string;
+                    fileSize: number;
+                    fileType: string;
+                    storageUrl: string | null;
+                    shortUrl: string | null;
+                    purpose: string;
+                    status: 'UPLOADING' | 'COMPLETED' | 'FAILED';
+                    agentId: number | null;
+                };
+                Insert: {
+                    id?: number;
+                    createdAt?: string;
+                    userId?: number | null;
+                    fileName: string;
+                    fileSize: number;
+                    fileType: string;
+                    storageUrl?: string | null;
+                    shortUrl?: string | null;
+                    purpose: string;
+                    status?: 'UPLOADING' | 'COMPLETED' | 'FAILED';
+                    agentId?: number | null;
+                };
+                Update: {
+                    id?: number;
+                    createdAt?: string;
+                    userId?: number | null;
+                    fileName?: string;
+                    fileSize?: number;
+                    fileType?: string;
+                    storageUrl?: string | null;
+                    shortUrl?: string | null;
+                    purpose?: string;
+                    status?: 'UPLOADING' | 'COMPLETED' | 'FAILED';
+                    agentId?: number | null;
+                };
+                Relationships: [
+                    {
+                        foreignKeyName: 'File_userId_fkey';
+                        columns: ['userId'];
+                        referencedRelation: 'User';
+                        referencedColumns: ['id'];
+                    },
+                    {
+                        foreignKeyName: 'File_agentId_fkey';
+                        columns: ['agentId'];
+                        referencedRelation: 'Agent';
+                        referencedColumns: ['id'];
+                    },
+                ];
+            };
         };
         Views: Record<string, never>;
         Functions: Record<string, never>;

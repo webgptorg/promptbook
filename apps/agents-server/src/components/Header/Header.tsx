@@ -317,6 +317,10 @@ export function Header(props: HeaderProps) {
                               label: 'Images gallery',
                               href: '/admin/images',
                           },
+                          {
+                              label: 'Files',
+                              href: '/admin/files',
+                          },
                       ],
                   },
                   {

@@ -42,7 +42,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨😃] Implement files listing of the Agents server
 
