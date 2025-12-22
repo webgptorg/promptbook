@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨😃] Create a page that will allow to test the image generator
 

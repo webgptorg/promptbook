@@ -309,6 +309,10 @@ export function Header(props: HeaderProps) {
                               label: 'Browser',
                               href: '/admin/browser-test',
                           },
+                          {
+                              label: 'Image Generator Test',
+                              href: '/admin/image-generator-test',
+                          },
                       ],
                   },
                   {
