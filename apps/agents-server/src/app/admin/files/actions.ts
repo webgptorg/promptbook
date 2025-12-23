@@ -1,6 +1,7 @@
 'use server';
 
 import { $getTableName } from '@/src/database/$getTableName';
+import { TODO_any } from '@promptbook-local/types';
 import { $provideSupabaseForServer } from '../../../database/$provideSupabaseForServer';
 
 export type FileWithAgent = {
@@ -54,7 +55,7 @@ export async function listFiles(options: {
     }
 
     return {
-        files: (files as any[]) || [],
+        files: (files as TODO_any[]) || [],
         total: count || 0,
     };
 }
