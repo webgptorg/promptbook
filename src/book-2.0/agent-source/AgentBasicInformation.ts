@@ -94,6 +94,11 @@ export type AgentBasicInformation = {
      */
     parameters: BookParameter[];
     // <- TODO: [🧠][😰] Maybe remove, Agent is not working with the parameters
+
+    /**
+     * Capabilities of the agent
+     */
+    capabilities: Array<{ type: 'BROWSER' } | { type: 'SEARCH_ENGINE' } | { type: 'KNOWLEDGE'; url: string }>;
 };
 
 /**

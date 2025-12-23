@@ -9,6 +9,7 @@
 
 ### 🐇 Agents Server
 
+-   Display **capability chips** (Browser, Search Engine, Knowledge) in agent list and profile view
 -   Use default generated avatar images instead of Gravatar for agents without custom avatar
 -   Export entire book documentation as one coherent markdown file to `/api/docs/book.md`
 -   Better UI for documentation actions (Print, Download Markdown) in `/docs`
