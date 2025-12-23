@@ -1,7 +1,9 @@
 [ ]
 
-[✨😽] @@@
+[✨😽] Create `META DESCRIPTION` commitment
 
+-   Agents should be able to have `META DESCRIPTION` commitment in their `agentSource` to set the meta description for the agent profile page.
+-   Agent description should be taken primarily from the `META DESCRIPTION` commitment if it is present. If not present, it should fall back to `PERSONA` commitment or the first few lines of the agent source as it currently works.
 -   It should work for example in the `Agents Server` application `/apps/agents-server` on the agent profile page `/agents/[agentName]`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
@@ -15,6 +17,7 @@
     -   Agent source with commitments is parsed by two functions:
         -   `parseAgentSource` which is a lightweight parser for agent source, it parses basic information and its purpose is to be quick and synchronous. The commitments there are hardcoded.
         -   `createAgentModelRequirements` which is an asynchronous function that creates model requirements it applies each commitment one by one and works asynchronously.
+        -   You are working with the `parseAgentSource` function to extract the `META DESCRIPTION` commitment from the agent source code and store it in the `AgentBasicInformation` interface
 
 ![alt text](screenshots/2025-12-0840-meta-description.png)
 
