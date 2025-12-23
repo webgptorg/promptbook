@@ -96,23 +96,39 @@ export class UseBrowserCommitmentDefinition extends BaseCommitmentDefinition<'US
         // The content after USE BROWSER is ignored (similar to NOTE)
         TODO_USE(content);
 
-        // We simply mark that browser capability is enabled in metadata
-
-        // Get existing metadata
-        const existingMetadata = requirements.metadata || {};
-
         // Get existing tools array or create new one
-        const existingTools = (existingMetadata.tools as string[] | undefined) || [];
+        const existingTools = requirements.tools || [];
 
-        // Add 'browser' to tools if not already present
-        const updatedTools = existingTools.includes('browser') ? existingTools : [...existingTools, 'browser'];
+        // Add 'web_browser' to tools if not already present
+        const updatedTools = existingTools.some((tool) => tool.name === 'web_browser')
+            ? existingTools
+            : [
+                  ...existingTools,
+                  {
+                      name: 'web_browser',
+                      description: spaceTrim(`
+                        A tool that can browse the web.
+                        Use this tool when you need to access specific websites or browse the internet.
+                    `),
+                      parameters: {
+                          type: 'object',
+                          properties: {
+                              url: {
+                                  type: 'string',
+                                  description: 'The URL to browse',
+                              },
+                          },
+                          required: ['url'],
+                      },
+                  },
+              ];
 
-        // Return requirements with updated metadata
+        // Return requirements with updated tools and metadata
         return {
             ...requirements,
+            tools: updatedTools,
             metadata: {
-                ...existingMetadata,
-                tools: updatedTools,
+                ...requirements.metadata,
                 useBrowser: true,
             },
         };

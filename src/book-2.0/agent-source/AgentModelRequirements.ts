@@ -1,3 +1,4 @@
+import type { LlmToolDefinition } from '../../types/LlmToolDefinition';
 import type { string_knowledge_source_link } from '../../types/typeAliases';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 
@@ -51,6 +52,11 @@ export type AgentModelRequirements = {
      * Top-k sampling value for the agent's responses
      */
     readonly topK?: number;
+
+    /**
+     * Tools available for the agent
+     */
+    readonly tools?: ReadonlyArray<LlmToolDefinition>;
 
     /**
      * Arbitrary metadata storage for commitments

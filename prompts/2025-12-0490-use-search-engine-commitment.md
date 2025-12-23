@@ -39,7 +39,7 @@ USE SEARCH ENGINE
 
 ---
 
-[ ]
+[x]
 
 [✨🥡] Implement the search engine usage for agents on agents server
 

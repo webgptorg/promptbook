@@ -28,6 +28,7 @@
 ### 📚 Book
 
 -   Added `DICTIONARY` commitment for defining terms and their meanings that agents should use consistently in reasoning and responses
+-   `USE SEARCH ENGINE` commitment now allows specifying search scope or instructions as arbitrary text
 -   `CLOSED` commitment now only works if it is the **last** commitment in the book
 -   Agents now self-learn `KNOWLEDGE` from conversation context by automatically extracting facts and appending them to the agent source
 
@@ -39,3 +40,4 @@
 
 -   Allow to pass tools into the `ChatPrompt.modelRequirements.tools`
 -   The tool calling functionality is implemented for now for `OpenAiExecutionTools`
+-   `USE SEARCH ENGINE` and `USE BROWSER` commitments now automatically add `web_search` and `web_browser` tools to the agent requirements

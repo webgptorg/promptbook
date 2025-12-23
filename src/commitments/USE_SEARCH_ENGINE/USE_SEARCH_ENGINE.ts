@@ -1,6 +1,5 @@
 import { spaceTrim } from 'spacetrim';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
-import { TODO_USE } from '../../utils/organization/TODO_USE';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 
 /**
@@ -9,13 +8,13 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * The `USE SEARCH ENGINE` commitment indicates that the agent should utilize a search engine tool
  * to access and retrieve up-to-date information from the internet when necessary.
  *
- * The content following `USE SEARCH ENGINE` is ignored (similar to NOTE).
+ * The content following `USE SEARCH ENGINE` is an arbitrary text that the agent should know (e.g. search scope or instructions).
  *
  * Example usage in agent source:
  *
  * ```book
  * USE SEARCH ENGINE
- * USE SEARCH ENGINE This will be ignored
+ * USE SEARCH ENGINE Hledej informace o Přemyslovcích
  * ```
  *
  * @private [🪔] Maybe export the commitments through some package
@@ -50,7 +49,7 @@ export class UseSearchEngineCommitmentDefinition extends BaseCommitmentDefinitio
 
             ## Key aspects
 
-            - The content following \`USE SEARCH ENGINE\` is ignored (similar to NOTE)
+            - The content following \`USE SEARCH ENGINE\` is an arbitrary text that the agent should know (e.g. search scope or instructions).
             - The actual search engine tool usage is handled by the agent runtime
             - Allows the agent to search for current information from the web
             - Useful for research tasks, finding facts, and accessing dynamic content
@@ -76,27 +75,41 @@ export class UseSearchEngineCommitmentDefinition extends BaseCommitmentDefinitio
     }
 
     applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
-        // The content after USE SEARCH ENGINE is ignored (similar to NOTE)
-        TODO_USE(content);
-
-        // We simply mark that search engine capability is enabled in metadata
-
-        // Get existing metadata
-        const existingMetadata = requirements.metadata || {};
-
         // Get existing tools array or create new one
-        const existingTools = (existingMetadata.tools as string[] | undefined) || [];
+        const existingTools = requirements.tools || [];
 
-        // Add 'search-engine' to tools if not already present
-        const updatedTools = existingTools.includes('search-engine') ? existingTools : [...existingTools, 'search-engine'];
+        // Add 'web_search' to tools if not already present
+        const updatedTools = existingTools.some((tool) => tool.name === 'web_search')
+            ? existingTools
+            : [
+                  ...existingTools,
+                  {
+                      name: 'web_search',
+                      description: spaceTrim(`
+                        Search the internet for information.
+                        Use this tool when you need to find up-to-date information or facts that you don't know.
+                        ${!content ? '' : `Search scope / instructions: ${content}`}
+                    `),
+                      parameters: {
+                          type: 'object',
+                          properties: {
+                              query: {
+                                  type: 'string',
+                                  description: 'The search query',
+                              },
+                          },
+                          required: ['query'],
+                      },
+                  },
+              ];
 
-        // Return requirements with updated metadata
+        // Return requirements with updated tools and metadata
         return {
             ...requirements,
+            tools: updatedTools,
             metadata: {
-                ...existingMetadata,
-                tools: updatedTools,
-                useSearchEngine: true,
+                ...requirements.metadata,
+                useSearchEngine: content || true,
             },
         };
     }
