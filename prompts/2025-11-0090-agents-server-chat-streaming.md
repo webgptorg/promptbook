@@ -42,6 +42,7 @@ Target implementation:
 ```
 
 -   It should work same as now but @@@
+-   You are working with [`Prompt` type](/src/types/Prompt.ts) and [`ModelRequirements` type](/src/types/ModelRequirements.ts)
 -   Update on all places from interface to implementations:
     -   /src/execution/LlmExecutionTools.ts
     -   /src/llm-providers/openai/OpenAiAssistantExecutionTools.ts

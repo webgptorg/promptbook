@@ -58,7 +58,8 @@ USE SEARCH ENGINE Hledej informace o Přemyslovcích
     -   `USE SEARCH ENGINE` means just to use search engine
     -   `USE SEARCH ENGINE Hledej informace o Přemyslovcích` means the to use search engine to search for information about specific topic or scope
 -   On page `/admin/search-engine-test` there is a sample how to use search engine in agent server, take the logic from there
--   The `USE SEARCH ENGINE` should work in the `Agents Server` application `/apps/agents-server`
+-   The `USE SEARCH ENGINE` commitment should be parsed through commitment in `parseAgentSource` and be added as one tool in `modelRequirements.tools`
+-   The `USE SEARCH ENGINE` should work for example in the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
 

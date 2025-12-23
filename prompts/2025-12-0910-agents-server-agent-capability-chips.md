@@ -50,9 +50,9 @@ KNOWLEDGE All Czech legal system
 
 ---
 
-[-]
+[ ]
 
-[✨🔪] baz
+[✨🔪] Capability chips on homwscreen
 
 -   ...
 -   You are working with the `Agents Server` application `/apps/agents-server`

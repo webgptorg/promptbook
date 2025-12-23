@@ -16,6 +16,7 @@ USE BROWSER
 -   This is the first commitment in family of commitments `USE`, there will be more in future, e.g., `USE SEARCH ENGINE`, `USE FILE SYSTEM`, `USE MCP`, etc. _(Its simmilar principle to `META IMAGE`, `META LINK`, `META COLOR`,... commitment family, look how they are handled)_
 -   For the commitment `USE BROWSER` create its folder in `/src/commitments` and register it in the `/src/commitments/index.ts`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   The `USE BROWSER` commitment should be parsed through commitment in `parseAgentSource` and be added as one tool in `modelRequirements.tools`
 -   To implement the actual browser use You are working with the `Agents Server` application `/apps/agents-server`
 -   Add the changes into the `/changelog/_current-preversion.md`
 
