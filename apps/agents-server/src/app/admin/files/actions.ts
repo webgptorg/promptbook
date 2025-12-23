@@ -1,5 +1,6 @@
 'use server';
 
+import { TODO_any } from '@promptbook-local/types';
 import { $provideSupabaseForServer } from '../../../database/$provideSupabaseForServer';
 import { $provideServer } from '../../../tools/$provideServer';
 
@@ -31,8 +32,12 @@ export async function listFiles(options: {
     const { tablePrefix } = await $provideServer();
     const tableName = `${tablePrefix}File`;
 
-    const { data: files, error, count } = await supabase
-        .from(tableName as any)
+    const {
+        data: files,
+        error,
+        count,
+    } = await supabase
+        .from(tableName as TODO_any)
         .select(
             `
             *,
@@ -52,7 +57,7 @@ export async function listFiles(options: {
     }
 
     return {
-        files: (files as any[]) || [],
+        files: (files as TODO_any[]) || [],
         total: count || 0,
     };
 }
