@@ -50,7 +50,7 @@ KNOWLEDGE All Czech legal system
 
 ---
 
-[ ]
+[x]
 
 [✨🔪] Show agent capabilities chips on homescreen
 
