@@ -2,6 +2,7 @@
 // `@promptbook/types`
 
 import type { BookParameter } from '../book-2.0/agent-source/AgentBasicInformation';
+import type { AgentCapability } from '../book-2.0/agent-source/AgentBasicInformation';
 import type { AgentBasicInformation } from '../book-2.0/agent-source/AgentBasicInformation';
 import type { AgentModelRequirements } from '../book-2.0/agent-source/AgentModelRequirements';
 import type { string_book } from '../book-2.0/agent-source/string_book';
@@ -181,6 +182,8 @@ import type { ScraperSourceHandler } from '../scrapers/_common/Scraper';
 import type { ScraperIntermediateSource } from '../scrapers/_common/ScraperIntermediateSource';
 import type { JavascriptExecutionToolsOptions } from '../scripting/javascript/JavascriptExecutionToolsOptions';
 import type { PostprocessingFunction } from '../scripting/javascript/JavascriptExecutionToolsOptions';
+import type { SearchEngine } from '../search-engines/SearchEngine';
+import type { SearchResult } from '../search-engines/SearchResult';
 import type { PromptbookStorage } from '../storage/_common/PromptbookStorage';
 import type { FileCacheStorageOptions } from '../storage/file-cache-storage/FileCacheStorageOptions';
 import type { IndexedDbStorageOptions } from '../storage/local-storage/utils/IndexedDbStorageOptions';
@@ -372,6 +375,7 @@ import type { string_promptbook_version } from '../version';
 
 // Note: Entities of the `@promptbook/types`
 export type { BookParameter };
+export type { AgentCapability };
 export type { AgentBasicInformation };
 export type { AgentModelRequirements };
 export type { string_book };
@@ -551,6 +555,8 @@ export type { ScraperSourceHandler };
 export type { ScraperIntermediateSource };
 export type { JavascriptExecutionToolsOptions };
 export type { PostprocessingFunction };
+export type { SearchEngine };
+export type { SearchResult };
 export type { PromptbookStorage };
 export type { FileCacheStorageOptions };
 export type { IndexedDbStorageOptions };
