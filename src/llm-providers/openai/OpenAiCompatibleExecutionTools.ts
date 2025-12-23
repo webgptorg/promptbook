@@ -228,6 +228,14 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
                 },
             ],
             user: this.options.userId?.toString(),
+            tools: currentModelRequirements.tools?.map((tool) => ({
+                type: 'function',
+                function: {
+                    name: tool.name,
+                    description: tool.description,
+                    parameters: tool.parameters,
+                },
+            })),
         };
         const start: string_date_iso8601 = $getCurrentDate();
 

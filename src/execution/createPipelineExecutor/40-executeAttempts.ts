@@ -188,7 +188,7 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
                                 modelVariant: 'CHAT',
                                 ...(preparedPipeline.defaultModelRequirements || {}),
                                 ...(task.modelRequirements || {}),
-                            } satisfies ModelRequirements; /* <- Note: [🤛] */
+                            } as ModelRequirements; /* <- Note: [🤛] */
 
                             $ongoingTaskResult.$prompt = {
                                 title: task.title,

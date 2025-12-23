@@ -34,3 +34,8 @@
 ### 🔍 Search Engines
 
 -   Implemented `BingSearchEngine` using Bing Search API
+
+### 🛠 Tools
+
+-   Allow to pass tools into the `ChatPrompt.modelRequirements.tools`
+-   The tool calling functionality is implemented for now for `OpenAiExecutionTools`

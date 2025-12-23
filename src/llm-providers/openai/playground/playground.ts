@@ -220,6 +220,40 @@ async function playground() {
     /**/
 
     /*/
+    const chatWithToolsPrompt = {
+        title: 'Chat with tools',
+        parameters: {},
+        content: `What is the current weather in Prague?`,
+        modelRequirements: {
+            modelVariant: 'CHAT',
+            modelName: 'gpt-4o',
+            tools: [
+                {
+                    name: 'get_current_weather',
+                    description: 'Get the current weather in a given location',
+                    parameters: {
+                        type: 'object',
+                        properties: {
+                            location: {
+                                type: 'string',
+                                description: 'The city and state, e.g. San Francisco, CA',
+                            },
+                            unit: { type: 'string', enum: ['celsius', 'fahrenheit'] },
+                        },
+                        required: ['location'],
+                    },
+                },
+            ],
+        },
+    } as const satisfies Prompt;
+    const chatWithToolsResult = await openAiExecutionTools.callChatModel(chatWithToolsPrompt);
+    console.info({ chatWithToolsResult });
+    console.info(colors.cyan(usageToHuman(chatWithToolsResult.usage)));
+    console.info(colors.bgBlue(' User: ') + colors.blue(chatWithToolsPrompt.content));
+    console.info(colors.bgGreen(' Chat: ') + colors.green(chatWithToolsResult.content));
+    /**/
+
+    /*/
     // <- Note: [🤖] Test here new model variant if needed
     /**/
 
