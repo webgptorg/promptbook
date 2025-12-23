@@ -1,6 +1,6 @@
 import spaceTrim from 'spacetrim';
 import { normalizeTo_camelCase } from '../../utils/normalization/normalizeTo_camelCase';
-import type { AgentBasicInformation } from './AgentBasicInformation';
+import type { AgentBasicInformation, AgentCapability } from './AgentBasicInformation';
 import { computeAgentHash } from './computeAgentHash';
 import { createDefaultAgentName } from './createDefaultAgentName';
 import { normalizeAgentName } from './normalizeAgentName';
@@ -52,8 +52,60 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
 
     const meta: Record<string, string> = {};
     const links: string[] = [];
+    const capabilities: AgentCapability[] = [];
 
     for (const commitment of parseResult.commitments) {
+        if (commitment.type === 'USE BROWSER') {
+            capabilities.push({
+                type: 'browser',
+                label: 'Browser',
+                iconName: 'Globe',
+            });
+            continue;
+        }
+
+        if (commitment.type === 'USE SEARCH ENGINE') {
+            capabilities.push({
+                type: 'search-engine',
+                label: 'Search Internet',
+                iconName: 'Search',
+            });
+            continue;
+        }
+
+        if (commitment.type === 'KNOWLEDGE') {
+            const content = spaceTrim(commitment.content).split('\n')[0] || '';
+            let label = content;
+            let iconName = 'Book';
+
+            if (content.startsWith('http://') || content.startsWith('https://')) {
+                try {
+                    const url = new URL(content);
+                    if (url.pathname.endsWith('.pdf')) {
+                        label = url.pathname.split('/').pop() || 'Document.pdf';
+                        iconName = 'FileText';
+                    } else {
+                        label = url.hostname.replace(/^www\./, '');
+                    }
+                } catch (e) {
+                    // Invalid URL, treat as text
+                }
+            } else {
+                // Text content - take first few words
+                const words = content.split(/\s+/);
+                if (words.length > 4) {
+                    label = words.slice(0, 4).join(' ') + '...';
+                }
+            }
+
+            capabilities.push({
+                type: 'knowledge',
+                label,
+                iconName,
+            });
+            continue;
+        }
+
         if (commitment.type === 'META LINK') {
             const linkValue = spaceTrim(commitment.content);
             links.push(linkValue);
@@ -110,6 +162,7 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
         meta,
         links,
         parameters,
+        capabilities,
     };
 }
 

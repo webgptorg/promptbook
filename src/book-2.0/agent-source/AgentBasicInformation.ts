@@ -36,6 +36,27 @@ export type BookParameter = {
     description?: string;
 };
 
+/**
+ * Capability of the agent
+ * This is parsed from commitments like USE BROWSER, USE SEARCH ENGINE, KNOWLEDGE, etc.
+ */
+export type AgentCapability = {
+    /**
+     * The type of the capability
+     */
+    type: 'browser' | 'search-engine' | 'knowledge';
+
+    /**
+     * The label to display for this capability
+     */
+    label: string;
+
+    /**
+     * The name of the icon to display for this capability
+     */
+    iconName: string;
+};
+
 export type AgentBasicInformation = {
     /**
      * Name of the agent
@@ -94,6 +115,12 @@ export type AgentBasicInformation = {
      */
     parameters: BookParameter[];
     // <- TODO: [🧠][😰] Maybe remove, Agent is not working with the parameters
+
+    /**
+     * Capabilities of the agent
+     * This is parsed from commitments like USE BROWSER, USE SEARCH ENGINE, KNOWLEDGE, etc.
+     */
+    capabilities: AgentCapability[];
 };
 
 /**

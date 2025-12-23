@@ -15,6 +15,7 @@
 -   Fixed file upload to Vercel Blob: Using proper client upload protocol with `handleUpload` instead of direct PUT requests
 -   New **Messages & Emails** admin page: Allows inspecting all inbound and outbound messages and their delivery status
 -   New **Files** admin page: Allows inspecting all uploaded and generated files
+-   Added **Capability Chips** to Agent Profile and Agent List: Visual indicators for `USE BROWSER`, `USE SEARCH ENGINE`, and `KNOWLEDGE` commitments
 
 ### 🛝 Playground
 
