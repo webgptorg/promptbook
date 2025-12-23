@@ -1,6 +1,7 @@
 'use server';
 
 import { $getTableName } from '@/src/database/$getTableName';
+import { TODO_any } from '@promptbook-local/types';
 import { $provideSupabaseForServer } from '../../../database/$provideSupabaseForServer';
 
 export type ImageWithAgent = {
@@ -53,7 +54,7 @@ export async function listImages(options: {
     }
 
     return {
-        images: (images as any[]) || [],
+        images: (images as TODO_any[]) || [],
         total: count || 0,
     };
 }
