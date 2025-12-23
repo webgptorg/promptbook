@@ -5,6 +5,7 @@ import { ExpectError } from '../../errors/ExpectError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
 import { serializeError } from '../../errors/utils/serializeError';
+import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import { getSingleLlmExecutionTools } from '../../llm-providers/_multiple/getSingleLlmExecutionTools';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
@@ -22,6 +23,7 @@ import { $deepFreeze } from '../../utils/serialization/$deepFreeze';
 import type { ExecutionReportJson } from '../execution-report/ExecutionReportJson';
 import type { PipelineExecutorResult } from '../PipelineExecutorResult';
 import { validatePromptResult } from '../utils/validatePromptResult';
+import type { ValidatePromptResultResult } from '../utils/validatePromptResult';
 import type { $OngoingTaskResult } from './$OngoingTaskResult';
 import type { CreatePipelineExecutorOptions } from './00-CreatePipelineExecutorOptions';
 
@@ -135,11 +137,12 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
         $failedResults: [], // Track all failed attempts
     };
 
-    const llmTools = getSingleLlmExecutionTools(tools.llm);
+    const llmTools: LlmExecutionTools = getSingleLlmExecutionTools(tools.llm);
 
-    attempts: for (let attemptIndex = -jokerParameterNames.length; attemptIndex < maxAttempts; attemptIndex++) {
-        const isJokerAttempt = attemptIndex < 0;
-        const jokerParameterName = jokerParameterNames[jokerParameterNames.length + attemptIndex];
+    attempts: for (let attemptIndex: number = -jokerParameterNames.length; attemptIndex < maxAttempts; attemptIndex++) {
+        const isJokerAttempt: boolean = attemptIndex < 0;
+        const jokerParameterName: undefined | string_parameter_name =
+            jokerParameterNames[jokerParameterNames.length + attemptIndex];
 
         // TODO: [🧠][🍭] JOKERS, EXPECTATIONS, POSTPROCESSING and FOREACH
         if (isJokerAttempt && !jokerParameterName) {
@@ -184,7 +187,7 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
 
                     case 'PROMPT_TASK':
                         {
-                            const modelRequirements = {
+                            const modelRequirements: ModelRequirements = {
                                 modelVariant: 'CHAT',
                                 ...(preparedPipeline.defaultModelRequirements || {}),
                                 ...(task.modelRequirements || {}),
@@ -421,7 +424,7 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
             // TODO: [💝] Unite object for expecting amount and format
             // Use the common validation function for both format and expectations
             if (task.format || task.expectations) {
-                const validationResult = validatePromptResult({
+                const validationResult: ValidatePromptResultResult = validatePromptResult({
                     resultString: $ongoingTaskResult.$resultString || '',
                     expectations: task.expectations,
                     format: task.format,
@@ -466,7 +469,7 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
                 // Note:  [2] When some expected parameter is not defined, error will occur in templateParameters
                 //        In that case we don’t want to make a report about it because it’s not a llm execution error
 
-                const executionPromptReport = {
+                const executionPromptReport: chococake = {
                     prompt: {
                         ...$ongoingTaskResult.$prompt,
                         // <- TODO: [🧠] How to pick everyhing except `pipelineUrl`
@@ -476,9 +479,9 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
                         $ongoingTaskResult.$expectError === null
                             ? undefined
                             : serializeError($ongoingTaskResult.$expectError),
-                };
+                } as chococake;
 
-                $executionReport.promptExecutions.push(executionPromptReport);
+                $executionReport.promptExecutions.push(executionPromptReport as TODO_any);
 
                 if (logLlmCall) {
                     logLlmCall({
@@ -490,7 +493,7 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
         }
         if ($ongoingTaskResult.$expectError !== null && attemptIndex === maxAttempts - 1) {
             // Note: Create a summary of all failures
-            const failuresSummary = $ongoingTaskResult.$failedResults
+            const failuresSummary: string = $ongoingTaskResult.$failedResults
                 .map((failure) =>
                     spaceTrim(
                         (block) => `

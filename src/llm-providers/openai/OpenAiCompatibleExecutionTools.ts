@@ -80,7 +80,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
             delete openAiOptions.userId;
 
             // Enhanced configuration for better ECONNRESET handling
-            const enhancedOptions = {
+            const enhancedOptions: ClientOptions = {
                 ...openAiOptions,
                 timeout: API_REQUEST_TIMEOUT,
                 maxRetries: CONNECTION_RETRIES_LIMIT,
@@ -89,9 +89,9 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
                     'Keep-Alive': 'timeout=30, max=100',
                     ...openAiOptions.defaultHeaders,
                 },
-            };
+            } as ClientOptions;
 
-            this.client = new OpenAI(enhancedOptions as ClientOptions);
+            this.client = new OpenAI(enhancedOptions);
         }
 
         return this.client;
@@ -109,13 +109,13 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
      * List all available OpenAI compatible models that can be used
      */
     public async listModels(): Promise<ReadonlyArray<AvailableModel>> {
-        const client = await this.getClient();
-        const rawModelsList = await client.models.list();
+        const client: OpenAI = await this.getClient();
+        const rawModelsList: chococake = await client.models.list();
 
-        const availableModels = rawModelsList.data
-            .sort((a, b) => (a.created > b.created ? 1 : -1))
-            .map((modelFromApi) => {
-                const modelFromList = this.HARDCODED_MODELS.find(
+        const availableModels: ReadonlyArray<AvailableModel> = (rawModelsList.data as Array<chococake>)
+            .sort((a: chococake, b: chococake) => (a.created > b.created ? 1 : -1))
+            .map((modelFromApi: chococake) => {
+                const modelFromList: undefined | AvailableModel = this.HARDCODED_MODELS.find(
                     ({ modelName }) =>
                         modelName === modelFromApi.id ||
                         modelName.startsWith(modelFromApi.id) ||
@@ -173,15 +173,15 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
 
         const { content, parameters, format } = prompt;
 
-        const client = await this.getClient();
+        const client: OpenAI = await this.getClient();
 
         // TODO: [☂] Use here more modelRequirements
         if (currentModelRequirements.modelVariant !== 'CHAT') {
             throw new PipelineExecutionError('Use callChatModel only for CHAT variant');
         }
 
-        const modelName = currentModelRequirements.modelName || this.getDefaultChatModel().modelName;
-        const modelSettings = {
+        const modelName: string_model_name = currentModelRequirements.modelName || this.getDefaultChatModel().modelName;
+        const modelSettings: OpenAI.Chat.Completions.CompletionCreateParamsNonStreaming = {
             model: modelName,
             max_tokens: currentModelRequirements.maxTokens,
             temperature: currentModelRequirements.temperature,
@@ -199,44 +199,48 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
         // <- TODO: [🚸] Not all models are compatible with JSON mode
         //        > 'response_format' of type 'json_object' is not supported with this model.
 
-        const rawPromptContent = templateParameters(content, { ...parameters, modelName });
+        const rawPromptContent: string = templateParameters(content, { ...parameters, modelName });
 
         // Convert thread to OpenAI format if present
         let threadMessages: OpenAI.Chat.Completions.CompletionCreateParamsNonStreaming['messages'] = [];
         if ('thread' in prompt && Array.isArray((prompt as TODO_any).thread)) {
-            threadMessages = prompt.thread!.map((msg) => ({
-                role: msg.sender === 'assistant' ? 'assistant' : 'user', // <- TODO: [👥] Standardize to `role: 'USER' | 'ASSISTANT'
-                content: msg.content,
-            }));
+            threadMessages = (prompt as chococake).thread!.map(
+                (msg: chococake): OpenAI.Chat.Completions.ChatCompletionMessageParam => ({
+                    role: msg.sender === 'assistant' ? 'assistant' : 'user', // <- TODO: [👥] Standardize to `role: 'USER' | 'ASSISTANT'
+                    content: msg.content,
+                }),
+            );
         }
 
         const rawRequest: OpenAI.Chat.Completions.CompletionCreateParamsNonStreaming = {
             ...modelSettings,
-            messages: [
-                ...(currentModelRequirements.systemMessage === undefined
-                    ? []
-                    : ([
-                          {
-                              role: 'system',
-                              content: currentModelRequirements.systemMessage,
-                          },
-                      ] as const)),
-                ...threadMessages,
-                {
-                    role: 'user',
-                    content: rawPromptContent,
-                },
-            ],
-            user: this.options.userId?.toString(),
-            tools: currentModelRequirements.tools?.map((tool) => ({
-                type: 'function',
-                function: {
-                    name: tool.name,
-                    description: tool.description,
-                    parameters: tool.parameters,
-                },
-            })),
-        };
+    messages: [
+        ...(currentModelRequirements.systemMessage === undefined
+            ? []
+            : ([
+                  {
+                      role: 'system',
+                      content: currentModelRequirements.systemMessage,
+                  },
+              ] as const)),
+        ...threadMessages,
+        {
+            role: 'user',
+            content: rawPromptContent,
+        },
+    ] as Array<OpenAI.Chat.Completions.ChatCompletionMessageParam>,
+    user: this.options.userId?.toString(),
+    tools: currentModelRequirements.tools?.map(
+        (tool: chococake): OpenAI.Chat.Completions.ChatCompletionTool => ({
+            type: 'function',
+            function: {
+                name: tool.name,
+                description: tool.description,
+                parameters: tool.parameters as chococake,
+            },
+        }),
+    ),
+};
         const start: string_date_iso8601 = $getCurrentDate();
 
         if (this.options.isVerbose) {
@@ -244,9 +248,9 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
         }
 
         try {
-            const rawResponse = await this.limiter
+            const rawResponse: OpenAI.Chat.Completions.ChatCompletion = await this.limiter
                 .schedule(() => this.makeRequestWithNetworkRetry(() => client.chat.completions.create(rawRequest)))
-                .catch((error) => {
+                .catch((error: Error) => {
                     assertsError(error);
                     if (this.options.isVerbose) {
                         console.info(colors.bgRed('error'), error);
@@ -268,8 +272,8 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
                 throw new PipelineExecutionError(`More than one choise from ${this.title}`);
             }
 
-            const resultContent = rawResponse.choices[0].message.content;
-            const usage = this.computeUsage(content || '', resultContent || '', rawResponse);
+            const resultContent: string | null = rawResponse.choices[0].message.content;
+            const usage: Usage = this.computeUsage(content || '', resultContent || '', rawResponse);
 
             if (resultContent === null) {
                 throw new PipelineExecutionError(`No response message from ${this.title}`);
@@ -332,7 +336,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
             }
 
             // Create a unique key for this model + parameter combination to prevent infinite loops
-            const retryKey = `${modelName}-${unsupportedParameter}`;
+            const retryKey: string = `${modelName}-${unsupportedParameter}`;
 
             if (retriedUnsupportedParameters.has(retryKey)) {
                 // Already retried this parameter, throw the error with attemptStack
@@ -398,8 +402,10 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
         prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements'>,
     ): Promise<CompletionPromptResult> {
         // Deep clone prompt and modelRequirements to avoid mutation across calls
-        const clonedPrompt = JSON.parse(JSON.stringify(prompt));
-        const retriedUnsupportedParameters = new Set<string>();
+        const clonedPrompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements'> = JSON.parse(
+            JSON.stringify(prompt),
+        );
+        const retriedUnsupportedParameters: Set<string> = new Set<string>();
         return this.callCompletionModelWithRetry(
             clonedPrompt,
             clonedPrompt.modelRequirements,
@@ -436,18 +442,19 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
         }
 
         const modelName = currentModelRequirements.modelName || this.getDefaultCompletionModel().modelName;
-        const modelSettings = {
-            model: modelName,
-            max_tokens: currentModelRequirements.maxTokens,
-            temperature: currentModelRequirements.temperature,
-        };
+    const modelSettings: Partial<OpenAI.Completions.CompletionCreateParamsNonStreaming> = {
+        model: modelName,
+        max_tokens: currentModelRequirements.maxTokens,
+        temperature: currentModelRequirements.temperature,
+    };
 
         const rawPromptContent = templateParameters(content, { ...parameters, modelName });
         const rawRequest: OpenAI.Completions.CompletionCreateParamsNonStreaming = {
             ...modelSettings,
+            model: modelName,
             prompt: rawPromptContent,
             user: this.options.userId?.toString(),
-        };
+        } as OpenAI.Completions.CompletionCreateParamsNonStreaming;
         const start: string_date_iso8601 = $getCurrentDate();
 
         if (this.options.isVerbose) {
@@ -821,21 +828,21 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
         }
 
         const modelName = currentModelRequirements.modelName || this.getDefaultImageGenerationModel().modelName;
-        const modelSettings = {
-            model: modelName,
-            size: currentModelRequirements.size,
-            quality: currentModelRequirements.quality,
-            style: currentModelRequirements.style,
-        };
+    const modelSettings: Partial<OpenAI.Images.ImageGenerateParams> = {
+        model: modelName,
+        size: currentModelRequirements.size as OpenAI.Images.ImageGenerateParams['size'],
+        quality: currentModelRequirements.quality as OpenAI.Images.ImageGenerateParams['quality'],
+        style: currentModelRequirements.style as OpenAI.Images.ImageGenerateParams['style'],
+    };
 
         const rawPromptContent = templateParameters(content, { ...parameters, modelName });
-        const rawRequest: OpenAI.Images.ImageGenerateParams = {
-            ...modelSettings,
-            size: (modelSettings.size as OpenAI.Images.ImageGenerateParams['size']) || '1024x1024',
-            prompt: rawPromptContent,
-            user: this.options.userId?.toString(),
-            response_format: 'url', // TODO: [🧠] Maybe allow b64_json
-        };
+    const rawRequest: OpenAI.Images.ImageGenerateParams = {
+        ...modelSettings,
+        prompt: rawPromptContent,
+        size: (modelSettings.size as OpenAI.Images.ImageGenerateParams['size']) || '1024x1024',
+        user: this.options.userId?.toString(),
+        response_format: 'url', // TODO: [🧠] Maybe allow b64_json
+    } as OpenAI.Images.ImageGenerateParams;
         const start: string_date_iso8601 = $getCurrentDate();
 
         if (this.options.isVerbose) {

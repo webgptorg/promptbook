@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨☠️] Across the repository use explicit types instead of type inference where possible
 

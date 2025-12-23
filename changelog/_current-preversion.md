@@ -27,6 +27,7 @@
 
 ### 📚 Book
 
+-   Use explicit types instead of type inference across the repository to improve code readability and maintainability
 -   Added `DICTIONARY` commitment for defining terms and their meanings that agents should use consistently in reasoning and responses
 -   `USE SEARCH ENGINE` commitment now allows specifying search scope or instructions as arbitrary text
 -   `CLOSED` commitment now only works if it is the **last** commitment in the book
