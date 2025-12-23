@@ -1,4 +1,4 @@
-[x]
+[ ]
 
 [✨🔪] Show the chips with the capabilities of the agent under his description
 

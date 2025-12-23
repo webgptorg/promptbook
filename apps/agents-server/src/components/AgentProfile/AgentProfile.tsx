@@ -3,7 +3,7 @@
 import { colorToDataUrl } from '@promptbook-local/color';
 import { generatePlaceholderAgentProfileImageUrl } from '@promptbook-local/core';
 import { AgentBasicInformation, string_agent_permanent_id } from '@promptbook-local/types';
-import { BookIcon, GlobeIcon, RepeatIcon, SearchIcon } from 'lucide-react';
+import { RepeatIcon } from 'lucide-react';
 import { useState } from 'react';
 import { AgentProfileImage } from './AgentProfileImage';
 import { AgentQrCode } from './AgentQrCode';
@@ -222,53 +222,6 @@ export function AgentProfile(props: AgentProfileProps) {
                         <p className="text-sm md:text-xl text-gray-700 max-w-lg leading-relaxed font-medium line-clamp-3 md:line-clamp-none">
                             {personaDescription}
                         </p>
-
-                        <div className="flex flex-wrap gap-2 mt-2 justify-center md:justify-start">
-                            {agent.capabilities?.map((capability, i) => {
-                                if (capability.type === 'BROWSER') {
-                                    return (
-                                        <div
-                                            key={i}
-                                            className="flex items-center gap-2 px-3 py-1 bg-white/40 text-gray-800 rounded-full text-xs font-bold shadow-sm backdrop-blur-sm border border-white/30"
-                                            title="Can browse the web"
-                                        >
-                                            <GlobeIcon size={12} />
-                                            <span>Browser</span>
-                                        </div>
-                                    );
-                                }
-                                if (capability.type === 'SEARCH_ENGINE') {
-                                    return (
-                                        <div
-                                            key={i}
-                                            className="flex items-center gap-2 px-3 py-1 bg-white/40 text-gray-800 rounded-full text-xs font-bold shadow-sm backdrop-blur-sm border border-white/30"
-                                            title="Can search the internet"
-                                        >
-                                            <SearchIcon size={12} />
-                                            <span>Search Engine</span>
-                                        </div>
-                                    );
-                                }
-                                if (capability.type === 'KNOWLEDGE') {
-                                    return (
-                                        <a
-                                            key={i}
-                                            href={capability.url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="flex items-center gap-2 px-3 py-1 bg-white/40 text-gray-800 rounded-full text-xs font-bold shadow-sm backdrop-blur-sm border border-white/30 hover:bg-white/60 transition-colors"
-                                            title={`Knowledge base: ${capability.url}`}
-                                        >
-                                            <BookIcon size={12} />
-                                            <span className="max-w-[200px] truncate">
-                                                {capability.url.replace(/^https?:\/\/(www\.)?/, '')}
-                                            </span>
-                                        </a>
-                                    );
-                                }
-                                return null;
-                            })}
-                        </div>
                     </div>
 
                     {/* Chat Area */}

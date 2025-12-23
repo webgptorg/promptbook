@@ -52,24 +52,8 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
 
     const meta: Record<string, string> = {};
     const links: string[] = [];
-    const capabilities: AgentBasicInformation['capabilities'] = [];
 
     for (const commitment of parseResult.commitments) {
-        if (commitment.type === 'USE') {
-            const content = commitment.content.toUpperCase();
-            if (content.includes('BROWSER')) {
-                capabilities.push({ type: 'BROWSER' });
-            } else if (content.includes('SEARCH ENGINE')) {
-                capabilities.push({ type: 'SEARCH_ENGINE' });
-            }
-            continue;
-        }
-
-        if (commitment.type === 'KNOWLEDGE') {
-            capabilities.push({ type: 'KNOWLEDGE', url: spaceTrim(commitment.content) });
-            continue;
-        }
-
         if (commitment.type === 'META LINK') {
             const linkValue = spaceTrim(commitment.content);
             links.push(linkValue);
@@ -126,7 +110,6 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
         meta,
         links,
         parameters,
-        capabilities,
     };
 }
 
