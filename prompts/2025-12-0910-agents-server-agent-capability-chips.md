@@ -52,9 +52,12 @@ KNOWLEDGE All Czech legal system
 
 [ ]
 
-[✨🔪] Capability chips on homwscreen
+[✨🔪] Show agent capabilities chips on homescreen
 
--   ...
+-   Agent page shows the chips with capabilities of the agent under its description
+-   The homescreen `/` shows she smaller version of agent card with agent name, description and image
+-   Add the same capability chips under the description on the homescreen agent cards
+-   The chips should be visually distinct and easy to read.
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`

@@ -14,7 +14,7 @@
 
 [ ]
 
-[✨🚦] Implement @@@ for @@@ExecutionTools
+[✨🚦] Implement @@@ for [OpenAiAssistantExecutionTools](/src/llm-providers/openai/OpenAiAssistantExecutionTools.ts)
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
