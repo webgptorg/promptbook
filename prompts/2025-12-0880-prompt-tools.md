@@ -1,9 +1,11 @@
-[-]
+[ ]
 
 [✨🈁] Allow to pass tools into the `Prompt` object
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
+
+11:11
 
 ---
 
