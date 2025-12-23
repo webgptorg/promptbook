@@ -1,34 +1,7 @@
-[-]
+[ ]
 
-[✨🏗] baz @@@
+[✨🏗] Do fulltext search of "@@@" across the repository and write text and annotations there
 
--   @@@
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the `/changelog/_current-preversion.md`
-
----
-
-[-]
-
-[✨🏗] baz
-
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the `/changelog/_current-preversion.md`
-
----
-
-[-]
-
-[✨🏗] baz
-
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the `/changelog/_current-preversion.md`
-
----
-
-[-]
-
-[✨🏗] baz
-
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the `/changelog/_current-preversion.md`
+-   The "@@@" is used as placeholder for some text that need to be filled
+-   It is used as placeholder for JSDoc annotations that need to be added into codebase
+-   Search for all occurences of "@@@" in the repository
