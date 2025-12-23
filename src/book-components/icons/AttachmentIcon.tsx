@@ -4,7 +4,7 @@ type AttachmentIconProps = {
 };
 
 /**
- * @@@
+ * Renders an attachment icon
  *
  * @public exported from `@promptbook/components`
  */

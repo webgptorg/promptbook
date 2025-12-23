@@ -3,7 +3,7 @@
 import { SVGProps } from 'react';
 
 /**
- * @@@
+ * Renders a menu icon
  *
  * @private internal subcomponent used by various components
  */

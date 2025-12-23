@@ -4,7 +4,7 @@ type CameraIconProps = {
 };
 
 /**
- * @@@
+ * Renders a camera icon
  *
  * @public exported from `@promptbook/components`
  */

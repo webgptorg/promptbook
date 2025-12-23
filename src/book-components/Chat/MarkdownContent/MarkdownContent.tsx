@@ -10,7 +10,7 @@ import { CodeBlock } from '../CodeBlock/CodeBlock';
 import styles from './MarkdownContent.module.css';
 
 /**
- * @@@
+ * Creates a showdown converter configured for chat markdown rendering
  *
  * @private utility of `MarkdownContent` component
  */
@@ -59,14 +59,14 @@ function createChatMarkdownConverter(): ShowdownConverter {
 }
 
 /**
- * @@@
+ * Pre-configured showdown converter for chat markdown
  *
  * @private utility of `MarkdownContent` component
  */
 const chatMarkdownConverter = createChatMarkdownConverter();
 
 /**
- * @@@
+ * Renders math expressions in markdown using KaTeX
  *
  * @private utility of `MarkdownContent` component
  */

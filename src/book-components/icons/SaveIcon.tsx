@@ -2,7 +2,7 @@
 import React from 'react';
 
 /**
- * @@@
+ * Renders a save icon
  *
  * @public exported from `@promptbook/components`
  */

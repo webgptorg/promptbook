@@ -27,12 +27,12 @@ export type ChatMessage = Omit<Message<id>, 'direction' | 'recipients' | 'thread
     isComplete?: boolean;
 
     /**
-     * @@@
+     * The expected answer for the message (used for testing or validation)
      */
     expectedAnswer?: string;
 
     /**
-     * @@@
+     * Indicates if the message was sent via a voice call
      */
     isVoiceCall?: boolean;
 };

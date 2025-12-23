@@ -106,5 +106,5 @@ export function countUsage(llmTools: LlmExecutionTools): LlmExecutionToolsWithTo
  * TODO: [🧠] Is there some meaningfull way how to test this util
  * TODO: [🧠][🌯] Maybe a way how to hide ability to `get totalUsage`
  *     > const [llmToolsWithUsage,getUsage] = countTotalUsage(llmTools);
- * TODO: [👷‍♂️] @@@ Manual about construction of llmTools
+ * TODO: [👷‍♂️] Write a comprehensive manual explaining the construction and usage of LLM tools in the Promptbook ecosystem
  */

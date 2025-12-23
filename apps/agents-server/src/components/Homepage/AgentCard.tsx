@@ -10,12 +10,12 @@ import { useAgentBackground } from '../AgentProfile/useAgentBackground';
 
 type AgentCardProps = {
     /**
-     * @@@
+     * The basic information of the agent to display
      */
     readonly agent: AgentBasicInformation;
 
     /**
-     * @@@
+     * The URL to navigate to when the card is clicked
      */
     readonly href: string;
 
@@ -25,32 +25,32 @@ type AgentCardProps = {
     readonly publicUrl: URL;
 
     /**
-     * @@@
+     * Whether the current user has admin privileges
      */
     readonly isAdmin?: boolean;
 
     /**
-     * @@@
+     * Callback function to delete the agent
      */
     readonly onDelete?: (agentIdentifier: string) => void;
 
     /**
-     * @@@
+     * Callback function to clone the agent
      */
     readonly onClone?: (agentIdentifier: string) => void;
 
     /**
-     * @@@
+     * Callback function to toggle the agent's visibility
      */
     readonly onToggleVisibility?: (agentIdentifier: string) => void;
 
     /**
-     * @@@
+     * Callback function to restore a deleted agent
      */
     readonly onRestore?: (agentIdentifier: string) => void;
 
     /**
-     * @@@
+     * The current visibility status of the agent
      */
     readonly visibility?: 'PUBLIC' | 'PRIVATE';
 };
