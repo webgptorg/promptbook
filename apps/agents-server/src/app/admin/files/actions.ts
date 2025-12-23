@@ -1,7 +1,7 @@
 'use server';
 
+import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '../../../database/$provideSupabaseForServer';
-import { $provideServer } from '../../../tools/$provideServer';
 
 export type FileWithAgent = {
     id: number;
@@ -28,11 +28,13 @@ export async function listFiles(options: {
     const offset = (page - 1) * limit;
 
     const supabase = $provideSupabaseForServer();
-    const { tablePrefix } = await $provideServer();
-    const tableName = `${tablePrefix}File`;
 
-    const { data: files, error, count } = await supabase
-        .from(tableName as any)
+    const {
+        data: files,
+        error,
+        count,
+    } = await supabase
+        .from(await $getTableName('File'))
         .select(
             `
             *,

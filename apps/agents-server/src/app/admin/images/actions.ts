@@ -1,7 +1,7 @@
 'use server';
 
+import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '../../../database/$provideSupabaseForServer';
-import { $provideServer } from '../../../tools/$provideServer';
 
 export type ImageWithAgent = {
     id: number;
@@ -27,11 +27,13 @@ export async function listImages(options: {
     const offset = (page - 1) * limit;
 
     const supabase = $provideSupabaseForServer();
-    const { tablePrefix } = await $provideServer();
-    const tableName = `${tablePrefix}Image`;
 
-    const { data: images, error, count } = await supabase
-        .from(tableName as any)
+    const {
+        data: images,
+        error,
+        count,
+    } = await supabase
+        .from(await $getTableName('Image'))
         .select(
             `
             *,

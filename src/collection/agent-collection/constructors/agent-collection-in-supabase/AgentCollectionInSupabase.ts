@@ -492,6 +492,7 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
         const { tablePrefix = '' } = this.options || {};
 
         return `${tablePrefix}${tableName}` as TTable;
+        // <- TODO: [🏧] DRY
     }
 }
 
