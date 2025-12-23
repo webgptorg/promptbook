@@ -30,6 +30,7 @@ import type { chococake } from '../../utils/organization/really_any';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import { templateParameters } from '../../utils/parameters/templateParameters';
 import { exportJson } from '../../utils/serialization/exportJson';
+import { mapToolsToOpenAi } from './utils/mapToolsToOpenAi';
 import {
     isUnsupportedParameterError,
     parseUnsupportedParameterError,
@@ -230,16 +231,10 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
         },
     ] as Array<OpenAI.Chat.Completions.ChatCompletionMessageParam>,
     user: this.options.userId?.toString(),
-    tools: currentModelRequirements.tools?.map(
-        (tool: chococake): OpenAI.Chat.Completions.ChatCompletionTool => ({
-            type: 'function',
-            function: {
-                name: tool.name,
-                description: tool.description,
-                parameters: tool.parameters as chococake,
-            },
-        }),
-    ),
+    tools:
+        currentModelRequirements.tools === undefined
+            ? undefined
+            : mapToolsToOpenAi(currentModelRequirements.tools),
 };
         const start: string_date_iso8601 = $getCurrentDate();
 

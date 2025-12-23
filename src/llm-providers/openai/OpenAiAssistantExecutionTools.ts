@@ -20,6 +20,7 @@ import { templateParameters } from '../../utils/parameters/templateParameters';
 import { exportJson } from '../../utils/serialization/exportJson';
 import type { OpenAiAssistantExecutionToolsOptions } from './OpenAiAssistantExecutionToolsOptions';
 import { OpenAiExecutionTools } from './OpenAiExecutionTools';
+import { mapToolsToOpenAi } from './utils/mapToolsToOpenAi';
 
 /**
  * Execution Tools for calling OpenAI API Assistants
@@ -164,6 +165,8 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             thread: {
                 messages: threadMessages,
             },
+
+            tools: modelRequirements.tools === undefined ? undefined : mapToolsToOpenAi(modelRequirements.tools),
 
             // <- TODO: Add user identification here> user: this.options.user,
         };

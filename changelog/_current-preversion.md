@@ -41,5 +41,5 @@
 ### 🛠 Tools
 
 -   Allow to pass tools into the `ChatPrompt.modelRequirements.tools`
--   The tool calling functionality is implemented for now for `OpenAiExecutionTools`
+-   The tool calling functionality is implemented for `OpenAiExecutionTools` and `OpenAiAssistantExecutionTools`
 -   `USE SEARCH ENGINE` and `USE BROWSER` commitments now automatically add `web_search` and `web_browser` tools to the agent requirements

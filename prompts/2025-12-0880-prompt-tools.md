@@ -12,7 +12,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🈁] Implement tools usage for [OpenAiAssistantExecutionTools](/src/llm-providers/openai/OpenAiAssistantExecutionTools.ts)
 
