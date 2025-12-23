@@ -67,6 +67,7 @@ export function SearchEngineTestClient() {
                             disabled={isLoading}
                         >
                             <option value="dummy">Dummy</option>
+                            <option value="bing">Bing</option>
                         </select>
                     </div>
 

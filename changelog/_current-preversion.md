@@ -29,3 +29,7 @@
 -   Added `DICTIONARY` commitment for defining terms and their meanings that agents should use consistently in reasoning and responses
 -   `CLOSED` commitment now only works if it is the **last** commitment in the book
 -   Agents now self-learn `KNOWLEDGE` from conversation context by automatically extracting facts and appending them to the agent source
+
+### 🔍 Search Engines
+
+-   Implemented `BingSearchEngine` using Bing Search API
