@@ -3,6 +3,11 @@ import type { string_markdown, string_markdown_text, string_title } from '../../
 import type { SearchEngine } from '../SearchEngine';
 import type { SearchResult } from '../SearchResult';
 
+/**
+ * @@@
+ * 
+ * @private <- TODO: !!!! Export via some package
+ */
 export class BingSearchEngine implements SearchEngine {
     public get title(): string_title & string_markdown_text {
         return 'Bing Search Engine';

@@ -3,6 +3,11 @@ import type { string_markdown, string_markdown_text, string_title } from '../../
 import type { SearchEngine } from '../SearchEngine';
 import type { SearchResult } from '../SearchResult';
 
+/**
+ * @@@
+ *
+ * @private <- TODO: !!!! Export via some package, maybe `@promptbook/search-engines` or `@promptbook/fake-llm`
+ */
 export class DummySearchEngine implements SearchEngine {
     public get title(): string_title & string_markdown_text {
         return 'Dummy Search Engine';
