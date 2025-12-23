@@ -59,9 +59,18 @@ USE SEARCH ENGINE Hledej informace o Přemyslovcích
     -   `USE SEARCH ENGINE Hledej informace o Přemyslovcích` means the to use search engine to search for information about specific topic or scope
 -   On page `/admin/search-engine-test` there is a sample how to use search engine in agent server, take the logic from there
 -   The `USE SEARCH ENGINE` should work in the `Agents Server` application `/apps/agents-server`
--   [Commitments](/src/commitments) are syntax snippets that add specific functionalities to AI agents, they are used in `agentSource`, there are commitments like `PERSONA`, `RULE`, `KNOWLEDGE`, `USE SEARCH ENGINE`, etc.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
+
+**Context:**
+
+-   **Commitments** are basic syntax elements that add specific functionalities to AI agents
+    -   They are used in `agentSource`, there are commitments like `PERSONA`, `RULE`, `KNOWLEDGE`, `USE BROWSER`, `USE SEARCH ENGINE`, `META IMAGE`, etc.
+    -   Commitments are in the folder `/src/commitments`
+    -   Each commitment starts with a keyword, e.g., `KNOWLEDGE`, `USE BROWSER`, etc. on a begining of the line and end by new co
+    -   Agent source with commitments is parsed by two functions:
+        -   `parseAgentSource` which is a lightweight parser for agent source, it parses basic information and its purpose is to be quick and synchronous. The commitments there are hardcoded.
+        -   `createAgentModelRequirements` which is an asynchronous function that creates model requirements it applies each commitment one by one and works asynchronously.
 
 ---
 
