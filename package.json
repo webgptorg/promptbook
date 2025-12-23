@@ -188,7 +188,7 @@
         "_TODO-0": "           <- TODO: Remove `--forceExit` flag, now its present to ensure return code 0 when all tests ",
         "test-types": "tsc",
         "test-lint": "eslint src",
-        "test-spellcheck": "cspell \"src/**/*.{ts,tsx,js,jsx,md,json}\"",
+        "test-spellcheck": "bash ./scripts/spellcheck.sh",
         "test-books": "ts-node ./src/cli/test/ptbk.ts test --provider BRING_YOUR_OWN_KEYS --no-prepare \"./**/*.book\" --ignore \"./book/**/*,./examples/pipelines/errors/**/*\" --verbose",
         "test-package-generation": "ts-node ./scripts/generate-packages/generate-packages.ts --skip-bundler",
         "test-name-discrepancies": "ts-node ./scripts/find-name-discrepancies/find-name-discrepancies.ts",
