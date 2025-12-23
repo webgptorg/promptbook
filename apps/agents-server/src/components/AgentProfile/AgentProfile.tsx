@@ -83,7 +83,7 @@ export function AgentProfile(props: AgentProfileProps) {
 
     const { meta, agentName } = agent;
     const fullname = (meta.fullname as string) || agentName || 'Agent';
-    const personaDescription = agent.personaDescription || '';
+    const personaDescription = meta.description || agent.personaDescription || '';
     const imageUrl = meta.image || generatePlaceholderAgentProfileImageUrl(permanentId, publicUrl);
 
     const [isQrModalOpen, setIsQrModalOpen] = useState(false);

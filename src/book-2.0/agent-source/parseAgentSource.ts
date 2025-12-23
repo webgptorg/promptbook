@@ -118,6 +118,11 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
             continue;
         }
 
+        if (commitment.type === 'META DESCRIPTION') {
+            meta.description = spaceTrim(commitment.content);
+            continue;
+        }
+
         if (commitment.type === 'META COLOR') {
             meta.color = normalizeSeparator(commitment.content);
             continue;

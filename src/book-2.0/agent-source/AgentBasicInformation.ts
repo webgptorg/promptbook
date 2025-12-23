@@ -95,6 +95,7 @@ export type AgentBasicInformation = {
      */
     meta: {
         fullname?: string;
+        description?: string;
         image?: string_url_image;
         font?: string_fonts;
         color?: string_color;

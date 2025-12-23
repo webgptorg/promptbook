@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨😽] Create `META DESCRIPTION` commitment
 
