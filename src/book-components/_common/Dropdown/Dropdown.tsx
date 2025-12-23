@@ -14,7 +14,7 @@ type DropdownProps = {
 };
 
 /**
- * @@@
+ * A dropdown menu component that displays a list of actions triggered by a hamburger menu button.
  *
  * @private internal subcomponent used by various components
  */

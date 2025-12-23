@@ -84,7 +84,7 @@ function ServerBody({ info }: { info: ServerInfo }) {
 }
 
 /**
- * @@@
+ * Renders the HTML document for the Promptbook Server UI.
  *
  * @private internal utility of Remote Server
  */

@@ -95,7 +95,7 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
     }
 
     /**
-     * [🐱‍🚀]@@@
+     * Retrieves the permanent ID of an agent by its name or permanent ID.
      */
     public async getAgentPermanentId(
         agentNameOrPermanentId: string_agent_name | string_agent_permanent_id,
@@ -113,7 +113,7 @@ export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent *
     }
 
     /**
-     * [🐱‍🚀]@@@
+     * Retrieves the source code of an agent by its name or permanent ID.
      */
     public async getAgentSource(
         agentNameOrPermanentId: string_agent_name | string_agent_permanent_id,

@@ -10,8 +10,8 @@ type HamburgerMenuProps = {
 
 
 /**
- * @@@
- * 
+ * An animated hamburger menu button component.
+ *
  * @private Internal component
  */
 export function HamburgerMenu({ isOpen, onClick, className }: HamburgerMenuProps) {

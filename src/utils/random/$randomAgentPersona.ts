@@ -1,4 +1,4 @@
-import type { string_person_firstname } from '../../types/typeAliases';
+import type { string_person_firstname, string_persona_description } from '../../types/typeAliases';
 import { $randomItem } from './$randomItem';
 
 const PERSONALITIES: ReadonlyArray<string_person_firstname> = [
@@ -15,11 +15,11 @@ const PERSONALITIES: ReadonlyArray<string_person_firstname> = [
 ];
 
 /**
- * @@@@
+ * Generates a random agent persona description.
  *
  * @private internal helper function
  */
-export function $randomAgentPersona(): string {
+export function $randomAgentPersona(): string_persona_description {
     return $randomItem(...PERSONALITIES);
 }
 
