@@ -1,6 +1,10 @@
 import { BehaviorSubject } from 'rxjs';
 import spaceTrim from 'spacetrim';
-import type { AgentBasicInformation, BookParameter } from '../../book-2.0/agent-source/AgentBasicInformation';
+import type {
+    AgentBasicInformation,
+    AgentCapability,
+    BookParameter,
+} from '../../book-2.0/agent-source/AgentBasicInformation';
 import { computeAgentHash } from '../../book-2.0/agent-source/computeAgentHash';
 import { createDefaultAgentName } from '../../book-2.0/agent-source/createDefaultAgentName';
 import { padBook } from '../../book-2.0/agent-source/padBook';
@@ -65,6 +69,12 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
     public links: Array<string_agent_url> = [];
 
     /**
+     * Capabilities of the agent
+     * This is parsed from commitments like USE BROWSER, USE SEARCH ENGINE, KNOWLEDGE, etc.
+     */
+    public capabilities: AgentCapability[] = [];
+
+    /**
      * Computed hash of the agent source for integrity verification
      */
     public get agentHash(): string_agent_hash {
@@ -111,11 +121,13 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
         this.agentSource.subscribe((source) => {
             this.updateAgentSource(source);
 
-            const { agentName, personaDescription, initialMessage, links, meta } = parseAgentSource(source);
+            const { agentName, personaDescription, initialMessage, links, meta, capabilities } =
+                parseAgentSource(source);
             this._agentName = agentName;
             this.personaDescription = personaDescription;
             this.initialMessage = initialMessage;
             this.links = links;
+            this.capabilities = capabilities;
             this.meta = { ...this.meta, ...meta };
         });
     }
