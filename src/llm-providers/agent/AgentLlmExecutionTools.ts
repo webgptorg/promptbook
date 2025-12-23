@@ -2,9 +2,9 @@ import { SHA256 as sha256 } from 'crypto-js';
 import hexEncoder from 'crypto-js/enc-hex';
 import type { Promisable } from 'type-fest';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
-import type { string_book } from '../../book-2.0/agent-source/string_book';
 import { createAgentModelRequirements } from '../../book-2.0/agent-source/createAgentModelRequirements';
 import { parseAgentSource } from '../../book-2.0/agent-source/parseAgentSource';
+import type { string_book } from '../../book-2.0/agent-source/string_book';
 import type { ChatParticipant } from '../../book-components/Chat/types/ChatParticipant';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
@@ -238,6 +238,8 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
                 modelRequirements: {
                     ...chatPrompt.modelRequirements,
                     ...modelRequirements,
+                    // Spread tools to convert readonly array to mutable
+                    tools: modelRequirements.tools ? [...modelRequirements.tools] : chatPrompt.modelRequirements.tools,
                     // Prepend agent system message to existing system message
                     systemMessage:
                         modelRequirements.systemMessage +
