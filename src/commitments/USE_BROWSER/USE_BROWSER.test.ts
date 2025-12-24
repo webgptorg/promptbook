@@ -91,7 +91,7 @@ describe('USE BROWSER commitment', () => {
     });
 
     /*
-    TODO: [0] Re-enable, tools arent in metadata anymore
+    TODO: [0] Re-enable, tools are not in metadata anymore
     it('preserves existing tools in metadata', () => {
         const requirementsWithTools = {
             ...basicRequirements,
