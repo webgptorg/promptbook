@@ -11,7 +11,7 @@ import { IIFilesStorageWithCdn } from '../utils/cdn/interfaces/IFilesStorage';
 let cdn: IIFilesStorageWithCdn | null = null;
 
 /**
- * @@@
+ * Provides a CDN storage interface for server-side file operations, with caching to reuse instances.
  */
 export function $provideCdnForServer(): IIFilesStorageWithCdn {
     if (!cdn) {

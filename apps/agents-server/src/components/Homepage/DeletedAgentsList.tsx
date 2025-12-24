@@ -8,12 +8,12 @@ import { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/
 
 type DeletedAgentsListProps = {
     /**
-     * @@@
+     * List of deleted agents available for restoration
      */
     readonly agents: readonly AgentBasicInformation[];
 
     /**
-     * @@@
+     * Indicates if the current user has administrative privileges for managing agents
      */
     readonly isAdmin: boolean;
 

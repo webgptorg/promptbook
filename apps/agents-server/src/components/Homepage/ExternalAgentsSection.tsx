@@ -4,7 +4,7 @@ import { Section } from './Section';
 
 type ExternalAgentsSectionProps = {
     /**
-     * @@@
+     * Agents grouped by their originating server for federated display
      */
     readonly agentsByServer: AgentsByServer[];
 

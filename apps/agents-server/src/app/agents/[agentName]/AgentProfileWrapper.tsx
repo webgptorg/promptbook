@@ -4,14 +4,17 @@ import { AgentBasicInformation, string_agent_name } from '@promptbook-local/type
 import { AgentProfile } from '../../../components/AgentProfile/AgentProfile';
 import { AgentOptionsMenu } from './AgentOptionsMenu';
 
+/**
+ * Props for the `AgentProfileWrapper` component
+ */
 type AgentProfileWrapperProps = {
     /***
-     * @@@
+     * Basic information about the agent
      */
     readonly agent: AgentBasicInformation;
 
     /***
-     * @@@
+     * URL where the agent can be accessed
      */
     readonly agentUrl: string;
 
@@ -21,34 +24,37 @@ type AgentProfileWrapperProps = {
     readonly publicUrl: URL;
 
     /***
-     * @@@
+     * Email address associated with the agent
      */
     readonly agentEmail: string;
 
     /***
-     * @@@
+     * Unique name identifier for the agent
      */
     readonly agentName: string_agent_name;
 
     /***
-     * @@@
+     * Brand color for the agent in hexadecimal format
      */
     readonly brandColorHex: string;
 
     /***
-     * @@@
+     * Indicates if the current user has administrative privileges
      */
     readonly isAdmin: boolean;
 
     /***
-     * @@@
+     * Indicates if the agent operates in headless mode
      */
     readonly isHeadless: boolean;
 
+    /***
+     * Actions to be rendered within the agent profile
+     */
     readonly actions: React.ReactNode;
 
     /***
-     * @@@
+     * Child components to render within the agent profile
      */
     readonly children: React.ReactNode;
 };

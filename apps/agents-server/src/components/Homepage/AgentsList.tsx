@@ -17,12 +17,12 @@ type AgentWithVisibility = AgentBasicInformation & {
 
 type AgentsListProps = {
     /**
-     * @@@
+     * List of agents to display, each with basic information and visibility status
      */
     readonly agents: AgentWithVisibility[];
 
     /**
-     * @@@
+     * Indicates if the current user has administrative privileges for managing agents
      */
     readonly isAdmin: boolean;
 

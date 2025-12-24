@@ -10,7 +10,7 @@ import { BrowserContext, chromium } from 'playwright';
 let browserInstance: BrowserContext | null = null;
 
 /**
- * @@@
+ * Provides a browser context for server-side operations, with caching to reuse instances.
  */
 export async function $provideBrowserForServer(): Promise<BrowserContext> {
     if (browserInstance !== null && browserInstance.browser() && browserInstance.browser()!.isConnected()) {
