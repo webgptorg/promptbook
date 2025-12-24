@@ -3,6 +3,9 @@ import { EnvironmentMismatchError } from '../errors/EnvironmentMismatchError';
 import { $provideExecutablesForNode } from '../executables/$provideExecutablesForNode';
 import { createPipelineExecutor } from '../execution/createPipelineExecutor/00-createPipelineExecutor';
 import type { ExecutionTools } from '../execution/ExecutionTools';
+import type { Executables } from '../execution/Executables';
+import type { FilesystemTools } from '../execution/FilesystemTools';
+import type { LlmExecutionTools } from '../execution/LlmExecutionTools';
 import type { PipelineExecutorResult } from '../execution/PipelineExecutorResult';
 import { $provideLlmToolsForWizardOrCli } from '../llm-providers/_common/register/$provideLlmToolsForWizardOrCli';
 import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
@@ -65,16 +68,16 @@ class Wizard {
         }
 
         // ▶ Get the tools
-        const tools = await this.getExecutionTools(options);
+        const tools: Required<Pick<ExecutionTools, 'fs' | 'fetch'>> = await this.getExecutionTools(options);
 
         // ▶ Get the Pipeline
-        const pipeline = await this.getCompiledBook(book, options);
+        const pipeline: PipelineJson = await this.getCompiledBook(book, options);
 
         // ▶ Create executor - the function that will execute the Pipeline
         const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
 
         // 🚀▶ Execute the Pipeline
-        const result = await pipelineExecutor(inputParameters).asPromise({ isCrashedOnError: true });
+        const result: PipelineExecutorResult = await pipelineExecutor(inputParameters).asPromise({ isCrashedOnError: true });
 
         const { outputParameters } = result;
         const outputParametersLength = Object.keys(outputParameters).length;
@@ -111,13 +114,13 @@ class Wizard {
             isVerbose: options.isVerbose ?? false,
             isCacheReloaded: false, // <- TODO: Allow to pass
         }; /* <- TODO: ` satisfies PrepareAndScrapeOptions` */
-        const fs = $provideFilesystemForNode(prepareAndScrapeOptions);
-        const llm = await $provideLlmToolsForWizardOrCli({
+        const fs: FilesystemTools = $provideFilesystemForNode(prepareAndScrapeOptions);
+        const llm: LlmExecutionTools = await $provideLlmToolsForWizardOrCli({
             // TODO: [🌃] Allow to use Promptbook.studio token in wizard> strategy: 'REMOTE_SERVER'
             strategy: 'BRING_YOUR_OWN_KEYS',
             ...prepareAndScrapeOptions,
         });
-        const executables = await $provideExecutablesForNode(prepareAndScrapeOptions);
+        const executables: Executables = await $provideExecutablesForNode(prepareAndScrapeOptions);
         const tools = {
             llm,
             fs,
