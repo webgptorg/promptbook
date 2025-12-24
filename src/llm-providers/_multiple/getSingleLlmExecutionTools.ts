@@ -22,5 +22,5 @@ export function getSingleLlmExecutionTools(
 
 /**
  * TODO: [🙆] `getSingleLlmExecutionTools` vs `joinLlmExecutionTools` - explain difference or pick one
- * TODO: [👷‍♂️] @@@ Manual about construction of llmTools
+ * TODO: [👷‍♂️] Write a comprehensive manual about how to construct and use LLM execution tools in Promptbook
  */

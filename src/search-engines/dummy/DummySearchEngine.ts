@@ -4,7 +4,7 @@ import type { SearchEngine } from '../SearchEngine';
 import type { SearchResult } from '../SearchResult';
 
 /**
- * @@@
+ * A dummy implementation of SearchEngine for testing purposes.
  *
  * @private <- TODO: !!!! Export via some package, maybe `@promptbook/search-engines` or `@promptbook/fake-llm`
  */

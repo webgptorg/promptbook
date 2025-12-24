@@ -4,8 +4,8 @@ import type { SearchEngine } from '../SearchEngine';
 import type { SearchResult } from '../SearchResult';
 
 /**
- * @@@
- * 
+ * A search engine implementation that uses the Bing Web Search API.
+ *
  * @private <- TODO: !!!! Export via some package
  */
 export class BingSearchEngine implements SearchEngine {
