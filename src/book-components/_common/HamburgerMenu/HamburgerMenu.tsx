@@ -8,7 +8,6 @@ type HamburgerMenuProps = {
     className?: string;
 };
 
-
 /**
  * An animated hamburger menu button component.
  *

@@ -9,7 +9,11 @@ import type { Usage } from './Usage';
  *
  * @see https://github.com/webgptorg/promptbook#prompt-result
  */
-export type PromptResult = CompletionPromptResult | ChatPromptResult | ImagePromptResult | EmbeddingPromptResult /* <- [🤖] */;
+export type PromptResult =
+    | CompletionPromptResult
+    | ChatPromptResult
+    | ImagePromptResult
+    | EmbeddingPromptResult /* <- [🤖] */;
 
 /**
  * Completion prompt result

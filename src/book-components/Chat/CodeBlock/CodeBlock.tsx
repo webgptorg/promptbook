@@ -34,10 +34,9 @@ const LANGUAGE_EXTENSIONS: Record<string, string> = {
     book: 'book',
 };
 
-
 /**
  * Component to render a code block with syntax highlighting, copy, download, and create agent options.
- * 
+ *
  * @private Internal utility of `<ChatMessage />` component
  */
 export function CodeBlock({ code, language, className, onCreateAgent }: CodeBlockProps) {
@@ -75,7 +74,11 @@ export function CodeBlock({ code, language, className, onCreateAgent }: CodeBloc
                     Download
                 </button>
                 {language?.trim().toLowerCase() === 'book' && onCreateAgent && (
-                    <button onClick={() => onCreateAgent(code)} className={styles.CreateAgentButton} title="Create agent from this book">
+                    <button
+                        onClick={() => onCreateAgent(code)}
+                        className={styles.CreateAgentButton}
+                        title="Create agent from this book"
+                    >
                         Create Agent
                     </button>
                 )}
@@ -108,7 +111,7 @@ export function CodeBlock({ code, language, className, onCreateAgent }: CodeBloc
                     readOnly: true,
                     minimap: { enabled: false },
                     scrollBeyondLastLine: false,
-                    lineNumbers: 'on', 
+                    lineNumbers: 'on',
                     folding: false,
                     glyphMargin: false,
                     fontFamily: 'Consolas, "Courier New", monospace',

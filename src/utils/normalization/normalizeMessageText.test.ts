@@ -11,16 +11,20 @@ describe('how normalizeMessageText works', () => {
     });
 
     it('will normalize multiline text', () => {
-        expect(normalizeMessageText(`
+        expect(
+            normalizeMessageText(`
             Hello
             World
-        `)).toEqual('Hello\nWorld');
+        `),
+        ).toEqual('Hello\nWorld');
     });
 
     it('will normalize multiline text with indentation', () => {
-        expect(normalizeMessageText(`
+        expect(
+            normalizeMessageText(`
             Hello
                 World
-        `)).toEqual('Hello\n    World');
+        `),
+        ).toEqual('Hello\n    World');
     });
 });

@@ -50,7 +50,7 @@ const LASTNAMES_WITH_COLORS: ReadonlyArray<{ lastname: string_person_lastname; c
 
 /**
  * Name pool for English names
- * 
+ *
  * @private [🍇] Maybe expose via some package
  */
 export const EnglishNamePool: NamePool = {

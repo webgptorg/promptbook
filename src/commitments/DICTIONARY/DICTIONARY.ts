@@ -95,9 +95,7 @@ export class DictionaryCommitmentDefinition extends BaseCommitmentDefinition<'DI
         const existingDictionary = requirements.metadata?.DICTIONARY || '';
 
         // Merge the new dictionary entry with existing entries
-        const mergedDictionary = existingDictionary
-            ? `${existingDictionary}\n${trimmedContent}`
-            : trimmedContent;
+        const mergedDictionary = existingDictionary ? `${existingDictionary}\n${trimmedContent}` : trimmedContent;
 
         // Store the merged dictionary in metadata for debugging and inspection
         const updatedMetadata = {

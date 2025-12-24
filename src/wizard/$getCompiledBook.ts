@@ -95,11 +95,15 @@ export async function $getCompiledBook(
             // console.log({ rootDirname, booksDirname });
 
             if (await isDirectoryExisting(booksDirname, fs)) {
-                const collection: PipelineCollection = await createPipelineCollectionFromDirectory(booksDirname, tools, {
-                    isRecursive: true,
-                    rootDirname: booksDirname, // <- TODO: Avoid confusion with `rootDirname` and `booksDirname`
-                    ...options,
-                });
+                const collection: PipelineCollection = await createPipelineCollectionFromDirectory(
+                    booksDirname,
+                    tools,
+                    {
+                        isRecursive: true,
+                        rootDirname: booksDirname, // <- TODO: Avoid confusion with `rootDirname` and `booksDirname`
+                        ...options,
+                    },
+                );
 
                 // console.log('listPipelines', await collection.listPipelines());
 

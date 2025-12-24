@@ -215,27 +215,27 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
 
         const rawRequest: OpenAI.Chat.Completions.CompletionCreateParamsNonStreaming = {
             ...modelSettings,
-    messages: [
-        ...(currentModelRequirements.systemMessage === undefined
-            ? []
-            : ([
-                  {
-                      role: 'system',
-                      content: currentModelRequirements.systemMessage,
-                  },
-              ] as const)),
-        ...threadMessages,
-        {
-            role: 'user',
-            content: rawPromptContent,
-        },
-    ] as Array<OpenAI.Chat.Completions.ChatCompletionMessageParam>,
-    user: this.options.userId?.toString(),
-    tools:
-        currentModelRequirements.tools === undefined
-            ? undefined
-            : mapToolsToOpenAi(currentModelRequirements.tools),
-};
+            messages: [
+                ...(currentModelRequirements.systemMessage === undefined
+                    ? []
+                    : ([
+                          {
+                              role: 'system',
+                              content: currentModelRequirements.systemMessage,
+                          },
+                      ] as const)),
+                ...threadMessages,
+                {
+                    role: 'user',
+                    content: rawPromptContent,
+                },
+            ] as Array<OpenAI.Chat.Completions.ChatCompletionMessageParam>,
+            user: this.options.userId?.toString(),
+            tools:
+                currentModelRequirements.tools === undefined
+                    ? undefined
+                    : mapToolsToOpenAi(currentModelRequirements.tools),
+        };
         const start: string_date_iso8601 = $getCurrentDate();
 
         if (this.options.isVerbose) {
@@ -437,11 +437,11 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
         }
 
         const modelName = currentModelRequirements.modelName || this.getDefaultCompletionModel().modelName;
-    const modelSettings: Partial<OpenAI.Completions.CompletionCreateParamsNonStreaming> = {
-        model: modelName,
-        max_tokens: currentModelRequirements.maxTokens,
-        temperature: currentModelRequirements.temperature,
-    };
+        const modelSettings: Partial<OpenAI.Completions.CompletionCreateParamsNonStreaming> = {
+            model: modelName,
+            max_tokens: currentModelRequirements.maxTokens,
+            temperature: currentModelRequirements.temperature,
+        };
 
         const rawPromptContent = templateParameters(content, { ...parameters, modelName });
         const rawRequest: OpenAI.Completions.CompletionCreateParamsNonStreaming = {
@@ -823,21 +823,21 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
         }
 
         const modelName = currentModelRequirements.modelName || this.getDefaultImageGenerationModel().modelName;
-    const modelSettings: Partial<OpenAI.Images.ImageGenerateParams> = {
-        model: modelName,
-        size: currentModelRequirements.size as OpenAI.Images.ImageGenerateParams['size'],
-        quality: currentModelRequirements.quality as OpenAI.Images.ImageGenerateParams['quality'],
-        style: currentModelRequirements.style as OpenAI.Images.ImageGenerateParams['style'],
-    };
+        const modelSettings: Partial<OpenAI.Images.ImageGenerateParams> = {
+            model: modelName,
+            size: currentModelRequirements.size as OpenAI.Images.ImageGenerateParams['size'],
+            quality: currentModelRequirements.quality as OpenAI.Images.ImageGenerateParams['quality'],
+            style: currentModelRequirements.style as OpenAI.Images.ImageGenerateParams['style'],
+        };
 
         const rawPromptContent = templateParameters(content, { ...parameters, modelName });
-    const rawRequest: OpenAI.Images.ImageGenerateParams = {
-        ...modelSettings,
-        prompt: rawPromptContent,
-        size: (modelSettings.size as OpenAI.Images.ImageGenerateParams['size']) || '1024x1024',
-        user: this.options.userId?.toString(),
-        response_format: 'url', // TODO: [🧠] Maybe allow b64_json
-    } as OpenAI.Images.ImageGenerateParams;
+        const rawRequest: OpenAI.Images.ImageGenerateParams = {
+            ...modelSettings,
+            prompt: rawPromptContent,
+            size: (modelSettings.size as OpenAI.Images.ImageGenerateParams['size']) || '1024x1024',
+            user: this.options.userId?.toString(),
+            response_format: 'url', // TODO: [🧠] Maybe allow b64_json
+        } as OpenAI.Images.ImageGenerateParams;
         const start: string_date_iso8601 = $getCurrentDate();
 
         if (this.options.isVerbose) {

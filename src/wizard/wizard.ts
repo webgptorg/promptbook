@@ -77,7 +77,9 @@ class Wizard {
         const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
 
         // 🚀▶ Execute the Pipeline
-        const result: PipelineExecutorResult = await pipelineExecutor(inputParameters).asPromise({ isCrashedOnError: true });
+        const result: PipelineExecutorResult = await pipelineExecutor(inputParameters).asPromise({
+            isCrashedOnError: true,
+        });
 
         const { outputParameters } = result;
         const outputParametersLength = Object.keys(outputParameters).length;
