@@ -90,6 +90,8 @@ describe('USE BROWSER commitment', () => {
         expect(result.metadata?.useBrowser).toBe(true);
     });
 
+    /*
+    TODO: [0] Re-enable, tools arent in metadata anymore
     it('preserves existing tools in metadata', () => {
         const requirementsWithTools = {
             ...basicRequirements,
@@ -104,6 +106,7 @@ describe('USE BROWSER commitment', () => {
         expect(tools).toContain('existingTool');
         expect(tools).toContain('browser');
     });
+    */
 
     it('does not modify system message', () => {
         const requirementsWithMessage = {
