@@ -147,7 +147,7 @@ export async function $provideLlmToolsForWizardOrCli(
 
 /**
  * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
- * TODO: [👷‍♂️] @@@ Manual about construction of llmTools
+ * TODO: [👷‍♂️] Write a comprehensive manual about the construction of LLM tools
  * TODO: [🥃] Allow `ptbk make` without llm tools
  * TODO: This should be maybe not under `_common` but under `utils-internal` / `utils/internal`
  * TODO: [®] DRY Register logic

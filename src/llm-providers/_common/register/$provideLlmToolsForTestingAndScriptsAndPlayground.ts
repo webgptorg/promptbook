@@ -69,7 +69,7 @@ export async function $provideLlmToolsForTestingAndScriptsAndPlayground(
 
 /**
  * Note: [⚪] This should never be in any released package
- * TODO: [👷‍♂️] @@@ Manual about construction of llmTools
+ * TODO: [👷‍♂️] Write a comprehensive manual about the construction of LLM tools
  * TODO: This should be maybe not under `_common` but under `utils-internal` / `utils/internal`
  * TODO: [®] DRY Register logi
  */
