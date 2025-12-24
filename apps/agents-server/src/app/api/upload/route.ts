@@ -1,3 +1,4 @@
+import type { PostgrestSingleResponse, SupabaseClient } from '@supabase/supabase-js';
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabase } from '@/src/database/$provideSupabase';
 import { serializeError } from '@promptbook-local/utils';
@@ -6,12 +7,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { assertsError } from '../../../../../../src/errors/assertsError';
 import { getUserIdFromRequest } from '../../../../src/utils/getUserIdFromRequest';
 import { getMetadata } from '../../../database/getMetadata';
+import type { AgentsServerDatabase } from '../../../database/schema';
 
 export async function POST(request: NextRequest) {
     try {
         const body = (await request.json()) as HandleUploadBody;
         const userId = await getUserIdFromRequest(request);
-        const supabase = $provideSupabase();
+        const supabase: SupabaseClient<AgentsServerDatabase> = $provideSupabase();
 
         // Handle Vercel Blob client upload protocol
         const jsonResponse = await handleUpload({
@@ -38,7 +40,7 @@ export async function POST(request: NextRequest) {
 
                 // Create a DB record at the start of the upload to track it
                 const uploadPurpose = purpose || 'GENERIC_UPLOAD';
-                const { data: insertedFile, error: insertError } = await supabase
+                const { data: insertedFile, error: insertError }: PostgrestSingleResponse<Pick<AgentsServerDatabase['public']['Tables']['File']['Row'], 'id'>> = await supabase
                     .from(await $getTableName('File'))
                     .insert({
                         userId: userId || null,

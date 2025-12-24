@@ -1,3 +1,4 @@
+import type { PostgrestSingleResponse, SupabaseClient } from '@supabase/supabase-js';
 import type { really_any } from '@promptbook-local/types';
 import { serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../src/errors/assertsError';
@@ -5,15 +6,16 @@ import { $getTableName } from '../../database/$getTableName';
 import { $provideSupabaseForServer } from '../../database/$provideSupabaseForServer';
 import { EMAIL_PROVIDERS } from '../../message-providers';
 import { OutboundEmail } from '../../message-providers/email/_common/Email';
+import type { AgentsServerDatabase } from '../../database/schema';
 
 /**
  * Sends a message
  */
 export async function sendMessage(message: OutboundEmail): Promise<void> {
-    const supabase = await $provideSupabaseForServer();
+    const supabase: SupabaseClient<AgentsServerDatabase> = await $provideSupabaseForServer();
 
     // 1. Insert message
-    const { data: insertedMessage, error: insertError } = await supabase
+    const { data: insertedMessage, error: insertError }: PostgrestSingleResponse<AgentsServerDatabase['public']['Tables']['Message']['Row']> = await supabase
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .from(await $getTableName('Message'))
         .insert({
@@ -46,11 +48,11 @@ export async function sendMessage(message: OutboundEmail): Promise<void> {
             return;
         }
 
-        let isSent = false;
+        let isSent: boolean = false;
 
         for (const providerName of providers) {
             const provider = EMAIL_PROVIDERS[providerName];
-            let isSuccessful = false;
+            let isSuccessful: boolean = false;
             let raw: really_any = null;
 
             try {
@@ -67,7 +69,6 @@ export async function sendMessage(message: OutboundEmail): Promise<void> {
             // 3. Log attempt
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             await supabase.from(await $getTableName('MessageSendAttempt')).insert({
-                // @ts-expect-error: insertedMessage is any
                 messageId: insertedMessage.id,
                 providerName,
                 isSuccessful,
