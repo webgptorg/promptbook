@@ -20,18 +20,20 @@ import type { AgentsDatabaseSchema } from './AgentsDatabaseSchema';
 // <- TODO: [🐱‍🚀] Prevent imports from `/apps` -> `/src`
 
 /**
- * Agent collection stored in Supabase table
+ * Agent collection stored in a Supabase table.
  *
- * Note: This object can work both from Node.js and browser environment depending on the Supabase client provided
+ * This class provides a way to manage a collection of agents (pipelines) using Supabase
+ * as the storage backend. It supports listing, creating, updating, and soft-deleting agents.
+ *
+ * Note: This object can work both from Node.js and browser environment depending on the Supabase client provided.
  *
  * @public exported from `@promptbook/core`
  * <- TODO: [🐱‍🚀] Move to `@promptbook/supabase` package
  */
 export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent */ {
     /**
-     * @param rootPath - path to the directory with agents
-     * @param tools - Execution tools to be used in [🐱‍🚀] `Agent` itself and listing the agents
-     * @param options - Options for the collection creation
+     * @param supabaseClient - The initialized Supabase client
+     * @param options - Configuration options for the collection (e.g., table prefix, verbosity)
      */
     public constructor(
         private readonly supabaseClient: SupabaseClient<AgentsDatabaseSchema>,

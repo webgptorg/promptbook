@@ -14,8 +14,12 @@ type DropdownProps = {
 };
 
 /**
- * A dropdown menu component that displays a list of actions triggered by a hamburger menu button.
+ * A dropdown menu component that displays a list of actions.
  *
+ * The menu is toggled by a hamburger menu button. When an action is selected,
+ * the menu automatically closes.
+ *
+ * @param props - Contains an array of actions with icons, names, and click handlers
  * @private internal subcomponent used by various components
  */
 export function Dropdown({ actions }: DropdownProps) {

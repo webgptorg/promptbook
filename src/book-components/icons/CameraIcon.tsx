@@ -4,9 +4,13 @@ type CameraIconProps = {
 };
 
 /**
- * Renders a camera icon
+ * Renders a camera icon.
  *
- * @public exported from `@promptbook/components`
+ * This icon is typically used in buttons or inputs that trigger image capture
+ * or selection.
+ *
+ * @param props - SVG properties augmented with an optional `size`
+ * @private internal subcomponent used by various components
  */
 export function CameraIcon({ size = 24, color = 'currentColor' }: CameraIconProps) {
     return (

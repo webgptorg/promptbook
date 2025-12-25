@@ -2,7 +2,10 @@ import { Message } from '../../../types/Message';
 import type { id, string_markdown } from '../../../types/typeAliases';
 
 /**
- * A message in the chat
+ * Represents a single message within a chat interface.
+ *
+ * This type extends the base `Message` type by omitting internal routing fields
+ * and adding chat-specific properties like markdown content and generation status.
  *
  * @public exported from `@promptbook/components`
  */

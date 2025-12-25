@@ -6,8 +6,8 @@ import { getMetadata } from '../database/getMetadata';
 import { $provideAgentCollectionForServer } from '../tools/$provideAgentCollectionForServer';
 import { $provideServer } from '../tools/$provideServer';
 import { getCurrentUser } from '../utils/getCurrentUser';
-import { isUserAdmin } from '../utils/isUserAdmin';
 import { getFederatedServersFromMetadata } from '../utils/getFederatedServersFromMetadata';
+import { isUserAdmin } from '../utils/isUserAdmin';
 import './globals.css';
 
 const barlowCondensed = Barlow_Condensed({
@@ -31,7 +31,7 @@ export async function generateMetadata(): Promise<Metadata> {
     return {
         title: serverName,
         description: serverDescription,
-        // TODO: keywords: ['@@@'],
+        // TODO: keywords: ['@@@'], <- Do the keywords dynamically, each agents server could have its own keywords + some common ones
         authors: [{ name: 'Promptbook Team' }],
         icons: {
             icon: serverFaviconUrl,
@@ -86,7 +86,8 @@ export default async function RootLayout({
     // Fetch federated servers and add to footerLinks (only if user is authenticated or SHOW_FEDERATED_SERVERS_PUBLICLY is true)
     let federatedServers: Array<{ url: string; title: string; logoUrl: string | null }> = [];
     try {
-        const showFederatedServersPublicly = ((await getMetadata('SHOW_FEDERATED_SERVERS_PUBLICLY')) || 'false') === 'true';
+        const showFederatedServersPublicly =
+            ((await getMetadata('SHOW_FEDERATED_SERVERS_PUBLICLY')) || 'false') === 'true';
 
         // Only show federated servers in footer if user is authenticated or if SHOW_FEDERATED_SERVERS_PUBLICLY is true
         if (currentUser || showFederatedServersPublicly) {
@@ -109,7 +110,7 @@ export default async function RootLayout({
                         url,
                         logoUrl,
                     };
-                })
+                }),
             );
             footerLinks = [...footerLinks, ...federatedServers];
         }

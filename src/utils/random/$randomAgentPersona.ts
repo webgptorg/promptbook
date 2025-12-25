@@ -17,6 +17,10 @@ const PERSONALITIES: ReadonlyArray<string_person_firstname> = [
 /**
  * Generates a random agent persona description.
  *
+ * This function selects a random personality profile from a predefined pool
+ * of common AI agent characteristics (e.g., friendly, professional, creative).
+ *
+ * @returns A string describing the agent's persona
  * @private internal helper function
  */
 export function $randomAgentPersona(): string_persona_description {

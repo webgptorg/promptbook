@@ -3,8 +3,12 @@
 import { SVGProps } from 'react';
 
 /**
- * Renders a download icon
+ * Renders a download icon.
  *
+ * This icon is typically used in buttons or links that trigger the downloading
+ * of files or assets.
+ *
+ * @param props - SVG properties augmented with an optional `size`
  * @private internal subcomponent used by various components
  */
 export function DownloadIcon(props: SVGProps<SVGSVGElement> & { size?: number }) {

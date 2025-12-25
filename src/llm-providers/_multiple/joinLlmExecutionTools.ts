@@ -4,17 +4,21 @@ import type { string_markdown_text, string_title } from '../../types/typeAliases
 import { MultipleLlmExecutionTools } from './MultipleLlmExecutionTools';
 
 /**
- * Joins multiple LLM Execution Tools into one
+ * Joins multiple LLM Execution Tools into one.
  *
- * @returns {LlmExecutionTools} Single wrapper for multiple LlmExecutionTools
+ * This function takes a list of `LlmExecutionTools` and returns a single unified
+ * `MultipleLlmExecutionTools` object. It provides failover and aggregation logic:
  *
- * 0) If there is no LlmExecutionTools, it warns and returns valid but empty LlmExecutionTools
- * 1) If there is only one LlmExecutionTools, it returns it wrapped in a proxy object
- * 2) If there are multiple LlmExecutionTools, first will be used first, second will be used if the first hasn`t defined model variant or fails, etc.
- * 3) When all LlmExecutionTools fail, it throws an error with a list of all errors merged into one
+ * 1.  **Failover**: When a model call is made, it tries providers in the order they were provided.
+ *     If the first provider doesn't support the requested model or fails, it tries the next one.
+ * 2.  **Aggregation**: `listModels` returns a combined list of all models available from all providers.
+ * 3.  **Empty case**: If no tools are provided, it logs a warning (as Promptbook requires LLMs to function).
  *
+ * @param title - A descriptive title for this collection of joined tools
+ * @param llmExecutionTools - An array of execution tools to be joined
+ * @returns A single unified execution tool wrapper
  *
- * Tip: You don't have to use this function directly, just pass an array of LlmExecutionTools to the `ExecutionTools`
+ * Tip: You don't have to use this function directly, just pass an array of LlmExecutionTools to the `ExecutionTools`.
  *
  * @public exported from `@promptbook/core`
  */

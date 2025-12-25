@@ -3,8 +3,12 @@
 import { SVGProps } from 'react';
 
 /**
- * Renders a menu icon
+ * Renders a menu icon.
  *
+ * This icon is typically used in buttons that toggle the visibility of
+ * navigation menus or dropdowns.
+ *
+ * @param props - SVG properties augmented with an optional `size`
  * @private internal subcomponent used by various components
  */
 export function MenuIcon(props: SVGProps<SVGSVGElement> & { size?: number }) {

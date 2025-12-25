@@ -84,8 +84,12 @@ function ServerBody({ info }: { info: ServerInfo }) {
 }
 
 /**
- * Renders the HTML document for the Promptbook Server UI.
+ * Renders the full HTML document for the Promptbook Server UI.
  *
+ * This component provides the root structure of the server information page,
+ * including necessary meta tags, Tailwind CSS styling, and the server details body.
+ *
+ * @param props - Contains server information such as versions, port, and pipelines
  * @private internal utility of Remote Server
  */
 export function HtmlDoc({ info }: { info: ServerInfo }) {

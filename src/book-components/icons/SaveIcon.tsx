@@ -2,9 +2,13 @@
 import React from 'react';
 
 /**
- * Renders a save icon
+ * Renders a save icon.
  *
- * @public exported from `@promptbook/components`
+ * This icon is typically used in buttons that trigger the saving of data,
+ * configurations, or agent sources.
+ *
+ * @param props - SVG properties augmented with an optional `size`
+ * @private internal subcomponent used by various components
  */
 export function SaveIcon({
     size = 20,

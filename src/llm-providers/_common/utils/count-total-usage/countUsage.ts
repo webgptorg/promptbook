@@ -15,10 +15,14 @@ import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt, ImagePrompt } from 
 import type { LlmExecutionToolsWithTotalUsage } from './LlmExecutionToolsWithTotalUsage';
 
 /**
- * Intercepts LLM tools and counts total usage of the tools
+ * Intercepts LLM tools and counts total usage of the tools.
  *
- * @param llmTools LLM tools to be intercepted with usage counting
- * @returns LLM tools with same functionality with added total cost counting
+ * This function wraps the provided `LlmExecutionTools` with a proxy that tracks the cumulative
+ * usage (tokens, cost, etc.) across all model calls. It provides a way to monitor spending
+ * in real-time through an observable.
+ *
+ * @param llmTools - The LLM tools to be intercepted and tracked
+ * @returns An augmented version of the tools that includes usage tracking capabilities
  * @public exported from `@promptbook/core`
  */
 export function countUsage(llmTools: LlmExecutionTools): LlmExecutionToolsWithTotalUsage {

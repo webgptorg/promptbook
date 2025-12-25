@@ -1,4 +1,4 @@
-[x][x][x][ ][ ][ ]
+[x][x][x][x][ ][ ]
 
 [✨🏗] Do fulltext search of "@@@" across the repository and write text and annotations there
 
