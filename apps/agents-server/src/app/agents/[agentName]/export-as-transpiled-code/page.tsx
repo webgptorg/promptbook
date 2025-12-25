@@ -47,13 +47,13 @@ export default function AgentCodePage({ params }: { params: Promise<{ agentName:
         if (!agentName) return;
 
         // Fetch agent profile
-        fetch(`/api/agents/${encodeURIComponent(agentName)}`)
+        fetch(`/agents/${encodeURIComponent(agentName)}/api/profile`)
             .then((res) => res.json())
             .then((data) => setAgentProfile(data))
             .catch((err) => console.error('Error fetching agent profile:', err));
 
         // Fetch available transpilers
-        fetch(`/agents/${encodeURIComponent(agentName)}/code/api`)
+        fetch(`/agents/${encodeURIComponent(agentName)}/export-as-transpiled-code/api`)
             .then((res) => res.json())
             .then((data) => {
                 setTranspilers(data.transpilers || []);
@@ -70,7 +70,7 @@ export default function AgentCodePage({ params }: { params: Promise<{ agentName:
             setError('');
 
             try {
-                const response = await fetch(`/agents/${encodeURIComponent(agentName)}/code/api`, {
+                const response = await fetch(`/agents/${encodeURIComponent(agentName)}/export-as-transpiled-code/api`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

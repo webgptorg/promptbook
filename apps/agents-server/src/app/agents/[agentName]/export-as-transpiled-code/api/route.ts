@@ -1,8 +1,13 @@
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideExecutionToolsForServer } from '@/src/tools/$provideExecutionToolsForServer';
+import { _OpenAiSdkTranspilerRegistration } from '@promptbook-local/wizard';
 import { NextRequest, NextResponse } from 'next/server';
 import { $bookTranspilersRegister } from '../../../../../../../../src/transpilers/_common/register/$bookTranspilersRegister';
+import { $sideEffect } from '../../../../../../../../src/utils/organization/$sideEffect';
 import { keepUnused } from '../../../../../../../../src/utils/organization/keepUnused';
+
+// Note: Ensure transpilers are registered
+$sideEffect(_OpenAiSdkTranspilerRegistration);
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ agentName: string }> }) {
     keepUnused(request);
