@@ -2,13 +2,20 @@
 
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideServer } from '@/src/tools/$provideServer';
-import { generatePlaceholderAgentProfileImageUrl } from '@promptbook-local/core';
+import { resolveInheritedAgentSource } from '@/src/utils/resolveInheritedAgentSource';
+import { CodePreview } from '@common/components/CodePreview/CodePreview';
+import { BookEditor } from '@promptbook-local/components';
+import {
+    createAgentModelRequirements,
+    generatePlaceholderAgentProfileImageUrl,
+    parseAgentSource,
+} from '@promptbook-local/core';
+import { TODO_any } from '@promptbook-local/types';
 import { ArrowLeftIcon, FileTextIcon } from 'lucide-react';
 import { headers } from 'next/headers';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
 import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
-import { getAgentName, getAgentProfile } from '../_utils';
+import { getAgentName } from '../_utils';
 import { generateAgentMetadata } from '../generateAgentMetadata';
 
 export const generateMetadata = generateAgentMetadata;
@@ -17,29 +24,14 @@ export default async function AgentSystemMessagePage({ params }: { params: Promi
     $sideEffect(headers());
 
     const { publicUrl } = await $provideServer();
-
     const agentName = await getAgentName(params);
 
-    let agentProfile;
-    let agentSource;
-    try {
-        agentProfile = await getAgentProfile(agentName);
-        const collection = await $provideAgentCollectionForServer();
-        agentSource = await collection.getAgentSource(agentName);
-    } catch (error) {
-        if (
-            error instanceof Error &&
-            (error.message.includes('Cannot coerce the result to a single JSON object') ||
-                error.message.includes('JSON object requested, multiple (or no) results returned'))
-        ) {
-            notFound();
-        }
-        throw error;
-    }
-
-    // For now, we'll display the agent source as the system message
-    // TODO: [🧠] This might need to be the actual generated system message from the Agent class
-    const systemMessage = agentSource || 'No system message available';
+    const collection = await $provideAgentCollectionForServer();
+    const agentSource = await collection.getAgentSource(agentName);
+    const effectiveAgentSource = await resolveInheritedAgentSource(agentSource, collection);
+    const modelRequirements = await createAgentModelRequirements(effectiveAgentSource);
+    const agentProfile = parseAgentSource(agentSource);
+    const { systemMessage, ...modelRequirementsRest } = modelRequirements;
 
     return (
         <div className="min-h-screen p-6 md:p-12 flex flex-col items-center bg-gray-50">
@@ -64,7 +56,7 @@ export default async function AgentSystemMessagePage({ params }: { params: Promi
                         <h1 className="text-2xl font-bold text-gray-900">{agentProfile.meta.fullname || agentName}</h1>
                         <p className="text-gray-500 flex items-center gap-2">
                             <FileTextIcon className="w-4 h-4" />
-                            System Message
+                            Generated paraemeters for model and AI tools
                         </p>
                     </div>
                     <Link
@@ -78,19 +70,19 @@ export default async function AgentSystemMessagePage({ params }: { params: Promi
 
                 <div className="p-6">
                     <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                        <h2 className="text-lg font-semibold text-gray-900 mb-3">Generated System Message</h2>
-                        <pre className="text-sm text-gray-700 whitespace-pre-wrap font-mono bg-white p-4 rounded border border-gray-200 overflow-x-auto">
-                            {systemMessage}
-                        </pre>
+                        <h2 className="text-lg font-semibold text-gray-900 mb-3">
+                            {agentProfile.meta.fullname} System Message
+                        </h2>
+                        <BookEditor isReadonly value={systemMessage as TODO_any} />
+                        {/* <- Note: The system message should not be shown in BookEditor but in its separate component, but its ok for now */}
                     </div>
 
                     <div className="mt-6 bg-blue-50 rounded-lg p-4 border border-blue-200">
-                        <h3 className="text-md font-semibold text-blue-900 mb-2">Model Requirements</h3>
+                        <h3 className="text-md font-semibold text-blue-900 mb-2">
+                            {agentProfile.meta.fullname} Model Requirements
+                        </h3>
                         <div className="text-sm text-blue-800">
-                            <p>
-                                <strong>Model Variant:</strong> CHAT
-                            </p>
-                            {/* TODO: [🧠] Add more model requirements if available */}
+                            <CodePreview code={JSON.stringify(modelRequirementsRest, null, 4)} language="json" />
                         </div>
                     </div>
                 </div>
