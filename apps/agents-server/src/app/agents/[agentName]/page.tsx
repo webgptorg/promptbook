@@ -63,7 +63,7 @@ export default async function AgentPage({
             <AgentProfileWrapper
                 agent={agentProfile}
                 agentUrl={agentUrl}
-                publicUrl={publicUrl}
+                publicUrl={publicUrl.href}
                 agentEmail={agentEmail}
                 agentName={agentName}
                 brandColorHex={brandColorHex}

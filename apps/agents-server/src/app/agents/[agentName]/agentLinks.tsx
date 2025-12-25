@@ -40,18 +40,6 @@ export const getAgentLinks = (permanentId: string_agent_permanent_id | string_ag
             description: 'Learn how to integrate this agent into your applications.',
         },
         {
-            title: 'History & Feedback',
-            href: `/agents/${permanentId}/history`,
-            icon: HistoryIcon,
-            description: 'View past conversations and provide feedback.',
-        },
-        {
-            title: 'All Links',
-            href: `/agents/${permanentId}/links`,
-            icon: LinkIcon,
-            description: 'Signpost & Links',
-        },
-        {
             title: 'Website Integration',
             href: `/agents/${permanentId}/website-integration`,
             icon: GlobeIcon,

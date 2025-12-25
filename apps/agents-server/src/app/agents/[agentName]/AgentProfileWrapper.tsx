@@ -1,6 +1,6 @@
 'use client';
 
-import { AgentBasicInformation, string_agent_name } from '@promptbook-local/types';
+import { AgentBasicInformation, string_agent_name, string_url } from '@promptbook-local/types';
 import { AgentProfile } from '../../../components/AgentProfile/AgentProfile';
 import { AgentOptionsMenu } from './AgentOptionsMenu';
 
@@ -21,7 +21,7 @@ type AgentProfileWrapperProps = {
     /**
      * Base URL of the agents server
      */
-    readonly publicUrl: URL;
+    readonly publicUrl: string_url;
 
     /***
      * Email address associated with the agent
