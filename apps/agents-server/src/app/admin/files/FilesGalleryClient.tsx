@@ -2,7 +2,7 @@
 
 import { ChevronLeft, ChevronRight, File, Grid, LayoutList, Loader2 } from 'lucide-react';
 import Link from 'next/link';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { FileWithAgent, listFiles } from './actions';
 
 type ViewMode = 'TABLE' | 'GRID';
@@ -16,37 +16,40 @@ export function FilesGalleryClient() {
     const [limit] = useState(20);
     const [hasMore, setHasMore] = useState(true);
 
-    const loadFiles = async (pageNum: number, isNewView: boolean) => {
-        setIsLoading(true);
-        try {
-            const result = await listFiles({ page: pageNum, limit });
-            if (isNewView) {
-                setFiles(result.files);
-            } else {
-                setFiles((prev) => [...prev, ...result.files]);
+    const loadFiles = useCallback(
+        async (pageNum: number, isNewView: boolean) => {
+            setIsLoading(true);
+            try {
+                const result = await listFiles({ page: pageNum, limit });
+                if (isNewView) {
+                    setFiles(result.files);
+                } else {
+                    setFiles((prev) => [...prev, ...result.files]);
+                }
+                setTotal(result.total);
+                setHasMore(result.files.length === limit);
+            } catch (error) {
+                console.error(error);
+            } finally {
+                setIsLoading(false);
             }
-            setTotal(result.total);
-            setHasMore(result.files.length === limit);
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
+        },
+        [limit],
+    );
 
     useEffect(() => {
         loadFiles(1, true);
         setPage(1);
         setHasMore(true);
-    }, [viewMode]);
+    }, [loadFiles, viewMode]);
 
-    const handleLoadMore = () => {
+    const handleLoadMore = useCallback(() => {
         if (!isLoading && hasMore) {
             const nextPage = page + 1;
             setPage(nextPage);
             loadFiles(nextPage, false);
         }
-    };
+    }, [isLoading, hasMore, page, loadFiles]);
 
     // Table view pagination
     const handlePageChange = (newPage: number) => {
@@ -57,26 +60,26 @@ export function FilesGalleryClient() {
     const observerTarget = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
+        const target = observerTarget.current; // Capture the current value
         const observer = new IntersectionObserver(
             (entries) => {
                 if (entries[0].isIntersecting && hasMore && !isLoading && viewMode === 'GRID') {
                     handleLoadMore();
                 }
             },
-            { threshold: 0.1 }
+            { threshold: 0.1 },
         );
 
-        if (observerTarget.current) {
-            observer.observe(observerTarget.current);
+        if (target) {
+            observer.observe(target);
         }
 
         return () => {
-            // eslint-disable-next-line react-hooks/exhaustive-deps
-            if (observerTarget.current) {
-                observer.unobserve(observerTarget.current);
+            if (target) {
+                observer.unobserve(target);
             }
         };
-    }, [hasMore, isLoading, viewMode, page]);
+    }, [hasMore, isLoading, viewMode, page, handleLoadMore]);
 
     return (
         <div className="container mx-auto px-4 py-8 space-y-6">
@@ -86,7 +89,9 @@ export function FilesGalleryClient() {
                     <button
                         onClick={() => setViewMode('TABLE')}
                         className={`p-2 rounded-md transition-colors ${
-                            viewMode === 'TABLE' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-900'
+                            viewMode === 'TABLE'
+                                ? 'bg-white shadow-sm text-blue-600'
+                                : 'text-gray-500 hover:text-gray-900'
                         }`}
                         title="Table View"
                     >
@@ -95,7 +100,9 @@ export function FilesGalleryClient() {
                     <button
                         onClick={() => setViewMode('GRID')}
                         className={`p-2 rounded-md transition-colors ${
-                            viewMode === 'GRID' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-900'
+                            viewMode === 'GRID'
+                                ? 'bg-white shadow-sm text-blue-600'
+                                : 'text-gray-500 hover:text-gray-900'
                         }`}
                         title="Grid View"
                     >
@@ -124,7 +131,12 @@ export function FilesGalleryClient() {
                                     <tr key={file.id} className="bg-white border-b hover:bg-gray-50">
                                         <td className="px-6 py-4">
                                             {file.storageUrl ? (
-                                                <a href={file.storageUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                                                <a
+                                                    href={file.storageUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-blue-600 hover:underline"
+                                                >
                                                     {file.fileName}
                                                 </a>
                                             ) : (
@@ -135,7 +147,10 @@ export function FilesGalleryClient() {
                                         <td className="px-6 py-4">{(file.fileSize / 1024).toFixed(2)} KB</td>
                                         <td className="px-6 py-4">
                                             {file.agent ? (
-                                                <Link href={`/${file.agent.agentName}`} className="text-blue-600 hover:underline">
+                                                <Link
+                                                    href={`/${file.agent.agentName}`}
+                                                    className="text-blue-600 hover:underline"
+                                                >
                                                     {file.agent.agentName}
                                                 </Link>
                                             ) : (
@@ -148,10 +163,15 @@ export function FilesGalleryClient() {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4">
-                                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                                file.status === 'COMPLETED' ? 'bg-green-100 text-green-800' : 
-                                                file.status === 'FAILED' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'
-                                            }`}>
+                                            <span
+                                                className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                                    file.status === 'COMPLETED'
+                                                        ? 'bg-green-100 text-green-800'
+                                                        : file.status === 'FAILED'
+                                                        ? 'bg-red-100 text-red-800'
+                                                        : 'bg-blue-100 text-blue-800'
+                                                }`}
+                                            >
                                                 {file.status}
                                             </span>
                                         </td>
@@ -173,7 +193,9 @@ export function FilesGalleryClient() {
                     {/* Pagination for Table */}
                     <div className="flex items-center justify-between px-6 py-4 border-t bg-gray-50">
                         <span className="text-sm text-gray-700">
-                            Showing <span className="font-medium">{(page - 1) * limit + 1}</span> to <span className="font-medium">{Math.min(page * limit, total)}</span> of <span className="font-medium">{total}</span> results
+                            Showing <span className="font-medium">{(page - 1) * limit + 1}</span> to{' '}
+                            <span className="font-medium">{Math.min(page * limit, total)}</span> of{' '}
+                            <span className="font-medium">{total}</span> results
                         </span>
                         <div className="flex gap-2">
                             <button
@@ -197,14 +219,22 @@ export function FilesGalleryClient() {
                 <>
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                         {files.map((file) => (
-                            <div key={file.id} className="group relative border rounded-lg overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow">
-                                <a href={file.storageUrl || '#'} target="_blank" rel="noopener noreferrer" className="block aspect-square relative bg-gray-100 flex items-center justify-center">
+                            <div
+                                key={file.id}
+                                className="group relative border rounded-lg overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow"
+                            >
+                                <a
+                                    href={file.storageUrl || '#'}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="block aspect-square relative bg-gray-100 flex items-center justify-center"
+                                >
                                     {file.fileType.startsWith('image/') && file.storageUrl ? (
                                         /* eslint-disable-next-line @next/next/no-img-element */
-                                        <img 
-                                            src={file.storageUrl} 
-                                            alt={file.fileName} 
-                                            className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105" 
+                                        <img
+                                            src={file.storageUrl}
+                                            alt={file.fileName}
+                                            className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
                                             loading="lazy"
                                         />
                                     ) : (
@@ -214,25 +244,38 @@ export function FilesGalleryClient() {
                                 <div className="p-3">
                                     <div className="flex items-center justify-between gap-2 mb-1">
                                         {file.agent ? (
-                                            <Link href={`/${file.agent.agentName}`} className="text-xs font-medium text-blue-600 hover:underline truncate">
+                                            <Link
+                                                href={`/${file.agent.agentName}`}
+                                                className="text-xs font-medium text-blue-600 hover:underline truncate"
+                                            >
                                                 {file.agent.agentName}
                                             </Link>
                                         ) : (
-                                             <span className="text-xs text-gray-400">No agent</span>
+                                            <span className="text-xs text-gray-400">No agent</span>
                                         )}
                                         <span className="text-[10px] text-gray-400 whitespace-nowrap">
-                                            {new Date(file.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                                            {new Date(file.createdAt).toLocaleDateString(undefined, {
+                                                month: 'short',
+                                                day: 'numeric',
+                                            })}
                                         </span>
                                     </div>
                                     <p className="text-xs text-gray-600 truncate" title={file.fileName}>
                                         {file.fileName}
                                     </p>
                                     <div className="mt-1 flex justify-between items-center">
-                                        <span className="text-[10px] text-gray-500">{(file.fileSize / 1024).toFixed(1)} KB</span>
-                                        <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-medium ${
-                                            file.status === 'COMPLETED' ? 'bg-green-100 text-green-800' : 
-                                            file.status === 'FAILED' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'
-                                        }`}>
+                                        <span className="text-[10px] text-gray-500">
+                                            {(file.fileSize / 1024).toFixed(1)} KB
+                                        </span>
+                                        <span
+                                            className={`px-1.5 py-0.5 rounded-full text-[10px] font-medium ${
+                                                file.status === 'COMPLETED'
+                                                    ? 'bg-green-100 text-green-800'
+                                                    : file.status === 'FAILED'
+                                                    ? 'bg-red-100 text-red-800'
+                                                    : 'bg-blue-100 text-blue-800'
+                                            }`}
+                                        >
                                             {file.status}
                                         </span>
                                     </div>
@@ -240,18 +283,14 @@ export function FilesGalleryClient() {
                             </div>
                         ))}
                     </div>
-                    
+
                     {files.length === 0 && !isLoading && (
-                        <div className="text-center text-gray-500 py-12">
-                            No files found.
-                        </div>
+                        <div className="text-center text-gray-500 py-12">No files found.</div>
                     )}
 
                     {/* Infinite Scroll Loader */}
                     <div className="py-8 flex justify-center" ref={observerTarget}>
-                        {isLoading && (
-                            <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
-                        )}
+                        {isLoading && <Loader2 className="w-8 h-8 animate-spin text-blue-500" />}
                         {!isLoading && !hasMore && files.length > 0 && (
                             <p className="text-gray-400 text-sm">No more files</p>
                         )}

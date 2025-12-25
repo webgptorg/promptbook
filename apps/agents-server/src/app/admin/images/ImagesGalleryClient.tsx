@@ -2,7 +2,7 @@
 
 import { ChevronLeft, ChevronRight, Grid, LayoutList, Loader2 } from 'lucide-react';
 import Link from 'next/link';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ImageWithAgent, listImages } from './actions';
 
 type ViewMode = 'TABLE' | 'GRID';
@@ -16,37 +16,40 @@ export function ImagesGalleryClient() {
     const [limit] = useState(20);
     const [hasMore, setHasMore] = useState(true);
 
-    const loadImages = async (pageNum: number, isNewView: boolean) => {
-        setIsLoading(true);
-        try {
-            const result = await listImages({ page: pageNum, limit });
-            if (isNewView) {
-                setImages(result.images);
-            } else {
-                setImages((prev) => [...prev, ...result.images]);
+    const loadImages = useCallback(
+        async (pageNum: number, isNewView: boolean) => {
+            setIsLoading(true);
+            try {
+                const result = await listImages({ page: pageNum, limit });
+                if (isNewView) {
+                    setImages(result.images);
+                } else {
+                    setImages((prev) => [...prev, ...result.images]);
+                }
+                setTotal(result.total);
+                setHasMore(result.images.length === limit);
+            } catch (error) {
+                console.error(error);
+            } finally {
+                setIsLoading(false);
             }
-            setTotal(result.total);
-            setHasMore(result.images.length === limit);
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
+        },
+        [limit],
+    );
 
     useEffect(() => {
         loadImages(1, true);
         setPage(1);
         setHasMore(true);
-    }, [viewMode]);
+    }, [viewMode, loadImages]);
 
-    const handleLoadMore = () => {
+    const handleLoadMore = useCallback(() => {
         if (!isLoading && hasMore) {
             const nextPage = page + 1;
             setPage(nextPage);
             loadImages(nextPage, false);
         }
-    };
+    }, [isLoading, hasMore, page, loadImages]);
 
     // Table view pagination
     const handlePageChange = (newPage: number) => {
@@ -57,26 +60,26 @@ export function ImagesGalleryClient() {
     const observerTarget = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
+        const target = observerTarget.current;
         const observer = new IntersectionObserver(
             (entries) => {
                 if (entries[0].isIntersecting && hasMore && !isLoading && viewMode === 'GRID') {
                     handleLoadMore();
                 }
             },
-            { threshold: 0.1 }
+            { threshold: 0.1 },
         );
 
-        if (observerTarget.current) {
-            observer.observe(observerTarget.current);
+        if (target) {
+            observer.observe(target);
         }
 
         return () => {
-            // eslint-disable-next-line react-hooks/exhaustive-deps
-            if (observerTarget.current) {
-                observer.unobserve(observerTarget.current);
+            if (target) {
+                observer.unobserve(target);
             }
         };
-    }, [hasMore, isLoading, viewMode, page]);
+    }, [hasMore, isLoading, viewMode, page, handleLoadMore]);
 
     return (
         <div className="container mx-auto px-4 py-8 space-y-6">
@@ -86,7 +89,9 @@ export function ImagesGalleryClient() {
                     <button
                         onClick={() => setViewMode('TABLE')}
                         className={`p-2 rounded-md transition-colors ${
-                            viewMode === 'TABLE' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-900'
+                            viewMode === 'TABLE'
+                                ? 'bg-white shadow-sm text-blue-600'
+                                : 'text-gray-500 hover:text-gray-900'
                         }`}
                         title="Table View"
                     >
@@ -95,7 +100,9 @@ export function ImagesGalleryClient() {
                     <button
                         onClick={() => setViewMode('GRID')}
                         className={`p-2 rounded-md transition-colors ${
-                            viewMode === 'GRID' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-900'
+                            viewMode === 'GRID'
+                                ? 'bg-white shadow-sm text-blue-600'
+                                : 'text-gray-500 hover:text-gray-900'
                         }`}
                         title="Grid View"
                     >
@@ -121,9 +128,18 @@ export function ImagesGalleryClient() {
                                 {images.map((image) => (
                                     <tr key={image.id} className="bg-white border-b hover:bg-gray-50">
                                         <td className="px-6 py-4">
-                                            <a href={image.cdnUrl} target="_blank" rel="noopener noreferrer" className="block w-20 h-20 relative rounded overflow-hidden border bg-gray-100">
+                                            <a
+                                                href={image.cdnUrl}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="block w-20 h-20 relative rounded overflow-hidden border bg-gray-100"
+                                            >
                                                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                <img src={image.cdnUrl} alt={image.prompt} className="object-cover w-full h-full" />
+                                                <img
+                                                    src={image.cdnUrl}
+                                                    alt={image.prompt}
+                                                    className="object-cover w-full h-full"
+                                                />
                                             </a>
                                         </td>
                                         <td className="px-6 py-4">
@@ -134,7 +150,10 @@ export function ImagesGalleryClient() {
                                         </td>
                                         <td className="px-6 py-4">
                                             {image.agent ? (
-                                                <Link href={`/${image.agent.agentName}`} className="text-blue-600 hover:underline">
+                                                <Link
+                                                    href={`/${image.agent.agentName}`}
+                                                    className="text-blue-600 hover:underline"
+                                                >
                                                     {image.agent.agentName}
                                                 </Link>
                                             ) : (
@@ -143,9 +162,13 @@ export function ImagesGalleryClient() {
                                         </td>
                                         <td className="px-6 py-4">
                                             {image.purpose ? (
-                                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                                    image.purpose === 'AVATAR' ? 'bg-purple-100 text-purple-800' : 'bg-yellow-100 text-yellow-800'
-                                                }`}>
+                                                <span
+                                                    className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                                        image.purpose === 'AVATAR'
+                                                            ? 'bg-purple-100 text-purple-800'
+                                                            : 'bg-yellow-100 text-yellow-800'
+                                                    }`}
+                                                >
                                                     {image.purpose}
                                                 </span>
                                             ) : (
@@ -170,7 +193,9 @@ export function ImagesGalleryClient() {
                     {/* Pagination for Table */}
                     <div className="flex items-center justify-between px-6 py-4 border-t bg-gray-50">
                         <span className="text-sm text-gray-700">
-                            Showing <span className="font-medium">{(page - 1) * limit + 1}</span> to <span className="font-medium">{Math.min(page * limit, total)}</span> of <span className="font-medium">{total}</span> results
+                            Showing <span className="font-medium">{(page - 1) * limit + 1}</span> to{' '}
+                            <span className="font-medium">{Math.min(page * limit, total)}</span> of{' '}
+                            <span className="font-medium">{total}</span> results
                         </span>
                         <div className="flex gap-2">
                             <button
@@ -194,20 +219,32 @@ export function ImagesGalleryClient() {
                 <>
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                         {images.map((image) => (
-                            <div key={image.id} className="group relative border rounded-lg overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow">
-                                <a href={image.cdnUrl} target="_blank" rel="noopener noreferrer" className="block aspect-square relative bg-gray-100 overflow-hidden">
-                                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img 
-                                        src={image.cdnUrl} 
-                                        alt={image.prompt} 
-                                        className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105" 
+                            <div
+                                key={image.id}
+                                className="group relative border rounded-lg overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow"
+                            >
+                                <a
+                                    href={image.cdnUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="block aspect-square relative bg-gray-100 overflow-hidden"
+                                >
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img
+                                        src={image.cdnUrl}
+                                        alt={image.prompt}
+                                        className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
                                         loading="lazy"
                                     />
                                     {image.purpose && (
                                         <div className="absolute top-2 right-2">
-                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold shadow-sm ${
-                                                image.purpose === 'AVATAR' ? 'bg-purple-100 text-purple-800' : 'bg-yellow-100 text-yellow-800'
-                                            }`}>
+                                            <span
+                                                className={`px-2 py-0.5 rounded-full text-[10px] font-bold shadow-sm ${
+                                                    image.purpose === 'AVATAR'
+                                                        ? 'bg-purple-100 text-purple-800'
+                                                        : 'bg-yellow-100 text-yellow-800'
+                                                }`}
+                                            >
                                                 {image.purpose}
                                             </span>
                                         </div>
@@ -216,14 +253,20 @@ export function ImagesGalleryClient() {
                                 <div className="p-3">
                                     <div className="flex items-center justify-between gap-2 mb-1">
                                         {image.agent ? (
-                                            <Link href={`/${image.agent.agentName}`} className="text-xs font-medium text-blue-600 hover:underline truncate">
+                                            <Link
+                                                href={`/${image.agent.agentName}`}
+                                                className="text-xs font-medium text-blue-600 hover:underline truncate"
+                                            >
                                                 {image.agent.agentName}
                                             </Link>
                                         ) : (
-                                             <span className="text-xs text-gray-400">No agent</span>
+                                            <span className="text-xs text-gray-400">No agent</span>
                                         )}
                                         <span className="text-[10px] text-gray-400 whitespace-nowrap">
-                                            {new Date(image.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                                            {new Date(image.createdAt).toLocaleDateString(undefined, {
+                                                month: 'short',
+                                                day: 'numeric',
+                                            })}
                                         </span>
                                     </div>
                                     <p className="text-xs text-gray-600 line-clamp-2" title={image.prompt}>
@@ -233,18 +276,14 @@ export function ImagesGalleryClient() {
                             </div>
                         ))}
                     </div>
-                    
+
                     {images.length === 0 && !isLoading && (
-                        <div className="text-center text-gray-500 py-12">
-                            No images found.
-                        </div>
+                        <div className="text-center text-gray-500 py-12">No images found.</div>
                     )}
 
                     {/* Infinite Scroll Loader */}
                     <div className="py-8 flex justify-center" ref={observerTarget}>
-                        {isLoading && (
-                            <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
-                        )}
+                        {isLoading && <Loader2 className="w-8 h-8 animate-spin text-blue-500" />}
                         {!isLoading && !hasMore && images.length > 0 && (
                             <p className="text-gray-400 text-sm">No more images</p>
                         )}
