@@ -124,7 +124,7 @@ export default async function AgentLinksPage({ params }: { params: Promise<{ age
                                 <p className="text-xs text-gray-500 mb-2">
                                     Get requirements and capabilities of the model.
                                 </p>
-                                <CopyField label="Endpoint URL" value={`${baseUrl}/api/modelRequirements`} />
+                                <CopyField label="Endpoint URL" value={`${baseUrl}/api/model-requirements`} />
                             </div>
                         </div>
                     </div>
