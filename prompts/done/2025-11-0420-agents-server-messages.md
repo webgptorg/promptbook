@@ -1,4 +1,4 @@
-[*] _<- TODO: !!!! Do this manually_
+[x] _<- Note: This was done manually_
 
 [✨🦄] Create object that represents message from any source, inbound / outbound
 
