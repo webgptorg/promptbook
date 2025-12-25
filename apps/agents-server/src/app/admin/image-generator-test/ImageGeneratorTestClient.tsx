@@ -1,10 +1,21 @@
 'use client';
 
 import { useState } from 'react';
+import spaceTrim from 'spacetrim';
 import { Card } from '../../../components/Homepage/Card';
 
 export function ImageGeneratorTestClient() {
-    const [prompt, setPrompt] = useState<string>('');
+    const [prompt, setPrompt] = useState<string>(
+        spaceTrim(`
+            Coffee cup floating in space
+            
+            - Detailed painting
+            - Vibrant colors
+            - Surreal style
+            - In Vincent van Gogh style
+            - High resolution
+        `),
+    );
     const [modelName, setModelName] = useState<string>('dall-e-3');
     const [imageUrl, setImageUrl] = useState<string | null>(null);
     const [rawResult, setRawResult] = useState<unknown | null>(null);
@@ -23,12 +34,13 @@ export function ImageGeneratorTestClient() {
 
         try {
             // detailed-painting-of-a-cute-cat.png
-            const filename = prompt
-                .trim()
-                .toLowerCase()
-                .replace(/[^a-z0-9]+/g, '-')
-                .replace(/^-+|-+$/g, '') + '.png';
-            
+            const filename =
+                prompt
+                    .trim()
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]+/g, '-')
+                    .replace(/^-+|-+$/g, '') + '.png';
+
             setGeneratedFilename(filename);
 
             const queryParams = new URLSearchParams();
@@ -38,7 +50,7 @@ export function ImageGeneratorTestClient() {
             fetch(`/api/images/${filename}?${queryParams.toString()}`)
                 .then(async (response) => {
                     const contentType = response.headers.get('content-type');
-                    
+
                     if (!response.ok) {
                         const text = await response.text();
                         let errorMessage;
@@ -50,7 +62,7 @@ export function ImageGeneratorTestClient() {
                         }
                         throw new Error(`Error: ${response.status} ${errorMessage}`);
                     }
-                    
+
                     if (contentType && contentType.includes('application/json')) {
                         const data = await response.json();
                         setRawResult(data);
@@ -70,7 +82,6 @@ export function ImageGeneratorTestClient() {
                 .finally(() => {
                     setIsLoading(false);
                 });
-
         } catch (err) {
             setError(String(err));
             setIsLoading(false);
@@ -92,18 +103,17 @@ export function ImageGeneratorTestClient() {
                 <div className="mb-4 space-y-4">
                     <div className="space-y-2">
                         <label className="block text-sm font-medium text-gray-700">Image Prompt</label>
-                        <input
-                            type="text"
+                        <textarea
                             value={prompt}
                             onChange={(e) => setPrompt(e.target.value)}
                             placeholder="e.g., A futuristic city with flying cars"
-                            className="w-full p-2 border border-gray-300 rounded"
+                            className="w-full h-48 p-2 border border-gray-300 rounded"
                             disabled={isLoading}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                    handleGenerateImage();
-                                }
-                            }}
+                            // onKeyDown={(e) => {
+                            //     if (e.key === 'Enter') {
+                            //         handleGenerateImage();
+                            //     }
+                            // }}
                         />
                     </div>
 
@@ -117,8 +127,9 @@ export function ImageGeneratorTestClient() {
                             className="w-full p-2 border border-gray-300 rounded"
                             disabled={isLoading}
                         />
-                         <p className="text-xs text-gray-500">
-                            Available models depend on the configured LLM provider. Common options: dall-e-3, dall-e-2, midjourney
+                        <p className="text-xs text-gray-500">
+                            Available models depend on the configured LLM provider. Common options: dall-e-3, dall-e-2,
+                            midjourney
                         </p>
                     </div>
 
