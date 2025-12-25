@@ -9,7 +9,7 @@
 
 ---
 
-[.]
+[.] _<- Note: Look one prompt below_
 
 [✨😃]
 
@@ -17,6 +17,19 @@
 
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[ ]
+
+[✨😃] Allow to create multiple images in `/admin/image-generator-test` in Agents Server
+
+-   show generation progressbar if multiple images being generated
+-   Allow to switch between single and multiple image generation
+-   In multiple image generation, allow to vary the prompts but keep the model for all images the same
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Allow to switch between single and multiple
 
 ---
 
