@@ -145,7 +145,7 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
         const modelRequirements = await this.getAgentModelRequirements();
         if (modelRequirements.samples) {
             const normalizedPrompt = normalizeMessageText(prompt.content);
-            const sample = modelRequirements.samples.find((s) => normalizeMessageText(s.question) === normalizedPrompt);
+            const sample = modelRequirements.samples.find((sample) => normalizeMessageText(sample.question) === normalizedPrompt);
 
             if (sample) {
                 const now = new Date().toISOString() as string_date_iso8601;

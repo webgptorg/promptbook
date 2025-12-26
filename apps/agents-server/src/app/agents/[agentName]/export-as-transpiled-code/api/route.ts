@@ -40,7 +40,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
         // Get the transpiler
         const allTranspilers = $bookTranspilersRegister.list();
-        const transpiler = allTranspilers.find((t) => t.name === transpilerName);
+        const transpiler = allTranspilers.find((transpiler) => transpiler.name === transpilerName);
         if (!transpiler) {
             return NextResponse.json({ error: 'Transpiler not found' }, { status: 404 });
         }

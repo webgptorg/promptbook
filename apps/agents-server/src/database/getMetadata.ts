@@ -22,7 +22,7 @@ export async function getMetadata(key: string): Promise<string | null> {
         return data.value;
     }
 
-    const defaultValue = metadataDefaults.find((m) => m.key === key);
+    const defaultValue = metadataDefaults.find((metadata) => metadata.key === key);
     if (defaultValue) {
         return defaultValue.value;
     }

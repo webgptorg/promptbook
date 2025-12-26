@@ -23,7 +23,7 @@ describe('CLOSED commitment', () => {
         `) as string_book;
 
         const result = parseAgentSourceWithCommitments(source);
-        const parsedCommitment = result.commitments.find((c) => c.type === 'CLOSED');
+        const parsedCommitment = result.commitments.find((commitment) => commitment.type === 'CLOSED');
 
         expect(parsedCommitment).toBeDefined();
         expect(parsedCommitment?.content).toBe('');
