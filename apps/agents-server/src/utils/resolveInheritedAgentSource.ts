@@ -35,47 +35,46 @@ export async function resolveInheritedAgentSource(
         // So we might need to parse the URL to extract agent name if it matches expected pattern.
         // For now, let's rely on fetch for external and check collection if it looks like a local reference (though FROM expects URL)
 
-    // If the URL is valid, we try to fetch it
-    // TODO: Handle authentication/tokens for private agents if needed
+        // If the URL is valid, we try to fetch it
+        // TODO: Handle authentication/tokens for private agents if needed
 
-    // TODO: [🧠] Do this logic more robustly
-    let fetchUrl = parentUrl;
-    if (!fetchUrl.endsWith('/api/book') && !fetchUrl.endsWith('.book') && !fetchUrl.endsWith('.md')) {
-        fetchUrl = `${fetchUrl.replace(/\/$/, '')}/api/book`;
-    }
+        // TODO: [🧠] Do this logic more robustly
+        let fetchUrl = parentUrl;
+        if (!fetchUrl.endsWith('/api/book') && !fetchUrl.endsWith('.book') && !fetchUrl.endsWith('.md')) {
+            fetchUrl = `${fetchUrl.replace(/\/$/, '')}/api/book`;
+        }
 
-    const response = await fetch(fetchUrl);
+        const response = await fetch(fetchUrl);
 
-    if (!response.ok) {
-        throw new Error(`Failed to fetch parent agent from ${fetchUrl}: ${response.status} ${response.statusText}`);
-    }
+        if (!response.ok) {
+            throw new Error(`Failed to fetch parent agent from ${fetchUrl}: ${response.status} ${response.statusText}`);
+        }
 
         // We assume the response is the agent source text
         // TODO: Handle content negotiation or JSON responses if the server returns JSON
         const contentType = response.headers.get('content-type');
         if (contentType && contentType.includes('application/json')) {
-             const data = await response.json();
-             // Assume some structure or that the API returns source in a property
-             // For Agents Server API modelRequirements/route.ts returns AgentModelRequirements, not source.
-             // If we point to a raw source endpoint, it returns text.
-             // If we point to the agent page, it returns HTML.
-             // We need a standard way to get source.
-                 // For now, let's assume the URL points to the source or an API returning source.
-             if (typeof data === 'string') {
-                 parentSource = data as string_book;
-             } else if (data.source) {
-                 parentSource = data.source as string_book;
-             } else {
-                 // Fallback or error
-                 console.warn(`Received JSON from ${parentUrl} but couldn't determine source property. Using text.`);
-                 // Re-fetch as text? Or assume body text was read? response.json() consumes body.
-                 // So we might have failed here.
-                 throw new Error(`Received JSON from ${parentUrl} but structure is unknown.`);
-             }
+            const data = await response.json();
+            // Assume some structure or that the API returns source in a property
+            // For Agents Server API modelRequirements/route.ts returns AgentModelRequirements, not source.
+            // If we point to a raw source endpoint, it returns text.
+            // If we point to the agent page, it returns HTML.
+            // We need a standard way to get source.
+            // For now, let's assume the URL points to the source or an API returning source.
+            if (typeof data === 'string') {
+                parentSource = data as string_book;
+            } else if (data.source) {
+                parentSource = data.source as string_book;
+            } else {
+                // Fallback or error
+                console.warn(`Received JSON from ${parentUrl} but couldn't determine source property. Using text.`);
+                // Re-fetch as text? Or assume body text was read? response.json() consumes body.
+                // So we might have failed here.
+                throw new Error(`Received JSON from ${parentUrl} but structure is unknown.`);
+            }
         } else {
             parentSource = (await response.text()) as string_book;
         }
-
     } catch (error) {
         console.warn(`Failed to resolve parent agent ${parentUrl}`, error);
         // If we fail to resolve parent, we return the original source (maybe with a warning or error commitment?)
@@ -98,3 +97,7 @@ export async function resolveInheritedAgentSource(
     // "appends the RULE commitment to its source" -> Parent + Child
     return `${effectiveParentSource}\n\n${filteredChildSource}` as string_book;
 }
+
+/**
+ * TODO: [🧠] !!!! This functions should be maybe in `/src` exported from `@promptbook/core`
+ */
