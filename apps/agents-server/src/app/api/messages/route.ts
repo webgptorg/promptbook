@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
 
         // Fetch attempts for these messages
         if (messages && messages.length > 0) {
-            const messageIds = messages.map((m) => m.id);
+            const messageIds = messages.map((message) => message.id);
             const { data: attempts, error: attemptsError } = await supabase
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 .from(await $getTableName('MessageSendAttempt'))
@@ -84,7 +84,7 @@ export async function GET(request: NextRequest) {
                 // Attach attempts to messages
                 for (const message of messages) {
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    (message as any).sendAttempts = attempts?.filter((a: any) => a.messageId === message.id) || [];
+                    (message as any).sendAttempts = attempts?.filter((attempt: any) => attempt.messageId === message.id) || [];
                 }
             }
         }

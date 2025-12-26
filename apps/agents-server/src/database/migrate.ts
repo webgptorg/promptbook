@@ -16,15 +16,15 @@ async function migrate() {
         if (args[i] === '--only' && args[i + 1]) {
             onlyPrefixes = args[i + 1]
                 .split(',')
-                .map((p) => p.trim())
-                .filter((p) => p !== '');
+                .map((prefix) => prefix.trim())
+                .filter((prefix) => prefix !== '');
             break;
         } else if (args[i]?.startsWith('--only=')) {
             onlyPrefixes = args[i]
                 .substring('--only='.length)
                 .split(',')
-                .map((p) => p.trim())
-                .filter((p) => p !== '');
+                .map((prefix) => prefix.trim())
+                .filter((prefix) => prefix !== '');
             break;
         }
     }
@@ -37,8 +37,8 @@ async function migrate() {
     }
     let prefixes = prefixesEnv
         .split(',')
-        .map((p) => p.trim())
-        .filter((p) => p !== '');
+        .map((prefix) => prefix.trim())
+        .filter((prefix) => prefix !== '');
 
     if (prefixes.length === 0) {
         console.warn('⚠️ No prefixes found in SUPABASE_MIGRATION_PREFIXES. Skipping migration.');
@@ -47,7 +47,7 @@ async function migrate() {
 
     // Filter prefixes if --only flag is provided
     if (onlyPrefixes !== null) {
-        const invalidPrefixes = onlyPrefixes.filter((p) => !prefixes.includes(p));
+        const invalidPrefixes = onlyPrefixes.filter((prefix) => !prefixes.includes(prefix));
         if (invalidPrefixes.length > 0) {
             console.error(`❌ Invalid prefixes specified in --only: ${invalidPrefixes.join(', ')}`);
             console.error(`   Available prefixes: ${prefixes.join(', ')}`);
@@ -111,7 +111,7 @@ async function migrate() {
             const { rows: appliedMigrationsRows } = await client.query(
                 `SELECT "filename" FROM "${migrationsTableName}"`,
             );
-            const appliedMigrations = new Set(appliedMigrationsRows.map((row) => row.filename));
+            const appliedMigrations = new Set(appliedMigrationsRows.map((migrationRow) => migrationRow.filename));
 
             // 4.3 Apply new migrations in one big transaction
             let migrationError = null;

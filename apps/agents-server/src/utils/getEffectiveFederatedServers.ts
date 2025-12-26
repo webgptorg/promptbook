@@ -11,8 +11,8 @@ import { AUTO_FEDERATED_AGENT_SERVER_URLS } from '../../../../servers';
 export function getEffectiveFederatedServers(federatedServersString: string): Array<string_promptbook_server_url> {
     const manualFederatedServers = federatedServersString
         .split(',')
-        .map((s) => s.trim())
-        .filter((s): s is string_promptbook_server_url => s !== '');
+        .map((server) => server.trim())
+        .filter((server): server is string_promptbook_server_url => server !== '');
 
     const merged = Array.from(
         new Set<string_promptbook_server_url>([...manualFederatedServers, ...AUTO_FEDERATED_AGENT_SERVER_URLS]),

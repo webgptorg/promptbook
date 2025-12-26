@@ -27,11 +27,11 @@ export class SendgridMessageProvider implements MessageProvider {
                 email: fullEmail,
                 name: fullName || undefined,
             },
-            to: recipients.map((r) => {
-                const { fullEmail, fullName } = parseEmailAddress(r.email || r.baseEmail || r);
+            to: recipients.map((recipient) => {
+                const { fullEmail, fullName } = parseEmailAddress(recipient.email || recipient.baseEmail || recipient);
                 return {
                     email: fullEmail,
-                    name: r.name || fullName || undefined,
+                    name: recipient.name || fullName || undefined,
                 };
             }),
             subject: message.metadata?.subject || 'No Subject',

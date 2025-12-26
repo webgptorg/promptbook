@@ -34,7 +34,7 @@ export async function createAgentModelRequirementsWithCommitments(
             commitment.type === 'REMOVE'
         ) {
             const targets = parseParameters(commitment.content)
-                .map((p) => p.name.trim().toLowerCase())
+                .map((parameter) => parameter.name.trim().toLowerCase())
                 .filter(Boolean);
 
             if (targets.length === 0) {
@@ -45,8 +45,8 @@ export async function createAgentModelRequirementsWithCommitments(
             // Drop prior kept commitments that contain any of the targeted tags
             for (let i = filteredCommitments.length - 1; i >= 0; i--) {
                 const prev = filteredCommitments[i]!;
-                const prevParams = parseParameters(prev.content).map((p) => p.name.trim().toLowerCase());
-                const hasIntersection = prevParams.some((n) => targets.includes(n));
+                const prevParams = parseParameters(prev.content).map((parameter) => parameter.name.trim().toLowerCase());
+                const hasIntersection = prevParams.some((parameterName) => targets.includes(parameterName));
                 if (hasIntersection) {
                     filteredCommitments.splice(i, 1);
                 }

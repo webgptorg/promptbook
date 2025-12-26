@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
 }
 
 function getSafeCodeBlock(content: string, lang = 'markdown'): string {
-    const maxBackticks = Math.max(0, ...(content.match(/`+/g) || []).map((m) => m.length));
+    const maxBackticks = Math.max(0, ...(content.match(/`+/g) || []).map((match) => match.length));
     const fence = '`'.repeat(Math.max(3, maxBackticks + 1));
     return `${fence}${lang}\n${content}\n${fence}`;
 }

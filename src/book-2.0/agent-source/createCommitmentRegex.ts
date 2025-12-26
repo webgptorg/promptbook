@@ -14,8 +14,8 @@ export function createCommitmentRegex(
     requiresContent = true,
 ): RegExp {
     const allCommitments = [commitment, ...aliases];
-    const patterns = allCommitments.map((c) => {
-        const escapedCommitment = c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const patterns = allCommitments.map((commitment) => {
+        const escapedCommitment = commitment.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         return escapedCommitment.split(/\s+/).join('\\s+');
     });
     const keywordPattern = patterns.join('|');
@@ -38,8 +38,8 @@ export function createCommitmentRegex(
  */
 export function createCommitmentTypeRegex(commitment: BookCommitment, aliases: BookCommitment[] = []): RegExp {
     const allCommitments = [commitment, ...aliases];
-    const patterns = allCommitments.map((c) => {
-        const escapedCommitment = c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const patterns = allCommitments.map((commitment) => {
+        const escapedCommitment = commitment.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         return escapedCommitment.split(/\s+/).join('\\s+');
     });
     const keywordPattern = patterns.join('|');

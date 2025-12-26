@@ -353,7 +353,7 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
                         resovedParameterNames = [...resovedParameterNames, currentTask.resultingParameterName];
                     })
                     .then(() => {
-                        resolving = resolving.filter((w) => w !== work);
+                        resolving = resolving.filter((workItem) => workItem !== work);
                     });
                 // <- Note: Errors are catched here [3]
                 //    TODO: BUT if in multiple tasks are errors, only the first one is catched so maybe we should catch errors here and save them to errors array here

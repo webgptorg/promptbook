@@ -26,10 +26,10 @@ export class ZeptomailMessageProvider implements MessageProvider {
                     address: sender.email || sender.baseEmail || sender,
                     name: sender.name || sender.fullName || undefined,
                 },
-                to: recipients.map((r) => ({
+                to: recipients.map((recipient) => ({
                     email_address: {
-                        address: r.email || r.baseEmail || r,
-                        name: r.name || r.fullName || undefined,
+                        address: recipient.email || recipient.baseEmail || recipient,
+                        name: recipient.name || recipient.fullName || undefined,
                     },
                 })),
                 subject: message.metadata?.subject || 'No Subject',
