@@ -1,13 +1,5 @@
 import { string_agent_name, string_agent_permanent_id } from '@promptbook-local/types';
-import {
-    BookOpenIcon,
-    CodeIcon,
-    GlobeIcon,
-    HistoryIcon,
-    LinkIcon,
-    MessageSquareIcon,
-    NotebookPenIcon,
-} from 'lucide-react';
+import { BookOpenIcon, CodeIcon, GlobeIcon, MessageSquareIcon, NotebookPenIcon } from 'lucide-react';
 import type { ComponentType } from 'react';
 
 type AgentLink = {
