@@ -26,8 +26,8 @@ if (!argv['inputFolderPath']) {
 function run(folderPath, outputPath, recursive = true) {
     var [filenames, folderPaths] = getFileAndFolderPaths(folderPath);
     var [allFilePaths] = getAllFileAndFolderPaths(filenames, folderPaths, recursive);
-    var allOutputPaths = allFilePaths.map((x) => {
-        const fileNameWithExtension = x.split(folderPath)[1];
+    var allOutputPaths = allFilePaths.map((filePath) => {
+        const fileNameWithExtension = filePath.split(folderPath)[1];
         const fileNameWithoutExtension = fileNameWithExtension.slice(0, fileNameWithExtension.indexOf('.pdf'));
         return outputPath + fileNameWithoutExtension;
     });

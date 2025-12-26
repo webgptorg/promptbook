@@ -119,6 +119,6 @@ exports.isNumberedListItem = function isNumberedListItem(string) {
 exports.wordMatch = function wordMatch(string1, string2) {
     const words1 = new Set(string1.toUpperCase().split(' '));
     const words2 = new Set(string2.toUpperCase().split(' '));
-    const intersection = new Set([...words1].filter((x) => words2.has(x)));
+    const intersection = new Set([...words1].filter((word) => words2.has(word)));
     return intersection.size / Math.max(words1.size, words2.size);
 };

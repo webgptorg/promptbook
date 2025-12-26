@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
                             await page.type(act.selector, act.text);
                         }
                     } else if (act.type === 'scroll') {
-                        await page.evaluate((y) => window.scrollBy(0, y), act.amount || 500);
+                        await page.evaluate((scrollAmount) => window.scrollBy(0, scrollAmount), act.amount || 500);
                     } else if (act.type === 'wait') {
                         await page.waitForTimeout(act.ms || 1000);
                     } else if (act.type === 'navigate') {

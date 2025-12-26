@@ -39,7 +39,7 @@ export async function GET() {
                     controller.enqueue(buffer);
 
                     // Short delay
-                    await new Promise((r) => setTimeout(r, 200));
+                    await new Promise((resolve) => setTimeout(resolve, 200));
                 }
             } catch (error) {
                 console.error('Stream error:', error);
