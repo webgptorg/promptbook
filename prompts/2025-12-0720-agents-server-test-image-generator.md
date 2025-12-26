@@ -20,7 +20,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨😃] Allow to create multiple images in `/admin/image-generator-test` in Agents Server
 
