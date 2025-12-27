@@ -1,4 +1,4 @@
-[x][x][x][x][ ][ ]
+[x][x][x][x][x][ ]
 
 [✨🏗] Do fulltext search of "@@@" across the repository and write text and annotations there
 
@@ -10,3 +10,4 @@ Do not write anything in theese files, the @@@ is intended to be there:
 
 -   /prompts/2025-12-0810-jsdoc-annotations.md
 -   /apps/\_boilerplate/src/app/layout.tsx
+-   /prompts/\*
