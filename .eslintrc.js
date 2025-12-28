@@ -11,7 +11,7 @@ module.exports = {
         ecmaVersion: 12,
         sourceType: 'module',
     },
-    plugins: ['@typescript-eslint', 'jest'],
+    plugins: ['@typescript-eslint' /*, 'jest'*/],
     rules: {
         // Note: Indentation is fully managed by Prettier
         // indent: ['error', 4],
