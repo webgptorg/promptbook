@@ -11,8 +11,8 @@ describe('JavascriptEvalExecutionTools', () => {
         },
     );
 
-    it('should evaluate supersimple statement', () => {
-        expect(
+    it('should evaluate supersimple statement', async () => {
+        await expect(
             javascriptEvalExecutionTools.execute({
                 scriptLanguage: 'javascript',
                 parameters: {
@@ -21,7 +21,7 @@ describe('JavascriptEvalExecutionTools', () => {
                 script: 'animal',
             }),
         ).resolves.toEqual('cat');
-        expect(
+        await expect(
             javascriptEvalExecutionTools.execute({
                 scriptLanguage: 'javascript',
                 parameters: {
@@ -32,8 +32,8 @@ describe('JavascriptEvalExecutionTools', () => {
         ).resolves.toEqual('cat');
     });
 
-    it('should evaluate single statement', () => {
-        expect(
+    it('should evaluate single statement', async () => {
+        await expect(
             javascriptEvalExecutionTools.execute({
                 scriptLanguage: 'javascript',
                 parameters: {
@@ -44,8 +44,8 @@ describe('JavascriptEvalExecutionTools', () => {
         ).resolves.toEqual('t-a-c');
     });
 
-    it('should evaluate build-in function', () => {
-        expect(
+    it('should evaluate build-in function', async () => {
+        await expect(
             javascriptEvalExecutionTools.execute({
                 scriptLanguage: 'javascript',
                 parameters: {
@@ -55,7 +55,7 @@ describe('JavascriptEvalExecutionTools', () => {
             }),
         ).resolves.toEqual('cat');
 
-        expect(
+        await expect(
             javascriptEvalExecutionTools.execute({
                 scriptLanguage: 'javascript',
                 parameters: {
@@ -68,8 +68,8 @@ describe('JavascriptEvalExecutionTools', () => {
 
     /*/
     TODO: Make this unit test work
-    it('should evaluate multiple statements', () => {
-        expect(
+    it('should evaluate multiple statements', async () => {
+        await expect(
             javascriptEvalExecutionTools.execute({
                 scriptLanguage: 'javascript',
                 parameters: {
@@ -108,8 +108,8 @@ describe('JavascriptEvalExecutionTools', () => {
             ).rejects.toThrowError('Some error');
     });
 
-    it('should evaluate custom function', () => {
-        expect(
+    it('should evaluate custom function', async () => {
+        await expect(
             javascriptEvalExecutionTools.execute({
                 scriptLanguage: 'javascript',
                 parameters: {
@@ -126,8 +126,8 @@ describe('JavascriptEvalExecutionTools', () => {
         ).resolves.toEqual('cat makes meow.');
     });
 
-    it('should fail on python script', () => {
-        expect(
+    it('should fail on python script', async () => {
+        await expect(
             javascriptEvalExecutionTools.execute({
                 scriptLanguage: 'python',
                 parameters: {

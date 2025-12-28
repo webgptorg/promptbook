@@ -11,7 +11,9 @@ describe('createPipelineExecutor + postprocessing', () => {
     it('should work when every INPUT  PARAMETER defined', async () => {
         const pipelineExecutor = await getPipelineExecutor();
 
-        expect(pipelineExecutor({ yourName: 'Paůl' }).asPromise({ isCrashedOnError: true })).resolves.toMatchObject({
+        await expect(
+            pipelineExecutor({ yourName: 'Paůl' }).asPromise({ isCrashedOnError: true }),
+        ).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
@@ -19,7 +21,9 @@ describe('createPipelineExecutor + postprocessing', () => {
             },
         });
 
-        expect(pipelineExecutor({ yourName: 'Adam' }).asPromise({ isCrashedOnError: true })).resolves.toMatchObject({
+        await expect(
+            pipelineExecutor({ yourName: 'Adam' }).asPromise({ isCrashedOnError: true }),
+        ).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
@@ -27,7 +31,9 @@ describe('createPipelineExecutor + postprocessing', () => {
             },
         });
 
-        expect(pipelineExecutor({ yourName: 'John' }).asPromise({ isCrashedOnError: true })).resolves.toMatchObject({
+        await expect(
+            pipelineExecutor({ yourName: 'John' }).asPromise({ isCrashedOnError: true }),
+        ).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
@@ -35,7 +41,9 @@ describe('createPipelineExecutor + postprocessing', () => {
             },
         });
 
-        expect(pipelineExecutor({ yourName: 'DAVID' }).asPromise({ isCrashedOnError: true })).resolves.toMatchObject({
+        await expect(
+            pipelineExecutor({ yourName: 'DAVID' }).asPromise({ isCrashedOnError: true }),
+        ).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {

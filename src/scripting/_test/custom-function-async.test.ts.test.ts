@@ -9,8 +9,8 @@ import type { PipelineString } from '../../pipeline/PipelineString';
 import { JavascriptExecutionTools } from '../javascript/JavascriptExecutionTools';
 
 describe('createPipelineExecutor + custom async function ', () => {
-    it('should use custom postprocessing function', () => {
-        expect(
+    it('should use custom postprocessing function', async () => {
+        await expect(
             getPipelineExecutor().then((pipelineExecutor) =>
                 pipelineExecutor({ yourName: 'Matthew' }).asPromise({ isCrashedOnError: true }),
             ),
@@ -22,7 +22,7 @@ describe('createPipelineExecutor + custom async function ', () => {
             },
         });
 
-        expect(
+        await expect(
             getPipelineExecutor().then((pipelineExecutor) =>
                 pipelineExecutor({ yourName: 'Mark' }).asPromise({ isCrashedOnError: true }),
             ),
@@ -34,7 +34,7 @@ describe('createPipelineExecutor + custom async function ', () => {
             },
         });
 
-        expect(
+        await expect(
             getPipelineExecutor().then((pipelineExecutor) =>
                 pipelineExecutor({ yourName: 'Luke' }).asPromise({ isCrashedOnError: true }),
             ),
@@ -46,7 +46,7 @@ describe('createPipelineExecutor + custom async function ', () => {
             },
         });
 
-        expect(
+        await expect(
             getPipelineExecutor().then((pipelineExecutor) =>
                 pipelineExecutor({ yourName: 'John' }).asPromise({ isCrashedOnError: true }),
             ),

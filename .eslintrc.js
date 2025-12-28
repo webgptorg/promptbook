@@ -11,7 +11,7 @@ module.exports = {
         ecmaVersion: 12,
         sourceType: 'module',
     },
-    plugins: ['@typescript-eslint'],
+    plugins: ['@typescript-eslint', 'jest'],
     rules: {
         // Note: Indentation is fully managed by Prettier
         // indent: ['error', 4],
@@ -20,6 +20,9 @@ module.exports = {
         // Note: There are places I want to use ${variable} in strings but not using yet
         // quotes: ['error', 'single'],
         semi: ['error', 'always'],
+        // 'jest/valid-expect': 'error',
+
         '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
+        // '@typescript-eslint/no-floating-promises': 'error',
     },
 };

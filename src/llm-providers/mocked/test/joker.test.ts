@@ -9,7 +9,7 @@ import { MockedEchoLlmExecutionTools } from '../MockedEchoLlmExecutionTools';
 describe('createPipelineExecutor + MockedEchoExecutionTools with example chat prompt', () => {
     it('should work when joker is used', async () => {
         const pipelineExecutor = await getPipelineExecutor();
-        expect(
+        await expect(
             pipelineExecutor({ yourName: 'Good name' }).asPromise({ isCrashedOnError: true }),
         ).resolves.toMatchObject({
             isSuccessful: true,

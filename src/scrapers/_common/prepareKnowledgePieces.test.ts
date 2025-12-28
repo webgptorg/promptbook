@@ -11,7 +11,7 @@ describe('all the scrapers', () => {
 
     for (const { examples, scrape } of $scrapersRegister.list()) {
         for (const example of examples) {
-            expect(scrape(makeKnowledgeSourceHandler(example), {})).resolves.not.toThrowError();
+            await expect(scrape(makeKnowledgeSourceHandler(example), {})).resolves.not.toThrowError();
         }
     }
 });
