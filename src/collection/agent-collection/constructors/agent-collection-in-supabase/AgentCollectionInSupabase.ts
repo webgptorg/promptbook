@@ -30,7 +30,7 @@ import type { AgentsDatabaseSchema } from './AgentsDatabaseSchema';
  * @public exported from `@promptbook/core`
  * <- TODO: [🐱‍🚀] Move to `@promptbook/supabase` package
  */
-export class AgentCollectionInSupabase /* TODO: [🐱‍🚀] implements Agent */ {
+export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements AgentCollection */ {
     /**
      * @param supabaseClient - The initialized Supabase client
      * @param options - Configuration options for the collection (e.g., table prefix, verbosity)
