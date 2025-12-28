@@ -342,7 +342,7 @@
             "focus": true
         },
         {
-            "name": "🧸 Agent LLM tools playground (💸)",
+            "name": "🧸 Agent LLM tools playground (with browser and search) (💸)",
             "command": "npx ts-node ./src/llm-providers/agent/playground/playground.ts",
             "execute": true,
             "onlySingle": true,

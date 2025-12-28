@@ -37,33 +37,37 @@ async function playground() {
         title: 'LLM Tools for Agent Playground',
     });
 
+    /*/
     console.info(colors.bgBlue(`🤖  LLM Tools:`));
     console.info(colors.bgCyan(llmTools.title));
     console.info(colors.cyan(llmTools.description));
+    /**/
 
+    /*/
     // Test configuration
     console.info(colors.bgBlue(`🔧  Checking configuration of LLM tools...`));
     await llmTools.checkConfiguration();
+    /**/
 
+    /*/
     // List available models
     console.info(colors.bgBlue(`🔍  Listing available models of LLM tools...`));
     const llmToolsModels = await llmTools.listModels();
     console.info(`📊  Found ${colors.yellow(llmToolsModels.length.toString())} available models`);
     console.info(llmToolsModels.map((model) => ` - ${model.modelTitle}`).join('\n'));
+    /**/
 
     // Create agent tools wrapping the OpenAI tools
     const agentTools = createAgentLlmExecutionTools({
         llmTools,
         agentSource: book`
-            Rhymer
+            Paul
 
-            RULE
-            You are writing only in rhymes
-            As your brain is made of poetry
-            You love to help and entertain
-            With verses that will ease the pain
+            RULE You are writing about news in AI and technology.
+            USE SEARCH
 
         `,
+        // <- TODO: !!!! Test `USE BROWSER`
     });
 
     console.info(colors.bgBlue(`🧔  Agent Tools:`));
@@ -85,6 +89,7 @@ async function playground() {
 
     const chatPrompt = {
         title: 'Test Chat',
+        /*
         thread: [
             // <- TODO: !!! Maybe rename to `previousMessages`
             {
@@ -100,6 +105,7 @@ async function playground() {
                 content: 'TypeScript is a superset of JavaScript that adds static types.',
             },
         ],
+        */
         content: 'Tell me more!',
         parameters: {},
         modelRequirements: {
