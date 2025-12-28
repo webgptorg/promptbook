@@ -1,5 +1,12 @@
-import { createAgentModelRequirements } from '@promptbook-local/core';
-import { string_book } from '@promptbook-local/types';
+import {
+    createAgentModelRequirements,
+    padBook,
+    UnexpectedError,
+    validateBook,
+} from '../../../../src/_packages/core.index'; // <- [🚾]
+import { string_book } from '../../../../src/_packages/types.index'; // <- [🚾]
+import { spaceTrim } from '../../../../src/utils/organization/spaceTrim';
+import { importAgent } from './importAgent';
 
 /**
  * Resolves agent source with inheritance (FROM commitment)
@@ -19,80 +26,46 @@ export async function resolveInheritedAgentSource(agentSource: string_book): Pro
         return agentSource;
     }
 
-    const parentUrl = requirements.parentAgentUrl;
-    let parentSource: string_book;
+    const parentAgentSource = await importAgent(requirements.parentAgentUrl);
 
-    try {
-        // 1. Try to resolve locally using collection if possible
-        // This is an optimization for internal agents
-        // We assume the URL might be relative or contain the agent name, or we just check if it's a full URL
-        // If it's a full URL, we need to check if it matches our server, but without knowing our server URL it's hard.
-        // So we might need to parse the URL to extract agent name if it matches expected pattern.
-        // For now, let's rely on fetch for external and check collection if it looks like a local reference (though FROM expects URL)
+    const parentAgentSourceCorpus = spaceTrim(parentAgentSource.replace(/^.*$/m, ''));
+    // <- TODO: [🈲] Simple and encapsulated way to get book corpus
 
-        // If the URL is valid, we try to fetch it
-        // TODO: Handle authentication/tokens for private agents if needed
+    let isFromResolved = false;
+    const newAgentSourceChunks: Array<string> = [];
+    const agentSourceChunks = spaceTrim(agentSource).split('\n');
+    // <- TODO: [🈲] Simple and encapsulated way to split book into commitments
 
-        // TODO: [🧠] Do this logic more robustly
-        let fetchUrl = parentUrl;
-        if (!fetchUrl.endsWith('/api/book') && !fetchUrl.endsWith('.book') && !fetchUrl.endsWith('.md')) {
-            fetchUrl = `${fetchUrl.replace(/\/$/, '')}/api/book`;
-        }
-
-        const response = await fetch(fetchUrl);
-
-        if (!response.ok) {
-            throw new Error(`Failed to fetch parent agent from ${fetchUrl}: ${response.status} ${response.statusText}`);
-        }
-
-        // We assume the response is the agent source text
-        // TODO: Handle content negotiation or JSON responses if the server returns JSON
-        const contentType = response.headers.get('content-type');
-        if (contentType && contentType.includes('application/json')) {
-            const data = await response.json();
-            // Assume some structure or that the API returns source in a property
-            // For Agents Server API modelRequirements/route.ts returns AgentModelRequirements, not source.
-            // If we point to a raw source endpoint, it returns text.
-            // If we point to the agent page, it returns HTML.
-            // We need a standard way to get source.
-            // For now, let's assume the URL points to the source or an API returning source.
-            if (typeof data === 'string') {
-                parentSource = data as string_book;
-            } else if (data.source) {
-                parentSource = data.source as string_book;
-            } else {
-                // Fallback or error
-                console.warn(`Received JSON from ${parentUrl} but couldn't determine source property. Using text.`);
-                // Re-fetch as text? Or assume body text was read? response.json() consumes body.
-                // So we might have failed here.
-                throw new Error(`Received JSON from ${parentUrl} but structure is unknown.`);
+    for (const line of agentSourceChunks) {
+        if (line.trim().startsWith('FROM ')) {
+            if (isFromResolved === true) {
+                throw new UnexpectedError(
+                    spaceTrim(
+                        (block) => `
+                            Multiple \`FROM\` commitments found in agent source:
+        
+                            \`\`\`book
+                            ${block(agentSource)}
+                            \`\`\`
+                        `,
+                    ),
+                );
             }
-        } else {
-            parentSource = (await response.text()) as string_book;
+
+            newAgentSourceChunks.push(parentAgentSourceCorpus);
+            isFromResolved = true;
+            continue;
         }
-    } catch (error) {
-        console.warn(`Failed to resolve parent agent ${parentUrl}`, error);
-        // If we fail to resolve parent, we return the original source (maybe with a warning or error commitment?)
-        // Or we could throw to fail the build.
-        // For robustness, let's append a warning comment
-        return `${agentSource}\n\n# Warning: Failed to inherit from ${parentUrl}: ${error}` as string_book;
+
+        newAgentSourceChunks.push(line);
     }
 
-    // Recursively resolve the parent source
-    const effectiveParentSource = await resolveInheritedAgentSource(parentSource);
+    const newAgentSource = padBook(validateBook(newAgentSourceChunks.join('\n')));
 
-    // Strip the FROM commitment from the child source to avoid infinite recursion or re-processing
-    // We can filter lines starting with FROM
-    const childSourceLines = agentSource.split('\n');
-    const filteredChildSource = childSourceLines
-        .filter((line: string) => !line.trim().startsWith('FROM ')) // Simple string check, ideally should use parser location
-        .join('\n');
-
-    // Append child source to parent source
-    // "appends the RULE commitment to its source" -> Parent + Child
-    return `${effectiveParentSource}\n\n${filteredChildSource}` as string_book;
+    return newAgentSource;
 }
 
 /**
+ * TODO: [🈲] Create a function that can manipulate books by modifying commitments, splitting the book up into commitments or syntactic tokens, and editing or deleting these via object methods.
  * TODO: [🐱‍🚀][⏩] This function should be in `/src` and exported from `@promptbook/core`
  */
