@@ -17,6 +17,7 @@ import { $execCommand } from '../../src/utils/execCommand/$execCommand';
 import { isFileExisting } from '../../src/utils/files/isFileExisting';
 import { prettifyMarkdown } from '../../src/utils/markdown/prettifyMarkdown';
 import { removeMarkdownComments } from '../../src/utils/markdown/removeMarkdownComments';
+import { just } from '../../src/utils/organization/just';
 import { TODO_any } from '../../src/utils/organization/TODO_any';
 import { commit } from '../utils/autocommit/commit';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
@@ -754,28 +755,30 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
     }
 
     // ==============================
-    console.info(colors.cyan(`8️⃣  Copy agents-server app to CLI package`));
+    if (just(false /* <- Note: Temporarily disable the Copy agents-server app */)) {
+        console.info(colors.cyan(`8️⃣  Copy agents-server app to CLI package`));
 
-    // Note: Copy agents-server app files to the CLI package for distribution
-    const agentsServerSourcePath = './apps/agents-server';
-    const agentsServerDestPath = './packages/cli/apps/agents-server';
+        // Note: Copy agents-server app files to the CLI package for distribution
+        const agentsServerSourcePath = './apps/agents-server';
+        const agentsServerDestPath = './packages/cli/apps/agents-server';
 
-    console.info(`Copying ${agentsServerSourcePath} to ${agentsServerDestPath}`);
+        console.info(`Copying ${agentsServerSourcePath} to ${agentsServerDestPath}`);
 
-    // Remove existing destination directory if it exists
-    await $execCommand(`rm -rf ${agentsServerDestPath}`);
+        // Remove existing destination directory if it exists
+        await $execCommand(`rm -rf ${agentsServerDestPath}`);
 
-    // Create destination directory
-    await mkdir(agentsServerDestPath, { recursive: true });
+        // Create destination directory
+        await mkdir(agentsServerDestPath, { recursive: true });
 
-    // Copy all files except .next folder
-    // Using rsync or cp with exclusion pattern
-    await $execCommand(`cp -r ${agentsServerSourcePath}/* ${agentsServerDestPath}/ || true`);
+        // Copy all files except .next folder
+        // Using rsync or cp with exclusion pattern
+        await $execCommand(`cp -r ${agentsServerSourcePath}/* ${agentsServerDestPath}/ || true`);
 
-    // Remove .next folder if it was copied
-    await $execCommand(`rm -rf ${agentsServerDestPath}/.next`);
+        // Remove .next folder if it was copied
+        await $execCommand(`rm -rf ${agentsServerDestPath}/.next`);
 
-    console.info(colors.green('Agents-server app copied successfully'));
+        console.info(colors.green('Agents-server app copied successfully'));
+    }
 
     // ==============================
     console.info(colors.cyan(`9️⃣  Make publishing instructions for Github Actions`));
