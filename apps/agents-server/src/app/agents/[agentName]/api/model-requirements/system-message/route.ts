@@ -13,7 +13,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
     try {
         const collection = await $provideAgentCollectionForServer();
         const agentSource = await collection.getAgentSource(agentName);
-        const effectiveAgentSource = await resolveInheritedAgentSource(agentSource, collection);
+        const effectiveAgentSource = await resolveInheritedAgentSource(agentSource);
         const modelRequirements = await createAgentModelRequirements(effectiveAgentSource);
         const { systemMessage } = modelRequirements;
 

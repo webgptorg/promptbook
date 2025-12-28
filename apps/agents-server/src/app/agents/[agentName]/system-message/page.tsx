@@ -28,7 +28,7 @@ export default async function AgentSystemMessagePage({ params }: { params: Promi
 
     const collection = await $provideAgentCollectionForServer();
     const agentSource = await collection.getAgentSource(agentName);
-    const effectiveAgentSource = await resolveInheritedAgentSource(agentSource, collection);
+    const effectiveAgentSource = await resolveInheritedAgentSource(agentSource);
     const modelRequirements = await createAgentModelRequirements(effectiveAgentSource);
     const agentProfile = parseAgentSource(agentSource);
     const { systemMessage, ...modelRequirementsRest } = modelRequirements;

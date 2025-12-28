@@ -15,7 +15,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
         const collection = await $provideAgentCollectionForServer();
         const agentId = await collection.getAgentPermanentId(agentName);
         const agentSource = await collection.getAgentSource(agentId);
-        const effectiveAgentSource = await resolveInheritedAgentSource(agentSource, collection);
+        const effectiveAgentSource = await resolveInheritedAgentSource(agentSource);
 
         return new Response(effectiveAgentSource, {
             status: 200,
