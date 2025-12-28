@@ -1,6 +1,5 @@
 import { createAgentModelRequirements } from '@promptbook-local/core';
-import type { AgentCollection } from '@promptbook-local/types';
-type string_book = string & { readonly __type: 'book' };
+import { string_book } from '@promptbook-local/types';
 
 /**
  * Resolves agent source with inheritance (FROM commitment)
@@ -8,13 +7,9 @@ type string_book = string & { readonly __type: 'book' };
  * It recursively fetches the parent agent source and merges it with the current source.
  *
  * @param agentSource The initial agent source
- * @param collection Optional agent collection to resolve local agents efficiently
  * @returns The resolved agent source with inheritance applied
  */
-export async function resolveInheritedAgentSource(
-    agentSource: string_book,
-    collection?: AgentCollection,
-): Promise<string_book> {
+export async function resolveInheritedAgentSource(agentSource: string_book): Promise<string_book> {
     // Check if the source has FROM commitment
     // We use createAgentModelRequirements to parse commitments
     // Note: We don't provide tools/models here as we only care about parsing commitments
@@ -84,7 +79,7 @@ export async function resolveInheritedAgentSource(
     }
 
     // Recursively resolve the parent source
-    const effectiveParentSource = await resolveInheritedAgentSource(parentSource, collection);
+    const effectiveParentSource = await resolveInheritedAgentSource(parentSource);
 
     // Strip the FROM commitment from the child source to avoid infinite recursion or re-processing
     // We can filter lines starting with FROM
