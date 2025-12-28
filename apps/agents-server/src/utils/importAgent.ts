@@ -1,26 +1,26 @@
-import { createAgentModelRequirements } from '@promptbook-local/core';
-import { string_book } from '@promptbook-local/types';
+import spaceTrim from 'spacetrim';
+import { NotFoundError, NotYetImplementedError } from '../../../../src/_packages/core.index'; // <- [🚾]
+import {
+    string_agent_name,
+    string_agent_permanent_id,
+    string_agent_url,
+    string_book,
+} from '../../../../src/_packages/types.index'; // <- [🚾]
+import { isValidUrl } from '../../../../src/_packages/utils.index'; // <- [🚾]
+import { assertsError } from '../../../../src/errors/assertsError';
 
 /**
- * Resolves agent source with inheritance (FROM commitment)
+ * Imports an agent by its URL or name
  *
- * It recursively fetches the parent agent source and merges it with the current source.
- *
- * @param agentSource The initial agent source
+ * @param agentUrlOrName The identifier  of the agent to import
  * @returns The resolved agent source with inheritance applied
  */
-export async function resolveInheritedAgentSource(agentSource: string_book): Promise<string_book> {
-    // Check if the source has FROM commitment
-    // We use createAgentModelRequirements to parse commitments
-    // Note: We don't provide tools/models here as we only care about parsing commitments
-    const requirements = await createAgentModelRequirements(agentSource);
-
-    if (!requirements.parentAgentUrl) {
-        return agentSource;
+export async function importAgent(
+    agentIdentification: string_agent_name | string_agent_permanent_id | string_agent_url,
+): Promise<string_book> {
+    if (!isValidUrl(agentIdentification)) {
+        throw new NotYetImplementedError(`[🏠] Importing local agents be name or permanent id is not implemented yet`);
     }
-
-    const parentUrl = requirements.parentAgentUrl;
-    let parentSource: string_book;
 
     try {
         // 1. Try to resolve locally using collection if possible
@@ -34,7 +34,7 @@ export async function resolveInheritedAgentSource(agentSource: string_book): Pro
         // TODO: Handle authentication/tokens for private agents if needed
 
         // TODO: [🧠] Do this logic more robustly
-        let fetchUrl = parentUrl;
+        let fetchUrl = agentIdentification;
         if (!fetchUrl.endsWith('/api/book') && !fetchUrl.endsWith('.book') && !fetchUrl.endsWith('.md')) {
             fetchUrl = `${fetchUrl.replace(/\/$/, '')}/api/book`;
         }
@@ -57,42 +57,38 @@ export async function resolveInheritedAgentSource(agentSource: string_book): Pro
             // We need a standard way to get source.
             // For now, let's assume the URL points to the source or an API returning source.
             if (typeof data === 'string') {
-                parentSource = data as string_book;
+                return data as string_book;
             } else if (data.source) {
-                parentSource = data.source as string_book;
+                return data.source as string_book;
             } else {
                 // Fallback or error
-                console.warn(`Received JSON from ${parentUrl} but couldn't determine source property. Using text.`);
+                console.warn(
+                    `Received JSON from ${agentIdentification} but couldn't determine source property. Using text.`,
+                );
                 // Re-fetch as text? Or assume body text was read? response.json() consumes body.
                 // So we might have failed here.
-                throw new Error(`Received JSON from ${parentUrl} but structure is unknown.`);
+                throw new Error(`Received JSON from ${agentIdentification} but structure is unknown.`);
             }
         } else {
-            parentSource = (await response.text()) as string_book;
+            return (await response.text()) as string_book;
         }
     } catch (error) {
-        console.warn(`Failed to resolve parent agent ${parentUrl}`, error);
-        // If we fail to resolve parent, we return the original source (maybe with a warning or error commitment?)
-        // Or we could throw to fail the build.
-        // For robustness, let's append a warning comment
-        return `${agentSource}\n\n# Warning: Failed to inherit from ${parentUrl}: ${error}` as string_book;
+        assertsError(error);
+
+        throw new NotFoundError(
+            spaceTrim(
+                (block) => `
+                    Failed to import agent from "${agentIdentification}"
+                    
+                    Raw error message:
+                    ${block((error as Error).message)}
+                `,
+            ),
+        );
     }
-
-    // Recursively resolve the parent source
-    const effectiveParentSource = await resolveInheritedAgentSource(parentSource);
-
-    // Strip the FROM commitment from the child source to avoid infinite recursion or re-processing
-    // We can filter lines starting with FROM
-    const childSourceLines = agentSource.split('\n');
-    const filteredChildSource = childSourceLines
-        .filter((line: string) => !line.trim().startsWith('FROM ')) // Simple string check, ideally should use parser location
-        .join('\n');
-
-    // Append child source to parent source
-    // "appends the RULE commitment to its source" -> Parent + Child
-    return `${effectiveParentSource}\n\n${filteredChildSource}` as string_book;
 }
 
 /**
  * TODO: [🐱‍🚀][⏩] This function should be in `/src` and exported from `@promptbook/core`
+ * TODO: [🐱‍🚀][🏠] Implement local requesting agents by name and permanent ID
  */
