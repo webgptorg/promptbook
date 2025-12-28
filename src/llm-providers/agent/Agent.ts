@@ -145,7 +145,9 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
         const modelRequirements = await this.getAgentModelRequirements();
         if (modelRequirements.samples) {
             const normalizedPrompt = normalizeMessageText(prompt.content);
-            const sample = modelRequirements.samples.find((sample) => normalizeMessageText(sample.question) === normalizedPrompt);
+            const sample = modelRequirements.samples.find(
+                (sample) => normalizeMessageText(sample.question) === normalizedPrompt,
+            );
 
             if (sample) {
                 const now = new Date().toISOString() as string_date_iso8601;
@@ -196,7 +198,16 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
             return result;
         }
 
-        // TODO: !!! Extract learning to separate method
+        await this.#selfLearn(prompt, result);
+        // <- TODO: !!!! Do not await self-learn, run in background with error handling
+
+        return result;
+    }
+
+    /**
+     * Self-learning: Appends the conversation and extracted knowledge to the agent source
+     */
+    async #selfLearn(prompt: Prompt, result: ChatPromptResult): Promise<void> {
         // Learning: Append the conversation sample to the agent source
         const learningExample = spaceTrim(
             (block) => `
@@ -264,8 +275,6 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
 
         // Update the source (which will trigger the subscription and update the underlying tools)
         this.agentSource.next(newSource as string_book);
-
-        return result;
     }
 }
 
