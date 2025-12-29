@@ -278,6 +278,7 @@
     flex-shrink: 0;
 }
 
+/* [㊗️]
 .typingIndicator .avatar img {
     width: 40px;
     aspect-ratio: 1 / 1;
@@ -286,6 +287,7 @@
     background-color: #eef6fb;
     border: 2px solid rgba(125, 125, 125, 0.1);
 }
+*/
 
 .typingBubble {
     padding: 16px 20px;
@@ -370,6 +372,7 @@
     position: relative;
 }
 
+/* [㊗️]
 .chatMainFlow .chatMessage .avatar img {
     width: 40px;
     aspect-ratio: 1 / 1;
@@ -380,10 +383,12 @@
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+
 .chatMainFlow .chatMessage .avatar img:hover {
     transform: scale(1.05);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
+*/
 
 /* Message text bubble */
 .chatMainFlow .chatMessage .messageText {
@@ -1672,10 +1677,12 @@
         margin: 0 10px 4px;
     }
 
+    /* [㊗️]
     .chatMainFlow .chatMessage .avatar img {
         width: 36px;
         aspect-ratio: 1 / 1;
     }
+    */
 
     .chatMainFlow .chatInput {
         padding: 16px 12px;
@@ -1794,10 +1801,12 @@
         margin: 0 8px 4px;
     }
 
+    /* [㊗️]
     .chatMainFlow .chatMessage .avatar img {
         width: 32px;
         aspect-ratio: 1 / 1;
     }
+    */
 
     .chatMainFlow .chatInput {
         padding: 12px 8px;
@@ -1889,7 +1898,7 @@
     .chatMainFlow .chatMessage .messageText,
     .chatMainFlow .chatInput textarea,
     .chatMainFlow .chatInput button,
-    .chatMainFlow .chatMessage .avatar img,
+    /* [㊗️] .chatMainFlow .chatMessage .avatar img, */
     .chatButton {
         transition: none;
     }

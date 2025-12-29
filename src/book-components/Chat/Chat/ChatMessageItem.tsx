@@ -196,19 +196,21 @@ export const ChatMessageItem = memo(
                         onMouseLeave={handleMouseLeave}
                         onClick={showTooltip}
                     >
-                        <img
-                            width={AVATAR_SIZE}
-                            src={avatarSrc}
-                            alt={`Avatar of ${message.sender.toString().toLocaleLowerCase()}`}
+                        {/* Note: [㊗️] Using <div/> not <img/> for avatar to 1:1 aspect ratio in every circumstance */}
+                        <div
                             style={
                                 {
-                                    '--avatar-bg-color': color.toHex(),
-                                    objectFit: 'cover',
-                                    objectPosition: '50% 20%', // <- Note: Center avatar image to the head
                                     width: AVATAR_SIZE,
                                     height: AVATAR_SIZE,
                                     aspectRatio: '1 / 1',
-                                    backgroundImage: `url(${colorToDataUrl(color)})`,
+
+                                    backgroundImage: `url(${participant?.avatarSrc || colorToDataUrl(color)})`,
+                                    backgroundColor: color.toHex(),
+                                    backgroundRepeat: 'no-repeat',
+                                    backgroundSize: 'cover',
+                                    borderRadius: '50%',
+                                    backgroundPosition: '50% 20%', // <- Note: Center avatar image to the head
+                                    '--avatar-bg-color': color.toHex(), // <- TODO: Maybe remove theese deprecated CSS variables
                                 } as React.CSSProperties
                             }
                         />
