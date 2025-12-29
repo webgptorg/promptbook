@@ -186,7 +186,7 @@ function promptUser() {
 /**
  * TODO: !!! Use entire file structure as transopiler
  * TODO: !!! Chatting should work through LlmExecutionTools, exported code should have LlmExecutionTools compatible export
- * TODO: Use propper JSDoc
+ * TODO: Use proper JSDoc
  * TODO: Knowledge pieces are identified by name <- TODO: !!! [] export from Promptbook as `xxx`
  * TODO: Add browser capabilities
  * TODO: Transfer to `OpenAiSdkTranspiler` transpiler

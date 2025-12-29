@@ -50,7 +50,7 @@ This is mechanism for picking the best model from available models when I know a
 -   `AvailableModel` interface should have `unsupportedModelRequirements?: Partial<Array<keyof ModelRequirements>>` property
 -   In `OpenAiExecutionTools` in dynamically remove unsupported model requirements before calling the OpenAI API
 -   Do some common utility function to remove unsupported model requirements which will be later used in other model providers
--   List theese unsupported model requirements for each model in the `openai-models.ts` file
+-   List these unsupported model requirements for each model in the `openai-models.ts` file
 
 ---
 

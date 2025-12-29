@@ -85,7 +85,7 @@ export class UseSearchEngineCommitmentDefinition extends BaseCommitmentDefinitio
                   ...existingTools,
                   { type: 'web_search' },
                   // <- Note: [🔰] This is just using simple native search tool by OpenAI @see https://platform.openai.com/docs/guides/tools-web-search
-                  //          In future we will use propper MCP search tool:
+                  //          In future we will use proper MCP search tool:
                   /*
    
                   {

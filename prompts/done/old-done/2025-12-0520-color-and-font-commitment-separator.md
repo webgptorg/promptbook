@@ -2,7 +2,7 @@
 
 [✨♠️] `COLOR` and `FONT` coomitments should be separatable both by "," and " "
 
-**All of theese should work the same:**
+**All of these should work the same:**
 
 ```book
 COLOR red, blue, green

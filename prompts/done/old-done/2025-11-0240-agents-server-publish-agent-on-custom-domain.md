@@ -13,7 +13,7 @@ META LINK myagent.example.com
 
 -   Purpose of this is to write `META LINK myagent.example.com` in the book, point DNS record to the Agents Server deployment, and then access the agent directly via `myagent.example.com` domain _(not https://agents-server.com/agents/myagent)_
 -   Create commitment `META LINK` in the book
--   All of theese notations should work:
+-   All of these notations should work:
     -   `META LINK myagent.example.com`
     -   `META LINK https://myagent.example.com`
 -   In the `Agents Server` application implement routing

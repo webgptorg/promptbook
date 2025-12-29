@@ -3,11 +3,11 @@
 [✨🦍] Use Czech names for new agents
 
 -   When creating new agent, Agent server randomly creates english name for new agent
--   Now are theese names in English
+-   Now are these names in English
 -   It should be possible to use Czech names instead
 -   The name pool language should be configurable via server Metadata item
 -   The name pools should work as extendable plugins, its should be easey to add new name pools for other languages in the future
--   For now implement only theese two name pools:
+-   For now implement only these two name pools:
     -   English (default, current behavior, but make it better structured with more names and add their frequency weights)
     -   Czech
 -   For list of the Czech names look at `/src/utils/random/data`

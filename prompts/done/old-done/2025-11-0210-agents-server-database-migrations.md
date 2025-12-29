@@ -1,6 +1,6 @@
 [x]
 
-[✨🙅] Implement propper server migrations in Agents Server
+[✨🙅] Implement proper server migrations in Agents Server
 
 -   Agent server is using Supabase as database
 -   Agent server is deployed through Vercel

@@ -45,7 +45,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
                             justifyContent: 'center',
                         }}
                     >
-                        {/* Note: `next/image` is not working propperly with `next/og` */}
+                        {/* Note: `next/image` is not working properly with `next/og` */}
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                             style={{

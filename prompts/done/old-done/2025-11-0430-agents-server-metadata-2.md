@@ -14,14 +14,14 @@
 
 [✨🛃] Add a type for metadata values
 
--   Add theese information about a type into default values of metadata
+-   Add these information about a type into default values of metadata
 -   Use icons to represent types
 -   The types are:
     -   `TEXT_SINGLE_LINE`
     -   `TEXT` (multi line)
     -   `NUMBER`
     -   `BOOLEAN` (true/false)
--   For the types show propper input field when editing metadata value
+-   For the types show proper input field when editing metadata value
 -   You are working with the `Agents Server` application `/apps/agents-server` with page `/admin/metadata`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 

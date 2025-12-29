@@ -2,7 +2,7 @@
 
 [✨✯] Book language should parse `agentName` from first non-empty line
 
-**All of theese are "Joe Doe" agent:**
+**All of these are "Joe Doe" agent:**
 
 ```book
 John Doe

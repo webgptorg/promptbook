@@ -210,7 +210,7 @@ export const ChatMessageItem = memo(
                                     backgroundSize: 'cover',
                                     borderRadius: '50%',
                                     backgroundPosition: '50% 20%', // <- Note: Center avatar image to the head
-                                    '--avatar-bg-color': color.toHex(), // <- TODO: Maybe remove theese deprecated CSS variables
+                                    '--avatar-bg-color': color.toHex(), // <- TODO: Maybe remove these deprecated CSS variables
                                 } as React.CSSProperties
                             }
                         />

@@ -6,7 +6,7 @@
 -   Make the flow more natural:
     -   Do not keep the constant rate of typing and message sending, more natural scenario is sometimes to pause for a while, then type a message quickly, then pause again
     -   Also next message, especially from the different agent, should be sometimes after a longer pause, the agent needs to "think" before typing
--   All of theese new natural flow features should be configurable and passable via `delayConfig` prop
+-   All of these new natural flow features should be configurable and passable via `delayConfig` prop
 -   Update the "Delay Configuration" in http://localhost:4022/component/mocked-chat in UI of preview
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `CHANGELOG.md`

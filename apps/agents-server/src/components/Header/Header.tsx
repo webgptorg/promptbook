@@ -473,7 +473,7 @@ export function Header(props: HeaderProps) {
                             return null;
                         })}
 
-                        {just(false /* TODO: [🧠] Figure out what to do with theese links */) && (
+                        {just(false /* TODO: [🧠] Figure out what to do with these links */) && (
                             <a
                                 href="https://ptbk.io/"
                                 target="_blank"
