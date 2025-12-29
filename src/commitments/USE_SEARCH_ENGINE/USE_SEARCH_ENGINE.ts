@@ -1,4 +1,5 @@
 import { spaceTrim } from 'spacetrim';
+import { TODO_any } from '../../_packages/types.index';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 
@@ -83,7 +84,7 @@ export class UseSearchEngineCommitmentDefinition extends BaseCommitmentDefinitio
             ? existingTools
             : [
                   ...existingTools,
-                  { type: 'web_search' },
+                  { type: 'web_search' } as TODO_any,
                   // <- Note: [🔰] This is just using simple native search tool by OpenAI @see https://platform.openai.com/docs/guides/tools-web-search
                   //          In future we will use proper MCP search tool:
                   /*
