@@ -103,6 +103,7 @@ export class UseBrowserCommitmentDefinition extends BaseCommitmentDefinition<'US
         const updatedTools = existingTools.some((tool) => tool.name === 'web_browser')
             ? existingTools
             : [
+                  // TODO: [🔰] Use throught MCP server
                   ...existingTools,
                   {
                       name: 'web_browser',

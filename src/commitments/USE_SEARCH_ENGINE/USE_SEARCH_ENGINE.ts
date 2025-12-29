@@ -83,6 +83,11 @@ export class UseSearchEngineCommitmentDefinition extends BaseCommitmentDefinitio
             ? existingTools
             : [
                   ...existingTools,
+                  { type: 'web_search' },
+                  // <- Note: [🔰] This is just using simple native search tool by OpenAI @see https://platform.openai.com/docs/guides/tools-web-search
+                  //          In future we will use propper MCP search tool:
+                  /*
+   
                   {
                       name: 'web_search',
                       description: spaceTrim(`
@@ -101,6 +106,7 @@ export class UseSearchEngineCommitmentDefinition extends BaseCommitmentDefinitio
                           required: ['query'],
                       },
                   },
+                  */
               ];
 
         // Return requirements with updated tools and metadata

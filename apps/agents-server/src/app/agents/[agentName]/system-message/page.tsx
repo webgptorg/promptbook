@@ -82,7 +82,19 @@ export default async function AgentSystemMessagePage({ params }: { params: Promi
                             {agentProfile.meta.fullname} Model Requirements
                         </h3>
                         <div className="text-sm text-blue-800">
-                            <CodePreview code={JSON.stringify(modelRequirementsRest, null, 4)} language="json" />
+                            <CodePreview
+                                code={(
+                                    JSON.stringify(
+                                        {
+                                            systemMessage: `[look ☝ above]`,
+                                            ...modelRequirementsRest,
+                                        },
+                                        null,
+                                        4,
+                                    ) + '\n'
+                                ).replace(`"[look ☝ above]"`, `/* [look ☝ above] */`)}
+                                language="json"
+                            />
                         </div>
                     </div>
                 </div>

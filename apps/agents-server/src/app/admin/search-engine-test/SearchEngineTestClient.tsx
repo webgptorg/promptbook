@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Card } from '../../../components/Homepage/Card';
 import { SearchResult } from '../../../../../../src/search-engines/SearchResult';
+import { Card } from '../../../components/Homepage/Card';
 import { search } from './actions';
 
 export function SearchEngineTestClient() {
@@ -31,18 +31,21 @@ export function SearchEngineTestClient() {
 
     return (
         <div className="container mx-auto px-4 py-8 space-y-6">
-             <div className="mt-20 mb-4 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+            <div className="mt-20 mb-4 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
                 <div>
                     <h1 className="text-3xl text-gray-900 font-light">Search Engine Test</h1>
                     <p className="mt-1 text-sm text-gray-500">
                         Test the search engine capabilities by providing a query.
+                        <br />
+                        Note: [🔰] USE SEARCH is working only in demo mode only. Need to implement full functionality
+                        via MCP server and Search engines
                     </p>
                 </div>
             </div>
 
             <Card>
                 <div className="mb-4 space-y-4">
-                     <div className="space-y-2">
+                    <div className="space-y-2">
                         <label className="block text-sm font-medium text-gray-700">Query</label>
                         <input
                             type="text"
@@ -51,14 +54,14 @@ export function SearchEngineTestClient() {
                             placeholder="e.g., Cat"
                             className="w-full p-2 border border-gray-300 rounded"
                             disabled={isLoading}
-                             onKeyDown={(e) => {
+                            onKeyDown={(e) => {
                                 if (e.key === 'Enter') {
                                     handleSearch();
                                 }
                             }}
                         />
                     </div>
-                     <div className="space-y-2">
+                    <div className="space-y-2">
                         <label className="block text-sm font-medium text-gray-700">Provider</label>
                         <select
                             value={provider}
@@ -83,18 +86,23 @@ export function SearchEngineTestClient() {
                 </div>
 
                 {error && (
-                     <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4" role="alert">
+                    <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4" role="alert">
                         <strong className="font-bold">Error: </strong>
                         <span className="block sm:inline">{error}</span>
                     </div>
                 )}
 
                 {results && (
-                     <div className="space-y-4">
+                    <div className="space-y-4">
                         <h2 className="text-xl font-semibold">Results</h2>
                         {results.map((result, index) => (
                             <div key={index} className="border p-4 rounded bg-gray-50">
-                                <a href={result.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 font-bold hover:underline">
+                                <a
+                                    href={result.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-blue-600 font-bold hover:underline"
+                                >
                                     {result.title}
                                 </a>
                                 <div className="text-sm text-green-700">{result.url}</div>
