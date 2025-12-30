@@ -32,6 +32,7 @@ import type { GroupedCommitmentDefinition } from '../commitments/index';
 import { getGroupedCommitmentDefinitions } from '../commitments/index';
 import { NAME } from '../config';
 import { ADMIN_EMAIL } from '../config';
+import { PROMPTBOOK_LEGAL_ENTITY } from '../config';
 import { ADMIN_GITHUB_NAME } from '../config';
 import { CLAIM } from '../config';
 import { PROMPTBOOK_COLOR } from '../config';
@@ -194,9 +195,8 @@ import { SectionTypes } from '../types/SectionType';
 import { TaskTypes } from '../types/TaskType';
 import { aboutPromptbookInformation } from '../utils/misc/aboutPromptbookInformation';
 import { $generateBookBoilerplate } from '../utils/random/$generateBookBoilerplate';
-import { CORE_SERVER } from '../../servers';
-import { REMOTE_SERVER_URLS } from '../../servers';
-import { AUTO_FEDERATED_AGENT_SERVER_URLS } from '../../servers';
+import { CORE_AGENTS_SERVER } from '../../servers';
+import { PUBLIC_AGENTS_SERVERS } from '../../servers';
 
 
 // Note: Exporting version from each package
@@ -234,6 +234,7 @@ export type { GroupedCommitmentDefinition };
 export { getGroupedCommitmentDefinitions };
 export { NAME };
 export { ADMIN_EMAIL };
+export { PROMPTBOOK_LEGAL_ENTITY };
 export { ADMIN_GITHUB_NAME };
 export { CLAIM };
 export { PROMPTBOOK_COLOR };
@@ -396,6 +397,5 @@ export { SectionTypes };
 export { TaskTypes };
 export { aboutPromptbookInformation };
 export { $generateBookBoilerplate };
-export { CORE_SERVER };
-export { REMOTE_SERVER_URLS };
-export { AUTO_FEDERATED_AGENT_SERVER_URLS };
+export { CORE_AGENTS_SERVER };
+export { PUBLIC_AGENTS_SERVERS };

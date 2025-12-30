@@ -1,7 +1,12 @@
-import { REMOTE_SERVER_URLS } from '../servers';
 import type { CsvSettings } from './formats/csv/CsvSettings';
 import type { IntermediateFilesStrategy } from './types/IntermediateFilesStrategy';
-import type { string_app_id, string_email, string_name, string_promptbook_server_url } from './types/typeAliases';
+import type {
+    string_app_id,
+    string_email,
+    string_legal_entity,
+    string_name,
+    string_promptbook_server_url,
+} from './types/typeAliases';
 import { Color } from './utils/color/Color';
 import { grayscale } from './utils/color/operators/grayscale';
 import { lighten } from './utils/color/operators/lighten';
@@ -30,6 +35,13 @@ export const NAME = `Promptbook`;
  * @public exported from `@promptbook/core`
  */
 export const ADMIN_EMAIL: string_email = 'pavol@ptbk.io';
+
+/**
+ * Email of the responsible person
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const PROMPTBOOK_LEGAL_ENTITY: string_legal_entity = 'AI Web, LLC <legal@ptbk.io> (https://www.ptbk.io/)';
 
 /**
  * Name of the responsible person for the Promptbook on GitHub
@@ -370,9 +382,10 @@ export const MOMENT_ARG_THRESHOLDS = {
 /**
  * Default remote server URL for the Promptbook
  *
+ * @deprecated !!!! Deprecate all pipelines server
  * @public exported from `@promptbook/core`
  */
-export const DEFAULT_REMOTE_SERVER_URL: string_promptbook_server_url = REMOTE_SERVER_URLS[0]!.urls[0]!;
+export const DEFAULT_REMOTE_SERVER_URL: string_promptbook_server_url = `https://promptbook.s5.ptbk.io/`;
 
 // <- TODO: [🧜‍♂️]
 

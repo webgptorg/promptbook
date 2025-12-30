@@ -6,7 +6,7 @@ import { getMetadata } from '../database/getMetadata';
 import { $provideAgentCollectionForServer } from '../tools/$provideAgentCollectionForServer';
 import { $provideServer } from '../tools/$provideServer';
 import { getCurrentUser } from '../utils/getCurrentUser';
-import { getFederatedServersFromMetadata } from '../utils/getFederatedServersFromMetadata';
+import { getFederatedServers } from '../utils/getFederatedServers';
 import { isUserAdmin } from '../utils/isUserAdmin';
 import './globals.css';
 
@@ -91,9 +91,9 @@ export default async function RootLayout({
 
         // Only show federated servers in footer if user is authenticated or if SHOW_FEDERATED_SERVERS_PUBLICLY is true
         if (currentUser || showFederatedServersPublicly) {
-            const federatedServersRaw = await getFederatedServersFromMetadata();
+            const federatedServersUrls = await getFederatedServers();
             federatedServers = await Promise.all(
-                federatedServersRaw.map(async (url: string) => {
+                federatedServersUrls.map(async (url: string) => {
                     let logoUrl: string | null = null;
                     try {
                         // Try to fetch logo from metadata endpoint if available

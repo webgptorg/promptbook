@@ -1,6 +1,8 @@
 import { getMetadata } from '../database/getMetadata';
 import { getEffectiveFederatedServers } from './getEffectiveFederatedServers';
 
+// !!!!! Remove file
+
 /**
  * Reads FEDERATED_SERVERS metadata and returns a normalized list of server URLs.
  */

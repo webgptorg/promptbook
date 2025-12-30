@@ -1,5 +1,5 @@
 import spaceTrim from 'spacetrim';
-import { REMOTE_SERVER_URLS } from '../../../servers';
+import { PUBLIC_AGENTS_SERVERS } from '../../../servers';
 import { CLAIM, IS_COST_PREVENTED, NAME } from '../../config';
 import type { string_markdown } from '../../types/typeAliases';
 import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../../version';
@@ -58,10 +58,8 @@ export function aboutPromptbookInformation(options?: AboutPromptbookInformationO
                 ## Servers
 
                 ${block(
-                    REMOTE_SERVER_URLS.map(
-                        ({ title, urls, description }, index) =>
-                            `${index + 1}. ${title} ${description} ${urls.join(', ')}
-                    `,
+                    PUBLIC_AGENTS_SERVERS.map(
+                        ({ title, url, description }, index) => `${index + 1}. ${title} ${description} ${url}`,
                     ).join('\n'),
                 )}
             `,

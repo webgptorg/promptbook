@@ -3,7 +3,7 @@ import { $provideServer } from '@/src/tools/$provideServer';
 import { NextResponse } from 'next/server';
 import { $provideSupabaseForServer } from '../../../database/$provideSupabaseForServer';
 import { $provideAgentCollectionForServer } from '../../../tools/$provideAgentCollectionForServer';
-import { getFederatedServersFromMetadata } from '../../../utils/getFederatedServersFromMetadata';
+import { getFederatedServers } from '../../../utils/getFederatedServers';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,7 +11,7 @@ export async function GET() {
     try {
         const collection = await $provideAgentCollectionForServer();
         const allAgents = await collection.listAgents();
-        const federatedServers = await getFederatedServersFromMetadata();
+        const federatedServers = await getFederatedServers();
         const { publicUrl } = await $provideServer();
 
         // Filter to only include PUBLIC agents for federated API

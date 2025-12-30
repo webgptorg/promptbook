@@ -453,6 +453,7 @@ export type string_url = string;
  * For example `"https://s1.ptbk.io/promptbook"`
  */
 export type string_promptbook_server_url = string;
+// <- TODO: [🧠] Maybe split pipeline and agents server
 
 /**
  * Semantic helper

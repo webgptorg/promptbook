@@ -18,6 +18,8 @@ export type AgentsByServer = {
 
 /**
  * Fetches agents from federated servers recursively
+ *
+ * TODO: !!!! Probbably remove the function
  */
 export async function getFederatedAgents(initialServers: string[]): Promise<AgentsByServer[]> {
     const visited = new Set<string>();
