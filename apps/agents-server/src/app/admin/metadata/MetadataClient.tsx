@@ -225,7 +225,7 @@ export function MetadataClient() {
     }
 
     return (
-        <div className="container mx-auto p-8 max-w-4xl">
+        <div className="w-full px-2 sm:px-4 md:px-8 py-8 max-w-screen-lg mx-auto">
             <h1 className="text-3xl font-bold mb-8">Metadata Management</h1>
 
             {error && (
@@ -410,7 +410,7 @@ export function MetadataClient() {
                 </form>
             </div>
 
-            <div className="bg-white shadow rounded-lg overflow-hidden">
+            <div className="bg-white shadow rounded-lg overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                         <tr>
@@ -441,17 +441,17 @@ export function MetadataClient() {
                         ) : (
                             metadata.map((entry) => (
                                 <tr key={entry.id}>
-                                    <td className="px-6 py-4 whitespace-nowrap text-gray-500">
+                                    <td className="px-4 py-2 whitespace-nowrap text-gray-500 text-sm sm:px-6 sm:py-4">
                                         <div className="flex items-center" title={entry.type || 'Unknown'}>
                                             {getTypeIcon(entry.type)}
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    <td className="px-4 py-2 whitespace-normal break-all text-sm font-medium text-gray-900 sm:px-6 sm:py-4">
                                         {entry.key}
                                     </td>
-                                    <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">{entry.value}</td>
-                                    <td className="px-6 py-4 text-sm text-gray-500">{entry.note || '-'}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <td className="px-4 py-2 text-sm text-gray-500 max-w-xs break-all whitespace-normal sm:px-6 sm:py-4">{entry.value}</td>
+                                    <td className="px-4 py-2 text-sm text-gray-500 break-all whitespace-normal sm:px-6 sm:py-4">{entry.note || '-'}</td>
+                                    <td className="px-4 py-2 whitespace-nowrap text-right text-sm font-medium sm:px-6 sm:py-4">
                                         <button
                                             onClick={() => handleEdit(entry)}
                                             className="text-blue-600 hover:text-blue-900 mr-4"
