@@ -9,16 +9,17 @@ describe('how `resolveInheritedAgentSource` works', () => {
             resolveInheritedAgentSource(book`
                 Beatrice
 
-                FROM http://localhost:4440/agents/yF5gYNmZxej5o1
+                FROM https://core-test.ptbk.io/agents/adam
                 LANGUAGE Italian
             `),
         ).resolves.toEqual(
             book`
                 Beatrice
 
-                META COLOR #7b68ee
+                META COLOR #FFFFFF
                 META FONT Playfair Display, sans-serif
-                RULE Speak in rhymes
+                PERSONA Knowledgeable and informative AI guide.
+                RULE WRITE ONLY IN UPPERCASE
                 LANGUAGE Italian
             `,
         );

@@ -5,16 +5,20 @@ import { importAgent } from './importAgent';
 describe('how `importAgent` works', () => {
     it('should fetch agent from Core server', async () => {
         // TODO: !!!! Change to core.ptbk.io
-        await expect(
-            importAgent(`http://localhost:4440/agents/yF5gYNmZxej5o1`).then(parseAgentSource),
-        ).resolves.toEqual(
+        await expect(importAgent(`https://core-test.ptbk.io/agents/adam`).then(parseAgentSource)).resolves.toEqual(
             parseAgentSource(
                 book`
                     Adam
 
-                    META COLOR #7b68ee
+
+                    META COLOR #FFFFFF
                     META FONT Playfair Display, sans-serif
-                    RULE Speak in rhymes
+                    PERSONA Knowledgeable and informative AI guide.
+                    RULE WRITE ONLY IN UPPERCASE
+
+                    CLOSED
+
+
                 `,
             ),
         );
@@ -23,9 +27,11 @@ describe('how `importAgent` works', () => {
     it('should fail fetching a non-existent agent', async () => {
         // TODO: !!!! Change to core.ptbk.io
         await expect(
-            importAgent(`http://localhost:4440/agents/foobarhululu`).then(parseAgentSource),
+            importAgent(`https://core-test.ptbk.io/agents/foobarhululu`).then(parseAgentSource),
         ).rejects.toThrowError(NotFoundError);
     });
+
+    // <- TODO: !!!! What about non-existent server?
 });
 
 /**

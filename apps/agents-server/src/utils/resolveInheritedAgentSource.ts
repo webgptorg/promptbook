@@ -26,7 +26,9 @@ export async function resolveInheritedAgentSource(agentSource: string_book): Pro
         return agentSource;
     }
 
-    const parentAgentSource = await importAgent(requirements.parentAgentUrl);
+    let parentAgentSource = await importAgent(requirements.parentAgentUrl);
+    // Remove trailing OPEN or CLOSED if present
+    parentAgentSource = parentAgentSource.replace(/\n?(OPEN|CLOSED)\s*$/i, '') as string_book;
 
     const parentAgentSourceCorpus = spaceTrim(parentAgentSource.replace(/^.*$/m, ''));
     // <- TODO: [🈲] Simple and encapsulated way to get book corpus
