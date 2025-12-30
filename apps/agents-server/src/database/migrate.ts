@@ -123,7 +123,7 @@ async function migrate() {
                         continue;
                     }
 
-                    console.info(`  🚀 Applying ${file}...`);
+                    console.info(`  🚀 Applying ${path.join(migrationsDir, file).split('\\').join('/')}...`);
                     const filePath = path.join(migrationsDir, file);
                     let sql = fs.readFileSync(filePath, 'utf-8');
 
@@ -135,7 +135,9 @@ async function migrate() {
                         await client.query(`INSERT INTO "${migrationsTableName}" ("filename") VALUES ($1)`, [file]);
                         console.info(`  ✅ Applied ${file}`);
                     } catch (error) {
-                        console.error(`  ❌ Failed to apply ${file}:`, error);
+                        console.error(`  ❌ Failed to apply ${file}:`);
+                        console.error(error);
+
                         migrationError = error;
                         break;
                     }

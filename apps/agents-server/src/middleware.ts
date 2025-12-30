@@ -6,7 +6,8 @@ import { $getTableName } from './database/$getTableName';
 import { RESERVED_PATHS } from './generated/reservedPaths';
 import { isIpAllowed } from './utils/isIpAllowed';
 
-// Note: Re-implementing normalizeTo_PascalCase to avoid importing from @promptbook-local/utils which might have Node.js dependencies !!!!
+// TODO: Use the `normalizeTo_PascalCase` from `@promptbook-local/utils`
+// Note: Re-implementing normalizeTo_PascalCase to avoid importing from @promptbook-local/utils which might have Node.js dependencies
 function normalizeTo_PascalCase(text: string): string {
     return text
         .replace(/(?:^\w|[A-Z]|\b\w)/g, (word) => {

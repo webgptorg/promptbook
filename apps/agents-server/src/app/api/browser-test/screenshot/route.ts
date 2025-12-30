@@ -14,7 +14,7 @@ export async function GET() {
 
         // await page.close();
         // Do not close browser
-        // <- TODO: !!!! Fix
+        // <- TODO: !!! Fix
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return new NextResponse(new Blob([screenshotBuffer as any]), {
