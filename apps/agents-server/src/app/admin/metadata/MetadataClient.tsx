@@ -449,8 +449,12 @@ export function MetadataClient() {
                                     <td className="px-4 py-2 whitespace-normal break-all text-sm font-medium text-gray-900 sm:px-6 sm:py-4">
                                         {entry.key}
                                     </td>
-                                    <td className="px-4 py-2 text-sm text-gray-500 max-w-xs break-all whitespace-normal sm:px-6 sm:py-4">{entry.value}</td>
-                                    <td className="px-4 py-2 text-sm text-gray-500 break-all whitespace-normal sm:px-6 sm:py-4">{entry.note || '-'}</td>
+                                    <td className="px-4 py-2 text-sm text-gray-500 max-w-xs break-all whitespace-normal sm:px-6 sm:py-4">
+                                        {entry.value}
+                                    </td>
+                                    <td className="px-4 py-2 text-sm text-gray-500 break-all whitespace-normal sm:px-6 sm:py-4">
+                                        {entry.note || '-'}
+                                    </td>
                                     <td className="px-4 py-2 whitespace-nowrap text-right text-sm font-medium sm:px-6 sm:py-4">
                                         <button
                                             onClick={() => handleEdit(entry)}
