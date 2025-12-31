@@ -27,11 +27,6 @@ export async function resolveInheritedAgentSource(
     // Note: We don't provide tools/models here as we only care about parsing commitments
     const requirements = await createAgentModelRequirements(agentSource);
 
-    console.log('-----');
-    console.log('!!!! agentSource', agentSource);
-    console.log('!!!! requirements', requirements);
-    console.log('-----');
-
     let parentAgentUrl: string_agent_url;
 
     // Note: [🆓] There are several cases what the agent ancestor could be:

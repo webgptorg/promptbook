@@ -219,7 +219,6 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
      * Updates an existing agent in the collection
      */
     public async updateAgentSource(permanentId: string_agent_permanent_id, agentSource: string_book): Promise<void> {
-        console.log('!!! updateAgentSource', { permanentId });
 
         const selectPreviousAgentResult = await this.supabaseClient
             .from(this.getTableName('Agent'))

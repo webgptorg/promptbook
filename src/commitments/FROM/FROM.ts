@@ -96,8 +96,7 @@ export class FromCommitmentDefinition extends BaseCommitmentDefinition<'FROM'> {
 
         const parentAgentUrl: string_agent_url = trimmedContent;
 
-        console.log('!!!! parentAgentUrl', parentAgentUrl);
-
+ 
         return {
             ...requirements,
             parentAgentUrl,

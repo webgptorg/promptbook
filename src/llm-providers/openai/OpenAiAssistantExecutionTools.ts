@@ -281,12 +281,10 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
 
         // List all assistants
         const assistants = await client.beta.assistants.list();
-        console.log('!!! Assistants:', assistants);
-
+     
         // Get details of a specific assistant
         const assistantId = 'asst_MO8fhZf4dGloCfXSHeLcIik0';
         const assistant = await client.beta.assistants.retrieve(assistantId);
-        console.log('!!! Assistant Details:', assistant);
 
         // Update an assistant
         const updatedAssistant = await client.beta.assistants.update(assistantId, {
@@ -296,8 +294,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                 [Math.random().toString(36).substring(2, 15)]: new Date().toISOString(),
             },
         });
-        console.log('!!! Updated Assistant:', updatedAssistant);
-
+  
         await forEver();
     }
     */
