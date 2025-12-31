@@ -5,6 +5,7 @@ import { serializeError } from '@promptbook-local/utils';
 import spaceTrim from 'spacetrim';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
 import { keepUnused } from '../../../../../../../../src/utils/organization/keepUnused';
+import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
 
 export async function GET(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
     keepUnused(request /* <- Note: We dont need `request` parameter */);
@@ -15,7 +16,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
         const collection = await $provideAgentCollectionForServer();
         const agentId = await collection.getAgentPermanentId(agentName);
         const agentSource = await collection.getAgentSource(agentId);
-        const effectiveAgentSource = await resolveInheritedAgentSource(agentSource);
+        const effectiveAgentSource = await resolveInheritedAgentSource(agentSource,await getWellKnownAgentUrl('ADAM'));
 
         return new Response(effectiveAgentSource, {
             status: 200,

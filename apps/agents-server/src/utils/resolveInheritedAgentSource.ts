@@ -19,7 +19,10 @@ import { importAgent } from './importAgent';
  * @param agentSource The initial agent source
  * @returns The resolved agent source with inheritance applied
  */
-export async function resolveInheritedAgentSource(agentSource: string_book): Promise<string_book> {
+export async function resolveInheritedAgentSource(
+    agentSource: string_book,
+    adamAgentUrl: string_agent_url = 'https://core.ptbk.io/agents/adam',
+): Promise<string_book> {
     // Check if the source has FROM commitment
     // We use createAgentModelRequirements to parse commitments
     // Note: We don't provide tools/models here as we only care about parsing commitments
@@ -38,7 +41,7 @@ export async function resolveInheritedAgentSource(agentSource: string_book): Pro
     }
     // 3️⃣ Parent URL is not defined, use the default ancestor - Adam
     else if (requirements.parentAgentUrl === undefined) {
-        parentAgentUrl = await getWellKnownAgentUrl('ADAM');
+        parentAgentUrl = adamAgentUrl;
     }
     // 4️⃣ Parent URL is defined but invalid
     else {

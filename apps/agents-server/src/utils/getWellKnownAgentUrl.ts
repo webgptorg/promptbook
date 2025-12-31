@@ -1,5 +1,5 @@
-import { string_agent_url } from '@promptbook-local/types';
 import { CORE_AGENTS_SERVER_WELL_KNOWN_AGENT_NAMES } from '../../../../servers';
+import { string_agent_url } from '../../../../src/_packages/types.index'; // <- [🚾]
 import { getMetadata } from '../database/getMetadata';
 
 /**

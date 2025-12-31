@@ -2,6 +2,7 @@
 
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideServer } from '@/src/tools/$provideServer';
+import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
 import { resolveInheritedAgentSource } from '@/src/utils/resolveInheritedAgentSource';
 import { CodePreview } from '@common/components/CodePreview/CodePreview';
 import { BookEditor } from '@promptbook-local/components';
@@ -28,7 +29,7 @@ export default async function AgentSystemMessagePage({ params }: { params: Promi
 
     const collection = await $provideAgentCollectionForServer();
     const agentSource = await collection.getAgentSource(agentName);
-    const effectiveAgentSource = await resolveInheritedAgentSource(agentSource);
+    const effectiveAgentSource = await resolveInheritedAgentSource(agentSource, await getWellKnownAgentUrl('ADAM'));
     const modelRequirements = await createAgentModelRequirements(effectiveAgentSource);
     const agentProfile = parseAgentSource(agentSource);
     const { systemMessage, ...modelRequirementsRest } = modelRequirements;
