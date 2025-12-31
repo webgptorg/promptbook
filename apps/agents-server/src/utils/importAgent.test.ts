@@ -4,7 +4,6 @@ import { importAgent } from './importAgent';
 
 describe('how `importAgent` works', () => {
     it('should fetch agent from Core server', async () => {
-        // TODO: !!!! Change to core.ptbk.io
         await expect(importAgent(`https://core-test.ptbk.io/agents/test-0`)).resolves.toEqual(
             book`
                 Test 0
@@ -19,7 +18,6 @@ describe('how `importAgent` works', () => {
     });
 
     it('should fail fetching a non-existent agent', async () => {
-        // TODO: !!!! Change to core.ptbk.io
         await expect(importAgent(`https://core-test.ptbk.io/agents/foobarhululu`)).rejects.toThrowError(NotFoundError);
     });
 

@@ -382,7 +382,7 @@ export const MOMENT_ARG_THRESHOLDS = {
 /**
  * Default remote server URL for the Promptbook
  *
- * @deprecated !!!! Deprecate all pipelines server
+ * @deprecated TODO: !!! Deprecate all things related to pipelines and pipelines server
  * @public exported from `@promptbook/core`
  */
 export const DEFAULT_REMOTE_SERVER_URL: string_promptbook_server_url = `https://promptbook.s5.ptbk.io/`;
