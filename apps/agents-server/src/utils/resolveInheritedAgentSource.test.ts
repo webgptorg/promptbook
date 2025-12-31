@@ -8,17 +8,19 @@ describe('how `resolveInheritedAgentSource` works', () => {
             resolveInheritedAgentSource(book`
                 Beatrice
 
-                FROM https://core-test.ptbk.io/agents/adam
+                FROM https://core-test.ptbk.io/agents/test-0
                 LANGUAGE Italian
             `),
         ).resolves.toEqual(
             book`
                 Beatrice
 
-                META COLOR #FFFFFF
-                META FONT Playfair Display, sans-serif
-                PERSONA Knowledgeable and informative AI guide.
-                RULE WRITE ONLY IN UPPERCASE
+                NOTE Inherited from https://core-test.ptbk.io/agents/test-0
+                FROM VOID
+                NONCE 0
+
+                ---
+
                 LANGUAGE Italian
             `,
         );

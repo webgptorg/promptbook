@@ -27,7 +27,10 @@ export async function resolveInheritedAgentSource(
     // Note: We don't provide tools/models here as we only care about parsing commitments
     const requirements = await createAgentModelRequirements(agentSource);
 
+    console.log('-----');
+    console.log('!!!! agentSource', agentSource);
     console.log('!!!! requirements', requirements);
+    console.log('-----');
 
     let parentAgentUrl: string_agent_url;
 
@@ -88,7 +91,18 @@ export async function resolveInheritedAgentSource(
                 );
             }
 
-            newAgentSourceChunks.push(parentAgentSourceCorpus);
+            newAgentSourceChunks.push(
+                spaceTrim(
+                    (block) => `
+
+                        NOTE Inherited from ${parentAgentUrl}
+                        ${block(parentAgentSourceCorpus)}
+
+                        ---
+                `,
+                ),
+                '', // <- Note: Add an extra newline for separation
+            );
             isFromResolved = true;
             continue;
         }
