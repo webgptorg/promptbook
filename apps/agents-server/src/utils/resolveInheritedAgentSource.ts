@@ -8,7 +8,6 @@ import {
 import { string_agent_url, string_book } from '../../../../src/_packages/types.index'; // <- [🚾]
 import { isValidAgentUrl } from '../../../../src/_packages/utils.index'; // <- [🚾]
 import { spaceTrim } from '../../../../src/utils/organization/spaceTrim';
-import { getWellKnownAgentUrl } from './getWellKnownAgentUrl';
 import { importAgent } from './importAgent';
 
 /**
@@ -27,6 +26,8 @@ export async function resolveInheritedAgentSource(
     // We use createAgentModelRequirements to parse commitments
     // Note: We don't provide tools/models here as we only care about parsing commitments
     const requirements = await createAgentModelRequirements(agentSource);
+
+    console.log('!!!! requirements', requirements);
 
     let parentAgentUrl: string_agent_url;
 

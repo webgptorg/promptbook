@@ -62,6 +62,18 @@ export class FromCommitmentDefinition extends BaseCommitmentDefinition<'FROM'> {
             return requirements;
         }
 
+        if (
+            trimmedContent.toUpperCase() === 'VOID' ||
+            trimmedContent.toUpperCase() === 'NULL' ||
+            trimmedContent.toUpperCase() === 'NONE' ||
+            trimmedContent.toUpperCase() === 'NIL'
+        ) {
+            return {
+                ...requirements,
+                parentAgentUrl: null,
+            };
+        }
+
         // Validate URL
         try {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -72,17 +84,13 @@ export class FromCommitmentDefinition extends BaseCommitmentDefinition<'FROM'> {
             return requirements;
         }
 
-        let parentAgentUrl: string_agent_url | null = trimmedContent;
+        const parentAgentUrl: string_agent_url = trimmedContent;
 
-        if (parentAgentUrl === 'null') {
-            parentAgentUrl = null;
-        } else if (parentAgentUrl === 'void') {
-            parentAgentUrl = null;
-        }
+        console.log('!!!! parentAgentUrl', parentAgentUrl);
 
         return {
             ...requirements,
-            parentAgentUrl,
+            parentAgentUrl: null,
         };
     }
 }

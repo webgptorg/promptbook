@@ -4,7 +4,6 @@ import { resolveInheritedAgentSource } from './resolveInheritedAgentSource';
 
 describe('how `resolveInheritedAgentSource` works', () => {
     it('should resolve `FROM` commitment in agent', async () => {
-        // TODO: !!!! Change to core.ptbk.io
         await expect(
             resolveInheritedAgentSource(book`
                 Beatrice
@@ -20,6 +19,24 @@ describe('how `resolveInheritedAgentSource` works', () => {
                 META FONT Playfair Display, sans-serif
                 PERSONA Knowledgeable and informative AI guide.
                 RULE WRITE ONLY IN UPPERCASE
+                LANGUAGE Italian
+            `,
+        );
+    });
+
+    it('should resolve `FROM VOID` commitment in agent', async () => {
+        await expect(
+            resolveInheritedAgentSource(book`
+                Beatrice
+
+                FROM VOID
+                LANGUAGE Italian
+            `),
+        ).resolves.toEqual(
+            book`
+                Beatrice
+
+                FROM VOID
                 LANGUAGE Italian
             `,
         );
