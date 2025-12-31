@@ -1,5 +1,10 @@
 import { PROMPTBOOK_LEGAL_ENTITY } from './src/config';
-import type { string_legal_entity, string_promptbook_server_url, string_title } from './src/types/typeAliases';
+import type {
+    string_agent_name,
+    string_legal_entity,
+    string_promptbook_server_url,
+    string_title,
+} from './src/types/typeAliases';
 
 /**
  * Open Promptbook server usable for public
@@ -42,6 +47,20 @@ export const CORE_AGENTS_SERVER: ServerConfiguration = {
     owner: PROMPTBOOK_LEGAL_ENTITY,
     url: 'https://core.ptbk.io/',
 };
+
+/**
+ * @@@@
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const CORE_AGENTS_SERVER_ADAM_AGENT_NAME: string_agent_name = 'adam';
+
+/**
+ * @@@@
+ *
+ * @public exported from `@promptbook/core`
+ */
+// !!!! export const CORE_AGENTS_SERVER_ADAM_AGENT_NAME: string_agent_name = 'adam';
 
 /**
  * Available agents servers for the Promptbook
