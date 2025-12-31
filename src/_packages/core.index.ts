@@ -196,7 +196,7 @@ import { TaskTypes } from '../types/TaskType';
 import { aboutPromptbookInformation } from '../utils/misc/aboutPromptbookInformation';
 import { $generateBookBoilerplate } from '../utils/random/$generateBookBoilerplate';
 import { CORE_AGENTS_SERVER } from '../../servers';
-import { CORE_AGENTS_SERVER_ADAM_AGENT_NAME } from '../../servers';
+import { CORE_AGENTS_SERVER_WELL_KNOWN_AGENT_NAMES } from '../../servers';
 import { PUBLIC_AGENTS_SERVERS } from '../../servers';
 
 
@@ -399,5 +399,5 @@ export { TaskTypes };
 export { aboutPromptbookInformation };
 export { $generateBookBoilerplate };
 export { CORE_AGENTS_SERVER };
-export { CORE_AGENTS_SERVER_ADAM_AGENT_NAME };
+export { CORE_AGENTS_SERVER_WELL_KNOWN_AGENT_NAMES };
 export { PUBLIC_AGENTS_SERVERS };

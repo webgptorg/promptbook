@@ -1,10 +1,5 @@
 import { PROMPTBOOK_LEGAL_ENTITY } from './src/config';
-import type {
-    string_agent_name,
-    string_legal_entity,
-    string_promptbook_server_url,
-    string_title,
-} from './src/types/typeAliases';
+import type { string_legal_entity, string_promptbook_server_url, string_title } from './src/types/typeAliases';
 
 /**
  * Open Promptbook server usable for public
@@ -49,18 +44,15 @@ export const CORE_AGENTS_SERVER: ServerConfiguration = {
 };
 
 /**
- * @@@@
+ * Names of well known agents hosted on Core Promptbook server
+ *
+ * - `Adam`: The default ancestor agent for new agents
+ * - `Teacher`: Agent that knows book syntax and can help with self-learning
  *
  * @public exported from `@promptbook/core`
  */
-export const CORE_AGENTS_SERVER_ADAM_AGENT_NAME: string_agent_name = 'adam';
-
-/**
- * @@@@
- *
- * @public exported from `@promptbook/core`
- */
-// !!!! export const CORE_AGENTS_SERVER_ADAM_AGENT_NAME: string_agent_name = 'adam';
+export const CORE_AGENTS_SERVER_WELL_KNOWN_AGENT_NAMES = { ADAM: 'adam', TEACHER: 'teacher' } as const;
+// <- TODO: [🆎] Allow to override (set) well-known agent names via Metadata
 
 /**
  * Available agents servers for the Promptbook

@@ -1,3 +1,4 @@
+import spaceTrim from 'spacetrim';
 import { CORE_AGENTS_SERVER } from '../../../../servers';
 
 export type MetadataType = 'TEXT_SINGLE_LINE' | 'TEXT' | 'NUMBER' | 'BOOLEAN' | 'IMAGE_URL' | 'IP_RANGE';
@@ -36,9 +37,18 @@ export const metadataDefaults = [
     {
         key: 'CORE_SERVER',
         value: CORE_AGENTS_SERVER.url,
-        note: '!!!',
+        note: spaceTrim(`
+                Core Promptbook server URL used for agents that are used for common tasks, theese agents are called well known agents:
+
+                On the core server, the following well known agents should be hosted: 
+                - \`adam\`: The default ancestor agent for new agents
+                - \`teacher\`: Agent that knows book syntax and can help with self-learning
+            
+            `),
         type: 'TEXT',
     },
+    // <- TODO: [🆎] Allow to set well-known agent names via Metadata
+
     {
         key: 'FEDERATED_SERVERS',
         value: '',

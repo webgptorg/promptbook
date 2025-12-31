@@ -1,6 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
-import type { string_knowledge_source_link } from '../../types/typeAliases';
+import type { string_agent_url } from '../../types/typeAliases';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 
 /**
@@ -72,9 +72,17 @@ export class FromCommitmentDefinition extends BaseCommitmentDefinition<'FROM'> {
             return requirements;
         }
 
+        let parentAgentUrl: string_agent_url | null = trimmedContent;
+
+        if (parentAgentUrl === 'null') {
+            parentAgentUrl = null;
+        } else if (parentAgentUrl === 'void') {
+            parentAgentUrl = null;
+        }
+
         return {
             ...requirements,
-            parentAgentUrl: trimmedContent as string_knowledge_source_link,
+            parentAgentUrl,
         };
     }
 }

@@ -1,11 +1,14 @@
 import {
     createAgentModelRequirements,
     padBook,
+    ParseError,
     UnexpectedError,
     validateBook,
 } from '../../../../src/_packages/core.index'; // <- [🚾]
-import { string_book } from '../../../../src/_packages/types.index'; // <- [🚾]
+import { string_agent_url, string_book } from '../../../../src/_packages/types.index'; // <- [🚾]
+import { isValidAgentUrl } from '../../../../src/_packages/utils.index'; // <- [🚾]
 import { spaceTrim } from '../../../../src/utils/organization/spaceTrim';
+import { getWellKnownAgentUrl } from './getWellKnownAgentUrl';
 import { importAgent } from './importAgent';
 
 /**
@@ -22,11 +25,38 @@ export async function resolveInheritedAgentSource(agentSource: string_book): Pro
     // Note: We don't provide tools/models here as we only care about parsing commitments
     const requirements = await createAgentModelRequirements(agentSource);
 
-    if (!requirements.parentAgentUrl) {
+    let parentAgentUrl: string_agent_url;
+
+    // Note: [🆓] There are several cases what the agent ancestor could be:
+    // 1️⃣ Parent URL is explicitly defined and valid
+    if (isValidAgentUrl(requirements.parentAgentUrl)) {
+        parentAgentUrl = requirements.parentAgentUrl as string_agent_url;
+    }
+    // 2️⃣ Parent URL is explicitly defined as null (forcefully no parent)
+    else if (requirements.parentAgentUrl === null) {
         return agentSource;
     }
+    // 3️⃣ Parent URL is not defined, use the default ancestor - Adam
+    else if (requirements.parentAgentUrl === undefined) {
+        parentAgentUrl = await getWellKnownAgentUrl('ADAM');
+    }
+    // 4️⃣ Parent URL is defined but invalid
+    else {
+        throw new ParseError(
+            spaceTrim(
+                (block) => `
+                    Invalid parent agent URL in FROM "${requirements.parentAgentUrl}" commitment:
 
-    let parentAgentSource = await importAgent(requirements.parentAgentUrl);
+                    \`\`\`book
+                    ${block(agentSource)}
+                    \`\`\`
+            
+                `,
+            ),
+        );
+    }
+
+    let parentAgentSource = await importAgent(parentAgentUrl);
     // Remove trailing OPEN or CLOSED if present
     parentAgentSource = parentAgentSource.replace(/\n?(OPEN|CLOSED)\s*$/i, '') as string_book;
 

@@ -1,18 +1,18 @@
-import type { string_pipeline_url } from '../../../types/typeAliases';
+import type { string_agent_url } from '../../../types/typeAliases';
 import type { really_unknown } from '../../organization/really_unknown';
 import { isValidUrl } from './isValidUrl';
 
 /**
- * Tests if given string is valid pipeline URL URL.
+ * Tests if given string is valid agent URL
  *
  * Note: There are few similar functions:
  * - `isValidUrl` which tests any URL
- * - `isValidAgentUrl` which tests just agent URL
- * - `isValidPipelineUrl` *(this one)* which tests just pipeline URL
+ * - `isValidAgentUrl` *(this one)* which tests just agent URL
+ * - `isValidPipelineUrl` which tests just pipeline URL
  *
  * @public exported from `@promptbook/utils`
  */
-export function isValidPipelineUrl(url: really_unknown): url is string_pipeline_url {
+export function isValidAgentUrl(url: really_unknown): url is string_agent_url {
     if (!isValidUrl(url)) {
         return false;
     }

@@ -86,6 +86,7 @@ import { isValidPromptbookVersion } from '../utils/validators/semanticVersion/is
 import { isValidSemanticVersion } from '../utils/validators/semanticVersion/isValidSemanticVersion';
 import { isHostnameOnPrivateNetwork } from '../utils/validators/url/isHostnameOnPrivateNetwork';
 import { isUrlOnPrivateNetwork } from '../utils/validators/url/isUrlOnPrivateNetwork';
+import { isValidAgentUrl } from '../utils/validators/url/isValidAgentUrl';
 import { isValidPipelineUrl } from '../utils/validators/url/isValidPipelineUrl';
 import { isValidUrl } from '../utils/validators/url/isValidUrl';
 import { isValidUuid } from '../utils/validators/uuid/isValidUuid';
@@ -180,6 +181,7 @@ export { isValidPromptbookVersion };
 export { isValidSemanticVersion };
 export { isHostnameOnPrivateNetwork };
 export { isUrlOnPrivateNetwork };
+export { isValidAgentUrl };
 export { isValidPipelineUrl };
 export { isValidUrl };
 export { isValidUuid };

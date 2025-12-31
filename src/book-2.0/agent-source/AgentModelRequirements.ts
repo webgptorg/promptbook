@@ -1,5 +1,5 @@
 import type { LlmToolDefinition } from '../../types/LlmToolDefinition';
-import type { string_knowledge_source_link } from '../../types/typeAliases';
+import type { string_agent_url, string_knowledge_source_link } from '../../types/typeAliases';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 
 /**
@@ -25,8 +25,13 @@ export type AgentModelRequirements = {
 
     /**
      * Optional link to the parent agent from which this agent inherits
+     *
+     * Note: [🆓] There are several cases what the agent ancestor could be:
+     * -  1) `parentAgentUrl` is `string_agent_url` valid agent URL
+     * -  2) `parentAgentUrl` is explicitly `null` (forcefully no parent)
+     * -  3) `parentAgentUrl` is not defined `undefined`,  the default ancestor agent, Adam,  will be used
      */
-    readonly parentAgentUrl?: string_knowledge_source_link;
+    readonly parentAgentUrl?: string_agent_url | null;
 
     /**
      * Optional list of knowledge source links that the agent can use
