@@ -360,6 +360,26 @@ export function Chat(props: ChatProps) {
     // Download logic
     const [showSaveMenu, setShowSaveMenu] = useState(false);
 
+    useEffect(
+        () => {
+            const handleKeyDown = (event: KeyboardEvent) => {
+                if (!(event.ctrlKey || event.metaKey) || event.key !== 's') {
+                    return;
+                }
+
+                event.preventDefault();
+                setShowSaveMenu((v) => !v);
+            };
+
+            window.addEventListener('keydown', handleKeyDown);
+
+            return () => {
+                window.removeEventListener('keydown', handleKeyDown);
+            };
+        },
+        [setShowSaveMenu],
+    );
+
     const handleDownload = useCallback(
         async (format: string_chat_format_name) => {
             const formatDefinition = getChatSaveFormatDefinitions([format])[0];

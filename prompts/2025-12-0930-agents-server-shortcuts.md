@@ -23,7 +23,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🏺] Implement Ctrl+S shortcut in <Chat/> component
 
