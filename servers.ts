@@ -26,7 +26,7 @@ type ServerConfiguration = {
      Note: lising more for loadbalancing
      */
     url: string_promptbook_server_url;
-    // <- TODO: !!!! Change to URL
+    // <- TODO: [🧠]  Maybe change to URL
 };
 
 /**
