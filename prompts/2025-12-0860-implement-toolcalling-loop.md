@@ -5,9 +5,42 @@
 -   There can be tools in the prompt object.
 -   Implement a tool calling loop that will call the tools when the model requests it.
 -   The `LlmExecutionTools.callChatModel` should return the final result, not the function tool calling.
+-   For now, implement this only into the [OpenAiCompatibleExecutionTools](src/llm-providers/openai/OpenAiCompatibleExecutionTools.ts), In the future commits, you will be implementing this in other LLM providers, but not now.
+-   The definition of tools are carried in the `ChatPrompt.tools`, which is an array of tool definitions.
+-   The actual tool implementations are passed into `OpenAiCompatibleExecutionTools` constructor into its `options.executionTools` as [`executionTools: Pick<ExecutionTools,'script'>`](/src/execution/ExecutionTools.ts)
 -   All the callings should be happening inside this method and encapsulated in this method.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle, try to figure out some good abstraction for all the model providers and `LlmExecutionTools` do not to implement same thing multiple times across the repository.
 -   Add the changes into the `/changelog/_current-preversion.md`
+
+This is how the `ChatPrompt` interface should be modified:
+
+```typescript
+
+export type ToolDefinition = {
+    name: string;
+    description: string;
+    parameters: {
+        type: 'object';
+        properties: Record<string, { type: string; description?: string }>;
+        required?: string[];
+    };
+};
+
+
+export type ChatPrompt = CommonPrompt & {
+
+    modelRequirements: ChatModelRequirements;
+    thread?: ChatMessage[];
+
+
+    tools?: Array<ToolDefinition>;
+
+
+   // ...
+
+```
+
+Here is some code for inspiration on how the function calling loop should work:
 
 ```typescript
 // Jednoduchý Node.js chat s OpenAI, který využívá function calling (tools)

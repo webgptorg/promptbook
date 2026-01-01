@@ -7,7 +7,7 @@ dotenv.config({ path: '.env' });
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import { embeddingVectorToString } from '../../../execution/embeddingVectorToString';
 import { usageToHuman } from '../../../execution/utils/usageToHuman';
-import type { Prompt } from '../../../types/Prompt';
+import type { ChatPrompt, Prompt } from '../../../types/Prompt';
 import { keepUnused } from '../../../utils/organization/keepUnused';
 // import { OpenAiAssistantExecutionTools } from '../OpenAiAssistantExecutionTools';
 import type { Usage } from '../../../execution/Usage';
@@ -70,7 +70,7 @@ async function playground() {
     console.info({ models });
     /**/
 
-    /**/
+    /*/
     const imagePrompt = {
         title: 'Hello',
         parameters: {},
@@ -100,7 +100,7 @@ async function playground() {
     console.info(colors.green(completionPrompt.content + completionPromptResult.content));
     /**/
 
-    /*/
+    /**/
     const chatPrompt = {
         title: 'Prague',
         parameters: {},
@@ -116,6 +116,11 @@ async function playground() {
             },
         ],
         content: `Tell me more`,
+        /*
+        tools: [
+
+        ],
+        */
         modelRequirements: {
             modelVariant: 'CHAT',
             systemMessage: 'You are an helpful assistant who provides short and concise answers.',
@@ -123,7 +128,7 @@ async function playground() {
             modelName: 'gpt-5',
             temperature: 1.5,
         },
-    } /* as const * / satisfies Prompt;
+    } /* as const */ satisfies ChatPrompt;
     const chatPromptResult = await openAiExecutionToolsWithUsage.callChatModel!(chatPrompt);
     console.info({ chatPromptResult });
     console.info(colors.cyan(usageToHuman(chatPromptResult.usage)));
