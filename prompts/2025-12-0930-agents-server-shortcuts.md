@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🏺] Implement Ctrl+S shortcut in <BookEditor/> component
 

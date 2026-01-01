@@ -13,6 +13,7 @@ import type { string_book } from '../../book-2.0/agent-source/string_book';
 import { getAllCommitmentDefinitions } from '../../commitments/index';
 import { PROMPTBOOK_SYNTAX_COLORS } from '../../config';
 import { classNames } from '../_common/react-utils/classNames';
+import { SaveIcon } from '../icons/SaveIcon';
 import type { BookEditorProps } from './BookEditor';
 import styles from './BookEditor.module.css';
 import { BookEditorActionbar } from './BookEditorActionbar';
@@ -61,6 +62,7 @@ export function BookEditorMonaco(props: BookEditorProps) {
     const [editor, setEditor] = useState<editor.IStandaloneCodeEditor | null>(null);
     const [isFocused, setIsFocused] = useState(false);
     const [isTouchDevice, setIsTouchDevice] = useState(false);
+    const [isSavedShown, setIsSavedShown] = useState(false);
 
     const monaco = useMonaco();
 
@@ -134,11 +136,37 @@ export function BookEditorMonaco(props: BookEditorProps) {
             setIsFocused(false);
         });
 
+        const saveAction = editor.addAction({
+            id: 'save-book',
+            label: 'Save',
+            keybindings: [monaco!.KeyMod.CtrlCmd | monaco!.KeyCode.KeyS],
+            run: () => {
+                setIsSavedShown(false);
+                setTimeout(() => setIsSavedShown(true), 0);
+                // Note: We don't prevent default, so browser's save dialog still opens
+            },
+        });
+
         return () => {
             focusListener.dispose();
             blurListener.dispose();
+            saveAction.dispose();
         };
-    }, [editor]);
+    }, [editor, monaco]);
+
+    useEffect(() => {
+        if (!isSavedShown) {
+            return;
+        }
+
+        const timer = setTimeout(() => {
+            setIsSavedShown(false);
+        }, 2000);
+
+        return () => {
+            clearTimeout(timer);
+        };
+    }, [isSavedShown]);
 
     useEffect(() => {
         if (!monaco) {
@@ -482,6 +510,12 @@ export function BookEditorMonaco(props: BookEditorProps) {
                 onChange={handleFileInputChange}
             />
             {isDragOver && <div className={styles.dropOverlay}>Drop files to upload</div>}
+            {isSavedShown && (
+                <div className={styles.savedNotification}>
+                    <SaveIcon />
+                    Saved
+                </div>
+            )}
             <div
                 style={{
                     position: 'relative',
