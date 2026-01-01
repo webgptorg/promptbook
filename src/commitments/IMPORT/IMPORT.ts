@@ -83,3 +83,7 @@ export class ImportCommitmentDefinition extends BaseCommitmentDefinition<'IMPORT
         };
     }
 }
+
+/**
+ * Note: [💞] Ignore a discrepancy between file name and entity name
+ */
