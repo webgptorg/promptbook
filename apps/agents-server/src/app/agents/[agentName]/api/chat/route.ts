@@ -47,7 +47,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
     }
 
     const body = await request.json();
-    const { message = 'Tell me more about yourself.', thread } = body;
+    const { message = 'Tell me more about yourself.', thread, attachments = [] } = body;
     //      <- TODO: [🐱‍🚀] To configuration DEFAULT_INITIAL_HIDDEN_MESSAGE
 
     try {
@@ -80,6 +80,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         const userMessageContent = {
             role: 'USER',
             content: message,
+            attachments,
         };
 
         // Record the user message
@@ -91,6 +92,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             agentName,
             agentHash,
             message: userMessageContent,
+            attachments: attachments.length > 0 ? attachments : null,
             promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
             url: request.url,
             ip,

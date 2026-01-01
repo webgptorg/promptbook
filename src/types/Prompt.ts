@@ -48,6 +48,15 @@ export type ChatPrompt = CommonPrompt & {
      * Optional chat thread (history of previous messages)
      */
     thread?: ChatMessage[];
+
+    /**
+     * Optional file attachments
+     */
+    attachments?: Array<{
+        name: string;
+        type: string;
+        url: string;
+    }>;
 };
 
 /**

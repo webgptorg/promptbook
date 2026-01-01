@@ -276,7 +276,7 @@ export function LlmChat(props: LlmChatProps) {
 
     // Handle user messages and LLM responses
     const handleMessage = useCallback(
-        async (messageContent: string) => {
+        async (messageContent: string, attachments: ChatMessage['attachments'] = []) => {
             hasUserInteractedRef.current = true;
 
             // Add user message
@@ -287,6 +287,7 @@ export function LlmChat(props: LlmChatProps) {
                 sender: userParticipantName,
                 content: messageContent as string_markdown,
                 isComplete: true,
+                attachments,
             };
 
             const newMessages = [...messages, userMessage];
@@ -330,6 +331,7 @@ export function LlmChat(props: LlmChatProps) {
                         modelVariant: 'CHAT' as const,
                     },
                     thread,
+                    attachments,
                 };
 
                 // Update task progress

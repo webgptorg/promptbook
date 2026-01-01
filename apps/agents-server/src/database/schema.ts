@@ -149,6 +149,7 @@ export type AgentsServerDatabase = {
                     platform: string | null;
                     source: 'AGENT_PAGE_CHAT' | 'OPENAI_API_COMPATIBILITY' | null;
                     apiKey: string | null;
+                    attachments: Json | null;
                 };
                 Insert: {
                     id?: number;
@@ -166,11 +167,12 @@ export type AgentsServerDatabase = {
                     platform?: string | null;
                     source?: 'AGENT_PAGE_CHAT' | 'OPENAI_API_COMPATIBILITY' | null;
                     apiKey?: string | null;
+                    attachments?: Json | null;
                 };
                 Update: {
                     id?: number;
                     createdAt?: string;
-                    messageHash?: string;
+                    messageHash?: string | null;
                     previousMessageHash?: string | null;
                     agentName?: string;
                     agentHash?: string;
@@ -183,6 +185,7 @@ export type AgentsServerDatabase = {
                     platform?: string | null;
                     source?: 'AGENT_PAGE_CHAT' | 'OPENAI_API_COMPATIBILITY' | null;
                     apiKey?: string | null;
+                    attachments?: Json | null;
                 };
                 Relationships: [
                     {

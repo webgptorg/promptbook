@@ -343,6 +343,24 @@ export const ChatMessageItem = memo(
                         </div>
                     )}
 
+                    {message.attachments && message.attachments.length > 0 && (
+                        <div className={styles.attachments}>
+                            {message.attachments.map((attachment, index) => (
+                                <a
+                                    key={index}
+                                    href={attachment.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className={styles.attachment}
+                                    title={attachment.name}
+                                >
+                                    <span className={styles.attachmentIcon}>📎</span>
+                                    <span className={styles.attachmentName}>{attachment.name}</span>
+                                </a>
+                            ))}
+                        </div>
+                    )}
+
                     {!message.isComplete && <span className={styles.NonCompleteMessageFiller}>{'_'.repeat(70)}</span>}
 
                     {shouldShowButtons && (
@@ -420,6 +438,10 @@ export const ChatMessageItem = memo(
         }
 
         if (prev.message.content !== next.message.content) {
+            return false;
+        }
+
+        if (JSON.stringify(prev.message.attachments) !== JSON.stringify(next.message.attachments)) {
             return false;
         }
 

@@ -38,6 +38,26 @@ export type ChatMessage = Omit<Message<id>, 'direction' | 'recipients' | 'thread
      * Indicates if the message was sent via a voice call
      */
     isVoiceCall?: boolean;
+
+    /**
+     * Optional file attachments
+     */
+    attachments?: Array<{
+        /**
+         * The name of the file
+         */
+        name: string;
+
+        /**
+         * The type of the file
+         */
+        type: string;
+
+        /**
+         * The URL where the file is stored
+         */
+        url: string;
+    }>;
 };
 
 /**

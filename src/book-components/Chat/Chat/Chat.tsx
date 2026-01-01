@@ -154,19 +154,6 @@ export function Chat(props: ChatProps) {
                 }
 
                 setUploadedFiles((prev) => [...prev, ...newUploadedFiles]);
-
-                // Also append the result of onFileUpload to the message input area
-                if (textareaRef.current && newUploadedFiles.length > 0) {
-                    const currentValue = textareaRef.current.value;
-                    const fileContents = newUploadedFiles.map((f) => f.content).join(' ');
-                    const newValue = currentValue ? `${currentValue} ${fileContents}` : fileContents;
-                    textareaRef.current.value = newValue;
-
-                    // Trigger onChange if it exists
-                    if (onChange) {
-                        onChange(newValue);
-                    }
-                }
             } catch (error) {
                 console.error('File upload failed:', error);
                 alert('File upload failed. Please try again.');
@@ -240,19 +227,19 @@ export function Chat(props: ChatProps) {
         buttonSendElement.disabled = true;
 
         try {
-            let messageContent = textareaElement.value;
+            const messageContent = textareaElement.value;
+            const attachments = uploadedFiles.map((uploadedFile) => ({
+                name: uploadedFile.file.name,
+                type: uploadedFile.file.type,
+                url: uploadedFile.content,
+            }));
 
-            // Append file upload results to the message if any files are uploaded
-            if (uploadedFiles.length > 0) {
-                const fileContents = uploadedFiles.map((f) => f.content).join(' ');
-                messageContent = messageContent ? `${messageContent} ${fileContents}` : fileContents;
-            }
-
-            if (spaceTrim(messageContent) === '') {
+            if (spaceTrim(messageContent) === '' && attachments.length === 0) {
                 throw new Error(`You need to write some text or upload a file`);
             }
 
-            await onMessage(messageContent);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            await (onMessage as any)(messageContent, attachments);
 
             textareaElement.value = '';
             setUploadedFiles([]); // Clear uploaded files after sending

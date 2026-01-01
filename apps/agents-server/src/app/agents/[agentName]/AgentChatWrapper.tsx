@@ -3,6 +3,7 @@
 import { usePromise } from '@common/hooks/usePromise';
 import { AgentChat } from '@promptbook-local/components';
 import { RemoteAgent } from '@promptbook-local/core';
+import { upload } from '@vercel/blob/client';
 import { useCallback, useEffect, useMemo } from 'react';
 import { string_agent_url } from '../../../../../../src/types/typeAliases';
 
@@ -72,6 +73,15 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
         }
     }, [autoExecuteMessage]);
 
+    const handleFileUpload = useCallback(async (file: File) => {
+        const blob = await upload(file.name, file, {
+            access: 'public',
+            handleUploadUrl: '/api/upload',
+        });
+
+        return blob.url;
+    }, []);
+
     if (!agent) {
         return <>{/* <- TODO: [🐱‍🚀] <PromptbookLoading /> */}</>;
     }
@@ -81,6 +91,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
             className={`w-full h-full`}
             agent={agent}
             onFeedback={handleFeedback}
+            onFileUpload={handleFileUpload}
             defaultMessage={defaultMessage}
             autoExecuteMessage={autoExecuteMessage}
         />

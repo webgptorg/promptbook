@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨⚱️] Allow to attach files to the chat messages in Agents Server
 

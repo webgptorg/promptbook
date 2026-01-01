@@ -174,6 +174,7 @@ export class RemoteAgent extends Agent {
             body: JSON.stringify({
                 message: prompt.content,
                 thread: chatPrompt.thread,
+                attachments: chatPrompt.attachments,
             }),
         });
         // <- TODO: [🐱‍🚀] What about closed-source agents?
