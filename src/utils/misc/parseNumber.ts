@@ -12,7 +12,11 @@ import { ParseError } from '../../errors/ParseError';
  *
  * @public exported from `@promptbook/utils`
  */
-export function parseNumber(value: string | number): number {
+export function parseNumber(value: string | number | null | undefined): number {
+    if (value === null || value === undefined) {
+        return 0;
+    }
+
     const originalValue = value;
 
     if (typeof value === 'number') {

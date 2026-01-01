@@ -266,6 +266,15 @@ export const DEFAULT_INTERMEDIATE_FILES_STRATEGY: IntermediateFilesStrategy = 'H
  */
 export const DEFAULT_MAX_PARALLEL_COUNT = 5; // <- TODO: [🤹‍♂️]
 
+
+/**
+ * The maximum depth to which recursion can occur
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const DEFAULT_MAX_RECURSION = 10;
+
+
 /**
  * The maximum number of attempts to execute LLM task before giving up
  *

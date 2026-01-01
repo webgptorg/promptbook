@@ -1,13 +1,27 @@
-import spaceTrim from 'spacetrim';
-import { NotFoundError, NotYetImplementedError } from '../../../../src/_packages/core.index'; // <- [🚾]
+import { NotYetImplementedError } from '../../../../src/_packages/core.index'; // <- [🚾]
 import {
     string_agent_name,
     string_agent_permanent_id,
     string_agent_url,
     string_book,
 } from '../../../../src/_packages/types.index'; // <- [🚾]
-import { isValidUrl } from '../../../../src/_packages/utils.index'; // <- [🚾]
+import { deserializeError, isValidUrl } from '../../../../src/_packages/utils.index'; // <- [🚾]
 import { assertsError } from '../../../../src/errors/assertsError';
+import { keepUnused } from '../../../../src/utils/organization/keepUnused';
+
+/**
+ * @@@
+ */
+export type ImportAgentOptions = {
+    /**
+     * The current recursion level
+     *
+     * Used to prevent infinite loops when resolving inherited agent sources
+     *
+     * @default 0
+     */
+    recursionLevel?: number;
+};
 
 /**
  * Imports an agent by its URL or name
@@ -17,7 +31,10 @@ import { assertsError } from '../../../../src/errors/assertsError';
  */
 export async function importAgent(
     agentIdentification: string_agent_name | string_agent_permanent_id | string_agent_url,
+    options?: ImportAgentOptions,
 ): Promise<string_book> {
+    const { recursionLevel = 0 } = options || {};
+
     if (!isValidUrl(agentIdentification)) {
         throw new NotYetImplementedError(`[🏠] Importing local agents be name or permanent id is not implemented yet`);
     }
@@ -34,15 +51,30 @@ export async function importAgent(
         // TODO: Handle authentication/tokens for private agents if needed
 
         // TODO: [🧠] Do this logic more robustly
-        let fetchUrl = agentIdentification;
-        if (!fetchUrl.endsWith('/api/book') && !fetchUrl.endsWith('.book') && !fetchUrl.endsWith('.md')) {
-            fetchUrl = `${fetchUrl.replace(/\/$/, '')}/api/book`;
+        let agentBookUrl = agentIdentification;
+        if (!agentBookUrl.endsWith('/api/book') && !agentBookUrl.endsWith('.book') && !agentBookUrl.endsWith('.md')) {
+            // Note: [🕺] Fetching the `/agents/[agentName]/api/book` endpoint for agent source
+            agentBookUrl = `${agentBookUrl.replace(/\/$/, '')}/api/book?recursionLevel=${recursionLevel + 1}`;
         }
 
-        const response = await fetch(fetchUrl);
+        const response = await fetch(agentBookUrl);
 
         if (!response.ok) {
-            throw new Error(`Failed to fetch parent agent from ${fetchUrl}: ${response.status} ${response.statusText}`);
+            let error: Error | null = null;
+            try {
+                const body = await response.json();
+                error = deserializeError(body, false);
+            } catch (error) {
+                keepUnused(error);
+            } finally {
+                if (error === null) {
+                    error = new Error(
+                        `Failed to fetch parent agent from ${agentBookUrl}: ${response.status} ${response.statusText}`,
+                    );
+                }
+            }
+
+            throw error;
         }
 
         // We assume the response is the agent source text
@@ -75,6 +107,11 @@ export async function importAgent(
     } catch (error) {
         assertsError(error);
 
+        error.message = `Failed to import agent from "${agentIdentification}"` + '\n\n' + error.message;
+        throw error;
+
+        /*
+
         throw new NotFoundError(
             spaceTrim(
                 (block) => `
@@ -85,6 +122,7 @@ export async function importAgent(
                 `,
             ),
         );
+        */
     }
 }
 

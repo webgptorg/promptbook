@@ -8,7 +8,21 @@ import {
 import { string_agent_url, string_book } from '../../../../src/_packages/types.index'; // <- [🚾]
 import { isValidAgentUrl } from '../../../../src/_packages/utils.index'; // <- [🚾]
 import { spaceTrim } from '../../../../src/utils/organization/spaceTrim';
-import { importAgent } from './importAgent';
+import { importAgent, ImportAgentOptions } from './importAgent';
+
+/**
+ * @@@
+ */
+type ResolveInheritedAgentSourceOptions = ImportAgentOptions &{
+    /**
+     * The URL of the Adam agent to use as the default ancestor
+     *
+     * @default 'https://core.ptbk.io/agents/adam'
+     */
+    readonly adamAgentUrl: string_agent_url;
+
+   
+};
 
 /**
  * Resolves agent source with inheritance (FROM commitment)
@@ -20,8 +34,10 @@ import { importAgent } from './importAgent';
  */
 export async function resolveInheritedAgentSource(
     agentSource: string_book,
-    adamAgentUrl: string_agent_url = 'https://core.ptbk.io/agents/adam',
+    options?: ResolveInheritedAgentSourceOptions,
 ): Promise<string_book> {
+    const { adamAgentUrl = 'https://core.ptbk.io/agents/adam', recursionLevel = 0 } = options || {};
+
     // Check if the source has FROM commitment
     // We use createAgentModelRequirements to parse commitments
     // Note: We don't provide tools/models here as we only care about parsing commitments
@@ -58,7 +74,7 @@ export async function resolveInheritedAgentSource(
         );
     }
 
-    let parentAgentSource = await importAgent(parentAgentUrl);
+    let parentAgentSource = await importAgent(parentAgentUrl, { recursionLevel });
     // Remove trailing OPEN or CLOSED if present
     parentAgentSource = parentAgentSource.replace(/\n?(OPEN|CLOSED)\s*$/i, '') as string_book;
 

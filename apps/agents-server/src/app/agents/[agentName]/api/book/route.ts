@@ -1,22 +1,46 @@
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
+import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
 import { resolveInheritedAgentSource } from '@/src/utils/resolveInheritedAgentSource';
 import { padBook, validateBook } from '@promptbook-local/core';
-import { serializeError } from '@promptbook-local/utils';
+import { parseNumber, serializeError } from '@promptbook-local/utils';
 import spaceTrim from 'spacetrim';
+import { DEFAULT_MAX_RECURSION } from '../../../../../../../../src/config';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
-import { keepUnused } from '../../../../../../../../src/utils/organization/keepUnused';
-import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
 
+/**
+ * @@@
+ *
+ * Note: [🕺] This route gives the agent source *(with resolved inheritance)*
+ */
 export async function GET(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
-    keepUnused(request /* <- Note: We dont need `request` parameter */);
-    let { agentName } = await params;
-    agentName = decodeURIComponent(agentName);
-
     try {
+        const url = new URL(request.url);
+        const recursionLevel = parseNumber(url.searchParams.get('recursionLevel'));
+
+        console.info(`[🕺] GET /agents/[agentName]/api/book?recursionLevel=${recursionLevel}`);
+
+        if (recursionLevel > DEFAULT_MAX_RECURSION) {
+            throw new Error(
+                spaceTrim(`
+                
+                    Recursion depth ${recursionLevel} exceeds maximum allowed ${DEFAULT_MAX_RECURSION}
+
+                    This is to prevent infinite loops when resolving inherited agent sources.
+                
+                `),
+            );
+        }
+
+        let { agentName } = await params;
+        agentName = decodeURIComponent(agentName);
+
         const collection = await $provideAgentCollectionForServer();
         const agentId = await collection.getAgentPermanentId(agentName);
         const agentSource = await collection.getAgentSource(agentId);
-        const effectiveAgentSource = await resolveInheritedAgentSource(agentSource,await getWellKnownAgentUrl('ADAM'));
+        const effectiveAgentSource = await resolveInheritedAgentSource(agentSource, {
+            adamAgentUrl: await getWellKnownAgentUrl('ADAM'),
+            recursionLevel,
+        });
 
         return new Response(effectiveAgentSource, {
             status: 200,
