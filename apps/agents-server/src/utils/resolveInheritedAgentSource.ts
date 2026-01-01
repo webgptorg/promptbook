@@ -11,6 +11,24 @@ import { spaceTrim } from '../../../../src/utils/organization/spaceTrim';
 import { importAgent, ImportAgentOptions } from './importAgent';
 
 /**
+ * Gets the corpus of an agent source (removes title and trailing status)
+ *
+ * @param agentSource The agent source
+ * @returns The agent source corpus
+ */
+function getAgentSourceCorpus(agentSource: string_book): string {
+    // Remove trailing OPEN or CLOSED if present
+    const agentSourceWithoutStatus = agentSource.replace(/\n?(OPEN|CLOSED)\s*$/i, '') as string_book;
+    // <- TODO: [🈲] Simple and encapsulated way to get book corpus
+
+    // Remove the first line (title) from agent source
+    const agentSourceCorpus = spaceTrim(agentSourceWithoutStatus.replace(/^.*$/m, ''));
+    // <- TODO: [🈲] Simple and encapsulated way to get book corpus
+
+    return agentSourceCorpus;
+}
+
+/**
  * @@@
  */
 type ResolveInheritedAgentSourceOptions = ImportAgentOptions & {
@@ -72,15 +90,8 @@ export async function resolveInheritedAgentSource(
         );
     }
 
-    let parentAgentSource = await importAgent(parentAgentUrl, { recursionLevel });
-
-    // Remove trailing OPEN or CLOSED if present
-    parentAgentSource = parentAgentSource.replace(/\n?(OPEN|CLOSED)\s*$/i, '') as string_book;
-    // <- TODO: [🈲] Simple and encapsulated way to get book corpus
-
-    // Remove the first line (title) from parent agent source
-    const parentAgentSourceCorpus = spaceTrim(parentAgentSource.replace(/^.*$/m, ''));
-    // <- TODO: [🈲] Simple and encapsulated way to get book corpus
+    const parentAgentSource = await importAgent(parentAgentUrl, { recursionLevel });
+    const parentAgentSourceCorpus = getAgentSourceCorpus(parentAgentSource as string_book);
 
     let isFromResolved = false;
     const newAgentSourceChunks: Array<string> = [];
@@ -89,6 +100,48 @@ export async function resolveInheritedAgentSource(
 
     for (let i = 0; i < agentSourceChunks.length; i++) {
         const line = agentSourceChunks[i];
+
+        if (line.trim().startsWith('IMPORT ')) {
+            const importedAgentUrl = line.trim().substring('IMPORT '.length).trim() as string_agent_url;
+
+            if (!isValidAgentUrl(importedAgentUrl)) {
+                throw new ParseError(
+                    spaceTrim(
+                        (block) => `
+                            Invalid imported agent URL in IMPORT "${importedAgentUrl}" commitment:
+        
+                            \`\`\`book
+                            ${block(agentSource)}
+                            \`\`\`
+                    
+                        `,
+                    ),
+                );
+            }
+
+            const importedAgentSource = await importAgent(importedAgentUrl, { recursionLevel });
+            const resolvedImportedAgentSource = await resolveInheritedAgentSource(importedAgentSource, {
+                ...options,
+                adamAgentUrl,
+                recursionLevel: recursionLevel + 1,
+            });
+            const importedAgentSourceCorpus = getAgentSourceCorpus(resolvedImportedAgentSource);
+
+            newAgentSourceChunks.push(
+                spaceTrim(
+                    (block) => `
+
+                        NOTE Imported from ${importedAgentUrl}
+                        ${block(importedAgentSourceCorpus)}
+
+                        ---
+                `,
+                ),
+                '', // <- Note: Add an extra newline for separation
+            );
+            continue;
+        }
+
         if (line.trim().startsWith('FROM ')) {
             if (isFromResolved === true) {
                 throw new UnexpectedError(

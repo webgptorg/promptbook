@@ -10,6 +10,7 @@ import { DeleteCommitmentDefinition } from './DELETE/DELETE';
 import { DictionaryCommitmentDefinition } from './DICTIONARY/DICTIONARY';
 import { FormatCommitmentDefinition } from './FORMAT/FORMAT';
 import { FromCommitmentDefinition } from './FROM/FROM';
+import { ImportCommitmentDefinition } from './IMPORT/IMPORT';
 import { GoalCommitmentDefinition } from './GOAL/GOAL';
 import { KnowledgeCommitmentDefinition } from './KNOWLEDGE/KNOWLEDGE';
 import { LanguageCommitmentDefinition } from './LANGUAGE/LANGUAGE';
@@ -62,6 +63,8 @@ export const COMMITMENT_REGISTRY = [
     new FormatCommitmentDefinition('FORMAT'),
     new FormatCommitmentDefinition('FORMATS'),
     new FromCommitmentDefinition('FROM'),
+    new ImportCommitmentDefinition('IMPORT'),
+    new ImportCommitmentDefinition('IMPORTS'),
     new ModelCommitmentDefinition('MODEL'),
     new ModelCommitmentDefinition('MODELS'),
     new ActionCommitmentDefinition('ACTION'),

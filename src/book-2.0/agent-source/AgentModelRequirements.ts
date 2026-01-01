@@ -34,6 +34,11 @@ export type AgentModelRequirements = {
     readonly parentAgentUrl?: string_agent_url | null;
 
     /**
+     * List of imported agent URLs
+     */
+    readonly importedAgentUrls?: ReadonlyArray<string_agent_url>;
+
+    /**
      * Optional list of knowledge source links that the agent can use
      */
     readonly knowledgeSources?: ReadonlyArray<string_knowledge_source_link>;
