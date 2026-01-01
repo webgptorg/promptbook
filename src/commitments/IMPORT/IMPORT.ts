@@ -14,6 +14,8 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * ```book
  * IMPORT https://s6.ptbk.io/benjamin-white
  * ```
+ *
+ * @private [🪔] Maybe export the commitments through some package
  */
 export class ImportCommitmentDefinition extends BaseCommitmentDefinition<'IMPORT' | 'IMPORTS'> {
     constructor(type: 'IMPORT' | 'IMPORTS' = 'IMPORT') {
