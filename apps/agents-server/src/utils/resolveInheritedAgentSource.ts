@@ -13,15 +13,13 @@ import { importAgent, ImportAgentOptions } from './importAgent';
 /**
  * @@@
  */
-type ResolveInheritedAgentSourceOptions = ImportAgentOptions &{
+type ResolveInheritedAgentSourceOptions = ImportAgentOptions & {
     /**
      * The URL of the Adam agent to use as the default ancestor
      *
      * @default 'https://core.ptbk.io/agents/adam'
      */
     readonly adamAgentUrl: string_agent_url;
-
-   
 };
 
 /**
@@ -75,9 +73,12 @@ export async function resolveInheritedAgentSource(
     }
 
     let parentAgentSource = await importAgent(parentAgentUrl, { recursionLevel });
+
     // Remove trailing OPEN or CLOSED if present
     parentAgentSource = parentAgentSource.replace(/\n?(OPEN|CLOSED)\s*$/i, '') as string_book;
+    // <- TODO: [🈲] Simple and encapsulated way to get book corpus
 
+    // Remove the first line (title) from parent agent source
     const parentAgentSourceCorpus = spaceTrim(parentAgentSource.replace(/^.*$/m, ''));
     // <- TODO: [🈲] Simple and encapsulated way to get book corpus
 
@@ -86,7 +87,8 @@ export async function resolveInheritedAgentSource(
     const agentSourceChunks = spaceTrim(agentSource).split('\n');
     // <- TODO: [🈲] Simple and encapsulated way to split book into commitments
 
-    for (const line of agentSourceChunks) {
+    for (let i = 0; i < agentSourceChunks.length; i++) {
+        const line = agentSourceChunks[i];
         if (line.trim().startsWith('FROM ')) {
             if (isFromResolved === true) {
                 throw new UnexpectedError(
@@ -106,7 +108,7 @@ export async function resolveInheritedAgentSource(
                 spaceTrim(
                     (block) => `
 
-                        NOTE Inherited from ${parentAgentUrl}
+                        NOTE Inherited FROM ${parentAgentUrl}
                         ${block(parentAgentSourceCorpus)}
 
                         ---
@@ -119,6 +121,28 @@ export async function resolveInheritedAgentSource(
         }
 
         newAgentSourceChunks.push(line);
+    }
+    // <- TODO: [🈲] Simple and encapsulated way to split book into commitments
+
+    // If no FROM was found and the parent is Adam, insert Adam's corpus after the title
+    if (!isFromResolved && parentAgentUrl === adamAgentUrl) {
+        // Insert after the first line (title)
+        const titleLine = newAgentSourceChunks[0] || '';
+        const restLines = newAgentSourceChunks.slice(1);
+        newAgentSourceChunks.length = 0;
+        newAgentSourceChunks.push(
+            titleLine,
+            '',
+            spaceTrim(
+                (block) => `
+                    NOTE Inherited Adam FROM ${parentAgentUrl}
+                    ${block(parentAgentSourceCorpus)}
+
+                    ---
+                `,
+            ),
+            ...restLines,
+        );
     }
 
     const newAgentSource = padBook(validateBook(newAgentSourceChunks.join('\n')));

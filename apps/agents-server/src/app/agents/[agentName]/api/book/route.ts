@@ -14,10 +14,13 @@ import { assertsError } from '../../../../../../../../src/errors/assertsError';
  */
 export async function GET(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
     try {
+        let { agentName } = await params;
+        agentName = decodeURIComponent(agentName);
+
         const url = new URL(request.url);
         const recursionLevel = parseNumber(url.searchParams.get('recursionLevel'));
 
-        console.info(`[🕺] GET /agents/[agentName]/api/book?recursionLevel=${recursionLevel}`);
+        console.info(`[🕺] GET /agents/${agentName}/api/book?recursionLevel=${recursionLevel}`);
 
         if (recursionLevel > DEFAULT_MAX_RECURSION) {
             throw new Error(
@@ -30,9 +33,6 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
                 `),
             );
         }
-
-        let { agentName } = await params;
-        agentName = decodeURIComponent(agentName);
 
         const collection = await $provideAgentCollectionForServer();
         const agentId = await collection.getAgentPermanentId(agentName);

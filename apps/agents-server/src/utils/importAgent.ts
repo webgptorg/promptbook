@@ -33,6 +33,8 @@ export async function importAgent(
     agentIdentification: string_agent_name | string_agent_permanent_id | string_agent_url,
     options?: ImportAgentOptions,
 ): Promise<string_book> {
+    console.log(`importAgent "${agentIdentification}"`);
+
     const { recursionLevel = 0 } = options || {};
 
     if (!isValidUrl(agentIdentification)) {
