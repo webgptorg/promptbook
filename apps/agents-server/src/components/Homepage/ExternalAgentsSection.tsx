@@ -1,4 +1,4 @@
-import type { AgentsByServer } from '../../utils/getFederatedAgents';
+import type { AgentsByServer } from '../../utils/AgentsByServer';
 import { AgentCard } from './AgentCard';
 import { Section } from './Section';
 
