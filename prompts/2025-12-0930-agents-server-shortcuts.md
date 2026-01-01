@@ -10,7 +10,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🏺] Implement Ctrl+V shortcut in <BookEditor/> component
 

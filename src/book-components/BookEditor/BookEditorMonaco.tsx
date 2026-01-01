@@ -429,6 +429,23 @@ export function BookEditorMonaco(props: BookEditorProps) {
         [handleFiles],
     );
 
+    const handlePaste = useCallback(
+        async (event: React.ClipboardEvent<HTMLDivElement>) => {
+            const files = Array.from(event.clipboardData.files);
+
+            if (files.length === 0) {
+                return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+
+            await handleFiles(files);
+        },
+        [handleFiles],
+    );
+    // <- TODO: [✨🏺] !!!! Maybe not working
+
     const handleUploadDocument = useCallback(() => {
         if (fileUploadInputRef.current) {
             fileUploadInputRef.current.click();
@@ -470,6 +487,7 @@ export function BookEditorMonaco(props: BookEditorProps) {
         <div
             className={classNames(styles.bookEditorContainer, instanceClass)} // <-- add instance-scoped class
             onDrop={handleDrop}
+            onPaste={handlePaste}
             onDragOver={handleDragOver}
             onDragEnter={handleDragEnter}
             onDragLeave={handleDragLeave}
