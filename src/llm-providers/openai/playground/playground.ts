@@ -38,7 +38,8 @@ async function playground() {
 
     const script = new JavascriptEvalExecutionTools({
         functions: {
-            get_cupon_code: async (params: { productCategory: string; discountPercentage: number }) => {
+            // TODO: !!!! Normalize function names:
+            get_coupon_code: async (params: { productCategory: string; discountPercentage: number }) => {
                 // Simulate generating a coupon code based on product category and discount percentage
                 const { productCategory, discountPercentage } = params;
                 const code = `SAVE${discountPercentage}${productCategory.toUpperCase().slice(0, 3)}2025`;
@@ -151,7 +152,7 @@ async function playground() {
 
         tools: [
             {
-                name: 'get_cupon_code',
+                name: 'get_coupon_code',
 
                 description: 'Generate a coupon code based on product category and discount percentage',
 
