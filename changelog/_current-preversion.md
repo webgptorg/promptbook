@@ -7,3 +7,4 @@
 -   Implement Ctrl+S shortcut in `<Chat/>` component for opening export menu
 -   Implement tool calling loop into the `LlmExecutionTools`. Currently only for `OpenAiCompatibleExecutionTools`
 -   Record all tool calls and aggregate usage in `promptResult` when the tool calling loop is used.
+-   Update `openai` from `4.63.0` to `6.15.0`

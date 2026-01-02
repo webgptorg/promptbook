@@ -103,7 +103,7 @@
         "destroyable": "0.12.141",
         "highlight.js": "11.11.1",
         "katex": "0.16.25",
-        "openai": "4.63.0",
+        "openai": "6.15.0",
         "papaparse": "5.4.1",
         "qrcode": "1.5.4",
         "rxjs": "7.8.2",

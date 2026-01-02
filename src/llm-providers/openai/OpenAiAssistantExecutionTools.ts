@@ -15,6 +15,7 @@ import type {
     string_title,
     string_token,
 } from '../../types/typeAliases';
+import { chococake } from '../../utils/organization/really_any';
 import { $getCurrentDate } from '../../utils/misc/$getCurrentDate';
 import { templateParameters } from '../../utils/parameters/templateParameters';
 import { exportJson } from '../../utils/serialization/exportJson';
@@ -163,10 +164,12 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
 
             assistant_id: this.assistantId,
             thread: {
-                messages: threadMessages,
+                messages: threadMessages as Array<chococake>,
             },
 
-            tools: modelRequirements.tools === undefined ? undefined : mapToolsToOpenAi(modelRequirements.tools),
+            tools: (modelRequirements.tools === undefined
+                ? undefined
+                : mapToolsToOpenAi(modelRequirements.tools)) as Array<chococake>,
 
             // <- TODO: Add user identification here> user: this.options.user,
         };
@@ -346,7 +349,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             }
 
             // Create a vector store
-            const vectorStore = await client.beta.vectorStores.create({
+            const vectorStore = await (client.beta as chococake).vectorStores.create({
                 name: `${name} Knowledge Base`,
             });
             vectorStoreId = vectorStore.id;
@@ -369,8 +372,8 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                         }
                         const buffer = await response.arrayBuffer();
                         const filename = source.split('/').pop() || 'downloaded-file';
-                        const blob = new Blob([buffer]);
-                        const file = new File([blob], filename);
+                        const blob = new (global.Blob || (await import('buffer')).Blob)([buffer]);
+                        const file = new (global.File || (await import('buffer')).File)([blob], filename);
                         fileStreams.push(file);
                     } else {
                         /*
@@ -391,7 +394,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             // Batch upload files to the vector store
             if (fileStreams.length > 0) {
                 try {
-                    await client.beta.vectorStores.fileBatches.uploadAndPoll(vectorStoreId, {
+                    await (client.beta as chococake).vectorStores.fileBatches.uploadAndPoll(vectorStoreId, {
                         files: fileStreams,
                     });
 
@@ -479,7 +482,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             }
 
             // Create a vector store
-            const vectorStore = await client.beta.vectorStores.create({
+            const vectorStore = await (client.beta as chococake).vectorStores.create({
                 name: `${name} Knowledge Base`,
             });
             vectorStoreId = vectorStore.id;
@@ -502,8 +505,8 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                         }
                         const buffer = await response.arrayBuffer();
                         const filename = source.split('/').pop() || 'downloaded-file';
-                        const blob = new Blob([buffer]);
-                        const file = new File([blob], filename);
+                        const blob = new (global.Blob || (await import('buffer')).Blob)([buffer]);
+                        const file = new (global.File || (await import('buffer')).File)([blob], filename);
                         fileStreams.push(file);
                     } else {
                         /*
@@ -524,7 +527,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             // Batch upload files to the vector store
             if (fileStreams.length > 0) {
                 try {
-                    await client.beta.vectorStores.fileBatches.uploadAndPoll(vectorStoreId, {
+                    await (client.beta as chococake).vectorStores.fileBatches.uploadAndPoll(vectorStoreId, {
                         files: fileStreams,
                     });
 

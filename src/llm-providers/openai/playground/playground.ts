@@ -148,7 +148,7 @@ async function playground() {
         //         content: 'Prague is a beautiful city located in the Czech Republic.',
         //     },
         // ],
-        content: `Give me a coupons for grocery shopping in Prague and electronics shopping in London.`,
+        content: `Give me a coupons for grocery shopping in electronics store.`,
 
         tools: [
             {
