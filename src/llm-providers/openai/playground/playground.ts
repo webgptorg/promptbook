@@ -43,6 +43,11 @@ async function playground() {
                 // Simulate generating a coupon code based on product category and discount percentage
                 const { productCategory, discountPercentage } = params;
                 const code = `SAVE${discountPercentage}${productCategory.toUpperCase().slice(0, 3)}2025`;
+
+                console.log(
+                    `!!!! [🛠️] Generated coupon code: ${code} for category: ${productCategory} with discount: ${discountPercentage}%`,
+                );
+
                 return code;
             },
         },
@@ -148,7 +153,7 @@ async function playground() {
         //         content: 'Prague is a beautiful city located in the Czech Republic.',
         //     },
         // ],
-        content: `Give me a coupons for grocery shopping in Prague and electronics shopping in London.`,
+        content: `Give me a coupons for grocery shopping in electronics store with a 20% discount.`,
 
         tools: [
             {
@@ -175,7 +180,8 @@ async function playground() {
 
         modelRequirements: {
             modelVariant: 'CHAT',
-            systemMessage: 'You are an helpful assistant who provides short and concise answers.',
+            systemMessage:
+                'You are an helpful assistant who can provide coupon codes, via the get_coupon_code tool. Do not make up coupon codes on your own. Do not provide more that 25% discount and more than 5 coupons per message.',
             // modelName: 'gpt-3.5-turbo',
             modelName: 'gpt-5',
             temperature: 1.5,
