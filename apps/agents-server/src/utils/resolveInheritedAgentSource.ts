@@ -99,7 +99,7 @@ export async function resolveInheritedAgentSource(
     // <- TODO: [🈲] Simple and encapsulated way to split book into commitments
 
     for (let i = 0; i < agentSourceChunks.length; i++) {
-        const line = agentSourceChunks[i];
+        const line = agentSourceChunks[i]!;
 
         if (line.trim().startsWith('IMPORT ')) {
             const importedAgentUrl = line.trim().substring('IMPORT '.length).trim() as string_agent_url;

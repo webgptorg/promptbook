@@ -15,7 +15,7 @@ describe('how `resolveInheritedAgentSource` works', () => {
             book`
                 Beatrice
 
-                NOTE Inherited from https://core-test.ptbk.io/agents/test-0
+                NOTE Inherited FROM https://core-test.ptbk.io/agents/test-0
                 FROM VOID
                 NONCE 0
 
