@@ -30,6 +30,7 @@ import type { chococake } from '../../utils/organization/really_any';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import { templateParameters } from '../../utils/parameters/templateParameters';
 import { exportJson } from '../../utils/serialization/exportJson';
+import { addUsage } from '../../execution/utils/addUsage';
 import { forEachAsync } from '../../execution/utils/forEachAsync';
 import { mapToolsToOpenAi } from './utils/mapToolsToOpenAi';
 import {
@@ -252,6 +253,8 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
             },
         };
 
+        const toolCalls: Array<NonNullable<ChatPromptResult['toolCalls']>[number]> = [];
+
         const start: string_date_iso8601 = $getCurrentDate();
 
         const tools =
@@ -293,41 +296,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
                 messages.push(responseMessage);
 
                 const usage: Usage = this.computeUsage(content || '', responseMessage.content || '', rawResponse);
-                totalUsage = {
-                    price: uncertainNumber(totalUsage.price.value + usage.price.value),
-                    input: {
-                        tokensCount: uncertainNumber(totalUsage.input.tokensCount.value + usage.input.tokensCount.value),
-                        charactersCount: uncertainNumber(
-                            totalUsage.input.charactersCount.value + usage.input.charactersCount.value,
-                        ),
-                        wordsCount: uncertainNumber(totalUsage.input.wordsCount.value + usage.input.wordsCount.value),
-                        sentencesCount: uncertainNumber(
-                            totalUsage.input.sentencesCount.value + usage.input.sentencesCount.value,
-                        ),
-                        linesCount: uncertainNumber(totalUsage.input.linesCount.value + usage.input.linesCount.value),
-                        paragraphsCount: uncertainNumber(
-                            totalUsage.input.paragraphsCount.value + usage.input.paragraphsCount.value,
-                        ),
-                        pagesCount: uncertainNumber(totalUsage.input.pagesCount.value + usage.input.pagesCount.value),
-                    },
-                    output: {
-                        tokensCount: uncertainNumber(
-                            totalUsage.output.tokensCount.value + usage.output.tokensCount.value,
-                        ),
-                        charactersCount: uncertainNumber(
-                            totalUsage.output.charactersCount.value + usage.output.charactersCount.value,
-                        ),
-                        wordsCount: uncertainNumber(totalUsage.output.wordsCount.value + usage.output.wordsCount.value),
-                        sentencesCount: uncertainNumber(
-                            totalUsage.output.sentencesCount.value + usage.output.sentencesCount.value,
-                        ),
-                        linesCount: uncertainNumber(totalUsage.output.linesCount.value + usage.output.linesCount.value),
-                        paragraphsCount: uncertainNumber(
-                            totalUsage.output.paragraphsCount.value + usage.output.paragraphsCount.value,
-                        ),
-                        pagesCount: uncertainNumber(totalUsage.output.pagesCount.value + usage.output.pagesCount.value),
-                    },
-                };
+                totalUsage = addUsage(totalUsage, usage);
 
                 if (responseMessage.tool_calls && responseMessage.tool_calls.length > 0) {
                     await forEachAsync(responseMessage.tool_calls, {}, async (toolCall) => {
@@ -371,6 +340,13 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
                             tool_call_id: toolCall.id,
                             content: functionResponse,
                         });
+
+                        toolCalls.push({
+                            name: functionName,
+                            arguments: functionArgs,
+                            result: functionResponse,
+                            rawToolCall: toolCall,
+                        });
                     });
 
                     continue;
@@ -396,6 +372,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
                             complete,
                         },
                         usage: totalUsage,
+                        toolCalls,
                         rawPromptContent,
                         rawRequest,
                         rawResponse,

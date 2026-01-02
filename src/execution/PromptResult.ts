@@ -1,4 +1,5 @@
 import type { string_date_iso8601, string_model_name, string_prompt } from '../types/typeAliases';
+import type { TODO_any } from '../utils/organization/TODO_any';
 import type { TODO_object } from '../utils/organization/TODO_object';
 import type { EmbeddingVector } from './EmbeddingVector';
 import type { Usage } from './Usage';
@@ -30,6 +31,31 @@ export type CompletionPromptResult = CommonPromptResult;
  */
 export type ChatPromptResult = CommonPromptResult & {
     // TODO: [🗯][🧠] Figure out way how to pass thread / previous messages
+
+    /**
+     * Optional tool calls made during the execution
+     */
+    readonly toolCalls?: ReadonlyArray<{
+        /**
+         * Name of the tool
+         */
+        readonly name: string;
+
+        /**
+         * Arguments of the tool call
+         */
+        readonly arguments: string;
+
+        /**
+         * Result of the tool call
+         */
+        readonly result: string;
+
+        /**
+         * Raw tool call from the model
+         */
+        readonly rawToolCall: TODO_any;
+    }>;
 };
 
 /**

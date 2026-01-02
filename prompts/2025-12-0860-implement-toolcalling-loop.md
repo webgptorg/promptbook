@@ -152,7 +152,7 @@ runChat().catch(console.error);
 
 ---
 
-[ ]
+[x]
 
 [✨🔑] When the toolCallLoop is used, record all the calls
 
