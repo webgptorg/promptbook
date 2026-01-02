@@ -1,9 +1,10 @@
 [ ]
 
-[✨⛎] Implement `callImageGenerationModel` into `LlmExecutionTools`
+[✨⛎] Implement `callVideoGenerationModel` into `LlmExecutionTools`
 
 -   Look how `callImageGenerationModel` is implemented in `LlmExecutionTools`.
 -   Implement the logic for Open AI for now, Other LLM providers will be implemented later.
+-   Implement the video generation with Sora 2 model.
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
