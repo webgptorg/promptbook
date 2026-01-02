@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🧬] When creating new agent, show the floating hint
 

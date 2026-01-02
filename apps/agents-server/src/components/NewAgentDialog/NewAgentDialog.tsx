@@ -17,10 +17,12 @@ export function NewAgentDialog(props: NewAgentDialogProps) {
     const { isOpen, onClose, initialAgentSource, onCreate } = props;
     const [agentSource, setAgentSource] = useState(initialAgentSource);
     const [isCreating, setIsCreating] = useState(false);
+    const [isInteracted, setIsInteracted] = useState(false);
 
     useEffect(() => {
         setAgentSource(initialAgentSource);
-    }, [initialAgentSource]);
+        setIsInteracted(false);
+    }, [initialAgentSource, isOpen]);
 
     if (!isOpen) {
         return null;
@@ -50,13 +52,47 @@ export function NewAgentDialog(props: NewAgentDialogProps) {
                         </button>
                     </div>
 
-                    <div className="flex-1 overflow-hidden p-4">
+                    <div
+                        className="flex-1 overflow-hidden p-4 relative"
+                        onDragEnter={() => setIsInteracted(true)}
+                    >
                         <BookEditor
                             agentSource={agentSource}
-                            onChange={(source) => setAgentSource(source)}
+                            onChange={(source) => {
+                                setAgentSource(source);
+                                setIsInteracted(true);
+                            }}
                             height="100%"
                             isVerbose={false}
                         />
+
+                        {!isInteracted && (
+                            <div className="absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none select-none flex items-center pr-4 md:pr-12">
+                                <div className="relative">
+                                    <svg
+                                        width="150"
+                                        height="100"
+                                        viewBox="0 0 150 100"
+                                        fill="none"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className="text-red-500 transform -rotate-12 w-24 h-16 md:w-32 md:h-24"
+                                    >
+                                        <path
+                                            d="M140 10C120 20 80 30 40 60M40 60L55 55M40 60L50 75"
+                                            stroke="currentColor"
+                                            strokeWidth="3"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                        />
+                                    </svg>
+                                    <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 text-red-500 font-medium text-lg md:text-xl whitespace-nowrap text-center leading-tight">
+                                        Drop the files
+                                        <br />
+                                        with the knowledge here
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <div className="flex items-center justify-end gap-3 p-4 border-t border-gray-200 bg-gray-50 rounded-b-lg">

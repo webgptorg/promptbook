@@ -6,4 +6,5 @@
 -   Implement Ctrl+V shortcut in `<BookEditor/>` component for pasting images and files
 -   Implement Ctrl+S shortcut in `<Chat/>` component for opening export menu
 -   Implement tool calling loop into the `LlmExecutionTools`. Currently only for `OpenAiCompatibleExecutionTools`
+-   Show floating hint when creating new agent in Agents Server [2025-12-0920-agents-server-hints.md](https://github.com/webgptorg/promptbook/blob/main/prompts/2025-12-0920-agents-server-hints.md)
 -   Record all tool calls and aggregate usage in `promptResult` when the tool calling loop is used.
