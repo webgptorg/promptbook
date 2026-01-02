@@ -30,6 +30,7 @@ import type { chococake } from '../../utils/organization/really_any';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import { templateParameters } from '../../utils/parameters/templateParameters';
 import { exportJson } from '../../utils/serialization/exportJson';
+import { forEachAsync } from '../../execution/utils/forEachAsync';
 import { mapToolsToOpenAi } from './utils/mapToolsToOpenAi';
 import {
     isUnsupportedParameterError,
@@ -203,7 +204,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
         const rawPromptContent: string = templateParameters(content, { ...parameters, modelName });
 
         // Convert thread to OpenAI format if present
-        let threadMessages: OpenAI.Chat.Completions.CompletionCreateParamsNonStreaming['messages'] = [];
+        let threadMessages: Array<OpenAI.Chat.Completions.ChatCompletionMessageParam> = [];
         if ('thread' in prompt && Array.isArray((prompt as TODO_any).thread)) {
             threadMessages = (prompt as chococake).thread!.map(
                 (msg: chococake): OpenAI.Chat.Completions.ChatCompletionMessageParam => ({
@@ -213,92 +214,243 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
             );
         }
 
-        const rawRequest: OpenAI.Chat.Completions.CompletionCreateParamsNonStreaming = {
-            ...modelSettings,
-            messages: [
-                ...(currentModelRequirements.systemMessage === undefined
-                    ? []
-                    : ([
-                          {
-                              role: 'system',
-                              content: currentModelRequirements.systemMessage,
-                          },
-                      ] as const)),
-                ...threadMessages,
-                {
-                    role: 'user',
-                    content: rawPromptContent,
-                },
-            ] as Array<OpenAI.Chat.Completions.ChatCompletionMessageParam>,
-            user: this.options.userId?.toString(),
-            tools:
-                currentModelRequirements.tools === undefined
-                    ? undefined
-                    : mapToolsToOpenAi(currentModelRequirements.tools),
+        const messages: Array<OpenAI.Chat.Completions.ChatCompletionMessageParam> = [
+            ...(currentModelRequirements.systemMessage === undefined
+                ? []
+                : ([
+                      {
+                          role: 'system',
+                          content: currentModelRequirements.systemMessage,
+                      },
+                  ] as const)),
+            ...threadMessages,
+            {
+                role: 'user',
+                content: rawPromptContent,
+            },
+        ];
+
+        let totalUsage: Usage = {
+            price: uncertainNumber(0),
+            input: {
+                tokensCount: uncertainNumber(0),
+                charactersCount: uncertainNumber(0),
+                wordsCount: uncertainNumber(0),
+                sentencesCount: uncertainNumber(0),
+                linesCount: uncertainNumber(0),
+                paragraphsCount: uncertainNumber(0),
+                pagesCount: uncertainNumber(0),
+            },
+            output: {
+                tokensCount: uncertainNumber(0),
+                charactersCount: uncertainNumber(0),
+                wordsCount: uncertainNumber(0),
+                sentencesCount: uncertainNumber(0),
+                linesCount: uncertainNumber(0),
+                paragraphsCount: uncertainNumber(0),
+                pagesCount: uncertainNumber(0),
+            },
         };
+
         const start: string_date_iso8601 = $getCurrentDate();
 
-        if (this.options.isVerbose) {
-            console.info(colors.bgWhite('rawRequest'), JSON.stringify(rawRequest, null, 4));
-        }
+        const tools =
+            'tools' in prompt && Array.isArray(prompt.tools) ? prompt.tools : currentModelRequirements.tools;
 
-        try {
-            const rawResponse: OpenAI.Chat.Completions.ChatCompletion = await this.limiter
-                .schedule(() => this.makeRequestWithNetworkRetry(() => client.chat.completions.create(rawRequest)))
-                .catch((error: Error) => {
-                    assertsError(error);
-                    if (this.options.isVerbose) {
-                        console.info(colors.bgRed('error'), error);
-                    }
-                    throw error;
-                });
+        let isLooping = true;
+        while (isLooping) {
+            const rawRequest: OpenAI.Chat.Completions.CompletionCreateParamsNonStreaming = {
+                ...modelSettings,
+                messages,
+                user: this.options.userId?.toString(),
+                tools: tools === undefined ? undefined : mapToolsToOpenAi(tools),
+            };
 
             if (this.options.isVerbose) {
-                console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
-            }
-            const complete: string_date_iso8601 = $getCurrentDate();
-
-            if (!rawResponse.choices[0]) {
-                throw new PipelineExecutionError(`No choises from ${this.title}`);
+                console.info(colors.bgWhite('rawRequest'), JSON.stringify(rawRequest, null, 4));
             }
 
-            if (rawResponse.choices.length > 1) {
-                // TODO: This should be maybe only warning
-                throw new PipelineExecutionError(`More than one choise from ${this.title}`);
-            }
+            try {
+                const rawResponse: OpenAI.Chat.Completions.ChatCompletion = await this.limiter
+                    .schedule(() => this.makeRequestWithNetworkRetry(() => client.chat.completions.create(rawRequest)))
+                    .catch((error: Error) => {
+                        assertsError(error);
+                        if (this.options.isVerbose) {
+                            console.info(colors.bgRed('error'), error);
+                        }
+                        throw error;
+                    });
 
-            const resultContent: string | null = rawResponse.choices[0].message.content;
-            const usage: Usage = this.computeUsage(content || '', resultContent || '', rawResponse);
+                if (this.options.isVerbose) {
+                    console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
+                }
 
-            if (resultContent === null) {
-                throw new PipelineExecutionError(`No response message from ${this.title}`);
-            }
+                if (!rawResponse.choices[0]) {
+                    throw new PipelineExecutionError(`No choises from ${this.title}`);
+                }
 
-            return exportJson({
-                name: 'promptResult',
-                message: `Result of \`OpenAiCompatibleExecutionTools.callChatModel\``,
-                order: [],
-                value: {
-                    content: resultContent,
-                    modelName: rawResponse.model || modelName,
-                    timing: {
-                        start,
-                        complete,
+                const responseMessage = rawResponse.choices[0].message;
+                messages.push(responseMessage);
+
+                const usage: Usage = this.computeUsage(content || '', responseMessage.content || '', rawResponse);
+                totalUsage = {
+                    price: uncertainNumber(totalUsage.price.value + usage.price.value),
+                    input: {
+                        tokensCount: uncertainNumber(totalUsage.input.tokensCount.value + usage.input.tokensCount.value),
+                        charactersCount: uncertainNumber(
+                            totalUsage.input.charactersCount.value + usage.input.charactersCount.value,
+                        ),
+                        wordsCount: uncertainNumber(totalUsage.input.wordsCount.value + usage.input.wordsCount.value),
+                        sentencesCount: uncertainNumber(
+                            totalUsage.input.sentencesCount.value + usage.input.sentencesCount.value,
+                        ),
+                        linesCount: uncertainNumber(totalUsage.input.linesCount.value + usage.input.linesCount.value),
+                        paragraphsCount: uncertainNumber(
+                            totalUsage.input.paragraphsCount.value + usage.input.paragraphsCount.value,
+                        ),
+                        pagesCount: uncertainNumber(totalUsage.input.pagesCount.value + usage.input.pagesCount.value),
                     },
-                    usage,
-                    rawPromptContent,
-                    rawRequest,
-                    rawResponse,
-                    // <- [🗯]
-                },
-            });
-        } catch (error) {
-            assertsError(error);
+                    output: {
+                        tokensCount: uncertainNumber(
+                            totalUsage.output.tokensCount.value + usage.output.tokensCount.value,
+                        ),
+                        charactersCount: uncertainNumber(
+                            totalUsage.output.charactersCount.value + usage.output.charactersCount.value,
+                        ),
+                        wordsCount: uncertainNumber(totalUsage.output.wordsCount.value + usage.output.wordsCount.value),
+                        sentencesCount: uncertainNumber(
+                            totalUsage.output.sentencesCount.value + usage.output.sentencesCount.value,
+                        ),
+                        linesCount: uncertainNumber(totalUsage.output.linesCount.value + usage.output.linesCount.value),
+                        paragraphsCount: uncertainNumber(
+                            totalUsage.output.paragraphsCount.value + usage.output.paragraphsCount.value,
+                        ),
+                        pagesCount: uncertainNumber(totalUsage.output.pagesCount.value + usage.output.pagesCount.value),
+                    },
+                };
 
-            // Check if this is an unsupported parameter error
-            if (!isUnsupportedParameterError(error)) {
-                // If we have attemptStack, include it in the error message
-                if (attemptStack.length > 0) {
+                if (responseMessage.tool_calls && responseMessage.tool_calls.length > 0) {
+                    await forEachAsync(responseMessage.tool_calls, {}, async (toolCall) => {
+                        const functionName = toolCall.function.name;
+                        const functionArgs = toolCall.function.arguments;
+
+                        const executionTools = (this.options as OpenAiCompatibleExecutionToolsNonProxiedOptions)
+                            .executionTools;
+
+                        if (!executionTools || !executionTools.script) {
+                            throw new PipelineExecutionError(
+                                `Model requested tool '${functionName}' but no executionTools.script were provided in OpenAiCompatibleExecutionTools options`,
+                            );
+                        }
+
+                        // TODO: [DRY] Use some common tool caller
+                        const scriptTools = Array.isArray(executionTools.script)
+                            ? executionTools.script
+                            : [executionTools.script];
+
+                        let functionResponse: string;
+
+                        try {
+                            const scriptTool = scriptTools[0]!; // <- TODO: [🧠] Which script tool to use?
+
+                            functionResponse = await scriptTool.execute({
+                                scriptLanguage: 'javascript', // <- TODO: [🧠] How to determine script language?
+                                script: `
+                                    const args = ${functionArgs};
+                                    return await ${functionName}(args);
+                                `,
+                                parameters: {}, // <- TODO: [🧠] What parameters to pass?
+                            });
+                        } catch (error) {
+                            assertsError(error);
+                            functionResponse = `Error: ${error.message}`;
+                        }
+
+                        messages.push({
+                            role: 'tool',
+                            tool_call_id: toolCall.id,
+                            content: functionResponse,
+                        });
+                    });
+
+                    continue;
+                }
+
+                const complete: string_date_iso8601 = $getCurrentDate();
+                const resultContent: string | null = responseMessage.content;
+
+                if (resultContent === null) {
+                    throw new PipelineExecutionError(`No response message from ${this.title}`);
+                }
+
+                isLooping = false;
+                return exportJson({
+                    name: 'promptResult',
+                    message: `Result of \`OpenAiCompatibleExecutionTools.callChatModel\``,
+                    order: [],
+                    value: {
+                        content: resultContent,
+                        modelName: rawResponse.model || modelName,
+                        timing: {
+                            start,
+                            complete,
+                        },
+                        usage: totalUsage,
+                        rawPromptContent,
+                        rawRequest,
+                        rawResponse,
+                    },
+                });
+            } catch (error) {
+                isLooping = false;
+                assertsError(error);
+
+                // Check if this is an unsupported parameter error
+                if (!isUnsupportedParameterError(error)) {
+                    // If we have attemptStack, include it in the error message
+                    if (attemptStack.length > 0) {
+                        throw new PipelineExecutionError(
+                            `All attempts failed. Attempt history:\n` +
+                                attemptStack
+                                    .map(
+                                        (a, i) =>
+                                            `  ${i + 1}. Model: ${a.modelName}` +
+                                            (a.unsupportedParameter ? `, Stripped: ${a.unsupportedParameter}` : '') +
+                                            `, Error: ${a.errorMessage}` +
+                                            (a.stripped ? ' (stripped and retried)' : ''),
+                                    )
+                                    .join('\n') +
+                                `\nFinal error: ${error.message}`,
+                        );
+                    }
+                    throw error;
+                }
+
+                // Parse which parameter is unsupported
+                const unsupportedParameter = parseUnsupportedParameterError(error.message);
+
+                if (!unsupportedParameter) {
+                    if (this.options.isVerbose) {
+                        console.warn(
+                            colors.bgYellow('Warning'),
+                            'Could not parse unsupported parameter from error:',
+                            error.message,
+                        );
+                    }
+                    throw error;
+                }
+
+                // Create a unique key for this model + parameter combination to prevent infinite loops
+                const retryKey: string = `${modelName}-${unsupportedParameter}`;
+
+                if (retriedUnsupportedParameters.has(retryKey)) {
+                    // Already retried this parameter, throw the error with attemptStack
+                    attemptStack.push({
+                        modelName,
+                        unsupportedParameter,
+                        errorMessage: error.message,
+                        stripped: true,
+                    });
                     throw new PipelineExecutionError(
                         `All attempts failed. Attempt history:\n` +
                             attemptStack
@@ -313,81 +465,42 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
                             `\nFinal error: ${error.message}`,
                     );
                 }
-                throw error;
-            }
 
-            // Parse which parameter is unsupported
-            const unsupportedParameter = parseUnsupportedParameterError(error.message);
+                // Mark this parameter as retried
+                retriedUnsupportedParameters.add(retryKey);
 
-            if (!unsupportedParameter) {
+                // Log warning in verbose mode
                 if (this.options.isVerbose) {
                     console.warn(
                         colors.bgYellow('Warning'),
-                        'Could not parse unsupported parameter from error:',
-                        error.message,
+                        `Removing unsupported parameter '${unsupportedParameter}' for model '${modelName}' and retrying request`,
                     );
                 }
-                throw error;
-            }
 
-            // Create a unique key for this model + parameter combination to prevent infinite loops
-            const retryKey: string = `${modelName}-${unsupportedParameter}`;
-
-            if (retriedUnsupportedParameters.has(retryKey)) {
-                // Already retried this parameter, throw the error with attemptStack
+                // Add to attemptStack
                 attemptStack.push({
                     modelName,
                     unsupportedParameter,
                     errorMessage: error.message,
                     stripped: true,
                 });
-                throw new PipelineExecutionError(
-                    `All attempts failed. Attempt history:\n` +
-                        attemptStack
-                            .map(
-                                (a, i) =>
-                                    `  ${i + 1}. Model: ${a.modelName}` +
-                                    (a.unsupportedParameter ? `, Stripped: ${a.unsupportedParameter}` : '') +
-                                    `, Error: ${a.errorMessage}` +
-                                    (a.stripped ? ' (stripped and retried)' : ''),
-                            )
-                            .join('\n') +
-                        `\nFinal error: ${error.message}`,
+
+                // Remove the unsupported parameter and retry
+                const modifiedModelRequirements = removeUnsupportedModelRequirement(
+                    currentModelRequirements,
+                    unsupportedParameter,
+                );
+
+                return this.callChatModelWithRetry(
+                    prompt,
+                    modifiedModelRequirements,
+                    attemptStack,
+                    retriedUnsupportedParameters,
                 );
             }
-
-            // Mark this parameter as retried
-            retriedUnsupportedParameters.add(retryKey);
-
-            // Log warning in verbose mode
-            if (this.options.isVerbose) {
-                console.warn(
-                    colors.bgYellow('Warning'),
-                    `Removing unsupported parameter '${unsupportedParameter}' for model '${modelName}' and retrying request`,
-                );
-            }
-
-            // Add to attemptStack
-            attemptStack.push({
-                modelName,
-                unsupportedParameter,
-                errorMessage: error.message,
-                stripped: true,
-            });
-
-            // Remove the unsupported parameter and retry
-            const modifiedModelRequirements = removeUnsupportedModelRequirement(
-                currentModelRequirements,
-                unsupportedParameter,
-            );
-
-            return this.callChatModelWithRetry(
-                prompt,
-                modifiedModelRequirements,
-                attemptStack,
-                retriedUnsupportedParameters,
-            );
         }
+
+        throw new PipelineExecutionError(`Tool calling loop did not return a result from ${this.title}`);
     }
 
     /**

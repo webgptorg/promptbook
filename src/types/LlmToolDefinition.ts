@@ -19,5 +19,9 @@ export type LlmToolDefinition = {
     /**
      * Parameters of the tool in JSON Schema format
      */
-    readonly parameters: Record<string, unknown>;
+    readonly parameters: {
+        readonly type: 'object';
+        readonly properties: Record<string, { type: string; description?: string }>;
+        readonly required?: string[];
+    };
 };

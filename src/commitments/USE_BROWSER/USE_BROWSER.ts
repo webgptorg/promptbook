@@ -1,5 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
+import type { LlmToolDefinition } from '../../types/LlmToolDefinition';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 
@@ -102,7 +103,7 @@ export class UseBrowserCommitmentDefinition extends BaseCommitmentDefinition<'US
         // Add 'web_browser' to tools if not already present
         const updatedTools = existingTools.some((tool) => tool.name === 'web_browser')
             ? existingTools
-            : [
+            : ([
                   // TODO: [🔰] Use through proper MCP server
                   ...existingTools,
                   {
@@ -122,7 +123,7 @@ export class UseBrowserCommitmentDefinition extends BaseCommitmentDefinition<'US
                           required: ['url'],
                       },
                   },
-              ];
+              ] satisfies Array<LlmToolDefinition>);
 
         // Return requirements with updated tools and metadata
         return {

@@ -5,3 +5,4 @@
 -   Implement Ctrl+S shortcut in `<BookEditor/>` component
 -   Implement Ctrl+V shortcut in `<BookEditor/>` component for pasting images and files
 -   Implement Ctrl+S shortcut in `<Chat/>` component for opening export menu
+-   Implement tool calling loop into the `LlmExecutionTools`. Currently only for `OpenAiCompatibleExecutionTools`

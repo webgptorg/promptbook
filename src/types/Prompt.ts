@@ -1,6 +1,7 @@
 import type { FormatCommand } from '../commands/FORMAT/FormatCommand';
 import type { ChatMessage } from '../book-components/Chat/types/ChatMessage';
 import type { Expectations } from '../pipeline/PipelineJson/Expectations';
+import type { LlmToolDefinition } from './LlmToolDefinition';
 import type { ChatModelRequirements } from './ModelRequirements';
 import type { CompletionModelRequirements } from './ModelRequirements';
 import type { EmbeddingModelRequirements } from './ModelRequirements';
@@ -57,6 +58,11 @@ export type ChatPrompt = CommonPrompt & {
         type: string;
         url: string;
     }>;
+
+    /**
+     * Optional tools that can be called by the model
+     */
+    tools?: Array<LlmToolDefinition>;
 };
 
 /**
