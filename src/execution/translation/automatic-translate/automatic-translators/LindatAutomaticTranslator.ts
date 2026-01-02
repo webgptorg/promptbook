@@ -1,4 +1,5 @@
-// [🌿] Using global fetch and FormData (native in Node 18+)
+import FormData from 'form-data';
+import fetch from 'node-fetch'; /* <- TODO: [🌿] Use the Node native fetch */
 import { spaceTrim } from 'spacetrim';
 import { PipelineExecutionError } from '../../../../errors/PipelineExecutionError';
 import type { AutomaticTranslator } from './AutomaticTranslator';
@@ -22,10 +23,10 @@ type LindatAutomaticTranslatorOptions = TranslatorOptions & {
 export class LindatAutomaticTranslator implements AutomaticTranslator {
     public constructor(protected readonly options: LindatAutomaticTranslatorOptions) {}
     public async translate(message: string): Promise<string> {
-        const formData = new (global.FormData || (await import('form-data')))();
+        const formData = new FormData();
         formData.append('input_text', message);
-        formData.append('src', this.options.from as string);
-        formData.append('tgt', this.options.to as string);
+        formData.append('src', this.options.from);
+        formData.append('tgt', this.options.to);
 
         const response = await fetch(
             // <- TODO: [🏳] Probably pass the fetching function

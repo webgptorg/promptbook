@@ -184,14 +184,14 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
         }
 
         const modelName: string_model_name = currentModelRequirements.modelName || this.getDefaultChatModel().modelName;
-        const modelSettings: OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming = {
+        const modelSettings: OpenAI.Chat.Completions.CompletionCreateParamsNonStreaming = {
             model: modelName,
             max_tokens: currentModelRequirements.maxTokens,
             temperature: currentModelRequirements.temperature,
 
             // <- TODO: [🈁] Use `seed` here AND/OR use is `isDeterministic` for entire execution tools
             // <- Note: [🧆]
-        } as OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming; // <- TODO: [💩] Guard here types better
+        } as OpenAI.Chat.Completions.CompletionCreateParamsNonStreaming; // <- TODO: [💩] Guard here types better
 
         if (format === 'JSON') {
             modelSettings.response_format = {
@@ -262,7 +262,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
 
         let isLooping = true;
         while (isLooping) {
-            const rawRequest: OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming = {
+            const rawRequest: OpenAI.Chat.Completions.CompletionCreateParamsNonStreaming = {
                 ...modelSettings,
                 messages,
                 user: this.options.userId?.toString(),
@@ -300,11 +300,6 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
 
                 if (responseMessage.tool_calls && responseMessage.tool_calls.length > 0) {
                     await forEachAsync(responseMessage.tool_calls, {}, async (toolCall) => {
-                        if (toolCall.type !== 'function') {
-                            // [🧠] How to handle other tool types?
-                            return;
-                        }
-
                         const functionName = toolCall.function.name;
                         const functionArgs = toolCall.function.arguments;
 
@@ -940,23 +935,15 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
         }
 
         try {
-            const rawResponse = (await this.limiter
-                .schedule(() =>
-                    this.makeRequestWithNetworkRetry(async () => {
-                        const response = await client.images.generate(rawRequest);
-                        if (!('data' in response)) {
-                            throw new PipelineExecutionError('Image generation stream is not supported yet');
-                        }
-                        return response;
-                    }),
-                )
+            const rawResponse = await this.limiter
+                .schedule(() => this.makeRequestWithNetworkRetry(() => client.images.generate(rawRequest)))
                 .catch((error) => {
                     assertsError(error);
                     if (this.options.isVerbose) {
                         console.info(colors.bgRed('error'), error);
                     }
                     throw error;
-                })) as chococake;
+                });
 
             if (this.options.isVerbose) {
                 console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
