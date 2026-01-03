@@ -13,3 +13,6 @@
 -   Samples of communication (USER MESSAGE and AGENT MESSAGE) are now transferred into the system message.
 -   The initial message is now also included in the example interaction within the system message.
 -   Horizontal lines (`---`) are now filtered out from the system message.
+-   Use Teacher Agent for self-learning of the agents.
+-   Self-learning is now a two-step process: first appending conversation samples, then asynchronously calling the Teacher Agent.
+-   Added `TEACHER` well-known agent to the core server configuration.

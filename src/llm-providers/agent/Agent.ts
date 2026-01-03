@@ -1,5 +1,6 @@
 import { BehaviorSubject } from 'rxjs';
 import spaceTrim from 'spacetrim';
+import { CORE_AGENTS_SERVER, CORE_AGENTS_SERVER_WELL_KNOWN_AGENT_NAMES } from '../../../servers';
 import type {
     AgentBasicInformation,
     AgentCapability,
@@ -13,7 +14,7 @@ import type { string_book } from '../../book-2.0/agent-source/string_book';
 import { validateBook } from '../../book-2.0/agent-source/string_book';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { ChatPrompt, Prompt } from '../../types/Prompt';
+import type { Prompt } from '../../types/Prompt';
 import type {
     string_agent_hash,
     string_agent_name,
@@ -30,6 +31,7 @@ import { normalizeMessageText } from '../../utils/normalization/normalizeMessage
 import { getSingleLlmExecutionTools } from '../_multiple/getSingleLlmExecutionTools';
 import { AgentLlmExecutionTools } from './AgentLlmExecutionTools';
 import type { AgentOptions } from './AgentOptions';
+import { RemoteAgent } from './RemoteAgent'; // <- [💞]
 
 /**
  * Represents one AI Agent
@@ -204,17 +206,25 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
             return result;
         }
 
-        await this.#selfLearn(prompt, result);
-        // <- TODO: !!!! Do not await self-learn, run in background with error handling
+        // TODO: !!!!! Is this timed propperly?
+
+        // Note: [1] Do the append of the samples
+        this.#selfLearnSamples(prompt, result);
+
+        // Note: [2] Asynchronously call the teacher agent and invoke the silver link. When the teacher fails, keep just the samples
+        this.#selfLearnTeacher(prompt, result).catch((error) => {
+            if (this.options.isVerbose) {
+                console.error('Failed to self-learn from teacher agent', error);
+            }
+        });
 
         return result;
     }
 
     /**
-     * Self-learning: Appends the conversation and extracted knowledge to the agent source
+     * Self-learning Step 1: Appends the conversation sample to the agent source
      */
-    async #selfLearn(prompt: Prompt, result: ChatPromptResult): Promise<void> {
-        // Learning: Append the conversation sample to the agent source
+    #selfLearnSamples(prompt: Prompt, result: ChatPromptResult): void {
         const learningExample = spaceTrim(
             (block) => `
 
@@ -229,57 +239,63 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
             `,
         );
 
-        // Extract knowledge
-        let knowledgeBlock = '';
-        try {
-            const extractionPrompt: ChatPrompt = {
-                title: 'Knowledge Extraction',
-                modelRequirements: {
-                    modelVariant: 'CHAT',
-                },
-                content: spaceTrim(
-                    (block) => `
-                        You are an AI agent that is learning from a conversation.
-
-                        Here is the conversation so far:
-
-                        User: ${block(prompt.content)}
-                        Agent: ${block(result.content)}
-
-                        Extract any new knowledge, facts, or important information that should be remembered for future interactions.
-                        Format the output as a list of KNOWLEDGE blocks.
-                        If there is no new knowledge, return nothing.
-
-                        Example output:
-                        KNOWLEDGE The user's name is Alice.
-                        KNOWLEDGE The project deadline is next Friday.
-                    `,
-                ) as string_prompt,
-                pipelineUrl: 'https://github.com/webgptorg/promptbook/blob/main/prompts/knowledge-extraction.ptbk.md',
-                parameters: {},
-            };
-
-            if (this.options.llmTools.callChatModel) {
-                const extractionResult = await this.options.llmTools.callChatModel(extractionPrompt);
-                const extractedContent = extractionResult.content;
-
-                if (extractedContent.includes('KNOWLEDGE')) {
-                    knowledgeBlock = '\n\n' + spaceTrim(extractedContent);
-                }
-            } else {
-                // TODO: [🧠] Fallback to callChatModelStream if callChatModel is not available
-            }
-        } catch (error) {
-            if (this.options.isVerbose) {
-                console.warn('Failed to extract knowledge', error);
-            }
-        }
-
         // Append to the current source
         const currentSource = this.agentSource.value;
-        const newSource = padBook(validateBook(spaceTrim(currentSource) + '\n\n' + learningExample + knowledgeBlock));
+        const newSource = padBook(validateBook(spaceTrim(currentSource) + '\n\n' + learningExample));
 
         // Update the source (which will trigger the subscription and update the underlying tools)
+        this.agentSource.next(newSource as string_book);
+    }
+
+    /**
+     * Self-learning Step 2: Asynchronously call the teacher agent and invoke the silver link
+     */
+    async #selfLearnTeacher(prompt: Prompt, result: ChatPromptResult): Promise<void> {
+        // [1] Call the teacher agent // <- !!!!! Emojis
+        const teacherAgent = await RemoteAgent.connect({
+            agentUrl:
+                `${CORE_AGENTS_SERVER.url}agents/${CORE_AGENTS_SERVER_WELL_KNOWN_AGENT_NAMES.TEACHER}` as string_agent_url,
+       // <- !!!!! Pass the `teacherAgentUrl`
+            });
+
+        const teacherResult = await teacherAgent.callChatModel({
+            title: 'Self-learning',
+            modelRequirements: {
+                modelVariant: 'CHAT',
+            },
+            content: spaceTrim(
+                (block) => `
+                    Here is the current agent source book:
+                    \`\`\`
+                    ${block(this.agentSource.value)}
+                    \`\`\`
+
+                    And here is the latest interaction:
+                    User: ${block(prompt.content)}
+                    Agent: ${block(result.content)}
+
+                    Decide what the agent should learn from this interaction.
+                    Append new commitments at the end of the agent source.
+                    Do not modify the current agent source, just return new commitments (KNOWLEDGE, RULE, etc.).
+                    If there is nothing new to learn, return nothing.
+                `,
+            ) as string_prompt,
+            pipelineUrl: 'https://github.com/webgptorg/promptbook/blob/main/prompts/self-learning.ptbk.md',
+            // <- TODO: !!!! Remove `pipelineUrl`
+            parameters: {},
+        });
+
+        const teacherCommitments = spaceTrim(teacherResult.content);
+
+        if (teacherCommitments === '') {
+            return;
+        }
+
+        // [2] Append to the current source
+        const currentSource = this.agentSource.value;
+        const newSource = padBook(validateBook(spaceTrim(currentSource) + '\n\n' + teacherCommitments));
+
+        // [3] Update the source
         this.agentSource.next(newSource as string_book);
     }
 }

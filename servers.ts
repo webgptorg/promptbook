@@ -51,7 +51,17 @@ export const CORE_AGENTS_SERVER: ServerConfiguration = {
  *
  * @public exported from `@promptbook/core`
  */
-export const CORE_AGENTS_SERVER_WELL_KNOWN_AGENT_NAMES = { ADAM: 'adam', TEACHER: 'teacher' } as const;
+export const CORE_AGENTS_SERVER_WELL_KNOWN_AGENT_NAMES = {
+    /**
+     * The default ancestor agent for new agents
+     */
+    ADAM: 'adam',
+
+    /**
+     * Agent that knows book syntax and can help with self-learning
+     */
+    TEACHER: 'teacher',
+} as const;
 // <- TODO: [🆎] Allow to override (set) well-known agent names via Metadata
 
 /**

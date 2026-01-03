@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨📞] Use Teacher Agent for self-learning of the agents.
 
