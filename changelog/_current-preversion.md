@@ -9,3 +9,4 @@
 -   Show floating hint when creating new agent in Agents Server [2025-12-0920-agents-server-hints.md](https://github.com/webgptorg/promptbook/blob/main/prompts/2025-12-0920-agents-server-hints.md)
 -   Agents Server can generate boilerplate rules and personas in the same language as the agent name [2025-12-0950-agents-server-boilerplate-rules-and-personas-in-language-of-server.md](https://github.com/webgptorg/promptbook/blob/main/prompts/2025-12-0950-agents-server-boilerplate-rules-and-personas-in-language-of-server.md)
 -   Record all tool calls and aggregate usage in `promptResult` when the tool calling loop is used.
+-   Improved the design of the agent server name in the header to prevent wrapping on long names

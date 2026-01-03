@@ -9,10 +9,12 @@ const RULES: Record<string, ReadonlyArray<string>> = {
         'Maintain a neutral and unbiased tone in all responses.',
     ],
     CZECH: [
+        // spell-checker:disable
         'Vždy upřednostňujte soukromí uživatelů a bezpečnost dat.',
         'Odpovídejte přátelským a přístupným způsobem.',
         'Vyhněte se používání technického žargonu, pokud to není nutné.',
         'Udržujte ve všech odpovědích neutrální a nezaujatý tón.',
+        // spell-checker:enable
     ],
 };
 

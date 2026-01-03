@@ -15,6 +15,7 @@ const PERSONALITIES: Record<string, ReadonlyArray<string_persona_description>> =
         'Serious and focused AI consultant.',
     ],
     CZECH: [
+        // spell-checker:disable
         'Přátelský a nápomocný AI agent.',
         'Profesionální a efektivní virtuální asistent.',
         'Kreativní a nápaditý digitální společník.',
@@ -25,6 +26,7 @@ const PERSONALITIES: Record<string, ReadonlyArray<string_persona_description>> =
         'Zvědavý a hloubavý AI průzkumník.',
         'Vtipný a humorný digitální přítel.',
         'Vážný a soustředěný AI konzultant.',
+        // spell-checker:enable
     ],
 };
 

@@ -2,7 +2,7 @@
 
 import { string_book } from '@promptbook-local/types';
 import { X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { BookEditor } from '../../../../../src/book-components/BookEditor/BookEditor';
 import { Portal } from '../Portal/Portal';
 
@@ -17,12 +17,15 @@ export function NewAgentDialog(props: NewAgentDialogProps) {
     const { isOpen, onClose, initialAgentSource, onCreate } = props;
     const [agentSource, setAgentSource] = useState(initialAgentSource);
     const [isCreating, setIsCreating] = useState(false);
-    const [isInteracted, setIsInteracted] = useState(false);
+    // [✨🧬] const [isInteracted, setIsInteracted] = useState(false);
 
+    /*
+    [✨🧬]
     useEffect(() => {
         setAgentSource(initialAgentSource);
         setIsInteracted(false);
     }, [initialAgentSource, isOpen]);
+    */
 
     if (!isOpen) {
         return null;
@@ -49,12 +52,14 @@ export function NewAgentDialog(props: NewAgentDialogProps) {
                         </button>
                     </div>
 
-                    <div className="flex-1 overflow-hidden p-4 relative" onDragEnter={() => setIsInteracted(true)}>
+                    <div
+                        className="flex-1 overflow-hidden p-4 relative" /* [✨🧬] onDragEnter={() => setIsInteracted(true)} */
+                    >
                         <BookEditor
                             agentSource={agentSource}
                             onChange={(source) => {
                                 setAgentSource(source);
-                                setIsInteracted(true);
+                                // [✨🧬] setIsInteracted(true);
                             }}
                             height="100%"
                             isVerbose={false}
