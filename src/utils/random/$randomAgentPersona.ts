@@ -1,7 +1,7 @@
-import type { string_person_firstname, string_persona_description } from '../../types/typeAliases';
+import type { string_persona_description } from '../../types/typeAliases';
 import { $randomItem } from './$randomItem';
 
-const PERSONALITIES: ReadonlyArray<string_person_firstname> = [
+const PERSONALITIES: ReadonlyArray<string_persona_description> = [
     'Friendly and helpful AI agent.',
     'Professional and efficient virtual assistant.',
     'Creative and imaginative digital companion.',
