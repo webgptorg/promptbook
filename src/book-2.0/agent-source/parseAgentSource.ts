@@ -53,8 +53,23 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
     const meta: Record<string, string> = {};
     const links: string[] = [];
     const capabilities: AgentCapability[] = [];
+    const samples: Array<{ question: string; answer: string }> = [];
+    let pendingUserMessage: string | null = null;
 
     for (const commitment of parseResult.commitments) {
+        if (commitment.type === 'USER MESSAGE') {
+            pendingUserMessage = commitment.content;
+            continue;
+        }
+
+        if (commitment.type === 'AGENT MESSAGE') {
+            if (pendingUserMessage !== null) {
+                samples.push({ question: pendingUserMessage, answer: commitment.content });
+                pendingUserMessage = null;
+            }
+            continue;
+        }
+
         if (commitment.type === 'USE BROWSER') {
             capabilities.push({
                 type: 'browser',
@@ -168,6 +183,7 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
         links,
         parameters,
         capabilities,
+        samples,
     };
 }
 

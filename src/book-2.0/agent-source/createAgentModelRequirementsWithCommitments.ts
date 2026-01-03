@@ -109,9 +109,11 @@ export async function createAgentModelRequirementsWithCommitments(
     }
 
     // Add non-commitment lines to system message if they exist
+    // Note: Filtering out horizontal lines (---) as requested
     const nonCommitmentContent = parseResult.nonCommitmentLines
         .filter((line, index) => index > 0 || !parseResult.agentName) // Skip first line if it's the agent name
         .filter((line) => line.trim()) // Remove empty lines
+        .filter((line) => !/^[\s]*[-_*][\s]*[-_*][\s]*[-_*][\s]*[-_*]*[\s]*$/.test(line)) // Remove horizontal lines
         .join('\n')
         .trim();
 
@@ -119,6 +121,30 @@ export async function createAgentModelRequirementsWithCommitments(
         requirements = {
             ...requirements,
             systemMessage: requirements.systemMessage + '\n\n' + nonCommitmentContent,
+        };
+    }
+
+    // Add example interactions to the system message
+    const examples: string[] = [];
+
+    // 1. Initial message as an example agent response
+    const initialMessage = parseResult.commitments.find((c) => c.type === 'INITIAL MESSAGE')?.content;
+    if (initialMessage) {
+        examples.push(`Agent: ${initialMessage}`);
+    }
+
+    // 2. User and Agent message pairs
+    if (requirements.samples && requirements.samples.length > 0) {
+        for (const sample of requirements.samples) {
+            examples.push(`User: ${sample.question}\nAgent: ${sample.answer}`);
+        }
+    }
+
+    if (examples.length > 0) {
+        const exampleInteractionsContent = `Example interaction:\n\n${examples.join('\n\n')}`;
+        requirements = {
+            ...requirements,
+            systemMessage: requirements.systemMessage + '\n\n' + exampleInteractionsContent,
         };
     }
 

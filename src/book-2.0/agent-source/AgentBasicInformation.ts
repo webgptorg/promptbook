@@ -122,6 +122,11 @@ export type AgentBasicInformation = {
      * This is parsed from commitments like USE BROWSER, USE SEARCH ENGINE, KNOWLEDGE, etc.
      */
     capabilities: AgentCapability[];
+
+    /**
+     * List of sample conversations (question/answer pairs)
+     */
+    samples: ReadonlyArray<{ question: string; answer: string }>;
 };
 
 /**

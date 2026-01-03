@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🦠] Samples of the communication should be transferred into the system message.
 
@@ -54,7 +54,7 @@ Agent: Hello! I am a  professional and efficient virtual assistant. My main goal
         -   `parseAgentSource` which is a lightweight parser for agent source, it parses basic information and its purpose is to be quick and synchronous. The commitments there are hardcoded.
         -   `createAgentModelRequirements` which is an asynchronous function that creates model requirements it applies each commitment one by one and works asynchronously.
 
-        
+
 
 ---
 

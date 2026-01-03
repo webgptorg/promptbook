@@ -75,6 +75,11 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
     public capabilities: AgentCapability[] = [];
 
     /**
+     * List of sample conversations (question/answer pairs)
+     */
+    public samples: ReadonlyArray<{ question: string; answer: string }> = [];
+
+    /**
      * Computed hash of the agent source for integrity verification
      */
     public get agentHash(): string_agent_hash {
@@ -121,13 +126,14 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
         this.agentSource.subscribe((source) => {
             this.updateAgentSource(source);
 
-            const { agentName, personaDescription, initialMessage, links, meta, capabilities } =
+            const { agentName, personaDescription, initialMessage, links, meta, capabilities, samples } =
                 parseAgentSource(source);
             this._agentName = agentName;
             this.personaDescription = personaDescription;
             this.initialMessage = initialMessage;
             this.links = links;
             this.capabilities = capabilities;
+            this.samples = samples;
             this.meta = { ...this.meta, ...meta };
         });
     }
