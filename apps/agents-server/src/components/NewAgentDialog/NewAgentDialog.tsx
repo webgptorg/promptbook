@@ -43,19 +43,13 @@ export function NewAgentDialog(props: NewAgentDialogProps) {
                 <div className="relative w-full max-w-4xl h-[80vh] bg-white rounded-lg shadow-lg border border-gray-200 flex flex-col animate-in zoom-in-95 duration-200">
                     <div className="flex items-center justify-between p-4 border-b border-gray-200">
                         <h2 className="text-xl font-semibold text-gray-900">Create New Agent</h2>
-                        <button
-                            onClick={onClose}
-                            className="text-gray-400 hover:text-gray-500 transition-colors"
-                        >
+                        <button onClick={onClose} className="text-gray-400 hover:text-gray-500 transition-colors">
                             <X className="w-5 h-5" />
                             <span className="sr-only">Close</span>
                         </button>
                     </div>
 
-                    <div
-                        className="flex-1 overflow-hidden p-4 relative"
-                        onDragEnter={() => setIsInteracted(true)}
-                    >
+                    <div className="flex-1 overflow-hidden p-4 relative" onDragEnter={() => setIsInteracted(true)}>
                         <BookEditor
                             agentSource={agentSource}
                             onChange={(source) => {
@@ -66,6 +60,7 @@ export function NewAgentDialog(props: NewAgentDialogProps) {
                             isVerbose={false}
                         />
 
+                        {/* TODO: [✨🧬] When creating new agent, show the floating hint
                         {!isInteracted && (
                             <div className="absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none select-none flex items-center pr-4 md:pr-12">
                                 <div className="relative">
@@ -93,6 +88,7 @@ export function NewAgentDialog(props: NewAgentDialogProps) {
                                 </div>
                             </div>
                         )}
+                        */}
                     </div>
 
                     <div className="flex items-center justify-end gap-3 p-4 border-t border-gray-200 bg-gray-50 rounded-b-lg">
