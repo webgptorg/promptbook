@@ -19,7 +19,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  */
 export class RuleCommitmentDefinition extends BaseCommitmentDefinition<'RULE' | 'RULES'> {
     constructor(type: 'RULE' | 'RULES' = 'RULE') {
-        super(type);
+        super(type, ['RULE', 'RULES']);
     }
 
     /**

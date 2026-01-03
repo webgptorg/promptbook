@@ -19,7 +19,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  */
 export class ImportCommitmentDefinition extends BaseCommitmentDefinition<'IMPORT' | 'IMPORTS'> {
     constructor(type: 'IMPORT' | 'IMPORTS' = 'IMPORT') {
-        super(type);
+        super(type, ['IMPORT', 'IMPORTS']);
     }
 
     /**

@@ -30,7 +30,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  */
 export class NoteCommitmentDefinition extends BaseCommitmentDefinition<'NOTE' | 'NOTES' | 'COMMENT' | 'NONCE'> {
     constructor(type: 'NOTE' | 'NOTES' | 'COMMENT' | 'NONCE' = 'NOTE') {
-        super(type);
+        super(type, ['NOTE', 'NOTES', 'COMMENT', 'NONCE']);
     }
 
     /**

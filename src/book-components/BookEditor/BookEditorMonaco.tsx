@@ -176,9 +176,11 @@ export function BookEditorMonaco(props: BookEditorProps) {
         // Register a new language
         monaco.languages.register({ id: BOOK_LANGUAGE_ID });
 
-        const commitmentTypes = [...new Set(getAllCommitmentDefinitions().map(({ type }) => type))];
+        const commitmentTypes = [...new Set(getAllCommitmentDefinitions().map(({ type }) => type))].sort(
+            (a, b) => b.length - a.length,
+        );
         const commitmentRegex = new RegExp(
-            `^(${commitmentTypes.map((type) => (type === 'META' ? 'META\\s+\\w+' : type)).join('|')})`,
+            `^(${commitmentTypes.map((type) => (type === 'META' ? 'META\\s+\\w+' : type)).join('|')})\\b`,
         );
 
         // Note: Using a broad character set for Latin and Cyrillic to support international characters in parameters.

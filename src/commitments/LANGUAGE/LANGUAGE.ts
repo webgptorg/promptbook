@@ -18,7 +18,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  */
 export class LanguageCommitmentDefinition extends BaseCommitmentDefinition<'LANGUAGE' | 'LANGUAGES'> {
     constructor(type: 'LANGUAGE' | 'LANGUAGES' = 'LANGUAGE') {
-        super(type);
+        super(type, ['LANGUAGE', 'LANGUAGES']);
     }
 
     /**

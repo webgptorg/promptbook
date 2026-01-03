@@ -21,7 +21,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  */
 export class MemoryCommitmentDefinition extends BaseCommitmentDefinition<'MEMORY' | 'MEMORIES'> {
     constructor(type: 'MEMORY' | 'MEMORIES' = 'MEMORY') {
-        super(type);
+        super(type, ['MEMORY', 'MEMORIES']);
     }
 
     /**

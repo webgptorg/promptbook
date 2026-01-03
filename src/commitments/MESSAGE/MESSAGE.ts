@@ -22,7 +22,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  */
 export class MessageCommitmentDefinition extends BaseCommitmentDefinition<'MESSAGE' | 'MESSAGES'> {
     constructor(type: 'MESSAGE' | 'MESSAGES' = 'MESSAGE') {
-        super(type);
+        super(type, ['MESSAGE', 'MESSAGES']);
     }
 
     /**

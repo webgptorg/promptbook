@@ -30,7 +30,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  */
 export class ModelCommitmentDefinition extends BaseCommitmentDefinition<'MODEL' | 'MODELS'> {
     constructor(type: 'MODEL' | 'MODELS' = 'MODEL') {
-        super(type);
+        super(type, ['MODEL', 'MODELS']);
     }
 
     /**

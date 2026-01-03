@@ -19,7 +19,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  */
 export class ActionCommitmentDefinition extends BaseCommitmentDefinition<'ACTION' | 'ACTIONS'> {
     constructor(type: 'ACTION' | 'ACTIONS' = 'ACTION') {
-        super(type);
+        super(type, ['ACTION', 'ACTIONS']);
     }
 
     /**

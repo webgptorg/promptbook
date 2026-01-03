@@ -20,7 +20,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  */
 export class FormatCommitmentDefinition extends BaseCommitmentDefinition<'FORMAT' | 'FORMATS'> {
     constructor(type: 'FORMAT' | 'FORMATS' = 'FORMAT') {
-        super(type);
+        super(type, ['FORMAT', 'FORMATS']);
     }
 
     /**

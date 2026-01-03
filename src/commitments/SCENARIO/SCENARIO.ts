@@ -21,7 +21,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  */
 export class ScenarioCommitmentDefinition extends BaseCommitmentDefinition<'SCENARIO' | 'SCENARIOS'> {
     constructor(type: 'SCENARIO' | 'SCENARIOS' = 'SCENARIO') {
-        super(type);
+        super(type, ['SCENARIO', 'SCENARIOS']);
     }
 
     /**

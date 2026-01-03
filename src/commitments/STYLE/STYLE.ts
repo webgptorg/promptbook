@@ -19,7 +19,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  */
 export class StyleCommitmentDefinition extends BaseCommitmentDefinition<'STYLE' | 'STYLES'> {
     constructor(type: 'STYLE' | 'STYLES' = 'STYLE') {
-        super(type);
+        super(type, ['STYLE', 'STYLES']);
     }
 
     /**

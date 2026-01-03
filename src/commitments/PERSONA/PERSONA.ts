@@ -27,7 +27,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  */
 export class PersonaCommitmentDefinition extends BaseCommitmentDefinition<'PERSONA' | 'PERSONAE'> {
     constructor(type: 'PERSONA' | 'PERSONAE' = 'PERSONA') {
-        super(type);
+        super(type, ['PERSONA', 'PERSONAE']);
     }
 
     /**
