@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🕌] Generate boilerplate rules and personas in the language of the server.
 

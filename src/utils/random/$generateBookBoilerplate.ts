@@ -53,11 +53,11 @@ export function $generateBookBoilerplate(options?: GenerateBookBoilerplateOption
     }
 
     if (!personaDescription) {
-        personaDescription = $randomAgentPersona();
+        personaDescription = $randomAgentPersona(namePool);
     }
 
     if (initialRules.length === 0) {
-        initialRules.push($randomAgentRule());
+        initialRules.push($randomAgentRule(namePool));
     }
 
     TODO_USE(parentAgentName);

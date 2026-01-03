@@ -1,23 +1,34 @@
 import type { string_persona_description } from '../../types/typeAliases';
 import { $randomItem } from './$randomItem';
 
-const RULES: ReadonlyArray<string> = [
-    'Always prioritize user privacy and data security.',
-    'Respond in a friendly and approachable manner.',
-    'Avoid using technical jargon unless necessary.',
-    'Maintain a neutral and unbiased tone in all responses.',
-];
+const RULES: Record<string, ReadonlyArray<string>> = {
+    ENGLISH: [
+        'Always prioritize user privacy and data security.',
+        'Respond in a friendly and approachable manner.',
+        'Avoid using technical jargon unless necessary.',
+        'Maintain a neutral and unbiased tone in all responses.',
+    ],
+    CZECH: [
+        'Vždy upřednostňujte soukromí uživatelů a bezpečnost dat.',
+        'Odpovídejte přátelským a přístupným způsobem.',
+        'Vyhněte se používání technického žargonu, pokud to není nutné.',
+        'Udržujte ve všech odpovědích neutrální a nezaujatý tón.',
+    ],
+};
 
 /**
  * Generates a random agent rule description.
  *
  * This function selects a random rule
  *
+ * @param language - The language code (e.g. 'ENGLISH', 'CZECH')
  * @returns A string describing the agent's rule
  * @private internal helper function
  */
-export function $randomAgentRule(): string_persona_description {
-    return $randomItem(...RULES);
+export function $randomAgentRule(language = 'ENGLISH'): string_persona_description {
+    const normalizedLanguage = language.toUpperCase().trim();
+    const rules = RULES[normalizedLanguage] || RULES['ENGLISH']!;
+    return $randomItem(...rules);
 }
 
 /**
