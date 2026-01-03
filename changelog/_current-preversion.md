@@ -16,4 +16,3 @@
 -   Use Teacher Agent for self-learning of the agents.
 -   Self-learning is now a two-step process: first appending conversation samples, then asynchronously calling the Teacher Agent.
 -   Added `TEACHER` well-known agent to the core server configuration.
--   Highlight the `LANGUAGES` and `RULES` commitments correctly in Monaco editor by sorting and using word boundaries.

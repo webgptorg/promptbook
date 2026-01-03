@@ -20,7 +20,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  */
 export class GoalCommitmentDefinition extends BaseCommitmentDefinition<'GOAL' | 'GOALS'> {
     constructor(type: 'GOAL' | 'GOALS' = 'GOAL') {
-        super(type, ['GOAL', 'GOALS']);
+        super(type);
     }
 
     /**

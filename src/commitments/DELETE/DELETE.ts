@@ -22,7 +22,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  */
 export class DeleteCommitmentDefinition extends BaseCommitmentDefinition<'DELETE' | 'CANCEL' | 'DISCARD' | 'REMOVE'> {
     constructor(type: 'DELETE' | 'CANCEL' | 'DISCARD' | 'REMOVE') {
-        super(type, ['DELETE', 'CANCEL', 'DISCARD', 'REMOVE']);
+        super(type);
     }
 
     /**
