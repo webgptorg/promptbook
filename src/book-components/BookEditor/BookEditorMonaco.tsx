@@ -178,7 +178,10 @@ export function BookEditorMonaco(props: BookEditorProps) {
 
         const commitmentTypes = [...new Set(getAllCommitmentDefinitions().map(({ type }) => type))];
         const commitmentRegex = new RegExp(
-            `^(${commitmentTypes.map((type) => (type === 'META' ? 'META\\s+\\w+' : type)).join('|')})`,
+            `^\\s*(${commitmentTypes
+                .sort((a, b) => b.length - a.length) // [1] Prefer longer commitments to avoid partial matching (e.g. LANGUAGES vs LANGUAGE)
+                .map((type) => (type === 'META' ? 'META\\s+\\w+' : type.replace(/\s+/, '\\s+')))
+                .join('|')})(?=\\s|$)`, // [2] Use lookahead for space or end of line to ensure exact match
         );
 
         // Note: Using a broad character set for Latin and Cyrillic to support international characters in parameters.
