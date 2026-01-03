@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🏕] When the agent server name is long or multiple words, the name is broken and wrapped. Do not wrap it. Make the design better.
 

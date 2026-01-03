@@ -344,7 +344,10 @@ export function Header(props: HeaderProps) {
             <div className="container mx-auto px-4 h-full">
                 <div className="flex items-center justify-between h-full">
                     {/* Logo and heading */}
-                    <HeadlessLink href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                    <HeadlessLink
+                        href="/"
+                        className="flex items-center gap-3 hover:opacity-80 transition-opacity overflow-hidden min-w-0 flex-shrink-0 lg:flex-shrink-1"
+                    >
                         {serverLogoUrl ? (
                             // Note: `next/image` does not load external images well without extra config
                             // eslint-disable-next-line @next/next/no-img-element
@@ -353,7 +356,7 @@ export function Header(props: HeaderProps) {
                                 alt={serverName}
                                 width={32}
                                 height={32}
-                                className="w-8 h-8 object-contain"
+                                className="w-8 h-8 object-contain flex-shrink-0"
                             />
                         ) : (
                             <Image
@@ -361,10 +364,10 @@ export function Header(props: HeaderProps) {
                                 alt={serverName}
                                 width={32}
                                 height={32}
-                                className="w-8 h-8 object-contain"
+                                className="w-8 h-8 object-contain flex-shrink-0"
                             />
                         )}
-                        <h1 className="text-xl font-bold tracking-tight text-gray-900">{serverName}</h1>
+                        <h1 className="text-xl font-bold tracking-tight text-gray-900 truncate">{serverName}</h1>
                     </HeadlessLink>
 
                     {/* Desktop Navigation */}
