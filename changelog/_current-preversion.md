@@ -1,7 +1,6 @@
 ### 📚 Book
 
 -   Implemented `IMPORT` commitment which is similar to `FROM` but can be used multiple times and imports content at the location of the commitment.
--   Add commitment `USE IMAGE GENERATOR` which enables the agent to use an image generation tool for creating images from text.
 -   Allow to attach files to the chat messages in Agents Server [2025-12-0900-agents-server-chat-attachements.md](https://github.com/webgptorg/promptbook/blob/main/prompts/2025-12-0900-agents-server-chat-attachements.md)
 -   Implement Ctrl+S shortcut in `<BookEditor/>` component
 -   Implement Ctrl+V shortcut in `<BookEditor/>` component for pasting images and files
