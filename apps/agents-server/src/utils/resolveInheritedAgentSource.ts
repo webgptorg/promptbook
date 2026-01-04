@@ -102,43 +102,36 @@ export async function resolveInheritedAgentSource(
         const line = agentSourceChunks[i]!;
 
         if (line.trim().startsWith('IMPORT ')) {
-            const importedAgentUrl = line.trim().substring('IMPORT '.length).trim() as string_agent_url;
+            const importedUrlOrPath = line.trim().substring('IMPORT '.length).trim();
 
-            if (!isValidAgentUrl(importedAgentUrl)) {
-                throw new ParseError(
+            if (isValidAgentUrl(importedUrlOrPath)) {
+                const importedAgentUrl = importedUrlOrPath as string_agent_url;
+                const importedAgentSource = await importAgent(importedAgentUrl, { recursionLevel });
+                const resolvedImportedAgentSource = await resolveInheritedAgentSource(importedAgentSource, {
+                    ...options,
+                    adamAgentUrl,
+                    recursionLevel: recursionLevel + 1,
+                });
+                const importedAgentSourceCorpus = getAgentSourceCorpus(resolvedImportedAgentSource);
+
+                newAgentSourceChunks.push(
                     spaceTrim(
                         (block) => `
-                            Invalid imported agent URL in IMPORT "${importedAgentUrl}" commitment:
-        
-                            \`\`\`book
-                            ${block(agentSource)}
-                            \`\`\`
-                    
-                        `,
+
+                            NOTE Imported from ${importedAgentUrl}
+                            ${block(importedAgentSourceCorpus)}
+
+                            ---
+                    `,
                     ),
+                    '', // <- Note: Add an extra newline for separation
                 );
+                continue;
             }
 
-            const importedAgentSource = await importAgent(importedAgentUrl, { recursionLevel });
-            const resolvedImportedAgentSource = await resolveInheritedAgentSource(importedAgentSource, {
-                ...options,
-                adamAgentUrl,
-                recursionLevel: recursionLevel + 1,
-            });
-            const importedAgentSourceCorpus = getAgentSourceCorpus(resolvedImportedAgentSource);
-
-            newAgentSourceChunks.push(
-                spaceTrim(
-                    (block) => `
-
-                        NOTE Imported from ${importedAgentUrl}
-                        ${block(importedAgentSourceCorpus)}
-
-                        ---
-                `,
-                ),
-                '', // <- Note: Add an extra newline for separation
-            );
+            // Note: For non-agent imports, we keep the line as is.
+            //       The createAgentModelRequirements function will handle fetching and embedding generic files.
+            newAgentSourceChunks.push(line);
             continue;
         }
 

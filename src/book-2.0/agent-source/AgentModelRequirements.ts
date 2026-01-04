@@ -39,6 +39,11 @@ export type AgentModelRequirements = {
     readonly importedAgentUrls?: ReadonlyArray<string_agent_url>;
 
     /**
+     * List of imported file URLs or paths
+     */
+    readonly importedFileUrls?: ReadonlyArray<string>;
+
+    /**
      * Optional list of knowledge source links that the agent can use
      */
     readonly knowledgeSources?: ReadonlyArray<string_knowledge_source_link>;

@@ -97,6 +97,30 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
             continue;
         }
 
+        if (commitment.type === 'IMPORT') {
+            const content = spaceTrim(commitment.content).split('\n')[0] || '';
+            let label = content;
+            const iconName = 'Download';
+
+            try {
+                if (content.startsWith('http://') || content.startsWith('https://')) {
+                    const url = new URL(content);
+                    label = url.hostname.replace(/^www\./, '') + '.../' + url.pathname.split('/').pop();
+                } else if (content.startsWith('./') || content.startsWith('../') || content.startsWith('/')) {
+                    label = content.split('/').pop() || content;
+                }
+            } catch (e) {
+                // Invalid URL or path, keep default label
+            }
+
+            capabilities.push({
+                type: 'knowledge', // [🧠] Should we have a separate capability type for imports?
+                label,
+                iconName,
+            });
+            continue;
+        }
+
         if (commitment.type === 'KNOWLEDGE') {
             const content = spaceTrim(commitment.content).split('\n')[0] || '';
             let label = content;

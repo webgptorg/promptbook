@@ -1,5 +1,7 @@
 import { spaceTrim } from 'spacetrim';
+import { isValidFilePath } from '../../_packages/utils.index';
 import { isValidAgentUrl } from '../../_packages/utils.index';
+import { isValidUrl } from '../../_packages/utils.index';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import type { string_agent_url } from '../../types/typeAliases';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
@@ -26,7 +28,7 @@ export class ImportCommitmentDefinition extends BaseCommitmentDefinition<'IMPORT
      * Short one-line description of IMPORT.
      */
     get description(): string {
-        return 'Import content from another agent.';
+        return 'Import content from another agent or a generic text file.';
     }
 
     /**
@@ -43,7 +45,7 @@ export class ImportCommitmentDefinition extends BaseCommitmentDefinition<'IMPORT
         return spaceTrim(`
             # ${this.type}
 
-            Imports content from another agent at the location of the commitment.
+            Imports content from another agent or a generic text file at the location of the commitment.
 
             ## Examples
 
@@ -51,6 +53,8 @@ export class ImportCommitmentDefinition extends BaseCommitmentDefinition<'IMPORT
             My AI Agent
 
             IMPORT https://s6.ptbk.io/benjamin-white
+            IMPORT https://example.com/some-text-file.txt
+            IMPORT ./path/to/local-file.json
             RULE Speak only in English.
             \`\`\`
         `);
@@ -63,26 +67,33 @@ export class ImportCommitmentDefinition extends BaseCommitmentDefinition<'IMPORT
             return requirements;
         }
 
-        if (!isValidAgentUrl(trimmedContent)) {
-            throw new Error(
-                spaceTrim(
-                    (block) => `
-                        Invalid agent URL in IMPORT commitment: "${trimmedContent}"
+        if (isValidAgentUrl(trimmedContent)) {
+            const importedAgentUrl: string_agent_url = trimmedContent;
 
-                        \`\`\`book
-                        ${block(content)}
-                        \`\`\`
-                `,
-                ),
-            );
+            return {
+                ...requirements,
+                importedAgentUrls: [...(requirements.importedAgentUrls || []), importedAgentUrl],
+            };
         }
 
-        const importedAgentUrl: string_agent_url = trimmedContent;
+        if (isValidUrl(trimmedContent) || isValidFilePath(trimmedContent)) {
+            return {
+                ...requirements,
+                importedFileUrls: [...(requirements.importedFileUrls || []), trimmedContent],
+            };
+        }
 
-        return {
-            ...requirements,
-            importedAgentUrls: [...(requirements.importedAgentUrls || []), importedAgentUrl],
-        };
+        throw new Error(
+            spaceTrim(
+                (block) => `
+                    Invalid agent URL or file path in IMPORT commitment: "${trimmedContent}"
+
+                    \`\`\`book
+                    ${block(content)}
+                    \`\`\`
+            `,
+            ),
+        );
     }
 }
 

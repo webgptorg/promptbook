@@ -1,7 +1,13 @@
 import { getCommitmentDefinition } from '../../commitments/index';
 import { createBasicAgentModelRequirements } from '../../commitments/_base/createEmptyAgentModelRequirements';
 import type { ParsedCommitment } from '../../commitments/_base/ParsedCommitment';
+import { $fileImportPlugins } from '../../import-plugins/$fileImportPlugins';
+import { promptbookFetch } from '../../scrapers/_common/utils/promptbookFetch';
 import type { string_model_name } from '../../types/typeAliases';
+import { extensionToMimeType } from '../../utils/files/extensionToMimeType';
+import { getFileExtension } from '../../utils/files/getFileExtension';
+import { isValidFilePath } from '../../utils/validators/filePath/isValidFilePath';
+import { isValidUrl } from '../../utils/validators/url/isValidUrl';
 import type { AgentModelRequirements } from './AgentModelRequirements';
 import { extractMcpServers } from './createAgentModelRequirements';
 import { parseAgentSourceWithCommitments } from './parseAgentSourceWithCommitments';
@@ -99,6 +105,69 @@ export async function createAgentModelRequirementsWithCommitments(
         }
     }
 
+    // Handle IMPORT commitments for generic files
+    // Note: This logic could be moved to ImportCommitmentDefinition, but it needs to be asynchronous
+    if (requirements.importedFileUrls && requirements.importedFileUrls.length > 0) {
+        for (const fileUrl of requirements.importedFileUrls) {
+            try {
+                // 1. Mocked security check
+                await mockedSecurityCheck(fileUrl);
+
+                // 2. Fetch file content
+                let content: string;
+                let mimeType: string | null = null;
+
+                if (isValidUrl(fileUrl)) {
+                    const response = await promptbookFetch(fileUrl);
+                    if (!response.ok) {
+                        throw new Error(`Failed to fetch ${fileUrl}: ${response.statusText}`);
+                    }
+                    content = await response.text();
+                    mimeType = response.headers.get('Content-Type');
+                } else if (isValidFilePath(fileUrl)) {
+                    // [🟢] This code is expected to run in Node environment if local files are used
+                    const fs = await import('fs/promises');
+                    content = await fs.readFile(fileUrl, 'utf-8');
+                    const extension = getFileExtension(fileUrl);
+                    mimeType = extensionToMimeType(extension as string);
+                } else {
+                    throw new Error(`Invalid file URL or path: ${fileUrl}`);
+                }
+
+                if (!mimeType) {
+                    mimeType = 'text/plain';
+                }
+
+                // Remove charset from mime type
+                mimeType = mimeType.split(';')[0]!.trim();
+
+                // 3. Prevent importing binary files (mocked check)
+                if (isBinaryMimeType(mimeType)) {
+                    throw new Error(`Importing binary files is not allowed: ${mimeType}`);
+                }
+
+                // 4. Find appropriate plugin
+                const plugin = $fileImportPlugins.find((p) => p.canImport(mimeType as string));
+
+                if (!plugin) {
+                    throw new Error(`No import plugin found for MIME type: ${mimeType}`);
+                }
+
+                // 5. Process content
+                const importedContent = await plugin.import(content, mimeType as string);
+
+                // 6. Append to system message
+                requirements = {
+                    ...requirements,
+                    systemMessage: requirements.systemMessage + '\n\n' + importedContent,
+                };
+            } catch (error) {
+                console.warn(`Failed to import file ${fileUrl}:`, error);
+                // Continue with other imports even if one fails
+            }
+        }
+    }
+
     // Handle MCP servers (extract from original agent source)
     const mcpServers = extractMcpServers(agentSource);
     if (mcpServers.length > 0) {
@@ -156,4 +225,29 @@ export async function createAgentModelRequirementsWithCommitments(
         ...requirements,
         systemMessage: cleanedSystemMessage,
     };
+}
+
+/**
+ * Mocked security check for imported files
+ *
+ * @param urlOrPath - The URL or local path of the file to check
+ * @returns A promise that resolves if the file is safe
+ */
+async function mockedSecurityCheck(urlOrPath: string): Promise<void> {
+    // TODO: Implement proper security checks
+    await new Promise((resolve) => setTimeout(resolve, 10)); // Mock async delay
+    if (urlOrPath.includes('malicious')) {
+        throw new Error(`Security check failed for: ${urlOrPath}`);
+    }
+}
+
+/**
+ * Checks if the given MIME type belongs to a binary file
+ *
+ * @param mimeType - The MIME type to check
+ * @returns True if it's a binary MIME type
+ */
+function isBinaryMimeType(mimeType: string): boolean {
+    const binaryPrefixes = ['image/', 'video/', 'audio/', 'application/octet-stream', 'application/pdf', 'application/zip'];
+    return binaryPrefixes.some((prefix) => mimeType.startsWith(prefix));
 }
