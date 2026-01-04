@@ -55,6 +55,8 @@ export type AgentCapability = {
      * The name of the icon to display for this capability
      */
     iconName: string;
+
+    // <- Note: When creating new capabilities, look for [🪀] to add new icons
 };
 
 export type AgentBasicInformation = {

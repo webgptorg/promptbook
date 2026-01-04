@@ -1,5 +1,5 @@
 import { AgentBasicInformation } from '@promptbook-local/types';
-import { Book, FileText, Globe, Search } from 'lucide-react';
+import { Book, Clock8Icon, FileText, Globe, Search, ShieldQuestionMarkIcon } from 'lucide-react';
 
 type AgentCapabilityChipsProps = {
     readonly agent: AgentBasicInformation;
@@ -20,7 +20,9 @@ export function AgentCapabilityChips({ agent, className }: AgentCapabilityChipsP
                         Search,
                         Book,
                         FileText,
-                    }[capability.iconName] || Book;
+                        Clock: Clock8Icon,
+                        // <- [🪀] Add icons for new capabilities here
+                    }[capability.iconName] || ShieldQuestionMarkIcon;
 
                 return (
                     <div
