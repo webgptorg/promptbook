@@ -325,6 +325,26 @@ export function BookEditorMonaco(props: BookEditorProps) {
             .${instanceClass} .monaco-editor .transparent-text {
                 color: transparent !important;
             }
+            
+            .${instanceClass} .monaco-editor .code-block-box {
+                background-color: #f5f5f5;
+                border-left: 1px solid ${PROMPTBOOK_SYNTAX_COLORS.CODE_BLOCK.toHex()};
+                border-right: 1px solid ${PROMPTBOOK_SYNTAX_COLORS.CODE_BLOCK.toHex()};
+            }
+            
+            .${instanceClass} .monaco-editor .code-block-top {
+                border-top: 1px solid ${PROMPTBOOK_SYNTAX_COLORS.CODE_BLOCK.toHex()};
+                border-top-left-radius: ${Math.round(10 * zoomLevel)}px;
+                border-top-right-radius: ${Math.round(10 * zoomLevel)}px;
+                overflow: hidden;
+            }
+            
+            .${instanceClass} .monaco-editor .code-block-bottom {
+                border-bottom: 1px solid ${PROMPTBOOK_SYNTAX_COLORS.CODE_BLOCK.toHex()};
+                border-bottom-left-radius: ${Math.round(10 * zoomLevel)}px;
+                border-bottom-right-radius: ${Math.round(10 * zoomLevel)}px;
+                overflow: hidden;
+            }
         `;
 
         return () => {
@@ -333,6 +353,7 @@ export function BookEditorMonaco(props: BookEditorProps) {
     }, [scaledLineHeight, scaledContentPaddingLeft, scaledVerticalLineLeft]);
 
     const decorationIdsRef = useRef<string[]>([]);
+    const codeBlockDecorationIdsRef = useRef<string[]>([]);
 
     useEffect(() => {
         if (!editor || !monaco) {
@@ -368,6 +389,48 @@ export function BookEditorMonaco(props: BookEditorProps) {
             }
 
             decorationIdsRef.current = editor.deltaDecorations(decorationIdsRef.current, newDecorations);
+
+            // Add decorations for code blocks
+            const lines = text.split('\n');
+            const codeBlockDecorations: editor.IModelDeltaDecoration[] = [];
+            let inCodeBlock = false;
+            let codeBlockStartLine = 0;
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                if (line?.trim().startsWith('```')) {
+                    if (!inCodeBlock) {
+                        // Starting a code block
+                        inCodeBlock = true;
+                        codeBlockStartLine = i + 1; // 1-based line number
+                    } else {
+                        // Ending a code block
+                        inCodeBlock = false;
+                        const endLine = i + 1; // 1-based line number
+
+                        // Add decorations for each line in the code block
+                        for (let j = codeBlockStartLine; j <= endLine; j++) {
+                            const isFirst = j === codeBlockStartLine;
+                            const isLast = j === endLine;
+
+                            codeBlockDecorations.push({
+                                range: new monaco.Range(j, 1, j, 1),
+                                options: {
+                                    isWholeLine: true,
+                                    className: `code-block-box${isFirst ? ' code-block-top' : ''}${
+                                        isLast ? ' code-block-bottom' : ''
+                                    }`,
+                                },
+                            });
+                        }
+                    }
+                }
+            }
+
+            codeBlockDecorationIdsRef.current = editor.deltaDecorations(
+                codeBlockDecorationIdsRef.current,
+                codeBlockDecorations,
+            );
         };
 
         updateDecorations();

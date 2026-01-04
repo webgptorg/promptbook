@@ -83,7 +83,7 @@ export const PROMPTBOOK_SYNTAX_COLORS = {
     SEPARATOR: Color.fromHex('#cccccc'),
     COMMITMENT: Color.fromHex('#DA0F78'),
     PARAMETER: Color.fromHex('#8e44ad'),
-    CODE_BLOCK: Color.fromHex('#555555'),
+    CODE_BLOCK: Color.fromHex('#7700ffff'),
 } as const satisfies Record<string_name, Color>;
 // <- TODO: [🧠][🈵] Using `Color` here increases the package size approx 3kb, maybe remove it
 
