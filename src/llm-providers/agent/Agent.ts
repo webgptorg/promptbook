@@ -74,12 +74,12 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
      * Capabilities of the agent
      * This is parsed from commitments like USE BROWSER, USE SEARCH ENGINE, KNOWLEDGE, etc.
      */
-    public capabilities: AgentCapability[] = [];
+    public capabilities: Array<AgentCapability> = [];
 
     /**
      * List of sample conversations (question/answer pairs)
      */
-    public samples: ReadonlyArray<{ question: string; answer: string }> = [];
+    public samples: Array<{ question: string; answer: string }> = [];
 
     /**
      * Computed hash of the agent source for integrity verification
@@ -105,7 +105,7 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
     /**
      * Not used in Agent, always returns empty array
      */
-    get parameters(): BookParameter[] {
+    get parameters(): Array<BookParameter> {
         return [
             /* [😰] */
         ];
@@ -255,8 +255,8 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
         const teacherAgent = await RemoteAgent.connect({
             agentUrl:
                 `${CORE_AGENTS_SERVER.url}agents/${CORE_AGENTS_SERVER_WELL_KNOWN_AGENT_NAMES.TEACHER}` as string_agent_url,
-       // <- !!!!! Pass the `teacherAgentUrl`
-            });
+            // <- !!!!! Pass the `teacherAgentUrl`
+        });
 
         const teacherResult = await teacherAgent.callChatModel({
             title: 'Self-learning',

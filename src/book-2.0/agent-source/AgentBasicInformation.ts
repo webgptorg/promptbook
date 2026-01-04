@@ -114,19 +114,19 @@ export type AgentBasicInformation = {
      * - @Parameter (single word parameter starting with @)
      * - {parameterName} or {parameter with multiple words} or {parameterName: description text}
      */
-    parameters: BookParameter[];
+    parameters: Array<BookParameter>;
     // <- TODO: [🧠][😰] Maybe remove, Agent is not working with the parameters
 
     /**
      * Capabilities of the agent
      * This is parsed from commitments like USE BROWSER, USE SEARCH ENGINE, KNOWLEDGE, etc.
      */
-    capabilities: AgentCapability[];
+    capabilities: Array<AgentCapability>;
 
     /**
      * List of sample conversations (question/answer pairs)
      */
-    samples: ReadonlyArray<{ question: string; answer: string }>;
+    samples: Array<{ question: string; answer: string }>;
 };
 
 /**
