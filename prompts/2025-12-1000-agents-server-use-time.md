@@ -1,11 +1,11 @@
-[ ]
+[x]
 
 [✨🖲] Make commitment `USE TIME`
 
 -   This will add ability to determine current date and time.
 -   This should create tool into model requirements with the ability to determine current date and time
 -   This tool wont receive any input and will output the current date and time as a ISO 8601 string.
--   This tool will add the ability to the agent to determine the current date or time to tell the user. 
+-   This tool will add the ability to the agent to determine the current date or time to tell the user.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
 

@@ -17,3 +17,4 @@
 -   Self-learning is now a two-step process: first appending conversation samples, then asynchronously calling the Teacher Agent.
 -   Added `TEACHER` well-known agent to the core server configuration.
 -   Fixed syntax highlighting for `LANGUAGES` and `RULES` in the book editor to ensure the whole word is highlighted, preferring long forms over short forms
+-   Implemented `USE TIME` commitment to add the ability for agents to determine the current date and time.

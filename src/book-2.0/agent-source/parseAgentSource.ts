@@ -88,6 +88,15 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
             continue;
         }
 
+        if (commitment.type === 'USE TIME') {
+            capabilities.push({
+                type: 'time',
+                label: 'Time',
+                iconName: 'Clock',
+            });
+            continue;
+        }
+
         if (commitment.type === 'KNOWLEDGE') {
             const content = spaceTrim(commitment.content).split('\n')[0] || '';
             let label = content;
