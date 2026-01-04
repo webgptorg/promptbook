@@ -1,12 +1,11 @@
 [ ]
 
-[✨🌄] Make commitment `USE IMAGE GENERATOR`
+[✨🖲] Make commitment `USE TIME`
 
--   This will add ability to generate images using an image generation model.
--   This should create tool into model requirements with the ability to generate images based on text prompts.
--   This tool will receive the image prompt and output the URL of the generated image. Inside it will use the image generator from the LLM execution tools.
--   How other commitments and tools are implemented, for example, `USE TIME`.
--   You are working with the `Agents Server` application `/apps/agents-server`
+-   This will add ability to determine current date and time.
+-   This should create tool into model requirements with the ability to determine current date and time
+-   This tool wont receive any input and will output the current date and time as a ISO 8601 string.
+-   This tool will add the ability to the agent to determine the current date or time to tell the user. 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
 
@@ -24,7 +23,7 @@
 
 [-]
 
-[✨🌄] qux
+[✨🖲] bar
 
 -   ...
 -   You are working with the `Agents Server` application `/apps/agents-server`
@@ -35,7 +34,7 @@
 
 [-]
 
-[✨🌄] qux
+[✨🖲] bar
 
 -   ...
 -   You are working with the `Agents Server` application `/apps/agents-server`
@@ -46,7 +45,7 @@
 
 [-]
 
-[✨🌄] qux
+[✨🖲] bar
 
 -   ...
 -   You are working with the `Agents Server` application `/apps/agents-server`
