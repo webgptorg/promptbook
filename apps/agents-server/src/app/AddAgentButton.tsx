@@ -3,6 +3,7 @@
 import { string_book } from '@promptbook-local/types';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { forTime } from 'waitasecond';
 import { Card } from '../components/Homepage/Card';
 import { NewAgentDialog } from '../components/NewAgentDialog/NewAgentDialog';
 import { $createAgentFromBookAction, $generateAgentBoilerplateAction } from './actions';
@@ -17,7 +18,10 @@ export function AddAgentButton() {
         setIsLoading(true);
         try {
             const boilerplate = await $generateAgentBoilerplateAction();
+            console.log({ boilerplate });
             setAgentSource(boilerplate);
+
+            await forTime(100); // <- Allow some time for `setAgentSource` to propagate
             setIsDialogOpen(true);
         } catch (error) {
             console.error('Failed to generate agent boilerplate', error);
@@ -56,12 +60,13 @@ export function AddAgentButton() {
                 </Card>
             </div>
 
-            <NewAgentDialog
-                isOpen={isDialogOpen}
-                onClose={() => setIsDialogOpen(false)}
-                initialAgentSource={agentSource}
-                onCreate={handleCreate}
-            />
+            {isDialogOpen && (
+                <NewAgentDialog
+                    onClose={() => setIsDialogOpen(false)}
+                    initialAgentSource={agentSource}
+                    onCreate={handleCreate}
+                />
+            )}
         </>
     );
 }

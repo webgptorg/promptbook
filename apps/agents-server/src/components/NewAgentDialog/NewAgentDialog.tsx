@@ -7,14 +7,13 @@ import { BookEditor } from '../../../../../src/book-components/BookEditor/BookEd
 import { Portal } from '../Portal/Portal';
 
 type NewAgentDialogProps = {
-    isOpen: boolean;
     onClose: () => void;
     initialAgentSource: string_book;
     onCreate: (agentSource: string_book) => Promise<void>;
 };
 
 export function NewAgentDialog(props: NewAgentDialogProps) {
-    const { isOpen, onClose, initialAgentSource, onCreate } = props;
+    const {  onClose, initialAgentSource, onCreate } = props;
     const [agentSource, setAgentSource] = useState(initialAgentSource);
     const [isCreating, setIsCreating] = useState(false);
     // [✨🧬] const [isInteracted, setIsInteracted] = useState(false);
@@ -27,9 +26,6 @@ export function NewAgentDialog(props: NewAgentDialogProps) {
     }, [initialAgentSource, isOpen]);
     */
 
-    if (!isOpen) {
-        return null;
-    }
 
     const handleCreate = async () => {
         setIsCreating(true);
