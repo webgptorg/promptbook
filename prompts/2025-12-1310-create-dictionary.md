@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🌤] Go through the repository and create a dictionary.
 
