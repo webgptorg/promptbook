@@ -78,6 +78,13 @@ export type AgentModelRequirements = {
      * Each commitment can store its own data here
      */
     readonly metadata?: Record<string, TODO_any>;
+
+    /**
+     * Notes associated with the agent
+     *
+     * Note: This does not affect agent behavior in any way
+     */
+    readonly notes?: ReadonlyArray<string>;
 };
 // <- TODO: In future this will be ModelRequirements from `@promptbook/type`s, but for now we keep it here
 

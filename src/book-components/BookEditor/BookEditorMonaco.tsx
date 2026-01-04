@@ -327,7 +327,7 @@ export function BookEditorMonaco(props: BookEditorProps) {
             }
             
             .${instanceClass} .monaco-editor .code-block-box {
-                background-color: #f5f5f5;
+                background-color: #f5f5f566;
                 border-left: 1px solid ${PROMPTBOOK_SYNTAX_COLORS.CODE_BLOCK.toHex()};
                 border-right: 1px solid ${PROMPTBOOK_SYNTAX_COLORS.CODE_BLOCK.toHex()};
                 padding-left: ${Math.round(8 * zoomLevel)}px;

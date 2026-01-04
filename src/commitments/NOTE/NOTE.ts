@@ -91,29 +91,16 @@ export class NoteCommitmentDefinition extends BaseCommitmentDefinition<'NOTE' | 
     applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
         // The NOTE commitment makes no changes to the system message or model requirements
         // It only stores the note content in metadata for documentation purposes
-        const trimmedContent = content.trim();
+        const trimmedContent = spaceTrim(content);
 
-        if (!trimmedContent) {
+        if (trimmedContent === '') {
             return requirements;
         }
 
-        // Get existing note content from metadata
-        const existingNoteContent = requirements.metadata?.NOTE || '';
-
-        // Merge the new content with existing note content
-        // When multiple NOTE commitments exist, they are aggregated together
-        const mergedNoteContent = existingNoteContent ? `${existingNoteContent}\n${trimmedContent}` : trimmedContent;
-
-        // Store the merged note content in metadata for debugging and inspection
-        const updatedMetadata = {
-            ...requirements.metadata,
-            NOTE: mergedNoteContent,
-        };
-
-        // Return requirements with updated metadata but no changes to system message
+        // Return requirements with updated notes but no changes to system message
         return {
             ...requirements,
-            metadata: updatedMetadata,
+            notes: [...(requirements.notes || []), trimmedContent],
         };
     }
 }
