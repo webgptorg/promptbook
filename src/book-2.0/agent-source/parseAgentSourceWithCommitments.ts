@@ -100,9 +100,50 @@ export function parseAgentSourceWithCommitments(agentSource: string_book): Omit<
 
     // Process lines starting from after the agent name line
     const startIndex = agentNameLineIndex >= 0 ? agentNameLineIndex + 1 : 0;
+    let isInsideCodeBlock = false;
     for (let i = startIndex; i < lines.length; i++) {
         const line = lines[i];
         if (line === undefined) {
+            continue;
+        }
+
+        const trimmedLine = line.trim();
+
+        // Check if this line starts or ends a code block
+        if (trimmedLine.startsWith('```')) {
+            isInsideCodeBlock = !isInsideCodeBlock;
+
+            // Save the current commitment if it exists (code block ends it)
+            if (currentCommitment) {
+                const fullContent = currentCommitment.contentLines.join('\n');
+                commitments.push({
+                    type: currentCommitment.type as BookCommitment,
+                    content: spaceTrim(fullContent),
+                    originalLine: currentCommitment.originalStartLine,
+                    lineNumber: currentCommitment.startLineNumber,
+                });
+                currentCommitment = null;
+            }
+
+            nonCommitmentLines.push(line);
+            continue;
+        }
+
+        if (isInsideCodeBlock) {
+            // Save the current commitment if it exists (code block ends it)
+            // Note: This is a safety check, normally the ``` line handled it
+            if (currentCommitment) {
+                const fullContent = currentCommitment.contentLines.join('\n');
+                commitments.push({
+                    type: currentCommitment.type as BookCommitment,
+                    content: spaceTrim(fullContent),
+                    originalLine: currentCommitment.originalStartLine,
+                    lineNumber: currentCommitment.startLineNumber,
+                });
+                currentCommitment = null;
+            }
+
+            nonCommitmentLines.push(line);
             continue;
         }
 

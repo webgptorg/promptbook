@@ -191,6 +191,7 @@ export function BookEditorMonaco(props: BookEditorProps) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const bookRules: any = [
             [/^---[-]*$/, ''], // Horizontal lines get no highlighting
+            [/^```.*$/, 'code-block', '@codeblock'],
             [parameterRegex, 'parameter'],
             [/\{[^}]+\}/, 'parameter'],
             [commitmentRegex, 'commitment'],
@@ -203,10 +204,15 @@ export function BookEditorMonaco(props: BookEditorProps) {
                 root: [
                     [/^\s*$/, 'empty'], // Empty token whitespace lines
                     [/^-*$/, 'line'], // Horizontal lines get no highlighting
+                    [/^```.*$/, 'code-block', '@codeblock'],
                     [/^.*$/, 'title', '@body'], // First non-empty, non-horizontal line is title
                     [commitmentRegex, 'commitment'],
                 ],
                 body: bookRules,
+                codeblock: [
+                    [/^```.*$/, 'code-block', '@pop'],
+                    [/^.*$/, 'code-block'],
+                ],
             },
         });
 
@@ -251,6 +257,10 @@ export function BookEditorMonaco(props: BookEditorProps) {
                     token: 'parameter',
                     foreground: PROMPTBOOK_SYNTAX_COLORS.PARAMETER.toHex(),
                     fontStyle: `italic`,
+                },
+                {
+                    token: 'code-block',
+                    foreground: PROMPTBOOK_SYNTAX_COLORS.CODE_BLOCK.toHex(),
                 },
             ],
             colors: {
