@@ -11,6 +11,7 @@
     -   Most of the things in the repository are common and used in both of these versions.
     -   Only on the **Agents part** of the Promptbook, pipelines are deprecated and should not be mentioned here in the comparison.
 -   For each alternative product, create a separate Markdown file.
+-   Leverage the 💡 emoticons in the comparisons
 -   Include Side-by-Side Comparison section that highlights the differences and similarities in a tabular format.
 -   The structure of these files should be:
 

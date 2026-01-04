@@ -1,4 +1,4 @@
-[x]
+[x][ ]
 
 [✨🌤] Go through the repository and create a dictionary.
 
@@ -8,12 +8,15 @@
     -   **Agents** - Agents which have personality, knowledge, rules,... and they are a huge abstraction above the raw models.
     -   Most of the things in the repository are common and used in both of these versions.
 -   Interlink these concepts via links to other dictionary entries where applicable.
+-   Leverage the 💡 emoticons in the dictionary.
+-   Look at [things imported from Github](/documents/github)
+-   Also look at https://ptbk.io
 -   Each entry should include the term, a brief definition, and any relevant context or examples:
 
 **For example:**
 
 ```markdown
-# Commitment
+# 🤝 Commitment
 
 A commitment is a special syntax element used in the Promptbook to define specific behaviors or capabilities of an AI agent. Commitments are included in the agent's source code and influence how the agent interacts with users and external systems.
 
@@ -30,9 +33,9 @@ In this example, the agent "John Green" has several commitments `PERSONA`, `RULE
 
 ## Examples
 
--   [`PERSONA`](./commitments/persona.md) Defines the personality traits of the agent.
--   [`USE BROWSER`](./commitments/use-browser.md) Grants the agent the ability to browse the web for information.
--   [`KNOWLEDGE`](./commitments/knowledge.md) Provides the agent with specific knowledge bases to draw from.
+-   [🎭 `PERSONA`](./commitments/persona.md) Defines the personality traits of the agent.
+-   [💻 `USE BROWSER`](./commitments/use-browser.md) Grants the agent the ability to browse the web for information.
+-   [🧠 `KNOWLEDGE`](./commitments/knowledge.md) Provides the agent with specific knowledge bases to draw from.
 -   [All Commitments](./commitments/README.md)
 ```
 
