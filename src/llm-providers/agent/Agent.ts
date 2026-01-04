@@ -1,6 +1,5 @@
 import { BehaviorSubject } from 'rxjs';
 import spaceTrim from 'spacetrim';
-import { CORE_AGENTS_SERVER, CORE_AGENTS_SERVER_WELL_KNOWN_AGENT_NAMES } from '../../../servers';
 import type {
     AgentBasicInformation,
     AgentCapability,
@@ -31,7 +30,7 @@ import { normalizeMessageText } from '../../utils/normalization/normalizeMessage
 import { getSingleLlmExecutionTools } from '../_multiple/getSingleLlmExecutionTools';
 import { AgentLlmExecutionTools } from './AgentLlmExecutionTools';
 import type { AgentOptions } from './AgentOptions';
-import { RemoteAgent } from './RemoteAgent'; // <- [💞]
+// !!!!! import { RemoteAgent } from './RemoteAgent'; // <- [💞] <- !!!!!
 
 /**
  * Represents one AI Agent
@@ -206,17 +205,20 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
             return result;
         }
 
-        // TODO: !!!!! Is this timed propperly?
+        // TODO: !!!!! Is this timed properly?
 
         // Note: [1] Do the append of the samples
         this.#selfLearnSamples(prompt, result);
 
+        /*
+        !!!!!
         // Note: [2] Asynchronously call the teacher agent and invoke the silver link. When the teacher fails, keep just the samples
         this.#selfLearnTeacher(prompt, result).catch((error) => {
             if (this.options.isVerbose) {
                 console.error('Failed to self-learn from teacher agent', error);
             }
         });
+        */
 
         return result;
     }
@@ -249,7 +251,7 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
 
     /**
      * Self-learning Step 2: Asynchronously call the teacher agent and invoke the silver link
-     */
+     * !!!!! /
     async #selfLearnTeacher(prompt: Prompt, result: ChatPromptResult): Promise<void> {
         // [1] Call the teacher agent // <- !!!!! Emojis
         const teacherAgent = await RemoteAgent.connect({
@@ -298,6 +300,7 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
         // [3] Update the source
         this.agentSource.next(newSource as string_book);
     }
+    */
 }
 
 /**

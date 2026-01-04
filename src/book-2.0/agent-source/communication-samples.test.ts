@@ -1,8 +1,10 @@
 import { describe, expect, it } from '@jest/globals';
 import spaceTrim from 'spacetrim';
-import { parseAgentSource } from './parseAgentSource';
 import { createAgentModelRequirementsWithCommitments } from './createAgentModelRequirementsWithCommitments';
+import { parseAgentSource } from './parseAgentSource';
 import { validateBook } from './string_book';
+
+// spell-checker: disable
 
 describe('communication samples into system message', () => {
     it('should extract USER MESSAGE and AGENT MESSAGE pairs', () => {
