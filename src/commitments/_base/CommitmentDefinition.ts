@@ -1,6 +1,4 @@
-import type { Promisable } from 'type-fest';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
-import type { ExecutionTools } from '../../execution/ExecutionTools';
 
 /**
  * Definition of a commitment that can be applied to agent model requirements
@@ -57,12 +55,7 @@ export type CommitmentDefinition = {
      *
      * @param requirements Current agent model requirements
      * @param content The content part of the commitment (after the type)
-     * @param tools Tools for applying the commitment (optional)
      * @returns Updated agent model requirements
      */
-    applyToAgentModelRequirements(
-        requirements: AgentModelRequirements,
-        content: string,
-        tools: Pick<ExecutionTools, 'fs' | 'scrapers'>,
-    ): Promisable<AgentModelRequirements>;
+    applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements;
 };

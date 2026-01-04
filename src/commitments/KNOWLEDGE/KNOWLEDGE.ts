@@ -1,5 +1,3 @@
-﻿import type { ExecutionTools } from '../../execution/ExecutionTools';
-import type { Promisable } from 'type-fest';
 import { spaceTrim } from 'spacetrim';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import type { string_knowledge_source_link } from '../../types/typeAliases';
@@ -22,7 +20,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * KNOWLEDGE https://example.com/product-documentation.pdf
  * ```
  *
- * @private [đźŞ”] Maybe export the commitments through some package
+ * @private [🪔] Maybe export the commitments through some package
  */
 export class KnowledgeCommitmentDefinition extends BaseCommitmentDefinition<'KNOWLEDGE'> {
     constructor() {
@@ -40,7 +38,7 @@ export class KnowledgeCommitmentDefinition extends BaseCommitmentDefinition<'KNO
      * Icon for this commitment.
      */
     get icon(): string {
-        return 'đź§ ';
+        return '🧠';
     }
 
     /**
@@ -88,7 +86,7 @@ export class KnowledgeCommitmentDefinition extends BaseCommitmentDefinition<'KNO
         `);
     }
 
-    applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string, _tools: Pick<ExecutionTools, 'fs' | 'scrapers'>): Promisable<AgentModelRequirements> {
+    applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
         const trimmedContent = content.trim();
 
         if (!trimmedContent) {
@@ -119,5 +117,5 @@ export class KnowledgeCommitmentDefinition extends BaseCommitmentDefinition<'KNO
 }
 
 /**
- * Note: [đź’ž] Ignore a discrepancy between file name and entity name
+ * Note: [💞] Ignore a discrepancy between file name and entity name
  */

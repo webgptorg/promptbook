@@ -1,5 +1,3 @@
-﻿import type { ExecutionTools } from '../../execution/ExecutionTools';
-import type { Promisable } from 'type-fest';
 import { spaceTrim } from 'spacetrim';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
@@ -18,7 +16,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * FORMAT Use markdown formatting for all code blocks
  * ```
  *
- * @private [đźŞ”] Maybe export the commitments through some package
+ * @private [🪔] Maybe export the commitments through some package
  */
 export class FormatCommitmentDefinition extends BaseCommitmentDefinition<'FORMAT' | 'FORMATS'> {
     constructor(type: 'FORMAT' | 'FORMATS' = 'FORMAT') {
@@ -36,7 +34,7 @@ export class FormatCommitmentDefinition extends BaseCommitmentDefinition<'FORMAT
      * Icon for this commitment.
      */
     get icon(): string {
-        return 'đź“ś';
+        return '📜';
     }
 
     /**
@@ -75,7 +73,7 @@ export class FormatCommitmentDefinition extends BaseCommitmentDefinition<'FORMAT
         `);
     }
 
-    applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string, _tools: Pick<ExecutionTools, 'fs' | 'scrapers'>): Promisable<AgentModelRequirements> {
+    applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
         const trimmedContent = content.trim();
 
         if (!trimmedContent) {
@@ -90,5 +88,5 @@ export class FormatCommitmentDefinition extends BaseCommitmentDefinition<'FORMAT
 }
 
 /**
- * Note: [đź’ž] Ignore a discrepancy between file name and entity name
+ * Note: [💞] Ignore a discrepancy between file name and entity name
  */

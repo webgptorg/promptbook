@@ -1,5 +1,3 @@
-﻿import type { ExecutionTools } from '../../execution/ExecutionTools';
-import type { Promisable } from 'type-fest';
 import { spaceTrim } from 'spacetrim';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
@@ -17,7 +15,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * ACTION Able to analyze data and provide insights
  * ```
  *
- * @private [đźŞ”] Maybe export the commitments through some package
+ * @private [🪔] Maybe export the commitments through some package
  */
 export class ActionCommitmentDefinition extends BaseCommitmentDefinition<'ACTION' | 'ACTIONS'> {
     constructor(type: 'ACTION' | 'ACTIONS' = 'ACTION') {
@@ -35,7 +33,7 @@ export class ActionCommitmentDefinition extends BaseCommitmentDefinition<'ACTION
      * Icon for this commitment.
      */
     get icon(): string {
-        return 'âšˇ';
+        return '⚡';
     }
 
     /**
@@ -76,7 +74,7 @@ export class ActionCommitmentDefinition extends BaseCommitmentDefinition<'ACTION
         `);
     }
 
-    applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string, _tools: Pick<ExecutionTools, 'fs' | 'scrapers'>): Promisable<AgentModelRequirements> {
+    applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
         const trimmedContent = content.trim();
 
         if (!trimmedContent) {
@@ -91,5 +89,5 @@ export class ActionCommitmentDefinition extends BaseCommitmentDefinition<'ACTION
 }
 
 /**
- * Note: [đź’ž] Ignore a discrepancy between file name and entity name
+ * Note: [💞] Ignore a discrepancy between file name and entity name
  */

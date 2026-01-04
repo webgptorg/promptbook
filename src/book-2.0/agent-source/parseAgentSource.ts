@@ -57,27 +57,6 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
     let pendingUserMessage: string | null = null;
 
     for (const commitment of parseResult.commitments) {
-        if (commitment.type === 'IMPORT') {
-            const content = spaceTrim(commitment.content).split('\n')[0] || '';
-            let label = content;
-            const iconName = 'Download';
-
-            try {
-                const url = new URL(content);
-                label = url.pathname.split('/').pop() || url.hostname.replace(/^www\./, '');
-            } catch (e) {
-                // Invalid URL, treat as text (local file)
-                label = content.split('/').pop() || content;
-            }
-
-            capabilities.push({
-                type: 'knowledge', // Use knowledge type for UI display of imported files
-                label: `Imported: ${label}`,
-                iconName,
-            });
-            continue;
-        }
-
         if (commitment.type === 'USER MESSAGE') {
             pendingUserMessage = commitment.content;
             continue;

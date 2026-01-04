@@ -1,5 +1,3 @@
-﻿import type { ExecutionTools } from '../../execution/ExecutionTools';
-import type { Promisable } from 'type-fest';
 import { spaceTrim } from 'spacetrim';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
@@ -17,7 +15,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * STYLE Always provide code examples when explaining programming concepts
  * ```
  *
- * @private [đźŞ”] Maybe export the commitments through some package
+ * @private [🪔] Maybe export the commitments through some package
  */
 export class StyleCommitmentDefinition extends BaseCommitmentDefinition<'STYLE' | 'STYLES'> {
     constructor(type: 'STYLE' | 'STYLES' = 'STYLE') {
@@ -35,7 +33,7 @@ export class StyleCommitmentDefinition extends BaseCommitmentDefinition<'STYLE' 
      * Icon for this commitment.
      */
     get icon(): string {
-        return 'đź–‹ď¸Ź';
+        return '🖋️';
     }
 
     /**
@@ -76,7 +74,7 @@ export class StyleCommitmentDefinition extends BaseCommitmentDefinition<'STYLE' 
         `);
     }
 
-    applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string, _tools: Pick<ExecutionTools, 'fs' | 'scrapers'>): Promisable<AgentModelRequirements> {
+    applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
         const trimmedContent = content.trim();
 
         if (!trimmedContent) {
@@ -91,5 +89,5 @@ export class StyleCommitmentDefinition extends BaseCommitmentDefinition<'STYLE' 
 }
 
 /**
- * [đź’ž] Ignore a discrepancy between file name and entity name
+ * [💞] Ignore a discrepancy between file name and entity name
  */

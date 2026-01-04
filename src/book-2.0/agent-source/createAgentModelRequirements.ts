@@ -1,5 +1,4 @@
 import type { AvailableModel } from '../../execution/AvailableModel';
-import type { ExecutionTools } from '../../execution/ExecutionTools';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import { preparePersona } from '../../personas/preparePersona';
 import type {
@@ -27,22 +26,16 @@ export async function createAgentModelRequirements(
     modelName?: string_model_name,
     availableModels?: readonly AvailableModel[],
     llmTools?: LlmExecutionTools,
-    tools?: ExecutionTools,
 ): Promise<AgentModelRequirements> {
-    // If tools are not provided but llmTools are, wrap llmTools into tools
-    if (!tools && llmTools) {
-        tools = { llm: llmTools };
-    }
-
     // If availableModels are provided and no specific modelName is given,
     // use preparePersona to select the best model
     if (availableModels && !modelName && llmTools) {
         const selectedModelName = await selectBestModelUsingPersona(agentSource, llmTools);
-        return createAgentModelRequirementsWithCommitments(agentSource, selectedModelName, tools);
+        return createAgentModelRequirementsWithCommitments(agentSource, selectedModelName);
     }
 
     // Use the new commitment-based system with provided or default model
-    return createAgentModelRequirementsWithCommitments(agentSource, modelName, tools);
+    return createAgentModelRequirementsWithCommitments(agentSource, modelName);
 }
 
 /**

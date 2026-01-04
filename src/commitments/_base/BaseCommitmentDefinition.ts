@@ -1,7 +1,5 @@
-import type { Promisable } from 'type-fest';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import { createCommitmentRegex, createCommitmentTypeRegex } from '../../book-2.0/agent-source/createCommitmentRegex';
-import type { ExecutionTools } from '../../execution/ExecutionTools';
 import type { BookCommitment } from './BookCommitment';
 import type { CommitmentDefinition } from './CommitmentDefinition';
 
@@ -74,8 +72,7 @@ export abstract class BaseCommitmentDefinition<TBookCommitment extends string> i
     abstract applyToAgentModelRequirements(
         requirements: AgentModelRequirements,
         content: string,
-        tools: Pick<ExecutionTools, 'fs' | 'scrapers'>,
-    ): Promisable<AgentModelRequirements>;
+    ): AgentModelRequirements;
 
     /**
      * Helper method to create a new requirements object with updated system message

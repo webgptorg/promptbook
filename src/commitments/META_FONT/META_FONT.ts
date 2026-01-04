@@ -1,5 +1,3 @@
-﻿import type { ExecutionTools } from '../../execution/ExecutionTools';
-import type { Promisable } from 'type-fest';
 import { spaceTrim } from 'spacetrim';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
@@ -19,7 +17,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * META FONT Roboto
  * ```
  *
- * @private [đźŞ”] Maybe export the commitments through some package
+ * @private [🪔] Maybe export the commitments through some package
  */
 export class MetaFontCommitmentDefinition extends BaseCommitmentDefinition<'META FONT'> {
     constructor() {
@@ -37,7 +35,7 @@ export class MetaFontCommitmentDefinition extends BaseCommitmentDefinition<'META
      * Icon for this commitment.
      */
     get icon(): string {
-        return 'đź”¤';
+        return '🔤';
     }
 
     /**
@@ -75,7 +73,7 @@ export class MetaFontCommitmentDefinition extends BaseCommitmentDefinition<'META
         `);
     }
 
-    applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string, _tools: Pick<ExecutionTools, 'fs' | 'scrapers'>): Promisable<AgentModelRequirements> {
+    applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
         TODO_USE(content);
 
         // META FONT doesn't modify the system message or model requirements
@@ -95,5 +93,5 @@ export class MetaFontCommitmentDefinition extends BaseCommitmentDefinition<'META
 }
 
 /**
- * Note: [đź’ž] Ignore a discrepancy between file name and entity name
+ * Note: [💞] Ignore a discrepancy between file name and entity name
  */

@@ -1,5 +1,3 @@
-﻿import type { ExecutionTools } from '../../execution/ExecutionTools';
-import type { Promisable } from 'type-fest';
 import { spaceTrim } from 'spacetrim';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import { keepUnused } from '../../utils/organization/keepUnused';
@@ -17,7 +15,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * INITIAL MESSAGE Hello! I am ready to help you with your tasks.
  * ```
  *
- * @private [đźŞ”] Maybe export the commitments through some package
+ * @private [🪔] Maybe export the commitments through some package
  */
 export class InitialMessageCommitmentDefinition extends BaseCommitmentDefinition<'INITIAL MESSAGE'> {
     constructor() {
@@ -35,7 +33,7 @@ export class InitialMessageCommitmentDefinition extends BaseCommitmentDefinition
      * Icon for this commitment.
      */
     get icon(): string {
-        return 'đź‘‹';
+        return '👋';
     }
 
     /**
@@ -64,7 +62,7 @@ export class InitialMessageCommitmentDefinition extends BaseCommitmentDefinition
         `);
     }
 
-    applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string, _tools: Pick<ExecutionTools, 'fs' | 'scrapers'>): Promisable<AgentModelRequirements> {
+    applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
         // INITIAL MESSAGE is for UI display purposes and typically doesn't need to be
         // added to the system prompt or model requirements directly.
         // It is extracted separately for the chat interface.

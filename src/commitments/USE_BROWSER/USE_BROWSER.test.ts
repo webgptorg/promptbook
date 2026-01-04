@@ -1,5 +1,3 @@
-﻿import type { ExecutionTools } from '../../execution/ExecutionTools';
-import type { Promisable } from 'type-fest';
 import { describe, expect, it } from '@jest/globals';
 import { createBasicAgentModelRequirements } from '../_base/createEmptyAgentModelRequirements';
 import { UseBrowserCommitmentDefinition } from './USE_BROWSER';
@@ -16,7 +14,7 @@ describe('USE BROWSER commitment', () => {
     it('has description and documentation', () => {
         expect(commitment.description).toBeTruthy();
         expect(commitment.documentation).toBeTruthy();
-        expect(commitment.icon).toBe('đźŚ');
+        expect(commitment.icon).toBe('🌐');
     });
 
     it('creates regex that matches USE BROWSER', () => {

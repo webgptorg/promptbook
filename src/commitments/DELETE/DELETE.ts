@@ -1,5 +1,3 @@
-﻿import type { ExecutionTools } from '../../execution/ExecutionTools';
-import type { Promisable } from 'type-fest';
 import { spaceTrim } from 'spacetrim';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
@@ -20,7 +18,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * REMOVE Casual conversational style
  * ```
  *
- * @private [đźŞ”] Maybe export the commitments through some package
+ * @private [🪔] Maybe export the commitments through some package
  */
 export class DeleteCommitmentDefinition extends BaseCommitmentDefinition<'DELETE' | 'CANCEL' | 'DISCARD' | 'REMOVE'> {
     constructor(type: 'DELETE' | 'CANCEL' | 'DISCARD' | 'REMOVE') {
@@ -38,7 +36,7 @@ export class DeleteCommitmentDefinition extends BaseCommitmentDefinition<'DELETE
      * Icon for this commitment.
      */
     get icon(): string {
-        return 'đź—‘ď¸Ź';
+        return '🗑️';
     }
 
     /**
@@ -117,7 +115,7 @@ export class DeleteCommitmentDefinition extends BaseCommitmentDefinition<'DELETE
         `);
     }
 
-    applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string, _tools: Pick<ExecutionTools, 'fs' | 'scrapers'>): Promisable<AgentModelRequirements> {
+    applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
         const trimmedContent = content.trim();
 
         if (!trimmedContent) {
@@ -133,5 +131,5 @@ export class DeleteCommitmentDefinition extends BaseCommitmentDefinition<'DELETE
 }
 
 /**
- * Note: [đź’ž] Ignore a discrepancy between file name and entity name
+ * Note: [💞] Ignore a discrepancy between file name and entity name
  */

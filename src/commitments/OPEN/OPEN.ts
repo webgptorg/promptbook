@@ -1,5 +1,3 @@
-﻿import type { ExecutionTools } from '../../execution/ExecutionTools';
-import type { Promisable } from 'type-fest';
 import { spaceTrim } from 'spacetrim';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import { keepUnused } from '../../utils/organization/keepUnused';
@@ -17,7 +15,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * OPEN
  * ```
  *
- * @private [đźŞ”] Maybe export the commitments through some package
+ * @private [🪔] Maybe export the commitments through some package
  */
 export class OpenCommitmentDefinition extends BaseCommitmentDefinition<'OPEN'> {
     constructor() {
@@ -35,7 +33,7 @@ export class OpenCommitmentDefinition extends BaseCommitmentDefinition<'OPEN'> {
      * Icon for this commitment.
      */
     get icon(): string {
-        return 'đź”“';
+        return '🔓';
     }
 
     /**
@@ -79,5 +77,5 @@ export class OpenCommitmentDefinition extends BaseCommitmentDefinition<'OPEN'> {
 }
 
 /**
- * Note: [đź’ž] Ignore a discrepancy between file name and entity name
+ * Note: [💞] Ignore a discrepancy between file name and entity name
  */

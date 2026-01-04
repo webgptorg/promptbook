@@ -1,5 +1,3 @@
-﻿import type { ExecutionTools } from '../../execution/ExecutionTools';
-import type { Promisable } from 'type-fest';
 import { spaceTrim } from 'spacetrim';
 import { TODO_any } from '../../_packages/types.index';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
@@ -17,10 +15,10 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  *
  * ```book
  * USE SEARCH ENGINE
- * USE SEARCH ENGINE Hledej informace o PĹ™emyslovcĂ­ch
+ * USE SEARCH ENGINE Hledej informace o Přemyslovcích
  * ```
  *
- * @private [đźŞ”] Maybe export the commitments through some package
+ * @private [🪔] Maybe export the commitments through some package
  */
 export class UseSearchEngineCommitmentDefinition extends BaseCommitmentDefinition<'USE SEARCH ENGINE'> {
     constructor() {
@@ -38,7 +36,7 @@ export class UseSearchEngineCommitmentDefinition extends BaseCommitmentDefinitio
      * Icon for this commitment.
      */
     get icon(): string {
-        return 'đź”Ť';
+        return '🔍';
     }
 
     /**
@@ -77,7 +75,7 @@ export class UseSearchEngineCommitmentDefinition extends BaseCommitmentDefinitio
         `);
     }
 
-    applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string, _tools: Pick<ExecutionTools, 'fs' | 'scrapers'>): Promisable<AgentModelRequirements> {
+    applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
         // Get existing tools array or create new one
         const existingTools = requirements.tools || [];
 
@@ -87,7 +85,7 @@ export class UseSearchEngineCommitmentDefinition extends BaseCommitmentDefinitio
             : [
                   ...existingTools,
                   { type: 'web_search' } as TODO_any,
-                  // <- Note: [đź”°] This is just using simple native search tool by OpenAI @see https://platform.openai.com/docs/guides/tools-web-search
+                  // <- Note: [🔰] This is just using simple native search tool by OpenAI @see https://platform.openai.com/docs/guides/tools-web-search
                   //          In future we will use proper MCP search tool:
                   /*
    
@@ -125,5 +123,5 @@ export class UseSearchEngineCommitmentDefinition extends BaseCommitmentDefinitio
 }
 
 /**
- * Note: [đź’ž] Ignore a discrepancy between file name and entity name
+ * Note: [💞] Ignore a discrepancy between file name and entity name
  */

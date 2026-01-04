@@ -1,5 +1,3 @@
-﻿import type { ExecutionTools } from '../../execution/ExecutionTools';
-import type { Promisable } from 'type-fest';
 import { spaceTrim } from 'spacetrim';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
@@ -25,7 +23,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * META COLOR #ff0000, #00ff00, #0000ff
  * ```
  *
- * @private [đźŞ”] Maybe export the commitments through some package
+ * @private [🪔] Maybe export the commitments through some package
  */
 export class MetaColorCommitmentDefinition extends BaseCommitmentDefinition<'META COLOR'> {
     constructor() {
@@ -43,7 +41,7 @@ export class MetaColorCommitmentDefinition extends BaseCommitmentDefinition<'MET
      * Icon for this commitment.
      */
     get icon(): string {
-        return 'đźŽ¨';
+        return '🎨';
     }
 
     /**
@@ -88,7 +86,7 @@ export class MetaColorCommitmentDefinition extends BaseCommitmentDefinition<'MET
         `);
     }
 
-    applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string, _tools: Pick<ExecutionTools, 'fs' | 'scrapers'>): Promisable<AgentModelRequirements> {
+    applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
         TODO_USE(content);
 
         // META COLOR doesn't modify the system message or model requirements
@@ -108,5 +106,5 @@ export class MetaColorCommitmentDefinition extends BaseCommitmentDefinition<'MET
 }
 
 /**
- * Note: [đź’ž] Ignore a discrepancy between file name and entity name
+ * Note: [💞] Ignore a discrepancy between file name and entity name
  */
