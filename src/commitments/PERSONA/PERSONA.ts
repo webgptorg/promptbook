@@ -1,3 +1,5 @@
+﻿import type { ExecutionTools } from '../../execution/ExecutionTools';
+import type { Promisable } from 'type-fest';
 import { spaceTrim } from 'spacetrim';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
@@ -23,7 +25,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  *
  * The above will be merged into a single persona section at the beginning of the system message.
  *
- * @private [🪔] Maybe export the commitments through some package
+ * @private [đźŞ”] Maybe export the commitments through some package
  */
 export class PersonaCommitmentDefinition extends BaseCommitmentDefinition<'PERSONA' | 'PERSONAE'> {
     constructor(type: 'PERSONA' | 'PERSONAE' = 'PERSONA') {
@@ -41,7 +43,7 @@ export class PersonaCommitmentDefinition extends BaseCommitmentDefinition<'PERSO
      * Icon for this commitment.
      */
     get icon(): string {
-        return '👤';
+        return 'đź‘¤';
     }
 
     /**
@@ -71,7 +73,7 @@ export class PersonaCommitmentDefinition extends BaseCommitmentDefinition<'PERSO
         `);
     }
 
-    applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
+    applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string, _tools: Pick<ExecutionTools, 'fs' | 'scrapers'>): Promisable<AgentModelRequirements> {
         // The PERSONA commitment aggregates all persona content and places it at the beginning
         const trimmedContent = content.trim();
 
@@ -139,7 +141,7 @@ export class PersonaCommitmentDefinition extends BaseCommitmentDefinition<'PERSO
             cleanedMessage = lines.slice(personaEndIndex).join('\n').trim();
         }
 
-        // TODO: [🕛] There should be `agentFullname` not `agentName`
+        // TODO: [đź•›] There should be `agentFullname` not `agentName`
         // Create new system message with persona at the beginning
         // Format: "You are {agentName}\n{personaContent}"
         // The # PERSONA comment will be removed later by removeCommentsFromSystemMessage
@@ -155,5 +157,5 @@ export class PersonaCommitmentDefinition extends BaseCommitmentDefinition<'PERSO
 }
 
 /**
- * Note: [💞] Ignore a discrepancy between file name and entity name
+ * Note: [đź’ž] Ignore a discrepancy between file name and entity name
  */

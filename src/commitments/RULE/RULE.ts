@@ -1,3 +1,5 @@
+﻿import type { ExecutionTools } from '../../execution/ExecutionTools';
+import type { Promisable } from 'type-fest';
 import { spaceTrim } from 'spacetrim';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
@@ -15,7 +17,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * RULES Never provide medical advice, always refer to healthcare professionals
  * ```
  *
- * @private [🪔] Maybe export the commitments through some package
+ * @private [đźŞ”] Maybe export the commitments through some package
  */
 export class RuleCommitmentDefinition extends BaseCommitmentDefinition<'RULE' | 'RULES'> {
     constructor(type: 'RULE' | 'RULES' = 'RULE') {
@@ -33,7 +35,7 @@ export class RuleCommitmentDefinition extends BaseCommitmentDefinition<'RULE' | 
      * Icon for this commitment.
      */
     get icon(): string {
-        return '⚖️';
+        return 'âš–ď¸Ź';
     }
 
     /**
@@ -74,7 +76,7 @@ export class RuleCommitmentDefinition extends BaseCommitmentDefinition<'RULE' | 
         `);
     }
 
-    applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
+    applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string, _tools: Pick<ExecutionTools, 'fs' | 'scrapers'>): Promisable<AgentModelRequirements> {
         const trimmedContent = content.trim();
 
         if (!trimmedContent) {
@@ -89,5 +91,5 @@ export class RuleCommitmentDefinition extends BaseCommitmentDefinition<'RULE' | 
 }
 
 /**
- * Note: [💞] Ignore a discrepancy between file name and entity name
+ * Note: [đź’ž] Ignore a discrepancy between file name and entity name
  */

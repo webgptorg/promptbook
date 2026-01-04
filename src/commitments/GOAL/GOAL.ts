@@ -1,3 +1,5 @@
+﻿import type { ExecutionTools } from '../../execution/ExecutionTools';
+import type { Promisable } from 'type-fest';
 import { spaceTrim } from 'spacetrim';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
@@ -16,7 +18,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * GOAL Always prioritize user safety and ethical guidelines
  * ```
  *
- * @private [🪔] Maybe export the commitments through some package
+ * @private [đźŞ”] Maybe export the commitments through some package
  */
 export class GoalCommitmentDefinition extends BaseCommitmentDefinition<'GOAL' | 'GOALS'> {
     constructor(type: 'GOAL' | 'GOALS' = 'GOAL') {
@@ -34,7 +36,7 @@ export class GoalCommitmentDefinition extends BaseCommitmentDefinition<'GOAL' | 
      * Icon for this commitment.
      */
     get icon(): string {
-        return '🎯';
+        return 'đźŽŻ';
     }
 
     /**
@@ -91,7 +93,7 @@ export class GoalCommitmentDefinition extends BaseCommitmentDefinition<'GOAL' | 
         `);
     }
 
-    applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
+    applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string, _tools: Pick<ExecutionTools, 'fs' | 'scrapers'>): Promisable<AgentModelRequirements> {
         const trimmedContent = content.trim();
 
         if (!trimmedContent) {
@@ -107,5 +109,5 @@ export class GoalCommitmentDefinition extends BaseCommitmentDefinition<'GOAL' | 
 }
 
 /**
- * Note: [💞] Ignore a discrepancy between file name and entity name
+ * Note: [đź’ž] Ignore a discrepancy between file name and entity name
  */

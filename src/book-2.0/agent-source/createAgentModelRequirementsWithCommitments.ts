@@ -1,6 +1,7 @@
 import { getCommitmentDefinition } from '../../commitments/index';
 import { createBasicAgentModelRequirements } from '../../commitments/_base/createEmptyAgentModelRequirements';
 import type { ParsedCommitment } from '../../commitments/_base/ParsedCommitment';
+import type { ExecutionTools } from '../../execution/ExecutionTools';
 import type { string_model_name } from '../../types/typeAliases';
 import type { AgentModelRequirements } from './AgentModelRequirements';
 import { extractMcpServers } from './createAgentModelRequirements';
@@ -19,6 +20,7 @@ import type { string_book } from './string_book';
 export async function createAgentModelRequirementsWithCommitments(
     agentSource: string_book,
     modelName?: string_model_name,
+    tools?: ExecutionTools,
 ): Promise<AgentModelRequirements> {
     // Parse the agent source to extract commitments
     const parseResult = parseAgentSourceWithCommitments(agentSource);
@@ -91,7 +93,11 @@ export async function createAgentModelRequirementsWithCommitments(
         const definition = getCommitmentDefinition(commitment.type);
         if (definition) {
             try {
-                requirements = definition.applyToAgentModelRequirements(requirements, commitment.content);
+                requirements = await definition.applyToAgentModelRequirements(
+                    requirements,
+                    commitment.content,
+                    tools || {},
+                );
             } catch (error) {
                 console.warn(`Failed to apply commitment ${commitment.type}:`, error);
                 // Continue with other commitments even if one fails

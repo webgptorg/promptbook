@@ -1,3 +1,5 @@
+﻿import type { ExecutionTools } from '../../execution/ExecutionTools';
+import type { Promisable } from 'type-fest';
 import { spaceTrim } from 'spacetrim';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import { keepUnused } from '../../utils/organization/keepUnused';
@@ -15,7 +17,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * USER MESSAGE Hello, I have a problem.
  * ```
  *
- * @private [🪔] Maybe export the commitments through some package
+ * @private [đźŞ”] Maybe export the commitments through some package
  */
 export class UserMessageCommitmentDefinition extends BaseCommitmentDefinition<'USER MESSAGE'> {
     constructor() {
@@ -33,7 +35,7 @@ export class UserMessageCommitmentDefinition extends BaseCommitmentDefinition<'U
      * Icon for this commitment.
      */
     get icon(): string {
-        return '🧑';
+        return 'đź§‘';
     }
 
     /**
@@ -63,7 +65,7 @@ export class UserMessageCommitmentDefinition extends BaseCommitmentDefinition<'U
         `);
     }
 
-    applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
+    applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string, _tools: Pick<ExecutionTools, 'fs' | 'scrapers'>): Promisable<AgentModelRequirements> {
         // USER MESSAGE is for UI display purposes / conversation history construction
         // and typically doesn't need to be added to the system prompt or model requirements directly.
         // It is extracted separately for the chat interface.

@@ -1,6 +1,10 @@
 ### 📚 Book
 
--   Implemented `IMPORT` commitment which is similar to `FROM` but can be used multiple times and imports content at the location of the commitment.
+-   Implemented `IMPORT` commitment which allows to import other agent source books or generic text files (like `.txt`, `.json`, etc.) from both local paths and URLs.
+-   Imported generic text files are automatically wrapped in appropriate markdown code blocks based on their MIME type.
+-   JSON files are automatically formatted before being imported.
+-   Implemented a plugin-based architecture for file importers, allowing for easy extension to new file types.
+-   Added a mocked asynchronous security check for all imported files to prevent importing binary data or potentially malicious content.
 -   Allow to attach files to the chat messages in Agents Server [2025-12-0900-agents-server-chat-attachements.md](https://github.com/webgptorg/promptbook/blob/main/prompts/2025-12-0900-agents-server-chat-attachements.md)
 -   Implement Ctrl+S shortcut in `<BookEditor/>` component
 -   Implement Ctrl+V shortcut in `<BookEditor/>` component for pasting images and files
@@ -20,4 +24,3 @@
 -   Implemented `USE TIME` commitment to add the ability for agents to determine the current date and time.
 -   Books can contain Markdown code blocks, which are treated as raw text and not parsed for commitments
 -   Code blocks in the `<BookEditor />` are distinctly highlighted
->>>>>>> +++++++ REPLACE

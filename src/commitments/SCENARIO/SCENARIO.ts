@@ -1,3 +1,5 @@
+﻿import type { ExecutionTools } from '../../execution/ExecutionTools';
+import type { Promisable } from 'type-fest';
 import { spaceTrim } from 'spacetrim';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
@@ -17,7 +19,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * SCENARIO This is the customer's third call about the same issue
  * ```
  *
- * @private [🪔] Maybe export the commitments through some package
+ * @private [đźŞ”] Maybe export the commitments through some package
  */
 export class ScenarioCommitmentDefinition extends BaseCommitmentDefinition<'SCENARIO' | 'SCENARIOS'> {
     constructor(type: 'SCENARIO' | 'SCENARIOS' = 'SCENARIO') {
@@ -35,7 +37,7 @@ export class ScenarioCommitmentDefinition extends BaseCommitmentDefinition<'SCEN
      * Icon for this commitment.
      */
     get icon(): string {
-        return '🎭';
+        return 'đźŽ­';
     }
 
     /**
@@ -115,7 +117,7 @@ export class ScenarioCommitmentDefinition extends BaseCommitmentDefinition<'SCEN
         `);
     }
 
-    applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
+    applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string, _tools: Pick<ExecutionTools, 'fs' | 'scrapers'>): Promisable<AgentModelRequirements> {
         const trimmedContent = content.trim();
 
         if (!trimmedContent) {
@@ -131,5 +133,5 @@ export class ScenarioCommitmentDefinition extends BaseCommitmentDefinition<'SCEN
 }
 
 /**
- * Note: [💞] Ignore a discrepancy between file name and entity name
+ * Note: [đź’ž] Ignore a discrepancy between file name and entity name
  */

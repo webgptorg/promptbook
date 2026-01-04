@@ -1,3 +1,5 @@
+﻿import type { ExecutionTools } from '../../execution/ExecutionTools';
+import type { Promisable } from 'type-fest';
 import { spaceTrim } from 'spacetrim';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
@@ -18,7 +20,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * MESSAGE Based on your requirements, I'd recommend our premium package.
  * ```
  *
- * @private [🪔] Maybe export the commitments through some package
+ * @private [đźŞ”] Maybe export the commitments through some package
  */
 export class MessageCommitmentDefinition extends BaseCommitmentDefinition<'MESSAGE' | 'MESSAGES'> {
     constructor(type: 'MESSAGE' | 'MESSAGES' = 'MESSAGE') {
@@ -36,7 +38,7 @@ export class MessageCommitmentDefinition extends BaseCommitmentDefinition<'MESSA
      * Icon for this commitment.
      */
     get icon(): string {
-        return '💬';
+        return 'đź’¬';
     }
 
     /**
@@ -99,7 +101,7 @@ export class MessageCommitmentDefinition extends BaseCommitmentDefinition<'MESSA
 
             PERSONA You are a mathematics tutor
             MESSAGE Today we'll work on solving quadratic equations.
-            MESSAGE Let's start with the basic form: ax² + bx + c = 0
+            MESSAGE Let's start with the basic form: axÂ˛ + bx + c = 0
             MESSAGE Remember, we can use the quadratic formula or factoring.
             MESSAGE You did great with that first problem! Let's try a more complex one.
             GOAL Build upon previous explanations for deeper understanding
@@ -107,7 +109,7 @@ export class MessageCommitmentDefinition extends BaseCommitmentDefinition<'MESSA
         `);
     }
 
-    applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
+    applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string, _tools: Pick<ExecutionTools, 'fs' | 'scrapers'>): Promisable<AgentModelRequirements> {
         const trimmedContent = content.trim();
 
         if (!trimmedContent) {
@@ -123,5 +125,5 @@ export class MessageCommitmentDefinition extends BaseCommitmentDefinition<'MESSA
 }
 
 /**
- * Note: [💞] Ignore a discrepancy between file name and entity name
+ * Note: [đź’ž] Ignore a discrepancy between file name and entity name
  */

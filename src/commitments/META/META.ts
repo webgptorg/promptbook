@@ -1,3 +1,5 @@
+﻿import type { ExecutionTools } from '../../execution/ExecutionTools';
+import type { Promisable } from 'type-fest';
 import { spaceTrim } from 'spacetrim';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
@@ -27,7 +29,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * META VERSION 1.0
  * ```
  *
- * @private [🪔] Maybe export the commitments through some package
+ * @private [đźŞ”] Maybe export the commitments through some package
  */
 export class MetaCommitmentDefinition extends BaseCommitmentDefinition<`META${string}`> {
     constructor() {
@@ -45,7 +47,7 @@ export class MetaCommitmentDefinition extends BaseCommitmentDefinition<`META${st
      * Icon for this commitment.
      */
     get icon(): string {
-        return 'ℹ️';
+        return 'â„ąď¸Ź';
     }
 
     /**
@@ -112,7 +114,7 @@ export class MetaCommitmentDefinition extends BaseCommitmentDefinition<`META${st
         `);
     }
 
-    applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
+    applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string, _tools: Pick<ExecutionTools, 'fs' | 'scrapers'>): Promisable<AgentModelRequirements> {
         TODO_USE(content);
 
         // META commitments don't modify the system message or model requirements
@@ -152,5 +154,5 @@ export class MetaCommitmentDefinition extends BaseCommitmentDefinition<`META${st
 }
 
 /**
- * Note: [💞] Ignore a discrepancy between file name and entity name
+ * Note: [đź’ž] Ignore a discrepancy between file name and entity name
  */

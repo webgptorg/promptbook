@@ -1,3 +1,5 @@
+﻿import type { ExecutionTools } from '../../execution/ExecutionTools';
+import type { Promisable } from 'type-fest';
 import { spaceTrim } from 'spacetrim';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import type { LlmToolDefinition } from '../../types/LlmToolDefinition';
@@ -19,7 +21,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * USE BROWSER This will be ignored
  * ```
  *
- * @private [🪔] Maybe export the commitments through some package
+ * @private [đźŞ”] Maybe export the commitments through some package
  */
 export class UseBrowserCommitmentDefinition extends BaseCommitmentDefinition<'USE BROWSER'> {
     constructor() {
@@ -44,7 +46,7 @@ export class UseBrowserCommitmentDefinition extends BaseCommitmentDefinition<'US
      * Icon for this commitment.
      */
     get icon(): string {
-        return '🌐';
+        return 'đźŚ';
     }
 
     /**
@@ -93,7 +95,7 @@ export class UseBrowserCommitmentDefinition extends BaseCommitmentDefinition<'US
         `);
     }
 
-    applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
+    applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string, _tools: Pick<ExecutionTools, 'fs' | 'scrapers'>): Promisable<AgentModelRequirements> {
         // The content after USE BROWSER is ignored (similar to NOTE)
         TODO_USE(content);
 
@@ -104,7 +106,7 @@ export class UseBrowserCommitmentDefinition extends BaseCommitmentDefinition<'US
         const updatedTools = existingTools.some((tool) => tool.name === 'web_browser')
             ? existingTools
             : ([
-                  // TODO: [🔰] Use through proper MCP server
+                  // TODO: [đź”°] Use through proper MCP server
                   ...existingTools,
                   {
                       name: 'web_browser',
@@ -138,5 +140,5 @@ export class UseBrowserCommitmentDefinition extends BaseCommitmentDefinition<'US
 }
 
 /**
- * Note: [💞] Ignore a discrepancy between file name and entity name
+ * Note: [đź’ž] Ignore a discrepancy between file name and entity name
  */

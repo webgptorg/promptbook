@@ -1,3 +1,5 @@
+﻿import type { ExecutionTools } from '../../execution/ExecutionTools';
+import type { Promisable } from 'type-fest';
 import { spaceTrim } from 'spacetrim';
 import { TODO_any } from '../../_packages/types.index';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
@@ -30,7 +32,7 @@ export class UseTimeCommitmentDefinition extends BaseCommitmentDefinition<'USE T
      * Icon for this commitment.
      */
     get icon(): string {
-        return '🕒';
+        return 'đź•’';
     }
 
     /**
@@ -93,5 +95,5 @@ export class UseTimeCommitmentDefinition extends BaseCommitmentDefinition<'USE T
 }
 
 /**
- * Note: [💞] Ignore a discrepancy between file name and entity name
+ * Note: [đź’ž] Ignore a discrepancy between file name and entity name
  */

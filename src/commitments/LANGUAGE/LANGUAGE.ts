@@ -1,3 +1,5 @@
+﻿import type { ExecutionTools } from '../../execution/ExecutionTools';
+import type { Promisable } from 'type-fest';
 import { spaceTrim } from 'spacetrim';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
@@ -14,7 +16,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * LANGUAGE French, English and Czech
  * ```
  *
- * @private [🪔] Maybe export the commitments through some package
+ * @private [đźŞ”] Maybe export the commitments through some package
  */
 export class LanguageCommitmentDefinition extends BaseCommitmentDefinition<'LANGUAGE' | 'LANGUAGES'> {
     constructor(type: 'LANGUAGE' | 'LANGUAGES' = 'LANGUAGE') {
@@ -32,7 +34,7 @@ export class LanguageCommitmentDefinition extends BaseCommitmentDefinition<'LANG
      * Icon for this commitment.
      */
     get icon(): string {
-        return '🌐';
+        return 'đźŚ';
     }
 
     /**
@@ -48,7 +50,7 @@ export class LanguageCommitmentDefinition extends BaseCommitmentDefinition<'LANG
             ## Examples
 
             \`\`\`book
-            Paul Smith & Associés
+            Paul Smith & AssociĂ©s
 
             PERSONA You are a company lawyer.
             LANGUAGE French, English and Czech
@@ -63,7 +65,7 @@ export class LanguageCommitmentDefinition extends BaseCommitmentDefinition<'LANG
         `);
     }
 
-    applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
+    applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string, _tools: Pick<ExecutionTools, 'fs' | 'scrapers'>): Promisable<AgentModelRequirements> {
         const trimmedContent = content.trim();
 
         if (!trimmedContent) {
@@ -78,5 +80,5 @@ export class LanguageCommitmentDefinition extends BaseCommitmentDefinition<'LANG
 }
 
 /**
- * Note: [💞] Ignore a discrepancy between file name and entity name
+ * Note: [đź’ž] Ignore a discrepancy between file name and entity name
  */

@@ -1,3 +1,5 @@
+﻿import type { ExecutionTools } from '../../execution/ExecutionTools';
+import type { Promisable } from 'type-fest';
 import { spaceTrim } from 'spacetrim';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
@@ -17,7 +19,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * MEMORY Timezone: UTC-5 (Eastern Time)
  * ```
  *
- * @private [🪔] Maybe export the commitments through some package
+ * @private [đźŞ”] Maybe export the commitments through some package
  */
 export class MemoryCommitmentDefinition extends BaseCommitmentDefinition<'MEMORY' | 'MEMORIES'> {
     constructor(type: 'MEMORY' | 'MEMORIES' = 'MEMORY') {
@@ -35,7 +37,7 @@ export class MemoryCommitmentDefinition extends BaseCommitmentDefinition<'MEMORY
      * Icon for this commitment.
      */
     get icon(): string {
-        return '🧠';
+        return 'đź§ ';
     }
 
     /**
@@ -98,7 +100,7 @@ export class MemoryCommitmentDefinition extends BaseCommitmentDefinition<'MEMORY
         `);
     }
 
-    applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
+    applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string, _tools: Pick<ExecutionTools, 'fs' | 'scrapers'>): Promisable<AgentModelRequirements> {
         const trimmedContent = content.trim();
 
         if (!trimmedContent) {
@@ -114,5 +116,5 @@ export class MemoryCommitmentDefinition extends BaseCommitmentDefinition<'MEMORY
 }
 
 /**
- * Note: [💞] Ignore a discrepancy between file name and entity name
+ * Note: [đź’ž] Ignore a discrepancy between file name and entity name
  */

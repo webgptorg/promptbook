@@ -1,3 +1,5 @@
+﻿import type { ExecutionTools } from '../../execution/ExecutionTools';
+import type { Promisable } from 'type-fest';
 import { spaceTrim } from 'spacetrim';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
@@ -25,7 +27,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * META LINK https://linkedin.com/in/profile
  * ```
  *
- * @private [🪔] Maybe export the commitments through some package
+ * @private [đźŞ”] Maybe export the commitments through some package
  */
 export class MetaLinkCommitmentDefinition extends BaseCommitmentDefinition<'META LINK'> {
     constructor() {
@@ -43,7 +45,7 @@ export class MetaLinkCommitmentDefinition extends BaseCommitmentDefinition<'META
      * Icon for this commitment.
      */
     get icon(): string {
-        return '🔗';
+        return 'đź”—';
     }
 
     /**
@@ -85,7 +87,7 @@ export class MetaLinkCommitmentDefinition extends BaseCommitmentDefinition<'META
         `);
     }
 
-    applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
+    applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string, _tools: Pick<ExecutionTools, 'fs' | 'scrapers'>): Promisable<AgentModelRequirements> {
         TODO_USE(content);
 
         // META LINK doesn't modify the system message or model requirements
@@ -117,5 +119,5 @@ export class MetaLinkCommitmentDefinition extends BaseCommitmentDefinition<'META
 }
 
 /**
- * Note: [💞] Ignore a discrepancy between file name and entity name
+ * Note: [đź’ž] Ignore a discrepancy between file name and entity name
  */

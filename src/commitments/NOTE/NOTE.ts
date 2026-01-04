@@ -1,3 +1,5 @@
+﻿import type { ExecutionTools } from '../../execution/ExecutionTools';
+import type { Promisable } from 'type-fest';
 import { spaceTrim } from 'spacetrim';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
@@ -26,7 +28,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  *
  * The above notes will be stored in metadata but won't affect the agent's behavior.
  *
- * @private [🪔] Maybe export the commitments through some package
+ * @private [đźŞ”] Maybe export the commitments through some package
  */
 export class NoteCommitmentDefinition extends BaseCommitmentDefinition<'NOTE' | 'NOTES' | 'COMMENT' | 'NONCE'> {
     constructor(type: 'NOTE' | 'NOTES' | 'COMMENT' | 'NONCE' = 'NOTE') {
@@ -44,7 +46,7 @@ export class NoteCommitmentDefinition extends BaseCommitmentDefinition<'NOTE' | 
      * Icon for this commitment.
      */
     get icon(): string {
-        return '📝';
+        return 'đź“ť';
     }
 
     /**
@@ -88,7 +90,7 @@ export class NoteCommitmentDefinition extends BaseCommitmentDefinition<'NOTE' | 
         `);
     }
 
-    applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
+    applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string, _tools: Pick<ExecutionTools, 'fs' | 'scrapers'>): Promisable<AgentModelRequirements> {
         // The NOTE commitment makes no changes to the system message or model requirements
         // It only stores the note content in metadata for documentation purposes
         const trimmedContent = content.trim();
@@ -119,5 +121,5 @@ export class NoteCommitmentDefinition extends BaseCommitmentDefinition<'NOTE' | 
 }
 
 /**
- * [💞] Ignore a discrepancy between file name and entity name
+ * [đź’ž] Ignore a discrepancy between file name and entity name
  */
