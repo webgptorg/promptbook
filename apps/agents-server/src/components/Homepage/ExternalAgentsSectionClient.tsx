@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import type { AgentsByServer } from '../../utils/AgentsByServer';
 import { AgentCard } from './AgentCard';
 import { Section } from './Section';
+import { string_url } from '@promptbook-local/types';
 
 type FederatedServersResponse = {
     federatedServers: string[];
@@ -18,8 +19,10 @@ type ServerState = {
 type ExternalAgentsSectionClientProps = {
     /**
      * Base URL of the agents server
+     * 
+     * Note: [👭] Using `string_url`, not `URL` object because we are passing prop from server to client. 
      */
-    readonly publicUrl: URL;
+    readonly publicUrl: string_url
 };
 
 export function ExternalAgentsSectionClient(props: ExternalAgentsSectionClientProps) {

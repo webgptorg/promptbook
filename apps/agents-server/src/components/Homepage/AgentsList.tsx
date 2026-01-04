@@ -9,6 +9,7 @@ import { AddAgentButton } from '../../app/AddAgentButton';
 import { AgentCard } from './AgentCard';
 import { Section } from './Section';
 
+import { string_url } from '@promptbook-local/types';
 import { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
 
 type AgentWithVisibility = AgentBasicInformation & {
@@ -28,8 +29,10 @@ type AgentsListProps = {
 
     /**
      * Base URL of the agents server
+     *
+     * Note: [👭] Using `string_url`, not `URL` object because we are passing prop from server to client.
      */
-    readonly publicUrl: URL;
+    readonly publicUrl: string_url;
 };
 
 export function AgentsList(props: AgentsListProps) {

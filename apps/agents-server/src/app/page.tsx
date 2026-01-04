@@ -96,9 +96,9 @@ export default async function HomePage() {
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
             <div className="container mx-auto px-4 py-16">
-                <AgentsList agents={[...agents]} isAdmin={isAdmin} publicUrl={publicUrl} />
+                <AgentsList agents={[...agents]} isAdmin={isAdmin} publicUrl={publicUrl.href /* <- [👭] */} />
 
-                <ExternalAgentsSectionClient publicUrl={publicUrl} />
+                <ExternalAgentsSectionClient publicUrl={publicUrl.href /* <- [👭] */} />
 
                 {isAdmin && <UsersList allowCreate={false} />}
 

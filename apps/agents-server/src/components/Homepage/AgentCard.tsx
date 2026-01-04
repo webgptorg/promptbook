@@ -1,7 +1,7 @@
 'use client';
 
 import { generatePlaceholderAgentProfileImageUrl } from '@promptbook-local/core';
-import { really_any } from '@promptbook-local/types';
+import { really_any, string_url } from '@promptbook-local/types';
 import { EyeIcon, EyeOffIcon, RotateCcwIcon } from 'lucide-react';
 import Link from 'next/link';
 import { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
@@ -21,8 +21,10 @@ type AgentCardProps = {
 
     /**
      * Base URL of the agents server
+     *
+     * Note: [👭] Using `string_url`, not `URL` object because we are passing prop from server to client.
      */
-    readonly publicUrl: URL;
+    readonly publicUrl: string_url;
 
     /**
      * Whether the current user has admin privileges
