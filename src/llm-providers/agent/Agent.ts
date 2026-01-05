@@ -149,7 +149,7 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
         onProgress: (chunk: ChatPromptResult) => void,
     ): Promise<ChatPromptResult> {
         // [1] Check if the user is asking the same thing as in the samples
-        const modelRequirements = await this.getAgentModelRequirements();
+        const modelRequirements = await this.getModelRequirements();
         if (modelRequirements.samples) {
             const normalizedPrompt = normalizeMessageText(prompt.content);
             const sample = modelRequirements.samples.find(

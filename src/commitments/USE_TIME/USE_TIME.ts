@@ -1,6 +1,8 @@
 import { spaceTrim } from 'spacetrim';
-import { TODO_any } from '../../_packages/types.index';
+import { string_javascript_name, TODO_any } from '../../_packages/types.index';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
+import { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
+import { keepUnused } from '../../utils/organization/keepUnused';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 
 /**
@@ -13,6 +15,8 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * ```book
  * USE TIME
  * ```
+ *
+ * @private [🪔] Maybe export the commitments through some package
  */
 export class UseTimeCommitmentDefinition extends BaseCommitmentDefinition<'USE TIME'> {
     constructor() {
@@ -22,7 +26,7 @@ export class UseTimeCommitmentDefinition extends BaseCommitmentDefinition<'USE T
     /**
      * Short one-line description of USE TIME.
      */
-    get description(): string {
+    public get description(): string {
         return 'Enable the agent to determine the current date and time.';
     }
 
@@ -59,7 +63,9 @@ export class UseTimeCommitmentDefinition extends BaseCommitmentDefinition<'USE T
         `);
     }
 
-    applyToAgentModelRequirements(requirements: AgentModelRequirements, _content: string): AgentModelRequirements {
+    applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
+        keepUnused(content); // <- Note: `USE TIME` does not require content
+
         // Get existing tools array or create new one
         const existingTools = requirements.tools || [];
 
@@ -76,7 +82,7 @@ export class UseTimeCommitmentDefinition extends BaseCommitmentDefinition<'USE T
                           properties: {},
                           required: [],
                       },
-                  } as TODO_any,// <- TODO: !!!! Remove any
+                  } as TODO_any, // <- TODO: !!!! Remove any
                   // <- TODO: !!!! define the function in LLM tools
               ];
 
@@ -86,7 +92,18 @@ export class UseTimeCommitmentDefinition extends BaseCommitmentDefinition<'USE T
             tools: updatedTools,
             metadata: {
                 ...requirements.metadata,
-                useTime: true,
+            },
+        };
+    }
+
+    /**
+     * Gets the `get_current_time` tool function implementation.
+     */
+    getToolFunctions(): Record<string_javascript_name, ToolFunction> {
+        return {
+            async get_current_time(): Promise<string> {
+                console.log('!!!! [Tool] get_current_time called');
+                return new Date().toISOString();
             },
         };
     }

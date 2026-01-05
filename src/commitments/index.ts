@@ -2,6 +2,8 @@ import type { BookCommitment } from './_base/BookCommitment';
 import type { CommitmentDefinition } from './_base/CommitmentDefinition';
 
 // Import all commitment definition classes
+import { ToolFunction } from '../scripting/javascript/JavascriptExecutionToolsOptions';
+import { string_javascript_name } from '../types/typeAliases';
 import { $deepFreeze } from '../utils/serialization/$deepFreeze';
 import { ActionCommitmentDefinition } from './ACTION/ACTION';
 import { ClosedCommitmentDefinition } from './CLOSED/CLOSED';
@@ -10,8 +12,8 @@ import { DeleteCommitmentDefinition } from './DELETE/DELETE';
 import { DictionaryCommitmentDefinition } from './DICTIONARY/DICTIONARY';
 import { FormatCommitmentDefinition } from './FORMAT/FORMAT';
 import { FromCommitmentDefinition } from './FROM/FROM';
-import { ImportCommitmentDefinition } from './IMPORT/IMPORT';
 import { GoalCommitmentDefinition } from './GOAL/GOAL';
+import { ImportCommitmentDefinition } from './IMPORT/IMPORT';
 import { KnowledgeCommitmentDefinition } from './KNOWLEDGE/KNOWLEDGE';
 import { LanguageCommitmentDefinition } from './LANGUAGE/LANGUAGE';
 import { MemoryCommitmentDefinition } from './MEMORY/MEMORY';
@@ -210,6 +212,22 @@ export function getGroupedCommitmentDefinitions(): ReadonlyArray<GroupedCommitme
     }
 
     return $deepFreeze(groupedCommitments);
+}
+
+/**
+ * Gets all function implementations provided by all commitments
+ *
+ * @public exported from `@promptbook/core`
+ */
+export function getAllCommitmentsToolFunctions(): Record<string_javascript_name, ToolFunction> {
+    const allToolFunctions: Record<string_javascript_name, ToolFunction> = {};
+    for (const commitmentDefinition of getAllCommitmentDefinitions()) {
+        const toolFunctions = commitmentDefinition.getToolFunctions();
+        for (const [funcName, funcImpl] of Object.entries(toolFunctions)) {
+            allToolFunctions[funcName as string_javascript_name] = funcImpl;
+        }
+    }
+    return allToolFunctions;
 }
 
 /**

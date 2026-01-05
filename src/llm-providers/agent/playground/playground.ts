@@ -5,12 +5,17 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 
 import colors from 'colors';
+import { join } from 'path';
 import * as $registrations from '../../../_packages/cli.index';
+import { DEFAULT_EXECUTION_CACHE_DIRNAME } from '../../../config';
 import { usageToHuman } from '../../../execution/utils/usageToHuman';
 import { book } from '../../../pipeline/book-notation';
+import { $provideFilesystemForNode } from '../../../scrapers/_common/register/$provideFilesystemForNode';
+import { FileCacheStorage } from '../../../storage/file-cache-storage/FileCacheStorage';
 import type { ChatPrompt } from '../../../types/Prompt';
 import { $sideEffect } from '../../../utils/organization/$sideEffect';
-import { $provideLlmToolsFromEnv } from '../../_common/register/$provideLlmToolsFromEnv';
+import { cacheLlmTools } from '../../_common/utils/cache/cacheLlmTools';
+import { OpenAiAssistantExecutionTools } from '../../openai/OpenAiAssistantExecutionTools';
 import { createAgentLlmExecutionTools } from '../createAgentLlmExecutionTools';
 
 $sideEffect($registrations); // <- Note: LLM Providers are registered by importing their registration files
@@ -33,9 +38,21 @@ playground()
  */
 async function playground() {
     // Create underlying OpenAI tools
+
+    /*/
     const llmTools = await $provideLlmToolsFromEnv({
         title: 'LLM Tools for Agent Playground',
     });
+     /**/
+
+    /**/
+    const llmTools = new OpenAiAssistantExecutionTools({
+        apiKey: process.env.OPENAI_API_KEY,
+        assistantId: 'abstract_assistant', // <- TODO: [🙎] In `OpenAiAssistantExecutionTools` Allow to create abstract assistants with `isCreatingNewAssistantsAllowed`
+        isCreatingNewAssistantsAllowed: true,
+        isVerbose: true,
+    });
+    /**/
 
     /*/
     console.info(colors.bgBlue(`🤖  LLM Tools:`));
@@ -58,17 +75,41 @@ async function playground() {
     /**/
 
     // Create agent tools wrapping the OpenAI tools
-    const agentTools = createAgentLlmExecutionTools({
+    let agentTools = createAgentLlmExecutionTools({
         llmTools,
         agentSource: book`
             Paul
 
-            RULE You are writing about news in AI and technology.
-            USE SEARCH
+            FROM VOID
+            NOTE USE TIME
 
         `,
+        // agentSource: book`
+        //     Paul
+        //
+        //     FROM VOID
+        //     RULE You are writing about news in AI and technology.
+        //     USE SEARCH
+        //
+        // `,
         // <- TODO: !!!! Test `USE BROWSER`
     });
+
+    /**/
+    agentTools = cacheLlmTools(agentTools, {
+        storage: new FileCacheStorage(
+            { fs: $provideFilesystemForNode() },
+            {
+                rootFolderPath: join(
+                    process.cwd(),
+                    DEFAULT_EXECUTION_CACHE_DIRNAME,
+                    // <- TODO: [🦒] Allow to override (pass different value into the function)
+                ),
+            },
+        ),
+        // isCacheReloaded: isCacheReloaded,
+    });
+    /**/
 
     console.info(colors.bgBlue(`🧔  Agent Tools:`));
     console.info(colors.bgCyan(agentTools.title));
@@ -84,8 +125,13 @@ async function playground() {
     console.info(`📊  Found ${colors.yellow(models.length.toString())} available models`);
     console.info(models.map((model) => ` - ${model.modelTitle}`).join('\n'));
 
+    // Show the model requirements
+    console.info(colors.bgBlue(`🔣  Model Requirements:`));
+    const modelRequirements = await agentTools.getModelRequirements();
+    console.info(modelRequirements);
+
     // Test chat interaction
-    console.info(colors.bgBlue(`💬  Testing chat interaction...`));
+    console.info(colors.bgBlue(`💬  Chatting with agent...`));
 
     const chatPrompt = {
         title: 'Test Chat',
@@ -106,7 +152,7 @@ async function playground() {
             },
         ],
         */
-        content: 'Tell me more!',
+        content: 'What is the current date and time?',
         parameters: {},
         modelRequirements: {
             modelVariant: 'CHAT',

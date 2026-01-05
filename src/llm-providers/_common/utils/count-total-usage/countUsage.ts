@@ -1,6 +1,4 @@
-import { Subject, type Observable } from 'rxjs';
-import type { Promisable } from 'type-fest';
-import type { AvailableModel } from '../../../../execution/AvailableModel';
+import { Subject } from 'rxjs';
 import type { LlmExecutionTools } from '../../../../execution/LlmExecutionTools';
 import type {
     ChatPromptResult,
@@ -22,85 +20,104 @@ import type { LlmExecutionToolsWithTotalUsage } from './LlmExecutionToolsWithTot
  * in real-time through an observable.
  *
  * @param llmTools - The LLM tools to be intercepted and tracked
- * @returns An augmented version of the tools that includes usage tracking capabilities
+ * @returns Full proxy of the tools with added usage tracking capabilities
  * @public exported from `@promptbook/core`
  */
-export function countUsage(llmTools: LlmExecutionTools): LlmExecutionToolsWithTotalUsage {
+export function countUsage<TLlmTools extends LlmExecutionTools>(
+    llmTools: TLlmTools,
+): TLlmTools & LlmExecutionToolsWithTotalUsage {
     let totalUsage: Usage = ZERO_USAGE;
     const spending = new Subject<Usage>();
 
-    const proxyTools: LlmExecutionToolsWithTotalUsage = {
-        get title() {
-            return `${llmTools.title} (+usage)`;
-            // <- TODO: [🧈] Maybe standartize the suffix when wrapping `LlmExecutionTools` up
-            // <- TODO: [🧈][🧠] Does it make sense to suffix "(+usage)"?
+    // Create a Proxy to intercept all property access and ensure full proxying of all properties
+    const proxyTools = new Proxy(llmTools, {
+        get(target, prop, receiver) {
+            // Handle title property
+            if (prop === 'title') {
+                return `${target.title} (+usage)`;
+                // <- TODO: [🧈] Maybe standartize the suffix when wrapping `LlmExecutionTools` up
+                // <- TODO: [🧈][🧠] Does it make sense to suffix "(+usage)"?
+            }
+
+            // Handle description property
+            if (prop === 'description') {
+                return `${target.description} (+usage)`;
+                // <- TODO: [🧈] Maybe standartize the suffix when wrapping `LlmExecutionTools` up
+                // <- TODO: [🧈][🧠] Does it make sense to suffix "(+usage)"?
+            }
+
+            // Handle spending method (new method added by this wrapper)
+            if (prop === 'spending') {
+                return () => {
+                    return spending.asObservable();
+                };
+            }
+
+            // Handle getTotalUsage method (new method added by this wrapper)
+            if (prop === 'getTotalUsage') {
+                // <- Note: [🥫] Not using getter `get totalUsage` but `getTotalUsage` to allow this object to be proxied
+                return () => {
+                    return totalUsage;
+                };
+            }
+
+            // Handle callChatModel method with usage counting
+            if (prop === 'callChatModel' && target.callChatModel !== undefined) {
+                return async (prompt: ChatPrompt): Promise<ChatPromptResult> => {
+                    // console.info('[🚕] callChatModel through countTotalUsage');
+                    const promptResult = await target.callChatModel!(prompt);
+                    totalUsage = addUsage(totalUsage, promptResult.usage);
+                    spending.next(promptResult.usage);
+                    return promptResult;
+                };
+            }
+
+            // Handle callCompletionModel method with usage counting
+            if (prop === 'callCompletionModel' && target.callCompletionModel !== undefined) {
+                return async (prompt: CompletionPrompt): Promise<CompletionPromptResult> => {
+                    // console.info('[🚕] callCompletionModel through countTotalUsage');
+                    const promptResult = await target.callCompletionModel!(prompt);
+                    totalUsage = addUsage(totalUsage, promptResult.usage);
+                    spending.next(promptResult.usage);
+                    return promptResult;
+                };
+            }
+
+            // Handle callEmbeddingModel method with usage counting
+            if (prop === 'callEmbeddingModel' && target.callEmbeddingModel !== undefined) {
+                return async (prompt: EmbeddingPrompt): Promise<EmbeddingPromptResult> => {
+                    // console.info('[🚕] callEmbeddingModel through countTotalUsage');
+                    const promptResult = await target.callEmbeddingModel!(prompt);
+                    totalUsage = addUsage(totalUsage, promptResult.usage);
+                    spending.next(promptResult.usage);
+                    return promptResult;
+                };
+            }
+
+            // Handle callImageGenerationModel method with usage counting
+            if (prop === 'callImageGenerationModel' && target.callImageGenerationModel !== undefined) {
+                return async (prompt: ImagePrompt): Promise<ImagePromptResult> => {
+                    // console.info('[🚕] callImageGenerationModel through countTotalUsage');
+                    const promptResult = await target.callImageGenerationModel!(prompt);
+                    totalUsage = addUsage(totalUsage, promptResult.usage);
+                    spending.next(promptResult.usage);
+                    return promptResult;
+                };
+            }
+
+            // <- Note: [🤖]
+
+            // For all other properties and methods, delegate to the original target
+            const value = Reflect.get(target, prop, receiver);
+
+            // If it's a function, bind it to the target to preserve context
+            if (typeof value === 'function') {
+                return value.bind(target);
+            }
+
+            return value;
         },
-
-        get description() {
-            return `${llmTools.description} (+usage)`;
-            // <- TODO: [🧈] Maybe standartize the suffix when wrapping `LlmExecutionTools` up
-            // <- TODO: [🧈][🧠] Does it make sense to suffix "(+usage)"?
-        },
-
-        checkConfiguration(): Promisable<void> {
-            return /* not await */ llmTools.checkConfiguration();
-        },
-
-        listModels(): Promisable<ReadonlyArray<AvailableModel>> {
-            return /* not await */ llmTools.listModels();
-        },
-
-        spending(): Observable<Usage> {
-            return spending.asObservable();
-        },
-
-        getTotalUsage() {
-            // <- Note: [🥫] Not using getter `get totalUsage` but `getTotalUsage` to allow this object to be proxied
-            return totalUsage;
-        },
-    };
-
-    if (llmTools.callChatModel !== undefined) {
-        proxyTools.callChatModel = async (prompt: ChatPrompt): Promise<ChatPromptResult> => {
-            // console.info('[🚕] callChatModel through countTotalUsage');
-            const promptResult = await llmTools.callChatModel!(prompt);
-            totalUsage = addUsage(totalUsage, promptResult.usage);
-            spending.next(promptResult.usage);
-            return promptResult;
-        };
-    }
-
-    if (llmTools.callCompletionModel !== undefined) {
-        proxyTools.callCompletionModel = async (prompt: CompletionPrompt): Promise<CompletionPromptResult> => {
-            // console.info('[🚕] callCompletionModel through countTotalUsage');
-            const promptResult = await llmTools.callCompletionModel!(prompt);
-            totalUsage = addUsage(totalUsage, promptResult.usage);
-            spending.next(promptResult.usage);
-            return promptResult;
-        };
-    }
-
-    if (llmTools.callEmbeddingModel !== undefined) {
-        proxyTools.callEmbeddingModel = async (prompt: EmbeddingPrompt): Promise<EmbeddingPromptResult> => {
-            // console.info('[🚕] callEmbeddingModel through countTotalUsage');
-            const promptResult = await llmTools.callEmbeddingModel!(prompt);
-            totalUsage = addUsage(totalUsage, promptResult.usage);
-            spending.next(promptResult.usage);
-            return promptResult;
-        };
-    }
-
-    if (llmTools.callImageGenerationModel !== undefined) {
-        proxyTools.callImageGenerationModel = async (prompt: ImagePrompt): Promise<ImagePromptResult> => {
-            // console.info('[🚕] callImageGenerationModel through countTotalUsage');
-            const promptResult = await llmTools.callImageGenerationModel!(prompt);
-            totalUsage = addUsage(totalUsage, promptResult.usage);
-            spending.next(promptResult.usage);
-            return promptResult;
-        };
-    }
-
-    // <- Note: [🤖]
+    }) as TLlmTools & LlmExecutionToolsWithTotalUsage;
 
     return proxyTools;
 }

@@ -1,0 +1,126 @@
+{
+    "date": "2026-01-05T02:15:29.784Z",
+    "promptbookVersion": "0.105.0-1",
+    "bookVersion": "2.0.0",
+    "prompt": {
+        "title": "Test Chat",
+        "content": "What is the current date and time?",
+        "parameters": {},
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        }
+    },
+    "promptResult": {
+        "content": "I don't have the  ability to access real-time data, including the  current date and time. Please check your device's clock for the  most accurate information.",
+        "modelName": "paul-81465a4f13",
+        "timing": {
+            "start": "2026-01-05T02:15:25.735Z",
+            "complete": "2026-01-05T02:15:29.784Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0,
+                "isUncertain": true
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "charactersCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "wordsCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "sentencesCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "linesCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "paragraphsCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "pagesCount": {
+                    "value": 0,
+                    "isUncertain": true
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "charactersCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "wordsCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "sentencesCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "linesCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "paragraphsCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "pagesCount": {
+                    "value": 0,
+                    "isUncertain": true
+                }
+            }
+        },
+        "rawPromptContent": "What is the current date and time?",
+        "rawRequest": {
+            "assistant_id": "asst_z7tweLdRDGFiscxO9kkHJ4hc",
+            "thread": {
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": "What is the current date and time?"
+                    }
+                ]
+            }
+        },
+        "rawResponse": [
+            {
+                "id": "msg_4wGAK3FdLYgtJBfCnuWwd4eX",
+                "object": "thread.message",
+                "created_at": 1767579326,
+                "assistant_id": "asst_z7tweLdRDGFiscxO9kkHJ4hc",
+                "thread_id": "thread_9W12L7rMl6DceAo7NSurkn8N",
+                "run_id": "run_6j3Xh9iIFOjZW7T69Eq2luBR",
+                "status": "in_progress",
+                "incomplete_details": null,
+                "incomplete_at": null,
+                "completed_at": null,
+                "role": "assistant",
+                "content": [
+                    {
+                        "index": 0,
+                        "type": "text",
+                        "text": {
+                            "value": "I don't have the ability to access real-time data, including the current date and time. Please check your device's clock for the most accurate information.",
+                            "annotations": []
+                        }
+                    }
+                ],
+                "attachments": [],
+                "metadata": {}
+            }
+        ]
+    }
+}

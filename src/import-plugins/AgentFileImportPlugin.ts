@@ -4,7 +4,9 @@ import { parseAgentSourceWithCommitments } from '../book-2.0/agent-source/parseA
 import type { FileImportPlugin } from './FileImportPlugin';
 
 /**
- * Plugin for importing agent books (.book files)
+ * Plugin for importing agent books *(`.book` files)*
+ * 
+ * @private [🥝] Maybe export the import plugins through some package
  */
 export const AgentFileImportPlugin: FileImportPlugin = {
     name: 'agent-file-import-plugin',

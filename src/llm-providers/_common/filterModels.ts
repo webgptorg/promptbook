@@ -1,3 +1,4 @@
+import { Promisable } from 'type-fest';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
@@ -40,6 +41,10 @@ export function filterModels<TLlmTools extends LlmExecutionTools>(
             } else {
                 return originalModels.filter(predicate);
             }
+        },
+
+        checkConfiguration(): Promisable<void> {
+            return /* not await */ llmTools.checkConfiguration();
         },
     };
 

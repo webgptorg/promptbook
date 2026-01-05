@@ -83,8 +83,10 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
 
     /**
      * Get cached or create agent model requirements
+     *
+     * Note: [🐤] This is names `getModelRequirements` *(not `getAgentModelRequirements`)* because in future these two will be united
      */
-    protected async getAgentModelRequirements(): Promise<AgentModelRequirements> {
+    public async getModelRequirements(): Promise<AgentModelRequirements> {
         if (this._cachedModelRequirements === null) {
             // Get available models from underlying LLM tools for best model selection
             const availableModels = await this.options.llmTools.listModels();
@@ -173,10 +175,29 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
             throw new Error('AgentLlmExecutionTools only supports chat prompts');
         }
 
-        const modelRequirements = await this.getAgentModelRequirements();
+        const modelRequirements = await this.getModelRequirements();
 
         const chatPrompt = prompt as ChatPrompt;
         let underlyingLlmResult: CommonPromptResult;
+
+        // Create modified chat prompt with agent system message
+        const promptWithAgentModelRequirements: ChatPrompt = {
+            ...chatPrompt,
+            modelRequirements: {
+                ...chatPrompt.modelRequirements,
+                ...modelRequirements,
+                // Spread tools to convert readonly array to mutable
+                tools: modelRequirements.tools ? [...modelRequirements.tools] : chatPrompt.modelRequirements.tools,
+                // Prepend agent system message to existing system message
+                systemMessage:
+                    modelRequirements.systemMessage +
+                    (chatPrompt.modelRequirements.systemMessage
+                        ? `\n\n${chatPrompt.modelRequirements.systemMessage}`
+                        : ''),
+            },
+        };
+
+        console.log('!!!! promptWithAgentModelRequirements:', promptWithAgentModelRequirements);
 
         if (OpenAiAssistantExecutionTools.isOpenAiAssistantExecutionTools(this.options.llmTools)) {
             const requirementsHash = sha256(JSON.stringify(modelRequirements)).toString();
@@ -227,32 +248,38 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
                 });
             }
 
-            underlyingLlmResult = await assistant.callChatModelStream(chatPrompt, onProgress);
+            // Create modified chat prompt with agent system message specific to OpenAI Assistant
+            const promptWithAgentModelRequirementsForOpenAiAssistantExecutionTools: ChatPrompt = {
+                ...promptWithAgentModelRequirements,
+                modelRequirements: {
+                    ...promptWithAgentModelRequirements.modelRequirements,
+                    modelName: undefined, // <- Note: Clear model name as it's defined by the Assistant
+                    systemMessage: undefined, // <- Note: Clear system message as it's already in the Assistant
+                    temperature: undefined, // <- Note: Let the Assistant use its default temperature
+                },
+            };
+
+            console.log(
+                '!!!! promptWithAgentModelRequirementsForOpenAiAssistantExecutionTools:',
+                promptWithAgentModelRequirementsForOpenAiAssistantExecutionTools,
+            );
+
+            underlyingLlmResult = await assistant.callChatModelStream(
+                promptWithAgentModelRequirementsForOpenAiAssistantExecutionTools,
+                onProgress,
+            );
         } else {
             if (this.options.isVerbose) {
                 console.log(`2️⃣ Creating Assistant ${this.title} on generic LLM execution tools...`);
             }
-            // Create modified chat prompt with agent system message
-            const modifiedChatPrompt: ChatPrompt = {
-                ...chatPrompt,
-                modelRequirements: {
-                    ...chatPrompt.modelRequirements,
-                    ...modelRequirements,
-                    // Spread tools to convert readonly array to mutable
-                    tools: modelRequirements.tools ? [...modelRequirements.tools] : chatPrompt.modelRequirements.tools,
-                    // Prepend agent system message to existing system message
-                    systemMessage:
-                        modelRequirements.systemMessage +
-                        (chatPrompt.modelRequirements.systemMessage
-                            ? `\n\n${chatPrompt.modelRequirements.systemMessage}`
-                            : ''),
-                },
-            };
 
             if (this.options.llmTools.callChatModelStream) {
-                underlyingLlmResult = await this.options.llmTools.callChatModelStream(modifiedChatPrompt, onProgress);
+                underlyingLlmResult = await this.options.llmTools.callChatModelStream(
+                    promptWithAgentModelRequirements,
+                    onProgress,
+                );
             } else if (this.options.llmTools.callChatModel) {
-                underlyingLlmResult = await this.options.llmTools.callChatModel(modifiedChatPrompt);
+                underlyingLlmResult = await this.options.llmTools.callChatModel(promptWithAgentModelRequirements);
                 onProgress(underlyingLlmResult as ChatPromptResult);
             } else {
                 throw new Error('Underlying LLM execution tools do not support chat model calls');

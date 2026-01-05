@@ -1,5 +1,7 @@
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import { createCommitmentRegex, createCommitmentTypeRegex } from '../../book-2.0/agent-source/createCommitmentRegex';
+import { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
+import { string_javascript_name } from '../../types/typeAliases';
 import type { BookCommitment } from './BookCommitment';
 import type { CommitmentDefinition } from './CommitmentDefinition';
 
@@ -130,5 +132,14 @@ export abstract class BaseCommitmentDefinition<TBookCommitment extends string> i
         } else {
             return this.appendToSystemMessage(requirements, commentSection);
         }
+    }
+
+    /**
+     * Gets tool function implementations provided by this commitment
+     *
+     * When the `applyToAgentModelRequirements` adds tools to the requirements, this method should return the corresponding function definitions.
+     */
+    public getToolFunctions(): Record<string_javascript_name, ToolFunction> {
+        return {};
     }
 }

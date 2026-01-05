@@ -1,4 +1,6 @@
+import { string_javascript_name } from '../../_packages/types.index';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
+import { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
 
 /**
  * Definition of a commitment that can be applied to agent model requirements
@@ -58,4 +60,11 @@ export type CommitmentDefinition = {
      * @returns Updated agent model requirements
      */
     applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements;
+
+    /**
+     * Gets tool function implementations provided by this commitment
+     *
+     * When the `applyToAgentModelRequirements` adds tools to the requirements, this method should return the corresponding function definitions.
+     */
+    getToolFunctions(): Record<string_javascript_name, ToolFunction>;
 };

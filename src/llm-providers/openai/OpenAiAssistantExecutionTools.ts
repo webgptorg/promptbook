@@ -161,7 +161,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             // TODO: [👨‍👨‍👧‍👧] ...modelSettings,
             // TODO: [👨‍👨‍👧‍👧][🧠] What about system message for assistants, does it make sense - combination of OpenAI assistants with Promptbook Personas
 
-            assistant_id: this.assistantId,
+            assistant_id: this.assistantId, // <- [🙎]
             thread: {
                 messages: threadMessages,
             },
@@ -591,6 +591,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
 const DISCRIMINANT = 'OPEN_AI_ASSISTANT_V1';
 
 /**
+ * TODO: [🙎] In `OpenAiAssistantExecutionTools` Allow to create abstract assistants with `isCreatingNewAssistantsAllowed`
  * TODO: [🧠][🧙‍♂️] Maybe there can be some wizard for those who want to use just OpenAI
  * TODO: Maybe make custom OpenAiError
  * TODO: [🧠][🈁] Maybe use `isDeterministic` from options

@@ -1,6 +1,7 @@
 // Note: [💎]
 import _spaceTrim from 'spacetrim';
 import { valueToString } from '../../_packages/utils.index';
+import { getAllCommitmentsToolFunctions } from '../../commitments';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { assertsError } from '../../errors/assertsError';
 import type { ScriptExecutionTools, ScriptExecutionToolsExecuteOptions } from '../../execution/ScriptExecutionTools';
@@ -157,6 +158,16 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
             .join('\n');
 
         // TODO: DRY [🍯]
+        const commitmentsFunctions = getAllCommitmentsToolFunctions();
+        const commitmentsFunctionsStatement = Object.keys(commitmentsFunctions)
+            .map(
+                (functionName) =>
+                    // Note: Custom functions are exposed to the current scope as variables
+                    `const ${functionName} = commitmentsFunctions.${functionName};`,
+            )
+            .join('\n');
+
+        // TODO: DRY [🍯]
         const customFunctions = this.options.functions || {};
         const customFunctionsStatement = Object.keys(customFunctions)
             .map(
@@ -174,6 +185,10 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
 
                 // Build-in functions:
                 ${block(buildinFunctionsStatement)}
+
+                // Commitments functions:
+                ${block(commitmentsFunctionsStatement)}
+
 
                 // Custom functions:
                 ${block(customFunctionsStatement || '// -- No custom functions --')}

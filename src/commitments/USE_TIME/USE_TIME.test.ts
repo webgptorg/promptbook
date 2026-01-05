@@ -1,6 +1,6 @@
 import { spaceTrim } from 'spacetrim';
-import type { string_book } from '../../book-2.0/agent-source/string_book';
 import { createAgentModelRequirementsWithCommitments } from '../../book-2.0/agent-source/createAgentModelRequirementsWithCommitments';
+import type { string_book } from '../../book-2.0/agent-source/string_book';
 
 describe('createAgentModelRequirementsWithCommitments with USE TIME', () => {
     it('should add current time tool when USE TIME is present', async () => {
@@ -14,7 +14,6 @@ describe('createAgentModelRequirementsWithCommitments with USE TIME', () => {
                 name: 'get_current_time',
             }),
         );
-        expect(requirements.metadata?.useTime).toBe(true);
     });
 
     it('should add current time tool when CURRENT TIME alias is used', async () => {
@@ -67,6 +66,5 @@ describe('createAgentModelRequirementsWithCommitments with USE TIME', () => {
                 name: 'get_current_time',
             }),
         );
-        expect(requirements.metadata?.useTime).toBeUndefined();
     });
 });

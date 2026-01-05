@@ -91,10 +91,10 @@ async function getPipelineExecutor() {
 
                     // Note: [🕎]
                     functions: {
-                        addHello(value) {
+                        addHello(value: string): string {
                             return `Hello ${value}`;
                         },
-                        withStatistics(value) {
+                        withStatistics(value: string): string {
                             // Note: Testing custom function with dependencies
                             return value + ` (${countCharacters(value)} characters, ${countWords(value)} words)`;
                         },

@@ -43,7 +43,7 @@ describe('createPipelineExecutor + missing custom function', () => {
 
                         // Note: [🕎]
                         functions: {
-                            addHelloWithTypo(value) {
+                            addHelloWithTypo(value: string): string {
                                 return `Hello ${value}`;
                             },
                         },

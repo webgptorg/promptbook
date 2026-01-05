@@ -66,6 +66,16 @@ describe('JavascriptEvalExecutionTools', () => {
         ).resolves.toEqual('dog');
     });
 
+    it('should evaluate function `get_current_time` from `USE TIME`', async () => {
+        await expect(
+            javascriptEvalExecutionTools.execute({
+                scriptLanguage: 'javascript',
+                parameters: {},
+                script: 'return get_current_time()',
+            }),
+        ).resolves.toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/);
+    });
+
     /*/
     TODO: Make this unit test work
     it('should evaluate multiple statements', async () => {
