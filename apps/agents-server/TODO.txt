@@ -1,4 +1,4 @@
-TODO: [🐱‍🚀] Theese are TODOs connected with the agents and Agents server
+TODO: [🐱‍🚀] These are TODOs connected with the agents and Agents server
 TODO: [🐱‍🚀] Tests of the agents server should be in main testing pipeline
 TODO: [🐱‍🚀] Make the agents live here and act here
 TODO: [🐱‍🚀] Publish `agents-server` this as Docker container

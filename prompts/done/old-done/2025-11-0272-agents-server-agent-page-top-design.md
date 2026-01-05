@@ -40,7 +40,7 @@
 
 -   Update commitment `META COLOR` to be able to set multiple colors
 -   Syntax of the commitment is `META COLOR #FF5733, #33FF57, #3357FF`
--   Theese colors are used on the agent page `/agents/[agentName]` for design
+-   These colors are used on the agent page `/agents/[agentName]` for design
     -   But not for the header and footer on the agent page
 -   Commitments are in the folder `/src/commitments`
 -   It is still perfectly fine to not set `META COLOR` commitment at all or use just one color

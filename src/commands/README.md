@@ -5,5 +5,5 @@ In this directory, you will find all the commands that are available in `.book` 
 [🕴] In this folder are commands for deprecated pipelines
 
 -   Notice that there are two major versions of the Promptbook:
-    -   **Pipelines** _(old version, legacy, deprecated)_ - Pipelines which have clear input and output and do multiple LLM calls during the execution of the pipeline. Theese have their **commands**.
+    -   **Pipelines** _(old version, legacy, deprecated)_ - Pipelines which have clear input and output and do multiple LLM calls during the execution of the pipeline. These have their **commands**.
     -   **Agents** - Agents which have personality, knowledge, rules,... and they are a huge abstraction above the raw models theese use **commitments** instead of commands.

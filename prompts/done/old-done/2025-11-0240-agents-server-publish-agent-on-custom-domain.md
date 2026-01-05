@@ -21,7 +21,7 @@ META LINK myagent.example.com
     -   If there is a match, route to the Agents server
     -   Then try to find the agent by `META LINK` domain
     -   If found, route to that agent
--   Theese are the links to the same agent:
+-   These are the links to the same agent:
     -   `https://agents-server.com/agents/myagent` - shows the agent `myagent` with the Promptbook Agents server header bar, its purpose is to show that this agent is hosted on Promptbook Agents server mainly for internal use
     -   `https://myagent.example.com` - shows the agent `myagent` without the Promptbook Agents server header bar, its purpose is to show that this agent is hosted on custom domain mainly for public use and sharing
     -   -   Both of these links are the same agent, just different routes with slightly different UI
