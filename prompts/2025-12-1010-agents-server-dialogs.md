@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨⛪️] Allow to close dialogs by clicking outside of the dialog.
 

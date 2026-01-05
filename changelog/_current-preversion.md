@@ -1,5 +1,6 @@
 ### 📚 Book
 
+-   [✨⛪️] Allow to close dialogs by clicking outside of the dialog.
 -   Implemented `IMPORT` commitment that allows to import generic text files (both local and URL) into the agent source with plugin-based architecture.
 -   Code blocks in the book are assigned to the commitment where they are placed.
 -   Allow to attach files to the chat messages in Agents Server [2025-12-0900-agents-server-chat-attachements.md](https://github.com/webgptorg/promptbook/blob/main/prompts/2025-12-0900-agents-server-chat-attachements.md)

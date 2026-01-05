@@ -4,7 +4,7 @@ import { string_book } from '@promptbook-local/types';
 import { X } from 'lucide-react';
 import { useState } from 'react';
 import { BookEditor } from '../../../../../src/book-components/BookEditor/BookEditor';
-import { Portal } from '../Portal/Portal';
+import { Dialog } from '../Portal/Dialog';
 
 type NewAgentDialogProps = {
     onClose: () => void;
@@ -37,85 +37,81 @@ export function NewAgentDialog(props: NewAgentDialogProps) {
     };
 
     return (
-        <Portal>
-            <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-                <div className="relative w-full max-w-4xl h-[80vh] bg-white rounded-lg shadow-lg border border-gray-200 flex flex-col animate-in zoom-in-95 duration-200">
-                    <div className="flex items-center justify-between p-4 border-b border-gray-200">
-                        <h2 className="text-xl font-semibold text-gray-900">Create New Agent</h2>
-                        <button onClick={onClose} className="text-gray-400 hover:text-gray-500 transition-colors">
-                            <X className="w-5 h-5" />
-                            <span className="sr-only">Close</span>
-                        </button>
-                    </div>
-
-                    <div
-                        className="flex-1 overflow-hidden p-4 relative" /* [✨🧬] onDragEnter={() => setIsInteracted(true)} */
-                    >
-                        <BookEditor
-                            agentSource={agentSource}
-                            onChange={(source) => {
-                                setAgentSource(source);
-                                // [✨🧬] setIsInteracted(true);
-                            }}
-                            height="100%"
-                            isVerbose={false}
-                        />
-
-                        {/* TODO: [✨🧬] When creating new agent, show the floating hint
-                        {!isInteracted && (
-                            <div className="absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none select-none flex items-center pr-4 md:pr-12">
-                                <div className="relative">
-                                    <svg
-                                        width="150"
-                                        height="100"
-                                        viewBox="0 0 150 100"
-                                        fill="none"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        className="text-red-500 transform -rotate-12 w-24 h-16 md:w-32 md:h-24"
-                                    >
-                                        <path
-                                            d="M140 10C120 20 80 30 40 60M40 60L55 55M40 60L50 75"
-                                            stroke="currentColor"
-                                            strokeWidth="3"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                        />
-                                    </svg>
-                                    <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 text-red-500 font-medium text-lg md:text-xl whitespace-nowrap text-center leading-tight">
-                                        Drop the files
-                                        <br />
-                                        with the knowledge here
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                        */}
-                    </div>
-
-                    <div className="flex items-center justify-end gap-3 p-4 border-t border-gray-200 bg-gray-50 rounded-b-lg">
-                        <button
-                            onClick={onClose}
-                            className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            onClick={handleCreate}
-                            disabled={isCreating}
-                            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                        >
-                            {isCreating ? (
-                                <>
-                                    <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                                    Creating...
-                                </>
-                            ) : (
-                                'Create Agent'
-                            )}
-                        </button>
-                    </div>
-                </div>
+        <Dialog onClose={onClose} className="w-full max-w-4xl h-[80vh] flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+                <h2 className="text-xl font-semibold text-gray-900">Create New Agent</h2>
+                <button onClick={onClose} className="text-gray-400 hover:text-gray-500 transition-colors">
+                    <X className="w-5 h-5" />
+                    <span className="sr-only">Close</span>
+                </button>
             </div>
-        </Portal>
+
+            <div
+                className="flex-1 overflow-hidden p-4 relative" /* [✨🧬] onDragEnter={() => setIsInteracted(true)} */
+            >
+                <BookEditor
+                    agentSource={agentSource}
+                    onChange={(source) => {
+                        setAgentSource(source);
+                        // [✨🧬] setIsInteracted(true);
+                    }}
+                    height="100%"
+                    isVerbose={false}
+                />
+
+                {/* TODO: [✨🧬] When creating new agent, show the floating hint
+                {!isInteracted && (
+                    <div className="absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none select-none flex items-center pr-4 md:pr-12">
+                        <div className="relative">
+                            <svg
+                                width="150"
+                                height="100"
+                                viewBox="0 0 150 100"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="text-red-500 transform -rotate-12 w-24 h-16 md:w-32 md:h-24"
+                            >
+                                <path
+                                    d="M140 10C120 20 80 30 40 60M40 60L55 55M40 60L50 75"
+                                    stroke="currentColor"
+                                    strokeWidth="3"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                />
+                            </svg>
+                            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 text-red-500 font-medium text-lg md:text-xl whitespace-nowrap text-center leading-tight">
+                                Drop the files
+                                <br />
+                                with the knowledge here
+                            </div>
+                        </div>
+                    </div>
+                )}
+                */}
+            </div>
+
+            <div className="flex items-center justify-end gap-3 p-4 border-t border-gray-200 bg-gray-50 rounded-b-lg">
+                <button
+                    onClick={onClose}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+                >
+                    Cancel
+                </button>
+                <button
+                    onClick={handleCreate}
+                    disabled={isCreating}
+                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                    {isCreating ? (
+                        <>
+                            <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                            Creating...
+                        </>
+                    ) : (
+                        'Create Agent'
+                    )}
+                </button>
+            </div>
+        </Dialog>
     );
 }
