@@ -1,6 +1,7 @@
 'use server';
 
 import { OpenAiAssistantExecutionTools } from '@promptbook-local/openai';
+import { JavascriptExecutionTools } from '../../../../src/scripting/javascript/JavascriptExecutionTools';
 
 /**
  * Cache of provided OpenAiAssistantExecutionTools
@@ -27,6 +28,11 @@ export async function $provideOpenAiAssistantExecutionToolsForServer(): Promise<
     llmExecutionTools = new OpenAiAssistantExecutionTools({
         apiKey: process.env.OPENAI_API_KEY,
         assistantId: 'abstract_assistant', // <- TODO: [🙎] In `OpenAiAssistantExecutionTools` Allow to create abstract assistants with `isCreatingNewAssistantsAllowed`
+        executionTools: {
+            script: new JavascriptExecutionTools({
+                isVerbose,
+            }),
+        },
         isCreatingNewAssistantsAllowed: true,
         isVerbose,
     });

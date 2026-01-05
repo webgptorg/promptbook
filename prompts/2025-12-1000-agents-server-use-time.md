@@ -27,9 +27,9 @@
 
 ---
 
-[-]
+[ ]
 
-[✨🖲] bar
+[✨🖲] Be aware of timezones in commitment `USE TIME`
 
 -   ...
 -   You are working with the `Agents Server` application `/apps/agents-server`

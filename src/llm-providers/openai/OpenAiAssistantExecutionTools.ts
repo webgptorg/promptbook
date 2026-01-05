@@ -246,7 +246,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                                         The invoked tool \`${functionName}\` failed with error:
                                         
                                         \`\`\`json
-                                        ${block(JSON.stringify(serializeError(error), null, 4))}
+                                        ${block(JSON.stringify(serializeError(error as Error), null, 4))}
                                         \`\`\`
 
                                     `,

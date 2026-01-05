@@ -92,7 +92,9 @@ async function playground() {
             Testing time from agent playground
 
             FROM VOID
-            RULE You are an assistant that can determine the current date and time. ${nonce}
+            PERSONA You are an assistant that can determine the current date and time. ${nonce}
+            RULE Reply in language and date and time format as per the user's locale and language.
+            RULE Prefer words instead of digits when expressing time, for example, say "half past three" instead of "3:30".
             USE TIME
 
         `,
@@ -167,7 +169,7 @@ async function playground() {
             },
         ],
         */
-        content: 'What is the current date and time?' + nonce,
+        content: 'Kolik je hodin?' + nonce,
         parameters: {},
         modelRequirements: {
             modelVariant: 'CHAT',
