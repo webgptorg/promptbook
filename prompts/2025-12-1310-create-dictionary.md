@@ -1,6 +1,6 @@
 [x][ ]
 
-[✨🌤] Go through the repository and create a dictionary.
+[✨🌤] Go through the repository and create / update the dictionary.
 
 -   Create a list of important terms, concepts, and definitions related to the project.
 -   Notice that there are two major versions of the Promptbook:
