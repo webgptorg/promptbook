@@ -163,7 +163,7 @@ export class RemoteLlmExecutionTools<TCustomOptions = undefined> implements LlmE
 }
 
 /**
- * TODO: !!!! Deprecate pipeline server and all of its components
+ * TODO: [🕴] Deprecate pipeline server and all of its components
  * TODO: Maybe use `$exportJson`
  * TODO: [🧠][🛍] Maybe not `isAnonymous: boolean` BUT `mode: 'ANONYMOUS'|'COLLECTION'`
  * TODO: [🍓] Allow to list compatible models with each variant

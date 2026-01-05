@@ -1,6 +1,6 @@
-# 🎹 Commands
+# 🎹 Commitments
 
-In this directory, you will find all the commands that are available in `.book` files.
+In this directory, there are all the commitments that are available in `.book` files.
 
 [🕴] In this folder are commands for deprecated pipelines
 

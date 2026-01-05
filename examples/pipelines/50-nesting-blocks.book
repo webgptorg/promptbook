@@ -1,0 +1,26 @@
+# ✨ Nested code blocks test
+
+Testing how code blocks are assigned to commitments.
+
+- PIPELINE URL https://promptbook.studio/examples/nesting.book
+
+## 💬 Prompt
+
+FROM VOID
+NOTE This is a note
+
+```
+Test nested text in the note
+```
+
+NOTE And another note
+RULE Write poems.
+
+```
+Roses are red,
+Violets are blue,
+Sugar is sweet,
+And so are you.
+```
+
+-> {greetingResponse}
