@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨♓️] Create a script that can import GitHub discussions and issues.
 

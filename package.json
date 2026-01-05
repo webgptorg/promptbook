@@ -200,6 +200,8 @@
         "make": "npm run make-promptbook-collection && npm run update-version-in-config && npm run generate-packages && npm run generate-examples-bookc && npm run generate-documentation && npm run import-markdowns && npm run generate-openapi-types",
         "generate-packages": "ts-node ./scripts/generate-packages/generate-packages.ts",
         "generate-packages-commit": "ts-node ./scripts/generate-packages/generate-packages.ts --skip-bundler --commit",
+        "import-github": "ts-node ./scripts/import-github/import-github.ts",
+        "import-github-commit": "ts-node ./scripts/import-github/import-github.ts --commit",
         "_NOTE-0": " <- Note: This is here to ensure that publish.yml is up to date before tagging the new version",
         "generate-documentation": "ts-node ./scripts/generate-documentation/generate-documentation.ts",
         "generate-documentation-commit": "ts-node ./scripts/generate-documentation/generate-documentation.ts --commit",

@@ -194,6 +194,13 @@
             "focus": false
         },
         {
+            "name": "🐙 Import GitHub",
+            "command": "npm run import-github",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
             "name": "🏭💉 Import markdowns",
             "command": "npm run import-markdowns",
             "execute": true,
@@ -201,14 +208,14 @@
             "focus": true
         },
         {
-            "name": "🏭📦 Generate packages",
+            "name": "🏭� Generate packages",
             "command": "npx ts-node ./scripts/generate-packages/generate-packages.ts --skip-bundler",
             "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
-            "name": "🏭📚 Generate documentation",
+            "name": "🏭�📚 Generate documentation",
             "commands": ["npx ts-node ./scripts/generate-documentation/generate-documentation.ts"],
             "execute": true,
             "onlySingle": true,
