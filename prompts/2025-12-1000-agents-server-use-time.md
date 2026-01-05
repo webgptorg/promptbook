@@ -31,8 +31,8 @@
 
 [✨🖲] Be aware of timezones in commitment `USE TIME`
 
--   ...
--   You are working with the `Agents Server` application `/apps/agents-server`
+-   When using time in an AI agent, the AI agent doesn't know the user's time zone, so it sometimes tells the time which is UTC but the user is not in the UTC zone.
+-   It should work for example with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
 
