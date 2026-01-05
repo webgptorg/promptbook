@@ -3,12 +3,13 @@
     "scripts": {
         "migrate-database": "npx tsx ./src/database/migrate.ts",
         "generate-reserved-paths": "ts-node ./scripts/generate-reserved-paths/generate-reserved-paths.ts",
-        "prebuild": "npm run generate-reserved-paths",
-        "predev": "npm run generate-reserved-paths",
-        "dev": "(npx kill-port 4440 || true) && next dev -p 4440",
+        "prebuild": "npm run generate-reserved-paths && npx kill-port 4440 ||  exit 0",
+        "predev": "npm run generate-reserved-paths && npx kill-port 4440 ||  exit 0",
+        "dev": "next dev -p 4440",
         "test": "npm run lint && npm run test-build",
-        "test-build": "(npx kill-port 4440 || true) && next build",
-        "build": "(npx kill-port 4440 || true) && next build",
+        "pretest-build": "npx kill-port 4021",
+        "test-build": "next build",
+        "build": " next build",
         "start": "next start -p 4440",
         "lint": "next lint --max-warnings=0",
         "postinstall": "cd ../../ && npm ci"
