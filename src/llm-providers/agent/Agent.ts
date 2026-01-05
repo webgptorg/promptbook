@@ -78,7 +78,7 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
     /**
      * List of sample conversations (question/answer pairs)
      */
-    public samples: Array<{ question: string; answer: string }> = [];
+    public samples: Array<{ question: string | null; answer: string }> = [];
 
     /**
      * Computed hash of the agent source for integrity verification
@@ -153,7 +153,7 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
         if (modelRequirements.samples) {
             const normalizedPrompt = normalizeMessageText(prompt.content);
             const sample = modelRequirements.samples.find(
-                (sample) => normalizeMessageText(sample.question) === normalizedPrompt,
+                (sample) => sample.question !== null && normalizeMessageText(sample.question) === normalizedPrompt,
             );
 
             if (sample) {

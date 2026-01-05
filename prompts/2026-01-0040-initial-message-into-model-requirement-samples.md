@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨💸] `INITIAL MESSAGE` Should be passed into the samples same as `USER MESSAGE` and `AGENT MESSAGE`.
 

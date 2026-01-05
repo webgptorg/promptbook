@@ -209,6 +209,17 @@ describe('parseAgentSource', () => {
         expect(result.initialMessage).toBe('Second message (override)');
     });
 
+    it('parses INITIAL MESSAGE into samples', () => {
+        const agentSource = validateBook(
+            spaceTrim(`
+                Agent Name
+                INITIAL MESSAGE Hello! I am ready to help you.
+            `),
+        );
+        const result = parseAgentSource(agentSource);
+        expect(result.samples).toContainEqual({ question: null, answer: 'Hello! I am ready to help you.' });
+    });
+
     it('parses IMAGE and COLOR aliases', () => {
         const agentSource = validateBook(
             spaceTrim(`

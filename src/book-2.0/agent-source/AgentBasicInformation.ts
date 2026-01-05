@@ -128,7 +128,7 @@ export type AgentBasicInformation = {
     /**
      * List of sample conversations (question/answer pairs)
      */
-    samples: Array<{ question: string; answer: string }>;
+    samples: Array<{ question: string | null; answer: string }>;
 };
 
 /**

@@ -53,10 +53,15 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
     const meta: Record<string, string> = {};
     const links: string[] = [];
     const capabilities: AgentCapability[] = [];
-    const samples: Array<{ question: string; answer: string }> = [];
+    const samples: Array<{ question: string | null; answer: string }> = [];
     let pendingUserMessage: string | null = null;
 
     for (const commitment of parseResult.commitments) {
+        if (commitment.type === 'INITIAL MESSAGE') {
+            samples.push({ question: null, answer: commitment.content });
+            continue;
+        }
+
         if (commitment.type === 'USER MESSAGE') {
             pendingUserMessage = commitment.content;
             continue;

@@ -14,7 +14,7 @@
 -   Record all tool calls and aggregate usage in `promptResult` when the tool calling loop is used.
 -   Improved the design of the agent server name in the header to prevent wrapping on long names
 -   Samples of communication (USER MESSAGE and AGENT MESSAGE) are now transferred into the system message.
--   The initial message is now also included in the example interaction within the system message.
+-   The initial message is now also included in the example interaction within the system message and is passed into the samples with `question` set to `null`.
 -   Horizontal lines (`---`) are now filtered out from the system message.
 -   Use Teacher Agent for self-learning of the agents.
 -   Self-learning is now a two-step process: first appending conversation samples, then asynchronously calling the Teacher Agent.

@@ -1,6 +1,5 @@
 import { spaceTrim } from 'spacetrim';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
-import { keepUnused } from '../../utils/organization/keepUnused';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 
 /**
@@ -63,12 +62,14 @@ export class InitialMessageCommitmentDefinition extends BaseCommitmentDefinition
     }
 
     applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
-        // INITIAL MESSAGE is for UI display purposes and typically doesn't need to be
-        // added to the system prompt or model requirements directly.
-        // It is extracted separately for the chat interface.
+        // INITIAL MESSAGE is for UI display purposes and for conversation history construction.
 
-        keepUnused(content);
+        const newSample = { question: null, answer: content };
+        const newSamples = [...(requirements.samples || []), newSample];
 
-        return requirements;
+        return {
+            ...requirements,
+            samples: newSamples,
+        };
     }
 }
