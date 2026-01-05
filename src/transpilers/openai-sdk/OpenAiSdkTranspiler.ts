@@ -113,7 +113,7 @@ export const OpenAiSdkTranspiler = {
                         {
                             role: 'system',
                             content: spaceTrim(\`
-                                ${block(modelRequirements.systemMessage)}
+                                ${block(modelRequirements.systemMessage.split('`').join('\\`'))}
                             \`),
                         },
                     ];
@@ -209,7 +209,7 @@ export const OpenAiSdkTranspiler = {
                     {
                         role: 'system',
                         content: spaceTrim(\`
-                            ${block(modelRequirements.systemMessage)}
+                            ${block(modelRequirements.systemMessage.split('`').join('\\`'))}
                         \`),
                     },
                 ];
