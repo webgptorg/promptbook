@@ -11,9 +11,12 @@ import { DEFAULT_EXECUTION_CACHE_DIRNAME } from '../../../config';
 import { usageToHuman } from '../../../execution/utils/usageToHuman';
 import { book } from '../../../pipeline/book-notation';
 import { $provideFilesystemForNode } from '../../../scrapers/_common/register/$provideFilesystemForNode';
+import { JavascriptExecutionTools } from '../../../scripting/javascript/JavascriptExecutionTools';
 import { FileCacheStorage } from '../../../storage/file-cache-storage/FileCacheStorage';
 import type { ChatPrompt } from '../../../types/Prompt';
 import { $sideEffect } from '../../../utils/organization/$sideEffect';
+import { just } from '../../../utils/organization/just';
+import { keepImported } from '../../../utils/organization/keepImported';
 import { cacheLlmTools } from '../../_common/utils/cache/cacheLlmTools';
 import { OpenAiAssistantExecutionTools } from '../../openai/OpenAiAssistantExecutionTools';
 import { createAgentLlmExecutionTools } from '../createAgentLlmExecutionTools';
@@ -39,6 +42,9 @@ playground()
 async function playground() {
     // Create underlying OpenAI tools
 
+    const nonce = '(0)';
+    const isVerbose = true;
+
     /*/
     const llmTools = await $provideLlmToolsFromEnv({
         title: 'LLM Tools for Agent Playground',
@@ -49,8 +55,13 @@ async function playground() {
     const llmTools = new OpenAiAssistantExecutionTools({
         apiKey: process.env.OPENAI_API_KEY,
         assistantId: 'abstract_assistant', // <- TODO: [🙎] In `OpenAiAssistantExecutionTools` Allow to create abstract assistants with `isCreatingNewAssistantsAllowed`
+        executionTools: {
+            script: new JavascriptExecutionTools({
+                isVerbose,
+            }),
+        },
         isCreatingNewAssistantsAllowed: true,
-        isVerbose: true,
+        isVerbose,
     });
     /**/
 
@@ -78,10 +89,10 @@ async function playground() {
     let agentTools = createAgentLlmExecutionTools({
         llmTools,
         agentSource: book`
-            Paul
+            Testing time from agent playground
 
             FROM VOID
-            RULE You are an assistant that can determine the current date and time.
+            RULE You are an assistant that can determine the current date and time. ${nonce}
             USE TIME
 
         `,
@@ -96,20 +107,23 @@ async function playground() {
         // <- TODO: !!!! Test `USE BROWSER`
     });
 
+    agentTools = just(agentTools);
+    keepImported(cacheLlmTools, FileCacheStorage, $provideFilesystemForNode, join, DEFAULT_EXECUTION_CACHE_DIRNAME);
+
     /**/
-    // agentTools = cacheLlmTools(agentTools, {
-    //     storage: new FileCacheStorage(
-    //         { fs: $provideFilesystemForNode() },
-    //         {
-    //             rootFolderPath: join(
-    //                 process.cwd(),
-    //                 DEFAULT_EXECUTION_CACHE_DIRNAME,
-    //                 // <- TODO: [🦒] Allow to override (pass different value into the function)
-    //             ),
-    //         },
-    //     ),
-    //     // isCacheReloaded: isCacheReloaded,
-    // });
+    agentTools = cacheLlmTools(agentTools, {
+        storage: new FileCacheStorage(
+            { fs: $provideFilesystemForNode() },
+            {
+                rootFolderPath: join(
+                    process.cwd(),
+                    DEFAULT_EXECUTION_CACHE_DIRNAME,
+                    // <- TODO: [🦒] Allow to override (pass different value into the function)
+                ),
+            },
+        ),
+        // isCacheReloaded: isCacheReloaded,
+    });
     /**/
 
     console.info(colors.bgBlue(`🧔  Agent Tools:`));
@@ -153,7 +167,7 @@ async function playground() {
             },
         ],
         */
-        content: 'What is the current date and time?',
+        content: 'What is the current date and time?' + nonce,
         parameters: {},
         modelRequirements: {
             modelVariant: 'CHAT',
@@ -164,8 +178,8 @@ async function playground() {
 
     console.info({ result });
     console.info(colors.cyan(usageToHuman(result.usage)));
-    console.info(colors.bgBlue(' User: ') + colors.blue(chatPrompt.content));
-    console.info(colors.bgCyan(` ${agentTools.title}: `) + colors.green(result.content));
+    console.info(colors.bgBlue(' User: ') + '\n' + colors.blue(chatPrompt.content));
+    console.info(colors.bgCyan(` ${agentTools.title}: `) + '\n' + colors.green(result.content));
 }
 
 /**

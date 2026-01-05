@@ -1,0 +1,215 @@
+{
+    "date": "2026-01-05T12:45:56.333Z",
+    "promptbookVersion": "0.105.0-1",
+    "bookVersion": "2.0.0",
+    "prompt": {
+        "title": "Test Chat",
+        "content": "What is the current date and time?(0)",
+        "parameters": {},
+        "modelRequirements": {
+            "modelVariant": "CHAT"
+        }
+    },
+    "promptResult": {
+        "content": "The current date and time is  January 5, 2026, 12:45 PM (UTC).",
+        "modelName": "testing-time-from-agent-playground-b7865dd3ab",
+        "timing": {
+            "start": "2026-01-05T12:45:50.783Z",
+            "complete": "2026-01-05T12:45:56.332Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0,
+                "isUncertain": true
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "charactersCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "wordsCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "sentencesCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "linesCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "paragraphsCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "pagesCount": {
+                    "value": 0,
+                    "isUncertain": true
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "charactersCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "wordsCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "sentencesCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "linesCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "paragraphsCount": {
+                    "value": 0,
+                    "isUncertain": true
+                },
+                "pagesCount": {
+                    "value": 0,
+                    "isUncertain": true
+                }
+            }
+        },
+        "rawPromptContent": "What is the current date and time?(0)",
+        "rawRequest": {
+            "assistant_id": "asst_uMeadBRbWA10oiGB1vYxPsFk",
+            "thread": {
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": "What is the current date and time?(0)"
+                    }
+                ]
+            },
+            "tools": [
+                {
+                    "type": "function",
+                    "function": {
+                        "name": "get_current_time",
+                        "description": "Get the current date and time in ISO 8601 format.",
+                        "parameters": {
+                            "type": "object",
+                            "properties": {},
+                            "required": []
+                        }
+                    }
+                }
+            ]
+        },
+        "rawResponse": {
+            "run": {
+                "id": "run_Pkb3RCX6OP6juflKDp9Vf84W",
+                "object": "thread.run",
+                "created_at": 1767617151,
+                "assistant_id": "asst_uMeadBRbWA10oiGB1vYxPsFk",
+                "thread_id": "thread_t5AeD68nT4aORJGMAak6h9SZ",
+                "status": "completed",
+                "started_at": 1767617154,
+                "expires_at": null,
+                "cancelled_at": null,
+                "failed_at": null,
+                "completed_at": 1767617155,
+                "required_action": null,
+                "last_error": null,
+                "model": "gpt-4o",
+                "instructions": "You are Testing time from agent playground\n\nRule: You are an assistant that can determine the current date and time. (0)",
+                "tools": [
+                    {
+                        "type": "function",
+                        "function": {
+                            "name": "get_current_time",
+                            "description": "Get the current date and time in ISO 8601 format.",
+                            "parameters": {
+                                "type": "object",
+                                "properties": {},
+                                "required": []
+                            },
+                            "strict": false
+                        }
+                    }
+                ],
+                "tool_resources": {},
+                "metadata": {},
+                "temperature": 1,
+                "top_p": 1,
+                "reasoning_effort": null,
+                "max_completion_tokens": null,
+                "max_prompt_tokens": null,
+                "truncation_strategy": {
+                    "type": "auto",
+                    "last_messages": null
+                },
+                "incomplete_details": null,
+                "usage": {
+                    "prompt_tokens": 626,
+                    "completion_tokens": 36,
+                    "total_tokens": 662,
+                    "prompt_token_details": {
+                        "cached_tokens": 0
+                    },
+                    "completion_tokens_details": {
+                        "reasoning_tokens": 0
+                    }
+                },
+                "response_format": "auto",
+                "tool_choice": "auto",
+                "parallel_tool_calls": true
+            },
+            "messages": [
+                {
+                    "id": "msg_iT6gI3M8432ABNw2nsGrL1dZ",
+                    "object": "thread.message",
+                    "created_at": 1767617154,
+                    "assistant_id": "asst_uMeadBRbWA10oiGB1vYxPsFk",
+                    "thread_id": "thread_t5AeD68nT4aORJGMAak6h9SZ",
+                    "run_id": "run_Pkb3RCX6OP6juflKDp9Vf84W",
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": {
+                                "value": "The current date and time is January 5, 2026, 12:45 PM (UTC).",
+                                "annotations": []
+                            }
+                        }
+                    ],
+                    "attachments": [],
+                    "metadata": {}
+                },
+                {
+                    "id": "msg_Oa1x7pMNDCD7m4PWjhzTCrBi",
+                    "object": "thread.message",
+                    "created_at": 1767617151,
+                    "assistant_id": null,
+                    "thread_id": "thread_t5AeD68nT4aORJGMAak6h9SZ",
+                    "run_id": null,
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": {
+                                "value": "What is the current date and time?(0)",
+                                "annotations": []
+                            }
+                        }
+                    ],
+                    "attachments": [],
+                    "metadata": {}
+                }
+            ]
+        }
+    }
+}

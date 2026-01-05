@@ -1,5 +1,8 @@
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import OpenAI from 'openai';
+import spaceTrim from 'spacetrim';
+import { serializeError } from '../../_packages/utils.index';
+import { assertsError } from '../../errors/assertsError';
 import { NotAllowed } from '../../errors/NotAllowed';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
@@ -19,6 +22,7 @@ import { $getCurrentDate } from '../../utils/misc/$getCurrentDate';
 import { templateParameters } from '../../utils/parameters/templateParameters';
 import { exportJson } from '../../utils/serialization/exportJson';
 import type { OpenAiAssistantExecutionToolsOptions } from './OpenAiAssistantExecutionToolsOptions';
+import type { OpenAiCompatibleExecutionToolsNonProxiedOptions } from './OpenAiCompatibleExecutionToolsOptions';
 import { OpenAiExecutionTools } from './OpenAiExecutionTools';
 import { mapToolsToOpenAi } from './utils/mapToolsToOpenAi';
 
@@ -157,6 +161,162 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
         // Always add the current user message
         threadMessages.push({ role: 'user', content: rawPromptContent });
 
+        // Check if tools are being used - if so, use non-streaming mode
+        const hasTools = modelRequirements.tools !== undefined && modelRequirements.tools.length > 0;
+
+        const start: string_date_iso8601 = $getCurrentDate();
+        let complete: string_date_iso8601;
+
+        // [🐱‍🚀] When tools are present, we need to use the non-streaming Runs API
+        // because streaming doesn't support tool execution flow properly
+        if (hasTools) {
+            const rawRequest: OpenAI.Beta.ThreadCreateAndRunParams = {
+                assistant_id: this.assistantId,
+                thread: {
+                    messages: threadMessages,
+                },
+                tools: mapToolsToOpenAi(modelRequirements.tools!),
+            };
+
+            if (this.options.isVerbose) {
+                console.info(
+                    colors.bgWhite('rawRequest (non-streaming with tools)'),
+                    JSON.stringify(rawRequest, null, 4),
+                );
+            }
+
+            // Create thread and run
+            const threadAndRun = await client.beta.threads.createAndRun(rawRequest);
+            let run = threadAndRun;
+
+            // Poll until run completes or requires action
+            while (run.status === 'queued' || run.status === 'in_progress' || run.status === 'requires_action') {
+                if (run.status === 'requires_action' && run.required_action?.type === 'submit_tool_outputs') {
+                    // Execute tools
+                    const toolCalls = run.required_action.submit_tool_outputs.tool_calls;
+                    const toolOutputs: Array<{ tool_call_id: string; output: string }> = [];
+
+                    for (const toolCall of toolCalls) {
+                        if (toolCall.type === 'function') {
+                            const functionName = toolCall.function.name;
+                            const functionArgs = JSON.parse(toolCall.function.arguments);
+
+                            if (this.options.isVerbose) {
+                                console.info(`🔧 Executing tool: ${functionName}`, functionArgs);
+                            }
+
+                            // Get execution tools for script execution
+                            const executionTools = (this.options as OpenAiCompatibleExecutionToolsNonProxiedOptions)
+                                .executionTools;
+
+                            if (!executionTools || !executionTools.script) {
+                                throw new PipelineExecutionError(
+                                    `Model requested tool '${functionName}' but no executionTools.script were provided in OpenAiAssistantExecutionTools options`,
+                                );
+                            }
+
+                            // TODO: [DRY] Use some common tool caller (similar to OpenAiCompatibleExecutionTools)
+                            const scriptTools = Array.isArray(executionTools.script)
+                                ? executionTools.script
+                                : [executionTools.script];
+
+                            let functionResponse: string;
+
+                            try {
+                                const scriptTool = scriptTools[0]!; // <- TODO: [🧠] Which script tool to use?
+
+                                functionResponse = await scriptTool.execute({
+                                    scriptLanguage: 'javascript', // <- TODO: [🧠] How to determine script language?
+                                    script: `
+                                        const args = ${JSON.stringify(functionArgs)};
+                                        return await ${functionName}(args);
+                                    `,
+                                    parameters: {}, // <- TODO: [🧠] What parameters to pass?
+                                });
+
+                                if (this.options.isVerbose) {
+                                    console.info(`✅ Tool ${functionName} executed:`, functionResponse);
+                                }
+                            } catch (error) {
+                                assertsError(error);
+
+                                functionResponse = spaceTrim(
+                                    (block) => `
+                                    
+                                        The invoked tool \`${functionName}\` failed with error:
+                                        
+                                        \`\`\`json
+                                        ${block(JSON.stringify(serializeError(error), null, 4))}
+                                        \`\`\`
+
+                                    `,
+                                );
+                                console.error(colors.bgRed(`❌ Error executing tool ${functionName}:`));
+                                console.error(error);
+                            }
+
+                            toolOutputs.push({
+                                tool_call_id: toolCall.id,
+                                output: functionResponse,
+                            });
+                        }
+                    }
+
+                    // Submit tool outputs
+                    run = await client.beta.threads.runs.submitToolOutputs(run.thread_id, run.id, {
+                        tool_outputs: toolOutputs,
+                    });
+                } else {
+                    // Wait a bit before polling again
+                    await new Promise((resolve) => setTimeout(resolve, 500));
+                    run = await client.beta.threads.runs.retrieve(run.thread_id, run.id);
+                }
+            }
+
+            if (run.status !== 'completed') {
+                throw new PipelineExecutionError(`Assistant run failed with status: ${run.status}`);
+            }
+
+            // Get messages from the thread
+            const messages = await client.beta.threads.messages.list(run.thread_id);
+            const assistantMessages = messages.data.filter((msg) => msg.role === 'assistant');
+
+            if (assistantMessages.length === 0) {
+                throw new PipelineExecutionError('No assistant messages found after run completion');
+            }
+
+            const lastMessage = assistantMessages[0]!;
+            const textContent = lastMessage.content.find((c) => c.type === 'text');
+
+            if (!textContent || textContent.type !== 'text') {
+                throw new PipelineExecutionError('No text content in assistant response');
+            }
+
+            complete = $getCurrentDate();
+            const resultContent = textContent.text.value;
+            const usage = UNCERTAIN_USAGE;
+
+            // Progress callback with final result
+            const finalChunk: ChatPromptResult = {
+                content: resultContent,
+                modelName: 'assistant',
+                timing: { start, complete },
+                usage,
+                rawPromptContent,
+                rawRequest,
+                rawResponse: { run, messages: messages.data },
+            };
+            onProgress(finalChunk);
+
+            return exportJson({
+                name: 'promptResult',
+                message: `Result of \`OpenAiAssistantExecutionTools.callChatModelStream\` (with tools)`,
+                order: [],
+                value: finalChunk,
+            });
+        }
+
+        // Streaming mode (without tools)
         const rawRequest: OpenAI.Beta.ThreadCreateAndRunStreamParams = {
             // TODO: [👨‍👨‍👧‍👧] ...modelSettings,
             // TODO: [👨‍👨‍👧‍👧][🧠] What about system message for assistants, does it make sense - combination of OpenAI assistants with Promptbook Personas
@@ -170,11 +330,9 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
 
             // <- TODO: Add user identification here> user: this.options.user,
         };
-        const start: string_date_iso8601 = $getCurrentDate();
-        let complete: string_date_iso8601;
 
         if (this.options.isVerbose) {
-            console.info(colors.bgWhite('rawRequest'), JSON.stringify(rawRequest, null, 4));
+            console.info(colors.bgWhite('rawRequest (streaming)'), JSON.stringify(rawRequest, null, 4));
         }
 
         const stream = await client.beta.threads.createAndRunStream(rawRequest);
@@ -217,6 +375,16 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                 console.info('messageDone', message);
             }
         });
+
+        // TODO: [🐱‍🚀] Handle tool calls in assistants
+        // Note: OpenAI Assistant streaming with tool calls requires special handling.
+        // The stream will pause when a tool call is needed, and we need to:
+        // 1. Wait for the run to reach 'requires_action' status
+        // 2. Execute the tool calls
+        // 3. Submit tool outputs via a separate API call (not on the stream)
+        // 4. Continue the run
+        // This requires switching to non-streaming mode or using the Runs API directly.
+        // For now, tools with assistants should use the non-streaming chat completions API instead.
 
         const rawResponse = await stream.finalMessages();
 
