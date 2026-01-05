@@ -113,37 +113,24 @@ export function parseAgentSourceWithCommitments(agentSource: string_book): Omit<
         if (trimmedLine.startsWith('```')) {
             isInsideCodeBlock = !isInsideCodeBlock;
 
-            // Save the current commitment if it exists (code block ends it)
             if (currentCommitment) {
-                const fullContent = currentCommitment.contentLines.join('\n');
-                commitments.push({
-                    type: currentCommitment.type as BookCommitment,
-                    content: spaceTrim(fullContent),
-                    originalLine: currentCommitment.originalStartLine,
-                    lineNumber: currentCommitment.startLineNumber,
-                });
-                currentCommitment = null;
+                // If we are inside a commitment, the code block is part of it
+                currentCommitment.contentLines.push(line);
+            } else {
+                // If we are not inside a commitment, the code block is non-commitment
+                nonCommitmentLines.push(line);
             }
-
-            nonCommitmentLines.push(line);
             continue;
         }
 
         if (isInsideCodeBlock) {
-            // Save the current commitment if it exists (code block ends it)
-            // Note: This is a safety check, normally the ``` line handled it
             if (currentCommitment) {
-                const fullContent = currentCommitment.contentLines.join('\n');
-                commitments.push({
-                    type: currentCommitment.type as BookCommitment,
-                    content: spaceTrim(fullContent),
-                    originalLine: currentCommitment.originalStartLine,
-                    lineNumber: currentCommitment.startLineNumber,
-                });
-                currentCommitment = null;
+                // If we are inside a commitment and a code block, the line is part of the commitment
+                currentCommitment.contentLines.push(line);
+            } else {
+                // If we are inside a code block but not a commitment, the line is non-commitment
+                nonCommitmentLines.push(line);
             }
-
-            nonCommitmentLines.push(line);
             continue;
         }
 
