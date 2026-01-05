@@ -38,7 +38,7 @@ export const metadataDefaults = [
         key: 'CORE_SERVER',
         value: CORE_AGENTS_SERVER.url,
         note: spaceTrim(`
-                Core Promptbook server URL used for agents that are used for common tasks, theese agents are called well known agents:
+                Core Promptbook server URL used for agents that are used for common tasks, these agents are called well known agents:
 
                 On the core server, the following well known agents should be hosted: 
                 - \`adam\`: The default ancestor agent for new agents
