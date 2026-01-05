@@ -325,7 +325,12 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
          */
         readonly knowledgeSources?: ReadonlyArray<string>;
 
-        // <- TODO: [🧠] [🐱‍🚀] Add also other assistant creation parameters like tools, name, description, model, ...
+        /**
+         * Optional list of tools to attach to the assistant
+         */
+        readonly tools?: ModelRequirements['tools'];
+
+        // <- TODO: [🧠] [🐱‍🚀] Add also other assistant creation parameters like name, description, model, ...
     }): Promise<OpenAiAssistantExecutionTools> {
         if (!this.isCreatingNewAssistantsAllowed) {
             throw new NotAllowed(
@@ -334,7 +339,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
         }
 
         // await this.playground();
-        const { name, instructions, knowledgeSources } = options;
+        const { name, instructions, knowledgeSources, tools } = options;
         const client = await this.getClient();
 
         let vectorStoreId: string | undefined;
@@ -410,7 +415,11 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             description: 'Assistant created via Promptbook',
             model: 'gpt-4o',
             instructions,
-            tools: [/* TODO: [🧠] Maybe add { type: 'code_interpreter' }, */ { type: 'file_search' }],
+            tools: [
+                /* TODO: [🧠] Maybe add { type: 'code_interpreter' }, */
+                { type: 'file_search' },
+                ...(tools === undefined ? [] : mapToolsToOpenAi(tools)),
+            ],
         };
 
         // Attach vector store if created
@@ -457,6 +466,11 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
          * Optional list of knowledge source links (URLs or file paths) to attach to the assistant via vector store
          */
         readonly knowledgeSources?: ReadonlyArray<string>;
+
+        /**
+         * Optional list of tools to attach to the assistant
+         */
+        readonly tools?: ModelRequirements['tools'];
     }): Promise<OpenAiAssistantExecutionTools> {
         if (!this.isCreatingNewAssistantsAllowed) {
             throw new NotAllowed(
@@ -464,7 +478,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             );
         }
 
-        const { assistantId, name, instructions, knowledgeSources } = options;
+        const { assistantId, name, instructions, knowledgeSources, tools } = options;
         const client = await this.getClient();
 
         let vectorStoreId: string | undefined;
@@ -540,7 +554,11 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
         const assistantUpdate: OpenAI.Beta.AssistantUpdateParams = {
             name,
             instructions,
-            tools: [/* TODO: [🧠] Maybe add { type: 'code_interpreter' }, */ { type: 'file_search' }],
+            tools: [
+                /* TODO: [🧠] Maybe add { type: 'code_interpreter' }, */
+                { type: 'file_search' },
+                ...(tools === undefined ? [] : mapToolsToOpenAi(tools)),
+            ],
         };
 
         if (vectorStoreId) {

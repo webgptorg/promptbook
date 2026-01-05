@@ -219,6 +219,7 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
                         name: this.title,
                         instructions: modelRequirements.systemMessage,
                         knowledgeSources: modelRequirements.knowledgeSources,
+                        tools: modelRequirements.tools ? [...modelRequirements.tools] : undefined,
                     });
                     AgentLlmExecutionTools.assistantCache.set(this.title, {
                         assistantId: assistant.assistantId,
@@ -234,6 +235,7 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
                     name: this.title,
                     instructions: modelRequirements.systemMessage,
                     knowledgeSources: modelRequirements.knowledgeSources,
+                    tools: modelRequirements.tools ? [...modelRequirements.tools] : undefined,
                     /*
                     !!!
                     metadata: {

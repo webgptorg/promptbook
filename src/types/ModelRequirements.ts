@@ -38,12 +38,6 @@ export type CompletionModelRequirements = CommonModelRequirements & {
      */
     readonly maxTokens?: number;
 
-    /**
-     * Tools available for the model
-     *
-     * Note: [🚉] This is fully serializable as JSON
-     */
-    readonly tools?: LlmToolDefinition[];
 };
 
 /**
@@ -74,12 +68,6 @@ export type ChatModelRequirements = CommonModelRequirements & {
      */
     readonly maxTokens?: number;
 
-    /**
-     * Tools available for the model
-     *
-     * Note: [🚉] This is fully serializable as JSON
-     */
-    readonly tools?: LlmToolDefinition[];
 };
 
 /**
@@ -160,6 +148,13 @@ export type CommonModelRequirements = {
      * Seed for the model
      */
     readonly seed?: number_seed;
+
+    /**
+     * Tools available for the model
+     *
+     * Note: [🚉] This is fully serializable as JSON
+     */
+    readonly tools?: LlmToolDefinition[];
 
     // <- Note: [🧆] Look here when adding new properties to `ModelRequirements`
 };

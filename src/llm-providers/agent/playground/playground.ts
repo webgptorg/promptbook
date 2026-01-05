@@ -81,7 +81,8 @@ async function playground() {
             Paul
 
             FROM VOID
-            NOTE USE TIME
+            RULE You are an assistant that can determine the current date and time.
+            USE TIME
 
         `,
         // agentSource: book`
@@ -96,19 +97,19 @@ async function playground() {
     });
 
     /**/
-    agentTools = cacheLlmTools(agentTools, {
-        storage: new FileCacheStorage(
-            { fs: $provideFilesystemForNode() },
-            {
-                rootFolderPath: join(
-                    process.cwd(),
-                    DEFAULT_EXECUTION_CACHE_DIRNAME,
-                    // <- TODO: [🦒] Allow to override (pass different value into the function)
-                ),
-            },
-        ),
-        // isCacheReloaded: isCacheReloaded,
-    });
+    // agentTools = cacheLlmTools(agentTools, {
+    //     storage: new FileCacheStorage(
+    //         { fs: $provideFilesystemForNode() },
+    //         {
+    //             rootFolderPath: join(
+    //                 process.cwd(),
+    //                 DEFAULT_EXECUTION_CACHE_DIRNAME,
+    //                 // <- TODO: [🦒] Allow to override (pass different value into the function)
+    //             ),
+    //         },
+    //     ),
+    //     // isCacheReloaded: isCacheReloaded,
+    // });
     /**/
 
     console.info(colors.bgBlue(`🧔  Agent Tools:`));
