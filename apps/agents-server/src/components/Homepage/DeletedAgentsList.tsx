@@ -55,7 +55,7 @@ export function DeletedAgentsList(props: DeletedAgentsListProps) {
                 <AgentCard
                     key={agent.permanentId || agent.agentName}
                     agent={agent}
-                    publicUrl={publicUrl}
+                    publicUrl={publicUrl.href}
                     href={`/agents/${encodeURIComponent(agent.permanentId || agent.agentName)}`}
                     isAdmin={isAdmin}
                     onRestore={handleRestore}
