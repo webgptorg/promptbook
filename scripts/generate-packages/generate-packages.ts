@@ -538,6 +538,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                 await $execCommand({
                     isVerbose: true,
                     command: `PACKAGE_BASENAME=${packageBasename} node --max-old-space-size=32000 ./node_modules/rollup/dist/bin/rollup --config rollup.config.js`,
+                    // <- TODO: !!!!! Allow to pass environment variables directly to $execCommand
                 });
 
                 console.info(colors.green(`✅ Package ${packageFullname} built successfully`));
