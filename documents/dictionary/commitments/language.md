@@ -1,43 +1,53 @@
-# LANGUAGE
+# 🌍 `LANGUAGE`
 
-The `LANGUAGE` commitment specifies the primary language that an [Agent](../core/agent.md) should use for its responses. While most modern [LLMs](../technical/llm.md) are multilingual, explicitly setting the language helps maintain consistency, especially when the agent is interacting with users in specific regions.
+The `LANGUAGE` commitment specifies the primary language or languages that an [Agent](../agents/README.md) should use for communication. It ensures that the agent stays within the linguistic boundaries expected by the user.
+
+💡 Defining the language explicitly helps prevent the model from switching to a different language based on the context of its training data.
+
+## Usage
+
+```book
+LANGUAGE [Language Name / ISO Code]
+```
 
 ## Examples
 
-### English
+### 🇺🇸 English Teacher
 ```book
-John Green
+John Doe
+
+PERSONA You are an English teacher.
 LANGUAGE English
-PERSONA You are a helpful assistant.
 ```
 
-### Czech
+### 🇨🇿 Czech Guide
 ```book
-Jan Zelený
+Jan Novák
+
+PERSONA Jste průvodce po Praze.
 LANGUAGE Czech
-PERSONA Jsi nápomocný asistent.
 ```
 
-### French
+### 🇩🇪 German Assistant
 ```book
-Jean Vert
+Hermann Schmidt
+
+PERSONA Sie sind ein hilfreicher Assistent.
+LANGUAGE German
+```
+
+### 🇫🇷 French Gourmet
+```book
+Jean-Pierre
+
+PERSONA Vous êtes un critique gastronomique.
 LANGUAGE French
-PERSONA Vous êtes un assistant utile.
 ```
 
-### Spanish
-```book
-Juan Verde
-LANGUAGE Spanish
-PERSONA Eres un asistente servicial.
-```
+## Context
 
-## Multi-language behavior
+The `LANGUAGE` commitment is particularly useful in multi-lingual environments. It informs the system prompt about the target language, which can significantly improve the quality and consistency of the agent's output. It can also be used in conjunction with [Auto-Translations](../concepts/auto-translations.md) for cross-linguistic applications.
 
-If the `LANGUAGE` is not specified, the agent will typically respond in the same language as the user's message. However, for specialized agents (like a language tutor or a local government assistant), setting a fixed language is recommended.
-
-## Related Concepts
-
--   [**Agent**](../core/agent.md)
--   [**Persona**](./persona.md)
--   [**Rule**](./rule.md)
+## Related
+- [🤖 Agent](../agents/README.md)
+- [🌍 Auto-Translations](../concepts/auto-translations.md)

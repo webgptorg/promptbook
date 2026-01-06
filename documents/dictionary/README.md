@@ -1,19 +1,21 @@
-# Promptbook Dictionary
+# 📚 Promptbook Dictionary
 
-Welcome to the Promptbook Dictionary. This document serves as a comprehensive guide to the terms, concepts, and definitions used within the Promptbook ecosystem.
+Welcome to the Promptbook Dictionary. This repository contains a comprehensive list of terms, concepts, and definitions related to the Promptbook project.
 
-## Structure
+## 📂 Categories
 
-The dictionary is organized into several categories:
+-   [**🤝 Commitments**](./commitments/README.md) - Define specific behaviors, capabilities, or rules for AI agents.
+-   [**🤖 Agents**](./agents/README.md) - High-level AI entities with personality, knowledge, and rules.
+-   [**🛤 Pipelines**](./pipelines/README.md) - Sequential workflows for multi-step LLM operations (Legacy).
+-   [**🏗 Structure**](./structure/README.md) - The fundamental building blocks of Promptbook files.
+-   [**⚙ Execution**](./execution/README.md) - How Promptbooks are processed, run, and monitored.
+-   [**🧠 Concepts**](./concepts/README.md) - Abstract ideas and principles behind the Promptbook.
 
--   [**Core Concepts**](./core/README.md) - Fundamental ideas like Agents, Pipelines, and the Promptbook itself.
--   [**Commitments**](./commitments/README.md) - Modern syntax elements used to define Agent behavior.
--   [**Pipelines (Legacy)**](./pipelines/README.md) - Concepts specific to the older, deprecated Pipeline version of Promptbook.
--   [**Technical Terms**](./technical/README.md) - Underlying technologies and technical implementations.
+## 💡 About Versions
 
-## Major Versions
+The Promptbook has evolved through two major paradigms:
 
-It is important to distinguish between the two major versions of Promptbook:
+1.  **Pipelines** _(Legacy)_: Focuses on structured input/output flows and chaining multiple LLM calls.
+2.  **Agents** _(Modern)_: Focuses on creating autonomous entities with persona, knowledge, and capabilities.
 
-1.  **Agents** (Modern): Highly abstracted AI entities with personality, knowledge, and rules. This is the current and recommended way to use Promptbook.
-2.  **Pipelines** (Legacy): Structured sequences of LLM calls with clear inputs and outputs. While deprecated, many concepts are shared with the modern Agent version.
+Most concepts in this dictionary apply to both, but specific differences are noted where applicable.

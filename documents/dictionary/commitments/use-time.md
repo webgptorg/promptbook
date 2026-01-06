@@ -1,25 +1,47 @@
-# USE TIME
+# 🕒 `USE TIME`
 
-The `USE TIME` commitment grants an [Agent](../core/agent.md) the ability to know the current date and time. By default, [LLMs](../technical/llm.md) have a "knowledge cutoff" and do not know the exact moment they are being used. `USE TIME` solves this by injecting the current timestamp into the conversation context.
+The `USE TIME` commitment grants an [Agent](../agents/README.md) awareness of the current date and time. Without this commitment, LLMs generally have no sense of "now" beyond their training data cutoff, leading to confusion when users ask about today's date or current events.
 
-## Example
+💡 `USE TIME` grounds your agent in the present moment.
+
+## Usage
 
 ```book
-Catherine Brown
-
-PERSONA You are a professional event coordinator.
 USE TIME
-RULE Always mention how many days are left until the next scheduled event.
 ```
 
-In this example, Catherine can accurately tell a user that their "Sustainable Design Workshop" is in exactly 3 days because she knows today's date.
+## Examples
 
-## Why it's Important
+### 📅 Personal Assistant David
+```book
+David the Assistant
 
-Without this commitment, if you ask an AI "What day is it today?", it might give you an incorrect date or tell you it doesn't know. With `USE TIME`, the agent has real-time awareness of the temporal context.
+PERSONA You are a highly organized personal assistant. You help users manage their schedules and keep track of important dates.
+USE TIME
+RULE Always mention the current day of the week when starting a conversation.
+```
 
-## Related Concepts
+### 🕒 Event Planner Sarah
+```book
+Sarah the Planner
 
--   [**Agent**](../core/agent.md)
--   [**USE BROWSER**](./use-browser.md)
--   [**Instrument**](../pipelines/instrument.md)
+PERSONA You are a professional event planner.
+USE TIME
+RULE When asked about an event, calculate how many days are left until it occurs based on today's date.
+```
+
+## How it Works
+
+When this commitment is present, the [ExecutionTools](../execution/execution-tools.md) provide the current timestamp to the LLM as part of the system context. This allows the model to:
+-   Answer "What day is it today?"
+-   Calculate durations (e.g., "How long until Christmas?").
+-   Understand relative time references like "yesterday," "next week," or "three months ago."
+
+## Context
+
+`USE TIME` is essential for any agent that interacts with calendars, schedules, or time-sensitive data. It is often used alongside [🌐 `USE BROWSER`](./use-browser.md) to help the agent understand if the information it finds online is recent or outdated.
+
+## Related
+- [🤖 Agent](../agents/README.md)
+- [🌐 `USE BROWSER`](./use-browser.md)
+- [⚙ Execution Tools](../execution/execution-tools.md)

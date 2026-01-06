@@ -1,34 +1,48 @@
-# USE BROWSER
+# 🌐 `USE BROWSER`
 
-The `USE BROWSER` commitment grants an [Agent](../core/agent.md) the ability to access the live web using a controlled web browser. Unlike [KNOWLEDGE](./knowledge.md), which is typically indexed beforehand, `USE BROWSER` allows the agent to navigate websites, read real-time content, and interact with web pages during a conversation.
+The `USE BROWSER` commitment grants an [Agent](../agents/README.md) the capability to search the internet, navigate to specific websites, and read their content. This is a powerful tool for agents that need up-to-the-minute information or need to verify facts across multiple sources.
 
-This commitment is essential for tasks that require real-time information, such as checking news, flight prices, or the latest software documentation.
+💡 `USE BROWSER` turns your agent into an active researcher.
 
-## Example
+## Usage
 
 ```book
-John Green
-
-PERSONA You are a helpful travel assistant.
 USE BROWSER
-RULE Always verify flight availability before suggesting a trip.
 ```
 
-In this example, John Green can use a browser to check real-time flight data for a user who wants to travel from London to Prague.
+## Examples
+
+### 📰 News Reporter Brenda
+```book
+Brenda the Reporter
+
+PERSONA You are a tenacious investigative journalist. You always cross-reference facts from at least three different news sources.
+USE BROWSER
+RULE Always cite the URLs of the sources you find.
+```
+
+### 🛍 Shopping Assistant Marcus
+```book
+Marcus the Shopper
+
+PERSONA You are a savvy personal shopper who helps users find the best deals on electronics.
+USE BROWSER
+RULE Compare prices from at least five different online retailers.
+```
 
 ## How it Works
 
-When an agent needs information from a specific URL or needs to find information on the web, it can trigger the browser tool. The browser will:
-1.  Navigate to the requested URL.
-2.  Extract the text content or take screenshots.
-3.  Provide the extracted information back to the agent to process.
+When an agent with this commitment needs information, it can:
+1.  **Search**: Use a search engine to find relevant URLs.
+2.  **Navigate**: "Visit" a specific website.
+3.  **Read**: Extract the text content from the page.
+4.  **Synthesize**: Incorporate the found information into its final response.
 
-## Comparison with Search
+## Context
 
-While [**USE SEARCH ENGINE**](./use-search-engine.md) is for finding links, `USE BROWSER` is for deep-diving into the content of those links.
+`USE BROWSER` is more dynamic than the static [🧠 `KNOWLEDGE`](./knowledge.md) commitment. While `KNOWLEDGE` points to specific, pre-defined sources, `USE BROWSER` allows the agent to discover *new* sources on the fly. It is often used in conjunction with [🔍 `USE SEARCH ENGINE`](./use-search-engine.md).
 
-## Related Concepts
-
--   [**Agent**](../core/agent.md)
--   [**USE SEARCH ENGINE**](./use-search-engine.md)
--   [**Scraping**](../technical/scraping.md)
+## Related
+- [🤖 Agent](../agents/README.md)
+- [🔍 `USE SEARCH ENGINE`](./use-search-engine.md)
+- [🧠 `KNOWLEDGE`](./knowledge.md)

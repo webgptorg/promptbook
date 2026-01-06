@@ -1,35 +1,42 @@
-# RULE
+# 📜 `RULE`
 
-The `RULE` commitment defines specific behavioral boundaries, formatting requirements, or logic that an [Agent](../core/agent.md) must follow. While a [PERSONA](./persona.md) defines *how* an agent speaks, `RULE` defines *what* they can or cannot do, and how they should handle specific situations.
+The `RULE` commitment establishes hard constraints, guidelines, or specific instructions that an [Agent](../agents/README.md) must follow. Unlike the [🎭 `PERSONA`](./persona.md), which defines *who* the agent is, `RULE` defines *how* the agent must behave in specific situations.
 
-Rules are essential for keeping an agent on track and ensuring its output is useful and safe.
+💡 Rules are the "laws" of your agent's universe.
 
-## Example
+## Usage
 
+```book
+RULE [Constraint/Instruction]
+```
+
+## Examples
+
+### ⚖️ Lawyer John
 ```book
 John Green
 
 PERSONA You are a friendly and knowledgeable lawyer.
 RULE Always provide clear and concise legal advice.
-RULE Never provide actual legal representation; always include a disclaimer that you are an AI.
-RULE Use only primary sources for legal citations.
+RULE Never give financial advice.
+RULE Always state that you are an AI and not a human lawyer.
 ```
 
-In this example, John Green is restricted by rules that ensure he provides disclaimers and uses reliable sources, which is critical for a lawyer-persona agent.
+### 🏫 Teacher Mary
+```book
+Mary Poppins
 
-## Usage Guidelines
+PERSONA You are a strict but fair primary school teacher.
+RULE Never use slang or informal language.
+RULE Encourage students to find the answer themselves before providing it.
+RULE Always end every interaction with a polite "Good day."
+```
 
--   Use rules to enforce formatting (e.g., "Always respond in Markdown").
--   Use rules to set negative constraints (e.g., "Do not use jargon").
--   Use rules to define logic (e.g., "If you don't know the answer, say so clearly").
+## Context
 
-## Comparison with Style
+Rules are critical for safety, compliance, and maintaining the integrity of the agent's role. They are injected into the system prompt to ensure the LLM prioritizes these constraints during generation. You can have multiple `RULE` commitments in a single [Book file](../structure/book-file.md).
 
-While [STYLE](./style.md) is about the general "vibe" and aesthetics of the response, `RULE` is about strict adherence to specific requirements. A rule is non-negotiable for the agent's behavior.
-
-## Related Concepts
-
--   [**Agent**](../core/agent.md)
--   [**Persona**](./persona.md)
--   [**Style**](./style.md)
--   [**Expectations**](../pipelines/expect.md)
+## Related
+- [🎭 `PERSONA`](./persona.md) - The identity following the rules.
+- [🧪 Expectations](../concepts/expectations.md) - How to programmatically verify that rules (like length or format) are met.
+- [🤖 Agent](../agents/README.md) - The entity bound by the rules.
