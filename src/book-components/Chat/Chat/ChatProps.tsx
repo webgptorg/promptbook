@@ -9,6 +9,7 @@ import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
 import { string_color } from '../../../types/typeAliases';
 import { Color } from '../../../_packages/color.index';
+import { SpeechRecognition } from '../../../types/SpeechRecognition';
 
 /**
  * @public exported from `@promptbook/components`
@@ -60,14 +61,9 @@ export type ChatProps = {
     readonly isVoiceRecognitionButtonShown?: boolean;
 
     /**
-     * Optional callback to trigger voice input
+     * Speech recognition provider
      */
-    onVoiceInput?(): void;
-
-    /**
-     * The language code to use for voice recognition
-     */
-    readonly voiceLanguage?: string;
+    readonly speechRecognition?: SpeechRecognition;
 
     /**
      * Optional placeholder message for the textarea

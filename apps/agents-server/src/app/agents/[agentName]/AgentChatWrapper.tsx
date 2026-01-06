@@ -6,6 +6,8 @@ import { RemoteAgent } from '@promptbook-local/core';
 import { upload } from '@vercel/blob/client';
 import { useCallback, useEffect, useMemo } from 'react';
 import { string_agent_url } from '../../../../../../src/types/typeAliases';
+import { BrowserSpeechRecognition } from '../../../../../../src/speech-recognition/BrowserSpeechRecognition';
+import { OpenAiSpeechRecognition } from '../../../../../../src/speech-recognition/OpenAiSpeechRecognition';
 
 type AgentChatWrapperProps = {
     agentUrl: string_agent_url;
@@ -82,6 +84,17 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
         return blob.url;
     }, []);
 
+    const speechRecognition = useMemo(() => {
+        if (typeof window === 'undefined') {
+            return undefined;
+        }
+        const openAiApiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY;
+        if (openAiApiKey) {
+            return new OpenAiSpeechRecognition({ apiKey: openAiApiKey });
+        }
+        return new BrowserSpeechRecognition();
+    }, []);
+
     if (!agent) {
         return <>{/* <- TODO: [🐱‍🚀] <PromptbookLoading /> */}</>;
     }
@@ -94,6 +107,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
             onFileUpload={handleFileUpload}
             defaultMessage={defaultMessage}
             autoExecuteMessage={autoExecuteMessage}
+            speechRecognition={speechRecognition}
         />
     );
 }

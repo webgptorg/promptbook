@@ -309,6 +309,10 @@ export function Header(props: HeaderProps) {
                               label: 'Browser',
                               href: '/admin/browser-test',
                           },
+                          {
+                              label: 'Voice Input Test',
+                              href: '/admin/voice-input-test',
+                          },
                           // Note: Commented out because image generator can became a paid feature later for the clients
                           // {
                           //     label: 'Image Generator Test',

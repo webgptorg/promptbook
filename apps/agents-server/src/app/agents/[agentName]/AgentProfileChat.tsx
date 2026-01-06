@@ -9,6 +9,8 @@ import { useCallback, useMemo, useState } from 'react';
 import spaceTrim from 'spacetrim';
 import { string_agent_url, string_color } from '../../../../../../src/types/typeAliases';
 import { keepUnused } from '../../../../../../src/utils/organization/keepUnused';
+import { BrowserSpeechRecognition } from '../../../../../../src/speech-recognition/BrowserSpeechRecognition';
+import { OpenAiSpeechRecognition } from '../../../../../../src/speech-recognition/OpenAiSpeechRecognition';
 import { $createAgentFromBookAction } from '../../../app/actions';
 import { DeletedAgentBanner } from '../../../components/DeletedAgentBanner';
 
@@ -52,6 +54,17 @@ export function AgentProfileChat({
         },
         [agentName, router],
     );
+
+    const speechRecognition = useMemo(() => {
+        if (typeof window === 'undefined') {
+            return undefined;
+        }
+        const openAiApiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY;
+        if (openAiApiKey) {
+            return new OpenAiSpeechRecognition({ apiKey: openAiApiKey });
+        }
+        return new BrowserSpeechRecognition();
+    }, []);
 
     const handleCreateAgent = useCallback(
         async (bookContent: string) => {
@@ -128,6 +141,7 @@ export function AgentProfileChat({
                 className="bg-transparent"
                 buttonColor={brandColorHex}
                 style={{ background: 'transparent' }}
+                speechRecognition={speechRecognition}
             />
         </div>
     );

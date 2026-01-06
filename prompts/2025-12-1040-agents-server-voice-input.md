@@ -1,4 +1,4 @@
-[-]
+[x]
 
 [✨🥤] In the chat implement the voice speech input
 

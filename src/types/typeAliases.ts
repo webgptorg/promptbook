@@ -799,6 +799,11 @@ export type string_ssh_key = string;
 export type string_pgp_key = string;
 
 /**
+ * Language as a string, e.g. 'en-US', 'cs-CZ', 'en'
+ */
+export type string_language = string;
+
+/**
  * Semantic helper for `Date.toISOString()` result
  *
  * @example "2011-10-05T14:48:00.000Z".

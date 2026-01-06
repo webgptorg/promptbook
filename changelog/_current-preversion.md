@@ -36,3 +36,6 @@
     -   Filter connection types and focus on specific agents
     -   Persist view and filters in URL query parameters
 -   Show tool call indicator (spinner + tool name) during LLM execution in `<Chat/>` component
+-   Implemented modular voice speech input in `<Chat/>` with two providers: `BrowserSpeechRecognition` (Web Speech API) and `OpenAiSpeechRecognition` (Whisper API).
+-   Added voice input test page at `/admin/voice-input-test` in Agents Server.
+-   Added microphone button to `<Chat/>` with visual recording indicators and real-time transcription insertion.

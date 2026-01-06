@@ -47,15 +47,11 @@ export function LlmChat(props: LlmChatProps) {
     );
     const [messages, setMessages] = useState<ChatMessage[]>(() => buildInitialMessages());
     const [tasksProgress, setTasksProgress] = useState<Array<{ id: string; name: string; progress?: number }>>([]);
-    const [isVoiceCalling, setIsVoiceCalling] = useState(false);
-    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+    const [isVoiceCalling] = useState(false);
 
-    // Refs to keep latest state for long-lived voice handlers
+    // Refs to keep latest state for long-lived handlers
     const messagesRef = useRef<ChatMessage[]>([]);
     const participantsRef = useRef<ReadonlyArray<ChatParticipant>>([]);
-    const isProcessingVoiceChunkRef = useRef<boolean>(false);
-    const allVoiceChunksRef = useRef<Blob[]>([]);
-    const utteranceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     /**
      * Tracks whether the user (or system via persistence restoration) has interacted.
@@ -113,166 +109,6 @@ export function LlmChat(props: LlmChatProps) {
     useEffect(() => {
         participantsRef.current = participants;
     }, [participants]);
-
-    // Handle voice input in a fluent, multi-message way:
-    // - While the call is active we keep recording audio.
-    // - When the user is silent for ~2 seconds, we treat it as the end of an utterance
-    //   and send one combined audio blob to the agent (one agent turn per utterance).
-    const processCurrentUtterance = useCallback(async () => {
-        if (!llmTools.callVoiceChatModel) {
-            return;
-        }
-
-        if (isProcessingVoiceChunkRef.current) {
-            return;
-        }
-
-        const chunks = allVoiceChunksRef.current;
-        if (!chunks.length) {
-            return;
-        }
-
-        isProcessingVoiceChunkRef.current = true;
-        allVoiceChunksRef.current = [];
-
-        const blob = new Blob(chunks, {
-            type: chunks[0]?.type || 'audio/webm',
-        });
-
-        const taskId = `voice_call_${Date.now()}`;
-        setTasksProgress([{ id: taskId, name: 'Processing voice...', progress: 50 }]);
-
-        try {
-            const thread = props.thread ? [...props.thread] : [...messagesRef.current];
-
-            const result = await llmTools.callVoiceChatModel(blob, {
-                title: 'Voice Message',
-                content: '',
-                parameters: {},
-                modelRequirements: { modelVariant: 'CHAT' as const },
-                thread,
-            });
-
-            setTasksProgress([{ id: taskId, name: 'Playing response...', progress: 100 }]);
-
-            const now = Date.now();
-
-            const userMessage: ChatMessage = {
-                // channel: 'PROMPTBOOK_CHAT',
-                id: `user_${now}`,
-                createdAt: new Date(),
-                sender: userParticipantName,
-                content: (result.userMessage || '(Voice message)') as string_markdown,
-                isComplete: true,
-                isVoiceCall: true,
-            };
-
-            const agentMessage: ChatMessage = {
-                // channel: 'PROMPTBOOK_CHAT',
-                id: `agent_${now}`,
-                createdAt: new Date(),
-                sender: llmParticipantName,
-                content: (result.agentMessage || result.text) as string_markdown,
-                isComplete: true,
-                isVoiceCall: true,
-            };
-
-            setMessages((prevMessages) => {
-                const newMessages = [...prevMessages, userMessage, agentMessage];
-                messagesRef.current = newMessages;
-
-                if (onChange) {
-                    onChange(newMessages, participantsRef.current);
-                }
-
-                return newMessages;
-            });
-
-            // Play audio
-            const audioUrl = URL.createObjectURL(result.audio);
-            const audioEl = new Audio(audioUrl);
-            audioEl.play();
-
-            setTimeout(() => setTasksProgress([]), 1000);
-        } catch (error) {
-            console.error('Error calling Voice LLM:', error);
-            setTasksProgress([]);
-        } finally {
-            isProcessingVoiceChunkRef.current = false;
-        }
-    }, [llmTools, onChange, userParticipantName, llmParticipantName, props.thread]);
-
-    const handleVoiceInput = useCallback(async () => {
-        if (!llmTools.callVoiceChatModel) {
-            return;
-        }
-
-        if (isVoiceCalling) {
-            // Stop recording and end call
-            const recorder = mediaRecorderRef.current;
-            if (recorder) {
-                recorder.stop();
-            }
-            mediaRecorderRef.current = null;
-            setIsVoiceCalling(false);
-
-            // Process any remaining audio as the final utterance
-            if (utteranceTimeoutRef.current) {
-                clearTimeout(utteranceTimeoutRef.current);
-                utteranceTimeoutRef.current = null;
-            }
-            void processCurrentUtterance();
-        } else {
-            // Start recording and keep listening for utterances separated by ~2s of silence
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                const mediaRecorder = new MediaRecorder(stream);
-                mediaRecorderRef.current = mediaRecorder;
-
-                allVoiceChunksRef.current = [];
-                isProcessingVoiceChunkRef.current = false;
-                if (utteranceTimeoutRef.current) {
-                    clearTimeout(utteranceTimeoutRef.current);
-                    utteranceTimeoutRef.current = null;
-                }
-
-                mediaRecorder.ondataavailable = (event) => {
-                    const chunk = event.data;
-                    if (!chunk || chunk.size === 0) {
-                        return;
-                    }
-
-                    // Accumulate chunks for the current utterance
-                    allVoiceChunksRef.current.push(chunk);
-
-                    // Reset the silence timer; if there is no new audio for 2s,
-                    // treat it as the end of the current utterance.
-                    if (utteranceTimeoutRef.current) {
-                        clearTimeout(utteranceTimeoutRef.current);
-                    }
-                    utteranceTimeoutRef.current = setTimeout(() => {
-                        void processCurrentUtterance();
-                    }, 2000);
-                };
-
-                mediaRecorder.onstop = () => {
-                    mediaRecorder.stream.getTracks().forEach((track) => track.stop());
-                    if (utteranceTimeoutRef.current) {
-                        clearTimeout(utteranceTimeoutRef.current);
-                        utteranceTimeoutRef.current = null;
-                    }
-                    // Process any remaining audio when the recorder stops
-                    void processCurrentUtterance();
-                };
-
-                // Use timeslices so ondataavailable is fired continuously
-                mediaRecorder.start(500);
-                setIsVoiceCalling(true);
-            } catch (err) {
-                console.error('Error accessing microphone:', err);
-            }
-        }
-    }, [isVoiceCalling, llmTools, processCurrentUtterance]);
 
     // Handle user messages and LLM responses
     const handleMessage = useCallback(
@@ -464,7 +300,6 @@ export function LlmChat(props: LlmChatProps) {
                 {...{ messages, onReset, tasksProgress, participants, buttonColor }}
                 onMessage={handleMessage}
                 onReset={handleReset}
-                onVoiceInput={llmTools.callVoiceChatModel ? handleVoiceInput : undefined}
                 isVoiceCalling={isVoiceCalling}
             />
         </>

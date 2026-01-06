@@ -5,6 +5,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import spaceTrim from 'spacetrim';
+import { SpeechRecognitionEvent, SpeechRecognitionState } from '../../../types/SpeechRecognition';
 import { USER_CHAT_COLOR } from '../../../config';
 import type { id } from '../../../types/typeAliases';
 import { Color } from '../../../utils/color/Color';
@@ -54,7 +55,7 @@ export function Chat(props: ChatProps) {
         onReset,
         onFeedback,
         onFileUpload,
-        onVoiceInput,
+        speechRecognition,
         // isVoiceRecognitionButtonShown,
         // voiceLanguage = 'en-US',
         placeholderMessageContent,
@@ -114,6 +115,10 @@ export function Chat(props: ChatProps) {
     const [isDragOver, setIsDragOver] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
 
+    // Voice recognition state
+    const [speechRecognitionState, setSpeechRecognitionState] = useState<SpeechRecognitionState>('IDLE');
+    const [speechRecognitionText, setSpeechRecognitionText] = useState<string>('');
+
     // Use mobile detection from the hook
     const isMobile = isMobileFromHook;
 
@@ -130,8 +135,54 @@ export function Chat(props: ChatProps) {
                 textareaRef.current.focus();
             }
         },
-        [textareaRef, isMobile],
+        [textareaRef, isMobile, isFocusedOnLoad],
     );
+
+    // Voice recognition effects
+    useEffect(() => {
+        if (!speechRecognition) {
+            return;
+        }
+
+        const unsubscribe = speechRecognition.subscribe((event: SpeechRecognitionEvent) => {
+            if (event.type === 'START') {
+                setSpeechRecognitionState('RECORDING');
+                setSpeechRecognitionText('');
+            } else if (event.type === 'RESULT') {
+                setSpeechRecognitionText(event.text);
+                // In a future version we could insert real-time into textarea
+            } else if (event.type === 'ERROR') {
+                setSpeechRecognitionState('ERROR');
+                alert(`Speech recognition error: ${event.message}`);
+            } else if (event.type === 'STOP') {
+                setSpeechRecognitionState('IDLE');
+                if (textareaRef.current && speechRecognitionText) {
+                    const separator = textareaRef.current.value ? ' ' : '';
+                    textareaRef.current.value += separator + speechRecognitionText;
+                    if (onChange) {
+                        onChange(textareaRef.current.value);
+                    }
+                }
+                setSpeechRecognitionText('');
+            }
+        });
+
+        return () => {
+            unsubscribe();
+        };
+    }, [speechRecognition, onChange, speechRecognitionText]);
+
+    const handleToggleVoiceInput = useCallback(() => {
+        if (!speechRecognition) {
+            return;
+        }
+
+        if (speechRecognition.state === 'IDLE' || speechRecognition.state === 'ERROR') {
+            speechRecognition.$start({ language: 'en-US' });
+        } else {
+            speechRecognition.$stop();
+        }
+    }, [speechRecognition]);
 
     // File upload handlers inspired by BookEditor
     const handleFileUpload = useCallback(
@@ -705,22 +756,29 @@ export function Chat(props: ChatProps) {
                                             </>
                                         )}
 
-                                        {onVoiceInput && (
+                                        {speechRecognition && (
                                             <button
                                                 data-button-type="voice"
+                                                disabled={speechRecognitionState === 'STARTING' || speechRecognitionState === 'TRANSCRIBING'}
                                                 style={{
-                                                    backgroundColor: buttonColor.toHex(),
-                                                    color: buttonColor.then(textColor).toHex(),
+                                                    backgroundColor: (speechRecognitionState === 'RECORDING' || speechRecognitionState === 'TRANSCRIBING' ? Color.from('#ff4444') : buttonColor).toHex(),
+                                                    color: (speechRecognitionState === 'RECORDING' || speechRecognitionState === 'TRANSCRIBING' ? Color.from('#ffffff') : buttonColor.then(textColor)).toHex(),
                                                 }}
                                                 className={classNames(
                                                     styles.voiceButton,
-                                                    isVoiceCalling && styles.voiceButtonActive,
+                                                    (isVoiceCalling || speechRecognitionState === 'RECORDING' || speechRecognitionState === 'TRANSCRIBING') && styles.voiceButtonActive,
                                                 )}
                                                 onClick={(event) => {
                                                     event.preventDefault();
-                                                    onVoiceInput();
+                                                    handleToggleVoiceInput();
                                                 }}
-                                                title={isVoiceCalling ? 'Stop voice call' : 'Start voice call'}
+                                                title={
+                                                    speechRecognitionState === 'RECORDING' 
+                                                        ? 'Stop recording' 
+                                                        : speechRecognitionState === 'TRANSCRIBING'
+                                                        ? 'Transcribing...'
+                                                        : 'Start voice input'
+                                                }
                                             >
                                                 <MicIcon size={25} />
                                             </button>
