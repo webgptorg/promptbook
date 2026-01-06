@@ -1,12 +1,9 @@
-import { getCommitmentDefinition } from '../../commitments/index';
 import { createBasicAgentModelRequirements } from '../../commitments/_base/createEmptyAgentModelRequirements';
 import type { ParsedCommitment } from '../../commitments/_base/ParsedCommitment';
+import { getCommitmentDefinition } from '../../commitments/index';
 import { $fileImportPlugins } from '../../import-plugins/$fileImportPlugins';
 import { promptbookFetch } from '../../scrapers/_common/utils/promptbookFetch';
 import type { string_model_name } from '../../types/typeAliases';
-import { extensionToMimeType } from '../../utils/files/extensionToMimeType';
-import { getFileExtension } from '../../utils/files/getFileExtension';
-import { isValidFilePath } from '../../utils/validators/filePath/isValidFilePath';
 import { isValidUrl } from '../../utils/validators/url/isValidUrl';
 import type { AgentModelRequirements } from './AgentModelRequirements';
 import { extractMcpServers } from './createAgentModelRequirements';
@@ -51,7 +48,9 @@ export async function createAgentModelRequirementsWithCommitments(
             // Drop prior kept commitments that contain any of the targeted tags
             for (let i = filteredCommitments.length - 1; i >= 0; i--) {
                 const prev = filteredCommitments[i]!;
-                const prevParams = parseParameters(prev.content).map((parameter) => parameter.name.trim().toLowerCase());
+                const prevParams = parseParameters(prev.content).map((parameter) =>
+                    parameter.name.trim().toLowerCase(),
+                );
                 const hasIntersection = prevParams.some((parameterName) => targets.includes(parameterName));
                 if (hasIntersection) {
                     filteredCommitments.splice(i, 1);
@@ -124,12 +123,15 @@ export async function createAgentModelRequirementsWithCommitments(
                     }
                     content = await response.text();
                     mimeType = response.headers.get('Content-Type');
+                    /*
+                TODO: !!!! Commented out this case because we need to work in Browser-compatible mode in many packages, use passed `fs` instead
                 } else if (isValidFilePath(fileUrl)) {
-                    // [🟢] This code is expected to run in Node environment if local files are used
+                    // [x🟢x] This code is expected to run in Node environment if local files are used
                     const fs = await import('fs/promises');
                     content = await fs.readFile(fileUrl, 'utf-8');
                     const extension = getFileExtension(fileUrl);
                     mimeType = extensionToMimeType(extension as string);
+                */
                 } else {
                     throw new Error(`Invalid file URL or path: ${fileUrl}`);
                 }
@@ -248,6 +250,13 @@ async function mockedSecurityCheck(urlOrPath: string): Promise<void> {
  * @returns True if it's a binary MIME type
  */
 function isBinaryMimeType(mimeType: string): boolean {
-    const binaryPrefixes = ['image/', 'video/', 'audio/', 'application/octet-stream', 'application/pdf', 'application/zip'];
+    const binaryPrefixes = [
+        'image/',
+        'video/',
+        'audio/',
+        'application/octet-stream',
+        'application/pdf',
+        'application/zip',
+    ];
     return binaryPrefixes.some((prefix) => mimeType.startsWith(prefix));
 }
