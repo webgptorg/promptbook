@@ -5,11 +5,17 @@
 -   Also look at https://ptbk.io
 -   Identify key features, strengths, and weaknesses of each product.
 -   Compare Promptbook with other projects, especially projects like ChatGPT, Claude, ChatGPT-Assistance, LangChain, and N8N.
+-   Compare both consumer-facing products (like ChatGPT and Claude) and developer tools (like LangChain and N8N) and sometimes hybrid (like ChatGPT-Assistance or NotebookLM).
+-   Do the comparison in terms of features, usability, flexibility, extensibility, and target audience.
+-   Look at `/book/COMPETITION.md` but be aware that it is outdated and incomplete.
+-   Look at [things imported from Github](/documents/github) but be aware that it is outdated and incomplete.
+-   Look at [Promptbook Whitepaper](/book/ABSTRACT.md)
 -   Notice that there are two major versions of the Promptbook:
     -   **Pipelines** _(old version, legacy, deprecated)_ - Pipelines which have clear input and output and do multiple LLM calls during the execution of the pipeline.
     -   **Agents** - Agents which have personality, knowledge, rules,... and they are a huge abstraction above the raw models.
     -   Most of the things in the repository are common and used in both of these versions.
     -   Only on the **Agents part** of the Promptbook, pipelines are deprecated and should not be mentioned here in the comparison.
+-   Compare only the **Agents part** of the Promptbook, pipelines are deprecated and should not be mentioned here in the comparison.
 -   For each alternative product, create a separate Markdown file.
 -   Leverage the 💡 emoticons in the comparisons
 -   Include Side-by-Side Comparison section that highlights the differences and similarities in a tabular format.

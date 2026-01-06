@@ -89,11 +89,11 @@ USE SEARCH ENGINE Hledej informace o Přemyslovcích
 
 [ ]
 
-[✨🥡] Implement the `@@@SearchEngine`
+[✨🥡] Implement the `SerpSearchEngine`
 
 -   Search engines are implemented under `/src/search-engines`
--   Implement `@@@SearchEngine` that uses Google search engine to perform
--   Use @@@ [Search API](@@@) to fetch search SERP results.
+-   Implement `SerpSearchEngine` that uses Google search engine to perform
+-   Use @@@ [SERP API](https://serpapi.com/) to fetch search SERP results.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
 

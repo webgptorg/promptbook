@@ -9,9 +9,10 @@
     -   Most of the things in the repository are common and used in both of these versions.
 -   Interlink these concepts via links to other dictionary entries where applicable.
 -   Leverage the 💡 emoticons in the dictionary.
--   Look at [things imported from Github](/documents/github)
+-   Look at [things imported from Github](/documents/github) but be aware that it is outdated and incomplete.
+-   Look at [Promptbook Whitepaper](/book/ABSTRACT.md)
 -   Also look at https://ptbk.io
--   Each entry should include the term, a brief definition, and any relevant context or examples:
+-   Each entry should include the term, a brief definition, an`d any relevant context or examples:
 
 **For example:**
 
@@ -47,6 +48,7 @@ In this example, the agent "John Green" has several commitments `PERSONA`, `RULE
 -   You can structure the dictionary into multiple folders. For example, groups of terms can be grouped inside its own directory.
 -   When you use the directories, in the top of every directory should be a `README.md` file which will summarize all the terms inside serve as the index file.
 -   Put it in `/documents/dictionary/**/*.md`.
+-   Create brief summary of the dictionary and put it into [`/book/DICTIONARY.md`](./book/DICTIONARY.md), The DICTIONARY.md should serve as the index which will link to all the important and interesting terms in the dictionary. This isntt the full dictionary, just the summary with links to important terms also it isnt replacement for the `README.md` files in the directories it extra summary file which will be auto-imported into the main `README.md` _(the auto-importing is done in another script, do not do it now)_.
 
 ---
 
