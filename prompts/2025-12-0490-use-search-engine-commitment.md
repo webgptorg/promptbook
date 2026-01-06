@@ -93,7 +93,8 @@ USE SEARCH ENGINE Hledej informace o Přemyslovcích
 
 -   Search engines are implemented under `/src/search-engines`
 -   Implement `SerpSearchEngine` that uses Google search engine to perform
--   Use @@@ [SERP API](https://serpapi.com/) to fetch search SERP results.
+-   Use the [SERP API](https://serpapi.com/) to fetch search SERP results.
+-   Encapsulate the search results in `SearchEngine` interface
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
 
@@ -106,6 +107,7 @@ USE SEARCH ENGINE Hledej informace o Přemyslovcích
 -   Search engines are implemented under `/src/search-engines`
 -   Implement `GoogleSearchEngine` that uses Google search engine to perform
 -   Use Google's [Search API](https://developers.google.com/custom-search/v1/overview) to fetch search results.
+-   Encapsulate the search results in `SearchEngine` interface
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
 
