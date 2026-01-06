@@ -7,6 +7,8 @@ import type {
 
 /**
  * Speech recognition using Web Speech API `SpeechRecognition` available in modern browsers
+ *
+ * @public exported from `@promptbook/browser`
  */
 export class BrowserSpeechRecognition implements SpeechRecognition {
     private recognition: any = null;
@@ -108,3 +110,7 @@ export class BrowserSpeechRecognition implements SpeechRecognition {
         }
     }
 }
+
+/**
+ * Note: [🔵] Code in this file should never be published outside of `@promptbook/browser`
+ */

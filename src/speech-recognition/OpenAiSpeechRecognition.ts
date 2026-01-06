@@ -23,6 +23,8 @@ export type OpenAiSpeechRecognitionOptions = {
 
 /**
  * Speech recognition using OpenAI Whisper API to transcribe audio into text
+ * 
+ * @public exported from `@promptbook/openai`
  */
 export class OpenAiSpeechRecognition implements SpeechRecognition {
     private mediaRecorder: MediaRecorder | null = null;
@@ -127,3 +129,5 @@ export class OpenAiSpeechRecognition implements SpeechRecognition {
         }
     }
 }
+
+
