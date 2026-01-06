@@ -57,7 +57,7 @@ export class BrowserSpeechRecognition implements SpeechRecognition {
                     }
                 };
 
-                this.recognition.onerror = (event: any) => {
+                this.recognition.onerror = (event: TODO_any) => {
                     this._state = 'ERROR';
                     this.emit({ type: 'ERROR', message: event.error || 'Unknown error' });
                 };
