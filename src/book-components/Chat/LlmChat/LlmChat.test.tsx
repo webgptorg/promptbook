@@ -164,7 +164,6 @@ describe('LlmChat', () => {
             onChange: () => {},
             onReset: async () => {},
             isVoiceRecognitionButtonShown: true,
-            voiceLanguage: 'en-US',
             placeholderMessageContent: 'Type here...',
             defaultMessage: 'Hello',
             className: 'test-class',
@@ -177,7 +176,6 @@ describe('LlmChat', () => {
         };
 
         expect(fullProps.llmTools).toBe(mockLlmTools);
-        expect(fullProps.voiceLanguage).toBe('en-US');
         expect(fullProps.style?.height).toBe('400px');
     });
 

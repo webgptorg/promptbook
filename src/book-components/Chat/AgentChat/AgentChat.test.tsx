@@ -154,7 +154,6 @@ describe('AgentChat', () => {
                     agent={agent}
                     onChange={mockOnChange}
                     isVoiceRecognitionButtonShown={true}
-                    voiceLanguage="en-US"
                     className="custom-class"
                     style={{ height: '500px' }}
                 />,
