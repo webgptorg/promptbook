@@ -10,9 +10,10 @@ describe('parseAgentSource with IMPORT', () => {
         `);
         const result = parseAgentSource(agentSource);
         expect(result.capabilities).toContainEqual({
-            type: 'knowledge',
+            agentUrl: 'https://example.com/file.txt',
+            iconName: 'ExternalLink',
             label: 'example.com.../file.txt',
-            iconName: 'Download',
+            type: 'import',
         });
     });
 
@@ -23,9 +24,23 @@ describe('parseAgentSource with IMPORT', () => {
         `);
         const result = parseAgentSource(agentSource);
         expect(result.capabilities).toContainEqual({
-            type: 'knowledge',
+            agentUrl: './local/path/data.json',
+            iconName: 'Link',
             label: 'data.json',
-            iconName: 'Download',
+            type: 'import',
+        });
+    });
+
+    it('parses generic KNOWLEDGE with URL', () => {
+        const agentSource = validateBook(`
+            My Agent
+            KNOWLEDGE https://example.com/file.txt
+        `);
+        const result = parseAgentSource(agentSource);
+        expect(result.capabilities).toContainEqual({
+            type: 'knowledge',
+            label: 'example.com',
+            iconName: 'Book',
         });
     });
 });

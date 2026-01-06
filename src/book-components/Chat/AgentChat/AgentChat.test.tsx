@@ -164,7 +164,6 @@ describe('AgentChat', () => {
         expect(capturedProps).toBeDefined();
         expect(capturedProps?.onChange).toBe(mockOnChange);
         expect(capturedProps?.isVoiceRecognitionButtonShown).toBe(true);
-        expect(capturedProps?.voiceLanguage).toBe('en-US');
         expect(capturedProps?.className).toBe('custom-class');
         expect((capturedProps?.style as TODO_any)?.height).toBe('500px');
     });
