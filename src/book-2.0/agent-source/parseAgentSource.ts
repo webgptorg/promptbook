@@ -1,4 +1,5 @@
 import spaceTrim from 'spacetrim';
+import { TODO_any } from '../../_packages/types.index';
 import { normalizeTo_camelCase } from '../../utils/normalization/normalizeTo_camelCase';
 import type { AgentBasicInformation, AgentCapability } from './AgentBasicInformation';
 import { computeAgentHash } from './computeAgentHash';
@@ -125,7 +126,7 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
                 type: 'inheritance',
                 label,
                 iconName,
-                agentUrl: content as any,
+                agentUrl: content as TODO_any,
             });
             continue;
         }
@@ -152,7 +153,7 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
                 type: 'import',
                 label,
                 iconName,
-                agentUrl: content as any,
+                agentUrl: content as TODO_any,
             });
             continue;
         }

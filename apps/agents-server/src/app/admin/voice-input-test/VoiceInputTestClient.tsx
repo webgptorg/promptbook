@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { BrowserSpeechRecognition } from '../../../../../src/speech-recognition/BrowserSpeechRecognition';
-import { OpenAiSpeechRecognition } from '../../../../../src/speech-recognition/OpenAiSpeechRecognition';
-import type { SpeechRecognition, SpeechRecognitionEvent } from '../../../../../src/types/SpeechRecognition';
+import { BrowserSpeechRecognition } from '../../../../../../src/speech-recognition/BrowserSpeechRecognition';
+import { OpenAiSpeechRecognition } from '../../../../../../src/speech-recognition/OpenAiSpeechRecognition';
+import { SpeechRecognition, SpeechRecognitionEvent } from '../../../../../../src/types/SpeechRecognition';
 
 export function VoiceInputTestClient() {
     const [transcribedText, setTranscribedText] = useState('');
@@ -49,11 +49,15 @@ export function VoiceInputTestClient() {
     return (
         <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
             <h1>Voice Input Test</h1>
-            
+
             <div style={{ marginBottom: '20px' }}>
                 <label style={{ marginRight: '10px' }}>
                     Provider:
-                    <select value={provider} onChange={(e) => setProvider(e.target.value as any)} style={{ marginLeft: '5px' }}>
+                    <select
+                        value={provider}
+                        onChange={(e) => setProvider(e.target.value as any)}
+                        style={{ marginLeft: '5px' }}
+                    >
                         <option value="browser">Browser Web Speech API</option>
                         <option value="openai">OpenAI Whisper API</option>
                     </select>
@@ -62,12 +66,13 @@ export function VoiceInputTestClient() {
 
             {provider === 'openai' && (
                 <div style={{ marginBottom: '20px', color: '#666' }}>
-                    Note: OpenAI Whisper is using server-side proxy. Make sure <code>OPENAI_API_KEY</code> is set in environment.
+                    Note: OpenAI Whisper is using server-side proxy. Make sure <code>OPENAI_API_KEY</code> is set in
+                    environment.
                 </div>
             )}
 
             <div style={{ marginBottom: '20px' }}>
-                <button 
+                <button
                     onClick={handleToggleRecording}
                     style={{
                         padding: '10px 20px',
@@ -76,7 +81,7 @@ export function VoiceInputTestClient() {
                         color: 'white',
                         border: 'none',
                         borderRadius: '4px',
-                        cursor: 'pointer'
+                        cursor: 'pointer',
                     }}
                 >
                     {isRecording ? 'Stop Recording' : 'Start Recording'}
@@ -84,7 +89,15 @@ export function VoiceInputTestClient() {
             </div>
 
             {error && (
-                <div style={{ color: 'red', marginBottom: '20px', padding: '10px', border: '1px solid red', borderRadius: '4px' }}>
+                <div
+                    style={{
+                        color: 'red',
+                        marginBottom: '20px',
+                        padding: '10px',
+                        border: '1px solid red',
+                        borderRadius: '4px',
+                    }}
+                >
                     Error: {error}
                 </div>
             )}
@@ -100,7 +113,7 @@ export function VoiceInputTestClient() {
                         padding: '10px',
                         fontSize: '16px',
                         borderRadius: '4px',
-                        border: '1px solid #ccc'
+                        border: '1px solid #ccc',
                     }}
                     placeholder="Transcribed text will appear here..."
                 />

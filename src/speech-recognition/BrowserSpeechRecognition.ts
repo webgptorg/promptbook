@@ -1,3 +1,4 @@
+import { TODO_any } from '../_packages/types.index';
 import type {
     SpeechRecognition,
     SpeechRecognitionEvent,
@@ -11,7 +12,7 @@ import type {
  * @public exported from `@promptbook/browser`
  */
 export class BrowserSpeechRecognition implements SpeechRecognition {
-    private recognition: any = null;
+    private recognition: TODO_any = null;
     private callbacks: Array<(event: SpeechRecognitionEvent) => void> = [];
     private _state: SpeechRecognitionState = 'IDLE';
 
@@ -21,7 +22,9 @@ export class BrowserSpeechRecognition implements SpeechRecognition {
 
     public constructor() {
         if (typeof window !== 'undefined') {
-            const SpeechRecognitionValue = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+            const SpeechRecognitionValue =
+                (window as TODO_any).SpeechRecognition ||
+                (window as TODO_any) /* <- TODO: !!!! Make special windowAny */.webkitSpeechRecognition;
             if (SpeechRecognitionValue) {
                 this.recognition = new SpeechRecognitionValue();
                 this.recognition.continuous = true;
@@ -32,7 +35,7 @@ export class BrowserSpeechRecognition implements SpeechRecognition {
                     this.emit({ type: 'START' });
                 };
 
-                this.recognition.onresult = (event: any) => {
+                this.recognition.onresult = (event: TODO_any) => {
                     let finalTranscript = '';
                     let interimTranscript = '';
 
@@ -112,5 +115,6 @@ export class BrowserSpeechRecognition implements SpeechRecognition {
 }
 
 /**
+ * TODO: !!!! Search ACRY for `window` and put -> [🔵]
  * Note: [🔵] Code in this file should never be published outside of `@promptbook/browser`
  */
