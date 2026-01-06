@@ -102,26 +102,57 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
             continue;
         }
 
+        if (commitment.type === 'FROM') {
+            const content = spaceTrim(commitment.content).split('\n')[0] || '';
+
+            if (content === 'Adam' || content === '' /* <- Note: Adam is implicit */) {
+                continue;
+            }
+
+            let label = content;
+            let iconName = 'SquareArrowOutUpRight'; // Inheritance remote
+            if (content.startsWith('./') || content.startsWith('../') || content.startsWith('/')) {
+                label = content.split('/').pop() || content;
+                iconName = 'SquareArrowUpRight'; // Inheritance local
+            }
+
+            if (content === 'VOID') {
+                label = 'VOID';
+                iconName = 'ShieldAlert'; // [🧠] Or some other icon for VOID
+            }
+
+            capabilities.push({
+                type: 'inheritance',
+                label,
+                iconName,
+                agentUrl: content as any,
+            });
+            continue;
+        }
+
         if (commitment.type === 'IMPORT') {
             const content = spaceTrim(commitment.content).split('\n')[0] || '';
             let label = content;
-            const iconName = 'Download';
+            let iconName = 'ExternalLink'; // Import remote
 
             try {
                 if (content.startsWith('http://') || content.startsWith('https://')) {
                     const url = new URL(content);
                     label = url.hostname.replace(/^www\./, '') + '.../' + url.pathname.split('/').pop();
+                    iconName = 'ExternalLink';
                 } else if (content.startsWith('./') || content.startsWith('../') || content.startsWith('/')) {
                     label = content.split('/').pop() || content;
+                    iconName = 'Link'; // Import local
                 }
             } catch (e) {
                 // Invalid URL or path, keep default label
             }
 
             capabilities.push({
-                type: 'knowledge', // [🧠] Should we have a separate capability type for imports?
+                type: 'import',
                 label,
                 iconName,
+                agentUrl: content as any,
             });
             continue;
         }

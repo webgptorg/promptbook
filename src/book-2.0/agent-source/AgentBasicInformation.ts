@@ -44,7 +44,7 @@ export type AgentCapability = {
     /**
      * The type of the capability
      */
-    type: 'browser' | 'search-engine' | 'knowledge' | 'time';
+    type: 'browser' | 'search-engine' | 'knowledge' | 'time' | 'inheritance' | 'import';
 
     /**
      * The label to display for this capability
@@ -55,6 +55,12 @@ export type AgentCapability = {
      * The name of the icon to display for this capability
      */
     iconName: string;
+
+    /**
+     * Optional link to another agent
+     * This is used for 'inheritance' and 'import' types
+     */
+    agentUrl?: string_agent_url;
 
     // <- Note: When creating new capabilities, look for [🪀] to add new icons
 };

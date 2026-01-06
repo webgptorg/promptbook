@@ -28,3 +28,4 @@
 -   Books can contain Markdown code blocks, which are treated as raw text and not parsed for commitments
 -   Code blocks in the `<BookEditor />` are distinctly highlighted
 -   Do the full proxy of the given LLM tools in `countUsage` and `cacheLlmTools`
+-   Show linked Agents on Agent profile via the capability chips

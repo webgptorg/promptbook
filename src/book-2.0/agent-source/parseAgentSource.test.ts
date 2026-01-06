@@ -414,4 +414,85 @@ describe('parseAgentSource', () => {
         result = parseAgentSource(agentSource);
         expect(result.agentName).toBe('agent-3daa54'); // Default hash since no name
     });
+
+    describe('parses linked agents', () => {
+        it('parses FROM commitment (local)', () => {
+            const agentSource = validateBook(`
+                Agent Name
+                FROM ./other-agent
+            `);
+            const result = parseAgentSource(agentSource);
+            expect(result.capabilities).toContainEqual({
+                type: 'inheritance',
+                label: 'other-agent',
+                iconName: 'SquareArrowUpRight',
+                agentUrl: './other-agent',
+            });
+        });
+
+        it('parses FROM commitment (remote)', () => {
+            const agentSource = validateBook(`
+                Agent Name
+                FROM https://other-server.com/agents/other-agent
+            `);
+            const result = parseAgentSource(agentSource);
+            expect(result.capabilities).toContainEqual({
+                type: 'inheritance',
+                label: 'https://other-server.com/agents/other-agent',
+                iconName: 'SquareArrowOutUpRight',
+                agentUrl: 'https://other-server.com/agents/other-agent',
+            });
+        });
+
+        it('parses IMPORT commitment (local)', () => {
+            const agentSource = validateBook(`
+                Agent Name
+                IMPORT ./other-agent
+            `);
+            const result = parseAgentSource(agentSource);
+            expect(result.capabilities).toContainEqual({
+                type: 'import',
+                label: 'other-agent',
+                iconName: 'Link',
+                agentUrl: './other-agent',
+            });
+        });
+
+        it('parses IMPORT commitment (remote)', () => {
+            const agentSource = validateBook(`
+                Agent Name
+                IMPORT https://other-server.com/agents/other-agent
+            `);
+            const result = parseAgentSource(agentSource);
+            expect(result.capabilities).toContainEqual({
+                type: 'import',
+                label: 'other-server.com.../other-agent',
+                iconName: 'ExternalLink',
+                agentUrl: 'https://other-server.com/agents/other-agent',
+            });
+        });
+
+        it('ignores Adam agent in FROM commitment', () => {
+            const agentSource = validateBook(`
+                Agent Name
+                FROM Adam
+            `);
+            const result = parseAgentSource(agentSource);
+            expect(result.capabilities).toEqual([]);
+        });
+
+        it('handles VOID agent in FROM commitment', () => {
+            const agentSource = validateBook(`
+                Agent Name
+                FROM VOID
+            `);
+            const result = parseAgentSource(agentSource);
+            expect(result.capabilities).toContainEqual({
+                type: 'inheritance',
+                label: 'VOID',
+                iconName: 'ShieldAlert',
+                agentUrl: 'VOID',
+            });
+        });
+    });
 });

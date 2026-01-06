@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨⌨️] Show linked Agents on Agent profile via the capability chips
 
