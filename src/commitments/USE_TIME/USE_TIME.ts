@@ -79,7 +79,12 @@ export class UseTimeCommitmentDefinition extends BaseCommitmentDefinition<'USE T
                       description: 'Get the current date and time in ISO 8601 format.',
                       parameters: {
                           type: 'object',
-                          properties: {},
+                          properties: {
+                              timezone: {
+                                  type: 'string',
+                                  description: 'Optional timezone name (e.g. "Europe/Prague", "UTC", "America/New_York").',
+                              },
+                          },
                           required: [],
                       },
                   } as TODO_any, // <- TODO: !!!! Remove any
@@ -101,9 +106,42 @@ export class UseTimeCommitmentDefinition extends BaseCommitmentDefinition<'USE T
      */
     getToolFunctions(): Record<string_javascript_name, ToolFunction> {
         return {
-            async get_current_time(): Promise<string> {
-                console.log('!!!! [Tool] get_current_time called');
-                return new Date().toISOString();
+            async get_current_time(args: { timezone?: string }): Promise<string> {
+                console.log('!!!! [Tool] get_current_time called', { args });
+
+                const { timezone } = args;
+
+                if (!timezone) {
+                    return new Date().toISOString();
+                }
+
+                try {
+                    // Note: Returning ISO 8601 string but in the requested timezone
+                    const formatter = new Intl.DateTimeFormat('en-CA', {
+                        timeZone: timezone,
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                        hour12: false,
+                        timeZoneName: 'shortOffset',
+                    });
+
+                    const parts = formatter.formatToParts(new Date());
+                    const part = (type: string) => parts.find((p) => p.type === type)?.value;
+
+                    // en-CA format is YYYY-MM-DD
+                    const isoString = `${part('year')}-${part('month')}-${part('day')}T${part('hour')}:${part(
+                        'minute',
+                    )}:${part('second')}${part('timeZoneName')?.replace('GMT', '')}`;
+
+                    return isoString;
+                } catch (error) {
+                    // Fallback to UTC if timezone is invalid
+                    return new Date().toISOString();
+                }
             },
         };
     }

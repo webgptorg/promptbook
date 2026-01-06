@@ -71,9 +71,19 @@ describe('JavascriptEvalExecutionTools', () => {
             javascriptEvalExecutionTools.execute({
                 scriptLanguage: 'javascript',
                 parameters: {},
-                script: 'return get_current_time()',
+                script: 'return get_current_time({})',
             }),
         ).resolves.toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/);
+    });
+
+    it('should evaluate function `get_current_time` with timezone from `USE TIME`', async () => {
+        const result = await javascriptEvalExecutionTools.execute({
+            scriptLanguage: 'javascript',
+            parameters: {},
+            script: 'return get_current_time({ timezone: "Europe/Prague" })',
+        });
+        console.log('!!!! get_current_time with timezone result:', result);
+        expect(result).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}([+-]\d{1,2}(:?\d{2})?|Z)$/);
     });
 
     /*/

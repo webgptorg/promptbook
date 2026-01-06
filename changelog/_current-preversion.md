@@ -21,6 +21,7 @@
 -   Added `TEACHER` well-known agent to the core server configuration.
 -   Fixed syntax highlighting for `LANGUAGES` and `RULES` in the book editor to ensure the whole word is highlighted, preferring long forms over short forms
 -   Implemented `USE TIME` commitment to add the ability for agents to determine the current date and time.
+-   Added timezone awareness to `USE TIME` commitment.
 -   Defined tools in OpenAI Assistant when creating or updating it through `AgentLlmExecutionTools`.
 -   Books can contain Markdown code blocks, which are treated as raw text and not parsed for commitments
 -   Code blocks in the `<BookEditor />` are distinctly highlighted

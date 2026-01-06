@@ -231,7 +231,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                                         const args = ${JSON.stringify(functionArgs)};
                                         return await ${functionName}(args);
                                     `,
-                                    parameters: {}, // <- TODO: [🧠] What parameters to pass?
+                                    parameters: prompt.parameters,
                                 });
 
                                 if (this.options.isVerbose) {

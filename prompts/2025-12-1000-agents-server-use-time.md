@@ -27,7 +27,7 @@
 
 ---
 
-[ ]
+[x] _<- Note: Probbably not working well_
 
 [✨🖲] Be aware of timezones in commitment `USE TIME`
 

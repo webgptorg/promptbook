@@ -319,17 +319,17 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
 
                         let functionResponse: string;
 
-                        try {
-                            const scriptTool = scriptTools[0]!; // <- TODO: [🧠] Which script tool to use?
+                            try {
+                                const scriptTool = scriptTools[0]!; // <- TODO: [🧠] Which script tool to use?
 
-                            functionResponse = await scriptTool.execute({
-                                scriptLanguage: 'javascript', // <- TODO: [🧠] How to determine script language?
-                                script: `
+                                functionResponse = await scriptTool.execute({
+                                    scriptLanguage: 'javascript', // <- TODO: [🧠] How to determine script language?
+                                    script: `
                                     const args = ${functionArgs};
                                     return await ${functionName}(args);
                                 `,
-                                parameters: {}, // <- TODO: [🧠] What parameters to pass?
-                            });
+                                    parameters: prompt.parameters,
+                                });
                         } catch (error) {
                             assertsError(error);
                             functionResponse = `Error: ${error.message}`;

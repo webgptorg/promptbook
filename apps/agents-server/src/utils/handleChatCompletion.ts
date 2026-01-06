@@ -175,7 +175,8 @@ export async function handleChatCompletion(
             request.headers.get('x-real-ip') ||
             request.headers.get('x-client-ip');
 
-        // Note: Capture language and platform information
+        // Note: Capture timezone, language and platform information
+        const timezone = request.headers.get('x-timezone') || undefined;
         const language = request.headers.get('accept-language');
         // Simple platform extraction from userAgent parentheses content (e.g., Windows NT 10.0; Win64; x64)
         const platform = userAgent ? userAgent.match(/\(([^)]+)\)/)?.[1] : undefined; // <- TODO: [🧠] Improve platform parsing
@@ -223,7 +224,9 @@ export async function handleChatCompletion(
                 modelVariant: 'CHAT',
                 // We could pass 'model' from body if we wanted to enforce it, but Agent usually has its own config
             },
-            parameters: {},
+            parameters: {
+                timezone,
+            },
             thread,
         } as Prompt;
         // Note: Casting as Prompt because the type definition might require properties we don't strictly use or that are optional but TS complains
