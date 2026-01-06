@@ -1,6 +1,6 @@
 <!--⚠️ WARNING: This code has been generated so that any manual changes will be overwritten-->
 
-# Publish Docker image into propper Promptbook organization
+# Publish Docker image into proper Promptbook organization
 
 -   Author: [hejny](https://github.com/hejny)
 -   Created at: 4/18/2025, 10:27:22 PM

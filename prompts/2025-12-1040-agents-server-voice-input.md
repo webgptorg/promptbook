@@ -24,7 +24,7 @@
 
 [x]
 
-[✨🥤] `OpenAiSpeechRecognition` requires exposed OpenAI API key on the browser for the clients, make there propper server-client communication
+[✨🥤] `OpenAiSpeechRecognition` requires exposed OpenAI API key on the browser for the clients, make there proper server-client communication
 
 -   Your implementation must work on Vercel.
 -   You cannot keep secrets on the client side, so you cannot expose OpenAI API key directly to the client.
