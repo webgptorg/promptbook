@@ -100,7 +100,7 @@ USE SEARCH ENGINE Hledej informace o Přemyslovcích
 
 ---
 
-[ ]
+[x]
 
 [✨🥡] Implement the `GoogleSearchEngine`
 

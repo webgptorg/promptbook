@@ -23,6 +23,7 @@
 -   Implemented `USE TIME` commitment to add the ability for agents to determine the current date and time.
 -   Added timezone awareness to `USE TIME` commitment.
 -   Implemented `SerpSearchEngine` that uses the SerpApi to fetch Google search results.
+-   Implemented `GoogleSearchEngine` that uses Google Custom Search JSON API to fetch results.
 -   Defined tools in OpenAI Assistant when creating or updating it through `AgentLlmExecutionTools`.
 -   Books can contain Markdown code blocks, which are treated as raw text and not parsed for commitments
 -   Code blocks in the `<BookEditor />` are distinctly highlighted
