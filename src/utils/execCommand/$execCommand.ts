@@ -35,6 +35,7 @@ export function $execCommand(options: ExecCommandOptions): Promise<$side_effect 
             crashOnError,
             timeout,
             isVerbose = DEFAULT_IS_VERBOSE,
+            env,
         } = $execCommandNormalizeOptions(options);
 
         if (timeout !== Infinity) {
@@ -57,7 +58,11 @@ export function $execCommand(options: ExecCommandOptions): Promise<$side_effect 
         }
 
         try {
-            const commandProcess = spawn(command, args, { cwd, shell: true });
+            const commandProcess = spawn(command, args, {
+                cwd,
+                shell: true,
+                env: env ? { ...process.env, ...env } : process.env,
+            });
 
             if (isVerbose) {
                 commandProcess.on('message', (message) => {
