@@ -40,6 +40,16 @@ export type ChatMessage = Omit<Message<id>, 'direction' | 'recipients' | 'thread
     isVoiceCall?: boolean;
 
     /**
+     * Optional tool calls made during the execution
+     */
+    readonly ongoingToolCalls?: ReadonlyArray<{
+        /**
+         * Name of the tool
+         */
+        readonly name: string;
+    }>;
+
+    /**
      * Optional file attachments
      */
     attachments?: Array<{

@@ -70,7 +70,7 @@ export type LlmExecutionTools = {
      */
     callChatModelStream?(
         prompt: Prompt /* <- TODO: [🩱] ChatPrompt */,
-        onProgress: (chunk: ChatPromptResult) => void,
+        onProgress: (chunk: ChatPromptResult & { isFinished?: boolean }) => void,
     ): Promise<ChatPromptResult>;
 
     /**

@@ -348,6 +348,7 @@ export function LlmChat(props: LlmChatProps) {
                             sender: llmParticipantName,
                             content: chunk.content as string_markdown,
                             isComplete: false,
+                            ongoingToolCalls: chunk.toolCalls,
                         };
 
                         const currentMessages = [...newMessages, assistantMessage];

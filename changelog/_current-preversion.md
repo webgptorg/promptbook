@@ -35,3 +35,4 @@
     -   Support for zooming, panning, and dragging nodes
     -   Filter connection types and focus on specific agents
     -   Persist view and filters in URL query parameters
+-   Show tool call indicator (spinner + tool name) during LLM execution in `<Chat/>` component

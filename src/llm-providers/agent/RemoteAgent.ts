@@ -196,6 +196,37 @@ export class RemoteAgent extends Agent {
                     doneReading = !!done;
                     if (value) {
                         const textChunk = decoder.decode(value, { stream: true });
+
+                        let isHandled = false;
+                        try {
+                            const lines = textChunk.split('\n');
+                            for (const line of lines) {
+                                const trimmedLine = line.trim();
+                                if (trimmedLine.startsWith('{') && trimmedLine.endsWith('}')) {
+                                    const chunk = JSON.parse(trimmedLine);
+                                    if (chunk.toolCalls) {
+                                        onProgress({
+                                            content,
+                                            modelName: this.modelName,
+                                            timing: {} as TODO_any,
+                                            usage: {} as TODO_any,
+                                            rawPromptContent: {} as TODO_any,
+                                            rawRequest: {} as TODO_any,
+                                            rawResponse: {} as TODO_any,
+                                            toolCalls: chunk.toolCalls,
+                                        });
+                                        isHandled = true;
+                                    }
+                                }
+                            }
+                        } catch (error) {
+                            // Ignore non-json chunks
+                        }
+
+                        if (isHandled) {
+                            continue;
+                        }
+
                         // console.debug('RemoteAgent chunk:', textChunk);
                         content += textChunk;
                         onProgress({

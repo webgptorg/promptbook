@@ -121,6 +121,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                         thread,
                     },
                     (chunk) => {
+                        if (chunk.toolCalls && chunk.toolCalls.length > 0) {
+                            controller.enqueue(encoder.encode('\n' + JSON.stringify({ toolCalls: chunk.toolCalls }) + '\n'));
+                            return;
+                        }
+
                         const fullContent = chunk.content;
                         const deltaContent = fullContent.substring(previousContent.length);
                         previousContent = fullContent;

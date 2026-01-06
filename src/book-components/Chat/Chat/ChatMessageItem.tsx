@@ -361,7 +361,24 @@ export const ChatMessageItem = memo(
                         </div>
                     )}
 
-                    {!message.isComplete && <span className={styles.NonCompleteMessageFiller}>{'_'.repeat(70)}</span>}
+                    {!message.isComplete && (
+                        <div className={styles.ongoingToolCalls}>
+                            {message.ongoingToolCalls && message.ongoingToolCalls.length > 0 ? (
+                                message.ongoingToolCalls.map((toolCall, index) => (
+                                    <div key={index} className={styles.ongoingToolCall}>
+                                        <div className={styles.ongoingToolCallSpinner} />
+                                        <span className={styles.ongoingToolCallName}>
+                                            {toolCall.name === 'search' || toolCall.name === 'useSearchEngine'
+                                                ? 'Searching...'
+                                                : `Executing ${toolCall.name}...`}
+                                        </span>
+                                    </div>
+                                ))
+                            ) : (
+                                <span className={styles.NonCompleteMessageFiller}>{'_'.repeat(70)}</span>
+                            )}
+                        </div>
+                    )}
 
                     {shouldShowButtons && (
                         <div className={styles.messageButtons}>

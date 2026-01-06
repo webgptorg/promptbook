@@ -21,6 +21,7 @@ import type {
 import { $getCurrentDate } from '../../utils/misc/$getCurrentDate';
 import { templateParameters } from '../../utils/parameters/templateParameters';
 import { exportJson } from '../../utils/serialization/exportJson';
+import type { chococake } from '../../utils/organization/really_any';
 import type { OpenAiAssistantExecutionToolsOptions } from './OpenAiAssistantExecutionToolsOptions';
 import type { OpenAiCompatibleExecutionToolsNonProxiedOptions } from './OpenAiCompatibleExecutionToolsOptions';
 import { OpenAiExecutionTools } from './OpenAiExecutionTools';
@@ -170,6 +171,16 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
         // [🐱‍🚀] When tools are present, we need to use the non-streaming Runs API
         // because streaming doesn't support tool execution flow properly
         if (hasTools) {
+            onProgress({
+                content: '',
+                modelName: 'assistant',
+                timing: { start, complete: $getCurrentDate() },
+                usage: UNCERTAIN_USAGE,
+                rawPromptContent,
+                rawRequest: null as chococake,
+                rawResponse: null as chococake,
+            });
+
             const rawRequest: OpenAI.Beta.ThreadCreateAndRunParams = {
                 assistant_id: this.assistantId,
                 thread: {
@@ -200,6 +211,24 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                         if (toolCall.type === 'function') {
                             const functionName = toolCall.function.name;
                             const functionArgs = JSON.parse(toolCall.function.arguments);
+
+                            onProgress({
+                                content: '',
+                                modelName: 'assistant',
+                                timing: { start, complete: $getCurrentDate() },
+                                usage: UNCERTAIN_USAGE,
+                                rawPromptContent,
+                                rawRequest: null as chococake,
+                                rawResponse: null as chococake,
+                                toolCalls: [
+                                    {
+                                        name: functionName,
+                                        arguments: toolCall.function.arguments,
+                                        result: '',
+                                        rawToolCall: toolCall,
+                                    },
+                                ],
+                            });
 
                             if (this.options.isVerbose) {
                                 console.info(`🔧 Executing tool: ${functionName}`, functionArgs);

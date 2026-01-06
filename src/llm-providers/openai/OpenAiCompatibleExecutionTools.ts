@@ -143,7 +143,20 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
     /**
      * Calls OpenAI compatible API to use a chat model.
      */
+    /**
+     * Calls OpenAI compatible API to use a chat model.
+     */
     public async callChatModel(prompt: Prompt): Promise<ChatPromptResult> {
+        return this.callChatModelStream(prompt, () => {});
+    }
+
+    /**
+     * Calls OpenAI compatible API to use a chat model with streaming.
+     */
+    public async callChatModelStream(
+        prompt: Prompt,
+        onProgress: (chunk: ChatPromptResult) => void,
+    ): Promise<ChatPromptResult> {
         // Deep clone prompt and modelRequirements to avoid mutation across calls
         const clonedPrompt: Prompt = JSON.parse(JSON.stringify(prompt));
         // Use local Set for retried parameters to ensure independence and thread safety
@@ -153,6 +166,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
             clonedPrompt.modelRequirements,
             [],
             retriedUnsupportedParameters,
+            onProgress,
         );
     }
 
@@ -169,6 +183,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
             stripped: boolean;
         }> = [],
         retriedUnsupportedParameters: Set<string> = new Set(),
+        onProgress?: (chunk: ChatPromptResult) => void,
     ): Promise<ChatPromptResult> {
         if (this.options.isVerbose) {
             console.info(`💬 ${this.title} callChatModel call`, { prompt, currentModelRequirements });
@@ -298,12 +313,30 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
                 const usage: Usage = this.computeUsage(content || '', responseMessage.content || '', rawResponse);
                 totalUsage = addUsage(totalUsage, usage);
 
-                if (responseMessage.tool_calls && responseMessage.tool_calls.length > 0) {
-                    await forEachAsync(responseMessage.tool_calls, {}, async (toolCall) => {
-                        const functionName = toolCall.function.name;
-                        const functionArgs = toolCall.function.arguments;
+                    if (responseMessage.tool_calls && responseMessage.tool_calls.length > 0) {
+                        if (onProgress) {
+                            onProgress({
+                                content: responseMessage.content || '',
+                                modelName: rawResponse.model || modelName,
+                                timing: { start, complete: $getCurrentDate() },
+                                usage: totalUsage,
+                                toolCalls: responseMessage.tool_calls.map((toolCall) => ({
+                                    name: toolCall.function.name,
+                                    arguments: toolCall.function.arguments,
+                                    result: '',
+                                    rawToolCall: toolCall,
+                                })),
+                                rawPromptContent,
+                                rawRequest,
+                                rawResponse,
+                            });
+                        }
 
-                        const executionTools = (this.options as OpenAiCompatibleExecutionToolsNonProxiedOptions)
+                        await forEachAsync(responseMessage.tool_calls, {}, async (toolCall) => {
+                            const functionName = toolCall.function.name;
+                            const functionArgs = toolCall.function.arguments;
+
+                            const executionTools = (this.options as OpenAiCompatibleExecutionToolsNonProxiedOptions)
                             .executionTools;
 
                         if (!executionTools || !executionTools.script) {
@@ -473,6 +506,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
                     modifiedModelRequirements,
                     attemptStack,
                     retriedUnsupportedParameters,
+                    onProgress,
                 );
             }
         }

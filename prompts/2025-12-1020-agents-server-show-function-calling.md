@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🎞] Whan the agent call a tool, show it in the interface of <Chat/>
 
