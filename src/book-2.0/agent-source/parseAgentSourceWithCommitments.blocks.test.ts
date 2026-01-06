@@ -5,28 +5,30 @@ import { validateBook } from './string_book';
 
 describe('parseAgentSourceWithCommitments with code blocks in commitments', () => {
     it('should assign code blocks to the current commitment', () => {
-        const agentSource = validateBook(spaceTrim(`
-            AI Agent
+        const agentSource = validateBook(
+            spaceTrim(`
+                AI Agent
 
-            FROM VOID
-            NOTE This is a note
-
-
-            \`\`\`
-            Test nested text in the note
-            \`\`\`
+                FROM VOID
+                NOTE This is a note
 
 
-            NOTE And another note
-            RULE Write poems.
+                \`\`\`
+                Test nested text in the note
+                \`\`\`
 
-            \`\`\`
-            Roses are red,
-            Violets are blue,
-            Sugar is sweet,
-            And so are you.
-            \`\`\`
-        `));
+
+                NOTE And another note
+                RULE Write poems.
+
+                \`\`\`
+                Roses are red,
+                Violets are blue,
+                Sugar is sweet,
+                And so are you.
+                \`\`\`
+            `),
+        );
 
         const result = parseAgentSourceWithCommitments(agentSource);
 
@@ -41,12 +43,7 @@ describe('parseAgentSourceWithCommitments with code blocks in commitments', () =
         // 2. NOTE with nested code block
         expect(result.commitments[1]?.type).toBe('NOTE');
         expect(result.commitments[1]?.content).toBe(
-            'This is a note\n' +
-                '\n' +
-                '\n' +
-                '\`\`\`\n' +
-                'Test nested text in the note\n' +
-                '\`\`\`',
+            'This is a note\n' + '\n' + '\n' + '```\n' + 'Test nested text in the note\n' + '```',
         );
 
         // 3. NOTE And another note
@@ -60,17 +57,18 @@ describe('parseAgentSourceWithCommitments with code blocks in commitments', () =
         expect(result.commitments[3]?.content).toBe(
             'Write poems.\n' +
                 '\n' +
-                '\`\`\`\n' +
+                '```\n' +
                 'Roses are red,\n' +
                 'Violets are blue,\n' +
                 'Sugar is sweet,\n' +
                 'And so are you.\n' +
-                '\`\`\`',
+                '```',
         );
     });
 
     it('should keep code blocks in non-commitment lines if no commitment is active', () => {
-        const agentSource = validateBook(spaceTrim(`
+        const agentSource = validateBook(
+            spaceTrim(`
             AI Agent
 
             \`\`\`
@@ -78,7 +76,8 @@ describe('parseAgentSourceWithCommitments with code blocks in commitments', () =
             \`\`\`
 
             NOTE A note
-        `));
+        `),
+        );
 
         const result = parseAgentSourceWithCommitments(agentSource);
 
@@ -88,7 +87,7 @@ describe('parseAgentSourceWithCommitments with code blocks in commitments', () =
             content: 'A note',
         });
 
-        expect(result.nonCommitmentLines).toContain('\`\`\`');
+        expect(result.nonCommitmentLines).toContain('```');
         expect(result.nonCommitmentLines).toContain('Non-commitment code block');
     });
 });
