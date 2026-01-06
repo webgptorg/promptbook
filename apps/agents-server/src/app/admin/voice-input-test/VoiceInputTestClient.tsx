@@ -10,7 +10,6 @@ export function VoiceInputTestClient() {
     const [isRecording, setIsRecording] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [provider, setProvider] = useState<'browser' | 'openai'>('browser');
-    const [apiKey, setApiKey] = useState('');
     const speechRecognitionRef = useRef<SpeechRecognition | null>(null);
 
     const handleToggleRecording = () => {
@@ -22,11 +21,7 @@ export function VoiceInputTestClient() {
             if (provider === 'browser') {
                 speechRecognitionRef.current = new BrowserSpeechRecognition();
             } else {
-                if (!apiKey) {
-                    setError('OpenAI API key is required');
-                    return;
-                }
-                speechRecognitionRef.current = new OpenAiSpeechRecognition({ apiKey });
+                speechRecognitionRef.current = new OpenAiSpeechRecognition();
             }
 
             speechRecognitionRef.current.subscribe((event: SpeechRecognitionEvent) => {
@@ -66,17 +61,8 @@ export function VoiceInputTestClient() {
             </div>
 
             {provider === 'openai' && (
-                <div style={{ marginBottom: '20px' }}>
-                    <label>
-                        OpenAI API Key:
-                        <input 
-                            type="password" 
-                            value={apiKey} 
-                            onChange={(e) => setApiKey(e.target.value)} 
-                            style={{ marginLeft: '5px', width: '300px' }}
-                            placeholder="sk-..."
-                        />
-                    </label>
+                <div style={{ marginBottom: '20px', color: '#666' }}>
+                    Note: OpenAI Whisper is using server-side proxy. Make sure <code>OPENAI_API_KEY</code> is set in environment.
                 </div>
             )}
 

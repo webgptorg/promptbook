@@ -22,14 +22,18 @@
 
 ---
 
-[-]
+[x]
 
-[✨🥤] foo
+[✨🥤] `OpenAiSpeechRecognition` requires exposed OpenAI API key on the browser for the clients, make there propper server-client communication
 
--   ...
+-   Your implementation must work on Vercel.
+-   You cannot keep secrets on the client side, so you cannot expose OpenAI API key directly to the client.
+-   Implement server-client communication where the client sends audio data to the server, and the server uses OpenAI Whisper API to transcribe the audio
+-   The server should have an endpoint that accepts audio data from the client, calls OpenAI Whisper API with the server-side stored API key, and returns the transcribed text to the client.
+-   The client-side `OpenAiSpeechRecognition` should handle sending audio data to the server
+-   The server-side endpoint should handle errors gracefully and return appropriate error messages to the client if transcription fails.
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the `/changelog/_current-preversion.md`
 
 ---
 

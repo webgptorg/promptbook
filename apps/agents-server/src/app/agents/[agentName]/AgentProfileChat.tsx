@@ -59,11 +59,9 @@ export function AgentProfileChat({
         if (typeof window === 'undefined') {
             return undefined;
         }
-        const openAiApiKey = process.env.NEXT_PUBLIC_OPENAI_API_KEY;
-        if (openAiApiKey) {
-            return new OpenAiSpeechRecognition({ apiKey: openAiApiKey });
-        }
-        return new BrowserSpeechRecognition();
+        // Note: [🧠] We could have a mechanism to check if OPENAI_API_KEY is set on the server
+        //       For now, we always provide OpenAiSpeechRecognition which uses proxy
+        return new OpenAiSpeechRecognition();
     }, []);
 
     const handleCreateAgent = useCallback(

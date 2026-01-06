@@ -5,8 +5,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import spaceTrim from 'spacetrim';
-import { SpeechRecognitionEvent, SpeechRecognitionState } from '../../../types/SpeechRecognition';
 import { USER_CHAT_COLOR } from '../../../config';
+import { SpeechRecognitionEvent, SpeechRecognitionState } from '../../../types/SpeechRecognition';
 import type { id } from '../../../types/typeAliases';
 import { Color } from '../../../utils/color/Color';
 import { textColor } from '../../../utils/color/operators/furthest';
@@ -150,19 +150,30 @@ export function Chat(props: ChatProps) {
                 setSpeechRecognitionText('');
             } else if (event.type === 'RESULT') {
                 setSpeechRecognitionText(event.text);
-                // In a future version we could insert real-time into textarea
+
+                if (textareaRef.current) {
+                    const textarea = textareaRef.current;
+                    const currentValue = textarea.value;
+                    const lastResult = speechRecognitionText;
+
+                    // If the current value ends with the last interim result, replace it
+                    if (lastResult && currentValue.endsWith(lastResult)) {
+                        textarea.value = currentValue.slice(0, -lastResult.length) + event.text;
+                    } else {
+                        // Otherwise just append with a space if needed
+                        const separator = currentValue && !currentValue.endsWith(' ') ? ' ' : '';
+                        textarea.value += separator + event.text;
+                    }
+
+                    if (onChange) {
+                        onChange(textarea.value);
+                    }
+                }
             } else if (event.type === 'ERROR') {
                 setSpeechRecognitionState('ERROR');
                 alert(`Speech recognition error: ${event.message}`);
             } else if (event.type === 'STOP') {
                 setSpeechRecognitionState('IDLE');
-                if (textareaRef.current && speechRecognitionText) {
-                    const separator = textareaRef.current.value ? ' ' : '';
-                    textareaRef.current.value += separator + speechRecognitionText;
-                    if (onChange) {
-                        onChange(textareaRef.current.value);
-                    }
-                }
                 setSpeechRecognitionText('');
             }
         });
@@ -178,7 +189,7 @@ export function Chat(props: ChatProps) {
         }
 
         if (speechRecognition.state === 'IDLE' || speechRecognition.state === 'ERROR') {
-            speechRecognition.$start({ language: 'en-US' });
+            speechRecognition.$start({ language: /* 'en-US' */ 'en' });
         } else {
             speechRecognition.$stop();
         }
@@ -411,25 +422,22 @@ export function Chat(props: ChatProps) {
     // Download logic
     const [showSaveMenu, setShowSaveMenu] = useState(false);
 
-    useEffect(
-        () => {
-            const handleKeyDown = (event: KeyboardEvent) => {
-                if (!(event.ctrlKey || event.metaKey) || event.key !== 's') {
-                    return;
-                }
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (!(event.ctrlKey || event.metaKey) || event.key !== 's') {
+                return;
+            }
 
-                event.preventDefault();
-                setShowSaveMenu((v) => !v);
-            };
+            event.preventDefault();
+            setShowSaveMenu((v) => !v);
+        };
 
-            window.addEventListener('keydown', handleKeyDown);
+        window.addEventListener('keydown', handleKeyDown);
 
-            return () => {
-                window.removeEventListener('keydown', handleKeyDown);
-            };
-        },
-        [setShowSaveMenu],
-    );
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [setShowSaveMenu]);
 
     const handleDownload = useCallback(
         async (format: string_chat_format_name) => {
@@ -759,22 +767,36 @@ export function Chat(props: ChatProps) {
                                         {speechRecognition && (
                                             <button
                                                 data-button-type="voice"
-                                                disabled={speechRecognitionState === 'STARTING' || speechRecognitionState === 'TRANSCRIBING'}
+                                                disabled={
+                                                    speechRecognitionState === 'STARTING' ||
+                                                    speechRecognitionState === 'TRANSCRIBING'
+                                                }
                                                 style={{
-                                                    backgroundColor: (speechRecognitionState === 'RECORDING' || speechRecognitionState === 'TRANSCRIBING' ? Color.from('#ff4444') : buttonColor).toHex(),
-                                                    color: (speechRecognitionState === 'RECORDING' || speechRecognitionState === 'TRANSCRIBING' ? Color.from('#ffffff') : buttonColor.then(textColor)).toHex(),
+                                                    backgroundColor: (speechRecognitionState === 'RECORDING' ||
+                                                    speechRecognitionState === 'TRANSCRIBING'
+                                                        ? Color.from('#ff4444')
+                                                        : buttonColor
+                                                    ).toHex(),
+                                                    color: (speechRecognitionState === 'RECORDING' ||
+                                                    speechRecognitionState === 'TRANSCRIBING'
+                                                        ? Color.from('#ffffff')
+                                                        : buttonColor.then(textColor)
+                                                    ).toHex(),
                                                 }}
                                                 className={classNames(
                                                     styles.voiceButton,
-                                                    (isVoiceCalling || speechRecognitionState === 'RECORDING' || speechRecognitionState === 'TRANSCRIBING') && styles.voiceButtonActive,
+                                                    (isVoiceCalling ||
+                                                        speechRecognitionState === 'RECORDING' ||
+                                                        speechRecognitionState === 'TRANSCRIBING') &&
+                                                        styles.voiceButtonActive,
                                                 )}
                                                 onClick={(event) => {
                                                     event.preventDefault();
                                                     handleToggleVoiceInput();
                                                 }}
                                                 title={
-                                                    speechRecognitionState === 'RECORDING' 
-                                                        ? 'Stop recording' 
+                                                    speechRecognitionState === 'RECORDING'
+                                                        ? 'Stop recording'
                                                         : speechRecognitionState === 'TRANSCRIBING'
                                                         ? 'Transcribing...'
                                                         : 'Start voice input'

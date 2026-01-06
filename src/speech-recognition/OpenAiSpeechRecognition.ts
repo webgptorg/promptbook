@@ -10,21 +10,18 @@ import type {
  */
 export type OpenAiSpeechRecognitionOptions = {
     /**
-     * OpenAI API key
-     */
-    readonly apiKey: string;
-
-    /**
-     * OpenAI API base URL
-     * @default 'https://api.openai.com/v1'
+     * OpenAI API base URL or proxy endpoint
+     * @default '/api/openai/v1'
      */
     readonly baseUrl?: string;
 };
 
 /**
  * Speech recognition using OpenAI Whisper API to transcribe audio into text
- * 
- * @public exported from `@promptbook/openai`
+ *
+ * @private because it requires server-client communication with a proxy endpoint
+ *
+ * Note: This implementation uses a server-side proxy to avoid exposing the OpenAI API key on the client.
  */
 export class OpenAiSpeechRecognition implements SpeechRecognition {
     private mediaRecorder: MediaRecorder | null = null;
@@ -36,7 +33,7 @@ export class OpenAiSpeechRecognition implements SpeechRecognition {
         return this._state;
     }
 
-    public constructor(private readonly options: OpenAiSpeechRecognitionOptions) {}
+    public constructor(private readonly options: OpenAiSpeechRecognitionOptions = {}) {}
 
     public async $start(options: SpeechRecognitionStartOptions = {}): Promise<void> {
         if (this._state !== 'IDLE') {
@@ -86,11 +83,9 @@ export class OpenAiSpeechRecognition implements SpeechRecognition {
                 formData.append('language', language);
             }
 
-            const response = await fetch(`${this.options.baseUrl || 'https://api.openai.com/v1'}/audio/transcriptions`, {
+            const response = await fetch(`${this.options.baseUrl || '/api/openai/v1'}/audio/transcriptions`, {
                 method: 'POST',
-                headers: {
-                    Authorization: `Bearer ${this.options.apiKey}`,
-                },
+                // Note: No Authorization header here, the server-side proxy will add it
                 body: formData,
             });
 
@@ -129,5 +124,3 @@ export class OpenAiSpeechRecognition implements SpeechRecognition {
         }
     }
 }
-
-

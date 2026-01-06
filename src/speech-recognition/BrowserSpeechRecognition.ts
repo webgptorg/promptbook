@@ -78,7 +78,7 @@ export class BrowserSpeechRecognition implements SpeechRecognition {
         }
 
         this._state = 'STARTING';
-        this.recognition.lang = options.language || 'en-US';
+        this.recognition.lang = options.language || 'en'; // Note: Web Speech API usually accepts ISO-639-1 or BCP-47
         this.recognition.interimResults = options.interimResults ?? true;
 
         try {
