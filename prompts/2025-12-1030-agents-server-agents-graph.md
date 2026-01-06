@@ -29,7 +29,7 @@ Reflect the link type and if it is local or remote in the chip icon. But the tex
 
 ---
 
-[ ]
+[x]
 
 [✨⌨️] On the home page of Agents Server, allow to show agents in social graph
 

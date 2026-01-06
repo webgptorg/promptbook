@@ -1,12 +1,13 @@
 // Client Component for rendering and deleting agents
 'use client';
 
-import { TrashIcon } from 'lucide-react';
+import { Grid, Network, TrashIcon } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { AddAgentButton } from '../../app/AddAgentButton';
 import { AgentCard } from './AgentCard';
+import { AgentsGraph } from './AgentsGraph';
 import { Section } from './Section';
 
 import { string_url } from '@promptbook-local/types';
@@ -38,7 +39,19 @@ type AgentsListProps = {
 export function AgentsList(props: AgentsListProps) {
     const { agents: initialAgents, isAdmin, publicUrl } = props;
     const router = useRouter();
+    const searchParams = useSearchParams();
     const [agents, setAgents] = useState(Array.from(initialAgents));
+    const viewMode = searchParams.get('view') === 'graph' ? 'GRAPH' : 'LIST';
+
+    const setViewMode = (mode: 'LIST' | 'GRAPH') => {
+        const params = new URLSearchParams(searchParams.toString());
+        if (mode === 'LIST') {
+            params.delete('view');
+        } else {
+            params.set('view', 'graph');
+        }
+        router.replace(`?${params.toString()}`, { scroll: false });
+    };
 
     const handleDelete = async (agentIdentifier: string) => {
         const agent = agents.find((a) => a.permanentId === agentIdentifier || a.agentName === agentIdentifier);
@@ -110,30 +123,69 @@ export function AgentsList(props: AgentsListProps) {
     };
 
     return (
-        <Section title={`Agents (${agents.length})`}>
-            {agents.map((agent) => (
-                <AgentCard
-                    key={agent.permanentId || agent.agentName}
-                    agent={agent}
-                    publicUrl={publicUrl}
-                    href={`/agents/${encodeURIComponent(agent.permanentId || agent.agentName)}`}
-                    isAdmin={isAdmin}
-                    onDelete={handleDelete}
-                    onClone={handleClone}
-                    onToggleVisibility={handleToggleVisibility}
-                    visibility={agent.visibility}
-                />
-            ))}
-            {isAdmin && <AddAgentButton />}
-            {isAdmin && (
-                <Link
-                    href="/recycle-bin"
-                    className="flex items-center gap-2 px-4 py-2 mt-4 text-gray-600 hover:text-red-600 transition-colors"
-                >
-                    <TrashIcon className="w-4 h-4" />
-                    Open Recycle Bin
-                </Link>
+        <section className="mt-16 first:mt-4 mb-4">
+            <h2 className="text-3xl text-gray-900 mb-6 font-light">
+                <div className="flex items-center justify-between w-full">
+                    <span>Agents ({agents.length})</span>
+                    <div className="flex items-center gap-2 bg-gray-100 p-1 rounded-lg ml-4">
+                        <button
+                            onClick={() => setViewMode('LIST')}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm transition-colors ${
+                                viewMode === 'LIST'
+                                    ? 'bg-white shadow-sm text-blue-600 font-medium'
+                                    : 'text-gray-500 hover:text-gray-900'
+                            }`}
+                            title="List View"
+                        >
+                            <Grid className="w-4 h-4" />
+                            <span>List</span>
+                        </button>
+                        <button
+                            onClick={() => setViewMode('GRAPH')}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm transition-colors ${
+                                viewMode === 'GRAPH'
+                                    ? 'bg-white shadow-sm text-blue-600 font-medium'
+                                    : 'text-gray-500 hover:text-gray-900'
+                            }`}
+                            title="Graph View"
+                        >
+                            <Network className="w-4 h-4" />
+                            <span>Graph</span>
+                        </button>
+                    </div>
+                </div>
+            </h2>
+            {viewMode === 'LIST' ? (
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    {agents.map((agent) => (
+                        <AgentCard
+                            key={agent.permanentId || agent.agentName}
+                            agent={agent}
+                            publicUrl={publicUrl}
+                            href={`/agents/${encodeURIComponent(agent.permanentId || agent.agentName)}`}
+                            isAdmin={isAdmin}
+                            onDelete={handleDelete}
+                            onClone={handleClone}
+                            onToggleVisibility={handleToggleVisibility}
+                            visibility={agent.visibility}
+                        />
+                    ))}
+                    {isAdmin && <AddAgentButton />}
+                    {isAdmin && (
+                        <Link
+                            href="/recycle-bin"
+                            className="flex items-center gap-2 px-4 py-2 mt-4 text-gray-600 hover:text-red-600 transition-colors"
+                        >
+                            <TrashIcon className="w-4 h-4" />
+                            Open Recycle Bin
+                        </Link>
+                    )}
+                </div>
+            ) : (
+                <div className="w-full">
+                    <AgentsGraph agents={agents} publicUrl={publicUrl} />
+                </div>
             )}
-        </Section>
+        </section>
     );
 }
