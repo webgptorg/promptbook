@@ -59,7 +59,7 @@ This is relevant for both agents on same server and agents across multiple serve
 
 ---
 
-[ ]
+[x]
 
 [✨⌨️] When showing linked Agents in graph view, show also the agents from federated servers
 

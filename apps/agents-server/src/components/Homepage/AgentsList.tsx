@@ -4,7 +4,7 @@
 import { Grid, Network, TrashIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AddAgentButton } from '../../app/AddAgentButton';
 import { AgentCard } from './AgentCard';
 import { AgentsGraph } from './AgentsGraph';
@@ -15,6 +15,7 @@ import { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/
 
 type AgentWithVisibility = AgentBasicInformation & {
     visibility?: 'PUBLIC' | 'PRIVATE';
+    serverUrl?: string;
 };
 
 type AgentsListProps = {
@@ -41,7 +42,64 @@ export function AgentsList(props: AgentsListProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [agents, setAgents] = useState(Array.from(initialAgents));
+    const [federatedAgents, setFederatedAgents] = useState<AgentWithVisibility[]>([]);
     const viewMode = searchParams.get('view') === 'graph' ? 'GRAPH' : 'LIST';
+
+    useEffect(() => {
+        if (viewMode !== 'GRAPH') {
+            return;
+        }
+
+        let isCancelled = false;
+
+        const fetchFederatedAgents = async () => {
+            try {
+                const response = await fetch('/api/federated-agents');
+                if (!response.ok) {
+                    return;
+                }
+                const data = await response.json();
+                const federatedServers: string[] = data.federatedServers || [];
+
+                for (const serverUrl of federatedServers) {
+                    if (isCancelled) {
+                        break;
+                    }
+
+                    try {
+                        const normalizedUrl = serverUrl.replace(/\/$/, '');
+                        const agentsResponse = await fetch(`/agents/${encodeURIComponent(normalizedUrl)}/api/agents`);
+                        if (agentsResponse.ok) {
+                            const agentsData = await agentsResponse.json();
+                            if (isCancelled) {
+                                break;
+                            }
+                            const newFederatedAgents = (agentsData.agents || []).map((agent: AgentWithVisibility) => ({
+                                ...agent,
+                                // Note: Federated agents are assumed public or handled by the server
+                                visibility: 'PUBLIC',
+                                serverUrl: normalizedUrl,
+                            }));
+                            setFederatedAgents((prev) => {
+                                const filteredPrev = prev.filter((a) => a.serverUrl !== normalizedUrl);
+                                return [...filteredPrev, ...newFederatedAgents];
+                            });
+                        }
+                    } catch (error) {
+                        console.error(`Failed to fetch agents from ${serverUrl}`, error);
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to fetch federated servers', error);
+            }
+        };
+
+        fetchFederatedAgents();
+
+        return () => {
+            isCancelled = true;
+        };
+    }, [viewMode]);
 
     const setViewMode = (mode: 'LIST' | 'GRAPH') => {
         const params = new URLSearchParams(searchParams.toString());
@@ -183,7 +241,11 @@ export function AgentsList(props: AgentsListProps) {
                 </div>
             ) : (
                 <div className="w-full">
-                    <AgentsGraph agents={agents} publicUrl={publicUrl} />
+                    <AgentsGraph
+                        agents={agents.map((a) => ({ ...a, serverUrl: publicUrl.replace(/\/$/, '') }))}
+                        federatedAgents={federatedAgents}
+                        publicUrl={publicUrl}
+                    />
                 </div>
             )}
         </section>

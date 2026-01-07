@@ -9,10 +9,12 @@ import { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/
 
 type AgentWithVisibility = AgentBasicInformation & {
     visibility?: 'PUBLIC' | 'PRIVATE';
+    serverUrl?: string;
 };
 
 type AgentsGraphProps = {
     readonly agents: AgentWithVisibility[];
+    readonly federatedAgents: AgentWithVisibility[];
     readonly publicUrl: string_url;
 };
 
@@ -21,6 +23,7 @@ type Node = {
     name: string;
     agent: AgentWithVisibility;
     val: number;
+    serverUrl: string;
     __bckgDimensions?: number[];
 };
 
@@ -37,7 +40,7 @@ type GraphLink = {
 };
 
 export function AgentsGraph(props: AgentsGraphProps) {
-    const { agents, publicUrl } = props;
+    const { agents, federatedAgents, publicUrl } = props;
     const router = useRouter();
     const searchParams = useSearchParams();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -48,6 +51,8 @@ export function AgentsGraph(props: AgentsGraphProps) {
     );
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const keepLoader = Loader2;
+
+    const [selectedServerUrl, setSelectedServerUrl] = useState<string | null>(searchParams.get('selectedServer') || null);
     const [selectedAgentName, setSelectedAgentName] = useState<string | null>(searchParams.get('selectedAgent') || null);
 
     const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
@@ -65,42 +70,44 @@ export function AgentsGraph(props: AgentsGraphProps) {
     }, []);
 
     const graphData = useMemo(() => {
-        const nodes: Node[] = agents.map((agent) => ({
-            id: agent.agentName,
+        const allAgents = [...agents, ...federatedAgents];
+
+        const nodes: Node[] = allAgents.map((agent) => ({
+            id: agent.serverUrl + '/' + agent.agentName,
             name: agent.meta.fullname || agent.agentName,
             agent,
             val: 10,
+            serverUrl: agent.serverUrl || 'unknown',
         }));
 
         const links: Link[] = [];
 
-        agents.forEach((agent) => {
+        allAgents.forEach((agent) => {
+            const agentNodeId = agent.serverUrl + '/' + agent.agentName;
             agent.capabilities?.forEach((cap) => {
                 if ((cap.type === 'inheritance' || cap.type === 'import') && cap.agentUrl) {
                     if (filterType.includes(cap.type)) {
-                        // Extract agent name from URL/path
-                        let targetName: string | null = null;
-                        const urlStr = cap.agentUrl as string;
+                        let targetUrl = cap.agentUrl as string;
 
-                        if (urlStr.startsWith(publicUrl)) {
-                            targetName = urlStr.replace(publicUrl, '').replace(/^agents\//, '');
-                        } else if (!urlStr.includes('://')) {
-                            // Local reference
-                            targetName = urlStr.replace(/^\.\//, '').replace(/^\//, '');
+                        // Normalize local/relative URLs to absolute
+                        if (!targetUrl.includes('://')) {
+                            targetUrl = (agent.serverUrl || publicUrl.replace(/\/$/, '')) + '/' + targetUrl.replace(/^\.\//, '').replace(/^\//, '');
+                            if (!targetUrl.includes('/agents/')) {
+                                targetUrl = targetUrl.replace(/(\.ptbk\.io|\.com|\.org|\.net)\//, '$1/agents/');
+                            }
                         }
 
-                        if (targetName) {
-                            // Find the agent in our list (could be by name or ID)
-                            const targetAgent = agents.find(
-                                (a) => a.agentName === targetName || a.permanentId === targetName,
-                            );
-                            if (targetAgent) {
-                                links.push({
-                                    source: agent.agentName,
-                                    target: targetAgent.agentName,
-                                    type: cap.type,
-                                });
-                            }
+                        const targetAgent = allAgents.find((a) => {
+                            const aUrl = (a.serverUrl || publicUrl.replace(/\/$/, '')) + '/agents/' + a.agentName;
+                            return aUrl === targetUrl || (a as AgentWithVisibility & { url?: string }).url === targetUrl;
+                        });
+
+                        if (targetAgent) {
+                            links.push({
+                                source: agentNodeId,
+                                target: targetAgent.serverUrl + '/' + targetAgent.agentName,
+                                type: cap.type,
+                            });
                         }
                     }
                 }
@@ -110,32 +117,60 @@ export function AgentsGraph(props: AgentsGraphProps) {
         let filteredNodes = nodes;
         let filteredLinks = links;
 
-        if (selectedAgentName) {
-            const relatedAgentNames = new Set<string>();
-            relatedAgentNames.add(selectedAgentName);
+        if (selectedServerUrl && selectedServerUrl !== 'ALL') {
+            const serverNodes = nodes.filter((node) => node.serverUrl === selectedServerUrl);
+            const serverNodeIds = new Set(serverNodes.map((n) => n.id));
+            
+            if (selectedAgentName) {
+                const relatedNodeIds = new Set<string>();
+                const focusedNodeId = selectedServerUrl + '/' + selectedAgentName;
+                relatedNodeIds.add(focusedNodeId);
 
-            // Simple one-level connection for now
+                links.forEach((link) => {
+                    if (link.source === focusedNodeId) relatedNodeIds.add(link.target);
+                    if (link.target === focusedNodeId) relatedNodeIds.add(link.source);
+                });
+
+                filteredNodes = nodes.filter((node) => relatedNodeIds.has(node.id));
+                filteredLinks = links.filter((link) => relatedNodeIds.has(link.source) && relatedNodeIds.has(link.target));
+            } else {
+                filteredNodes = serverNodes;
+                filteredLinks = links.filter((link) => serverNodeIds.has(link.source) && serverNodeIds.has(link.target));
+            }
+        } else if (selectedAgentName) {
+            // "All Agents" + specific agent (though UI might not allow this combo easily, it's good to have)
+            const relatedNodeIds = new Set<string>();
+            // Search for the agent in any server
+            const focusedNodes = nodes.filter(n => n.agent.agentName === selectedAgentName);
+            focusedNodes.forEach(n => relatedNodeIds.add(n.id));
+
             links.forEach((link) => {
-                if (link.source === selectedAgentName) relatedAgentNames.add(link.target);
-                if (link.target === selectedAgentName) relatedAgentNames.add(link.source);
+                if (focusedNodes.some(n => n.id === link.source)) relatedNodeIds.add(link.target);
+                if (focusedNodes.some(n => n.id === link.target)) relatedNodeIds.add(link.source);
             });
 
-            filteredNodes = nodes.filter((node) => relatedAgentNames.has(node.id));
-            filteredLinks = links.filter((link) => relatedAgentNames.has(link.source) && relatedAgentNames.has(link.target));
+            filteredNodes = nodes.filter((node) => relatedNodeIds.has(node.id));
+            filteredLinks = links.filter((link) => relatedNodeIds.has(link.source) && relatedNodeIds.has(link.target));
         }
 
         return { nodes: filteredNodes, links: filteredLinks };
-    }, [agents, publicUrl, filterType, selectedAgentName]);
+    }, [agents, federatedAgents, publicUrl, filterType, selectedServerUrl, selectedAgentName]);
 
     const handleNodeClick = useCallback(
         (node: Node) => {
-            router.push(`/agents/${encodeURIComponent(node.agent.permanentId || node.agent.agentName)}`);
+            const agent = node.agent;
+            if (agent.serverUrl && agent.serverUrl !== publicUrl.replace(/\/$/, '')) {
+                // External agent
+                window.open(`${agent.serverUrl}/agents/${agent.agentName}`, '_blank');
+            } else {
+                router.push(`/agents/${encodeURIComponent(agent.permanentId || agent.agentName)}`);
+            }
         },
-        [router],
+        [router, publicUrl],
     );
 
     const updateUrl = useCallback(
-        (newFilters: string[], newSelectedAgent: string | null) => {
+        (newFilters: string[], newSelectedServer: string | null, newSelectedAgent: string | null) => {
             const params = new URLSearchParams(searchParams.toString());
             if (newFilters.length === 2) {
                 params.delete('connectionTypes');
@@ -143,12 +178,18 @@ export function AgentsGraph(props: AgentsGraphProps) {
                 params.set('connectionTypes', newFilters.join(','));
             }
 
+            if (newSelectedServer) {
+                params.set('selectedServer', newSelectedServer);
+            } else {
+                params.delete('selectedServer');
+            }
+
             if (newSelectedAgent) {
                 params.set('selectedAgent', newSelectedAgent);
             } else {
                 params.delete('selectedAgent');
             }
-            
+
             params.set('view', 'graph');
 
             router.replace(`?${params.toString()}`, { scroll: false });
@@ -161,13 +202,37 @@ export function AgentsGraph(props: AgentsGraphProps) {
             ? filterType.filter((t) => t !== type)
             : [...filterType, type];
         setFilterType(nextFilters);
-        updateUrl(nextFilters, selectedAgentName);
+        updateUrl(nextFilters, selectedServerUrl, selectedAgentName);
     };
 
-    const selectAgent = (name: string | null) => {
-        setSelectedAgentName(name);
-        updateUrl(filterType, name);
+    const selectServerAndAgent = (value: string) => {
+        if (value === '') {
+            setSelectedServerUrl(null);
+            setSelectedAgentName(null);
+            updateUrl(filterType, null, null);
+        } else if (value === 'ALL') {
+            setSelectedServerUrl('ALL');
+            setSelectedAgentName(null);
+            updateUrl(filterType, 'ALL', null);
+        } else if (value.startsWith('SERVER:')) {
+            const serverUrl = value.replace('SERVER:', '');
+            setSelectedServerUrl(serverUrl);
+            setSelectedAgentName(null);
+            updateUrl(filterType, serverUrl, null);
+        } else {
+            const [serverUrl, agentName] = value.split('|');
+            setSelectedServerUrl(serverUrl);
+            setSelectedAgentName(agentName);
+            updateUrl(filterType, serverUrl, agentName);
+        }
     };
+
+    const servers = useMemo(() => {
+        const serverSet = new Set<string>();
+        agents.forEach((a) => a.serverUrl && serverSet.add(a.serverUrl));
+        federatedAgents.forEach((a) => a.serverUrl && serverSet.add(a.serverUrl));
+        return Array.from(serverSet);
+    }, [agents, federatedAgents]);
 
     if (agents.length === 0) {
         return <div className="flex justify-center py-12 text-gray-500">No agents to show in graph.</div>;
@@ -199,24 +264,52 @@ export function AgentsGraph(props: AgentsGraphProps) {
                 </div>
 
                 <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-gray-700">Filter by agent:</span>
+                    <span className="text-sm font-medium text-gray-700">Filter:</span>
                     <select
-                        value={selectedAgentName || ''}
-                        onChange={(e) => selectAgent(e.target.value || null)}
+                        value={
+                            selectedAgentName
+                                ? `${selectedServerUrl}|${selectedAgentName}`
+                                : selectedServerUrl === 'ALL'
+                                ? 'ALL'
+                                : selectedServerUrl
+                                ? `SERVER:${selectedServerUrl}`
+                                : ''
+                        }
+                        onChange={(e) => selectServerAndAgent(e.target.value)}
                         className="text-sm border rounded-md p-1 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                         <option value="">All Agents</option>
-                        {agents.map((agent) => (
-                            <option key={agent.agentName} value={agent.agentName}>
-                                {agent.meta.fullname || agent.agentName}
-                            </option>
-                        ))}
+                        <optgroup label="This Server">
+                            <option value={`SERVER:${publicUrl.replace(/\/$/, '')}`}>Entire This Server</option>
+                            {agents.map((agent) => (
+                                <option
+                                    key={agent.agentName}
+                                    value={`${publicUrl.replace(/\/$/, '')}|${agent.agentName}`}
+                                >
+                                    {agent.meta.fullname || agent.agentName}
+                                </option>
+                            ))}
+                        </optgroup>
+                        {servers
+                            .filter((s) => s !== publicUrl.replace(/\/$/, ''))
+                            .map((serverUrl) => (
+                                <optgroup key={serverUrl} label={serverUrl.replace(/^https?:\/\//, '')}>
+                                    <option value={`SERVER:${serverUrl}`}>Entire Server</option>
+                                    {federatedAgents
+                                        .filter((a) => a.serverUrl === serverUrl)
+                                        .map((agent) => (
+                                            <option key={agent.agentName} value={`${serverUrl}|${agent.agentName}`}>
+                                                {agent.meta.fullname || agent.agentName}
+                                            </option>
+                                        ))}
+                                </optgroup>
+                            ))}
                     </select>
                 </div>
-                
-                {selectedAgentName && (
-                    <button 
-                        onClick={() => selectAgent(null)}
+
+                {(selectedAgentName || selectedServerUrl) && (
+                    <button
+                        onClick={() => selectServerAndAgent('')}
                         className="text-xs text-blue-600 hover:underline"
                     >
                         Clear focus
@@ -224,14 +317,19 @@ export function AgentsGraph(props: AgentsGraphProps) {
                 )}
             </div>
 
-            <div className="relative border rounded-xl overflow-hidden bg-gray-50 shadow-inner" style={{ height: dimensions.height }}>
+            <div
+                className="relative border rounded-xl overflow-hidden bg-gray-50 shadow-inner"
+                style={{ height: dimensions.height }}
+            >
                 <ForceGraph2D
                     ref={fgRef}
                     graphData={graphData}
                     width={dimensions.width}
                     height={dimensions.height}
                     nodeLabel={(node) => (node as Node).name}
-                    nodeColor={() => '#3b82f6'}
+                    nodeColor={(node) =>
+                        (node as Node).serverUrl === publicUrl.replace(/\/$/, '') ? '#3b82f6' : '#f59e0b'
+                    }
                     nodeRelSize={6}
                     linkColor={(link) => ((link as unknown as GraphLink).type === 'inheritance' ? '#8b5cf6' : '#10b981')}
                     linkDirectionalArrowLength={3.5}
@@ -241,13 +339,18 @@ export function AgentsGraph(props: AgentsGraphProps) {
                     cooldownTicks={100}
                     onEngineStop={() => fgRef.current?.zoomToFit(400, 50)}
                     nodeCanvasObject={(node, ctx, globalScale) => {
-                        const label = (node as Node).name;
+                        const n = node as Node;
+                        const label = n.name;
                         const fontSize = 12 / globalScale;
                         ctx.font = `${fontSize}px Sans-Serif`;
                         const textWidth = ctx.measureText(label).width;
-                        const bckgDimensions = [textWidth, fontSize].map((n) => n + fontSize * 0.2);
+                        const bckgDimensions = [textWidth, fontSize].map((d) => d + fontSize * 0.2);
 
-                        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                        // Draw cluster background (if many nodes in same server)
+                        // This is a simplified "clustering" - color by server
+                        const isLocal = n.serverUrl === publicUrl.replace(/\/$/, '');
+
+                        ctx.fillStyle = isLocal ? 'rgba(255, 255, 255, 0.8)' : 'rgba(254, 243, 199, 0.8)';
                         ctx.fillRect(
                             (node.x || 0) - bckgDimensions[0] / 2,
                             (node.y || 0) - bckgDimensions[1] / 2,
@@ -257,7 +360,7 @@ export function AgentsGraph(props: AgentsGraphProps) {
 
                         ctx.textAlign = 'center';
                         ctx.textBaseline = 'middle';
-                        ctx.fillStyle = '#1f2937';
+                        ctx.fillStyle = isLocal ? '#1f2937' : '#92400e';
                         ctx.fillText(label, node.x || 0, node.y || 0);
 
                         (node as Node).__bckgDimensions = bckgDimensions; // to re-use in nodePointerAreaPaint
