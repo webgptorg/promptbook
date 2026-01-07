@@ -270,7 +270,7 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
 
         // Append to the current source
         const currentSource = this.agentSource.value;
-        const newSource = padBook(validateBook(spaceTrim(currentSource) + '\n\n' + learningExample));
+        const newSource = padBook(validateBook(spaceTrim(currentSource) + '\n\n---\n\n' + learningExample));
         // <- TODO: [🈲] Use some object-based way how to append on book (with sections `---`)
 
         // Update the source (which will trigger the subscription and update the underlying tools)
@@ -324,7 +324,7 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
                     - Wrap the commitments in a book code block.
                     - Do not explain anything, just return the commitments wrapped in a book code block.
                     - Write the learned commitments in the same style and language as in the original agent source.
-                    
+
 
                     This is how book code block looks like:
 
