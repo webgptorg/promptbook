@@ -9,7 +9,7 @@ const barlowCondensed = Barlow_Condensed({
 });
 
 export const metadata: Metadata = {
-    metadataBase: process.env.NEXT_PUBLIC_SITE_URL,
+    metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://utils.ptbk.io'),
     title: 'Promptbook utils app',
     description: 'Misc utilities and tools for the Promptbook framework',
     keywords: ['promptbook', 'utils', 'development', 'tools', 'ai', 'agents'],

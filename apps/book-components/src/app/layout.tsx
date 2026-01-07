@@ -5,7 +5,7 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-    metadataBase: process.env.NEXT_PUBLIC_SITE_URL,
+    metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://components.ptbk.io'),
     title: 'Promptbook Components Gallery',
     description: 'A showcase of React components for developers using Promptbook technology',
     keywords: ['React', 'Components', 'Promptbook', 'UI', 'Gallery', 'Developers'],
