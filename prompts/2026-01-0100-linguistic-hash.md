@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨💁] Create utility function `linguisticHash` which will create human-readable hash
 

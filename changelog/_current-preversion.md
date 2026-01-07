@@ -50,6 +50,8 @@
         -   Also, the group around federated servers should not overlap. It should be separate, distinct clusters. Connection between the agents can go across the federated server group boundary.
 >>>>+++ REPLACE
 
+-   Added `linguisticHash` utility function to `@promptbook/utils` that creates human-readable hashes.
+-   Added `Linguistic Hash` tool to the Utils app.
 -   Implemented modular voice speech input in `<Chat/>` with two providers: `BrowserSpeechRecognition` (Web Speech API) and `OpenAiSpeechRecognition` (Whisper API).
 -   Added voice input test page at `/admin/voice-input-test` in Agents Server.
 -   Added microphone button to `<Chat/>` with visual recording indicators and real-time transcription insertion.
