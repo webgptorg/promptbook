@@ -30,6 +30,7 @@ import type {
 } from '../../types/typeAliases';
 import { asUpdatableSubject } from '../../types/Updatable';
 import { normalizeMessageText } from '../../utils/normalization/normalizeMessageText';
+import { just } from '../../utils/organization/just';
 import { getSingleLlmExecutionTools } from '../_multiple/getSingleLlmExecutionTools';
 import { AgentLlmExecutionTools } from './AgentLlmExecutionTools';
 import type { AgentOptions } from './AgentOptions';
@@ -212,7 +213,9 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
         // TODO: !!!!! Return the answer and do the learning asynchronously
 
         // Note: [0] Asynchronously add nonce
-        await this.#selfLearnNonce();
+        if (just(false)) {
+            await this.#selfLearnNonce();
+        }
 
         // Note: [1] Do the append of the samples
         await this.#selfLearnSamples(prompt, result);
@@ -291,6 +294,7 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
             modelRequirements: {
                 modelVariant: 'CHAT',
             },
+            // TODO: !!!! Use prompt notation
             content: spaceTrim(
                 (block) => `
 
@@ -319,6 +323,8 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
                     - If there is nothing new to learn, return empty book code block
                     - Wrap the commitments in a book code block.
                     - Do not explain anything, just return the commitments wrapped in a book code block.
+                    - Write the learned commitments in the same style and language as in the original agent source.
+                    
 
                     This is how book code block looks like:
 
