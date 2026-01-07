@@ -8,7 +8,6 @@ import { useEffect, useState } from 'react';
 import { AddAgentButton } from '../../app/AddAgentButton';
 import { AgentCard } from './AgentCard';
 import { AgentsGraph } from './AgentsGraph';
-import { Section } from './Section';
 
 import { string_url } from '@promptbook-local/types';
 import { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';

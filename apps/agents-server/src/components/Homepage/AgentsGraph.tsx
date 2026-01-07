@@ -1,6 +1,6 @@
 'use client';
 
-import { string_agent_url, string_url } from '@promptbook-local/types';
+import { string_url } from '@promptbook-local/types';
 import { Loader2 } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -52,8 +52,12 @@ export function AgentsGraph(props: AgentsGraphProps) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const keepLoader = Loader2;
 
-    const [selectedServerUrl, setSelectedServerUrl] = useState<string | null>(searchParams.get('selectedServer') || null);
-    const [selectedAgentName, setSelectedAgentName] = useState<string | null>(searchParams.get('selectedAgent') || null);
+    const [selectedServerUrl, setSelectedServerUrl] = useState<string | null>(
+        searchParams.get('selectedServer') || null,
+    );
+    const [selectedAgentName, setSelectedAgentName] = useState<string | null>(
+        searchParams.get('selectedAgent') || null,
+    );
 
     const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
 
@@ -91,7 +95,10 @@ export function AgentsGraph(props: AgentsGraphProps) {
 
                         // Normalize local/relative URLs to absolute
                         if (!targetUrl.includes('://')) {
-                            targetUrl = (agent.serverUrl || publicUrl.replace(/\/$/, '')) + '/' + targetUrl.replace(/^\.\//, '').replace(/^\//, '');
+                            targetUrl =
+                                (agent.serverUrl || publicUrl.replace(/\/$/, '')) +
+                                '/' +
+                                targetUrl.replace(/^\.\//, '').replace(/^\//, '');
                             if (!targetUrl.includes('/agents/')) {
                                 targetUrl = targetUrl.replace(/(\.ptbk\.io|\.com|\.org|\.net)\//, '$1/agents/');
                             }
@@ -99,7 +106,9 @@ export function AgentsGraph(props: AgentsGraphProps) {
 
                         const targetAgent = allAgents.find((a) => {
                             const aUrl = (a.serverUrl || publicUrl.replace(/\/$/, '')) + '/agents/' + a.agentName;
-                            return aUrl === targetUrl || (a as AgentWithVisibility & { url?: string }).url === targetUrl;
+                            return (
+                                aUrl === targetUrl || (a as AgentWithVisibility & { url?: string }).url === targetUrl
+                            );
                         });
 
                         if (targetAgent) {
@@ -120,7 +129,7 @@ export function AgentsGraph(props: AgentsGraphProps) {
         if (selectedServerUrl && selectedServerUrl !== 'ALL') {
             const serverNodes = nodes.filter((node) => node.serverUrl === selectedServerUrl);
             const serverNodeIds = new Set(serverNodes.map((n) => n.id));
-            
+
             if (selectedAgentName) {
                 const relatedNodeIds = new Set<string>();
                 const focusedNodeId = selectedServerUrl + '/' + selectedAgentName;
@@ -132,21 +141,25 @@ export function AgentsGraph(props: AgentsGraphProps) {
                 });
 
                 filteredNodes = nodes.filter((node) => relatedNodeIds.has(node.id));
-                filteredLinks = links.filter((link) => relatedNodeIds.has(link.source) && relatedNodeIds.has(link.target));
+                filteredLinks = links.filter(
+                    (link) => relatedNodeIds.has(link.source) && relatedNodeIds.has(link.target),
+                );
             } else {
                 filteredNodes = serverNodes;
-                filteredLinks = links.filter((link) => serverNodeIds.has(link.source) && serverNodeIds.has(link.target));
+                filteredLinks = links.filter(
+                    (link) => serverNodeIds.has(link.source) && serverNodeIds.has(link.target),
+                );
             }
         } else if (selectedAgentName) {
             // "All Agents" + specific agent (though UI might not allow this combo easily, it's good to have)
             const relatedNodeIds = new Set<string>();
             // Search for the agent in any server
-            const focusedNodes = nodes.filter(n => n.agent.agentName === selectedAgentName);
-            focusedNodes.forEach(n => relatedNodeIds.add(n.id));
+            const focusedNodes = nodes.filter((n) => n.agent.agentName === selectedAgentName);
+            focusedNodes.forEach((n) => relatedNodeIds.add(n.id));
 
             links.forEach((link) => {
-                if (focusedNodes.some(n => n.id === link.source)) relatedNodeIds.add(link.target);
-                if (focusedNodes.some(n => n.id === link.target)) relatedNodeIds.add(link.source);
+                if (focusedNodes.some((n) => n.id === link.source)) relatedNodeIds.add(link.target);
+                if (focusedNodes.some((n) => n.id === link.target)) relatedNodeIds.add(link.source);
             });
 
             filteredNodes = nodes.filter((node) => relatedNodeIds.has(node.id));
@@ -198,9 +211,7 @@ export function AgentsGraph(props: AgentsGraphProps) {
     );
 
     const toggleFilter = (type: string) => {
-        const nextFilters = filterType.includes(type)
-            ? filterType.filter((t) => t !== type)
-            : [...filterType, type];
+        const nextFilters = filterType.includes(type) ? filterType.filter((t) => t !== type) : [...filterType, type];
         setFilterType(nextFilters);
         updateUrl(nextFilters, selectedServerUrl, selectedAgentName);
     };
@@ -308,10 +319,7 @@ export function AgentsGraph(props: AgentsGraphProps) {
                 </div>
 
                 {(selectedAgentName || selectedServerUrl) && (
-                    <button
-                        onClick={() => selectServerAndAgent('')}
-                        className="text-xs text-blue-600 hover:underline"
-                    >
+                    <button onClick={() => selectServerAndAgent('')} className="text-xs text-blue-600 hover:underline">
                         Clear focus
                     </button>
                 )}
@@ -331,7 +339,9 @@ export function AgentsGraph(props: AgentsGraphProps) {
                         (node as Node).serverUrl === publicUrl.replace(/\/$/, '') ? '#3b82f6' : '#f59e0b'
                     }
                     nodeRelSize={6}
-                    linkColor={(link) => ((link as unknown as GraphLink).type === 'inheritance' ? '#8b5cf6' : '#10b981')}
+                    linkColor={(link) =>
+                        (link as unknown as GraphLink).type === 'inheritance' ? '#8b5cf6' : '#10b981'
+                    }
                     linkDirectionalArrowLength={3.5}
                     linkDirectionalArrowRelPos={1}
                     linkCurvature={0.25}

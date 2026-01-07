@@ -5,9 +5,8 @@ import { AgentChat } from '@promptbook-local/components';
 import { RemoteAgent } from '@promptbook-local/core';
 import { upload } from '@vercel/blob/client';
 import { useCallback, useEffect, useMemo } from 'react';
-import { string_agent_url } from '../../../../../../src/types/typeAliases';
-import { BrowserSpeechRecognition } from '../../../../../../src/speech-recognition/BrowserSpeechRecognition';
 import { OpenAiSpeechRecognition } from '../../../../../../src/speech-recognition/OpenAiSpeechRecognition';
+import { string_agent_url } from '../../../../../../src/types/typeAliases';
 
 type AgentChatWrapperProps = {
     agentUrl: string_agent_url;

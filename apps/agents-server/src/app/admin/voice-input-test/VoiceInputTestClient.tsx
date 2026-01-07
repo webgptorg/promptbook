@@ -1,5 +1,6 @@
 'use client';
 
+import { TODO_any } from '@promptbook-local/types';
 import { useEffect, useRef, useState } from 'react';
 import { BrowserSpeechRecognition } from '../../../../../../src/speech-recognition/BrowserSpeechRecognition';
 import { OpenAiSpeechRecognition } from '../../../../../../src/speech-recognition/OpenAiSpeechRecognition';
@@ -55,7 +56,7 @@ export function VoiceInputTestClient() {
                     Provider:
                     <select
                         value={provider}
-                        onChange={(e) => setProvider(e.target.value as any)}
+                        onChange={(e) => setProvider(e.target.value as TODO_any)}
                         style={{ marginLeft: '5px' }}
                     >
                         <option value="browser">Browser Web Speech API</option>
