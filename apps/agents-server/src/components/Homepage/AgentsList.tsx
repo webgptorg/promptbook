@@ -42,13 +42,13 @@ export function AgentsList(props: AgentsListProps) {
     const searchParams = useSearchParams();
     const [agents, setAgents] = useState(Array.from(initialAgents));
     const [federatedAgents, setFederatedAgents] = useState<AgentWithVisibility[]>([]);
+    const [federatedServersStatus, setFederatedServersStatus] = useState<
+        Record<string, { status: 'loading' | 'success' | 'error'; error?: string }>
+    >({});
+
     const viewMode = searchParams.get('view') === 'graph' ? 'GRAPH' : 'LIST';
 
     useEffect(() => {
-        if (viewMode !== 'GRAPH') {
-            return;
-        }
-
         let isCancelled = false;
 
         const fetchFederatedAgents = async () => {
@@ -65,8 +65,14 @@ export function AgentsList(props: AgentsListProps) {
                         break;
                     }
 
+                    const normalizedUrl = serverUrl.replace(/\/$/, '');
+
+                    setFederatedServersStatus((prev) => ({
+                        ...prev,
+                        [normalizedUrl]: { status: 'loading' },
+                    }));
+
                     try {
-                        const normalizedUrl = serverUrl.replace(/\/$/, '');
                         const agentsResponse = await fetch(`/agents/${encodeURIComponent(normalizedUrl)}/api/agents`);
                         if (agentsResponse.ok) {
                             const agentsData = await agentsResponse.json();
@@ -83,9 +89,22 @@ export function AgentsList(props: AgentsListProps) {
                                 const filteredPrev = prev.filter((a) => a.serverUrl !== normalizedUrl);
                                 return [...filteredPrev, ...newFederatedAgents];
                             });
+                            setFederatedServersStatus((prev) => ({
+                                ...prev,
+                                [normalizedUrl]: { status: 'success' },
+                            }));
+                        } else {
+                            throw new Error(`Failed to fetch agents (Status: ${agentsResponse.status})`);
                         }
                     } catch (error) {
                         console.error(`Failed to fetch agents from ${serverUrl}`, error);
+                        setFederatedServersStatus((prev) => ({
+                            ...prev,
+                            [normalizedUrl]: {
+                                status: 'error',
+                                error: error instanceof Error ? error.message : 'Unknown error',
+                            },
+                        }));
                     }
                 }
             } catch (error) {
@@ -98,7 +117,7 @@ export function AgentsList(props: AgentsListProps) {
         return () => {
             isCancelled = true;
         };
-    }, [viewMode]);
+    }, []);
 
     const setViewMode = (mode: 'LIST' | 'GRAPH') => {
         const params = new URLSearchParams(searchParams.toString());
@@ -243,6 +262,7 @@ export function AgentsList(props: AgentsListProps) {
                     <AgentsGraph
                         agents={agents.map((a) => ({ ...a, serverUrl: publicUrl.replace(/\/$/, '') }))}
                         federatedAgents={federatedAgents}
+                        federatedServersStatus={federatedServersStatus}
                         publicUrl={publicUrl}
                     />
                 </div>

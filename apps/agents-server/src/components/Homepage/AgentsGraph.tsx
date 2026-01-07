@@ -15,6 +15,7 @@ type AgentWithVisibility = AgentBasicInformation & {
 type AgentsGraphProps = {
     readonly agents: AgentWithVisibility[];
     readonly federatedAgents: AgentWithVisibility[];
+    readonly federatedServersStatus: Record<string, { status: 'loading' | 'success' | 'error'; error?: string }>;
     readonly publicUrl: string_url;
 };
 
@@ -24,6 +25,8 @@ type Node = {
     agent: AgentWithVisibility;
     val: number;
     serverUrl: string;
+    x?: number;
+    y?: number;
     __bckgDimensions?: number[];
 };
 
@@ -40,7 +43,7 @@ type GraphLink = {
 };
 
 export function AgentsGraph(props: AgentsGraphProps) {
-    const { agents, federatedAgents, publicUrl } = props;
+    const { agents, federatedAgents, federatedServersStatus, publicUrl } = props;
     const router = useRouter();
     const searchParams = useSearchParams();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -301,20 +304,28 @@ export function AgentsGraph(props: AgentsGraphProps) {
                                 </option>
                             ))}
                         </optgroup>
-                        {servers
-                            .filter((s) => s !== publicUrl.replace(/\/$/, ''))
-                            .map((serverUrl) => (
-                                <optgroup key={serverUrl} label={serverUrl.replace(/^https?:\/\//, '')}>
-                                    <option value={`SERVER:${serverUrl}`}>Entire Server</option>
-                                    {federatedAgents
-                                        .filter((a) => a.serverUrl === serverUrl)
-                                        .map((agent) => (
-                                            <option key={agent.agentName} value={`${serverUrl}|${agent.agentName}`}>
-                                                {agent.meta.fullname || agent.agentName}
-                                            </option>
-                                        ))}
-                                </optgroup>
-                            ))}
+                        {Object.entries(federatedServersStatus).map(([serverUrl, status]) => (
+                            <optgroup
+                                key={serverUrl}
+                                label={
+                                    serverUrl.replace(/^https?:\/\//, '') +
+                                    (status.status === 'loading'
+                                        ? ' (loading...)'
+                                        : status.status === 'error'
+                                        ? ' (error)'
+                                        : '')
+                                }
+                            >
+                                <option value={`SERVER:${serverUrl}`}>Entire Server</option>
+                                {federatedAgents
+                                    .filter((a) => a.serverUrl === serverUrl)
+                                    .map((agent) => (
+                                        <option key={agent.agentName} value={`${serverUrl}|${agent.agentName}`}>
+                                            {agent.meta.fullname || agent.agentName}
+                                        </option>
+                                    ))}
+                            </optgroup>
+                        ))}
                     </select>
                 </div>
 
@@ -374,6 +385,73 @@ export function AgentsGraph(props: AgentsGraphProps) {
                         ctx.fillText(label, node.x || 0, node.y || 0);
 
                         (node as Node).__bckgDimensions = bckgDimensions; // to re-use in nodePointerAreaPaint
+                    }}
+                    onRenderFramePost={(ctx) => {
+                        // Draw clusters/regions for servers
+                        const serverNodes: Record<string, Node[]> = {};
+                        [...graphData.nodes].forEach((n) => {
+                            if (!serverNodes[n.serverUrl]) serverNodes[n.serverUrl] = [];
+                            serverNodes[n.serverUrl]!.push(n);
+                        });
+
+                        Object.entries(serverNodes).forEach(([serverUrl, nodes]) => {
+                            if (nodes.length === 0) return;
+
+                            const isLocal = serverUrl === publicUrl.replace(/\/$/, '');
+
+                            // Find bounding box
+                            let minX = Infinity;
+                            let minY = Infinity;
+                            let maxX = -Infinity;
+                            let maxY = -Infinity;
+
+                            nodes.forEach((n) => {
+                                if (n.x === undefined || n.y === undefined) return;
+                                minX = Math.min(minX, n.x);
+                                minY = Math.min(minY, n.y);
+                                maxX = Math.max(maxX, n.x);
+                                maxY = Math.max(maxY, n.y);
+                            });
+
+                            const padding = 20;
+                            minX -= padding;
+                            minY -= padding;
+                            maxX += padding;
+                            maxY += padding;
+
+                            ctx.strokeStyle = isLocal ? 'rgba(59, 130, 246, 0.2)' : 'rgba(245, 158, 11, 0.2)';
+                            ctx.setLineDash([5, 5]);
+                            ctx.lineWidth = 2;
+                            ctx.strokeRect(minX, minY, maxX - minX, maxY - minY);
+                            ctx.setLineDash([]);
+
+                            const status = federatedServersStatus[serverUrl];
+                            const label = serverUrl.replace(/^https?:\/\//, '');
+
+                            ctx.font = `italic 10px Sans-Serif`;
+                            ctx.fillStyle = isLocal ? 'rgba(59, 130, 246, 0.5)' : 'rgba(245, 158, 11, 0.5)';
+                            ctx.fillText(label, minX, minY - 5);
+
+                            if (status?.status === 'loading') {
+                                ctx.fillText(' (loading...)', minX + ctx.measureText(label).width, minY - 5);
+                            } else if (status?.status === 'error') {
+                                ctx.fillStyle = 'rgba(239, 68, 68, 0.8)';
+                                ctx.fillText(
+                                    ` (error: ${status.error})`,
+                                    minX + ctx.measureText(label).width,
+                                    minY - 5,
+                                );
+                            }
+                        });
+
+                        // Draw empty clusters for servers with no agents yet
+                        Object.entries(federatedServersStatus).forEach(([serverUrl, status]) => {
+                            if (serverNodes[serverUrl]) return; // Already drawn
+
+                            // We don't have coordinates for empty clusters, but we should show them
+                            // For now, they are just listed in the filter dropdown.
+                            // In a full force graph, we might want to add "dummy" nodes for loading servers.
+                        });
                     }}
                     nodePointerAreaPaint={(node, color, ctx) => {
                         ctx.fillStyle = color;

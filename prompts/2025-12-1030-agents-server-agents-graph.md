@@ -88,6 +88,32 @@ This is relevant for both agents on same server and agents across multiple serve
 
 ---
 
+[x]
+
+[✨⌨️] Fix issues with federated agents in the Agents Graph view
+
+-   There arent listed the agents from other federated servers but should be. The federated servers should be shown in the graph when the graph view is picked.
+-   Do not show federated servers in the list view at all when the graph view is picked. `?view=graph`
+-   When the list view is picked _(the default one)_, show all the agents in a list view: the current server and also the federated servers. The federated servers are shown right away each with a spinning loader. Agents from each federated server is loaded independently and shown progressively as they are loaded. _(This is already working)_
+-   Implement equivalent mechanism to the graph view:
+    -   When the graph view is picked `( ?view=graph )`, show all the agents from the current server and also the federated servers.
+    -   For each federated server, show a cluster with loading indicator while the agents from this server are being loaded.
+    -   When the agents from the federated server are loaded, show them in the cluster.
+    -   When there is error loading agents from federated server, show the error message in the cluster.
+    -   Same information should be shown in the dropdown filter for federated servers, show loading indicator or error message for each federated server while loading agents from this server.
+-   The agents from federated servers should be shown in their respective clusters
+-   The links between agents should be shown across clusters, representing the connections between agents on different
+-   Allow to filter the federated servers shown in the graph
+    -   Keep current filter for agents and put there a groups for each server
+    -   The first item is "All Agents"
+    -   The first group is "This Server" showing agents from local server
+    -   Then each federated server is one group showing agents from this server
+
+![alt text](screenshots/2025-12-1030-agents-server-agents-graph-1.png)
+![alt text](screenshots/2025-12-1030-agents-server-agents-graph-2.png)
+
+---
+
 [ ]
 
 [✨⌨️] Make the Agents Graph visually more appealing

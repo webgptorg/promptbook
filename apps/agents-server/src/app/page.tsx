@@ -31,7 +31,9 @@ const calendarWithSeconds = {
     sameElse: 'L [at] LTS',
 };
 
-export default async function HomePage() {
+export default async function HomePage(props: {
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
     $sideEffect(/* Note: [🐶] This will ensure dynamic rendering of page and avoid Next.js pre-render */ headers());
 
     const { publicUrl } = await $provideServer();
@@ -93,12 +95,15 @@ export default async function HomePage() {
 
     const host = (await headers()).get('host') || 'unknown';
 
+    const searchParams = await props.searchParams;
+    const isGraphView = searchParams?.view === 'graph';
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
             <div className="container mx-auto px-4 py-16">
                 <AgentsList agents={[...agents]} isAdmin={isAdmin} publicUrl={publicUrl.href /* <- [👭] */} />
 
-                <ExternalAgentsSectionClient publicUrl={publicUrl.href /* <- [👭] */} />
+                {!isGraphView && <ExternalAgentsSectionClient publicUrl={publicUrl.href /* <- [👭] */} />}
 
                 {isAdmin && <UsersList allowCreate={false} />}
 

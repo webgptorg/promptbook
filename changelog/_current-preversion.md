@@ -39,6 +39,8 @@
     -   Each federated server is represented as a color-coded cluster
     -   Visualize cross-server links between agents
     -   Advanced filtering by server and specific agents within servers
+    -   Federated agents are loaded independently and shown in clusters in the graph view.
+    -   Added loading and error indicators for federated servers in the graph and filter dropdown.
 -   Show tool call indicator (spinner + tool name) during LLM execution in `<Chat/>` component
 -   Implemented modular voice speech input in `<Chat/>` with two providers: `BrowserSpeechRecognition` (Web Speech API) and `OpenAiSpeechRecognition` (Whisper API).
 -   Added voice input test page at `/admin/voice-input-test` in Agents Server.
