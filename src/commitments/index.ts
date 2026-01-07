@@ -82,6 +82,7 @@ export const COMMITMENT_REGISTRY = [
     new NoteCommitmentDefinition('NOTES'),
     new NoteCommitmentDefinition('COMMENT'),
     new NoteCommitmentDefinition('NONCE'),
+    new NoteCommitmentDefinition('TODO'),
     new GoalCommitmentDefinition('GOAL'),
     new GoalCommitmentDefinition('GOALS'),
     new InitialMessageCommitmentDefinition(),

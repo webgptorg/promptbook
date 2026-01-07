@@ -167,6 +167,7 @@ export async function handleChatCompletion(
                 llm: openAiAssistantExecutionTools, // Note: Use the same OpenAI Assistant LLM tools as the chat route
             },
             isVerbose: true, // or false
+             teacherAgent: null, // <- TODO: [🦋] DRY place to provide the teacher
         });
 
         const userAgent = request.headers.get('user-agent');

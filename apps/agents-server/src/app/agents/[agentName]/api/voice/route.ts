@@ -60,6 +60,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                 llm: openAiAssistantExecutionTools,
             },
             agentSource,
+             teacherAgent: null, // <- TODO: [🦋] DRY place to provide the teacher
         });
 
         // 1. Transcribe Audio (STT)

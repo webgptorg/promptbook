@@ -2,7 +2,8 @@ import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideOpenAiAssistantExecutionToolsForServer } from '@/src/tools/$provideOpenAiAssistantExecutionToolsForServer';
-import { Agent, computeAgentHash, PROMPTBOOK_ENGINE_VERSION } from '@promptbook-local/core';
+import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
+import { Agent, computeAgentHash, PROMPTBOOK_ENGINE_VERSION, RemoteAgent } from '@promptbook-local/core';
 import { computeHash, serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
 import { keepUnused } from '../../../../../../../../src/utils/organization/keepUnused';
@@ -62,6 +63,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                 llm: openAiAssistantExecutionTools, // Note: Providing the OpenAI Assistant LLM tools to the Agent to be able to create its own Assistants GPTs
             },
             agentSource,
+            teacherAgent: await RemoteAgent.connect({
+                agentUrl: await getWellKnownAgentUrl('TEACHER'),
+            }), // <- [🦋]
         });
 
         const agentHash = computeAgentHash(agentSource);
@@ -122,7 +126,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                     },
                     (chunk) => {
                         if (chunk.toolCalls && chunk.toolCalls.length > 0) {
-                            controller.enqueue(encoder.encode('\n' + JSON.stringify({ toolCalls: chunk.toolCalls }) + '\n'));
+                            controller.enqueue(
+                                encoder.encode('\n' + JSON.stringify({ toolCalls: chunk.toolCalls }) + '\n'),
+                            );
                             return;
                         }
 

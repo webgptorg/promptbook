@@ -2,6 +2,7 @@ import type { string_book } from '../../book-2.0/agent-source/string_book';
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import type { Updatable } from '../../types/Updatable';
+import { Agent } from './Agent';
 
 /**
  * Options for creating an Agent
@@ -18,4 +19,11 @@ export type AgentOptions = CommonToolsOptions & {
      * The source of the agent
      */
     agentSource: Updatable<string_book>;
+
+    /**
+     * Teacher agent for self-learning
+     *
+     * Note: If provided, the agent can do full self-learning from the teacher agent during its operation.
+     */
+    teacherAgent: Agent | null;
 };

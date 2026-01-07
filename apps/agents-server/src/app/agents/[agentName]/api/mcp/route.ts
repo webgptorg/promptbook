@@ -105,6 +105,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
                             agentSource,
                             executionTools,
                             isVerbose: true,
+                            teacherAgent: null, // <- TODO: [🦋] DRY place to provide the teacher
                         });
 
                         // Prepare thread and content

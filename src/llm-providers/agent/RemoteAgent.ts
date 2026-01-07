@@ -1,4 +1,5 @@
 import { BehaviorSubject } from 'rxjs';
+import spaceTrim from 'spacetrim';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import type { ChatPromptResult } from '../../execution/PromptResult';
 import { book } from '../../pipeline/book-notation';
@@ -23,10 +24,30 @@ import type { RemoteAgentOptions } from './RemoteAgentOptions';
  */
 export class RemoteAgent extends Agent {
     public static async connect(options: RemoteAgentOptions) {
-        console.log('[🐱‍🚀]', `${options.agentUrl}/api/profile`);
-        const profileResponse = await fetch(`${options.agentUrl}/api/profile`);
+        const agentProfileUrl = `${options.agentUrl}/api/profile`;
+        const profileResponse = await fetch(agentProfileUrl);
         // <- TODO: [🐱‍🚀] What about closed-source agents?
         // <- TODO: [🐱‍🚀] Maybe use promptbookFetch
+
+        if (!profileResponse.ok) {
+            throw new Error(
+                spaceTrim(
+                    (block) => `
+                        Failed to fetch remote agent profile:
+
+                        Agent URL:
+                        ${options.agentUrl}
+
+                        Agent Profile URL:
+                        ${agentProfileUrl}
+                        
+                        Http Error:
+                        ${block(profileResponse.statusText)}
+                
+                `,
+                ),
+            );
+        }
 
         const profile = await profileResponse.json();
 
@@ -56,6 +77,7 @@ export class RemoteAgent extends Agent {
                 */
             },
             agentSource,
+            teacherAgent: null, // <- Note:
         });
 
         remoteAgent._remoteAgentName = profile.agentName;

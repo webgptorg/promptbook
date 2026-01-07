@@ -4,7 +4,7 @@ import type { string_agent_url } from '../../types/typeAliases';
 /**
  * Options for creating a Remote Agent
  */
-export type RemoteAgentOptions = CommonToolsOptions & {
+export type RemoteAgentOptions = Omit<CommonToolsOptions, 'teacherAgent'> & {
     /**
      * Url of the remote agent
      */

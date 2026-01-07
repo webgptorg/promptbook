@@ -175,6 +175,7 @@ export class AgentCollectionInDirectory implements AgentCollection {
             ...this.options,
             agentSource,
             executionTools: this.tools || {},
+            teacherAgent: null, // <- TODO: [🦋] DRY place to provide the teacher
         });
 
         if (isVerbose) {

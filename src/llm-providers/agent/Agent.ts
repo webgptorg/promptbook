@@ -1,5 +1,8 @@
+import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import { BehaviorSubject } from 'rxjs';
 import spaceTrim from 'spacetrim';
+import { forTime } from 'waitasecond';
+import { linguisticHash, unwrapResult } from '../../_packages/utils.index';
 import type {
     AgentBasicInformation,
     AgentCapability,
@@ -30,7 +33,6 @@ import { normalizeMessageText } from '../../utils/normalization/normalizeMessage
 import { getSingleLlmExecutionTools } from '../_multiple/getSingleLlmExecutionTools';
 import { AgentLlmExecutionTools } from './AgentLlmExecutionTools';
 import type { AgentOptions } from './AgentOptions';
-// !!!!! import { RemoteAgent } from './RemoteAgent'; // <- [💞] <- !!!!!
 
 /**
  * Represents one AI Agent
@@ -111,6 +113,7 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
     }
 
     public readonly agentSource: BehaviorSubject<string_book>;
+    private readonly teacherAgent: Agent | null;
 
     constructor(options: AgentOptions) {
         const agentSource = asUpdatableSubject(options.agentSource);
@@ -123,6 +126,7 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
         // TODO: [🐱‍🚀] Add `Agent` simple "mocked" learning by appending to agent source
         // TODO: [🐱‍🚀] Add `Agent` learning by promptbookAgent
 
+        this.teacherAgent = options.teacherAgent;
         this.agentSource = agentSource;
         this.agentSource.subscribe((source) => {
             this.updateAgentSource(source);
@@ -205,32 +209,52 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
             return result;
         }
 
-        // TODO: !!!!! Is this timed properly?
+        // TODO: !!!!! Return the answer and do the learning asynchronously
+
+        // Note: [0] Asynchronously add nonce
+        await this.#selfLearnNonce();
 
         // Note: [1] Do the append of the samples
-        this.#selfLearnSamples(prompt, result);
+        await this.#selfLearnSamples(prompt, result);
 
-        /*
-        !!!!!
         // Note: [2] Asynchronously call the teacher agent and invoke the silver link. When the teacher fails, keep just the samples
-        this.#selfLearnTeacher(prompt, result).catch((error) => {
-            if (this.options.isVerbose) {
-                console.error('Failed to self-learn from teacher agent', error);
-            }
+        await this.#selfLearnTeacher(prompt, result).catch((error) => {
+            // !!!!! if (this.options.isVerbose) {
+            console.error(colors.bgCyan('[Self-learning]') + colors.red(' Failed to learn from teacher agent'));
+            console.error(error);
+            // }
         });
-        */
 
         return result;
+    }
+
+    /**
+     * Self-learning Step 0: Asynchronously with random timing add nonce to the agent source
+     */
+    async #selfLearnNonce(): Promise<void> {
+        await forTime(Math.random() * 5000);
+
+        console.info(colors.bgCyan('[Self-learning]') + colors.cyan(' Nonce'));
+
+        const nonce = `NONCE ${await linguisticHash(Math.random().toString())}`;
+
+        // Append to the current source
+        const currentSource = this.agentSource.value;
+        const newSource = padBook(validateBook(spaceTrim(currentSource) + '\n\n---\n\n' + nonce));
+        // <- TODO: [🈲] Use some object-based way how to append on book (with sections `---`)
+
+        // Update the source (which will trigger the subscription and update the underlying tools)
+        this.agentSource.next(newSource as string_book);
     }
 
     /**
      * Self-learning Step 1: Appends the conversation sample to the agent source
      */
     #selfLearnSamples(prompt: Prompt, result: ChatPromptResult): void {
+        console.info(colors.bgCyan('[Self-learning]') + colors.cyan(' Sampling'));
+
         const learningExample = spaceTrim(
             (block) => `
-
-                ---
 
                 USER MESSAGE
                 ${block(prompt.content)}
@@ -244,6 +268,7 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
         // Append to the current source
         const currentSource = this.agentSource.value;
         const newSource = padBook(validateBook(spaceTrim(currentSource) + '\n\n' + learningExample));
+        // <- TODO: [🈲] Use some object-based way how to append on book (with sections `---`)
 
         // Update the source (which will trigger the subscription and update the underlying tools)
         this.agentSource.next(newSource as string_book);
@@ -251,56 +276,83 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
 
     /**
      * Self-learning Step 2: Asynchronously call the teacher agent and invoke the silver link
-     * !!!!! /
+     */
     async #selfLearnTeacher(prompt: Prompt, result: ChatPromptResult): Promise<void> {
         // [1] Call the teacher agent // <- !!!!! Emojis
-        const teacherAgent = await RemoteAgent.connect({
-            agentUrl:
-                `${CORE_AGENTS_SERVER.url}agents/${CORE_AGENTS_SERVER_WELL_KNOWN_AGENT_NAMES.TEACHER}` as string_agent_url,
-            // <- !!!!! Pass the `teacherAgentUrl`
-        });
 
-        const teacherResult = await teacherAgent.callChatModel({
+        if (this.teacherAgent === null) {
+            return;
+        }
+
+        console.info(colors.bgCyan('[Self-learning]') + colors.cyan(' Teacher'));
+
+        const teacherResult = await this.teacherAgent.callChatModel({
             title: 'Self-learning',
             modelRequirements: {
                 modelVariant: 'CHAT',
             },
             content: spaceTrim(
                 (block) => `
-                    Here is the current agent source book:
-                    \`\`\`
+
+                    You are a teacher agent helping another agent to learn from its interactions.
+
+                    Here is your current client which you are teaching:
+
+                    \`\`\`book
                     ${block(this.agentSource.value)}
                     \`\`\`
 
-                    And here is the latest interaction:
-                    User: ${block(prompt.content)}
-                    Agent: ${block(result.content)}
+                    **And here is the latest interaction:**
 
-                    Decide what the agent should learn from this interaction.
-                    Append new commitments at the end of the agent source.
-                    Do not modify the current agent source, just return new commitments (KNOWLEDGE, RULE, etc.).
-                    If there is nothing new to learn, return nothing.
+                    **User:**
+                    ${block(prompt.content)}
+
+                    **Agent:**
+                    ${block(result.content)}
+
+
+                    **Rules:**
+
+                    - Decide what the agent should learn from this interaction.
+                    - Append new commitments at the end of the agent source.
+                    - Do not modify the current agent source, just return new commitments (KNOWLEDGE, RULE, etc.).
+                    - If there is nothing new to learn, return empty book code block
+                    - Wrap the commitments in a book code block.
+                    - Do not explain anything, just return the commitments wrapped in a book code block.
+
+                    This is how book code block looks like:
+
+                    \`\`\`book
+                    KNOWLEDGE The sky is blue.
+                    RULE Always be polite.
+                    \`\`\`
                 `,
             ) as string_prompt,
-            pipelineUrl: 'https://github.com/webgptorg/promptbook/blob/main/prompts/self-learning.ptbk.md',
-            // <- TODO: !!!! Remove `pipelineUrl`
+            // pipelineUrl: 'https://github.com/webgptorg/promptbook/blob/main/prompts/self-learning.ptbk.md',
+            // <- TODO: !!!! Remove and `pipelineUrl` for agent purposes
             parameters: {},
         });
 
-        const teacherCommitments = spaceTrim(teacherResult.content);
+        console.log('!!!! teacherResult', teacherResult);
+
+        const teacherCommitments = unwrapResult(teacherResult.content);
 
         if (teacherCommitments === '') {
+            console.info(
+                colors.bgCyan('[Self-learning]') +
+                    colors.cyan(' Teacher agent did not provide new commitments to learn'),
+            );
             return;
         }
 
         // [2] Append to the current source
         const currentSource = this.agentSource.value;
         const newSource = padBook(validateBook(spaceTrim(currentSource) + '\n\n' + teacherCommitments));
+        // <- TODO: [🈲] Use some object-based way how to append on book (with sections `---`)
 
         // [3] Update the source
         this.agentSource.next(newSource as string_book);
     }
-    */
 }
 
 /**
