@@ -73,7 +73,8 @@ export function AgentsList(props: AgentsListProps) {
                     }));
 
                     try {
-                        const agentsResponse = await fetch(`/agents/${encodeURIComponent(normalizedUrl)}/api/agents`);
+                        // 1. Try direct fetch from the federated server
+                        const agentsResponse = await fetch(`${normalizedUrl}/api/agents`);
                         if (agentsResponse.ok) {
                             const agentsData = await agentsResponse.json();
                             if (isCancelled) {

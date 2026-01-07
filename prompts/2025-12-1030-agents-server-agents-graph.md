@@ -112,7 +112,9 @@ This is relevant for both agents on same server and agents across multiple serve
 ![alt text](screenshots/2025-12-1030-agents-server-agents-graph-1.png)
 ![alt text](screenshots/2025-12-1030-agents-server-agents-graph-2.png)
 
-[ ]
+---
+
+[x]
 
 [✨⌨️] When showing linked Agents in graph view, Loading of federated servers always fails.
 
