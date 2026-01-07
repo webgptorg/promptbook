@@ -3,7 +3,6 @@ import type { PartialDeep } from 'type-fest';
 import type { AgentBasicInformation } from '../../book-2.0/agent-source/AgentBasicInformation';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import { validateBook } from '../../book-2.0/agent-source/string_book';
-import { PROMPTBOOK_COLOR } from '../../config';
 import type { string_agent_name_in_book } from '../../types/typeAliases';
 import { TODO_USE } from '../organization/TODO_USE';
 import { $randomAgentPersona } from './$randomAgentPersona';
@@ -70,13 +69,13 @@ export function $generateBookBoilerplate(options?: GenerateBookBoilerplateOption
             (block) => `
                 ${agentName}
     
-                META COLOR ${color || PROMPTBOOK_COLOR.toHex()}
+                
                 PERSONA ${block(personaDescription!)}
                 ${block(initialRules.map((rule) => `RULE ${rule}`).join('\n'))}
             `,
         ),
-        // <- TODO: [🧠] [🐱‍🚀] Also add `META IMAGE` with some cool AI-generated avatar image
     );
+    // Note: `META COLOR ${color || PROMPTBOOK_COLOR.toHex()}` was removed for now
     // Note: `META FONT Playfair Display, sans-serif` was removed for now
     // <- TODO: [🈲] Simple and object-constructive way how to create new books
 
