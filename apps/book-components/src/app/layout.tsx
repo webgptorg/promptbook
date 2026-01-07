@@ -1,12 +1,11 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import { NEXT_PUBLIC_SITE_URL } from '@/config';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-    metadataBase: NEXT_PUBLIC_SITE_URL,
+    metadataBase: process.env.NEXT_PUBLIC_SITE_URL,
     title: 'Promptbook Components Gallery',
     description: 'A showcase of React components for developers using Promptbook technology',
     keywords: ['React', 'Components', 'Promptbook', 'UI', 'Gallery', 'Developers'],
