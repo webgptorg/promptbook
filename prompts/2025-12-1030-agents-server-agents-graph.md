@@ -112,6 +112,16 @@ This is relevant for both agents on same server and agents across multiple serve
 ![alt text](screenshots/2025-12-1030-agents-server-agents-graph-1.png)
 ![alt text](screenshots/2025-12-1030-agents-server-agents-graph-2.png)
 
+[ ]
+
+[✨⌨️] When showing linked Agents in graph view, Loading of federated servers always fails.
+
+-   Fix the issue with loading agents from federated servers in the graph view, it always fails and in dropdown filter shows "(error)".
+-   You are working with the `Agents Server` application `/apps/agents-server` the home page, agent view `http://localhost:4440/?view=graph`
+
+![alt text](screenshots/2025-12-1030-agents-server-agents-graph-3.png)
+![alt text](screenshots/2025-12-1030-agents-server-agents-graph-4.png)
+
 ---
 
 [ ]
@@ -119,7 +129,23 @@ This is relevant for both agents on same server and agents across multiple serve
 [✨⌨️] Make the Agents Graph visually more appealing
 
 -   The arrow should be at the end of the edge showing the direction of the link
--   You are working with the `Agents Server` application `/apps/agents-server`
+-   The chip with the agent should be visually more appealing, Use image and color of the agent in a nice looking circle.
+    -   In The tooltip shows the agent description. Do not replicate the agent name.
+-   The Group around federated agent server should be circle, not square.
+-   You are working with the `Agents Server` application `/apps/agents-server` the home page, agent view `http://localhost:4440/?view=graph`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Add the changes into the `/changelog/_current-preversion.md`
+
+![alt text](screenshots/2025-12-1030-agents-server-agents-graph-5.png)
+
+---
+
+[-]
+
+[✨⌨️] brr
+
+-   ...
+-   You are working with the `Agents Server` application `/apps/agents-server` the home page, agent view `http://localhost:4440/?view=graph`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
 
@@ -130,6 +156,39 @@ This is relevant for both agents on same server and agents across multiple serve
 [✨⌨️] brr
 
 -   ...
--   You are working with the `Agents Server` application `/apps/agents-server`
+-   You are working with the `Agents Server` application `/apps/agents-server` the home page, agent view `http://localhost:4440/?view=graph`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Add the changes into the `/changelog/_current-preversion.md`
+
+---
+
+[-]
+
+[✨⌨️] brr
+
+-   ...
+-   You are working with the `Agents Server` application `/apps/agents-server` the home page, agent view `http://localhost:4440/?view=graph`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Add the changes into the `/changelog/_current-preversion.md`
+
+---
+
+[-]
+
+[✨⌨️] brr
+
+-   ...
+-   You are working with the `Agents Server` application `/apps/agents-server` the home page, agent view `http://localhost:4440/?view=graph`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Add the changes into the `/changelog/_current-preversion.md`
+
+---
+
+[-]
+
+[✨⌨️] brr
+
+-   ...
+-   You are working with the `Agents Server` application `/apps/agents-server` the home page, agent view `http://localhost:4440/?view=graph`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
