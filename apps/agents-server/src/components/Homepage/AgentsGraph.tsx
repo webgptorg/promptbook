@@ -6,6 +6,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ForceGraph2D, { ForceGraphMethods } from 'react-force-graph-2d';
 import { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
+import { keepUnused } from '../../../../../src/utils/organization/keepUnused';
+import { TODO_USE } from '../../../../../src/utils/organization/TODO_USE';
 
 type AgentWithVisibility = AgentBasicInformation & {
     visibility?: 'PUBLIC' | 'PRIVATE';
@@ -48,6 +50,8 @@ export function AgentsGraph(props: AgentsGraphProps) {
     const searchParams = useSearchParams();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const fgRef = useRef<ForceGraphMethods<any, any>>(null as any);
+
+    const imageCache = useRef<Record<string, HTMLImageElement>>({});
 
     const [filterType, setFilterType] = useState<string[]>(
         searchParams.get('connectionTypes')?.split(',').filter(Boolean) || ['inheritance', 'import'],
@@ -172,6 +176,69 @@ export function AgentsGraph(props: AgentsGraphProps) {
         return { nodes: filteredNodes, links: filteredLinks };
     }, [agents, federatedAgents, publicUrl, filterType, selectedServerUrl, selectedAgentName]);
 
+    useEffect(() => {
+        const fg = fgRef.current;
+        if (!fg) return;
+
+        // Add custom force to separate servers
+        fg.d3Force('server-separate', (alpha: number) => {
+            const nodes = graphData.nodes as Node[];
+            const serverCenters: Record<string, { x: number; y: number; count: number }> = {};
+
+            nodes.forEach((node) => {
+                if (!serverCenters[node.serverUrl]) {
+                    serverCenters[node.serverUrl] = { x: 0, y: 0, count: 0 };
+                }
+                serverCenters[node.serverUrl]!.x += node.x || 0;
+                serverCenters[node.serverUrl]!.y += node.y || 0;
+                serverCenters[node.serverUrl]!.count++;
+            });
+
+            Object.keys(serverCenters).forEach((url) => {
+                serverCenters[url]!.x /= serverCenters[url]!.count;
+                serverCenters[url]!.y /= serverCenters[url]!.count;
+            });
+
+            const urls = Object.keys(serverCenters);
+            for (let i = 0; i < urls.length; i++) {
+                for (let j = i + 1; j < urls.length; j++) {
+                    const u1 = urls[i]!;
+                    const u2 = urls[j]!;
+                    const c1 = serverCenters[u1]!;
+                    const c2 = serverCenters[u2]!;
+
+                    const dx = c1.x - c2.x;
+                    const dy = c1.y - c2.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    const minCenteredDist = 300; // Increased distance between clusters
+
+                    if (dist < minCenteredDist) {
+                        const force = (minCenteredDist - dist) * alpha * 0.1;
+                        const fx = (dx / dist) * force;
+                        const fy = (dy / dist) * force;
+
+                        nodes.forEach((node) => {
+                            if (node.serverUrl === u1) {
+                                node.x = (node.x || 0) + fx;
+                                node.y = (node.y || 0) + fy;
+                            } else if (node.serverUrl === u2) {
+                                node.x = (node.x || 0) - fx;
+                                node.y = (node.y || 0) - fy;
+                            }
+                        });
+                    }
+                }
+            }
+        });
+
+        // Also add a stronger collision force to prevent overlapping nodes
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        if ((window as any).d3) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            fg.d3Force('collide', (window as any).d3.forceCollide(30));
+        }
+    }, [graphData]);
+
     const handleNodeClick = useCallback(
         (node: Node) => {
             const agent = node.agent;
@@ -247,6 +314,8 @@ export function AgentsGraph(props: AgentsGraphProps) {
         federatedAgents.forEach((a) => a.serverUrl && serverSet.add(a.serverUrl));
         return Array.from(serverSet);
     }, [agents, federatedAgents]);
+
+    TODO_USE(servers);
 
     if (agents.length === 0) {
         return <div className="flex justify-center py-12 text-gray-500">No agents to show in graph.</div>;
@@ -345,11 +414,12 @@ export function AgentsGraph(props: AgentsGraphProps) {
                     graphData={graphData}
                     width={dimensions.width}
                     height={dimensions.height}
-                    nodeLabel={(node) => (node as Node).name}
-                    nodeColor={(node) =>
-                        (node as Node).serverUrl === publicUrl.replace(/\/$/, '') ? '#3b82f6' : '#f59e0b'
-                    }
-                    nodeRelSize={6}
+                    nodeLabel={(node) => {
+                        const n = node as Node;
+                        return n.agent.meta.description || n.agent.personaDescription || n.agent.agentName;
+                    }}
+                    nodeColor={(node) => (node as Node).agent.meta.color || '#3b82f6'}
+                    nodeRelSize={10}
                     linkColor={(link) =>
                         (link as unknown as GraphLink).type === 'inheritance' ? '#8b5cf6' : '#10b981'
                     }
@@ -361,30 +431,56 @@ export function AgentsGraph(props: AgentsGraphProps) {
                     onEngineStop={() => fgRef.current?.zoomToFit(400, 50)}
                     nodeCanvasObject={(node, ctx, globalScale) => {
                         const n = node as Node;
+                        const x = node.x || 0;
+                        const y = node.y || 0;
+                        const size = 12; // Circle radius
+                        const isLocal = n.serverUrl === publicUrl.replace(/\/$/, '');
+                        const color = n.agent.meta.color || (isLocal ? '#3b82f6' : '#f59e0b');
+
+                        // 1. Draw the circle background
+                        ctx.beginPath();
+                        ctx.arc(x, y, size, 0, 2 * Math.PI, false);
+                        ctx.fillStyle = color;
+                        ctx.fill();
+                        ctx.lineWidth = 2 / globalScale;
+                        ctx.strokeStyle = '#fff';
+                        ctx.stroke();
+
+                        // 2. Draw agent image if available
+                        const imageUrl = n.agent.meta.image;
+                        if (imageUrl) {
+                            let img = imageCache.current[imageUrl];
+                            if (!img) {
+                                img = new Image();
+                                img.src = imageUrl;
+                                img.onload = () => {
+                                    imageCache.current[imageUrl] = img!;
+                                    // Trigger a re-render if needed, but usually force-graph handles it
+                                };
+                            }
+
+                            if (img.complete && img.naturalWidth !== 0) {
+                                ctx.save();
+                                ctx.beginPath();
+                                ctx.arc(x, y, size - 1, 0, 2 * Math.PI, false);
+                                ctx.clip();
+                                ctx.drawImage(img, x - size, y - size, size * 2, size * 2);
+                                ctx.restore();
+                            }
+                        }
+
+                        // 3. Draw the label
                         const label = n.name;
                         const fontSize = 12 / globalScale;
                         ctx.font = `${fontSize}px Sans-Serif`;
-                        const textWidth = ctx.measureText(label).width;
-                        const bckgDimensions = [textWidth, fontSize].map((d) => d + fontSize * 0.2);
-
-                        // Draw cluster background (if many nodes in same server)
-                        // This is a simplified "clustering" - color by server
-                        const isLocal = n.serverUrl === publicUrl.replace(/\/$/, '');
-
-                        ctx.fillStyle = isLocal ? 'rgba(255, 255, 255, 0.8)' : 'rgba(254, 243, 199, 0.8)';
-                        ctx.fillRect(
-                            (node.x || 0) - bckgDimensions[0] / 2,
-                            (node.y || 0) - bckgDimensions[1] / 2,
-                            bckgDimensions[0],
-                            bckgDimensions[1],
-                        );
-
                         ctx.textAlign = 'center';
-                        ctx.textBaseline = 'middle';
-                        ctx.fillStyle = isLocal ? '#1f2937' : '#92400e';
-                        ctx.fillText(label, node.x || 0, node.y || 0);
+                        ctx.textBaseline = 'top';
+                        ctx.fillStyle = '#1f2937';
+                        ctx.fillText(label, x, y + size + 2);
 
-                        (node as Node).__bckgDimensions = bckgDimensions; // to re-use in nodePointerAreaPaint
+                        // Store dimensions for pointer area
+                        const textWidth = ctx.measureText(label).width;
+                        (node as Node).__bckgDimensions = [Math.max(size * 2, textWidth), size * 2 + fontSize + 4];
                     }}
                     onRenderFramePost={(ctx) => {
                         // Draw clusters/regions for servers
@@ -399,70 +495,47 @@ export function AgentsGraph(props: AgentsGraphProps) {
 
                             const isLocal = serverUrl === publicUrl.replace(/\/$/, '');
 
-                            // Find bounding box
-                            let minX = Infinity;
-                            let minY = Infinity;
-                            let maxX = -Infinity;
-                            let maxY = -Infinity;
-
+                            // Calculate center and radius to encompass all nodes in this server
+                            let centerX = 0;
+                            let centerY = 0;
                             nodes.forEach((n) => {
-                                if (n.x === undefined || n.y === undefined) return;
-                                minX = Math.min(minX, n.x);
-                                minY = Math.min(minY, n.y);
-                                maxX = Math.max(maxX, n.x);
-                                maxY = Math.max(maxY, n.y);
+                                centerX += n.x || 0;
+                                centerY += n.y || 0;
+                            });
+                            centerX /= nodes.length;
+                            centerY /= nodes.length;
+
+                            let maxDist = 0;
+                            nodes.forEach((n) => {
+                                const dist = Math.sqrt(Math.pow((n.x || 0) - centerX, 2) + Math.pow((n.y || 0) - centerY, 2));
+                                maxDist = Math.max(maxDist, dist);
                             });
 
-                            const padding = 20;
-                            minX -= padding;
-                            minY -= padding;
-                            maxX += padding;
-                            maxY += padding;
+                            const radius = maxDist + 40;
 
+                            ctx.beginPath();
+                            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
                             ctx.strokeStyle = isLocal ? 'rgba(59, 130, 246, 0.2)' : 'rgba(245, 158, 11, 0.2)';
                             ctx.setLineDash([5, 5]);
                             ctx.lineWidth = 2;
-                            ctx.strokeRect(minX, minY, maxX - minX, maxY - minY);
+                            ctx.stroke();
                             ctx.setLineDash([]);
 
-                            const status = federatedServersStatus[serverUrl];
                             const label = serverUrl.replace(/^https?:\/\//, '');
-
                             ctx.font = `italic 10px Sans-Serif`;
                             ctx.fillStyle = isLocal ? 'rgba(59, 130, 246, 0.5)' : 'rgba(245, 158, 11, 0.5)';
-                            ctx.fillText(label, minX, minY - 5);
-
-                            if (status?.status === 'loading') {
-                                ctx.fillText(' (loading...)', minX + ctx.measureText(label).width, minY - 5);
-                            } else if (status?.status === 'error') {
-                                ctx.fillStyle = 'rgba(239, 68, 68, 0.8)';
-                                ctx.fillText(
-                                    ` (error: ${status.error})`,
-                                    minX + ctx.measureText(label).width,
-                                    minY - 5,
-                                );
-                            }
-                        });
-
-                        // Draw empty clusters for servers with no agents yet
-                        Object.entries(federatedServersStatus).forEach(([serverUrl, status]) => {
-                            if (serverNodes[serverUrl]) return; // Already drawn
-
-                            // We don't have coordinates for empty clusters, but we should show them
-                            // For now, they are just listed in the filter dropdown.
-                            // In a full force graph, we might want to add "dummy" nodes for loading servers.
+                            ctx.textAlign = 'center';
+                            ctx.fillText(label, centerX, centerY - radius - 5);
                         });
                     }}
                     nodePointerAreaPaint={(node, color, ctx) => {
+                        const n = node as Node;
                         ctx.fillStyle = color;
-                        const bckgDimensions = (node as Node).__bckgDimensions;
+                        const bckgDimensions = n.__bckgDimensions;
                         if (bckgDimensions) {
-                            ctx.fillRect(
-                                (node.x || 0) - bckgDimensions[0] / 2,
-                                (node.y || 0) - bckgDimensions[1] / 2,
-                                bckgDimensions[0],
-                                bckgDimensions[1],
-                            );
+                            ctx.beginPath();
+                            ctx.arc(n.x || 0, n.y || 0, 15, 0, 2 * Math.PI, false);
+                            ctx.fill();
                         }
                     }}
                 />

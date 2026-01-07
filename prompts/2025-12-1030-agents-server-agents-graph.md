@@ -126,7 +126,7 @@ This is relevant for both agents on same server and agents across multiple serve
 
 ---
 
-[ ]
+[x]
 
 [✨⌨️] Make the Agents Graph visually more appealing
 
@@ -134,11 +134,13 @@ This is relevant for both agents on same server and agents across multiple serve
 -   The chip with the agent should be visually more appealing, Use image and color of the agent in a nice looking circle.
     -   In The tooltip shows the agent description. Do not replicate the agent name.
 -   The Group around federated agent server should be circle, not square.
+-   Also, the group around federated servers should not overlap. It should be separate, distinct clusters. Connection between the agents can go across the federated server group boundary.
 -   You are working with the `Agents Server` application `/apps/agents-server` the home page, agent view `http://localhost:4440/?view=graph`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
 
 ![alt text](screenshots/2025-12-1030-agents-server-agents-graph-5.png)
+![alt text](screenshots/2025-12-1030-agents-server-agents-graph-6.png)
 
 ---
 
