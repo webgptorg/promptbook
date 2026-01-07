@@ -7,10 +7,9 @@ import { string_book } from '@promptbook-local/types';
 import { useRouter } from 'next/navigation';
 import { useCallback, useMemo, useState } from 'react';
 import spaceTrim from 'spacetrim';
+import { OpenAiSpeechRecognition } from '../../../../../../src/speech-recognition/OpenAiSpeechRecognition';
 import { string_agent_url, string_color } from '../../../../../../src/types/typeAliases';
 import { keepUnused } from '../../../../../../src/utils/organization/keepUnused';
-import { BrowserSpeechRecognition } from '../../../../../../src/speech-recognition/BrowserSpeechRecognition';
-import { OpenAiSpeechRecognition } from '../../../../../../src/speech-recognition/OpenAiSpeechRecognition';
 import { $createAgentFromBookAction } from '../../../app/actions';
 import { DeletedAgentBanner } from '../../../components/DeletedAgentBanner';
 
