@@ -59,11 +59,19 @@ This is relevant for both agents on same server and agents across multiple serve
 
 ---
 
-[-]
+[ ]
 
-[✨⌨️] brr
+[✨⌨️] When showing linked Agents in graph view, show also the agents from federated servers
 
--   ...
+-   Each federated server should be represented as a cluster in the graph
+-   The agents from federated servers should be shown in their respective clusters
+-   The links between agents should be shown across clusters, representing the connections between agents on different
+-   Allow to filter the federated servers shown in the graph
+    -   Keep current filter for agents and put there a groups for each server
+    -   The first item is "All Agents"
+    -   The first group is "This Server" showing agents from local server
+    -   Then each federated server is one group showing agents from this server
+    -   You can pick All Agents, entire one server, or specific agents from any server
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
@@ -76,13 +84,15 @@ This is relevant for both agents on same server and agents across multiple serve
 
 This is relevant for both agents on same server and agents across multiple servers.
 
+![alt text](screenshots/2025-12-1030-agents-server-agents-graph.png)
+
 ---
 
-[-]
+[ ]
 
-[✨⌨️] brr
+[✨⌨️] Make the Agents Graph visually more appealing
 
--   ...
+-   The arrow should be at the end of the edge showing the direction of the link
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
