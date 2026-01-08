@@ -73,7 +73,9 @@ export async function getKnowledgeForTask(
         const knowledgePiecesWithRelevance = preparedPipeline.knowledgePieces.map((knowledgePiece) => {
             const { index } = knowledgePiece;
 
-            const knowledgePieceIndex = index.find((knowledgePieceIndex) => knowledgePieceIndex.modelName === firstKnowledgeIndex.modelName);
+            const knowledgePieceIndex = index.find(
+                (knowledgePieceIndex) => knowledgePieceIndex.modelName === firstKnowledgeIndex.modelName,
+            );
             // <- TODO: Do not use just first knowledge piece and first index to determine embedding model
 
             if (knowledgePieceIndex === undefined) {

@@ -272,8 +272,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
 
         const start: string_date_iso8601 = $getCurrentDate();
 
-        const tools =
-            'tools' in prompt && Array.isArray(prompt.tools) ? prompt.tools : currentModelRequirements.tools;
+        const tools = 'tools' in prompt && Array.isArray(prompt.tools) ? prompt.tools : currentModelRequirements.tools;
 
         let isLooping = true;
         while (isLooping) {
@@ -313,30 +312,30 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
                 const usage: Usage = this.computeUsage(content || '', responseMessage.content || '', rawResponse);
                 totalUsage = addUsage(totalUsage, usage);
 
-                    if (responseMessage.tool_calls && responseMessage.tool_calls.length > 0) {
-                        if (onProgress) {
-                            onProgress({
-                                content: responseMessage.content || '',
-                                modelName: rawResponse.model || modelName,
-                                timing: { start, complete: $getCurrentDate() },
-                                usage: totalUsage,
-                                toolCalls: responseMessage.tool_calls.map((toolCall) => ({
-                                    name: toolCall.function.name,
-                                    arguments: toolCall.function.arguments,
-                                    result: '',
-                                    rawToolCall: toolCall,
-                                })),
-                                rawPromptContent,
-                                rawRequest,
-                                rawResponse,
-                            });
-                        }
+                if (responseMessage.tool_calls && responseMessage.tool_calls.length > 0) {
+                    if (onProgress) {
+                        onProgress({
+                            content: responseMessage.content || '',
+                            modelName: rawResponse.model || modelName,
+                            timing: { start, complete: $getCurrentDate() },
+                            usage: totalUsage,
+                            toolCalls: responseMessage.tool_calls.map((toolCall) => ({
+                                name: toolCall.function.name,
+                                arguments: toolCall.function.arguments,
+                                result: '',
+                                rawToolCall: toolCall,
+                            })),
+                            rawPromptContent,
+                            rawRequest,
+                            rawResponse,
+                        });
+                    }
 
-                        await forEachAsync(responseMessage.tool_calls, {}, async (toolCall) => {
-                            const functionName = toolCall.function.name;
-                            const functionArgs = toolCall.function.arguments;
+                    await forEachAsync(responseMessage.tool_calls, {}, async (toolCall) => {
+                        const functionName = toolCall.function.name;
+                        const functionArgs = toolCall.function.arguments;
 
-                            const executionTools = (this.options as OpenAiCompatibleExecutionToolsNonProxiedOptions)
+                        const executionTools = (this.options as OpenAiCompatibleExecutionToolsNonProxiedOptions)
                             .executionTools;
 
                         if (!executionTools || !executionTools.script) {
@@ -352,17 +351,17 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
 
                         let functionResponse: string;
 
-                            try {
-                                const scriptTool = scriptTools[0]!; // <- TODO: [🧠] Which script tool to use?
+                        try {
+                            const scriptTool = scriptTools[0]!; // <- TODO: [🧠] Which script tool to use?
 
-                                functionResponse = await scriptTool.execute({
-                                    scriptLanguage: 'javascript', // <- TODO: [🧠] How to determine script language?
-                                    script: `
+                            functionResponse = await scriptTool.execute({
+                                scriptLanguage: 'javascript', // <- TODO: [🧠] How to determine script language?
+                                script: `
                                     const args = ${functionArgs};
                                     return await ${functionName}(args);
                                 `,
-                                    parameters: prompt.parameters,
-                                });
+                                parameters: prompt.parameters,
+                            });
                         } catch (error) {
                             assertsError(error);
                             functionResponse = `Error: ${error.message}`;

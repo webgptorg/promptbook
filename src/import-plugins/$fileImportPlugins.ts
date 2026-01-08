@@ -5,7 +5,7 @@ import { TextFileImportPlugin } from './TextFileImportPlugin';
 
 /**
  * All available file import plugins
- * 
+ *
  * @private [🥝] Maybe export the import plugins through some package
  */
 export const $fileImportPlugins: ReadonlyArray<FileImportPlugin> = [

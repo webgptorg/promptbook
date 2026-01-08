@@ -82,7 +82,8 @@ export class UseTimeCommitmentDefinition extends BaseCommitmentDefinition<'USE T
                           properties: {
                               timezone: {
                                   type: 'string',
-                                  description: 'Optional timezone name (e.g. "Europe/Prague", "UTC", "America/New_York").',
+                                  description:
+                                      'Optional timezone name (e.g. "Europe/Prague", "UTC", "America/New_York").',
                               },
                           },
                           required: [],

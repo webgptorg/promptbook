@@ -2,7 +2,7 @@ import type { FileImportPlugin } from './FileImportPlugin';
 
 /**
  * Plugin for importing JSON files
- * 
+ *
  * @private [🥝] Maybe export the import plugins through some package
  */
 export const JsonFileImportPlugin: FileImportPlugin = {

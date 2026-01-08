@@ -140,9 +140,8 @@ export class UseSearchEngineCommitmentDefinition extends BaseCommitmentDefinitio
 
                         ${block(
                             results
-                                .map(
-                                    (result) =>
-                                        spaceTrim(`
+                                .map((result) =>
+                                    spaceTrim(`
                                             - **${result.title}**
                                               ${result.url}
                                               ${result.snippet}

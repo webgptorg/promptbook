@@ -73,7 +73,9 @@ export function serializeToPromptbookJavascript(value: TODO_any): SerializeToPro
         throw new UnexpectedError(`Serialization resulted in undefined value`);
     }
 
-    const uniqueImports = Array.from(new Set(imports)).filter((importStatement) => !!importStatement && importStatement.trim().length > 0);
+    const uniqueImports = Array.from(new Set(imports)).filter(
+        (importStatement) => !!importStatement && importStatement.trim().length > 0,
+    );
 
     return { imports: uniqueImports, value: serializedValue };
 }

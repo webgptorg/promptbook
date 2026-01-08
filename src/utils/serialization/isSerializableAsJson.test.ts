@@ -43,7 +43,7 @@ describe('how `isSerializableAsJson` works', () => {
 
     it('objects instantiated from classes are not serializable.', () => {
         class Foo {
-    public constructor(public bar: string) {}
+            public constructor(public bar: string) {}
         }
         expect(isSerializableAsJson(new Foo('baz')));
     });

@@ -3,7 +3,7 @@ import type { FileImportPlugin } from './FileImportPlugin';
 
 /**
  * Plugin for importing generic text files
- * 
+ *
  * @private [🥝] Maybe export the import plugins through some package
  */
 export const TextFileImportPlugin: FileImportPlugin = {

@@ -41,7 +41,6 @@ export async function makeKnowledgeSourceHandler(
     tools: Pick<ExecutionTools, 'fs' | 'fetch'>,
     options?: Pick<PrepareAndScrapeOptions, 'rootDirname' | 'isVerbose'>,
 ): Promise<ScraperSourceHandler> {
-
     const { fetch = promptbookFetch } = tools;
     const { knowledgeSourceContent } = knowledgeSource;
     let { name } = knowledgeSource;

@@ -53,7 +53,7 @@ describe('AgentChat', () => {
             executionTools: {
                 llm: mockLlmTools,
             },
-             teacherAgent: null, // <- TODO: [🦋] DRY place to provide the teacher
+            teacherAgent: null, // <- TODO: [🦋] DRY place to provide the teacher
             isVerbose: false,
         });
     }
@@ -193,7 +193,7 @@ describe('AgentChat', () => {
             executionTools: {
                 llm: mockLlmTools,
             },
-             teacherAgent: null, // <- TODO: [🦋] DRY place to provide the teacher
+            teacherAgent: null, // <- TODO: [🦋] DRY place to provide the teacher
             isVerbose: false,
         });
 

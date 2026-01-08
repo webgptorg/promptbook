@@ -5,7 +5,7 @@ import type { FileImportPlugin } from './FileImportPlugin';
 
 /**
  * Plugin for importing agent books *(`.book` files)*
- * 
+ *
  * @private [🥝] Maybe export the import plugins through some package
  */
 export const AgentFileImportPlugin: FileImportPlugin = {

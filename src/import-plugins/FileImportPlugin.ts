@@ -24,4 +24,4 @@ export type FileImportPlugin = {
      * @returns The processed content (e.g. wrapped in code block)
      */
     import(content: string, mimeType: string_mime_type): string | Promise<string>;
-}
+};
