@@ -1,4 +1,5 @@
 import type { Promisable } from 'type-fest';
+import { forTime } from 'waitasecond';
 import type { string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
 import type { SearchEngine } from '../SearchEngine';
 import type { SearchResult } from '../SearchResult';
@@ -22,6 +23,9 @@ export class DummySearchEngine implements SearchEngine {
     }
 
     public async search(query: string): Promise<SearchResult[]> {
+        await forTime(Math.random() * 500 + 100); // Simulate some delay
+        // <- TODO: [🕓] `await forRandom(...)`
+
         return [
             {
                 title: 'Dummy Result 1 for ' + query,

@@ -70,7 +70,9 @@ export function SearchEngineTestClient() {
                             disabled={isLoading}
                         >
                             <option value="dummy">Dummy</option>
+                              <option value="serp">Serp</option>
                             <option value="bing">Bing</option>
+                            {/* <- TODO: [🚃] List Search engines this dynamically from proper register */}
                         </select>
                     </div>
 

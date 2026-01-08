@@ -236,6 +236,7 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
      */
     async #selfLearnNonce(): Promise<void> {
         await forTime(Math.random() * 5000);
+        // <- TODO: [🕓] `await forRandom(...)`
 
         console.info(colors.bgCyan('[Self-learning]') + colors.cyan(' Nonce'));
 

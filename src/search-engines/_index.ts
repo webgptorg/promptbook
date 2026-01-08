@@ -5,4 +5,4 @@ export * from './SearchEngine';
 export * from './SearchResult';
 export * from './serp/SerpSearchEngine';
 
-// TODO: !!!!! Remove index and do proper registering of search engines via register
+// TODO: [🚃] Remove index and do proper registering of search engines via `$Register`
