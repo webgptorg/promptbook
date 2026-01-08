@@ -144,7 +144,7 @@ This is relevant for both agents on same server and agents across multiple serve
 
 ---
 
-[ ]
+[x]
 
 [✨⌨️] The relations in the agent graph aren't shown fixed.
 

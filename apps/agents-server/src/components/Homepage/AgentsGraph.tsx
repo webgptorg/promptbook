@@ -104,17 +104,19 @@ export function AgentsGraph(props: AgentsGraphProps) {
                         if (!targetUrl.includes('://')) {
                             targetUrl =
                                 (agent.serverUrl || publicUrl.replace(/\/$/, '')) +
-                                '/' +
-                                targetUrl.replace(/^\.\//, '').replace(/^\//, '');
-                            if (!targetUrl.includes('/agents/')) {
-                                targetUrl = targetUrl.replace(/(\.ptbk\.io|\.com|\.org|\.net)\//, '$1/agents/');
-                            }
+                                '/agents/' +
+                                targetUrl.replace(/^\.\//, '').replace(/^\/agents\//, '').replace(/^\//, '');
                         }
 
                         const targetAgent = allAgents.find((a) => {
                             const aUrl = (a.serverUrl || publicUrl.replace(/\/$/, '')) + '/agents/' + a.agentName;
+                            const aUrlPermanent =
+                                a.permanentId &&
+                                (a.serverUrl || publicUrl.replace(/\/$/, '')) + '/agents/' + a.permanentId;
                             return (
-                                aUrl === targetUrl || (a as AgentWithVisibility & { url?: string }).url === targetUrl
+                                aUrl === targetUrl ||
+                                aUrlPermanent === targetUrl ||
+                                (a as AgentWithVisibility & { url?: string }).url === targetUrl
                             );
                         });
 
@@ -423,8 +425,10 @@ export function AgentsGraph(props: AgentsGraphProps) {
                     linkColor={(link) =>
                         (link as unknown as GraphLink).type === 'inheritance' ? '#8b5cf6' : '#10b981'
                     }
-                    linkDirectionalArrowLength={3.5}
+                    linkDirectionalArrowLength={5}
                     linkDirectionalArrowRelPos={1}
+                    linkDirectionalParticles={2}
+                    linkDirectionalParticleSpeed={0.005}
                     linkCurvature={0.25}
                     onNodeClick={handleNodeClick}
                     cooldownTicks={100}

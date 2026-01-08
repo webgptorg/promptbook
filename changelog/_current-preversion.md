@@ -50,6 +50,10 @@
             -   In The tooltip shows the agent description. Do not replicate the agent name.
         -   The Group around federated agent server should be circle, not square.
         -   Also, the group around federated servers should not overlap. It should be separate, distinct clusters. Connection between the agents can go across the federated server group boundary.
+        -   Fixed and improved agent graph relations:
+            -   Show directional graph arrows and moving particles to indicate connection direction
+            -   Corrected URL normalization for inheritance (`FROM`) and `IMPORT` links to ensure agents are correctly connected (e.g., matching Sophia Green and Sophia Supergreen)
+            -   Ensure connections correctly respect user preferences in checkboxes
 >>>>+++ REPLACE
 
 -   Added `linguisticHash` utility function to `@promptbook/utils` that creates human-readable hashes.
