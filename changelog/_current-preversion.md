@@ -1,6 +1,9 @@
 ### 📚 Book
 
 -   [✨⛪️] Allow to close dialogs by clicking outside of the dialog.
+-   Created a series of comparison documents between Promptbook and other projects (ChatGPT, Claude, ChatGPT-Assistance, LangChain, N8N, NotebookLM) in `/documents/comparison/*.md`.
+>>>>+++ REPLACE
+
 -   Implemented `IMPORT` commitment that allows to import generic text files (both local and URL) into the agent source with plugin-based architecture.
 -   Implemented GitHub import script that fetches issues and discussions from a Promptbook repository and structures them into Markdown files.
 -   Code blocks in the book are assigned to the commitment where they are placed.

@@ -1,14 +1,18 @@
 # Promptbook vs ChatGPT
 
-ChatGPT is general-purpose conversational AI developed by OpenAI, designed to assist users across a wide range of topics through natural language interactions. It leverages advanced machine learning techniques to generate human-like responses based on the input it receives.
+ChatGPT is a general-purpose conversational AI developed by OpenAI, designed to assist users across a wide range of topics through natural language interactions. It leverages advanced machine learning techniques to generate human-like responses based on the input it receives.
 
-It has no specific persona, behavior rules, or specialized knowledge sources defined by the user. Its responses are generated based on a vast dataset it was trained on, without any user-defined commitments or capabilities.
+While ChatGPT is highly capable, it primarily functions as a raw model interface or a simple chatbot. It lacks a structured way to define complex agent personalities, enforceable rules, and deeply integrated knowledge bases that are portable and model-agnostic.
 
 ## Side-by-Side Comparison
 
 | Promptbook                                                                          | ChatGPT                                                                |
 | ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| ✔ Agents with defined personalities and behavior rules                              | ✘ General-purpose AI models                                            |
-| ✔ High-abstracted agent architecture for complex interactions                       | ✘ Low-level access to raw models                                       |
-| ...                                                                                 | ...                                                                    |
-| **Best for:** creating specialized AI agents tailored to specific tasks or domains. | **Best for:** General conversational assistance across various topics. |
+| ✔ **Agents with defined personalities**: Structured `PERSONA` commitment.           | ✘ **General-purpose**: Responses vary based on the prompt context.      |
+| ✔ **Enforceable Rules**: `RULE` commitment with adversary agent checks.             | ✘ **Instruction-based**: Rules are often ignored in long conversations. |
+| ✔ **Model Agnostic**: Agents can be ported across different LLM providers.          | ✘ **Vendor Locked**: Tied specifically to OpenAI's models.             |
+| ✔ **Structured Knowledge**: `KNOWLEDGE` commitment with automatic RAG/context management. | ✘ **Ad-hoc Context**: Knowledge is limited to training data or manual uploads. |
+| ✔ **Team Collaboration**: `TEAM` commitment to simulate expert consultation.        | ✘ **Solo Interaction**: Interaction is typically 1-on-1 with the model. |
+| 💡 **Book Language**: A dedicated language for defining AI agents reliably.          | 💡 **Natural Language**: Highly flexible but often lacks precision and reliability. |
+
+**Best for:** Creating specialized, reliable AI agents with strict behavior rules and portable definitions for professional use cases. | **Best for:** General conversational assistance, quick tasks, and creative brainstorming across various topics.

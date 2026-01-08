@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🦟] Study the repository and create a comparison between Promptbook and other projects.
 
