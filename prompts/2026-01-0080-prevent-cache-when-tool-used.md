@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🛁] When calling external tools, do not cache the messages.
 

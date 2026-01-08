@@ -160,6 +160,18 @@ export function cacheLlmTools<TLlmTools extends LlmExecutionTools>(
             }
         }
 
+        if (shouldCache && (promptResult as ChatPromptResult).toolCalls !== undefined) {
+            // Note: Do not cache results that contain tool calls because they are dynamic and should be always fresh
+            //       For example, it doesn't make sense to cache the message 'What time is it? 3:30 pm' because when the question is asked another time, it can be a different time.
+            shouldCache = false;
+
+            if (isVerbose) {
+                console.info('Not caching result that contains tool calls for key:', key, {
+                    toolCalls: (promptResult as ChatPromptResult).toolCalls,
+                });
+            }
+        }
+
         if (shouldCache) {
             await storage.setItem(key, {
                 date: $getCurrentDate(),
