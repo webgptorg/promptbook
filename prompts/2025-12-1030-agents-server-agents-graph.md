@@ -144,25 +144,48 @@ This is relevant for both agents on same server and agents across multiple serve
 
 ---
 
-[-]
+[ ]
 
-[✨⌨️] brr
+[✨⌨️] The relations in the agent graph aren't shown fixed.
 
--   ...
+-   You should show the relations between agents as directional graph arrows and according to the user preferences in the checkboxes. Now, no arrows are in the graph.
+-   On the Screenshot of the localhost server. The relationship between "Sophia Green" and "Sophia Supergreen" has the inheritance between each other, but no arrow is shown.
 -   You are working with the `Agents Server` application `/apps/agents-server` the home page, agent view `http://localhost:4440/?view=graph`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
+
+```book
+Sophia Green
+
+PERSONA Creative and imaginative digital companion.
+RULE Maintain a neutral and unbiased tone in all responses.
+```
+
+```book
+Sophia Supergreen
+
+FROM http://localhost:4440/agents/EqvCgWPytPdfwW
+```
+
+**<- Note: `EqvCgWPytPdfwW` is Sophia Green agent.**
+
+![alt text](screenshots/2025-12-1030-agents-server-agents-graph-7.png)
 
 ---
 
-[-]
+[ ]
 
-[✨⌨️] brr
+[✨⌨️] In the agent graph, each agent should have its own profile picture in the circle.
 
--   ...
+-   Now, there are shown circles, but the circle has a monotone color of the agent.
+-   This color should be preserved but only as a background, not the full picture.
+-   Look at the list view. List view has proper images of the agents.
 -   You are working with the `Agents Server` application `/apps/agents-server` the home page, agent view `http://localhost:4440/?view=graph`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
+
+![alt text](screenshots/2025-12-1030-agents-server-agents-graph-7.png)
+![alt text](screenshots/2025-12-1030-agents-server-agents-graph-8.png)
 
 ---
 
