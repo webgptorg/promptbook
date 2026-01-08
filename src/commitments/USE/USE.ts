@@ -27,7 +27,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * @private [🪔] Maybe export the commitments through some package
  */
 export class UseCommitmentDefinition extends BaseCommitmentDefinition<`USE${string}`> {
-    constructor() {
+    public constructor() {
         super('USE');
     }
 

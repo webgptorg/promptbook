@@ -22,7 +22,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * @private [🪔] Maybe export the commitments through some package
  */
 export class UseBrowserCommitmentDefinition extends BaseCommitmentDefinition<'USE BROWSER'> {
-    constructor() {
+    public constructor() {
         super('USE BROWSER', ['BROWSER']);
     }
 

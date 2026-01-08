@@ -28,7 +28,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * @private [🪔] Maybe export the commitments through some package
  */
 export class MetaLinkCommitmentDefinition extends BaseCommitmentDefinition<'META LINK'> {
-    constructor() {
+    public constructor() {
         super('META LINK');
     }
 

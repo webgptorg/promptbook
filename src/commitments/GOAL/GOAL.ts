@@ -19,7 +19,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * @private [🪔] Maybe export the commitments through some package
  */
 export class GoalCommitmentDefinition extends BaseCommitmentDefinition<'GOAL' | 'GOALS'> {
-    constructor(type: 'GOAL' | 'GOALS' = 'GOAL') {
+    public constructor(type: 'GOAL' | 'GOALS' = 'GOAL') {
         super(type);
     }
 

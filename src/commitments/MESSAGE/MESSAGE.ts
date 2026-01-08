@@ -21,7 +21,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * @private [🪔] Maybe export the commitments through some package
  */
 export class MessageCommitmentDefinition extends BaseCommitmentDefinition<'MESSAGE' | 'MESSAGES'> {
-    constructor(type: 'MESSAGE' | 'MESSAGES' = 'MESSAGE') {
+    public constructor(type: 'MESSAGE' | 'MESSAGES' = 'MESSAGE') {
         super(type);
     }
 

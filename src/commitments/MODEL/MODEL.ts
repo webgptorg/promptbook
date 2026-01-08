@@ -29,7 +29,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * @private [🪔] Maybe export the commitments through some package
  */
 export class ModelCommitmentDefinition extends BaseCommitmentDefinition<'MODEL' | 'MODELS'> {
-    constructor(type: 'MODEL' | 'MODELS' = 'MODEL') {
+    public constructor(type: 'MODEL' | 'MODELS' = 'MODEL') {
         super(type);
     }
 

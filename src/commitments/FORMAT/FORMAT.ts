@@ -19,7 +19,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * @private [🪔] Maybe export the commitments through some package
  */
 export class FormatCommitmentDefinition extends BaseCommitmentDefinition<'FORMAT' | 'FORMATS'> {
-    constructor(type: 'FORMAT' | 'FORMATS' = 'FORMAT') {
+    public constructor(type: 'FORMAT' | 'FORMATS' = 'FORMAT') {
         super(type);
     }
 

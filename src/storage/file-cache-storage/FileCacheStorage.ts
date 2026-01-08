@@ -26,7 +26,7 @@ import { nameToSubfolderPath } from './utils/nameToSubfolderPath';
  * @public exported from `@promptbook/node`
  */
 export class FileCacheStorage<TItem> implements PromptbookStorage<TItem> {
-    constructor(
+    public constructor(
         protected readonly tools: Required<Pick<ExecutionTools, 'fs'>>,
         private readonly options: FileCacheStorageOptions,
     ) {

@@ -19,7 +19,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * @private [🪔] Maybe export the commitments through some package
  */
 export class UseTimeCommitmentDefinition extends BaseCommitmentDefinition<'USE TIME'> {
-    constructor() {
+    public constructor() {
         super('USE TIME', ['CURRENT TIME', 'TIME', 'DATE']);
     }
 

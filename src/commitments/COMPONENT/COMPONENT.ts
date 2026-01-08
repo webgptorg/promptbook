@@ -10,7 +10,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * @private [🪔] Maybe export the commitments through some package
  */
 export class ComponentCommitmentDefinition extends BaseCommitmentDefinition<'COMPONENT'> {
-    constructor() {
+    public constructor() {
         super('COMPONENT');
     }
 

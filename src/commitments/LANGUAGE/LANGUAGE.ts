@@ -17,7 +17,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * @private [🪔] Maybe export the commitments through some package
  */
 export class LanguageCommitmentDefinition extends BaseCommitmentDefinition<'LANGUAGE' | 'LANGUAGES'> {
-    constructor(type: 'LANGUAGE' | 'LANGUAGES' = 'LANGUAGE') {
+    public constructor(type: 'LANGUAGE' | 'LANGUAGES' = 'LANGUAGE') {
         super(type);
     }
 

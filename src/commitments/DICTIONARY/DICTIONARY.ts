@@ -28,7 +28,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * @private [🪔] Maybe export the commitments through some package
  */
 export class DictionaryCommitmentDefinition extends BaseCommitmentDefinition<'DICTIONARY'> {
-    constructor() {
+    public constructor() {
         super('DICTIONARY');
     }
 

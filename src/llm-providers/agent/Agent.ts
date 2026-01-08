@@ -116,7 +116,7 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
     public readonly agentSource: BehaviorSubject<string_book>;
     private readonly teacherAgent: Agent | null;
 
-    constructor(options: AgentOptions) {
+    public constructor(options: AgentOptions) {
         const agentSource = asUpdatableSubject(options.agentSource);
 
         super({

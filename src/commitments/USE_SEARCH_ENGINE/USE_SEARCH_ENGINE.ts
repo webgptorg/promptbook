@@ -23,7 +23,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * @private [🪔] Maybe export the commitments through some package
  */
 export class UseSearchEngineCommitmentDefinition extends BaseCommitmentDefinition<'USE SEARCH ENGINE'> {
-    constructor() {
+    public constructor() {
         super('USE SEARCH ENGINE', ['SEARCH ENGINE', 'SEARCH']);
     }
 

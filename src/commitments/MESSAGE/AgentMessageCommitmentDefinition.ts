@@ -18,7 +18,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * @private [🪔] Maybe export the commitments through some package
  */
 export class AgentMessageCommitmentDefinition extends BaseCommitmentDefinition<'AGENT MESSAGE'> {
-    constructor() {
+    public constructor() {
         super('AGENT MESSAGE');
     }
 
