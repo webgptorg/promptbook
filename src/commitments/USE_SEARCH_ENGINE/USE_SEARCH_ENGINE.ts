@@ -1,6 +1,8 @@
 import { spaceTrim } from 'spacetrim';
-import { TODO_any } from '../../_packages/types.index';
+import { string_javascript_name, TODO_any } from '../../_packages/types.index';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
+import { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
+import { SerpSearchEngine } from '../../search-engines/serp/SerpSearchEngine';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 
 /**
@@ -84,11 +86,6 @@ export class UseSearchEngineCommitmentDefinition extends BaseCommitmentDefinitio
             ? existingTools
             : [
                   ...existingTools,
-                  { type: 'web_search' } as TODO_any,
-                  // <- Note: [🔰] This is just using simple native search tool by OpenAI @see https://platform.openai.com/docs/guides/tools-web-search
-                  //          In future we will use proper MCP search tool:
-                  /*
-   
                   {
                       name: 'web_search',
                       description: spaceTrim(`
@@ -106,8 +103,7 @@ export class UseSearchEngineCommitmentDefinition extends BaseCommitmentDefinitio
                           },
                           required: ['query'],
                       },
-                  },
-                  */
+                  } as TODO_any,
               ];
 
         // Return requirements with updated tools and metadata
@@ -117,6 +113,45 @@ export class UseSearchEngineCommitmentDefinition extends BaseCommitmentDefinitio
             metadata: {
                 ...requirements.metadata,
                 useSearchEngine: content || true,
+            },
+        };
+    }
+
+    /**
+     * Gets the `web_search` tool function implementation.
+     */
+    getToolFunctions(): Record<string_javascript_name, ToolFunction> {
+        return {
+            async web_search(args: { query: string }): Promise<string> {
+                console.log('!!!! [Tool] web_search called', { args });
+
+                const { query } = args;
+
+                if (!query) {
+                    throw new Error('Search query is required');
+                }
+
+                const searchEngine = new SerpSearchEngine();
+                const results = await searchEngine.search(query);
+
+                return spaceTrim(
+                    (block) => `
+                        Search results for "${query}":
+
+                        ${block(
+                            results
+                                .map(
+                                    (result) =>
+                                        spaceTrim(`
+                                            - **${result.title}**
+                                              ${result.url}
+                                              ${result.snippet}
+                                        `),
+                                )
+                                .join('\n\n'),
+                        )}
+                    `,
+                );
             },
         };
     }

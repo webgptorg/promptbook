@@ -22,6 +22,7 @@
 -   Fixed syntax highlighting for `LANGUAGES` and `RULES` in the book editor to ensure the whole word is highlighted, preferring long forms over short forms
 -   Implemented `USE TIME` commitment to add the ability for agents to determine the current date and time.
 -   Added timezone awareness to `USE TIME` commitment.
+-   Make `USE SEARCH` commitment work with `SerpSearchEngine` in `Agents Server`.
 -   Implemented `SerpSearchEngine` that uses the SerpApi to fetch Google search results.
 -   Implemented `GoogleSearchEngine` that uses Google Custom Search JSON API to fetch results.
 -   Defined tools in OpenAI Assistant when creating or updating it through `AgentLlmExecutionTools`.

@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🗾] Make `USE SEARCH` commitment work
 
