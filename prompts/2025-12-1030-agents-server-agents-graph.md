@@ -180,6 +180,7 @@ FROM http://localhost:4440/agents/EqvCgWPytPdfwW
 -   Now, there are shown circles, but the circle has a monotone color of the agent.
 -   This color should be preserved but only as a background, not the full picture.
 -   Look at the list view. List view has proper images of the agents.
+-   It should work for both default images and images set by `META IMAGE` commitment.
 -   You are working with the `Agents Server` application `/apps/agents-server` the home page, agent view `http://localhost:4440/?view=graph`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
