@@ -45,6 +45,8 @@
     -   Make the Agents Graph visually more appealing [1]
         -   The arrow should be at the end of the edge showing the direction of the link
         -   The chip with the agent should be visually more appealing, Use image and color of the agent in a nice looking circle.
+            -   In the agent graph, each agent should have its own profile picture in the circle.
+            -   The color should be preserved but only as a background, not the full picture.
             -   In The tooltip shows the agent description. Do not replicate the agent name.
         -   The Group around federated agent server should be circle, not square.
         -   Also, the group around federated servers should not overlap. It should be separate, distinct clusters. Connection between the agents can go across the federated server group boundary.

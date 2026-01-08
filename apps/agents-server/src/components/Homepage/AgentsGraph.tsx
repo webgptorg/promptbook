@@ -1,12 +1,12 @@
 'use client';
 
+import { generatePlaceholderAgentProfileImageUrl } from '@promptbook-local/core';
 import { string_url } from '@promptbook-local/types';
 import { Loader2 } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ForceGraph2D, { ForceGraphMethods } from 'react-force-graph-2d';
 import { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
-import { keepUnused } from '../../../../../src/utils/organization/keepUnused';
 import { TODO_USE } from '../../../../../src/utils/organization/TODO_USE';
 
 type AgentWithVisibility = AgentBasicInformation & {
@@ -446,27 +446,61 @@ export function AgentsGraph(props: AgentsGraphProps) {
                         ctx.strokeStyle = '#fff';
                         ctx.stroke();
 
-                        // 2. Draw agent image if available
-                        const imageUrl = n.agent.meta.image;
-                        if (imageUrl) {
-                            let img = imageCache.current[imageUrl];
-                            if (!img) {
-                                img = new Image();
-                                img.src = imageUrl;
-                                img.onload = () => {
-                                    imageCache.current[imageUrl] = img!;
-                                    // Trigger a re-render if needed, but usually force-graph handles it
-                                };
+                        // 2. Draw agent image
+                        const imageUrl =
+                            n.agent.meta.image || generatePlaceholderAgentProfileImageUrl(n.agent.agentName, publicUrl);
+
+                        let img = imageCache.current[imageUrl];
+                        if (!img) {
+                            img = new Image();
+                            img.src = imageUrl;
+                            img.onload = () => {
+                                imageCache.current[imageUrl] = img!;
+                                // Trigger a re-render if needed, but usually force-graph handles it
+                            };
+                        }
+
+                        if (img.complete && img.naturalWidth !== 0) {
+                            ctx.save();
+                            ctx.beginPath();
+                            ctx.arc(x, y, size - 1, 0, 2 * Math.PI, false);
+                            ctx.clip();
+
+                            // Calculate cover fit (CSS object-fit: cover)
+                            const imgWidth = img.naturalWidth;
+                            const imgHeight = img.naturalHeight;
+                            const targetWidth = size * 2;
+                            const targetHeight = size * 2;
+                            const imgAspect = imgWidth / imgHeight;
+                            const targetAspect = targetWidth / targetHeight;
+
+                            let drawWidth, drawHeight, offsetX, offsetY;
+                            if (imgAspect > targetAspect) {
+                                // Image is wider than target
+                                drawHeight = targetHeight;
+                                drawWidth = imgAspect * drawHeight;
+                                offsetX = (targetWidth - drawWidth) / 2;
+                                offsetY = 0;
+                            } else {
+                                // Image is taller than target
+                                drawWidth = targetWidth;
+                                drawHeight = drawWidth / imgAspect;
+                                offsetX = 0;
+                                offsetY = (targetHeight - drawHeight) / 2;
                             }
 
-                            if (img.complete && img.naturalWidth !== 0) {
-                                ctx.save();
-                                ctx.beginPath();
-                                ctx.arc(x, y, size - 1, 0, 2 * Math.PI, false);
-                                ctx.clip();
-                                ctx.drawImage(img, x - size, y - size, size * 2, size * 2);
-                                ctx.restore();
-                            }
+                            ctx.drawImage(img, x - size + offsetX, y - size + offsetY, drawWidth, drawHeight);
+                            ctx.restore();
+                        } else {
+                            // Draw fallback initial
+                            const fullname = n.agent.meta.fullname || n.agent.agentName || 'Agent';
+                            const initial = fullname.charAt(0).toUpperCase();
+                            const fontSize = 14 / globalScale;
+                            ctx.font = `bold ${fontSize}px Sans-Serif`;
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.fillStyle = '#fff';
+                            ctx.fillText(initial, x, y);
                         }
 
                         // 3. Draw the label
@@ -507,7 +541,9 @@ export function AgentsGraph(props: AgentsGraphProps) {
 
                             let maxDist = 0;
                             nodes.forEach((n) => {
-                                const dist = Math.sqrt(Math.pow((n.x || 0) - centerX, 2) + Math.pow((n.y || 0) - centerY, 2));
+                                const dist = Math.sqrt(
+                                    Math.pow((n.x || 0) - centerX, 2) + Math.pow((n.y || 0) - centerY, 2),
+                                );
                                 maxDist = Math.max(maxDist, dist);
                             });
 

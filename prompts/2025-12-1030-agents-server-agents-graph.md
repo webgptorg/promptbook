@@ -173,7 +173,7 @@ FROM http://localhost:4440/agents/EqvCgWPytPdfwW
 
 ---
 
-[ ]
+[x]
 
 [✨⌨️] In the agent graph, each agent should have its own profile picture in the circle.
 
