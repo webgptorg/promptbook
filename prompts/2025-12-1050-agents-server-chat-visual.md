@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🌑] Inherit the meta properties into the agent profile.
 

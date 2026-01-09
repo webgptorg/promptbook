@@ -72,3 +72,4 @@
 -   Added grained background to the chat page (matching the agent profile page)
 -   Increased saturation of agent messages for better visibility
 -   Fixed chat page height to exactly 100vh to prevent unnecessary scrolling
+-   Recursive inheritance for meta properties (e.g. `META COLOR`) in `Agents Server`
