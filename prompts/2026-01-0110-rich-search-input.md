@@ -1,4 +1,4 @@
-[x]
+[x] [ ]
 
 [✨🗾] Make `USE SEARCH` commitment work
 
@@ -7,7 +7,7 @@
 -   For the search engines use `SerpSearchEngine`
 -   There is already a working [playground for the search](http://localhost:4440/admin/search-engine-test).
 -   It should work with the `Agents Server` application `/apps/agents-server`
--   **For the reference, look how `USE TIME` commitment is implemented.**
+-   **For the reference, look how `USE TIME` commitment is implemented, implement/review entire vertical from commitment to agents server .**
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
 
