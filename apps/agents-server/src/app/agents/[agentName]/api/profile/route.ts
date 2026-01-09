@@ -141,4 +141,5 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
 
 /**
  * TODO: [🍞] DRY - Make some common utility for API on one agent
+ * TODO: !!!! maybe use standard resolve inheritance
  */
