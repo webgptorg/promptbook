@@ -25,7 +25,7 @@ import type { AgentChatProps } from './AgentChatProps';
 export function AgentChat(props: AgentChatProps) {
     const { agent, title, persistenceKey, onChange, sendMessage, ...restProps } = props;
 
-    const brandColor = Color.fromSafe(agent.meta.color || PROMPTBOOK_COLOR).then(saturate(-0.5));
+    const brandColor = Color.fromSafe(agent.meta.color || PROMPTBOOK_COLOR).then(saturate(-0.2));
 
     return (
         <>

@@ -7,17 +7,21 @@ import { upload } from '@vercel/blob/client';
 import { useCallback, useEffect, useMemo } from 'react';
 import { OpenAiSpeechRecognition } from '../../../../../../src/speech-recognition/OpenAiSpeechRecognition';
 import { string_agent_url } from '../../../../../../src/types/typeAliases';
+import { useAgentBackground } from '../../../components/AgentProfile/useAgentBackground';
 
 type AgentChatWrapperProps = {
     agentUrl: string_agent_url;
     defaultMessage?: string;
     autoExecuteMessage?: string;
+    brandColor?: string;
 };
 
 // TODO: [🐱‍🚀] Rename to AgentChatSomethingWrapper
 
 export function AgentChatWrapper(props: AgentChatWrapperProps) {
-    const { agentUrl, defaultMessage, autoExecuteMessage } = props;
+    const { agentUrl, defaultMessage, autoExecuteMessage, brandColor } = props;
+
+    const { backgroundImage } = useAgentBackground(brandColor);
 
     const agentPromise = useMemo(
         () =>
@@ -99,6 +103,11 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
     return (
         <AgentChat
             className={`w-full h-full`}
+            style={{
+                backgroundImage: `url("${backgroundImage}")`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+            }}
             agent={agent}
             onFeedback={handleFeedback}
             onFileUpload={handleFileUpload}

@@ -68,3 +68,7 @@
 -   Implemented modular voice speech input in `<Chat/>` with two providers: `BrowserSpeechRecognition` (Web Speech API) and `OpenAiSpeechRecognition` (Whisper API).
 -   Added voice input test page at `/admin/voice-input-test` in Agents Server.
 -   Added microphone button to `<Chat/>` with visual recording indicators and real-time transcription insertion.
+-   Enhanced visuals of the agent chat page
+-   Added grained background to the chat page (matching the agent profile page)
+-   Increased saturation of agent messages for better visibility
+-   Fixed chat page height to exactly 100vh to prevent unnecessary scrolling

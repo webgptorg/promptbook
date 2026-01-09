@@ -6,6 +6,7 @@ import { isAgentDeleted } from '../_utils';
 import { generateAgentMetadata } from '../generateAgentMetadata';
 import { AgentChatWrapper } from '../AgentChatWrapper';
 import { DeletedAgentBanner } from '../../../../components/DeletedAgentBanner';
+import { getAgentProfile } from '../_utils';
 
 export const generateMetadata = generateAgentMetadata;
 
@@ -22,6 +23,7 @@ export default async function AgentChatPage({
     const { message } = await searchParams;
 
     const isDeleted = await isAgentDeleted(agentName);
+    const agentProfile = await getAgentProfile(agentName);
 
     if (isDeleted) {
         return (
@@ -34,8 +36,12 @@ export default async function AgentChatPage({
     const agentUrl = `/agents/${agentName}`;
 
     return (
-        <main className={`w-screen h-screen`}>
-            <AgentChatWrapper agentUrl={agentUrl} autoExecuteMessage={message} />
+        <main className={`w-screen h-[100dvh] overflow-hidden`}>
+            <AgentChatWrapper
+                agentUrl={agentUrl}
+                autoExecuteMessage={message}
+                brandColor={agentProfile.meta.color}
+            />
         </main>
     );
 }
