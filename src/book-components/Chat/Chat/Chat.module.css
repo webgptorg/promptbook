@@ -209,11 +209,6 @@
     max-width: 100%;
 }
 
-/* Add top margin to first message if actions are present and first message is long */
-.hasActionsAndFirstMessageIsLong {
-    margin-top: 55px;
-}
-
 @keyframes messageSlideIn {
     from {
         opacity: 0;
