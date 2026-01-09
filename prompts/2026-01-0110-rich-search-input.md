@@ -15,6 +15,25 @@
 
 [ ]
 
+[✨🗾] When using search, show the sources.
+
+-   Show some good-looking chiplet with the information that search was used and also link to the search.
+-   For example "[🔎 Venezuela]"
+-   When clicked on the searching chiplet, it should open the pop-up modal with all the information of the tool call.
+-   The extra information About the function call which will be in the pop-up modal should be contained in the `ChatMessage` object.
+-   How models are implemented across the agent server, keeping my DRY principle.
+-   In future, this will be used for all sorts of asking for the external information.
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Try to reuse existing components where possible, for example there are existing chiplet when the tool call is in progress for showing tool calls.
+-   Add the changes into the `/changelog/_current-preversion.md`
+
+![alt text](screenshots/2026-01-0110-rich-search-input.png)
+
+---
+
+[ ]
+
 [✨🗾] Allow AI to leverage all the options and possibilities of SERP search engine.
 
 -   The common interface, the `SearchEngine`, just allows to pass raw text search query into the search engine.
