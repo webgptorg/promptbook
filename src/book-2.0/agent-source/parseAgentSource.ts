@@ -94,6 +94,15 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
             continue;
         }
 
+        if (commitment.type === 'USE SEARCH') {
+            capabilities.push({
+                type: 'search-engine',
+                label: 'Search Internet',
+                iconName: 'Search',
+            });
+            continue;
+        }
+
         if (commitment.type === 'USE TIME') {
             capabilities.push({
                 type: 'time',

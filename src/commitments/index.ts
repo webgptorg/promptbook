@@ -112,6 +112,8 @@ export const COMMITMENT_REGISTRY = [
     new NotYetImplementedCommitmentDefinition('AVOID'),
     new NotYetImplementedCommitmentDefinition('AVOIDANCE'),
     new NotYetImplementedCommitmentDefinition('CONTEXT'),
+
+    // <- TODO: Prompt: Leverage aliases instead of duplicating commitment definitions
 ] as const satisfies ReadonlyArray<CommitmentDefinition>;
 
 /**

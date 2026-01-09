@@ -24,7 +24,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  */
 export class UseSearchEngineCommitmentDefinition extends BaseCommitmentDefinition<'USE SEARCH ENGINE'> {
     public constructor() {
-        super('USE SEARCH ENGINE', ['SEARCH ENGINE', 'SEARCH']);
+        super('USE SEARCH ENGINE', ['USE SEARCH']);
     }
 
     /**
