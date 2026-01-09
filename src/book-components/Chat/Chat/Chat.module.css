@@ -826,9 +826,9 @@
     z-index: 10;
     grid-area: 📝;
     width: 100%;
-    padding: 20px;
-    backdrop-filter: blur(20px);
-    border-top: 1px solid rgba(125, 125, 125, 0.1);
+    padding: 24px;
+    backdrop-filter: blur(25px);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.8) 100%);
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -838,7 +838,6 @@
 /* File upload drag-and-drop styles */
 .chatMainFlow .chatInput.dragOver {
     background: linear-gradient(to top, rgba(0, 132, 255, 0.1) 0%, rgba(0, 132, 255, 0.05) 100%);
-    border-top: 2px solid rgba(0, 132, 255, 0.3);
 }
 
 /* File preview container */
@@ -917,73 +916,79 @@
 /* Input container for textarea and buttons */
 .inputContainer {
     display: flex;
-    align-items: center;
-    gap: 12px;
+    align-items: flex-end;
+    gap: 8px;
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 28px;
+    padding: 8px 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.inputContainer:focus-within {
+    border-color: var(--brand-color);
+    box-shadow: 0 8px 32px rgba(0, 132, 255, 0.12);
+    transform: translateY(-2px);
 }
 
 .inputContainer textarea::placeholder {
-    color: inherit;
-    opacity: 0.7;
+    color: #94a3b8;
+    opacity: 1;
 }
 
 /* Attachment button */
 .attachmentButton {
     width: 40px;
     height: 40px;
-    border: 1px solid rgba(125, 125, 125, 0.2);
-    background: rgba(125, 125, 125, 0.05);
-    color: #6b7280;
+    border: none;
+    background: transparent;
+    color: #64748b;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     transition: all 0.2s ease;
-    backdrop-filter: blur(10px);
     flex-shrink: 0;
+    margin-bottom: 2px;
 }
 
 .attachmentButton:hover:not(:disabled) {
-    background: rgba(0, 132, 255, 0.1);
-    border-color: rgba(0, 132, 255, 0.3);
-    color: #0084ff;
-    transform: scale(1.05);
+    background: #f1f5f9;
+    color: #0f172a;
 }
 
 .attachmentButton:disabled {
-    opacity: 0.5;
+    opacity: 0.3;
     cursor: not-allowed;
-    transform: none;
 }
 
 /* Voice Button */
 .voiceButton {
     width: 40px;
     height: 40px;
-    border: 1px solid rgba(125, 125, 125, 0.2);
-    background: rgba(125, 125, 125, 0.05);
-    color: #6b7280;
+    border: none;
+    background: transparent;
+    color: #64748b;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     transition: all 0.2s ease;
-    backdrop-filter: blur(10px);
     flex-shrink: 0;
+    margin-bottom: 2px;
 }
 
-.voiceButton:hover {
-    background: rgba(0, 132, 255, 0.1);
-    border-color: rgba(0, 132, 255, 0.3);
-    color: #0084ff;
-    transform: scale(1.05);
+.voiceButton:hover:not(:disabled) {
+    background: #f1f5f9;
+    color: #0f172a;
 }
 
 .voiceButtonActive {
-    background: rgba(255, 0, 0, 0.1) !important;
-    border-color: rgba(255, 0, 0, 0.3) !important;
-    color: #ff0000 !important;
+    background: rgba(239, 68, 68, 0.1) !important;
+    color: #ef4444 !important;
     animation: voiceRecordingPulse 1.5s infinite;
 }
 
@@ -1074,19 +1079,17 @@
 /* Chat input field */
 .chatMainFlow .chatInput textarea {
     flex: 1;
-    padding: 16px 20px;
-
+    padding: 10px 12px;
+    margin: 0;
+    border: none;
     outline: none;
-    border-radius: 25px;
-    background: rgba(125, 125, 125, 0.05);
-    backdrop-filter: blur(20px);
-    color: black;
-    min-width: 200px;
-    max-height: 120px;
+    background: transparent;
+    color: #0f172a;
+    min-width: 100px;
+    max-height: 200px;
     font-size: 15px;
-    line-height: 1.4;
+    line-height: 1.5;
     resize: none;
-    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     appearance: none;
     -webkit-appearance: none;
     -webkit-tap-highlight-color: transparent;
@@ -1094,10 +1097,7 @@
 }
 
 .chatMainFlow .chatInput textarea:focus {
-    border-color: #0084ff;
-    background: rgba(125, 125, 125, 0.08);
-    box-shadow: 0 0 0 4px rgba(0, 132, 255, 0.1), 0 8px 32px rgba(0, 132, 255, 0.15);
-    transform: translateY(-2px);
+    /* Focus is handled by .inputContainer */
 }
 
 .chatMainFlow .chatInput textarea:disabled {
@@ -1112,15 +1112,13 @@
 }
 
 /* Chat send button */
-.chatMainFlow .chatInput button {
-    width: 48px;
-    height: 48px;
-    margin: 0 !important;
+.chatMainFlow .chatInput button[data-button-type='call-to-action'] {
+    width: 40px;
+    height: 40px;
+    margin: 0 0 2px 0 !important;
     padding: 0 !important;
 
     border: none;
-    /* background: linear-gradient(135deg, #0084ff 0%, #0066cc 100%); */
-    /* <- Note: Background is set in the inline style */
     color: #ffffff;
     display: flex;
     align-items: center;
@@ -1129,15 +1127,27 @@
     aspect-ratio: 1 / 1;
     min-width: unset !important;
     min-height: unset !important;
-    padding-left: unset;
-    padding-right: unset;
 
     transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    box-shadow: 0 4px 16px rgba(0, 132, 255, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 132, 255, 0.25);
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
     user-select: none;
     overflow: visible;
+}
+
+.chatMainFlow .chatInput button[data-button-type='call-to-action']:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 16px rgba(0, 132, 255, 0.35);
+}
+
+.chatMainFlow .chatInput button[data-button-type='call-to-action']:active {
+    transform: scale(0.95);
+}
+
+.chatMainFlow .chatInput button[data-button-type='call-to-action'] svg {
+    width: 20px;
+    height: 20px;
 }
 
 .chatMainFlow .chatInput button img {

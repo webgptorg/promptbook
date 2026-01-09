@@ -695,6 +695,7 @@ export function Chat(props: ChatProps) {
                                                 // <- TODO: Remove
                                                 '--input-bg-color': inputBgColor.toHex(),
                                                 '--input-text-color': inputTextColor.toHex(),
+                                                '--brand-color': buttonColor.toHex(),
                                             } as React.CSSProperties
                                         }
                                     >

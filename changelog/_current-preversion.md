@@ -73,3 +73,4 @@
 -   Increased saturation of agent messages for better visibility
 -   Fixed chat page height to exactly 100vh to prevent unnecessary scrolling
 -   Recursive inheritance for meta properties (e.g. `META COLOR`) in `Agents Server`
+-   Enhanced the visual design of the chat input area with a more modern capsule-like design, better padding, refined button styling, and brand-color focus highlights.
