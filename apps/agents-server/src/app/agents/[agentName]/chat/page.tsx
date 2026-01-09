@@ -36,7 +36,7 @@ export default async function AgentChatPage({
     const agentUrl = `/agents/${agentName}`;
 
     return (
-        <main className={`w-screen h-[100dvh] overflow-hidden`}>
+        <main className={`w-full h-full overflow-hidden`}>
             <AgentChatWrapper
                 agentUrl={agentUrl}
                 autoExecuteMessage={message}

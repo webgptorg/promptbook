@@ -34,6 +34,7 @@ export function LayoutWrapper({
     const searchParams = useSearchParams();
     const isHeadless = searchParams.has('headless');
     // const isAdminChatPage = pathname?.startsWith('/admin/chat-history') || pathname?.startsWith('/admin/chat-feedback');
+    const isChatPage = pathname ? /^\/agents\/[^/]+\/chat$/.test(pathname) : false;
     const isHeaderHidden = false; // pathname?.includes('/chat') && !isAdminChatPage;
     const isFooterHiddenOnPage = pathname ? /^\/agents\/[^/]+\/(book|chat|book\+chat)$/.test(pathname) : false;
 
@@ -51,7 +52,7 @@ export function LayoutWrapper({
                 agents={agents}
                 federatedServers={federatedServers}
             />
-            <main className={`pt-[60px]`}>{children}</main>
+            <main className={isChatPage ? `h-[100dvh] pt-[60px] overflow-hidden` : `pt-[60px]`}>{children}</main>
             {isFooterShown && !isFooterHiddenOnPage && <Footer extraLinks={footerLinks} />}
         </MenuHoistingProvider>
     );
