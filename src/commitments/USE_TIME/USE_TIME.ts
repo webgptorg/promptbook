@@ -93,13 +93,19 @@ export class UseTimeCommitmentDefinition extends BaseCommitmentDefinition<'USE T
               ];
 
         // Return requirements with updated tools and metadata
-        return {
-            ...requirements,
-            tools: updatedTools,
-            metadata: {
-                ...requirements.metadata,
+        return this.appendToSystemMessage(
+            {
+                ...requirements,
+                tools: updatedTools,
+                metadata: {
+                    ...requirements.metadata,
+                },
             },
-        };
+            spaceTrim(`
+                You have access to the current date and time. Use it to answer questions about the current date and time.
+                When you need to know the current date or time, use the tool provided to you.
+            `),
+        );
     }
 
     /**

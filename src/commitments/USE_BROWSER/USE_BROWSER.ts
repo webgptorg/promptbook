@@ -126,14 +126,20 @@ export class UseBrowserCommitmentDefinition extends BaseCommitmentDefinition<'US
               ] satisfies Array<LlmToolDefinition>);
 
         // Return requirements with updated tools and metadata
-        return {
-            ...requirements,
-            tools: updatedTools,
-            metadata: {
-                ...requirements.metadata,
-                useBrowser: true,
+        return this.appendToSystemMessage(
+            {
+                ...requirements,
+                tools: updatedTools,
+                metadata: {
+                    ...requirements.metadata,
+                    useBrowser: true,
+                },
             },
-        };
+            spaceTrim(`
+                You have access to the web browser. Use it to access specific websites or browse the internet.
+                When you need to know some information from a specific website, use the tool provided to you.
+            `),
+        );
     }
 }
 

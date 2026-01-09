@@ -107,14 +107,20 @@ export class UseSearchEngineCommitmentDefinition extends BaseCommitmentDefinitio
               ];
 
         // Return requirements with updated tools and metadata
-        return {
-            ...requirements,
-            tools: updatedTools,
-            metadata: {
-                ...requirements.metadata,
-                useSearchEngine: content || true,
+        return this.appendToSystemMessage(
+            {
+                ...requirements,
+                tools: updatedTools,
+                metadata: {
+                    ...requirements.metadata,
+                    useSearchEngine: content || true,
+                },
             },
-        };
+            spaceTrim(`
+                You have access to the web search engine. Use it to find up-to-date information or facts that you don't know.
+                When you need to know some information from the internet, use the tool provided to you.
+            `),
+        );
     }
 
     /**
