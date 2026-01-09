@@ -35,6 +35,7 @@ export function LlmChat(props: LlmChatProps) {
         llmParticipantName = 'ASSISTANT',
         autoExecuteMessage,
         buttonColor,
+        toolTitles,
         ...restProps
     } = props;
 
@@ -297,7 +298,7 @@ export function LlmChat(props: LlmChatProps) {
         <>
             <Chat
                 {...restProps}
-                {...{ messages, onReset, tasksProgress, participants, buttonColor }}
+                {...{ messages, onReset, tasksProgress, participants, buttonColor, toolTitles }}
                 onMessage={handleMessage}
                 onReset={handleReset}
                 isVoiceCalling={isVoiceCalling}

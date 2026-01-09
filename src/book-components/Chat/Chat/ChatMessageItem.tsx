@@ -48,6 +48,11 @@ type ChatMessageItemProps = Pick<ChatProps, 'onMessage' | 'participants'> & {
      * Called when the create agent button is pressed for book code blocks.
      */
     onCreateAgent?: (bookContent: string) => void;
+    /**
+     * Optional mapping of technical tool names to human-readable titles.
+     * e.g., { "web_search": "Searching the web..." }
+     */
+    toolTitles?: Record<string, string>;
 };
 
 /**
@@ -71,6 +76,7 @@ export const ChatMessageItem = memo(
         isFeedbackEnabled,
         onCopy,
         onCreateAgent,
+        toolTitles,
     }: ChatMessageItemProps) => {
         const avatarSrc = participant?.avatarSrc || null;
         const [isAvatarTooltipVisible, setIsAvatarTooltipVisible] = useState(false);
@@ -364,16 +370,21 @@ export const ChatMessageItem = memo(
                     {!message.isComplete && (
                         <div className={styles.ongoingToolCalls}>
                             {message.ongoingToolCalls && message.ongoingToolCalls.length > 0 ? (
-                                message.ongoingToolCalls.map((toolCall, index) => (
-                                    <div key={index} className={styles.ongoingToolCall}>
-                                        <div className={styles.ongoingToolCallSpinner} />
-                                        <span className={styles.ongoingToolCallName}>
-                                            {toolCall.name === 'search' || toolCall.name === 'useSearchEngine'
-                                                ? 'Searching...'
-                                                : `Executing ${toolCall.name}...`}
-                                        </span>
-                                    </div>
-                                ))
+                                message.ongoingToolCalls.map((toolCall, index) => {
+                                    const toolTitle = toolTitles?.[toolCall.name];
+
+                                    return (
+                                        <div key={index} className={styles.ongoingToolCall}>
+                                            <div className={styles.ongoingToolCallSpinner} />
+                                            <span className={styles.ongoingToolCallName}>
+                                                {toolTitle ||
+                                                    (toolCall.name === 'search' || toolCall.name === 'useSearchEngine'
+                                                        ? 'Searching...'
+                                                        : `Executing ${toolCall.name}...`)}
+                                            </span>
+                                        </div>
+                                    );
+                                })
                             ) : (
                                 <span className={styles.NonCompleteMessageFiller}>{'_'.repeat(70)}</span>
                             )}
@@ -499,6 +510,10 @@ export const ChatMessageItem = memo(
         }
 
         if (prev.handleRating !== next.handleRating) {
+            return false;
+        }
+
+        if (prev.toolTitles !== next.toolTitles) {
             return false;
         }
 

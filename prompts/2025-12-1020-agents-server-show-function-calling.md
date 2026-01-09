@@ -11,7 +11,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🎞] Do human-readable titles for showing tool calls.
 

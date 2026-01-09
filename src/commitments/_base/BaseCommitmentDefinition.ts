@@ -142,4 +142,13 @@ export abstract class BaseCommitmentDefinition<TBookCommitment extends string> i
     public getToolFunctions(): Record<string_javascript_name, ToolFunction> {
         return {};
     }
+
+    /**
+     * Gets human-readable titles for tool functions provided by this commitment
+     *
+     * This is used in the UI to show a user-friendly name instead of the technical function name.
+     */
+    public getToolTitles(): Record<string_javascript_name, string> {
+        return {};
+    }
 }

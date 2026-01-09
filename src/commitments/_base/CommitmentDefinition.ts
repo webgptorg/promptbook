@@ -67,4 +67,11 @@ export type CommitmentDefinition = {
      * When the `applyToAgentModelRequirements` adds tools to the requirements, this method should return the corresponding function definitions.
      */
     getToolFunctions(): Record<string_javascript_name, ToolFunction>;
+
+    /**
+     * Gets human-readable titles for tool functions provided by this commitment
+     *
+     * This is used in the UI to show a user-friendly name instead of the technical function name.
+     */
+    getToolTitles(): Record<string_javascript_name, string>;
 };

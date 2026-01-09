@@ -18,4 +18,10 @@ export type AgentChatProps = Omit<
      * The agent to chat with
      */
     readonly agent: Agent;
+
+    /**
+     * Optional mapping of technical tool names to human-readable titles.
+     * e.g., { "web_search": "Searching the web..." }
+     */
+    readonly toolTitles?: Record<string, string>;
 };

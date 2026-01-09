@@ -80,6 +80,7 @@ export function Chat(props: ChatProps) {
         buttonColor: buttonColorRaw,
         onUseTemplate,
         onCreateAgent,
+        toolTitles,
     } = props;
 
     const buttonColor = useMemo(() => Color.from(buttonColorRaw || '#0066cc'), [buttonColorRaw]);
@@ -630,6 +631,7 @@ export function Chat(props: ChatProps) {
                                     isFeedbackEnabled={isFeedbackEnabled}
                                     onCopy={handleCopy}
                                     onCreateAgent={onCreateAgent}
+                                    toolTitles={toolTitles}
                                 />
                             );
                         })}

@@ -178,6 +178,12 @@ export type ChatProps = {
     readonly participants?: ReadonlyArray<ChatParticipant>;
 
     /**
+     * Optional mapping of technical tool names to human-readable titles.
+     * e.g., { "web_search": "Searching the web..." }
+     */
+    readonly toolTitles?: Record<string, string>;
+
+    /**
      * Optional callback for handling user feedback on messages
      * When provided, star rating buttons (1-5 stars) will be displayed next to each message
      *

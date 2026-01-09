@@ -109,6 +109,15 @@ export class UseTimeCommitmentDefinition extends BaseCommitmentDefinition<'USE T
     }
 
     /**
+     * Gets human-readable titles for tool functions provided by this commitment.
+     */
+    getToolTitles(): Record<string_javascript_name, string> {
+        return {
+            get_current_time: 'Get current time',
+        };
+    }
+
+    /**
      * Gets the `get_current_time` tool function implementation.
      */
     getToolFunctions(): Record<string_javascript_name, ToolFunction> {

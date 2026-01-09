@@ -104,6 +104,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
                     agentHash,
                     parameters: [], // <- TODO: [😰] Implement parameters
                     isVoiceCallingEnabled, // [✨✷] Add voice calling status
+                    toolTitles: agentProfile.meta.toolTitles || {}, // <- [🧠] Should we have this in meta?
                 },
                 // <- TODO: [🐱‍🚀] Rename `serializeError` to `errorToJson`
                 null,

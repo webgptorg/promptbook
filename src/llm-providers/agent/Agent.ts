@@ -14,6 +14,7 @@ import { padBook } from '../../book-2.0/agent-source/padBook';
 import { parseAgentSource } from '../../book-2.0/agent-source/parseAgentSource';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import { validateBook } from '../../book-2.0/agent-source/string_book';
+import { getAllCommitmentsToolTitles } from '../../commitments';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
@@ -105,6 +106,11 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
     } = {};
 
     /**
+     * Human-readable titles for tool functions
+     */
+    public toolTitles: Record<string, string> = {};
+
+    /**
      * Not used in Agent, always returns empty array
      */
     get parameters(): Array<BookParameter> {
@@ -141,6 +147,7 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
             this.capabilities = capabilities;
             this.samples = samples;
             this.meta = { ...this.meta, ...meta };
+            this.toolTitles = getAllCommitmentsToolTitles();
         });
     }
 

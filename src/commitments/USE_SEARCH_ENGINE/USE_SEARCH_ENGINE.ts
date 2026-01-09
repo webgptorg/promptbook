@@ -124,6 +124,15 @@ export class UseSearchEngineCommitmentDefinition extends BaseCommitmentDefinitio
     }
 
     /**
+     * Gets human-readable titles for tool functions provided by this commitment.
+     */
+    getToolTitles(): Record<string_javascript_name, string> {
+        return {
+            web_search: 'Web search',
+        };
+    }
+
+    /**
      * Gets the `web_search` tool function implementation.
      */
     getToolFunctions(): Record<string_javascript_name, ToolFunction> {

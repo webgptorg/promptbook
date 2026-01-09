@@ -234,6 +234,22 @@ export function getAllCommitmentsToolFunctions(): Record<string_javascript_name,
 }
 
 /**
+ * Gets all tool titles provided by all commitments
+ *
+ * @public exported from `@promptbook/core`
+ */
+export function getAllCommitmentsToolTitles(): Record<string_javascript_name, string> {
+    const allToolTitles: Record<string_javascript_name, string> = {};
+    for (const commitmentDefinition of getAllCommitmentDefinitions()) {
+        const toolTitles = commitmentDefinition.getToolTitles();
+        for (const [funcName, title] of Object.entries(toolTitles)) {
+            allToolTitles[funcName as string_javascript_name] = title;
+        }
+    }
+    return allToolTitles;
+}
+
+/**
  * TODO: [🧠] Maybe create through standardized $register
  * Note: [💞] Ignore a discrepancy between file name and entity name
  */

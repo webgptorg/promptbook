@@ -23,7 +23,7 @@ import type { AgentChatProps } from './AgentChatProps';
  * @public exported from `@promptbook/components`
  */
 export function AgentChat(props: AgentChatProps) {
-    const { agent, title, persistenceKey, onChange, sendMessage, ...restProps } = props;
+    const { agent, title, persistenceKey, onChange, sendMessage, toolTitles, ...restProps } = props;
 
     const brandColor = Color.fromSafe(agent.meta.color || PROMPTBOOK_COLOR).then(saturate(-0.2));
 
@@ -65,7 +65,7 @@ export function AgentChat(props: AgentChatProps) {
                     },
                 ]}
                 buttonColor={brandColor}
-                {...{ llmTools: agent, onChange, sendMessage }}
+                {...{ llmTools: agent, onChange, sendMessage, toolTitles }}
                 {...restProps}
             />
         </>

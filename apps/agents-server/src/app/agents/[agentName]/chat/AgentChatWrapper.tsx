@@ -2,7 +2,7 @@
 
 import { usePromise } from '@common/hooks/usePromise';
 import { AgentChat } from '@promptbook-local/components';
-import { RemoteAgent } from '@promptbook-local/core';
+import { getAllCommitmentsToolTitles, RemoteAgent } from '@promptbook-local/core';
 import { useCallback, useMemo } from 'react';
 import { string_agent_url } from '../../../../../../../src/types/typeAliases';
 
@@ -60,7 +60,14 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
         return <>{/* <- TODO: [🐱‍🚀] <PromptbookLoading /> */}</>;
     }
 
-    return <AgentChat className={`w-full h-full`} agent={agent} onFeedback={handleFeedback} />;
+    return (
+        <AgentChat
+            className={`w-full h-full`}
+            agent={agent}
+            onFeedback={handleFeedback}
+            toolTitles={agent.toolTitles || getAllCommitmentsToolTitles()}
+        />
+    );
 }
 
 /**

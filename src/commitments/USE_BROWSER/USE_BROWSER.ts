@@ -93,6 +93,15 @@ export class UseBrowserCommitmentDefinition extends BaseCommitmentDefinition<'US
         `);
     }
 
+    /**
+     * Gets human-readable titles for tool functions provided by this commitment.
+     */
+    getToolTitles(): Record<string, string> {
+        return {
+            web_browser: 'Web browser',
+        };
+    }
+
     applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
         // The content after USE BROWSER is ignored (similar to NOTE)
         TODO_USE(content);
