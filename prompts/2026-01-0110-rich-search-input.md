@@ -52,9 +52,16 @@
 
 [✨🗾] Sources chips should work better
 
--   @@@
+-   When external tools are used for example via commitment `USE SEARCH ENGINE`, there is shown a source chiplet under the agent response message in the chat.
+-   Ship looks extremely technical, like "[web_search]", which is not user-friendly.
+-   The chiplet should look more user-friendly, for example "[🔎 Venezuela]"
+-   When clicking on the chiplet, it opens a modal with detailed information about the tool call, including the arguments passed to the tool and the results returned by the tool.
+-   The detailed information in the modal should be also formatted in a user-friendly way, making it easy to understand what the tool call entailed.
+-   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
+
+![alt text](screenshots/2026-01-0110-rich-search-input-1.png)
 
 ---
 
