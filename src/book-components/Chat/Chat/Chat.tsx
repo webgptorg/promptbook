@@ -885,19 +885,60 @@ export function Chat(props: ChatProps) {
                             <p>
                                 <strong>Arguments:</strong>
                             </p>
-                            <pre className={styles.toolCallData}>
-                                {typeof selectedToolCall.arguments === 'string'
-                                    ? selectedToolCall.arguments
-                                    : JSON.stringify(selectedToolCall.arguments, null, 4)}
-                            </pre>
+                            <div className={styles.toolCallDataContainer}>
+                                {(() => {
+                                    const args = typeof selectedToolCall.arguments === 'string'
+                                        ? JSON.parse(selectedToolCall.arguments)
+                                        : selectedToolCall.arguments;
+
+                                    if (args && typeof args === 'object') {
+                                        return (
+                                            <ul className={styles.toolCallArgsList}>
+                                                {Object.entries(args).map(([key, value]) => (
+                                                    <li key={key}>
+                                                        <strong>{key}:</strong> {typeof value === 'object' ? JSON.stringify(value) : String(value)}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        );
+                                    }
+
+                                    return <pre className={styles.toolCallData}>{String(args)}</pre>;
+                                })()}
+                            </div>
                             <p>
                                 <strong>Result:</strong>
                             </p>
-                            <pre className={styles.toolCallData}>
-                                {typeof selectedToolCall.result === 'string'
-                                    ? selectedToolCall.result
-                                    : JSON.stringify(selectedToolCall.result, null, 4)}
-                            </pre>
+                            <div className={styles.toolCallDataContainer}>
+                                {(() => {
+                                    const result = selectedToolCall.result;
+
+                                    if (Array.isArray(result)) {
+                                        return (
+                                            <div className={styles.toolCallResultList}>
+                                                {result.map((item, i) => (
+                                                    <div key={i} className={styles.toolCallResultItem}>
+                                                        {typeof item === 'object' ? (
+                                                            <>
+                                                                {item.title && <h4>{item.title}</h4>}
+                                                                {item.url && <a href={item.url} target="_blank" rel="noreferrer">{item.url}</a>}
+                                                                {item.content && <p>{item.content}</p>}
+                                                                {!item.title && !item.url && !item.content && <pre>{JSON.stringify(item, null, 2)}</pre>}
+                                                            </>
+                                                        ) : String(item)}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        );
+                                    }
+
+                                    if (result && typeof result === 'object') {
+                                        return <pre className={styles.toolCallData}>{JSON.stringify(result, null, 4)}</pre>;
+                                    }
+
+                                    return <pre className={styles.toolCallData}>{String(result)}</pre>;
+                                })()}
+                            </div>
                         </div>
 
                         <div className={styles.ratingActions}>

@@ -14,6 +14,7 @@ import { classNames } from '../../_common/react-utils/classNames';
 import { MarkdownContent } from '../MarkdownContent/MarkdownContent';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
+import { getToolCallChipletText, TOOL_TITLES } from '../utils/formatToolCall';
 import { parseMessageButtons } from '../utils/parseMessageButtons';
 import styles from './Chat.module.css';
 import type { ChatProps } from './ChatProps';
@@ -376,20 +377,7 @@ export const ChatMessageItem = memo(
                 {message.completedToolCalls && message.completedToolCalls.length > 0 && (
                     <div className={styles.completedToolCalls}>
                         {message.completedToolCalls.map((toolCall, index) => {
-                            const isSearch = toolCall.name === 'search' || toolCall.name === 'useSearchEngine';
-                            const toolTitle = toolTitles?.[toolCall.name];
-
-                            // [🔎 Venezuela]
-                            let chipletText = toolTitle || toolCall.name;
-                            if (isSearch && toolCall.arguments) {
-                                const args =
-                                    typeof toolCall.arguments === 'string'
-                                        ? JSON.parse(toolCall.arguments)
-                                        : toolCall.arguments;
-                                if (args.query) {
-                                    chipletText = `🔎 ${args.query}`;
-                                }
-                            }
+                            const chipletText = getToolCallChipletText(toolCall);
 
                             return (
                                 <button
@@ -413,16 +401,15 @@ export const ChatMessageItem = memo(
                     <div className={styles.ongoingToolCalls}>
                             {message.ongoingToolCalls && message.ongoingToolCalls.length > 0 ? (
                                 message.ongoingToolCalls.map((toolCall, index) => {
-                                    const toolTitle = toolTitles?.[toolCall.name];
+                                    const toolInfo = TOOL_TITLES[toolCall.name];
+                                    const toolTitle = toolTitles?.[toolCall.name] || toolInfo?.title;
+                                    const emoji = toolInfo?.emoji || '🛠️';
 
                                     return (
                                         <div key={index} className={styles.ongoingToolCall}>
                                             <div className={styles.ongoingToolCallSpinner} />
                                             <span className={styles.ongoingToolCallName}>
-                                                {toolTitle ||
-                                                    (toolCall.name === 'search' || toolCall.name === 'useSearchEngine'
-                                                        ? 'Searching...'
-                                                        : `Executing ${toolCall.name}...`)}
+                                                {toolTitle ? `${emoji} ${toolTitle}...` : `${emoji} Executing ${toolCall.name}...`}
                                             </span>
                                         </div>
                                     );
