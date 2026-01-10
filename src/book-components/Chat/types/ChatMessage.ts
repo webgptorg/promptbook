@@ -1,5 +1,6 @@
 import { Message } from '../../../types/Message';
 import type { id, string_markdown } from '../../../types/typeAliases';
+import type { TODO_any } from '../../../utils/organization/TODO_any';
 
 /**
  * Represents a single message within a chat interface.
@@ -47,6 +48,46 @@ export type ChatMessage = Omit<Message<id>, 'direction' | 'recipients' | 'thread
          * Name of the tool
          */
         readonly name: string;
+
+        /**
+         * Arguments for the tool call
+         */
+        readonly arguments?: string | Record<string, TODO_any>;
+
+        /**
+         * Result of the tool call
+         */
+        readonly result?: TODO_any;
+
+        /**
+         * Raw tool call from the model
+         */
+        readonly rawToolCall?: TODO_any;
+    }>;
+
+    /**
+     * Optional tool calls that have been completed
+     */
+    readonly completedToolCalls?: ReadonlyArray<{
+        /**
+         * Name of the tool
+         */
+        readonly name: string;
+
+        /**
+         * Arguments for the tool call
+         */
+        readonly arguments?: string | Record<string, TODO_any>;
+
+        /**
+         * Result of the tool call
+         */
+        readonly result?: TODO_any;
+
+        /**
+         * Raw tool call from the model
+         */
+        readonly rawToolCall?: TODO_any;
     }>;
 
     /**

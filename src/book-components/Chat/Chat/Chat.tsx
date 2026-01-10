@@ -8,6 +8,7 @@ import spaceTrim from 'spacetrim';
 import { USER_CHAT_COLOR } from '../../../config';
 import { SpeechRecognitionEvent, SpeechRecognitionState } from '../../../types/SpeechRecognition';
 import type { id } from '../../../types/typeAliases';
+import type { TODO_any } from '../../../utils/organization/TODO_any';
 import { Color } from '../../../utils/color/Color';
 import { textColor } from '../../../utils/color/operators/furthest';
 import { grayscale } from '../../../utils/color/operators/grayscale';
@@ -99,6 +100,12 @@ export function Chat(props: ChatProps) {
     const buttonSendRef = useRef<HTMLButtonElement | null>(null);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const [ratingModalOpen, setRatingModalOpen] = useState(false);
+    const [toolCallModalOpen, setToolCallModalOpen] = useState(false);
+    const [selectedToolCall, setSelectedToolCall] = useState<{
+        name: string;
+        arguments?: TODO_any;
+        result?: TODO_any;
+    } | null>(null);
     const [selectedMessage, setSelectedMessage] = useState<ChatMessage | null>(null);
     const [messageRatings, setMessageRatings] = useState<Map<id, number>>(new Map());
     const [textRating, setTextRating] = useState('');
@@ -632,6 +639,10 @@ export function Chat(props: ChatProps) {
                                     onCopy={handleCopy}
                                     onCreateAgent={onCreateAgent}
                                     toolTitles={toolTitles}
+                                    onToolCallClick={(toolCall) => {
+                                        setSelectedToolCall(toolCall);
+                                        setToolCallModalOpen(true);
+                                    }}
                                 />
                             );
                         })}
@@ -854,6 +865,41 @@ export function Chat(props: ChatProps) {
                     )}
                 </div>
             </div>
+
+            {toolCallModalOpen && selectedToolCall && (
+                <div
+                    className={styles.ratingModal}
+                    onClick={(e) => {
+                        if (e.target === e.currentTarget) {
+                            setToolCallModalOpen(false);
+                        }
+                    }}
+                >
+                    <div className={styles.ratingModalContent}>
+                        <h3>Tool Call Details</h3>
+
+                        <div className={styles.toolCallDetails}>
+                            <p>
+                                <strong>Tool:</strong> {toolTitles?.[selectedToolCall.name] || selectedToolCall.name}
+                            </p>
+                            <p>
+                                <strong>Arguments:</strong>
+                            </p>
+                            <pre className={styles.toolCallData}>
+                                {JSON.stringify(selectedToolCall.arguments, null, 4)}
+                            </pre>
+                            <p>
+                                <strong>Result:</strong>
+                            </p>
+                            <pre className={styles.toolCallData}>{JSON.stringify(selectedToolCall.result, null, 4)}</pre>
+                        </div>
+
+                        <div className={styles.ratingActions}>
+                            <button onClick={() => setToolCallModalOpen(false)}>Close</button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {ratingModalOpen && selectedMessage && (
                 <div

@@ -7,6 +7,7 @@ import { colorToDataUrl } from '../../../_packages/color.index';
 import { PROMPTBOOK_CHAT_COLOR, USER_CHAT_COLOR } from '../../../config';
 import type { id } from '../../../types/typeAliases';
 import { Color } from '../../../utils/color/Color';
+import type { TODO_any } from '../../../utils/organization/TODO_any';
 import { textColor } from '../../../utils/color/operators/furthest';
 import { AvatarProfileTooltip } from '../../AvatarProfile/AvatarProfile/AvatarProfileTooltip';
 import { classNames } from '../../_common/react-utils/classNames';
@@ -53,6 +54,10 @@ type ChatMessageItemProps = Pick<ChatProps, 'onMessage' | 'participants'> & {
      * e.g., { "web_search": "Searching the web..." }
      */
     toolTitles?: Record<string, string>;
+    /**
+     * Called when a tool call chiplet is clicked.
+     */
+    onToolCallClick?: (toolCall: { name: string; arguments?: TODO_any; result?: TODO_any }) => void;
 };
 
 /**
@@ -77,6 +82,7 @@ export const ChatMessageItem = memo(
         onCopy,
         onCreateAgent,
         toolTitles,
+        onToolCallClick,
     }: ChatMessageItemProps) => {
         const avatarSrc = participant?.avatarSrc || null;
         const [isAvatarTooltipVisible, setIsAvatarTooltipVisible] = useState(false);
@@ -361,14 +367,50 @@ export const ChatMessageItem = memo(
                                     title={attachment.name}
                                 >
                                     <span className={styles.attachmentIcon}>📎</span>
-                                    <span className={styles.attachmentName}>{attachment.name}</span>
-                                </a>
-                            ))}
-                        </div>
-                    )}
+                                <span className={styles.attachmentName}>{attachment.name}</span>
+                            </a>
+                        ))}
+                    </div>
+                )}
 
-                    {!message.isComplete && (
-                        <div className={styles.ongoingToolCalls}>
+                {message.completedToolCalls && message.completedToolCalls.length > 0 && (
+                    <div className={styles.completedToolCalls}>
+                        {message.completedToolCalls.map((toolCall, index) => {
+                            const isSearch = toolCall.name === 'search' || toolCall.name === 'useSearchEngine';
+                            const toolTitle = toolTitles?.[toolCall.name];
+
+                            // [🔎 Venezuela]
+                            let chipletText = toolTitle || toolCall.name;
+                            if (isSearch && toolCall.arguments) {
+                                const args =
+                                    typeof toolCall.arguments === 'string'
+                                        ? JSON.parse(toolCall.arguments)
+                                        : toolCall.arguments;
+                                if (args.query) {
+                                    chipletText = `🔎 ${args.query}`;
+                                }
+                            }
+
+                            return (
+                                <button
+                                    key={index}
+                                    className={styles.completedToolCall}
+                                    onClick={(event) => {
+                                        event.stopPropagation();
+                                        if (onToolCallClick) {
+                                            onToolCallClick(toolCall);
+                                        }
+                                    }}
+                                >
+                                    [{chipletText}]
+                                </button>
+                            );
+                        })}
+                    </div>
+                )}
+
+                {!message.isComplete && (
+                    <div className={styles.ongoingToolCalls}>
                             {message.ongoingToolCalls && message.ongoingToolCalls.length > 0 ? (
                                 message.ongoingToolCalls.map((toolCall, index) => {
                                     const toolTitle = toolTitles?.[toolCall.name];
@@ -514,6 +556,10 @@ export const ChatMessageItem = memo(
         }
 
         if (prev.toolTitles !== next.toolTitles) {
+            return false;
+        }
+
+        if (prev.onToolCallClick !== next.onToolCallClick) {
             return false;
         }
 

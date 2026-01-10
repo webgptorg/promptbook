@@ -246,7 +246,8 @@
     animation: loadingPulse 1.5s ease-in-out infinite;
 }
 
-.ongoingToolCalls {
+.ongoingToolCalls,
+.completedToolCalls {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
@@ -256,7 +257,8 @@
     border-top: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.ongoingToolCall {
+.ongoingToolCall,
+.completedToolCall {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -266,6 +268,39 @@
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 12px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    color: inherit;
+}
+
+.completedToolCall {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.completedToolCall:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.toolCallDetails {
+    margin-bottom: 24px;
+    text-align: left;
+}
+
+.toolCallDetails p {
+    margin-bottom: 8px;
+}
+
+.toolCallData {
+    background: #f1f5f9;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+    max-height: 300px;
+    border: 1px solid #e2e8f0;
 }
 
 .ongoingToolCallSpinner {

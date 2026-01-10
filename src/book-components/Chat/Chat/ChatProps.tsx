@@ -10,6 +10,7 @@ import type { ChatParticipant } from '../types/ChatParticipant';
 import { string_color } from '../../../types/typeAliases';
 import { Color } from '../../../_packages/color.index';
 import { SpeechRecognition } from '../../../types/SpeechRecognition';
+import type { TODO_any } from '../../../utils/organization/TODO_any';
 
 /**
  * @public exported from `@promptbook/components`
@@ -184,6 +185,12 @@ export type ChatProps = {
     readonly toolTitles?: Record<string, string>;
 
     /**
+     * Optional callback to create a new agent from the template.
+     * If provided, renders the [Create Agent] button for book code blocks.
+     */
+    onCreateAgent?: (bookContent: string) => void;
+
+    /**
      * Optional callback for handling user feedback on messages
      * When provided, star rating buttons (1-5 stars) will be displayed next to each message
      *
@@ -222,10 +229,9 @@ export type ChatProps = {
     isCopyButtonEnabled?: boolean;
 
     /**
-     * Optional callback for creating an agent from a book code block.
-     * When provided, "Create Agent" buttons will be shown for book code blocks.
+     * Called when a tool call chiplet is clicked.
      */
-    onCreateAgent?: (bookContent: string) => void;
+    onToolCallClick?: (toolCall: { name: string; arguments?: TODO_any; result?: TODO_any }) => void;
 };
 
 /**

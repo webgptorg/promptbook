@@ -205,6 +205,7 @@ export class RemoteAgent extends Agent {
         // <- TODO: [🐱‍🚀] Maybe use promptbookFetch
 
         let content = '';
+        const toolCalls: Array<TODO_any> = [];
 
         if (!bookResponse.body) {
             content = await bookResponse.text();
@@ -229,6 +230,7 @@ export class RemoteAgent extends Agent {
                                 if (trimmedLine.startsWith('{') && trimmedLine.endsWith('}')) {
                                     const chunk = JSON.parse(trimmedLine);
                                     if (chunk.toolCalls) {
+                                        toolCalls.push(...chunk.toolCalls);
                                         onProgress({
                                             content,
                                             modelName: this.modelName,
@@ -261,6 +263,7 @@ export class RemoteAgent extends Agent {
                             rawPromptContent: {} as TODO_any,
                             rawRequest: {} as TODO_any,
                             rawResponse: {} as TODO_any,
+                            toolCalls,
                         });
                     }
                 }
@@ -276,6 +279,7 @@ export class RemoteAgent extends Agent {
                         rawPromptContent: {} as TODO_any,
                         rawRequest: {} as TODO_any,
                         rawResponse: {} as TODO_any,
+                        toolCalls,
                     });
                 }
             } finally {
@@ -293,6 +297,7 @@ export class RemoteAgent extends Agent {
             rawPromptContent: {} as TODO_any,
             rawRequest: {} as TODO_any,
             rawResponse: {} as TODO_any,
+            toolCalls,
             // <- TODO: [🐱‍🚀] Transfer and proxy the metadata
         };
 

@@ -13,7 +13,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🗾] When using search, show the sources.
 
