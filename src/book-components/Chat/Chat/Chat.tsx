@@ -876,70 +876,107 @@ export function Chat(props: ChatProps) {
                     }}
                 >
                     <div className={classNames(styles.ratingModalContent, styles.toolCallModal)}>
-                        <h3>Tool Call Details</h3>
+                        {(() => {
+                            const isSearch =
+                                selectedToolCall.name === 'web_search' ||
+                                selectedToolCall.name === 'useSearchEngine' ||
+                                selectedToolCall.name === 'search';
 
-                        <div className={styles.toolCallDetails}>
-                            <p>
-                                <strong>Tool:</strong> {toolTitles?.[selectedToolCall.name] || selectedToolCall.name}
-                            </p>
-                            <p>
-                                <strong>Arguments:</strong>
-                            </p>
-                            <div className={styles.toolCallDataContainer}>
-                                {(() => {
-                                    const args = typeof selectedToolCall.arguments === 'string'
-                                        ? JSON.parse(selectedToolCall.arguments)
-                                        : selectedToolCall.arguments;
+                            const args =
+                                typeof selectedToolCall.arguments === 'string'
+                                    ? JSON.parse(selectedToolCall.arguments)
+                                    : selectedToolCall.arguments || {};
 
-                                    if (args && typeof args === 'object') {
-                                        return (
-                                            <ul className={styles.toolCallArgsList}>
-                                                {Object.entries(args).map(([key, value]) => (
-                                                    <li key={key}>
-                                                        <strong>{key}:</strong> {typeof value === 'object' ? JSON.stringify(value) : String(value)}
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        );
-                                    }
+                            const resultRaw = selectedToolCall.result;
+                            const results = Array.isArray(resultRaw)
+                                ? resultRaw
+                                : resultRaw && typeof resultRaw === 'object' && Array.isArray(resultRaw.results)
+                                ? resultRaw.results
+                                : [];
 
-                                    return <pre className={styles.toolCallData}>{String(args)}</pre>;
-                                })()}
-                            </div>
-                            <p>
-                                <strong>Result:</strong>
-                            </p>
-                            <div className={styles.toolCallDataContainer}>
-                                {(() => {
-                                    const result = selectedToolCall.result;
+                            if (isSearch) {
+                                return (
+                                    <>
+                                        <div className={styles.searchModalHeader}>
+                                            <span className={styles.searchModalIcon}>🔎</span>
+                                            <h3 className={styles.searchModalQuery}>{args.query || 'Search Results'}</h3>
+                                        </div>
 
-                                    if (Array.isArray(result)) {
-                                        return (
-                                            <div className={styles.toolCallResultList}>
-                                                {result.map((item, i) => (
-                                                    <div key={i} className={styles.toolCallResultItem}>
-                                                        {typeof item === 'object' ? (
-                                                            <>
-                                                                {item.title && <h4>{item.title}</h4>}
-                                                                {item.url && <a href={item.url} target="_blank" rel="noreferrer">{item.url}</a>}
-                                                                {item.content && <p>{item.content}</p>}
-                                                                {!item.title && !item.url && !item.content && <pre>{JSON.stringify(item, null, 2)}</pre>}
-                                                            </>
-                                                        ) : String(item)}
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        );
-                                    }
+                                        <div className={styles.searchModalContent}>
+                                            {results.length > 0 ? (
+                                                <div className={styles.searchResultsList}>
+                                                    {(results as Array<TODO_any>).map((item, i) => (
+                                                        <div key={i} className={styles.searchResultItem}>
+                                                            <div className={styles.searchResultUrl}>
+                                                                {item.url && (
+                                                                    <a href={item.url} target="_blank" rel="noreferrer">
+                                                                        {item.url}
+                                                                    </a>
+                                                                )}
+                                                            </div>
+                                                            <h4 className={styles.searchResultTitle}>
+                                                                {item.url ? (
+                                                                    <a href={item.url} target="_blank" rel="noreferrer">
+                                                                        {item.title || 'Untitled'}
+                                                                    </a>
+                                                                ) : (
+                                                                    item.title || 'Untitled'
+                                                                )}
+                                                            </h4>
+                                                            <p className={styles.searchResultSnippet}>
+                                                                {item.snippet || item.content || ''}
+                                                            </p>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <div className={styles.noResults}>
+                                                    {resultRaw ? 'No search results found.' : 'Executing search...'}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </>
+                                );
+                            }
 
-                                    if (result && typeof result === 'object') {
-                                        return <pre className={styles.toolCallData}>{JSON.stringify(result, null, 4)}</pre>;
-                                    }
-
-                                    return <pre className={styles.toolCallData}>{String(result)}</pre>;
-                                })()}
-                            </div>
-                        </div>
+                            // Fallback for other tools
+                            return (
+                                <>
+                                    <h3>Tool Call: {toolTitles?.[selectedToolCall.name] || selectedToolCall.name}</h3>
+                                    <div className={styles.toolCallDetails}>
+                                        <p>
+                                            <strong>Arguments:</strong>
+                                        </p>
+                                        <div className={styles.toolCallDataContainer}>
+                                            {args && typeof args === 'object' ? (
+                                                <ul className={styles.toolCallArgsList}>
+                                                    {Object.entries(args).map(([key, value]) => (
+                                                        <li key={key}>
+                                                            <strong>{key}:</strong>{' '}
+                                                            {typeof value === 'object'
+                                                                ? JSON.stringify(value)
+                                                                : String(value)}
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            ) : (
+                                                <pre className={styles.toolCallData}>{String(args)}</pre>
+                                            )}
+                                        </div>
+                                        <p>
+                                            <strong>Result:</strong>
+                                        </p>
+                                        <div className={styles.toolCallDataContainer}>
+                                            <pre className={styles.toolCallData}>
+                                                {typeof resultRaw === 'object'
+                                                    ? JSON.stringify(resultRaw, null, 4)
+                                                    : String(resultRaw)}
+                                            </pre>
+                                        </div>
+                                    </div>
+                                </>
+                            );
+                        })()}
 
                         <div className={styles.ratingActions}>
                             <button onClick={() => setToolCallModalOpen(false)}>Close</button>

@@ -1350,7 +1350,92 @@
 }
 
 .toolCallModal {
-    max-width: 700px;
+    max-width: 800px;
+    padding: 0;
+    overflow: hidden;
+}
+
+.searchModalHeader {
+    padding: 24px 32px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: #fdfdfd;
+}
+
+.searchModalIcon {
+    font-size: 24px;
+}
+
+.searchModalQuery {
+    margin: 0 !important;
+    font-size: 22px !important;
+    font-weight: 500 !important;
+    color: #202124 !important;
+    text-align: left !important;
+}
+
+.searchModalContent {
+    padding: 24px 32px;
+    background: #fff;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.searchResultsList {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    text-align: left;
+}
+
+.searchResultItem {
+    max-width: 650px;
+}
+
+.searchResultUrl {
+    font-size: 14px;
+    color: #202124;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.searchResultUrl a {
+    color: #202124;
+    text-decoration: none;
+}
+
+.searchResultTitle {
+    font-size: 20px !important;
+    font-weight: 400 !important;
+    margin: 0 0 4px 0 !important;
+    line-height: 1.3;
+}
+
+.searchResultTitle a {
+    color: #1a0dab;
+    text-decoration: none;
+}
+
+.searchResultTitle a:hover {
+    text-decoration: underline;
+}
+
+.searchResultSnippet {
+    font-size: 14px;
+    line-height: 1.58;
+    color: #4d5156;
+    margin: 0;
+}
+
+.noResults {
+    padding: 40px;
+    text-align: center;
+    color: #70757a;
+    font-style: italic;
 }
 
 .toolCallDetails {
@@ -1384,42 +1469,6 @@
 .toolCallArgsList li {
     margin-bottom: 5px;
     font-size: 0.9em;
-}
-
-.toolCallResultList {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.toolCallResultItem {
-    border-bottom: 1px solid #eee;
-    padding-bottom: 10px;
-}
-
-.toolCallResultItem:last-child {
-    border-bottom: none;
-}
-
-.toolCallResultItem h4 {
-    margin: 0 0 5px 0;
-    font-size: 1em;
-}
-
-.toolCallResultItem a {
-    font-size: 0.8em;
-    color: #0066cc;
-    text-decoration: none;
-}
-
-.toolCallResultItem a:hover {
-    text-decoration: underline;
-}
-
-.toolCallResultItem p {
-    margin: 5px 0 0 0;
-    font-size: 0.9em;
-    color: #444;
 }
 
 .toolCallModal .toolCallData {
