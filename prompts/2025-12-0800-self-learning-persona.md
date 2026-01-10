@@ -1,4 +1,4 @@
-[ ]
+[-] _<- Note: Done not via this prompt_
 
 [✨🧑] Agents should be able to adjust their `PERSONA` and `RULE`
 

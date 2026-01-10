@@ -1,4 +1,4 @@
-[ ]
+[.] _<- Note: [🧠] How to handle job + get result tasks_
 
 [✨⛎] Implement `callVideoGenerationModel` into `LlmExecutionTools`
 
@@ -10,7 +10,7 @@
 
 ---
 
-[ ]
+[.] _<- Note: [🧠] How to handle job + get result tasks_
 
 [✨⛎] Create a page that will allow to test the image generator
 

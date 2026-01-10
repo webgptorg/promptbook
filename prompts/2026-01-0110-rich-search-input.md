@@ -42,15 +42,17 @@
 -   Update the enter vertical from the `SearchEngine` object to the [testing page](http://localhost:4440/admin/search-engine-test) to the AI agent tool calling and `USE SEARCH` commitment.
 -   You are working with [SerpSearchEngine](/src/search-engines/serp/SerpSearchEngine.ts)
 -   It should work with the `Agents Server` application `/apps/agents-server`
+-   Show full search input and output when clicking on the search chiplet in the chat, look how search input and output is shown in the [testing page](http://localhost:4440/admin/search-engine-test).
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
 
 ---
 
-[-]
+[ ]
 
-[✨🗾] bar
+[✨🗾] Sources chips should work better
 
+-   @@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
 
