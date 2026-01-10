@@ -1349,6 +1349,15 @@
     transition: color 0.2s;
 }
 
+.toolCallModal {
+    max-width: 600px;
+}
+
+.toolCallModal .toolCallData {
+    background: #f8fafc;
+    color: #0f172a;
+}
+
 .ratingInput {
     width: 100%;
     min-height: 100px;

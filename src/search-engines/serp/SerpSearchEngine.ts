@@ -23,7 +23,7 @@ export class SerpSearchEngine implements SearchEngine {
         }
     }
 
-    public async search(query: string): Promise<SearchResult[]> {
+    public async search(query: string, options: Record<string, unknown> = {}): Promise<SearchResult[]> {
         const apiKey = process.env.SERP_API_KEY;
 
         if (!apiKey) {
@@ -31,9 +31,13 @@ export class SerpSearchEngine implements SearchEngine {
         }
 
         const url = new URL('https://serpapi.com/search');
-        url.searchParams.set('q', query);
         url.searchParams.set('api_key', apiKey);
         url.searchParams.set('engine', 'google');
+        url.searchParams.set('q', query);
+
+        for (const [key, value] of Object.entries(options)) {
+            url.searchParams.set(key, String(value));
+        }
 
         const response = await fetch(url.toString());
 

@@ -29,7 +29,8 @@ export class GoogleSearchEngine implements SearchEngine {
         }
     }
 
-    public async search(query: string): Promise<SearchResult[]> {
+    public async search(query: string, options: Record<string, unknown> = {}): Promise<SearchResult[]> {
+        console.log('GoogleSearchEngine.search', { query, options });
         const apiKey = process.env.GOOGLE_SEARCH_API_KEY;
         const cx = process.env.GOOGLE_SEARCH_ID;
 

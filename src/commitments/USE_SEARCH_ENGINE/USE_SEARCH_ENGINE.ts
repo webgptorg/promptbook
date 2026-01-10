@@ -100,6 +100,31 @@ export class UseSearchEngineCommitmentDefinition extends BaseCommitmentDefinitio
                                   type: 'string',
                                   description: 'The search query',
                               },
+                              location: {
+                                  type: 'string',
+                                  description:
+                                      'The location for the search (e.g., "Austin, Texas, United States" or "Prague, Czechia")',
+                              },
+                              gl: {
+                                  type: 'string',
+                                  description: 'The country code (e.g., "us" for United States, "cz" for Czechia)',
+                              },
+                              hl: {
+                                  type: 'string',
+                                  description: 'The language code (e.g., "en" for English, "cs" for Czech)',
+                              },
+                              num: {
+                                  type: 'integer',
+                                  description: 'Number of results to return',
+                              },
+                              engine: {
+                                  type: 'string',
+                                  description: 'The search engine to use (e.g., "google", "bing", "yahoo", "baidu")',
+                              },
+                              google_domain: {
+                                  type: 'string',
+                                  description: 'The Google domain to use (e.g., "google.com", "google.cz")',
+                              },
                           },
                           required: ['query'],
                       },
@@ -137,21 +162,25 @@ export class UseSearchEngineCommitmentDefinition extends BaseCommitmentDefinitio
      */
     getToolFunctions(): Record<string_javascript_name, ToolFunction> {
         return {
-            async web_search(args: { query: string }): Promise<string> {
+            async web_search(args: { query: string } & Record<string, unknown>): Promise<string> {
                 console.log('!!!! [Tool] web_search called', { args });
 
-                const { query } = args;
+                const { query, ...options } = args;
 
                 if (!query) {
                     throw new Error('Search query is required');
                 }
 
                 const searchEngine = new SerpSearchEngine();
-                const results = await searchEngine.search(query);
+                const results = await searchEngine.search(query, options);
 
                 return spaceTrim(
                     (block) => `
-                        Search results for "${query}":
+                        Search results for "${query}"${
+                        Object.keys(options).length === 0
+                            ? ''
+                            : ` with options ${JSON.stringify(options)}`
+                    }:
 
                         ${block(
                             results

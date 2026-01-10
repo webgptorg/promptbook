@@ -6,5 +6,5 @@ export type SearchEngine = {
     readonly title: string_title & string_markdown_text;
     readonly description?: string_markdown;
     checkConfiguration(): Promisable<void>;
-    search(query: string): Promise<SearchResult[]>;
+    search(query: string, options?: Record<string, unknown>): Promise<SearchResult[]>;
 };

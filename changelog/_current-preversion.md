@@ -72,3 +72,6 @@
 -   Human-readable titles for showing tool calls in chiplets.
 -   When using search, show the sources as chiplets (e.g. `[🔎 Venezuela]`).
 -   Clicking on a search chiplet opens a modal with tool call details (arguments and results).
+-   Allow AI to leverage all the options and possibilities of SERP search engine (location, localization, pagination, advanced filters, etc.).
+-   Updated `SearchEngine` interface to support advanced options.
+-   Enhanced Search Engine Test page with advanced SERP parameters and raw call details.

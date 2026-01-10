@@ -32,7 +32,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🗾] Allow AI to leverage all the options and possibilities of SERP search engine.
 

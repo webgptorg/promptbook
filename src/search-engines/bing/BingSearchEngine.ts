@@ -23,7 +23,8 @@ export class BingSearchEngine implements SearchEngine {
         }
     }
 
-    public async search(query: string): Promise<SearchResult[]> {
+    public async search(query: string, options: Record<string, unknown> = {}): Promise<SearchResult[]> {
+        console.log('BingSearchEngine.search', { query, options });
         const apiKey = process.env.BING_SEARCH_API_KEY;
 
         if (!apiKey) {

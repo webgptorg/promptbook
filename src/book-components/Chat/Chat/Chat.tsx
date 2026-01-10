@@ -875,7 +875,7 @@ export function Chat(props: ChatProps) {
                         }
                     }}
                 >
-                    <div className={styles.ratingModalContent}>
+                    <div className={classNames(styles.ratingModalContent, styles.toolCallModal)}>
                         <h3>Tool Call Details</h3>
 
                         <div className={styles.toolCallDetails}>
@@ -886,12 +886,18 @@ export function Chat(props: ChatProps) {
                                 <strong>Arguments:</strong>
                             </p>
                             <pre className={styles.toolCallData}>
-                                {JSON.stringify(selectedToolCall.arguments, null, 4)}
+                                {typeof selectedToolCall.arguments === 'string'
+                                    ? selectedToolCall.arguments
+                                    : JSON.stringify(selectedToolCall.arguments, null, 4)}
                             </pre>
                             <p>
                                 <strong>Result:</strong>
                             </p>
-                            <pre className={styles.toolCallData}>{JSON.stringify(selectedToolCall.result, null, 4)}</pre>
+                            <pre className={styles.toolCallData}>
+                                {typeof selectedToolCall.result === 'string'
+                                    ? selectedToolCall.result
+                                    : JSON.stringify(selectedToolCall.result, null, 4)}
+                            </pre>
                         </div>
 
                         <div className={styles.ratingActions}>

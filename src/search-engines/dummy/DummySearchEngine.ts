@@ -22,7 +22,8 @@ export class DummySearchEngine implements SearchEngine {
         return;
     }
 
-    public async search(query: string): Promise<SearchResult[]> {
+    public async search(query: string, options: Record<string, unknown> = {}): Promise<SearchResult[]> {
+        console.log('DummySearchEngine.search', { query, options });
         await forTime(Math.random() * 500 + 100); // Simulate some delay
         // <- TODO: [🕓] `await forRandom(...)`
 
