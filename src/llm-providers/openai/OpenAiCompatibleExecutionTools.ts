@@ -240,11 +240,38 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
                       },
                   ] as const)),
             ...threadMessages,
-            {
+        ];
+
+        if ('files' in prompt && Array.isArray((prompt as TODO_any).files) && (prompt as TODO_any).files!.length > 0) {
+            const filesContent = await Promise.all(
+                (prompt as TODO_any).files!.map(async (file: File) => {
+                    const arrayBuffer = await file.arrayBuffer();
+                    const base64 = Buffer.from(arrayBuffer).toString('base64');
+                    return {
+                        type: 'image_url', // <- TODO: [🧠] Only images are supported for now, handle other file types
+                        image_url: {
+                            url: `data:${file.type};base64,${base64}`,
+                        },
+                    } as const;
+                }),
+            );
+
+            messages.push({
+                role: 'user',
+                content: [
+                    {
+                        type: 'text',
+                        text: rawPromptContent,
+                    },
+                    ...filesContent,
+                ],
+            } as OpenAI.Chat.Completions.ChatCompletionUserMessageParam);
+        } else {
+            messages.push({
                 role: 'user',
                 content: rawPromptContent,
-            },
-        ];
+            });
+        }
 
         let totalUsage: Usage = {
             price: uncertainNumber(0),

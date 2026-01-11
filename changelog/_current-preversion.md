@@ -92,3 +92,6 @@
     -   Enhanced visuals with smoother node hover effects, shadowed nodes, and oceanic cluster backgrounds
 -   Removed `isOpen` prop from dialogs in Agents Server and implemented conditional rendering to prevent unnecessary background rendering when closed.
 -   Added "Back to Agent" button to all agent-specific pages in Agents Server for better navigation.
+-   Allow to pass `files` as `Array<File>` into `ChatPrompt`.
+-   Implement file passing in `OpenAiExecutionTools` (currently supporting images via `image_url`).
+-   Add sample of passing files in OpenAI playground.

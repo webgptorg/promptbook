@@ -63,6 +63,11 @@ export type ChatPrompt = CommonPrompt & {
      * Optional tools that can be called by the model
      */
     tools?: Array<LlmToolDefinition>;
+
+    /**
+     * Optional file attachments
+     */
+    files?: Array<File>;
 };
 
 /**

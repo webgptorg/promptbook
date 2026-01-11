@@ -194,6 +194,31 @@ async function playground() {
     console.info(colors.bgGreen(' Chat: ') + colors.green(chatPromptResult.content));
     /**/
 
+    /**/
+    const chatPromptWithFiles = {
+        title: 'Chat with files',
+        parameters: {},
+        content: `What is in these images?`,
+        files: [
+            // Note: In node.js we need to mock the File object or use a real one if available
+            // For playground purposes, we can use a small transparent pixel
+            new File(
+                [Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64')],
+                'pixel.gif',
+                { type: 'image/gif' },
+            ),
+        ],
+        modelRequirements: {
+            modelVariant: 'CHAT',
+            modelName: 'gpt-4o',
+        },
+    } satisfies ChatPrompt;
+    const chatPromptWithFilesResult = await openAiExecutionToolsWithUsage.callChatModel!(chatPromptWithFiles);
+    console.info({ chatPromptWithFilesResult });
+    console.info(colors.bgBlue(' User: ') + colors.blue(chatPromptWithFiles.content));
+    console.info(colors.bgGreen(' Chat: ') + colors.green(chatPromptWithFilesResult.content));
+    /**/
+
     /*/
     const chatPromptResult2 = await openAiExecutionToolsWithUsage.callChatModel!(chatPrompt);
     console.info({ chatPromptResult2 });

@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🚦] Allow to pass files into the `ChatPrompt`
 
