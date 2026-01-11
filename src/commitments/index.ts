@@ -104,10 +104,14 @@ export const COMMITMENT_REGISTRY = [
     new UseSearchEngineCommitmentDefinition(),
     new UseTimeCommitmentDefinition(),
     new UseImageGeneratorCommitmentDefinition('USE IMAGE GENERATOR'),
-    new UseImageGeneratorCommitmentDefinition('USE IMAGE GENERATION' as 'USE IMAGE GENERATOR'),
-    new UseImageGeneratorCommitmentDefinition('IMAGE GENERATOR' as 'USE IMAGE GENERATOR'),
-    new UseImageGeneratorCommitmentDefinition('IMAGE GENERATION' as 'USE IMAGE GENERATOR'),
-    new UseImageGeneratorCommitmentDefinition('USE IMAGE' as 'USE IMAGE GENERATOR'),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    new UseImageGeneratorCommitmentDefinition('USE IMAGE GENERATION' as any),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    new UseImageGeneratorCommitmentDefinition('IMAGE GENERATOR' as any),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    new UseImageGeneratorCommitmentDefinition('IMAGE GENERATION' as any),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    new UseImageGeneratorCommitmentDefinition('USE IMAGE' as any),
     new UseMcpCommitmentDefinition(),
     new UseCommitmentDefinition(),
 
