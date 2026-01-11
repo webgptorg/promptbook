@@ -65,7 +65,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🗾] When agent uses search, the popup from source chiplet should show the search results
 

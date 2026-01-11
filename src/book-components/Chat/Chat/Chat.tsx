@@ -890,11 +890,21 @@ export function Chat(props: ChatProps) {
                                     : selectedToolCall.arguments || {};
 
                             const resultRaw = selectedToolCall.result;
-                            const results = Array.isArray(resultRaw)
+                            let results = Array.isArray(resultRaw)
                                 ? resultRaw
                                 : resultRaw && typeof resultRaw === 'object' && Array.isArray(resultRaw.results)
                                 ? resultRaw.results
                                 : [];
+
+                            // [🧠] In Agent Server, search result might be wrapped in another result object
+                            if (results.length === 0 && resultRaw && typeof resultRaw === 'object' && resultRaw.result) {
+                                const subResult = resultRaw.result;
+                                results = Array.isArray(subResult)
+                                    ? subResult
+                                    : subResult && typeof subResult === 'object' && Array.isArray(subResult.results)
+                                    ? subResult.results
+                                    : [];
+                            }
 
                             if (isSearch) {
                                 return (
@@ -902,7 +912,7 @@ export function Chat(props: ChatProps) {
                                         <div className={styles.searchModalHeader}>
                                             <span className={styles.searchModalIcon}>🔎</span>
                                             <h3 className={styles.searchModalQuery}>
-                                                {args.query || 'Search Results'}
+                                                {args.query || args.searchText || 'Search Results'}
                                             </h3>
                                         </div>
 
@@ -935,7 +945,7 @@ export function Chat(props: ChatProps) {
                                                 </div>
                                             ) : (
                                                 <div className={styles.noResults}>
-                                                    {resultRaw ? 'No search results found.' : 'Executing search...'}
+                                                    {resultRaw ? 'No search results found.' : 'Search results are not available.'}
                                                 </div>
                                             )}
                                         </div>
