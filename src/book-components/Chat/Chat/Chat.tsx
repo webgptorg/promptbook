@@ -495,7 +495,6 @@ export function Chat(props: ChatProps) {
                 )}
                 {...{ style }}
             >
-                {visual}
                 <div className={classNames(className, styles.chatMainFlow, useChatCssClassName('chatMainFlow'))}>
                     {children && <div className={classNames(styles.chatChildren)}>{children}</div>}
 
