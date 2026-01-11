@@ -97,5 +97,5 @@
 -   Implement file passing in `OpenAiExecutionTools` (currently supporting images via `image_url`).
 -   Implemented `ChatPrompt.files` for `OpenAiAssistantExecutionTools`, allowing to attach files to OpenAI Assistants via the message attachments.
 -   Add sample of passing files in OpenAI playground.
--   Support for generating images in Google LLM tools using `imagen-3`.
+-   Support for generating images in Google LLM execution tools.
 -   Implemented tool calling when transpiling book into the code in `OpenAiSdkTranspiler`.

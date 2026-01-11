@@ -223,7 +223,9 @@ export function ImageGeneratorTestClient() {
                             <datalist id="model-names">
                                 <option value="dall-e-3" />
                                 <option value="dall-e-2" />
-                                <option value="imagen-3" />
+                                <option value="gemini-2.5-flash-image" />
+                                <option value="gemini-3-pro-image-preview" />
+                                {/* <- TODO: [🎞] This should be dynamically populated based on available models */}
                             </datalist>
                         </div>
 
@@ -343,7 +345,10 @@ export function ImageGeneratorTestClient() {
                 {results.length > 0 && (
                     <div className={`mt-8 ${mode === 'multiple' ? 'grid grid-cols-1 md:grid-cols-2 gap-4' : ''}`}>
                         {results.map((result, index) => (
-                            <div key={result.id || index} className="border rounded-lg overflow-hidden bg-white shadow-sm">
+                            <div
+                                key={result.id || index}
+                                className="border rounded-lg overflow-hidden bg-white shadow-sm"
+                            >
                                 <div className="p-3 border-b bg-gray-50 flex justify-between items-center">
                                     <span
                                         className="text-xs font-mono text-gray-500 truncate max-w-[200px]"
@@ -356,8 +361,8 @@ export function ImageGeneratorTestClient() {
                                             result.status === 'success'
                                                 ? 'bg-green-100 text-green-800'
                                                 : result.status === 'error'
-                                                  ? 'bg-red-100 text-red-800'
-                                                  : 'bg-yellow-100 text-yellow-800'
+                                                ? 'bg-red-100 text-red-800'
+                                                : 'bg-yellow-100 text-yellow-800'
                                         }`}
                                     >
                                         {result.status}

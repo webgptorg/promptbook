@@ -70,8 +70,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
                 modelName:
                     modelName ||
                     (llmTools.title.includes('Google')
-                        ? 'imagen-3'
-                        : 'dall-e-3'), // Use Imagen 3 for Google, DALL-E 3 for high quality otherwise
+                        ? 'gemini-3-pro-image-preview'
+                        : 'dall-e-3'), // Use gemini-3-pro-image-preview (Nano Banana Pro) for Google, DALL-E 3 for high quality otherwise
+                        // {/* <- TODO: [🎞] Do this dynamically based on available models */}
                 size: (size as ImageGenerationModelRequirements['size']) || undefined,
                 quality: (quality as ImageGenerationModelRequirements['quality']) || undefined,
                 style: (style as ImageGenerationModelRequirements['style']) || undefined,

@@ -67,7 +67,7 @@ export const createGoogleExecutionTools = Object.assign(
                     throw new PipelineExecutionError('Use callImageGenerationModel only for IMAGE_GENERATION variant');
                 }
 
-                const modelName = modelRequirements.modelName || 'imagen-3';
+                const modelName = modelRequirements.modelName || 'gemini-3-pro-image-preview';
 
                 const rawPromptContent = templateParameters(content, { ...parameters, modelName });
 
@@ -75,6 +75,7 @@ export const createGoogleExecutionTools = Object.assign(
 
                 const experimental_imageModel = googleGeminiVercelProvider.image(modelName);
 
+                // TODO: Prompt: !!!!! Move generating images as resopnsibility into the `createExecutionToolsFromVercelProvider`
                 const { image } = await experimental_imageModel.generateImage({
                     prompt: rawPromptContent,
                     // size: modelRequirements.size, // <- TODO: Mapping of sizes
@@ -125,5 +126,6 @@ export const createGoogleExecutionTools = Object.assign(
 ) satisfies LlmExecutionToolsConstructor;
 
 /**
+ * TODO: !!!!! Rename to `createGoogleLlmExecutionTools`, `...GoogleLlmExecutionTools`
  * TODO: [🎶] Naming "constructor" vs "creator" vs "factory"
  */

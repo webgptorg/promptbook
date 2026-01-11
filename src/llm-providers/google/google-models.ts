@@ -242,13 +242,20 @@ export const GOOGLE_MODELS: ReadonlyArray<
         },
         {
             modelVariant: 'IMAGE_GENERATION',
-            modelTitle: 'Imagen 3',
-            modelName: 'imagen-3',
+            modelName: 'gemini-2.5-flash-image',
+            modelTitle: 'Gemini 2.5 Flash Image (Nano Banana)',
             modelDescription:
-                'Google’s highest quality text-to-image model, capable of generating images with even better detail, richer lighting and fewer distracting artifacts than our previous models.',
-            // TODO: [🧠] Add pricing information for Imagen 3
+                'This model is designed for speed and efficiency, optimized for high-volume, low-latency tasks. All generated images include a SynthID watermark.',
+            documentationUrl: 'https://ai.google.dev/gemini-api/docs/image-generation',
         },
-        // …add any additional from https://ai.google.dev/models/gemini…
+        {
+            modelVariant: 'IMAGE_GENERATION',
+            modelName: 'gemini-3-pro-image-preview',
+            modelTitle: 'Gemini 3 Pro Image Preview (Nano Banana Pro)',
+            modelDescription:
+                'This model is designed for professional asset production, utilizing advanced reasoning ("Thinking") to follow complex instructions and render high-fidelity text. All generated images include a SynthID watermark.',
+            documentationUrl: 'https://ai.google.dev/gemini-api/docs/image-generation',
+        },
     ],
 });
 
