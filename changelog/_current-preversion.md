@@ -1,5 +1,6 @@
 ### 📚 Book
 
+-   Implemented `USE IMAGE GENERATOR` commitment to allow agents to generate images using an image generation model.
 -   [✨⛪️] Allow to close dialogs by clicking outside of the dialog.
 -   Created a series of comprehensive comparison documents between Promptbook and other projects (ChatGPT, Claude, ChatGPT-Assistance, LangChain, N8N, NotebookLM, Wordware, Agno, Letta, Eliza, and Digital Twin platforms like Personal.ai/Delphi) in `/documents/comparison/*.md`. These comparisons highlight Promptbook's unique "Book" language, commitment system (Persona, Knowledge, Rule, Team), and its federated, open-source architecture.
 -   Implemented `IMPORT` commitment that allows to import generic text files (both local and URL) into the agent source with plugin-based architecture.

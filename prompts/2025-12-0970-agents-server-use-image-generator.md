@@ -1,11 +1,11 @@
-[ ]
+[x]
 
 [✨🌄] Make commitment `USE IMAGE GENERATOR`
 
 -   This will add ability to generate images using an image generation model.
 -   This should create tool into model requirements with the ability to generate images based on text prompts.
 -   This tool will receive the image prompt and output the URL of the generated image. Inside it will use the image generator from the LLM execution tools.
--   How other commitments and tools are implemented, for example, `USE TIME`.
+-   How other commitments and tools are implemented, for example, `USE TIME` or `USE SEARCH ENGINE`.
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`

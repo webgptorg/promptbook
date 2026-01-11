@@ -44,7 +44,7 @@ export type AgentCapability = {
     /**
      * The type of the capability
      */
-    type: 'browser' | 'search-engine' | 'knowledge' | 'time' | 'inheritance' | 'import';
+    type: 'browser' | 'search-engine' | 'knowledge' | 'time' | 'inheritance' | 'import' | 'image-generator';
 
     /**
      * The label to display for this capability

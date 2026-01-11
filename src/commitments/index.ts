@@ -36,6 +36,7 @@ import { ScenarioCommitmentDefinition } from './SCENARIO/SCENARIO';
 import { StyleCommitmentDefinition } from './STYLE/STYLE';
 import { UseCommitmentDefinition } from './USE/USE';
 import { UseBrowserCommitmentDefinition } from './USE_BROWSER/USE_BROWSER';
+import { UseImageGeneratorCommitmentDefinition } from './USE_IMAGE_GENERATOR/USE_IMAGE_GENERATOR';
 import { UseMcpCommitmentDefinition } from './USE_MCP/USE_MCP';
 import { UseSearchEngineCommitmentDefinition } from './USE_SEARCH_ENGINE/USE_SEARCH_ENGINE';
 import { UseTimeCommitmentDefinition } from './USE_TIME/USE_TIME';
@@ -102,6 +103,11 @@ export const COMMITMENT_REGISTRY = [
     new UseBrowserCommitmentDefinition(),
     new UseSearchEngineCommitmentDefinition(),
     new UseTimeCommitmentDefinition(),
+    new UseImageGeneratorCommitmentDefinition('USE IMAGE GENERATOR'),
+    new UseImageGeneratorCommitmentDefinition('USE IMAGE GENERATION' as 'USE IMAGE GENERATOR'),
+    new UseImageGeneratorCommitmentDefinition('IMAGE GENERATOR' as 'USE IMAGE GENERATOR'),
+    new UseImageGeneratorCommitmentDefinition('IMAGE GENERATION' as 'USE IMAGE GENERATOR'),
+    new UseImageGeneratorCommitmentDefinition('USE IMAGE' as 'USE IMAGE GENERATOR'),
     new UseMcpCommitmentDefinition(),
     new UseCommitmentDefinition(),
 

@@ -112,6 +112,15 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
             continue;
         }
 
+        if (commitment.type === 'USE IMAGE GENERATOR') {
+            capabilities.push({
+                type: 'image-generator',
+                label: 'Image Generator',
+                iconName: 'Image',
+            });
+            continue;
+        }
+
         if (commitment.type === 'FROM') {
             const content = spaceTrim(commitment.content).split('\n')[0] || '';
 
