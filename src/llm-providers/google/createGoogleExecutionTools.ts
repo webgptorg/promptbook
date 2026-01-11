@@ -75,7 +75,7 @@ export const createGoogleExecutionTools = Object.assign(
 
                 const experimental_imageModel = googleGeminiVercelProvider.image(modelName);
 
-                // TODO: Prompt: !!!!! Move generating images as resopnsibility into the `createExecutionToolsFromVercelProvider`
+                // TODO: Prompt: !!!!! Move generating images as responsibility into the `createExecutionToolsFromVercelProvider`
                 const { image } = await experimental_imageModel.generateImage({
                     prompt: rawPromptContent,
                     // size: modelRequirements.size, // <- TODO: Mapping of sizes

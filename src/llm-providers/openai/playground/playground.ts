@@ -195,15 +195,19 @@ async function playground() {
     /**/
 
     /**/
+    // TODO: !!!!! Test
     const chatPromptWithFiles = {
         title: 'Chat with files',
         parameters: {},
         content: `What is in these images?`,
+
         files: [
             // Note: In node.js we need to mock the File object or use a real one if available
             // For playground purposes, we can use a small transparent pixel
             new File(
+                // cspell:disable
                 [Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64')],
+                // cspell:enable
                 'pixel.gif',
                 { type: 'image/gif' },
             ),
