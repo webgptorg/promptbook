@@ -1,4 +1,5 @@
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
+import { BackToAgentButton } from '@/src/components/BackToAgentButton/BackToAgentButton';
 import { HistoryIcon } from 'lucide-react';
 import Link from 'next/link';
 import { RestoreVersionButton } from './RestoreVersionButton';
@@ -19,15 +20,11 @@ export default async function AgentHistoryPage({ params }: { params: Promise<{ a
                 <div className="bg-blue-100 p-3 rounded-full">
                     <HistoryIcon className="w-8 h-8 text-blue-600" />
                 </div>
-                <div>
+                <div className="flex-1">
                     <h1 className="text-3xl font-bold text-gray-900">History: {agentName}</h1>
-                    <p className="text-gray-600">
-                        Previous versions of this agent.{' '}
-                        <Link href={`/agents/${agentName}`} className="text-blue-600 hover:underline">
-                            Back to agent
-                        </Link>
-                    </p>
+                    <p className="text-gray-600">Previous versions of this agent.</p>
                 </div>
+                <BackToAgentButton agentName={agentName} />
             </header>
 
             {history.length === 0 ? (

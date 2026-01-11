@@ -6,6 +6,7 @@ import { isUserAdmin } from '@/src/utils/isUserAdmin';
 import { headers } from 'next/headers';
 import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
 import { isAgentDeleted } from '../_utils';
+import { BackToAgentButton } from '@/src/components/BackToAgentButton/BackToAgentButton';
 import { generateAgentMetadata } from '../generateAgentMetadata';
 import { BookEditorWrapper } from './BookEditorWrapper';
 import { DeletedAgentBanner } from '../../../../components/DeletedAgentBanner';
@@ -37,7 +38,10 @@ export default async function AgentBookPage({ params }: { params: Promise<{ agen
     const agentSource = await collection.getAgentSource(decodeURIComponent(agentName));
 
     return (
-        <div className={`w-screen h-[calc(100vh-60px)]`}>
+        <div className={`w-screen h-[calc(100vh-60px)] relative`}>
+            <div className="absolute top-5 right-10 z-50">
+                <BackToAgentButton agentName={agentName} />
+            </div>
             <BookEditorWrapper agentName={agentName} initialAgentSource={agentSource} />
         </div>
     );

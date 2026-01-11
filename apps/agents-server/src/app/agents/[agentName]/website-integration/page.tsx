@@ -8,6 +8,7 @@ import { headers } from 'next/headers';
 import spaceTrim from 'spacetrim';
 import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
 import { just } from '../../../../../../../src/utils/organization/just';
+import { BackToAgentButton } from '@/src/components/BackToAgentButton/BackToAgentButton';
 import { generateAgentMetadata } from '../generateAgentMetadata';
 import { WebsiteIntegrationTabs } from '../integration/WebsiteIntegrationTabs';
 
@@ -55,7 +56,10 @@ export default async function WebsiteIntegrationAgentPage({ params }: { params: 
 
     return (
         <main className="w-screen h-screen p-4">
-            <h1 className="text-2xl font-bold p-4 border-b">{meta.fullname || agentName} Integration Code</h1>
+            <div className="flex items-center gap-4 p-4 border-b">
+                <h1 className="text-2xl font-bold flex-1">{meta.fullname || agentName} Integration Code</h1>
+                <BackToAgentButton agentName={agentName} />
+            </div>
             <p className="mt-4 mb-8 text-gray-600">
                 Use the following code to integrate the <strong>{meta.fullname || agentName}</strong> agent into your
                 React application using the <code>{'<PromptbookAgent />'}</code> component.

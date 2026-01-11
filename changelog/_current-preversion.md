@@ -91,3 +91,4 @@
     -   Improve connection arrow visibility
     -   Enhanced visuals with smoother node hover effects, shadowed nodes, and oceanic cluster backgrounds
 -   Removed `isOpen` prop from dialogs in Agents Server and implemented conditional rendering to prevent unnecessary background rendering when closed.
+-   Added "Back to Agent" button to all agent-specific pages in Agents Server for better navigation.

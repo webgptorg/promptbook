@@ -2,6 +2,7 @@
 
 import { saturate } from '@promptbook-local/color';
 import { PROMPTBOOK_COLOR } from '@promptbook-local/core';
+import { BackToAgentButton } from '@/src/components/BackToAgentButton/BackToAgentButton';
 import Link from 'next/link';
 import { Color } from '../../../../../../../src/utils/color/Color';
 import { getAgentName, getAgentProfile } from '../_utils';
@@ -66,11 +67,15 @@ export default async function AgentImagesPage({ params }: { params: Promise<{ ag
                         backgroundColor: brandColorHex,
                         borderRadius: '12px',
                         color: 'white',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
                     }}
                 >
-                    <h1 style={{ margin: 0, fontSize: '2rem' }}>
-                        Images for <strong>{fullname}</strong>
-                    </h1>
+                    <div style={{ flex: 1 }}>
+                        <h1 style={{ margin: 0, fontSize: '2rem' }}>
+                            Images for <strong>{fullname}</strong>
+                        </h1>
                     <p style={{ margin: '0.5rem 0 0', opacity: 0.9 }}>
                         All available image assets for agent{' '}
                         <code
@@ -83,7 +88,9 @@ export default async function AgentImagesPage({ params }: { params: Promise<{ ag
                             {agentName}
                         </code>
                     </p>
-                </header>
+                </div>
+                <BackToAgentButton agentName={agentName} />
+            </header>
 
                 <div
                     style={{

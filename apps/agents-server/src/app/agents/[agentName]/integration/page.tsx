@@ -13,6 +13,7 @@ import spaceTrim from 'spacetrim';
 import { Color } from '../../../../../../../src/utils/color/Color';
 import { withAlpha } from '../../../../../../../src/utils/color/operators/withAlpha';
 import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
+import { BackToAgentButton } from '@/src/components/BackToAgentButton/BackToAgentButton';
 import { CodePreview } from '../../../../../../_common/components/CodePreview/CodePreview';
 import { getAgentName, getAgentProfile } from '../_utils';
 import { getAgentLinks } from '../agentLinks';
@@ -207,13 +208,7 @@ export default async function AgentIntegrationPage({ params }: { params: Promise
                             Integration Options
                         </p>
                     </div>
-                    <Link
-                        href={chatLink.href}
-                        className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
-                        title="Back to Agent"
-                    >
-                        <ArrowLeftIcon className="w-6 h-6" />
-                    </Link>
+                    <BackToAgentButton agentName={agentName} />
                 </div>
 
                 <div className="p-6 space-y-6">

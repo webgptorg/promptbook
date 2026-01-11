@@ -4,6 +4,7 @@ import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentColle
 import { $provideServer } from '@/src/tools/$provideServer';
 import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
 import { resolveInheritedAgentSource } from '@/src/utils/resolveInheritedAgentSource';
+import { BackToAgentButton } from '@/src/components/BackToAgentButton/BackToAgentButton';
 import { CodePreview } from '@common/components/CodePreview/CodePreview';
 import { BookEditor } from '@promptbook-local/components';
 import {
@@ -62,13 +63,7 @@ export default async function AgentSystemMessagePage({ params }: { params: Promi
                             Generated paraemeters for model and AI tools
                         </p>
                     </div>
-                    <Link
-                        href={`/agents/${encodeURIComponent(agentName)}`}
-                        className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
-                        title="Back to Agent"
-                    >
-                        <ArrowLeftIcon className="w-6 h-6" />
-                    </Link>
+                    <BackToAgentButton agentName={agentName} />
                 </div>
 
                 <div className="p-6">

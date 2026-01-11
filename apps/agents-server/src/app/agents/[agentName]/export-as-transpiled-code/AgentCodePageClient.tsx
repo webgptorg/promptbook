@@ -3,8 +3,8 @@
 import Editor from '@monaco-editor/react';
 import { generatePlaceholderAgentProfileImageUrl } from '@promptbook-local/core';
 import { AgentBasicInformation, string_url } from '@promptbook-local/types';
-import { ArrowLeftIcon, ChevronDownIcon, CodeIcon } from 'lucide-react';
-import Link from 'next/link';
+import { BackToAgentButton } from '@/src/components/BackToAgentButton/BackToAgentButton';
+import { ChevronDownIcon, CodeIcon } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 
 type Transpiler = {
@@ -145,13 +145,7 @@ export function AgentCodePageClient({ agentName, publicUrl }: AgentCodePageClien
                             Generated Code
                         </p>
                     </div>
-                    <Link
-                        href={`/agents/${encodeURIComponent(agentName)}`}
-                        className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
-                        title="Back to Agent"
-                    >
-                        <ArrowLeftIcon className="w-6 h-6" />
-                    </Link>
+                    <BackToAgentButton agentName={agentName} />
                 </div>
 
                 <div className="p-6">
