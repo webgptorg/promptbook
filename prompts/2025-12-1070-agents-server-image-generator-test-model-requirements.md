@@ -14,12 +14,11 @@
 
 ---
 
-[-]
+[ ]
 
-[✨🥄] qux
+[✨🥄] Add support for generating images into Google llm tools.
 
--   ...
--   You are working with the `Agents Server` application `/apps/agents-server`
+-   Add this on entire vertical from the listing of the models, Google LLM execution tools to the `Agents Server` application `/apps/agents-server` the [Image Generator Test](http://localhost:4440/admin/image-generator-test) and allow to newly added models.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
 
