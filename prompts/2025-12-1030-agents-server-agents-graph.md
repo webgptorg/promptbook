@@ -190,6 +190,47 @@ FROM http://localhost:4440/agents/EqvCgWPytPdfwW
 
 ---
 
+[ ]
+
+[✨⌨️] Agents social graph on home page are trying to constantly to refetch the agents image which fails to load
+
+-   ...
+-   You are working with the `Agents Server` application `/apps/agents-server` the home page, agent view `http://localhost:4440/?view=graph`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Add the changes into the `/changelog/_current-preversion.md`
+
+![alt text](screenshots/2025-12-1030-agents-server-agents-graph-9.png)
+![alt text](screenshots/2025-12-1030-agents-server-agents-graph-10.png)
+![alt text](screenshots/2025-12-1030-agents-server-agents-graph-11.png)
+
+---
+
+[ ]
+
+[✨⌨️] Enhance visuals of the agent connections on the Agents Graph on home page
+
+-   Each agent is one node in a directional graph.
+-   The related agents / nodes should be more distant from each other.
+-   The arrow of the connection should look like this "-->" _(not "->-" this)_ and shouldnt be animated with particles.
+-   You are working with the `Agents Server` application `/apps/agents-server` the home page, agent view `http://localhost:4440/?view=graph`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Add the changes into the `/changelog/_current-preversion.md`
+
+![alt text](screenshots/2025-12-1030-agents-server-agents-graph-12.png)
+
+---
+
+[ ]
+
+[✨⌨️] Enhance visauals of the Agents Graph on home page
+
+-   Look at the agent graph and make it visually more appealing.
+-   You are working with the `Agents Server` application `/apps/agents-server` the home page, agent view `http://localhost:4440/?view=graph`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Add the changes into the `/changelog/_current-preversion.md`
+
+---
+
 [-]
 
 [✨⌨️] brr
