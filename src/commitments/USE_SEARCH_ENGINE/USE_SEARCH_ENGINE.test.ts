@@ -14,7 +14,7 @@ describe('createAgentModelRequirementsWithCommitments with USE SEARCH ENGINE', (
                 name: 'web_search',
             }),
         );
-        expect(requirements.systemMessage).toContain('You have access to the web search engine.');
+        expect(requirements.systemMessage).toContain('You have access to the web search engine');
     });
 
     it('should add web_search tool and system message instructions when USE SEARCH alias is used', async () => {
@@ -28,6 +28,6 @@ describe('createAgentModelRequirementsWithCommitments with USE SEARCH ENGINE', (
                 name: 'web_search',
             }),
         );
-        expect(requirements.systemMessage).toContain('You have access to the web search engine.');
+        expect(requirements.systemMessage).toContain('You have access to the web search engine');
     });
 });
