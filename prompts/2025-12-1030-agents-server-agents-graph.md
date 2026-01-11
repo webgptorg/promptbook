@@ -194,7 +194,9 @@ FROM http://localhost:4440/agents/EqvCgWPytPdfwW
 
 [✨⌨️] Agents social graph on home page are trying to constantly to refetch the agents image which fails to load
 
--   ...
+-   When there is some problem with agent image, the agent graph on the home page shouldn't handle it properly.
+-   When the image fails to load, it should show some placeholder image or just the colored circle with initials of the agent name.
+-   Limit the number of retries to load the image to 3 attempts.
 -   You are working with the `Agents Server` application `/apps/agents-server` the home page, agent view `http://localhost:4440/?view=graph`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`

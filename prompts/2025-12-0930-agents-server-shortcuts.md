@@ -41,7 +41,8 @@
 [✨🏺] Implement Ctrl+V shortcut in <Chat/> component
 
 -   The pasting of text is already working in the chat component.
--   But when a user has something else like an image in the clipboard, it doesn't work. It doesn't do anything. Implement the pasting of the files in the chat component.
+-   But when a user has something else like an image in the clipboard, it doesn't work. It doesn't do anything. Implement the **pasting of the files** in the chat component.
+-   Pressing CTRL+V with files in the clipboard should behave the same as dropping the files to the chat.
 -   There are file attachments in the chat component. Use the file attachments for that.
 -   <Chat/> component is base for all other chat components like <LlmChat/>, <AgentChat/>, etc.
 -   You are working with the `Agents Server` application `/apps/agents-server`

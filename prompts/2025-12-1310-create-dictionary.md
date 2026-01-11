@@ -1,4 +1,4 @@
-[x][x][ ][ ][ ][ ]
+[x][x][-][-][-][-]
 
 [✨🌤] Go through the repository and create / update the dictionary.
 

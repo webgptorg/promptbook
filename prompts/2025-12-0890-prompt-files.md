@@ -19,12 +19,14 @@
 
 [✨🚦] Implement `ChatPrompt.files` for [OpenAiAssistantExecutionTools](/src/llm-providers/openai/OpenAiAssistantExecutionTools.ts)
 
+-   When chatting with OpenAI Assistant allows attaching files to the prompt.
+-   This should work for example with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
 
 ---
 
-[ ]
+[-]
 
 [✨🚦] Implement @@@ for @@@ExecutionTools
 
@@ -33,7 +35,7 @@
 
 ---
 
-[ ]
+[-]
 
 [✨🚦] Implement @@@ for @@@ExecutionTools
 

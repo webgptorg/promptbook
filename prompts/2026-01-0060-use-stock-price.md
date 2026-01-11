@@ -1,4 +1,4 @@
-[ ] _<- TODO: [🧠] Maybe use `USE BROWSER ...` instead_
+[.] _<- TODO: [🧠] Maybe use `USE BROWSER ...` instead_
 
 [✨⏲] Implement the commitment `USE STOCK PRICE`.
 

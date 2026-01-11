@@ -22,7 +22,7 @@ USE BROWSER
 
 ---
 
-[ ] _<- TODO: Not working, prompt need to be improved_
+[-] _<- TODO: Not working, prompt need to be improved_
 
 [✨🤸] Implement the browser usage for agents on agents server
 
