@@ -72,14 +72,15 @@
 -   *(already working)* When external tools are used for example via commitment `USE SEARCH ENGINE`, there is shown a source chiplet under the agent response message in the chat.
 -   *(already working)* When clicking on the chiplet, it opens a modal with detailed information about the search
 -   *(already working)* The detailed information shows correctly the search input. 
--   BUT it does NOT show the search results at all, there is shown @@@
--   In this model, the search should not be performed again. This is not about performing the search, this is only showing the search result that already happens. 
+-   BUT it does NOT show the search results at all, there is shown "Executing search..."
+-   In this model, the **search should not be performed again**. This is not about performing the search, this is only showing the search result that already happens. 
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
 
 
-@@@
+![alt text](screenshots/2026-01-0110-rich-search-input-2.png)
+![alt text](screenshots/2026-01-0110-rich-search-input-3.png)
 
 ---
 

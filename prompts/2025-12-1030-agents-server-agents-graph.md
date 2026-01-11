@@ -231,6 +231,8 @@ FROM http://localhost:4440/agents/EqvCgWPytPdfwW
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
 
+@@@
+
 ---
 
 [-]
