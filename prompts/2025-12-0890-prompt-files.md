@@ -15,7 +15,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🚦] Implement `ChatPrompt.files` for [OpenAiAssistantExecutionTools](/src/llm-providers/openai/OpenAiAssistantExecutionTools.ts)
 

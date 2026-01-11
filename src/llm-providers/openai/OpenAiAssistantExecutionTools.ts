@@ -26,6 +26,7 @@ import type { OpenAiAssistantExecutionToolsOptions } from './OpenAiAssistantExec
 import type { OpenAiCompatibleExecutionToolsNonProxiedOptions } from './OpenAiCompatibleExecutionToolsOptions';
 import { OpenAiExecutionTools } from './OpenAiExecutionTools';
 import { mapToolsToOpenAi } from './utils/mapToolsToOpenAi';
+import { uploadFilesToOpenAi } from './utils/uploadFilesToOpenAi';
 
 /**
  * Execution Tools for calling OpenAI API Assistants
@@ -81,9 +82,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
     /**
      * Calls OpenAI API to use a chat model.
      */
-    public async callChatModel(
-        prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements' | 'format'>,
-    ): Promise<ChatPromptResult> {
+    public async callChatModel(prompt: Prompt): Promise<ChatPromptResult> {
         return this.callChatModelStream(prompt, () => {});
     }
 
@@ -91,7 +90,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
      * Calls OpenAI API to use a chat model with streaming.
      */
     public async callChatModelStream(
-        prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements' | 'format'>,
+        prompt: Prompt,
         onProgress: (chunk: ChatPromptResult) => void,
     ): Promise<ChatPromptResult> {
         if (this.options.isVerbose) {
@@ -146,21 +145,29 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
 
         // TODO: [🈹] Maybe this should not be here but in other place, look at commit 39d705e75e5bcf7a818c3af36bc13e1c8475c30c
         // Add previous messages from thread (if any)
-        if (
-            'thread' in prompt &&
-            Array.isArray((prompt as { thread?: Array<{ role: string; content: string }> }).thread)
-        ) {
-            const previousMessages = (prompt as { thread: Array<{ role: string; content: string }> }).thread.map(
-                (msg) => ({
-                    role: (msg.role === 'assistant' ? 'assistant' : 'user') as 'user' | 'assistant',
-                    content: msg.content,
-                }),
-            );
+        if ('thread' in prompt && Array.isArray(prompt.thread)) {
+            const previousMessages = prompt.thread.map((msg) => ({
+                role: (msg.sender === 'assistant' ? 'assistant' : 'user') as 'user' | 'assistant',
+                content: msg.content,
+            }));
             threadMessages.push(...previousMessages);
         }
 
         // Always add the current user message
-        threadMessages.push({ role: 'user', content: rawPromptContent });
+        const currentUserMessage: OpenAI.Beta.ThreadCreateAndRunParams.Thread.Message = {
+            role: 'user',
+            content: rawPromptContent,
+        };
+
+        if ('files' in prompt && Array.isArray(prompt.files) && prompt.files.length > 0) {
+            const fileIds = await uploadFilesToOpenAi(client, prompt.files);
+            currentUserMessage.attachments = fileIds.map((fileId) => ({
+                file_id: fileId,
+                tools: [{ type: 'file_search' }, { type: 'code_interpreter' }],
+            }));
+        }
+
+        threadMessages.push(currentUserMessage as { role: 'user' | 'assistant'; content: string });
 
         // Check if tools are being used - if so, use non-streaming mode
         const hasTools = modelRequirements.tools !== undefined && modelRequirements.tools.length > 0;

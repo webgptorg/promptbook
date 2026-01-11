@@ -242,9 +242,9 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
             ...threadMessages,
         ];
 
-        if ('files' in prompt && Array.isArray((prompt as TODO_any).files) && (prompt as TODO_any).files!.length > 0) {
+        if ('files' in prompt && Array.isArray(prompt.files) && prompt.files.length > 0) {
             const filesContent = await Promise.all(
-                (prompt as TODO_any).files!.map(async (file: File) => {
+                prompt.files.map(async (file: File) => {
                     const arrayBuffer = await file.arrayBuffer();
                     const base64 = Buffer.from(arrayBuffer).toString('base64');
                     return {
