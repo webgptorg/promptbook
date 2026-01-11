@@ -6,6 +6,8 @@ import type { TODO_any } from '../../../utils/organization/TODO_any';
 
 /**
  * Technical to user-friendly tool names and emojis
+ *
+ * @private [🧠] Maybe public?
  */
 export const TOOL_TITLES: Record<string, { title: string; emoji: string }> = {
     web_search: { title: 'Searching the web', emoji: '🔎' },
@@ -18,6 +20,8 @@ export const TOOL_TITLES: Record<string, { title: string; emoji: string }> = {
 
 /**
  * Gets the user-friendly text for a tool call chiplet.
+ *
+ * @private [🧠] Maybe public?
  */
 export function getToolCallChipletText(toolCall: {
     name: string;
