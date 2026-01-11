@@ -252,6 +252,19 @@ export function Chat(props: ChatProps) {
         setIsDragOver(false);
     }, []);
 
+    const handlePaste = useCallback(
+        (event: React.ClipboardEvent) => {
+            if (!onFileUpload) return;
+
+            const files = event.clipboardData.files;
+            if (files.length > 0) {
+                // event.preventDefault(); // [🧠] Do NOT prevent default, because we want to allow pasting text too
+                handleFileUpload(files);
+            }
+        },
+        [onFileUpload, handleFileUpload],
+    );
+
     const handleFileInputChange = useCallback(
         (event: React.ChangeEvent<HTMLInputElement>) => {
             const files = event.target.files;
@@ -714,11 +727,12 @@ export function Chat(props: ChatProps) {
                                             } as React.CSSProperties
                                         }
                                     >
-                                        <textarea
-                                            ref={(element) => {
-                                                textareaRef.current = element;
-                                            }}
-                                            style={{
+                                <textarea
+                                    ref={(element) => {
+                                        textareaRef.current = element;
+                                    }}
+                                    onPaste={handlePaste}
+                                    style={{
                                                 height:
                                                     Math.max(
                                                         countLines(textareaRef.current?.value || defaultMessage || ''),

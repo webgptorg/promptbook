@@ -36,7 +36,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🏺] Implement Ctrl+V shortcut in <Chat/> component
 

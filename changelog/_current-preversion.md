@@ -33,6 +33,7 @@
 -   Code blocks in the `<BookEditor />` are distinctly highlighted
 -   Do the full proxy of the given LLM tools in `countUsage` and `cacheLlmTools`
 -   Show linked Agents on Agent profile via the capability chips
+-   Implement Ctrl+V shortcut in `<Chat/>` component for pasting images and files
 -   Agents social graph on home page
     -   Handle agent profile image loading failures gracefully by showing initials fallback
     -   Limit image loading retries to 3 attempts with exponential backoff
