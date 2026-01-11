@@ -1,10 +1,10 @@
 'use server';
 
+import { BackToAgentButton } from '@/src/components/BackToAgentButton/BackToAgentButton';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideServer } from '@/src/tools/$provideServer';
 import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
 import { resolveInheritedAgentSource } from '@/src/utils/resolveInheritedAgentSource';
-import { BackToAgentButton } from '@/src/components/BackToAgentButton/BackToAgentButton';
 import { CodePreview } from '@common/components/CodePreview/CodePreview';
 import { BookEditor } from '@promptbook-local/components';
 import {
@@ -13,9 +13,8 @@ import {
     parseAgentSource,
 } from '@promptbook-local/core';
 import { TODO_any } from '@promptbook-local/types';
-import { ArrowLeftIcon, FileTextIcon } from 'lucide-react';
+import { FileTextIcon } from 'lucide-react';
 import { headers } from 'next/headers';
-import Link from 'next/link';
 import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
 import { getAgentName } from '../_utils';
 import { generateAgentMetadata } from '../generateAgentMetadata';

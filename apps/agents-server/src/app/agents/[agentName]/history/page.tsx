@@ -1,7 +1,6 @@
-import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { BackToAgentButton } from '@/src/components/BackToAgentButton/BackToAgentButton';
+import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { HistoryIcon } from 'lucide-react';
-import Link from 'next/link';
 import { RestoreVersionButton } from './RestoreVersionButton';
 
 export const metadata = {

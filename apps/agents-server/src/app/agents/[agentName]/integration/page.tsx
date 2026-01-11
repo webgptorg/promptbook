@@ -1,11 +1,12 @@
 'use server';
 
+import { BackToAgentButton } from '@/src/components/BackToAgentButton/BackToAgentButton';
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabase } from '@/src/database/$provideSupabase';
 import { $provideServer } from '@/src/tools/$provideServer';
 import { isUserAdmin } from '@/src/utils/isUserAdmin';
 import { generatePlaceholderAgentProfileImageUrl, PROMPTBOOK_COLOR } from '@promptbook-local/core';
-import { ArrowLeftIcon, BoxIcon, CodeIcon, GlobeIcon, ServerIcon, TerminalIcon } from 'lucide-react';
+import { BoxIcon, CodeIcon, GlobeIcon, ServerIcon, TerminalIcon } from 'lucide-react';
 import { headers } from 'next/headers';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -13,7 +14,6 @@ import spaceTrim from 'spacetrim';
 import { Color } from '../../../../../../../src/utils/color/Color';
 import { withAlpha } from '../../../../../../../src/utils/color/operators/withAlpha';
 import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
-import { BackToAgentButton } from '@/src/components/BackToAgentButton/BackToAgentButton';
 import { CodePreview } from '../../../../../../_common/components/CodePreview/CodePreview';
 import { getAgentName, getAgentProfile } from '../_utils';
 import { getAgentLinks } from '../agentLinks';
