@@ -79,3 +79,8 @@
 -   Updated `SearchEngine` interface to support advanced options.
 -   Enhanced Search Engine Test page with advanced SERP parameters and raw call details.
 -   Allow to add additional model requirements like image size in the [Image Generator Test](http://localhost:4440/admin/image-generator-test)
+-   Improved the voice input in the chat component to be more natural:
+    -   Implemented silence detection (VAD-like) in `OpenAiSpeechRecognition` using `AudioContext` and `AnalyserNode` to automatically stop recording after 2 seconds of silence.
+    -   Show better visual feedback that the audio is being processed.
+    -   Once transcription is done, automatically insert the transcribed text into the chat input box.
+    -   Cleaned up redundant logic in `<Chat/>` component regarding voice input handling.

@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨⛹️] In the <Chat/> component, make voice input more natural
 

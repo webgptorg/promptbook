@@ -25,6 +25,9 @@ export type OpenAiSpeechRecognitionOptions = {
  */
 export class OpenAiSpeechRecognition implements SpeechRecognition {
     private mediaRecorder: MediaRecorder | null = null;
+    private audioContext: AudioContext | null = null;
+    private analyser: AnalyserNode | null = null;
+    private silenceTimeout: NodeJS.Timeout | null = null;
     private audioChunks: Blob[] = [];
     private callbacks: Array<(event: SpeechRecognitionEvent) => void> = [];
     private _state: SpeechRecognitionState = 'IDLE';
@@ -46,18 +49,71 @@ export class OpenAiSpeechRecognition implements SpeechRecognition {
             this.mediaRecorder = new MediaRecorder(stream);
             this.audioChunks = [];
 
+            // Setup silence detection
+            this.audioContext = new AudioContext();
+            const source = this.audioContext.createMediaStreamSource(stream);
+            this.analyser = this.audioContext.createAnalyser();
+            this.analyser.fftSize = 256;
+            source.connect(this.analyser);
+
+            const bufferLength = this.analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+
+            const checkSilence = () => {
+                if (this._state !== 'RECORDING') {
+                    return;
+                }
+
+                this.analyser!.getByteFrequencyData(dataArray);
+                let sum = 0;
+                for (let i = 0; i < bufferLength; i++) {
+                    sum += dataArray[i]!;
+                }
+                const average = sum / bufferLength;
+
+                // Threshold for silence (can be adjusted)
+                if (average < 10) {
+                    if (!this.silenceTimeout) {
+                        this.silenceTimeout = setTimeout(() => {
+                            this.$stop();
+                        }, 2000);
+                    }
+                } else {
+                    if (this.silenceTimeout) {
+                        clearTimeout(this.silenceTimeout);
+                        this.silenceTimeout = null;
+                    }
+                }
+
+                requestAnimationFrame(checkSilence);
+            };
+
             this.mediaRecorder.ondataavailable = (event) => {
                 this.audioChunks.push(event.data);
             };
 
             this.mediaRecorder.onstop = async () => {
                 const audioBlob = new Blob(this.audioChunks, { type: 'audio/wav' });
+
+                // Cleanup audio context
+                if (this.audioContext) {
+                    this.audioContext.close();
+                    this.audioContext = null;
+                }
+                this.analyser = null;
+                if (this.silenceTimeout) {
+                    clearTimeout(this.silenceTimeout);
+                    this.silenceTimeout = null;
+                }
+
                 await this.transcribe(audioBlob, options.language);
             };
 
             this.mediaRecorder.start();
             this._state = 'RECORDING';
             this.emit({ type: 'START' });
+
+            requestAnimationFrame(checkSilence);
         } catch (error) {
             this._state = 'ERROR';
             this.emit({ type: 'ERROR', message: (error as Error).message });

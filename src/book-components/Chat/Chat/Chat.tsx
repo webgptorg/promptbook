@@ -126,7 +126,6 @@ export function Chat(props: ChatProps) {
 
     // Voice recognition state
     const [speechRecognitionState, setSpeechRecognitionState] = useState<SpeechRecognitionState>('IDLE');
-    const [speechRecognitionText, setSpeechRecognitionText] = useState<string>('');
 
     // Use mobile detection from the hook
     const isMobile = isMobileFromHook;
@@ -156,23 +155,17 @@ export function Chat(props: ChatProps) {
         const unsubscribe = speechRecognition.subscribe((event: SpeechRecognitionEvent) => {
             if (event.type === 'START') {
                 setSpeechRecognitionState('RECORDING');
-                setSpeechRecognitionText('');
             } else if (event.type === 'RESULT') {
-                setSpeechRecognitionText(event.text);
+                // [🧠] Note: This logic assumes that interim results are being updated.
+                //      For OpenAiSpeechRecognition, it's just one final result.
 
                 if (textareaRef.current) {
                     const textarea = textareaRef.current;
                     const currentValue = textarea.value;
-                    const lastResult = speechRecognitionText;
 
-                    // If the current value ends with the last interim result, replace it
-                    if (lastResult && currentValue.endsWith(lastResult)) {
-                        textarea.value = currentValue.slice(0, -lastResult.length) + event.text;
-                    } else {
-                        // Otherwise just append with a space if needed
-                        const separator = currentValue && !currentValue.endsWith(' ') ? ' ' : '';
-                        textarea.value += separator + event.text;
-                    }
+                    // Append the transcribed text with a space if needed
+                    const separator = currentValue && !currentValue.endsWith(' ') && !currentValue.endsWith('\n') ? ' ' : '';
+                    textarea.value += separator + event.text;
 
                     if (onChange) {
                         onChange(textarea.value);
@@ -183,14 +176,13 @@ export function Chat(props: ChatProps) {
                 alert(`Speech recognition error: ${event.message}`);
             } else if (event.type === 'STOP') {
                 setSpeechRecognitionState('IDLE');
-                setSpeechRecognitionText('');
             }
         });
 
         return () => {
             unsubscribe();
         };
-    }, [speechRecognition, onChange, speechRecognitionText]);
+    }, [speechRecognition, onChange]);
 
     const handleToggleVoiceInput = useCallback(() => {
         if (!speechRecognition) {
