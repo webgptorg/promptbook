@@ -486,6 +486,7 @@ export function ChatHistoryClient({ initialAgentName }: ChatHistoryClientProps) 
                             isPausable={true}
                             isResettable={false}
                             isSaveButtonEnabled={true}
+                            visual="STANDALONE"
                         />
                     </div>
                     <div className="p-4 bg-gray-50 border-t border-gray-200">{pagination}</div>

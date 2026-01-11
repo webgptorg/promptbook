@@ -100,6 +100,7 @@ export default async function AgentPage({
                         generatePlaceholderAgentProfileImageUrl(agentProfile.permanentId || agentName, publicUrl)
                     }
                     isDeleted={isDeleted}
+               
                 />
             </AgentProfileWrapper>
         </>

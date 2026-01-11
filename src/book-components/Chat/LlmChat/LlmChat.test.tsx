@@ -65,7 +65,9 @@ describe('LlmChat', () => {
 
         await act(async () => {
             const root = createRoot(container);
-            root.render(<LlmChat title="Test" llmTools={customLlmTools as TODO_any} thread={thread} />);
+            root.render(
+                <LlmChat title="Test" llmTools={customLlmTools as TODO_any} thread={thread} visual="STANDALONE" />,
+            );
         });
 
         // Simulate sending a message
@@ -89,6 +91,7 @@ describe('LlmChat', () => {
             title: 'Test',
             llmTools: mockLlmTools,
             placeholderMessageContent: 'Test placeholder',
+            visual: 'STANDALONE',
         };
 
         expect(props.llmTools).toBe(mockLlmTools);
@@ -150,6 +153,7 @@ describe('LlmChat', () => {
         const validProps: LlmChatProps = {
             title: 'Test',
             llmTools: mockLlmTools,
+            visual: 'STANDALONE',
         };
 
         expect(validProps.llmTools).toBeDefined();
@@ -172,6 +176,7 @@ describe('LlmChat', () => {
             isExperimental: true,
             isSaveButtonEnabled: false,
             exportHeaderMarkdown: '# Chat Export',
+            visual: 'STANDALONE',
             onUseTemplate: () => {},
         };
 
@@ -203,6 +208,7 @@ describe('LlmChat', () => {
             title: 'Test',
             llmTools: mockLlmTools,
             initialMessages,
+            visual: 'STANDALONE',
         };
 
         expect(props.initialMessages).toBeDefined();
@@ -238,6 +244,7 @@ describe('LlmChat', () => {
             title: 'Test',
             llmTools: mockLlmTools,
             sendMessage: fakeSend,
+            visual: 'STANDALONE',
         };
 
         expect(typeof props.sendMessage).toBe('function');
@@ -270,7 +277,9 @@ describe('LlmChat', () => {
 
         await act(async () => {
             const root = createRoot(container);
-            root.render(<LlmChat title="Test" llmTools={mockLlmTools} initialMessages={initialMessages} />);
+            root.render(
+                <LlmChat title="Test" llmTools={mockLlmTools} initialMessages={initialMessages} visual="STANDALONE" />,
+            );
         });
 
         const rawFirstProps = (globalThis as { __lastChatProps?: CapturedChatProps }).__lastChatProps;

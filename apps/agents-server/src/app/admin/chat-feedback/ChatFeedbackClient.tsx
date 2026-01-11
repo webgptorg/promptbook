@@ -551,7 +551,7 @@ export function ChatFeedbackClient({ initialAgentName }: ChatFeedbackClientProps
                             </button>
                         </div>
                         <div className="flex-1 overflow-hidden relative">
-                            <Chat messages={selectedThread} />
+                            <Chat messages={selectedThread} visual="STANDALONE" />
                         </div>
                     </div>
                 </div>

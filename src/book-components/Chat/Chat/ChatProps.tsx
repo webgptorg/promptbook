@@ -4,13 +4,13 @@
 
 import type { CSSProperties, ReactNode } from 'react';
 import type { Promisable } from 'type-fest';
+import { Color } from '../../../_packages/color.index';
+import { SpeechRecognition } from '../../../types/SpeechRecognition';
+import { string_color } from '../../../types/typeAliases';
+import type { TODO_any } from '../../../utils/organization/TODO_any';
 import type { string_chat_format_name } from '../save/_common/string_chat_format_name';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
-import { string_color } from '../../../types/typeAliases';
-import { Color } from '../../../_packages/color.index';
-import { SpeechRecognition } from '../../../types/SpeechRecognition';
-import type { TODO_any } from '../../../utils/organization/TODO_any';
 
 /**
  * @public exported from `@promptbook/components`
@@ -232,6 +232,11 @@ export type ChatProps = {
      * Called when a tool call chiplet is clicked.
      */
     onToolCallClick?: (toolCall: { name: string; arguments?: TODO_any; result?: TODO_any }) => void;
+
+    /**
+     * Visual style of the chat component
+     */
+    readonly visual: 'STANDALONE' | 'FULL_PAGE';
 };
 
 /**

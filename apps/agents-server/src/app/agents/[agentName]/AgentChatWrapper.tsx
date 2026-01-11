@@ -114,6 +114,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
             defaultMessage={defaultMessage}
             autoExecuteMessage={autoExecuteMessage}
             speechRecognition={speechRecognition}
+            visual="FULL_PAGE"
         />
     );
 }

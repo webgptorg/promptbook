@@ -8,7 +8,6 @@ import spaceTrim from 'spacetrim';
 import { USER_CHAT_COLOR } from '../../../config';
 import { SpeechRecognitionEvent, SpeechRecognitionState } from '../../../types/SpeechRecognition';
 import type { id } from '../../../types/typeAliases';
-import type { TODO_any } from '../../../utils/organization/TODO_any';
 import { Color } from '../../../utils/color/Color';
 import { textColor } from '../../../utils/color/operators/furthest';
 import { grayscale } from '../../../utils/color/operators/grayscale';
@@ -17,6 +16,7 @@ import { countLines } from '../../../utils/expectation-counters/countLines';
 import { humanizeAiText } from '../../../utils/markdown/humanizeAiText';
 import { promptbookifyAiText } from '../../../utils/markdown/promptbookifyAiText';
 import { normalizeToKebabCase } from '../../../utils/normalization/normalize-to-kebab-case';
+import type { TODO_any } from '../../../utils/organization/TODO_any';
 import { classNames } from '../../_common/react-utils/classNames';
 import { ArrowIcon } from '../../icons/ArrowIcon';
 import { AttachmentIcon } from '../../icons/AttachmentIcon';
@@ -82,6 +82,7 @@ export function Chat(props: ChatProps) {
         onUseTemplate,
         onCreateAgent,
         toolTitles,
+        visual,
     } = props;
 
     const buttonColor = useMemo(() => Color.from(buttonColorRaw || '#0066cc'), [buttonColorRaw]);
@@ -484,7 +485,17 @@ export function Chat(props: ChatProps) {
         <>
             {ratingConfirmation && <div className={styles.ratingConfirmation}>{ratingConfirmation}</div>}
 
-            <div className={classNames(className, styles.Chat, useChatCssClassName('Chat'))} {...{ style }}>
+            <div
+                className={classNames(
+                    className,
+                    styles.Chat,
+                    visual === 'STANDALONE' && styles.standaloneVisual,
+                    visual === 'FULL_PAGE' && styles.fullPageVisual,
+                    useChatCssClassName('Chat'),
+                )}
+                {...{ style }}
+            >
+                {visual}
                 <div className={classNames(className, styles.chatMainFlow, useChatCssClassName('chatMainFlow'))}>
                     {children && <div className={classNames(styles.chatChildren)}>{children}</div>}
 
@@ -899,7 +910,9 @@ export function Chat(props: ChatProps) {
                                     <>
                                         <div className={styles.searchModalHeader}>
                                             <span className={styles.searchModalIcon}>🔎</span>
-                                            <h3 className={styles.searchModalQuery}>{args.query || 'Search Results'}</h3>
+                                            <h3 className={styles.searchModalQuery}>
+                                                {args.query || 'Search Results'}
+                                            </h3>
                                         </div>
 
                                         <div className={styles.searchModalContent}>

@@ -177,6 +177,7 @@ export function PromptbookAgentSeamlessIntegration(props: PromptbookAgentSeamles
                                         <CloseIcon />
                                     </button>
                                 }
+                                visual="STANDALONE"
                             />
                         ) : error ? (
                             <div className={styles.PromptbookAgentSeamlessIntegrationError}>

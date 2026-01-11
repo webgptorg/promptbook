@@ -139,6 +139,7 @@ export function AgentProfileChat({
                 buttonColor={brandColorHex}
                 style={{ background: 'transparent' }}
                 speechRecognition={speechRecognition}
+                visual={'STANDALONE'}
             />
         </div>
     );
