@@ -14,7 +14,7 @@ import { classNames } from '../../_common/react-utils/classNames';
 import { MarkdownContent } from '../MarkdownContent/MarkdownContent';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
-import { getToolCallChipletText, TOOL_TITLES } from '../utils/formatToolCall';
+import { getToolCallChipletText, TOOL_TITLES } from '../utils/getToolCallChipletText';
 import { parseMessageButtons } from '../utils/parseMessageButtons';
 import styles from './Chat.module.css';
 import type { ChatProps } from './ChatProps';
