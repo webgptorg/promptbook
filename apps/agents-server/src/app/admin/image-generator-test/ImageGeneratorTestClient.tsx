@@ -212,6 +212,7 @@ export function ImageGeneratorTestClient() {
                         <div className="space-y-2 col-span-1 md:col-span-1">
                             <label className="block text-sm font-medium text-gray-700">Model Name</label>
                             <input
+                                list="model-names"
                                 type="text"
                                 value={modelName}
                                 onChange={(e) => setModelName(e.target.value)}
@@ -219,6 +220,11 @@ export function ImageGeneratorTestClient() {
                                 className="w-full p-2 border border-gray-300 rounded"
                                 disabled={isGenerating}
                             />
+                            <datalist id="model-names">
+                                <option value="dall-e-3" />
+                                <option value="dall-e-2" />
+                                <option value="imagen-3" />
+                            </datalist>
                         </div>
 
                         <div className="space-y-2">

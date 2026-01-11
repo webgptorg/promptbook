@@ -1,8 +1,16 @@
 import type { ChatParticipant } from '../../book-components/Chat/types/ChatParticipant';
+import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { LlmExecutionToolsConstructor } from '../../execution/LlmExecutionToolsConstructor';
-import type { string_name } from '../../types/typeAliases';
+import type { ImagePromptResult } from '../../execution/PromptResult';
+import { computeUsageCounts } from '../../execution/utils/computeUsageCounts';
+import { uncertainNumber } from '../../execution/utils/uncertainNumber';
+import type { Prompt } from '../../types/Prompt';
+import type { string_date_iso8601, string_name } from '../../types/typeAliases';
 import { $isRunningInJest } from '../../utils/environment/$isRunningInJest';
+import { $getCurrentDate } from '../../utils/misc/$getCurrentDate';
+import { templateParameters } from '../../utils/parameters/templateParameters';
+import { exportJson } from '../../utils/serialization/exportJson';
 import { createExecutionToolsFromVercelProvider } from '../vercel/createExecutionToolsFromVercelProvider';
 import type { GoogleExecutionToolsOptions } from './GoogleExecutionToolsOptions';
 import { GOOGLE_MODELS } from './google-models';
@@ -48,6 +56,66 @@ export const createGoogleExecutionTools = Object.assign(
         return {
             ...baseTools,
             profile: GOOGLE_PROVIDER_PROFILE,
+
+            async callImageGenerationModel(
+                prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements'>,
+            ): Promise<ImagePromptResult> {
+                const { content, parameters, modelRequirements } = prompt;
+
+                // TODO: [☂] Use here more modelRequirements
+                if (modelRequirements.modelVariant !== 'IMAGE_GENERATION') {
+                    throw new PipelineExecutionError('Use callImageGenerationModel only for IMAGE_GENERATION variant');
+                }
+
+                const modelName = modelRequirements.modelName || 'imagen-3';
+
+                const rawPromptContent = templateParameters(content, { ...parameters, modelName });
+
+                const start: string_date_iso8601 = $getCurrentDate();
+
+                const experimental_imageModel = googleGeminiVercelProvider.image(modelName);
+
+                const { image } = await experimental_imageModel.generateImage({
+                    prompt: rawPromptContent,
+                    // size: modelRequirements.size, // <- TODO: Mapping of sizes
+                    // aspect_ratio: '1:1', // <- TODO: Mapping of aspect ratios
+                });
+
+                const complete: string_date_iso8601 = $getCurrentDate();
+
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const rawResponse: any = { image };
+
+                return exportJson({
+                    name: 'promptResult',
+                    message: `Result of \`GoogleExecutionTools.callImageGenerationModel\``,
+                    order: [],
+                    value: {
+                        content: `data:${image.contentType};base64,${image.base64}`,
+                        modelName,
+                        timing: {
+                            start,
+                            complete,
+                        },
+                        usage: {
+                            price: uncertainNumber(),
+                            input: {
+                                tokensCount: uncertainNumber(0),
+                                ...computeUsageCounts(rawPromptContent),
+                            },
+                            output: {
+                                tokensCount: uncertainNumber(0),
+                                ...computeUsageCounts(''),
+                            },
+                        },
+                        rawPromptContent,
+                        rawRequest: {
+                            prompt: rawPromptContent,
+                        },
+                        rawResponse,
+                    },
+                });
+            },
         };
     },
     {

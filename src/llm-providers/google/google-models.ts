@@ -240,6 +240,14 @@ export const GOOGLE_MODELS: ReadonlyArray<
                 output: pricing(`$27.00 / 1M tokens`),
             },
         },
+        {
+            modelVariant: 'IMAGE_GENERATION',
+            modelTitle: 'Imagen 3',
+            modelName: 'imagen-3',
+            modelDescription:
+                'Google’s highest quality text-to-image model, capable of generating images with even better detail, richer lighting and fewer distracting artifacts than our previous models.',
+            // TODO: [🧠] Add pricing information for Imagen 3
+        },
         // …add any additional from https://ai.google.dev/models/gemini…
     ],
 });

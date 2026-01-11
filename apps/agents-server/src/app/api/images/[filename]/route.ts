@@ -67,7 +67,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             parameters: {},
             modelRequirements: {
                 modelVariant: 'IMAGE_GENERATION',
-                modelName: modelName || 'dall-e-3', // Use DALL-E 3 for high quality
+                modelName:
+                    modelName ||
+                    (llmTools.title.includes('Google')
+                        ? 'imagen-3'
+                        : 'dall-e-3'), // Use Imagen 3 for Google, DALL-E 3 for high quality otherwise
                 size: (size as ImageGenerationModelRequirements['size']) || undefined,
                 quality: (quality as ImageGenerationModelRequirements['quality']) || undefined,
                 style: (style as ImageGenerationModelRequirements['style']) || undefined,
