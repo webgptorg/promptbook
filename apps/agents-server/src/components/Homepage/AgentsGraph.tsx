@@ -105,7 +105,10 @@ export function AgentsGraph(props: AgentsGraphProps) {
                             targetUrl =
                                 (agent.serverUrl || publicUrl.replace(/\/$/, '')) +
                                 '/agents/' +
-                                targetUrl.replace(/^\.\//, '').replace(/^\/agents\//, '').replace(/^\//, '');
+                                targetUrl
+                                    .replace(/^\.\//, '')
+                                    .replace(/^\/agents\//, '')
+                                    .replace(/^\//, '');
                         }
 
                         const targetAgent = allAgents.find((a) => {
@@ -335,7 +338,7 @@ export function AgentsGraph(props: AgentsGraphProps) {
                             onChange={() => toggleFilter('inheritance')}
                             className="rounded text-blue-600"
                         />
-                        <span className="text-sm">Inheritance (FROM)</span>
+                        <span className="text-sm">Parent{/* Inheritance / FROM */}</span>
                     </label>
                     <label className="flex items-center gap-1 cursor-pointer">
                         <input
@@ -582,7 +585,7 @@ export function AgentsGraph(props: AgentsGraphProps) {
                 <div className="absolute bottom-4 right-4 flex flex-col gap-2 text-[10px] bg-white/80 p-2 rounded border shadow-sm">
                     <div className="flex items-center gap-2">
                         <div className="w-3 h-0.5 bg-purple-500"></div>
-                        <span>Inheritance (FROM)</span>
+                        <span>Parent{/* Inheritance / FROM */}</span>
                     </div>
                     <div className="flex items-center gap-2">
                         <div className="w-3 h-0.5 bg-emerald-500"></div>

@@ -88,7 +88,7 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
         if (commitment.type === 'USE SEARCH ENGINE') {
             capabilities.push({
                 type: 'search-engine',
-                label: 'Search Internet',
+                label: 'Internet',
                 iconName: 'Search',
             });
             continue;
@@ -97,7 +97,7 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
         if (commitment.type === 'USE SEARCH') {
             capabilities.push({
                 type: 'search-engine',
-                label: 'Search Internet',
+                label: 'Internet',
                 iconName: 'Search',
             });
             continue;
