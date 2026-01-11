@@ -207,7 +207,7 @@ FROM http://localhost:4440/agents/EqvCgWPytPdfwW
 
 ---
 
-[ ]
+[x]
 
 [✨⌨️] Enhance visuals of the agent connections on the Agents Graph on home page
 

@@ -240,7 +240,11 @@ export function AgentsGraph(props: AgentsGraphProps) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         if ((window as any).d3) {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            fg.d3Force('collide', (window as any).d3.forceCollide(30));
+            fg.d3Force('collide', (window as any).d3.forceCollide(50));
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            fg.d3Force('charge', (window as any).d3.forceManyBody().strength(-200));
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            fg.d3Force('link', (window as any).d3.forceLink().distance(150));
         }
     }, [graphData]);
 
@@ -428,10 +432,8 @@ export function AgentsGraph(props: AgentsGraphProps) {
                     linkColor={(link) =>
                         (link as unknown as GraphLink).type === 'inheritance' ? '#8b5cf6' : '#10b981'
                     }
-                    linkDirectionalArrowLength={5}
+                    linkDirectionalArrowLength={7}
                     linkDirectionalArrowRelPos={1}
-                    linkDirectionalParticles={2}
-                    linkDirectionalParticleSpeed={0.005}
                     linkCurvature={0.25}
                     onNodeClick={handleNodeClick}
                     cooldownTicks={100}

@@ -84,3 +84,7 @@
     -   Show better visual feedback that the audio is being processed.
     -   Once transcription is done, automatically insert the transcribed text into the chat input box.
     -   Cleaned up redundant logic in `<Chat/>` component regarding voice input handling.
+-   Enhance visuals of the agent connections on the Agents Graph on home page
+    -   Increase distance between nodes in the graph
+    -   Remove particle animation from connection links
+    -   Improve connection arrow visibility
