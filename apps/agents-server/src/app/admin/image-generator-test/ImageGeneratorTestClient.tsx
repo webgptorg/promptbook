@@ -38,6 +38,9 @@ export function ImageGeneratorTestClient() {
         },
     ]);
     const [modelName, setModelName] = useState<string>('dall-e-3');
+    const [modelSize, setModelSize] = useState<string>('1024x1024');
+    const [modelQuality, setModelQuality] = useState<'standard' | 'hd'>('standard');
+    const [modelStyle, setModelStyle] = useState<'vivid' | 'natural'>('vivid');
     const [results, setResults] = useState<GeneratedImage[]>([]);
     const [isGenerating, setIsGenerating] = useState(false);
     const [progress, setProgress] = useState({ current: 0, total: 0 });
@@ -55,7 +58,13 @@ export function ImageGeneratorTestClient() {
         setPrompts(prompts.map((p) => (p.id === id ? { ...p, value: newValue } : p)));
     };
 
-    const generateSingleImage = async (prompt: string, model: string): Promise<GeneratedImage> => {
+    const generateSingleImage = async (
+        prompt: string,
+        model: string,
+        size: string,
+        quality: string,
+        style: string,
+    ): Promise<GeneratedImage> => {
         const id = Math.random().toString(36).substring(7);
         const promptTrimmed = prompt.trim();
 
@@ -64,7 +73,11 @@ export function ImageGeneratorTestClient() {
             promptTrimmed
                 .toLowerCase()
                 .replace(/[^a-z0-9]+/g, '-')
-                .replace(/^-+|-+$/g, '') + '.png';
+                .replace(/^-+|-+$/g, '') +
+            (size === '1024x1024' ? '' : `-${size}`) +
+            (quality === 'standard' ? '' : `-${quality}`) +
+            (style === 'vivid' ? '' : `-${style}`) +
+            '.png';
 
         const result: GeneratedImage = {
             id,
@@ -78,6 +91,9 @@ export function ImageGeneratorTestClient() {
 
         const queryParams = new URLSearchParams();
         if (model) queryParams.set('modelName', model);
+        if (size) queryParams.set('size', size);
+        if (quality) queryParams.set('quality', quality);
+        if (style) queryParams.set('style', style);
         queryParams.set('raw', 'true');
 
         try {
@@ -147,7 +163,7 @@ export function ImageGeneratorTestClient() {
             // Update status to loading for this item
             setResults((prev) => prev.map((item, idx) => (idx === i ? { ...item, status: 'loading' } : item)));
 
-            const result = await generateSingleImage(p.value, modelName);
+            const result = await generateSingleImage(p.value, modelName, modelSize, modelQuality, modelStyle);
 
             // Update result for this item
             setResults((prev) => prev.map((item, idx) => (idx === i ? { ...result, id: item.id } : item)));
@@ -192,21 +208,63 @@ export function ImageGeneratorTestClient() {
 
             <Card>
                 <div className="mb-4 space-y-4">
-                    <div className="space-y-2">
-                        <label className="block text-sm font-medium text-gray-700">Model Name</label>
-                        <input
-                            type="text"
-                            value={modelName}
-                            onChange={(e) => setModelName(e.target.value)}
-                            placeholder="e.g., dall-e-3"
-                            className="w-full p-2 border border-gray-300 rounded"
-                            disabled={isGenerating}
-                        />
-                        <p className="text-xs text-gray-500">
-                            Available models depend on the configured LLM provider. Common options: dall-e-3, dall-e-2,
-                            midjourney
-                        </p>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div className="space-y-2 col-span-1 md:col-span-1">
+                            <label className="block text-sm font-medium text-gray-700">Model Name</label>
+                            <input
+                                type="text"
+                                value={modelName}
+                                onChange={(e) => setModelName(e.target.value)}
+                                placeholder="e.g., dall-e-3"
+                                className="w-full p-2 border border-gray-300 rounded"
+                                disabled={isGenerating}
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="block text-sm font-medium text-gray-700">Size</label>
+                            <select
+                                value={modelSize}
+                                onChange={(e) => setModelSize(e.target.value)}
+                                className="w-full p-2 border border-gray-300 rounded bg-white"
+                                disabled={isGenerating}
+                            >
+                                <option value="1024x1024">Square (1024x1024)</option>
+                                <option value="1792x1024">Wide (1792x1024)</option>
+                                <option value="1024x1792">Tall (1024x1792)</option>
+                            </select>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="block text-sm font-medium text-gray-700">Quality</label>
+                            <select
+                                value={modelQuality}
+                                onChange={(e) => setModelQuality(e.target.value as 'standard' | 'hd')}
+                                className="w-full p-2 border border-gray-300 rounded bg-white"
+                                disabled={isGenerating}
+                            >
+                                <option value="standard">Standard</option>
+                                <option value="hd">HD</option>
+                            </select>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="block text-sm font-medium text-gray-700">Style</label>
+                            <select
+                                value={modelStyle}
+                                onChange={(e) => setModelStyle(e.target.value as 'vivid' | 'natural')}
+                                className="w-full p-2 border border-gray-300 rounded bg-white"
+                                disabled={isGenerating}
+                            >
+                                <option value="vivid">Vivid</option>
+                                <option value="natural">Natural</option>
+                            </select>
+                        </div>
                     </div>
+                    <p className="text-xs text-gray-500">
+                        Available models depend on the configured LLM provider. Common options: dall-e-3, dall-e-2,
+                        midjourney. Requirements like size, quality and style might not be supported by all models.
+                    </p>
 
                     <div className="space-y-2">
                         <label className="block text-sm font-medium text-gray-700">

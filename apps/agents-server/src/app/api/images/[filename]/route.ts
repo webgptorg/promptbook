@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { assertsError } from '../../../../../../../src/errors/assertsError';
 import type { LlmExecutionTools } from '../../../../../../../src/execution/LlmExecutionTools';
 import { getSingleLlmExecutionTools } from '../../../../../../../src/llm-providers/_multiple/getSingleLlmExecutionTools';
+import type { ImageGenerationModelRequirements } from '../../../../../../../src/types/ModelRequirements';
 import { string_url } from '../../../../../../../src/types/typeAliases';
 import { $provideSupabaseForServer } from '../../../../database/$provideSupabaseForServer';
 import { $provideCdnForServer } from '../../../../tools/$provideCdnForServer';
@@ -15,6 +16,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         const { filename } = await params;
         const searchParams = request.nextUrl.searchParams;
         const modelName = searchParams.get('modelName');
+        const size = searchParams.get('size');
+        const quality = searchParams.get('quality');
+        const style = searchParams.get('style');
         const isRaw = searchParams.get('raw') === 'true';
 
         if (!filename) {
@@ -64,6 +68,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             modelRequirements: {
                 modelVariant: 'IMAGE_GENERATION',
                 modelName: modelName || 'dall-e-3', // Use DALL-E 3 for high quality
+                size: (size as ImageGenerationModelRequirements['size']) || undefined,
+                quality: (quality as ImageGenerationModelRequirements['quality']) || undefined,
+                style: (style as ImageGenerationModelRequirements['style']) || undefined,
             },
         });
 
@@ -108,6 +115,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
                 filename,
                 prompt,
                 modelName: modelName || 'dall-e-3',
+                size,
+                quality,
+                style,
                 cdnUrl: cdnUrl.href,
                 imageResult,
             });

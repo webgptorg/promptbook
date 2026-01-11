@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🥄] Allow to add additional model requirements like image size in the [Image Generator Test](http://localhost:4440/admin/image-generator-test).
 

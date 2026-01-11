@@ -78,3 +78,4 @@
 -   Allow AI to leverage all the options and possibilities of SERP search engine (location, localization, pagination, advanced filters, etc.).
 -   Updated `SearchEngine` interface to support advanced options.
 -   Enhanced Search Engine Test page with advanced SERP parameters and raw call details.
+-   Allow to add additional model requirements like image size in the [Image Generator Test](http://localhost:4440/admin/image-generator-test)
