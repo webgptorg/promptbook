@@ -67,6 +67,7 @@ export function AgentsGraph(props: AgentsGraphProps) {
     );
 
     const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
+    const [hoveredNode, setHoveredNode] = useState<Node | null>(null);
 
     useEffect(() => {
         const updateDimensions = () => {
@@ -436,17 +437,30 @@ export function AgentsGraph(props: AgentsGraphProps) {
                     linkDirectionalArrowRelPos={1}
                     linkCurvature={0.25}
                     onNodeClick={handleNodeClick}
+                    onNodeHover={setHoveredNode}
                     cooldownTicks={100}
                     onEngineStop={() => fgRef.current?.zoomToFit(400, 50)}
                     nodeCanvasObject={(node, ctx, globalScale) => {
                         const n = node as Node;
+                        const isHovered = hoveredNode?.id === n.id;
                         const x = node.x || 0;
                         const y = node.y || 0;
-                        const size = 12; // Circle radius
+                        const size = isHovered ? 15 : 12; // Circle radius
                         const isLocal = n.serverUrl === publicUrl.replace(/\/$/, '');
                         const color = n.agent.meta.color || (isLocal ? '#3b82f6' : '#f59e0b');
 
-                        // 1. Draw the circle background
+                        // 1. Draw shadow for hovered node
+                        if (isHovered) {
+                            ctx.save();
+                            ctx.shadowBlur = 10;
+                            ctx.shadowColor = 'rgba(0,0,0,0.3)';
+                            ctx.beginPath();
+                            ctx.arc(x, y, size, 0, 2 * Math.PI, false);
+                            ctx.fill();
+                            ctx.restore();
+                        }
+
+                        // 2. Draw the circle background
                         ctx.beginPath();
                         ctx.arc(x, y, size, 0, 2 * Math.PI, false);
                         ctx.fillStyle = color;
@@ -455,7 +469,7 @@ export function AgentsGraph(props: AgentsGraphProps) {
                         ctx.strokeStyle = '#fff';
                         ctx.stroke();
 
-                        // 2. Draw agent image
+                        // 3. Draw agent image
                         const imageUrl =
                             n.agent.meta.image || generatePlaceholderAgentProfileImageUrl(n.agent.agentName, publicUrl);
 
@@ -488,7 +502,11 @@ export function AgentsGraph(props: AgentsGraphProps) {
                             img.src = imageUrl;
                         }
 
-                        if (cacheEntry.status === 'success' && cacheEntry.img.complete && cacheEntry.img.naturalWidth !== 0) {
+                        if (
+                            cacheEntry.status === 'success' &&
+                            cacheEntry.img.complete &&
+                            cacheEntry.img.naturalWidth !== 0
+                        ) {
                             ctx.save();
                             ctx.beginPath();
                             ctx.arc(x, y, size - 1, 0, 2 * Math.PI, false);
@@ -503,7 +521,10 @@ export function AgentsGraph(props: AgentsGraphProps) {
                             const imgAspect = imgWidth / imgHeight;
                             const targetAspect = targetWidth / targetHeight;
 
-                            let drawWidth, drawHeight, offsetX, offsetY;
+                            let drawWidth,
+                                drawHeight,
+                                offsetX,
+                                offsetY;
                             if (imgAspect > targetAspect) {
                                 // Image is wider than target
                                 drawHeight = targetHeight;
@@ -527,7 +548,7 @@ export function AgentsGraph(props: AgentsGraphProps) {
                             // Draw fallback initial (for error or loading)
                             const fullname = n.agent.meta.fullname || n.agent.agentName || 'Agent';
                             const initial = fullname.charAt(0).toUpperCase();
-                            const fontSize = 14 / globalScale;
+                            const fontSize = (isHovered ? 18 : 14) / globalScale;
                             ctx.font = `bold ${fontSize}px Sans-Serif`;
                             ctx.textAlign = 'center';
                             ctx.textBaseline = 'middle';
@@ -535,13 +556,13 @@ export function AgentsGraph(props: AgentsGraphProps) {
                             ctx.fillText(initial, x, y);
                         }
 
-                        // 3. Draw the label
+                        // 4. Draw the label
                         const label = n.name;
-                        const fontSize = 12 / globalScale;
-                        ctx.font = `${fontSize}px Sans-Serif`;
+                        const fontSize = (isHovered ? 14 : 12) / globalScale;
+                        ctx.font = `${isHovered ? 'bold' : ''} ${fontSize}px Sans-Serif`;
                         ctx.textAlign = 'center';
                         ctx.textBaseline = 'top';
-                        ctx.fillStyle = '#1f2937';
+                        ctx.fillStyle = isHovered ? '#000' : '#1f2937';
                         ctx.fillText(label, x, y + size + 2);
 
                         // Store dimensions for pointer area
@@ -579,21 +600,34 @@ export function AgentsGraph(props: AgentsGraphProps) {
                                 maxDist = Math.max(maxDist, dist);
                             });
 
-                            const radius = maxDist + 40;
+                            const radius = maxDist + 50;
 
+                            // Draw ocean-like background for the server cluster
                             ctx.beginPath();
                             ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
-                            ctx.strokeStyle = isLocal ? 'rgba(59, 130, 246, 0.2)' : 'rgba(245, 158, 11, 0.2)';
-                            ctx.setLineDash([5, 5]);
+                            const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius);
+                            if (isLocal) {
+                                gradient.addColorStop(0, 'rgba(59, 130, 246, 0.05)');
+                                gradient.addColorStop(1, 'rgba(59, 130, 246, 0.02)');
+                            } else {
+                                gradient.addColorStop(0, 'rgba(245, 158, 11, 0.05)');
+                                gradient.addColorStop(1, 'rgba(245, 158, 11, 0.02)');
+                            }
+                            ctx.fillStyle = gradient;
+                            ctx.fill();
+
+                            // Draw border
+                            ctx.strokeStyle = isLocal ? 'rgba(59, 130, 246, 0.15)' : 'rgba(245, 158, 11, 0.15)';
+                            ctx.setLineDash([10, 5]);
                             ctx.lineWidth = 2;
                             ctx.stroke();
                             ctx.setLineDash([]);
 
                             const label = serverUrl.replace(/^https?:\/\//, '');
-                            ctx.font = `italic 10px Sans-Serif`;
-                            ctx.fillStyle = isLocal ? 'rgba(59, 130, 246, 0.5)' : 'rgba(245, 158, 11, 0.5)';
+                            ctx.font = `italic bold 12px Sans-Serif`;
+                            ctx.fillStyle = isLocal ? 'rgba(59, 130, 246, 0.6)' : 'rgba(245, 158, 11, 0.6)';
                             ctx.textAlign = 'center';
-                            ctx.fillText(label, centerX, centerY - radius - 5);
+                            ctx.fillText(label, centerX, centerY - radius - 10);
                         });
                     }}
                     nodePointerAreaPaint={(node, color, ctx) => {

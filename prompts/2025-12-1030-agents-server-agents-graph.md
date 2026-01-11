@@ -222,7 +222,7 @@ FROM http://localhost:4440/agents/EqvCgWPytPdfwW
 
 ---
 
-[ ]
+[x]
 
 [✨⌨️] Enhance visauals of the Agents Graph on home page
 
@@ -231,7 +231,7 @@ FROM http://localhost:4440/agents/EqvCgWPytPdfwW
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
 
-@@@
+![alt text](screenshots/2025-12-1030-agents-server-agents-graph-13.png)
 
 ---
 

@@ -88,3 +88,4 @@
     -   Increase distance between nodes in the graph
     -   Remove particle animation from connection links
     -   Improve connection arrow visibility
+    -   Enhanced visuals with smoother node hover effects, shadowed nodes, and oceanic cluster backgrounds
