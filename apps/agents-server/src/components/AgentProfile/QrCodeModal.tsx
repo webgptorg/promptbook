@@ -6,7 +6,6 @@ import { Dialog } from '../Portal/Dialog';
 import { AgentQrCode } from './AgentQrCode';
 
 type QrCodeModalProps = {
-    isOpen: boolean;
     onClose: () => void;
     agentName: string;
     meta: AgentBasicInformation['meta'];
@@ -17,7 +16,6 @@ type QrCodeModalProps = {
 };
 
 export function QrCodeModal({
-    isOpen,
     onClose,
     agentName,
     meta,
@@ -25,10 +23,8 @@ export function QrCodeModal({
     agentUrl,
     agentEmail,
 }: QrCodeModalProps) {
-    if (!isOpen) return null;
-
     return (
-        <Dialog isOpen={isOpen} onClose={onClose} className="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4">
+        <Dialog onClose={onClose} className="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4">
             <button
                 onClick={onClose}
                 className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 transition-colors"

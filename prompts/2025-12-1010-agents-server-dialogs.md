@@ -10,7 +10,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨⛪️] Remove the `isOpen` prop from dialogs.
 

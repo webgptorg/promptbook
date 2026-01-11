@@ -248,16 +248,17 @@ export function AgentProfile(props: AgentProfileProps) {
             </div>
 
             {/* QR Code Modal */}
-            <QrCodeModal
-                isOpen={isQrModalOpen}
-                onClose={() => setIsQrModalOpen(false)}
-                agentName={agentName}
-                meta={meta}
-                personaDescription={personaDescription}
-                agentUrl={agentUrl}
-                agentEmail={agentEmail}
-                brandColorHex={brandColorHex}
-            />
+            {isQrModalOpen && (
+                <QrCodeModal
+                    onClose={() => setIsQrModalOpen(false)}
+                    agentName={agentName}
+                    meta={meta}
+                    personaDescription={personaDescription}
+                    agentUrl={agentUrl}
+                    agentEmail={agentEmail}
+                    brandColorHex={brandColorHex}
+                />
+            )}
         </>
     );
 }

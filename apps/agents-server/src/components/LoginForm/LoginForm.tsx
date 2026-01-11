@@ -142,17 +142,16 @@ export function LoginForm(props: LoginFormProps) {
                 </button>
             </div>
 
-            <ForgottenPasswordDialog
-                isOpen={isForgottenPasswordOpen}
-                onClose={() => setIsForgottenPasswordOpen(false)}
-                adminEmail={adminEmail}
-            />
+            {isForgottenPasswordOpen && (
+                <ForgottenPasswordDialog
+                    onClose={() => setIsForgottenPasswordOpen(false)}
+                    adminEmail={adminEmail}
+                />
+            )}
 
-            <RegisterUserDialog
-                isOpen={isRegisterUserOpen}
-                onClose={() => setIsRegisterUserOpen(false)}
-                adminEmail={adminEmail}
-            />
+            {isRegisterUserOpen && (
+                <RegisterUserDialog onClose={() => setIsRegisterUserOpen(false)} adminEmail={adminEmail} />
+            )}
         </form>
     );
 }

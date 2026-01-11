@@ -5,19 +5,14 @@ import { ChangePasswordForm } from '../ChangePasswordForm/ChangePasswordForm';
 import { Dialog } from '../Portal/Dialog';
 
 type ChangePasswordDialogProps = {
-    isOpen: boolean;
     onClose: () => void;
 };
 
 export function ChangePasswordDialog(props: ChangePasswordDialogProps) {
-    const { isOpen, onClose } = props;
-
-    if (!isOpen) {
-        return null;
-    }
+    const { onClose } = props;
 
     return (
-        <Dialog isOpen={isOpen} onClose={onClose} className="w-full max-w-md p-6">
+        <Dialog onClose={onClose} className="w-full max-w-md p-6">
             <button
                 onClick={onClose}
                 className="absolute top-4 right-4 text-gray-400 hover:text-gray-500 transition-colors"

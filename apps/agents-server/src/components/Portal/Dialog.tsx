@@ -6,7 +6,6 @@ import { useEffect, useState } from 'react';
 
 type DialogProps = {
     children: ReactNode;
-    isOpen?: boolean;
     onClose: () => void;
     className?: string;
     containerId?: string;
@@ -20,7 +19,7 @@ type DialogProps = {
  * 4. Prevents body scroll when open
  */
 export function Dialog(props: DialogProps) {
-    const { children, isOpen = true, onClose, className = '', containerId = 'portal-root' } = props;
+    const { children, onClose, className = '', containerId = 'portal-root' } = props;
     const [container, setContainer] = useState<Element | null>(null);
 
     useEffect(() => {
@@ -29,15 +28,11 @@ export function Dialog(props: DialogProps) {
     }, [containerId]);
 
     useEffect(() => {
-        if (isOpen) {
-            document.body.style.overflow = 'hidden';
-        } else {
-            document.body.style.overflow = '';
-        }
+        document.body.style.overflow = 'hidden';
         return () => {
             document.body.style.overflow = '';
         };
-    }, [isOpen]);
+    }, []);
 
     useEffect(() => {
         function handleEscape(event: KeyboardEvent) {
@@ -46,13 +41,11 @@ export function Dialog(props: DialogProps) {
             }
         }
 
-        if (isOpen) {
-            document.addEventListener('keydown', handleEscape);
-        }
+        document.addEventListener('keydown', handleEscape);
         return () => document.removeEventListener('keydown', handleEscape);
-    }, [isOpen, onClose]);
+    }, [onClose]);
 
-    if (!isOpen || !container) {
+    if (!container) {
         return null;
     }
 

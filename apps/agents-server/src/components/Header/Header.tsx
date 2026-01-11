@@ -343,8 +343,8 @@ export function Header(props: HeaderProps) {
 
     return (
         <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200 h-16">
-            <LoginDialog isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
-            <ChangePasswordDialog isOpen={isChangePasswordOpen} onClose={() => setIsChangePasswordOpen(false)} />
+            {isLoginOpen && <LoginDialog onClose={() => setIsLoginOpen(false)} />}
+            {isChangePasswordOpen && <ChangePasswordDialog onClose={() => setIsChangePasswordOpen(false)} />}
             <div className="container mx-auto px-4 h-full">
                 <div className="flex items-center justify-between h-full">
                     {/* Logo and heading */}

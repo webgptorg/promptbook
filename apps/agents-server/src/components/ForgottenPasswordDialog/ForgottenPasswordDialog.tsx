@@ -4,20 +4,15 @@ import { X } from 'lucide-react';
 import { Dialog } from '../Portal/Dialog';
 
 type ForgottenPasswordDialogProps = {
-    isOpen: boolean;
     onClose: () => void;
     adminEmail: string;
 };
 
 export function ForgottenPasswordDialog(props: ForgottenPasswordDialogProps) {
-    const { isOpen, onClose, adminEmail } = props;
-
-    if (!isOpen) {
-        return null;
-    }
+    const { onClose, adminEmail } = props;
 
     return (
-        <Dialog isOpen={isOpen} onClose={onClose} className="w-full max-w-md p-6">
+        <Dialog onClose={onClose} className="w-full max-w-md p-6">
             <button
                 onClick={onClose}
                 className="absolute top-4 right-4 text-gray-400 hover:text-gray-500 transition-colors"
