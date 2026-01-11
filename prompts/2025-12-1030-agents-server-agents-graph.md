@@ -190,7 +190,7 @@ FROM http://localhost:4440/agents/EqvCgWPytPdfwW
 
 ---
 
-[ ]
+[x]
 
 [✨⌨️] Agents social graph on home page are trying to constantly to refetch the agents image which fails to load
 

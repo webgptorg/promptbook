@@ -51,7 +51,7 @@ export function AgentsGraph(props: AgentsGraphProps) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const fgRef = useRef<ForceGraphMethods<any, any>>(null as any);
 
-    const imageCache = useRef<Record<string, HTMLImageElement>>({});
+    const imageCache = useRef<Record<string, { img: HTMLImageElement; status: 'loading' | 'success' | 'error'; retryCount: number }>>({});
 
     const [filterType, setFilterType] = useState<string[]>(
         searchParams.get('connectionTypes')?.split(',').filter(Boolean) || ['inheritance', 'import'],
@@ -457,22 +457,42 @@ export function AgentsGraph(props: AgentsGraphProps) {
                         const imageUrl =
                             n.agent.meta.image || generatePlaceholderAgentProfileImageUrl(n.agent.agentName, publicUrl);
 
-                        let img = imageCache.current[imageUrl];
-                        if (!img) {
-                            img = new Image();
-                            img.src = imageUrl;
+                        let cacheEntry = imageCache.current[imageUrl];
+                        if (!cacheEntry) {
+                            const img = new Image();
+                            cacheEntry = { img, status: 'loading', retryCount: 0 };
+                            imageCache.current[imageUrl] = cacheEntry;
+
                             img.onload = () => {
-                                imageCache.current[imageUrl] = img!;
-                                // Trigger a re-render if needed, but usually force-graph handles it
+                                cacheEntry!.status = 'success';
                             };
+                            img.onerror = () => {
+                                if (cacheEntry!.retryCount < 3) {
+                                    cacheEntry!.retryCount++;
+                                    console.warn(
+                                        `Failed to load agent image (attempt ${cacheEntry!.retryCount}): ${imageUrl}`,
+                                    );
+                                    // Use setTimeout to avoid immediate retry in same frame
+                                    setTimeout(() => {
+                                        img.src = `${imageUrl}${imageUrl.includes('?') ? '&' : '?'}retry=${
+                                            cacheEntry!.retryCount
+                                        }`;
+                                    }, 1000 * cacheEntry!.retryCount);
+                                } else {
+                                    cacheEntry!.status = 'error';
+                                    console.error(`Failed to load agent image after 3 retries: ${imageUrl}`);
+                                }
+                            };
+                            img.src = imageUrl;
                         }
 
-                        if (img.complete && img.naturalWidth !== 0) {
+                        if (cacheEntry.status === 'success' && cacheEntry.img.complete && cacheEntry.img.naturalWidth !== 0) {
                             ctx.save();
                             ctx.beginPath();
                             ctx.arc(x, y, size - 1, 0, 2 * Math.PI, false);
                             ctx.clip();
 
+                            const img = cacheEntry.img;
                             // Calculate cover fit (CSS object-fit: cover)
                             const imgWidth = img.naturalWidth;
                             const imgHeight = img.naturalHeight;
@@ -498,8 +518,11 @@ export function AgentsGraph(props: AgentsGraphProps) {
 
                             ctx.drawImage(img, x - size + offsetX, y - size + offsetY, drawWidth, drawHeight);
                             ctx.restore();
+                        } else if (cacheEntry.status === 'loading') {
+                            // While loading, we can show a placeholder or nothing
+                            // For now, let's fall through to the colored circle which is already drawn
                         } else {
-                            // Draw fallback initial
+                            // Draw fallback initial (for error or loading)
                             const fullname = n.agent.meta.fullname || n.agent.agentName || 'Agent';
                             const initial = fullname.charAt(0).toUpperCase();
                             const fontSize = 14 / globalScale;

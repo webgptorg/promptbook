@@ -11,11 +11,13 @@ type AgentProfileImageProps = {
 export function AgentProfileImage({ src, alt, className, style }: AgentProfileImageProps) {
     const [imageSrc, setImageSrc] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<Error | null>(null);
 
     useEffect(() => {
         let isMounted = true;
         let timeoutId: NodeJS.Timeout;
         let objectUrl: string | null = null;
+        let retryCount = 0;
 
         const fetchImage = async () => {
             try {
@@ -31,14 +33,22 @@ export function AgentProfileImage({ src, alt, className, style }: AgentProfileIm
                     setIsLoading(false);
                 } else {
                     // Retry on non-200
-                    if (isMounted) {
+                    if (isMounted && retryCount < 3) {
+                        retryCount++;
                         timeoutId = setTimeout(fetchImage, 2000);
+                    } else if (isMounted) {
+                        setIsLoading(false);
+                        setError(new Error(`Failed to load image after 3 retries (status ${response.status})`));
                     }
                 }
             } catch (error) {
                 console.warn('Failed to fetch image, retrying...', error);
-                if (isMounted) {
+                if (isMounted && retryCount < 3) {
+                    retryCount++;
                     timeoutId = setTimeout(fetchImage, 2000);
+                } else if (isMounted) {
+                    setIsLoading(false);
+                    setError(error instanceof Error ? error : new Error(String(error)));
                 }
             }
         };
@@ -78,7 +88,7 @@ export function AgentProfileImage({ src, alt, className, style }: AgentProfileIm
                 </div>
             )}
 
-            {imageSrc && (
+            {imageSrc && !error && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                     src={imageSrc}
@@ -86,6 +96,12 @@ export function AgentProfileImage({ src, alt, className, style }: AgentProfileIm
                     className="w-full h-full object-cover"
                     // We don't pass style here because it is applied to container
                 />
+            )}
+
+            {error && (
+                <div className="w-full h-full flex items-center justify-center bg-gray-200 text-gray-500 font-bold uppercase">
+                    {alt.charAt(0)}
+                </div>
             )}
         </div>
     );

@@ -34,6 +34,8 @@
 -   Do the full proxy of the given LLM tools in `countUsage` and `cacheLlmTools`
 -   Show linked Agents on Agent profile via the capability chips
 -   Agents social graph on home page
+    -   Handle agent profile image loading failures gracefully by showing initials fallback
+    -   Limit image loading retries to 3 attempts with exponential backoff
     -   Show agents as nodes in an interactive graph view
     -   Visualize connections via inheritance (`FROM`) and `IMPORT`
     -   Support for zooming, panning, and dragging nodes
