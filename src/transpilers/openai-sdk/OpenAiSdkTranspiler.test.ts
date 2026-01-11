@@ -62,4 +62,24 @@ describe('OpenAiSdkTranspiler', () => {
         expect(code).toContain('https://example.com/witcher-lore.txt');
         expect(code).toContain('index = await VectorStoreIndex.fromDocuments(documents)');
     });
+
+    it('transpiles a book with USE TIME and includes tool definitions and implementation', async () => {
+        const agentSource = book`
+            Time Keeper
+
+            PERSONA You are a time-aware assistant
+            USE TIME
+        `;
+
+        const llm = await $provideLlmToolsForTestingAndScriptsAndPlayground();
+        const code = await OpenAiSdkTranspiler.transpileBook(agentSource, { llm }, { isVerbose: true });
+
+        expect(code).toContain('const tools = {');
+        expect(code).toContain('get_current_time: async get_current_time(args)');
+        expect(code).toContain('const toolDefinitions = [');
+        expect(code).toContain('"name": "get_current_time"');
+        expect(code).toContain("tools: toolDefinitions.map(tool => ({ type: 'function', function: tool }))");
+        expect(code).toContain('if (message.tool_calls && message.tool_calls.length > 0)');
+        expect(code).toContain('result = await tools[functionName](functionArgs)');
+    });
 });
