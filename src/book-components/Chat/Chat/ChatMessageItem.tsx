@@ -7,8 +7,8 @@ import { colorToDataUrl } from '../../../_packages/color.index';
 import { PROMPTBOOK_CHAT_COLOR, USER_CHAT_COLOR } from '../../../config';
 import type { id } from '../../../types/typeAliases';
 import { Color } from '../../../utils/color/Color';
-import type { TODO_any } from '../../../utils/organization/TODO_any';
 import { textColor } from '../../../utils/color/operators/furthest';
+import type { TODO_any } from '../../../utils/organization/TODO_any';
 import { AvatarProfileTooltip } from '../../AvatarProfile/AvatarProfile/AvatarProfileTooltip';
 import { classNames } from '../../_common/react-utils/classNames';
 import { MarkdownContent } from '../MarkdownContent/MarkdownContent';
@@ -368,37 +368,37 @@ export const ChatMessageItem = memo(
                                     title={attachment.name}
                                 >
                                     <span className={styles.attachmentIcon}>📎</span>
-                                <span className={styles.attachmentName}>{attachment.name}</span>
-                            </a>
-                        ))}
-                    </div>
-                )}
+                                    <span className={styles.attachmentName}>{attachment.name}</span>
+                                </a>
+                            ))}
+                        </div>
+                    )}
 
-                {message.completedToolCalls && message.completedToolCalls.length > 0 && (
-                    <div className={styles.completedToolCalls}>
-                        {message.completedToolCalls.map((toolCall, index) => {
-                            const chipletText = getToolCallChipletText(toolCall);
+                    {message.completedToolCalls && message.completedToolCalls.length > 0 && (
+                        <div className={styles.completedToolCalls}>
+                            {message.completedToolCalls.map((toolCall, index) => {
+                                const chipletText = getToolCallChipletText(toolCall);
 
-                            return (
-                                <button
-                                    key={index}
-                                    className={styles.completedToolCall}
-                                    onClick={(event) => {
-                                        event.stopPropagation();
-                                        if (onToolCallClick) {
-                                            onToolCallClick(toolCall);
-                                        }
-                                    }}
-                                >
-                                    [{chipletText}]
-                                </button>
-                            );
-                        })}
-                    </div>
-                )}
+                                return (
+                                    <button
+                                        key={index}
+                                        className={styles.completedToolCall}
+                                        onClick={(event) => {
+                                            event.stopPropagation();
+                                            if (onToolCallClick) {
+                                                onToolCallClick(toolCall);
+                                            }
+                                        }}
+                                    >
+                                        [{chipletText}]
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    )}
 
-                {!message.isComplete && (
-                    <div className={styles.ongoingToolCalls}>
+                    {!message.isComplete && (
+                        <div className={styles.ongoingToolCalls}>
                             {message.ongoingToolCalls && message.ongoingToolCalls.length > 0 ? (
                                 message.ongoingToolCalls.map((toolCall, index) => {
                                     const toolInfo = TOOL_TITLES[toolCall.name];
@@ -409,7 +409,9 @@ export const ChatMessageItem = memo(
                                         <div key={index} className={styles.ongoingToolCall}>
                                             <div className={styles.ongoingToolCallSpinner} />
                                             <span className={styles.ongoingToolCallName}>
-                                                {toolTitle ? `${emoji} ${toolTitle}...` : `${emoji} Executing ${toolCall.name}...`}
+                                                {toolTitle
+                                                    ? `${emoji} ${toolTitle}...`
+                                                    : `${emoji} Executing ${toolCall.name}...`}
                                             </span>
                                         </div>
                                     );

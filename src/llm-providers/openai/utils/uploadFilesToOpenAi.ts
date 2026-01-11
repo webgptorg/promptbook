@@ -5,10 +5,7 @@ import OpenAI from 'openai';
  *
  * @private utility for `OpenAiAssistantExecutionTools` and `OpenAiCompatibleExecutionTools`
  */
-export async function uploadFilesToOpenAi(
-    client: OpenAI,
-    files: Array<File>,
-): Promise<Array<string>> {
+export async function uploadFilesToOpenAi(client: OpenAI, files: Array<File>): Promise<Array<string>> {
     const fileIds: Array<string> = [];
 
     for (const file of files) {

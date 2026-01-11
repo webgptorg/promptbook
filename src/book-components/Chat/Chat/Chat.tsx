@@ -164,7 +164,8 @@ export function Chat(props: ChatProps) {
                     const currentValue = textarea.value;
 
                     // Append the transcribed text with a space if needed
-                    const separator = currentValue && !currentValue.endsWith(' ') && !currentValue.endsWith('\n') ? ' ' : '';
+                    const separator =
+                        currentValue && !currentValue.endsWith(' ') && !currentValue.endsWith('\n') ? ' ' : '';
                     textarea.value += separator + event.text;
 
                     if (onChange) {
@@ -727,12 +728,12 @@ export function Chat(props: ChatProps) {
                                             } as React.CSSProperties
                                         }
                                     >
-                                <textarea
-                                    ref={(element) => {
-                                        textareaRef.current = element;
-                                    }}
-                                    onPaste={handlePaste}
-                                    style={{
+                                        <textarea
+                                            ref={(element) => {
+                                                textareaRef.current = element;
+                                            }}
+                                            onPaste={handlePaste}
+                                            style={{
                                                 height:
                                                     Math.max(
                                                         countLines(textareaRef.current?.value || defaultMessage || ''),
@@ -911,7 +912,12 @@ export function Chat(props: ChatProps) {
                                 : [];
 
                             // [🧠] In Agent Server, search result might be wrapped in another result object
-                            if (results.length === 0 && resultRaw && typeof resultRaw === 'object' && resultRaw.result) {
+                            if (
+                                results.length === 0 &&
+                                resultRaw &&
+                                typeof resultRaw === 'object' &&
+                                resultRaw.result
+                            ) {
                                 const subResult = resultRaw.result;
                                 results = Array.isArray(subResult)
                                     ? subResult
@@ -959,7 +965,9 @@ export function Chat(props: ChatProps) {
                                                 </div>
                                             ) : (
                                                 <div className={styles.noResults}>
-                                                    {resultRaw ? 'No search results found.' : 'Search results are not available.'}
+                                                    {resultRaw
+                                                        ? 'No search results found.'
+                                                        : 'Search results are not available.'}
                                                 </div>
                                             )}
                                         </div>
