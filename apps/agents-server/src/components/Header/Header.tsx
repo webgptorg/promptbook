@@ -510,7 +510,7 @@ export function Header(props: HeaderProps) {
                     )}
 
                     {/* CTA Button & Mobile Menu Toggle */}
-                    <div className="flex items-center gap-2 lg:gap-4">
+                    <div className="flex items-center gap-4">
                         {just(false /* TODO: [🧠] Figure out what to do with call to action */) && (
                             <a href="https://ptbk.io/?modal=get-started" target="_blank" className="hidden md:block">
                                 <button className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 bg-promptbook-blue-dark text-white hover:bg-promptbook-blue-dark/90">

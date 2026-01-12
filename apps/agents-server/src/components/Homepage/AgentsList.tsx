@@ -200,7 +200,7 @@ export function AgentsList(props: AgentsListProps) {
     };
 
     return (
-        <section className="mt-16 first:mt-4 mb-8">
+        <section className="mt-16 first:mt-4 mb-4">
             <h2 className="text-3xl text-gray-900 mb-6 font-light">
                 <div className="flex items-center justify-between w-full">
                     <span>Agents ({agents.length})</span>
@@ -233,7 +233,7 @@ export function AgentsList(props: AgentsListProps) {
                 </div>
             </h2>
             {viewMode === 'LIST' ? (
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                     {agents.map((agent) => (
                         <AgentCard
                             key={agent.permanentId || agent.agentName}
