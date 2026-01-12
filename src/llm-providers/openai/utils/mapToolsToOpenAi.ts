@@ -8,9 +8,15 @@ import type { LlmToolDefinition } from '../../../types/LlmToolDefinition';
  */
 export function mapToolsToOpenAi(
     tools: ReadonlyArray<LlmToolDefinition>,
-): Array<OpenAI.Chat.Completions.ChatCompletionTool> {
+): Array<OpenAI.Chat.Completions.ChatCompletionTool>;
+export function mapToolsToOpenAi(
+    tools: ReadonlyArray<LlmToolDefinition>,
+): Array<OpenAI.Beta.AssistantTool>;
+export function mapToolsToOpenAi(
+    tools: ReadonlyArray<LlmToolDefinition>,
+): Array<OpenAI.Chat.Completions.ChatCompletionTool> | Array<OpenAI.Beta.AssistantTool> {
     return tools.map(
-        (tool): OpenAI.Chat.Completions.ChatCompletionTool => ({
+        (tool): OpenAI.Chat.Completions.ChatCompletionTool & OpenAI.Beta.AssistantTool => ({
             type: 'function',
             function: {
                 name: tool.name,

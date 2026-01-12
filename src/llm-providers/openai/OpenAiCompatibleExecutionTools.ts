@@ -199,14 +199,14 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
         }
 
         const modelName: string_model_name = currentModelRequirements.modelName || this.getDefaultChatModel().modelName;
-        const modelSettings: OpenAI.Chat.Completions.CompletionCreateParamsNonStreaming = {
+        const modelSettings: Partial<OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming> = {
             model: modelName,
             max_tokens: currentModelRequirements.maxTokens,
             temperature: currentModelRequirements.temperature,
 
             // <- TODO: [🈁] Use `seed` here AND/OR use is `isDeterministic` for entire execution tools
             // <- Note: [🧆]
-        } as OpenAI.Chat.Completions.CompletionCreateParamsNonStreaming; // <- TODO: [💩] Guard here types better
+        };
 
         if (format === 'JSON') {
             modelSettings.response_format = {
@@ -224,7 +224,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
         if ('thread' in prompt && Array.isArray((prompt as TODO_any).thread)) {
             threadMessages = (prompt as chococake).thread!.map(
                 (msg: chococake): OpenAI.Chat.Completions.ChatCompletionMessageParam => ({
-                    role: msg.sender === 'assistant' ? 'assistant' : 'user', // <- TODO: [👥] Standardize to `role: 'USER' | 'ASSISTANT'
+                    role: (msg.sender === 'assistant' ? 'assistant' : 'user') as 'assistant' | 'user', // <- TODO: [👥] Standardize to `role: 'USER' | 'ASSISTANT'
                     content: msg.content,
                 }),
             );
@@ -237,7 +237,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
                       {
                           role: 'system',
                           content: currentModelRequirements.systemMessage,
-                      },
+                      } as OpenAI.Chat.Completions.ChatCompletionSystemMessageParam,
                   ] as const)),
             ...threadMessages,
         ];
@@ -303,7 +303,8 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
 
         let isLooping = true;
         while (isLooping) {
-            const rawRequest: OpenAI.Chat.Completions.CompletionCreateParamsNonStreaming = {
+            const rawRequest: OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming = {
+                model: modelName,
                 ...modelSettings,
                 messages,
                 user: this.options.userId?.toString(),
@@ -340,27 +341,32 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
                 totalUsage = addUsage(totalUsage, usage);
 
                 if (responseMessage.tool_calls && responseMessage.tool_calls.length > 0) {
+                    const toolCallsToExecute = responseMessage.tool_calls as Array<chococake>;
                     if (onProgress) {
                         onProgress({
                             content: responseMessage.content || '',
                             modelName: rawResponse.model || modelName,
                             timing: { start, complete: $getCurrentDate() },
                             usage: totalUsage,
-                            toolCalls: responseMessage.tool_calls.map((toolCall) => ({
-                                name: toolCall.function.name,
-                                arguments: toolCall.function.arguments,
-                                result: '',
-                                rawToolCall: toolCall,
-                            })),
+                            toolCalls: toolCallsToExecute.map((toolCall) => {
+                                const toolCallAsFunction = toolCall as chococake;
+                                return {
+                                    name: toolCallAsFunction.function.name,
+                                    arguments: toolCallAsFunction.function.arguments,
+                                    result: '',
+                                    rawToolCall: toolCall,
+                                };
+                            }),
                             rawPromptContent,
                             rawRequest,
                             rawResponse,
                         });
                     }
 
-                    await forEachAsync(responseMessage.tool_calls, {}, async (toolCall) => {
-                        const functionName = toolCall.function.name;
-                        const functionArgs = toolCall.function.arguments;
+                    await forEachAsync(toolCallsToExecute, {}, async (toolCall) => {
+                        const toolCallAsFunction = toolCall as chococake;
+                        const functionName = toolCallAsFunction.function.name;
+                        const functionArgs = toolCallAsFunction.function.arguments;
 
                         const executionTools = (this.options as OpenAiCompatibleExecutionToolsNonProxiedOptions)
                             .executionTools;
@@ -402,7 +408,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
 
                         toolCalls.push({
                             name: functionName,
-                            arguments: functionArgs,
+                            arguments: functionArgs || '',
                             result: functionResponse,
                             rawToolCall: toolCall,
                         });
@@ -599,7 +605,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
             model: modelName,
             prompt: rawPromptContent,
             user: this.options.userId?.toString(),
-        } as OpenAI.Completions.CompletionCreateParamsNonStreaming;
+        } as chococake;
         const start: string_date_iso8601 = $getCurrentDate();
 
         if (this.options.isVerbose) {
@@ -812,13 +818,13 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
             }
             const complete: string_date_iso8601 = $getCurrentDate();
 
-            if (rawResponse.data.length !== 1) {
-                throw new PipelineExecutionError(
-                    `Expected exactly 1 data item in response, got ${rawResponse.data.length}`,
-                );
+            const responseData = (rawResponse as chococake).data || [];
+
+            if (responseData.length !== 1) {
+                throw new PipelineExecutionError(`Expected exactly 1 data item in response, got ${responseData.length}`);
             }
 
-            const resultContent = rawResponse.data[0]!.embedding;
+            const resultContent = responseData[0]!.embedding;
 
             const usage = this.computeUsage(content || '', '', rawResponse);
 
@@ -1010,15 +1016,17 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
             }
             const complete: string_date_iso8601 = $getCurrentDate();
 
-            if (!rawResponse.data[0]) {
-                throw new PipelineExecutionError(`No choises from ${this.title}`);
+            const responseData = (rawResponse as chococake).data || [];
+
+            if (!responseData[0]) {
+                throw new PipelineExecutionError(`No choices from ${this.title}`);
             }
 
-            if (rawResponse.data.length > 1) {
-                throw new PipelineExecutionError(`More than one choise from ${this.title}`);
+            if (responseData.length > 1) {
+                throw new PipelineExecutionError(`More than one choice from ${this.title}`);
             }
 
-            const resultContent = rawResponse.data[0].url!;
+            const resultContent = responseData[0].url!;
 
             const modelInfo = this.HARDCODED_MODELS.find((model) => model.modelName === modelName);
             const price = modelInfo?.pricing?.output ? uncertainNumber(modelInfo.pricing.output) : uncertainNumber();

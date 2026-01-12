@@ -141,23 +141,25 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             //          <- [🧠] What is the best value here
         });
         // Build thread messages: include previous thread messages + current user message
-        const threadMessages: Array<{ role: 'user' | 'assistant'; content: string }> = [];
+        const threadMessages: Array<OpenAI.Beta.Threads.ThreadCreateAndRunParams.Thread.Message> = [];
 
         // TODO: [🈹] Maybe this should not be here but in other place, look at commit 39d705e75e5bcf7a818c3af36bc13e1c8475c30c
         // Add previous messages from thread (if any)
         if ('thread' in prompt && Array.isArray(prompt.thread)) {
-            const previousMessages = prompt.thread.map((msg) => ({
-                role: (msg.sender === 'assistant' ? 'assistant' : 'user') as 'user' | 'assistant',
-                content: msg.content,
-            }));
+            const previousMessages = prompt.thread.map(
+                (msg): OpenAI.Beta.Threads.ThreadCreateAndRunParams.Thread.Message => ({
+                    role: (msg.sender === 'assistant' ? 'assistant' : 'user') as 'user' | 'assistant',
+                    content: msg.content,
+                }),
+            );
             threadMessages.push(...previousMessages);
         }
 
         // Always add the current user message
-        const currentUserMessage: OpenAI.Beta.ThreadCreateAndRunParams.Thread.Message = {
+        const currentUserMessage: OpenAI.Beta.Threads.ThreadCreateAndRunParams.Thread.Message = {
             role: 'user',
             content: rawPromptContent,
-        };
+        } as OpenAI.Beta.Threads.ThreadCreateAndRunParams.Thread.Message;
 
         if ('files' in prompt && Array.isArray(prompt.files) && prompt.files.length > 0) {
             const fileIds = await uploadFilesToOpenAi(client, prompt.files);
@@ -167,7 +169,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             }));
         }
 
-        threadMessages.push(currentUserMessage as { role: 'user' | 'assistant'; content: string });
+        threadMessages.push(currentUserMessage);
 
         // Check if tools are being used - if so, use non-streaming mode
         const hasTools = modelRequirements.tools !== undefined && modelRequirements.tools.length > 0;
@@ -188,12 +190,12 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                 rawResponse: null as chococake,
             });
 
-            const rawRequest: OpenAI.Beta.ThreadCreateAndRunParams = {
+            const rawRequest: OpenAI.Beta.Threads.ThreadCreateAndRunParams = {
                 assistant_id: this.assistantId,
                 thread: {
                     messages: threadMessages,
                 },
-                tools: mapToolsToOpenAi(modelRequirements.tools!),
+                tools: mapToolsToOpenAi(modelRequirements.tools!) as Array<OpenAI.Beta.AssistantTool>,
             };
 
             if (this.options.isVerbose) {
@@ -205,6 +207,11 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
 
             // Create thread and run
             const threadAndRun = await client.beta.threads.createAndRun(rawRequest);
+
+            if ('controller' in threadAndRun) {
+                throw new PipelineExecutionError('Unexpected stream response from non-streaming createAndRun');
+            }
+
             let run = threadAndRun;
 
             // Poll until run completes or requires action
@@ -299,13 +306,23 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                     }
 
                     // Submit tool outputs
-                    run = await client.beta.threads.runs.submitToolOutputs(run.thread_id, run.id, {
-                        tool_outputs: toolOutputs,
-                    });
+                    const runAfterSubmit = (await (client.beta.threads.runs as chococake).submitToolOutputs(
+                        run.thread_id,
+                        run.id,
+                        {
+                            tool_outputs: toolOutputs,
+                        },
+                    )) as chococake;
+
+                    if ('controller' in runAfterSubmit) {
+                        throw new PipelineExecutionError('Unexpected stream response from non-streaming submitToolOutputs');
+                    }
+
+                    run = runAfterSubmit;
                 } else {
                     // Wait a bit before polling again
                     await new Promise((resolve) => setTimeout(resolve, 500));
-                    run = await client.beta.threads.runs.retrieve(run.thread_id, run.id);
+                    run = (await (client.beta.threads.runs as chococake).retrieve(run.thread_id, run.id)) as chococake;
                 }
             }
 
@@ -353,7 +370,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
         }
 
         // Streaming mode (without tools)
-        const rawRequest: OpenAI.Beta.ThreadCreateAndRunStreamParams = {
+        const rawRequest: OpenAI.Beta.Threads.ThreadCreateAndRunStreamParams = {
             // TODO: [👨‍👨‍👧‍👧] ...modelSettings,
             // TODO: [👨‍👨‍👧‍👧][🧠] What about system message for assistants, does it make sense - combination of OpenAI assistants with Promptbook Personas
 
@@ -362,10 +379,13 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                 messages: threadMessages,
             },
 
-            tools: modelRequirements.tools === undefined ? undefined : mapToolsToOpenAi(modelRequirements.tools),
+            tools:
+                modelRequirements.tools === undefined
+                    ? undefined
+                    : (mapToolsToOpenAi(modelRequirements.tools) as Array<OpenAI.Beta.AssistantTool>),
 
             // <- TODO: Add user identification here> user: this.options.user,
-        };
+        } as chococake;
 
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawRequest (streaming)'), JSON.stringify(rawRequest, null, 4));
@@ -555,7 +575,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             }
 
             // Create a vector store
-            const vectorStore = await client.beta.vectorStores.create({
+            const vectorStore = await (client.beta as chococake).vectorStores.create({
                 name: `${name} Knowledge Base`,
             });
             vectorStoreId = vectorStore.id;
@@ -600,7 +620,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             // Batch upload files to the vector store
             if (fileStreams.length > 0) {
                 try {
-                    await client.beta.vectorStores.fileBatches.uploadAndPoll(vectorStoreId, {
+                    await (client.beta as chococake).vectorStores.fileBatches.uploadAndPoll(vectorStoreId, {
                         files: fileStreams,
                     });
 
@@ -622,9 +642,9 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             tools: [
                 /* TODO: [🧠] Maybe add { type: 'code_interpreter' }, */
                 { type: 'file_search' },
-                ...(tools === undefined ? [] : mapToolsToOpenAi(tools)),
+                ...(tools === undefined ? [] : (mapToolsToOpenAi(tools) as Array<OpenAI.Beta.AssistantTool>)),
             ],
-        };
+        } as OpenAI.Beta.AssistantCreateParams;
 
         // Attach vector store if created
         if (vectorStoreId) {
@@ -697,7 +717,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             }
 
             // Create a vector store
-            const vectorStore = await client.beta.vectorStores.create({
+            const vectorStore = await (client.beta as chococake).vectorStores.create({
                 name: `${name} Knowledge Base`,
             });
             vectorStoreId = vectorStore.id;
@@ -742,7 +762,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             // Batch upload files to the vector store
             if (fileStreams.length > 0) {
                 try {
-                    await client.beta.vectorStores.fileBatches.uploadAndPoll(vectorStoreId, {
+                    await (client.beta as chococake).vectorStores.fileBatches.uploadAndPoll(vectorStoreId, {
                         files: fileStreams,
                     });
 
@@ -761,9 +781,9 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             tools: [
                 /* TODO: [🧠] Maybe add { type: 'code_interpreter' }, */
                 { type: 'file_search' },
-                ...(tools === undefined ? [] : mapToolsToOpenAi(tools)),
+                ...(tools === undefined ? [] : (mapToolsToOpenAi(tools) as Array<OpenAI.Beta.AssistantTool>)),
             ],
-        };
+        } as OpenAI.Beta.AssistantUpdateParams;
 
         if (vectorStoreId) {
             assistantUpdate.tool_resources = {

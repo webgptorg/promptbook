@@ -99,3 +99,4 @@
 -   Add sample of passing files in OpenAI playground.
 -   Support for generating images in Google LLM execution tools.
 -   Implemented tool calling when transpiling book into the code in `OpenAiSdkTranspiler`.
+-   Updated `openai` SDK from `4.63.0` to `6.15.0` across the entire repository and adapted the code to breaking changes in the new version.
