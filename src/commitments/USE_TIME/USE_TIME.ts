@@ -1,3 +1,4 @@
+import moment from 'moment';
 import { spaceTrim } from 'spacetrim';
 import { string_javascript_name, TODO_any } from '../../_packages/types.index';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
@@ -102,12 +103,9 @@ export class UseTimeCommitmentDefinition extends BaseCommitmentDefinition<'USE T
                 },
             },
             spaceTrim(`
-                Tool:
-                - You have access to the current date and time via the tool "get_current_time".
-                - Use it to answer questions about the current date and time.
-                - When you need to know the current date or time, use the tool provided to you.
-                - Do not make up the current date or time; always use the tool to get accurate information.
-                - When you need to work with some relative time or date  like "today", "yesterday", or "next week", use the tool to get the current reference time. Do not assume the current date or time.
+                Context:
+                - It is ${moment().format('MMMM YYYY')} now.
+                - If you need more precise current time information, use the tool "get_current_time".
             `),
         );
     }
