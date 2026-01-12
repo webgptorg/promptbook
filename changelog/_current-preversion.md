@@ -99,3 +99,9 @@
 -   Add sample of passing files in OpenAI playground.
 -   Support for generating images in Google LLM execution tools.
 -   Implemented tool calling when transpiling book into the code in `OpenAiSdkTranspiler`.
+-   Enhanced UI and UX of the home page of the agent's server
+    -   Increased grid columns to 4 for better space utilization on large screens.
+    -   Enhanced AgentCard with better hover effects, smoother scaling, and soft blue shadows.
+    -   Refined the main layout with better vertical padding and a more subtle gradient background.
+    -   Polished general Card component with refined borders, shadows, and subtle hover backgrounds.
+    -   Adjusted header spacing for better density on desktop.

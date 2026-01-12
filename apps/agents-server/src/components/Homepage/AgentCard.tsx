@@ -80,9 +80,9 @@ export function AgentCard({
 
     return (
         <div className="relative h-full group">
-            <Link href={href} className="block h-full transition-transform hover:scale-[1.02] duration-300">
+            <Link href={href} className="block h-full transition-transform hover:scale-[1.05] duration-300">
                 <div
-                    className="h-full rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col border border-white/20"
+                    className="h-full rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl hover:shadow-blue-200/50 transition-all duration-300 flex flex-col border border-white/20 group-hover:border-white/40"
                     style={{
                         background: `url("${backgroundImage}")`,
                         backgroundSize: 'cover',

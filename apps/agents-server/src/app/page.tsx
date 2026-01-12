@@ -99,8 +99,8 @@ export default async function HomePage(props: {
     const isGraphView = searchParams?.view === 'graph';
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-            <div className="container mx-auto px-4 py-16">
+        <div className="min-h-screen bg-gradient-to-br from-blue-50/50 via-white to-purple-50/50">
+            <div className="container mx-auto px-4 py-20 lg:py-24">
                 <AgentsList agents={[...agents]} isAdmin={isAdmin} publicUrl={publicUrl.href /* <- [👭] */} />
 
                 {!isGraphView && <ExternalAgentsSectionClient publicUrl={publicUrl.href /* <- [👭] */} />}
