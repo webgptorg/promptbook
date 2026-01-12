@@ -103,10 +103,11 @@ export class UseTimeCommitmentDefinition extends BaseCommitmentDefinition<'USE T
             },
             spaceTrim(`
                 Tool:
-                You have access to the current date and time via the tool "get_current_time".
-                Use it to answer questions about the current date and time.
-                When you need to know the current date or time, use the tool provided to you.
-                Do not make up the current date or time; always use the tool to get accurate information.
+                - You have access to the current date and time via the tool "get_current_time".
+                - Use it to answer questions about the current date and time.
+                - When you need to know the current date or time, use the tool provided to you.
+                - Do not make up the current date or time; always use the tool to get accurate information.
+                - When you need to work with some relative time or date  like "today", "yesterday", or "next week", use the tool to get the current reference time. Do not assume the current date or time.
             `),
         );
     }
