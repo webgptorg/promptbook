@@ -142,7 +142,7 @@ export class UseSearchEngineCommitmentDefinition extends BaseCommitmentDefinitio
                 },
             },
             spaceTrim(`
-                Tools:
+                Tool:
                 - You have access to the web search engine via the tool "web_search".
                 - Use it to find up-to-date information or facts that you don't know.
                 - When you need to know some information from the internet, use the tool provided to you.
