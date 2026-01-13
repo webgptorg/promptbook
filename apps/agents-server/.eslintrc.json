@@ -2,5 +2,22 @@
   "extends": [
     "next/core-web-vitals",
     "next/typescript"
-  ]
+  ],
+  "rules": {
+    "no-magic-numbers": [
+      "error",
+      {
+        "ignore": [
+          -1,
+          0,
+          1,
+          2,
+          10,
+          60,
+          100,
+          1000
+        ]
+      }
+    ]
+  }
 }
