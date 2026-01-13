@@ -20,6 +20,8 @@ PERSONA An expert software developer
 TEAM You can talk with http://localhost:4440/agents/GMw67JN8TXxN7y to discuss the legal aspects.
 ```
 
+In this case, the agent can communicate with the agent `http://localhost:4440/agents/GMw67JN8TXxN7y` and "You can talk with http://localhost:4440/agents/GMw67JN8TXxN7y to discuss the legal aspects." are extra instructions for the current agent about when to use this teammate.
+
 **For example:**
 
 ```book
