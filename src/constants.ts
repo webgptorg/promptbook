@@ -115,5 +115,151 @@ export const RESERVED_PARAMETER_NAMES = exportJson({
 });
 
 /**
+ * Limits for IDs, names, and other strings
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const LIMITS = {
+    /**
+     * Minimum length of a name (e.g. agent name, persona name)
+     */
+    NAME_MIN_LENGTH: 3,
+
+    /**
+     * Recommended maximum length of a name
+     */
+    NAME_MAX_LENGTH: 20,
+
+    /**
+     * Maximum length of a short description or a hash
+     */
+    SHORT_TEXT_MAX_LENGTH: 30,
+
+    /**
+     * Gone
+     */
+    GONE: 410,
+
+    /**
+     * Gateway timeout
+     */
+    GATEWAY_TIMEOUT: 504,
+
+    /**
+     * Too many requests
+     */
+    TOO_MANY_REQUESTS: 429,
+
+    /**
+     * Maximum length of a file path segment
+     */
+    FILE_PATH_SEGMENT_MAX_LENGTH: 8,
+
+    /**
+     * Default length of a short name (e.g. for default agent names)
+     */
+    SHORT_NAME_LENGTH: 6,
+} as const;
+
+/**
+ * Common time intervals in milliseconds
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const TIME_INTERVALS = {
+    /**
+     * One second in milliseconds
+     */
+    SECOND: 1000,
+
+    /**
+     * Two seconds in milliseconds
+     */
+    TWO_SECONDS: 2000,
+
+    /**
+     * One minute in milliseconds
+     */
+    MINUTE: 60000,
+
+    /**
+     * Thirty seconds in milliseconds
+     */
+    THIRTY_SECONDS: 30000,
+
+    /**
+     * Five seconds in milliseconds
+     */
+    FIVE_SECONDS: 5000,
+} as const;
+
+/**
+ * Common ports and network limits
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const NETWORK_LIMITS = {
+    /**
+     * Maximum valid port number
+     */
+    MAX_PORT: 65535,
+} as const;
+
+/**
+ * Common color and image constants
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const COLOR_CONSTANTS = {
+    /**
+     * Maximum value for a color channel (0-255)
+     */
+    MAX_CHANNEL_VALUE: 255,
+
+    /**
+     * Number of possible colors in 24-bit color (0xFFFFFF)
+     */
+    MAX_24BIT_COLOR: 16777215,
+
+    /**
+     * Base for hexadecimal strings
+     */
+    HEX_BASE: 16,
+
+    /**
+     * Length of a hex color without alpha (e.g. "FF0000")
+     */
+    HEX_COLOR_LENGTH: 6,
+
+    /**
+     * Full circle in degrees
+     */
+    FULL_CIRCLE_DEGREES: 360,
+
+    /**
+     * Half circle in degrees
+     */
+    HALF_CIRCLE_DEGREES: 180,
+} as const;
+
+/**
+ * HTTP Status Codes
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const HTTP_STATUS_CODES = {
+    OK: 200,
+    CREATED: 201,
+    BAD_REQUEST: 400,
+    UNAUTHORIZED: 401,
+    NOT_FOUND: 404,
+    INTERNAL_SERVER_ERROR: 500,
+    BAD_GATEWAY: 502,
+    SERVICE_UNAVAILABLE: 503,
+    GATEWAY_TIMEOUT: 504,
+    TOO_MANY_REQUESTS: 429,
+} as const;
+
+/**
  * Note: [💞] Ignore a discrepancy between file name and entity name
  */

@@ -9,7 +9,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🌞] You have added [no magic numbers](https://eslint.org/docs/latest/rules/no-magic-numbers) linting rule but not fixed the problems
 

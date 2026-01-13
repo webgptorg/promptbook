@@ -1,3 +1,4 @@
+import { TIME_INTERVALS } from '../constants';
 import type {
     SpeechRecognition,
     SpeechRecognitionEvent,
@@ -76,7 +77,7 @@ export class OpenAiSpeechRecognition implements SpeechRecognition {
                     if (!this.silenceTimeout) {
                         this.silenceTimeout = setTimeout(() => {
                             this.$stop();
-                        }, 2000);
+                        }, TIME_INTERVALS.TWO_SECONDS);
                     }
                 } else {
                     if (this.silenceTimeout) {

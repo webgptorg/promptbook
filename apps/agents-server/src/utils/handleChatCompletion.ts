@@ -6,6 +6,7 @@ import { Agent, computeAgentHash, parseAgentSource, PROMPTBOOK_ENGINE_VERSION } 
 import { ChatMessage, ChatPromptResult, Prompt, string_book, TODO_any } from '@promptbook-local/types';
 import { computeHash } from '@promptbook-local/utils';
 import { NextRequest, NextResponse } from 'next/server';
+import { HTTP_STATUS_CODES } from '../constants';
 import { isAgentDeleted } from '../app/agents/[agentName]/_utils';
 import { validateApiKey } from './validateApiKey';
 
@@ -26,7 +27,7 @@ export async function handleChatCompletion(
                     type: 'authentication_error',
                 },
             },
-            { status: 401 },
+            { status: HTTP_STATUS_CODES.UNAUTHORIZED },
         );
     }
     const apiKey = apiKeyValidation.token || null;
@@ -45,7 +46,7 @@ export async function handleChatCompletion(
                         type: 'invalid_request_error',
                     },
                 },
-                { status: 400 },
+                { status: HTTP_STATUS_CODES.BAD_REQUEST },
             );
         }
 
@@ -57,7 +58,7 @@ export async function handleChatCompletion(
                         type: 'invalid_request_error',
                     },
                 },
-                { status: 400 },
+                { status: HTTP_STATUS_CODES.BAD_REQUEST },
             );
         }
 
@@ -81,14 +82,14 @@ export async function handleChatCompletion(
         } catch (error) {
             return NextResponse.json(
                 { error: { message: `Agent '${agentName}' not found.`, type: 'invalid_request_error' } },
-                { status: 404 },
+                { status: HTTP_STATUS_CODES.NOT_FOUND },
             );
         }
 
         if (!agentSource) {
             return NextResponse.json(
                 { error: { message: `Agent '${agentName}' not found.`, type: 'invalid_request_error' } },
-                { status: 404 },
+                { status: HTTP_STATUS_CODES.NOT_FOUND },
             );
         }
 
@@ -109,7 +110,7 @@ export async function handleChatCompletion(
                         type: 'invalid_request_error',
                     },
                 },
-                { status: 400 },
+                { status: HTTP_STATUS_CODES.BAD_REQUEST },
             );
         }
 
@@ -409,7 +410,7 @@ export async function handleChatCompletion(
         console.error(`Error in ${title} handler:`, error);
         return NextResponse.json(
             { error: { message: (error as Error).message || 'Internal Server Error', type: 'server_error' } },
-            { status: 500 },
+            { status: HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR },
         );
     }
 }

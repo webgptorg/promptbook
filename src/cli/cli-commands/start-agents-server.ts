@@ -4,6 +4,7 @@ import type {
 } from 'commander';
 import spaceTrim from 'spacetrim';
 import { DEFAULT_AGENTS_DIRNAME } from '../../config';
+import { NETWORK_LIMITS } from '../../constants';
 import { startAgentServer } from '../../remote-server/startAgentServer';
 import type { number_port } from '../../types/typeAliases';
 import type { $side_effect } from '../../utils/organization/$side_effect';
@@ -44,7 +45,7 @@ export function $initializeStartAgentsServerCommand(program: Program): $side_eff
             // TODO: [🐱‍🚀] [🌕] DRY
 
             const port: number_port = parseInt(portRaw, 10);
-            if (isNaN(port) || port <= 0 || port > 65535) {
+            if (isNaN(port) || port <= 0 || port > NETWORK_LIMITS.MAX_PORT) {
                 console.error(colors.red(`Invalid port number: ${portRaw}`));
                 return process.exit(1);
             }

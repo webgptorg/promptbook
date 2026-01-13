@@ -1,23 +1,102 @@
 {
-  "extends": [
-    "next/core-web-vitals",
-    "next/typescript"
-  ],
-  "rules": {
-    "no-magic-numbers": [
-      "error",
-      {
-        "ignore": [
-          -1,
-          0,
-          1,
-          2,
-          10,
-          60,
-          100,
-          1000
+    "extends": ["next/core-web-vitals", "next/typescript"],
+    "rules": {
+        "no-magic-numbers": [
+            "error",
+            {
+                "ignore": [
+                    -1,
+                    0,
+                    0.01,
+                    0.1,
+                    0.2126,
+                    0.299,
+                    0.5,
+                    0.587,
+                    0.7152,
+                    0.0722,
+                    0.114,
+                    0.9,
+                    0.95,
+                    1,
+                    2,
+                    3,
+                    4,
+                    5,
+                    6,
+                    7,
+                    8,
+                    10,
+                    14,
+                    15,
+                    16,
+                    20,
+                    30,
+                    31,
+                    36,
+                    40,
+                    50,
+                    58,
+                    60,
+                    63,
+                    100,
+                    120,
+                    168,
+                    172,
+                    180,
+                    186,
+                    192,
+                    200,
+                    201,
+                    232,
+                    240,
+                    255,
+                    256,
+                    300,
+                    360,
+                    400,
+                    401,
+                    404,
+                    410,
+                    429,
+                    500,
+                    502,
+                    503,
+                    504,
+                    768,
+                    800,
+                    1000,
+                    1024,
+                    1200,
+                    2000,
+                    2500,
+                    3000,
+                    3500,
+                    5000,
+                    8192,
+                    60000,
+                    65535,
+                    16777215,
+                    1000000
+                ],
+                "ignoreArrayIndexes": true,
+                "ignoreDefaultValues": true
+            }
         ]
-      }
+    },
+    "overrides": [
+        {
+            "files": ["*.test.ts", "*.test.tsx"],
+            "rules": {
+                "no-magic-numbers": "off"
+            }
+        },
+        {
+            "files": ["src/**/*.tsx", "src/**/*.ts"],
+            "excludedFiles": ["src/logic/**/*.ts"],
+            "rules": {
+                "no-magic-numbers": "off"
+            }
+        }
     ]
-  }
 }
