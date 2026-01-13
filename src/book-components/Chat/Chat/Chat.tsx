@@ -904,26 +904,53 @@ export function Chat(props: ChatProps) {
                                     ? JSON.parse(selectedToolCall.arguments)
                                     : selectedToolCall.arguments || {};
 
-                            const resultRaw = selectedToolCall.result;
-                            let results = Array.isArray(resultRaw)
-                                ? resultRaw
-                                : resultRaw && typeof resultRaw === 'object' && Array.isArray(resultRaw.results)
-                                ? resultRaw.results
-                                : [];
-
-                            // [🧠] In Agent Server, search result might be wrapped in another result object
-                            if (
-                                results.length === 0 &&
-                                resultRaw &&
-                                typeof resultRaw === 'object' &&
-                                resultRaw.result
-                            ) {
-                                const subResult = resultRaw.result;
-                                results = Array.isArray(subResult)
-                                    ? subResult
-                                    : subResult && typeof subResult === 'object' && Array.isArray(subResult.results)
-                                    ? subResult.results
-                                    : [];
+                            let resultRaw = selectedToolCall.result;
+                            
+                            // [🧠] Try to parse stringified JSON result
+                            if (typeof resultRaw === 'string') {
+                                try {
+                                    resultRaw = JSON.parse(resultRaw);
+                                } catch (e) {
+                                    // Keep as string if parsing fails
+                                }
+                            }
+                            
+                            let results: Array<TODO_any> = [];
+                            
+                            // [🧠] Handle various possible result formats
+                            if (Array.isArray(resultRaw)) {
+                                // Direct array of results
+                                results = resultRaw;
+                            } else if (resultRaw && typeof resultRaw === 'object') {
+                                // Try different possible nested structures
+                                if (Array.isArray(resultRaw.results)) {
+                                    results = resultRaw.results;
+                                } else if (resultRaw.result) {
+                                    const subResult = resultRaw.result;
+                                    if (Array.isArray(subResult)) {
+                                        results = subResult;
+                                    } else if (subResult && typeof subResult === 'object' && Array.isArray(subResult.results)) {
+                                        results = subResult.results;
+                                    } else if (typeof subResult === 'string') {
+                                        // Try parsing stringified result
+                                        try {
+                                            const parsed = JSON.parse(subResult);
+                                            if (Array.isArray(parsed)) {
+                                                results = parsed;
+                                            } else if (parsed && Array.isArray(parsed.results)) {
+                                                results = parsed.results;
+                                            }
+                                        } catch (e) {
+                                            // Parsing failed, keep empty results
+                                        }
+                                    }
+                                } else if (resultRaw.data && Array.isArray(resultRaw.data)) {
+                                    // Some APIs return results in a 'data' field
+                                    results = resultRaw.data;
+                                } else if (resultRaw.items && Array.isArray(resultRaw.items)) {
+                                    // Some APIs return results in an 'items' field
+                                    results = resultRaw.items;
+                                }
                             }
 
                             if (isSearch) {
