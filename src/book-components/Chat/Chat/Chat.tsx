@@ -904,86 +904,27 @@ export function Chat(props: ChatProps) {
                                     ? JSON.parse(selectedToolCall.arguments)
                                     : selectedToolCall.arguments || {};
 
-                            let resultRaw = selectedToolCall.result;
+                            const resultRaw = selectedToolCall.result;
+                            let results = Array.isArray(resultRaw)
+                                ? resultRaw
+                                : resultRaw && typeof resultRaw === 'object' && Array.isArray(resultRaw.results)
+                                ? resultRaw.results
+                                : [];
 
-                            console.info('🔎 Search extraction start:', {
-                                selectedToolCall,
-                                keys: Object.keys(selectedToolCall),
-                            });
-
-                            if (typeof resultRaw === 'string') {
-                                try {
-                                    resultRaw = JSON.parse(resultRaw);
-                                } catch (error) {
-                                    // Not a JSON string
-                                }
-                            }
-
-                            let results: Array<TODO_any> = [];
-
-                            const findResults = (obj: TODO_any): Array<TODO_any> | null => {
-                                if (!obj || typeof obj !== 'object') {
-                                    return null;
-                                }
-                                if (Array.isArray(obj)) {
-                                    if (
-                                        obj.length > 0 &&
-                                        obj[0] &&
-                                        typeof obj[0] === 'object' &&
-                                        (obj[0].url || obj[0].title || obj[0].snippet || obj[0].content)
-                                    ) {
-                                        return obj;
-                                    }
-                                    return null;
-                                }
-                                if (Array.isArray(obj.results)) {
-                                    return obj.results;
-                                }
-                                if (Array.isArray(obj.result)) {
-                                    return obj.result;
-                                }
-                                for (const key in obj) {
-                                    // Prevent infinite recursion and searching in large unrelated objects
-                                    if (key === 'rawToolCall' || key === 'arguments') {
-                                        continue;
-                                    }
-                                    const found = findResults(obj[key]);
-                                    if (found) {
-                                        return found;
-                                    }
-                                }
-                                return null;
-                            };
-
-                            results = findResults(resultRaw) || [];
-
-                            // [🧠] If still not found, search in the whole tool call object
-                            if (results.length === 0) {
-                                results = findResults(selectedToolCall) || [];
-                            }
-
-                            // [🧠] Search results might be also in `resultRaw.answer.results` or similar
-                            if (results.length === 0 && resultRaw && typeof resultRaw === 'object') {
-                                if (resultRaw.answer && Array.isArray(resultRaw.answer.results)) {
-                                    results = resultRaw.answer.results;
-                                } else if (resultRaw.answer && Array.isArray(resultRaw.answer)) {
-                                    results = resultRaw.answer;
-                                }
-                            }
-
-                            // [🧠] Final fallback to old behavior
-                            if (results.length === 0) {
-                                results = Array.isArray(resultRaw)
-                                    ? resultRaw
-                                    : resultRaw && typeof resultRaw === 'object' && Array.isArray(resultRaw.results)
-                                    ? resultRaw.results
+                            // [🧠] In Agent Server, search result might be wrapped in another result object
+                            if (
+                                results.length === 0 &&
+                                resultRaw &&
+                                typeof resultRaw === 'object' &&
+                                resultRaw.result
+                            ) {
+                                const subResult = resultRaw.result;
+                                results = Array.isArray(subResult)
+                                    ? subResult
+                                    : subResult && typeof subResult === 'object' && Array.isArray(subResult.results)
+                                    ? subResult.results
                                     : [];
                             }
-
-                            console.info('🔎 Search extraction end:', {
-                                resultRaw,
-                                results,
-                            });
 
                             if (isSearch) {
                                 return (
