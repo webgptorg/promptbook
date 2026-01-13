@@ -15,6 +15,8 @@ export const TOOL_TITLES: Record<string, { title: string; emoji: string }> = {
     search: { title: 'Searching the web', emoji: '🔎' },
     useBrowser: { title: 'Browsing the web', emoji: '🌐' },
     browse: { title: 'Browsing the web', emoji: '🌐' },
+    get_current_time: { title: 'Current time', emoji: '🕒' },
+    useTime: { title: 'Current time', emoji: '🕒' },
     // Add more tools here as needed
 };
 

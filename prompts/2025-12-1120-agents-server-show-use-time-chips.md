@@ -1,6 +1,6 @@
-[ ]
+[x]
 
-[✨♕] When the `USE TIME` is used, show the chiplet which will show that time was used. 
+[✨♕] When the `USE TIME` is used, show the chiplet which will show that time was used.
 
 -   Make it similar to `USE SEARCH ENGINE` chiplet,
 -   You are working with the `Agents Server` application `/apps/agents-server`

@@ -2,6 +2,7 @@
 // <- Note: [👲] 'use client' is enforced by Next.js when building the https://book-components.ptbk.io/ but in ideal case,
 //          this would not be here because the `@promptbook/components` package should be React library independent of Next.js specifics
 
+import moment from 'moment';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import spaceTrim from 'spacetrim';
@@ -33,6 +34,7 @@ import type { ChatMessage } from '../types/ChatMessage';
 import styles from './Chat.module.css';
 import { ChatMessageItem } from './ChatMessageItem'; // <- [🥂]
 import type { ChatProps } from './ChatProps';
+import { ClockIcon } from './ClockIcon';
 
 /**
  * Renders a chat with messages and input for new messages
@@ -899,6 +901,9 @@ export function Chat(props: ChatProps) {
                                 selectedToolCall.name === 'useSearchEngine' ||
                                 selectedToolCall.name === 'search';
 
+                            const isTime =
+                                selectedToolCall.name === 'get_current_time' || selectedToolCall.name === 'useTime';
+
                             const args =
                                 typeof selectedToolCall.arguments === 'string'
                                     ? JSON.parse(selectedToolCall.arguments)
@@ -997,6 +1002,57 @@ export function Chat(props: ChatProps) {
                                                         : 'Search results are not available.'}
                                                 </div>
                                             )}
+                                        </div>
+                                    </>
+                                );
+                            }
+
+                            if (isTime) {
+                                const date = resultRaw ? new Date(String(resultRaw)) : new Date();
+                                const isValidDate = !isNaN(date.getTime());
+
+                                return (
+                                    <>
+                                        <div className={styles.searchModalHeader}>
+                                            <span className={styles.searchModalIcon}>🕒</span>
+                                            <h3 className={styles.searchModalQuery}>Current Time</h3>
+                                        </div>
+
+                                        <div className={styles.searchModalContent}>
+                                            <div
+                                                style={{
+                                                    display: 'flex',
+                                                    flexDirection: 'column',
+                                                    alignItems: 'center',
+                                                    gap: '20px',
+                                                    padding: '20px',
+                                                }}
+                                            >
+                                                {isValidDate && <ClockIcon date={date} size={150} />}
+                                                <div style={{ textAlign: 'center' }}>
+                                                    <div style={{ fontSize: '2em', fontWeight: 'bold' }}>
+                                                        {isValidDate
+                                                            ? date.toLocaleTimeString([], {
+                                                                  hour: '2-digit',
+                                                                  minute: '2-digit',
+                                                              })
+                                                            : 'Unknown time'}
+                                                    </div>
+                                                    <div style={{ color: '#666' }}>
+                                                        {isValidDate ? date.toLocaleDateString() : 'Unknown date'}
+                                                    </div>
+                                                    {isValidDate && (
+                                                        <div style={{ fontSize: '0.9em', color: '#888', marginTop: '5px' }}>
+                                                            ({moment(date).fromNow()})
+                                                        </div>
+                                                    )}
+                                                    {args.timezone && (
+                                                        <div style={{ fontSize: '0.9em', color: '#888', marginTop: '5px' }}>
+                                                            Timezone: {args.timezone}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
                                         </div>
                                     </>
                                 );
