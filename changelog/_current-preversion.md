@@ -76,7 +76,8 @@
 -   Human-readable titles for showing tool calls in chiplets with better labels and emojis (e.g. `[🔎 Venezuela]`).
 -   Clicking on a tool call chiplet opens a modal with tool call details (arguments and results).
 -   Improved tool call details modal with better formatting for arguments and results (especially for search results).
--   Web Search: Fixed issue where search results were not shown in the source chiplet modal in Agents Server
+-   Improved tool call details modal with better formatting for arguments and results (especially for search results).
+-   [✨🥉] Fixed search results display in the search chiplet modal when using Agent Server by implementing a more robust recursive result extraction logic that can find results even when they are nested or returned as a JSON string.
 -   Allow AI to leverage all the options and possibilities of SERP search engine (location, localization, pagination, advanced filters, etc.).
 -   Updated `SearchEngine` interface to support advanced options.
 -   Enhanced Search Engine Test page with advanced SERP parameters and raw call details.

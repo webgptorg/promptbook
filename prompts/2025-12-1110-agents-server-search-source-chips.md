@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🥉] When the agent searches for the information, it searches correctly, but when you are looking into the search chip, there is shown "Search results are not available.", fix it
 
