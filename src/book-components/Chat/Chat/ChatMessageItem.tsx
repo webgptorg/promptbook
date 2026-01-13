@@ -67,24 +67,31 @@ type ChatMessageItemProps = Pick<ChatProps, 'onMessage' | 'participants'> & {
  * @private internal subcomponent of `<Chat>` component
  */
 export const ChatMessageItem = memo(
-    ({
-        message,
-        participant,
-        participants,
-        isLastMessage,
-        onMessage,
-        setExpandedMessageId,
-        isExpanded,
-        currentRating,
-        handleRating,
-        mode,
-        isCopyButtonEnabled,
-        isFeedbackEnabled,
-        onCopy,
-        onCreateAgent,
-        toolTitles,
-        onToolCallClick,
-    }: ChatMessageItemProps) => {
+    //                           <- TODO: [🧠] Should we wrap more components in `React.memo`
+    //                                          Or make normal function from this?
+    (props: ChatMessageItemProps) => {
+        const {
+            message,
+            participant,
+            participants,
+            isLastMessage,
+            onMessage,
+            setExpandedMessageId,
+            isExpanded,
+            currentRating,
+            handleRating,
+            mode,
+            isCopyButtonEnabled,
+            isFeedbackEnabled,
+            onCopy,
+            onCreateAgent,
+            toolTitles,
+            onToolCallClick,
+        } = props;
+        const {
+            isComplete = true,
+            // <- TODO: Desctruct all `messages` properties like `isComplete`
+        } = message;
         const avatarSrc = participant?.avatarSrc || null;
         const [isAvatarTooltipVisible, setIsAvatarTooltipVisible] = useState(false);
         const [avatarTooltipPosition, setAvatarTooltipPosition] = useState<{ top: number; left: number } | null>(null);
@@ -189,7 +196,7 @@ export const ChatMessageItem = memo(
                 className={classNames(
                     styles.chatMessage,
                     isMe && styles.isMe,
-                    !message.isComplete && styles.isNotCompleteMessage,
+                    !isComplete && styles.isNotCompleteMessage,
                 )}
                 onClick={() => {
                     console.group('💬', message.content);
@@ -246,7 +253,7 @@ export const ChatMessageItem = memo(
                         } as React.CSSProperties
                     }
                 >
-                    {isCopyButtonEnabled && message.isComplete && (
+                    {isCopyButtonEnabled && isComplete && (
                         <div className={styles.copyButtonContainer}>
                             <button
                                 className={styles.copyButton}
@@ -397,28 +404,24 @@ export const ChatMessageItem = memo(
                         </div>
                     )}
 
-                    {!message.isComplete && (
+                    {!isComplete && message.ongoingToolCalls && message.ongoingToolCalls.length > 0 && (
                         <div className={styles.ongoingToolCalls}>
-                            {message.ongoingToolCalls && message.ongoingToolCalls.length > 0 ? (
-                                message.ongoingToolCalls.map((toolCall, index) => {
-                                    const toolInfo = TOOL_TITLES[toolCall.name];
-                                    const toolTitle = toolTitles?.[toolCall.name] || toolInfo?.title;
-                                    const emoji = toolInfo?.emoji || '🛠️';
+                            {message.ongoingToolCalls.map((toolCall, index) => {
+                                const toolInfo = TOOL_TITLES[toolCall.name];
+                                const toolTitle = toolTitles?.[toolCall.name] || toolInfo?.title;
+                                const emoji = toolInfo?.emoji || '🛠️';
 
-                                    return (
-                                        <div key={index} className={styles.ongoingToolCall}>
-                                            <div className={styles.ongoingToolCallSpinner} />
-                                            <span className={styles.ongoingToolCallName}>
-                                                {toolTitle
-                                                    ? `${emoji} ${toolTitle}...`
-                                                    : `${emoji} Executing ${toolCall.name}...`}
-                                            </span>
-                                        </div>
-                                    );
-                                })
-                            ) : (
-                                <span className={styles.NonCompleteMessageFiller}>{'_'.repeat(70)}</span>
-                            )}
+                                return (
+                                    <div key={index} className={styles.ongoingToolCall}>
+                                        <div className={styles.ongoingToolCallSpinner} />
+                                        <span className={styles.ongoingToolCallName}>
+                                            {toolTitle
+                                                ? `${emoji} ${toolTitle}...`
+                                                : `${emoji} Executing ${toolCall.name}...`}
+                                        </span>
+                                    </div>
+                                );
+                            })}
                         </div>
                     )}
 
@@ -442,7 +445,7 @@ export const ChatMessageItem = memo(
                         </div>
                     )}
 
-                    {isFeedbackEnabled && message.isComplete && (
+                    {isFeedbackEnabled && isComplete && (
                         <div
                             className={styles.rating}
                             onMouseEnter={() => {
