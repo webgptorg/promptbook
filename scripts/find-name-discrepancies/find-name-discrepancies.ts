@@ -98,6 +98,9 @@ async function findNameDiscrepancies() {
                         1) Rename the entity in the file according to the file name
                         2) Rename file to match the entity name
                         3) Add Note: [💞] Ignore a discrepancy between file name and entity name
+
+                        Then commit:
+                        Fix name discrepancies
                     `),
                 ),
             );

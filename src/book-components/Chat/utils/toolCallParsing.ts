@@ -50,7 +50,10 @@ export function getToolCallResultDate(result: ToolCall['result']): Date | null {
     }
 
     if (typeof result === 'object') {
-        const candidate = (result as Record<string, TODO_any>).time ?? (result as Record<string, TODO_any>).timestamp ?? (result as Record<string, TODO_any>).now;
+        const candidate =
+            (result as Record<string, TODO_any>).time ??
+            (result as Record<string, TODO_any>).timestamp ??
+            (result as Record<string, TODO_any>).now;
         if (candidate) {
             return getToolCallResultDate(candidate);
         }
@@ -58,3 +61,8 @@ export function getToolCallResultDate(result: ToolCall['result']): Date | null {
 
     return null;
 }
+
+/**
+ * Note: [💞] Ignore a discrepancy between file name and entity name
+ *         <- TODO: But maybe split into multiple files later?
+ */
