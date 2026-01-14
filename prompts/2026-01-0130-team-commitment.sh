@@ -1,6 +1,11 @@
-[ ]
+codex \
+  --ask-for-approval never \
+  exec --model gpt-5.2-codex \
+  --sandbox danger-full-access \
+  -C ~/work/ai/promptbook \
+  <<'EOF'
 
-[✨👺] To be able to specify the teammates of the agent.
+To be able to specify the teammates of the agent.
 
 **For example:**
 
@@ -55,29 +60,5 @@ TEAM You can talk with http://localhost:4440/agents/GMw67JN8TXxN7y to discuss th
         -   `parseAgentSource` which is a lightweight parser for agent source, it parses basic information and its purpose is to be quick and synchronous. The commitments there are hardcoded.
         -   `createAgentModelRequirements` which is an asynchronous function that creates model requirements it applies each commitment one by one and works asynchronously.
 
----
 
-[-]
-
-[✨👺] qux
-
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the `/changelog/_current-preversion.md`
-
----
-
-[-]
-
-[✨👺] qux
-
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the `/changelog/_current-preversion.md`
-
----
-
-[-]
-
-[✨👺] qux
-
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the `/changelog/_current-preversion.md`
+EOF
