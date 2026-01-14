@@ -89,7 +89,7 @@ export const ChatMessageItem = memo(
         } = props;
         const {
             isComplete = true,
-            // <- TODO: Desctruct all `messages` properties like `isComplete`
+            // <- TODO: Destruct all `messages` properties like `isComplete`
         } = message;
         const avatarSrc = participant?.avatarSrc || null;
         const [isAvatarTooltipVisible, setIsAvatarTooltipVisible] = useState(false);
