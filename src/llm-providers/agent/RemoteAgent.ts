@@ -205,7 +205,77 @@ export class RemoteAgent extends Agent {
         // <- TODO: [🐱‍🚀] Maybe use promptbookFetch
 
         let content = '';
-        const toolCalls: Array<TODO_any> = [];
+        const toolCalls: Array<NonNullable<ChatPromptResult['toolCalls']>[number]> = [];
+
+        const normalizeToolCall = (
+            toolCall: NonNullable<ChatPromptResult['toolCalls']>[number],
+        ): NonNullable<ChatPromptResult['toolCalls']>[number] => {
+            if (toolCall.createdAt) {
+                return toolCall;
+            }
+
+            return {
+                ...toolCall,
+                createdAt: new Date().toISOString(),
+            };
+        };
+
+        const getToolCallKey = (toolCall: NonNullable<ChatPromptResult['toolCalls']>[number]): string => {
+            const rawId = (toolCall.rawToolCall as TODO_any)?.id;
+            if (rawId) {
+                return `id:${rawId}`;
+            }
+
+            const argsKey = (() => {
+                if (typeof toolCall.arguments === 'string') {
+                    return toolCall.arguments;
+                }
+
+                if (!toolCall.arguments) {
+                    return '';
+                }
+
+                try {
+                    return JSON.stringify(toolCall.arguments);
+                } catch {
+                    return '';
+                }
+            })();
+
+            return `${toolCall.name}:${toolCall.createdAt || ''}:${argsKey}`;
+        };
+
+        const mergeToolCall = (
+            existing: NonNullable<ChatPromptResult['toolCalls']>[number],
+            incoming: NonNullable<ChatPromptResult['toolCalls']>[number],
+        ): NonNullable<ChatPromptResult['toolCalls']>[number] => {
+            const incomingResult = incoming.result;
+            const shouldKeepExistingResult =
+                incomingResult === '' && existing.result !== undefined && existing.result !== '';
+
+            return {
+                ...existing,
+                ...incoming,
+                result: shouldKeepExistingResult ? existing.result : incomingResult ?? existing.result,
+                createdAt: existing.createdAt || incoming.createdAt,
+                errors: incoming.errors ? [...(existing.errors || []), ...incoming.errors] : existing.errors,
+                warnings: incoming.warnings ? [...(existing.warnings || []), ...incoming.warnings] : existing.warnings,
+            };
+        };
+
+        const upsertToolCalls = (incomingToolCalls: ReadonlyArray<NonNullable<ChatPromptResult['toolCalls']>[number]>) => {
+            for (const toolCall of incomingToolCalls) {
+                const normalized = normalizeToolCall(toolCall);
+                const key = getToolCallKey(normalized);
+                const existingIndex = toolCalls.findIndex((existing) => getToolCallKey(existing) === key);
+
+                if (existingIndex === -1) {
+                    toolCalls.push(normalized);
+                } else {
+                    toolCalls[existingIndex] = mergeToolCall(toolCalls[existingIndex]!, normalized);
+                }
+            }
+        };
 
         if (!bookResponse.body) {
             content = await bookResponse.text();
@@ -230,7 +300,8 @@ export class RemoteAgent extends Agent {
                                 if (trimmedLine.startsWith('{') && trimmedLine.endsWith('}')) {
                                     const chunk = JSON.parse(trimmedLine);
                                     if (chunk.toolCalls) {
-                                        toolCalls.push(...chunk.toolCalls);
+                                        const normalizedToolCalls = chunk.toolCalls.map(normalizeToolCall);
+                                        upsertToolCalls(normalizedToolCalls);
                                         onProgress({
                                             content,
                                             modelName: this.modelName,
@@ -239,7 +310,7 @@ export class RemoteAgent extends Agent {
                                             rawPromptContent: {} as TODO_any,
                                             rawRequest: {} as TODO_any,
                                             rawResponse: {} as TODO_any,
-                                            toolCalls: chunk.toolCalls,
+                                            toolCalls: normalizedToolCalls,
                                         });
                                         isHandled = true;
                                     }

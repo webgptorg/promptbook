@@ -1,6 +1,8 @@
 import { Message } from '../../../types/Message';
-import type { id, string_date_iso8601, string_markdown } from '../../../types/typeAliases';
-import type { TODO_any } from '../../../utils/organization/TODO_any';
+import type { ToolCall } from '../../../types/ToolCall';
+import type { id, string_markdown } from '../../../types/typeAliases';
+
+export type ChatToolCall = ToolCall;
 
 /**
  * Represents a single message within a chat interface.
@@ -43,57 +45,19 @@ export type ChatMessage = Omit<Message<id>, 'direction' | 'recipients' | 'thread
     /**
      * Optional tool calls made during the execution
      */
-    readonly ongoingToolCalls?: ReadonlyArray<{
-        /**
-         * Name of the tool
-         */
-        readonly name: string;
+    readonly ongoingToolCalls?: ReadonlyArray<ChatToolCall>;
 
-        /**
-         * Arguments for the tool call
-         */
-        readonly arguments?: string | Record<string, TODO_any>;
-
-        /**
-         * Result of the tool call
-         */
-        readonly result?: TODO_any;
-
-        /**
-         * Raw tool call from the model
-         */
-        readonly rawToolCall?: TODO_any;
-    }>;
+    /**
+     * Optional tool calls used to produce this message.
+     */
+    readonly toolCalls?: ReadonlyArray<ChatToolCall>;
 
     /**
      * Optional tool calls that have been completed
+     *
+     * @deprecated Use `toolCalls` instead.
      */
-    readonly completedToolCalls?: ReadonlyArray<{
-        /**
-         * Name of the tool
-         */
-        readonly name: string;
-
-        /**
-         * Arguments for the tool call
-         */
-        readonly arguments?: string | Record<string, TODO_any>;
-
-        /**
-         * Result of the tool call
-         */
-        readonly result?: TODO_any;
-
-        /**
-         * Raw tool call from the model
-         */
-        readonly rawToolCall?: TODO_any;
-
-        /**
-         * Date when the tool call was completed
-         */
-        readonly createdAt?: Date | string_date_iso8601;
-    }>;
+    readonly completedToolCalls?: ReadonlyArray<ChatToolCall>;
 
     /**
      * Optional file attachments

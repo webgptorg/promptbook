@@ -1,4 +1,5 @@
-import type { TODO_any } from '../../../utils/organization/TODO_any';
+import type { ToolCall } from '../../../types/ToolCall';
+import { getToolCallResultDate, parseToolCallArguments, parseToolCallResult } from './toolCallParsing';
 
 /**
  * Utility to format tool call information for user-friendly display.
@@ -15,8 +16,8 @@ export const TOOL_TITLES: Record<string, { title: string; emoji: string }> = {
     search: { title: 'Searching the web', emoji: '🔎' },
     useBrowser: { title: 'Browsing the web', emoji: '🌐' },
     browse: { title: 'Browsing the web', emoji: '🌐' },
-    get_current_time: { title: 'Current time', emoji: '🕒' },
-    useTime: { title: 'Current time', emoji: '🕒' },
+    get_current_time: { title: 'Checking time', emoji: '🕒' },
+    useTime: { title: 'Checking time', emoji: '🕒' },
     // Add more tools here as needed
 };
 
@@ -25,19 +26,21 @@ export const TOOL_TITLES: Record<string, { title: string; emoji: string }> = {
  *
  * @private [🧠] Maybe public?
  */
-export function getToolCallChipletText(toolCall: {
-    name: string;
-    arguments?: string | Record<string, TODO_any>;
-}): string {
+export function getToolCallChipletText(toolCall: ToolCall): string {
     const toolInfo = TOOL_TITLES[toolCall.name];
     const baseTitle = toolInfo?.title || toolCall.name;
     const emoji = toolInfo?.emoji || '🛠️';
 
-    let args: TODO_any = {};
-    try {
-        args = typeof toolCall.arguments === 'string' ? JSON.parse(toolCall.arguments) : toolCall.arguments || {};
-    } catch (e) {
-        // Ignore parse errors
+    const args = parseToolCallArguments(toolCall);
+    const isTimeTool = toolCall.name === 'get_current_time' || toolCall.name === 'useTime';
+
+    if (isTimeTool) {
+        const resultRaw = parseToolCallResult(toolCall.result);
+        const resultDate = getToolCallResultDate(resultRaw);
+
+        if (resultDate) {
+            return `${emoji} ${resultDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+        }
     }
 
     if (args.query) {

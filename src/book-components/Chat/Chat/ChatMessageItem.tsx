@@ -8,7 +8,6 @@ import { PROMPTBOOK_CHAT_COLOR, USER_CHAT_COLOR } from '../../../config';
 import type { id } from '../../../types/typeAliases';
 import { Color } from '../../../utils/color/Color';
 import { textColor } from '../../../utils/color/operators/furthest';
-import type { TODO_any } from '../../../utils/organization/TODO_any';
 import { AvatarProfileTooltip } from '../../AvatarProfile/AvatarProfile/AvatarProfileTooltip';
 import { classNames } from '../../_common/react-utils/classNames';
 import { MarkdownContent } from '../MarkdownContent/MarkdownContent';
@@ -58,7 +57,7 @@ type ChatMessageItemProps = Pick<ChatProps, 'onMessage' | 'participants'> & {
     /**
      * Called when a tool call chiplet is clicked.
      */
-    onToolCallClick?: (toolCall: { name: string; arguments?: TODO_any; result?: TODO_any }) => void;
+    onToolCallClick?: (toolCall: NonNullable<ChatMessage['toolCalls']>[number]) => void;
 };
 
 /**
@@ -177,6 +176,7 @@ export const ChatMessageItem = memo(
         );
         const colorOfText = color.then(textColor);
         const { contentWithoutButtons, buttons } = parseMessageButtons(message.content);
+        const completedToolCalls = message.toolCalls || message.completedToolCalls;
         const shouldShowButtons = isLastMessage && buttons.length > 0 && onMessage;
         const [localHoveredRating, setLocalHoveredRating] = useState(0);
         const [copied, setCopied] = useState(false);
@@ -381,9 +381,9 @@ export const ChatMessageItem = memo(
                         </div>
                     )}
 
-                    {message.completedToolCalls && message.completedToolCalls.length > 0 && (
+                    {completedToolCalls && completedToolCalls.length > 0 && (
                         <div className={styles.completedToolCalls}>
-                            {message.completedToolCalls.map((toolCall, index) => {
+                            {completedToolCalls.map((toolCall, index) => {
                                 const chipletText = getToolCallChipletText(toolCall);
 
                                 return (

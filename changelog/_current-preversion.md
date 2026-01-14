@@ -78,6 +78,7 @@
 -   Clicking on a tool call chiplet opens a modal with tool call details (arguments and results).
 -   Improved tool call details modal with better formatting for arguments and results (especially for search results).
 -   Web Search: Fixed issue where search results were not shown in the source chiplet modal in Agents Server
+-   Store raw tool call data (arguments/results/errors/timestamps) in `ChatMessage.toolCalls` and render time/search chiplets from stored tool calls (no re-runs).
 -   Improved search results parsing in tool call modal to handle multiple nested result formats (stringified JSON, nested result objects, various field names like `data`, `items`, `results`)
 -   Record timestamp of tool calls and store them in `ChatMessage.completedToolCalls`
 -   When the `USE TIME` is used, show the chiplet which will show that time was used (similarly to `USE SEARCH ENGINE` chiplets).

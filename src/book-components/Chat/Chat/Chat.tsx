@@ -31,6 +31,7 @@ import { useChatAutoScroll } from '../hooks/useChatAutoScroll';
 import { getChatSaveFormatDefinitions } from '../save/_common/getChatSaveFormatDefinitions';
 import type { string_chat_format_name } from '../save/_common/string_chat_format_name';
 import type { ChatMessage } from '../types/ChatMessage';
+import { getToolCallResultDate, getToolCallTimestamp, parseToolCallArguments, parseToolCallResult } from '../utils/toolCallParsing';
 import styles from './Chat.module.css';
 import { ChatMessageItem } from './ChatMessageItem'; // <- [🥂]
 import type { ChatProps } from './ChatProps';
@@ -104,9 +105,9 @@ export function Chat(props: ChatProps) {
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const [ratingModalOpen, setRatingModalOpen] = useState(false);
     const [toolCallModalOpen, setToolCallModalOpen] = useState(false);
-    const [selectedToolCall, setSelectedToolCall] = useState<
-        NonNullable<ChatMessage['completedToolCalls']>[number] | null
-    >(null);
+    const [selectedToolCall, setSelectedToolCall] = useState<NonNullable<ChatMessage['toolCalls']>[number] | null>(
+        null,
+    );
     const [selectedMessage, setSelectedMessage] = useState<ChatMessage | null>(null);
     const [messageRatings, setMessageRatings] = useState<Map<id, number>>(new Map());
     const [textRating, setTextRating] = useState('');
@@ -902,25 +903,11 @@ export function Chat(props: ChatProps) {
                             const isTime =
                                 selectedToolCall.name === 'get_current_time' || selectedToolCall.name === 'useTime';
 
-                            const args =
-                                typeof selectedToolCall.arguments === 'string'
-                                    ? JSON.parse(selectedToolCall.arguments)
-                                    : selectedToolCall.arguments || {};
+                            const args = parseToolCallArguments(selectedToolCall);
 
-                            let resultRaw = selectedToolCall.result;
+                            const resultRaw = parseToolCallResult(selectedToolCall.result);
 
-                            // [🧠] Try to parse stringified JSON result
-                            if (typeof resultRaw === 'string') {
-                                try {
-                                    resultRaw = JSON.parse(resultRaw);
-                                } catch (e) {
-                                    // Keep as string if parsing fails
-                                }
-                            }
-
-                            const toolCallDate = selectedToolCall.createdAt
-                                ? new Date(selectedToolCall.createdAt)
-                                : new Date();
+                            const toolCallDate = getToolCallTimestamp(selectedToolCall);
                             
                             let results: Array<TODO_any> = [];
                             
@@ -1010,14 +997,16 @@ export function Chat(props: ChatProps) {
                             }
 
                             if (isTime) {
-                                const date = resultRaw ? new Date(String(resultRaw)) : toolCallDate;
-                                const isValidDate = !isNaN(date.getTime());
+                                const timeResultDate = getToolCallResultDate(resultRaw);
+                                const displayDate = timeResultDate || toolCallDate;
+                                const isValidDate = !!displayDate && !isNaN(displayDate.getTime());
+                                const relativeLabel = toolCallDate ? `called ${moment(toolCallDate).fromNow()}` : null;
 
                                 return (
                                     <>
                                         <div className={styles.searchModalHeader}>
                                             <span className={styles.searchModalIcon}>🕒</span>
-                                            <h3 className={styles.searchModalQuery}>Current Time</h3>
+                                            <h3 className={styles.searchModalQuery}>Time at call</h3>
                                         </div>
 
                                         <div className={styles.searchModalContent}>
@@ -1030,24 +1019,26 @@ export function Chat(props: ChatProps) {
                                                     padding: '20px',
                                                 }}
                                             >
-                                                {isValidDate && <ClockIcon date={date} size={150} />}
+                                                {isValidDate && displayDate && <ClockIcon date={displayDate} size={150} />}
                                                 <div style={{ textAlign: 'center' }}>
                                                     <div style={{ fontSize: '2em', fontWeight: 'bold' }}>
-                                                        {isValidDate
-                                                            ? date.toLocaleTimeString([], {
+                                                        {isValidDate && displayDate
+                                                            ? displayDate.toLocaleTimeString([], {
                                                                   hour: '2-digit',
                                                                   minute: '2-digit',
                                                               })
                                                             : 'Unknown time'}
                                                     </div>
                                                     <div style={{ color: '#666' }}>
-                                                        {isValidDate ? date.toLocaleDateString() : 'Unknown date'}
+                                                        {isValidDate && displayDate
+                                                            ? displayDate.toLocaleDateString()
+                                                            : 'Unknown date'}
                                                     </div>
-                                                    {isValidDate && (
+                                                    {relativeLabel && (
                                                         <div
                                                             style={{ fontSize: '0.9em', color: '#888', marginTop: '5px' }}
                                                         >
-                                                            ({moment(date).from(toolCallDate)})
+                                                            ({relativeLabel})
                                                         </div>
                                                     )}
                                                     {args.timezone && (
@@ -1065,7 +1056,7 @@ export function Chat(props: ChatProps) {
                                                 </p>
                                                 <div className={styles.toolCallDataContainer}>
                                                     <pre className={styles.toolCallData}>
-                                                        {toolCallDate.toLocaleString()}
+                                                        {toolCallDate ? toolCallDate.toLocaleString() : 'Unknown'}
                                                     </pre>
                                                 </div>
                                             </div>

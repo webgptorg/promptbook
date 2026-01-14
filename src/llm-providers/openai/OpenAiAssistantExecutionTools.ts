@@ -206,6 +206,8 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             // Create thread and run
             const threadAndRun = await client.beta.threads.createAndRun(rawRequest);
             let run = threadAndRun;
+            const completedToolCalls: Array<NonNullable<ChatPromptResult['toolCalls']>[number]> = [];
+            const toolCallStartedAt = new Map<string, string_date_iso8601>();
 
             // Poll until run completes or requires action
             while (run.status === 'queued' || run.status === 'in_progress' || run.status === 'requires_action') {
@@ -218,6 +220,11 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                         if (toolCall.type === 'function') {
                             const functionName = toolCall.function.name;
                             const functionArgs = JSON.parse(toolCall.function.arguments);
+                            const calledAt = $getCurrentDate();
+
+                            if (toolCall.id) {
+                                toolCallStartedAt.set(toolCall.id, calledAt);
+                            }
 
                             onProgress({
                                 content: '',
@@ -233,6 +240,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                                         arguments: toolCall.function.arguments,
                                         result: '',
                                         rawToolCall: toolCall,
+                                        createdAt: calledAt,
                                     },
                                 ],
                             });
@@ -257,6 +265,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                                 : [executionTools.script];
 
                             let functionResponse: string;
+                            let errors: Array<ReturnType<typeof serializeError>> | undefined;
 
                             try {
                                 const scriptTool = scriptTools[0]!; // <- TODO: [🧠] Which script tool to use?
@@ -276,13 +285,15 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                             } catch (error) {
                                 assertsError(error);
 
+                                const serializedError = serializeError(error as Error);
+                                errors = [serializedError];
                                 functionResponse = spaceTrim(
                                     (block) => `
                                     
                                         The invoked tool \`${functionName}\` failed with error:
                                         
                                         \`\`\`json
-                                        ${block(JSON.stringify(serializeError(error as Error), null, 4))}
+                                        ${block(JSON.stringify(serializedError, null, 4))}
                                         \`\`\`
 
                                     `,
@@ -294,6 +305,15 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                             toolOutputs.push({
                                 tool_call_id: toolCall.id,
                                 output: functionResponse,
+                            });
+
+                            completedToolCalls.push({
+                                name: functionName,
+                                arguments: toolCall.function.arguments,
+                                result: functionResponse,
+                                rawToolCall: toolCall,
+                                createdAt: toolCall.id ? toolCallStartedAt.get(toolCall.id) || calledAt : calledAt,
+                                errors,
                             });
                         }
                     }
@@ -341,6 +361,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                 rawPromptContent,
                 rawRequest,
                 rawResponse: { run, messages: messages.data },
+                toolCalls: completedToolCalls.length > 0 ? completedToolCalls : undefined,
             };
             onProgress(finalChunk);
 

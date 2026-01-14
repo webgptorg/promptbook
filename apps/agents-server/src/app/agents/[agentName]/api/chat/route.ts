@@ -170,6 +170,12 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                             await collection.updateAgentSource(agentName, newAgentSource);
                         }
 
+                        if (response.toolCalls && response.toolCalls.length > 0) {
+                            controller.enqueue(
+                                encoder.encode('\n' + JSON.stringify({ toolCalls: response.toolCalls }) + '\n'),
+                            );
+                        }
+
                         controller.close();
                     })
                     .catch((error) => {

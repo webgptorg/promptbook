@@ -12,7 +12,7 @@
 ---
 
 [x] _<- Note: Done by Cline `gemini-3-flash`_
-[ ] _<- Note: Done by OpenAI Codex_
+[x] _<- Note: Done by OpenAI Codex_
 
 [✨♕] Fix the chiplet details popup for the time tool
 

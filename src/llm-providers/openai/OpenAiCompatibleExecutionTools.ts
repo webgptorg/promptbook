@@ -29,6 +29,7 @@ import { $getCurrentDate } from '../../utils/misc/$getCurrentDate';
 import type { chococake } from '../../utils/organization/really_any';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import { templateParameters } from '../../utils/parameters/templateParameters';
+import { serializeError } from '../../_packages/utils.index';
 import { exportJson } from '../../utils/serialization/exportJson';
 import { addUsage } from '../../execution/utils/addUsage';
 import { forEachAsync } from '../../execution/utils/forEachAsync';
@@ -340,19 +341,27 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
                 totalUsage = addUsage(totalUsage, usage);
 
                 if (responseMessage.tool_calls && responseMessage.tool_calls.length > 0) {
+                    const toolCallStartedAt = new Map<string, string_date_iso8601>();
                     if (onProgress) {
                         onProgress({
                             content: responseMessage.content || '',
                             modelName: rawResponse.model || modelName,
                             timing: { start, complete: $getCurrentDate() },
                             usage: totalUsage,
-                            toolCalls: responseMessage.tool_calls.map((toolCall) => ({
-                                name: toolCall.function.name,
-                                arguments: toolCall.function.arguments,
-                                result: '',
-                                rawToolCall: toolCall,
-                                createdAt: $getCurrentDate(),
-                            })),
+                            toolCalls: responseMessage.tool_calls.map((toolCall) => {
+                                const calledAt = $getCurrentDate();
+                                if (toolCall.id) {
+                                    toolCallStartedAt.set(toolCall.id, calledAt);
+                                }
+
+                                return {
+                                    name: toolCall.function.name,
+                                    arguments: toolCall.function.arguments,
+                                    result: '',
+                                    rawToolCall: toolCall,
+                                    createdAt: calledAt,
+                                };
+                            }),
                             rawPromptContent,
                             rawRequest,
                             rawResponse,
@@ -362,6 +371,9 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
                     await forEachAsync(responseMessage.tool_calls, {}, async (toolCall) => {
                         const functionName = toolCall.function.name;
                         const functionArgs = toolCall.function.arguments;
+                        const calledAt = toolCall.id
+                            ? toolCallStartedAt.get(toolCall.id) || $getCurrentDate()
+                            : $getCurrentDate();
 
                         const executionTools = (this.options as OpenAiCompatibleExecutionToolsNonProxiedOptions)
                             .executionTools;
@@ -378,6 +390,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
                             : [executionTools.script];
 
                         let functionResponse: string;
+                        let errors: Array<TODO_any> | undefined;
 
                         try {
                             const scriptTool = scriptTools[0]!; // <- TODO: [🧠] Which script tool to use?
@@ -393,6 +406,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
                         } catch (error) {
                             assertsError(error);
                             functionResponse = `Error: ${error.message}`;
+                            errors = [serializeError(error)];
                         }
 
                         messages.push({
@@ -406,7 +420,8 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
                             arguments: functionArgs,
                             result: functionResponse,
                             rawToolCall: toolCall,
-                            createdAt: $getCurrentDate(),
+                            createdAt: calledAt,
+                            errors,
                         });
                     });
 

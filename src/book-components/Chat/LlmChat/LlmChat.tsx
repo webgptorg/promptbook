@@ -212,6 +212,7 @@ export function LlmChat(props: LlmChatProps) {
                     sender: llmParticipantName,
                     content: result.content as string_markdown,
                     isComplete: true,
+                    toolCalls: result.toolCalls,
                     completedToolCalls: result.toolCalls,
                 };
 
