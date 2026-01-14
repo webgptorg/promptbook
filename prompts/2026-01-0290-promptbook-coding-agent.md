@@ -35,7 +35,7 @@ Some additional description of the foo task.
 
 ---
 
-[ ]
+[  ]
 
 [✨🏔] Do bar
 
