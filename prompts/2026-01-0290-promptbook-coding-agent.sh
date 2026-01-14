@@ -1,6 +1,11 @@
-[x]
+codex \
+  --ask-for-approval never \
+  exec --model gpt-5.2-codex \
+  --sandbox danger-full-access \
+  -C ~/work/ai/promptbook \
+  <<'EOF'
 
-[✨🏔] Create a script that will automatically feed OpenAI Codex with prompts.
+Create a script that will automatically feed OpenAI Codex with prompts.
 
 It works as follows:
 
@@ -67,3 +72,5 @@ Some additional description of the bar task.
 
 Some additional description of the bar task.
 ```
+
+EOF

@@ -262,6 +262,13 @@
             "focus": true
         },
         {
+            "name": "⚡✨ Run Coding Agent",
+            "command": "npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
             "name": "🏭🩹 Fix Lint",
             "command": "npx eslint src --fix",
             "execute": true,
