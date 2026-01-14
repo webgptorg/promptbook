@@ -2,6 +2,7 @@
 
 import { OpenAiAssistantExecutionTools } from '@promptbook-local/openai';
 import { JavascriptExecutionTools } from '../../../../src/scripting/javascript/JavascriptExecutionTools';
+import { $provideExecutionToolsForServer } from './$provideExecutionToolsForServer';
 
 /**
  * Cache of provided OpenAiAssistantExecutionTools
@@ -24,6 +25,7 @@ export async function $provideOpenAiAssistantExecutionToolsForServer(): Promise<
     }
 
     console.log('[🐱‍🚀] Creating NEW OpenAiAssistantExecutionTools');
+    const executionTools = await $provideExecutionToolsForServer();
 
     llmExecutionTools = new OpenAiAssistantExecutionTools({
         apiKey: process.env.OPENAI_API_KEY,
@@ -32,6 +34,11 @@ export async function $provideOpenAiAssistantExecutionToolsForServer(): Promise<
             script: new JavascriptExecutionTools({
                 isVerbose,
             }),
+            scrapers: executionTools.scrapers,
+            fs: executionTools.fs,
+            llm: executionTools.llm,
+            executables: executionTools.executables,
+            fetch: executionTools.fetch,
         },
         isCreatingNewAssistantsAllowed: true,
         isVerbose,

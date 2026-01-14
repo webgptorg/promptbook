@@ -30,6 +30,7 @@
 -   Implemented `SerpSearchEngine` that uses the SerpApi to fetch Google search results.
 -   Implemented `GoogleSearchEngine` that uses Google Custom Search JSON API to fetch results.
 -   Defined tools in OpenAI Assistant when creating or updating it through `AgentLlmExecutionTools`.
+-   Convert assistant knowledge sources with existing scrapers and upload Markdown files to OpenAI vector stores instead of raw files.
 -   Books can contain Markdown code blocks, which are treated as raw text and not parsed for commitments
 -   Code blocks in the `<BookEditor />` are distinctly highlighted
 -   Do the full proxy of the given LLM tools in `countUsage` and `cacheLlmTools`
