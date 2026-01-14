@@ -1,7 +1,7 @@
-codex exec \
-  --model gpt-5.2-codex \
+codex \
   --ask-for-approval never \
   --sandbox workspace-write \
+  exec --model gpt-5.2-codex \
   <<'EOF'
 
 Fix popup from `USE SEARCH ENGINE` chiplet
