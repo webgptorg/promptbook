@@ -11,7 +11,7 @@ import { textColor } from '../../../utils/color/operators/furthest';
 import { AvatarProfileTooltip } from '../../AvatarProfile/AvatarProfile/AvatarProfileTooltip';
 import { classNames } from '../../_common/react-utils/classNames';
 import { MarkdownContent } from '../MarkdownContent/MarkdownContent';
-import type { ChatMessage } from '../types/ChatMessage';
+import type { ChatMessage, ChatToolCall } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
 import { getToolCallChipletText, TOOL_TITLES } from '../utils/getToolCallChipletText';
 import { parseMessageButtons } from '../utils/parseMessageButtons';
@@ -177,6 +177,23 @@ export const ChatMessageItem = memo(
         const colorOfText = color.then(textColor);
         const { contentWithoutButtons, buttons } = parseMessageButtons(message.content);
         const completedToolCalls = message.toolCalls || message.completedToolCalls;
+        const getToolCallEntries = (toolCalls?: ReadonlyArray<ChatToolCall>) =>
+            (toolCalls || []).map((toolCall) => ({
+                toolCall,
+                chipletText: getToolCallChipletText(toolCall),
+            }));
+        const completedToolCallEntries = getToolCallEntries(completedToolCalls);
+        const ongoingToolCallEntries = getToolCallEntries(message.ongoingToolCalls);
+        const toolCallSummaryEntries =
+            completedToolCallEntries.length > 0 ? completedToolCallEntries : ongoingToolCallEntries;
+        const toolCallSummaryText =
+            toolCallSummaryEntries.length > 0
+                ? toolCallSummaryEntries.map((entry) => entry.chipletText).join(', ')
+                : '';
+        const toolCallFallbackContent =
+            contentWithoutButtons.length === 0 && toolCallSummaryText
+                ? `${toolCallSummaryEntries.length > 1 ? 'Using tools' : 'Using tool'}: ${toolCallSummaryText}`
+                : contentWithoutButtons;
         const shouldShowButtons = isLastMessage && buttons.length > 0 && onMessage;
         const [localHoveredRating, setLocalHoveredRating] = useState(0);
         const [copied, setCopied] = useState(false);
@@ -359,7 +376,7 @@ export const ChatMessageItem = memo(
                         </>
                     ) : (
                         <div ref={contentWithoutButtonsRef}>
-                            <MarkdownContent content={contentWithoutButtons} onCreateAgent={onCreateAgent} />
+                            <MarkdownContent content={toolCallFallbackContent} onCreateAgent={onCreateAgent} />
                         </div>
                     )}
 
@@ -381,11 +398,9 @@ export const ChatMessageItem = memo(
                         </div>
                     )}
 
-                    {completedToolCalls && completedToolCalls.length > 0 && (
+                    {completedToolCallEntries.length > 0 && (
                         <div className={styles.completedToolCalls}>
-                            {completedToolCalls.map((toolCall, index) => {
-                                const chipletText = getToolCallChipletText(toolCall);
-
+                            {completedToolCallEntries.map(({ toolCall, chipletText }, index) => {
                                 return (
                                     <button
                                         key={index}

@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨👮] Fix message content from the agent when tool call is used
 
@@ -46,3 +46,4 @@
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
+
