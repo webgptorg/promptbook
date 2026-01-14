@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨😖] Allow to pass additional text into `USE SEARCH ENGINE` and `USE TIME`
 

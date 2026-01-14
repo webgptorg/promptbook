@@ -25,6 +25,7 @@
 -   Implemented `USE TIME` commitment to add the ability for agents to determine the current date and time.
 -   Added timezone awareness to `USE TIME` commitment.
 -   Added extra instructions to the system message for `USE TIME`, `USE SEARCH ENGINE`, and `USE BROWSER` commitments to provide explicit guidance for the agent on when and how to use these tools.
+-   Allow optional instructions after `USE SEARCH ENGINE` and `USE TIME` to be included in the system message.
 -   Implemented `USE SEARCH` (and `USE SEARCH ENGINE`) commitment that adds the ability for agents to perform web search using `SerpSearchEngine`.
 -   Implemented `SerpSearchEngine` that uses the SerpApi to fetch Google search results.
 -   Implemented `GoogleSearchEngine` that uses Google Custom Search JSON API to fetch results.

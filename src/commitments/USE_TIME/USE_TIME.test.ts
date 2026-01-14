@@ -17,6 +17,16 @@ describe('createAgentModelRequirementsWithCommitments with USE TIME', () => {
         expect(requirements.systemMessage).toContain('If you need more precise current time information, use the tool "get_current_time"');
     });
 
+    it('should include extra time instructions in the system message when provided', async () => {
+        const agentSource = spaceTrim(`
+            Time Agent
+            USE TIME Prefer the user locale
+        `) as string_book;
+        const requirements = await createAgentModelRequirementsWithCommitments(agentSource);
+        expect(requirements.systemMessage).toContain('Time instructions');
+        expect(requirements.systemMessage).toContain('Prefer the user locale');
+    });
+
     it('should add current time tool when CURRENT TIME alias is used', async () => {
         const agentSource = spaceTrim(`
             Time Agent

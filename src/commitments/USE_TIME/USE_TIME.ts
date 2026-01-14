@@ -3,8 +3,8 @@ import { spaceTrim } from 'spacetrim';
 import { string_javascript_name, TODO_any } from '../../_packages/types.index';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
-import { keepUnused } from '../../utils/organization/keepUnused';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
+import { formatOptionalInstructionBlock } from '../_base/formatOptionalInstructionBlock';
 
 /**
  * USE TIME commitment definition
@@ -15,6 +15,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  *
  * ```book
  * USE TIME
+ * USE TIME Prefer the user's local timezone.
  * ```
  *
  * @private [🪔] Maybe export the commitments through some package
@@ -22,6 +23,10 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 export class UseTimeCommitmentDefinition extends BaseCommitmentDefinition<'USE TIME'> {
     public constructor() {
         super('USE TIME', ['CURRENT TIME', 'TIME', 'DATE']);
+    }
+
+    override get requiresContent(): boolean {
+        return false;
     }
 
     /**
@@ -52,6 +57,7 @@ export class UseTimeCommitmentDefinition extends BaseCommitmentDefinition<'USE T
             - This tool won't receive any input.
             - It outputs the current date and time as an ISO 8601 string.
             - Allows the agent to answer questions about the current time or date.
+            - The content following \`USE TIME\` is an arbitrary text that the agent should know (e.g. timezone preference).
 
             ## Examples
 
@@ -61,11 +67,18 @@ export class UseTimeCommitmentDefinition extends BaseCommitmentDefinition<'USE T
             PERSONA You are a helpful assistant who knows the current time.
             USE TIME
             \`\`\`
+
+            \`\`\`book
+            Travel Assistant
+
+            PERSONA You help travelers with planning.
+            USE TIME Prefer the user's local timezone.
+            \`\`\`
         `);
     }
 
     applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
-        keepUnused(content); // <- Note: `USE TIME` does not require content
+        const extraInstructions = formatOptionalInstructionBlock('Time instructions', content);
 
         // Get existing tools array or create new one
         const existingTools = requirements.tools || [];
@@ -102,11 +115,14 @@ export class UseTimeCommitmentDefinition extends BaseCommitmentDefinition<'USE T
                     ...requirements.metadata,
                 },
             },
-            spaceTrim(`
-                Context:
-                - It is ${moment().format('MMMM YYYY')} now.
-                - If you need more precise current time information, use the tool "get_current_time".
-            `),
+            spaceTrim(
+                (block) => `
+                    Time and date context:
+                    - It is ${moment().format('MMMM YYYY')} now.
+                    - If you need more precise current time information, use the tool "get_current_time".
+                    ${block(extraInstructions)}
+                `,
+            ),
         );
     }
 

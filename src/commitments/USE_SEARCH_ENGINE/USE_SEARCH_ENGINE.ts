@@ -4,6 +4,7 @@ import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentMo
 import { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
 import { SerpSearchEngine } from '../../search-engines/serp/SerpSearchEngine';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
+import { formatOptionalInstructionBlock } from '../_base/formatOptionalInstructionBlock';
 
 /**
  * USE SEARCH ENGINE commitment definition
@@ -25,6 +26,10 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 export class UseSearchEngineCommitmentDefinition extends BaseCommitmentDefinition<'USE SEARCH ENGINE'> {
     public constructor() {
         super('USE SEARCH ENGINE', ['USE SEARCH']);
+    }
+
+    override get requiresContent(): boolean {
+        return false;
     }
 
     /**
@@ -78,6 +83,8 @@ export class UseSearchEngineCommitmentDefinition extends BaseCommitmentDefinitio
     }
 
     applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
+        const extraInstructions = formatOptionalInstructionBlock('Search instructions', content);
+
         // Get existing tools array or create new one
         const existingTools = requirements.tools || [];
 
@@ -141,14 +148,17 @@ export class UseSearchEngineCommitmentDefinition extends BaseCommitmentDefinitio
                     useSearchEngine: content || true,
                 },
             },
-            spaceTrim(`
-                Tool:
-                - You have access to the web search engine via the tool "web_search".
-                - Use it to find up-to-date information or facts that you don't know.
-                - When you need to know some information from the internet, use the tool provided to you.
-                - Do not make up information when you can search for it.
-                - Do not tell the user you cannot search for information, YOU CAN.
-            `),
+            spaceTrim(
+                (block) => `
+                    Tool:
+                    - You have access to the web search engine via the tool "web_search".
+                    - Use it to find up-to-date information or facts that you don't know.
+                    - When you need to know some information from the internet, use the tool provided to you.
+                    - Do not make up information when you can search for it.
+                    - Do not tell the user you cannot search for information, YOU CAN.
+                    ${block(extraInstructions)}
+            `,
+            ),
         );
     }
 
