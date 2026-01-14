@@ -5,6 +5,8 @@
 -   When the agent calls a tool _(like search or time)_, the message shown in the chat is empty.
 -   Just a chiplet of the tool call is shown, thats correct, but the message content should also contain some text from the agent.
 -   Same problem is not happening when the agent just responds with only text.
+-   This is probably happening on server side when processing because the `ChatMessage` sent from server to client has empty `content` when tool call is used.
+-   When the agent calls a tool, the `ChatMessage` should contain both the `completedToolCalls` and a `content`
 -   Look at attached screenshots for reference
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   You are working with the [<Chat/>](./src/book-components/Chat/Chat/Chat.tsx) component.
