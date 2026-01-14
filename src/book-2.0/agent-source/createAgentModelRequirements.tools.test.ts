@@ -27,6 +27,24 @@ describe('USE SEARCH ENGINE and USE BROWSER commitments', () => {
         expect(requirements.metadata?.useBrowser).toBe(true);
     });
 
+    it('should add teammate tools when TEAM is used', async () => {
+        const agentSource = validateBook(`
+            Test Agent
+            TEAM https://agents.ptbk.ik/agents/joe-green
+        `);
+        const requirements = await createAgentModelRequirements(agentSource);
+        const teamTool = requirements.tools?.find((tool) => tool.name.startsWith('team_chat_'));
+        expect(teamTool).toBeDefined();
+        expect(requirements.metadata?.teammates).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    url: 'https://agents.ptbk.ik/agents/joe-green',
+                }),
+            ]),
+        );
+        expect(requirements.systemMessage).toContain('Teammates:');
+    });
+
     /* TODO: [🔰] Uncomment this test
     it('should add both tools when both commitments are used', async () => {
         const agentSource = validateBook(`

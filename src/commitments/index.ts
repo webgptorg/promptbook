@@ -34,6 +34,7 @@ import { RuleCommitmentDefinition } from './RULE/RULE';
 import { SampleCommitmentDefinition } from './SAMPLE/SAMPLE';
 import { ScenarioCommitmentDefinition } from './SCENARIO/SCENARIO';
 import { StyleCommitmentDefinition } from './STYLE/STYLE';
+import { TeamCommitmentDefinition } from './TEAM/TEAM';
 import { UseCommitmentDefinition } from './USE/USE';
 import { UseBrowserCommitmentDefinition } from './USE_BROWSER/USE_BROWSER';
 import { UseImageGeneratorCommitmentDefinition } from './USE_IMAGE_GENERATOR/USE_IMAGE_GENERATOR';
@@ -100,6 +101,7 @@ export const COMMITMENT_REGISTRY = [
     new DictionaryCommitmentDefinition(),
     new OpenCommitmentDefinition(),
     new ClosedCommitmentDefinition(),
+    new TeamCommitmentDefinition(),
     new UseBrowserCommitmentDefinition(),
     new UseSearchEngineCommitmentDefinition(),
     new UseTimeCommitmentDefinition(),

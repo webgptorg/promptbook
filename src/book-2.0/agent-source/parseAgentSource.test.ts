@@ -472,6 +472,20 @@ describe('parseAgentSource', () => {
             });
         });
 
+        it('parses TEAM commitment', () => {
+            const agentSource = validateBook(`
+                Agent Name
+                TEAM https://agents.ptbk.ik/agents/joe-green
+            `);
+            const result = parseAgentSource(agentSource);
+            expect(result.capabilities).toContainEqual({
+                type: 'team',
+                label: 'Joe Green',
+                iconName: 'Users',
+                agentUrl: 'https://agents.ptbk.ik/agents/joe-green',
+            });
+        });
+
         it('ignores Adam agent in FROM commitment', () => {
             const agentSource = validateBook(`
                 Agent Name

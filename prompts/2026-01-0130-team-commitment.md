@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨👺] To be able to specify the teammates of the agent.
 

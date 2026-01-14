@@ -45,6 +45,24 @@ type SearchResultsExtraction = {
     rawText: string | null;
 };
 
+export type TeamToolResult = {
+    teammate?: {
+        url?: string;
+        label?: string;
+        instructions?: string;
+        toolName?: string;
+    };
+    request?: string;
+    response?: string;
+    error?: string | null;
+    conversation?: Array<{
+        sender?: string;
+        name?: string;
+        role?: string;
+        content?: string;
+    }>;
+};
+
 function parseSearchResultsFromText(text: string): Array<TODO_any> {
     const results: Array<TODO_any> = [];
     const normalized = text.replace(/\r\n/g, '\n');
@@ -198,6 +216,24 @@ export function extractSearchResults(resultRaw: TODO_any): SearchResultsExtracti
     }
 
     return { results: [], rawText: null };
+}
+
+/**
+ * @@@
+ *
+ * @private utility of `<Chat/>` component
+ */
+export function parseTeamToolResult(resultRaw: TODO_any): TeamToolResult | null {
+    if (!resultRaw || typeof resultRaw !== 'object') {
+        return null;
+    }
+
+    const teammate = (resultRaw as TeamToolResult).teammate;
+    if (!teammate || typeof teammate !== 'object') {
+        return null;
+    }
+
+    return resultRaw as TeamToolResult;
 }
 
 /**

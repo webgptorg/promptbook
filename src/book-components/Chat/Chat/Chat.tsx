@@ -35,12 +35,14 @@ import {
     extractSearchResults,
     getToolCallResultDate,
     getToolCallTimestamp,
+    parseTeamToolResult,
     parseToolCallArguments,
     parseToolCallResult,
 } from '../utils/toolCallParsing';
 import { MarkdownContent } from '../MarkdownContent/MarkdownContent';
 import styles from './Chat.module.css';
-import { ChatMessageItem } from './ChatMessageItem'; // <- [🥂]
+import { ChatMessageItem } from './ChatMessageItem';
+import { MockedChat } from '../MockedChat/MockedChat'; // <- [🥂]
 import type { ChatProps } from './ChatProps';
 import { ClockIcon } from './ClockIcon';
 
@@ -913,12 +915,136 @@ export function Chat(props: ChatProps) {
                             const args = parseToolCallArguments(selectedToolCall);
 
                             const resultRaw = parseToolCallResult(selectedToolCall.result);
+                            const teamResult = parseTeamToolResult(resultRaw);
 
                             const toolCallDate = getToolCallTimestamp(selectedToolCall);
 
                             const { results, rawText } = extractSearchResults(resultRaw);
                             const hasResults = results.length > 0;
                             const hasRawText = !hasResults && !!rawText && rawText.trim().length > 0;
+
+                            if (teamResult?.teammate) {
+                                const teammateLabel =
+                                    teamResult.teammate.label || teamResult.teammate.url || 'Teammate';
+                                const agentLabel =
+                                    teamResult.conversation?.find(
+                                        (entry) => entry.sender === 'AGENT' || entry.role === 'AGENT',
+                                    )?.name || 'Agent';
+                                const baseTime = toolCallDate ? toolCallDate.getTime() : Date.now();
+
+                                const messages = (teamResult.conversation || [])
+                                    .filter((entry) => entry && entry.content)
+                                    .map((entry, index) => ({
+                                        id: `team-${index}`,
+                                        createdAt: new Date(baseTime + index * 1000),
+                                        sender:
+                                            entry.sender === 'TEAMMATE' || entry.role === 'TEAMMATE'
+                                                ? 'TEAMMATE'
+                                                : 'AGENT',
+                                        content: entry.content || '',
+                                        isComplete: true,
+                                    }));
+
+                                if (messages.length === 0) {
+                                    if (teamResult.request) {
+                                        messages.push({
+                                            id: 'team-request',
+                                            createdAt: new Date(baseTime),
+                                            sender: 'AGENT',
+                                            content: teamResult.request,
+                                            isComplete: true,
+                                        });
+                                    }
+                                    if (teamResult.response) {
+                                        messages.push({
+                                            id: 'team-response',
+                                            createdAt: new Date(baseTime + 1000),
+                                            sender: 'TEAMMATE',
+                                            content: teamResult.response,
+                                            isComplete: true,
+                                        });
+                                    }
+                                }
+
+                                const participants = [
+                                    {
+                                        name: 'AGENT',
+                                        fullname: agentLabel,
+                                        color: '#64748b',
+                                    },
+                                    {
+                                        name: 'TEAMMATE',
+                                        fullname: teammateLabel,
+                                        color: '#0ea5e9',
+                                    },
+                                ];
+
+                                return (
+                                    <>
+                                        <div className={styles.searchModalHeader}>
+                                            <span className={styles.searchModalIcon}>🤝</span>
+                                            <h3 className={styles.searchModalQuery}>{teammateLabel}</h3>
+                                        </div>
+
+                                        <div className={styles.searchModalContent}>
+                                            {messages.length > 0 ? (
+                                                <div className={styles.teamChatContainer}>
+                                                    <MockedChat
+                                                        title={`Chat with ${teammateLabel}`}
+                                                        messages={messages}
+                                                        participants={participants}
+                                                        isResettable={false}
+                                                        isPausable={false}
+                                                        isSaveButtonEnabled={false}
+                                                        isCopyButtonEnabled={false}
+                                                        visual="STANDALONE"
+                                                    />
+                                                </div>
+                                            ) : (
+                                                <div className={styles.noResults}>
+                                                    No teammate conversation available.
+                                                </div>
+                                            )}
+
+                                            <div className={styles.toolCallDetails}>
+                                                <p>
+                                                    <strong>Teammate:</strong>
+                                                </p>
+                                                <div className={styles.toolCallDataContainer}>
+                                                    <pre className={styles.toolCallData}>
+                                                        {teamResult.teammate.url || teammateLabel}
+                                                    </pre>
+                                                </div>
+                                                {teamResult.teammate.instructions && (
+                                                    <>
+                                                        <p>
+                                                            <strong>When to consult:</strong>
+                                                        </p>
+                                                        <div className={styles.toolCallDataContainer}>
+                                                            <pre className={styles.toolCallData}>
+                                                                {teamResult.teammate.instructions}
+                                                            </pre>
+                                                        </div>
+                                                    </>
+                                                )}
+                                                {teamResult.error && (
+                                                    <>
+                                                        <p>
+                                                            <strong>Error:</strong>
+                                                        </p>
+                                                        <div className={styles.toolCallDataContainer}>
+                                                            <pre className={styles.toolCallData}>
+                                                                {teamResult.error}
+                                                            </pre>
+                                                        </div>
+                                                    </>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </>
+                                );
+                            }
+
                             if (isSearch) {
                                 return (
                                     <>

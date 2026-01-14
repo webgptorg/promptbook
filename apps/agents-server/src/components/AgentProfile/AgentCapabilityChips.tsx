@@ -11,6 +11,7 @@ import {
     ShieldQuestionMarkIcon,
     SquareArrowOutUpRight,
     SquareArrowUpRight,
+    Users,
 } from 'lucide-react';
 import NextLink from 'next/link';
 
@@ -39,6 +40,7 @@ export function AgentCapabilityChips({ agent, className }: AgentCapabilityChipsP
                         ShieldAlert,
                         ExternalLink,
                         Link,
+                        Users,
                         // <- [🪀] Add icons for new capabilities here
                     }[capability.iconName] || ShieldQuestionMarkIcon;
 

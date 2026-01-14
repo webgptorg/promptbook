@@ -7,6 +7,7 @@ import { createDefaultAgentName } from './createDefaultAgentName';
 import { normalizeAgentName } from './normalizeAgentName';
 import { parseAgentSourceWithCommitments } from './parseAgentSourceWithCommitments';
 import { parseParameters } from './parseParameters';
+import { parseTeamCommitmentContent } from './parseTeamCommitment';
 import type { string_book } from './string_book';
 
 /**
@@ -173,6 +174,20 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
                 iconName,
                 agentUrl: content as TODO_any,
             });
+            continue;
+        }
+
+        if (commitment.type === 'TEAM') {
+            const teammates = parseTeamCommitmentContent(commitment.content);
+
+            for (const teammate of teammates) {
+                capabilities.push({
+                    type: 'team',
+                    label: teammate.label,
+                    iconName: 'Users',
+                    agentUrl: teammate.url as TODO_any,
+                });
+            }
             continue;
         }
 

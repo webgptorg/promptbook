@@ -408,8 +408,12 @@ export const ChatMessageItem = memo(
                         <div className={styles.ongoingToolCalls}>
                             {message.ongoingToolCalls.map((toolCall, index) => {
                                 const toolInfo = TOOL_TITLES[toolCall.name];
-                                const toolTitle = toolTitles?.[toolCall.name] || toolInfo?.title;
-                                const emoji = toolInfo?.emoji || '🛠️';
+                                const isTeamTool = toolCall.name.startsWith('team_chat_');
+                                const toolTitle =
+                                    toolTitles?.[toolCall.name] ||
+                                    toolInfo?.title ||
+                                    (isTeamTool ? 'Consulting teammate' : undefined);
+                                const emoji = isTeamTool ? '🤝' : toolInfo?.emoji || '🛠️';
 
                                 return (
                                     <div key={index} className={styles.ongoingToolCall}>

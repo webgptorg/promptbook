@@ -1,5 +1,10 @@
 import type { ToolCall } from '../../../types/ToolCall';
-import { getToolCallResultDate, parseToolCallArguments, parseToolCallResult } from './toolCallParsing';
+import {
+    getToolCallResultDate,
+    parseTeamToolResult,
+    parseToolCallArguments,
+    parseToolCallResult,
+} from './toolCallParsing';
 
 /**
  * Utility to format tool call information for user-friendly display.
@@ -33,9 +38,16 @@ export function getToolCallChipletText(toolCall: ToolCall): string {
 
     const args = parseToolCallArguments(toolCall);
     const isTimeTool = toolCall.name === 'get_current_time' || toolCall.name === 'useTime';
+    const resultRaw = parseToolCallResult(toolCall.result);
+    const teamResult = parseTeamToolResult(resultRaw);
+
+    if (teamResult?.teammate) {
+        const label = teamResult.teammate.label || teamResult.teammate.url || baseTitle;
+        const teamEmoji = '🤝';
+        return `${teamEmoji} ${label}`.trim();
+    }
 
     if (isTimeTool) {
-        const resultRaw = parseToolCallResult(toolCall.result);
         const resultDate = getToolCallResultDate(resultRaw);
 
         if (resultDate) {

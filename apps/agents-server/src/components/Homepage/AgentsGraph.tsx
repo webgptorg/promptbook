@@ -35,13 +35,13 @@ type Node = {
 type Link = {
     source: string;
     target: string;
-    type: 'inheritance' | 'import';
+    type: 'inheritance' | 'import' | 'team';
 };
 
 type GraphLink = {
     source: string | { id: string };
     target: string | { id: string };
-    type: 'inheritance' | 'import';
+    type: 'inheritance' | 'import' | 'team';
 };
 
 export function AgentsGraph(props: AgentsGraphProps) {
@@ -54,7 +54,7 @@ export function AgentsGraph(props: AgentsGraphProps) {
     const imageCache = useRef<Record<string, { img: HTMLImageElement; status: 'loading' | 'success' | 'error'; retryCount: number }>>({});
 
     const [filterType, setFilterType] = useState<string[]>(
-        searchParams.get('connectionTypes')?.split(',').filter(Boolean) || ['inheritance', 'import'],
+        searchParams.get('connectionTypes')?.split(',').filter(Boolean) || ['inheritance', 'import', 'team'],
     );
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const keepLoader = Loader2;
@@ -97,7 +97,7 @@ export function AgentsGraph(props: AgentsGraphProps) {
         allAgents.forEach((agent) => {
             const agentNodeId = agent.serverUrl + '/' + agent.agentName;
             agent.capabilities?.forEach((cap) => {
-                if ((cap.type === 'inheritance' || cap.type === 'import') && cap.agentUrl) {
+                if ((cap.type === 'inheritance' || cap.type === 'import' || cap.type === 'team') && cap.agentUrl) {
                     if (filterType.includes(cap.type)) {
                         let targetUrl = cap.agentUrl as string;
 
@@ -265,7 +265,7 @@ export function AgentsGraph(props: AgentsGraphProps) {
     const updateUrl = useCallback(
         (newFilters: string[], newSelectedServer: string | null, newSelectedAgent: string | null) => {
             const params = new URLSearchParams(searchParams.toString());
-            if (newFilters.length === 2) {
+            if (newFilters.length === 3) {
                 params.delete('connectionTypes');
             } else {
                 params.set('connectionTypes', newFilters.join(','));
@@ -354,6 +354,15 @@ export function AgentsGraph(props: AgentsGraphProps) {
                         />
                         <span className="text-sm">Import</span>
                     </label>
+                    <label className="flex items-center gap-1 cursor-pointer">
+                        <input
+                            type="checkbox"
+                            checked={filterType.includes('team')}
+                            onChange={() => toggleFilter('team')}
+                            className="rounded text-blue-600"
+                        />
+                        <span className="text-sm">Team</span>
+                    </label>
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -430,9 +439,16 @@ export function AgentsGraph(props: AgentsGraphProps) {
                     }}
                     nodeColor={(node) => (node as Node).agent.meta.color || '#3b82f6'}
                     nodeRelSize={10}
-                    linkColor={(link) =>
-                        (link as unknown as GraphLink).type === 'inheritance' ? '#8b5cf6' : '#10b981'
-                    }
+                    linkColor={(link) => {
+                        const type = (link as unknown as GraphLink).type;
+                        if (type === 'inheritance') {
+                            return '#8b5cf6';
+                        }
+                        if (type === 'team') {
+                            return '#f97316';
+                        }
+                        return '#10b981';
+                    }}
                     linkDirectionalArrowLength={10}
                     linkDirectionalArrowRelPos={1}
                     linkCurvature={0.25}
@@ -649,6 +665,10 @@ export function AgentsGraph(props: AgentsGraphProps) {
                     <div className="flex items-center gap-2">
                         <div className="w-3 h-0.5 bg-emerald-500"></div>
                         <span>Import</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <div className="w-3 h-0.5 bg-orange-500"></div>
+                        <span>Team</span>
                     </div>
                 </div>
             </div>
