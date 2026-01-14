@@ -1,5 +1,10 @@
 import { spaceTrim } from 'spacetrim';
 
+/**
+ * @@@
+ *
+ * @private utility for commitments
+ */
 export function formatOptionalInstructionBlock(label: string, content: string): string {
     const trimmedContent = spaceTrim(content);
     if (!trimmedContent) {

@@ -1,6 +1,11 @@
 import type { ToolCall } from '../../../types/ToolCall';
 import type { TODO_any } from '../../../utils/organization/TODO_any';
 
+/**
+ * @@@
+ *
+ * @private utility of `<Chat/>` component
+ */
 export function parseToolCallArguments(toolCall: Pick<ToolCall, 'arguments'>): Record<string, TODO_any> {
     if (!toolCall.arguments) {
         return {};
@@ -18,6 +23,11 @@ export function parseToolCallArguments(toolCall: Pick<ToolCall, 'arguments'>): R
     return toolCall.arguments;
 }
 
+/**
+ * @@@
+ *
+ * @private utility of `<Chat/>` component
+ */
 export function parseToolCallResult(result: ToolCall['result']): TODO_any {
     if (typeof result !== 'string') {
         return result;
@@ -30,6 +40,11 @@ export function parseToolCallResult(result: ToolCall['result']): TODO_any {
     }
 }
 
+/**
+ * @@@
+ *
+ * @private utility of `<Chat/>` component
+ */
 export function getToolCallTimestamp(toolCall: Pick<ToolCall, 'createdAt'>): Date | null {
     if (!toolCall.createdAt) {
         return null;
@@ -39,6 +54,11 @@ export function getToolCallTimestamp(toolCall: Pick<ToolCall, 'createdAt'>): Dat
     return Number.isNaN(date.getTime()) ? null : date;
 }
 
+/**
+ * @@@
+ *
+ * @private utility of `<Chat/>` component
+ */
 export function getToolCallResultDate(result: ToolCall['result']): Date | null {
     if (result === null || result === undefined) {
         return null;
