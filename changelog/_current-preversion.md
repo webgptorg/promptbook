@@ -1,4 +1,5 @@
 ### 📚 Book
+-   Added nonce test files at the repository root for coding agent verification.
 -   Added a script to run prompt files through OpenAI Codex with prompt status tracking and git commits.
 -   Implemented `USE IMAGE GENERATOR` commitment to allow agents to generate images using an image generation model.
 -   [✨⛪️] Allow to close dialogs by clicking outside of the dialog.
