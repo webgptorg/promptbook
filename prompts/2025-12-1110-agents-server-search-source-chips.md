@@ -13,7 +13,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🥉] Fix popup from `USE SEARCH ENGINE` chiplet
 

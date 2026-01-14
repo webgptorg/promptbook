@@ -1394,6 +1394,11 @@
     text-align: left;
 }
 
+.searchResultsRaw {
+    text-align: left;
+    max-width: 650px;
+}
+
 .searchResultItem {
     max-width: 650px;
 }

@@ -31,7 +31,14 @@ import { useChatAutoScroll } from '../hooks/useChatAutoScroll';
 import { getChatSaveFormatDefinitions } from '../save/_common/getChatSaveFormatDefinitions';
 import type { string_chat_format_name } from '../save/_common/string_chat_format_name';
 import type { ChatMessage } from '../types/ChatMessage';
-import { getToolCallResultDate, getToolCallTimestamp, parseToolCallArguments, parseToolCallResult } from '../utils/toolCallParsing';
+import {
+    extractSearchResults,
+    getToolCallResultDate,
+    getToolCallTimestamp,
+    parseToolCallArguments,
+    parseToolCallResult,
+} from '../utils/toolCallParsing';
+import { MarkdownContent } from '../MarkdownContent/MarkdownContent';
 import styles from './Chat.module.css';
 import { ChatMessageItem } from './ChatMessageItem'; // <- [🥂]
 import type { ChatProps } from './ChatProps';
@@ -908,45 +915,10 @@ export function Chat(props: ChatProps) {
                             const resultRaw = parseToolCallResult(selectedToolCall.result);
 
                             const toolCallDate = getToolCallTimestamp(selectedToolCall);
-                            
-                            let results: Array<TODO_any> = [];
-                            
-                            // [🧠] Handle various possible result formats
-                            if (Array.isArray(resultRaw)) {
-                                // Direct array of results
-                                results = resultRaw;
-                            } else if (resultRaw && typeof resultRaw === 'object') {
-                                // Try different possible nested structures
-                                if (Array.isArray(resultRaw.results)) {
-                                    results = resultRaw.results;
-                                } else if (resultRaw.result) {
-                                    const subResult = resultRaw.result;
-                                    if (Array.isArray(subResult)) {
-                                        results = subResult;
-                                    } else if (subResult && typeof subResult === 'object' && Array.isArray(subResult.results)) {
-                                        results = subResult.results;
-                                    } else if (typeof subResult === 'string') {
-                                        // Try parsing stringified result
-                                        try {
-                                            const parsed = JSON.parse(subResult);
-                                            if (Array.isArray(parsed)) {
-                                                results = parsed;
-                                            } else if (parsed && Array.isArray(parsed.results)) {
-                                                results = parsed.results;
-                                            }
-                                        } catch (e) {
-                                            // Parsing failed, keep empty results
-                                        }
-                                    }
-                                } else if (resultRaw.data && Array.isArray(resultRaw.data)) {
-                                    // Some APIs return results in a 'data' field
-                                    results = resultRaw.data;
-                                } else if (resultRaw.items && Array.isArray(resultRaw.items)) {
-                                    // Some APIs return results in an 'items' field
-                                    results = resultRaw.items;
-                                }
-                            }
 
+                            const { results, rawText } = extractSearchResults(resultRaw);
+                            const hasResults = results.length > 0;
+                            const hasRawText = !hasResults && !!rawText && rawText.trim().length > 0;
                             if (isSearch) {
                                 return (
                                     <>
@@ -958,7 +930,7 @@ export function Chat(props: ChatProps) {
                                         </div>
 
                                         <div className={styles.searchModalContent}>
-                                            {results.length > 0 ? (
+                                            {hasResults ? (
                                                 <div className={styles.searchResultsList}>
                                                     {(results as Array<TODO_any>).map((item, i) => (
                                                         <div key={i} className={styles.searchResultItem}>
@@ -984,6 +956,8 @@ export function Chat(props: ChatProps) {
                                                         </div>
                                                     ))}
                                                 </div>
+                                            ) : hasRawText ? (
+                                                <MarkdownContent className={styles.searchResultsRaw} content={rawText!} />
                                             ) : (
                                                 <div className={styles.noResults}>
                                                     {resultRaw
