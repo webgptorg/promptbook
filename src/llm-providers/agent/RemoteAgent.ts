@@ -4,7 +4,12 @@ import type { string_book } from '../../book-2.0/agent-source/string_book';
 import type { ChatPromptResult } from '../../execution/PromptResult';
 import { book } from '../../pipeline/book-notation';
 import type { ChatPrompt, Prompt } from '../../types/Prompt';
-import type { string_agent_hash, string_agent_name, string_agent_url } from '../../types/typeAliases';
+import type {
+    string_agent_hash,
+    string_agent_name,
+    string_agent_url,
+    string_date_iso8601,
+} from '../../types/typeAliases';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import { Agent } from './Agent';
 import type { AgentOptions } from './AgentOptions';
@@ -216,7 +221,7 @@ export class RemoteAgent extends Agent {
 
             return {
                 ...toolCall,
-                createdAt: new Date().toISOString(),
+                createdAt: new Date().toISOString() as string_date_iso8601, // <- TODO: !!!! Make util $getCurrentIsoTimestamp()
             };
         };
 
@@ -263,7 +268,9 @@ export class RemoteAgent extends Agent {
             };
         };
 
-        const upsertToolCalls = (incomingToolCalls: ReadonlyArray<NonNullable<ChatPromptResult['toolCalls']>[number]>) => {
+        const upsertToolCalls = (
+            incomingToolCalls: ReadonlyArray<NonNullable<ChatPromptResult['toolCalls']>[number]>,
+        ) => {
             for (const toolCall of incomingToolCalls) {
                 const normalized = normalizeToolCall(toolCall);
                 const key = getToolCallKey(normalized);
