@@ -2,8 +2,9 @@ import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideOpenAiAssistantExecutionToolsForServer } from '@/src/tools/$provideOpenAiAssistantExecutionToolsForServer';
+import { createChatStreamHandler } from '@/src/utils/createChatStreamHandler';
 import { Agent, computeAgentHash, parseAgentSource, PROMPTBOOK_ENGINE_VERSION } from '@promptbook-local/core';
-import { ChatMessage, ChatPromptResult, Prompt, string_book, TODO_any } from '@promptbook-local/types';
+import { ChatMessage, Prompt, string_book, TODO_any } from '@promptbook-local/types';
 import { computeHash } from '@promptbook-local/utils';
 import { NextRequest, NextResponse } from 'next/server';
 import { HTTP_STATUS_CODES } from '../constants';
@@ -259,15 +260,9 @@ export async function handleChatCompletion(
                     };
                     controller.enqueue(encoder.encode(`data: ${JSON.stringify(initialChunkData)}\n\n`));
 
-                    let previousContent = '';
-
                     try {
-                        const result = await agent.callChatModelStream(prompt, (chunk: ChatPromptResult) => {
-                            const fullContent = chunk.content;
-                            const deltaContent = fullContent.substring(previousContent.length);
-                            previousContent = fullContent;
-
-                            if (deltaContent) {
+                        const handleStreamChunk = createChatStreamHandler({
+                            onDelta: (deltaContent) => {
                                 const chunkData = {
                                     id: runId,
                                     object: 'chat.completion.chunk',
@@ -284,8 +279,13 @@ export async function handleChatCompletion(
                                     ],
                                 };
                                 controller.enqueue(encoder.encode(`data: ${JSON.stringify(chunkData)}\n\n`));
-                            }
+                            },
+                            onToolCalls: (toolCalls) => {
+                                controller.enqueue(encoder.encode('\n' + JSON.stringify({ toolCalls }) + '\n'));
+                            },
                         });
+
+                        const result = await agent.callChatModelStream(prompt, handleStreamChunk);
 
                         // Note: Identify the agent message
                         const agentMessageContent = {

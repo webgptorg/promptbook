@@ -299,12 +299,15 @@ export class RemoteAgent extends Agent {
                     if (value) {
                         const textChunk = decoder.decode(value, { stream: true });
 
-                        let isHandled = false;
-                        try {
-                            const lines = textChunk.split('\n');
-                            for (const line of lines) {
-                                const trimmedLine = line.trim();
-                                if (trimmedLine.startsWith('{') && trimmedLine.endsWith('}')) {
+                        let sawToolCalls = false;
+                        let hasNonEmptyText = false;
+                        const textLines: string[] = [];
+                        const lines = textChunk.split('\n');
+                        for (const line of lines) {
+                            const trimmedLine = line.trim();
+                            let isToolCallLine = false;
+                            if (trimmedLine.startsWith('{') && trimmedLine.endsWith('}')) {
+                                try {
                                     const chunk = JSON.parse(trimmedLine);
                                     if (chunk.toolCalls) {
                                         const normalizedToolCalls = chunk.toolCalls.map(normalizeToolCall);
@@ -319,20 +322,34 @@ export class RemoteAgent extends Agent {
                                             rawResponse: {} as TODO_any,
                                             toolCalls: normalizedToolCalls,
                                         });
-                                        isHandled = true;
+                                        sawToolCalls = true;
+                                        isToolCallLine = true;
                                     }
+                                } catch (error) {
+                                    // Ignore non-json lines
                                 }
                             }
-                        } catch (error) {
-                            // Ignore non-json chunks
+
+                            if (!isToolCallLine) {
+                                textLines.push(line);
+                                if (line.length > 0) {
+                                    hasNonEmptyText = true;
+                                }
+                            }
                         }
 
-                        if (isHandled) {
-                            continue;
+                        if (sawToolCalls) {
+                            if (!hasNonEmptyText) {
+                                continue;
+                            }
+
+                            const textChunkWithoutToolCalls = textLines.join('\n');
+                            content += textChunkWithoutToolCalls;
+                        } else {
+                            // console.debug('RemoteAgent chunk:', textChunk);
+                            content += textChunk;
                         }
 
-                        // console.debug('RemoteAgent chunk:', textChunk);
-                        content += textChunk;
                         onProgress({
                             content,
                             modelName: this.modelName,

@@ -84,6 +84,7 @@
 -   Store raw tool call data (arguments/results/errors/timestamps) in `ChatMessage.toolCalls` and render time/search chiplets from stored tool calls (no re-runs).
 -   Improved search results parsing in tool call modal to handle multiple nested result formats (stringified JSON, nested result objects, various field names like `data`, `items`, `results`)
 -   Record timestamp of tool calls and store them in `ChatMessage.completedToolCalls`
+-   Preserve assistant message content in Agents Server chat when tool calls are emitted.
 -   When the `USE TIME` is used, show the chiplet which will show that time was used (similarly to `USE SEARCH ENGINE` chiplets).
 -   User-friendly details popup for the time tool with a visual clock and relative time display based on the tool call timestamp.
 -   Allow AI to leverage all the options and possibilities of SERP search engine (location, localization, pagination, advanced filters, etc.).

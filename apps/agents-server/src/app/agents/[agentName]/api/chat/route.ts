@@ -3,6 +3,7 @@ import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForSer
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideOpenAiAssistantExecutionToolsForServer } from '@/src/tools/$provideOpenAiAssistantExecutionToolsForServer';
 import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
+import { createChatStreamHandler } from '@/src/utils/createChatStreamHandler';
 import { Agent, computeAgentHash, PROMPTBOOK_ENGINE_VERSION, RemoteAgent } from '@promptbook-local/core';
 import { computeHash, serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
@@ -110,7 +111,14 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         const encoder = new TextEncoder();
         const readableStream = new ReadableStream({
             start(controller) {
-                let previousContent = '';
+                const handleStreamChunk = createChatStreamHandler({
+                    onDelta: (deltaContent) => {
+                        controller.enqueue(encoder.encode(deltaContent));
+                    },
+                    onToolCalls: (toolCalls) => {
+                        controller.enqueue(encoder.encode('\n' + JSON.stringify({ toolCalls }) + '\n'));
+                    },
+                });
 
                 agent.callChatModelStream!(
                     {
@@ -124,20 +132,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                         content: message,
                         thread,
                     },
-                    (chunk) => {
-                        if (chunk.toolCalls && chunk.toolCalls.length > 0) {
-                            controller.enqueue(
-                                encoder.encode('\n' + JSON.stringify({ toolCalls: chunk.toolCalls }) + '\n'),
-                            );
-                            return;
-                        }
-
-                        const fullContent = chunk.content;
-                        const deltaContent = fullContent.substring(previousContent.length);
-                        previousContent = fullContent;
-
-                        controller.enqueue(encoder.encode(deltaContent));
-                    },
+                    handleStreamChunk,
                 )
                     .then(async (response) => {
                         // Note: Identify the agent message
