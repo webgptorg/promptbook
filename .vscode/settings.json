@@ -20,7 +20,7 @@
     },
     "grammarly.domain": "technical",
     "markdown.copyFiles.destination": {
-        "prompts/*md": "${documentDirName}/screenshots/${documentBaseName}.png"
+        "prompts/*md": "./prompts/screenshots/${documentBaseName}.png"
     },
     "explorer.copyRelativePathSeparator": "/",
     "chat.agent.enabled": true,
@@ -42,7 +42,6 @@
         "editor.defaultFormatter": "redhat.vscode-xml"
     },
     "chat.tools.terminal.autoApprove": {
-
         "cd": true,
         "echo": true,
         "ls": true,

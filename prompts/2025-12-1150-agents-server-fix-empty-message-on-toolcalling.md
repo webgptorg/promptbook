@@ -7,6 +7,9 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
 
+![alt text](prompts/screenshots/2025-12-1150-agents-server-fix-empty-message-on-toolcalling-1.png)
+
+
 ---
 
 [-]
