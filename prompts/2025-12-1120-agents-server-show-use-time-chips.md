@@ -11,7 +11,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨♕] Fix the chiplet details popup for the time tool
 

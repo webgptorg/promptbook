@@ -78,8 +78,9 @@
 -   Improved tool call details modal with better formatting for arguments and results (especially for search results).
 -   Web Search: Fixed issue where search results were not shown in the source chiplet modal in Agents Server
 -   Improved search results parsing in tool call modal to handle multiple nested result formats (stringified JSON, nested result objects, various field names like `data`, `items`, `results`)
+-   Record timestamp of tool calls and store them in `ChatMessage.completedToolCalls`
 -   When the `USE TIME` is used, show the chiplet which will show that time was used (similarly to `USE SEARCH ENGINE` chiplets).
--   User-friendly details popup for the time tool with a visual clock and relative time display.
+-   User-friendly details popup for the time tool with a visual clock and relative time display based on the tool call timestamp.
 -   Allow AI to leverage all the options and possibilities of SERP search engine (location, localization, pagination, advanced filters, etc.).
 -   Updated `SearchEngine` interface to support advanced options.
 -   Enhanced Search Engine Test page with advanced SERP parameters and raw call details.

@@ -351,6 +351,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
                                 arguments: toolCall.function.arguments,
                                 result: '',
                                 rawToolCall: toolCall,
+                                createdAt: $getCurrentDate(),
                             })),
                             rawPromptContent,
                             rawRequest,
@@ -405,6 +406,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
                             arguments: functionArgs,
                             result: functionResponse,
                             rawToolCall: toolCall,
+                            createdAt: $getCurrentDate(),
                         });
                     });
 

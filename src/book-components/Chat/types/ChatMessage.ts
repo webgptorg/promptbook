@@ -1,5 +1,5 @@
 import { Message } from '../../../types/Message';
-import type { id, string_markdown } from '../../../types/typeAliases';
+import type { id, string_date_iso8601, string_markdown } from '../../../types/typeAliases';
 import type { TODO_any } from '../../../utils/organization/TODO_any';
 
 /**
@@ -88,6 +88,11 @@ export type ChatMessage = Omit<Message<id>, 'direction' | 'recipients' | 'thread
          * Raw tool call from the model
          */
         readonly rawToolCall?: TODO_any;
+
+        /**
+         * Date when the tool call was completed
+         */
+        readonly createdAt?: Date | string_date_iso8601;
     }>;
 
     /**

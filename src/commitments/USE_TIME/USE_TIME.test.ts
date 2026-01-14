@@ -14,7 +14,7 @@ describe('createAgentModelRequirementsWithCommitments with USE TIME', () => {
                 name: 'get_current_time',
             }),
         );
-        expect(requirements.systemMessage).toContain('You have access to the current date and time');
+        expect(requirements.systemMessage).toContain('If you need more precise current time information, use the tool "get_current_time"');
     });
 
     it('should add current time tool when CURRENT TIME alias is used', async () => {

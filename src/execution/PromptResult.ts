@@ -55,6 +55,11 @@ export type ChatPromptResult = CommonPromptResult & {
          * Raw tool call from the model
          */
         readonly rawToolCall: TODO_any;
+
+        /**
+         * Date when the tool call was completed
+         */
+        readonly createdAt?: string_date_iso8601;
     }>;
 };
 

@@ -104,11 +104,9 @@ export function Chat(props: ChatProps) {
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const [ratingModalOpen, setRatingModalOpen] = useState(false);
     const [toolCallModalOpen, setToolCallModalOpen] = useState(false);
-    const [selectedToolCall, setSelectedToolCall] = useState<{
-        name: string;
-        arguments?: TODO_any;
-        result?: TODO_any;
-    } | null>(null);
+    const [selectedToolCall, setSelectedToolCall] = useState<
+        NonNullable<ChatMessage['completedToolCalls']>[number] | null
+    >(null);
     const [selectedMessage, setSelectedMessage] = useState<ChatMessage | null>(null);
     const [messageRatings, setMessageRatings] = useState<Map<id, number>>(new Map());
     const [textRating, setTextRating] = useState('');
@@ -910,7 +908,7 @@ export function Chat(props: ChatProps) {
                                     : selectedToolCall.arguments || {};
 
                             let resultRaw = selectedToolCall.result;
-                            
+
                             // [🧠] Try to parse stringified JSON result
                             if (typeof resultRaw === 'string') {
                                 try {
@@ -919,6 +917,10 @@ export function Chat(props: ChatProps) {
                                     // Keep as string if parsing fails
                                 }
                             }
+
+                            const toolCallDate = selectedToolCall.createdAt
+                                ? new Date(selectedToolCall.createdAt)
+                                : new Date();
                             
                             let results: Array<TODO_any> = [];
                             
@@ -1008,7 +1010,7 @@ export function Chat(props: ChatProps) {
                             }
 
                             if (isTime) {
-                                const date = resultRaw ? new Date(String(resultRaw)) : new Date();
+                                const date = resultRaw ? new Date(String(resultRaw)) : toolCallDate;
                                 const isValidDate = !isNaN(date.getTime());
 
                                 return (
@@ -1042,15 +1044,29 @@ export function Chat(props: ChatProps) {
                                                         {isValidDate ? date.toLocaleDateString() : 'Unknown date'}
                                                     </div>
                                                     {isValidDate && (
-                                                        <div style={{ fontSize: '0.9em', color: '#888', marginTop: '5px' }}>
-                                                            ({moment(date).fromNow()})
+                                                        <div
+                                                            style={{ fontSize: '0.9em', color: '#888', marginTop: '5px' }}
+                                                        >
+                                                            ({moment(date).from(toolCallDate)})
                                                         </div>
                                                     )}
                                                     {args.timezone && (
-                                                        <div style={{ fontSize: '0.9em', color: '#888', marginTop: '5px' }}>
+                                                        <div
+                                                            style={{ fontSize: '0.9em', color: '#888', marginTop: '5px' }}
+                                                        >
                                                             Timezone: {args.timezone}
                                                         </div>
                                                     )}
+                                                </div>
+                                            </div>
+                                            <div className={styles.toolCallDetails}>
+                                                <p>
+                                                    <strong>Timestamp of call:</strong>
+                                                </p>
+                                                <div className={styles.toolCallDataContainer}>
+                                                    <pre className={styles.toolCallData}>
+                                                        {toolCallDate.toLocaleString()}
+                                                    </pre>
                                                 </div>
                                             </div>
                                         </div>
