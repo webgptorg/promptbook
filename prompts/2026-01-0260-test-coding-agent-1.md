@@ -17,7 +17,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🧤] Create some files at root of the project
 
@@ -33,4 +33,5 @@
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
+
 
