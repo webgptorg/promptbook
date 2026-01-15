@@ -804,6 +804,31 @@ export function Chat(props: ChatProps) {
             return { ...message, content: promptbookifyAiText(humanizeAiText(message.content)) };
         });
     }, [messages, isAiTextHumanizedAndPromptbookified]);
+
+    // Download logic
+    const [showSaveMenu, setShowSaveMenu] = useState(false);
+    const [showSettingsMenu, setShowSettingsMenu] = useState(false);
+    const saveMenuDefinitions = useMemo(() => getChatSaveFormatDefinitions(saveFormats), [saveFormats]);
+    const toggleSaveMenu = useCallback(() => {
+        setShowSettingsMenu(false);
+        setShowSaveMenu((value) => !value);
+    }, [setShowSettingsMenu, setShowSaveMenu]);
+    const toggleSettingsMenu = useCallback(() => {
+        setShowSaveMenu(false);
+        setShowSettingsMenu((value) => !value);
+    }, [setShowSaveMenu, setShowSettingsMenu]);
+    const handleResetClick = useCallback(() => {
+        if (!onReset) {
+            return;
+        }
+
+        if (!confirm(`Do you really want to reset the chat?`)) {
+            return;
+        }
+
+        onReset();
+    }, [onReset]);
+
     const shouldShowReset = !!onReset && postprocessedMessages.length !== 0;
     const shouldShowSave = isSaveButtonEnabled && postprocessedMessages.length !== 0;
     const shouldHoistActions = !!menuHoisting && !actionsContainer && visual === 'FULL_PAGE';
@@ -883,7 +908,7 @@ export function Chat(props: ChatProps) {
 
     useEffect(() => {
         messages.forEach((message, index) => {
-            const key = getMessageKey(message, index);
+            const key = String(getMessageKey(message, index));
             const record = emojiMessageEffectRef.current.get(key) || { confetti: false, hearts: false };
             const content = message.content || '';
 
@@ -906,7 +931,7 @@ export function Chat(props: ChatProps) {
         let shouldPlayDing = false;
 
         messages.forEach((message, index) => {
-            const key = getMessageKey(message, index);
+            const key = String(getMessageKey(message, index));
             const isComplete = message.isComplete ?? true;
             nextMessageState.set(key, isComplete);
 
@@ -964,30 +989,6 @@ export function Chat(props: ChatProps) {
             }
         };
     }, [areSoundsEnabled, hasPendingAgentMessage, playSound]);
-
-    // Download logic
-    const [showSaveMenu, setShowSaveMenu] = useState(false);
-    const [showSettingsMenu, setShowSettingsMenu] = useState(false);
-    const saveMenuDefinitions = useMemo(() => getChatSaveFormatDefinitions(saveFormats), [saveFormats]);
-    const toggleSaveMenu = useCallback(() => {
-        setShowSettingsMenu(false);
-        setShowSaveMenu((value) => !value);
-    }, [setShowSettingsMenu, setShowSaveMenu]);
-    const toggleSettingsMenu = useCallback(() => {
-        setShowSaveMenu(false);
-        setShowSettingsMenu((value) => !value);
-    }, [setShowSaveMenu, setShowSettingsMenu]);
-    const handleResetClick = useCallback(() => {
-        if (!onReset) {
-            return;
-        }
-
-        if (!confirm(`Do you really want to reset the chat?`)) {
-            return;
-        }
-
-        onReset();
-    }, [onReset]);
 
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
