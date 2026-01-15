@@ -76,6 +76,7 @@
 -   Added grained background to the chat page (matching the agent profile page)
 -   Increased saturation of agent messages for better visibility
 -   Fixed chat page height to exactly 100vh to prevent unnecessary scrolling
+-   Hoisted chat action buttons into the agent chat page menu and enforced a minimum chat bubble width for consistent layouts on desktop and mobile
 -   Recursive inheritance for meta properties (e.g. `META COLOR`) in `Agents Server`
 -   Enhanced the visual design of the chat input area with a more modern capsule-like design, better padding, refined button styling, and brand-color focus highlights.
 -   Human-readable titles for showing tool calls in chiplets with better labels and emojis (e.g. `[🔎 Venezuela]`).

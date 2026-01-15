@@ -18,6 +18,7 @@ import { humanizeAiText } from '../../../utils/markdown/humanizeAiText';
 import { promptbookifyAiText } from '../../../utils/markdown/promptbookifyAiText';
 import { normalizeToKebabCase } from '../../../utils/normalization/normalize-to-kebab-case';
 import type { TODO_any } from '../../../utils/organization/TODO_any';
+import { HoistedMenuItem, useMenuHoisting } from '../../_common/MenuHoisting/MenuHoistingContext';
 import { classNames } from '../../_common/react-utils/classNames';
 import { ArrowIcon } from '../../icons/ArrowIcon';
 import { AttachmentIcon } from '../../icons/AttachmentIcon';
@@ -219,6 +220,7 @@ export function Chat(props: ChatProps) {
         scrollToBottom,
         isMobile: isMobileFromHook,
     } = useChatAutoScroll();
+    const menuHoisting = useMenuHoisting();
 
     const textareaRef = useRef<HTMLTextAreaElement | null>(null);
     const buttonSendRef = useRef<HTMLButtonElement | null>(null);
@@ -802,6 +804,77 @@ export function Chat(props: ChatProps) {
             return { ...message, content: promptbookifyAiText(humanizeAiText(message.content)) };
         });
     }, [messages, isAiTextHumanizedAndPromptbookified]);
+    const shouldShowReset = !!onReset && postprocessedMessages.length !== 0;
+    const shouldShowSave = isSaveButtonEnabled && postprocessedMessages.length !== 0;
+    const shouldHoistActions = !!menuHoisting && !actionsContainer && visual === 'FULL_PAGE';
+    const menuPanelClassName = classNames(styles.saveMenu, shouldHoistActions && styles.hoistedMenu);
+    const hoistedMenuItems = useMemo<HoistedMenuItem[]>(() => {
+        if (!shouldHoistActions) {
+            return [];
+        }
+
+        const items: HoistedMenuItem[] = [];
+
+        if (shouldShowReset) {
+            items.push({
+                key: 'chat-reset',
+                icon: <ResetIcon />,
+                name: 'New chat',
+                onClick: handleResetClick,
+            });
+        }
+
+        if (shouldShowSave) {
+            items.push({
+                key: 'chat-save',
+                icon: <SaveIcon size={18} />,
+                name: 'Save',
+                onClick: toggleSaveMenu,
+                isActive: showSaveMenu,
+            });
+        }
+
+        items.push({
+            key: 'chat-settings',
+            icon: <SettingsIcon size={18} />,
+            name: 'Settings',
+            onClick: toggleSettingsMenu,
+            isActive: showSettingsMenu,
+        });
+
+        if (onUseTemplate) {
+            items.push({
+                key: 'chat-template',
+                icon: <TemplateIcon size={16} />,
+                name: 'Use this template',
+                onClick: onUseTemplate,
+            });
+        }
+
+        return items;
+    }, [
+        shouldHoistActions,
+        shouldShowReset,
+        handleResetClick,
+        shouldShowSave,
+        toggleSaveMenu,
+        showSaveMenu,
+        toggleSettingsMenu,
+        showSettingsMenu,
+        onUseTemplate,
+    ]);
+
+    useEffect(() => {
+        if (!menuHoisting || !shouldHoistActions) {
+            return;
+        }
+
+        menuHoisting.setMenu(hoistedMenuItems);
+
+        return () => {
+            menuHoisting.setMenu([]);
+        };
+    }, [menuHoisting, shouldHoistActions, hoistedMenuItems]);
 
     // Trigger auto-scroll when messages change
     useEffect(() => {
@@ -895,6 +968,26 @@ export function Chat(props: ChatProps) {
     // Download logic
     const [showSaveMenu, setShowSaveMenu] = useState(false);
     const [showSettingsMenu, setShowSettingsMenu] = useState(false);
+    const saveMenuDefinitions = useMemo(() => getChatSaveFormatDefinitions(saveFormats), [saveFormats]);
+    const toggleSaveMenu = useCallback(() => {
+        setShowSettingsMenu(false);
+        setShowSaveMenu((value) => !value);
+    }, [setShowSettingsMenu, setShowSaveMenu]);
+    const toggleSettingsMenu = useCallback(() => {
+        setShowSaveMenu(false);
+        setShowSettingsMenu((value) => !value);
+    }, [setShowSaveMenu, setShowSettingsMenu]);
+    const handleResetClick = useCallback(() => {
+        if (!onReset) {
+            return;
+        }
+
+        if (!confirm(`Do you really want to reset the chat?`)) {
+            return;
+        }
+
+        onReset();
+    }, [onReset]);
 
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
@@ -903,8 +996,7 @@ export function Chat(props: ChatProps) {
             }
 
             event.preventDefault();
-            setShowSettingsMenu(false);
-            setShowSaveMenu((v) => !v);
+            toggleSaveMenu();
         };
 
         window.addEventListener('keydown', handleKeyDown);
@@ -912,7 +1004,7 @@ export function Chat(props: ChatProps) {
         return () => {
             window.removeEventListener('keydown', handleKeyDown);
         };
-    }, [setShowSaveMenu, setShowSettingsMenu]);
+    }, [toggleSaveMenu]);
 
     const handleDownload = useCallback(
         async (format: string_chat_format_name) => {
@@ -946,6 +1038,41 @@ export function Chat(props: ChatProps) {
 
     // Handler for copy button
     const handleCopy = () => {};
+    const saveMenuContent = (
+        <div className={menuPanelClassName}>
+            {saveMenuDefinitions.map((formatDefinition) => (
+                <button
+                    key={formatDefinition.formatName}
+                    className={styles.saveMenuItem}
+                    onClick={() =>
+                        // TODO: !!! Use here `$induceFileDownload`
+                        handleDownload(formatDefinition.formatName as string_chat_format_name)
+                    }
+                >
+                    {formatDefinition.label}
+                </button>
+            ))}
+        </div>
+    );
+    const settingsMenuContent = (
+        <div className={menuPanelClassName}>
+            <button
+                className={classNames(styles.saveMenuItem, styles.settingsMenuItem)}
+                aria-pressed={areSoundsEnabled}
+                onClick={() => setAreSoundsEnabled((value) => !value)}
+            >
+                <span>Sounds</span>
+                <span
+                    className={classNames(
+                        styles.settingsToggleState,
+                        areSoundsEnabled && styles.settingsToggleStateActive,
+                    )}
+                >
+                    {areSoundsEnabled ? 'On' : 'Off'}
+                </span>
+            </button>
+        </div>
+    );
 
     return (
         <>
@@ -1016,97 +1143,50 @@ export function Chat(props: ChatProps) {
                                   onKeyDownCapture: handleChatUserInteractionCapture,
                               }
                             : undefined;
-                        const actionsContent = (
+                        const hasInlineActions = !shouldHoistActions || !!extraActions;
+                        const actionsContent = hasInlineActions ? (
                             <div
                                 className={classNames(actionsAlignmentClass, actionsContainer && styles.portal)}
                                 {...actionsHandlers}
                             >
-                                {onReset && postprocessedMessages.length !== 0 && (
-                                    <button
-                                        className={classNames(styles.chatButton)}
-                                        onClick={() => {
-                                            if (!confirm(`Do you really want to reset the chat?`)) {
-                                                return;
-                                            }
-
-                                            onReset();
-                                        }}
-                                    >
+                                {!shouldHoistActions && shouldShowReset && (
+                                    <button className={classNames(styles.chatButton)} onClick={handleResetClick}>
                                         <ResetIcon />
                                         <span className={styles.chatButtonText}>New chat</span>
                                     </button>
                                 )}
 
-                                {isSaveButtonEnabled && postprocessedMessages.length !== 0 && (
+                                {!shouldHoistActions && shouldShowSave && (
                                     <div className={styles.saveButtonContainer}>
                                         <button
                                             className={classNames(styles.chatButton)}
-                                            onClick={() => {
-                                                setShowSettingsMenu(false);
-                                                setShowSaveMenu((v) => !v);
-                                            }}
+                                            onClick={toggleSaveMenu}
                                             aria-haspopup="true"
                                             aria-expanded={showSaveMenu}
                                         >
                                             <SaveIcon size={18} />
                                             <span className={styles.chatButtonText}>Save</span>
                                         </button>
-                                        {showSaveMenu && (
-                                            <div className={styles.saveMenu}>
-                                                {getChatSaveFormatDefinitions(saveFormats).map((formatDefinition) => (
-                                                    <button
-                                                        key={formatDefinition.formatName}
-                                                        className={styles.saveMenuItem}
-                                                        onClick={() =>
-                                                            // TODO: !!! Use here `$induceFileDownload`
-                                                            handleDownload(
-                                                                formatDefinition.formatName as string_chat_format_name,
-                                                            )
-                                                        }
-                                                    >
-                                                        {formatDefinition.label}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        )}
+                                        {showSaveMenu && saveMenuContent}
                                     </div>
                                 )}
 
-                                <div className={styles.saveButtonContainer}>
-                                    <button
-                                        className={classNames(styles.chatButton)}
-                                        onClick={() => {
-                                            setShowSaveMenu(false);
-                                            setShowSettingsMenu((v) => !v);
-                                        }}
-                                        aria-haspopup="true"
-                                        aria-expanded={showSettingsMenu}
-                                    >
-                                        <SettingsIcon size={18} />
-                                        <span className={styles.chatButtonText}>Settings</span>
-                                    </button>
-                                    {showSettingsMenu && (
-                                        <div className={styles.saveMenu}>
-                                            <button
-                                                className={classNames(styles.saveMenuItem, styles.settingsMenuItem)}
-                                                aria-pressed={areSoundsEnabled}
-                                                onClick={() => setAreSoundsEnabled((value) => !value)}
-                                            >
-                                                <span>Sounds</span>
-                                                <span
-                                                    className={classNames(
-                                                        styles.settingsToggleState,
-                                                        areSoundsEnabled && styles.settingsToggleStateActive,
-                                                    )}
-                                                >
-                                                    {areSoundsEnabled ? 'On' : 'Off'}
-                                                </span>
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
+                                {!shouldHoistActions && (
+                                    <div className={styles.saveButtonContainer}>
+                                        <button
+                                            className={classNames(styles.chatButton)}
+                                            onClick={toggleSettingsMenu}
+                                            aria-haspopup="true"
+                                            aria-expanded={showSettingsMenu}
+                                        >
+                                            <SettingsIcon size={18} />
+                                            <span className={styles.chatButtonText}>Settings</span>
+                                        </button>
+                                        {showSettingsMenu && settingsMenuContent}
+                                    </div>
+                                )}
 
-                                {onUseTemplate && (
+                                {!shouldHoistActions && onUseTemplate && (
                                     <button className={classNames(styles.useTemplateButton)} onClick={onUseTemplate}>
                                         <span className={styles.chatButtonText}>Use this template</span>
                                         <TemplateIcon size={16} />
@@ -1116,14 +1196,21 @@ export function Chat(props: ChatProps) {
                                 {/* Extra custom action buttons (e.g. Pause/Resume for MockedChat) */}
                                 {extraActions}
                             </div>
-                        );
+                        ) : null;
 
                         if (actionsContainer) {
-                            return createPortal(actionsContent, actionsContainer);
+                            return actionsContent ? createPortal(actionsContent, actionsContainer) : null;
                         }
 
                         return actionsContent;
                     })()}
+
+                    {shouldHoistActions && (showSaveMenu || showSettingsMenu) && (
+                        <div className={styles.hoistedMenus}>
+                            {showSaveMenu && saveMenuContent}
+                            {showSettingsMenu && settingsMenuContent}
+                        </div>
+                    )}
 
                     <div
                         className={classNames(

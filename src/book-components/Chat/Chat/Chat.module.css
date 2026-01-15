@@ -49,6 +49,7 @@
     flex-direction: column;
     position: relative;
     overflow: hidden;
+    --message-min-width: min(240px, 100%);
 
     font-family: Arial, Helvetica, sans-serif, 'OpenMojiBlack';
     /* <- TODO: [🧠][🎱] Better, define other fonts */
@@ -175,6 +176,22 @@
 
 .actions.right {
     justify-self: self-end;
+}
+
+.hoistedMenus {
+    position: absolute;
+    top: 16px;
+    right: 20px;
+    z-index: 220;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-end;
+}
+
+.hoistedMenu {
+    position: static;
+    min-width: 180px;
 }
 
 /* Large tablet and small desktop screens */
@@ -537,6 +554,7 @@
     padding: 14px 18px;
     border-radius: 20px;
     max-width: min(70%, 600px);
+    min-width: var(--message-min-width);
     text-align: left;
     margin-bottom: 4px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -2010,6 +2028,22 @@
 
 /* Mobile responsiveness */
 @media (max-width: 768px) {
+    .Chat {
+        --message-min-width: min(200px, 90%);
+    }
+
+    .hoistedMenus {
+        top: 12px;
+        left: 12px;
+        right: 12px;
+        align-items: stretch;
+    }
+
+    .hoistedMenu {
+        width: 100%;
+        min-width: 0;
+    }
+
     .actions {
         margin: 12px 16px 0;
         gap: 6px;
@@ -2138,6 +2172,10 @@
 }
 
 @media (max-width: 480px) {
+    .Chat {
+        --message-min-width: min(180px, 90%);
+    }
+
     .actions {
         margin: 8px 12px 0;
         gap: 4px;
