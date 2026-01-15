@@ -1,4 +1,4 @@
-[-]
+[ ]
 
 [✨🚫] Add chat interactive animations
 
