@@ -47,6 +47,8 @@
     height: 100%;
     display: flex;
     flex-direction: column;
+    position: relative;
+    overflow: hidden;
 
     font-family: Arial, Helvetica, sans-serif, 'OpenMojiBlack';
     /* <- TODO: [🧠][🎱] Better, define other fonts */
@@ -62,6 +64,72 @@
         '💬' 1fr
         '📝' min-content
         / 1fr;
+}
+
+.emojiEffects {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 250;
+}
+
+.emojiEffect {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.confettiPiece {
+    position: absolute;
+    top: -10%;
+    left: var(--x);
+    width: var(--size);
+    height: calc(var(--size) * 0.6);
+    background: var(--color);
+    opacity: 0.95;
+    border-radius: 2px;
+    transform: translate3d(0, -10%, 0) rotate(var(--rotation));
+    animation: confettiFall var(--duration) cubic-bezier(0.19, 1, 0.22, 1) forwards;
+    animation-delay: var(--delay);
+    will-change: transform, opacity;
+}
+
+.heartParticle {
+    position: absolute;
+    bottom: -10%;
+    left: var(--x);
+    font-size: var(--size);
+    opacity: 0;
+    animation: heartFloat var(--duration) ease-out forwards;
+    animation-delay: var(--delay);
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.2));
+    will-change: transform, opacity;
+}
+
+@keyframes confettiFall {
+    0% {
+        transform: translate3d(0, -10%, 0) rotate(var(--rotation));
+        opacity: 1;
+    }
+    100% {
+        transform: translate3d(var(--drift), 110%, 0) rotate(calc(var(--rotation) + 720deg));
+        opacity: 0;
+    }
+}
+
+@keyframes heartFloat {
+    0% {
+        transform: translate3d(0, 0, 0) scale(0.6);
+        opacity: 0;
+    }
+    15% {
+        opacity: 1;
+    }
+    100% {
+        transform: translate3d(var(--drift), -120%, 0) scale(1.15);
+        opacity: 0;
+    }
 }
 
 .chatMainFlow .chatBar {
@@ -2160,6 +2228,10 @@
     .ratingModalContent,
     .ratingConfirmation {
         animation: none;
+    }
+
+    .emojiEffects {
+        display: none;
     }
 
     .chatMainFlow .chatMessage .messageText,

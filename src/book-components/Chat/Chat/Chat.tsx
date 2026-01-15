@@ -3,7 +3,7 @@
 //          this would not be here because the `@promptbook/components` package should be React library independent of Next.js specifics
 
 import moment from 'moment';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import spaceTrim from 'spacetrim';
 import { USER_CHAT_COLOR } from '../../../config';
@@ -45,6 +45,107 @@ import { ChatMessageItem } from './ChatMessageItem';
 import { MockedChat } from '../MockedChat/MockedChat'; // <- [🥂]
 import type { ChatProps } from './ChatProps';
 import { ClockIcon } from './ClockIcon';
+
+type EmojiEffectKind = 'confetti' | 'hearts';
+
+type EmojiEffectParticle = {
+    id: string;
+    style: CSSProperties;
+    symbol?: string;
+};
+
+type EmojiEffect = {
+    id: string;
+    kind: EmojiEffectKind;
+    particles: EmojiEffectParticle[];
+};
+
+const CONFETTI_TRIGGER_EMOJI = '🎉';
+const HEART_TRIGGER_EMOJIS = [
+    '❤️',
+    '❤',
+    '💙',
+    '💚',
+    '💛',
+    '💜',
+    '🧡',
+    '🤍',
+    '🤎',
+    '🖤',
+    '💖',
+    '💗',
+    '💓',
+    '💞',
+    '💕',
+    '💘',
+    '💝',
+    '💟',
+    '❣️',
+    '💔',
+    '❤️‍🔥',
+    '❤️‍🩹',
+];
+const HEART_PARTICLE_EMOJIS = ['❤️', '💖', '💗', '💜', '💙', '💚', '💛', '🧡', '🤍', '🤎', '🖤'];
+const CONFETTI_COLORS = ['#f97316', '#facc15', '#34d399', '#60a5fa', '#f472b6', '#a78bfa'];
+const EMOJI_EFFECT_CONFIG = {
+    confetti: {
+        particleCount: 24,
+        durationRangeMs: [900, 1500],
+        delayRangeMs: [0, 250],
+        removalBufferMs: 200,
+    },
+    hearts: {
+        particleCount: 14,
+        durationRangeMs: [1600, 2400],
+        delayRangeMs: [0, 400],
+        removalBufferMs: 300,
+    },
+} as const;
+
+const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const HEART_EMOJI_REGEX = new RegExp(HEART_TRIGGER_EMOJIS.map(escapeRegExp).join('|'), 'u');
+
+const randomBetween = (min: number, max: number) => Math.random() * (max - min) + min;
+const randomPick = <T,>(items: readonly T[]) => items[Math.floor(Math.random() * items.length)];
+
+const buildConfettiParticles = (effectId: string): EmojiEffectParticle[] => {
+    const config = EMOJI_EFFECT_CONFIG.confetti;
+
+    return Array.from({ length: config.particleCount }, (_, index) => {
+        const size = Math.round(randomBetween(6, 12));
+
+        return {
+            id: `${effectId}-confetti-${index}`,
+            style: {
+                '--x': `${Math.round(randomBetween(5, 95))}%`,
+                '--size': `${size}px`,
+                '--delay': `${Math.round(randomBetween(...config.delayRangeMs))}ms`,
+                '--duration': `${Math.round(randomBetween(...config.durationRangeMs))}ms`,
+                '--drift': `${Math.round(randomBetween(-60, 60))}px`,
+                '--rotation': `${Math.round(randomBetween(0, 360))}deg`,
+                '--color': randomPick(CONFETTI_COLORS),
+            } as CSSProperties,
+        };
+    });
+};
+
+const buildHeartParticles = (effectId: string): EmojiEffectParticle[] => {
+    const config = EMOJI_EFFECT_CONFIG.hearts;
+
+    return Array.from({ length: config.particleCount }, (_, index) => {
+        return {
+            id: `${effectId}-heart-${index}`,
+            symbol: randomPick(HEART_PARTICLE_EMOJIS),
+            style: {
+                '--x': `${Math.round(randomBetween(10, 90))}%`,
+                '--size': `${Math.round(randomBetween(16, 28))}px`,
+                '--delay': `${Math.round(randomBetween(...config.delayRangeMs))}ms`,
+                '--duration': `${Math.round(randomBetween(...config.durationRangeMs))}ms`,
+                '--drift': `${Math.round(randomBetween(-40, 40))}px`,
+            } as CSSProperties,
+        };
+    });
+};
 
 /**
  * Renders a chat with messages and input for new messages
@@ -128,6 +229,7 @@ export function Chat(props: ChatProps) {
     // const [inputValue, setInputValue] = useState('');
     const [mode] = useState<'LIGHT' | 'DARK'>('LIGHT'); // Simplified light/dark mode
     const [ratingConfirmation, setRatingConfirmation] = useState<string | null>(null);
+    const [emojiEffects, setEmojiEffects] = useState<EmojiEffect[]>([]);
 
     // File upload state
     const [uploadedFiles, setUploadedFiles] = useState<Array<{ id: string; file: File; content: string }>>([]);
@@ -139,6 +241,35 @@ export function Chat(props: ChatProps) {
 
     // Use mobile detection from the hook
     const isMobile = isMobileFromHook;
+    const emojiEffectIdRef = useRef(0);
+    const emojiEffectTimeoutsRef = useRef<number[]>([]);
+    const emojiMessageEffectRef = useRef<Map<string, { confetti: boolean; hearts: boolean }>>(new Map());
+
+    useEffect(() => {
+        return () => {
+            emojiEffectTimeoutsRef.current.forEach((timeoutId) => window.clearTimeout(timeoutId));
+            emojiEffectTimeoutsRef.current = [];
+        };
+    }, []);
+
+    const addEmojiEffect = useCallback((kind: EmojiEffectKind) => {
+        const effectId = `emoji-${emojiEffectIdRef.current++}`;
+        const particles = kind === 'confetti' ? buildConfettiParticles(effectId) : buildHeartParticles(effectId);
+        const config = EMOJI_EFFECT_CONFIG[kind];
+        const removalDelay = config.durationRangeMs[1] + config.delayRangeMs[1] + config.removalBufferMs;
+
+        setEmojiEffects((previous) => [...previous, { id: effectId, kind, particles }]);
+
+        const timeoutId = window.setTimeout(() => {
+            setEmojiEffects((previous) => previous.filter((effect) => effect.id !== effectId));
+        }, removalDelay);
+
+        emojiEffectTimeoutsRef.current.push(timeoutId);
+    }, []);
+
+    const getEmojiMessageKey = useCallback((message: ChatMessage, index: number) => {
+        return message.id || `${index}-${message.sender}`;
+    }, []);
 
     useEffect(
         (/* Focus textarea on page load */) => {
@@ -444,6 +575,26 @@ export function Chat(props: ChatProps) {
         handleMessagesChange();
     }, [postprocessedMessages, handleMessagesChange]);
 
+    useEffect(() => {
+        messages.forEach((message, index) => {
+            const key = getEmojiMessageKey(message, index);
+            const record = emojiMessageEffectRef.current.get(key) || { confetti: false, hearts: false };
+            const content = message.content || '';
+
+            if (!record.confetti && content.includes(CONFETTI_TRIGGER_EMOJI)) {
+                addEmojiEffect('confetti');
+                record.confetti = true;
+            }
+
+            if (!record.hearts && HEART_EMOJI_REGEX.test(content)) {
+                addEmojiEffect('hearts');
+                record.hearts = true;
+            }
+
+            emojiMessageEffectRef.current.set(key, record);
+        });
+    }, [messages, addEmojiEffect, getEmojiMessageKey]);
+
     // Download logic
     const [showSaveMenu, setShowSaveMenu] = useState(false);
 
@@ -511,6 +662,23 @@ export function Chat(props: ChatProps) {
                 )}
                 {...{ style }}
             >
+                <div className={styles.emojiEffects} aria-hidden="true">
+                    {emojiEffects.map((effect) => (
+                        <div key={effect.id} className={styles.emojiEffect}>
+                            {effect.particles.map((particle) => (
+                                <span
+                                    key={particle.id}
+                                    className={
+                                        effect.kind === 'confetti' ? styles.confettiPiece : styles.heartParticle
+                                    }
+                                    style={particle.style}
+                                >
+                                    {effect.kind === 'hearts' ? particle.symbol : null}
+                                </span>
+                            ))}
+                        </div>
+                    ))}
+                </div>
                 <div className={classNames(className, styles.chatMainFlow, useChatCssClassName('chatMainFlow'))}>
                     {children && <div className={classNames(styles.chatChildren)}>{children}</div>}
 
