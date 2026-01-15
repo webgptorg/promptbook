@@ -7,14 +7,9 @@ import { assertsError } from '../../errors/assertsError';
 import { NotAllowed } from '../../errors/NotAllowed';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
-import type { ExecutionTools } from '../../execution/ExecutionTools';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
 import { UNCERTAIN_USAGE } from '../../execution/utils/usage-constants';
-import type { KnowledgePiecePreparedJson } from '../../pipeline/PipelineJson/KnowledgePieceJson';
-import type { Converter } from '../../scrapers/_common/Converter';
-import type { Scraper, ScraperSourceHandler } from '../../scrapers/_common/Scraper';
-import { makeKnowledgeSourceHandler } from '../../scrapers/_common/utils/makeKnowledgeSourceHandler';
 import type { ModelRequirements } from '../../types/ModelRequirements';
 import type { Prompt } from '../../types/Prompt';
 import type {
@@ -24,8 +19,6 @@ import type {
     string_title,
     string_token,
 } from '../../types/typeAliases';
-import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
-import { getFileExtension } from '../../utils/files/getFileExtension';
 import { $getCurrentDate } from '../../utils/misc/$getCurrentDate';
 import { arrayableToArray } from '../../utils/misc/arrayableToArray';
 import type { chococake } from '../../utils/organization/really_any';
@@ -543,141 +536,6 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
         });
     }
 
-    private async prepareKnowledgeSourcesAsMarkdownFiles(
-        knowledgeSources: ReadonlyArray<string>,
-    ): Promise<Array<File>> {
-        const executionTools = (this.options as OpenAiCompatibleExecutionToolsNonProxiedOptions).executionTools;
-
-        if (!executionTools?.scrapers) {
-            if (this.options.isVerbose) {
-                console.warn('No scrapers configured for knowledge sources; skipping assistant knowledge upload.');
-            }
-            return [];
-        }
-
-        const scrapers = arrayableToArray(executionTools.scrapers);
-        const rootDirname = $isRunningInNode() ? process.cwd() : null;
-        const markdownFiles: Array<File> = [];
-
-        for (const knowledgeSource of knowledgeSources) {
-            try {
-                const sourceHandler = await makeKnowledgeSourceHandler(
-                    { knowledgeSourceContent: knowledgeSource },
-                    { fs: executionTools.fs, fetch: executionTools.fetch },
-                    { rootDirname, isVerbose: this.options.isVerbose },
-                );
-
-                const markdown = await this.convertSourceHandlerToMarkdown(sourceHandler, scrapers, executionTools);
-
-                if (!markdown || markdown.trim() === '') {
-                    if (this.options.isVerbose) {
-                        console.warn(`Skipping empty markdown for knowledge source "${knowledgeSource}".`);
-                    }
-                    continue;
-                }
-
-                const filename = `${knowledgeSourceContentToName(knowledgeSource)}.md`;
-                markdownFiles.push(new File([markdown], filename, { type: 'text/markdown' }));
-            } catch (error) {
-                assertsError(error);
-                console.warn(`Failed to prepare knowledge source "${knowledgeSource}" as markdown:`, error);
-            }
-        }
-
-        return markdownFiles;
-    }
-
-    private async convertSourceHandlerToMarkdown(
-        sourceHandler: ScraperSourceHandler,
-        scrapers: ReadonlyArray<Scraper>,
-        executionTools: Pick<ExecutionTools, 'fs' | 'llm'>,
-    ): Promise<string | null> {
-        if (sourceHandler.mimeType === 'text/markdown' || sourceHandler.mimeType === 'text/plain') {
-            return sourceHandler.asText();
-        }
-
-        const matchingScrapers = scrapers.filter((scraper) =>
-            scraper.metadata.mimeTypes.includes(sourceHandler.mimeType),
-        );
-
-        const isConverter = (candidate: Scraper): candidate is Scraper & Converter =>
-            typeof (candidate as { $convert?: unknown }).$convert === 'function';
-
-        for (const scraper of matchingScrapers) {
-            if (!isConverter(scraper)) {
-                continue;
-            }
-
-            try {
-                const intermediate = await scraper.$convert(sourceHandler);
-                let markdown: string | null = null;
-
-                try {
-                    const markdownCandidate = (intermediate as { markdown?: unknown }).markdown;
-                    if (typeof markdownCandidate === 'string') {
-                        markdown = markdownCandidate;
-                    } else if (executionTools.fs) {
-                        const extension = getFileExtension(intermediate.filename);
-                        if (extension === 'md' || extension === 'markdown') {
-                            markdown = await executionTools.fs.readFile(intermediate.filename, 'utf-8');
-                        }
-                    }
-                } finally {
-                    await intermediate.destroy();
-                }
-
-                if (markdown) {
-                    return markdown;
-                }
-            } catch (error) {
-                assertsError(error);
-                console.warn(
-                    `Failed to convert knowledge source "${sourceHandler.source}" via ${scraper.metadata.className}:`,
-                    error,
-                );
-            }
-        }
-
-        if (!executionTools.llm) {
-            return null;
-        }
-
-        for (const scraper of matchingScrapers) {
-            try {
-                const pieces = await scraper.scrape(sourceHandler);
-                if (pieces && pieces.length > 0) {
-                    return this.knowledgePiecesToMarkdown(pieces);
-                }
-            } catch (error) {
-                assertsError(error);
-                console.warn(
-                    `Failed to scrape knowledge source "${sourceHandler.source}" via ${scraper.metadata.className}:`,
-                    error,
-                );
-            }
-        }
-
-        return null;
-    }
-
-    private knowledgePiecesToMarkdown(
-        pieces: ReadonlyArray<Pick<KnowledgePiecePreparedJson, 'title' | 'content'>>,
-    ): string {
-        return pieces
-            .map((piece) => {
-                const title = piece.title ? `## ${piece.title}\n\n` : '';
-                const content = piece.content ? piece.content.trim() : '';
-
-                if (!content) {
-                    return '';
-                }
-
-                return `${title}${content}`.trim();
-            })
-            .filter((section) => section !== '')
-            .join('\n\n');
-    }
-
     public async createNewAssistant(options: {
         /**
          * Name of the new assistant
@@ -715,35 +573,66 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
 
         // If knowledge sources are provided, create a vector store with them
         if (knowledgeSources && knowledgeSources.length > 0) {
-            const markdownFiles = await this.prepareKnowledgeSourcesAsMarkdownFiles(knowledgeSources);
+            if (this.options.isVerbose) {
+                console.info(`📚 Creating vector store with ${knowledgeSources.length} knowledge sources...`);
+            }
 
-            if (markdownFiles.length > 0) {
-                if (this.options.isVerbose) {
-                    console.info(`?? Creating vector store with ${markdownFiles.length} markdown sources...`);
+            // Create a vector store
+            const vectorStore = await client.beta.vectorStores.create({
+                name: `${name} Knowledge Base`,
+            });
+            vectorStoreId = vectorStore.id;
+
+            if (this.options.isVerbose) {
+                console.info(`✅ Vector store created: ${vectorStoreId}`);
+            }
+
+            // Upload files from knowledge sources to the vector store
+            const fileStreams = [];
+            for (const source of knowledgeSources) {
+                try {
+                    // Check if it's a URL
+                    if (source.startsWith('http://') || source.startsWith('https://')) {
+                        // Download the file
+                        const response = await fetch(source);
+                        if (!response.ok) {
+                            console.error(`Failed to download ${source}: ${response.statusText}`);
+                            continue;
+                        }
+                        const buffer = await response.arrayBuffer();
+                        const filename = source.split('/').pop() || 'downloaded-file';
+                        const blob = new Blob([buffer]);
+                        const file = new File([blob], filename);
+                        fileStreams.push(file);
+                    } else {
+                        /*
+                        TODO: [🐱‍🚀] Resolve problem with browser environment
+                        // Assume it's a local file path
+                        // Note: This will work in Node.js environment
+                        // For browser environments, this would need different handling
+                        const fs = await import('fs');
+                        const fileStream = fs.createReadStream(source);
+                        fileStreams.push(fileStream);
+                        */
+                    }
+                } catch (error) {
+                    console.error(`Error processing knowledge source ${source}:`, error);
                 }
+            }
 
-                const vectorStore = await client.beta.vectorStores.create({
-                    name: `${name} Knowledge Base`,
-                });
-                vectorStoreId = vectorStore.id;
-
-                if (this.options.isVerbose) {
-                    console.info(`? Vector store created: ${vectorStoreId}`);
-                }
-
+            // Batch upload files to the vector store
+            if (fileStreams.length > 0) {
                 try {
                     await client.beta.vectorStores.fileBatches.uploadAndPoll(vectorStoreId, {
-                        files: markdownFiles,
+                        files: fileStreams,
                     });
 
                     if (this.options.isVerbose) {
-                        console.info(`? Uploaded ${markdownFiles.length} markdown files to vector store`);
+                        console.info(`✅ Uploaded ${fileStreams.length} files to vector store`);
                     }
                 } catch (error) {
-                    console.error('Error uploading markdown files to vector store:', error);
+                    console.error('Error uploading files to vector store:', error);
                 }
-            } else if (this.options.isVerbose) {
-                console.warn('No markdown files were prepared for knowledge sources; skipping vector store.');
             }
         }
 
@@ -822,40 +711,70 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
         let vectorStoreId: string | undefined;
 
         // If knowledge sources are provided, create a vector store with them
+        // TODO: [🧠] Reuse vector store creation logic from createNewAssistant
         if (knowledgeSources && knowledgeSources.length > 0) {
-            const markdownFiles = await this.prepareKnowledgeSourcesAsMarkdownFiles(knowledgeSources);
+            if (this.options.isVerbose) {
+                console.info(
+                    `📚 Creating vector store for update with ${knowledgeSources.length} knowledge sources...`,
+                );
+            }
 
-            if (markdownFiles.length > 0) {
-                const vectorStoreName = name || assistantId;
+            // Create a vector store
+            const vectorStore = await client.beta.vectorStores.create({
+                name: `${name} Knowledge Base`,
+            });
+            vectorStoreId = vectorStore.id;
 
-                if (this.options.isVerbose) {
-                    console.info(
-                        `?? Creating vector store for update with ${markdownFiles.length} markdown sources...`,
-                    );
+            if (this.options.isVerbose) {
+                console.info(`✅ Vector store created: ${vectorStoreId}`);
+            }
+
+            // Upload files from knowledge sources to the vector store
+            const fileStreams = [];
+            for (const source of knowledgeSources) {
+                try {
+                    // Check if it's a URL
+                    if (source.startsWith('http://') || source.startsWith('https://')) {
+                        // Download the file
+                        const response = await fetch(source);
+                        if (!response.ok) {
+                            console.error(`Failed to download ${source}: ${response.statusText}`);
+                            continue;
+                        }
+                        const buffer = await response.arrayBuffer();
+                        const filename = source.split('/').pop() || 'downloaded-file';
+                        const blob = new Blob([buffer]);
+                        const file = new File([blob], filename);
+                        fileStreams.push(file);
+                    } else {
+                        /*
+                        TODO: [🐱‍🚀] Resolve problem with browser environment
+                        // Assume it's a local file path
+                        // Note: This will work in Node.js environment
+                        // For browser environments, this would need different handling
+                        const fs = await import('fs');
+                        const fileStream = fs.createReadStream(source);
+                        fileStreams.push(fileStream);
+                        */
+                    }
+                } catch (error) {
+                    console.error(`Error processing knowledge source ${source}:`, error);
                 }
+            }
 
-                const vectorStore = await client.beta.vectorStores.create({
-                    name: `${vectorStoreName} Knowledge Base`,
-                });
-                vectorStoreId = vectorStore.id;
-
-                if (this.options.isVerbose) {
-                    console.info(`? Vector store created: ${vectorStoreId}`);
-                }
-
+            // Batch upload files to the vector store
+            if (fileStreams.length > 0) {
                 try {
                     await client.beta.vectorStores.fileBatches.uploadAndPoll(vectorStoreId, {
-                        files: markdownFiles,
+                        files: fileStreams,
                     });
 
                     if (this.options.isVerbose) {
-                        console.info(`? Uploaded ${markdownFiles.length} markdown files to vector store`);
+                        console.info(`✅ Uploaded ${fileStreams.length} files to vector store`);
                     }
                 } catch (error) {
-                    console.error('Error uploading markdown files to vector store:', error);
+                    console.error('Error uploading files to vector store:', error);
                 }
-            } else if (this.options.isVerbose) {
-                console.warn('No markdown files were prepared for knowledge sources; skipping vector store.');
             }
         }
 

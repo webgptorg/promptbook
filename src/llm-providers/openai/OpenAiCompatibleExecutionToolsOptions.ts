@@ -36,9 +36,9 @@ export type OpenAiCompatibleExecutionToolsNonProxiedOptions = CommonToolsOptions
         baseURL?: string;
 
         /**
-         * Tools for executing scripts and scraping knowledge sources
+         * Tools for executing the scripts
          */
-        readonly executionTools?: Pick<ExecutionTools, 'script' | 'scrapers' | 'fs' | 'fetch' | 'llm' | 'executables'>;
+        readonly executionTools?: Pick<ExecutionTools, 'script'>;
 
         isProxied?: false;
     };
