@@ -75,7 +75,10 @@ function parseSearchResultsFromText(text: string): Array<TODO_any> {
             current = null;
             return;
         }
-        const snippet = current.snippetParts.map((part) => part.trim()).filter(Boolean).join(' ');
+        const snippet = current.snippetParts
+            .map((part) => part.trim())
+            .filter(Boolean)
+            .join(' ');
         results.push({
             title: current.title,
             url: current.url,

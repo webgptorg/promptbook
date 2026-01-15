@@ -146,12 +146,14 @@ export class TeamCommitmentDefinition extends BaseCommitmentDefinition<'TEAM'> {
         }
 
         const existingTeammates =
-            (requirements.metadata?.teammates as Array<{
-                url: string;
-                toolName: string;
-                label?: string;
-                instructions?: string;
-            }> | undefined) || [];
+            (requirements.metadata?.teammates as
+                | Array<{
+                      url: string;
+                      toolName: string;
+                      label?: string;
+                      instructions?: string;
+                  }>
+                | undefined) || [];
         const updatedTeammates = [...existingTeammates];
 
         for (const entry of teamEntries) {
@@ -173,8 +175,7 @@ export class TeamCommitmentDefinition extends BaseCommitmentDefinition<'TEAM'> {
                 ${block(
                     teamEntries
                         .map((entry) => {
-                            const whenToConsult =
-                                entry.teammate.instructions || 'Use when their expertise is needed.';
+                            const whenToConsult = entry.teammate.instructions || 'Use when their expertise is needed.';
                             return spaceTrim(
                                 () => `
                                     - ${entry.teammate.label} (${entry.teammate.url})

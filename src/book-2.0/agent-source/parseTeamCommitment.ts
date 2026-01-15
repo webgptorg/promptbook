@@ -32,10 +32,7 @@ const conjunctionSeparators = [' and ', ' or '];
  *
  * @private
  */
-export function parseTeamCommitmentContent(
-    content: string,
-    options: ParseTeamCommitmentOptions = {},
-): TeamTeammate[] {
+export function parseTeamCommitmentContent(content: string, options: ParseTeamCommitmentOptions = {}): TeamTeammate[] {
     const { strict = false } = options;
     const lines = content
         .split('\n')
@@ -99,9 +96,7 @@ function extractInstructionContext(line: string, matches: RegExpMatchArray[], ma
     const previousMatch = matches[matchIndex - 1];
     const nextMatch = matches[matchIndex + 1];
     const previousEnd =
-        previousMatch && previousMatch.index !== undefined
-            ? previousMatch.index + (previousMatch[0]?.length || 0)
-            : 0;
+        previousMatch && previousMatch.index !== undefined ? previousMatch.index + (previousMatch[0]?.length || 0) : 0;
     const nextStart = nextMatch && nextMatch.index !== undefined ? nextMatch.index : line.length;
 
     const rawPrefix = line.slice(previousEnd, matchStart);

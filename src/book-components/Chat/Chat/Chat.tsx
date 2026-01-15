@@ -1083,7 +1083,10 @@ export function Chat(props: ChatProps) {
                                                     ))}
                                                 </div>
                                             ) : hasRawText ? (
-                                                <MarkdownContent className={styles.searchResultsRaw} content={rawText!} />
+                                                <MarkdownContent
+                                                    className={styles.searchResultsRaw}
+                                                    content={rawText!}
+                                                />
                                             ) : (
                                                 <div className={styles.noResults}>
                                                     {resultRaw
@@ -1119,7 +1122,9 @@ export function Chat(props: ChatProps) {
                                                     padding: '20px',
                                                 }}
                                             >
-                                                {isValidDate && displayDate && <ClockIcon date={displayDate} size={150} />}
+                                                {isValidDate && displayDate && (
+                                                    <ClockIcon date={displayDate} size={150} />
+                                                )}
                                                 <div style={{ textAlign: 'center' }}>
                                                     <div style={{ fontSize: '2em', fontWeight: 'bold' }}>
                                                         {isValidDate && displayDate
@@ -1136,14 +1141,22 @@ export function Chat(props: ChatProps) {
                                                     </div>
                                                     {relativeLabel && (
                                                         <div
-                                                            style={{ fontSize: '0.9em', color: '#888', marginTop: '5px' }}
+                                                            style={{
+                                                                fontSize: '0.9em',
+                                                                color: '#888',
+                                                                marginTop: '5px',
+                                                            }}
                                                         >
                                                             ({relativeLabel})
                                                         </div>
                                                     )}
                                                     {args.timezone && (
                                                         <div
-                                                            style={{ fontSize: '0.9em', color: '#888', marginTop: '5px' }}
+                                                            style={{
+                                                                fontSize: '0.9em',
+                                                                color: '#888',
+                                                                marginTop: '5px',
+                                                            }}
                                                         >
                                                             Timezone: {args.timezone}
                                                         </div>
