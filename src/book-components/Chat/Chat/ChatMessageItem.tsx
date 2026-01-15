@@ -435,6 +435,7 @@ export const ChatMessageItem = memo(
                                 <button
                                     key={buttonIndex}
                                     className={styles.messageButton}
+                                    data-sound="send"
                                     onClick={(event) => {
                                         event.stopPropagation();
                                         if (onMessage) {
