@@ -1,8 +1,8 @@
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import OpenAI from 'openai';
 import spaceTrim from 'spacetrim';
-import { knowledgeSourceContentToName } from '../../commands/KNOWLEDGE/utils/knowledgeSourceContentToName';
 import { serializeError } from '../../_packages/utils.index';
+import { knowledgeSourceContentToName } from '../../commands/KNOWLEDGE/utils/knowledgeSourceContentToName';
 import { assertsError } from '../../errors/assertsError';
 import { NotAllowed } from '../../errors/NotAllowed';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
@@ -13,8 +13,7 @@ import type { ChatPromptResult } from '../../execution/PromptResult';
 import { UNCERTAIN_USAGE } from '../../execution/utils/usage-constants';
 import type { KnowledgePiecePreparedJson } from '../../pipeline/PipelineJson/KnowledgePieceJson';
 import type { Converter } from '../../scrapers/_common/Converter';
-import type { Scraper } from '../../scrapers/_common/Scraper';
-import type { ScraperSourceHandler } from '../../scrapers/_common/Scraper';
+import type { Scraper, ScraperSourceHandler } from '../../scrapers/_common/Scraper';
 import { makeKnowledgeSourceHandler } from '../../scrapers/_common/utils/makeKnowledgeSourceHandler';
 import type { ModelRequirements } from '../../types/ModelRequirements';
 import type { Prompt } from '../../types/Prompt';
@@ -27,11 +26,11 @@ import type {
 } from '../../types/typeAliases';
 import { $isRunningInNode } from '../../utils/environment/$isRunningInNode';
 import { getFileExtension } from '../../utils/files/getFileExtension';
-import { arrayableToArray } from '../../utils/misc/arrayableToArray';
 import { $getCurrentDate } from '../../utils/misc/$getCurrentDate';
+import { arrayableToArray } from '../../utils/misc/arrayableToArray';
+import type { chococake } from '../../utils/organization/really_any';
 import { templateParameters } from '../../utils/parameters/templateParameters';
 import { exportJson } from '../../utils/serialization/exportJson';
-import type { chococake } from '../../utils/organization/really_any';
 import type { OpenAiAssistantExecutionToolsOptions } from './OpenAiAssistantExecutionToolsOptions';
 import type { OpenAiCompatibleExecutionToolsNonProxiedOptions } from './OpenAiCompatibleExecutionToolsOptions';
 import { OpenAiExecutionTools } from './OpenAiExecutionTools';
@@ -830,7 +829,9 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                 const vectorStoreName = name || assistantId;
 
                 if (this.options.isVerbose) {
-                    console.info(`?? Creating vector store for update with ${markdownFiles.length} markdown sources...`);
+                    console.info(
+                        `?? Creating vector store for update with ${markdownFiles.length} markdown sources...`,
+                    );
                 }
 
                 const vectorStore = await client.beta.vectorStores.create({
@@ -916,7 +917,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
 const DISCRIMINANT = 'OPEN_AI_ASSISTANT_V1';
 
 /**
- * TODO: !!!!! [✨🥚] Knowlege should work both with and without scrapers
+ * TODO: !!!!! [✨🥚] Knowledge should work both with and without scrapers
  * TODO: [🙎] In `OpenAiAssistantExecutionTools` Allow to create abstract assistants with `isCreatingNewAssistantsAllowed`
  * TODO: [🧠][🧙‍♂️] Maybe there can be some wizard for those who want to use just OpenAI
  * TODO: Maybe make custom OpenAiError
