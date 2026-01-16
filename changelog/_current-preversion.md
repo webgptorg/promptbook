@@ -72,7 +72,6 @@
 -   Added microphone button to `<Chat/>` with visual recording indicators and real-time transcription insertion.
 -   Enhanced visuals of the agent chat page
 -   Added emoji-triggered chat animations (confetti for 🎉 and floating hearts for heart emojis).
--   Added gentle chat sound effects (ding, whoosh, tap, typing) with a settings toggle saved in local storage.
 -   Added grained background to the chat page (matching the agent profile page)
 -   Increased saturation of agent messages for better visibility
 -   Fixed chat page height to exactly 100vh to prevent unnecessary scrolling

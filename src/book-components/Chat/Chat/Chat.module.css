@@ -1845,30 +1845,6 @@
     background-color: #f0f0f0;
 }
 
-.settingsMenuItem {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-}
-
-.settingsToggleState {
-    min-width: 38px;
-    padding: 2px 8px;
-    border-radius: 999px;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.03em;
-    text-transform: uppercase;
-    background: #e5e7eb;
-    color: #374151;
-}
-
-.settingsToggleStateActive {
-    background: #dbeafe;
-    color: #1d4ed8;
-}
-
 /* Pause/Resume button variant (reuses .chatButton base styles for DRY) */
 .pauseButton {
     background: linear-gradient(135deg, #ffb347 0%, #ff8c42 100%) !important; /* Warm orange for "active/running" */

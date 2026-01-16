@@ -27,7 +27,6 @@ import { MicIcon } from '../../icons/MicIcon';
 import { ResetIcon } from '../../icons/ResetIcon';
 import { SaveIcon } from '../../icons/SaveIcon';
 import { SendIcon } from '../../icons/SendIcon';
-import { SettingsIcon } from '../../icons/SettingsIcon';
 import { TemplateIcon } from '../../icons/TemplateIcon';
 import { useChatAutoScroll } from '../hooks/useChatAutoScroll';
 import { getChatSaveFormatDefinitions } from '../save/_common/getChatSaveFormatDefinitions';
@@ -61,8 +60,6 @@ type EmojiEffect = {
     kind: EmojiEffectKind;
     particles: EmojiEffectParticle[];
 };
-
-type ChatSoundEffect = 'ding' | 'whoosh' | 'tap' | 'typing';
 
 const CONFETTI_TRIGGER_EMOJI = '🎉';
 const HEART_TRIGGER_EMOJIS = [
@@ -105,9 +102,6 @@ const EMOJI_EFFECT_CONFIG = {
         removalBufferMs: 300,
     },
 } as const;
-
-const SOUND_PREFERENCE_KEY = 'promptbook-chat-sounds-enabled';
-const TYPING_SOUND_INTERVAL_MS = 1200;
 
 const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const HEART_EMOJI_REGEX = new RegExp(HEART_TRIGGER_EMOJIS.map(escapeRegExp).join('|'), 'u');
@@ -206,10 +200,6 @@ export function Chat(props: ChatProps) {
     } = props;
 
     const buttonColor = useMemo(() => Color.from(buttonColorRaw || '#0066cc'), [buttonColorRaw]);
-    const participantsByName = useMemo(
-        () => new Map(participants.map((participant) => [participant.name, participant])),
-        [participants],
-    );
 
     // Use the auto-scroll hook
     const {
@@ -242,7 +232,6 @@ export function Chat(props: ChatProps) {
     const [mode] = useState<'LIGHT' | 'DARK'>('LIGHT'); // Simplified light/dark mode
     const [ratingConfirmation, setRatingConfirmation] = useState<string | null>(null);
     const [emojiEffects, setEmojiEffects] = useState<EmojiEffect[]>([]);
-    const [areSoundsEnabled, setAreSoundsEnabled] = useState(true);
 
     // File upload state
     const [uploadedFiles, setUploadedFiles] = useState<Array<{ id: string; file: File; content: string }>>([]);
@@ -257,11 +246,6 @@ export function Chat(props: ChatProps) {
     const emojiEffectIdRef = useRef(0);
     const emojiEffectTimeoutsRef = useRef<number[]>([]);
     const emojiMessageEffectRef = useRef<Map<string, { confetti: boolean; hearts: boolean }>>(new Map());
-    const audioContextRef = useRef<AudioContext | null>(null);
-    const typingSoundIntervalRef = useRef<number | null>(null);
-    const messageSoundStateRef = useRef<Map<string, boolean>>(new Map());
-    const hasMessageSoundInitRef = useRef(false);
-    const hasUserInteractedRef = useRef(false);
 
     useEffect(() => {
         return () => {
@@ -269,34 +253,6 @@ export function Chat(props: ChatProps) {
             emojiEffectTimeoutsRef.current = [];
         };
     }, []);
-
-    useEffect(() => {
-        try {
-            const stored = localStorage.getItem(SOUND_PREFERENCE_KEY);
-            if (stored === 'true') {
-                setAreSoundsEnabled(true);
-            }
-            if (stored === 'false') {
-                setAreSoundsEnabled(false);
-            }
-        } catch (error) {
-            console.warn('Failed to load chat sound preference:', error);
-        }
-    }, []);
-
-    useEffect(() => {
-        try {
-            localStorage.setItem(SOUND_PREFERENCE_KEY, String(areSoundsEnabled));
-        } catch (error) {
-            console.warn('Failed to save chat sound preference:', error);
-        }
-    }, [areSoundsEnabled]);
-
-    useEffect(() => {
-        if (!areSoundsEnabled && audioContextRef.current?.state === 'running') {
-            void audioContextRef.current.suspend();
-        }
-    }, [areSoundsEnabled]);
 
     const addEmojiEffect = useCallback((kind: EmojiEffectKind) => {
         const effectId = `emoji-${emojiEffectIdRef.current++}`;
@@ -313,184 +269,9 @@ export function Chat(props: ChatProps) {
         emojiEffectTimeoutsRef.current.push(timeoutId);
     }, []);
 
-    const isMessageFromMe = useCallback(
-        (message: ChatMessage) => {
-            const participant = participantsByName.get(message.sender);
-            if (participant?.isMe) {
-                return true;
-            }
-
-            return message.sender === 'USER';
-        },
-        [participantsByName],
-    );
-
-    const getMessageKey = useCallback((message: ChatMessage, index: number) => {
+    const getEmojiMessageKey = useCallback((message: ChatMessage, index: number) => {
         return message.id || `${index}-${message.sender}`;
     }, []);
-
-    const ensureAudioContext = useCallback(
-        (force = false) => {
-            if (!areSoundsEnabled) {
-                return null;
-            }
-            if (!force && !hasUserInteractedRef.current) {
-                return null;
-            }
-            if (typeof window === 'undefined') {
-                return null;
-            }
-
-            if (!audioContextRef.current) {
-                const AudioContextCtor =
-                    window.AudioContext ||
-                    (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-                if (!AudioContextCtor) {
-                    return null;
-                }
-                audioContextRef.current = new AudioContextCtor();
-            }
-
-            if (audioContextRef.current.state === 'suspended') {
-                void audioContextRef.current.resume();
-            }
-
-            return audioContextRef.current;
-        },
-        [areSoundsEnabled],
-    );
-
-    const markUserInteracted = useCallback(() => {
-        if (!hasUserInteractedRef.current) {
-            hasUserInteractedRef.current = true;
-        }
-
-        ensureAudioContext(true);
-    }, [ensureAudioContext]);
-
-    const playTone = useCallback(
-        (config: {
-            frequency: number;
-            frequencyEnd?: number;
-            durationMs: number;
-            volume: number;
-            type?: OscillatorType;
-            startOffsetMs?: number;
-        }) => {
-            const audioContext = ensureAudioContext();
-            if (!audioContext) {
-                return;
-            }
-
-            const startTime = audioContext.currentTime + (config.startOffsetMs || 0) / 1000;
-            const durationSec = config.durationMs / 1000;
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-
-            oscillator.type = config.type || 'sine';
-            oscillator.frequency.setValueAtTime(config.frequency, startTime);
-            if (config.frequencyEnd) {
-                oscillator.frequency.exponentialRampToValueAtTime(config.frequencyEnd, startTime + durationSec);
-            }
-
-            gainNode.gain.setValueAtTime(0.0001, startTime);
-            gainNode.gain.exponentialRampToValueAtTime(
-                config.volume,
-                startTime + Math.min(0.02, durationSec / 3),
-            );
-            gainNode.gain.exponentialRampToValueAtTime(0.0001, startTime + durationSec);
-
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-            oscillator.start(startTime);
-            oscillator.stop(startTime + durationSec + 0.05);
-        },
-        [ensureAudioContext],
-    );
-
-    const playSound = useCallback(
-        (sound: ChatSoundEffect) => {
-            if (!areSoundsEnabled) {
-                return;
-            }
-
-            switch (sound) {
-                case 'ding':
-                    playTone({
-                        frequency: 880,
-                        frequencyEnd: 1320,
-                        durationMs: 160,
-                        volume: 0.05,
-                        type: 'sine',
-                    });
-                    playTone({
-                        frequency: 660,
-                        frequencyEnd: 990,
-                        durationMs: 140,
-                        volume: 0.04,
-                        type: 'sine',
-                        startOffsetMs: 70,
-                    });
-                    break;
-                case 'whoosh':
-                    playTone({
-                        frequency: 520,
-                        frequencyEnd: 180,
-                        durationMs: 220,
-                        volume: 0.04,
-                        type: 'triangle',
-                    });
-                    break;
-                case 'tap':
-                    playTone({
-                        frequency: 900,
-                        frequencyEnd: 600,
-                        durationMs: 40,
-                        volume: 0.03,
-                        type: 'square',
-                    });
-                    break;
-                case 'typing':
-                    playTone({
-                        frequency: 520,
-                        frequencyEnd: 420,
-                        durationMs: 35,
-                        volume: 0.02,
-                        type: 'triangle',
-                    });
-                    break;
-                default:
-                    break;
-            }
-        },
-        [areSoundsEnabled, playTone],
-    );
-
-    const handleChatButtonClickCapture = useCallback(
-        (event: React.MouseEvent<HTMLElement>) => {
-            const target = event.target as HTMLElement | null;
-            if (!target) {
-                return;
-            }
-
-            const button = target.closest('button');
-            if (!button || button.disabled) {
-                return;
-            }
-
-            if (button.getAttribute('data-sound') === 'send') {
-                return;
-            }
-
-            markUserInteracted();
-            playSound('tap');
-        },
-        [markUserInteracted, playSound],
-    );
-
-    const handleChatUserInteractionCapture = useCallback(() => {
-        markUserInteracted();
-    }, [markUserInteracted]);
 
     useEffect(
         (/* Focus textarea on page load */) => {
@@ -558,20 +339,6 @@ export function Chat(props: ChatProps) {
             speechRecognition.$stop();
         }
     }, [speechRecognition]);
-
-    const sendMessageWithSound = useCallback(
-        async (messageContent: string, attachments?: ChatMessage['attachments']) => {
-            if (!onMessage) {
-                throw new Error(`Can not find onMessage callback`);
-            }
-
-            markUserInteracted();
-            playSound('whoosh');
-
-            await sendMessageWithSound(messageContent, attachments);
-        },
-        [onMessage, markUserInteracted, playSound],
-    );
 
     // File upload handlers inspired by BookEditor
     const handleFileUpload = useCallback(
@@ -717,7 +484,7 @@ export function Chat(props: ChatProps) {
                 textareaElement.focus();
             }
         }
-    }, [onMessage, uploadedFiles, sendMessageWithSound]);
+    }, [onMessage, uploadedFiles]);
 
     const useChatCssClassName = (suffix: string) => `chat-${suffix}`;
 
@@ -883,7 +650,7 @@ export function Chat(props: ChatProps) {
 
     useEffect(() => {
         messages.forEach((message, index) => {
-            const key = getMessageKey(message, index);
+            const key = getEmojiMessageKey(message, index);
             const record = emojiMessageEffectRef.current.get(key) || { confetti: false, hearts: false };
             const content = message.content || '';
 
@@ -899,95 +666,10 @@ export function Chat(props: ChatProps) {
 
             emojiMessageEffectRef.current.set(key, record);
         });
-    }, [messages, addEmojiEffect, getMessageKey]);
-
-    useEffect(() => {
-        const nextMessageState = new Map<string, boolean>();
-        let shouldPlayDing = false;
-
-        messages.forEach((message, index) => {
-            const key = getMessageKey(message, index);
-            const isComplete = message.isComplete ?? true;
-            nextMessageState.set(key, isComplete);
-
-            if (!hasMessageSoundInitRef.current || isMessageFromMe(message)) {
-                return;
-            }
-
-            const wasComplete = messageSoundStateRef.current.get(key);
-            if (wasComplete === undefined && isComplete) {
-                shouldPlayDing = true;
-            } else if (wasComplete === false && isComplete) {
-                shouldPlayDing = true;
-            }
-        });
-
-        messageSoundStateRef.current = nextMessageState;
-
-        if (!hasMessageSoundInitRef.current) {
-            hasMessageSoundInitRef.current = true;
-            return;
-        }
-
-        if (shouldPlayDing) {
-            playSound('ding');
-        }
-    }, [messages, getMessageKey, isMessageFromMe, playSound]);
-
-    const hasPendingAgentMessage = useMemo(
-        () => messages.some((message) => !isMessageFromMe(message) && (message.isComplete ?? true) === false),
-        [messages, isMessageFromMe],
-    );
-
-    useEffect(() => {
-        if (!areSoundsEnabled || !hasPendingAgentMessage) {
-            if (typingSoundIntervalRef.current) {
-                window.clearInterval(typingSoundIntervalRef.current);
-                typingSoundIntervalRef.current = null;
-            }
-            return;
-        }
-
-        if (typingSoundIntervalRef.current) {
-            return;
-        }
-
-        playSound('typing');
-        typingSoundIntervalRef.current = window.setInterval(() => {
-            playSound('typing');
-        }, TYPING_SOUND_INTERVAL_MS);
-
-        return () => {
-            if (typingSoundIntervalRef.current) {
-                window.clearInterval(typingSoundIntervalRef.current);
-                typingSoundIntervalRef.current = null;
-            }
-        };
-    }, [areSoundsEnabled, hasPendingAgentMessage, playSound]);
+    }, [messages, addEmojiEffect, getEmojiMessageKey]);
 
     // Download logic
     const [showSaveMenu, setShowSaveMenu] = useState(false);
-    const [showSettingsMenu, setShowSettingsMenu] = useState(false);
-    const saveMenuDefinitions = useMemo(() => getChatSaveFormatDefinitions(saveFormats), [saveFormats]);
-    const toggleSaveMenu = useCallback(() => {
-        setShowSettingsMenu(false);
-        setShowSaveMenu((value) => !value);
-    }, [setShowSettingsMenu, setShowSaveMenu]);
-    const toggleSettingsMenu = useCallback(() => {
-        setShowSaveMenu(false);
-        setShowSettingsMenu((value) => !value);
-    }, [setShowSaveMenu, setShowSettingsMenu]);
-    const handleResetClick = useCallback(() => {
-        if (!onReset) {
-            return;
-        }
-
-        if (!confirm(`Do you really want to reset the chat?`)) {
-            return;
-        }
-
-        onReset();
-    }, [onReset]);
 
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
@@ -996,7 +678,7 @@ export function Chat(props: ChatProps) {
             }
 
             event.preventDefault();
-            toggleSaveMenu();
+            setShowSaveMenu((v) => !v);
         };
 
         window.addEventListener('keydown', handleKeyDown);
@@ -1004,7 +686,7 @@ export function Chat(props: ChatProps) {
         return () => {
             window.removeEventListener('keydown', handleKeyDown);
         };
-    }, [toggleSaveMenu]);
+    }, [setShowSaveMenu]);
 
     const handleDownload = useCallback(
         async (format: string_chat_format_name) => {
@@ -1086,9 +768,6 @@ export function Chat(props: ChatProps) {
                     visual === 'FULL_PAGE' && styles.fullPageVisual,
                     useChatCssClassName('Chat'),
                 )}
-                onClickCapture={handleChatButtonClickCapture}
-                onPointerDownCapture={handleChatUserInteractionCapture}
-                onKeyDownCapture={handleChatUserInteractionCapture}
                 {...{ style }}
             >
                 <div className={styles.emojiEffects} aria-hidden="true">
@@ -1136,21 +815,19 @@ export function Chat(props: ChatProps) {
                     )}
 
                     {(() => {
-                        const actionsHandlers = actionsContainer
-                            ? {
-                                  onClickCapture: handleChatButtonClickCapture,
-                                  onPointerDownCapture: handleChatUserInteractionCapture,
-                                  onKeyDownCapture: handleChatUserInteractionCapture,
-                              }
-                            : undefined;
-                        const hasInlineActions = !shouldHoistActions || !!extraActions;
-                        const actionsContent = hasInlineActions ? (
-                            <div
-                                className={classNames(actionsAlignmentClass, actionsContainer && styles.portal)}
-                                {...actionsHandlers}
-                            >
-                                {!shouldHoistActions && shouldShowReset && (
-                                    <button className={classNames(styles.chatButton)} onClick={handleResetClick}>
+                        const actionsContent = (
+                            <div className={classNames(actionsAlignmentClass, actionsContainer && styles.portal)}>
+                                {onReset && postprocessedMessages.length !== 0 && (
+                                    <button
+                                        className={classNames(styles.chatButton)}
+                                        onClick={() => {
+                                            if (!confirm(`Do you really want to reset the chat?`)) {
+                                                return;
+                                            }
+
+                                            onReset();
+                                        }}
+                                    >
                                         <ResetIcon />
                                         <span className={styles.chatButtonText}>New chat</span>
                                     </button>
@@ -1160,7 +837,7 @@ export function Chat(props: ChatProps) {
                                     <div className={styles.saveButtonContainer}>
                                         <button
                                             className={classNames(styles.chatButton)}
-                                            onClick={toggleSaveMenu}
+                                            onClick={() => setShowSaveMenu((v) => !v)}
                                             aria-haspopup="true"
                                             aria-expanded={showSaveMenu}
                                         >
@@ -1171,22 +848,7 @@ export function Chat(props: ChatProps) {
                                     </div>
                                 )}
 
-                                {!shouldHoistActions && (
-                                    <div className={styles.saveButtonContainer}>
-                                        <button
-                                            className={classNames(styles.chatButton)}
-                                            onClick={toggleSettingsMenu}
-                                            aria-haspopup="true"
-                                            aria-expanded={showSettingsMenu}
-                                        >
-                                            <SettingsIcon size={18} />
-                                            <span className={styles.chatButtonText}>Settings</span>
-                                        </button>
-                                        {showSettingsMenu && settingsMenuContent}
-                                    </div>
-                                )}
-
-                                {!shouldHoistActions && onUseTemplate && (
+                                {onUseTemplate && (
                                     <button className={classNames(styles.useTemplateButton)} onClick={onUseTemplate}>
                                         <span className={styles.chatButtonText}>Use this template</span>
                                         <TemplateIcon size={16} />
@@ -1258,7 +920,7 @@ export function Chat(props: ChatProps) {
                                     participant={participant}
                                     participants={participants}
                                     isLastMessage={isLastMessage}
-                                    onMessage={onMessage ? sendMessageWithSound : undefined}
+                                    onMessage={onMessage}
                                     setExpandedMessageId={setExpandedMessageId}
                                     isExpanded={isExpanded}
                                     currentRating={currentRating}
@@ -1453,7 +1115,6 @@ export function Chat(props: ChatProps) {
 
                                         <button
                                             data-button-type="call-to-action"
-                                            data-sound="send"
                                             style={{
                                                 backgroundColor: buttonColor.toHex(),
                                                 color: buttonColor.then(textColor).toHex(),
