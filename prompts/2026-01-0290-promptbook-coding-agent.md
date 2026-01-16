@@ -35,7 +35,7 @@ Some additional description of the foo task.
 
 ---
 
-[ ]
+[ <!-- IGNORE --> ]
 
 [✨🏔] Do bar
 
@@ -70,22 +70,35 @@ Some additional description of the bar task.
 
 ---
 
-[!!!!!]
+[ ]
 
-[✨🏔] Pause after each task
+[✨🏔] Pause after each task in coding agent script
 
+-   Now all tasks are processed one after another without any pause.
+-   Add CLI interactivity to wait after each task is done.
 -   Wait for user press [Enter] before commiting the current task changes and moving to the next task.
 -   In this waiting step, show the user the commmit message to be used, use colors library to highlight it nicely in the terminal.
+-   Before the first task show all upcoming tasks
+-   You are waiting at the begining before exeting the first task and them after the coding is finished BUT before commiting the changes, then continue to the next task and wait again after the coding is finished before commiting.
+-   Add flag `--no-wait` to skip this waiting and do the process automatically.
 -   You are working with the [coding agent script](./scripts/run-codex-prompts/run-codex-prompts.ts)
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
 ---
 
-[!!!!!]
+[ ]
 
-[✨🏔] Allow to prioritize prompts to be done by agent
+[✨🏔] Allow to prioritize prompts in coding agent script
 
--
+-   Now the prompts are processed in the order of the files in the folder and their order in the file.
+-   Add a way to prioritize some prompts to be done first.
+-   The priority is done by adding exclamation marks to the `[ ]` status, like this:
+    -   `[ ]` - no priority
+    -   `[ ] ! ` - priority 1
+    -   `[ ] !! ` - priority 2
+    -   `[ ] !!! ` - priority 3
+-   The more exclamation marks, the higher the priority.
+-   Before the first task show all upcoming tasks to be done grouped by priority, translate number of exclamation marks to number.
 -   You are working with the [coding agent script](./scripts/run-codex-prompts/run-codex-prompts.ts)
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
