@@ -70,7 +70,7 @@ Some additional description of the bar task.
 
 ---
 
-[ ]
+[x]
 
 [✨🏔] Pause after each task in coding agent script
 
@@ -107,3 +107,4 @@ Some additional description of the bar task.
 [-]
 
 [✨🏔]
+

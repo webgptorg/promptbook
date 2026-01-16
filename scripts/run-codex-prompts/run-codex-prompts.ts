@@ -7,6 +7,7 @@ dotenv.config({ path: '.env' });
 import colors from 'colors';
 import { mkdir, readdir, readFile, unlink, writeFile } from 'fs/promises';
 import { basename, dirname, join, relative } from 'path';
+import { createInterface } from 'readline';
 import { spaceTrim } from 'spacetrim';
 import { assertsError } from '../../src/errors/assertsError';
 import { $execCommand } from '../../src/utils/execCommand/$execCommand';
@@ -58,7 +59,17 @@ type PromptStats = {
     notReady: number;
 };
 
+type RunOptions = {
+    waitForUser: boolean;
+};
+
+type UpcomingTask = {
+    label: string;
+    summary: string;
+};
+
 async function run(): Promise<void> {
+    const options = parseRunOptions(process.argv.slice(2));
     const runner = new OpenAiCodexRunner({
         codexCommand: 'codex',
         model: 'gpt-5.2-codex',
@@ -67,6 +78,9 @@ async function run(): Promise<void> {
     });
 
     console.info(colors.green(`Running prompts with ${runner.name}`));
+
+    let hasShownUpcomingTasks = false;
+    let hasWaitedForStart = false;
 
     while (just(true)) {
         const promptFiles = await loadPromptFiles(PROMPTS_DIR);
@@ -79,6 +93,16 @@ async function run(): Promise<void> {
             return;
         }
 
+        if (!hasShownUpcomingTasks) {
+            printUpcomingTasks(listUpcomingTasks(promptFiles));
+            hasShownUpcomingTasks = true;
+        }
+
+        if (options.waitForUser && !hasWaitedForStart) {
+            await waitForEnter(colors.gray('Press Enter to start the first task...'));
+        }
+        hasWaitedForStart = true;
+
         await ensureWorkingTreeClean();
 
         const commitMessage = buildCommitMessage(nextPrompt.file, nextPrompt.section);
@@ -88,7 +112,7 @@ async function run(): Promise<void> {
         await writePromptFile(nextPrompt.file);
 
         const scriptPath = buildScriptPath(nextPrompt.file, nextPrompt.section);
-        const promptLabel = `${relative(process.cwd(), nextPrompt.file.path)}#${nextPrompt.section.index + 1}`;
+        const promptLabel = buildPromptLabel(nextPrompt.file, nextPrompt.section);
 
         console.info(colors.blue(`Processing ${promptLabel}`));
 
@@ -98,8 +122,19 @@ async function run(): Promise<void> {
             projectPath: process.cwd(),
         });
 
+        if (options.waitForUser) {
+            printCommitMessage(commitMessage);
+            await waitForEnter(colors.gray('Press Enter to commit and continue...'));
+        }
+
         await commitChanges(commitMessage);
     }
+}
+
+function parseRunOptions(args: string[]): RunOptions {
+    return {
+        waitForUser: !args.includes('--no-wait'),
+    };
 }
 
 async function loadPromptFiles(promptsDir: string): Promise<PromptFile[]> {
@@ -205,6 +240,44 @@ function printStats(stats: PromptStats): void {
     );
 }
 
+function listUpcomingTasks(files: PromptFile[]): UpcomingTask[] {
+    const tasks: UpcomingTask[] = [];
+    for (const file of files) {
+        for (const section of file.sections) {
+            if (section.status === 'todo') {
+                tasks.push({
+                    label: buildPromptLabel(file, section),
+                    summary: buildPromptSummary(file, section),
+                });
+            }
+        }
+    }
+    return tasks;
+}
+
+function printUpcomingTasks(tasks: UpcomingTask[]): void {
+    if (tasks.length === 0) {
+        console.info(colors.green('No upcoming tasks.'));
+        return;
+    }
+
+    console.info(colors.cyan('Upcoming tasks:'));
+    for (const [index, task] of tasks.entries()) {
+        const summary = task.summary ? ` - ${task.summary}` : '';
+        console.info(` ${index + 1}. ${task.label}${summary}`);
+    }
+}
+
+function buildPromptLabel(file: PromptFile, section: PromptSection): string {
+    return `${relative(process.cwd(), file.path)}#${section.index + 1}`;
+}
+
+function buildPromptSummary(file: PromptFile, section: PromptSection): string {
+    const lines = buildCodexPrompt(file, section).split(/\r?\n/);
+    const firstLine = lines.find((line) => line.trim() !== '');
+    return firstLine?.trim() || '(empty prompt)';
+}
+
 function findNextTodoPrompt(files: PromptFile[]): { file: PromptFile; section: PromptSection } | undefined {
     for (const file of files) {
         for (const section of file.sections) {
@@ -285,6 +358,26 @@ function buildScriptPath(file: PromptFile, section: PromptSection): string {
     const basePath = file.path.replace(/\.md$/i, '');
     const suffix = file.sections.length > 1 ? `-${section.index + 1}` : '';
     return `${basePath}${suffix}.sh`;
+}
+
+function printCommitMessage(message: string): void {
+    console.info(colors.cyan('Commit message:'));
+    console.info(formatCommitMessageForDisplay(message));
+}
+
+function formatCommitMessageForDisplay(message: string): string {
+    const lines = message.split(/\r?\n/);
+    return lines.map((line) => colors.bgBlue.white(` ${line} `)).join('\n');
+}
+
+async function waitForEnter(prompt: string): Promise<void> {
+    const rl = createInterface({ input: process.stdin, output: process.stdout });
+    await new Promise<void>((resolve) => {
+        rl.question(prompt, () => {
+            rl.close();
+            resolve();
+        });
+    });
 }
 
 type CodexScriptOptions = {
