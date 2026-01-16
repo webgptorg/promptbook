@@ -86,7 +86,7 @@ Some additional description of the bar task.
 
 ---
 
-[ ]
+[x]
 
 [✨🏔] Allow to prioritize prompts in coding agent script
 
@@ -107,4 +107,5 @@ Some additional description of the bar task.
 [-]
 
 [✨🏔]
+
 

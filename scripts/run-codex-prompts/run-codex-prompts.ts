@@ -40,6 +40,7 @@ type PromptSection = {
     startLine: number;
     endLine: number;
     status: PromptStatus;
+    priority: number;
     statusLineIndex?: number;
 };
 
@@ -66,6 +67,7 @@ type RunOptions = {
 type UpcomingTask = {
     label: string;
     summary: string;
+    priority: number;
 };
 
 async function run(): Promise<void> {
@@ -173,20 +175,17 @@ function parsePromptFile(filePath: string, content: string): PromptFile {
         const firstNonEmptyLine = findFirstNonEmptyLine(lines, startLine, endLine);
         if (firstNonEmptyLine !== undefined) {
             const statusLine = lines[firstNonEmptyLine].trim();
-            let status: PromptStatus = 'not-ready';
-
-            if (statusLine === '[x]' || statusLine === '[X]') {
-                status = 'done';
-            } else if (statusLine === '[ ]') {
-                status = 'todo';
-            }
+            const parsedStatus = parseStatusLine(statusLine);
+            const status = parsedStatus?.status ?? 'not-ready';
+            const priority = parsedStatus?.priority ?? 0;
 
             sections.push({
                 index,
                 startLine,
                 endLine,
                 status,
-                statusLineIndex: status === 'not-ready' ? undefined : firstNonEmptyLine,
+                priority,
+                statusLineIndex: parsedStatus ? firstNonEmptyLine : undefined,
             });
             index += 1;
         }
@@ -202,6 +201,16 @@ function parsePromptFile(filePath: string, content: string): PromptFile {
         hasFinalEol,
         sections,
     };
+}
+
+function parseStatusLine(line: string): { status: PromptStatus; priority: number } | undefined {
+    const match = line.match(/^\[(?<status>[ xX])\]\s*(?<priority>!*)\s*$/);
+    if (!match) {
+        return undefined;
+    }
+    const status = match.groups?.status?.toLowerCase() === 'x' ? 'done' : 'todo';
+    const priority = status === 'todo' ? match.groups?.priority?.length ?? 0 : 0;
+    return { status, priority };
 }
 
 function findFirstNonEmptyLine(lines: string[], startLine: number, endLine: number): number | undefined {
@@ -241,18 +250,11 @@ function printStats(stats: PromptStats): void {
 }
 
 function listUpcomingTasks(files: PromptFile[]): UpcomingTask[] {
-    const tasks: UpcomingTask[] = [];
-    for (const file of files) {
-        for (const section of file.sections) {
-            if (section.status === 'todo') {
-                tasks.push({
-                    label: buildPromptLabel(file, section),
-                    summary: buildPromptSummary(file, section),
-                });
-            }
-        }
-    }
-    return tasks;
+    return listTodoPrompts(files).map(({ file, section }) => ({
+        label: buildPromptLabel(file, section),
+        summary: buildPromptSummary(file, section),
+        priority: section.priority,
+    }));
 }
 
 function printUpcomingTasks(tasks: UpcomingTask[]): void {
@@ -261,11 +263,30 @@ function printUpcomingTasks(tasks: UpcomingTask[]): void {
         return;
     }
 
-    console.info(colors.cyan('Upcoming tasks:'));
-    for (const [index, task] of tasks.entries()) {
-        const summary = task.summary ? ` - ${task.summary}` : '';
-        console.info(` ${index + 1}. ${task.label}${summary}`);
+    console.info(colors.cyan('Upcoming tasks (grouped by priority):'));
+    for (const group of groupUpcomingTasksByPriority(tasks)) {
+        console.info(colors.cyan(`Priority ${group.priority}:`));
+        for (const [index, task] of group.tasks.entries()) {
+            const summary = task.summary ? ` - ${task.summary}` : '';
+            console.info(` ${index + 1}. ${task.label}${summary}`);
+        }
     }
+}
+
+function groupUpcomingTasksByPriority(tasks: UpcomingTask[]): Array<{ priority: number; tasks: UpcomingTask[] }> {
+    const grouped = new Map<number, UpcomingTask[]>();
+    for (const task of tasks) {
+        const group = grouped.get(task.priority);
+        if (group) {
+            group.push(task);
+        } else {
+            grouped.set(task.priority, [task]);
+        }
+    }
+
+    return Array.from(grouped.entries())
+        .sort((a, b) => b[0] - a[0])
+        .map(([priority, groupedTasks]) => ({ priority, tasks: groupedTasks }));
 }
 
 function buildPromptLabel(file: PromptFile, section: PromptSection): string {
@@ -279,14 +300,27 @@ function buildPromptSummary(file: PromptFile, section: PromptSection): string {
 }
 
 function findNextTodoPrompt(files: PromptFile[]): { file: PromptFile; section: PromptSection } | undefined {
+    let nextPrompt: { file: PromptFile; section: PromptSection } | undefined;
+
+    for (const prompt of listTodoPrompts(files)) {
+        if (!nextPrompt || prompt.section.priority > nextPrompt.section.priority) {
+            nextPrompt = prompt;
+        }
+    }
+
+    return nextPrompt;
+}
+
+function listTodoPrompts(files: PromptFile[]): Array<{ file: PromptFile; section: PromptSection }> {
+    const prompts: Array<{ file: PromptFile; section: PromptSection }> = [];
     for (const file of files) {
         for (const section of file.sections) {
             if (section.status === 'todo') {
-                return { file, section };
+                prompts.push({ file, section });
             }
         }
     }
-    return undefined;
+    return prompts;
 }
 
 async function ensureWorkingTreeClean(): Promise<void> {
