@@ -1,4 +1,4 @@
-[!!!] !!
+[ ] !!
 
 [✨🚫] Add chat interactive animations
 
@@ -7,6 +7,7 @@
 -   Do it for these emojis:
 -   🎉 - confetti animation
 -   ❤ (or any heart emoji) - floating hearts animation
+-   Decouple the animations and effects logic from the chat component to keep the code clean. Be aware of following best practices to separate concerns.
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   You are working with the [<Chat/>](./src/book-components/Chat/Chat/Chat.tsx) component.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
@@ -44,4 +45,3 @@
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
-
