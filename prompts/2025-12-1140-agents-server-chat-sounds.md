@@ -11,6 +11,7 @@
     -   Typing indicator sound when the agent is "Thinking..." the response.
 -   Ensure the sounds are not too loud and can be muted by the user.
 -   Add an option in the chat settings to enable/disable sounds in the menu saved in local storage.
+-   !!!!!! System
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   You are working with the [<Chat/>](./src/book-components/Chat/Chat/Chat.tsx) component.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
