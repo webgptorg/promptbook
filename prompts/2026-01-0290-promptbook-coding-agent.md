@@ -35,7 +35,7 @@ Some additional description of the foo task.
 
 ---
 
-[  ]
+[ ]
 
 [✨🏔] Do bar
 
@@ -67,3 +67,30 @@ Some additional description of the bar task.
 
 Some additional description of the bar task.
 ```
+
+---
+
+[!!!!!]
+
+[✨🏔] Pause after each task
+
+-   Wait for user press [Enter] before commiting the current task changes and moving to the next task.
+-   In this waiting step, show the user the commmit message to be used, use colors library to highlight it nicely in the terminal.
+-   You are working with the [coding agent script](./scripts/run-codex-prompts/run-codex-prompts.ts)
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[!!!!!]
+
+[✨🏔] Allow to prioritize prompts to be done by agent
+
+-
+-   You are working with the [coding agent script](./scripts/run-codex-prompts/run-codex-prompts.ts)
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[-]
+
+[✨🏔]
