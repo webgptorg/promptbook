@@ -2,7 +2,6 @@ import colors from 'colors'; // <- TODO: [🔶] Make system to put color and sty
 import OpenAI from 'openai';
 import spaceTrim from 'spacetrim';
 import { serializeError } from '../../_packages/utils.index';
-import { knowledgeSourceContentToName } from '../../commands/KNOWLEDGE/utils/knowledgeSourceContentToName';
 import { assertsError } from '../../errors/assertsError';
 import { NotAllowed } from '../../errors/NotAllowed';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
@@ -20,7 +19,6 @@ import type {
     string_token,
 } from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/misc/$getCurrentDate';
-import { arrayableToArray } from '../../utils/misc/arrayableToArray';
 import type { chococake } from '../../utils/organization/really_any';
 import { templateParameters } from '../../utils/parameters/templateParameters';
 import { exportJson } from '../../utils/serialization/exportJson';
