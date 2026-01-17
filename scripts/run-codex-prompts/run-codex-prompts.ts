@@ -429,11 +429,11 @@ export function buildCodexScript(options: CodexScriptOptions): string {
 
     return spaceTrim(
         (block) => `
-            ${options.codexCommand} \
-              --ask-for-approval ${options.askForApproval} \
-              exec --model ${options.model} \
-              --sandbox ${options.sandbox} \
-              -C ${projectPath} \
+            ${options.codexCommand} \\
+              --ask-for-approval ${options.askForApproval} \\
+              exec --model ${options.model} \\
+              --sandbox ${options.sandbox} \\
+              -C ${projectPath} \\
               <<'${delimiter}'
 
             ${block(options.prompt)}

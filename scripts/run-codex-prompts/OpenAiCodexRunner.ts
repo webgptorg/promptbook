@@ -32,6 +32,7 @@ export class OpenAiCodexRunner implements PromptRunner {
         try {
             await $execCommand({
                 command: `bash "${toPosixPath(options.scriptPath)}"`,
+                isVerbose: true, // <- Note: Proxy the raw command output to the console
             });
         } finally {
             await unlink(options.scriptPath).catch(() => undefined);
