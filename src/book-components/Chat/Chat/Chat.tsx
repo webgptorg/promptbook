@@ -42,6 +42,7 @@ import {
 import { MarkdownContent } from '../MarkdownContent/MarkdownContent';
 import styles from './Chat.module.css';
 import { ChatMessageItem } from './ChatMessageItem';
+import { ChatEmojiEffects } from './ChatEmojiEffects';
 import { MockedChat } from '../MockedChat/MockedChat'; // <- [🥂]
 import type { ChatProps } from './ChatProps';
 import { ClockIcon } from './ClockIcon';
@@ -511,6 +512,7 @@ export function Chat(props: ChatProps) {
                 )}
                 {...{ style }}
             >
+                <ChatEmojiEffects messages={messages} />
                 <div className={classNames(className, styles.chatMainFlow, useChatCssClassName('chatMainFlow'))}>
                     {children && <div className={classNames(styles.chatChildren)}>{children}</div>}
 
