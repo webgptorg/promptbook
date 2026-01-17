@@ -17,6 +17,7 @@
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Sounds are part of the agents server, Chat component should only recieve the SoundSystem as a prop
     -   All the assets (like mp3 files) should be in the public folder of the agents server app
+    -   This should be pluggable to all the <Chat/> components like <AgentChat/>, <LlmChat/>, <MockedChat/>,... and should work samely in all of them
 -   You are working with the [<Chat/>](./src/book-components/Chat/Chat/Chat.tsx) component.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the [changelog](./changelog/_current-preversion.md)
