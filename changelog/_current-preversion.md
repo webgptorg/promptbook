@@ -1,5 +1,4 @@
 ### 📚 Book
--   Added emoji-triggered chat animations in Agents Server chat (confetti bursts and floating hearts).
 -   Added nonce test files at the repository root for coding agent verification.
 -   Added a script to run prompt files through OpenAI Codex with prompt status tracking and git commits.
 -   Added interactive waits between codex prompt tasks with a `--no-wait` override flag.

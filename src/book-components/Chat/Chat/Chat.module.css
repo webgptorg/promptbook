@@ -47,7 +47,6 @@
     height: 100%;
     display: flex;
     flex-direction: column;
-    position: relative;
 
     font-family: Arial, Helvetica, sans-serif, 'OpenMojiBlack';
     /* <- TODO: [🧠][🎱] Better, define other fonts */
