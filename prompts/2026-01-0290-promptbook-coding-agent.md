@@ -120,7 +120,7 @@ Some additional description of the bar task.
 
 ---
 
-[ ]
+[x]
 
 [✨🏔] Add Cline CLI to the [coding agent script](./scripts/run-codex-prompts/run-codex-prompts.ts)
 

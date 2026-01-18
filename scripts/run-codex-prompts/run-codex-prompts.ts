@@ -13,6 +13,7 @@ import { assertsError } from '../../src/errors/assertsError';
 import { $execCommand } from '../../src/utils/execCommand/$execCommand';
 import { just } from '../../src/utils/organization/just';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
+import { ClaudeCodeRunner } from './ClaudeCodeRunner';
 import { ClineRunner } from './ClineRunner';
 import { OpenAiCodexRunner } from './OpenAiCodexRunner';
 import { PromptRunner } from './PromptRunner';
@@ -64,7 +65,7 @@ type PromptStats = {
 
 type RunOptions = {
     waitForUser: boolean;
-    agentName: 'openai-codex' | 'cline';
+    agentName: 'openai-codex' | 'cline' | 'claude-code';
 };
 
 type UpcomingTask = {
@@ -89,6 +90,8 @@ async function run(): Promise<void> {
         runner = new ClineRunner({
             model: 'gemini:gemini-3-flash-preview',
         });
+    } else if (options.agentName === 'claude-code') {
+        runner = new ClaudeCodeRunner();
     } else {
         throw new Error(`Unknown agent: ${options.agentName}`);
     }
@@ -148,18 +151,18 @@ async function run(): Promise<void> {
 }
 
 function parseRunOptions(args: string[]): RunOptions {
-    let agentName: 'openai-codex' | 'cline' | undefined = undefined;
+    let agentName: 'openai-codex' | 'cline' | 'claude-code' | undefined = undefined;
 
     if (args.includes('--agent')) {
         const index = args.indexOf('--agent');
         const value = args[index + 1];
-        if (value === 'openai-codex' || value === 'cline') {
+        if (value === 'openai-codex' || value === 'cline' || value === 'claude-code') {
             agentName = value;
         }
     }
 
     if (!agentName) {
-        console.error(colors.red('You must choose an agent using --agent <openai-codex|cline>'));
+        console.error(colors.red('You must choose an agent using --agent <openai-codex|cline|claude-code>'));
         console.error(colors.gray('Usage: run-codex-prompts --agent <agent-name> [--no-wait]'));
         process.exit(1);
     }
