@@ -1,8 +1,9 @@
 import { mkdir, unlink, writeFile } from 'fs/promises';
 import { dirname } from 'path/posix';
 import { $execCommand } from '../../../src/utils/execCommand/$execCommand';
+import { spaceTrim } from '../../../src/utils/organization/spaceTrim';
+import { toPosixPath } from '../run-codex-prompts';
 import { PromptRunner, PromptRunOptions } from './_PromptRunner';
-import { buildCodexScript, toPosixPath } from '../run-codex-prompts';
 
 export class OpenAiCodexRunner implements PromptRunner {
     public readonly name = 'codex';
@@ -38,4 +39,33 @@ export class OpenAiCodexRunner implements PromptRunner {
             await unlink(options.scriptPath).catch(() => undefined);
         }
     }
+}
+
+type CodexScriptOptions = {
+    prompt: string;
+    projectPath: string;
+    model: string;
+    sandbox: string;
+    askForApproval: string;
+    codexCommand: string;
+};
+
+function buildCodexScript(options: CodexScriptOptions): string {
+    const delimiter = 'CODEX_PROMPT';
+    const projectPath = toPosixPath(options.projectPath);
+
+    return spaceTrim(
+        (block) => `
+            ${options.codexCommand} \\
+              --ask-for-approval ${options.askForApproval} \\
+              exec --model ${options.model} \\
+              --sandbox ${options.sandbox} \\
+              -C ${projectPath} \\
+              <<'${delimiter}'
+
+            ${block(options.prompt)}
+
+            ${delimiter}
+        `,
+    );
 }

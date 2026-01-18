@@ -134,6 +134,15 @@ Some additional description of the bar task.
 
 ---
 
+[x]
+
+[✨🏔] Standartize runners of [coding agent script](./scripts/run-codex-prompts/run-codex-prompts.ts)
+
+-   All runners should create a temporary script file to run the agent with the prompt, look how it is done in OpenAI Codex runner.
+-   Keep in mind the DRY _(don't repeat yourself)_ principle, make sure there is no duplicate code between the runners, if there is, refactor it and make common utilities.
+
+---
+
 [-]
 
 [✨🏔]

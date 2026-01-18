@@ -8,15 +8,14 @@ import colors from 'colors';
 import { mkdir, readdir, readFile, unlink, writeFile } from 'fs/promises';
 import { basename, dirname, join, relative } from 'path';
 import { createInterface } from 'readline';
-import { spaceTrim } from 'spacetrim';
 import { assertsError } from '../../src/errors/assertsError';
 import { $execCommand } from '../../src/utils/execCommand/$execCommand';
 import { just } from '../../src/utils/organization/just';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
-import { ClaudeCodeRunner } from './ClaudeCodeRunner';
-import { ClineRunner } from './ClineRunner';
-import { OpenAiCodexRunner } from './OpenAiCodexRunner';
-import { PromptRunner } from './_PromptRunner';
+import { ClaudeCodeRunner } from './runners/ClaudeCodeRunner';
+import { ClineRunner } from './runners/ClineRunner';
+import { OpenAiCodexRunner } from './runners/OpenAiCodexRunner';
+import { PromptRunner } from './runners/_PromptRunner';
 
 if (process.cwd() !== join(__dirname, '../..')) {
     console.error(colors.red(`CWD must be root of the project`));
@@ -448,35 +447,6 @@ async function waitForEnter(prompt: string): Promise<void> {
     });
 }
 
-type CodexScriptOptions = {
-    prompt: string;
-    projectPath: string;
-    model: string;
-    sandbox: string;
-    askForApproval: string;
-    codexCommand: string;
-};
-
-export function buildCodexScript(options: CodexScriptOptions): string {
-    const delimiter = 'CODEX_PROMPT';
-    const projectPath = toPosixPath(options.projectPath);
-
-    return spaceTrim(
-        (block) => `
-            ${options.codexCommand} \\
-              --ask-for-approval ${options.askForApproval} \\
-              exec --model ${options.model} \\
-              --sandbox ${options.sandbox} \\
-              -C ${projectPath} \\
-              <<'${delimiter}'
-
-            ${block(options.prompt)}
-
-            ${delimiter}
-        `,
-    );
-}
-
 export function toPosixPath(filePath: string): string {
     if (process.platform === 'win32') {
         const match = filePath.match(/^([a-zA-Z]):\\(.*)$/);
@@ -506,5 +476,6 @@ async function commitChanges(message: string): Promise<void> {
 }
 
 /**
- * Note: [?] Code in this file should never be published in any package
+ * TODO: Prompt: Split utiluity functions into separate files in ./utils
+ * Note: [⚫] Code in this file should never be published in any package
  */
