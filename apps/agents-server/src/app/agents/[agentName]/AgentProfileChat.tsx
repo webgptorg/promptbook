@@ -11,7 +11,6 @@ import { OpenAiSpeechRecognition } from '../../../../../../src/speech-recognitio
 import { string_agent_url, string_color } from '../../../../../../src/types/typeAliases';
 import { keepUnused } from '../../../../../../src/utils/organization/keepUnused';
 import { $createAgentFromBookAction } from '../../../app/actions';
-import { ChatEffectsSystem } from '../../../components/ChatEffectsSystem/ChatEffectsSystem';
 import { DeletedAgentBanner } from '../../../components/DeletedAgentBanner';
 
 type AgentProfileChatProps = {
@@ -140,7 +139,6 @@ export function AgentProfileChat({
                 buttonColor={brandColorHex}
                 style={{ background: 'transparent' }}
                 speechRecognition={speechRecognition}
-                EffectsSystem={ChatEffectsSystem}
                 visual={'STANDALONE'}
             />
         </div>

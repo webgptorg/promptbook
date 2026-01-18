@@ -8,7 +8,6 @@ import { useCallback, useEffect, useMemo } from 'react';
 import { OpenAiSpeechRecognition } from '../../../../../../src/speech-recognition/OpenAiSpeechRecognition';
 import { string_agent_url } from '../../../../../../src/types/typeAliases';
 import { useAgentBackground } from '../../../components/AgentProfile/useAgentBackground';
-import { ChatEffectsSystem } from '../../../components/ChatEffectsSystem/ChatEffectsSystem';
 
 type AgentChatWrapperProps = {
     agentUrl: string_agent_url;
@@ -115,7 +114,6 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
             defaultMessage={defaultMessage}
             autoExecuteMessage={autoExecuteMessage}
             speechRecognition={speechRecognition}
-            EffectsSystem={ChatEffectsSystem}
             visual="FULL_PAGE"
         />
     );
