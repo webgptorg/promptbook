@@ -1,5 +1,6 @@
 ### 📚 Book
 -   Added nonce test files at the repository root for coding agent verification.
+-   Added agent-only emoji-triggered chat effects (confetti, floating hearts) via a pluggable effects system in Agents Server.
 -   Added a script to run prompt files through OpenAI Codex with prompt status tracking and git commits.
 -   Added interactive waits between codex prompt tasks with a `--no-wait` override flag.
 -   Implemented `USE IMAGE GENERATOR` commitment to allow agents to generate images using an image generation model.

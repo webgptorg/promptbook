@@ -75,6 +75,7 @@ export function Chat(props: ChatProps) {
         defaultMessage,
         // tasksProgress,
         children,
+        EffectsSystem,
         className,
         style,
         // voiceCallProps,
@@ -511,6 +512,7 @@ export function Chat(props: ChatProps) {
                 )}
                 {...{ style }}
             >
+                {EffectsSystem && <EffectsSystem messages={messages} participants={participants} />}
                 <div className={classNames(className, styles.chatMainFlow, useChatCssClassName('chatMainFlow'))}>
                     {children && <div className={classNames(styles.chatChildren)}>{children}</div>}
 

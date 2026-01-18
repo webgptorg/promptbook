@@ -2,7 +2,7 @@
 // <- Note: [👲] 'use client' is enforced by Next.js when building the https://book-components.ptbk.io/ but in ideal case,
 //          this would not be here because the `@promptbook/components` package should be React library independent of Next.js specifics
 
-import type { CSSProperties, ReactNode } from 'react';
+import type { ComponentType, CSSProperties, ReactNode } from 'react';
 import type { Promisable } from 'type-fest';
 import { Color } from '../../../_packages/color.index';
 import { SpeechRecognition } from '../../../types/SpeechRecognition';
@@ -91,7 +91,7 @@ export type ChatProps = {
     /**
      * Extra action buttons/elements rendered in the actions toolbar
      * (next to reset / template buttons). Keeps consumers DRY when
-     * adding feature–specific controls (e.g. Pause / Resume in MockedChat).
+     * adding feature-specific controls (e.g. Pause / Resume in MockedChat).
      */
     readonly extraActions?: ReactNode;
 
@@ -101,6 +101,15 @@ export type ChatProps = {
      * instead of its default position within the chat.
      */
     readonly actionsContainer?: HTMLElement | null;
+
+    /**
+     * Optional effects system rendered inside the chat container.
+     * Receives the current messages and participants for triggering effects.
+     */
+    readonly EffectsSystem?: ComponentType<{
+        messages: ReadonlyArray<ChatMessage>;
+        participants?: ReadonlyArray<ChatParticipant>;
+    }>;
 
     /**
      * Color of the action buttons (send, reset, voice, etc.)
