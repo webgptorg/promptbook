@@ -16,7 +16,7 @@ import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
 import { ClaudeCodeRunner } from './ClaudeCodeRunner';
 import { ClineRunner } from './ClineRunner';
 import { OpenAiCodexRunner } from './OpenAiCodexRunner';
-import { PromptRunner } from './PromptRunner';
+import { PromptRunner } from './_PromptRunner';
 
 if (process.cwd() !== join(__dirname, '../..')) {
     console.error(colors.red(`CWD must be root of the project`));

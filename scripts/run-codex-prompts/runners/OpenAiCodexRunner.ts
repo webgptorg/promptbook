@@ -1,8 +1,8 @@
 import { mkdir, unlink, writeFile } from 'fs/promises';
 import { dirname } from 'path/posix';
-import { $execCommand } from '../../src/utils/execCommand/$execCommand';
-import { PromptRunner, PromptRunOptions } from './PromptRunner';
-import { buildCodexScript, toPosixPath } from './run-codex-prompts';
+import { $execCommand } from '../../../src/utils/execCommand/$execCommand';
+import { PromptRunner, PromptRunOptions } from './_PromptRunner';
+import { buildCodexScript, toPosixPath } from '../run-codex-prompts';
 
 export class OpenAiCodexRunner implements PromptRunner {
     public readonly name = 'codex';

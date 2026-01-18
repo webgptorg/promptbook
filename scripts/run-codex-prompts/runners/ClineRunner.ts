@@ -1,8 +1,8 @@
 import { mkdir, unlink, writeFile } from 'fs/promises';
 import { dirname, join } from 'path';
-import { $execCommand } from '../../src/utils/execCommand/$execCommand';
-import { PromptRunner, PromptRunOptions } from './PromptRunner';
-import { toPosixPath } from './run-codex-prompts';
+import { $execCommand } from '../../../src/utils/execCommand/$execCommand';
+import { PromptRunner, PromptRunOptions } from './_PromptRunner';
+import { toPosixPath } from '../run-codex-prompts';
 
 export class ClineRunner implements PromptRunner {
     public readonly name = 'cline';

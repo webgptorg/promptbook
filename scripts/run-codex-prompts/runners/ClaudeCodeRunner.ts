@@ -1,5 +1,5 @@
-import { $execCommand } from '../../src/utils/execCommand/$execCommand';
-import { PromptRunner, PromptRunOptions } from './PromptRunner';
+import { $execCommand } from '../../../src/utils/execCommand/$execCommand';
+import { PromptRunner, PromptRunOptions } from './_PromptRunner';
 
 export class ClaudeCodeRunner implements PromptRunner {
     public readonly name = 'claude-code';
