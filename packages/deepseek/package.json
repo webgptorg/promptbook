@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/deepseek",
-    "version": "0.105.0-19",
+    "version": "0.105.0-20",
     "description": "Promptbook: Turn your company's scattered knowledge into AI ready books",
     "private": false,
     "sideEffects": false,
@@ -92,7 +92,7 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/deepseek.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.105.0-19"
+        "@promptbook/core": "0.105.0-20"
     },
     "dependencies": {
         "@ai-sdk/deepseek": "0.1.17",
