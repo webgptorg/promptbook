@@ -104,7 +104,7 @@ Some additional description of the bar task.
 
 ---
 
-[ ]
+[x]
 
 [✨🏔] Add Cline CLI to the [coding agent script](./scripts/run-codex-prompts/run-codex-prompts.ts)
 
@@ -115,6 +115,20 @@ Some additional description of the bar task.
 -   Add a flag `--agent openai-codex` or `--agent cline` to choose which agent to use.
 -   You must choose an agent, if no agent is specified, show an error with help message and exit.
 -   The Cline agent should behave the same way as the OpenAI Codex agent, it should process the prompts in the same way, commit the changes to git, etc.
+-   The coding agent is just a module to be able to extend it with more agents in the future.
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
+[ ]
+
+[✨🏔] Add Cline CLI to the [coding agent script](./scripts/run-codex-prompts/run-codex-prompts.ts)
+
+-   There is a coding agent script at `./scripts/run-codex-prompts/run-codex-prompts.ts` which runs OpenAI Codex or Cline CLI with prompts from the `./prompts` folder.
+-   Add support to run prompts in [Claude code](https://code.claude.com/).
+-   The Claude code agent should work non-interactively like the OpenAI Codex agent and directly modify the files in the repository.
+-   Add a flag `--agent claude-code` to choose which agent to use.
+-   The Claude code agent should behave the same way as other agents, it should process the prompts in the same way, commit the changes to git, etc.
 -   The coding agent is just a module to be able to extend it with more agents in the future.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
