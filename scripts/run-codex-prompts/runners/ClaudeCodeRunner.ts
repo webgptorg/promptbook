@@ -8,7 +8,10 @@ export class ClaudeCodeRunner implements PromptRunner {
 
     public async runPrompt(options: PromptRunOptions): Promise<void> {
         await $execCommand({
-            command: `claude --non-interactive "${options.prompt.replace(/"/g, '\\"')}"`,
+            command: `claude "${options.prompt.replace(
+                /"/g,
+                '\\"',
+            )}" --allowedTools "Bash,Read,Edit,Write" --output-format json --print`,
             isVerbose: true,
         });
     }
