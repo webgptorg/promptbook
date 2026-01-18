@@ -262,7 +262,7 @@
             "focus": true
         },
         {
-            "name": "⚡✨ Run Coding Agent",
+            "name": "⚡✨ Run Coding Agent (💤)(💸)(⏳)",
             "command": "npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --agent openai-codex",
             "execute": false,
             "onlySingle": false,
