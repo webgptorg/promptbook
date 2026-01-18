@@ -111,3 +111,4 @@
 -   Implemented tool calling when transpiling book into the code in `OpenAiSdkTranspiler`.
 -   Added ESLint rule `no-magic-numbers` to the entire project (root and `agents-server`), configured to allow common semantically distinct numbers like -1, 0, 1, 2, 10, 60, 100, 1000.
 -   Added prompt prioritization to the Codex prompt runner, honoring `[ ] !`, `[ ] !!`, `[ ] !!!` and grouping upcoming tasks by priority.
+-   Added Cline CLI as a second agent runner in the coding agent script with `--agent <openai-codex|cline>` flag.

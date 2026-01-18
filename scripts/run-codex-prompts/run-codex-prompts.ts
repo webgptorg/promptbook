@@ -13,7 +13,9 @@ import { assertsError } from '../../src/errors/assertsError';
 import { $execCommand } from '../../src/utils/execCommand/$execCommand';
 import { just } from '../../src/utils/organization/just';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
+import { ClineRunner } from './ClineRunner';
 import { OpenAiCodexRunner } from './OpenAiCodexRunner';
+import { PromptRunner } from './PromptRunner';
 
 if (process.cwd() !== join(__dirname, '../..')) {
     console.error(colors.red(`CWD must be root of the project`));
@@ -62,6 +64,7 @@ type PromptStats = {
 
 type RunOptions = {
     waitForUser: boolean;
+    agentName: 'openai-codex' | 'cline';
 };
 
 type UpcomingTask = {
@@ -72,12 +75,23 @@ type UpcomingTask = {
 
 async function run(): Promise<void> {
     const options = parseRunOptions(process.argv.slice(2));
-    const runner = new OpenAiCodexRunner({
-        codexCommand: 'codex',
-        model: 'gpt-5.2-codex',
-        sandbox: 'danger-full-access',
-        askForApproval: 'never',
-    });
+
+    let runner: PromptRunner;
+
+    if (options.agentName === 'openai-codex') {
+        runner = new OpenAiCodexRunner({
+            codexCommand: 'codex',
+            model: 'gpt-5.2-codex',
+            sandbox: 'danger-full-access',
+            askForApproval: 'never',
+        });
+    } else if (options.agentName === 'cline') {
+        runner = new ClineRunner({
+            model: 'gemini:gemini-3-flash-preview',
+        });
+    } else {
+        throw new Error(`Unknown agent: ${options.agentName}`);
+    }
 
     console.info(colors.green(`Running prompts with ${runner.name}`));
 
@@ -134,8 +148,25 @@ async function run(): Promise<void> {
 }
 
 function parseRunOptions(args: string[]): RunOptions {
+    let agentName: 'openai-codex' | 'cline' | undefined = undefined;
+
+    if (args.includes('--agent')) {
+        const index = args.indexOf('--agent');
+        const value = args[index + 1];
+        if (value === 'openai-codex' || value === 'cline') {
+            agentName = value;
+        }
+    }
+
+    if (!agentName) {
+        console.error(colors.red('You must choose an agent using --agent <openai-codex|cline>'));
+        console.error(colors.gray('Usage: run-codex-prompts --agent <agent-name> [--no-wait]'));
+        process.exit(1);
+    }
+
     return {
         waitForUser: !args.includes('--no-wait'),
+        agentName,
     };
 }
 
