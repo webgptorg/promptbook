@@ -264,9 +264,9 @@
         {
             "name": "⚡✨ Run Coding Agent",
             "command": "npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --agent openai-codex",
-            "execute": true,
-            "onlySingle": true,
-            "focus": true
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
         },
         {
             "name": "🏭🩹 Fix Lint",
