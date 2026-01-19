@@ -134,7 +134,7 @@ Some additional description of the bar task.
 
 ---
 
-[ ]
+[x]
 
 [✨🏔] Standartize runners of [coding agent script](./scripts/run-codex-prompts/run-codex-prompts.ts)
 

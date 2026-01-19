@@ -447,6 +447,9 @@ async function waitForEnter(prompt: string): Promise<void> {
     });
 }
 
+/**
+ * @deprecated Use `toPosixPath` from `./runners/utils/$runGoScript` instead
+ */
 export function toPosixPath(filePath: string): string {
     if (process.platform === 'win32') {
         const match = filePath.match(/^([a-zA-Z]):\\(.*)$/);

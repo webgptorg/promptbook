@@ -113,3 +113,4 @@
 -   Added prompt prioritization to the Codex prompt runner, honoring `[ ] !`, `[ ] !!`, `[ ] !!!` and grouping upcoming tasks by priority.
 -   Added Cline CLI as a second agent runner in the coding agent script with `--agent <openai-codex|cline>` flag.
 -   Added Claude code as a third agent runner in the coding agent script with `--agent <openai-codex|cline|claude-code>` flag.
+-   Standardized runners of coding agent script to use temporary script files for robust prompt execution.

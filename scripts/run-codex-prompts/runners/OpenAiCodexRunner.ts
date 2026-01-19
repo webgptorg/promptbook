@@ -1,9 +1,6 @@
-import { mkdir, unlink, writeFile } from 'fs/promises';
-import { dirname } from 'path/posix';
-import { $execCommand } from '../../../src/utils/execCommand/$execCommand';
 import { spaceTrim } from '../../../src/utils/organization/spaceTrim';
-import { toPosixPath } from '../run-codex-prompts';
 import { PromptRunner, PromptRunOptions } from './_PromptRunner';
+import { $runGoScript, toPosixPath } from './utils/$runGoScript';
 
 export class OpenAiCodexRunner implements PromptRunner {
     public readonly name = 'codex';
@@ -18,7 +15,7 @@ export class OpenAiCodexRunner implements PromptRunner {
     ) {}
 
     public async runPrompt(options: PromptRunOptions): Promise<void> {
-        const script = buildCodexScript({
+        const scriptContent = buildCodexScript({
             prompt: options.prompt,
             projectPath: options.projectPath,
             model: this.options.model,
@@ -27,17 +24,10 @@ export class OpenAiCodexRunner implements PromptRunner {
             codexCommand: this.options.codexCommand,
         });
 
-        await mkdir(dirname(options.scriptPath), { recursive: true });
-        await writeFile(options.scriptPath, script, 'utf-8');
-
-        try {
-            await $execCommand({
-                command: `bash "${toPosixPath(options.scriptPath)}"`,
-                isVerbose: true, // <- Note: Proxy the raw command output to the console
-            });
-        } finally {
-            await unlink(options.scriptPath).catch(() => undefined);
-        }
+        await $runGoScript({
+            scriptPath: options.scriptPath,
+            scriptContent,
+        });
     }
 }
 
