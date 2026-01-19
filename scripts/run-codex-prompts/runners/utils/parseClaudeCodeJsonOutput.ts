@@ -1,3 +1,4 @@
+import colors from 'colors';
 import type { Usage } from '../../../../src/execution/Usage';
 import { UNCERTAIN_USAGE } from '../../../../src/execution/utils/usage-constants';
 
@@ -29,8 +30,8 @@ type ClaudeCodeJsonOutput = {
             ephemeral_5m_input_tokens: number;
         };
     };
-    modelUsage?: Record<string, any>;
-    permission_denials: Array<any>;
+    modelUsage?: Record<string, TODO_any>;
+    permission_denials: Array<TODO_any>;
     uuid: string;
 };
 
@@ -91,6 +92,8 @@ export function parseClaudeCodeJsonOutput(output: string): Usage {
             },
         };
     } catch (error) {
+        console.error(colors.bgRed('Error parsing Claude Code JSON output:'), error);
+
         // If JSON parsing fails, return uncertain usage
         return UNCERTAIN_USAGE;
     }
