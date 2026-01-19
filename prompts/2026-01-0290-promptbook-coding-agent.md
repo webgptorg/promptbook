@@ -134,7 +134,7 @@ Some additional description of the bar task.
 
 ---
 
-[x]
+[ ]
 
 [✨🏔] Standartize runners of [coding agent script](./scripts/run-codex-prompts/run-codex-prompts.ts)
 
@@ -151,6 +151,15 @@ Some additional description of the bar task.
 $ claude "Create file named nonce-foo-2.txt with content foo" --output-format json --print --allowedTools "Bash,Read,Edit,Write"
 {"type":"result","subtype":"success","is_error":false,"duration_ms":10411,"duration_api_ms":8469,"num_turns":3,"result":"The file `nonce-foo-2.txt` already exists with the content \"foo\", which is exactly what you requested. No changes are needed.","session_id":"93a28b81-cc27-4cf6-bd85-55d264770c88","total_cost_usd":0.03936915,"usage":{"input_tokens":16,"cache_creation_input_tokens":5405,"cache_read_input_tokens":51858,"output_tokens":233,"server_tool_use":{"web_search_requests":0,"web_fetch_requests":0},"service_tier":"standard","cache_creation":{"ephemeral_1h_input_tokens":0,"ephemeral_5m_input_tokens":5405}},"modelUsage":{"claude-sonnet-4-5-20250929":{"inputTokens":16,"outputTokens":233,"cacheReadInputTokens":51858,"cacheCreationInputTokens":5405,"webSearchRequests":0,"costUSD":0.03936915,"contextWindow":200000,"maxOutputTokens":64000}},"permission_denials":[],"uuid":"2027b8df-69fc-4914-bd83-7a1052a5a377"}
 ```
+
+-   Create system to report the usage statistics of Coding agent after the prompt is done and into the markdown file with the prompt.
+-   Leverage the [usage object of Promptbook](/src/execution/Usage.ts) and the functions there are to manipulate with the usage.
+-   For the runners we dont know, use [`UNCERTAIN_USAGE` constant](/src/execution/utils/usage-constants.ts)
+-   When the runner does its work, add the usage information to the checkbox and also remove the exclamation marks for priority.
+    -   For example: "[ ]" -> "[x] $0.12"
+    -   For example: "[ ] !!" -> "[x] $3.05"
+    -   For example: "[ ] !!!!!" -> "[x] ~$1.12" (when the usage is uncertain)
+-   Keep in mind the DRY _(don't repeat yourself)_ principle, make sure there is no duplicate code between the runners, if there is, refactor it and make common utilities.
 
 ---
 
