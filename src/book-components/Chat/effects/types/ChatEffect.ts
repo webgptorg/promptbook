@@ -5,7 +5,7 @@ import type { ChatEffectType } from './ChatEffectType';
  *
  * @public exported from `@promptbook/components`
  */
-export interface ChatEffect {
+export type ChatEffect = {
     /**
      * Unique identifier for this effect instance
      */
@@ -20,4 +20,4 @@ export interface ChatEffect {
      * Timestamp when the effect was triggered
      */
     timestamp: number;
-}
+};

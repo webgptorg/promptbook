@@ -17,12 +17,15 @@ import type { ChatParticipant } from '../types/ChatParticipant';
  *
  * @public exported from `@promptbook/components`
  */
-export interface ChatSoundSystem {
+export type ChatSoundSystem = {
+    /**
+     * @@@
+     */
     play(event: string): Promise<void>;
     isEnabled(): boolean;
     setEnabled(enabled: boolean): void;
     toggle(): boolean;
-}
+};
 
 /**
  * @public exported from `@promptbook/components`

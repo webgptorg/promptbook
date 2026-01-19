@@ -3,16 +3,17 @@
 import { useEffect, useState } from 'react';
 import styles from './ConfettiEffect.module.css';
 
-interface ConfettiParticle {
+type ConfettiParticle = {
     id: number;
     left: number;
     delay: number;
     duration: number;
     color: string;
     rotation: number;
-}
+};
+// <- TODO: !!!!!!!! AI Rules: Use types not interfaces
 
-interface ConfettiEffectProps {
+type ConfettiEffectProps = {
     /**
      * Unique identifier for this effect instance
      */
@@ -22,7 +23,7 @@ interface ConfettiEffectProps {
      * Callback when the effect completes
      */
     onComplete?: () => void;
-}
+};
 
 const CONFETTI_COLORS = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2'];
 const PARTICLE_COUNT = 50;

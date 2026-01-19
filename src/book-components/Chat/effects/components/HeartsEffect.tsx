@@ -3,16 +3,16 @@
 import { useEffect, useState } from 'react';
 import styles from './HeartsEffect.module.css';
 
-interface HeartParticle {
+type HeartParticle = {
     id: number;
     left: number;
     delay: number;
     duration: number;
     emoji: string;
     scale: number;
-}
+};
 
-interface HeartsEffectProps {
+type HeartsEffectProps = {
     /**
      * Unique identifier for this effect instance
      */
@@ -22,7 +22,7 @@ interface HeartsEffectProps {
      * Callback when the effect completes
      */
     onComplete?: () => void;
-}
+};
 
 const HEART_EMOJIS = ['❤️', '💙', '💚', '💛', '💜', '🧡', '💖', '💗', '💕', '💓'];
 const PARTICLE_COUNT = 20;

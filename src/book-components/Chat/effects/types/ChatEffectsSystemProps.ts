@@ -7,7 +7,7 @@ import type { ChatEffectConfig } from './ChatEffectConfig';
  *
  * @public exported from `@promptbook/components`
  */
-export interface ChatEffectsSystemProps {
+export type ChatEffectsSystemProps = {
     /**
      * Array of chat messages to monitor for effect triggers
      */
@@ -34,4 +34,4 @@ export interface ChatEffectsSystemProps {
      * Optional sound system to play sounds when effects are triggered
      */
     soundSystem?: ChatSoundSystem;
-}
+};

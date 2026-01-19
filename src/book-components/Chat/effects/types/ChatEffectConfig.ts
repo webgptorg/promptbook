@@ -5,7 +5,7 @@ import type { ChatEffectType } from './ChatEffectType';
  *
  * @public exported from `@promptbook/components`
  */
-export interface ChatEffectConfig {
+export type ChatEffectConfig = {
     /**
      * Emoji or pattern that triggers this effect
      */
@@ -21,4 +21,4 @@ export interface ChatEffectConfig {
      * Only relevant for heart effects
      */
     matchAllHeartEmojis?: boolean;
-}
+};

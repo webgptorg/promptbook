@@ -1,13 +1,13 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import type { ChatSoundSystem } from './ChatProps';
 import styles from './Chat.module.css';
+import type { ChatSoundSystem } from './ChatProps';
 
 /**
  * Props for the ChatSoundToggle component
  */
-export interface ChatSoundToggleProps {
+export type ChatSoundToggleProps = {
     /**
      * The sound system instance
      */
@@ -17,7 +17,7 @@ export interface ChatSoundToggleProps {
      * Optional CSS class name
      */
     className?: string;
-}
+};
 
 /**
  * ChatSoundToggle component
@@ -48,12 +48,8 @@ export function ChatSoundToggle(props: ChatSoundToggleProps) {
             onClick={handleToggle}
             title={isEnabled ? 'Disable chat sounds' : 'Enable chat sounds'}
         >
-            <span style={{ marginRight: '8px' }}>
-                {isEnabled ? '🔊' : '🔇'}
-            </span>
-            <span>
-                {isEnabled ? 'Sounds On' : 'Sounds Off'}
-            </span>
+            <span style={{ marginRight: '8px' }}>{isEnabled ? '🔊' : '🔇'}</span>
+            <span>{isEnabled ? 'Sounds On' : 'Sounds Off'}</span>
         </button>
     );
 }
