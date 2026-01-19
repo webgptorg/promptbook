@@ -67,7 +67,7 @@ export async function $runGoScriptWithOutput(options: RunGoScriptOptions): Promi
             command: `bash "${toPosixPath(scriptPath)}"`,
             isVerbose: true, // <- Note: Proxy the raw command output to the console
         });
-        return result.stdout;
+        return result;
     } finally {
         await unlink(scriptPath).catch(() => undefined);
     }
