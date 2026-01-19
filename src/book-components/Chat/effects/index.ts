@@ -16,4 +16,5 @@ export { detectEffects } from './utils/detectEffects';
 
 /**
  * TODO: !!!!! To rules: Do not create index files that re-ex-port from multiple files, import directly instead or use full register
+ * Note: [💞] Ignore a discrepancy between file name and entity name
  */
