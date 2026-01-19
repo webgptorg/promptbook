@@ -1,6 +1,7 @@
 import colors from 'colors';
 import type { Usage } from '../../../../src/execution/Usage';
 import { UNCERTAIN_USAGE } from '../../../../src/execution/utils/usage-constants';
+import { TODO_any } from '../../../../src/utils/organization/TODO_any';
 
 /**
  * Claude Code JSON output structure
