@@ -7,7 +7,7 @@ cspell "src/**/*.{ts,tsx,js,jsx,md,json}" || {
 Add to the dictionary:
 ./other/cspell-dictionaries/
 
-Then commit with message:
+↗ Then commit with message:
 Fix spellcheck
 EOF
     exit 1

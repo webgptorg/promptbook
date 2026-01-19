@@ -115,8 +115,8 @@ export async function getPackagesMetadata(): Promise<Array<PackageMetadata>> {
                 (block) => `
                     ${block(`${errors.length} errors in entities`)}
 
-                    Please fix the errors and commit with message:
-                    Fix entities annotations
+                    ↗ Then commit with message:
+                    Fix entities \`@public\` and \`@private\` annotations
                 
                 `,
             ),
