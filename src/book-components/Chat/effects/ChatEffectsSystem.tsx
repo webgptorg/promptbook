@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { id } from '../../../types/typeAliases';
 import { ConfettiEffect } from './components/ConfettiEffect';
 import { HeartsEffect } from './components/HeartsEffect';
 import type { ChatEffect } from './types/ChatEffect';
@@ -23,7 +24,7 @@ export function ChatEffectsSystem(props: ChatEffectsSystemProps) {
     const { messages, effectConfigs, shouldTriggerEffect, className, soundSystem } = props;
 
     const [activeEffects, setActiveEffects] = useState<ChatEffect[]>([]);
-    const processedMessageIds = useRef(new Set<string>());
+    const processedMessageIds = useRef(new Set<id>());
 
     useEffect(() => {
         if (messages.length === 0) {
