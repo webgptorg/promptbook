@@ -12,6 +12,19 @@ import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
 
 /**
+ * Interface for sound system that can be passed to Chat component
+ * This allows the chat to trigger sounds without tight coupling
+ *
+ * @public exported from `@promptbook/components`
+ */
+export interface ChatSoundSystem {
+    play(event: string): Promise<void>;
+    isEnabled(): boolean;
+    setEnabled(enabled: boolean): void;
+    toggle(): boolean;
+}
+
+/**
  * @public exported from `@promptbook/components`
  */
 export type ChatProps = {
@@ -250,6 +263,34 @@ export type ChatProps = {
      * ```
      */
     readonly effectConfigs?: ReadonlyArray<{ trigger: string | RegExp; effectType: string }>;
+
+    /**
+     * Optional sound system for playing chat sounds
+     * When provided, enables sound effects for message events, button clicks, and visual effects
+     *
+     * The sound system should implement the ChatSoundSystem interface:
+     * - play(event: string): Plays a sound for the given event
+     * - isEnabled(): Returns whether sounds are enabled
+     * - setEnabled(enabled: boolean): Enables or disables sounds
+     * - toggle(): Toggles sound on/off and returns the new state
+     *
+     * Supported events:
+     * - 'message_send': When user sends a message
+     * - 'message_receive': When agent sends a message
+     * - 'message_typing': When agent is typing/thinking
+     * - 'button_click': When any button is clicked
+     * - 'effect_confetti': When confetti effect is triggered
+     * - 'effect_hearts': When hearts effect is triggered
+     *
+     * @example
+     * ```typescript
+     * import { createDefaultSoundSystem } from '@/utils/sound/createDefaultSoundSystem';
+     *
+     * const soundSystem = createDefaultSoundSystem();
+     * <Chat soundSystem={soundSystem} ... />
+     * ```
+     */
+    readonly soundSystem?: ChatSoundSystem;
 };
 
 /**

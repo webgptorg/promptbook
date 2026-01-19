@@ -9,6 +9,7 @@ import { OpenAiSpeechRecognition } from '../../../../../../src/speech-recognitio
 import { string_agent_url } from '../../../../../../src/types/typeAliases';
 import { useAgentBackground } from '../../../components/AgentProfile/useAgentBackground';
 import { createDefaultChatEffects } from '../../../utils/chat/createDefaultChatEffects';
+import { createDefaultSoundSystem } from '../../../utils/sound/createDefaultSoundSystem';
 
 type AgentChatWrapperProps = {
     agentUrl: string_agent_url;
@@ -99,6 +100,13 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
 
     const effectConfigs = useMemo(() => createDefaultChatEffects(), []);
 
+    const soundSystem = useMemo(() => {
+        if (typeof window === 'undefined') {
+            return undefined;
+        }
+        return createDefaultSoundSystem();
+    }, []);
+
     if (!agent) {
         return <>{/* <- TODO: [🐱‍🚀] <PromptbookLoading /> */}</>;
     }
@@ -119,6 +127,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
             speechRecognition={speechRecognition}
             visual="FULL_PAGE"
             effectConfigs={effectConfigs}
+            soundSystem={soundSystem}
         />
     );
 }

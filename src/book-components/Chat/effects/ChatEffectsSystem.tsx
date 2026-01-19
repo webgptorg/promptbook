@@ -20,7 +20,7 @@ import { detectEffects } from './utils/detectEffects';
  * @public exported from `@promptbook/components`
  */
 export function ChatEffectsSystem(props: ChatEffectsSystemProps) {
-    const { messages, effectConfigs, shouldTriggerEffect, className } = props;
+    const { messages, effectConfigs, shouldTriggerEffect, className, soundSystem } = props;
 
     const [activeEffects, setActiveEffects] = useState<ChatEffect[]>([]);
     const processedMessageIds = useRef(new Set<string>());
@@ -67,7 +67,17 @@ export function ChatEffectsSystem(props: ChatEffectsSystemProps) {
 
         setActiveEffects((prev) => [...prev, ...newEffects]);
         processedMessageIds.current.add(messageId);
-    }, [messages, effectConfigs, shouldTriggerEffect]);
+
+        // Play sounds for the effects
+        if (soundSystem) {
+            for (const type of effectTypes) {
+                const soundEvent = type === 'CONFETTI' ? 'effect_confetti' : type === 'HEARTS' ? 'effect_hearts' : null;
+                if (soundEvent) {
+                    /* not await */ soundSystem.play(soundEvent);
+                }
+            }
+        }
+    }, [messages, effectConfigs, shouldTriggerEffect, soundSystem]);
 
     const handleEffectComplete = (effectId: string) => {
         setActiveEffects((prev) => prev.filter((effect) => effect.id !== effectId));

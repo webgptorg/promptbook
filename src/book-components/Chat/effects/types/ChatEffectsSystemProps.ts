@@ -1,3 +1,4 @@
+import type { ChatSoundSystem } from '../../Chat/ChatProps';
 import type { ChatMessage } from '../../types/ChatMessage';
 import type { ChatEffectConfig } from './ChatEffectConfig';
 
@@ -28,4 +29,9 @@ export interface ChatEffectsSystemProps {
      * CSS class name for the effects container
      */
     className?: string;
+
+    /**
+     * Optional sound system to play sounds when effects are triggered
+     */
+    soundSystem?: ChatSoundSystem;
 }

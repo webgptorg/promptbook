@@ -47,6 +47,7 @@ import type { ChatProps } from './ChatProps';
 import { ClockIcon } from './ClockIcon';
 import { ChatEffectsSystem } from '../effects/ChatEffectsSystem';
 import type { ChatEffectConfig } from '../effects/types/ChatEffectConfig';
+import { ChatSoundToggle } from './ChatSoundToggle';
 
 /**
  * Renders a chat with messages and input for new messages
@@ -98,6 +99,7 @@ export function Chat(props: ChatProps) {
         toolTitles,
         visual,
         effectConfigs,
+        soundSystem,
     } = props;
 
     const buttonColor = useMemo(() => Color.from(buttonColorRaw || '#0066cc'), [buttonColorRaw]);
@@ -328,6 +330,11 @@ export function Chat(props: ChatProps) {
                 throw new Error(`You need to write some text or upload a file`);
             }
 
+            // Play send sound
+            if (soundSystem) {
+                /* not await */ soundSystem.play('message_send');
+            }
+
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             await (onMessage as any)(messageContent, attachments);
 
@@ -359,6 +366,21 @@ export function Chat(props: ChatProps) {
     const useChatCssClassName = (suffix: string) => `chat-${suffix}`;
 
     const scrollToBottomCssClassName = useChatCssClassName('scrollToBottom');
+
+    // Helper to play button click sound
+    const handleButtonClick = useCallback(
+        (originalHandler?: (event: React.MouseEvent<HTMLButtonElement>) => void) => {
+            return (event: React.MouseEvent<HTMLButtonElement>) => {
+                if (soundSystem) {
+                    /* not await */ soundSystem.play('button_click');
+                }
+                if (originalHandler) {
+                    originalHandler(event);
+                }
+            };
+        },
+        [soundSystem],
+    );
 
     const handleRating = useCallback(async (message: ChatMessage, newRating: number) => {
         setSelectedMessage(message);
@@ -447,6 +469,43 @@ export function Chat(props: ChatProps) {
         handleMessagesChange();
     }, [postprocessedMessages, handleMessagesChange]);
 
+    // Track previous messages to detect new ones
+    const previousMessagesLengthRef = useRef(messages.length);
+
+    // Play sounds when new messages are received or typing indicator appears
+    useEffect(() => {
+        if (!soundSystem || messages.length === 0) {
+            return;
+        }
+
+        const lastMessage = messages[messages.length - 1];
+        if (!lastMessage) {
+            return;
+        }
+
+        // Only trigger sounds for new messages (not on initial render)
+        if (messages.length > previousMessagesLengthRef.current) {
+            // Message from agent/assistant
+            if (lastMessage.sender !== 'USER') {
+                if (lastMessage.isComplete) {
+                    // Complete message - play receive sound
+                    /* not await */ soundSystem.play('message_receive');
+                } else if (lastMessage.content.includes('Thinking...') || lastMessage.content.includes('typing')) {
+                    // Typing indicator - play typing sound
+                    /* not await */ soundSystem.play('message_typing');
+                }
+            }
+        } else if (messages.length === previousMessagesLengthRef.current && lastMessage.sender !== 'USER') {
+            // Message length same but content changed - check for completion
+            if (lastMessage.isComplete && !lastMessage.content.includes('Thinking...')) {
+                // Message just became complete - play receive sound
+                /* not await */ soundSystem.play('message_receive');
+            }
+        }
+
+        previousMessagesLengthRef.current = messages.length;
+    }, [messages, soundSystem]);
+
     // Download logic
     const [showSaveMenu, setShowSaveMenu] = useState(false);
 
@@ -508,6 +567,7 @@ export function Chat(props: ChatProps) {
                 <ChatEffectsSystem
                     messages={postprocessedMessages}
                     effectConfigs={effectConfigs as ReadonlyArray<ChatEffectConfig>}
+                    soundSystem={soundSystem}
                 />
             )}
 
@@ -529,7 +589,7 @@ export function Chat(props: ChatProps) {
                             <button
                                 data-button-type="custom"
                                 className={classNames(styles.scrollToBottom, scrollToBottomCssClassName)}
-                                onClick={scrollToBottom}
+                                onClick={handleButtonClick(scrollToBottom)}
                             >
                                 <ArrowIcon direction="DOWN" size={33} />
                             </button>
@@ -554,13 +614,13 @@ export function Chat(props: ChatProps) {
                                 {onReset && postprocessedMessages.length !== 0 && (
                                     <button
                                         className={classNames(styles.chatButton)}
-                                        onClick={() => {
+                                        onClick={handleButtonClick(() => {
                                             if (!confirm(`Do you really want to reset the chat?`)) {
                                                 return;
                                             }
 
                                             onReset();
-                                        }}
+                                        })}
                                     >
                                         <ResetIcon />
                                         <span className={styles.chatButtonText}>New chat</span>
@@ -571,7 +631,7 @@ export function Chat(props: ChatProps) {
                                     <div className={styles.saveButtonContainer}>
                                         <button
                                             className={classNames(styles.chatButton)}
-                                            onClick={() => setShowSaveMenu((v) => !v)}
+                                            onClick={handleButtonClick(() => setShowSaveMenu((v) => !v))}
                                             aria-haspopup="true"
                                             aria-expanded={showSaveMenu}
                                         >
@@ -594,13 +654,19 @@ export function Chat(props: ChatProps) {
                                                         {formatDefinition.label}
                                                     </button>
                                                 ))}
+                                                {soundSystem && (
+                                                    <>
+                                                        <div className={styles.saveMenuDivider} />
+                                                        <ChatSoundToggle soundSystem={soundSystem} />
+                                                    </>
+                                                )}
                                             </div>
                                         )}
                                     </div>
                                 )}
 
                                 {onUseTemplate && (
-                                    <button className={classNames(styles.useTemplateButton)} onClick={onUseTemplate}>
+                                    <button className={classNames(styles.useTemplateButton)} onClick={handleButtonClick(onUseTemplate)}>
                                         <span className={styles.chatButtonText}>Use this template</span>
                                         <TemplateIcon size={16} />
                                     </button>
@@ -806,7 +872,7 @@ export function Chat(props: ChatProps) {
                                                         color: buttonColor.then(textColor).toHex(),
                                                     }}
                                                     className={styles.attachmentButton}
-                                                    onClick={() => fileInputRef.current?.click()}
+                                                    onClick={handleButtonClick(() => fileInputRef.current?.click())}
                                                     disabled={isUploading}
                                                     title="Attach file"
                                                 >
@@ -841,10 +907,10 @@ export function Chat(props: ChatProps) {
                                                         speechRecognitionState === 'TRANSCRIBING') &&
                                                         styles.voiceButtonActive,
                                                 )}
-                                                onClick={(event) => {
+                                                onClick={handleButtonClick((event) => {
                                                     event.preventDefault();
                                                     handleToggleVoiceInput();
-                                                }}
+                                                })}
                                                 title={
                                                     speechRecognitionState === 'RECORDING'
                                                         ? 'Stop recording'
@@ -864,14 +930,14 @@ export function Chat(props: ChatProps) {
                                                 color: buttonColor.then(textColor).toHex(),
                                             }}
                                             ref={buttonSendRef}
-                                            onClick={(event) => {
+                                            onClick={handleButtonClick((event) => {
                                                 if (!onMessage) {
                                                     return;
                                                 }
 
                                                 event.preventDefault();
                                                 /* not await */ handleSend();
-                                            }}
+                                            })}
                                         >
                                             <SendIcon size={25} />
                                         </button>

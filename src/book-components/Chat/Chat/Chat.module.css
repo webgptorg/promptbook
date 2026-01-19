@@ -1759,6 +1759,12 @@
     background-color: #f0f0f0;
 }
 
+.saveMenuDivider {
+    height: 1px;
+    background-color: #ddd;
+    margin: 4px 0;
+}
+
 /* Pause/Resume button variant (reuses .chatButton base styles for DRY) */
 .pauseButton {
     background: linear-gradient(135deg, #ffb347 0%, #ff8c42 100%) !important; /* Warm orange for "active/running" */
