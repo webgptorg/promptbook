@@ -1,21 +1,26 @@
 import { spaceTrim } from '../../../src/utils/organization/spaceTrim';
-import { PromptRunner, PromptRunOptions } from './_PromptRunner';
-import { $runGoScript } from './utils/$runGoScript';
+import { PromptRunner, PromptRunOptions, PromptRunResult } from './_PromptRunner';
+import { $runGoScriptWithOutput } from './utils/$runGoScript';
+import { parseClaudeCodeJsonOutput } from './utils/parseClaudeCodeJsonOutput';
 
 export class ClaudeCodeRunner implements PromptRunner {
     public readonly name = 'claude-code';
 
     public constructor() {}
 
-    public async runPrompt(options: PromptRunOptions): Promise<void> {
+    public async runPrompt(options: PromptRunOptions): Promise<PromptRunResult> {
         const scriptContent = buildClaudeScript({
             prompt: options.prompt,
         });
 
-        await $runGoScript({
+        const output = await $runGoScriptWithOutput({
             scriptPath: options.scriptPath,
             scriptContent,
         });
+
+        const usage = parseClaudeCodeJsonOutput(output);
+
+        return { usage };
     }
 }
 

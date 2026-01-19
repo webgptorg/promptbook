@@ -9,6 +9,7 @@ import { mkdir, readdir, readFile, unlink, writeFile } from 'fs/promises';
 import { basename, dirname, join, relative } from 'path';
 import { createInterface } from 'readline';
 import { assertsError } from '../../src/errors/assertsError';
+import type { Usage } from '../../src/execution/Usage';
 import { $execCommand } from '../../src/utils/execCommand/$execCommand';
 import { just } from '../../src/utils/organization/just';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
@@ -16,6 +17,7 @@ import { ClaudeCodeRunner } from './runners/ClaudeCodeRunner';
 import { ClineRunner } from './runners/ClineRunner';
 import { OpenAiCodexRunner } from './runners/OpenAiCodexRunner';
 import { PromptRunner } from './runners/_PromptRunner';
+import { formatUsagePrice } from './runners/utils/formatUsagePrice';
 
 if (process.cwd() !== join(__dirname, '../..')) {
     console.error(colors.red(`CWD must be root of the project`));
@@ -126,19 +128,19 @@ async function run(): Promise<void> {
         const commitMessage = buildCommitMessage(nextPrompt.file, nextPrompt.section);
         const codexPrompt = buildCodexPrompt(nextPrompt.file, nextPrompt.section);
 
-        markPromptDone(nextPrompt.file, nextPrompt.section);
-        await writePromptFile(nextPrompt.file);
-
         const scriptPath = buildScriptPath(nextPrompt.file, nextPrompt.section);
         const promptLabel = buildPromptLabel(nextPrompt.file, nextPrompt.section);
 
         console.info(colors.blue(`Processing ${promptLabel}`));
 
-        await runner.runPrompt({
+        const result = await runner.runPrompt({
             prompt: codexPrompt,
             scriptPath,
             projectPath: process.cwd(),
         });
+
+        markPromptDone(nextPrompt.file, nextPrompt.section, result.usage);
+        await writePromptFile(nextPrompt.file);
 
         if (options.waitForUser) {
             printCommitMessage(commitMessage);
@@ -407,13 +409,16 @@ function trimEmptyEdges(lines: string[]): string[] {
     return lines.slice(start, end + 1);
 }
 
-function markPromptDone(file: PromptFile, section: PromptSection): void {
+function markPromptDone(file: PromptFile, section: PromptSection, usage: Usage): void {
     if (section.statusLineIndex === undefined) {
         throw new Error(`Prompt ${section.index + 1} in ${file.name} does not have a status line.`);
     }
 
     const line = file.lines[section.statusLineIndex];
-    file.lines[section.statusLineIndex] = line.replace('[ ]', '[x]');
+    const priceString = formatUsagePrice(usage);
+
+    // Replace "[ ]" or "[ ] !!..." with "[x] $price"
+    file.lines[section.statusLineIndex] = line.replace(/\[\s*\]\s*!*\s*$/, `[x] ${priceString}`);
 }
 
 async function writePromptFile(file: PromptFile): Promise<void> {

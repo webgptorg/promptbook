@@ -1,5 +1,6 @@
 import { spaceTrim } from '../../../src/utils/organization/spaceTrim';
-import { PromptRunner, PromptRunOptions } from './_PromptRunner';
+import { UNCERTAIN_USAGE } from '../../../src/execution/utils/usage-constants';
+import { PromptRunner, PromptRunOptions, PromptRunResult } from './_PromptRunner';
 import { $runGoScript, toPosixPath } from './utils/$runGoScript';
 
 export class OpenAiCodexRunner implements PromptRunner {
@@ -14,7 +15,7 @@ export class OpenAiCodexRunner implements PromptRunner {
         },
     ) {}
 
-    public async runPrompt(options: PromptRunOptions): Promise<void> {
+    public async runPrompt(options: PromptRunOptions): Promise<PromptRunResult> {
         const scriptContent = buildCodexScript({
             prompt: options.prompt,
             projectPath: options.projectPath,
@@ -28,6 +29,8 @@ export class OpenAiCodexRunner implements PromptRunner {
             scriptPath: options.scriptPath,
             scriptContent,
         });
+
+        return { usage: UNCERTAIN_USAGE };
     }
 }
 

@@ -50,3 +50,25 @@ export async function $runGoScript(options: RunGoScriptOptions): Promise<void> {
         await unlink(scriptPath).catch(() => undefined);
     }
 }
+
+/**
+ * Creates a temporary script file, runs it, captures output, and then deletes it
+ *
+ * @private within the run-codex-prompts script
+ */
+export async function $runGoScriptWithOutput(options: RunGoScriptOptions): Promise<string> {
+    const { scriptPath, scriptContent } = options;
+
+    await mkdir(dirname(scriptPath), { recursive: true });
+    await writeFile(scriptPath, scriptContent, 'utf-8');
+
+    try {
+        const result = await $execCommand({
+            command: `bash "${toPosixPath(scriptPath)}"`,
+            isVerbose: true, // <- Note: Proxy the raw command output to the console
+        });
+        return result.stdout;
+    } finally {
+        await unlink(scriptPath).catch(() => undefined);
+    }
+}
