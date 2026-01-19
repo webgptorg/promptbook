@@ -45,6 +45,8 @@ import { ChatMessageItem } from './ChatMessageItem';
 import { MockedChat } from '../MockedChat/MockedChat'; // <- [🥂]
 import type { ChatProps } from './ChatProps';
 import { ClockIcon } from './ClockIcon';
+import { ChatEffectsSystem } from '../effects/ChatEffectsSystem';
+import type { ChatEffectConfig } from '../effects/types/ChatEffectConfig';
 
 /**
  * Renders a chat with messages and input for new messages
@@ -95,6 +97,7 @@ export function Chat(props: ChatProps) {
         onCreateAgent,
         toolTitles,
         visual,
+        effectConfigs,
     } = props;
 
     const buttonColor = useMemo(() => Color.from(buttonColorRaw || '#0066cc'), [buttonColorRaw]);
@@ -500,6 +503,13 @@ export function Chat(props: ChatProps) {
     return (
         <>
             {ratingConfirmation && <div className={styles.ratingConfirmation}>{ratingConfirmation}</div>}
+
+            {effectConfigs && effectConfigs.length > 0 && (
+                <ChatEffectsSystem
+                    messages={postprocessedMessages}
+                    effectConfigs={effectConfigs as ReadonlyArray<ChatEffectConfig>}
+                />
+            )}
 
             <div
                 className={classNames(

@@ -236,6 +236,20 @@ export type ChatProps = {
      * Visual style of the chat component
      */
     readonly visual: 'STANDALONE' | 'FULL_PAGE';
+
+    /**
+     * Optional array of effect configurations for chat animations
+     * When provided, enables visual effects (confetti, hearts, etc.) based on emojis in messages
+     *
+     * Example:
+     * ```typescript
+     * [
+     *   { trigger: '🎉', effectType: 'CONFETTI' },
+     *   { trigger: /❤️|💙|💚/, effectType: 'HEARTS' }
+     * ]
+     * ```
+     */
+    readonly effectConfigs?: ReadonlyArray<{ trigger: string | RegExp; effectType: string }>;
 };
 
 /**

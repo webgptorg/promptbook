@@ -8,6 +8,7 @@ import { useCallback, useEffect, useMemo } from 'react';
 import { OpenAiSpeechRecognition } from '../../../../../../src/speech-recognition/OpenAiSpeechRecognition';
 import { string_agent_url } from '../../../../../../src/types/typeAliases';
 import { useAgentBackground } from '../../../components/AgentProfile/useAgentBackground';
+import { createDefaultChatEffects } from '../../../utils/chat/createDefaultChatEffects';
 
 type AgentChatWrapperProps = {
     agentUrl: string_agent_url;
@@ -96,6 +97,8 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
         return new OpenAiSpeechRecognition();
     }, []);
 
+    const effectConfigs = useMemo(() => createDefaultChatEffects(), []);
+
     if (!agent) {
         return <>{/* <- TODO: [🐱‍🚀] <PromptbookLoading /> */}</>;
     }
@@ -115,6 +118,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
             autoExecuteMessage={autoExecuteMessage}
             speechRecognition={speechRecognition}
             visual="FULL_PAGE"
+            effectConfigs={effectConfigs}
         />
     );
 }

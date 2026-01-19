@@ -114,3 +114,14 @@
 -   Added Cline CLI as a second agent runner in the coding agent script with `--agent <openai-codex|cline>` flag.
 -   Added Claude code as a third agent runner in the coding agent script with `--agent <openai-codex|cline|claude-code>` flag.
 -   Standardized runners of coding agent script to use temporary script files for robust prompt execution.
+-   Implemented interactive chat animations triggered by emojis in agent messages:
+    -   Added `ChatEffectsSystem` component with pluggable architecture for visual effects
+    -   Implemented confetti animation effect for 🎉 emoji (particles falling from top)
+    -   Implemented floating hearts animation effect for ❤️ and other heart emojis (hearts rising from bottom)
+    -   Effects trigger only once per message even with multiple identical emojis
+    -   Multiple different emojis in the same message trigger multiple effects simultaneously
+    -   Effects only trigger for newly received agent messages (not user messages, not old messages on scroll)
+    -   Decoupled effects logic with separate components for each effect type
+    -   Easily extensible system for adding new effects in the future
+    -   Integrated into all chat components: `<Chat/>`, `<LlmChat/>`, `<AgentChat/>`, `<MockedChat/>`
+    -   Default effects configuration enabled in Agents Server chat interface
