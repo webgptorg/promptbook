@@ -57,7 +57,7 @@ TEAM You can talk with http://localhost:4440/agents/GMw67JN8TXxN7y to discuss th
 
 ---
 
-[ ]
+[x] *(failed after finish)*
 
 [✨👺] Enhance the chip UI and UX when an agent is consulting another agent.
 

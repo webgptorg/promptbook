@@ -200,6 +200,20 @@ export type ChatProps = {
     readonly toolTitles?: Record<string, string>;
 
     /**
+     * Optional metadata about teammates for team tool calls
+     * Maps tool name to agent information
+     */
+    readonly teammates?: Record<
+        string,
+        {
+            url: string;
+            label?: string;
+            instructions?: string;
+            toolName: string;
+        }
+    >;
+
+    /**
      * Optional callback to create a new agent from the template.
      * If provided, renders the [Create Agent] button for book code blocks.
      */

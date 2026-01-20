@@ -8,12 +8,13 @@ import { PROMPTBOOK_CHAT_COLOR, USER_CHAT_COLOR } from '../../../config';
 import type { id } from '../../../types/typeAliases';
 import { Color } from '../../../utils/color/Color';
 import { textColor } from '../../../utils/color/operators/furthest';
+import { AgentChip } from '../AgentChip';
 import { AvatarProfileTooltip } from '../../AvatarProfile/AvatarProfile/AvatarProfileTooltip';
 import { classNames } from '../../_common/react-utils/classNames';
 import { MarkdownContent } from '../MarkdownContent/MarkdownContent';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
-import { getToolCallChipletText, TOOL_TITLES } from '../utils/getToolCallChipletText';
+import { getToolCallChipletInfo, getToolCallChipletText, TOOL_TITLES } from '../utils/getToolCallChipletText';
 import { parseMessageButtons } from '../utils/parseMessageButtons';
 import styles from './Chat.module.css';
 import type { ChatProps } from './ChatProps';
@@ -55,6 +56,19 @@ type ChatMessageItemProps = Pick<ChatProps, 'onMessage' | 'participants'> & {
      */
     toolTitles?: Record<string, string>;
     /**
+     * Optional metadata about teammates for team tool calls
+     * Maps tool name to agent information
+     */
+    teammates?: Record<
+        string,
+        {
+            url: string;
+            label?: string;
+            instructions?: string;
+            toolName: string;
+        }
+    >;
+    /**
      * Called when a tool call chiplet is clicked.
      */
     onToolCallClick?: (toolCall: NonNullable<ChatMessage['toolCalls']>[number]) => void;
@@ -85,6 +99,7 @@ export const ChatMessageItem = memo(
             onCopy,
             onCreateAgent,
             toolTitles,
+            teammates,
             onToolCallClick,
         } = props;
         const {
@@ -384,8 +399,26 @@ export const ChatMessageItem = memo(
                     {completedToolCalls && completedToolCalls.length > 0 && (
                         <div className={styles.completedToolCalls}>
                             {completedToolCalls.map((toolCall, index) => {
-                                const chipletText = getToolCallChipletText(toolCall);
+                                const chipletInfo = getToolCallChipletInfo(toolCall);
 
+                                // If this is a team tool with agent data, use AgentChip
+                                if (chipletInfo.agentData) {
+                                    return (
+                                        <AgentChip
+                                            key={index}
+                                            agent={chipletInfo.agentData}
+                                            isClickable={true}
+                                            onClick={(event) => {
+                                                event?.stopPropagation?.();
+                                                if (onToolCallClick) {
+                                                    onToolCallClick(toolCall);
+                                                }
+                                            }}
+                                        />
+                                    );
+                                }
+
+                                // Otherwise, use the old button style
                                 return (
                                     <button
                                         key={index}
@@ -397,7 +430,7 @@ export const ChatMessageItem = memo(
                                             }
                                         }}
                                     >
-                                        [{chipletText}]
+                                        [{chipletInfo.text}]
                                     </button>
                                 );
                             })}
@@ -409,6 +442,27 @@ export const ChatMessageItem = memo(
                             {message.ongoingToolCalls.map((toolCall, index) => {
                                 const toolInfo = TOOL_TITLES[toolCall.name];
                                 const isTeamTool = toolCall.name.startsWith('team_chat_');
+
+                                // Try to find teammate data by matching toolName
+                                const teammate = teammates
+                                    ? Object.values(teammates).find((t) => t.toolName === toolCall.name)
+                                    : undefined;
+
+                                // If this is a team tool with teammate data, use AgentChip
+                                if (isTeamTool && teammate) {
+                                    return (
+                                        <AgentChip
+                                            key={index}
+                                            agent={{
+                                                url: teammate.url,
+                                                label: teammate.label || teammate.url,
+                                            }}
+                                            isOngoing={true}
+                                        />
+                                    );
+                                }
+
+                                // Otherwise, use the old style
                                 const toolTitle =
                                     toolTitles?.[toolCall.name] ||
                                     toolInfo?.title ||
@@ -552,6 +606,10 @@ export const ChatMessageItem = memo(
         }
 
         if (prev.toolTitles !== next.toolTitles) {
+            return false;
+        }
+
+        if (prev.teammates !== next.teammates) {
             return false;
         }
 

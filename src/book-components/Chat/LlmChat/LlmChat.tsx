@@ -4,6 +4,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { string_markdown } from '../../../types/typeAliases';
+import type { TODO_any } from '../../../utils/organization/TODO_any';
 import { Chat } from '../Chat/Chat';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
@@ -49,6 +50,18 @@ export function LlmChat(props: LlmChatProps) {
     const [messages, setMessages] = useState<ChatMessage[]>(() => buildInitialMessages());
     const [tasksProgress, setTasksProgress] = useState<Array<{ id: string; name: string; progress?: number }>>([]);
     const [isVoiceCalling] = useState(false);
+    const [teammates, setTeammates] = useState<
+        | Record<
+              string,
+              {
+                  url: string;
+                  label?: string;
+                  instructions?: string;
+                  toolName: string;
+              }
+          >
+        | undefined
+    >(undefined);
 
     // Refs to keep latest state for long-lived handlers
     const messagesRef = useRef<ChatMessage[]>([]);
@@ -101,6 +114,61 @@ export function LlmChat(props: LlmChatProps) {
             ],
         [llmTools.profile, llmTools.title],
     );
+
+    // Load teammates metadata from llmTools
+    useEffect(() => {
+        const loadTeammates = async () => {
+            // Check if llmTools has getModelRequirements method (AgentLlmExecutionTools)
+            const llmToolsWithMetadata = llmTools as TODO_any;
+
+            if (typeof llmToolsWithMetadata.getModelRequirements !== 'function') {
+                setTeammates(undefined);
+                return;
+            }
+
+            try {
+                const modelRequirements = await llmToolsWithMetadata.getModelRequirements();
+
+                if (!modelRequirements?.metadata?.teammates || !Array.isArray(modelRequirements.metadata.teammates)) {
+                    setTeammates(undefined);
+                    return;
+                }
+
+                // Convert array to object keyed by toolName for easier lookup
+                const teammatesMap: Record<
+                    string,
+                    {
+                        url: string;
+                        label?: string;
+                        instructions?: string;
+                        toolName: string;
+                    }
+                > = {};
+
+                for (const teammate of modelRequirements.metadata.teammates as Array<{
+                    url: string;
+                    label?: string;
+                    instructions?: string;
+                    toolName: string;
+                }>) {
+                    if (teammate.toolName) {
+                        teammatesMap[teammate.toolName] = teammate;
+                    }
+                }
+
+                if (Object.keys(teammatesMap).length > 0) {
+                    setTeammates(teammatesMap);
+                } else {
+                    setTeammates(undefined);
+                }
+            } catch (error) {
+                console.warn('Failed to load teammates metadata:', error);
+                setTeammates(undefined);
+            }
+        };
+
+        loadTeammates();
+    }, [llmTools]);
 
     // Keep refs in sync for usage inside long-lived callbacks
     useEffect(() => {
@@ -300,7 +368,7 @@ export function LlmChat(props: LlmChatProps) {
         <>
             <Chat
                 {...restProps}
-                {...{ messages, onReset, tasksProgress, participants, buttonColor, toolTitles }}
+                {...{ messages, onReset, tasksProgress, participants, buttonColor, toolTitles, teammates }}
                 onMessage={handleMessage}
                 onReset={handleReset}
                 isVoiceCalling={isVoiceCalling}

@@ -170,3 +170,15 @@
     -   Email tool leverages existing `sendMessage` utility and email providers (Sendgrid, Zeptomail)
     -   All emails are queued through the database-driven message system
     -   Follows the same pattern as `USE TIME` and `USE SEARCH ENGINE` commitments for consistency
+-   Enhanced agent-to-agent interaction chips in chat UI:
+    -   Created reusable `<AgentChip/>` component displaying agent avatar and name
+    -   Replaced generic "🤝 Consulting teammate..." text with agent-specific chips showing actual agent profile picture and name
+    -   Removed displaying agent IDs (e.g., "TEoiVpZzBgTPUi") in favor of user-friendly agent names
+    -   Agent chips automatically fetch agent profile data from both local and federated servers
+    -   For ongoing consultations, chips display spinner animation with agent avatar and name
+    -   For completed consultations, chips are clickable and show full team interaction details
+    -   Implemented DRY principle with single reusable chip component inspired by `<AgentProfile/>`
+    -   Works seamlessly with both same-server and federated agent interactions
+    -   Added `teammates` prop to `<Chat/>` and `<ChatMessageItem/>` components to pass agent metadata
+    -   Updated `getToolCallChipletInfo()` to return agent data along with display text
+    -   Enhanced `TeamToolResult` type to include teammate URL and label information

@@ -1,4 +1,5 @@
 import type { ToolCall } from '../../../types/ToolCall';
+import type { AgentChipData } from '../AgentChip';
 import {
     getToolCallResultDate,
     parseTeamToolResult,
@@ -9,6 +10,21 @@ import {
 /**
  * Utility to format tool call information for user-friendly display.
  */
+
+/**
+ * Tool call chiplet information including agent data for team tools
+ */
+export type ToolCallChipletInfo = {
+    /**
+     * Display text for the chiplet
+     */
+    text: string;
+
+    /**
+     * Agent data for team tools (if applicable)
+     */
+    agentData?: AgentChipData;
+};
 
 /**
  * Technical to user-friendly tool names and emojis
@@ -33,9 +49,19 @@ export const TOOL_TITLES: Record<string, { title: string; emoji: string }> = {
 /**
  * Gets the user-friendly text for a tool call chiplet.
  *
+ * @deprecated Use getToolCallChipletInfo instead which returns both text and agent data
  * @private [🧠] Maybe public?
  */
 export function getToolCallChipletText(toolCall: ToolCall): string {
+    return getToolCallChipletInfo(toolCall).text;
+}
+
+/**
+ * Gets the chiplet information including text and agent data (for team tools).
+ *
+ * @private [🧠] Maybe public?
+ */
+export function getToolCallChipletInfo(toolCall: ToolCall): ToolCallChipletInfo {
     const toolInfo = TOOL_TITLES[toolCall.name];
     const baseTitle = toolInfo?.title || toolCall.name;
     const emoji = toolInfo?.emoji || '🛠️';
@@ -48,36 +74,54 @@ export function getToolCallChipletText(toolCall: ToolCall): string {
 
     if (teamResult?.teammate) {
         const label = teamResult.teammate.label || teamResult.teammate.url || baseTitle;
-        const teamEmoji = '🤝';
-        return `${teamEmoji} ${label}`.trim();
+        const agentData: AgentChipData = {
+            url: teamResult.teammate.url as string,
+            label,
+        };
+        return {
+            text: label,
+            agentData,
+        };
     }
 
     if (isTimeTool) {
         const resultDate = getToolCallResultDate(resultRaw);
 
         if (resultDate) {
-            return `${emoji} ${resultDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+            return {
+                text: `${emoji} ${resultDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
+            };
         }
     }
 
     if (isEmailTool) {
         if (args.subject) {
-            return `${emoji} ${args.subject}`;
+            return {
+                text: `${emoji} ${args.subject}`,
+            };
         }
     }
 
     if (args.query) {
-        return `${emoji} ${args.query}`;
+        return {
+            text: `${emoji} ${args.query}`,
+        };
     }
 
     if (args.url) {
         try {
             const url = new URL(args.url);
-            return `${emoji} ${url.hostname}`;
+            return {
+                text: `${emoji} ${url.hostname}`,
+            };
         } catch (e) {
-            return `${emoji} ${args.url}`;
+            return {
+                text: `${emoji} ${args.url}`,
+            };
         }
     }
 
-    return `${emoji} ${baseTitle}`;
+    return {
+        text: `${emoji} ${baseTitle}`,
+    };
 }

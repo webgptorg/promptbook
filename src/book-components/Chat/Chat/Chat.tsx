@@ -98,6 +98,7 @@ export function Chat(props: ChatProps) {
         onUseTemplate,
         onCreateAgent,
         toolTitles,
+        teammates,
         visual,
         effectConfigs,
         soundSystem,
@@ -745,6 +746,7 @@ export function Chat(props: ChatProps) {
                                     onCopy={handleCopy}
                                     onCreateAgent={onCreateAgent}
                                     toolTitles={toolTitles}
+                                    teammates={teammates}
                                     onToolCallClick={(toolCall) => {
                                         setSelectedToolCall(toolCall);
                                         setToolCallModalOpen(true);
