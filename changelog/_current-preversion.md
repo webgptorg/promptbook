@@ -225,3 +225,17 @@
         -   Ability to retry failed operations without re-typing messages
         -   Consistent error handling across all chat interfaces
         -   Better debugging with raw errors logged to console
+-   Enhanced RAG source citation display in Agents Server chat:
+    -   Replaced ugly OpenAI annotation format `【5:13†document.pdf】` with native Promptbook chips
+    -   Created `<SourceChip/>` component displaying source document with file icon and citation ID
+    -   Citations now appear as clickable chips below messages (similar to `USE SEARCH ENGINE` commitment)
+    -   Implemented citation preview modal with:
+        -   Source document name and citation ID
+        -   Optional URL link to the source document
+        -   Document excerpt/preview when available
+        -   Clean, user-friendly UI matching existing tool call modals
+    -   Added `citations` field to `ChatMessage` type for storing RAG source annotations
+    -   Implemented `parseCitationsFromContent` utility to extract citations from message content
+    -   Citation references in text are now rendered as numbered superscripts `[5:13]` instead of full annotations
+    -   Follows DRY principle by reusing existing modal styles and chip patterns
+    -   Integrated seamlessly with existing chat UI and tool call chip system

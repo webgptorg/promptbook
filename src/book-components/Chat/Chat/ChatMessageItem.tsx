@@ -9,6 +9,7 @@ import type { id } from '../../../types/typeAliases';
 import { Color } from '../../../utils/color/Color';
 import { textColor } from '../../../utils/color/operators/furthest';
 import { AgentChip } from '../AgentChip';
+import { SourceChip } from '../SourceChip';
 import { AvatarProfileTooltip } from '../../AvatarProfile/AvatarProfile/AvatarProfileTooltip';
 import { classNames } from '../../_common/react-utils/classNames';
 import { MarkdownContent } from '../MarkdownContent/MarkdownContent';
@@ -16,6 +17,7 @@ import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
 import { getToolCallChipletInfo, getToolCallChipletText, TOOL_TITLES } from '../utils/getToolCallChipletText';
 import { parseMessageButtons } from '../utils/parseMessageButtons';
+import { extractCitationsFromMessage, type ParsedCitation } from '../utils/parseCitations';
 import styles from './Chat.module.css';
 import type { ChatProps } from './ChatProps';
 import { AVATAR_SIZE, LOADING_INTERACTIVE_IMAGE } from './constants';
@@ -72,6 +74,11 @@ type ChatMessageItemProps = Pick<ChatProps, 'onMessage' | 'participants'> & {
      * Called when a tool call chiplet is clicked.
      */
     onToolCallClick?: (toolCall: NonNullable<ChatMessage['toolCalls']>[number]) => void;
+
+    /**
+     * Called when a source citation chip is clicked.
+     */
+    onCitationClick?: (citation: ParsedCitation) => void;
 };
 
 /**
@@ -101,6 +108,7 @@ export const ChatMessageItem = memo(
             toolTitles,
             teammates,
             onToolCallClick,
+            onCitationClick,
         } = props;
         const {
             isComplete = true,
@@ -193,6 +201,10 @@ export const ChatMessageItem = memo(
         const { contentWithoutButtons, buttons } = parseMessageButtons(message.content);
         const completedToolCalls = message.toolCalls || message.completedToolCalls;
         const shouldShowButtons = isLastMessage && buttons.length > 0 && onMessage;
+
+        // Extract citations from message content
+        const messageWithCitations = extractCitationsFromMessage(message);
+        const citations = messageWithCitations.citations || [];
         const [localHoveredRating, setLocalHoveredRating] = useState(0);
         const [copied, setCopied] = useState(false);
         const [tooltipAlign, setTooltipAlign] = useState<'center' | 'left' | 'right'>('center');
@@ -437,6 +449,18 @@ export const ChatMessageItem = memo(
                         </div>
                     )}
 
+                    {citations.length > 0 && (
+                        <div className={styles.sourceCitations}>
+                            {citations.map((citation, index) => (
+                                <SourceChip
+                                    key={`${citation.id}-${citation.source}-${index}`}
+                                    citation={citation}
+                                    onClick={onCitationClick}
+                                />
+                            ))}
+                        </div>
+                    )}
+
                     {!isComplete && message.ongoingToolCalls && message.ongoingToolCalls.length > 0 && (
                         <div className={styles.ongoingToolCalls}>
                             {message.ongoingToolCalls.map((toolCall, index) => {
@@ -614,6 +638,10 @@ export const ChatMessageItem = memo(
         }
 
         if (prev.onToolCallClick !== next.onToolCallClick) {
+            return false;
+        }
+
+        if (prev.onCitationClick !== next.onCitationClick) {
             return false;
         }
 

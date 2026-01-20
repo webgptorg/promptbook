@@ -166,6 +166,14 @@
     user-select: none;
 }
 
+.citationRef {
+    font-size: 0.75em;
+    font-weight: 600;
+    color: #007bff;
+    margin: 0 1px;
+    cursor: pointer;
+}
+
 /**
  * TODO: [🌉] DRY Markdown primitives styling
  */

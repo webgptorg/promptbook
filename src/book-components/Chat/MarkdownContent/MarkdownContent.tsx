@@ -49,9 +49,11 @@ function createChatMarkdownConverter(): ShowdownConverter {
         extensions: [
             () => ({
                 type: 'lang',
-                regex: /【(.*?)†source】/g,
-                replace: (match: string, content: string) => {
-                    return `<span class="${styles.citation}">${content}</span>`;
+                regex: /【(.*?)†(.*?)】/g,
+                replace: (match: string, id: string, source: string) => {
+                    // Note: Citations are now rendered as chips in ChatMessageItem
+                    // We replace them with numbered superscript references
+                    return `<sup class="${styles.citationRef}">[${id}]</sup>`;
                 },
             }),
         ],

@@ -44,6 +44,7 @@ import {
     parseToolCallArguments,
     parseToolCallResult,
 } from '../utils/toolCallParsing';
+import type { ParsedCitation } from '../utils/parseCitations';
 import styles from './Chat.module.css';
 import { ChatMessageItem } from './ChatMessageItem';
 import type { ChatProps } from './ChatProps';
@@ -124,6 +125,8 @@ export function Chat(props: ChatProps) {
     const [selectedToolCall, setSelectedToolCall] = useState<NonNullable<ChatMessage['toolCalls']>[number] | null>(
         null,
     );
+    const [citationModalOpen, setCitationModalOpen] = useState(false);
+    const [selectedCitation, setSelectedCitation] = useState<ParsedCitation | null>(null);
     const [selectedMessage, setSelectedMessage] = useState<ChatMessage | null>(null);
     const [messageRatings, setMessageRatings] = useState<Map<id, number>>(new Map());
     const [textRating, setTextRating] = useState('');
@@ -751,6 +754,10 @@ export function Chat(props: ChatProps) {
                                         setSelectedToolCall(toolCall);
                                         setToolCallModalOpen(true);
                                     }}
+                                    onCitationClick={(citation) => {
+                                        setSelectedCitation(citation);
+                                        setCitationModalOpen(true);
+                                    }}
                                 />
                             );
                         })}
@@ -1360,6 +1367,69 @@ export function Chat(props: ChatProps) {
 
                         <div className={styles.ratingActions}>
                             <button onClick={() => setToolCallModalOpen(false)}>Close</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {citationModalOpen && selectedCitation && (
+                <div
+                    className={styles.ratingModal}
+                    onClick={(e) => {
+                        if (e.target === e.currentTarget) {
+                            setCitationModalOpen(false);
+                        }
+                    }}
+                >
+                    <div className={classNames(styles.ratingModalContent, styles.toolCallModal)}>
+                        <div className={styles.searchModalHeader}>
+                            <span className={styles.searchModalIcon}>📄</span>
+                            <h3 className={styles.searchModalQuery}>{selectedCitation.source}</h3>
+                        </div>
+
+                        <div className={styles.searchModalContent}>
+                            <div className={styles.citationDetails}>
+                                <div className={styles.citationMetadata}>
+                                    <p>
+                                        <strong>Citation ID:</strong> {selectedCitation.id}
+                                    </p>
+                                    <p>
+                                        <strong>Source:</strong> {selectedCitation.source}
+                                    </p>
+                                    {selectedCitation.url && (
+                                        <p>
+                                            <strong>URL:</strong>{' '}
+                                            <a
+                                                href={selectedCitation.url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                            >
+                                                {selectedCitation.url}
+                                            </a>
+                                        </p>
+                                    )}
+                                </div>
+
+                                {selectedCitation.excerpt && (
+                                    <div className={styles.citationExcerpt}>
+                                        <h4>Excerpt:</h4>
+                                        <MarkdownContent content={selectedCitation.excerpt} />
+                                    </div>
+                                )}
+
+                                {!selectedCitation.excerpt && (
+                                    <div className={styles.noResults}>
+                                        <p>No preview available for this source.</p>
+                                        <p className={styles.citationHint}>
+                                            This citation references content from the source document.
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className={styles.ratingActions}>
+                            <button onClick={() => setCitationModalOpen(false)}>Close</button>
                         </div>
                     </div>
                 </div>

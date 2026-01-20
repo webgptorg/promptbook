@@ -257,6 +257,16 @@
     border-top: 1px solid rgba(255, 255, 255, 0.2);
 }
 
+.sourceCitations {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
 .ongoingToolCall,
 .completedToolCall {
     display: flex;
@@ -1458,6 +1468,59 @@
 .toolCallDetails {
     text-align: left;
     margin: 20px 0;
+}
+
+.citationDetails {
+    text-align: left;
+    margin: 20px 0;
+}
+
+.citationMetadata {
+    background: #f8f8f8;
+    padding: 16px;
+    border-radius: 8px;
+    border: 1px solid #eee;
+    margin-bottom: 20px;
+}
+
+.citationMetadata p {
+    margin: 8px 0;
+    font-size: 0.9em;
+}
+
+.citationMetadata strong {
+    color: #333;
+}
+
+.citationMetadata a {
+    color: #007bff;
+    text-decoration: none;
+    word-break: break-all;
+}
+
+.citationMetadata a:hover {
+    text-decoration: underline;
+}
+
+.citationExcerpt {
+    background: #fff;
+    padding: 16px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.citationExcerpt h4 {
+    margin: 0 0 12px 0;
+    color: #333;
+    font-size: 1em;
+}
+
+.citationHint {
+    font-size: 0.85em;
+    margin-top: 8px;
+    opacity: 0.7;
 }
 
 .toolCallDataContainer {

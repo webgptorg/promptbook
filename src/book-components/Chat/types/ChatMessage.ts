@@ -78,6 +78,31 @@ export type ChatMessage = Omit<Message<id>, 'direction' | 'recipients' | 'thread
          */
         url: string;
     }>;
+
+    /**
+     * Optional source citations/annotations (from RAG systems like OpenAI Assistants)
+     */
+    readonly citations?: ReadonlyArray<{
+        /**
+         * The unique identifier for the citation (e.g., "5:13")
+         */
+        id: string;
+
+        /**
+         * The source document name (e.g., "document.pdf")
+         */
+        source: string;
+
+        /**
+         * Optional URL to the source document
+         */
+        url?: string;
+
+        /**
+         * Optional preview/excerpt from the source
+         */
+        excerpt?: string;
+    }>;
 };
 
 /**
