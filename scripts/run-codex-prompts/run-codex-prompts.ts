@@ -58,10 +58,9 @@ type PromptFile = {
 };
 
 type PromptStats = {
-    total: number;
     done: number;
-    todo: number;
-    notReady: number;
+    forAgent: number;
+    toBeWritten: number;
 };
 
 type RunOptions = {
@@ -258,17 +257,19 @@ function findFirstNonEmptyLine(lines: string[], startLine: number, endLine: numb
 }
 
 function summarizePrompts(files: PromptFile[]): PromptStats {
-    const stats: PromptStats = { total: 0, done: 0, todo: 0, notReady: 0 };
+    const stats: PromptStats = { done: 0, forAgent: 0, toBeWritten: 0 };
 
     for (const file of files) {
         for (const section of file.sections) {
-            stats.total += 1;
             if (section.status === 'done') {
                 stats.done += 1;
             } else if (section.status === 'todo') {
-                stats.todo += 1;
-            } else {
-                stats.notReady += 1;
+                const promptText = buildCodexPrompt(file, section);
+                if (promptText.includes('@@@')) {
+                    stats.toBeWritten += 1;
+                } else {
+                    stats.forAgent += 1;
+                }
             }
         }
     }
@@ -278,9 +279,7 @@ function summarizePrompts(files: PromptFile[]): PromptStats {
 
 function printStats(stats: PromptStats): void {
     console.info(
-        colors.cyan(
-            `Prompts total: ${stats.total} | done: ${stats.done} | todo: ${stats.todo} | not ready: ${stats.notReady}`,
-        ),
+        colors.cyan(`Done: ${stats.done} | For agent: ${stats.forAgent} | To be written: ${stats.toBeWritten}`),
     );
 }
 
@@ -338,6 +337,10 @@ function findNextTodoPrompt(files: PromptFile[]): { file: PromptFile; section: P
     let nextPrompt: { file: PromptFile; section: PromptSection } | undefined;
 
     for (const prompt of listTodoPrompts(files)) {
+        const promptText = buildCodexPrompt(prompt.file, prompt.section);
+        if (promptText.includes('@@@')) {
+            continue;
+        }
         if (!nextPrompt || prompt.section.priority > nextPrompt.section.priority) {
             nextPrompt = prompt;
         }
