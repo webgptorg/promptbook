@@ -119,7 +119,7 @@ async function run(): Promise<void> {
         }
 
         if (options.waitForUser && !hasWaitedForStart) {
-            await waitForEnter(colors.gray('Press Enter to start the first task...'));
+            await waitForEnter(colors.bgWhite('Press Enter to start the first task...'));
         }
         hasWaitedForStart = true;
 
@@ -144,7 +144,7 @@ async function run(): Promise<void> {
 
         if (options.waitForUser) {
             printCommitMessage(commitMessage);
-            await waitForEnter(colors.gray('Press Enter to commit and continue...'));
+            await waitForEnter(colors.bgWhite('Press Enter to commit and continue...'));
         }
 
         await commitChanges(commitMessage);
