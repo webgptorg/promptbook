@@ -27,7 +27,12 @@ import { ResetIcon } from '../../icons/ResetIcon';
 import { SaveIcon } from '../../icons/SaveIcon';
 import { SendIcon } from '../../icons/SendIcon';
 import { TemplateIcon } from '../../icons/TemplateIcon';
+import { ChatEffectsSystem } from '../effects/ChatEffectsSystem';
+import type { ChatEffectConfig } from '../effects/types/ChatEffectConfig';
 import { useChatAutoScroll } from '../hooks/useChatAutoScroll';
+import { MarkdownContent } from '../MarkdownContent/MarkdownContent';
+import { FAST_FLOW } from '../MockedChat/constants';
+import { MockedChat } from '../MockedChat/MockedChat'; // <- [🥂]
 import { getChatSaveFormatDefinitions } from '../save/_common/getChatSaveFormatDefinitions';
 import type { string_chat_format_name } from '../save/_common/string_chat_format_name';
 import type { ChatMessage } from '../types/ChatMessage';
@@ -39,15 +44,11 @@ import {
     parseToolCallArguments,
     parseToolCallResult,
 } from '../utils/toolCallParsing';
-import { MarkdownContent } from '../MarkdownContent/MarkdownContent';
 import styles from './Chat.module.css';
 import { ChatMessageItem } from './ChatMessageItem';
-import { MockedChat } from '../MockedChat/MockedChat'; // <- [🥂]
 import type { ChatProps } from './ChatProps';
-import { ClockIcon } from './ClockIcon';
-import { ChatEffectsSystem } from '../effects/ChatEffectsSystem';
-import type { ChatEffectConfig } from '../effects/types/ChatEffectConfig';
 import { ChatSoundToggle } from './ChatSoundToggle';
+import { ClockIcon } from './ClockIcon';
 
 /**
  * Renders a chat with messages and input for new messages
@@ -666,7 +667,10 @@ export function Chat(props: ChatProps) {
                                 )}
 
                                 {onUseTemplate && (
-                                    <button className={classNames(styles.useTemplateButton)} onClick={handleButtonClick(onUseTemplate)}>
+                                    <button
+                                        className={classNames(styles.useTemplateButton)}
+                                        onClick={handleButtonClick(onUseTemplate)}
+                                    >
                                         <span className={styles.chatButtonText}>Use this template</span>
                                         <TemplateIcon size={16} />
                                     </button>
@@ -1074,6 +1078,7 @@ export function Chat(props: ChatProps) {
                                                         isSaveButtonEnabled={false}
                                                         isCopyButtonEnabled={false}
                                                         visual="STANDALONE"
+                                                        delayConfig={FAST_FLOW}
                                                     />
                                                 </div>
                                             ) : (
