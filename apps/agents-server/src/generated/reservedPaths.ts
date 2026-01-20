@@ -25,6 +25,7 @@ export const RESERVED_PATHS: readonly string[] = [
     "robots.txt",
     "security.txt",
     "sitemap.xml",
+    "sounds",
     "sw.js",
     "swagger",
     "swagger.json",

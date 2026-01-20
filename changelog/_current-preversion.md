@@ -190,3 +190,14 @@
     -   Display agent names instead of agent IDs (works with both local and federated agents)
     -   Added clickable agent name header that opens the agent page in a new window
     -   Modal now focuses on the actual conversation, making it easier to understand agent interactions
+-   Enhanced caching of GPT assistants created for agents on Agents Server:
+    -   Created `AssistantCacheManager` class to centralize assistant lifecycle management
+    -   Implemented `computeAssistantCacheKey` utility to compute cache keys based on assistant configuration
+    -   Added `extractAssistantConfiguration` function to separate base agent config from dynamic context
+    -   Supports two caching modes:
+        -   Strict caching (default): includes full configuration including dynamic CONTEXT in cache key
+        -   Enhanced caching: excludes dynamic CONTEXT from cache key for better reuse across similar agents
+    -   Improved code maintainability and DRY principle by consolidating duplicate caching logic
+    -   Made the system extensible for future configuration parameters (model, temperature, tools)
+    -   Added detailed logging for cache hits and misses with cache keys
+    -   Refactored `handleChatCompletion` to use the new `AssistantCacheManager`

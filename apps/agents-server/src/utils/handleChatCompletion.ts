@@ -10,6 +10,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { HTTP_STATUS_CODES } from '../constants';
 import { isAgentDeleted } from '../app/agents/[agentName]/_utils';
 import { validateApiKey } from './validateApiKey';
+import { AssistantCacheManager } from './cache/AssistantCacheManager';
 
 export async function handleChatCompletion(
     request: NextRequest,
@@ -116,51 +117,32 @@ export async function handleChatCompletion(
         }
 
         const agentHash = computeAgentHash(agentSource);
-        const supabase = $provideSupabaseForServer();
-        const { data: assistantCache } = await supabase
-            .from(await $getTableName('OpenAiAssistantCache'))
-            .select('assistantId')
-            .eq('agentHash', agentHash)
-            .single();
 
-        let openAiAssistantExecutionTools = await $provideOpenAiAssistantExecutionToolsForServer();
+        // Use AssistantCacheManager for intelligent assistant caching
+        // This provides a centralized, DRY way to manage assistant lifecycle
+        const assistantCacheManager = new AssistantCacheManager({ isVerbose: true });
+        const baseOpenAiTools = await $provideOpenAiAssistantExecutionToolsForServer();
 
-        if (assistantCache?.assistantId) {
+        // Get or create assistant with enhanced caching
+        // By default, includes full configuration (PERSONA + CONTEXT) in cache key for strict matching
+        // Set includeDynamicContext: false to enable better caching by excluding CONTEXT from cache key
+        const assistantResult = await assistantCacheManager.getOrCreateAssistant(
+            agentSource,
+            agentName,
+            baseOpenAiTools,
+            { includeDynamicContext: true }, // Default: strict caching (includes CONTEXT)
+        );
+
+        const openAiAssistantExecutionTools = assistantResult.tools;
+
+        if (assistantResult.fromCache) {
             console.log(
-                `[🐱‍🚀] Reusing assistant ${assistantCache.assistantId} for agent ${agentName} (hash: ${agentHash})`,
+                `[🐱‍🚀] ✓ Cache HIT: Reusing assistant for agent ${agentName} (cache key: ${assistantResult.cacheKey})`,
             );
-            openAiAssistantExecutionTools = openAiAssistantExecutionTools.getAssistant(assistantCache.assistantId);
         } else {
-            console.log(`[🐱‍🚀] Creating NEW assistant for agent ${agentName} (hash: ${agentHash})`);
-            // Parse to get instructions and name
-            const parsed = parseAgentSource(agentSource);
-            const name = parsed.agentName || agentName;
-            // Extract PERSONA
-            const baseInstructions = parsed.personaDescription || 'You are a helpful assistant.';
-
-            // Note: Append context to instructions
-            const contextLines = agentSource.split('\n').filter((line) => line.startsWith('CONTEXT '));
-            const contextInstructions = contextLines.join('\n');
-            const instructions = contextInstructions
-                ? `${baseInstructions}\n\n${contextInstructions}`
-                : baseInstructions;
-
-            // Create assistant
-            const newAssistantTools = await openAiAssistantExecutionTools.createNewAssistant({
-                name,
-                instructions,
-                // knowledgeSources?
-            });
-
-            // Save to cache
-            const newAssistantId = newAssistantTools.assistantId;
-            if (newAssistantId) {
-                await supabase.from(await $getTableName('OpenAiAssistantCache')).insert({
-                    agentHash,
-                    assistantId: newAssistantId,
-                });
-                openAiAssistantExecutionTools = newAssistantTools;
-            }
+            console.log(
+                `[🐱‍🚀] ✗ Cache MISS: Created new assistant for agent ${agentName} (cache key: ${assistantResult.cacheKey})`,
+            );
         }
 
         const agent = new Agent({
