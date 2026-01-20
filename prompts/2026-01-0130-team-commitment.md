@@ -64,7 +64,6 @@ TEAM You can talk with http://localhost:4440/agents/GMw67JN8TXxN7y to discuss th
 -   When the interaction between agents is ongoing, there is shown something like this: "🤝 Consulting teammate..." When the interaction is finished, there is shown "[🤝 TEoiVpZzBgTPUi]"
 -   This is not very user friendly - Show instead "🧔 AI Developer", instead of 🧔 The actual picture of the agent and "AI Developer" is agent name
 -   Do not show the agent ID, show the agent name. This should work both with the agents on the same server and also with the agents on the federated server.
--   @@@
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle, There should be just one component of the agent chip which should be reused, take Inspiration from [AgentProfile](apps/agents-server/src/components/AgentProfile/AgentProfile.tsx) component.
 -   Add the changes into the `/changelog/_current-preversion.md`
@@ -78,9 +77,10 @@ TEAM You can talk with http://localhost:4440/agents/GMw67JN8TXxN7y to discuss th
 
 [✨👺] Enhance the popup model design and UI from the team consultation chip.
 
+-   Show just a <MockedChat/> with the conversation between the two agents.
+-   There should be shown the agent profile picture and name of both agents in the chat, do it through the existing `participants` prop of the <MockedChat/> component.
 -   Do not show the agent ID, show the agent name. This should work both with the agents on the same server and also with the agents on the federated server.
 -   In the model, there should also be linked to the agent that will be opened on a new window.
--   @@@
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`

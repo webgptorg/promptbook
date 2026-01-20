@@ -1,44 +1,19 @@
 [ ]
 
-[✨😠] @@@@ To be able to specify the teammates of the agent.
+[✨😠] Create `TEMPLATE` commitment
 
 **For example:**
 
 ```book
 John Doe
 
-PERSONA An expert software developer
-TEAM https://agents.ptbk.ik/agents/joe-green
+PERSONA You are virtual em
+TEMPLATE
+
+
 ```
 
-**For example:**
-
-```book
-John Doe
-
-PERSONA An expert software developer
-TEAM You can talk with http://localhost:4440/agents/GMw67JN8TXxN7y to discuss the legal aspects.
-```
-
-In this case, the agent can communicate with the agent `http://localhost:4440/agents/GMw67JN8TXxN7y` and "You can talk with http://localhost:4440/agents/GMw67JN8TXxN7y to discuss the legal aspects." are extra instructions for the current agent about when to use this teammate.
-
-**For example:**
-
-```book
-John Doe
-
-PERSONA An expert software developer
-TEAM You can talk with http://localhost:4440/agents/GMw67JN8TXxN7y to discuss the legal aspects, the http://localhost:4440/agents/ABcD1234xyZ to discuss the technical aspects, and https://agents.ptbk.ik/agents/joe-green for project management.
-```
-
--   Teammates are another agent that can help the current agent with fulfilling its tasks.
--   Technically it should be implemented similarly to tool calling. Look at `USE TIME` and `USE SEARCH ENGINE` how tool calling is implemented now.
--   For each teammate, there should be some short description of this teammate in the system message, and also edit one unique tool to be able to interact with.
--   When the interaction happens, show a similar chiplet to to `USE TIME` or `USE SEARCH ENGINE`
-    -   The chiplet will show the agent which the intern discussion happens. When clicked on this chiplet, there should be a pop up with actual conversation between the current agent and the `TEAM` agent shown in a static <MockedChat/>
--   Add capability chip with the link to the agents which are teammates. Look for example how ships with inheritance (`FROM`) or `IMPORT` is done on the agent profile on the agents server.
-    -   Also look at the [graph on the home page](http://localhost:4440/?view=graph) of the agents server, it should show the teammates as connected agents.
--   You are implementing commitment `TEAM` into Promptbook Engine but be aware that this commitment should work in Agent Server application.
+-   You are implementing commitment `TEMPLATE` into Promptbook Engine but be aware that this commitment should work in Agent Server application.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the [changelog](./changelog/_current-preversion.md)
 

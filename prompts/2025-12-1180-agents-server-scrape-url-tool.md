@@ -1,4 +1,4 @@
-[ ]
+[-] _<- Note: Done in ./2025-12-1170-agents-server-browser-tool.md _
 
 [✨👷] brr
 
