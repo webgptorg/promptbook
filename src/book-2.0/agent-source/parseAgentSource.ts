@@ -113,6 +113,15 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
             continue;
         }
 
+        if (commitment.type === 'USE EMAIL' || commitment.type === 'EMAIL' || commitment.type === 'MAIL') {
+            capabilities.push({
+                type: 'email',
+                label: 'Email',
+                iconName: 'Mail',
+            });
+            continue;
+        }
+
         if (commitment.type === 'USE IMAGE GENERATOR') {
             capabilities.push({
                 type: 'image-generator',

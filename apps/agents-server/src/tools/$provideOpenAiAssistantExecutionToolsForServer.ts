@@ -2,6 +2,7 @@
 
 import { OpenAiAssistantExecutionTools } from '@promptbook-local/openai';
 import { JavascriptExecutionTools } from '../../../../src/scripting/javascript/JavascriptExecutionTools';
+import { send_email } from './send_email';
 
 /**
  * Cache of provided OpenAiAssistantExecutionTools
@@ -31,6 +32,10 @@ export async function $provideOpenAiAssistantExecutionToolsForServer(): Promise<
         executionTools: {
             script: new JavascriptExecutionTools({
                 isVerbose,
+                functions: {
+                    // Provide the send_email tool function for the USE EMAIL commitment
+                    send_email,
+                },
             }),
         },
         isCreatingNewAssistantsAllowed: true,

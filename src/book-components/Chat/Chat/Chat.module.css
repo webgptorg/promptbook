@@ -2192,6 +2192,72 @@
     }
 }
 
+/* Email modal styles */
+.emailContainer {
+    margin-bottom: 20px;
+}
+
+.emailMetadata {
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.emailField {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.emailField:last-child {
+    margin-bottom: 0;
+}
+
+.emailField strong {
+    min-width: 60px;
+    color: #64748b;
+    font-weight: 600;
+}
+
+.emailRecipients {
+    color: #0f172a;
+    word-break: break-word;
+}
+
+.emailBody {
+    text-align: left;
+}
+
+.emailBody strong {
+    display: block;
+    margin-bottom: 12px;
+    color: #64748b;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.emailBodyContent {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 20px;
+    line-height: 1.6;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.emailBodyContent p {
+    margin: 0 0 12px 0;
+}
+
+.emailBodyContent p:last-child {
+    margin-bottom: 0;
+}
+
 /**
  * TODO: [🌉] DRY Markdown primitives styling
  */

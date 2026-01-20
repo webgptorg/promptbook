@@ -157,3 +157,16 @@
     -   Added `fetchUrlContent` utility function to handle URL fetching and content conversion to markdown
     -   Updated tool titles and descriptions to distinguish between one-shot and running browser modes
     -   Tool functions properly integrated into commitment system via `getToolFunctions()`
+-   Implemented `USE EMAIL` commitment to enable agents to send emails:
+    -   Created `UseEmailCommitmentDefinition` with support for optional additional instructions (e.g., "Write always formal and polite emails")
+    -   Implemented `send_email` tool that integrates with the existing email queue system in Agents Server
+    -   Tool supports sending emails with multiple recipients, CC, subject, and markdown-formatted body
+    -   Added email capability chip to agent profiles showing "Email" with a mail icon
+    -   Implemented email chiplet display showing the email subject when the tool is used
+    -   Created interactive email details popup modal with Gmail-like UI showing:
+        -   Email metadata (To, CC, Subject) in a styled header
+        -   Full email body rendered as markdown in a clean, readable layout
+        -   Tool call result showing success/failure status
+    -   Email tool leverages existing `sendMessage` utility and email providers (Sendgrid, Zeptomail)
+    -   All emails are queued through the database-driven message system
+    -   Follows the same pattern as `USE TIME` and `USE SEARCH ENGINE` commitments for consistency

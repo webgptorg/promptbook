@@ -992,6 +992,9 @@ export function Chat(props: ChatProps) {
                             const isTime =
                                 selectedToolCall.name === 'get_current_time' || selectedToolCall.name === 'useTime';
 
+                            const isEmail =
+                                selectedToolCall.name === 'send_email' || selectedToolCall.name === 'useEmail';
+
                             const args = parseToolCallArguments(selectedToolCall);
 
                             const resultRaw = parseToolCallResult(selectedToolCall.result);
@@ -1251,6 +1254,67 @@ export function Chat(props: ChatProps) {
                                                 <div className={styles.toolCallDataContainer}>
                                                     <pre className={styles.toolCallData}>
                                                         {toolCallDate ? toolCallDate.toLocaleString() : 'Unknown'}
+                                                    </pre>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </>
+                                );
+                            }
+
+                            if (isEmail) {
+                                const to = args.to || [];
+                                const cc = args.cc || [];
+                                const subject = args.subject || 'No subject';
+                                const body = args.body || '';
+                                const recipients = Array.isArray(to) ? to : [to];
+                                const ccRecipients = Array.isArray(cc) ? cc : [];
+
+                                return (
+                                    <>
+                                        <div className={styles.searchModalHeader}>
+                                            <span className={styles.searchModalIcon}>📧</span>
+                                            <h3 className={styles.searchModalQuery}>{subject}</h3>
+                                        </div>
+
+                                        <div className={styles.searchModalContent}>
+                                            <div className={styles.emailContainer}>
+                                                <div className={styles.emailMetadata}>
+                                                    <div className={styles.emailField}>
+                                                        <strong>To:</strong>
+                                                        <span className={styles.emailRecipients}>
+                                                            {recipients.join(', ')}
+                                                        </span>
+                                                    </div>
+                                                    {ccRecipients.length > 0 && (
+                                                        <div className={styles.emailField}>
+                                                            <strong>CC:</strong>
+                                                            <span className={styles.emailRecipients}>
+                                                                {ccRecipients.join(', ')}
+                                                            </span>
+                                                        </div>
+                                                    )}
+                                                    <div className={styles.emailField}>
+                                                        <strong>Subject:</strong>
+                                                        <span>{subject}</span>
+                                                    </div>
+                                                </div>
+                                                <div className={styles.emailBody}>
+                                                    <strong>Message:</strong>
+                                                    <div className={styles.emailBodyContent}>
+                                                        <MarkdownContent content={body} />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className={styles.toolCallDetails}>
+                                                <p>
+                                                    <strong>Result:</strong>
+                                                </p>
+                                                <div className={styles.toolCallDataContainer}>
+                                                    <pre className={styles.toolCallData}>
+                                                        {typeof resultRaw === 'object'
+                                                            ? JSON.stringify(resultRaw, null, 2)
+                                                            : String(resultRaw)}
                                                     </pre>
                                                 </div>
                                             </div>

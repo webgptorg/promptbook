@@ -25,6 +25,8 @@ export const TOOL_TITLES: Record<string, { title: string; emoji: string }> = {
     run_browser: { title: 'Running browser', emoji: '🌐' },
     get_current_time: { title: 'Checking time', emoji: '🕒' },
     useTime: { title: 'Checking time', emoji: '🕒' },
+    send_email: { title: 'Sending email', emoji: '📧' },
+    useEmail: { title: 'Sending email', emoji: '📧' },
     // Add more tools here as needed
 };
 
@@ -40,6 +42,7 @@ export function getToolCallChipletText(toolCall: ToolCall): string {
 
     const args = parseToolCallArguments(toolCall);
     const isTimeTool = toolCall.name === 'get_current_time' || toolCall.name === 'useTime';
+    const isEmailTool = toolCall.name === 'send_email' || toolCall.name === 'useEmail';
     const resultRaw = parseToolCallResult(toolCall.result);
     const teamResult = parseTeamToolResult(resultRaw);
 
@@ -54,6 +57,12 @@ export function getToolCallChipletText(toolCall: ToolCall): string {
 
         if (resultDate) {
             return `${emoji} ${resultDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+        }
+    }
+
+    if (isEmailTool) {
+        if (args.subject) {
+            return `${emoji} ${args.subject}`;
         }
     }
 
