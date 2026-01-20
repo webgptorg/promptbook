@@ -108,7 +108,12 @@ async function run(): Promise<void> {
 
         const nextPrompt = findNextTodoPrompt(promptFiles);
         if (!nextPrompt) {
-            console.info(colors.green('All prompts are done.'));
+            if (stats.toBeWritten > 0) {
+                console.info(colors.yellow('No prompts ready for agent. Following prompts need to be written:'));
+                printPromptsToBeWritten(promptFiles);
+            } else {
+                console.info(colors.green('All prompts are done.'));
+            }
             return;
         }
 
@@ -281,6 +286,27 @@ function printStats(stats: PromptStats): void {
     console.info(
         colors.cyan(`Done: ${stats.done} | For agent: ${stats.forAgent} | To be written: ${stats.toBeWritten}`),
     );
+}
+
+function printPromptsToBeWritten(files: PromptFile[]): void {
+    const promptsToWrite: Array<{ file: PromptFile; section: PromptSection }> = [];
+
+    for (const file of files) {
+        for (const section of file.sections) {
+            if (section.status === 'todo') {
+                const promptText = buildCodexPrompt(file, section);
+                if (promptText.includes('@@@')) {
+                    promptsToWrite.push({ file, section });
+                }
+            }
+        }
+    }
+
+    for (const { file, section } of promptsToWrite) {
+        const label = buildPromptLabel(file, section);
+        const summary = buildPromptSummary(file, section);
+        console.info(`  - ${label}: ${summary}`);
+    }
 }
 
 function listUpcomingTasks(files: PromptFile[]): UpcomingTask[] {
