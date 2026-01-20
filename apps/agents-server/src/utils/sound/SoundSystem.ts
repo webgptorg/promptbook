@@ -4,17 +4,17 @@ import type { ChatSoundSystem } from '../../../../../src/book-components/Chat/Ch
  * Sound event types that can be triggered in the chat
  */
 export type SoundEvent =
-    | 'message_send'      // When user sends a message
-    | 'message_receive'   // When agent sends a message
-    | 'message_typing'    // When agent is typing/thinking
-    | 'button_click'      // When any button is clicked
-    | 'effect_confetti'   // When confetti effect is triggered
-    | 'effect_hearts';    // When hearts effect is triggered
+    | 'message_send' // When user sends a message
+    | 'message_receive' // When agent sends a message
+    | 'message_typing' // When agent is typing/thinking
+    | 'button_click' // When any button is clicked
+    | 'effect_confetti' // When confetti effect is triggered
+    | 'effect_hearts'; // When hearts effect is triggered
 
 /**
  * Configuration for a sound
  */
-export type SoundConfig {
+export type SoundConfig = {
     /**
      * Path to the sound file (relative to public folder)
      */
@@ -31,7 +31,7 @@ export type SoundConfig {
      * @default false
      */
     allowOverlap?: boolean;
-}
+};
 
 /**
  * SoundSystem class for managing chat sounds
@@ -67,10 +67,7 @@ export class SoundSystem implements ChatSoundSystem {
      * @param soundMap - Map of sound events to their configurations
      * @param storageKey - Key for localStorage persistence (optional)
      */
-    constructor(
-        soundMap: Partial<Record<SoundEvent, SoundConfig>>,
-        storageKey?: string
-    ) {
+    constructor(soundMap: Partial<Record<SoundEvent, SoundConfig>>, storageKey?: string) {
         if (storageKey) {
             this.storageKey = storageKey;
         }
