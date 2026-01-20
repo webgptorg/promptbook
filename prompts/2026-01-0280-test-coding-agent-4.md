@@ -7,6 +7,8 @@
 
 ![Instructions](prompts/screenshots/2026-01-0280-test-coding-agent-4.png)
 
+-   Attached images are relative to the root of the project.
+
 ---
 
 [-]
