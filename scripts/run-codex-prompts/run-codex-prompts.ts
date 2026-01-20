@@ -133,7 +133,7 @@ async function run(): Promise<void> {
         const codexPrompt = buildCodexPrompt(nextPrompt.file, nextPrompt.section);
 
         const scriptPath = buildScriptPath(nextPrompt.file, nextPrompt.section);
-        const promptLabel = buildPromptLabel(nextPrompt.file, nextPrompt.section);
+        const promptLabel = buildPromptLabelForDisplay(nextPrompt.file, nextPrompt.section);
 
         console.info(colors.blue(`Processing ${promptLabel}`));
 
@@ -302,16 +302,17 @@ function printPromptsToBeWritten(files: PromptFile[]): void {
         }
     }
 
+    let i = 0;
     for (const { file, section } of promptsToWrite) {
-        const label = buildPromptLabel(file, section);
+        const label = buildPromptLabelForDisplay(file, section);
         const summary = buildPromptSummary(file, section);
-        console.info(`  - ${label}: ${summary}`);
+        console.info(`  ${i++}) ${label}: ${summary}`);
     }
 }
 
 function listUpcomingTasks(files: PromptFile[]): UpcomingTask[] {
     return listTodoPrompts(files).map(({ file, section }) => ({
-        label: buildPromptLabel(file, section),
+        label: buildPromptLabelForDisplay(file, section),
         summary: buildPromptSummary(file, section),
         priority: section.priority,
     }));
@@ -351,6 +352,10 @@ function groupUpcomingTasksByPriority(tasks: UpcomingTask[]): Array<{ priority: 
 
 function buildPromptLabel(file: PromptFile, section: PromptSection): string {
     return `${relative(process.cwd(), file.path)}#${section.index + 1}`;
+}
+
+function buildPromptLabelForDisplay(file: PromptFile, section: PromptSection): string {
+    return `${relative(process.cwd(), file.path)}#${section.startLine + 1}`;
 }
 
 function buildPromptSummary(file: PromptFile, section: PromptSection): string {
