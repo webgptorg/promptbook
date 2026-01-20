@@ -239,3 +239,16 @@
     -   Citation references in text are now rendered as numbered superscripts `[5:13]` instead of full annotations
     -   Follows DRY principle by reusing existing modal styles and chip patterns
     -   Integrated seamlessly with existing chat UI and tool call chip system
+-   Added Prompt Notation tool to the Utils app (https://utils.ptbk.io/prompt-notation):
+    -   Created interactive tool with dual-pane layout: JavaScript code editor (Monaco Editor) on the left and live output preview on the right
+    -   Implemented real-time evaluation of `prompt` notation with automatic security features
+    -   Added comprehensive documentation section explaining prompt injection protection, structured embedding, and nested prompts
+    -   Included multiple examples demonstrating key features:
+        -   Simple variable interpolation
+        -   Automatic prompt injection protection for suspicious content
+        -   Nested prompts for safe composition
+        -   Multiple parameter handling
+    -   Integrated Monaco Editor for syntax highlighting and code editing with JavaScript language support
+    -   Live output shows the resulting prompt string after evaluation, demonstrating how parameters are embedded
+    -   Tool demonstrates security features with visual examples of inline vs. structured embedding strategies
+    -   Added security warning section explaining the heuristic-based protection against malicious content
