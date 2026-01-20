@@ -1,4 +1,4 @@
-[ ]
+[x] $1.70
 
 [✨🆖] Allow to agents to access the URL content on demand
 
@@ -49,3 +49,4 @@ For example, the agent should be able to answer flowing question correctly: "Tel
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
+

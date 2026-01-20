@@ -1,14 +1,21 @@
 import { spaceTrim } from 'spacetrim';
+import { string_javascript_name, TODO_any } from '../../_packages/types.index';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
+import { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
 import type { LlmToolDefinition } from '../../types/LlmToolDefinition';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
+import { fetchUrlContent } from './fetchUrlContent';
 
 /**
  * USE BROWSER commitment definition
  *
- * The `USE BROWSER` commitment indicates that the agent should utilize a web browser tool
+ * The `USE BROWSER` commitment indicates that the agent should utilize browser tools
  * to access and retrieve up-to-date information from the internet when necessary.
+ *
+ * This commitment provides two levels of browser access:
+ * 1. One-shot URL fetching: Simple function to fetch and scrape URL content
+ * 2. Running browser: For complex tasks like scrolling, clicking, etc. (prepared but not active yet)
  *
  * The content following `USE BROWSER` is ignored (similar to NOTE).
  *
@@ -37,7 +44,7 @@ export class UseBrowserCommitmentDefinition extends BaseCommitmentDefinition<'US
      * Short one-line description of USE BROWSER.
      */
     get description(): string {
-        return 'Enable the agent to use a web browser tool for accessing internet information.';
+        return 'Enable the agent to use browser tools for accessing internet information.';
     }
 
     /**
@@ -54,14 +61,18 @@ export class UseBrowserCommitmentDefinition extends BaseCommitmentDefinition<'US
         return spaceTrim(`
             # USE BROWSER
 
-            Enables the agent to use a web browser tool to access and retrieve up-to-date information from the internet.
+            Enables the agent to use browser tools to access and retrieve up-to-date information from the internet.
 
             ## Key aspects
 
             - The content following \`USE BROWSER\` is ignored (similar to NOTE)
+            - Provides two levels of browser access:
+              1. **One-shot URL fetching**: Simple function to fetch and scrape URL content (active)
+              2. **Running browser**: For complex tasks like scrolling, clicking, etc. (prepared but not active yet)
             - The actual browser tool usage is handled by the agent runtime
-            - Allows the agent to fetch current information from websites
+            - Allows the agent to fetch current information from websites and documents
             - Useful for research tasks, fact-checking, and accessing dynamic content
+            - Supports various content types including HTML pages and PDF documents
 
             ## Examples
 
@@ -96,9 +107,10 @@ export class UseBrowserCommitmentDefinition extends BaseCommitmentDefinition<'US
     /**
      * Gets human-readable titles for tool functions provided by this commitment.
      */
-    getToolTitles(): Record<string, string> {
+    getToolTitles(): Record<string_javascript_name, string> {
         return {
-            web_browser: 'Web browser',
+            fetch_url_content: 'Fetch URL content',
+            run_browser: 'Run browser',
         };
     }
 
@@ -109,30 +121,76 @@ export class UseBrowserCommitmentDefinition extends BaseCommitmentDefinition<'US
         // Get existing tools array or create new one
         const existingTools = requirements.tools || [];
 
-        // Add 'web_browser' to tools if not already present
-        const updatedTools = existingTools.some((tool) => tool.name === 'web_browser')
-            ? existingTools
-            : ([
-                  // TODO: [🔰] Use through proper MCP server
-                  ...existingTools,
-                  {
-                      name: 'web_browser',
-                      description: spaceTrim(`
-                        A tool that can browse the web.
-                        Use this tool when you need to access specific websites or browse the internet.
-                    `),
-                      parameters: {
-                          type: 'object',
-                          properties: {
-                              url: {
-                                  type: 'string',
-                                  description: 'The URL to browse',
-                              },
-                          },
-                          required: ['url'],
-                      },
-                  },
-              ] satisfies Array<LlmToolDefinition>);
+        // Add browser tools if not already present
+        const toolsToAdd: Array<LlmToolDefinition> = [];
+
+        // Tool 1: One-shot URL content fetching
+        if (!existingTools.some((tool) => tool.name === 'fetch_url_content')) {
+            toolsToAdd.push({
+                name: 'fetch_url_content',
+                description: spaceTrim(`
+                    Fetches and scrapes the content from a URL (webpage or document).
+                    This tool retrieves the content of the specified URL and converts it to markdown format.
+                    Use this when you need to access information from a specific website or document.
+                    Supports various content types including HTML pages and PDF documents.
+                `),
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        url: {
+                            type: 'string',
+                            description: 'The URL to fetch and scrape (e.g., "https://example.com" or "https://example.com/document.pdf")',
+                        },
+                    },
+                    required: ['url'],
+                },
+            } as TODO_any);
+        }
+
+        // Tool 2: Running browser (prepared but not active yet)
+        if (!existingTools.some((tool) => tool.name === 'run_browser')) {
+            toolsToAdd.push({
+                name: 'run_browser',
+                description: spaceTrim(`
+                    Launches a browser session for complex interactions.
+                    This tool is for advanced browser automation tasks like scrolling, clicking, form filling, etc.
+                    Note: This tool is prepared but not yet active. It will be implemented in a future update.
+                `),
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        url: {
+                            type: 'string',
+                            description: 'The initial URL to navigate to',
+                        },
+                        actions: {
+                            type: 'array',
+                            description: 'Array of actions to perform in the browser',
+                            items: {
+                                type: 'object',
+                                properties: {
+                                    type: {
+                                        type: 'string',
+                                        enum: ['navigate', 'click', 'scroll', 'type', 'wait'],
+                                    },
+                                    selector: {
+                                        type: 'string',
+                                        description: 'CSS selector for the element (for click, type actions)',
+                                    },
+                                    value: {
+                                        type: 'string',
+                                        description: 'Value to type or navigate to',
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    required: ['url'],
+                },
+            } as TODO_any);
+        }
+
+        const updatedTools = [...existingTools, ...toolsToAdd];
 
         // Return requirements with updated tools and metadata
         return this.appendToSystemMessage(
@@ -145,10 +203,55 @@ export class UseBrowserCommitmentDefinition extends BaseCommitmentDefinition<'US
                 },
             },
             spaceTrim(`
-                You have access to the web browser. Use it to access specific websites or browse the internet.
-                When you need to know some information from a specific website, use the tool provided to you.
+                You have access to browser tools to fetch and access content from the internet.
+                - Use "fetch_url_content" to retrieve content from specific URLs (webpages or documents)
+                - Use "run_browser" for complex browser interactions (note: not yet active)
+                When you need to know information from a specific website or document, use the fetch_url_content tool.
             `),
         );
+    }
+
+    /**
+     * Gets the browser tool function implementations.
+     */
+    getToolFunctions(): Record<string_javascript_name, ToolFunction> {
+        return {
+            async fetch_url_content(args: { url: string }): Promise<string> {
+                console.log('!!!! [Tool] fetch_url_content called', { args });
+
+                const { url } = args;
+
+                if (!url) {
+                    throw new Error('URL is required');
+                }
+
+                // Use the fetchUrlContent utility to scrape the URL
+                return await fetchUrlContent(url);
+            },
+
+            async run_browser(args: { url: string; actions?: Array<TODO_any> }): Promise<string> {
+                console.log('!!!! [Tool] run_browser called', { args });
+
+                const { url } = args;
+
+                // This tool is prepared but not active yet
+                return spaceTrim(`
+                    # Running browser
+
+                    The running browser tool is not yet active.
+
+                    Requested URL: ${url}
+
+                    This feature will be implemented in a future update to support:
+                    - Complex browser interactions
+                    - Scrolling and navigation
+                    - Clicking and form filling
+                    - Taking screenshots
+
+                    For now, please use the "fetch_url_content" tool instead.
+                `);
+            },
+        };
     }
 }
 

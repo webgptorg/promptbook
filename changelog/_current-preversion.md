@@ -149,3 +149,11 @@
         -   Pluggable to all Chat implementations (`<Chat/>`, `<LlmChat/>`, `<AgentChat/>`, `<MockedChat/>`)
     -   Sound assets directory created at `apps/agents-server/public/sounds/` with documentation for required audio files
     -   Integrated into Agents Server via `AgentChatWrapper`
+-   Enhanced `USE BROWSER` commitment with two-level browser access:
+    -   Implemented `fetch_url_content` tool for one-shot URL content fetching and scraping
+    -   Prepared `run_browser` tool for future complex browser interactions (scrolling, clicking, form filling)
+    -   Agent can now fetch and scrape content from URLs including webpages and documents
+    -   Integrated with existing scraper system (`WebsiteScraper`, `PdfScraper`)
+    -   Added `fetchUrlContent` utility function to handle URL fetching and content conversion to markdown
+    -   Updated tool titles and descriptions to distinguish between one-shot and running browser modes
+    -   Tool functions properly integrated into commitment system via `getToolFunctions()`
