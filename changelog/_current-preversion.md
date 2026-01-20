@@ -182,3 +182,10 @@
     -   Added `teammates` prop to `<Chat/>` and `<ChatMessageItem/>` components to pass agent metadata
     -   Updated `getToolCallChipletInfo()` to return agent data along with display text
     -   Enhanced `TeamToolResult` type to include teammate URL and label information
+-   Enhanced team consultation modal design and UI:
+    -   Simplified modal to show only `<MockedChat/>` component with the conversation between agents
+    -   Agent profile pictures and names are now displayed through the existing `participants` prop of `<MockedChat/>`
+    -   Removed "Teammate:" and "When to consult:" sections from the modal for cleaner design
+    -   Display agent names instead of agent IDs (works with both local and federated agents)
+    -   Added clickable agent name header that opens the agent page in a new window
+    -   Modal now focuses on the actual conversation, making it easier to understand agent interactions

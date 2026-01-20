@@ -1009,14 +1009,10 @@ export function Chat(props: ChatProps) {
                             const hasRawText = !hasResults && !!rawText && rawText.trim().length > 0;
 
                             if (teamResult?.teammate) {
-                                const teammateLabel =
-                                    teamResult.teammate.label || teamResult.teammate.url || 'Teammate';
-                                const agentLabel =
-                                    teamResult.conversation?.find(
-                                        (entry) => entry.sender === 'AGENT' || entry.role === 'AGENT',
-                                    )?.name || 'Agent';
+                                const teammateUrl = teamResult.teammate.url || '';
                                 const baseTime = toolCallDate ? toolCallDate.getTime() : Date.now();
 
+                                // Build messages from conversation
                                 const messages = (teamResult.conversation || [])
                                     .filter((entry) => entry && entry.content)
                                     .map((entry, index) => ({
@@ -1051,31 +1047,64 @@ export function Chat(props: ChatProps) {
                                     }
                                 }
 
+                                // Extract agent names from conversation or use defaults
+                                const agentName =
+                                    teamResult.conversation?.find(
+                                        (entry) => entry.sender === 'AGENT' || entry.role === 'AGENT',
+                                    )?.name || 'Agent';
+
+                                // For teammate, use conversation name first, then label, then extract from URL
+                                const teammateName =
+                                    teamResult.conversation?.find(
+                                        (entry) => entry.sender === 'TEAMMATE' || entry.role === 'TEAMMATE',
+                                    )?.name ||
+                                    teamResult.teammate.label ||
+                                    (() => {
+                                        // Try to extract agent name from URL if available
+                                        try {
+                                            const url = new URL(teammateUrl);
+                                            const pathParts = url.pathname.split('/').filter(Boolean);
+                                            return pathParts[pathParts.length - 1] || 'Teammate';
+                                        } catch {
+                                            return 'Teammate';
+                                        }
+                                    })();
+
                                 const participants = [
                                     {
                                         name: 'AGENT',
-                                        fullname: agentLabel,
+                                        fullname: agentName,
                                         color: '#64748b',
                                     },
                                     {
                                         name: 'TEAMMATE',
-                                        fullname: teammateLabel,
+                                        fullname: teammateName,
                                         color: '#0ea5e9',
                                     },
                                 ];
 
                                 return (
                                     <>
-                                        <div className={styles.searchModalHeader}>
-                                            <span className={styles.searchModalIcon}>🤝</span>
-                                            <h3 className={styles.searchModalQuery}>{teammateLabel}</h3>
-                                        </div>
+                                        {teammateUrl && (
+                                            <div className={styles.searchModalHeader}>
+                                                <a
+                                                    href={teammateUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className={styles.searchModalQuery}
+                                                    style={{ textDecoration: 'none', color: 'inherit' }}
+                                                >
+                                                    <span className={styles.searchModalIcon}>🤝</span>
+                                                    <h3 style={{ display: 'inline', margin: 0 }}>{teammateName}</h3>
+                                                </a>
+                                            </div>
+                                        )}
 
                                         <div className={styles.searchModalContent}>
                                             {messages.length > 0 ? (
                                                 <div className={styles.teamChatContainer}>
                                                     <MockedChat
-                                                        title={`Chat with ${teammateLabel}`}
+                                                        title={`Chat with ${teammateName}`}
                                                         messages={messages}
                                                         participants={participants}
                                                         isResettable={false}
@@ -1091,41 +1120,6 @@ export function Chat(props: ChatProps) {
                                                     No teammate conversation available.
                                                 </div>
                                             )}
-
-                                            <div className={styles.toolCallDetails}>
-                                                <p>
-                                                    <strong>Teammate:</strong>
-                                                </p>
-                                                <div className={styles.toolCallDataContainer}>
-                                                    <pre className={styles.toolCallData}>
-                                                        {teamResult.teammate.url || teammateLabel}
-                                                    </pre>
-                                                </div>
-                                                {teamResult.teammate.instructions && (
-                                                    <>
-                                                        <p>
-                                                            <strong>When to consult:</strong>
-                                                        </p>
-                                                        <div className={styles.toolCallDataContainer}>
-                                                            <pre className={styles.toolCallData}>
-                                                                {teamResult.teammate.instructions}
-                                                            </pre>
-                                                        </div>
-                                                    </>
-                                                )}
-                                                {teamResult.error && (
-                                                    <>
-                                                        <p>
-                                                            <strong>Error:</strong>
-                                                        </p>
-                                                        <div className={styles.toolCallDataContainer}>
-                                                            <pre className={styles.toolCallData}>
-                                                                {teamResult.error}
-                                                            </pre>
-                                                        </div>
-                                                    </>
-                                                )}
-                                            </div>
                                         </div>
                                     </>
                                 );

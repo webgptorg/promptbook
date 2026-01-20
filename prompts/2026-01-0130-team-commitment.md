@@ -73,7 +73,7 @@ TEAM You can talk with http://localhost:4440/agents/GMw67JN8TXxN7y to discuss th
 
 ---
 
-[ ]
+[x] $0.84
 
 [✨👺] Enhance the popup model design and UI from the team consultation chip.
 
@@ -98,3 +98,4 @@ TEAM You can talk with http://localhost:4440/agents/GMw67JN8TXxN7y to discuss th
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
+
