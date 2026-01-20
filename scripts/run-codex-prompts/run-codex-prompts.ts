@@ -306,7 +306,7 @@ function printPromptsToBeWritten(files: PromptFile[]): void {
     for (const { file, section } of promptsToWrite) {
         const label = buildPromptLabelForDisplay(file, section);
         const summary = buildPromptSummary(file, section);
-        console.info(`  ${i++}) ${label}: ${summary}`);
+        console.info(`  ${++i}) ${label}: ${summary}`);
     }
 }
 
@@ -351,11 +351,11 @@ function groupUpcomingTasksByPriority(tasks: UpcomingTask[]): Array<{ priority: 
 }
 
 function buildPromptLabel(file: PromptFile, section: PromptSection): string {
-    return `${relative(process.cwd(), file.path)}#${section.index + 1}`;
+    return `${relative(process.cwd(), file.path).replace(/\\/g, '/')}#${section.index + 1}`;
 }
 
 function buildPromptLabelForDisplay(file: PromptFile, section: PromptSection): string {
-    return `${relative(process.cwd(), file.path)}#${section.startLine + 1}`;
+    return `${relative(process.cwd(), file.path).replace(/\\/g, '/')}#${section.startLine + 1}`;
 }
 
 function buildPromptSummary(file: PromptFile, section: PromptSection): string {
