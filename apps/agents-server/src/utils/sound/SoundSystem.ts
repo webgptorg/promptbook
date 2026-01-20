@@ -14,7 +14,7 @@ export type SoundEvent =
 /**
  * Configuration for a sound
  */
-export interface SoundConfig {
+export type SoundConfig {
     /**
      * Path to the sound file (relative to public folder)
      */
