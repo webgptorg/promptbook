@@ -1,5 +1,8 @@
 # Promptbook vs LangChain
 
+> ⚠ TODO: This document was written by AI Agent and needs to be proofread; Read is with a grain of salt
+
+
 LangChain is a popular open-source framework for building applications powered by large language models. It provides a massive ecosystem of tools, connectors, and abstractions (like LCEL) to chain together different components to create complex AI workflows.
 
 While LangChain is the "industry standard" for complex orchestration, it is often criticized for its excessive abstraction layers, steep learning curve, and the fragility of its "chains." Promptbook takes a fundamentally different approach: it moves the complexity into a high-level, human-readable language (Book) and a specialized engine. Instead of writing code to "chain" LLM calls, you define the **Commitments** of the agent, and the Promptbook Engine handles the execution reliably.

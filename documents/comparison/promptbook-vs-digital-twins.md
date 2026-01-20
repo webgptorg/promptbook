@@ -1,4 +1,7 @@
-# Promptbook vs Digital Twins (Personal.ai & Delphi)
+# Promptbook vs Digital Twins *(like Personal.ai & Delphi)*
+
+> ⚠ TODO: This document was written by AI Agent and needs to be proofread; Read is with a grain of salt
+
 
 Digital Twin platforms like Personal.ai and Delphi are designed to create AI "clones" or "avatars" of real people. They focus on training models on an individual's specific data (emails, chats, videos) to mimic their voice, knowledge, and personality for scaling their time and presence.
 

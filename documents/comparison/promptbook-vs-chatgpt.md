@@ -1,5 +1,8 @@
 # Promptbook vs ChatGPT
 
+
+> ⚠ TODO: This document was written by AI Agent and needs to be proofread; Read is with a grain of salt
+
 ChatGPT is a general-purpose conversational AI developed by OpenAI, designed to assist users across a wide range of topics through natural language interactions. It leverages advanced machine learning techniques to generate human-like responses based on the input it receives.
 
 While ChatGPT is highly capable, it primarily functions as a raw model interface or a simple chatbot. It lacks a structured way to define complex agent personalities, enforceable rules, and deeply integrated knowledge bases that are portable and model-agnostic. In the enterprise context, ChatGPT often suffers from "jailbreaking" vulnerabilities where instructions are bypassed, a problem Promptbook solves through **Adversary Enforcement**.

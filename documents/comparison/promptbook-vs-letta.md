@@ -1,5 +1,8 @@
 # Promptbook vs Letta
 
+> ⚠ TODO: This document was written by AI Agent and needs to be proofread; Read is with a grain of salt
+
+
 Letta (the evolution of MemGPT) is a specialized framework for building AI agents with long-term memory. It uses a "Virtual Context Management" system (similar to an OS kernel) to allow agents to store and retrieve information beyond the standard LLM context window.
 
 Letta is a powerful tool for building "stateless" agents that appear to have a deep memory of past interactions. Promptbook shares the goal of creating knowledgeable agents but approaches it through the `KNOWLEDGE` commitment (RAG and context management) and a focus on defining the agent's core character and rules in a portable language (Book).

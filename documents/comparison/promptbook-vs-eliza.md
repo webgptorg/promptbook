@@ -1,5 +1,8 @@
 # Promptbook vs Eliza (Ai16z)
 
+> ⚠ TODO: This document was written by AI Agent and needs to be proofread; Read is with a grain of salt
+
+
 Eliza is a powerful multi-agent simulation framework developed by Ai16z. It is designed to create autonomous agents with distinct personalities, capable of interacting across various social platforms (like Twitter and Discord) and performing on-chain actions in the crypto ecosystem.
 
 While Eliza excels at "personality-driven" social interaction and decentralized finance (DeFi) integrations, Promptbook provides a more generalized, enterprise-ready framework for defining agents. Promptbook's Book language and commitment system offer a more structured approach to rule enforcement and knowledge management, making it suitable for a wider range of professional applications beyond social media and crypto.

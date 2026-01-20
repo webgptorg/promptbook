@@ -1,5 +1,8 @@
 # Promptbook vs N8N
 
+> ⚠ TODO: This document was written by AI Agent and needs to be proofread; Read is with a grain of salt
+
+
 N8N is a powerful extendable workflow automation tool that allows you to connect various apps and services through a visual node-based interface. It has recently added strong AI capabilities (AI Nodes), allowing users to integrate LLMs, memory, and tools into their automated workflows.
 
 N8N excels at "connecting things" and visual orchestration, but its AI agents are often treated as just another node in a larger automation. Promptbook, conversely, treats the Agent as the primary entity, with its personality, rules, and knowledge defined in a portable, text-based format (Book) that can be used inside or outside of automation platforms. While N8N is great for "linear" automation, Promptbook is designed for complex, personality-driven interactions and **Federated** agent ecosystems.
