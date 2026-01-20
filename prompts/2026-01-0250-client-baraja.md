@@ -1,16 +1,18 @@
-[-]
+[ ]
 
-[✨🚶] foo
+[✨🚶] Enhance a prompt`...` notation.
 
+-   @@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
 
 ---
 
-[-]
+[ ]
 
-[✨🚶] foo
+[✨🚶] Add prompt notation into the utils.ptbk.io
 
+-   @@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
 

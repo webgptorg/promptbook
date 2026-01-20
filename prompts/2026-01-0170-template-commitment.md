@@ -1,6 +1,6 @@
-[x]
+[ ]
 
-[✨👺] To be able to specify the teammates of the agent.
+[✨😠] @@@@ To be able to specify the teammates of the agent.
 
 **For example:**
 
@@ -54,47 +54,3 @@ TEAM You can talk with http://localhost:4440/agents/GMw67JN8TXxN7y to discuss th
     -   Agent source with commitments is parsed by two functions:
         -   `parseAgentSource` which is a lightweight parser for agent source, it parses basic information and its purpose is to be quick and synchronous. The commitments there are hardcoded.
         -   `createAgentModelRequirements` which is an asynchronous function that creates model requirements it applies each commitment one by one and works asynchronously.
-
----
-
-[ ]
-
-[✨👺] Enhance the chip UI and UX when an agent is consulting another agent.
-
--   When the interaction between agents is ongoing, there is shown something like this: "🤝 Consulting teammate..." When the interaction is finished, there is shown "[🤝 TEoiVpZzBgTPUi]"
--   This is not very user friendly - Show instead "🧔 AI Developer", instead of 🧔 The actual picture of the agent and "AI Developer" is agent name
--   Do not show the agent ID, show the agent name. This should work both with the agents on the same server and also with the agents on the federated server.
--   @@@
--   You are working with the `Agents Server` application `/apps/agents-server`
--   Keep in mind the DRY _(don't repeat yourself)_ principle, There should be just one component of the agent chip which should be reused, take Inspiration from [AgentProfile](apps/agents-server/src/components/AgentProfile/AgentProfile.tsx) component.
--   Add the changes into the `/changelog/_current-preversion.md`
-
-![alt text](prompts/screenshots/2026-01-0130-team-commitment-3.png)
-![alt text](prompts/screenshots/2026-01-0130-team-commitment.png)
-
----
-
-[ ]
-
-[✨👺] Enhance the popup model design and UI from the team consultation chip.
-
--   Do not show the agent ID, show the agent name. This should work both with the agents on the same server and also with the agents on the federated server.
--   In the model, there should also be linked to the agent that will be opened on a new window.
--   @@@
--   You are working with the `Agents Server` application `/apps/agents-server`
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the `/changelog/_current-preversion.md`
-
-![alt text](prompts/screenshots/2026-01-0130-team-commitment.png)
-![alt text](prompts/screenshots/2026-01-0130-team-commitment-1.png)
-![alt text](prompts/screenshots/2026-01-0130-team-commitment-2.png)
-![alt text](prompts/screenshots/2026-01-0130-team-commitment-4.png)
-
----
-
-[-]
-
-[✨👺] qux
-
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the `/changelog/_current-preversion.md`
