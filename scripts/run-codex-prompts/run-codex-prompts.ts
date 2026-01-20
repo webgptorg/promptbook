@@ -107,19 +107,24 @@ async function run(): Promise<void> {
         printStats(stats);
 
         const nextPrompt = findNextTodoPrompt(promptFiles);
+
+        if (!hasShownUpcomingTasks) {
+            if (stats.toBeWritten > 0) {
+                console.info(colors.yellow('Following prompts need to be written:'));
+                printPromptsToBeWritten(promptFiles);
+                console.info('');
+            }
+            printUpcomingTasks(listUpcomingTasks(promptFiles));
+            hasShownUpcomingTasks = true;
+        }
+
         if (!nextPrompt) {
             if (stats.toBeWritten > 0) {
-                console.info(colors.yellow('No prompts ready for agent. Following prompts need to be written:'));
-                printPromptsToBeWritten(promptFiles);
+                console.info(colors.yellow('No prompts ready for agent.'));
             } else {
                 console.info(colors.green('All prompts are done.'));
             }
             return;
-        }
-
-        if (!hasShownUpcomingTasks) {
-            printUpcomingTasks(listUpcomingTasks(promptFiles));
-            hasShownUpcomingTasks = true;
         }
 
         if (options.waitForUser && !hasWaitedForStart) {
