@@ -201,3 +201,27 @@
     -   Made the system extensible for future configuration parameters (model, temperature, tools)
     -   Added detailed logging for cache hits and misses with cache keys
     -   Refactored `handleChatCompletion` to use the new `AssistantCacheManager`
+-   Enhanced error handling for agent chat in Agents Server:
+    -   Created centralized error message mapping utility (`errorMessages.ts`) following DRY principle:
+        -   Categorizes errors into user-friendly categories (network, authentication, validation, rate limit, server error, timeout, etc.)
+        -   Provides context-aware friendly error messages instead of raw technical errors
+        -   Logs raw errors to console.error for debugging while showing user-friendly messages in UI
+    -   Implemented `<ChatErrorDialog/>` component with retry functionality:
+        -   Displays user-friendly error titles and messages in a modal dialog
+        -   Shows retry button for recoverable errors (network issues, timeouts, server errors)
+        -   Allows dismissing errors with cancel/close buttons
+        -   Modern, polished UI with error icons and action buttons
+    -   Added error handling support in `<LlmChat/>` component:
+        -   Introduced optional `onError` prop to handle errors with custom logic
+        -   Stores last failed message for retry functionality
+        -   Provides retry callback to allow re-sending failed messages
+        -   Maintains backward compatibility (errors still shown in chat if no handler provided)
+    -   Integrated error handling in `AgentChatWrapper`:
+        -   Uses `handleChatError` utility to categorize and format errors
+        -   Displays `<ChatErrorDialog/>` with retry button for failed messages
+        -   Automatically retries last failed message when user clicks retry button
+    -   Improved user experience:
+        -   Clear, actionable error messages instead of technical jargon
+        -   Ability to retry failed operations without re-typing messages
+        -   Consistent error handling across all chat interfaces
+        -   Better debugging with raw errors logged to console

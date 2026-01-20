@@ -4,11 +4,14 @@ import { usePromise } from '@common/hooks/usePromise';
 import { AgentChat } from '@promptbook-local/components';
 import { RemoteAgent } from '@promptbook-local/core';
 import { upload } from '@vercel/blob/client';
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { OpenAiSpeechRecognition } from '../../../../../../src/speech-recognition/OpenAiSpeechRecognition';
 import { string_agent_url } from '../../../../../../src/types/typeAliases';
+import { ChatErrorDialog } from '../../../components/ChatErrorDialog';
 import { useAgentBackground } from '../../../components/AgentProfile/useAgentBackground';
 import { createDefaultChatEffects } from '../../../utils/chat/createDefaultChatEffects';
+import { handleChatError } from '../../../utils/errorMessages';
+import type { FriendlyErrorMessage } from '../../../utils/errorMessages';
 import { createDefaultSoundSystem } from '../../../utils/sound/createDefaultSoundSystem';
 
 type AgentChatWrapperProps = {
@@ -35,6 +38,10 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
     );
 
     const { value: agent } = usePromise(agentPromise, [agentPromise]);
+
+    // Error state management
+    const [currentError, setCurrentError] = useState<FriendlyErrorMessage | null>(null);
+    const [retryCallback, setRetryCallback] = useState<(() => void) | null>(null);
 
     const handleFeedback = useCallback(
         async (feedback: {
@@ -107,28 +114,52 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
         return createDefaultSoundSystem();
     }, []);
 
+    // Handle errors from chat
+    const handleError = useCallback((error: unknown, retry: () => void) => {
+        const friendlyError = handleChatError(error, 'AgentChatWrapper');
+        setCurrentError(friendlyError);
+        setRetryCallback(() => retry);
+    }, []);
+
+    // Handle error dialog dismiss
+    const handleDismissError = useCallback(() => {
+        setCurrentError(null);
+        setRetryCallback(null);
+    }, []);
+
+    // Handle retry from error dialog
+    const handleRetry = useCallback(() => {
+        if (retryCallback) {
+            retryCallback();
+        }
+    }, [retryCallback]);
+
     if (!agent) {
         return <>{/* <- TODO: [🐱‍🚀] <PromptbookLoading /> */}</>;
     }
 
     return (
-        <AgentChat
-            className={`w-full h-full`}
-            style={{
-                backgroundImage: `url("${backgroundImage}")`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-            }}
-            agent={agent}
-            onFeedback={handleFeedback}
-            onFileUpload={handleFileUpload}
-            defaultMessage={defaultMessage}
-            autoExecuteMessage={autoExecuteMessage}
-            speechRecognition={speechRecognition}
-            visual="FULL_PAGE"
-            effectConfigs={effectConfigs}
-            soundSystem={soundSystem}
-        />
+        <>
+            <AgentChat
+                className={`w-full h-full`}
+                style={{
+                    backgroundImage: `url("${backgroundImage}")`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                }}
+                agent={agent}
+                onFeedback={handleFeedback}
+                onFileUpload={handleFileUpload}
+                onError={handleError}
+                defaultMessage={defaultMessage}
+                autoExecuteMessage={autoExecuteMessage}
+                speechRecognition={speechRecognition}
+                visual="FULL_PAGE"
+                effectConfigs={effectConfigs}
+                soundSystem={soundSystem}
+            />
+            <ChatErrorDialog error={currentError} onRetry={handleRetry} onDismiss={handleDismissError} />
+        </>
     );
 }
 

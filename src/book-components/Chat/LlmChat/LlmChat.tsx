@@ -11,6 +11,7 @@ import type { ChatParticipant } from '../types/ChatParticipant';
 /* Context removed – using attachable sendMessage from hook */
 import { ChatPersistence } from '../utils/ChatPersistence';
 import type { LlmChatProps } from './LlmChatProps';
+import type { FriendlyErrorMessage } from './errorTypes';
 
 /**
  * LlmChat component that provides chat functionality with LLM integration
@@ -30,6 +31,7 @@ export function LlmChat(props: LlmChatProps) {
         persistenceKey,
         onChange,
         onReset,
+        onError,
         initialMessages,
         sendMessage,
         userParticipantName = 'USER',
@@ -62,10 +64,16 @@ export function LlmChat(props: LlmChatProps) {
           >
         | undefined
     >(undefined);
+    const [currentError, setCurrentError] = useState<FriendlyErrorMessage | null>(null);
+    const [lastFailedMessage, setLastFailedMessage] = useState<{
+        content: string;
+        attachments: ChatMessage['attachments'];
+    } | null>(null);
 
     // Refs to keep latest state for long-lived handlers
     const messagesRef = useRef<ChatMessage[]>([]);
     const participantsRef = useRef<ReadonlyArray<ChatParticipant>>([]);
+    const handleRetryRef = useRef<() => void>(() => {});
 
     /**
      * Tracks whether the user (or system via persistence restoration) has interacted.
@@ -297,16 +305,25 @@ export function LlmChat(props: LlmChatProps) {
                     onChange(finalMessages, participants);
                 }
             } catch (error) {
+                // Log raw error for debugging
                 console.error('Error calling LLM:', error);
 
-                // Replace loading message with error message
+                // Store the failed message for retry functionality
+                setLastFailedMessage({ content: messageContent, attachments });
+
+                // Call custom error handler if provided
+                if (onError) {
+                    onError(error, () => handleRetryRef.current());
+                }
+
+                // Replace loading message with error message in chat
                 const errorMessage: ChatMessage = {
                     // channel: 'PROMPTBOOK_CHAT',
                     id: loadingMessage.id,
                     createdAt: new Date(),
                     sender: llmParticipantName,
-                    content: `Sorry, I encountered an error: ${
-                        error instanceof Error ? error.message : 'Unknown error'
+                    content: `Sorry, I encountered an error processing your message. ${
+                        error instanceof Error ? error.message : 'Please try again.'
                     }` as string_markdown,
                     isComplete: true,
                 };
@@ -323,7 +340,7 @@ export function LlmChat(props: LlmChatProps) {
                 }
             }
         },
-        [messages, llmTools, onChange, participants],
+        [messages, llmTools, onChange, participants, onError, llmParticipantName, userParticipantName],
     );
 
     // Handle chat reset
@@ -332,6 +349,10 @@ export function LlmChat(props: LlmChatProps) {
         setMessages(buildInitialMessages());
         setTasksProgress([]);
         hasUserInteractedRef.current = false;
+
+        // Clear error state
+        setCurrentError(null);
+        setLastFailedMessage(null);
 
         // Clear persisted messages if persistence is enabled
         if (persistenceKey && ChatPersistence.isAvailable()) {
@@ -347,6 +368,27 @@ export function LlmChat(props: LlmChatProps) {
             onChange(buildInitialMessages(), participants);
         }
     }, [persistenceKey, onReset, onChange, participants, buildInitialMessages]);
+
+    // Handle retry of last failed message
+    const handleRetry = useCallback(() => {
+        if (lastFailedMessage) {
+            // Clear error state
+            setCurrentError(null);
+
+            // Retry sending the message
+            handleMessage(lastFailedMessage.content, lastFailedMessage.attachments);
+        }
+    }, [lastFailedMessage, handleMessage]);
+
+    // Keep handleRetry ref in sync
+    useEffect(() => {
+        handleRetryRef.current = handleRetry;
+    }, [handleRetry]);
+
+    // Handle dismissing error dialog
+    const handleDismissError = useCallback(() => {
+        setCurrentError(null);
+    }, []);
 
     // Attach internal handler to external sendMessage (from useSendMessageToLlmChat) if provided
     useEffect(() => {

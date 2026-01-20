@@ -77,4 +77,13 @@ export type LlmChatProps = Omit<ChatProps, 'messages' | 'onMessage' | 'onChange'
      * e.g., { "web_search": "Searching the web..." }
      */
     readonly toolTitles?: Record<string, string>;
+
+    /**
+     * Optional custom error handler that will be called when an error occurs during chat.
+     * If not provided, errors will be displayed as messages in the chat.
+     *
+     * @param error - The error that occurred
+     * @param retry - Function to retry the last failed message
+     */
+    onError?(error: unknown, retry: () => void): void;
 };
