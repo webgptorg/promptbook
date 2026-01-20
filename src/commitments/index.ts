@@ -35,6 +35,7 @@ import { SampleCommitmentDefinition } from './SAMPLE/SAMPLE';
 import { ScenarioCommitmentDefinition } from './SCENARIO/SCENARIO';
 import { StyleCommitmentDefinition } from './STYLE/STYLE';
 import { TeamCommitmentDefinition } from './TEAM/TEAM';
+import { TemplateCommitmentDefinition } from './TEMPLATE/TEMPLATE';
 import { UseCommitmentDefinition } from './USE/USE';
 import { UseBrowserCommitmentDefinition } from './USE_BROWSER/USE_BROWSER';
 import { UseImageGeneratorCommitmentDefinition } from './USE_IMAGE_GENERATOR/USE_IMAGE_GENERATOR';
@@ -68,6 +69,8 @@ export const COMMITMENT_REGISTRY = [
     new SampleCommitmentDefinition('EXAMPLE'),
     new FormatCommitmentDefinition('FORMAT'),
     new FormatCommitmentDefinition('FORMATS'),
+    new TemplateCommitmentDefinition('TEMPLATE'),
+    new TemplateCommitmentDefinition('TEMPLATES'),
     new FromCommitmentDefinition('FROM'),
     new ImportCommitmentDefinition('IMPORT'),
     new ImportCommitmentDefinition('IMPORTS'),

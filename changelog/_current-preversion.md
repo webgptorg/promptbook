@@ -1,4 +1,5 @@
 ### 📚 Book
+-   Implemented `TEMPLATE` commitment to enforce specific message structure or response templates for agent responses.
 -   Added nonce test files at the repository root for coding agent verification.
 -   Added a script to run prompt files through OpenAI Codex with prompt status tracking and git commits.
 -   Added interactive waits between codex prompt tasks with a `--no-wait` override flag.
