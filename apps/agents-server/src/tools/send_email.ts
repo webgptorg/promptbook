@@ -1,3 +1,4 @@
+import { OutboundEmail } from '../message-providers/email/_common/Email';
 import { parseEmailAddresses } from '../message-providers/email/_common/utils/parseEmailAddresses';
 import { sendMessage } from '../utils/messages/sendMessage';
 
@@ -36,9 +37,9 @@ export async function send_email(args: {
         const email: OutboundEmail = {
             channel: 'EMAIL',
             direction: 'OUTBOUND',
-            sender: senderAddress,
-            recipients,
-            cc: ccAddresses,
+            sender: senderAddress.fullEmail,
+            recipients: recipients.map((email) => email.fullEmail),
+            cc: ccAddresses, // <- TODO: !!!!! Why `sender` and `recipients` are strings but `cc` is object
             subject,
             content: body, // Body is already in markdown format
             attachments: [], // No attachments support yet
