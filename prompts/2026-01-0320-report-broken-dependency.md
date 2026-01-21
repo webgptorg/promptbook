@@ -54,7 +54,7 @@ In line 1234:
 ```
 
 
--   Relevant script is [scripts/generate-packages/generate-packages.ts](@@@)
+-   Relevant script is scripts/generate-packages/generate-packages.ts
 -   This is relevant for all "[🟢]", "[⚪]", "[⚫]", "[🟡]", "[🔵]"
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the [changelog](./changelog/_current-preversion.md)
