@@ -8,7 +8,7 @@
  * @param agentsServerUrl The base URL of the agents server (defaults to current origin)
  * @returns Markdown content from the URL
  *
- * @public Safe to use in browser environment - marked with [🔵]
+ * @private internal utility for USE BROWSER commitment
  */
 export async function fetchUrlContentViaBrowser(url: string, agentsServerUrl?: string): Promise<string> {
     try {
@@ -43,7 +43,3 @@ export async function fetchUrlContentViaBrowser(url: string, agentsServerUrl?: s
         throw new Error(`Error fetching URL content via browser: ${errorMessage}`);
     }
 }
-
-/**
- * Note: [🔵] Code in this file is safe to be published into `@promptbook/browser`
- */
