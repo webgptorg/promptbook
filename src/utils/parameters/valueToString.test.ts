@@ -1,5 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import { VALUE_STRINGS } from '../../config';
+import { TODO_any } from '../organization/TODO_any';
 import { valueToString } from './valueToString';
 
 describe('how `valueToString` works', () => {
@@ -43,7 +44,7 @@ describe('how `valueToString` works', () => {
     });
 
     it('should handle circular references', () => {
-        const circular: any = { a: 1 };
+        const circular: TODO_any = { a: 1 };
         circular.self = circular;
         expect(valueToString(circular)).toBe(VALUE_STRINGS.circular);
     });

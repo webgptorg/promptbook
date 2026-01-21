@@ -5,8 +5,8 @@
  * The full implementation is in the Agent Server.
  */
 
-export interface FriendlyErrorMessage {
+export type FriendlyErrorMessage = {
     title: string;
     message: string;
     canRetry: boolean;
-}
+};

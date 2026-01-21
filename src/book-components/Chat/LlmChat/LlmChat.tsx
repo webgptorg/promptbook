@@ -4,11 +4,11 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { string_markdown } from '../../../types/typeAliases';
+import { TODO_USE } from '../../../utils/organization/TODO_USE';
 import type { TODO_any } from '../../../utils/organization/TODO_any';
 import { Chat } from '../Chat/Chat';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
-/* Context removed – using attachable sendMessage from hook */
 import { ChatPersistence } from '../utils/ChatPersistence';
 import type { LlmChatProps } from './LlmChatProps';
 import type { FriendlyErrorMessage } from './errorTypes';
@@ -65,6 +65,8 @@ export function LlmChat(props: LlmChatProps) {
         | undefined
     >(undefined);
     const [currentError, setCurrentError] = useState<FriendlyErrorMessage | null>(null);
+    TODO_USE(currentError);
+
     const [lastFailedMessage, setLastFailedMessage] = useState<{
         content: string;
         attachments: ChatMessage['attachments'];
@@ -389,6 +391,8 @@ export function LlmChat(props: LlmChatProps) {
     const handleDismissError = useCallback(() => {
         setCurrentError(null);
     }, []);
+
+    TODO_USE(handleDismissError);
 
     // Attach internal handler to external sendMessage (from useSendMessageToLlmChat) if provided
     useEffect(() => {

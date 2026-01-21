@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { Converter as ShowdownConverter } from 'showdown';
 import type { string_html, string_markdown } from '../../../types/typeAliases';
+import { TODO_USE } from '../../../utils/organization/TODO_USE';
 import { classNames } from '../../_common/react-utils/classNames';
 import { CodeBlock } from '../CodeBlock/CodeBlock';
 import styles from './MarkdownContent.module.css';
@@ -51,6 +52,8 @@ function createChatMarkdownConverter(): ShowdownConverter {
                 type: 'lang',
                 regex: /【(.*?)†(.*?)】/g,
                 replace: (match: string, id: string, source: string) => {
+                    TODO_USE(source);
+
                     // Note: Citations are now rendered as chips in ChatMessageItem
                     // We replace them with numbered superscript references
                     return `<sup class="${styles.citationRef}">[${id}]</sup>`;

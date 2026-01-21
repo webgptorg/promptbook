@@ -161,7 +161,6 @@ export function AgentChip({ agent, isOngoing = false, isClickable = false, onCli
 
             {imageUrl && (
                 <div className={styles.avatar}>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={imageUrl} alt={agentLabel} className={styles.avatarImage} />
                 </div>
             )}

@@ -4,7 +4,7 @@ import { PipelineExecutionError } from '../errors/PipelineExecutionError';
 import { UnexpectedError } from '../errors/UnexpectedError';
 import type { string_prompt } from '../types/typeAliases';
 import type { really_unknown } from '../utils/organization/really_unknown';
-import { isPromptMarked, markAsPromptNotation, removePromptMarker, templateParameters } from '../utils/parameters/templateParameters';
+import { isPromptMarked, markAsPromptNotation, templateParameters } from '../utils/parameters/templateParameters';
 
 /**
  * Tag function for notating a prompt as template literal
@@ -41,7 +41,7 @@ export function prompt(strings: TemplateStringsArray, ...values: Array<really_un
         } else if (typeof value === 'string' && isPromptMarked(value)) {
             // Already marked - keep the mark
             return value;
-        }  else {
+        } else {
             // Non-string values - don't mark
             return value;
         }
