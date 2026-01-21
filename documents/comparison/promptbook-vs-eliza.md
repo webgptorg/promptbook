@@ -11,11 +11,12 @@ While Eliza excels at "personality-driven" social interaction and decentralized 
 
 | Promptbook                                                                          | Eliza                                                                  |
 | ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| ✔ **Book Language**: Declarative, high-level language for agent definitions.       | ✘ **Code-Centric**: Built primarily with TypeScript and complex configs. |
-| ✔ **Enterprise Focus**: Designed for professional tools and internal applications.  | ✔ **Social Media Focus**: Excellent support for Twitter/Discord agents. |
-| ✔ **Adversary Verification**: Rigorous multi-agent rule enforcement.                | ✘ **Personality-Led**: Focuses on character consistency over strict rules. |
-| ✔ **Federated Ecosystem**: Agents interact across servers and domains.               | ✔ **Crypto Integration**: Native support for Solana and other chains.  |
+| ✔ **Book Language**: Declarative, high-level language for agent definitions.       | ✔ **Social Media Focus**: Excellent support for Twitter/Discord agents. |
+| ✔ **Enterprise Focus**: Designed for professional tools and internal applications.  | ✔ **Crypto Integration**: Native support for Solana and other chains.  |
+| ✔ **Adversary Verification**: Rigorous multi-agent rule enforcement.                | ✔ **Personality-Led**: Strong focus on character consistency and vibes.|
+| ✔ **Federated Ecosystem**: Agents interact across servers and domains.               | ✔ **Active Community**: Vibrant ecosystem with plugins and extensions. |
 | ✔ **Portable Definitions**: `.book` files are independent of the execution engine.  | ✘ **Framework Dependent**: Closely tied to the Eliza runtime.           |
+| ✘ **Limited Social Platform Support**: Fewer pre-built social integrations.        | ✘ **Code-Centric**: Requires TypeScript knowledge for customization.   |
 | 💡 **Agent "Commitment"**: Focuses on what the agent *must* and *must not* do.     | 💡 **Agent "Personality"**: Focuses on the *vibes* and social presence. |
 
-**Best for:** Developers building reliable, portable, and rules-based AI agents for professional and enterprise environments. | **Best for:** Creating autonomous, social-media-savvy agents with a focus on community engagement and crypto actions.
+**Best for:** Developers building reliable, portable, and rules-based AI agents for professional and enterprise environments with strict compliance requirements. | **Best for:** Creating autonomous, social-media-savvy agents with strong personalities for community engagement, crypto actions, and decentralized applications.

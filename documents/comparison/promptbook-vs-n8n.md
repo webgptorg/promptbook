@@ -11,12 +11,13 @@ N8N excels at "connecting things" and visual orchestration, but its AI agents ar
 
 | Promptbook                                                                          | N8N                                                                    |
 | ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| ✔ **Text-Based Definitions**: Agents are defined in `.book` files (Git friendly).   | ✘ **Visual Canvas**: Workflows are primarily defined in a visual UI.   |
-| ✔ **Focus on Agent Character**: Built-in support for `PERSONA` and `TEAM`.          | ✘ **Focus on Flow Logic**: AI is a component in a larger logic tree.   |
-| ✔ **Model & Platform Agnostic**: Run agents anywhere via the Promptbook Engine.     | ✘ **Platform Dependent**: Agents are typically tied to the N8N instance. |
-| ✔ **Enforceable Rules**: Native `RULE` commitment with multi-agent verification.   | ✘ **Manual Prompting**: Rules must be manually added to system prompts. |
-| ✔ **Federated Ecosystem**: Connect agents across different servers and domains.      | ✘ **Siloed**: Workflows are generally isolated within the instance.    |
-| ✔ **Lightweight & Embeddable**: Easy to integrate into existing applications.      | ✘ **Infrastructure Heavy**: Requires a full N8N instance to run.       |
-| 💡 **Agent Personality**: Defined through natural language commitments.            | 💡 **Visual Orchestration**: Excellent for mapping out complex logic.  |
+| ✔ **Text-Based Definitions**: Agents are defined in `.book` files (Git friendly).   | ✔ **Visual Orchestration**: Excellent for mapping out complex logic.  |
+| ✔ **Focus on Agent Character**: Built-in support for `PERSONA` and `TEAM`.          | ✔ **App Integration**: Connect to 400+ apps and services seamlessly.  |
+| ✔ **Model & Platform Agnostic**: Run agents anywhere via the Promptbook Engine.     | ✔ **No-Code Friendly**: Build automations without writing code.       |
+| ✔ **Enforceable Rules**: Native `RULE` commitment with multi-agent verification.   | ✔ **Self-Hosted Option**: Can be deployed on your own infrastructure. |
+| ✔ **Federated Ecosystem**: Connect agents across different servers and domains.      | ✔ **Active Community**: Many templates and shared workflows available.|
+| ✘ **Limited Pre-built Integrations**: Fewer app connectors than N8N.               | ✘ **Visual Canvas Only**: Workflows are primarily defined in a visual UI. |
+| ✘ **Code-First**: Requires programming knowledge for advanced features.            | ✘ **Infrastructure Heavy**: Requires a full N8N instance to run.       |
+| 💡 **Agent Personality**: Defined through natural language commitments.            | 💡 **Workflow Automation**: Perfect for business process automation.  |
 
-**Best for:** Developers building independent, reliable, and federated AI agents that need to maintain a consistent character across multiple platforms and apps. | **Best for:** Automating complex workflows between hundreds of apps where AI is used to process, transform, or route data within a visual logic flow.
+**Best for:** Developers building independent, reliable, and federated AI agents that need to maintain a consistent character across multiple platforms with strong behavioral enforcement. | **Best for:** Automating complex workflows between hundreds of apps where AI is used to process, transform, or route data within a visual logic flow, especially for non-technical teams.

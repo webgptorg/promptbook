@@ -11,12 +11,13 @@ While LangChain is the "industry standard" for complex orchestration, it is ofte
 
 | Promptbook                                                                          | LangChain                                                              |
 | ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| ✔ **High-Level Abstraction**: Focuses on agent traits and behavior.                | ✘ **Low-Level Orchestration**: Focuses on the plumbing of LLM calls.   |
-| ✔ **Human-Readable Syntax**: Written in plain language `.book` files.               | ✘ **Code-Heavy**: Requires significant Python or TypeScript boilerplate. |
-| ✔ **Reliability via Commitments**: Engine ensures agents follow their `RULE`s.      | ✘ **Manual Verification**: Developers must manually build check loops. |
-| ✔ **Simpler Architecture**: Fewer moving parts for a more robust experience.       | ✘ **"Wrapper Hell"**: Excessive nested abstractions that hide logic.    |
-| ✔ **Declarative Style**: Define *who* the agent is, not *how* it should code.      | ✘ **Imperative Style**: Define the step-by-step logic of the chain.    |
-| ✔ **Adversary Verification**: Built-in loops to verify outputs against rules.        | ✘ **Unit-Test Heavy**: Requires extensive manual testing of chains.    |
-| 💡 **Agent Personality**: Native support for defining character and tone.           | 💡 **Tool Integration**: Massive library of connectors and integrations. |
+| ✔ **High-Level Abstraction**: Focuses on agent traits and behavior.                | ✔ **Massive Ecosystem**: Hundreds of integrations and connectors.     |
+| ✔ **Human-Readable Syntax**: Written in plain language `.book` files.               | ✔ **Industry Standard**: Widely adopted with extensive documentation. |
+| ✔ **Reliability via Commitments**: Engine ensures agents follow their `RULE`s.      | ✔ **Flexible Architecture**: Build custom chains for any use case.    |
+| ✔ **Simpler Architecture**: Fewer moving parts for a more robust experience.       | ✔ **Tool Integration**: Massive library of connectors and integrations. |
+| ✔ **Declarative Style**: Define *who* the agent is, not *how* it should code.      | ✔ **Community Support**: Active community and many tutorials/examples.|
+| ✘ **Smaller Ecosystem**: Fewer pre-built integrations compared to LangChain.       | ✘ **Complexity**: Steep learning curve with many abstraction layers.  |
+| ✘ **Fewer Examples**: Less community content and third-party tutorials.            | ✘ **Fragility**: Chains can break with version updates or edge cases. |
+| 💡 **Agent Personality**: Native support for defining character and tone.           | 💡 **Workflow Orchestration**: Exceptional for complex LLM pipelines. |
 
-**Best for:** Developers who want to build reliable AI agents quickly using a declarative, high-level language with a focus on character and safety. | **Best for:** Complex, custom AI workflows that require granular control over every step of the LLM pipeline and extensive 3rd-party integrations.
+**Best for:** Developers who want to build reliable AI agents quickly using a declarative, high-level language with a focus on character, safety, and maintainability. | **Best for:** Complex, custom AI workflows that require granular control over every step of the LLM pipeline and extensive 3rd-party integrations with data sources and tools.

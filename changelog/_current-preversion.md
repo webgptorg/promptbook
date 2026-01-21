@@ -1,4 +1,8 @@
 ### 📚 Book
+-   Enhanced all comparison documents in `/documents/comparison/*.md` for better balance and clarity:
+    -   Balanced pros/cons tables: Added legitimate advantages to alternative platforms (Agno, ChatGPT, Claude, etc.) and acknowledged Promptbook's limitations for fair comparison
+    -   Expanded "Best for" sections: Both Promptbook and alternative platforms now have detailed use case descriptions
+    -   Improved objectivity: Each platform's strengths are now accurately represented, maintaining overall balanced perspective while highlighting Promptbook's unique advantages in federated architecture, commitment system, and cross-platform portability
 -   Implemented `TEMPLATE` commitment to enforce specific message structure or response templates for agent responses.
 -   Added nonce test files at the repository root for coding agent verification.
 -   Added a script to run prompt files through OpenAI Codex with prompt status tracking and git commits.

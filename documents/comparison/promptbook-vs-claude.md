@@ -10,12 +10,13 @@ While Claude excels at processing large amounts of information and maintaining a
 
 | Promptbook                                                                           | Claude                                                                     |
 | ------------------------------------------------------------------------------------ | -------------------------------------------------------------------------- |
-| ✔ **Persistent Agent Identity**: Decoupled from the specific model version.          | ✘ **Model-Specific**: Behavior is tied to the version (e.g., 3.5 Sonnet).  |
-| ✔ **Multi-Model Support**: Switch between OpenAI, Anthropic, and others easily.      | ✘ **Ecosystem Locked**: Optimized for Anthropic's own infrastructure.      |
-| ✔ **Strict Behavioral Constraints**: `RULE` commitment ensures compliance.           | ✘ **Soft Alignment**: Relies on "Constitutional AI" which can be bypassed. |
-| ✔ **Structured Agent Definitions**: Written in `.book` format for portability.       | ✘ **Ad-hoc Configuration**: Personas are defined via system prompts.       |
-| ✔ **External Knowledge Integration**: Native `KNOWLEDGE` commitment for RAG.         | ✘ **Context Window Reliance**: Often relies on massive context windows.    |
+| ✔ **Persistent Agent Identity**: Decoupled from the specific model version.          | ✔ **Long Context Window**: Up to 200K tokens for massive documents.       |
+| ✔ **Multi-Model Support**: Switch between OpenAI, Anthropic, and others easily.      | ✔ **Superior Reasoning**: Excellent at complex analysis and nuanced tasks.|
+| ✔ **Strict Behavioral Constraints**: `RULE` commitment ensures compliance.           | ✔ **Constitutional AI**: Built-in safety and ethical guidelines.          |
+| ✔ **Structured Agent Definitions**: Written in `.book` format for portability.       | ✔ **Projects & Artifacts**: Organizational tools for context management.  |
+| ✔ **External Knowledge Integration**: Native `KNOWLEDGE` commitment for RAG.         | ✔ **Articulate Writing**: Known for high-quality, well-structured output. |
 | ✔ **Auditable Commitments**: Rules are verifiable and can be tested via adversaries. | ✘ **Black Box**: Alignment logic is internal and not easily customized.    |
+| ✘ **Requires Agent Definition**: More setup needed compared to using models directly.| ✘ **Ecosystem Locked**: Optimized for Anthropic's own infrastructure.      |
 | 💡 **Agent Abstraction**: Focuses on _who_ the AI is and _what_ it must do.          | 💡 **Model Power**: Focuses on the raw intelligence and window size.       |
 
-**Best for:** Building professional AI agents with long-term stability, strict rules, and cross-provider flexibility. | **Best for:** Complex reasoning, creative writing, and processing very large documents within a single session.
+**Best for:** Building professional AI agents with long-term stability, strict rules, and cross-provider flexibility where agent behavior must be consistent and auditable. | **Best for:** Complex reasoning, creative writing, processing very large documents, and tasks requiring sophisticated analysis with strong ethical guardrails.

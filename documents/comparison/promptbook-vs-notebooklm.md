@@ -10,13 +10,14 @@ While NotebookLM is an exceptional tool for personal research and "chatting with
 
 | Promptbook                                                                             | NotebookLM                                                               |
 | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| ✔ **Programmable Agent Traits**: Define Persona, Rules, and Team structure.            | ✘ **Fixed Assistant Personality**: Lacks customization of the AI's tone. |
-| ✔ **Developer-First**: Accessible via API, CLI, and SDK for custom apps.               | ✘ **Consumer-Only**: No public API for integrating into other tools.     |
-| ✔ **Multi-Source Knowledge**: Native support for URLs and local files via `KNOWLEDGE`. | ✔ **Source-Grounded**: Excellent at keeping responses tied to data.      |
-| ✔ **Enforceable Behavioral Rules**: `RULE` commitment ensures agent compliance.        | ✘ **Limited Control**: Rules cannot be explicitly enforced or audited.   |
-| ✔ **Model Freedom**: Use any LLM provider (OpenAI, Anthropic, Google, etc.).           | ✘ **Vendor Locked**: Limited to Google's Gemini models.                  |
+| ✔ **Programmable Agent Traits**: Define Persona, Rules, and Team structure.            | ✔ **Audio Overview**: Unique podcast-style summaries of your content.   |
+| ✔ **Developer-First**: Accessible via API, CLI, and SDK for custom apps.               | ✔ **Source-Grounded**: Excellent at keeping responses tied to data.      |
+| ✔ **Multi-Source Knowledge**: Native support for URLs and local files via `KNOWLEDGE`. | ✔ **Easy to Use**: Intuitive interface with zero setup required.        |
+| ✔ **Enforceable Behavioral Rules**: `RULE` commitment ensures agent compliance.        | ✔ **Citation Tracking**: Automatically links responses to source docs.  |
+| ✔ **Model Freedom**: Use any LLM provider (OpenAI, Anthropic, Google, etc.).           | ✔ **Free Access**: Available at no cost for personal use.               |
 | ✔ **Federated Ecosystem**: Connect and use agents across different servers.            | ✘ **Isolated Workspace**: Data and chat are siloed within the project.   |
-| ✔ **Custom UI/UX**: Embed the agent anywhere using the Promptbook Engine.              | ✘ **Standard UI**: Limited to Google's web interface.                    |
+| ✘ **No Audio Summaries**: Lacks built-in audio generation features.                   | ✘ **Consumer-Only**: No public API for integrating into other tools.     |
+| ✘ **Requires Setup**: Need to configure agents and knowledge sources.                 | ✘ **Vendor Locked**: Limited to Google's Gemini models.                  |
 | 💡 **Agent Creation**: Focuses on building a persistent expert "being".                | 💡 **Research Tool**: Focuses on analyzing and summarizing documents.    |
 
-**Best for:** Developers building specialized AI experts with deep knowledge bases that can be integrated into professional software ecosystems and custom applications. | **Best for:** Individuals and researchers who need a quick, hosted way to analyze, summarize, and brainstorm based on a specific set of documents and notes.
+**Best for:** Developers building specialized AI experts with deep knowledge bases that can be integrated into professional software ecosystems and custom applications with full control. | **Best for:** Individuals and researchers who need a quick, hosted way to analyze, summarize, and brainstorm based on a specific set of documents with unique audio summaries.
