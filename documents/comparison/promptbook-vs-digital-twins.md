@@ -1,7 +1,6 @@
-# Promptbook vs Digital Twins *(like Personal.ai & Delphi)*
+# Promptbook vs Digital Twins _(like Personal.ai & Delphi)_
 
 > ⚠ TODO: This document was written by AI Agent and needs to be proofread; Read is with a grain of salt
-
 
 Digital Twin platforms like Personal.ai and Delphi are designed to create AI "clones" or "avatars" of real people. They focus on training models on an individual's specific data (emails, chats, videos) to mimic their voice, knowledge, and personality for scaling their time and presence.
 
@@ -9,14 +8,13 @@ While Promptbook also supports the creation of "Digital Twins" through its `PERS
 
 ## Side-by-Side Comparison
 
-| Promptbook                                                                          | Personal.ai / Delphi                                                   |
-| ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| ✔ **Open & Programmable**: Full control over agent logic via the Book language.     | ✔ **Quick Setup**: Intuitive onboarding for creating digital twins.   |
-| ✔ **Federated & Portable**: Run your twin on any server or domain.                  | ✔ **Auto-Training**: Automatically learns from your emails, messages, content. |
-| ✔ **Strict Rule Enforcement**: `RULE` commitment ensures the twin stays on-brand.   | ✔ **Monetization**: Built-in tools for monetizing clone interactions.  |
-| ✔ **Multi-Agent Teams**: Your twin can collaborate with other specialized agents.    | ✔ **User-Friendly**: No coding required, designed for non-technical users. |
-| ✔ **Model Agnostic**: Use OpenAI, Anthropic, or local models for your twin.        | ✘ **Model Optimized**: Often use proprietary or fine-tuned locked models. |
-| ✘ **Technical Setup**: Requires development knowledge to configure agents.          | ✘ **Hosted Only**: Your data and twin are tied to their infrastructure. |
-| 💡 **Agent Authority**: Focuses on a twin that can *act* reliably for you.          | 💡 **Agent Presence**: Focuses on a twin that can *be* you for others. |
-
-**Best for:** Developers building self-hosted, highly-regulated Digital Twins that need to perform specific tasks reliably across multiple platforms with full data control. | **Best for:** Creators, influencers, and public figures looking for a quick, hosted solution to create a conversational avatar for fan engagement, knowledge sharing, and monetization.
+| Promptbook                                                                                                                                                                   | Personal.ai / Delphi                                                                                                                                                                    |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ✔ **Open & Programmable**: Full control over agent logic via the Book language.                                                                                              | ✔ **Quick Setup**: Intuitive onboarding for creating digital twins.                                                                                                                     |
+| ✔ **Federated & Portable**: Run your twin on any server or domain.                                                                                                           | ✔ **Auto-Training**: Automatically learns from your emails, messages, content.                                                                                                          |
+| ✔ **Strict Rule Enforcement**: `RULE` commitment ensures the twin stays on-brand.                                                                                            | ✔ **Monetization**: Built-in tools for monetizing clone interactions.                                                                                                                   |
+| ✔ **Multi-Agent Teams**: Your twin can collaborate with other specialized agents.                                                                                            | ✔ **User-Friendly**: No coding required, designed for non-technical users.                                                                                                              |
+| ✔ **Model Agnostic**: Use OpenAI, Anthropic, or local models for your twin.                                                                                                  | ✘ **Model Optimized**: Often use proprietary or fine-tuned locked models.                                                                                                               |
+| ✘ **Technical Setup**: Requires development knowledge to configure agents.                                                                                                   | ✘ **Hosted Only**: Your data and twin are tied to their infrastructure.                                                                                                                 |
+| 💡 **Agent Authority**: Focuses on a twin that can _act_ reliably for you.                                                                                                   | 💡 **Agent Presence**: Focuses on a twin that can _be_ you for others.                                                                                                                  |
+| **Best for:** Developers building self-hosted, highly-regulated Digital Twins that need to perform specific tasks reliably across multiple platforms with full data control. | **Best for:** Creators, influencers, and public figures looking for a quick, hosted solution to create a conversational avatar for fan engagement, knowledge sharing, and monetization. |
