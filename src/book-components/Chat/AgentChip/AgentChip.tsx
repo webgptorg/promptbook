@@ -75,6 +75,8 @@ export type AgentChipProps = {
  *   onClick={() => console.log('clicked')}
  * />
  * ```
+ * 
+ * @private utility of `ChatMessageItem` component
  */
 export function AgentChip({ agent, isOngoing = false, isClickable = false, onClick, className }: AgentChipProps) {
     const [imageUrl, setImageUrl] = useState<string | null>(null);

@@ -36,6 +36,8 @@ export type SourceChipProps = {
  *   onClick={(citation) => console.log('clicked', citation)}
  * />
  * ```
+ *
+ * @private utility of `ChatMessageItem` component
  */
 export function SourceChip({ citation, onClick, className }: SourceChipProps) {
     const handleClick = (event: React.MouseEvent) => {
