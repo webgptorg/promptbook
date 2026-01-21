@@ -3,8 +3,7 @@ import { REPLACING_NONCE } from '../constants';
 import { PipelineExecutionError } from '../errors/PipelineExecutionError';
 import { UnexpectedError } from '../errors/UnexpectedError';
 import type { string_prompt } from '../types/typeAliases';
-import type { really_unknown } from '../utils/organization/really_unknown';
-import { isPromptMarked, markAsPromptNotation, templateParameters } from '../utils/parameters/templateParameters';
+import { templateParameters } from '../utils/parameters/templateParameters';
 
 /**
  * Tag function for notating a prompt as template literal
@@ -15,15 +14,13 @@ import { isPromptMarked, markAsPromptNotation, templateParameters } from '../uti
  * 3) `book` for notating and validating entire books exported from `@promptbook/utils`
  *
  * @param strings
- * @param values - Can be any type (string, number, boolean, object, array, etc.)
+ * @param values
  * @returns the prompt string
  * @public exported from `@promptbook/utils`
  */
-export function prompt(strings: TemplateStringsArray, ...values: Array<really_unknown>): string_prompt {
+export function prompt(strings: TemplateStringsArray, ...values: Array<string>): string_prompt {
     if (values.length === 0) {
-        const result = spaceTrim(strings.join(''));
-        // Mark it so it can be used as a parameter in other prompts
-        return markAsPromptNotation(result) as string_prompt;
+        return spaceTrim(strings.join(''));
     }
 
     const stringsWithHiddenParameters = strings.map((stringsItem) =>
@@ -31,22 +28,8 @@ export function prompt(strings: TemplateStringsArray, ...values: Array<really_un
         stringsItem.split('{').join(`${REPLACING_NONCE}beginbracket`).split('}').join(`${REPLACING_NONCE}endbracket`),
     );
 
-    //const placeholderParameterNames = values.map((value, i) => `${REPLACING_NONCE}${i}`);
-    const placeholderParameterNames = values.map((value, i) => `__promptParam${i}`);
-    // Mark string values that come from prompt calls so they can be detected later
-    const markedValues = values.map((value) => {
-        if (typeof value === 'string' && !isPromptMarked(value)) {
-            // Regular strings - don't mark them
-            return value;
-        } else if (typeof value === 'string' && isPromptMarked(value)) {
-            // Already marked - keep the mark
-            return value;
-        } else {
-            // Non-string values - don't mark
-            return value;
-        }
-    });
-    const parameters = Object.fromEntries(markedValues.map((value, i) => [placeholderParameterNames[i], value]));
+    const placeholderParameterNames = values.map((value, i) => `${REPLACING_NONCE}${i}`);
+    const parameters = Object.fromEntries(values.map((value, i) => [placeholderParameterNames[i], value]));
 
     // Combine strings and values
     let pipelineString = stringsWithHiddenParameters.reduce(
@@ -86,10 +69,7 @@ export function prompt(strings: TemplateStringsArray, ...values: Array<really_un
         .split(`${REPLACING_NONCE}endbracket`)
         .join('}');
 
-    // Mark the result as prompt notation so it can be detected when used as a parameter
-    // Note: The marker will be present in the returned string, but will be automatically
-    // removed by templateParameters when this is used as a parameter in another prompt call
-    return markAsPromptNotation(pipelineString);
+    return pipelineString;
 }
 
 /**

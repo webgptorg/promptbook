@@ -1,4 +1,4 @@
-[x] $2.08
+[ ]
 
 [✨🚶] Enhance a `prompt` notation:
 
@@ -108,4 +108,3 @@ This user should be handled with special care because he is VIP.
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
-
