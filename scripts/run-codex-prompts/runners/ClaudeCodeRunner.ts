@@ -37,6 +37,13 @@ function buildClaudeScript(options: ClaudeScriptOptions): string {
 
             ${block(options.prompt)}
 
+            **Common rules**
+
+            - Always analyze the context and requirements before generating any code.
+            - Keep in mind the DRY _(don't repeat yourself)_ principle.
+            - Write clear, maintainable, and well-documented code.
+            - Write JSDoc comments for all functions, classes, types,...
+
             
             **Additional context:**
 
