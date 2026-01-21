@@ -26,12 +26,7 @@ export function ChatErrorDialog({ error, onRetry, onDismiss }: ChatErrorDialogPr
                 {/* Error Icon and Title */}
                 <div className="flex items-start mb-4">
                     <div className="flex-shrink-0">
-                        <svg
-                            className="h-6 w-6 text-red-600"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
+                        <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path
                                 strokeLinecap="round"
                                 strokeLinejoin="round"

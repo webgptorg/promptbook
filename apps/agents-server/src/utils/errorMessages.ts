@@ -137,7 +137,8 @@ export function getFriendlyErrorMessage(category: ErrorCategory, rawError?: unkn
         case 'AGENT_NOT_FOUND':
             return {
                 title: 'Agent Not Found',
-                message: 'The agent you are trying to chat with could not be found. It may have been deleted or renamed.',
+                message:
+                    'The agent you are trying to chat with could not be found. It may have been deleted or renamed.',
                 category,
                 canRetry: false,
             };
@@ -153,7 +154,8 @@ export function getFriendlyErrorMessage(category: ErrorCategory, rawError?: unkn
         case 'VALIDATION_ERROR':
             return {
                 title: 'Invalid Request',
-                message: 'There was an issue with your message. Please try rephrasing it or check if any attachments are valid.',
+                message:
+                    'There was an issue with your message. Please try rephrasing it or check if any attachments are valid.',
                 category,
                 canRetry: true,
             };
@@ -169,7 +171,8 @@ export function getFriendlyErrorMessage(category: ErrorCategory, rawError?: unkn
         case 'SERVER_ERROR':
             return {
                 title: 'Server Error',
-                message: 'The agent server encountered an error while processing your request. Please try again in a moment.',
+                message:
+                    'The agent server encountered an error while processing your request. Please try again in a moment.',
                 category,
                 canRetry: true,
             };
@@ -177,7 +180,8 @@ export function getFriendlyErrorMessage(category: ErrorCategory, rawError?: unkn
         case 'TIMEOUT_ERROR':
             return {
                 title: 'Request Timeout',
-                message: 'Your request took too long to process. The agent may be busy or the server may be overloaded. Please try again.',
+                message:
+                    'Your request took too long to process. The agent may be busy or the server may be overloaded. Please try again.',
                 category,
                 canRetry: true,
             };

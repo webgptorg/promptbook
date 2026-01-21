@@ -38,7 +38,7 @@ export type AssistantConfiguration = {
      * Currently not used but included for future extensibility
      */
     readonly tools?: ReadonlyArray<unknown>;
-}
+};
 
 /**
  * Extracts assistant configuration from agent source
@@ -73,9 +73,10 @@ export function extractAssistantConfiguration(
 
     // If including dynamic context, append it to instructions
     const contextInstructions = contextLines.map((line) => line.replace(/^CONTEXT\s+/, '')).join('\n');
-    const instructions = includeDynamicContext && contextInstructions
-        ? `${baseInstructions}\n\n${contextInstructions}`
-        : baseInstructions;
+    const instructions =
+        includeDynamicContext && contextInstructions
+            ? `${baseInstructions}\n\n${contextInstructions}`
+            : baseInstructions;
 
     return {
         baseAgentSource: configAgentSource,

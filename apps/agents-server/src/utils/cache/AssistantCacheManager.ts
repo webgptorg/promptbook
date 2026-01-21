@@ -31,7 +31,7 @@ export type AssistantCacheResult = {
      * The assistant configuration
      */
     readonly configuration: AssistantConfiguration;
-}
+};
 
 /**
  * Manages the lifecycle of OpenAI Assistants with intelligent caching
@@ -87,7 +87,9 @@ export class AssistantCacheManager {
         const cacheKey = computeAssistantCacheKey(configuration);
 
         if (this.isVerbose) {
-            console.log(`[AssistantCacheManager] Looking up assistant for agent "${agentName}" (cache key: ${cacheKey})`);
+            console.log(
+                `[AssistantCacheManager] Looking up assistant for agent "${agentName}" (cache key: ${cacheKey})`,
+            );
         }
 
         // Check cache
@@ -113,12 +115,7 @@ export class AssistantCacheManager {
             console.log(`[AssistantCacheManager] ✗ Cache MISS for agent "${agentName}" - creating new assistant`);
         }
 
-        const newTools = await this.createAndCacheAssistant(
-            configuration,
-            agentName,
-            cacheKey,
-            baseTools,
-        );
+        const newTools = await this.createAndCacheAssistant(configuration, agentName, cacheKey, baseTools);
 
         return {
             tools: newTools,
@@ -255,7 +252,10 @@ export class AssistantCacheManager {
     public async clearAllCache(): Promise<void> {
         const supabase = $provideSupabaseForServer();
 
-        const { error } = await supabase.from(await $getTableName('OpenAiAssistantCache')).delete().neq('id', 0);
+        const { error } = await supabase
+            .from(await $getTableName('OpenAiAssistantCache'))
+            .delete()
+            .neq('id', 0);
 
         if (error) {
             console.error('[AssistantCacheManager] Error clearing cache:', error);
