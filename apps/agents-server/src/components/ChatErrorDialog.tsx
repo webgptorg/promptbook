@@ -2,11 +2,11 @@
 
 import type { FriendlyErrorMessage } from '../utils/errorMessages';
 
-interface ChatErrorDialogProps {
+type ChatErrorDialogProps = {
     error: FriendlyErrorMessage | null;
     onRetry?: () => void;
     onDismiss: () => void;
-}
+};
 
 /**
  * ChatErrorDialog component displays user-friendly error messages

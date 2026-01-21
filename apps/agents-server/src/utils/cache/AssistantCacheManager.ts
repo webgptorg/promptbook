@@ -11,7 +11,7 @@ import {
 /**
  * Result of getting or creating an assistant
  */
-export interface AssistantCacheResult {
+export type AssistantCacheResult = {
     /**
      * The OpenAI Assistant execution tools instance
      */
@@ -205,7 +205,7 @@ export class AssistantCacheManager {
     private async cacheAssistant(
         cacheKey: string,
         assistantId: string,
-        configuration: AssistantConfiguration,
+        _configuration: AssistantConfiguration,
     ): Promise<void> {
         const supabase = $provideSupabaseForServer();
 

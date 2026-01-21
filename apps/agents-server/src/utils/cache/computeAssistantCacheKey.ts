@@ -5,7 +5,7 @@ import { computeHash } from '@promptbook-local/utils';
 /**
  * Configuration that uniquely identifies an OpenAI Assistant
  */
-export interface AssistantConfiguration {
+export type AssistantConfiguration = {
     /**
      * Base agent source without dynamic CONTEXT lines
      */

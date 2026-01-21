@@ -18,12 +18,12 @@ export type ErrorCategory =
     | 'TIMEOUT_ERROR'
     | 'UNKNOWN_ERROR';
 
-export interface FriendlyErrorMessage {
+export type FriendlyErrorMessage = {
     title: string;
     message: string;
     category: ErrorCategory;
     canRetry: boolean;
-}
+};
 
 /**
  * Categorize an error based on its properties
@@ -35,11 +35,17 @@ export function categorizeError(error: unknown): ErrorCategory {
 
     // Check for error object with type property (from API responses)
     if (typeof error === 'object' && error !== null) {
-        const errorObj = error as any;
+        const errorObj = error as Record<string, unknown>;
 
         // Check for structured error response from API
-        if (errorObj.error?.type) {
-            const errorType = errorObj.error.type;
+        const nestedError = errorObj.error;
+        if (
+            nestedError &&
+            typeof nestedError === 'object' &&
+            'type' in nestedError &&
+            typeof nestedError.type === 'string'
+        ) {
+            const errorType = nestedError.type;
 
             if (errorType === 'agent_deleted') {
                 return 'AGENT_DELETED';
@@ -80,7 +86,7 @@ export function categorizeError(error: unknown): ErrorCategory {
         }
 
         // Check HTTP status codes
-        if ('status' in errorObj) {
+        if ('status' in errorObj && typeof errorObj.status === 'number') {
             const status = errorObj.status;
 
             if (status === 404) {
@@ -185,10 +191,16 @@ export function getFriendlyErrorMessage(category: ErrorCategory, rawError?: unkn
                 if (rawError instanceof Error && rawError.message) {
                     detailMessage = `An unexpected error occurred: ${rawError.message}`;
                 } else if (typeof rawError === 'object' && rawError !== null) {
-                    const errorObj = rawError as any;
-                    if (errorObj.error?.message) {
-                        detailMessage = `An unexpected error occurred: ${errorObj.error.message}`;
-                    } else if (errorObj.message) {
+                    const errorObj = rawError as Record<string, unknown>;
+                    const nestedError = errorObj.error;
+                    if (
+                        nestedError &&
+                        typeof nestedError === 'object' &&
+                        'message' in nestedError &&
+                        typeof nestedError.message === 'string'
+                    ) {
+                        detailMessage = `An unexpected error occurred: ${nestedError.message}`;
+                    } else if ('message' in errorObj && typeof errorObj.message === 'string') {
                         detailMessage = `An unexpected error occurred: ${errorObj.message}`;
                     }
                 }
