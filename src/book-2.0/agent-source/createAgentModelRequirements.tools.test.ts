@@ -22,8 +22,10 @@ describe('USE SEARCH ENGINE and USE BROWSER commitments', () => {
             USE BROWSER
         `);
         const requirements = await createAgentModelRequirements(agentSource);
-        const browserTool = requirements.tools?.find((tool) => tool.name === 'web_browser');
-        expect(browserTool).toBeDefined();
+        const fetch_url_content = requirements.tools?.find((tool) => tool.name === 'fetch_url_content');
+        expect(fetch_url_content).toBeDefined();
+        const run_browser = requirements.tools?.find((tool) => tool.name === 'run_browser');
+        expect(run_browser).toBeDefined();
         expect(requirements.metadata?.useBrowser).toBe(true);
     });
 
