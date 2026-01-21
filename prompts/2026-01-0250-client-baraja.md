@@ -1,6 +1,6 @@
 [ ]
 
-[✨🚶] Enhance a `prompt` notation:
+[✨🚶] Enhance a `prompt` notation: @@@
 
 ```typescript
 const customer = 'John Doe';
@@ -83,7 +83,7 @@ This user should be handled with special care because he is VIP.
 
 [ ]
 
-[✨🚶] Add prompt notation into the utils.ptbk.io
+[✨🚶] Add prompt notation into the utils.ptbk.io @@@
 
 -   Look for [`prompt` notation examples](prompts/2026-01-0250-client-baraja.md)
 -   Add samples and documentation about the `prompt` notation into the [utils.ptbk.io](https://utils.ptbk.io) website.
