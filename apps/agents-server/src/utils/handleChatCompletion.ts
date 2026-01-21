@@ -3,14 +3,14 @@ import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForSer
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideOpenAiAssistantExecutionToolsForServer } from '@/src/tools/$provideOpenAiAssistantExecutionToolsForServer';
 import { createChatStreamHandler } from '@/src/utils/createChatStreamHandler';
-import { Agent, computeAgentHash, parseAgentSource, PROMPTBOOK_ENGINE_VERSION } from '@promptbook-local/core';
+import { Agent, computeAgentHash, PROMPTBOOK_ENGINE_VERSION } from '@promptbook-local/core';
 import { ChatMessage, Prompt, string_book, TODO_any } from '@promptbook-local/types';
 import { computeHash } from '@promptbook-local/utils';
 import { NextRequest, NextResponse } from 'next/server';
-import { HTTP_STATUS_CODES } from '../constants';
 import { isAgentDeleted } from '../app/agents/[agentName]/_utils';
-import { validateApiKey } from './validateApiKey';
+import { HTTP_STATUS_CODES } from '../constants';
 import { AssistantCacheManager } from './cache/AssistantCacheManager';
+import { validateApiKey } from './validateApiKey';
 
 export async function handleChatCompletion(
     request: NextRequest,
@@ -151,7 +151,7 @@ export async function handleChatCompletion(
                 llm: openAiAssistantExecutionTools, // Note: Use the same OpenAI Assistant LLM tools as the chat route
             },
             isVerbose: true, // or false
-             teacherAgent: null, // <- TODO: [🦋] DRY place to provide the teacher
+            teacherAgent: null, // <- TODO: [🦋] DRY place to provide the teacher
         });
 
         const userAgent = request.headers.get('user-agent');
@@ -185,22 +185,24 @@ export async function handleChatCompletion(
             content: lastMessage.content,
         };
 
-        await supabase.from(await $getTableName('ChatHistory')).insert({
-            createdAt: new Date().toISOString(),
-            messageHash: computeHash(userMessageContent),
-            previousMessageHash: null,
-            agentName,
-            agentHash,
-            message: userMessageContent,
-            promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
-            url: request.url,
-            ip,
-            userAgent,
-            language,
-            platform,
-            source: 'OPENAI_API_COMPATIBILITY',
-            apiKey,
-        });
+        await $provideSupabaseForServer()
+            .from(await $getTableName('ChatHistory'))
+            .insert({
+                createdAt: new Date().toISOString(),
+                messageHash: computeHash(userMessageContent),
+                previousMessageHash: null,
+                agentName,
+                agentHash,
+                message: userMessageContent,
+                promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
+                url: request.url,
+                ip,
+                userAgent,
+                language,
+                platform,
+                source: 'OPENAI_API_COMPATIBILITY',
+                apiKey,
+            });
 
         const prompt: Prompt = {
             title,
@@ -276,22 +278,24 @@ export async function handleChatCompletion(
                         };
 
                         // Record the agent message
-                        await supabase.from(await $getTableName('ChatHistory')).insert({
-                            createdAt: new Date().toISOString(),
-                            messageHash: computeHash(agentMessageContent),
-                            previousMessageHash: computeHash(userMessageContent),
-                            agentName,
-                            agentHash,
-                            message: agentMessageContent,
-                            promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
-                            url: request.url,
-                            ip,
-                            userAgent,
-                            language,
-                            platform,
-                            source: 'OPENAI_API_COMPATIBILITY',
-                            apiKey,
-                        });
+                        await $provideSupabaseForServer()
+                            .from(await $getTableName('ChatHistory'))
+                            .insert({
+                                createdAt: new Date().toISOString(),
+                                messageHash: computeHash(agentMessageContent),
+                                previousMessageHash: computeHash(userMessageContent),
+                                agentName,
+                                agentHash,
+                                message: agentMessageContent,
+                                promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
+                                url: request.url,
+                                ip,
+                                userAgent,
+                                language,
+                                platform,
+                                source: 'OPENAI_API_COMPATIBILITY',
+                                apiKey,
+                            });
 
                         // Note: [🐱‍🚀] Save the learned data
                         const newAgentSource = agent.agentSource.value;
@@ -341,22 +345,24 @@ export async function handleChatCompletion(
             };
 
             // Record the agent message
-            await supabase.from(await $getTableName('ChatHistory')).insert({
-                createdAt: new Date().toISOString(),
-                messageHash: computeHash(agentMessageContent),
-                previousMessageHash: computeHash(userMessageContent),
-                agentName,
-                agentHash,
-                message: agentMessageContent,
-                promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
-                url: request.url,
-                ip,
-                userAgent,
-                language,
-                platform,
-                source: 'OPENAI_API_COMPATIBILITY',
-                apiKey,
-            });
+            await $provideSupabaseForServer()
+                .from(await $getTableName('ChatHistory'))
+                .insert({
+                    createdAt: new Date().toISOString(),
+                    messageHash: computeHash(agentMessageContent),
+                    previousMessageHash: computeHash(userMessageContent),
+                    agentName,
+                    agentHash,
+                    message: agentMessageContent,
+                    promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
+                    url: request.url,
+                    ip,
+                    userAgent,
+                    language,
+                    platform,
+                    source: 'OPENAI_API_COMPATIBILITY',
+                    apiKey,
+                });
 
             // Note: [🐱‍🚀] Save the learned data
             const newAgentSource = agent.agentSource.value;

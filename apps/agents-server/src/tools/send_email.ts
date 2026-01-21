@@ -1,6 +1,5 @@
+import { parseEmailAddresses } from '../message-providers/email/_common/utils/parseEmailAddresses';
 import { sendMessage } from '../utils/messages/sendMessage';
-import { parseEmailAddresses } from '../../../../src/message-providers/email/_common/utils/parseEmailAddresses';
-import type { OutboundEmail } from '../../../../src/message-providers/email/_common/Email';
 
 /**
  * Tool function for sending emails from agents
