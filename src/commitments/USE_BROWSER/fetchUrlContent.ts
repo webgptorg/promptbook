@@ -1,11 +1,11 @@
 import { spaceTrim } from 'spacetrim';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type { ScraperSourceHandler } from '../../scrapers/_common/Scraper';
 import { promptbookFetch } from '../../scrapers/_common/utils/promptbookFetch';
 import { WebsiteScraper } from '../../scrapers/website/WebsiteScraper';
-import type { ScraperSourceHandler } from '../../scrapers/_common/Scraper';
 
 /**
- * Fetches and scrapes content from a URL
+ * Fetches and scrapes content from a URL (SERVER-SIDE ONLY)
  *
  * This function:
  * 1. Fetches the URL content using promptbookFetch
@@ -17,6 +17,10 @@ import type { ScraperSourceHandler } from '../../scrapers/_common/Scraper';
  * @returns Markdown content from the URL
  *
  * @private internal utility for USE BROWSER commitment
+ *
+ * WARNING: This function should NOT be used directly in browser environments.
+ * For browser environments, use fetchUrlContentViaBrowser which proxies through
+ * the Agents Server API endpoint at /api/scrape
  */
 export async function fetchUrlContent(url: string): Promise<string> {
     try {
@@ -131,3 +135,7 @@ export async function fetchUrlContent(url: string): Promise<string> {
         `);
     }
 }
+
+/**
+ * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
+ */

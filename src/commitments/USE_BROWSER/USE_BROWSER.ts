@@ -3,9 +3,11 @@ import { string_javascript_name, TODO_any } from '../../_packages/types.index';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
 import type { LlmToolDefinition } from '../../types/LlmToolDefinition';
+import { $isRunningInBrowser } from '../../utils/environment/$isRunningInBrowser';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 import { fetchUrlContent } from './fetchUrlContent';
+import { fetchUrlContentViaBrowser } from './fetchUrlContentViaBrowser';
 
 /**
  * USE BROWSER commitment definition
@@ -139,7 +141,8 @@ export class UseBrowserCommitmentDefinition extends BaseCommitmentDefinition<'US
                     properties: {
                         url: {
                             type: 'string',
-                            description: 'The URL to fetch and scrape (e.g., "https://example.com" or "https://example.com/document.pdf")',
+                            description:
+                                'The URL to fetch and scrape (e.g., "https://example.com" or "https://example.com/document.pdf")',
                         },
                     },
                     required: ['url'],
@@ -213,11 +216,18 @@ export class UseBrowserCommitmentDefinition extends BaseCommitmentDefinition<'US
 
     /**
      * Gets the browser tool function implementations.
+     *
+     * This method automatically detects the environment and uses:
+     * - Server-side: Direct scraping via fetchUrlContent (Node.js)
+     * - Browser: Proxy through Agents Server API via fetchUrlContentViaBrowser
      */
     getToolFunctions(): Record<string_javascript_name, ToolFunction> {
+        // Detect if running in browser
+        const isBrowser = $isRunningInBrowser();
+
         return {
             async fetch_url_content(args: { url: string }): Promise<string> {
-                console.log('!!!! [Tool] fetch_url_content called', { args });
+                console.log('!!!! [Tool] fetch_url_content called', { args, isBrowser });
 
                 const { url } = args;
 
@@ -225,8 +235,14 @@ export class UseBrowserCommitmentDefinition extends BaseCommitmentDefinition<'US
                     throw new Error('URL is required');
                 }
 
-                // Use the fetchUrlContent utility to scrape the URL
-                return await fetchUrlContent(url);
+                // Use appropriate implementation based on environment
+                if (isBrowser) {
+                    // In browser: proxy through Agents Server API
+                    return await fetchUrlContentViaBrowser(url);
+                } else {
+                    // On server: use direct server-side scraping
+                    return await fetchUrlContent(url);
+                }
             },
 
             async run_browser(args: { url: string; actions?: Array<TODO_any> }): Promise<string> {

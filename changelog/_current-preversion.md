@@ -1,4 +1,5 @@
 ### 📚 Book
+
 -   Improved error reporting in package generation script to show the actual line where markers ([🟢], [⚪], [⚫], [🟡], [🔵]) are found when they shouldn't be published in packages. This helps developers quickly identify and fix issues by displaying the line number and content instead of just the filename.
 -   Enhanced all comparison documents in `/documents/comparison/*.md` for better balance and clarity:
     -   Balanced pros/cons tables: Added legitimate advantages to alternative platforms (Agno, ChatGPT, Claude, etc.) and acknowledged Promptbook's limitations for fair comparison
@@ -163,6 +164,14 @@
     -   Added `fetchUrlContent` utility function to handle URL fetching and content conversion to markdown
     -   Updated tool titles and descriptions to distinguish between one-shot and running browser modes
     -   Tool functions properly integrated into commitment system via `getToolFunctions()`
+    -   **Refactored for browser safety:**
+        -   Created `/api/scrape` endpoint in Agents Server to proxy server-side scraping functionality
+        -   Implemented `fetchUrlContentViaBrowser` wrapper that safely calls the API from browser environments
+        -   Updated `USE_BROWSER` commitment to automatically detect environment and use appropriate implementation:
+            -   Server-side (Node.js): Direct scraping via `fetchUrlContent`
+            -   Browser: Proxy through Agents Server API via `fetchUrlContentViaBrowser`
+        -   Added environment detection using `$isRunningInBrowser()` utility
+        -   Prevents server-only code (marked with [🟢]) from being executed in browser packages
 -   Implemented `USE EMAIL` commitment to enable agents to send emails:
     -   Created `UseEmailCommitmentDefinition` with support for optional additional instructions (e.g., "Write always formal and polite emails")
     -   Implemented `send_email` tool that integrates with the existing email queue system in Agents Server
