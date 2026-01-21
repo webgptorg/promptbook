@@ -36,6 +36,7 @@ import { MockedChat } from '../MockedChat/MockedChat'; // <- [🥂]
 import { getChatSaveFormatDefinitions } from '../save/_common/getChatSaveFormatDefinitions';
 import type { string_chat_format_name } from '../save/_common/string_chat_format_name';
 import type { ChatMessage } from '../types/ChatMessage';
+import type { ParsedCitation } from '../utils/parseCitationsFromContent';
 import {
     extractSearchResults,
     getToolCallResultDate,
@@ -44,7 +45,6 @@ import {
     parseToolCallArguments,
     parseToolCallResult,
 } from '../utils/toolCallParsing';
-import type { ParsedCitation } from '../utils/parseCitations';
 import styles from './Chat.module.css';
 import { ChatMessageItem } from './ChatMessageItem';
 import type { ChatProps } from './ChatProps';
@@ -1399,11 +1399,7 @@ export function Chat(props: ChatProps) {
                                     {selectedCitation.url && (
                                         <p>
                                             <strong>URL:</strong>{' '}
-                                            <a
-                                                href={selectedCitation.url}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                            >
+                                            <a href={selectedCitation.url} target="_blank" rel="noopener noreferrer">
                                                 {selectedCitation.url}
                                             </a>
                                         </p>

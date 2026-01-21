@@ -1,6 +1,6 @@
 'use client';
 
-import type { ParsedCitation } from '../utils/parseCitations';
+import type { ParsedCitation } from '../utils/parseCitationsFromContent';
 import styles from './SourceChip.module.css';
 
 /**

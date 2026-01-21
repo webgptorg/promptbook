@@ -11,7 +11,7 @@ import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
 import { ChatPersistence } from '../utils/ChatPersistence';
 import type { LlmChatProps } from './LlmChatProps';
-import type { FriendlyErrorMessage } from './errorTypes';
+import type { FriendlyErrorMessage } from './FriendlyErrorMessage';
 
 /**
  * LlmChat component that provides chat functionality with LLM integration

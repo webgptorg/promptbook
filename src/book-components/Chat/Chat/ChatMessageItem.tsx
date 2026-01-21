@@ -16,7 +16,7 @@ import { SourceChip } from '../SourceChip';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
 import { getToolCallChipletInfo, TOOL_TITLES } from '../utils/getToolCallChipletText';
-import { extractCitationsFromMessage, type ParsedCitation } from '../utils/parseCitations';
+import { extractCitationsFromMessage, type ParsedCitation } from '../utils/parseCitationsFromContent';
 import { parseMessageButtons } from '../utils/parseMessageButtons';
 import styles from './Chat.module.css';
 import type { ChatProps } from './ChatProps';
