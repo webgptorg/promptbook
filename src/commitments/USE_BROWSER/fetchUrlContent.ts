@@ -74,7 +74,7 @@ export async function fetchUrlContent(url: string): Promise<string> {
 
             // Use WebsiteScraper to convert HTML to markdown
             // Note: We need minimal tools for the scraper
-            const scraper = new WebsiteScraper(
+            const scraper = new WebsiteScraper( // <- TODO: !!!!! Things marked with [🟢] should never be never released in packags that could be imported into browser environment
                 {
                     // Minimal tools - fs and llm are optional for basic scraping
                     fs: undefined,
