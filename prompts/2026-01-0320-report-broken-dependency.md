@@ -1,4 +1,4 @@
-[ ]
+[x] $0.73
 
 [✨🚢] Report entire line when generate-packages script fails on "[🟢]",... error
 
@@ -85,3 +85,4 @@ In line 1234:
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the [changelog](./changelog/_current-preversion.md)
+

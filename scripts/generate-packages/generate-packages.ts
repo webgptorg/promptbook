@@ -567,6 +567,30 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
 
     // TODO: Add GENERATOR_WARNING to each generated file
 
+    /**
+     * Finds the first occurrence of a marker in file content and returns formatted line information
+     *
+     * @param fileContent - The content of the file to search
+     * @param marker - The marker to search for (e.g., '[🟢]', '[⚪]')
+     * @param fileName - The file name for display purposes
+     * @returns Formatted string with line number and content, or empty string if marker not found
+     */
+    function findMarkerLine(fileContent: string, marker: string, fileName: string): string {
+        const lines = fileContent.split('\n');
+        for (let i = 0; i < lines.length; i++) {
+            if (lines[i].includes(marker)) {
+                const lineNumber = i + 1;
+                const lineContent = lines[i].trim();
+                return spaceTrim(`
+
+                    In line ${lineNumber}:
+                    ${lineContent}
+                `);
+            }
+        }
+        return '';
+    }
+
     // ==============================
     console.info(colors.cyan(`6️⃣  Test that nothing what should not be published is published`));
 
@@ -587,31 +611,40 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
 
                 if (bundleFileContent.includes('[⚫]')) {
                     throw new Error(
-                        spaceTrim(`
-                            Things marked with [⚫] should never be never released in the bundle
+                        spaceTrim(
+                            (block) => `
+                                Things marked with [⚫] should never be never released in the bundle
 
-                            ${bundleFileName}
-                        `),
+                                ${bundleFileName}
+                                ${block(findMarkerLine(bundleFileContent, '[⚫]', bundleFileName))}
+                            `,
+                        ),
                     );
                 }
 
                 if (bundleFileContent.includes('[⚪]')) {
                     throw new Error(
-                        spaceTrim(`
-                            Things marked with [⚪] should never be in a released package.
+                        spaceTrim(
+                            (block) => `
+                                Things marked with [⚪] should never be in a released package.
 
-                            ${bundleFileName}
-                        `),
+                                ${bundleFileName}
+                                ${block(findMarkerLine(bundleFileContent, '[⚪]', bundleFileName))}
+                            `,
+                        ),
                     );
                 }
 
                 if (packageFullname !== '@promptbook/cli' && bundleFileContent.includes('[🟡]')) {
                     throw new Error(
-                        spaceTrim(`
-                            Things marked with [🟡] should never be never released out of @promptbook/cli
+                        spaceTrim(
+                            (block) => `
+                                Things marked with [🟡] should never be never released out of @promptbook/cli
 
-                            ${bundleFileName}
-                        `),
+                                ${bundleFileName}
+                                ${block(findMarkerLine(bundleFileContent, '[🟡]', bundleFileName))}
+                            `,
+                        ),
                     );
                 }
 
@@ -639,6 +672,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                                 Analyze the issue in the bundle file:
                                 ${block(bundleFileName)}
                                 <- Search for [🟢] marker
+                                ${block(findMarkerLine(bundleFileContent, '[🟢]', bundleFileName))}
                             `,
                         ),
                     );
@@ -651,11 +685,14 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                     bundleFileContent.includes('[🔵]')
                 ) {
                     throw new Error(
-                        spaceTrim(`
-                        Things marked with [🔵] should never be never released out of @promptbook/browser
+                        spaceTrim(
+                            (block) => `
+                                Things marked with [🔵] should never be never released out of @promptbook/browser
 
-                        ${bundleFileName}
-                    `),
+                                ${bundleFileName}
+                                ${block(findMarkerLine(bundleFileContent, '[🔵]', bundleFileName))}
+                            `,
+                        ),
                     );
                 }
 

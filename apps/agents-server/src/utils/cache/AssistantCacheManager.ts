@@ -180,7 +180,7 @@ export class AssistantCacheManager {
         }
 
         // Store in cache
-        await this.cacheAssistant(cacheKey, newAssistantId, configuration);
+        await this.cacheAssistant(cacheKey, newAssistantId);
 
         if (this.isVerbose) {
             console.log(
@@ -199,11 +199,7 @@ export class AssistantCacheManager {
      * @param configuration - Assistant configuration (for debugging/analytics)
      * @private
      */
-    private async cacheAssistant(
-        cacheKey: string,
-        assistantId: string,
-        _configuration: AssistantConfiguration,
-    ): Promise<void> {
+    private async cacheAssistant(cacheKey: string, assistantId: string): Promise<void> {
         const supabase = $provideSupabaseForServer();
 
         const { error } = await supabase.from(await $getTableName('OpenAiAssistantCache')).insert({
