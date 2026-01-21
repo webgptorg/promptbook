@@ -40,8 +40,8 @@ export function parseCitationsFromContent(content: string): ParsedCitation[] {
     let match;
 
     while ((match = citationRegex.exec(content)) !== null) {
-        const id = match[1]; // e.g., "5:13"
-        const source = match[2]; // e.g., "document.pdf"
+        const id = match[1]!; // e.g., "5:13"
+        const source = match[2]!; // e.g., "document.pdf"
 
         // Check if we already have this citation
         const existing = citations.find((c) => c.id === id && c.source === source);
