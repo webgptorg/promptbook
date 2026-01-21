@@ -60,7 +60,7 @@ import { unwrapResult } from '../utils/normalization/unwrapResult';
 import { spaceTrim } from '../utils/organization/spaceTrim';
 import { extractParameterNames } from '../utils/parameters/extractParameterNames';
 import { numberToString } from '../utils/parameters/numberToString';
-import { isPromptMarked, removePromptMarker, templateParameters } from '../utils/parameters/templateParameters';
+import { templateParameters } from '../utils/parameters/templateParameters';
 import { valueToString } from '../utils/parameters/valueToString';
 import { $deepFreeze } from '../utils/serialization/$deepFreeze';
 import { checkSerializableAsJson } from '../utils/serialization/checkSerializableAsJson';
@@ -122,7 +122,6 @@ export {
     forEachAsync,
     intersection,
     isHostnameOnPrivateNetwork,
-    isPromptMarked,
     isRootPath,
     isSerializableAsJson,
     isUrlOnPrivateNetwork,
@@ -161,7 +160,6 @@ export {
     promptTemplate,
     removeDiacritics,
     removeEmojis,
-    removePromptMarker,
     removeQuotes,
     renderPromptbookMermaid,
     searchKeywords,
