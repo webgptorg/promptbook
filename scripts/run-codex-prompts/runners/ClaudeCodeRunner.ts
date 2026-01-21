@@ -43,7 +43,15 @@ function buildClaudeScript(options: ClaudeScriptOptions): string {
             - Keep in mind the DRY _(don't repeat yourself)_ principle.
             - Write clear, maintainable, and well-documented code.
             - Write JSDoc comments for all functions, classes, types,...
-
+            - After code change, always run theese tests to verify the correctness:
+                1) npm run test-name-discrepancies
+                2) npm run test-spellcheck
+                3) npm run test-lint
+                4) npm run test-types
+                5) npm run test-books
+                6) npm run test-package-generation
+                7) npm run test-unit
+                8) npm run test-app-agents-server
             
             **Additional context:**
 
