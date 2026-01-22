@@ -49,6 +49,9 @@
     flex-direction: column;
 
     font-family: Arial, Helvetica, sans-serif, 'OpenMojiBlack';
+
+    --chat-message-min-width: 160px;
+    --chat-message-max-width: min(70%, 600px);
     /* <- TODO: [🧠][🎱] Better, define other fonts */
 }
 
@@ -478,7 +481,8 @@
     position: relative;
     padding: 14px 18px;
     border-radius: 20px;
-    max-width: min(70%, 600px);
+    max-width: var(--chat-message-max-width, min(70%, 600px));
+    min-width: var(--chat-message-min-width, 160px);
     text-align: left;
     margin-bottom: 4px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -1987,6 +1991,11 @@
 
 /* Mobile responsiveness */
 @media (max-width: 768px) {
+    .Chat {
+        --chat-message-min-width: 120px;
+        --chat-message-max-width: min(85%, 560px);
+    }
+
     .actions {
         margin: 12px 16px 0;
         gap: 6px;
@@ -2001,7 +2010,6 @@
     }
 
     .chatMainFlow .chatMessage .messageText {
-        max-width: 85%;
         padding: 12px 16px;
         font-size: 14px;
         border-radius: 18px;
@@ -2115,6 +2123,11 @@
 }
 
 @media (max-width: 480px) {
+    .Chat {
+        --chat-message-min-width: 110px;
+        --chat-message-max-width: min(90%, 520px);
+    }
+
     .actions {
         margin: 8px 12px 0;
         gap: 4px;
@@ -2125,7 +2138,6 @@
     }
 
     .chatMainFlow .chatMessage .messageText {
-        max-width: 90%;
         padding: 10px 14px;
         font-size: 14px;
         border-radius: 16px;
