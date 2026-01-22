@@ -2,6 +2,7 @@
 // `@promptbook/browser`
 
 import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
+import { getAllCommitmentsToolFunctionsForBrowser } from '../commitments/_common/getAllCommitmentsToolFunctionsForBrowser';
 import { SimplePromptInterfaceTools } from '../dialogs/simple-prompt/SimplePromptInterfaceTools';
 import { $provideScrapersForBrowser } from '../scrapers/_common/register/$provideScrapersForBrowser';
 import { BrowserSpeechRecognition } from '../speech-recognition/BrowserSpeechRecognition';
@@ -18,6 +19,7 @@ export { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION };
 
 
 // Note: Entities of the `@promptbook/browser`
+export { getAllCommitmentsToolFunctionsForBrowser };
 export { SimplePromptInterfaceTools };
 export { $provideScrapersForBrowser };
 export { BrowserSpeechRecognition };
