@@ -34,7 +34,9 @@ export async function $provideOpenAiAssistantExecutionToolsForServer(): Promise<
                 isVerbose,
                 functions: {
                     // Provide the send_email tool function for the USE EMAIL commitment
-                    send_email,
+                    send_email, // <- TODO: !!!!!! Do it via commitments system !!!!!!
+
+                    ...getAllCommitmentsToolFunctionsForNode(),
                 },
             }),
         },
@@ -44,3 +46,7 @@ export async function $provideOpenAiAssistantExecutionToolsForServer(): Promise<
 
     return llmExecutionTools;
 }
+
+/**
+ * TODO: [🏓] Unite `xxxForServer` and `xxxForNode` naming
+ */

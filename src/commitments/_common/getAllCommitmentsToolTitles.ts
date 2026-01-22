@@ -7,7 +7,6 @@ import { getAllCommitmentDefinitions } from './getAllCommitmentDefinitions';
  *
  * @public exported from `@promptbook/core`
  */
-
 export function getAllCommitmentsToolTitles(): Record<string_javascript_name, string> {
     const allToolTitles: Record<string_javascript_name, string> = {};
     for (const commitmentDefinition of getAllCommitmentDefinitions()) {

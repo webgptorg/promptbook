@@ -9,7 +9,6 @@ import type { CommitmentDefinition } from '../_base/CommitmentDefinition';
  *
  * @public exported from `@promptbook/core`
  */
-
 export function getCommitmentDefinition(type: BookCommitment): CommitmentDefinition | null {
     return COMMITMENT_REGISTRY.find((commitmentDefinition) => commitmentDefinition.type === type) || null;
 }

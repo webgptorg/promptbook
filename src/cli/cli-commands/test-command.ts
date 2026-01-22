@@ -6,6 +6,7 @@ import { readFile } from 'fs/promises';
 import glob from 'glob-promise'; // <- TODO: [🚰] Use just 'glob'
 import { basename } from 'path';
 import spaceTrim from 'spacetrim';
+import { getAllCommitmentsToolFunctionsForNode } from '../../commitments/_common/getAllCommitmentsToolFunctionsForNode';
 import { compilePipeline } from '../../conversion/compilePipeline';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { assertsError } from '../../errors/assertsError';
@@ -77,7 +78,12 @@ export function $initializeTestCommand(program: Program): $side_effect {
                     llm,
                     fs,
                     scrapers: await $provideScrapersForNode({ fs, llm, executables }, prepareAndScrapeOptions),
-                    script: [new JavascriptExecutionTools(prepareAndScrapeOptions)],
+                    script: [
+                        new JavascriptExecutionTools({
+                            ...prepareAndScrapeOptions,
+                            functions: { ...getAllCommitmentsToolFunctionsForNode() },
+                        }),
+                    ],
                 } satisfies ExecutionTools;
             }
 

@@ -46,3 +46,7 @@ export function $provideSupabaseForServer(): SupabaseClient<AgentsServerDatabase
 
     return supabase;
 }
+
+/**
+ * TODO: [🏓] Unite `xxxForServer` and `xxxForNode` naming
+ */

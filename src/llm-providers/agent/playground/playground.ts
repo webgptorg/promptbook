@@ -7,6 +7,7 @@ dotenv.config({ path: '.env' });
 import colors from 'colors';
 import { join } from 'path';
 import * as $registrations from '../../../_packages/cli.index';
+import { getAllCommitmentsToolFunctionsForNode } from '../../../commitments/_common/getAllCommitmentsToolFunctionsForNode';
 import { DEFAULT_EXECUTION_CACHE_DIRNAME } from '../../../config';
 import { usageToHuman } from '../../../execution/utils/usageToHuman';
 import { book } from '../../../pipeline/book-notation';
@@ -58,6 +59,7 @@ async function playground() {
         executionTools: {
             script: new JavascriptExecutionTools({
                 isVerbose,
+                functions: { ...getAllCommitmentsToolFunctionsForNode() },
             }),
         },
         isCreatingNewAssistantsAllowed: true,

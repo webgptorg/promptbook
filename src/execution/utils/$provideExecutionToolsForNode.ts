@@ -1,3 +1,4 @@
+import { getAllCommitmentsToolFunctionsForNode } from '../../commitments/_common/getAllCommitmentsToolFunctionsForNode';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import { $provideExecutablesForNode } from '../../executables/$provideExecutablesForNode';
 import { $provideLlmToolsFromEnv } from '../../llm-providers/_common/register/$provideLlmToolsFromEnv';
@@ -29,7 +30,12 @@ export async function $provideExecutionToolsForNode(options?: PrepareAndScrapeOp
         fs,
         executables,
         scrapers: await $provideScrapersForNode({ fs, llm, executables }, options),
-        script: [new JavascriptExecutionTools(options)],
+        script: [
+            new JavascriptExecutionTools({
+                ...options,
+                functions: { ...getAllCommitmentsToolFunctionsForNode() },
+            }),
+        ],
     } satisfies ExecutionTools;
 
     return tools;
@@ -37,4 +43,5 @@ export async function $provideExecutionToolsForNode(options?: PrepareAndScrapeOp
 
 /**
  * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
+ * TODO: [🏓] Unite `xxxForServer` and `xxxForNode` naming
  */

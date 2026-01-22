@@ -8,7 +8,6 @@ import type { BookCommitment } from '../_base/BookCommitment';
  *
  * @public exported from `@promptbook/core`
  */
-
 export function getAllCommitmentTypes(): ReadonlyArray<BookCommitment> {
     return $deepFreeze(COMMITMENT_REGISTRY.map((commitmentDefinition) => commitmentDefinition.type));
 }

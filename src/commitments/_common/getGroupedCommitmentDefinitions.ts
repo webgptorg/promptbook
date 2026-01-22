@@ -10,7 +10,6 @@ type GroupedCommitmentDefinition = {
     primary: CommitmentDefinition;
     aliases: string[];
 };
-
 /**
  * Gets all commitment definitions grouped by their aliases
  *

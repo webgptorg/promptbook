@@ -30,3 +30,8 @@ export async function $provideBrowserForServer(): Promise<BrowserContext> {
 
     return browserInstance;
 }
+
+
+/**
+ * TODO: [🏓] Unite `xxxForServer` and `xxxForNode` naming
+ */

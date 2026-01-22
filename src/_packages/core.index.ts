@@ -24,7 +24,6 @@ import {
 } from '../commitments/_base/createEmptyAgentModelRequirements';
 import { NotYetImplementedCommitmentDefinition } from '../commitments/_base/NotYetImplementedCommitmentDefinition';
 import { getAllCommitmentDefinitions } from '../commitments/_common/getAllCommitmentDefinitions';
-import { getAllCommitmentsToolFunctions } from '../commitments/_common/getAllCommitmentsToolFunctions';
 import { getAllCommitmentsToolTitles } from '../commitments/_common/getAllCommitmentsToolTitles';
 import { getAllCommitmentTypes } from '../commitments/_common/getAllCommitmentTypes';
 import { getCommitmentDefinition } from '../commitments/_common/getCommitmentDefinition';
@@ -318,7 +317,6 @@ export {
     GENERIC_PIPELINE_INTERFACE,
     GenericFormfactorDefinition,
     getAllCommitmentDefinitions,
-    getAllCommitmentsToolFunctions,
     getAllCommitmentsToolTitles,
     getAllCommitmentTypes,
     getCommitmentDefinition,

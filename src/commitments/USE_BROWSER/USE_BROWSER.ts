@@ -3,10 +3,8 @@ import { string_javascript_name, TODO_any } from '../../_packages/types.index';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
 import type { LlmToolDefinition } from '../../types/LlmToolDefinition';
-import { $isRunningInBrowser } from '../../utils/environment/$isRunningInBrowser';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
-import { fetchUrlContent } from './fetchUrlContent';
 import { fetchUrlContentViaBrowser } from './fetchUrlContentViaBrowser';
 
 /**
@@ -222,29 +220,23 @@ export class UseBrowserCommitmentDefinition extends BaseCommitmentDefinition<'US
      * - Browser: Proxy through Agents Server API via fetchUrlContentViaBrowser
      */
     getToolFunctions(): Record<string_javascript_name, ToolFunction> {
-        // Detect if running in browser
-        const isBrowser = $isRunningInBrowser();
-
         return {
+            /**
+             * @@@
+             *
+             * Note: [🛺] This function has implementation both for browser and node, this is the proxied one for browser
+             */
             async fetch_url_content(args: { url: string }): Promise<string> {
-                console.log('!!!! [Tool] fetch_url_content called', { args, isBrowser });
+                console.log('!!!! [Tool] fetch_url_content called', { args });
 
                 const { url } = args;
 
-                if (!url) {
-                    throw new Error('URL is required');
-                }
-
-                // Use appropriate implementation based on environment
-                if (isBrowser) {
-                    // In browser: proxy through Agents Server API
-                    return await fetchUrlContentViaBrowser(url);
-                } else {
-                    // On server: use direct server-side scraping
-                    return await fetchUrlContent(url);
-                }
+                return await fetchUrlContentViaBrowser(url);
             },
 
+            /**
+             * @@@
+             */
             async run_browser(args: { url: string; actions?: Array<TODO_any> }): Promise<string> {
                 console.log('!!!! [Tool] run_browser called', { args });
 

@@ -8,7 +8,6 @@ import type { CommitmentDefinition } from '../_base/CommitmentDefinition';
  *
  * @public exported from `@promptbook/core`
  */
-
 export function getAllCommitmentDefinitions(): ReadonlyArray<CommitmentDefinition> {
     return $deepFreeze([...COMMITMENT_REGISTRY]);
 }

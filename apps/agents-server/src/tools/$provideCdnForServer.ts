@@ -39,3 +39,8 @@ export function $provideCdnForServer(): IIFilesStorageWithCdn {
 
     return cdn;
 }
+
+
+/**
+ * TODO: [🏓] Unite `xxxForServer` and `xxxForNode` naming
+ */

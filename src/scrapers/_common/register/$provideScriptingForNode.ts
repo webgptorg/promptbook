@@ -1,9 +1,9 @@
-import { JavascriptExecutionTools } from '../../../scripting/javascript/JavascriptExecutionTools';
-import { DEFAULT_IS_AUTO_INSTALLED } from '../../../config';
-import { DEFAULT_IS_VERBOSE } from '../../../config';
+import { getAllCommitmentsToolFunctionsForNode } from '../../../commitments/_common/getAllCommitmentsToolFunctionsForNode';
+import { DEFAULT_IS_AUTO_INSTALLED, DEFAULT_IS_VERBOSE } from '../../../config';
 import { EnvironmentMismatchError } from '../../../errors/EnvironmentMismatchError';
 import type { ScriptExecutionTools } from '../../../execution/ScriptExecutionTools';
 import type { PrepareAndScrapeOptions } from '../../../prepare/PrepareAndScrapeOptions';
+import { JavascriptExecutionTools } from '../../../scripting/javascript/JavascriptExecutionTools';
 import { $isRunningInNode } from '../../../utils/environment/$isRunningInNode';
 import { TODO_USE } from '../../../utils/organization/TODO_USE';
 
@@ -26,9 +26,10 @@ export async function $provideScriptingForNode(
 
     // TODO: [🔱] Do here auto-installation
 
-    return [new JavascriptExecutionTools(options)];
+    return [new JavascriptExecutionTools({ ...options, functions: { ...getAllCommitmentsToolFunctionsForNode() } })];
 }
 
 /**
  * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
+ * TODO: [🏓] Unite `xxxForServer` and `xxxForNode` naming
  */

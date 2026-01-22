@@ -8,7 +8,6 @@ import type { BookCommitment } from '../_base/BookCommitment';
  *
  * @public exported from `@promptbook/core`
  */
-
 export function isCommitmentSupported(type: BookCommitment): boolean {
     return COMMITMENT_REGISTRY.some((commitmentDefinition) => commitmentDefinition.type === type);
 }
