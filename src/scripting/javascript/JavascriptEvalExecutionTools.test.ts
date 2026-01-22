@@ -1,5 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
+import { getAllCommitmentsToolFunctionsForNode } from '../../_packages/node.index';
 import { JavascriptEvalExecutionTools } from './JavascriptEvalExecutionTools';
 
 describe('JavascriptEvalExecutionTools', () => {
@@ -8,6 +9,10 @@ describe('JavascriptEvalExecutionTools', () => {
         {
             isVerbose: true,
             // Note: [🕎] Custom functions are tested elsewhere
+
+            functions: {
+                ...getAllCommitmentsToolFunctionsForNode(),
+            },
         },
     );
 
