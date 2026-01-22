@@ -57,7 +57,7 @@ TEAM You can talk with http://localhost:4440/agents/GMw67JN8TXxN7y to discuss th
 
 ---
 
-[x] *(failed after finish)*
+[x] _(failed after finish)_
 
 [✨👺] Enhance the chip UI and UX when an agent is consulting another agent.
 
@@ -70,6 +70,24 @@ TEAM You can talk with http://localhost:4440/agents/GMw67JN8TXxN7y to discuss th
 
 ![alt text](prompts/screenshots/2026-01-0130-team-commitment-3.png)
 ![alt text](prompts/screenshots/2026-01-0130-team-commitment.png)
+
+---
+
+[ ] !!
+
+[✨👺] Enhance the chip UI and UX when an agent is consulting another agent.
+
+-   When the interaction between agents is ongoing, there is shown something like this: "🤝 Consulting teammate..." When the interaction is finished, there is shown "[🤝 TEoiVpZzBgTPUi]"
+-   This is not very user friendly - Show instead "🧔 AI Developer", instead of 🧔 The actual picture of the agent and "AI Developer" is agent name
+-   Do not show the agent ID, show the agent name.
+-   This should work both with the agents on the same server and also with the agents on the federated server.
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle, There should be just one component of the agent chip which should be reused, take Inspiration from [AgentProfile](apps/agents-server/src/components/AgentProfile/AgentProfile.tsx) component.
+-   Add the changes into the `/changelog/_current-preversion.md`
+
+![Agent with `TEAM`](prompts/screenshots/2026-01-0130-team-commitment-5.png)
+![Agent with `TEAM`](prompts/screenshots/2026-01-0130-team-commitment-6.png)
+![Agent with `TEAM`](prompts/screenshots/2026-01-0130-team-commitment-7.png)
 
 ---
 
@@ -98,4 +116,3 @@ TEAM You can talk with http://localhost:4440/agents/GMw67JN8TXxN7y to discuss th
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
-
