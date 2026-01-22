@@ -1,6 +1,7 @@
 'use server';
 
 import { OpenAiAssistantExecutionTools } from '@promptbook-local/openai';
+import { getAllCommitmentsToolFunctionsForNode } from '../../../../src/commitments/_common/getAllCommitmentsToolFunctionsForNode';
 import { JavascriptExecutionTools } from '../../../../src/scripting/javascript/JavascriptExecutionTools';
 import { send_email } from './send_email';
 

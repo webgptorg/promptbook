@@ -1,4 +1,4 @@
-import { getGroupedCommitmentDefinitions } from '../../../../src/commitments';
+import { getGroupedCommitmentDefinitions } from '@promptbook-local/core';
 import { NotYetImplementedCommitmentDefinition } from '../../../../src/commitments/_base/NotYetImplementedCommitmentDefinition';
 
 /**

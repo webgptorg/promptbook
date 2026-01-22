@@ -1,6 +1,6 @@
+import { getGroupedCommitmentDefinitions } from '@promptbook-local/core';
 import { NextRequest, NextResponse } from 'next/server';
 import spaceTrim from 'spacetrim';
-import { getGroupedCommitmentDefinitions } from '../../../../../../../src/commitments';
 import { keepUnused } from '../../../../../../../src/utils/organization/keepUnused';
 
 export const dynamic = 'force-static';
