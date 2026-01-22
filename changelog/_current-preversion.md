@@ -1,6 +1,7 @@
 ### 📚 Book
 
 -   Enhanced prompt template literal handling to return `PromptString`, inline safe parameters, and append structured parameter/context blocks for unsafe or multiline data with escaping.
+-   Added prompt notation documentation, examples, and a live evaluator to the Utils app.
 
 -   Improved error reporting in package generation script to show the actual line where markers ([🟢], [⚪], [⚫], [🟡], [🔵]) are found when they shouldn't be published in packages. This helps developers quickly identify and fix issues by displaying the line number and content instead of just the filename.
 -   Enhanced all comparison documents in `/documents/comparison/*.md` for better balance and clarity:
