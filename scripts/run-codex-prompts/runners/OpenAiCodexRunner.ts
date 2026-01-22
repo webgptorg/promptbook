@@ -1,6 +1,7 @@
-import { spaceTrim } from '../../../src/utils/organization/spaceTrim';
 import { UNCERTAIN_USAGE } from '../../../src/execution/utils/usage-constants';
+import { spaceTrim } from '../../../src/utils/organization/spaceTrim';
 import { PromptRunner, PromptRunOptions, PromptRunResult } from './_PromptRunner';
+import { createCodingContext } from './createCodingContext';
 import { $runGoScript, toPosixPath } from './utils/$runGoScript';
 
 export class OpenAiCodexRunner implements PromptRunner {
@@ -57,6 +58,8 @@ function buildCodexScript(options: CodexScriptOptions): string {
               <<'${delimiter}'
 
             ${block(options.prompt)}
+
+            ${block(createCodingContext())}
 
             ${delimiter}
         `,
