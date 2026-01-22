@@ -2,6 +2,7 @@ import type { BookCommitment } from './_base/BookCommitment';
 import type { CommitmentDefinition } from './_base/CommitmentDefinition';
 
 // Import all commitment definition classes
+import { UnexpectedError } from '../errors/UnexpectedError';
 import { ToolFunction } from '../scripting/javascript/JavascriptExecutionToolsOptions';
 import { string_javascript_name } from '../types/typeAliases';
 import { $deepFreeze } from '../utils/serialization/$deepFreeze';
@@ -38,11 +39,11 @@ import { TeamCommitmentDefinition } from './TEAM/TEAM';
 import { TemplateCommitmentDefinition } from './TEMPLATE/TEMPLATE';
 import { UseCommitmentDefinition } from './USE/USE';
 import { UseBrowserCommitmentDefinition } from './USE_BROWSER/USE_BROWSER';
+import { UseEmailCommitmentDefinition } from './USE_EMAIL/USE_EMAIL';
 import { UseImageGeneratorCommitmentDefinition } from './USE_IMAGE_GENERATOR/USE_IMAGE_GENERATOR';
 import { UseMcpCommitmentDefinition } from './USE_MCP/USE_MCP';
 import { UseSearchEngineCommitmentDefinition } from './USE_SEARCH_ENGINE/USE_SEARCH_ENGINE';
 import { UseTimeCommitmentDefinition } from './USE_TIME/USE_TIME';
-import { UseEmailCommitmentDefinition } from './USE_EMAIL/USE_EMAIL';
 import { NotYetImplementedCommitmentDefinition } from './_base/NotYetImplementedCommitmentDefinition';
 
 /**
@@ -244,6 +245,12 @@ export function getAllCommitmentsToolFunctions(): Record<string_javascript_name,
     for (const commitmentDefinition of getAllCommitmentDefinitions()) {
         const toolFunctions = commitmentDefinition.getToolFunctions();
         for (const [funcName, funcImpl] of Object.entries(toolFunctions)) {
+            if (allToolFunctions[funcName as string_javascript_name] !== undefined) {
+                throw new UnexpectedError(
+                    `Duplicate tool function name detected: \`${funcName}\` provided by commitment \`${commitmentDefinition.type}\``,
+                );
+            }
+
             allToolFunctions[funcName as string_javascript_name] = funcImpl;
         }
     }
@@ -260,6 +267,12 @@ export function getAllCommitmentsToolTitles(): Record<string_javascript_name, st
     for (const commitmentDefinition of getAllCommitmentDefinitions()) {
         const toolTitles = commitmentDefinition.getToolTitles();
         for (const [funcName, title] of Object.entries(toolTitles)) {
+            if (allToolTitles[funcName as string_javascript_name] !== undefined) {
+                throw new UnexpectedError(
+                    `Duplicate tool function name detected: \`${funcName}\` provided by commitment \`${commitmentDefinition.type}\``,
+                );
+            }
+
             allToolTitles[funcName as string_javascript_name] = title;
         }
     }
