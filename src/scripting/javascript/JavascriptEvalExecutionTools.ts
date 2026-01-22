@@ -1,7 +1,7 @@
 // Note: [💎]
 import _spaceTrim from 'spacetrim';
 import { valueToString } from '../../_packages/utils.index';
-import { getAllCommitmentsToolFunctions } from '../../commitments';
+import { getAllCommitmentsToolFunctions } from '../../commitments/_common/getAllCommitmentsToolFunctions';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { assertsError } from '../../errors/assertsError';
 import type { ScriptExecutionTools, ScriptExecutionToolsExecuteOptions } from '../../execution/ScriptExecutionTools';

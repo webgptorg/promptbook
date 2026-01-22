@@ -3,7 +3,7 @@ import { createAgentModelRequirements } from '../../book-2.0/agent-source/create
 import { parseAgentSource } from '../../book-2.0/agent-source/parseAgentSource';
 import { parseAgentSourceWithCommitments } from '../../book-2.0/agent-source/parseAgentSourceWithCommitments';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
-import { getAllCommitmentDefinitions } from '../../commitments/index';
+import { getAllCommitmentDefinitions } from '../../commitments/_common/getAllCommitmentDefinitions';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import type { string_script } from '../../types/typeAliases';
 import { TODO_USE } from '../../utils/organization/TODO_USE';

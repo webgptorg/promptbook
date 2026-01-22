@@ -10,7 +10,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'; // <-- added u
 // [🚱]> import * as Y from 'yjs';
 // [🚱]> import { TODO_any } from '../../_packages/types.index';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
-import { getAllCommitmentDefinitions } from '../../commitments/index';
+import { getAllCommitmentDefinitions } from '../../commitments/_common/getAllCommitmentDefinitions';
 import { PROMPTBOOK_SYNTAX_COLORS } from '../../config';
 import { classNames } from '../_common/react-utils/classNames';
 import { SaveIcon } from '../icons/SaveIcon';

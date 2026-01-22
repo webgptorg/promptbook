@@ -1,6 +1,6 @@
 import { createBasicAgentModelRequirements } from '../../commitments/_base/createEmptyAgentModelRequirements';
 import type { ParsedCommitment } from '../../commitments/_base/ParsedCommitment';
-import { getCommitmentDefinition } from '../../commitments/index';
+import { getCommitmentDefinition } from '../../commitments/_common/getCommitmentDefinition';
 import { $fileImportPlugins } from '../../import-plugins/$fileImportPlugins';
 import { promptbookFetch } from '../../scrapers/_common/utils/promptbookFetch';
 import type { string_model_name } from '../../types/typeAliases';
