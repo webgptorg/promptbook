@@ -1,4 +1,4 @@
-[ ] !
+[x]
 
 [✨🚶] Enhance a `prompt` notation:
 
