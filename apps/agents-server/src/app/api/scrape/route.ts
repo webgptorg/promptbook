@@ -1,7 +1,7 @@
 import { serializeError } from '@promptbook-local/utils';
 import { NextRequest, NextResponse } from 'next/server';
-import { fetchUrlContent } from '../../../../../../../src/commitments/USE_BROWSER/fetchUrlContent';
-import { assertsError } from '../../../../../../../src/errors/assertsError';
+import { fetchUrlContent } from '../../../../../../src/commitments/USE_BROWSER/fetchUrlContent';
+import { assertsError } from '../../../../../../src/errors/assertsError';
 
 /**
  * API endpoint for scraping URL content
