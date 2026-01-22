@@ -3,6 +3,7 @@
 //          this would not be here because the `@promptbook/components` package should be React library independent of Next.js specifics
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { AgentCapability } from '../../../book-2.0/agent-source/AgentBasicInformation';
 import type { string_markdown } from '../../../types/typeAliases';
 import { TODO_USE } from '../../../utils/organization/TODO_USE';
 import type { TODO_any } from '../../../utils/organization/TODO_any';
@@ -10,8 +11,64 @@ import { Chat } from '../Chat/Chat';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
 import { ChatPersistence } from '../utils/ChatPersistence';
+import { createTeamToolNameFromUrl } from '../utils/createTeamToolNameFromUrl';
 import type { LlmChatProps } from './LlmChatProps';
 import type { FriendlyErrorMessage } from './FriendlyErrorMessage';
+
+/**
+ * Metadata for a teammate agent tool.
+ */
+type TeammateMetadata = {
+    url: string;
+    label?: string;
+    instructions?: string;
+    toolName: string;
+};
+
+/**
+ * Lookup map of teammate metadata by tool name.
+ */
+type TeammatesMap = Record<string, TeammateMetadata>;
+
+/**
+ * Builds a teammates lookup map from a list of teammate metadata entries.
+ */
+function buildTeammatesMap(entries: Array<TeammateMetadata>): TeammatesMap | undefined {
+    const teammatesMap: TeammatesMap = {};
+
+    for (const teammate of entries) {
+        if (teammate.toolName) {
+            teammatesMap[teammate.toolName] = teammate;
+        }
+    }
+
+    return Object.keys(teammatesMap).length > 0 ? teammatesMap : undefined;
+}
+
+/**
+ * Builds teammate metadata based on team capabilities when model requirements are unavailable.
+ */
+function buildTeammatesMapFromCapabilities(capabilities: Array<AgentCapability> | undefined): TeammatesMap | undefined {
+    if (!capabilities || capabilities.length === 0) {
+        return undefined;
+    }
+
+    const teamEntries: Array<TeammateMetadata> = [];
+
+    for (const capability of capabilities) {
+        if (capability.type !== 'team' || !capability.agentUrl) {
+            continue;
+        }
+
+        teamEntries.push({
+            url: capability.agentUrl,
+            label: capability.label,
+            toolName: createTeamToolNameFromUrl(capability.agentUrl),
+        });
+    }
+
+    return buildTeammatesMap(teamEntries);
+}
 
 /**
  * LlmChat component that provides chat functionality with LLM integration
@@ -52,18 +109,7 @@ export function LlmChat(props: LlmChatProps) {
     const [messages, setMessages] = useState<ChatMessage[]>(() => buildInitialMessages());
     const [tasksProgress, setTasksProgress] = useState<Array<{ id: string; name: string; progress?: number }>>([]);
     const [isVoiceCalling] = useState(false);
-    const [teammates, setTeammates] = useState<
-        | Record<
-              string,
-              {
-                  url: string;
-                  label?: string;
-                  instructions?: string;
-                  toolName: string;
-              }
-          >
-        | undefined
-    >(undefined);
+    const [teammates, setTeammates] = useState<TeammatesMap | undefined>(undefined);
     const [currentError, setCurrentError] = useState<FriendlyErrorMessage | null>(null);
     TODO_USE(currentError);
 
@@ -131,50 +177,25 @@ export function LlmChat(props: LlmChatProps) {
             // Check if llmTools has getModelRequirements method (AgentLlmExecutionTools)
             const llmToolsWithMetadata = llmTools as TODO_any;
 
-            if (typeof llmToolsWithMetadata.getModelRequirements !== 'function') {
-                setTeammates(undefined);
-                return;
+            let resolvedTeammates: TeammatesMap | undefined;
+
+            if (typeof llmToolsWithMetadata.getModelRequirements === 'function') {
+                try {
+                    const modelRequirements = await llmToolsWithMetadata.getModelRequirements();
+
+                    if (modelRequirements?.metadata?.teammates && Array.isArray(modelRequirements.metadata.teammates)) {
+                        resolvedTeammates = buildTeammatesMap(modelRequirements.metadata.teammates);
+                    }
+                } catch (error) {
+                    console.warn('Failed to load teammates metadata:', error);
+                }
             }
 
-            try {
-                const modelRequirements = await llmToolsWithMetadata.getModelRequirements();
-
-                if (!modelRequirements?.metadata?.teammates || !Array.isArray(modelRequirements.metadata.teammates)) {
-                    setTeammates(undefined);
-                    return;
-                }
-
-                // Convert array to object keyed by toolName for easier lookup
-                const teammatesMap: Record<
-                    string,
-                    {
-                        url: string;
-                        label?: string;
-                        instructions?: string;
-                        toolName: string;
-                    }
-                > = {};
-
-                for (const teammate of modelRequirements.metadata.teammates as Array<{
-                    url: string;
-                    label?: string;
-                    instructions?: string;
-                    toolName: string;
-                }>) {
-                    if (teammate.toolName) {
-                        teammatesMap[teammate.toolName] = teammate;
-                    }
-                }
-
-                if (Object.keys(teammatesMap).length > 0) {
-                    setTeammates(teammatesMap);
-                } else {
-                    setTeammates(undefined);
-                }
-            } catch (error) {
-                console.warn('Failed to load teammates metadata:', error);
-                setTeammates(undefined);
+            if (!resolvedTeammates) {
+                resolvedTeammates = buildTeammatesMapFromCapabilities(llmToolsWithMetadata.capabilities);
             }
+
+            setTeammates(resolvedTeammates);
         };
 
         loadTeammates();

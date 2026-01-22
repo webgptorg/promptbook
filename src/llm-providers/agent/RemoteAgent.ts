@@ -91,6 +91,8 @@ export class RemoteAgent extends Agent {
         remoteAgent.initialMessage = profile.initialMessage;
         remoteAgent.links = profile.links;
         remoteAgent.meta = profile.meta;
+        remoteAgent.capabilities = profile.capabilities || [];
+        remoteAgent.samples = profile.samples || [];
         remoteAgent.toolTitles = profile.toolTitles || {};
         remoteAgent._isVoiceCallingEnabled = profile.isVoiceCallingEnabled === true; // [✨✷] Store voice calling status
 

@@ -10,14 +10,16 @@ import { Color } from '../../../utils/color/Color';
 import { textColor } from '../../../utils/color/operators/furthest';
 import { AvatarProfileTooltip } from '../../AvatarProfile/AvatarProfile/AvatarProfileTooltip';
 import { classNames } from '../../_common/react-utils/classNames';
-import { AgentChip } from '../AgentChip';
+import { AgentChip, type AgentChipData } from '../AgentChip';
 import { MarkdownContent } from '../MarkdownContent/MarkdownContent';
 import { SourceChip } from '../SourceChip';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
+import type { ToolCallChipletInfo } from '../utils/getToolCallChipletText';
 import { getToolCallChipletInfo, TOOL_TITLES } from '../utils/getToolCallChipletText';
 import { extractCitationsFromMessage, type ParsedCitation } from '../utils/parseCitationsFromContent';
 import { parseMessageButtons } from '../utils/parseMessageButtons';
+import { isTeamToolName } from '../utils/createTeamToolNameFromUrl';
 import styles from './Chat.module.css';
 import type { ChatProps } from './ChatProps';
 import { AVATAR_SIZE, LOADING_INTERACTIVE_IMAGE } from './constants';
@@ -61,15 +63,7 @@ type ChatMessageItemProps = Pick<ChatProps, 'onMessage' | 'participants'> & {
      * Optional metadata about teammates for team tool calls
      * Maps tool name to agent information
      */
-    teammates?: Record<
-        string,
-        {
-            url: string;
-            label?: string;
-            instructions?: string;
-            toolName: string;
-        }
-    >;
+    teammates?: TeammatesMap;
     /**
      * Called when a tool call chiplet is clicked.
      */
@@ -80,6 +74,61 @@ type ChatMessageItemProps = Pick<ChatProps, 'onMessage' | 'participants'> & {
      */
     onCitationClick?: (citation: ParsedCitation) => void;
 };
+
+/**
+ * Metadata for a teammate agent tool.
+ */
+type TeammateMetadata = {
+    url: string;
+    label?: string;
+    instructions?: string;
+    toolName: string;
+};
+
+/**
+ * Lookup map of teammate metadata by tool name.
+ */
+type TeammatesMap = Record<string, TeammateMetadata>;
+
+/**
+ * Finds teammate metadata by tool name, falling back to the toolName field when needed.
+ */
+function findTeammateByToolName(teammates: TeammatesMap | undefined, toolName: string): TeammateMetadata | undefined {
+    if (!teammates) {
+        return undefined;
+    }
+
+    return teammates[toolName] || Object.values(teammates).find((teammate) => teammate.toolName === toolName);
+}
+
+/**
+ * Resolves agent chip data for TEAM tool calls using tool results or teammate metadata.
+ */
+function resolveTeamAgentChipData(
+    toolCall: NonNullable<ChatMessage['toolCalls']>[number],
+    teammates: TeammatesMap | undefined,
+    chipletInfo?: ToolCallChipletInfo,
+): AgentChipData | null {
+    const resolvedChipletInfo = chipletInfo || getToolCallChipletInfo(toolCall);
+
+    if (resolvedChipletInfo.agentData) {
+        return resolvedChipletInfo.agentData;
+    }
+
+    if (!isTeamToolName(toolCall.name)) {
+        return null;
+    }
+
+    const teammate = findTeammateByToolName(teammates, toolCall.name);
+    if (!teammate?.url) {
+        return null;
+    }
+
+    return {
+        url: teammate.url,
+        label: teammate.label,
+    };
+}
 
 /**
  * Renders a single chat message item with avatar, content, buttons, and rating.
@@ -412,13 +461,14 @@ export const ChatMessageItem = memo(
                         <div className={styles.completedToolCalls}>
                             {completedToolCalls.map((toolCall, index) => {
                                 const chipletInfo = getToolCallChipletInfo(toolCall);
+                                const teamAgentData = resolveTeamAgentChipData(toolCall, teammates, chipletInfo);
 
                                 // If this is a team tool with agent data, use AgentChip
-                                if (chipletInfo.agentData) {
+                                if (teamAgentData) {
                                     return (
                                         <AgentChip
                                             key={index}
-                                            agent={chipletInfo.agentData}
+                                            agent={teamAgentData}
                                             isClickable={true}
                                             onClick={(event) => {
                                                 event?.stopPropagation?.();
@@ -465,22 +515,15 @@ export const ChatMessageItem = memo(
                         <div className={styles.ongoingToolCalls}>
                             {message.ongoingToolCalls.map((toolCall, index) => {
                                 const toolInfo = TOOL_TITLES[toolCall.name];
-                                const isTeamTool = toolCall.name.startsWith('team_chat_');
-
-                                // Try to find teammate data by matching toolName
-                                const teammate = teammates
-                                    ? Object.values(teammates).find((t) => t.toolName === toolCall.name)
-                                    : undefined;
+                                const isTeamTool = isTeamToolName(toolCall.name);
+                                const teamAgentData = resolveTeamAgentChipData(toolCall, teammates);
 
                                 // If this is a team tool with teammate data, use AgentChip
-                                if (isTeamTool && teammate) {
+                                if (teamAgentData) {
                                     return (
                                         <AgentChip
                                             key={index}
-                                            agent={{
-                                                url: teammate.url,
-                                                label: teammate.label || teammate.url,
-                                            }}
+                                            agent={teamAgentData}
                                             isOngoing={true}
                                         />
                                     );
