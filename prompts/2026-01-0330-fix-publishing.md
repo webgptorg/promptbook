@@ -1,4 +1,4 @@
-[ ] !!!!
+[x]
 
 [✨🧾] Fix publishing on Github Actions
 
