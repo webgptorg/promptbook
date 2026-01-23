@@ -76,6 +76,16 @@ export default async function AgentIntegrationPage({ params }: AgentIntegrationP
             apiKey = data[0].token;
         }
     }
+    const apiKeyField = isAdmin ? (
+        <CopyField label="API Key" value={apiKey} />
+    ) : (
+        <div className="flex flex-col gap-1">
+            <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">API Key</span>
+            <div className="text-sm text-gray-500 italic bg-gray-50 p-2 rounded border border-gray-200">
+                Contact admin for API Key
+            </div>
+        </div>
+    );
 
     // Extract brand color from meta
     const brandColor = Color.from(agentProfile.meta.color || PROMPTBOOK_COLOR);
@@ -336,18 +346,7 @@ export default async function AgentIntegrationPage({ params }: AgentIntegrationP
                                 <div className="grid md:grid-cols-3 gap-4 mt-4 mb-2">
                                     <CopyField label="Endpoint URL" value={`${agentApiBase}/api/openai/v1`} />
                                     <CopyField label="Model Name" value={`agent:${agentName}`} />
-                                    {isAdmin ? (
-                                        <CopyField label="API Key" value={apiKey} />
-                                    ) : (
-                                        <div className="flex flex-col gap-1">
-                                            <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                API Key
-                                            </span>
-                                            <div className="text-sm text-gray-500 italic bg-gray-50 p-2 rounded border border-gray-200">
-                                                Contact admin for API Key
-                                            </div>
-                                        </div>
-                                    )}
+                                    {apiKeyField}
                                 </div>
                                 {isAdmin && apiKey === 'ptbk_...' && (
                                     <p className="text-sm text-amber-600 mt-2">
@@ -373,9 +372,10 @@ export default async function AgentIntegrationPage({ params }: AgentIntegrationP
                             <div>
                                 <h2 className="text-xl font-bold text-gray-900">OpenRouter Integration</h2>
                                 <p className="text-gray-600">Connect via OpenRouter compatible endpoint.</p>
-                                <div className="grid md:grid-cols-2 gap-4 mt-4">
+                                <div className="grid md:grid-cols-3 gap-4 mt-4">
                                     <CopyField label="Endpoint URL" value={`${agentApiBase}/api/openrouter`} />
                                     <CopyField label="Model Name" value={`agent:${agentName}`} />
+                                    {apiKeyField}
                                 </div>
                             </div>
                         </div>
