@@ -3,7 +3,6 @@
 import { OpenAiAssistantExecutionTools } from '@promptbook-local/openai';
 import { getAllCommitmentsToolFunctionsForNode } from '../../../../src/commitments/_common/getAllCommitmentsToolFunctionsForNode';
 import { JavascriptExecutionTools } from '../../../../src/scripting/javascript/JavascriptExecutionTools';
-import { send_email } from './send_email';
 
 /**
  * Cache of provided OpenAiAssistantExecutionTools
@@ -34,9 +33,6 @@ export async function $provideOpenAiAssistantExecutionToolsForServer(): Promise<
             script: new JavascriptExecutionTools({
                 isVerbose,
                 functions: {
-                    // Provide the send_email tool function for the USE EMAIL commitment
-                    send_email, // <- TODO: !!!!!! Do it via commitments system !!!!!!
-
                     ...getAllCommitmentsToolFunctionsForNode(),
                 },
             }),

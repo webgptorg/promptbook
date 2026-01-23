@@ -3,6 +3,7 @@ import { $isRunningInNode, spaceTrim } from '../../_packages/utils.index';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import { string_javascript_name } from '../../types/typeAliases';
 import { fetchUrlContent } from '../USE_BROWSER/fetchUrlContent';
+import { resolveSendEmailToolForNode } from '../USE_EMAIL/resolveSendEmailToolForNode';
 import { getAllCommitmentsToolFunctionsForBrowser } from './getAllCommitmentsToolFunctionsForBrowser';
 
 /**
@@ -42,6 +43,13 @@ export function getAllCommitmentsToolFunctionsForNode(): Record<string_javascrip
 
             return await fetchUrlContent(url);
         },
+
+        /**
+         * @@@
+         *
+         * Note: [??] This function has implementation both for browser and node, this is the server one for node
+         */
+        send_email: resolveSendEmailToolForNode(),
 
         // TODO: !!!! Unhardcode, make proper server function register from definitions
     };

@@ -12,7 +12,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨☘️] Fix `send_email` of `USE EMAIL` commitment
 

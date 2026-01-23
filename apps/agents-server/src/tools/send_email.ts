@@ -3,6 +3,24 @@ import { parseEmailAddresses } from '../message-providers/email/_common/utils/pa
 import { sendMessage } from '../utils/messages/sendMessage';
 
 /**
+ * Builds a JSON tool result for the send_email tool.
+ *
+ * @param payload - Email metadata and delivery status details
+ * @returns Serialized JSON string for tool output
+ */
+function buildSendEmailToolResult(payload: {
+    status: 'queued' | 'sent';
+    message: string;
+    from: string;
+    to: string[];
+    cc: string[];
+    subject: string;
+    body: string;
+}): string {
+    return JSON.stringify(payload);
+}
+
+/**
  * Tool function for sending emails from agents
  * This implements the send_email tool for the USE EMAIL commitment
  */
@@ -33,12 +51,15 @@ export async function send_email(args: {
             throw new Error('Invalid sender email address configuration');
         }
 
+        const recipientsList = recipients.map((email) => email.fullEmail);
+        const ccList = ccAddresses.map((email) => email.fullEmail);
+
         // Construct the email message
         const email: OutboundEmail = {
             channel: 'EMAIL',
             direction: 'OUTBOUND',
             sender: senderAddress.fullEmail,
-            recipients: recipients.map((email) => email.fullEmail),
+            recipients: recipientsList,
             cc: ccAddresses, // <- TODO: !!!!! Why `sender` and `recipients` are strings but `cc` is object
             subject,
             content: body, // Body is already in markdown format
@@ -53,9 +74,19 @@ export async function send_email(args: {
         await sendMessage(email);
 
         // Return success message with details
-        return `Email sent successfully to ${recipients.map((r) => r.fullEmail).join(', ')}${
-            ccAddresses.length > 0 ? ` (CC: ${ccAddresses.map((r) => r.fullEmail).join(', ')})` : ''
+        const message = `Email sent successfully to ${recipientsList.join(', ')}${
+            ccList.length > 0 ? ` (CC: ${ccList.join(', ')})` : ''
         }`;
+
+        return buildSendEmailToolResult({
+            status: 'queued',
+            message,
+            from: senderAddress.fullEmail,
+            to: recipientsList,
+            cc: ccList,
+            subject,
+            body,
+        });
     } catch (error) {
         console.error('[Tool] send_email error:', error);
         throw new Error(`Failed to send email: ${error instanceof Error ? error.message : String(error)}`);

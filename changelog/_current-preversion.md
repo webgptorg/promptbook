@@ -189,6 +189,7 @@
     -   Email tool leverages existing `sendMessage` utility and email providers (Sendgrid, Zeptomail)
     -   All emails are queued through the database-driven message system
     -   Follows the same pattern as `USE TIME` and `USE SEARCH ENGINE` commitments for consistency
+-   Fixed `USE EMAIL` tool exposure to use commitment-provided functions with node/browser variants and updated the email tool modal to display sender metadata and status.
 -   Enhanced agent-to-agent interaction chips in chat UI:
     -   Created reusable `<AgentChip/>` component displaying agent avatar and name
     -   Replaced generic "🤝 Consulting teammate..." text with agent-specific chips showing actual agent profile picture and name

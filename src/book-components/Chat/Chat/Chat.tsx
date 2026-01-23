@@ -22,6 +22,7 @@ import { classNames } from '../../_common/react-utils/classNames';
 import { ArrowIcon } from '../../icons/ArrowIcon';
 import { AttachmentIcon } from '../../icons/AttachmentIcon';
 import { CloseIcon } from '../../icons/CloseIcon';
+import { EmailIcon } from '../../icons/EmailIcon';
 import { MicIcon } from '../../icons/MicIcon';
 import { ResetIcon } from '../../icons/ResetIcon';
 import { SaveIcon } from '../../icons/SaveIcon';
@@ -1272,17 +1273,34 @@ export function Chat(props: ChatProps) {
                                 const body = args.body || '';
                                 const recipients = Array.isArray(to) ? to : [to];
                                 const ccRecipients = Array.isArray(cc) ? cc : [];
+                                const emailResult =
+                                    resultRaw && typeof resultRaw === 'object' ? (resultRaw as Record<string, TODO_any>) : null;
+                                const from =
+                                    (emailResult?.from as string | undefined) ||
+                                    (emailResult?.sender as string | undefined) ||
+                                    'Configured sender';
+                                const sentAt = toolCallDate ? toolCallDate.toLocaleString() : null;
+                                const status = typeof emailResult?.status === 'string' ? emailResult.status : null;
 
                                 return (
                                     <>
-                                        <div className={styles.searchModalHeader}>
-                                            <span className={styles.searchModalIcon}>📧</span>
-                                            <h3 className={styles.searchModalQuery}>{subject}</h3>
+                                        <div className={classNames(styles.searchModalHeader, styles.emailModalHeader)}>
+                                            <span className={styles.searchModalIcon}>
+                                                <EmailIcon size={26} />
+                                            </span>
+                                            <div className={styles.emailHeaderText}>
+                                                <span className={styles.emailHeaderLabel}>Email</span>
+                                                <h3 className={styles.searchModalQuery}>{subject}</h3>
+                                            </div>
                                         </div>
 
                                         <div className={styles.searchModalContent}>
                                             <div className={styles.emailContainer}>
                                                 <div className={styles.emailMetadata}>
+                                                    <div className={styles.emailField}>
+                                                        <strong>From:</strong>
+                                                        <span className={styles.emailRecipients}>{from}</span>
+                                                    </div>
                                                     <div className={styles.emailField}>
                                                         <strong>To:</strong>
                                                         <span className={styles.emailRecipients}>
@@ -1301,6 +1319,18 @@ export function Chat(props: ChatProps) {
                                                         <strong>Subject:</strong>
                                                         <span>{subject}</span>
                                                     </div>
+                                                    {sentAt && (
+                                                        <div className={styles.emailField}>
+                                                            <strong>Sent:</strong>
+                                                            <span>{sentAt}</span>
+                                                        </div>
+                                                    )}
+                                                    {status && (
+                                                        <div className={styles.emailField}>
+                                                            <strong>Status:</strong>
+                                                            <span className={styles.emailStatus}>{status}</span>
+                                                        </div>
+                                                    )}
                                                 </div>
                                                 <div className={styles.emailBody}>
                                                     <strong>Message:</strong>

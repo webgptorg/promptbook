@@ -1384,6 +1384,10 @@
 
 .searchModalIcon {
     font-size: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #475569;
 }
 
 .searchModalQuery {
@@ -2270,14 +2274,35 @@
 /* Email modal styles */
 .emailContainer {
     margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.emailModalHeader {
+    background: #f8fafc;
+}
+
+.emailHeaderText {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.emailHeaderLabel {
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #64748b;
 }
 
 .emailMetadata {
-    background: #f8fafc;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    padding: 16px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 18px 20px;
     margin-bottom: 16px;
+    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
 }
 
 .emailField {
@@ -2317,12 +2342,13 @@
 
 .emailBodyContent {
     background: #ffffff;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    padding: 20px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 22px;
     line-height: 1.6;
     max-height: 400px;
     overflow-y: auto;
+    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
 }
 
 .emailBodyContent p {
@@ -2331,6 +2357,12 @@
 
 .emailBodyContent p:last-child {
     margin-bottom: 0;
+}
+
+.emailStatus {
+    text-transform: capitalize;
+    color: #0f172a;
+    font-weight: 600;
 }
 
 /**

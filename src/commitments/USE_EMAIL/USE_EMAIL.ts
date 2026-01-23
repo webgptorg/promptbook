@@ -4,6 +4,7 @@ import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentMo
 import { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 import { formatOptionalInstructionBlock } from '../_base/formatOptionalInstructionBlock';
+import { sendEmailViaBrowser } from './sendEmailViaBrowser';
 
 /**
  * USE EMAIL commitment definition
@@ -152,7 +153,8 @@ export class UseEmailCommitmentDefinition extends BaseCommitmentDefinition<'USE 
 
     /**
      * Gets the `send_email` tool function implementation.
-     * Note: This is a placeholder - the actual implementation is provided by the agent server.
+     *
+     * Note: [??] This function has implementation both for browser and node, this is the proxied one for browser.
      */
     getToolFunctions(): Record<string_javascript_name, ToolFunction> {
         return {
@@ -163,12 +165,7 @@ export class UseEmailCommitmentDefinition extends BaseCommitmentDefinition<'USE 
                 body: string;
             }): Promise<string> {
                 console.log('!!!! [Tool] send_email called', { args });
-
-                // This is a placeholder implementation
-                // The actual implementation should be provided by the agent server
-                throw new Error(
-                    'send_email tool not implemented. This commitment requires integration with an email service.',
-                );
+                return await sendEmailViaBrowser(args);
             },
         };
     }
