@@ -212,6 +212,27 @@
     max-width: 100%;
 }
 
+.chatMainFlow .chatMessage .messageStack {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.chatMainFlow .chatMessage.isMe .messageStack {
+    align-items: flex-end;
+}
+
+.participantLabel {
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+    margin: 0 0 6px;
+}
+
+.chatMainFlow .chatMessage.isMe .participantLabel {
+    text-align: right;
+}
+
 @keyframes messageSlideIn {
     from {
         opacity: 0;
@@ -1371,15 +1392,95 @@
     max-width: 800px;
     padding: 0;
     overflow: hidden;
+    position: relative;
 }
 
 .searchModalHeader {
     padding: 24px 32px;
+    padding-right: 72px;
     border-bottom: 1px solid #eee;
     display: flex;
     align-items: center;
     gap: 16px;
     background: #fdfdfd;
+}
+
+.modalCloseButton {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    z-index: 1;
+    width: 36px;
+    height: 36px;
+    border-radius: 999px;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    color: #475569;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
+    transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.modalCloseButton:hover {
+    background: #f8fafc;
+    color: #0f172a;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+    transform: translateY(-1px);
+}
+
+.modalCloseButton:focus-visible {
+    outline: 2px solid #94a3b8;
+    outline-offset: 2px;
+}
+
+.teamModalHeader {
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.teamHeaderParticipants {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.teamHeaderProfile {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    color: inherit;
+}
+
+.teamHeaderProfileLink:hover {
+    color: #0f172a;
+}
+
+.teamHeaderAvatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 999px;
+    border: 1px solid #e2e8f0;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    box-shadow: 0 6px 14px rgba(15, 23, 42, 0.08);
+}
+
+.teamHeaderName {
+    font-size: 18px;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.teamHeaderDivider {
+    font-size: 14px;
+    font-weight: 600;
+    color: #94a3b8;
 }
 
 .searchModalIcon {

@@ -3,7 +3,7 @@
 //          this would not be here because the `@promptbook/components` package should be React library independent of Next.js specifics
 
 import moment from 'moment';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { type CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import spaceTrim from 'spacetrim';
 import { USER_CHAT_COLOR } from '../../../config';
@@ -37,6 +37,9 @@ import { MockedChat } from '../MockedChat/MockedChat'; // <- [🥂]
 import { getChatSaveFormatDefinitions } from '../save/_common/getChatSaveFormatDefinitions';
 import type { string_chat_format_name } from '../save/_common/string_chat_format_name';
 import type { ChatMessage } from '../types/ChatMessage';
+import { ChatParticipant } from '../types/ChatParticipant';
+import type { AgentProfileData } from '../utils/loadAgentProfile';
+import { loadAgentProfile, resolveAgentProfileFallback, resolvePreferredAgentLabel } from '../utils/loadAgentProfile';
 import type { ParsedCitation } from '../utils/parseCitationsFromContent';
 import {
     extractSearchResults,
@@ -51,6 +54,48 @@ import { ChatMessageItem } from './ChatMessageItem';
 import type { ChatProps } from './ChatProps';
 import { ChatSoundToggle } from './ChatSoundToggle';
 import { ClockIcon } from './ClockIcon';
+
+/**
+ * Props for a team modal header profile badge.
+ */
+type TeamHeaderProfileProps = {
+    label: string;
+    avatarSrc?: string | null;
+    href?: string;
+    fallbackColor?: string;
+};
+
+/**
+ * Renders a profile badge used in the TEAM modal header.
+ */
+function TeamHeaderProfile({ label, avatarSrc, href, fallbackColor }: TeamHeaderProfileProps) {
+    const avatarStyles: CSSProperties = {
+        backgroundColor: fallbackColor || '#e2e8f0',
+        backgroundImage: avatarSrc ? `url(${avatarSrc})` : undefined,
+    };
+
+    const content = (
+        <>
+            <span className={styles.teamHeaderAvatar} style={avatarStyles} aria-hidden="true" />
+            <span className={styles.teamHeaderName}>{label}</span>
+        </>
+    );
+
+    if (href) {
+        return (
+            <a
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={classNames(styles.teamHeaderProfile, styles.teamHeaderProfileLink)}
+            >
+                {content}
+            </a>
+        );
+    }
+
+    return <div className={styles.teamHeaderProfile}>{content}</div>;
+}
 
 /**
  * Renders a chat with messages and input for new messages
@@ -107,6 +152,10 @@ export function Chat(props: ChatProps) {
     } = props;
 
     const buttonColor = useMemo(() => Color.from(buttonColorRaw || '#0066cc'), [buttonColorRaw]);
+    const agentParticipant = useMemo(
+        () => participants.find((participant) => participant.name === 'AGENT'),
+        [participants],
+    );
 
     // Use the auto-scroll hook
     const {
@@ -139,6 +188,7 @@ export function Chat(props: ChatProps) {
     // const [inputValue, setInputValue] = useState('');
     const [mode] = useState<'LIGHT' | 'DARK'>('LIGHT'); // Simplified light/dark mode
     const [ratingConfirmation, setRatingConfirmation] = useState<string | null>(null);
+    const [teamProfiles, setTeamProfiles] = useState<Record<string, AgentProfileData>>({});
 
     // File upload state
     const [uploadedFiles, setUploadedFiles] = useState<Array<{ id: string; file: File; content: string }>>([]);
@@ -205,6 +255,52 @@ export function Chat(props: ChatProps) {
             unsubscribe();
         };
     }, [speechRecognition, onChange]);
+
+    useEffect(() => {
+        if (!toolCallModalOpen || !selectedToolCall) {
+            return;
+        }
+
+        const resultRaw = parseToolCallResult(selectedToolCall.result);
+        const teamResult = parseTeamToolResult(resultRaw);
+        const teammateUrl = teamResult?.teammate?.url;
+
+        if (!teammateUrl || teammateUrl === 'VOID') {
+            return;
+        }
+
+        const fallbackProfile = resolveAgentProfileFallback({
+            url: teammateUrl,
+            label: teamResult.teammate?.label,
+        });
+
+        setTeamProfiles((previous) => {
+            if (previous[teammateUrl]) {
+                return previous;
+            }
+            return { ...previous, [teammateUrl]: fallbackProfile };
+        });
+
+        let isMounted = true;
+
+        loadAgentProfile({ url: teammateUrl, label: teamResult.teammate?.label }).then((profile) => {
+            if (!isMounted) {
+                return;
+            }
+
+            setTeamProfiles((previous) => {
+                const existing = previous[teammateUrl];
+                if (existing && existing.label === profile.label && existing.imageUrl === profile.imageUrl) {
+                    return previous;
+                }
+                return { ...previous, [teammateUrl]: profile };
+            });
+        });
+
+        return () => {
+            isMounted = false;
+        };
+    }, [toolCallModalOpen, selectedToolCall]);
 
     const handleToggleVoiceInput = useCallback(() => {
         if (!speechRecognition) {
@@ -993,6 +1089,14 @@ export function Chat(props: ChatProps) {
                     }}
                 >
                     <div className={classNames(styles.ratingModalContent, styles.toolCallModal)}>
+                        <button
+                            type="button"
+                            className={styles.modalCloseButton}
+                            onClick={() => setToolCallModalOpen(false)}
+                            aria-label="Close dialog"
+                        >
+                            <CloseIcon />
+                        </button>
                         {(() => {
                             const isSearch =
                                 selectedToolCall.name === 'web_search' ||
@@ -1061,58 +1165,75 @@ export function Chat(props: ChatProps) {
                                         (entry) => entry.sender === 'AGENT' || entry.role === 'AGENT',
                                     )?.name || 'Agent';
 
-                                // For teammate, use conversation name first, then label, then extract from URL
-                                const teammateName =
+                                const teammateConversationName =
                                     teamResult.conversation?.find(
                                         (entry) => entry.sender === 'TEAMMATE' || entry.role === 'TEAMMATE',
-                                    )?.name ||
-                                    teamResult.teammate.label ||
-                                    (() => {
-                                        // Try to extract agent name from URL if available
-                                        try {
-                                            const url = new URL(teammateUrl);
-                                            const pathParts = url.pathname.split('/').filter(Boolean);
-                                            return pathParts[pathParts.length - 1] || 'Teammate';
-                                        } catch {
-                                            return 'Teammate';
-                                        }
-                                    })();
+                                    )?.name || '';
+                                const teammateProfile = teammateUrl ? teamProfiles[teammateUrl] : undefined;
+                                const teammateFallbackProfile = teammateUrl
+                                    ? resolveAgentProfileFallback({
+                                          url: teammateUrl,
+                                          label: teamResult.teammate.label,
+                                      })
+                                    : { label: 'Teammate', imageUrl: null };
+
+                                const resolvedAgentLabel = resolvePreferredAgentLabel(
+                                    [agentParticipant?.fullname, agentName],
+                                    agentName,
+                                );
+                                const resolvedAgentAvatar = agentParticipant?.avatarSrc || null;
+                                const resolvedAgentHeaderColor = agentParticipant?.color
+                                    ? Color.fromSafe(agentParticipant.color).toHex()
+                                    : '#64748b';
+
+                                const resolvedTeammateLabel = resolvePreferredAgentLabel(
+                                    [teammateConversationName, teammateProfile?.label, teammateFallbackProfile.label],
+                                    teammateFallbackProfile.label,
+                                );
+                                const resolvedTeammateAvatar =
+                                    teammateProfile?.imageUrl || teammateFallbackProfile.imageUrl || null;
+                                const teammateLink = teammateUrl && teammateUrl !== 'VOID' ? teammateUrl : undefined;
 
                                 const participants = [
                                     {
                                         name: 'AGENT',
-                                        fullname: agentName,
-                                        color: '#64748b',
+                                        fullname: resolvedAgentLabel,
+                                        color: agentParticipant?.color || '#64748b',
+                                        avatarSrc: resolvedAgentAvatar || undefined,
+                                        isMe: true,
                                     },
                                     {
                                         name: 'TEAMMATE',
-                                        fullname: teammateName,
+                                        fullname: resolvedTeammateLabel,
                                         color: '#0ea5e9',
+                                        avatarSrc: resolvedTeammateAvatar || undefined,
                                     },
-                                ];
+                                ] satisfies Array<ChatParticipant>;
 
                                 return (
                                     <>
-                                        {teammateUrl && (
-                                            <div className={styles.searchModalHeader}>
-                                                <a
-                                                    href={teammateUrl}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className={styles.searchModalQuery}
-                                                    style={{ textDecoration: 'none', color: 'inherit' }}
-                                                >
-                                                    <span className={styles.searchModalIcon}>🤝</span>
-                                                    <h3 style={{ display: 'inline', margin: 0 }}>{teammateName}</h3>
-                                                </a>
+                                        <div className={classNames(styles.searchModalHeader, styles.teamModalHeader)}>
+                                            <div className={styles.teamHeaderParticipants}>
+                                                <TeamHeaderProfile
+                                                    label={resolvedAgentLabel}
+                                                    avatarSrc={resolvedAgentAvatar}
+                                                    fallbackColor={resolvedAgentHeaderColor}
+                                                />
+                                                <span className={styles.teamHeaderDivider}>talking with</span>
+                                                <TeamHeaderProfile
+                                                    label={resolvedTeammateLabel}
+                                                    avatarSrc={resolvedTeammateAvatar}
+                                                    fallbackColor="#0ea5e9"
+                                                    href={teammateLink}
+                                                />
                                             </div>
-                                        )}
+                                        </div>
 
                                         <div className={styles.searchModalContent}>
                                             {messages.length > 0 ? (
                                                 <div className={styles.teamChatContainer}>
                                                     <MockedChat
-                                                        title={`Chat with ${teammateName}`}
+                                                        title={`Chat between ${resolvedAgentLabel} and ${resolvedTeammateLabel}`}
                                                         messages={messages}
                                                         participants={participants}
                                                         isResettable={false}
@@ -1274,7 +1395,9 @@ export function Chat(props: ChatProps) {
                                 const recipients = Array.isArray(to) ? to : [to];
                                 const ccRecipients = Array.isArray(cc) ? cc : [];
                                 const emailResult =
-                                    resultRaw && typeof resultRaw === 'object' ? (resultRaw as Record<string, TODO_any>) : null;
+                                    resultRaw && typeof resultRaw === 'object'
+                                        ? (resultRaw as Record<string, TODO_any>)
+                                        : null;
                                 const from =
                                     (emailResult?.from as string | undefined) ||
                                     (emailResult?.sender as string | undefined) ||
@@ -1394,10 +1517,6 @@ export function Chat(props: ChatProps) {
                                 </>
                             );
                         })()}
-
-                        <div className={styles.ratingActions}>
-                            <button onClick={() => setToolCallModalOpen(false)}>Close</button>
-                        </div>
                     </div>
                 </div>
             )}

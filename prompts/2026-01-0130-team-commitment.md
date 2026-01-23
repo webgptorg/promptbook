@@ -125,7 +125,7 @@ TEAM You can talk with http://localhost:4440/agents/GMw67JN8TXxN7y to discuss th
 
 ---
 
-[ ] !!
+[x] ~$0.00
 
 [✨👺] Enhance the UX of the modal from chip of `TEAM` commitment
 
@@ -178,3 +178,4 @@ TEAM You can talk with http://localhost:4440/agents/GMw67JN8TXxN7y to discuss th
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
+

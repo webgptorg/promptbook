@@ -211,6 +211,7 @@
     -   Display agent names instead of agent IDs (works with both local and federated agents)
     -   Added clickable agent name header that opens the agent page in a new window
     -   Modal now focuses on the actual conversation, making it easier to understand agent interactions
+-   Improved TEAM tool call modal UX with linked participant header badges, avatar/name labels in the conversation, and a top-right close button.
 -   Enhanced caching of GPT assistants created for agents on Agents Server:
     -   Created `AssistantCacheManager` class to centralize assistant lifecycle management
     -   Implemented `computeAssistantCacheKey` utility to compute cache keys based on assistant configuration

@@ -243,6 +243,8 @@ export const ChatMessageItem = memo(
         };
 
         const isMe = participant?.isMe;
+        const shouldShowParticipantLabel = (participants || []).some((entry) => entry.name === 'TEAMMATE');
+        const participantLabel = participant?.fullname || participant?.name;
         const color = Color.fromSafe(
             (participant && participant.color) || (isMe ? USER_CHAT_COLOR : PROMPTBOOK_CHAT_COLOR),
         );
@@ -320,15 +322,19 @@ export const ChatMessageItem = memo(
                     </div>
                 )}
 
-                <div
-                    className={styles.messageText}
-                    style={
-                        {
-                            '--message-bg-color': color.toHex(),
-                            '--message-text-color': colorOfText.toHex(),
-                        } as React.CSSProperties
-                    }
-                >
+                <div className={styles.messageStack}>
+                    {shouldShowParticipantLabel && participantLabel && (
+                        <div className={styles.participantLabel}>{participantLabel}</div>
+                    )}
+                    <div
+                        className={styles.messageText}
+                        style={
+                            {
+                                '--message-bg-color': color.toHex(),
+                                '--message-text-color': colorOfText.toHex(),
+                            } as React.CSSProperties
+                        }
+                    >
                     {isCopyButtonEnabled && isComplete && (
                         <div className={styles.copyButtonContainer}>
                             <button
@@ -615,6 +621,7 @@ export const ChatMessageItem = memo(
                             )}
                         </div>
                     )}
+                    </div>
                 </div>
             </div>
         );
