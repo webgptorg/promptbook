@@ -197,7 +197,7 @@ export function $initializeRunCommand(program: Program): $side_effect {
                 script: [
                     new JavascriptExecutionTools({
                         ...cliOptions,
-                        functions: { ...getAllCommitmentsToolFunctionsForNode() },
+                        functions: getAllCommitmentsToolFunctionsForNode(),
                     }),
                 ],
             } satisfies ExecutionTools; /* <- Note: [🤛] */

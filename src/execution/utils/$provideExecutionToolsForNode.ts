@@ -33,7 +33,7 @@ export async function $provideExecutionToolsForNode(options?: PrepareAndScrapeOp
         script: [
             new JavascriptExecutionTools({
                 ...options,
-                functions: { ...getAllCommitmentsToolFunctionsForNode() },
+                functions: getAllCommitmentsToolFunctionsForNode(),
             }),
         ],
     } satisfies ExecutionTools;

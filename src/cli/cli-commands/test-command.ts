@@ -81,7 +81,7 @@ export function $initializeTestCommand(program: Program): $side_effect {
                     script: [
                         new JavascriptExecutionTools({
                             ...prepareAndScrapeOptions,
-                            functions: { ...getAllCommitmentsToolFunctionsForNode() },
+                            functions: getAllCommitmentsToolFunctionsForNode(),
                         }),
                     ],
                 } satisfies ExecutionTools;

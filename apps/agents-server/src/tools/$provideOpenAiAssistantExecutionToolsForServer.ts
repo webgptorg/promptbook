@@ -32,9 +32,7 @@ export async function $provideOpenAiAssistantExecutionToolsForServer(): Promise<
         executionTools: {
             script: new JavascriptExecutionTools({
                 isVerbose,
-                functions: {
-                    ...getAllCommitmentsToolFunctionsForNode(),
-                },
+                functions: getAllCommitmentsToolFunctionsForNode(),
             }),
         },
         isCreatingNewAssistantsAllowed: true,

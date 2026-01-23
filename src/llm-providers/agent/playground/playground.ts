@@ -59,7 +59,7 @@ async function playground() {
         executionTools: {
             script: new JavascriptExecutionTools({
                 isVerbose,
-                functions: { ...getAllCommitmentsToolFunctionsForNode() },
+                functions: getAllCommitmentsToolFunctionsForNode(),
             }),
         },
         isCreatingNewAssistantsAllowed: true,

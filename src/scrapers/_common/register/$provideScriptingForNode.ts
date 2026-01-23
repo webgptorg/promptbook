@@ -26,7 +26,7 @@ export async function $provideScriptingForNode(
 
     // TODO: [🔱] Do here auto-installation
 
-    return [new JavascriptExecutionTools({ ...options, functions: { ...getAllCommitmentsToolFunctionsForNode() } })];
+    return [new JavascriptExecutionTools({ ...options, functions: getAllCommitmentsToolFunctionsForNode() })];
 }
 
 /**

@@ -1,8 +1,7 @@
-import { ToolFunction } from '../../_packages/types.index';
-import { UnexpectedError } from '../../errors/UnexpectedError';
-import { string_javascript_name } from '../../types/typeAliases';
-import { just } from '../../utils/organization/just';
-import { getAllCommitmentDefinitions } from './getAllCommitmentDefinitions';
+import type { CommitmentToolFunctions } from './commitmentToolFunctions';
+import { collectCommitmentToolFunctions, createToolFunctionsProxy } from './commitmentToolFunctions';
+
+const commitmentToolFunctionsProxy = createToolFunctionsProxy(collectCommitmentToolFunctions);
 
 /**
  * Gets all function implementations provided by all commitments
@@ -11,22 +10,6 @@ import { getAllCommitmentDefinitions } from './getAllCommitmentDefinitions';
  *
  * @public exported from `@promptbook/browser`
  */
-export function getAllCommitmentsToolFunctionsForBrowser(): Record<string_javascript_name, ToolFunction> {
-    const allToolFunctions: Record<string_javascript_name, ToolFunction> = {};
-    for (const commitmentDefinition of getAllCommitmentDefinitions()) {
-        const toolFunctions = commitmentDefinition.getToolFunctions();
-        for (const [funcName, funcImpl] of Object.entries(toolFunctions)) {
-            if (
-                allToolFunctions[funcName as string_javascript_name] !== undefined &&
-                just(false) /* <- Note: [⛹️] How to deal with commitment aliases */
-            ) {
-                throw new UnexpectedError(
-                    `Duplicate tool function name detected: \`${funcName}\` provided by commitment \`${commitmentDefinition.type}\``,
-                );
-            }
-
-            allToolFunctions[funcName as string_javascript_name] = funcImpl;
-        }
-    }
-    return allToolFunctions;
+export function getAllCommitmentsToolFunctionsForBrowser(): CommitmentToolFunctions {
+    return commitmentToolFunctionsProxy;
 }

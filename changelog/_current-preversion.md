@@ -47,6 +47,7 @@
 -   Do the full proxy of the given LLM tools in `countUsage` and `cacheLlmTools`
 -   Show linked Agents on Agent profile via the capability chips
 -   Implemented `TEAM` commitment with teammate tool calling, chiplets/modals, and team connections in agent profiles and the agents graph
+-   Fixed TEAM commitment tool execution to resolve teammate tool functions dynamically and use `RemoteAgent` for teammate calls.
 -   Implement Ctrl+V shortcut in `<Chat/>` component for pasting images and files
 -   Agents social graph on home page
     -   Handle agent profile image loading failures gracefully by showing initials fallback

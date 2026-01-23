@@ -134,7 +134,7 @@ class Wizard {
             script: [
                 new JavascriptExecutionTools({
                     ...prepareAndScrapeOptions,
-                    functions: { ...getAllCommitmentsToolFunctionsForNode() },
+                    functions: getAllCommitmentsToolFunctionsForNode(),
                 }),
             ],
         } satisfies ExecutionTools;

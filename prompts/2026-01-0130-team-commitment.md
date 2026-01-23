@@ -110,7 +110,7 @@ TEAM You can talk with http://localhost:4440/agents/GMw67JN8TXxN7y to discuss th
 
 ---
 
-[ ] !
+[x] ~$0.00
 
 [✨👺] Fix `TEAM` commitment
 
@@ -122,3 +122,4 @@ TEAM You can talk with http://localhost:4440/agents/GMw67JN8TXxN7y to discuss th
 
 ![alt text](prompts/screenshots/2026-01-0130-team-commitment-8.png)
 ![alt text](prompts/screenshots/2026-01-0130-team-commitment-9.png)
+

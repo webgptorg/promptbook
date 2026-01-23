@@ -10,9 +10,7 @@ describe('JavascriptEvalExecutionTools', () => {
             isVerbose: true,
             // Note: [🕎] Custom functions are tested elsewhere
 
-            functions: {
-                ...getAllCommitmentsToolFunctionsForNode(),
-            },
+            functions: getAllCommitmentsToolFunctionsForNode(),
         },
     );
 
