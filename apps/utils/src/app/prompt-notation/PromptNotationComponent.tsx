@@ -202,11 +202,6 @@ export function PromptNotationComponent() {
                                 loading={<code className="whitespace-pre">{source}</code>}
                             />
                         </pre>
-                        <p className="text-xs text-gray-500">
-                            Available helpers: <code className="bg-gray-100 px-1 rounded">prompt</code>,{' '}
-                            <code className="bg-gray-100 px-1 rounded">PromptString</code>,{' '}
-                            <code className="bg-gray-100 px-1 rounded">valueToString</code>.
-                        </p>
                     </div>
                     <div className="space-y-2">
                         <div className="text-xs font-semibold uppercase tracking-wide text-gray-500">Result</div>
