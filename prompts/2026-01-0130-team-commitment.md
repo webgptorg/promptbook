@@ -123,3 +123,58 @@ TEAM You can talk with http://localhost:4440/agents/GMw67JN8TXxN7y to discuss th
 ![alt text](prompts/screenshots/2026-01-0130-team-commitment-8.png)
 ![alt text](prompts/screenshots/2026-01-0130-team-commitment-9.png)
 
+---
+
+[ ] !!
+
+[✨👺] Enhance the UX of the modal from chip of `TEAM` commitment
+
+-   When the user clicks on the chiplet from the `TEAM` commitment, there is opened a modal with the chat between the two agents.
+-   Enhance the UX of this modal, show the agent profile pictures and names of both agents in the chat, do it through the existing `participants` prop of the <MockedChat/> component.
+-   In the model, there should also be linked to the agent that will be opened on a new window.
+-   Also in the header of the modal, show the agent profile picture with his name not just its ID.
+-   The close button should be in the top right corner and show `X` icon.
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+![alt text](prompts/screenshots/2026-01-0130-team-commitment-10.png)
+
+---
+
+[-]
+
+[✨👺]
+
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Add the changes into the `/changelog/_current-preversion.md`
+
+---
+
+[-]
+
+[✨👺]
+
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Add the changes into the `/changelog/_current-preversion.md`
+
+---
+
+[-]
+
+[✨👺]
+
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Add the changes into the `/changelog/_current-preversion.md`
+
+---
+
+[-]
+
+[✨👺]
+
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Add the changes into the `/changelog/_current-preversion.md`
