@@ -1,5 +1,7 @@
 ### 📚 Book
 
+-   Added Promptbook SDK integration snippets in Agents Server, including RemoteAgent Node.js and React examples on the integration page.
+
 -   Enhanced prompt template literal handling to return `PromptString`, inline safe parameters, and append structured parameter/context blocks for unsafe or multiline data with escaping.
 -   Added prompt notation documentation, examples, and a live evaluator to the Utils app.
 

@@ -19,12 +19,23 @@ import { getAgentName, getAgentProfile } from '../_utils';
 import { getAgentLinks } from '../agentLinks';
 import { CopyField } from '../CopyField';
 import { generateAgentMetadata } from '../generateAgentMetadata';
+import { PromptbookSdkTabs } from './PromptbookSdkTabs';
 import { SdkCodeTabs } from './SdkCodeTabs';
 import { WebsiteIntegrationTabs } from './WebsiteIntegrationTabs';
 
 export const generateMetadata = generateAgentMetadata;
 
-export default async function AgentIntegrationPage({ params }: { params: Promise<{ agentName: string }> }) {
+/**
+ * Props for AgentIntegrationPage.
+ */
+type AgentIntegrationPageProps = {
+    params: Promise<{ agentName: string }>;
+};
+
+/**
+ * Renders the integration options page for a specific agent.
+ */
+export default async function AgentIntegrationPage({ params }: AgentIntegrationPageProps) {
     $sideEffect(headers());
 
     const agentName = await getAgentName(params);
@@ -101,6 +112,62 @@ export default async function AgentIntegrationPage({ params }: { params: Promise
             />
         `,
     );
+
+    // Promptbook SDK Integration Code
+    const promptbookSdkNodeCode = spaceTrim(`
+        import { RemoteAgent } from '@promptbook/core';
+
+        async function main() {
+            const agent = await RemoteAgent.connect({
+                agentUrl: '${baseUrl}',
+            });
+
+            const result = await agent.callChatModel({
+                title: 'Remote chat',
+                content: 'Hello from another agent!',
+                parameters: {},
+                modelRequirements: {
+                    modelVariant: 'CHAT',
+                },
+            });
+
+            console.log(result.content);
+        }
+
+        main();
+    `);
+
+    const promptbookSdkBrowserCode = spaceTrim(`
+        import { useEffect, useMemo, useState } from 'react';
+        import { AgentChat } from '@promptbook/components';
+        import { RemoteAgent } from '@promptbook/core';
+
+        export function RemoteAgentChat() {
+            const agentUrl = '${baseUrl}';
+            const agentPromise = useMemo(() => RemoteAgent.connect({ agentUrl }), [agentUrl]);
+            const [agent, setAgent] = useState<RemoteAgent | null>(null);
+
+            useEffect(() => {
+                let isMounted = true;
+
+                agentPromise.then((connectedAgent) => {
+                    if (isMounted) {
+                        setAgent(connectedAgent);
+                    }
+                });
+
+                return () => {
+                    isMounted = false;
+                };
+            }, [agentPromise]);
+
+            if (!agent) {
+                return <div>Connecting to agent...</div>;
+            }
+
+            return <AgentChat agent={agent} visual="STANDALONE" />;
+        }
+    `);
 
     // OpenAI Compatible Curl
     const curlCode = spaceTrim(`
@@ -233,6 +300,25 @@ export default async function AgentIntegrationPage({ params }: { params: Promise
                         <WebsiteIntegrationTabs
                             reactCode={websiteIntegrationReactCode}
                             htmlCode={websiteIntegrationHtmlCode}
+                        />
+                    </div>
+
+                    {/* Promptbook SDK Integration */}
+                    <div className="p-6 rounded-xl border-2 border-cyan-200 bg-cyan-50/30 shadow-sm">
+                        <div className="flex items-start gap-4 mb-4">
+                            <div className="p-3 rounded-xl bg-cyan-100 text-cyan-600 shadow-sm">
+                                <CodeIcon className="w-6 h-6" />
+                            </div>
+                            <div>
+                                <h2 className="text-xl font-bold text-gray-900">Promptbook SDK</h2>
+                                <p className="text-gray-600">
+                                    Connect to this agent using the Promptbook SDK with RemoteAgent.
+                                </p>
+                            </div>
+                        </div>
+                        <PromptbookSdkTabs
+                            nodeCode={promptbookSdkNodeCode}
+                            browserCode={promptbookSdkBrowserCode}
                         />
                     </div>
 
