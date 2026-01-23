@@ -163,7 +163,7 @@ $ claude "Create file named nonce-foo-2.txt with content foo" --output-format js
 
 ---
 
-[?] !!!! <- Do we need this?
+[ ] !!!!
 
 [✨🏔] Fix OpenAI Codex coding agent
 
