@@ -6,7 +6,7 @@ import { $provideSupabase } from '@/src/database/$provideSupabase';
 import { $provideServer } from '@/src/tools/$provideServer';
 import { isUserAdmin } from '@/src/utils/isUserAdmin';
 import { generatePlaceholderAgentProfileImageUrl, PROMPTBOOK_COLOR } from '@promptbook-local/core';
-import { BoxIcon, CodeIcon, GlobeIcon, ServerIcon, TerminalIcon } from 'lucide-react';
+import { BoxIcon, CodeIcon, GlobeIcon } from 'lucide-react';
 import { headers } from 'next/headers';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -17,10 +17,9 @@ import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEf
 import { CodePreview } from '../../../../../../_common/components/CodePreview/CodePreview';
 import { getAgentName, getAgentProfile } from '../_utils';
 import { getAgentLinks } from '../agentLinks';
-import { CopyField } from '../CopyField';
 import { generateAgentMetadata } from '../generateAgentMetadata';
+import { ApiKeyIntegrationSections } from './ApiKeyIntegrationSections';
 import { PromptbookSdkTabs } from './PromptbookSdkTabs';
-import { SdkCodeTabs } from './SdkCodeTabs';
 import { WebsiteIntegrationTabs } from './WebsiteIntegrationTabs';
 
 export const generateMetadata = generateAgentMetadata;
@@ -62,6 +61,7 @@ export default async function AgentIntegrationPage({ params }: AgentIntegrationP
 
     // Get API Key if admin
     let apiKey = 'ptbk_...';
+    let hasApiKey = false;
     if (isAdmin) {
         const supabase = $provideSupabase();
         const table = await $getTableName('ApiTokens');
@@ -74,18 +74,9 @@ export default async function AgentIntegrationPage({ params }: AgentIntegrationP
 
         if (data && data.length > 0) {
             apiKey = data[0].token;
+            hasApiKey = true;
         }
     }
-    const apiKeyField = isAdmin ? (
-        <CopyField label="API Key" value={apiKey} />
-    ) : (
-        <div className="flex flex-col gap-1">
-            <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">API Key</span>
-            <div className="text-sm text-gray-500 italic bg-gray-50 p-2 rounded border border-gray-200">
-                Contact admin for API Key
-            </div>
-        </div>
-    );
 
     // Extract brand color from meta
     const brandColor = Color.from(agentProfile.meta.color || PROMPTBOOK_COLOR);
@@ -177,59 +168,6 @@ export default async function AgentIntegrationPage({ params }: AgentIntegrationP
 
             return <AgentChat agent={agent} visual="STANDALONE" />;
         }
-    `);
-
-    // OpenAI Compatible Curl
-    const curlCode = spaceTrim(`
-        curl ${agentApiBase}/api/openai/v1/chat/completions \\
-          -H "Content-Type: application/json" \\
-          -H "Authorization: Bearer ${apiKey}" \\
-          -d '{
-            "model": "agent:${agentName}",
-            "messages": [
-              {"role": "user", "content": "Hello!"}
-            ]
-          }'
-    `);
-
-    // OpenAI Compatible Python
-    const pythonCode = spaceTrim(`
-        from openai import OpenAI
-
-        client = OpenAI(
-            base_url="${agentApiBase}/api/openai/v1",
-            api_key="${apiKey}",
-        )
-
-        response = client.chat.completions.create(
-            model="agent:${agentName}",
-            messages=[
-                {"role": "user", "content": "Hello!"}
-            ]
-        )
-
-        print(response.choices[0].message.content)
-    `);
-
-    // OpenAI Compatible JS
-    const jsCode = spaceTrim(`
-        import OpenAI from 'openai';
-
-        const client = new OpenAI({
-            baseURL: '${agentApiBase}/api/openai/v1',
-            apiKey: '${apiKey}',
-        });
-
-        async function main() {
-            const response = await client.chat.completions.create({
-                model: 'agent:${agentName}',
-                messages: [{ role: 'user', content: 'Hello!' }],
-            });
-
-            console.log(response.choices[0].message.content);
-        }
-
-        main();
     `);
 
     // MCP Config
@@ -332,54 +270,13 @@ export default async function AgentIntegrationPage({ params }: AgentIntegrationP
                         />
                     </div>
 
-                    {/* OpenAI API Compatible Endpoint */}
-                    <div className="p-6 rounded-xl border-2 border-blue-200 bg-blue-50/30 shadow-sm">
-                        <div className="flex items-start gap-4 mb-4">
-                            <div className="p-3 rounded-xl bg-blue-100 text-blue-600 shadow-sm">
-                                <TerminalIcon className="w-6 h-6" />
-                            </div>
-                            <div className="flex-1">
-                                <h2 className="text-xl font-bold text-gray-900">OpenAI Compatible API</h2>
-                                <p className="text-gray-600">
-                                    Use the agent as a drop-in replacement for OpenAI API in your existing applications.
-                                </p>
-                                <div className="grid md:grid-cols-3 gap-4 mt-4 mb-2">
-                                    <CopyField label="Endpoint URL" value={`${agentApiBase}/api/openai/v1`} />
-                                    <CopyField label="Model Name" value={`agent:${agentName}`} />
-                                    {apiKeyField}
-                                </div>
-                                {isAdmin && apiKey === 'ptbk_...' && (
-                                    <p className="text-sm text-amber-600 mt-2">
-                                        No API token found.{' '}
-                                        <Link href="/admin/api-tokens" className="underline font-medium">
-                                            Create one in settings
-                                        </Link>
-                                        .
-                                    </p>
-                                )}
-                            </div>
-                        </div>
-
-                        <SdkCodeTabs curlCode={curlCode} pythonCode={pythonCode} jsCode={jsCode} />
-                    </div>
-
-                    {/* OpenRouter Integration */}
-                    <div className="p-6 rounded-xl border-2 border-purple-200 bg-purple-50/30 shadow-sm">
-                        <div className="flex items-start gap-4 mb-4">
-                            <div className="p-3 rounded-xl bg-purple-100 text-purple-600 shadow-sm">
-                                <ServerIcon className="w-6 h-6" />
-                            </div>
-                            <div>
-                                <h2 className="text-xl font-bold text-gray-900">OpenRouter Integration</h2>
-                                <p className="text-gray-600">Connect via OpenRouter compatible endpoint.</p>
-                                <div className="grid md:grid-cols-3 gap-4 mt-4">
-                                    <CopyField label="Endpoint URL" value={`${agentApiBase}/api/openrouter`} />
-                                    <CopyField label="Model Name" value={`agent:${agentName}`} />
-                                    {apiKeyField}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <ApiKeyIntegrationSections
+                        agentName={agentName}
+                        agentApiBase={agentApiBase}
+                        isAdmin={isAdmin}
+                        initialApiKey={apiKey}
+                        hasApiKey={hasApiKey}
+                    />
 
                     {/* MCP Integration */}
                     <div className="p-6 rounded-xl border-2 border-orange-200 bg-orange-50/30 shadow-sm">

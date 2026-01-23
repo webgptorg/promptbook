@@ -2,6 +2,7 @@
 
 -   Added Promptbook SDK integration snippets in Agents Server, including RemoteAgent Node.js and React examples on the integration page.
 -   Added API key field to the OpenRouter integration section in Agents Server to match OpenAI compatible setup.
+-   Added a Create API Key action on the agent integration page so admins can generate tokens without leaving the integrations screen.
 -   Fixed Rollup publishing config to inline dynamic imports so package builds no longer fail on multi-chunk outputs in CI.
 
 -   Enhanced prompt template literal handling to return `PromptString`, inline safe parameters, and append structured parameter/context blocks for unsafe or multiline data with escaping.

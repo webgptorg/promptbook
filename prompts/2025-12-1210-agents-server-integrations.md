@@ -37,7 +37,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨😵] Allow to create api keys directly from integrations page
 
