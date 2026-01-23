@@ -3,6 +3,7 @@
 import Editor from '@monaco-editor/react';
 import { PromptString, prompt, spaceTrim, valueToString } from '@promptbook-local/utils';
 import { useEffect, useState } from 'react';
+import { TIME_INTERVALS } from '../../../../../src/constants';
 import { DEFAULT_PROMPT_CODE, PROMPT_NOTATION_EXAMPLES } from './promptNotationExamples';
 
 /**
@@ -122,7 +123,7 @@ export function PromptNotationComponent() {
             const result = evaluatePromptSource(source);
             setOutput(result.output);
             setErrorMessage(result.error);
-        }, 150);
+        }, TIME_INTERVALS.HUNDRED_MILLISECONDS);
 
         return () => {
             clearTimeout(handler);
