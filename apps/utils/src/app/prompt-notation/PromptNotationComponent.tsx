@@ -82,11 +82,16 @@ function evaluatePromptSource(source: string): { output: string; error: string |
             'prompt',
             'PromptString',
             'valueToString',
-            `"use strict";
-            let result;
-            let output;
-            ${source}
-            return typeof result !== "undefined" ? result : output;`,
+            spaceTrim(
+                (block) => `
+                
+                    "use strict";
+
+                    ${block(source)}
+
+                    return output;
+                `,
+            ),
         ) as (tag: typeof prompt, promptType: typeof PromptString, stringify: typeof valueToString) => unknown;
 
         const value = evaluator(prompt, PromptString, valueToString);
@@ -191,9 +196,7 @@ export function PromptNotationComponent() {
                                     wordWrap: 'on',
                                     minimap: { enabled: false },
                                     lineNumbers: 'on',
-                                    folding: true,
-                                    scrollBeyondLastLine: false,
-                                    fontSize: 13,
+                                    folding: false,
                                 }}
                                 loading={<code className="whitespace-pre">{source}</code>}
                             />
@@ -213,9 +216,13 @@ export function PromptNotationComponent() {
                                 theme="vs-dark"
                                 value={output}
                                 options={{
+                                    readOnly: true,
+                                    readOnlyMessage: {
+                                        value: '<- Edit code on the left to see output here!',
+                                    },
                                     wordWrap: 'on',
                                     minimap: { enabled: false },
-                                    lineNumbers: 'on',
+                                    lineNumbers: 'off',
                                     folding: false,
                                 }}
                                 loading={<code className="whitespace-pre">{output}</code>}
