@@ -182,13 +182,30 @@ export function PromptNotationComponent() {
                         <label className="text-sm font-medium text-gray-700" htmlFor="prompt-source">
                             JavaScript
                         </label>
-                        <textarea
-                            id="prompt-source"
-                            className="w-full min-h-[360px] rounded-lg border border-gray-300 bg-white p-4 font-mono text-sm shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
-                            value={source}
-                            onChange={(event) => setSource(event.target.value)}
-                            spellCheck={false}
-                        />
+                        <div className="rounded-lg border border-gray-300 shadow-sm overflow-hidden">
+                            <Editor
+                                className="h-[360px]"
+                                language="javascript"
+                                theme="vs-dark"
+                                value={source}
+                                onChange={(value) => setSource(value || '')}
+                                options={{
+                                    wordWrap: 'on',
+                                    minimap: { enabled: false },
+                                    lineNumbers: 'on',
+                                    folding: true,
+                                    scrollBeyondLastLine: false,
+                                    fontSize: 13,
+                                }}
+                                loading={
+                                    <textarea
+                                        className="w-full min-h-[360px] p-4 font-mono text-sm"
+                                        value={source}
+                                        readOnly
+                                    />
+                                }
+                            />
+                        </div>
                         <p className="text-xs text-gray-500">
                             Available helpers: <code className="bg-gray-100 px-1 rounded">prompt</code>,{' '}
                             <code className="bg-gray-100 px-1 rounded">PromptString</code>,{' '}
@@ -199,12 +216,30 @@ export function PromptNotationComponent() {
                         <label className="text-sm font-medium text-gray-700" htmlFor="prompt-output">
                             Result
                         </label>
-                        <textarea
-                            id="prompt-output"
-                            className="w-full min-h-[360px] rounded-lg border border-gray-300 bg-gray-100 p-4 font-mono text-sm shadow-sm"
-                            value={output}
-                            readOnly
-                        />
+                        <div className="rounded-lg border border-gray-300 shadow-sm overflow-hidden">
+                            <Editor
+                                className="h-[360px]"
+                                language="markdown"
+                                theme="vs-dark"
+                                value={output}
+                                options={{
+                                    readOnly: true,
+                                    wordWrap: 'on',
+                                    minimap: { enabled: false },
+                                    lineNumbers: 'on',
+                                    folding: false,
+                                    scrollBeyondLastLine: false,
+                                    fontSize: 13,
+                                }}
+                                loading={
+                                    <textarea
+                                        className="w-full min-h-[360px] p-4 font-mono text-sm"
+                                        value={output}
+                                        readOnly
+                                    />
+                                }
+                            />
+                        </div>
                         {errorMessage ? (
                             <p className="text-sm text-red-600">Error: {errorMessage}</p>
                         ) : (
