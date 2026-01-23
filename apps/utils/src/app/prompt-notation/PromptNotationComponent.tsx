@@ -179,10 +179,8 @@ export function PromptNotationComponent() {
                 </p>
                 <div className="grid gap-6 lg:grid-cols-2">
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700" htmlFor="prompt-source">
-                            JavaScript
-                        </label>
-                        <div className="rounded-lg border border-gray-300 shadow-sm overflow-hidden">
+                        <div className="text-xs font-semibold uppercase tracking-wide text-gray-500">JavaScript</div>
+                        <pre className="rounded-lg bg-slate-900 p-4 text-sm text-slate-100 shadow-inner overflow-auto">
                             <Editor
                                 className="h-[360px]"
                                 language="javascript"
@@ -197,15 +195,9 @@ export function PromptNotationComponent() {
                                     scrollBeyondLastLine: false,
                                     fontSize: 13,
                                 }}
-                                loading={
-                                    <textarea
-                                        className="w-full min-h-[360px] p-4 font-mono text-sm"
-                                        value={source}
-                                        readOnly
-                                    />
-                                }
+                                loading={<code className="whitespace-pre">{source}</code>}
                             />
-                        </div>
+                        </pre>
                         <p className="text-xs text-gray-500">
                             Available helpers: <code className="bg-gray-100 px-1 rounded">prompt</code>,{' '}
                             <code className="bg-gray-100 px-1 rounded">PromptString</code>,{' '}
@@ -213,33 +205,22 @@ export function PromptNotationComponent() {
                         </p>
                     </div>
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700" htmlFor="prompt-output">
-                            Result
-                        </label>
-                        <div className="rounded-lg border border-gray-300 shadow-sm overflow-hidden">
+                        <div className="text-xs font-semibold uppercase tracking-wide text-gray-500">Result</div>
+                        <pre className="rounded-lg bg-slate-900 p-4 text-sm text-slate-100 shadow-inner overflow-auto">
                             <Editor
                                 className="h-[360px]"
                                 language="markdown"
                                 theme="vs-dark"
                                 value={output}
                                 options={{
-                                    readOnly: true,
                                     wordWrap: 'on',
                                     minimap: { enabled: false },
                                     lineNumbers: 'on',
                                     folding: false,
-                                    scrollBeyondLastLine: false,
-                                    fontSize: 13,
                                 }}
-                                loading={
-                                    <textarea
-                                        className="w-full min-h-[360px] p-4 font-mono text-sm"
-                                        value={output}
-                                        readOnly
-                                    />
-                                }
+                                loading={<code className="whitespace-pre">{output}</code>}
                             />
-                        </div>
+                        </pre>
                         {errorMessage ? (
                             <p className="text-sm text-red-600">Error: {errorMessage}</p>
                         ) : (
