@@ -110,10 +110,15 @@ TEAM You can talk with http://localhost:4440/agents/GMw67JN8TXxN7y to discuss th
 
 ---
 
-[-]
+[ ] !
 
-[✨👺] qux
+[✨👺] Fix `TEAM` commitment
 
+-   Currently, when the agent uses the `TEAM` commitment to consult another agent
+-   This agent can be either on the same server or on a federated server.
+-   However, there is a bug in implementation of the tool function, the tool is declared but function is not defined.
+-   Implement it using `RemoteAgent` object
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the `/changelog/_current-preversion.md`
 
+![alt text](prompts/screenshots/2026-01-0130-team-commitment-8.png)
+![alt text](prompts/screenshots/2026-01-0130-team-commitment-9.png)
