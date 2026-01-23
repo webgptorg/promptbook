@@ -1,6 +1,7 @@
 'use client';
 
-import { PromptString, prompt, valueToString } from '@promptbook-local/utils';
+import Editor from '@monaco-editor/react';
+import { PromptString, prompt, spaceTrim, valueToString } from '@promptbook-local/utils';
 import { useEffect, useState } from 'react';
 import { DEFAULT_PROMPT_CODE, PROMPT_NOTATION_EXAMPLES } from './promptNotationExamples';
 
@@ -10,17 +11,35 @@ import { DEFAULT_PROMPT_CODE, PROMPT_NOTATION_EXAMPLES } from './promptNotationE
 type CodeBlockProps = {
     label: string;
     content: string;
+    language: string;
 };
 
 /**
  * Renders a read-only code block with a label.
  */
-function CodeBlock({ label, content }: CodeBlockProps) {
+function CodeBlock(props: CodeBlockProps) {
+    const { label, content, language } = props;
     return (
         <div className="space-y-2">
             <div className="text-xs font-semibold uppercase tracking-wide text-gray-500">{label}</div>
             <pre className="rounded-lg bg-slate-900 p-4 text-sm text-slate-100 shadow-inner overflow-auto">
-                <code className="whitespace-pre">{content}</code>
+                <Editor
+                    className="h-[300px]"
+                    language={language}
+                    theme="vs-dark"
+                    value={content}
+                    options={{
+                        readOnly: true,
+                        readOnlyMessage: {
+                            value: 'Look at playground below to try editing prompts!',
+                        },
+                        wordWrap: 'on',
+                        minimap: { enabled: false },
+                        lineNumbers: 'off',
+                        folding: false,
+                    }}
+                    loading={<code className="whitespace-pre">{content}</code>}
+                />
             </pre>
         </div>
     );
@@ -110,10 +129,10 @@ export function PromptNotationComponent() {
             <section className="space-y-4">
                 <h2 className="text-2xl font-semibold text-gray-900">Prompt notation</h2>
                 <p className="text-gray-700">
-                    The <code className="bg-gray-100 px-1 rounded">prompt</code> tag turns template literals into
-                    safe prompt strings. It returns a <code className="bg-gray-100 px-1 rounded">PromptString</code>,
-                    which you can convert with <code className="bg-gray-100 px-1 rounded">toString()</code> when you
-                    need plain text.
+                    The <code className="bg-gray-100 px-1 rounded">prompt</code> tag turns template literals into safe
+                    prompt strings. It returns a <code className="bg-gray-100 px-1 rounded">PromptString</code>, which
+                    you can convert with <code className="bg-gray-100 px-1 rounded">toString()</code> when you need
+                    plain text.
                 </p>
                 <ul className="list-disc list-inside text-gray-700 space-y-1">
                     <li>Simple values are inlined directly into the prompt.</li>
@@ -133,8 +152,18 @@ export function PromptNotationComponent() {
                             </h3>
                             <p className="text-gray-600 mt-2">{example.description}</p>
                             <div className="mt-6 grid gap-4">
-                                <CodeBlock label="Code" content={example.code} />
-                                <CodeBlock label="Output" content={example.output} />
+                                <CodeBlock
+                                    label="Code"
+                                    language="javascript"
+                                    content={spaceTrim(
+                                        (block) => `
+                                            import { prompt } from '@promptbook/utils';
+
+                                            ${block(example.code)}
+                                        `,
+                                    )}
+                                />
+                                <CodeBlock label="Output" language="markdown" content={example.output} />
                             </div>
                         </div>
                     ))}
@@ -144,8 +173,8 @@ export function PromptNotationComponent() {
             <section className="space-y-6">
                 <h2 className="text-2xl font-semibold text-gray-900">Try it in the browser</h2>
                 <p className="text-gray-700">
-                    Write JavaScript with <code className="bg-gray-100 px-1 rounded">prompt</code> notation on the
-                    left. Assign to <code className="bg-gray-100 px-1 rounded">result</code> or{' '}
+                    Write JavaScript with <code className="bg-gray-100 px-1 rounded">prompt</code> notation on the left.
+                    Assign to <code className="bg-gray-100 px-1 rounded">result</code> or{' '}
                     <code className="bg-gray-100 px-1 rounded">output</code>, or return a value.
                 </p>
                 <div className="grid gap-6 lg:grid-cols-2">
