@@ -1,12 +1,12 @@
 import { string_prompt } from '../../../src/types/typeAliases';
-import { spaceTrim } from '../../../src/utils/organization/spaceTrim';
+import { prompt } from '../../../src/pipeline/prompt-notation';
 
 
 /**
  * @@@
  */
 export function createCodingContext(): string_prompt {
-    return spaceTrim(`
+    return prompt`
 
         **Common rules**
 
@@ -39,7 +39,7 @@ export function createCodingContext(): string_prompt {
                 -   \`createAgentModelRequirements\` which is an asynchronous function that creates model requirements it applies each commitment one by one and works asynchronously.
 
         
-    `);
+    `.toString();
 
     // <- TODO: Make "Additional context..." conditional: for example "Attached image ..." based on whether images are present
     // <- TODO: Do the adding of additional context to prompts for all runners, do it in a generic way and keep DRY
