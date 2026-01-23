@@ -26,13 +26,28 @@
 
 ---
 
-[-]
+[ ] @@@
 
-[✨😵] baz
+[✨😵] RemoteAgent should require apiKey
 
 -   ...
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Add the changes into the `/changelog/_current-preversion.md`
+
+---
+
+[ ]
+
+[✨😵] Allow to create api keys directly from integrations page
+
+-   In http://localhost:4440/agents/5Y2pfB3z31r3nB/integration there are shown available integrations for the agent. (the 5Y2pfB3z31r3nB is agent ID)
+-   You need api keys to use some integrations, for example OpenAI Compatible API or OpenRouter.
+-   Add button "Create API Key" which creates new API key for the user if there
+-   It must be user friendly and easy to use.
+-   When created, the API key should have note like "Created for Agent {agentName}" so that user can identify why the key was created.
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle, logic for creating API keys is already in place in settings page and in codebase should be reused.
 -   Add the changes into the `/changelog/_current-preversion.md`
 
 ---
@@ -45,5 +60,3 @@
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
-
-
