@@ -91,7 +91,14 @@ export default async function HomePage(props: {
     const longRunningTask = getLongRunningTask();
 
     const executionTools = await $provideExecutionToolsForServer();
-    const models = await getSingleLlmExecutionTools(executionTools.llm).listModels();
+    let models;
+    let modelsError: string | null = null;
+    try {
+        models = await getSingleLlmExecutionTools(executionTools.llm).listModels();
+    } catch (error) {
+        console.error('Error fetching models:', error);
+        modelsError = error instanceof Error ? error.message : 'Failed to load models';
+    }
 
     const host = (await headers()).get('host') || 'unknown';
 
@@ -107,7 +114,16 @@ export default async function HomePage(props: {
 
                 {isAdmin && <UsersList allowCreate={false} />}
 
-                {isAdmin && <ModelsSection models={models} maxVisible={11} showViewAllLink />}
+                {isAdmin &&
+                    (modelsError ? (
+                        <Section title="Models">
+                            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                                <p className="text-red-800">Error loading models: {modelsError}</p>
+                            </div>
+                        </Section>
+                    ) : models ? (
+                        <ModelsSection models={models} maxVisible={11} showViewAllLink />
+                    ) : null)}
 
                 {isAdmin && (
                     <>
