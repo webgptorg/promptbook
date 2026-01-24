@@ -2,7 +2,7 @@
 
 [✨🛰] Create some files at root of the project
 
--   Look at the attached image for instructions.
+-   Look at the attached image "Instructions" for instructions.
 -   This task is just to test the coding agent functionality
 
 ![Instructions](prompts/screenshots/2026-01-0280-test-coding-agent-4.png)
