@@ -141,13 +141,17 @@ TEAM You can talk with http://localhost:4440/agents/GMw67JN8TXxN7y to discuss th
 
 ---
 
-[-]
+[ ]
 
-[✨👺]
+[✨👺] Enhance the UI of the chips of `TEAM` commitment
 
+-   @@@
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
+
+![alt text](prompts/screenshots/2026-01-0130-team-commitment-11.png)
+![alt text](prompts/screenshots/2026-01-0130-team-commitment-12.png)
 
 ---
 
@@ -178,4 +182,3 @@ TEAM You can talk with http://localhost:4440/agents/GMw67JN8TXxN7y to discuss th
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
-

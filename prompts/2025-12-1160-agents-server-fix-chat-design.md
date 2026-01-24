@@ -13,7 +13,7 @@
 
 ---
 
-[!!!] !!!
+[.] _<- Note: Not done here but in commits bellow:_
 
 [✨💼] Fix the chat design on the Agent Server.
 
@@ -34,20 +34,37 @@
 
 ---
 
-[!!!!]
+[ ]
 
 [✨💼] Hoist the back button in agent pages
 
--   ...
+-   @@@
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
 
+![alt text](prompts/screenshots/2025-12-1160-agents-server-fix-chat-design-6.png)
+
 ---
 
-[!!!!]
+[ ]
 
-[✨💼] Fix the save and settings popup
+[✨💼] Fix the messages width
+
+-   @@@
+-   This is especially relevant when the message has source chips.
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Add the changes into the `/changelog/_current-preversion.md`
+
+![alt text](prompts/screenshots/2025-12-1160-agents-server-fix-chat-design-4.png)
+![alt text](prompts/screenshots/2025-12-1160-agents-server-fix-chat-design-5.png)
+
+---
+
+[-]
+
+[✨💼] baz
 
 -   ...
 -   You are working with the `Agents Server` application `/apps/agents-server`
@@ -65,3 +82,13 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
 
+---
+
+[-]
+
+[✨💼] baz
+
+-   ...
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Add the changes into the `/changelog/_current-preversion.md`
