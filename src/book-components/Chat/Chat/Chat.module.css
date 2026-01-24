@@ -91,7 +91,7 @@
     grid-area: 💬;
     width: auto;
     height: min-content;
-    z-index: 200;
+    z-index: 40;
     align-self: self-start;
     justify-self: self-end;
     margin: 16px 20px 0;

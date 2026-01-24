@@ -1,5 +1,6 @@
 ### 📚 Book
 
+-   Ensured the Agents Server chat menu stays above chat action buttons (New chat, Save, etc.).
 -   Added Promptbook SDK integration snippets in Agents Server, including RemoteAgent Node.js and React examples on the integration page.
 -   Added API key field to the OpenRouter integration section in Agents Server to match OpenAI compatible setup.
 -   Added a Create API Key action on the agent integration page so admins can generate tokens without leaving the integrations screen.
