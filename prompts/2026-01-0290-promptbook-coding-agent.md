@@ -272,6 +272,21 @@ tokens used
 
 ---
 
+[ ]
+
+[✨🏔] Add [Opencode](https://opencode.ai/) to the [coding agent script](./scripts/run-codex-prompts/run-codex-prompts.ts)
+
+-   There is a coding agent script at `./scripts/run-codex-prompts/run-codex-prompts.ts` which runs OpenAI Codex and other runners with prompts from the `./prompts` folder.
+-   Add support to run prompts in [Opencode](https://opencode.ai/) in non-interactive mode.
+-   The Opencode runner should work non-interactively like the OpenAI Codex agent and directly modify the files in the repository.
+-   Add a flag `--agent opencode` to choose the runner.
+-   Also add (and require) an additional flag `--model` to specify the model to use with the Opencode runner.
+-   The Opencode runner should behave the same way as other runners, it should process the prompts in the same way, commit the changes to git, etc.
+-   Report the usage statistics of the Opencode runner in a same way as other runners, for example the Claude code runner.
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+---
+
 [-]
 
 [✨🏔]
