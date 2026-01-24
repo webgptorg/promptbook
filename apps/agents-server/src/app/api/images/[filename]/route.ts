@@ -19,6 +19,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         const size = searchParams.get('size');
         const quality = searchParams.get('quality');
         const style = searchParams.get('style');
+        const imageSrc = searchParams.get('imageSrc');
         const isRaw = searchParams.get('raw') === 'true';
 
         if (!filename) {
@@ -67,16 +68,13 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             parameters: {},
             modelRequirements: {
                 modelVariant: 'IMAGE_GENERATION',
-                modelName:
-                    modelName ||
-                    (llmTools.title.includes('Google')
-                        ? 'gemini-3-pro-image-preview'
-                        : 'dall-e-3'), // Use gemini-3-pro-image-preview (Nano Banana Pro) for Google, DALL-E 3 for high quality otherwise
-                        // {/* <- TODO: [🎞] Do this dynamically based on available models */}
+                modelName: modelName || (llmTools.title.includes('Google') ? 'gemini-3-pro-image-preview' : 'dall-e-3'), // Use gemini-3-pro-image-preview (Nano Banana Pro) for Google, DALL-E 3 for high quality otherwise
+                // {/* <- TODO: [🎞] Do this dynamically based on available models */}
                 size: (size as ImageGenerationModelRequirements['size']) || undefined,
                 quality: (quality as ImageGenerationModelRequirements['quality']) || undefined,
                 style: (style as ImageGenerationModelRequirements['style']) || undefined,
             },
+            attachments: imageSrc ? [{ name: 'input-image', type: 'image/*', url: imageSrc }] : undefined,
         });
 
         if (!imageResult.content) {

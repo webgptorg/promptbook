@@ -271,3 +271,4 @@
     -   Follows DRY principle by reusing existing modal styles and chip patterns
     -   Integrated seamlessly with existing chat UI and tool call chip system
 -   Added `nonce-foo-4.txt` and `nonce-bar-4.txt` for coding agent verification.
+-   Allow to add image in the image prompt in Agents Server [Image Generator Test](http://localhost:4440/admin/image-generator-test)

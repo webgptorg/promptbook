@@ -1,5 +1,6 @@
 'use client';
 
+import { upload } from '@vercel/blob/client';
 import { useState } from 'react';
 import spaceTrim from 'spacetrim';
 import { Card } from '../../../components/Homepage/Card';
@@ -19,6 +20,7 @@ type GeneratedImage = {
 type PromptInput = {
     id: string;
     value: string;
+    imageSrc?: string | null;
 };
 
 export function ImageGeneratorTestClient() {
@@ -35,6 +37,7 @@ export function ImageGeneratorTestClient() {
                 - In Vincent van Gogh style
                 - High resolution
             `),
+            imageSrc: null,
         },
     ]);
     const [modelName, setModelName] = useState<string>('dall-e-3');
@@ -46,7 +49,7 @@ export function ImageGeneratorTestClient() {
     const [progress, setProgress] = useState({ current: 0, total: 0 });
 
     const handleAddPrompt = () => {
-        setPrompts([...prompts, { id: Math.random().toString(36).substring(7), value: '' }]);
+        setPrompts([...prompts, { id: Math.random().toString(36).substring(7), value: '', imageSrc: null }]);
     };
 
     const handleRemovePrompt = (id: string) => {
@@ -58,8 +61,27 @@ export function ImageGeneratorTestClient() {
         setPrompts(prompts.map((p) => (p.id === id ? { ...p, value: newValue } : p)));
     };
 
+    const handleImageUpload = async (id: string, file: File) => {
+        try {
+            const blob = await upload(file.name, file, {
+                access: 'public',
+                handleUploadUrl: '/api/upload',
+            });
+
+            setPrompts(prompts.map((p) => (p.id === id ? { ...p, imageSrc: blob.url } : p)));
+        } catch (error) {
+            console.error('Error uploading file:', error);
+            alert('Error uploading file');
+        }
+    };
+
+    const handleRemoveImage = (id: string) => {
+        setPrompts(prompts.map((p) => (p.id === id ? { ...p, imageSrc: null } : p)));
+    };
+
     const generateSingleImage = async (
         prompt: string,
+        imageSrc: string | null | undefined,
         model: string,
         size: string,
         quality: string,
@@ -94,6 +116,7 @@ export function ImageGeneratorTestClient() {
         if (size) queryParams.set('size', size);
         if (quality) queryParams.set('quality', quality);
         if (style) queryParams.set('style', style);
+        if (imageSrc) queryParams.set('imageSrc', imageSrc);
         queryParams.set('raw', 'true');
 
         try {
@@ -163,7 +186,14 @@ export function ImageGeneratorTestClient() {
             // Update status to loading for this item
             setResults((prev) => prev.map((item, idx) => (idx === i ? { ...item, status: 'loading' } : item)));
 
-            const result = await generateSingleImage(p.value, modelName, modelSize, modelQuality, modelStyle);
+            const result = await generateSingleImage(
+                p.value,
+                p.imageSrc,
+                modelName,
+                modelSize,
+                modelQuality,
+                modelStyle,
+            );
 
             // Update result for this item
             setResults((prev) => prev.map((item, idx) => (idx === i ? { ...result, id: item.id } : item)));
@@ -280,36 +310,98 @@ export function ImageGeneratorTestClient() {
                         </label>
 
                         {mode === 'single' ? (
-                            <textarea
-                                value={prompts[0].value}
-                                onChange={(e) => handlePromptChange(prompts[0].id, e.target.value)}
-                                placeholder="e.g., A futuristic city with flying cars"
-                                className="w-full h-48 p-2 border border-gray-300 rounded"
-                                disabled={isGenerating}
-                            />
+                            <div className="space-y-2">
+                                <textarea
+                                    value={prompts[0].value}
+                                    onChange={(e) => handlePromptChange(prompts[0].id, e.target.value)}
+                                    placeholder="e.g., A futuristic city with flying cars"
+                                    className="w-full h-48 p-2 border border-gray-300 rounded"
+                                    disabled={isGenerating}
+                                />
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(e) => {
+                                            const file = e.target.files?.[0];
+                                            if (file) handleImageUpload(prompts[0].id, file);
+                                        }}
+                                        disabled={isGenerating}
+                                        className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                                    />
+                                    {prompts[0].imageSrc && (
+                                        <div className="relative group">
+                                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                                            <img
+                                                src={prompts[0].imageSrc}
+                                                alt="Attached"
+                                                className="h-10 w-10 object-cover rounded border"
+                                            />
+                                            <button
+                                                onClick={() => handleRemoveImage(prompts[0].id)}
+                                                className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                                title="Remove image"
+                                            >
+                                                ×
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
                         ) : (
                             <div className="space-y-3">
                                 {prompts.map((prompt, index) => (
-                                    <div key={prompt.id} className="flex gap-2 items-start">
-                                        <div className="flex-grow">
-                                            <textarea
-                                                value={prompt.value}
-                                                onChange={(e) => handlePromptChange(prompt.id, e.target.value)}
-                                                placeholder={`Prompt ${index + 1}`}
-                                                className="w-full h-24 p-2 border border-gray-300 rounded text-sm"
-                                                disabled={isGenerating}
-                                            />
+                                    <div key={prompt.id} className="space-y-2 p-2 border rounded-lg">
+                                        <div className="flex gap-2 items-start">
+                                            <div className="flex-grow">
+                                                <textarea
+                                                    value={prompt.value}
+                                                    onChange={(e) => handlePromptChange(prompt.id, e.target.value)}
+                                                    placeholder={`Prompt ${index + 1}`}
+                                                    className="w-full h-24 p-2 border border-gray-300 rounded text-sm"
+                                                    disabled={isGenerating}
+                                                />
+                                            </div>
+                                            {prompts.length > 1 && (
+                                                <button
+                                                    onClick={() => handleRemovePrompt(prompt.id)}
+                                                    className="mt-1 p-2 text-red-500 hover:bg-red-50 rounded"
+                                                    disabled={isGenerating}
+                                                    title="Remove prompt"
+                                                >
+                                                    ✕
+                                                </button>
+                                            )}
                                         </div>
-                                        {prompts.length > 1 && (
-                                            <button
-                                                onClick={() => handleRemovePrompt(prompt.id)}
-                                                className="mt-1 p-2 text-red-500 hover:bg-red-50 rounded"
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={(e) => {
+                                                    const file = e.target.files?.[0];
+                                                    if (file) handleImageUpload(prompt.id, file);
+                                                }}
                                                 disabled={isGenerating}
-                                                title="Remove prompt"
-                                            >
-                                                ✕
-                                            </button>
-                                        )}
+                                                className="text-xs text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                                            />
+                                            {prompt.imageSrc && (
+                                                <div className="relative group">
+                                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                    <img
+                                                        src={prompt.imageSrc}
+                                                        alt="Attached"
+                                                        className="h-8 w-8 object-cover rounded border"
+                                                    />
+                                                    <button
+                                                        onClick={() => handleRemoveImage(prompt.id)}
+                                                        className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-3 h-3 text-[10px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                                        title="Remove image"
+                                                    >
+                                                        ×
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 ))}
                                 <button
