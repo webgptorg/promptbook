@@ -95,9 +95,6 @@ async function run(): Promise<void> {
     } else if (options.agentName === 'claude-code') {
         runner = new ClaudeCodeRunner();
     } else if (options.agentName === 'opencode') {
-        if (!options.model) {
-            throw new Error(`You must specify a model using --model <model> for opencode agent`);
-        }
         runner = new OpencodeRunner({
             model: options.model,
         });
@@ -539,6 +536,7 @@ async function commitChanges(message: string): Promise<void> {
 }
 
 /**
- * TODO: Prompt: Split utiluity functions into separate files in ./utils
+ * TODO: !!!!! Remake using commander `import commander from 'commander';`
+ * TODO: !!!! Prompt: Split utiluity functions into separate files in ./utils
  * Note: [⚫] Code in this file should never be published in any package
  */

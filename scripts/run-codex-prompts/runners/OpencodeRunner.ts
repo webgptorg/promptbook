@@ -5,7 +5,7 @@ import { $runGoScriptWithOutput } from './utils/$runGoScript';
 import { parseOpencodeJsonOutput } from './utils/parseOpencodeJsonOutput';
 
 export type OpencodeRunnerOptions = {
-    model: string;
+    model?: string;
 };
 
 export class OpencodeRunner implements PromptRunner {
@@ -32,7 +32,7 @@ export class OpencodeRunner implements PromptRunner {
 
 type OpencodeScriptOptions = {
     prompt: string;
-    model: string;
+    model?: string;
 };
 
 function buildOpencodeScript(options: OpencodeScriptOptions): string {
@@ -40,7 +40,7 @@ function buildOpencodeScript(options: OpencodeScriptOptions): string {
 
     return spaceTrim(
         (block) => `
-            opencode run --model ${options.model} --format json <<'${delimiter}'
+            opencode run${options.model ? ` --model ${options.model}` : ''} --format json <<'${delimiter}'
 
             ${block(options.prompt)}
 
