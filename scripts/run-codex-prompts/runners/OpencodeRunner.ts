@@ -19,10 +19,19 @@ export class OpencodeRunner implements PromptRunner {
             model: this.options.model,
         });
 
-        const output = await $runGoScriptWithOutput({
-            scriptPath: options.scriptPath,
-            scriptContent,
-        });
+        let output: string;
+        try {
+            output = await $runGoScriptWithOutput({
+                scriptPath: options.scriptPath,
+                scriptContent,
+            });
+        } catch (error) {
+            if (error instanceof Error) {
+                output = error.message;
+            } else {
+                throw error;
+            }
+        }
 
         const usage = parseOpencodeJsonOutput(output);
 
