@@ -90,6 +90,7 @@
 -   Added microphone button to `<Chat/>` with visual recording indicators and real-time transcription insertion.
 -   Enhanced visuals of the agent chat page
 -   Refined chat message bubble sizing with a minimum width and responsive max widths for desktop and mobile layouts.
+-   Fixed chat message stack width so source chips wrap within bubble bounds on desktop and mobile in Agents Server.
 -   Added grained background to the chat page (matching the agent profile page)
 -   Increased saturation of agent messages for better visibility
 -   Fixed chat page height to exactly 100vh to prevent unnecessary scrolling

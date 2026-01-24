@@ -216,10 +216,16 @@
     display: flex;
     flex-direction: column;
     align-items: flex-start;
+    max-width: var(--chat-message-max-width);
+    min-width: var(--chat-message-min-width);
 }
 
 .chatMainFlow .chatMessage.isMe .messageStack {
     align-items: flex-end;
+}
+
+.chatMainFlow .chatMessage .messageStack > * {
+    max-width: 100%;
 }
 
 .participantLabel {
@@ -502,8 +508,7 @@
     position: relative;
     padding: 14px 18px;
     border-radius: 20px;
-    max-width: var(--chat-message-max-width, min(70%, 600px));
-    min-width: var(--chat-message-min-width, 160px);
+    max-width: 100%;
     text-align: left;
     margin-bottom: 4px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
