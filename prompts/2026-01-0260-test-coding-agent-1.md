@@ -1,4 +1,4 @@
-[x] ~$0.00
+[ ] !!!!
 
 [✨🧤] Create some files at root of the project
 
