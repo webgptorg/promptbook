@@ -16,6 +16,7 @@ import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
 import { ClaudeCodeRunner } from './runners/ClaudeCodeRunner';
 import { ClineRunner } from './runners/ClineRunner';
 import { OpenAiCodexRunner } from './runners/OpenAiCodexRunner';
+import { OpencodeRunner } from './runners/OpencodeRunner';
 import { PromptRunner } from './runners/_PromptRunner';
 import { formatUsagePrice } from './runners/utils/formatUsagePrice';
 
@@ -65,7 +66,8 @@ type PromptStats = {
 
 type RunOptions = {
     waitForUser: boolean;
-    agentName: 'openai-codex' | 'cline' | 'claude-code';
+    agentName: 'openai-codex' | 'cline' | 'claude-code' | 'opencode';
+    model?: string;
 };
 
 type UpcomingTask = {
@@ -92,6 +94,13 @@ async function run(): Promise<void> {
         });
     } else if (options.agentName === 'claude-code') {
         runner = new ClaudeCodeRunner();
+    } else if (options.agentName === 'opencode') {
+        if (!options.model) {
+            throw new Error(`You must specify a model using --model <model> for opencode agent`);
+        }
+        runner = new OpencodeRunner({
+            model: options.model,
+        });
     } else {
         throw new Error(`Unknown agent: ${options.agentName}`);
     }
@@ -161,25 +170,32 @@ async function run(): Promise<void> {
 }
 
 function parseRunOptions(args: string[]): RunOptions {
-    let agentName: 'openai-codex' | 'cline' | 'claude-code' | undefined = undefined;
+    let agentName: 'openai-codex' | 'cline' | 'claude-code' | 'opencode' | undefined = undefined;
 
     if (args.includes('--agent')) {
         const index = args.indexOf('--agent');
         const value = args[index + 1];
-        if (value === 'openai-codex' || value === 'cline' || value === 'claude-code') {
+        if (value === 'openai-codex' || value === 'cline' || value === 'claude-code' || value === 'opencode') {
             agentName = value;
         }
     }
 
+    let model: string | undefined = undefined;
+    if (args.includes('--model')) {
+        const index = args.indexOf('--model');
+        model = args[index + 1];
+    }
+
     if (!agentName) {
-        console.error(colors.red('You must choose an agent using --agent <openai-codex|cline|claude-code>'));
-        console.error(colors.gray('Usage: run-codex-prompts --agent <agent-name> [--no-wait]'));
+        console.error(colors.red('You must choose an agent using --agent <openai-codex|cline|claude-code|opencode>'));
+        console.error(colors.gray('Usage: run-codex-prompts --agent <agent-name> [--model <model>] [--no-wait]'));
         process.exit(1);
     }
 
     return {
         waitForUser: !args.includes('--no-wait'),
         agentName,
+        model,
     };
 }
 
