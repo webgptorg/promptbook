@@ -25,9 +25,13 @@ export function parseOpencodeJsonOutput(output: string): Usage {
 
         const parsed = JSON.parse(jsonLine);
 
-        // Based on the documentation, opencode stats --format json might be useful too, 
+        if (parsed.type === 'error') {
+            throw new Error(parsed.error?.data?.message || parsed.error?.message || 'Opencode API Error');
+        }
+
+        // Based on the documentation, opencode stats --format json might be useful too,
         // but here we are parsing the output of 'run'.
-        
+
         // If Opencode follows a similar structure to Claude Code:
         if (parsed.usage) {
              const totalInputTokens =
