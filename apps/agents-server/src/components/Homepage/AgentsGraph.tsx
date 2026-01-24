@@ -150,8 +150,7 @@ const normalizeServerUrl = (url: string): string => url.replace(/\/$/, '');
 /**
  * Check if a capability type is a graph connection type.
  */
-const isConnectionType = (value: string): value is ConnectionType =>
-    CONNECTION_TYPES.includes(value as ConnectionType);
+const isConnectionType = (value: string): value is ConnectionType => CONNECTION_TYPES.includes(value as ConnectionType);
 
 /**
  * Parse URL query parameters into a list of connection types.
@@ -164,7 +163,7 @@ const parseConnectionTypes = (value: string | null): ConnectionType[] => {
     const selected = value
         .split(',')
         .map((item) => item.trim())
-        .filter((item) => isConnectionType(item));
+        .filter((item) => isConnectionType(item)) as ConnectionType[];
 
     return selected.length > 0 ? selected : DEFAULT_CONNECTION_TYPES;
 };
@@ -203,11 +202,7 @@ const getAgentImageUrl = (agent: AgentWithVisibility, publicUrl: string): string
 /**
  * Normalize a target agent URL from a capability link.
  */
-const normalizeTargetAgentUrl = (
-    agent: AgentWithVisibility,
-    targetUrl: string,
-    fallbackServerUrl: string,
-): string => {
+const normalizeTargetAgentUrl = (agent: AgentWithVisibility, targetUrl: string, fallbackServerUrl: string): string => {
     if (targetUrl.includes('://')) {
         return targetUrl;
     }
@@ -312,8 +307,8 @@ const buildGraphData = (input: GraphDataInput): GraphData => {
             relatedNodeIds.add(focusedNodeId);
 
             links.forEach((link) => {
-                const sourceId = typeof link.source === 'string' ? link.source : link.source.id;
-                const targetId = typeof link.target === 'string' ? link.target : link.target.id;
+                const sourceId = getLinkEndpointId(link.source);
+                const targetId = getLinkEndpointId(link.target);
 
                 if (sourceId === focusedNodeId) {
                     relatedNodeIds.add(targetId);
@@ -325,15 +320,15 @@ const buildGraphData = (input: GraphDataInput): GraphData => {
 
             filteredNodes = nodes.filter((node) => relatedNodeIds.has(node.id));
             filteredLinks = links.filter((link) => {
-                const sourceId = typeof link.source === 'string' ? link.source : link.source.id;
-                const targetId = typeof link.target === 'string' ? link.target : link.target.id;
+                const sourceId = getLinkEndpointId(link.source);
+                const targetId = getLinkEndpointId(link.target);
                 return relatedNodeIds.has(sourceId) && relatedNodeIds.has(targetId);
             });
         } else {
             filteredNodes = serverNodes;
             filteredLinks = links.filter((link) => {
-                const sourceId = typeof link.source === 'string' ? link.source : link.source.id;
-                const targetId = typeof link.target === 'string' ? link.target : link.target.id;
+                const sourceId = getLinkEndpointId(link.source);
+                const targetId = getLinkEndpointId(link.target);
                 return serverNodeIds.has(sourceId) && serverNodeIds.has(targetId);
             });
         }
@@ -344,8 +339,8 @@ const buildGraphData = (input: GraphDataInput): GraphData => {
         focusedNodes.forEach((node) => relatedNodeIds.add(node.id));
 
         links.forEach((link) => {
-            const sourceId = typeof link.source === 'string' ? link.source : link.source.id;
-            const targetId = typeof link.target === 'string' ? link.target : link.target.id;
+            const sourceId = getLinkEndpointId(link.source);
+            const targetId = getLinkEndpointId(link.target);
 
             if (focusedNodes.some((node) => node.id === sourceId)) {
                 relatedNodeIds.add(targetId);
@@ -357,8 +352,8 @@ const buildGraphData = (input: GraphDataInput): GraphData => {
 
         filteredNodes = nodes.filter((node) => relatedNodeIds.has(node.id));
         filteredLinks = links.filter((link) => {
-            const sourceId = typeof link.source === 'string' ? link.source : link.source.id;
-            const targetId = typeof link.target === 'string' ? link.target : link.target.id;
+            const sourceId = getLinkEndpointId(link.source);
+            const targetId = getLinkEndpointId(link.target);
             return relatedNodeIds.has(sourceId) && relatedNodeIds.has(targetId);
         });
     }
@@ -373,8 +368,8 @@ const buildAdjacencyMap = (links: GraphLink[]): Map<string, Set<string>> => {
     const adjacency = new Map<string, Set<string>>();
 
     links.forEach((link) => {
-        const sourceId = typeof link.source === 'string' ? link.source : link.source.id;
-        const targetId = typeof link.target === 'string' ? link.target : link.target.id;
+        const sourceId = getLinkEndpointId(link.source);
+        const targetId = getLinkEndpointId(link.target);
 
         if (!adjacency.has(sourceId)) {
             adjacency.set(sourceId, new Set());
@@ -442,6 +437,9 @@ const computeServerCenters = (
 const getLinkEndpointId = (endpoint: GraphLink['source'] | GraphLink['target']): string => {
     if (typeof endpoint === 'string') {
         return endpoint;
+    }
+    if (typeof endpoint === 'number') {
+        return String(endpoint);
     }
 
     return endpoint.id;
@@ -753,8 +751,7 @@ export function AgentsGraph(props: AgentsGraphProps) {
             .data(graphData.nodes, (node) => (node as GraphNode).clipPathId)
             .join((enter) => {
                 const clip = enter.append('clipPath').attr('id', (node) => (node as GraphNode).clipPathId);
-                clip
-                    .attr('clipPathUnits', 'objectBoundingBox')
+                clip.attr('clipPathUnits', 'objectBoundingBox')
                     .append('circle')
                     .attr('cx', 0.5)
                     .attr('cy', 0.5)
@@ -818,7 +815,10 @@ export function AgentsGraph(props: AgentsGraphProps) {
                 node.append('circle')
                     .attr('class', 'node-ring')
                     .attr('r', NODE_RADIUS)
-                    .attr('fill', (item) => item.agent.meta.color || (item.isLocal ? LOCAL_NODE_COLOR : EXTERNAL_NODE_COLOR))
+                    .attr(
+                        'fill',
+                        (item) => item.agent.meta.color || (item.isLocal ? LOCAL_NODE_COLOR : EXTERNAL_NODE_COLOR),
+                    )
                     .attr('stroke', '#ffffff')
                     .attr('stroke-width', 2)
                     .style('vector-effect', 'non-scaling-stroke');
@@ -901,7 +901,9 @@ export function AgentsGraph(props: AgentsGraphProps) {
 
             nodeSelection
                 .select('text.node-label')
-                .attr('font-size', (node) => (node.id === hoveredId ? NODE_LABEL_FONT_SIZE_HOVER : NODE_LABEL_FONT_SIZE))
+                .attr('font-size', (node) =>
+                    node.id === hoveredId ? NODE_LABEL_FONT_SIZE_HOVER : NODE_LABEL_FONT_SIZE,
+                )
                 .attr('font-weight', (node) => (node.id === hoveredId ? '700' : '500'));
 
             linkSelection
@@ -991,7 +993,10 @@ export function AgentsGraph(props: AgentsGraphProps) {
             .force('center', d3.forceCenter(centerX, centerY))
             .force(
                 'collide',
-                d3.forceCollide<GraphNode>().radius(NODE_RADIUS + COLLISION_PADDING).strength(COLLISION_STRENGTH),
+                d3
+                    .forceCollide<GraphNode>()
+                    .radius(NODE_RADIUS + COLLISION_PADDING)
+                    .strength(COLLISION_STRENGTH),
             )
             .force(
                 'clusterX',
