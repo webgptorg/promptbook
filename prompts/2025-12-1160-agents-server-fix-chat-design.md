@@ -34,42 +34,43 @@
 
 ---
 
-[ ]
+[ ] !!!
 
 [✨💼] Hoist the back button in agent pages
 
--   @@@
+-   Move the back button to the top menu bar, similar to the book page.
+-   Use already existing hoisting mechanism from the book page.
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the `/changelog/_current-preversion.md`
 
 ![alt text](prompts/screenshots/2025-12-1160-agents-server-fix-chat-design-6.png)
 
 ---
 
-[ ]
+[ ] !!!
 
 [✨💼] Fix the messages width
 
--   @@@
+-   Ensure the messages have proper width on both desktop and mobile devices.
 -   This is especially relevant when the message has source chips.
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the `/changelog/_current-preversion.md`
 
 ![alt text](prompts/screenshots/2025-12-1160-agents-server-fix-chat-design-4.png)
 ![alt text](prompts/screenshots/2025-12-1160-agents-server-fix-chat-design-5.png)
 
 ---
 
-[-]
+[ ] !!!
 
-[✨💼] baz
+[✨💼] Fix order of buttons in chat page
 
--   ...
+-   Menu should be above the buttons ("New chat", "Save", etc.)
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the `/changelog/_current-preversion.md`
+
+![alt text](prompts/screenshots/2025-12-1160-agents-server-fix-chat-design-7.png)
+![alt text](prompts/screenshots/2025-12-1160-agents-server-fix-chat-design-8.png)
 
 ---
 

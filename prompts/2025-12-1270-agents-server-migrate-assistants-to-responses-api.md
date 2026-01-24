@@ -1,13 +1,16 @@
-[ ] @@@
+[ ]
 
 [✨🪰] Migrate [Agents](src/llm-providers/agent/Agent.ts) from assistants API to Responses API
 
 -   Migrate `Agent` class and all related classes from using OpenAI Assistants API to OpenAI Responses API, the migration guide is placed below.
--   You are doing refactoring migration. Do not change features; just migrate them:
-    -   @@@
+-   You are doing refactoring migration. Do not change features; just migrate them, keep in mind:
+    -   `KNOWLEDGE` should work as before
+    -   Tool calling should work as before
+    -   Caching of the agents and underlying assistants should work as before
+    -   It should work in the `Agents Server` application `/apps/agents-server`
+    -   All existing features should work as before
 -   Keep `OpenAiAssistantExecutionTools`, just mark it as deprecated and do not use in `Agent`.
--   You are working with the `Agents Server` application `/apps/agents-server`
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Keep in mind the DRY _(don't repeat yourself)_ principle, just dont intermingle the code of the new and deprecated stuff.
 -   Add the changes into the `/changelog/_current-preversion.md`
 
 **The Migration Guide to the Responses API:**

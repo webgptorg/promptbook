@@ -141,17 +141,22 @@ TEAM You can talk with http://localhost:4440/agents/GMw67JN8TXxN7y to discuss th
 
 ---
 
-[ ]
+[ ] !!
 
 [✨👺] Enhance the UI of the chips of `TEAM` commitment
 
--   @@@
+-   Chip representing the `TEAM` commitment should show the agent profile picture and name of the agent instead of its ID.
+-   This is relevant in 3 places:
+    -   In the list of the agents -> **enhance it**
+    -   In the agent profile page -> **enhance it**
+    -   In the chat -> **Already done, look at screenshot**
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
 
 ![alt text](prompts/screenshots/2026-01-0130-team-commitment-11.png)
 ![alt text](prompts/screenshots/2026-01-0130-team-commitment-12.png)
+![alt text](prompts/screenshots/2026-01-0130-team-commitment-13.png)
 
 ---
 

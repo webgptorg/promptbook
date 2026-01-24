@@ -1,11 +1,10 @@
-[ ]
+[ ] !!!
 
-[✨🆎] qux @@@
+[✨🆎] Fix generating images with google
 
--   ...
--   You are working with the `Agents Server` application `/apps/agents-server`
+-   OpenAI images are already working, but Google images generation is failing with the error below.
+-   It should work in the `Agents Server` application `/apps/agents-server` in http://localhost:4440/admin/image-generator-test
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the `/changelog/_current-preversion.md`
 
 ```json
 {
