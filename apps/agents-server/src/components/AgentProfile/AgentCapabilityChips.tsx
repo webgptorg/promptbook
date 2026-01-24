@@ -25,9 +25,38 @@ export function AgentCapabilityChips({ agent, className }: AgentCapabilityChipsP
         return null;
     }
 
+    // Filter out VOID inheritance and group identical capabilities
+    const uniqueCapabilitiesMap = new Map<string, { capability: (typeof agent.capabilities)[0]; count: number }>();
+
+    for (const capability of agent.capabilities) {
+        if (capability.agentUrl === 'VOID') {
+            continue;
+        }
+
+        const key = JSON.stringify({
+            type: capability.type,
+            label: capability.label,
+            iconName: capability.iconName,
+            agentUrl: capability.agentUrl,
+        });
+
+        const existing = uniqueCapabilitiesMap.get(key);
+        if (existing) {
+            existing.count++;
+        } else {
+            uniqueCapabilitiesMap.set(key, { capability, count: 1 });
+        }
+    }
+
+    const uniqueCapabilities = Array.from(uniqueCapabilitiesMap.values());
+
+    if (uniqueCapabilities.length === 0) {
+        return null;
+    }
+
     return (
         <div className={`flex flex-wrap gap-2 ${className || ''}`}>
-            {agent.capabilities.map((capability, i) => {
+            {uniqueCapabilities.map(({ capability, count }, i) => {
                 const Icon =
                     {
                         Globe,
@@ -44,14 +73,16 @@ export function AgentCapabilityChips({ agent, className }: AgentCapabilityChipsP
                         // <- [🪀] Add icons for new capabilities here
                     }[capability.iconName] || ShieldQuestionMarkIcon;
 
+                const label = count > 1 ? `${capability.label} (${count})` : capability.label;
+
                 const content = (
                     <div
                         key={i}
                         className="flex items-center gap-1.5 bg-white/50 backdrop-blur-sm px-2.5 py-1 rounded-full text-xs font-semibold text-gray-800 border border-white/20 shadow-sm"
-                        title={capability.label}
+                        title={label}
                     >
                         <Icon className="w-3.5 h-3.5 opacity-70" />
-                        <span className="truncate max-w-[150px]">{capability.label}</span>
+                        <span className="truncate max-w-[150px]">{label}</span>
                     </div>
                 );
 
@@ -66,9 +97,7 @@ export function AgentCapabilityChips({ agent, className }: AgentCapabilityChipsP
                         href = `/agents${href}`;
                     }
 
-                    if (href === 'VOID') {
-                        return content;
-                    }
+                    // Note: VOID check is already done above
 
                     return (
                         <NextLink
