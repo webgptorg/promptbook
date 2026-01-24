@@ -270,3 +270,4 @@
     -   Citation references in text are now rendered as numbered superscripts `[5:13]` instead of full annotations
     -   Follows DRY principle by reusing existing modal styles and chip patterns
     -   Integrated seamlessly with existing chat UI and tool call chip system
+-   Added `nonce-foo-4.txt` and `nonce-bar-4.txt` for coding agent verification.
