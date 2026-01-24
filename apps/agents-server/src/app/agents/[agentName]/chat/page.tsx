@@ -3,7 +3,7 @@
 import { headers } from 'next/headers';
 import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
 import { isAgentDeleted } from '../_utils';
-import { BackToAgentButton } from '@/src/components/BackToAgentButton/BackToAgentButton';
+import { BackToAgentMenuHoist } from '@/src/components/BackToAgentButton/BackToAgentMenuHoist';
 import { generateAgentMetadata } from '../generateAgentMetadata';
 import { AgentChatWrapper } from '../AgentChatWrapper';
 import { DeletedAgentBanner } from '../../../../components/DeletedAgentBanner';
@@ -38,9 +38,7 @@ export default async function AgentChatPage({
 
     return (
         <main className={`w-full h-full overflow-hidden relative`}>
-            <div className="absolute top-5 right-10 z-50">
-                <BackToAgentButton agentName={agentName} />
-            </div>
+            <BackToAgentMenuHoist agentName={agentName} />
             <AgentChatWrapper
                 agentUrl={agentUrl}
                 autoExecuteMessage={message}
