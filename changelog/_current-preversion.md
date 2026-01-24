@@ -128,6 +128,7 @@
 -   Implemented `ChatPrompt.files` for `OpenAiAssistantExecutionTools`, allowing to attach files to OpenAI Assistants via the message attachments.
 -   Add sample of passing files in OpenAI playground.
 -   Support for generating images in Google LLM execution tools.
+-   Fixed Google image generation in Agents Server to call the Gemini API directly when using Vercel providers.
 -   Implemented tool calling when transpiling book into the code in `OpenAiSdkTranspiler`.
 -   Added ESLint rule `no-magic-numbers` to the entire project (root and `agents-server`), configured to allow common semantically distinct numbers like -1, 0, 1, 2, 10, 60, 100, 1000.
 -   Added prompt prioritization to the Codex prompt runner, honoring `[ ] !`, `[ ] !!`, `[ ] !!!` and grouping upcoming tasks by priority.
