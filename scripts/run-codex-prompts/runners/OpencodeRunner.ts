@@ -49,6 +49,9 @@ function buildOpencodeScript(options: OpencodeScriptOptions): string {
 
     return spaceTrim(
         (block) => `
+            # Note: We unset GITHUB_TOKEN to avoid PAT errors when using Copilot model
+            export GITHUB_TOKEN=""
+
             opencode run${options.model ? ` --model ${options.model}` : ''} --format json <<'${delimiter}'
 
             ${block(options.prompt)}
