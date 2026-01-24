@@ -4,6 +4,7 @@
 -   Added API key field to the OpenRouter integration section in Agents Server to match OpenAI compatible setup.
 -   Added a Create API Key action on the agent integration page so admins can generate tokens without leaving the integrations screen.
 -   Fixed Rollup publishing config to inline dynamic imports so package builds no longer fail on multi-chunk outputs in CI.
+-   Redesigned the Agents Server home graph with D3.js for responsive zooming, panning, and hover highlighting while keeping server clustering, filtering, and federated links.
 
 -   Enhanced prompt template literal handling to return `PromptString`, inline safe parameters, and append structured parameter/context blocks for unsafe or multiline data with escaping.
 -   Added prompt notation documentation, examples, and a live evaluator to the Utils app.
