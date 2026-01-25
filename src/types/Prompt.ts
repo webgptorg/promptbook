@@ -80,6 +80,15 @@ export type ImagePrompt = CommonPrompt & {
      * Requirements for image generation model
      */
     modelRequirements: ImageGenerationModelRequirements;
+
+    /**
+     * Optional file attachments
+     */
+    attachments?: Array<{
+        name: string;
+        type: string;
+        url: string;
+    }>;
 };
 
 /**

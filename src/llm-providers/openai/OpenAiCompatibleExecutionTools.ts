@@ -948,9 +948,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
     /**
      * Calls OpenAI compatible API to use a image generation model
      */
-    public async callImageGenerationModel(
-        prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements'>,
-    ): Promise<ImagePromptResult> {
+    public async callImageGenerationModel(prompt: Prompt): Promise<ImagePromptResult> {
         // Deep clone prompt and modelRequirements to avoid mutation across calls
         const clonedPrompt = JSON.parse(JSON.stringify(prompt));
         const retriedUnsupportedParameters = new Set<string>();
@@ -966,7 +964,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
      * Internal method that handles parameter retry for image generation model calls
      */
     private async callImageGenerationModelWithRetry(
-        prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements'>,
+        prompt: Prompt,
         currentModelRequirements: typeof prompt.modelRequirements,
         attemptStack: Array<{
             modelName: string;
@@ -997,7 +995,13 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
             style: currentModelRequirements.style as OpenAI.Images.ImageGenerateParams['style'],
         };
 
-        const rawPromptContent = templateParameters(content, { ...parameters, modelName });
+        let rawPromptContent = templateParameters(content, { ...parameters, modelName });
+
+        if ('attachments' in prompt && Array.isArray(prompt.attachments) && prompt.attachments.length > 0) {
+            rawPromptContent +=
+                '\n\n' + prompt.attachments.map((attachment: TODO_any) => `Image attachment: ${attachment.url}`).join('\n');
+        }
+
         const rawRequest: OpenAI.Images.ImageGenerateParams = {
             ...modelSettings,
             prompt: rawPromptContent,

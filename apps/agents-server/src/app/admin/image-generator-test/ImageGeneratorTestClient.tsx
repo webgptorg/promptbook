@@ -1,8 +1,45 @@
 'use client';
 
-import { useState } from 'react';
+import { upload } from '@vercel/blob/client';
+import { useRef, useState, useCallback } from 'react';
 import spaceTrim from 'spacetrim';
 import { Card } from '../../../components/Homepage/Card';
+
+// Using local SVG components because they might not be exported from @promptbook-local/components
+function CameraIcon({ size = 24, color = 'currentColor' }: { size?: number; color?: string }) {
+    return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+                d="M23 19C23 19.5304 22.7893 20.0391 22.4142 20.4142C22.0391 20.7893 21.5304 21 21 21H3C2.46957 21 1.96086 20.7893 1.58579 20.4142C1.21071 20.0391 1 19.5304 1 19V8C1 7.46957 1.21071 6.96086 1.58579 6.58579C1.96086 6.21071 2.46957 6 3 6H7L9 3H15L17 6H21C21.5304 6 22.0391 6.21071 22.4142 6.58579C22.7893 6.96086 23 7.46957 23 8V19Z"
+                stroke={color}
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+            />
+            <path
+                d="M12 17C14.2091 17 16 15.2091 16 13C16 10.7909 14.2091 9 12 9C9.79086 9 8 10.7909 8 13C8 15.2091 9.79086 17 12 17Z"
+                stroke={color}
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+            />
+        </svg>
+    );
+}
+
+function CloseIcon({ size = 24, color = 'currentColor' }: { size?: number; color?: string }) {
+    return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+                d="M18 6L6 18M6 6L18 18"
+                stroke={color}
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+            />
+        </svg>
+    );
+}
 
 type GenerationStatus = 'pending' | 'loading' | 'success' | 'error';
 
@@ -19,6 +56,12 @@ type GeneratedImage = {
 type PromptInput = {
     id: string;
     value: string;
+    attachments: Array<{
+        id: string;
+        name: string;
+        type: string;
+        url: string;
+    }>;
 };
 
 export function ImageGeneratorTestClient() {
@@ -35,6 +78,7 @@ export function ImageGeneratorTestClient() {
                 - In Vincent van Gogh style
                 - High resolution
             `),
+            attachments: [],
         },
     ]);
     const [modelName, setModelName] = useState<string>('dall-e-3');
@@ -46,7 +90,7 @@ export function ImageGeneratorTestClient() {
     const [progress, setProgress] = useState({ current: 0, total: 0 });
 
     const handleAddPrompt = () => {
-        setPrompts([...prompts, { id: Math.random().toString(36).substring(7), value: '' }]);
+        setPrompts([...prompts, { id: Math.random().toString(36).substring(7), value: '', attachments: [] }]);
     };
 
     const handleRemovePrompt = (id: string) => {
@@ -64,6 +108,7 @@ export function ImageGeneratorTestClient() {
         size: string,
         quality: string,
         style: string,
+        attachments: PromptInput['attachments'] = [],
     ): Promise<GeneratedImage> => {
         const id = Math.random().toString(36).substring(7);
         const promptTrimmed = prompt.trim();
@@ -94,6 +139,9 @@ export function ImageGeneratorTestClient() {
         if (size) queryParams.set('size', size);
         if (quality) queryParams.set('quality', quality);
         if (style) queryParams.set('style', style);
+        if (attachments.length > 0) {
+            queryParams.set('attachments', JSON.stringify(attachments));
+        }
         queryParams.set('raw', 'true');
 
         try {
@@ -163,7 +211,7 @@ export function ImageGeneratorTestClient() {
             // Update status to loading for this item
             setResults((prev) => prev.map((item, idx) => (idx === i ? { ...item, status: 'loading' } : item)));
 
-            const result = await generateSingleImage(p.value, modelName, modelSize, modelQuality, modelStyle);
+            const result = await generateSingleImage(p.value, modelName, modelSize, modelQuality, modelStyle, p.attachments);
 
             // Update result for this item
             setResults((prev) => prev.map((item, idx) => (idx === i ? { ...result, id: item.id } : item)));
@@ -280,23 +328,41 @@ export function ImageGeneratorTestClient() {
                         </label>
 
                         {mode === 'single' ? (
-                            <textarea
-                                value={prompts[0].value}
-                                onChange={(e) => handlePromptChange(prompts[0].id, e.target.value)}
-                                placeholder="e.g., A futuristic city with flying cars"
-                                className="w-full h-48 p-2 border border-gray-300 rounded"
-                                disabled={isGenerating}
-                            />
+                            <div className="space-y-2">
+                                <textarea
+                                    value={prompts[0].value}
+                                    onChange={(e) => handlePromptChange(prompts[0].id, e.target.value)}
+                                    placeholder="e.g., A futuristic city with flying cars"
+                                    className="w-full h-48 p-2 border border-gray-300 rounded"
+                                    disabled={isGenerating}
+                                />
+                                <ImageAttachmentsEditor
+                                    attachments={prompts[0].attachments}
+                                    onChange={(attachments) =>
+                                        setPrompts((prev) => prev.map((p, i) => (i === 0 ? { ...p, attachments } : p)))
+                                    }
+                                    disabled={isGenerating}
+                                />
+                            </div>
                         ) : (
                             <div className="space-y-3">
                                 {prompts.map((prompt, index) => (
-                                    <div key={prompt.id} className="flex gap-2 items-start">
-                                        <div className="flex-grow">
+                                    <div key={prompt.id} className="flex gap-2 items-start border-b pb-4 last:border-0">
+                                        <div className="flex-grow space-y-2">
                                             <textarea
                                                 value={prompt.value}
                                                 onChange={(e) => handlePromptChange(prompt.id, e.target.value)}
                                                 placeholder={`Prompt ${index + 1}`}
                                                 className="w-full h-24 p-2 border border-gray-300 rounded text-sm"
+                                                disabled={isGenerating}
+                                            />
+                                            <ImageAttachmentsEditor
+                                                attachments={prompt.attachments}
+                                                onChange={(attachments) =>
+                                                    setPrompts((prev) =>
+                                                        prev.map((p) => (p.id === prompt.id ? { ...p, attachments } : p)),
+                                                    )
+                                                }
                                                 disabled={isGenerating}
                                             />
                                         </div>
@@ -419,6 +485,102 @@ export function ImageGeneratorTestClient() {
                     </div>
                 )}
             </Card>
+        </div>
+    );
+}
+
+type ImageAttachmentsEditorProps = {
+    attachments: PromptInput['attachments'];
+    onChange: (attachments: PromptInput['attachments']) => void;
+    disabled?: boolean;
+};
+
+function ImageAttachmentsEditor({ attachments, onChange, disabled }: ImageAttachmentsEditorProps) {
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [isUploading, setIsUploading] = useState(false);
+
+    const handleFileUpload = useCallback(
+        async (event: React.ChangeEvent<HTMLInputElement>) => {
+            const files = event.target.files;
+            if (!files || files.length === 0) return;
+
+            setIsUploading(true);
+            try {
+                const newAttachments = [...attachments];
+                for (const file of Array.from(files)) {
+                    const blob = await upload(file.name, file, {
+                        access: 'public',
+                        handleUploadUrl: '/api/upload',
+                    });
+                    newAttachments.push({
+                        id: Math.random().toString(36).substring(7),
+                        name: file.name,
+                        type: file.type,
+                        url: blob.url,
+                    });
+                }
+                onChange(newAttachments);
+            } catch (error) {
+                console.error('Upload failed:', error);
+                alert('Failed to upload image');
+            } finally {
+                setIsUploading(false);
+                if (fileInputRef.current) fileInputRef.current.value = '';
+            }
+        },
+        [attachments, onChange],
+    );
+
+    const removeAttachment = (id: string) => {
+        onChange(attachments.filter((a) => a.id !== id));
+    };
+
+    return (
+        <div className="space-y-2">
+            {attachments.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                    {attachments.map((attachment) => (
+                        <div key={attachment.id} className="relative group">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                                src={attachment.url}
+                                alt={attachment.name}
+                                className="h-16 w-16 object-cover rounded border border-gray-200"
+                            />
+                            {!disabled && (
+                                <button
+                                    onClick={() => removeAttachment(attachment.id)}
+                                    className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                                    title="Remove image"
+                                    type="button"
+                                >
+                                    <CloseIcon size={12} color="white" />
+                                </button>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            )}
+            <div className="flex items-center gap-2">
+                <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileUpload}
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    disabled={disabled || isUploading}
+                />
+                <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={disabled || isUploading}
+                    className="text-xs flex items-center gap-1 px-2 py-1 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50"
+                    type="button"
+                >
+                    <CameraIcon size={14} />
+                    {isUploading ? 'Uploading...' : 'Add Image'}
+                </button>
+            </div>
         </div>
     );
 }

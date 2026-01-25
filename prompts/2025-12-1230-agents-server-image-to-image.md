@@ -1,4 +1,4 @@
-[ ] !!!
+[x] !!!
 
 [✨⏸] Allow to add image in the image prompt.
 

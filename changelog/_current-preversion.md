@@ -1,5 +1,6 @@
 ### 📚 Book
 
+-   Allow to add image in the image prompt in `ImageGeneratorTestClient`
 -   Ensured the Agents Server chat menu stays above chat action buttons (New chat, Save, etc.).
 -   Added Promptbook SDK integration snippets in Agents Server, including RemoteAgent Node.js and React examples on the integration page.
 -   Added API key field to the OpenRouter integration section in Agents Server to match OpenAI compatible setup.
@@ -101,7 +102,7 @@
 -   Increased saturation of agent messages for better visibility
 -   Fixed chat page height to exactly 100vh to prevent unnecessary scrolling
 -   Recursive inheritance for meta properties (e.g. `META COLOR`) in `Agents Server`
--   Enhanced the visual design of the chat input area with a more modern capsule-like design, better padding, refined button styling, and brand-color focus highlights.
+-   Enhanced the visual design of the chat input area with a modern capsule-like design, better padding, refined button styling, and brand-color focus highlights.
 -   Human-readable titles for showing tool calls in chiplets with better labels and emojis (e.g. `[🔎 Venezuela]`).
 -   Clicking on a tool call chiplet opens a modal with tool call details (arguments and results).
 -   Improved tool call details modal with better formatting for arguments and results (especially for search results).
@@ -267,8 +268,6 @@
     -   Hid the `VOID` inheritance chip, showing only inheritance from other agents.
 -   Enhanced RAG source citation display in Agents Server chat:
     -   Replaced ugly OpenAI annotation format `【5:13†document.pdf】` with native Promptbook chips
->>>>+++ REPLACE
-
     -   Created `<SourceChip/>` component displaying source document with file icon and citation ID
     -   Citations now appear as clickable chips below messages (similar to `USE SEARCH ENGINE` commitment)
     -   Implemented citation preview modal with:

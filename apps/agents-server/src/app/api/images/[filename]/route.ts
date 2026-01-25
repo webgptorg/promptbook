@@ -19,6 +19,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         const size = searchParams.get('size');
         const quality = searchParams.get('quality');
         const style = searchParams.get('style');
+        const attachmentsRaw = searchParams.get('attachments');
         const isRaw = searchParams.get('raw') === 'true';
 
         if (!filename) {
@@ -65,6 +66,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             title: `Generate image for ${filename}`,
             content: prompt,
             parameters: {},
+            attachments: attachmentsRaw ? JSON.parse(attachmentsRaw) : undefined,
             modelRequirements: {
                 modelVariant: 'IMAGE_GENERATION',
                 modelName:
