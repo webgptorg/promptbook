@@ -1555,21 +1555,62 @@ export function Chat(props: ChatProps) {
                                     )}
                                 </div>
 
-                                {selectedCitation.excerpt && (
-                                    <div className={styles.citationExcerpt}>
-                                        <h4>Excerpt:</h4>
-                                        <MarkdownContent content={selectedCitation.excerpt} />
-                                    </div>
-                                )}
+                                {(() => {
+                                    const citationUrl =
+                                        selectedCitation.url ||
+                                        (selectedCitation.source.match(/^https?:\/\//)
+                                            ? selectedCitation.source
+                                            : null);
 
-                                {!selectedCitation.excerpt && (
-                                    <div className={styles.noResults}>
-                                        <p>No preview available for this source.</p>
-                                        <p className={styles.citationHint}>
-                                            This citation references content from the source document.
-                                        </p>
-                                    </div>
-                                )}
+                                    if (citationUrl) {
+                                        return (
+                                            <div className={styles.citationPreview}>
+                                                <div className={styles.citationPreviewHeader}>
+                                                    <h4>Document Preview</h4>
+                                                    <a
+                                                        href={citationUrl}
+                                                        download
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className={styles.downloadButton}
+                                                    >
+                                                        <span style={{ marginRight: '5px' }}>⬇️</span> Download
+                                                    </a>
+                                                </div>
+                                                <iframe
+                                                    src={citationUrl}
+                                                    className={styles.citationIframe}
+                                                    title="Document Preview"
+                                                    style={{
+                                                        width: '100%',
+                                                        height: '600px',
+                                                        border: '1px solid #ddd',
+                                                        borderRadius: '8px',
+                                                        marginTop: '10px',
+                                                    }}
+                                                />
+                                            </div>
+                                        );
+                                    }
+
+                                    if (selectedCitation.excerpt) {
+                                        return (
+                                            <div className={styles.citationExcerpt}>
+                                                <h4>Excerpt:</h4>
+                                                <MarkdownContent content={selectedCitation.excerpt} />
+                                            </div>
+                                        );
+                                    }
+
+                                    return (
+                                        <div className={styles.noResults}>
+                                            <p>No preview available for this source.</p>
+                                            <p className={styles.citationHint}>
+                                                This citation references content from the source document.
+                                            </p>
+                                        </div>
+                                    );
+                                })()}
                             </div>
                         </div>
 

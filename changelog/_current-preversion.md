@@ -270,5 +270,9 @@
     -   Citation references in text are now rendered as numbered superscripts `[5:13]` instead of full annotations
     -   Follows DRY principle by reusing existing modal styles and chip patterns
     -   Integrated seamlessly with existing chat UI and tool call chip system
+    -   Enhanced document preview for KNOWLEDGE source chips in chat:
+        -   Implemented iframe-based document preview in the source citation modal.
+        -   Added download button for source documents.
+        -   Improved modal UI to handle both URL-based sources and text excerpts.
 -   Added `nonce-foo-4.txt` and `nonce-bar-4.txt` for coding agent verification.
 -   Allow to add image in the image prompt in Agents Server [Image Generator Test](http://localhost:4440/admin/image-generator-test)
