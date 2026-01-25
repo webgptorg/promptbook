@@ -1,4 +1,4 @@
-[ ] !!!
+[x] !!!
 
 [✨🐍] Reduce number of capability chips
 

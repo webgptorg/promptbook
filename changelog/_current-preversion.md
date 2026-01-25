@@ -262,8 +262,13 @@
         -   Consistent error handling across all chat interfaces
         -   Better debugging with raw errors logged to console
 -   Moved the back button to the top menu bar in agent-specific pages (chat, book, etc.) using the existing hoisting mechanism for a cleaner and more consistent UI.
+-   Reduced number of capability chips in Agents Server:
+    -   Grouped identical Knowledgebase chips together.
+    -   Hid the `VOID` inheritance chip, showing only inheritance from other agents.
 -   Enhanced RAG source citation display in Agents Server chat:
     -   Replaced ugly OpenAI annotation format `【5:13†document.pdf】` with native Promptbook chips
+>>>>+++ REPLACE
+
     -   Created `<SourceChip/>` component displaying source document with file icon and citation ID
     -   Citations now appear as clickable chips below messages (similar to `USE SEARCH ENGINE` commitment)
     -   Implemented citation preview modal with:

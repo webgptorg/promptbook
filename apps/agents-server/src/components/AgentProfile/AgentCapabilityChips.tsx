@@ -25,9 +25,25 @@ export function AgentCapabilityChips({ agent, className }: AgentCapabilityChipsP
         return null;
     }
 
+    const displayedCapabilities = agent.capabilities
+        .filter((capability) => {
+            if (capability.type === 'inheritance' && capability.agentUrl === 'VOID') {
+                return false;
+            }
+
+            return true;
+        })
+        .filter((capability, index, self) => {
+            if (capability.type !== 'knowledge') {
+                return true;
+            }
+
+            return index === self.findIndex((c) => c.type === 'knowledge' && c.label === capability.label);
+        });
+
     return (
         <div className={`flex flex-wrap gap-2 ${className || ''}`}>
-            {agent.capabilities.map((capability, i) => {
+            {displayedCapabilities.map((capability, i) => {
                 const Icon =
                     {
                         Globe,
@@ -64,10 +80,6 @@ export function AgentCapabilityChips({ agent, className }: AgentCapabilityChipsP
                         href = `/agents/${href.split('/').pop()}`;
                     } else if (href.startsWith('/')) {
                         href = `/agents${href}`;
-                    }
-
-                    if (href === 'VOID') {
-                        return content;
                     }
 
                     return (
