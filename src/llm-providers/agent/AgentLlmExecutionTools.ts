@@ -14,7 +14,6 @@ import type { string_markdown, string_markdown_text, string_model_name, string_t
 import { humanizeAiText } from '../../utils/markdown/humanizeAiText';
 import { promptbookifyAiText } from '../../utils/markdown/promptbookifyAiText';
 import { normalizeToKebabCase } from '../../utils/normalization/normalize-to-kebab-case';
-import { OpenAiAssistantExecutionTools } from '../openai/OpenAiAssistantExecutionTools';
 import type { CreateAgentLlmExecutionToolsOptions } from './CreateAgentLlmExecutionToolsOptions';
 
 /**
@@ -31,17 +30,6 @@ import type { CreateAgentLlmExecutionToolsOptions } from './CreateAgentLlmExecut
  * @public exported from `@promptbook/core`
  */
 export class AgentLlmExecutionTools implements LlmExecutionTools {
-    /**
-     * Cache of OpenAI assistants to avoid creating duplicates
-     */
-    private static assistantCache = new Map<
-        string_title,
-        {
-            assistantId: string;
-            requirementsHash: string;
-        }
-    >();
-
     /**
      * Cached model requirements to avoid re-parsing the agent source
      */
@@ -197,95 +185,21 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
             },
         };
 
-        console.log('!!!! promptWithAgentModelRequirements:', promptWithAgentModelRequirements);
+        if (this.options.isVerbose) {
+            console.log('!!!! promptWithAgentModelRequirements:', promptWithAgentModelRequirements);
+            console.log(`🤖 Using generic LLM execution tools for agent ${this.title}...`);
+        }
 
-        if (OpenAiAssistantExecutionTools.isOpenAiAssistantExecutionTools(this.options.llmTools)) {
-            const requirementsHash = sha256(JSON.stringify(modelRequirements)).toString();
-            const cached = AgentLlmExecutionTools.assistantCache.get(this.title);
-            let assistant: OpenAiAssistantExecutionTools;
-
-            if (cached) {
-                if (cached.requirementsHash === requirementsHash) {
-                    if (this.options.isVerbose) {
-                        console.log(`1️⃣ Using cached OpenAI Assistant for agent ${this.title}...`);
-                    }
-                    assistant = this.options.llmTools.getAssistant(cached.assistantId);
-                } else {
-                    if (this.options.isVerbose) {
-                        console.log(`1️⃣ Updating OpenAI Assistant for agent ${this.title}...`);
-                    }
-                    assistant = await this.options.llmTools.updateAssistant({
-                        assistantId: cached.assistantId,
-                        name: this.title,
-                        instructions: modelRequirements.systemMessage,
-                        knowledgeSources: modelRequirements.knowledgeSources,
-                        tools: modelRequirements.tools ? [...modelRequirements.tools] : undefined,
-                    });
-                    AgentLlmExecutionTools.assistantCache.set(this.title, {
-                        assistantId: assistant.assistantId,
-                        requirementsHash,
-                    });
-                }
-            } else {
-                if (this.options.isVerbose) {
-                    console.log(`1️⃣ Creating new OpenAI Assistant for agent ${this.title}...`);
-                }
-                // <- TODO: [🐱‍🚀] Check also `isCreatingNewAssistantsAllowed` and warn about it
-                assistant = await this.options.llmTools.createNewAssistant({
-                    name: this.title,
-                    instructions: modelRequirements.systemMessage,
-                    knowledgeSources: modelRequirements.knowledgeSources,
-                    tools: modelRequirements.tools ? [...modelRequirements.tools] : undefined,
-                    /*
-                    !!!
-                    metadata: {
-                        agentModelName: this.modelName,
-                    }
-                    */
-                });
-
-                AgentLlmExecutionTools.assistantCache.set(this.title, {
-                    assistantId: assistant.assistantId,
-                    requirementsHash,
-                });
-            }
-
-            // Create modified chat prompt with agent system message specific to OpenAI Assistant
-            const promptWithAgentModelRequirementsForOpenAiAssistantExecutionTools: ChatPrompt = {
-                ...promptWithAgentModelRequirements,
-                modelRequirements: {
-                    ...promptWithAgentModelRequirements.modelRequirements,
-                    modelName: undefined, // <- Note: Clear model name as it's defined by the Assistant
-                    systemMessage: undefined, // <- Note: Clear system message as it's already in the Assistant
-                    temperature: undefined, // <- Note: Let the Assistant use its default temperature
-                },
-            };
-
-            console.log(
-                '!!!! promptWithAgentModelRequirementsForOpenAiAssistantExecutionTools:',
-                promptWithAgentModelRequirementsForOpenAiAssistantExecutionTools,
-            );
-
-            underlyingLlmResult = await assistant.callChatModelStream(
-                promptWithAgentModelRequirementsForOpenAiAssistantExecutionTools,
+        if (this.options.llmTools.callChatModelStream) {
+            underlyingLlmResult = await this.options.llmTools.callChatModelStream(
+                promptWithAgentModelRequirements,
                 onProgress,
             );
+        } else if (this.options.llmTools.callChatModel) {
+            underlyingLlmResult = await this.options.llmTools.callChatModel(promptWithAgentModelRequirements);
+            onProgress(underlyingLlmResult as ChatPromptResult);
         } else {
-            if (this.options.isVerbose) {
-                console.log(`2️⃣ Creating Assistant ${this.title} on generic LLM execution tools...`);
-            }
-
-            if (this.options.llmTools.callChatModelStream) {
-                underlyingLlmResult = await this.options.llmTools.callChatModelStream(
-                    promptWithAgentModelRequirements,
-                    onProgress,
-                );
-            } else if (this.options.llmTools.callChatModel) {
-                underlyingLlmResult = await this.options.llmTools.callChatModel(promptWithAgentModelRequirements);
-                onProgress(underlyingLlmResult as ChatPromptResult);
-            } else {
-                throw new Error('Underlying LLM execution tools do not support chat model calls');
-            }
+            throw new Error('Underlying LLM execution tools do not support chat model calls');
         }
 
         let content = underlyingLlmResult.content as string_markdown;

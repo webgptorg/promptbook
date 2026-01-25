@@ -277,3 +277,6 @@
 -   Added `nonce-foo-4.txt` and `nonce-bar-4.txt` for coding agent verification.
 -   Allow to add image in the image prompt in Agents Server [Image Generator Test](http://localhost:4440/admin/image-generator-test)
 -   Enhanced the UI of the chips of `TEAM` commitment in the list of agents and agent profile page to show the agent profile picture and name of the agent instead of its ID.
+-   Migrated `Agent` class and related classes from using OpenAI Assistants API to OpenAI Responses API.
+-   Deprecated `OpenAiAssistantExecutionTools` class.
+-   Updated `OpenAiExecutionTools` to support OpenAI Responses API (`/v1/responses`) including statefulness (`store: true`) and knowledge sources (vector stores).

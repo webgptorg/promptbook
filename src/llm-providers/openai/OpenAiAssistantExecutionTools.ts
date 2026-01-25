@@ -31,6 +31,8 @@ import { uploadFilesToOpenAi } from './utils/uploadFilesToOpenAi';
 /**
  * Execution Tools for calling OpenAI API Assistants
  *
+ * @deprecated Use `OpenAiExecutionTools` with Responses API instead. This class is kept for backward compatibility but will be removed in future versions.
+ *
  * This is useful for calling OpenAI API with a single assistant, for more wide usage use `OpenAiExecutionTools`.
  *
  * Note: [🦖] There are several different things in Promptbook:
