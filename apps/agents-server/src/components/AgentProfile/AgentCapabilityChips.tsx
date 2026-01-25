@@ -14,6 +14,7 @@ import {
     Users,
 } from 'lucide-react';
 import NextLink from 'next/link';
+import { TeamCommitmentChip } from './TeamCommitmentChip';
 
 type AgentCapabilityChipsProps = {
     readonly agent: AgentBasicInformation;
@@ -57,6 +58,10 @@ export function AgentCapabilityChips({ agent, className }: AgentCapabilityChipsP
     return (
         <div className={`flex flex-wrap gap-2 ${className || ''}`}>
             {uniqueCapabilities.map(({ capability, count }, i) => {
+                if (capability.type === 'team') {
+                    return <TeamCommitmentChip key={i} capability={capability} />;
+                }
+
                 const Icon =
                     {
                         Globe,
