@@ -287,7 +287,7 @@ tokens used
 
 ---
 
-[ ]
+[.] _<- TODO: Is this even possible, from where Opencode takes the access to the AI models https://chatgpt.com/c/69761d1f-dd94-832a-abd5-892097e62404 _
 
 [✨🏔] Allow Opencode in [coding agent script](scripts/run-codex-prompts/run-codex-prompts.ts) to use OpenAI and Google models
 
