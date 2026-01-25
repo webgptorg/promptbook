@@ -23,6 +23,11 @@
 -   [✨⛪️] Allow to close dialogs by clicking outside of the dialog.
 -   Created a series of comprehensive comparison documents between Promptbook and other projects (ChatGPT, Claude, ChatGPT-Assistance, LangChain, N8N, NotebookLM, Wordware, Agno, Letta, Eliza, and Digital Twin platforms like Personal.ai/Delphi) in `/documents/comparison/*.md`. These comparisons highlight Promptbook's unique "Book" language, commitment system (Persona, Knowledge, Rule, Team), and its federated, open-source architecture.
 -   Implemented `IMPORT` commitment that allows to import generic text files (both local and URL) into the agent source with plugin-based architecture.
+-   Created file named `nonce-foo-4.txt` with content `foo`
+-   Created file named `nonce-bar-4.txt` with content `bar`
+-   Created file named `nonce-foo-3.txt` with content of of output of `date +%s`
+-   Created file named `nonce-bar-3.txt` with content of output of `ls -la`
+-   Created nonce test files `nonce-foo-1.txt`, `nonce-bar-1.txt`, `nonce-foo-2.txt`, and `nonce-bar-2.txt` at the root of the project to verify coding agent functionality.
 -   Implemented GitHub import script that fetches issues and discussions from a Promptbook repository and structures them into Markdown files.
 -   Code blocks in the book are assigned to the commitment where they are placed.
 -   Allow to attach files to the chat messages in Agents Server [2025-12-0900-agents-server-chat-attachements.md](https://github.com/webgptorg/promptbook/blob/main/prompts/2025-12-0900-agents-server-chat-attachements.md)
