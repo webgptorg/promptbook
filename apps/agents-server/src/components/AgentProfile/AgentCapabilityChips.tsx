@@ -1,5 +1,4 @@
 import { AgentBasicInformation } from '@promptbook-local/types';
-import { AgentTeamChip } from './AgentTeamChip';
 import {
     Book,
     Clock8Icon,
@@ -60,25 +59,6 @@ export function AgentCapabilityChips({ agent, className }: AgentCapabilityChipsP
                         Users,
                         // <- [🪀] Add icons for new capabilities here
                     }[capability.iconName] || ShieldQuestionMarkIcon;
-
-                if (capability.iconName === 'Users' && capability.agentUrl) {
-                    return (
-                        <NextLink
-                            key={i}
-                            href={
-                                capability.agentUrl.startsWith('/')
-                                    ? `/agents${capability.agentUrl}`
-                                    : `/agents/${capability.agentUrl.split('/').pop()}`
-                            }
-                            className="no-underline"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                            }}
-                        >
-                            <AgentTeamChip agentUrl={capability.agentUrl} label={capability.label} />
-                        </NextLink>
-                    );
-                }
 
                 const content = (
                     <div

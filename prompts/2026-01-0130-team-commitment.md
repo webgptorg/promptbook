@@ -141,7 +141,7 @@ TEAM You can talk with http://localhost:4440/agents/GMw67JN8TXxN7y to discuss th
 
 ---
 
-[x] !!
+[ ] !!
 
 [✨👺] Enhance the UI of the chips of `TEAM` commitment
 
