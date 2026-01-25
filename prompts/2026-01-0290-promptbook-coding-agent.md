@@ -287,9 +287,17 @@ tokens used
 
 ---
 
-[-]
+[ ]
 
-[✨🏔]
+[✨🏔] Allow Opencode in [coding agent script](scripts/run-codex-prompts/run-codex-prompts.ts) to use OpenAI and Google models
+
+-   There is a coding agent script at `scripts/run-codex-prompts/run-codex-prompts.ts` which runs Opencode and other runners with prompts from the `./prompts` folder.
+-   It supports Opencode runner.
+-   Add an additional and optional flags to specify that we dont want to use Opencode default models, but we want to use OpenAI or Google models via Opencode.
+-   The API keys for OpenAI and Google models should be taken from the environment variables in `.env` like `OPENAI_API_KEY` and `GOOGLE_GENERATIVE_AI_API_KEY`.
+-   The Opencode runner should behave the same way, it should process the prompts in the same way, commit the changes to git, etc.
+-   Report the usage statistics of the Opencode runner in a same way as other runners, for example the Claude code runner.
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
 ---
 
