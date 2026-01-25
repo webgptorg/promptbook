@@ -287,7 +287,7 @@ tokens used
 
 ---
 
-[x]
+[ ]
 
 [✨🏔] Allow Opencode in [coding agent script](scripts/run-codex-prompts/run-codex-prompts.ts) to use OpenAI and Google models
 

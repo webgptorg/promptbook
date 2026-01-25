@@ -68,8 +68,6 @@ type RunOptions = {
     waitForUser: boolean;
     agentName: 'openai-codex' | 'cline' | 'claude-code' | 'opencode';
     model?: string;
-    useOpenAi: boolean;
-    useGoogle: boolean;
 };
 
 type UpcomingTask = {
@@ -99,8 +97,6 @@ async function run(): Promise<void> {
     } else if (options.agentName === 'opencode') {
         runner = new OpencodeRunner({
             model: options.model,
-            useOpenAi: options.useOpenAi,
-            useGoogle: options.useGoogle,
         });
     } else {
         throw new Error(`Unknown agent: ${options.agentName}`);
@@ -189,11 +185,7 @@ function parseRunOptions(args: string[]): RunOptions {
 
     if (!agentName) {
         console.error(colors.red('You must choose an agent using --agent <openai-codex|cline|claude-code|opencode>'));
-        console.error(
-            colors.gray(
-                'Usage: run-codex-prompts --agent <agent-name> [--model <model>] [--openai] [--google] [--no-wait]',
-            ),
-        );
+        console.error(colors.gray('Usage: run-codex-prompts --agent <agent-name> [--model <model>] [--no-wait]'));
         process.exit(1);
     }
 
@@ -201,8 +193,6 @@ function parseRunOptions(args: string[]): RunOptions {
         waitForUser: !args.includes('--no-wait'),
         agentName,
         model,
-        useOpenAi: args.includes('--openai'),
-        useGoogle: args.includes('--google'),
     };
 }
 
@@ -376,6 +366,10 @@ function groupUpcomingTasksByPriority(tasks: UpcomingTask[]): Array<{ priority: 
     return Array.from(grouped.entries())
         .sort((a, b) => b[0] - a[0])
         .map(([priority, groupedTasks]) => ({ priority, tasks: groupedTasks }));
+}
+
+function buildPromptLabel(file: PromptFile, section: PromptSection): string {
+    return `${relative(process.cwd(), file.path).replace(/\\/g, '/')}#${section.index + 1}`;
 }
 
 function buildPromptLabelForDisplay(file: PromptFile, section: PromptSection): string {
