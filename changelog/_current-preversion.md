@@ -261,6 +261,7 @@
         -   Ability to retry failed operations without re-typing messages
         -   Consistent error handling across all chat interfaces
         -   Better debugging with raw errors logged to console
+-   Moved the back button to the top menu bar in agent-specific pages (chat, book, etc.) using the existing hoisting mechanism for a cleaner and more consistent UI.
 -   Enhanced RAG source citation display in Agents Server chat:
     -   Replaced ugly OpenAI annotation format `【5:13†document.pdf】` with native Promptbook chips
     -   Created `<SourceChip/>` component displaying source document with file icon and citation ID

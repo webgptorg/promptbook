@@ -40,9 +40,7 @@ export default async function AgentBookAndChatPage({ params }: { params: Promise
 
     return (
         <div className={`w-screen h-[calc(100vh-60px)] relative`}>
-            <div className="absolute top-5 right-10 z-50">
-                <BackToAgentButton agentName={agentName} />
-            </div>
+            <BackToAgentButton agentName={agentName} />
             <AgentBookAndChat agentName={agentName} initialAgentSource={agentSource} agentUrl={agentUrl} />
         </div>
     );

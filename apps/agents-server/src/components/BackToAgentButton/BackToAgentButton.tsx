@@ -1,6 +1,10 @@
+'use client';
+
+import { useMenuHoisting } from '@/../../src/book-components/_common/MenuHoisting/MenuHoistingContext';
 import { ArrowLeftIcon } from 'lucide-react';
 import Link from 'next/link';
-import type { FC } from 'react';
+import { useRouter } from 'next/navigation';
+import { FC, useEffect } from 'react';
 
 /**
  * Properties for the BackToAgentButton component
@@ -14,11 +18,39 @@ type BackToAgentButtonProps = {
 
 /**
  * A reusable button component that links back to the agent's main page.
- * 
+ *
  * @param {BackToAgentButtonProps} props - The component props
  * @returns {JSX.Element} The rendered button component
  */
 export const BackToAgentButton: FC<BackToAgentButtonProps> = ({ agentName }) => {
+    const router = useRouter();
+    const menuHoisting = useMenuHoisting();
+
+    useEffect(() => {
+        if (!menuHoisting) {
+            return;
+        }
+
+        menuHoisting.setMenu([
+            {
+                key: 'back-to-agent',
+                name: 'Back to Agent',
+                icon: <ArrowLeftIcon />,
+                onClick: () => {
+                    router.push(`/agents/${encodeURIComponent(agentName)}`);
+                },
+            },
+        ]);
+
+        return () => {
+            menuHoisting.setMenu([]);
+        };
+    }, [menuHoisting, agentName, router]);
+
+    if (menuHoisting) {
+        return null;
+    }
+
     return (
         <Link
             href={`/agents/${encodeURIComponent(agentName)}`}

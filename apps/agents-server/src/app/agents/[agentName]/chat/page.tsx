@@ -38,9 +38,7 @@ export default async function AgentChatPage({
 
     return (
         <main className={`w-full h-full overflow-hidden relative`}>
-            <div className="absolute top-5 right-10 z-50">
-                <BackToAgentButton agentName={agentName} />
-            </div>
+            <BackToAgentButton agentName={agentName} />
             <AgentChatWrapper
                 agentUrl={agentUrl}
                 autoExecuteMessage={message}

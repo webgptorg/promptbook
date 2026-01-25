@@ -39,9 +39,7 @@ export default async function AgentBookPage({ params }: { params: Promise<{ agen
 
     return (
         <div className={`w-screen h-[calc(100vh-60px)] relative`}>
-            <div className="absolute top-5 right-10 z-50">
-                <BackToAgentButton agentName={agentName} />
-            </div>
+            <BackToAgentButton agentName={agentName} />
             <BookEditorWrapper agentName={agentName} initialAgentSource={agentSource} />
         </div>
     );
