@@ -17,36 +17,36 @@ export function createDefaultSoundSystem(): SoundSystem {
     return new SoundSystem(
         {
             message_send: {
-                path: '/sounds/whoosh.mp3',
+                path: '/sounds/whoosh.wav',
                 volume: 0.3,
                 allowOverlap: false,
             },
             message_receive: {
-                path: '/sounds/ding.mp3',
+                path: '/sounds/ding.wav',
                 volume: 0.4,
                 allowOverlap: false,
             },
             message_typing: {
-                path: '/sounds/typing.mp3',
+                path: '/sounds/typing.wav',
                 volume: 0.2,
                 allowOverlap: false,
             },
             button_click: {
-                path: '/sounds/tap.mp3',
+                path: '/sounds/tap.wav',
                 volume: 0.25,
                 allowOverlap: true, // Allow multiple button clicks to overlap
             },
             effect_confetti: {
-                path: '/sounds/confetti.mp3',
+                path: '/sounds/confetti.wav',
                 volume: 0.35,
                 allowOverlap: false,
             },
             effect_hearts: {
-                path: '/sounds/hearts.mp3',
+                path: '/sounds/hearts.wav',
                 volume: 0.3,
                 allowOverlap: false,
             },
         },
-        'promptbook_chat_sounds_enabled'
+        'promptbook_chat_sounds_enabled',
     );
 }
