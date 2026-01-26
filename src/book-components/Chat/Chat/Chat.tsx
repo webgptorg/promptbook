@@ -37,7 +37,6 @@ import { MockedChat } from '../MockedChat/MockedChat'; // <- [🥂]
 import { getChatSaveFormatDefinitions } from '../save/_common/getChatSaveFormatDefinitions';
 import type { string_chat_format_name } from '../save/_common/string_chat_format_name';
 import type { ChatMessage } from '../types/ChatMessage';
-import { downloadFile } from '../utils/downloadFile';
 import { ChatParticipant } from '../types/ChatParticipant';
 import type { AgentProfileData } from '../utils/loadAgentProfile';
 import { loadAgentProfile, resolveAgentProfileFallback, resolvePreferredAgentLabel } from '../utils/loadAgentProfile';
@@ -1531,21 +1530,10 @@ export function Chat(props: ChatProps) {
                         }
                     }}
                 >
-                    <div
-                        className={classNames(styles.ratingModalContent, styles.toolCallModal)}
-                        style={{ maxWidth: '900px', width: '90%' }}
-                    >
+                    <div className={classNames(styles.ratingModalContent, styles.toolCallModal)}>
                         <div className={styles.searchModalHeader}>
                             <span className={styles.searchModalIcon}>📄</span>
                             <h3 className={styles.searchModalQuery}>{selectedCitation.source}</h3>
-                            <button
-                                type="button"
-                                className={styles.modalCloseButton}
-                                onClick={() => setCitationModalOpen(false)}
-                                aria-label="Close dialog"
-                            >
-                                <CloseIcon />
-                            </button>
                         </div>
 
                         <div className={styles.searchModalContent}>
@@ -1567,25 +1555,6 @@ export function Chat(props: ChatProps) {
                                     )}
                                 </div>
 
-                                {selectedCitation.url &&
-                                    (selectedCitation.source.toLowerCase().endsWith('.pdf') ||
-                                        selectedCitation.source.toLowerCase().endsWith('.html') ||
-                                        selectedCitation.source.toLowerCase().endsWith('.htm') ||
-                                        selectedCitation.source.toLowerCase().endsWith('.txt')) && (
-                                        <div className={styles.citationPreview} style={{ marginTop: '20px' }}>
-                                            <iframe
-                                                src={selectedCitation.url}
-                                                style={{
-                                                    width: '100%',
-                                                    height: '500px',
-                                                    border: '1px solid #ddd',
-                                                    borderRadius: '4px',
-                                                }}
-                                                title={`Preview of ${selectedCitation.source}`}
-                                            />
-                                        </div>
-                                    )}
-
                                 {selectedCitation.excerpt && (
                                     <div className={styles.citationExcerpt}>
                                         <h4>Excerpt:</h4>
@@ -1593,7 +1562,7 @@ export function Chat(props: ChatProps) {
                                     </div>
                                 )}
 
-                                {!selectedCitation.excerpt && !selectedCitation.url && (
+                                {!selectedCitation.excerpt && (
                                     <div className={styles.noResults}>
                                         <p>No preview available for this source.</p>
                                         <p className={styles.citationHint}>
@@ -1605,22 +1574,6 @@ export function Chat(props: ChatProps) {
                         </div>
 
                         <div className={styles.ratingActions}>
-                            {selectedCitation.url && (
-                                <button
-                                    onClick={() => {
-                                        // Use direct link for download if it's a URL
-                                        const a = document.createElement('a');
-                                        a.href = selectedCitation.url!;
-                                        a.download = selectedCitation.source;
-                                        a.target = '_blank'; // Fallback for browsers that don't support download attribute on cross-origin URLs
-                                        document.body.appendChild(a);
-                                        a.click();
-                                        document.body.removeChild(a);
-                                    }}
-                                >
-                                    Download
-                                </button>
-                            )}
                             <button onClick={() => setCitationModalOpen(false)}>Close</button>
                         </div>
                     </div>
