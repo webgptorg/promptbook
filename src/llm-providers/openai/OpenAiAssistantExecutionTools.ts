@@ -41,6 +41,7 @@ import { uploadFilesToOpenAi } from './utils/uploadFilesToOpenAi';
  * - `RemoteAgent` - which is an `Agent` that connects to a Promptbook Agents Server
  *
  * @public exported from `@promptbook/openai`
+ * @deprecated Use `OpenAiAgentExecutionTools` instead which uses the new OpenAI Responses API
  */
 export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implements LlmExecutionTools {
     /* <- TODO: [🍚] `, Destroyable` */

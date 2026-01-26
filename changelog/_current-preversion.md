@@ -287,3 +287,10 @@
     -   Improved fallback messaging when no preview is available.
 -   Added missing sound files to the Agents Server's public directory.
 -   Enhanced the UI of the chips of `TEAM` commitment to show agent profile picture and name instead of ID in agent lists and profile pages.
+-   Migrate `Agent` class and all related classes from using OpenAI Assistants API to OpenAI Responses API.
+    -   `KNOWLEDGE` works as before.
+    -   Tool calling works as before.
+    -   Caching of the agents and underlying assistants works as before.
+    -   It works in the `Agents Server` application `/apps/agents-server`.
+    -   All existing features work as before.
+    -   Kept `OpenAiAssistantExecutionTools`, marked as deprecated and not used in `Agent`.

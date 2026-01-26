@@ -154,6 +154,13 @@ export type CommonModelRequirements = {
      */
     readonly tools?: LlmToolDefinition[];
 
+    /**
+     * Optional list of knowledge source links that the model can use
+     *
+     * Note: [🚉] This is fully serializable as JSON
+     */
+    readonly knowledgeSources?: string[];
+
     // <- Note: [🧆] Look here when adding new properties to `ModelRequirements`
 };
 
