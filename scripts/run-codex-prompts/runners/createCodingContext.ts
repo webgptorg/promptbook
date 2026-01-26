@@ -1,6 +1,5 @@
-import { string_prompt } from '../../../src/types/typeAliases';
 import { prompt } from '../../../src/pipeline/prompt-notation';
-
+import { string_prompt } from '../../../src/types/typeAliases';
 
 /**
  * @@@
@@ -14,15 +13,14 @@ export function createCodingContext(): string_prompt {
         - Keep in mind the DRY _(don't repeat yourself)_ principle.
         - Write clear, maintainable, and well-documented code.
         - Write JSDoc comments for all functions, classes, types,...
-        - After code change, always run theese tests to verify the correctness:
-            1) npm run test-name-discrepancies
+        - After code change, run the following tests to ensure everything works as expected: *(you don't need to run every test, run them only when you make changes that could affect them)*
+            1) npm run test-name-discrepancies - tests that file names matches the exported names
             2) npm run test-spellcheck
             3) npm run test-lint
-            4) npm run test-types
-            5) npm run test-books
-            6) npm run test-package-generation
-            7) npm run test-unit
-            8) npm run test-app-agents-server
+            4) npm run test-types - checks TypeScript types
+            5) npm run test-package-generation - tests that build script is working correctly
+            6) npm run test-unit
+            7) npm run test-app-agents-server - tests that the Agents Server app is working correctly
         
         **Additional context:**
 
