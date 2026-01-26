@@ -1618,6 +1618,31 @@ export function Chat(props: ChatProps) {
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         style={{ textDecoration: 'none' }}
+                                        onClick={async (e) => {
+                                            const url = e.currentTarget.href;
+                                            // Check if URL is valid (not just a filename)
+                                            if (!url.match(/^https?:\/\//)) return;
+
+                                            e.preventDefault();
+                                            try {
+                                                const response = await fetch(url);
+                                                const blob = await response.blob();
+                                                const blobUrl = URL.createObjectURL(blob);
+                                                const a = document.createElement('a');
+                                                a.href = blobUrl;
+                                                a.download = selectedCitation.source;
+                                                document.body.appendChild(a);
+                                                a.click();
+                                                document.body.removeChild(a);
+                                                URL.revokeObjectURL(blobUrl);
+                                            } catch (err) {
+                                                console.warn(
+                                                    'Failed to fetch blob for download, falling back to default navigation',
+                                                    err,
+                                                );
+                                                window.open(url, '_blank');
+                                            }
+                                        }}
                                     >
                                         <button>
                                             <DownloadIcon

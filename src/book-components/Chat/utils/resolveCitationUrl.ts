@@ -29,10 +29,22 @@ export function resolveCitationUrl(source: string, participants: ReadonlyArray<C
                 // source: "document.pdf"
                 // content: "https://example.com/files/document.pdf"
 
-                // Decode URL to handle %20 etc
-                let decodedContent = content;
                 try {
-                    decodedContent = decodeURIComponent(content);
+                    const url = new URL(content);
+                    const pathname = decodeURIComponent(url.pathname);
+
+                    if (pathname.endsWith('/' + source) || pathname === '/' + source || pathname === source) {
+                        return content;
+                    }
+                } catch (error) {
+                    // Invalid URL, ignore
+                }
+
+                // Fallback: Simple check ignoring query params by splitting ?
+                const contentWithoutQuery = content.split('?')[0]!;
+                let decodedContent = contentWithoutQuery;
+                try {
+                    decodedContent = decodeURIComponent(contentWithoutQuery);
                 } catch {
                     // Ignore decoding errors
                 }
@@ -41,8 +53,8 @@ export function resolveCitationUrl(source: string, participants: ReadonlyArray<C
                 if (
                     decodedContent.endsWith('/' + source) ||
                     decodedContent === source ||
-                    content.endsWith('/' + source) ||
-                    content === source
+                    contentWithoutQuery.endsWith('/' + source) ||
+                    contentWithoutQuery === source
                 ) {
                     return content;
                 }
