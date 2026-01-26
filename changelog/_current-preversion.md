@@ -285,6 +285,9 @@
     -   Added a "Download" button to the source preview modal.
     -   Automatically detects URLs in source names if explicit URL is missing.
     -   Improved fallback messaging when no preview is available.
+    -   Moved close button to the top right corner with 'X' icon for better UX.
+    -   Relaxed URL validation to allow previewing documents from relative paths or filenames.
+    -   Ensured download button is available when source is present.
 -   Added missing sound files to the Agents Server's public directory.
 -   Enhanced the UI of the chips of `TEAM` commitment to show agent profile picture and name instead of ID in agent lists and profile pages.
 -   Migrate `Agent` class and all related classes from using OpenAI Assistants API to OpenAI Responses API.

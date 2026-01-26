@@ -1532,6 +1532,14 @@ export function Chat(props: ChatProps) {
                     }}
                 >
                     <div className={classNames(styles.ratingModalContent, styles.toolCallModal)}>
+                        <button
+                            type="button"
+                            className={styles.modalCloseButton}
+                            onClick={() => setCitationModalOpen(false)}
+                            aria-label="Close dialog"
+                        >
+                            <CloseIcon />
+                        </button>
                         <div className={styles.searchModalHeader}>
                             <span className={styles.searchModalIcon}>📄</span>
                             <h3 className={styles.searchModalQuery}>{selectedCitation.source}</h3>
@@ -1542,9 +1550,7 @@ export function Chat(props: ChatProps) {
                                 {(() => {
                                     // [🧠] Try to deduce URL from source if it looks like one, or use provided URL
                                     //       In future, this logic should be more robust or moved to utility
-                                    const previewUrl =
-                                        selectedCitation.url ||
-                                        (selectedCitation.source.startsWith('http') ? selectedCitation.source : null);
+                                    const previewUrl = selectedCitation.url || selectedCitation.source;
 
                                     return (
                                         <>
@@ -1593,21 +1599,26 @@ export function Chat(props: ChatProps) {
                         </div>
 
                         <div className={styles.ratingActions}>
-                            {selectedCitation.url && (
-                                <a
-                                    href={selectedCitation.url}
-                                    download={selectedCitation.source} // [🧠] Does not work for cross-origin URLs
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    style={{ textDecoration: 'none' }}
-                                >
-                                    <button>
-                                        <DownloadIcon size={16} style={{ display: 'inline-block', marginRight: 6 }} />
-                                        Download
-                                    </button>
-                                </a>
-                            )}
-                            <button onClick={() => setCitationModalOpen(false)}>Close</button>
+                            {
+                                /* [🧠] Deduce URL also here */
+                                (selectedCitation.url || selectedCitation.source) && (
+                                    <a
+                                        href={selectedCitation.url || selectedCitation.source}
+                                        download={selectedCitation.source} // [🧠] Does not work for cross-origin URLs
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        style={{ textDecoration: 'none' }}
+                                    >
+                                        <button>
+                                            <DownloadIcon
+                                                size={16}
+                                                style={{ display: 'inline-block', marginRight: 6 }}
+                                            />
+                                            Download
+                                        </button>
+                                    </a>
+                                )
+                            }
                         </div>
                     </div>
                 </div>
