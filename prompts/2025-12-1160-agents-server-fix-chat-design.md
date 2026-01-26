@@ -25,7 +25,7 @@
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   You are working with the [<Chat/>](./src/book-components/Chat/Chat/Chat.tsx) component.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the [changelog](./changelog/_current-preversion.md)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ![Screenshot](prompts/screenshots/2025-12-1160-agents-server-fix-chat-design.png)
 ![Screenshot](prompts/screenshots/2025-12-1160-agents-server-fix-chat-design-1.png)
@@ -93,6 +93,3 @@
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
-
-
-

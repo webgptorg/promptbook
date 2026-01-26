@@ -15,7 +15,7 @@ TEMPLATE
 
 -   You are implementing commitment `TEMPLATE` into Promptbook Engine but be aware that this commitment should work in Agent Server application.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the [changelog](./changelog/_current-preversion.md)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 **Context:**
 
@@ -29,4 +29,3 @@ TEMPLATE
     -   Agent source with commitments is parsed by two functions:
         -   `parseAgentSource` which is a lightweight parser for agent source, it parses basic information and its purpose is to be quick and synchronous. The commitments there are hardcoded.
         -   `createAgentModelRequirements` which is an asynchronous function that creates model requirements it applies each commitment one by one and works asynchronously.
-

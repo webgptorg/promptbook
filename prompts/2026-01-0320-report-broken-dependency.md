@@ -2,7 +2,7 @@
 
 [✨🚢] Report entire line when generate-packages script fails on "[🟢]",... error
 
--  When the script fails, show error such as:
+-   When the script fails, show error such as:
 
 **Instead of this:**
 
@@ -23,9 +23,8 @@ But found in package `@promptbook/browser`
 Analyze the issue in the bundle file:
 ./packages/browser/esm/index.es.js
 <- Search for [🟢] marker
-    at generatePackages (C:\Users\me\work\ai\promptbook\scripts\generate-packages\generate-packages.ts:632:27)    
+    at generatePackages (C:\Users\me\work\ai\promptbook\scripts\generate-packages\generate-packages.ts:632:27)
 ```
-
 
 **Show this:**
 
@@ -50,14 +49,13 @@ Analyze the issue in the bundle file:
 In line 1234:
 // Note: [🟢] This file containing private code blah foo bar xxxx
 
-    at generatePackages (C:\Users\me\work\ai\promptbook\scripts\generate-packages\generate-packages.ts:632:27)    
+    at generatePackages (C:\Users\me\work\ai\promptbook\scripts\generate-packages\generate-packages.ts:632:27)
 ```
-
 
 -   Relevant script is scripts/generate-packages/generate-packages.ts
 -   This is relevant for all "[🟢]", "[⚪]", "[⚫]", "[🟡]", "[🔵]"
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the [changelog](./changelog/_current-preversion.md)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
 
@@ -66,7 +64,7 @@ In line 1234:
 [✨🚢] baz
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the [changelog](./changelog/_current-preversion.md)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
 
@@ -75,7 +73,7 @@ In line 1234:
 [✨🚢] baz
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the [changelog](./changelog/_current-preversion.md)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
 
@@ -84,5 +82,4 @@ In line 1234:
 [✨🚢] baz
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the [changelog](./changelog/_current-preversion.md)
-
+-   Add the changes into the [changelog](changelog/_current-preversion.md)

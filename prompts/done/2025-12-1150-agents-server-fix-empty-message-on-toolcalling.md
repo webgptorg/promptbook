@@ -11,7 +11,7 @@
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   You are working with the [<Chat/>](./src/book-components/Chat/Chat/Chat.tsx) component.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the [changelog](./changelog/_current-preversion.md)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ![Screenshot - toolcall used](prompts/screenshots/2025-12-1150-agents-server-fix-empty-message-on-toolcalling-1.png)
 ![Screenshot - just a text](prompts/screenshots/2025-12-1150-agents-server-fix-empty-message-on-toolcalling-2.png)
@@ -48,4 +48,3 @@
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
-

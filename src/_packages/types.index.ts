@@ -139,6 +139,7 @@ import type { AzureOpenAiExecutionToolsOptions } from '../llm-providers/azure-op
 import type { DeepseekExecutionToolsOptions } from '../llm-providers/deepseek/DeepseekExecutionToolsOptions';
 import type { GoogleExecutionToolsOptions } from '../llm-providers/google/GoogleExecutionToolsOptions';
 import type { OllamaExecutionToolsOptions } from '../llm-providers/ollama/OllamaExecutionToolsOptions';
+import type { OpenAiAgentExecutionToolsOptions } from '../llm-providers/openai/OpenAiAgentExecutionTools';
 import type { OpenAiAssistantExecutionToolsOptions } from '../llm-providers/openai/OpenAiAssistantExecutionToolsOptions';
 import type { OpenAiCompatibleExecutionToolsOptions } from '../llm-providers/openai/OpenAiCompatibleExecutionToolsOptions';
 import type { OpenAiCompatibleExecutionToolsNonProxiedOptions } from '../llm-providers/openai/OpenAiCompatibleExecutionToolsOptions';
@@ -535,6 +536,7 @@ export type { AzureOpenAiExecutionToolsOptions };
 export type { DeepseekExecutionToolsOptions };
 export type { GoogleExecutionToolsOptions };
 export type { OllamaExecutionToolsOptions };
+export type { OpenAiAgentExecutionToolsOptions };
 export type { OpenAiAssistantExecutionToolsOptions };
 export type { OpenAiCompatibleExecutionToolsOptions };
 export type { OpenAiCompatibleExecutionToolsNonProxiedOptions };

@@ -40,7 +40,7 @@ TEAM You can talk with http://localhost:4440/agents/GMw67JN8TXxN7y to discuss th
     -   Also look at the [graph on the home page](http://localhost:4440/?view=graph) of the agents server, it should show the teammates as connected agents.
 -   You are implementing commitment `TEAM` into Promptbook Engine but be aware that this commitment should work in Agent Server application.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the [changelog](./changelog/_current-preversion.md)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 **Context:**
 
@@ -187,4 +187,3 @@ TEAM You can talk with http://localhost:4440/agents/GMw67JN8TXxN7y to discuss th
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
-
