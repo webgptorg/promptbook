@@ -1,6 +1,6 @@
 {
     "name": "ptbk",
-    "version": "0.105.0-29",
+    "version": "0.105.0-30",
     "description": "Promptbook: Turn your company's scattered knowledge into AI ready books",
     "private": false,
     "sideEffects": false,
@@ -88,10 +88,10 @@
         "npm": ">=8.0.0"
     },
     "peerDependencies": {
-        "@promptbook/core": "0.105.0-29"
+        "@promptbook/core": "0.105.0-30"
     },
     "dependencies": {
-        "promptbook": "0.105.0-29"
+        "promptbook": "0.105.0-30"
     },
     "bin": {
         "ptbk": "bin/promptbook-cli-proxy.js"
