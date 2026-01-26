@@ -200,7 +200,15 @@ export type ChatProps = {
     readonly toolTitles?: Record<string, string>;
 
     /**
+     * Optional list of URLs representing the agent's knowledge base.
+     * These are used to resolve citations that only provide a file name.
+     */
+    readonly knowledgeUrls?: ReadonlyArray<string>;
+
+    /**
      * Optional metadata about teammates for team tool calls
+>>>>+++ REPLACE
+
      * Maps tool name to agent information
      */
     readonly teammates?: Record<

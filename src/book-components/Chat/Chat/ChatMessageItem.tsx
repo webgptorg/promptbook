@@ -29,7 +29,7 @@ import { AVATAR_SIZE, LOADING_INTERACTIVE_IMAGE } from './constants';
  *
  * @private props for internal subcomponent
  */
-type ChatMessageItemProps = Pick<ChatProps, 'onMessage' | 'participants'> & {
+type ChatMessageItemProps = Pick<ChatProps, 'onMessage' | 'participants' | 'knowledgeUrls'> & {
     message: ChatMessage;
     participant: ChatParticipant | undefined;
     isLastMessage: boolean;
@@ -158,6 +158,7 @@ export const ChatMessageItem = memo(
             teammates,
             onToolCallClick,
             onCitationClick,
+            knowledgeUrls,
         } = props;
         const {
             isComplete = true,
@@ -510,7 +511,19 @@ export const ChatMessageItem = memo(
                             {citations.map((citation, index) => (
                                 <SourceChip
                                     key={`${citation.id}-${citation.source}-${index}`}
-                                    citation={citation}
+                                    citation={(() => {
+                                        if (citation.url) {
+                                            return citation;
+                                        }
+                                        const matchingUrl = (knowledgeUrls || []).find((url) => {
+                                            const filename = url.split('/').pop();
+                                            return filename === citation.source || url.includes(citation.source);
+                                        });
+                                        if (matchingUrl) {
+                                            return { ...citation, url: matchingUrl };
+                                        }
+                                        return citation;
+                                    })()}
                                     onClick={onCitationClick}
                                 />
                             ))}
@@ -692,6 +705,10 @@ export const ChatMessageItem = memo(
         }
 
         if (prev.onCitationClick !== next.onCitationClick) {
+            return false;
+        }
+
+        if (prev.knowledgeUrls !== next.knowledgeUrls) {
             return false;
         }
 

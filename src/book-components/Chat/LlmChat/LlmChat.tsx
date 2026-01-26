@@ -42,7 +42,7 @@ function buildTeammatesMap(entries: Array<TeammateMetadata>): TeammatesMap | und
         }
     }
 
-    return Object.keys(teammatesMap).length > 0 ? teammatesMap : undefined;
+    return Object.keys( teammatesMap ).length > 0 ? teammatesMap : undefined;
 }
 
 /**
@@ -78,7 +78,7 @@ function buildTeammatesMapFromCapabilities(capabilities: Array<AgentCapability> 
  *
  * Note: There are multiple chat components:
  * - `<Chat/>` renders chat as it is without any logic
- * - `<LlmChat/>` connected to LLM Execution Tools of Promptbook
+ * - `<AgentChat/>` connected to LLM Execution Tools of Promptbook
  *
  * @public exported from `@promptbook/components`
  */
@@ -170,6 +170,27 @@ export function LlmChat(props: LlmChatProps) {
             ],
         [llmTools.profile, llmTools.title],
     );
+
+    const knowledgeUrls = useMemo<ReadonlyArray<string> | undefined>(() => {
+        const agentParticipant = participants.find((p) => p.agentSource);
+        if (!agentParticipant?.agentSource) {
+            return undefined;
+        }
+
+        const urls: string[] = [];
+        const lines = agentParticipant.agentSource.split('\n');
+        for (const line of lines) {
+            const trimmedLine = line.trim();
+            if (trimmedLine.startsWith('KNOWLEDGE ')) {
+                const source = trimmedLine.substring('KNOWLEDGE '.length).trim();
+                if (source.startsWith('http://') || source.startsWith('https://')) {
+                    urls.push(source);
+                }
+            }
+        }
+
+        return urls.length > 0 ? urls : undefined;
+    }, [participants]);
 
     // Load teammates metadata from llmTools
     useEffect(() => {
@@ -435,7 +456,16 @@ export function LlmChat(props: LlmChatProps) {
         <>
             <Chat
                 {...restProps}
-                {...{ messages, onReset, tasksProgress, participants, buttonColor, toolTitles, teammates }}
+                {...{
+                    messages,
+                    onReset,
+                    tasksProgress,
+                    participants,
+                    buttonColor,
+                    toolTitles,
+                    teammates,
+                    knowledgeUrls,
+                }}
                 onMessage={handleMessage}
                 onReset={handleReset}
                 isVoiceCalling={isVoiceCalling}

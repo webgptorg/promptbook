@@ -27,7 +27,7 @@ export type ParsedCitation = {
 
 /**
  * Parses OpenAI Assistant-style citations from message content
- * Matches patterns like: 【5:13†document.pdf】
+ * Matches patterns like: 【5:13†document.pdf】 or 【5:13†https://example.com/document.pdf】
  *
  * @param content - The markdown content that may contain citations
  * @returns Array of parsed citations
@@ -41,7 +41,22 @@ export function parseCitationsFromContent(content: string): ParsedCitation[] {
 
     while ((match = citationRegex.exec(content)) !== null) {
         const id = match[1]!; // e.g., "5:13"
-        const source = match[2]!; // e.g., "document.pdf"
+        const sourceRaw = match[2]!; // e.g., "document.pdf" or "https://example.com/document.pdf"
+
+        let source = sourceRaw;
+        let url: string | undefined = undefined;
+
+        if (sourceRaw.startsWith('http://') || sourceRaw.startsWith('https://')) {
+            url = sourceRaw;
+            // Extract filename from URL
+            try {
+                const urlObj = new URL(sourceRaw);
+                source = urlObj.pathname.split('/').pop() || sourceRaw;
+            } catch (error) {
+                // Fallback to raw value if URL is invalid
+                console.error('Failed to parse citation URL:', error);
+            }
+        }
 
         // Check if we already have this citation
         const existing = citations.find((c) => c.id === id && c.source === source);
@@ -49,6 +64,7 @@ export function parseCitationsFromContent(content: string): ParsedCitation[] {
             citations.push({
                 id,
                 source,
+                url,
             });
         }
     }
