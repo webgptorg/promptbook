@@ -280,4 +280,9 @@
     -   Citation references in text are now rendered as numbered superscripts `[5:13]` instead of full annotations
     -   Follows DRY principle by reusing existing modal styles and chip patterns
     -   Integrated seamlessly with existing chat UI and tool call chip system
+-   Enhanced document preview in Agents Server chat:
+    -   Clicking on a `KNOWLEDGE` source chip now opens a document preview in an iframe (e.g. for PDFs).
+    -   Added a "Download" button to the source preview modal.
+    -   Automatically detects URLs in source names if explicit URL is missing.
+    -   Improved fallback messaging when no preview is available.
 -   Added missing sound files to the Agents Server's public directory.

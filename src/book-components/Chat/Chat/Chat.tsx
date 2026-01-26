@@ -22,6 +22,7 @@ import { classNames } from '../../_common/react-utils/classNames';
 import { ArrowIcon } from '../../icons/ArrowIcon';
 import { AttachmentIcon } from '../../icons/AttachmentIcon';
 import { CloseIcon } from '../../icons/CloseIcon';
+import { DownloadIcon } from '../../icons/DownloadIcon';
 import { EmailIcon } from '../../icons/EmailIcon';
 import { MicIcon } from '../../icons/MicIcon';
 import { ResetIcon } from '../../icons/ResetIcon';
@@ -1538,42 +1539,74 @@ export function Chat(props: ChatProps) {
 
                         <div className={styles.searchModalContent}>
                             <div className={styles.citationDetails}>
-                                <div className={styles.citationMetadata}>
-                                    <p>
-                                        <strong>Citation ID:</strong> {selectedCitation.id}
-                                    </p>
-                                    <p>
-                                        <strong>Source:</strong> {selectedCitation.source}
-                                    </p>
-                                    {selectedCitation.url && (
-                                        <p>
-                                            <strong>URL:</strong>{' '}
-                                            <a href={selectedCitation.url} target="_blank" rel="noopener noreferrer">
-                                                {selectedCitation.url}
-                                            </a>
-                                        </p>
-                                    )}
-                                </div>
+                                {(() => {
+                                    // [🧠] Try to deduce URL from source if it looks like one, or use provided URL
+                                    //       In future, this logic should be more robust or moved to utility
+                                    const previewUrl =
+                                        selectedCitation.url ||
+                                        (selectedCitation.source.startsWith('http') ? selectedCitation.source : null);
 
-                                {selectedCitation.excerpt && (
-                                    <div className={styles.citationExcerpt}>
-                                        <h4>Excerpt:</h4>
-                                        <MarkdownContent content={selectedCitation.excerpt} />
-                                    </div>
-                                )}
+                                    return (
+                                        <>
+                                            <div className={styles.citationMetadata}>
+                                                <p>
+                                                    <strong>Citation ID:</strong> {selectedCitation.id}
+                                                </p>
+                                                <p>
+                                                    <strong>Source:</strong> {selectedCitation.source}
+                                                </p>
+                                                {previewUrl && (
+                                                    <p>
+                                                        <strong>URL:</strong>{' '}
+                                                        <a href={previewUrl} target="_blank" rel="noopener noreferrer">
+                                                            {previewUrl}
+                                                        </a>
+                                                    </p>
+                                                )}
+                                            </div>
 
-                                {!selectedCitation.excerpt && (
-                                    <div className={styles.noResults}>
-                                        <p>No preview available for this source.</p>
-                                        <p className={styles.citationHint}>
-                                            This citation references content from the source document.
-                                        </p>
-                                    </div>
-                                )}
+                                            {previewUrl ? (
+                                                <div className={styles.citationPreview}>
+                                                    <iframe
+                                                        src={previewUrl}
+                                                        className={styles.citationIframe}
+                                                        title={`Preview of ${selectedCitation.source}`}
+                                                    />
+                                                </div>
+                                            ) : selectedCitation.excerpt ? (
+                                                <div className={styles.citationExcerpt}>
+                                                    <h4>Excerpt:</h4>
+                                                    <MarkdownContent content={selectedCitation.excerpt} />
+                                                </div>
+                                            ) : (
+                                                <div className={styles.noResults}>
+                                                    <p>No preview available for this source.</p>
+                                                    <p className={styles.citationHint}>
+                                                        This citation references content from the source document.
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </>
+                                    );
+                                })()}
                             </div>
                         </div>
 
                         <div className={styles.ratingActions}>
+                            {selectedCitation.url && (
+                                <a
+                                    href={selectedCitation.url}
+                                    download={selectedCitation.source} // [🧠] Does not work for cross-origin URLs
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style={{ textDecoration: 'none' }}
+                                >
+                                    <button>
+                                        <DownloadIcon size={16} style={{ display: 'inline-block', marginRight: 6 }} />
+                                        Download
+                                    </button>
+                                </a>
+                            )}
                             <button onClick={() => setCitationModalOpen(false)}>Close</button>
                         </div>
                     </div>
