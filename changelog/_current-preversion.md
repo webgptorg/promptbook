@@ -301,3 +301,10 @@
     -   Resolved issue where source URLs with query parameters (e.g. from blob storage) were not matched correctly, preventing previews.
     -   Fixed download button for cross-origin files by implementing a fetch-and-download mechanism to bypass browser restrictions on `download` attribute.
 -   Improve the chat UI responsiveness by allowing user interaction (sending messages) while waiting for the agent reply.
+-   Fixed document preview modal for KNOWLEDGE sources in Agents Server chat:
+    -   Resolved issue where document preview was showing "Agent Not Found" error due to invalid URL resolution
+    -   Fixed preview to only load when a valid URL is available (checks for http:// or https://)
+    -   Removed technical clutter (Citation ID, Source, URL fields) from the modal for a cleaner user experience
+    -   Redesigned download button with modern styling matching the application's design system
+    -   Added proper error handling when preview is unavailable, showing a user-friendly message
+    -   Simplified modal header to show only document name (without file extension) for better readability

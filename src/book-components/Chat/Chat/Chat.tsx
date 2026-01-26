@@ -1536,42 +1536,27 @@ export function Chat(props: ChatProps) {
                         </button>
                         <div className={styles.searchModalHeader}>
                             <span className={styles.searchModalIcon}>📄</span>
-                            <h3 className={styles.searchModalQuery}>{selectedCitation.source}</h3>
+                            <h3 className={styles.searchModalQuery}>
+                                {selectedCitation.source.replace(/\.[^/.]+$/, '')}
+                            </h3>
                         </div>
 
                         <div className={styles.searchModalContent}>
                             <div className={styles.citationDetails}>
                                 {(() => {
-                                    // [🧠] Try to deduce URL from source if it looks like one, or use provided URL
-                                    //       In future, this logic should be more robust or moved to utility
-                                    const previewUrl =
-                                        selectedCitation.url ||
-                                        resolveCitationUrl(selectedCitation.source, participants) ||
-                                        selectedCitation.source;
+                                    // Resolve the URL properly
+                                    const resolvedUrl =
+                                        selectedCitation.url || resolveCitationUrl(selectedCitation.source, participants);
+                                    
+                                    // Check if URL is valid (starts with http:// or https://)
+                                    const isValidUrl = resolvedUrl && /^https?:\/\//.test(resolvedUrl);
 
                                     return (
                                         <>
-                                            <div className={styles.citationMetadata}>
-                                                <p>
-                                                    <strong>Citation ID:</strong> {selectedCitation.id}
-                                                </p>
-                                                <p>
-                                                    <strong>Source:</strong> {selectedCitation.source}
-                                                </p>
-                                                {previewUrl && (
-                                                    <p>
-                                                        <strong>URL:</strong>{' '}
-                                                        <a href={previewUrl} target="_blank" rel="noopener noreferrer">
-                                                            {previewUrl}
-                                                        </a>
-                                                    </p>
-                                                )}
-                                            </div>
-
-                                            {previewUrl ? (
+                                            {isValidUrl ? (
                                                 <div className={styles.citationPreview}>
                                                     <iframe
-                                                        src={previewUrl}
+                                                        src={resolvedUrl}
                                                         className={styles.citationIframe}
                                                         title={`Preview of ${selectedCitation.source}`}
                                                     />
@@ -1583,9 +1568,9 @@ export function Chat(props: ChatProps) {
                                                 </div>
                                             ) : (
                                                 <div className={styles.noResults}>
-                                                    <p>No preview available for this source.</p>
+                                                    <p>📄 Document preview unavailable</p>
                                                     <p className={styles.citationHint}>
-                                                        This citation references content from the source document.
+                                                        This citation references content from the knowledge base.
                                                     </p>
                                                 </div>
                                             )}
@@ -1596,29 +1581,26 @@ export function Chat(props: ChatProps) {
                         </div>
 
                         <div className={styles.ratingActions}>
-                            {
-                                /* [🧠] Deduce URL also here */
-                                (selectedCitation.url ||
-                                    resolveCitationUrl(selectedCitation.source, participants) ||
-                                    selectedCitation.source) && (
-                                    <a
-                                        href={
-                                            selectedCitation.url ||
-                                            resolveCitationUrl(selectedCitation.source, participants) ||
-                                            selectedCitation.source
-                                        }
-                                        download={selectedCitation.source} // [🧠] Does not work for cross-origin URLs
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        style={{ textDecoration: 'none' }}
-                                        onClick={async (e) => {
-                                            const url = e.currentTarget.href;
-                                            // Check if URL is valid (not just a filename)
-                                            if (!url.match(/^https?:\/\//)) return;
+                            {(() => {
+                                const resolvedUrl =
+                                    selectedCitation.url || resolveCitationUrl(selectedCitation.source, participants);
+                                const isValidUrl = resolvedUrl && /^https?:\/\//.test(resolvedUrl);
 
-                                            e.preventDefault();
+                                if (!isValidUrl) {
+                                    return null;
+                                }
+
+                                return (
+                                    <button
+                                        className={styles.downloadButton}
+                                        onClick={async () => {
                                             try {
-                                                const response = await fetch(url);
+                                                // Play sound if available
+                                                if (soundSystem) {
+                                                    /* not await */ soundSystem.play('button_click');
+                                                }
+
+                                                const response = await fetch(resolvedUrl);
                                                 const blob = await response.blob();
                                                 const blobUrl = URL.createObjectURL(blob);
                                                 const a = document.createElement('a');
@@ -1629,24 +1611,17 @@ export function Chat(props: ChatProps) {
                                                 document.body.removeChild(a);
                                                 URL.revokeObjectURL(blobUrl);
                                             } catch (err) {
-                                                console.warn(
-                                                    'Failed to fetch blob for download, falling back to default navigation',
-                                                    err,
-                                                );
-                                                window.open(url, '_blank');
+                                                console.warn('Failed to download file:', err);
+                                                // Fallback: open in new tab
+                                                window.open(resolvedUrl, '_blank');
                                             }
                                         }}
                                     >
-                                        <button>
-                                            <DownloadIcon
-                                                size={16}
-                                                style={{ display: 'inline-block', marginRight: 6 }}
-                                            />
-                                            Download
-                                        </button>
-                                    </a>
-                                )
-                            }
+                                        <DownloadIcon size={18} />
+                                        <span>Download</span>
+                                    </button>
+                                );
+                            })()}
                         </div>
                     </div>
                 </div>
