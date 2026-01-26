@@ -6,6 +6,8 @@ import { ChatParticipant } from '../types/ChatParticipant';
  * @param source - The source filename (e.g. "document.pdf")
  * @param participants - List of chat participants to search in
  * @returns The resolved URL if found, or null
+ *
+ * @private utility of <Chat/> component
  */
 export function resolveCitationUrl(source: string, participants: ReadonlyArray<ChatParticipant>): string | null {
     // Find the AGENT participant
