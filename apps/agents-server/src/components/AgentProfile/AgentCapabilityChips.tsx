@@ -14,6 +14,7 @@ import {
     Users,
 } from 'lucide-react';
 import NextLink from 'next/link';
+import { TeamCommitmentChip } from './TeamCommitmentChip';
 
 type AgentCapabilityChipsProps = {
     readonly agent: AgentBasicInformation;
@@ -44,6 +45,38 @@ export function AgentCapabilityChips({ agent, className }: AgentCapabilityChipsP
     return (
         <div className={`flex flex-wrap gap-2 ${className || ''}`}>
             {displayedCapabilities.map((capability, i) => {
+                let href: string | undefined;
+
+                if (capability.agentUrl) {
+                    href = capability.agentUrl;
+
+                    if (href.startsWith('./') || href.startsWith('../')) {
+                        // [🧠] How to resolve relative paths?
+                        // For now let's assume they are relative to /agents/
+                        href = `/agents/${href.split('/').pop()}`;
+                    } else if (href.startsWith('/')) {
+                        href = `/agents${href}`;
+                    }
+                }
+
+                if (capability.iconName === 'Users' && href) {
+                    const content = <TeamCommitmentChip url={href} label={capability.label} />;
+
+                    return (
+                        <NextLink
+                            key={i}
+                            href={href}
+                            className="no-underline"
+                            onClick={(e) => {
+                                // Note: Prevent card click when clicking on the chip
+                                e.stopPropagation();
+                            }}
+                        >
+                            {content}
+                        </NextLink>
+                    );
+                }
+
                 const Icon =
                     {
                         Globe,
@@ -71,17 +104,7 @@ export function AgentCapabilityChips({ agent, className }: AgentCapabilityChipsP
                     </div>
                 );
 
-                if (capability.agentUrl) {
-                    let href = capability.agentUrl;
-
-                    if (href.startsWith('./') || href.startsWith('../')) {
-                        // [🧠] How to resolve relative paths?
-                        // For now let's assume they are relative to /agents/
-                        href = `/agents/${href.split('/').pop()}`;
-                    } else if (href.startsWith('/')) {
-                        href = `/agents${href}`;
-                    }
-
+                if (href) {
                     return (
                         <NextLink
                             key={i}

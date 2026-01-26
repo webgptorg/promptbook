@@ -286,3 +286,4 @@
     -   Automatically detects URLs in source names if explicit URL is missing.
     -   Improved fallback messaging when no preview is available.
 -   Added missing sound files to the Agents Server's public directory.
+-   Enhanced the UI of the chips of `TEAM` commitment to show agent profile picture and name instead of ID in agent lists and profile pages.
