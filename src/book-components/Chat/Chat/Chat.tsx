@@ -42,6 +42,7 @@ import { ChatParticipant } from '../types/ChatParticipant';
 import type { AgentProfileData } from '../utils/loadAgentProfile';
 import { loadAgentProfile, resolveAgentProfileFallback, resolvePreferredAgentLabel } from '../utils/loadAgentProfile';
 import type { ParsedCitation } from '../utils/parseCitationsFromContent';
+import { resolveCitationUrl } from '../utils/resolveCitationUrl';
 import {
     extractSearchResults,
     getToolCallResultDate,
@@ -1550,7 +1551,10 @@ export function Chat(props: ChatProps) {
                                 {(() => {
                                     // [🧠] Try to deduce URL from source if it looks like one, or use provided URL
                                     //       In future, this logic should be more robust or moved to utility
-                                    const previewUrl = selectedCitation.url || selectedCitation.source;
+                                    const previewUrl =
+                                        selectedCitation.url ||
+                                        resolveCitationUrl(selectedCitation.source, participants) ||
+                                        selectedCitation.source;
 
                                     return (
                                         <>
@@ -1601,9 +1605,15 @@ export function Chat(props: ChatProps) {
                         <div className={styles.ratingActions}>
                             {
                                 /* [🧠] Deduce URL also here */
-                                (selectedCitation.url || selectedCitation.source) && (
+                                (selectedCitation.url ||
+                                    resolveCitationUrl(selectedCitation.source, participants) ||
+                                    selectedCitation.source) && (
                                     <a
-                                        href={selectedCitation.url || selectedCitation.source}
+                                        href={
+                                            selectedCitation.url ||
+                                            resolveCitationUrl(selectedCitation.source, participants) ||
+                                            selectedCitation.source
+                                        }
                                         download={selectedCitation.source} // [🧠] Does not work for cross-origin URLs
                                         target="_blank"
                                         rel="noopener noreferrer"
