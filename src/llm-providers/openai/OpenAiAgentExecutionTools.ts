@@ -120,7 +120,7 @@ export class OpenAiAgentExecutionTools extends OpenAiExecutionTools implements L
         const start: string_date_iso8601 = $getCurrentDate();
 
         // Construct the request
-        const rawRequest: any = {
+        const rawRequest: TODO_any = {
             // TODO: Type properly as OpenAI.Responses.CreateResponseParams
             model: modelRequirements.modelName || 'gpt-4o', // Responses API requires gpt-4o or newer
             input,
@@ -136,7 +136,7 @@ export class OpenAiAgentExecutionTools extends OpenAiExecutionTools implements L
 
         // Call Responses API
         // Note: Using any cast because types might not be updated yet
-        const response = await (client as any).responses.create(rawRequest);
+        const response = await (client as TODO_any).responses.create(rawRequest);
 
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawResponse'), JSON.stringify(response, null, 4));
