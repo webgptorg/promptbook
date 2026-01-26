@@ -300,3 +300,4 @@
 -   Fixed document preview and download in Agents Server chat:
     -   Resolved issue where source URLs with query parameters (e.g. from blob storage) were not matched correctly, preventing previews.
     -   Fixed download button for cross-origin files by implementing a fetch-and-download mechanism to bypass browser restrictions on `download` attribute.
+-   Improve the chat UI responsiveness by allowing user interaction (sending messages) while waiting for the agent reply.

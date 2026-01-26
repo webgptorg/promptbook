@@ -136,13 +136,9 @@ export function LlmChat(props: LlmChatProps) {
             if (persistedMessages.length > 0) {
                 setMessages(persistedMessages);
                 hasUserInteractedRef.current = true; // Persisted conversation exists; allow saving next changes
-                // Notify about loaded messages
-                if (onChange) {
-                    onChange(persistedMessages, participants);
-                }
             }
         }
-    }, [persistenceKey]); // Only depend on persistenceKey, not participants or onChange to avoid infinite loops
+    }, [persistenceKey]);
 
     // Save messages to localStorage whenever messages change (and persistence is enabled)
     useEffect(() => {
@@ -168,7 +164,7 @@ export function LlmChat(props: LlmChatProps) {
                     color: '#10b981',
                 },
             ],
-        [llmTools.profile, llmTools.title],
+        [llmTools.profile, llmTools.title, props.participants, userParticipantName, llmParticipantName],
     );
 
     // Load teammates metadata from llmTools
@@ -210,6 +206,14 @@ export function LlmChat(props: LlmChatProps) {
         participantsRef.current = participants;
     }, [participants]);
 
+    // Notify about changes whenever messages or participants change
+    // This replaces manual onChange calls to ensure consistency
+    useEffect(() => {
+        if (onChange) {
+            onChange(messages, participants);
+        }
+    }, [messages, participants, onChange]);
+
     // Handle user messages and LLM responses
     const handleMessage = useCallback(
         async (messageContent: string, attachments: ChatMessage['attachments'] = []) => {
@@ -226,14 +230,6 @@ export function LlmChat(props: LlmChatProps) {
                 attachments,
             };
 
-            const newMessages = [...messages, userMessage];
-            setMessages(newMessages);
-
-            // Notify about changes
-            if (onChange) {
-                onChange(newMessages, participants);
-            }
-
             // Add loading message for assistant
             const loadingMessage: ChatMessage = {
                 // channel: 'PROMPTBOOK_CHAT',
@@ -244,21 +240,19 @@ export function LlmChat(props: LlmChatProps) {
                 isComplete: false,
             };
 
-            const messagesWithLoading = [...newMessages, loadingMessage];
-            setMessages(messagesWithLoading);
-
-            // Notify about changes
-            if (onChange) {
-                onChange(newMessages, participants);
-            }
+            // Functional update: Append both messages at once
+            setMessages((prev) => [...prev, userMessage, loadingMessage]);
 
             // Add task progress for LLM call
             const taskId = `llm_call_${Date.now()}`;
             setTasksProgress([{ id: taskId, name: 'Generating response...', progress: 0 }]);
 
             try {
-                // Build thread: use props.thread if provided, otherwise use current messages
-                const thread = props.thread ? [...props.thread] : [...newMessages];
+                // Build thread: use props.thread if provided, otherwise use current messages + new user message
+                // We filter out incomplete messages from the history to avoid including "Thinking..." from concurrent requests
+                const currentHistory = messages.filter((m) => m.isComplete);
+                const thread = props.thread ? [...props.thread] : [...currentHistory, userMessage];
+
                 const prompt = {
                     title: 'User Message',
                     content: messageContent as string_markdown,
@@ -287,12 +281,10 @@ export function LlmChat(props: LlmChatProps) {
                             ongoingToolCalls: chunk.toolCalls,
                         };
 
-                        const currentMessages = [...newMessages, assistantMessage];
-                        setMessages(currentMessages);
-
-                        if (onChange) {
-                            onChange(currentMessages, participants);
-                        }
+                        // Functional update: Replace loading message with streaming update
+                        setMessages((prev) =>
+                            prev.map((msg) => (msg.id === loadingMessage.id ? assistantMessage : msg)),
+                        );
                     });
                 } else if (llmTools.callChatModel) {
                     result = await llmTools.callChatModel(prompt);
@@ -315,18 +307,13 @@ export function LlmChat(props: LlmChatProps) {
                     completedToolCalls: result.toolCalls,
                 };
 
-                const finalMessages = [...newMessages, assistantMessage];
-                setMessages(finalMessages);
+                // Functional update: Replace loading message with final response
+                setMessages((prev) => prev.map((msg) => (msg.id === loadingMessage.id ? assistantMessage : msg)));
 
                 // Clear task progress after a short delay
                 setTimeout(() => {
                     setTasksProgress([]);
                 }, 1000);
-
-                // Notify about changes
-                if (onChange) {
-                    onChange(finalMessages, participants);
-                }
             } catch (error) {
                 // Log raw error for debugging
                 console.error('Error calling LLM:', error);
@@ -351,19 +338,14 @@ export function LlmChat(props: LlmChatProps) {
                     isComplete: true,
                 };
 
-                const finalMessages = [...newMessages, errorMessage];
-                setMessages(finalMessages);
+                // Functional update: Replace loading message with error
+                setMessages((prev) => prev.map((msg) => (msg.id === loadingMessage.id ? errorMessage : msg)));
 
                 // Clear task progress
                 setTasksProgress([]);
-
-                // Notify about changes
-                if (onChange) {
-                    onChange(finalMessages, participants);
-                }
             }
         },
-        [messages, llmTools, onChange, participants, onError, llmParticipantName, userParticipantName],
+        [messages, llmTools, props.thread, onError, llmParticipantName, userParticipantName],
     );
 
     // Handle chat reset
@@ -385,12 +367,7 @@ export function LlmChat(props: LlmChatProps) {
         if (onReset) {
             await onReset();
         }
-
-        // Notify about changes
-        if (onChange) {
-            onChange(buildInitialMessages(), participants);
-        }
-    }, [persistenceKey, onReset, onChange, participants, buildInitialMessages]);
+    }, [persistenceKey, onReset, buildInitialMessages]);
 
     // Handle retry of last failed message
     const handleRetry = useCallback(() => {

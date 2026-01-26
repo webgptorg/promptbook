@@ -407,20 +407,13 @@ export function Chat(props: ChatProps) {
         }
 
         const textareaElement = textareaRef.current;
-        const buttonSendElement = buttonSendRef.current;
 
         if (!textareaElement) {
-            throw new Error(`Can not find textarea`);
-        }
-        if (!buttonSendElement) {
             throw new Error(`Can not find textarea`);
         }
 
         // Check if textarea was focused before sending to preserve focus only in that case
         const wasTextareaFocused = document.activeElement === textareaElement;
-
-        textareaElement.disabled = true;
-        buttonSendElement.disabled = true;
 
         try {
             const messageContent = textareaElement.value;
@@ -439,9 +432,7 @@ export function Chat(props: ChatProps) {
                 /* not await */ soundSystem.play('message_send');
             }
 
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            await (onMessage as any)(messageContent, attachments);
-
+            // Clear input immediately
             textareaElement.value = '';
             setUploadedFiles([]); // Clear uploaded files after sending
 
@@ -449,6 +440,16 @@ export function Chat(props: ChatProps) {
             if (wasTextareaFocused) {
                 textareaElement.focus();
             }
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (onMessage as any)(messageContent, attachments).catch((error: unknown) => {
+                console.error(error);
+                if (error instanceof Error) {
+                    alert(error.message);
+                } else {
+                    alert(String(error));
+                }
+            });
         } catch (error) {
             if (!(error instanceof Error)) {
                 throw error;
@@ -456,16 +457,8 @@ export function Chat(props: ChatProps) {
 
             console.error(error);
             alert(error.message);
-        } finally {
-            textareaElement.disabled = false;
-            buttonSendElement.disabled = false;
-
-            // Only restore focus if the textarea was focused when sending the message
-            if (wasTextareaFocused) {
-                textareaElement.focus();
-            }
         }
-    }, [onMessage, uploadedFiles]);
+    }, [onMessage, uploadedFiles, soundSystem]);
 
     const useChatCssClassName = (suffix: string) => `chat-${suffix}`;
 

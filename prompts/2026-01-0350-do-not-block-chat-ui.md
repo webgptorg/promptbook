@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.00
 
 [✨🥳] When chatting, the UI is blocked from time when user sends a message until agent replys
 
@@ -34,3 +34,4 @@
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the [changelog](./changelog/_current-preversion.md)
+
