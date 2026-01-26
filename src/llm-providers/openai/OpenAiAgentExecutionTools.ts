@@ -1,5 +1,6 @@
 import colors from 'colors';
 import OpenAI from 'openai';
+import { TODO_any } from '../../_packages/types.index';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
@@ -7,11 +8,10 @@ import { UNCERTAIN_USAGE } from '../../execution/utils/usage-constants';
 import type { Prompt } from '../../types/Prompt';
 import type { string_date_iso8601, string_markdown, string_markdown_text, string_title } from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/misc/$getCurrentDate';
-import type { chococake } from '../../utils/organization/really_any';
 import { templateParameters } from '../../utils/parameters/templateParameters';
 import { exportJson } from '../../utils/serialization/exportJson';
-import { OpenAiExecutionTools } from './OpenAiExecutionTools';
 import type { OpenAiCompatibleExecutionToolsNonProxiedOptions } from './OpenAiCompatibleExecutionToolsOptions';
+import { OpenAiExecutionTools } from './OpenAiExecutionTools';
 import { mapToolsToOpenAi } from './utils/mapToolsToOpenAi';
 
 /**
@@ -69,7 +69,7 @@ export class OpenAiAgentExecutionTools extends OpenAiExecutionTools implements L
         });
 
         // Build input items
-        const input: Array<any> = []; // TODO: Type properly when OpenAI types are updated
+        const input: Array<TODO_any> = []; // TODO: Type properly when OpenAI types are updated
 
         // Add previous messages from thread (if any)
         if ('thread' in prompt && Array.isArray(prompt.thread)) {
@@ -89,9 +89,9 @@ export class OpenAiAgentExecutionTools extends OpenAiExecutionTools implements L
         // Prepare tools
         const tools = modelRequirements.tools ? mapToolsToOpenAi(modelRequirements.tools) : undefined;
         // Add file_search if vector store is present
-        const agentTools: Array<any> = tools ? [...tools] : [];
+        const agentTools: Array<TODO_any> = tools ? [...tools] : [];
 
-        let toolResources: any = undefined;
+        let toolResources: TODO_any = undefined;
 
         if (this.vectorStoreId) {
             agentTools.push({ type: 'file_search' });

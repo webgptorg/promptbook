@@ -1,6 +1,7 @@
 import { SHA256 as sha256 } from 'crypto-js';
 import hexEncoder from 'crypto-js/enc-hex';
 import type { Promisable } from 'type-fest';
+import { TODO_any } from '../../_packages/types.index';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import { createAgentModelRequirements } from '../../book-2.0/agent-source/createAgentModelRequirements';
 import { parseAgentSource } from '../../book-2.0/agent-source/parseAgentSource';
@@ -14,8 +15,8 @@ import type { string_markdown, string_markdown_text, string_model_name, string_t
 import { humanizeAiText } from '../../utils/markdown/humanizeAiText';
 import { promptbookifyAiText } from '../../utils/markdown/promptbookifyAiText';
 import { normalizeToKebabCase } from '../../utils/normalization/normalize-to-kebab-case';
-import { OpenAiAssistantExecutionTools } from '../openai/OpenAiAssistantExecutionTools';
 import { OpenAiAgentExecutionTools } from '../openai/OpenAiAgentExecutionTools';
+import { OpenAiAssistantExecutionTools } from '../openai/OpenAiAssistantExecutionTools';
 import type { CreateAgentLlmExecutionToolsOptions } from './CreateAgentLlmExecutionToolsOptions';
 
 /**
@@ -238,7 +239,7 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
                 // Ideally OpenAiAgentExecutionTools should have a method `withVectorStoreId`.
 
                 agentTools = new OpenAiAgentExecutionTools({
-                    ...(this.options.llmTools as any).options, // Accessing protected options via any cast
+                    ...(this.options.llmTools as TODO_any).options, // Accessing protected options via any cast
                     vectorStoreId: cached.vectorStoreId,
                 });
             } else {
@@ -265,7 +266,7 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
                 }
 
                 agentTools = new OpenAiAgentExecutionTools({
-                    ...(this.options.llmTools as any).options,
+                    ...(this.options.llmTools as TODO_any).options,
                     vectorStoreId,
                 });
             }
