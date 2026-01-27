@@ -7,7 +7,7 @@ import type { really_unknown } from '../utils/organization/really_unknown';
 import { templateParameters } from '../utils/parameters/templateParameters';
 import { valueToString } from '../utils/parameters/valueToString';
 
-const INLINE_UNSAFE_PARAMETER_PATTERN = /[\r\n`$"{};]/;
+const INLINE_UNSAFE_PARAMETER_PATTERN = /[\r\n`$'"|<>{};()-*/~+!@#$%^&*\\/[\]]/;
 const PROMPT_PARAMETER_ESCAPE_PATTERN = /[`$]/g;
 const PROMPT_PARAMETER_ESCAPE_WITH_BRACES_PATTERN = /[{}$`]/g;
 
