@@ -12,8 +12,9 @@ export function constructImageFilename(params: {
     size?: string;
     quality?: string;
     style?: string;
+    attachments?: Array<{ url: string }>;
 }): string {
-    const { prompt, model, size, quality, style } = params;
+    const { prompt, model, size, quality, style, attachments } = params;
 
     const promptTrimmed = spaceTrim(prompt);
 
@@ -27,6 +28,21 @@ export function constructImageFilename(params: {
         (size === '1024x1024' || size === undefined ? '' : `-${size}`) +
         (quality === 'standard' || quality === undefined ? '' : `-${quality}`) +
         (style === 'vivid' || style === undefined ? '' : `-${style}`) +
+        (attachments && attachments.length > 0 ? `-attach-${hashAttachments(attachments)}` : '') +
         '.png'
     );
+}
+
+function hashAttachments(attachments: Array<{ url: string }>): string {
+    const urls = attachments
+        .map((a) => a.url)
+        .sort()
+        .join('|');
+    let hash = 0;
+    for (let i = 0; i < urls.length; i++) {
+        const char = urls.charCodeAt(i);
+        hash = (hash << 5) - hash + char;
+        hash = hash & hash; // Convert to 32bit integer
+    }
+    return (hash >>> 0).toString(36);
 }

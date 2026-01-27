@@ -47,4 +47,25 @@ describe('constructImageFilename', () => {
             }),
         ).toBe('coffee-dall-e-2-1024x1792-hd-natural.png');
     });
+
+    it('should include attachments hash', () => {
+        expect(
+            constructImageFilename({
+                prompt: 'Coffee',
+                attachments: [{ url: 'http://example.com/image1.png' }, { url: 'http://example.com/image2.png' }],
+            }),
+        ).toMatch(/coffee-attach-[a-z0-9]+\.png/);
+    });
+
+    it('should produce same hash for same attachments regardless of order', () => {
+        const filename1 = constructImageFilename({
+            prompt: 'Coffee',
+            attachments: [{ url: 'http://example.com/image1.png' }, { url: 'http://example.com/image2.png' }],
+        });
+        const filename2 = constructImageFilename({
+            prompt: 'Coffee',
+            attachments: [{ url: 'http://example.com/image2.png' }, { url: 'http://example.com/image1.png' }],
+        });
+        expect(filename1).toBe(filename2);
+    });
 });

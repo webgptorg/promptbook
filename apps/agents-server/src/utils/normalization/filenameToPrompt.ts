@@ -7,8 +7,11 @@ import { capitalize } from '@promptbook/utils';
  * @returns The normalized prompt
  */
 export function filenameToPrompt(filename: string): string {
+    // Remove attachments hash
+    const cleanFilename = filename.replace(/-attach-[a-z0-9]+/, '');
+
     // Remove file extension
-    const withoutExtension = filename.replace(/\.[^/.]+$/, '');
+    const withoutExtension = cleanFilename.replace(/\.[^/.]+$/, '');
 
     // Replace dashes and underscores with spaces
     const withSpaces = withoutExtension.replace(/[-_]/g, ' ');

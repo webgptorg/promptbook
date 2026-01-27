@@ -114,7 +114,7 @@ export function ImageGeneratorTestClient() {
         const id = Math.random().toString(36).substring(7);
 
         // Match the filename generation logic
-        const filename = constructImageFilename({ prompt, model, size, quality, style });
+        const filename = constructImageFilename({ prompt, model, size, quality, style, attachments });
 
         const result: GeneratedImage = {
             id,
