@@ -11,7 +11,7 @@
 
 ---
 
-[x] ~$0.00
+[ ]
 
 [✨👒] Images are cached BUT other parameters besides `prompt` isn't considered.
 
@@ -40,5 +40,3 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
-
