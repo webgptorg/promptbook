@@ -102,7 +102,7 @@ This user should be handled with special care because he is VIP.
 
 ---
 
-[ ] !
+[x] ~$0.00
 
 [✨🚶] And better and more expressive samples to prompt notation page
 
@@ -120,3 +120,4 @@ This user should be handled with special care because he is VIP.
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
+

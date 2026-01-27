@@ -2,7 +2,7 @@
 
 import Editor from '@monaco-editor/react';
 import { PromptString, prompt, spaceTrim, valueToString } from '@promptbook-local/utils';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { TIME_INTERVALS } from '../../../../../src/constants';
 import { DEFAULT_PROMPT_CODE, PROMPT_NOTATION_EXAMPLES } from './promptNotationExamples';
 
@@ -117,6 +117,7 @@ export function PromptNotationComponent() {
     const [source, setSource] = useState(DEFAULT_PROMPT_CODE);
     const [output, setOutput] = useState('');
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const editorRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const handler = setTimeout(() => {
@@ -157,6 +158,17 @@ export function PromptNotationComponent() {
                                 Example {index + 1}: {example.title}
                             </h3>
                             <p className="text-gray-600 mt-2">{example.description}</p>
+                            <div className="mt-4">
+                                <button
+                                    onClick={() => {
+                                        setSource(example.runnableCode);
+                                        editorRef.current?.scrollIntoView({ behavior: 'smooth' });
+                                    }}
+                                    className="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded text-sm font-medium transition-colors"
+                                >
+                                    Try in playground ↓
+                                </button>
+                            </div>
                             <div className="mt-6 grid gap-4">
                                 <CodeBlock
                                     label="Code"
@@ -176,7 +188,7 @@ export function PromptNotationComponent() {
                 </div>
             </section>
 
-            <section className="space-y-6">
+            <section className="space-y-6" ref={editorRef}>
                 <h2 className="text-2xl font-semibold text-gray-900">Try it in the browser</h2>
                 <p className="text-gray-700">
                     Write JavaScript with <code className="bg-gray-100 px-1 rounded">prompt</code> notation on the left.
