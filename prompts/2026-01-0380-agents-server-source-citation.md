@@ -34,3 +34,33 @@
 ![alt text](prompts/screenshots/2026-01-0380-agents-server-source-citation-3.png)
 ![alt text](prompts/screenshots/2026-01-0380-agents-server-source-citation-4.png)
 
+---
+
+[ ] !!!!
+
+[✨👗] Fix showing the document from which the agent sourced their information
+
+-   Try harder to locate the document, for example this should be found
+
+```book
+AI Agent
+
+KNOWLEDGE https://ptbk.io/k/SS%202_2023%20-%20Informace%20106-fV9LzkrRbVN3zuMCEMgqb2ZeSxPPNs.docx
+```
+
+```
+{
+    "id": "5:0",
+    "source": "SS 2023 - Informace 106"
+}
+```
+
+-   Now it shows "Document preview unavailable" but it should show the document
+-   Despite the document being present in the knowledge base, the agent is not able to show it when cited
+-   Document in the `KNOWLEDGE` can be URL encoded - ensure that the document is correctly located
+-   Make some heuristic to locate the document - for example normalize the URLs, decode them, etc.
+-   You are working with the [Agents Server](apps/agents-server)
+-   Keep in mind the DRY _(don't repeat yourself)_ principle and other best practices.
+
+![alt text](prompts/screenshots/2026-01-0380-agents-server-source-citation-5.png)
+![alt text](prompts/screenshots/2026-01-0380-agents-server-source-citation-6.png)
