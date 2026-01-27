@@ -466,8 +466,43 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             );
         }
 
-        const resultContent = rawResponse[0]!.content[0]?.text.value;
-        //                                                     <- TODO: [🧠] There are also annotations, maybe use them
+        let resultContent = rawResponse[0]!.content[0]?.text.value;
+
+        // Process annotations to replace file IDs with filenames
+        if (rawResponse[0]!.content[0]?.text.annotations) {
+            const annotations = rawResponse[0]!.content[0]?.text.annotations;
+
+            // Map to store file ID -> filename to avoid duplicate requests
+            const fileIdToName = new Map<string, string>();
+
+            for (const annotation of annotations) {
+                if (annotation.type === 'file_citation') {
+                    const fileId = annotation.file_citation.file_id;
+                    let filename = fileIdToName.get(fileId);
+
+                    if (!filename) {
+                        try {
+                            const file = await client.files.retrieve(fileId);
+                            filename = file.filename;
+                            fileIdToName.set(fileId, filename);
+                        } catch (error) {
+                            console.error(`Failed to retrieve file info for ${fileId}`, error);
+                            // Fallback to "Source" or keep original if fetch fails
+                            filename = 'Source';
+                        }
+                    }
+
+                    if (filename && resultContent) {
+                        // Replace the citation marker with filename
+                        // Regex to match the second part of the citation: 【id†source】 -> 【id†filename】
+                        // Note: annotation.text contains the exact marker like 【4:0†source】
+
+                        const newText = annotation.text.replace(/†.*?】/, `†${filename}】`);
+                        resultContent = resultContent.replace(annotation.text, newText);
+                    }
+                }
+            }
+        }
 
         // eslint-disable-next-line prefer-const
         complete = $getCurrentDate();
@@ -599,7 +634,13 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                             continue;
                         }
                         const buffer = await response.arrayBuffer();
-                        const filename = source.split('/').pop() || 'downloaded-file';
+                        let filename = source.split('/').pop() || 'downloaded-file';
+                        try {
+                            const url = new URL(source);
+                            filename = url.pathname.split('/').pop() || filename;
+                        } catch (error) {
+                            // Keep default filename
+                        }
                         const blob = new Blob([buffer]);
                         const file = new File([blob], filename);
                         fileStreams.push(file);
@@ -741,7 +782,13 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                             continue;
                         }
                         const buffer = await response.arrayBuffer();
-                        const filename = source.split('/').pop() || 'downloaded-file';
+                        let filename = source.split('/').pop() || 'downloaded-file';
+                        try {
+                            const url = new URL(source);
+                            filename = url.pathname.split('/').pop() || filename;
+                        } catch (error) {
+                            // Keep default filename
+                        }
                         const blob = new Blob([buffer]);
                         const file = new File([blob], filename);
                         fileStreams.push(file);

@@ -16,7 +16,7 @@
 
 ---
 
-[ ] !
+[x] ~$0.00
 
 [✨👗] Fix showing the document from which the agent sourced their information
 
@@ -33,3 +33,4 @@
 ![alt text](prompts/screenshots/2026-01-0380-agents-server-source-citation-2.png)
 ![alt text](prompts/screenshots/2026-01-0380-agents-server-source-citation-3.png)
 ![alt text](prompts/screenshots/2026-01-0380-agents-server-source-citation-4.png)
+
