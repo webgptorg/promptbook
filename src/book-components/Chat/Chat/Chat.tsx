@@ -1585,7 +1585,12 @@ export function Chat(props: ChatProps) {
                                                     <MarkdownContent content={selectedCitation.excerpt} />
                                                 </div>
                                             ) : (
-                                                <div className={styles.noResults}>
+                                                <div
+                                                    className={styles.noResults}
+                                                    onClick={() => {
+                                                        console.info({ selectedCitation });
+                                                    }}
+                                                >
                                                     <p>📄 Document preview unavailable</p>
                                                 </div>
                                             )}
