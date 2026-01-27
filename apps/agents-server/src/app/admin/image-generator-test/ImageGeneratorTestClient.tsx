@@ -1,8 +1,9 @@
 'use client';
 
 import { upload } from '@vercel/blob/client';
-import { useRef, useState, useCallback } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import spaceTrim from 'spacetrim';
+import { constructImageFilename } from '../../../utils/normalization/constructImageFilename';
 import { Card } from '../../../components/Homepage/Card';
 
 // Using local SVG components because they might not be exported from @promptbook-local/components
@@ -111,18 +112,9 @@ export function ImageGeneratorTestClient() {
         attachments: PromptInput['attachments'] = [],
     ): Promise<GeneratedImage> => {
         const id = Math.random().toString(36).substring(7);
-        const promptTrimmed = prompt.trim();
 
         // Match the filename generation logic
-        const filename =
-            promptTrimmed
-                .toLowerCase()
-                .replace(/[^a-z0-9]+/g, '-')
-                .replace(/^-+|-+$/g, '') +
-            (size === '1024x1024' ? '' : `-${size}`) +
-            (quality === 'standard' ? '' : `-${quality}`) +
-            (style === 'vivid' ? '' : `-${style}`) +
-            '.png';
+        const filename = constructImageFilename({ prompt, model, size, quality, style });
 
         const result: GeneratedImage = {
             id,
@@ -211,7 +203,14 @@ export function ImageGeneratorTestClient() {
             // Update status to loading for this item
             setResults((prev) => prev.map((item, idx) => (idx === i ? { ...item, status: 'loading' } : item)));
 
-            const result = await generateSingleImage(p.value, modelName, modelSize, modelQuality, modelStyle, p.attachments);
+            const result = await generateSingleImage(
+                p.value,
+                modelName,
+                modelSize,
+                modelQuality,
+                modelStyle,
+                p.attachments,
+            );
 
             // Update result for this item
             setResults((prev) => prev.map((item, idx) => (idx === i ? { ...result, id: item.id } : item)));
@@ -360,7 +359,9 @@ export function ImageGeneratorTestClient() {
                                                 attachments={prompt.attachments}
                                                 onChange={(attachments) =>
                                                     setPrompts((prev) =>
-                                                        prev.map((p) => (p.id === prompt.id ? { ...p, attachments } : p)),
+                                                        prev.map((p) =>
+                                                            p.id === prompt.id ? { ...p, attachments } : p,
+                                                        ),
                                                     )
                                                 }
                                                 disabled={isGenerating}

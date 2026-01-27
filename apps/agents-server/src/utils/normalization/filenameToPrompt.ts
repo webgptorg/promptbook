@@ -14,7 +14,7 @@ export function filenameToPrompt(filename: string): string {
     const withSpaces = withoutExtension.replace(/[-_]/g, ' ');
 
     // Capitalize each word
-    const words = withSpaces.split(' ');
+    const words = withSpaces.split(' ').filter((word) => word !== '');
     const capitalizedWords = words.map((word, index) => (index === 0 ? capitalize(word) : word.toLowerCase()));
 
     return capitalizedWords.join(' ');
