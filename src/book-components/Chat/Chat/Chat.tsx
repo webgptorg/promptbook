@@ -1536,9 +1536,7 @@ export function Chat(props: ChatProps) {
                         </button>
                         <div className={styles.searchModalHeader}>
                             <span className={styles.searchModalIcon}>📄</span>
-                            <h3 className={styles.searchModalQuery}>
-                                {selectedCitation.source.replace(/\.[^/.]+$/, '')}
-                            </h3>
+                            <h3 className={styles.searchModalQuery}>{selectedCitation.source}</h3>
                         </div>
 
                         <div className={styles.searchModalContent}>
@@ -1546,20 +1544,39 @@ export function Chat(props: ChatProps) {
                                 {(() => {
                                     // Resolve the URL properly
                                     const resolvedUrl =
-                                        selectedCitation.url || resolveCitationUrl(selectedCitation.source, participants);
-                                    
-                                    // Check if URL is valid (starts with http:// or https://)
-                                    const isValidUrl = resolvedUrl && /^https?:\/\//.test(resolvedUrl);
+                                        selectedCitation.url ||
+                                        resolveCitationUrl(selectedCitation.source, participants);
+
+                                    const isValidUrl = !!resolvedUrl;
+                                    const extension = selectedCitation.source.split('.').pop()?.toLowerCase();
+                                    const isImage = ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(
+                                        extension || '',
+                                    );
 
                                     return (
                                         <>
                                             {isValidUrl ? (
                                                 <div className={styles.citationPreview}>
-                                                    <iframe
-                                                        src={resolvedUrl}
-                                                        className={styles.citationIframe}
-                                                        title={`Preview of ${selectedCitation.source}`}
-                                                    />
+                                                    {isImage ? (
+                                                        <img
+                                                            src={resolvedUrl}
+                                                            className={styles.citationImage}
+                                                            alt={`Preview of ${selectedCitation.source}`}
+                                                            style={{
+                                                                maxWidth: '100%',
+                                                                maxHeight: '100%',
+                                                                objectFit: 'contain',
+                                                                display: 'block',
+                                                                margin: '0 auto',
+                                                            }}
+                                                        />
+                                                    ) : (
+                                                        <iframe
+                                                            src={resolvedUrl}
+                                                            className={styles.citationIframe}
+                                                            title={`Preview of ${selectedCitation.source}`}
+                                                        />
+                                                    )}
                                                 </div>
                                             ) : selectedCitation.excerpt ? (
                                                 <div className={styles.citationExcerpt}>
@@ -1569,9 +1586,6 @@ export function Chat(props: ChatProps) {
                                             ) : (
                                                 <div className={styles.noResults}>
                                                     <p>📄 Document preview unavailable</p>
-                                                    <p className={styles.citationHint}>
-                                                        This citation references content from the knowledge base.
-                                                    </p>
                                                 </div>
                                             )}
                                         </>
@@ -1584,42 +1598,27 @@ export function Chat(props: ChatProps) {
                             {(() => {
                                 const resolvedUrl =
                                     selectedCitation.url || resolveCitationUrl(selectedCitation.source, participants);
-                                const isValidUrl = resolvedUrl && /^https?:\/\//.test(resolvedUrl);
 
-                                if (!isValidUrl) {
+                                if (!resolvedUrl) {
                                     return null;
                                 }
 
                                 return (
-                                    <button
+                                    <a
+                                        href={resolvedUrl}
+                                        download={selectedCitation.source}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
                                         className={styles.downloadButton}
-                                        onClick={async () => {
-                                            try {
-                                                // Play sound if available
-                                                if (soundSystem) {
-                                                    /* not await */ soundSystem.play('button_click');
-                                                }
-
-                                                const response = await fetch(resolvedUrl);
-                                                const blob = await response.blob();
-                                                const blobUrl = URL.createObjectURL(blob);
-                                                const a = document.createElement('a');
-                                                a.href = blobUrl;
-                                                a.download = selectedCitation.source;
-                                                document.body.appendChild(a);
-                                                a.click();
-                                                document.body.removeChild(a);
-                                                URL.revokeObjectURL(blobUrl);
-                                            } catch (err) {
-                                                console.warn('Failed to download file:', err);
-                                                // Fallback: open in new tab
-                                                window.open(resolvedUrl, '_blank');
+                                        onClick={() => {
+                                            if (soundSystem) {
+                                                /* not await */ soundSystem.play('button_click');
                                             }
                                         }}
                                     >
                                         <DownloadIcon size={18} />
                                         <span>Download</span>
-                                    </button>
+                                    </a>
                                 );
                             })()}
                         </div>

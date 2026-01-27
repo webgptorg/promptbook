@@ -25,41 +25,20 @@ export function resolveCitationUrl(source: string, participants: ReadonlyArray<C
         if (trimmed.startsWith('KNOWLEDGE ')) {
             const content = trimmed.substring('KNOWLEDGE '.length).trim();
 
-            // Check if it is a URL
-            if (content.match(/^https?:\/\//)) {
+            try {
+                // Ignore query params for matching
+                // Note: handling both URL query params (?) and maybe other things
+                const contentPath = content.split('?')[0]!;
+
                 // Check if it matches the source
                 // source: "document.pdf"
-                // content: "https://example.com/files/document.pdf"
+                // content: "https://example.com/files/document.pdf" OR "./files/document.pdf"
 
-                try {
-                    const url = new URL(content);
-                    const pathname = decodeURIComponent(url.pathname);
-
-                    if (pathname.endsWith('/' + source) || pathname === '/' + source || pathname === source) {
-                        return content;
-                    }
-                } catch (error) {
-                    // Invalid URL, ignore
-                }
-
-                // Fallback: Simple check ignoring query params by splitting ?
-                const contentWithoutQuery = content.split('?')[0]!;
-                let decodedContent = contentWithoutQuery;
-                try {
-                    decodedContent = decodeURIComponent(contentWithoutQuery);
-                } catch {
-                    // Ignore decoding errors
-                }
-
-                // Simple check: does the URL end with the source filename?
-                if (
-                    decodedContent.endsWith('/' + source) ||
-                    decodedContent === source ||
-                    contentWithoutQuery.endsWith('/' + source) ||
-                    contentWithoutQuery === source
-                ) {
+                if (contentPath.endsWith('/' + source) || contentPath === source) {
                     return content;
                 }
+            } catch (error) {
+                // Ignore errors
             }
         }
     }
