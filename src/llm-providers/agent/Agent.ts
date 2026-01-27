@@ -146,8 +146,16 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
         this.agentSource.subscribe((source) => {
             this.updateAgentSource(source);
 
-            const { agentName, personaDescription, initialMessage, links, meta, capabilities, samples, knowledgeSources } =
-                parseAgentSource(source);
+            const {
+                agentName,
+                personaDescription,
+                initialMessage,
+                links,
+                meta,
+                capabilities,
+                samples,
+                knowledgeSources,
+            } = parseAgentSource(source);
             this._agentName = agentName;
             this.personaDescription = personaDescription;
             this.initialMessage = initialMessage;

@@ -90,14 +90,17 @@ export class UseEmailCommitmentDefinition extends BaseCommitmentDefinition<'USE 
                   ...existingTools,
                   {
                       name: 'send_email',
-                      description: `Send an email to one or more recipients. ${!content ? '' : `Style instructions: ${content}`}`,
+                      description: `Send an email to one or more recipients. ${
+                          !content ? '' : `Style instructions: ${content}`
+                      }`,
                       parameters: {
                           type: 'object',
                           properties: {
                               to: {
                                   type: 'array',
                                   items: { type: 'string' },
-                                  description: 'Array of recipient email addresses (e.g., ["user@example.com", "Jane Doe <jane@example.com>"])',
+                                  description:
+                                      'Array of recipient email addresses (e.g., ["user@example.com", "Jane Doe <jane@example.com>"])',
                               },
                               cc: {
                                   type: 'array',
@@ -158,12 +161,7 @@ export class UseEmailCommitmentDefinition extends BaseCommitmentDefinition<'USE 
      */
     getToolFunctions(): Record<string_javascript_name, ToolFunction> {
         return {
-            async send_email(args: {
-                to: string[];
-                cc?: string[];
-                subject: string;
-                body: string;
-            }): Promise<string> {
+            async send_email(args: { to: string[]; cc?: string[]; subject: string; body: string }): Promise<string> {
                 console.log('!!!! [Tool] send_email called', { args });
                 return await sendEmailViaBrowser(args);
             },

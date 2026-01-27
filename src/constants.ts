@@ -167,12 +167,10 @@ export const LIMITS = {
  * @public exported from `@promptbook/core`
  */
 export const TIME_INTERVALS = {
-
-/**
+    /**
      * Hundred milliseconds
      */
     HUNDRED_MILLISECONDS: 100,
-
 
     /**
      * One second in milliseconds

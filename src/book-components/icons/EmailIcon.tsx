@@ -22,13 +22,7 @@ export function EmailIcon({ size = 24, color = 'currentColor' }: EmailIconProps)
                 strokeLinecap="round"
                 strokeLinejoin="round"
             />
-            <path
-                d="M22 8l-10 6L2 8"
-                stroke={color}
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-            />
+            <path d="M22 8l-10 6L2 8" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
     );
 }

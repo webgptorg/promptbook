@@ -2,11 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import type { string_url } from '../../../types/typeAliases';
-import {
-    loadAgentProfile,
-    resolveAgentProfileFallback,
-    shouldFetchAgentProfile,
-} from '../utils/loadAgentProfile';
+import { loadAgentProfile, resolveAgentProfileFallback, shouldFetchAgentProfile } from '../utils/loadAgentProfile';
 import styles from './AgentChip.module.css';
 
 /**
@@ -79,7 +75,7 @@ export type AgentChipProps = {
  *   onClick={() => console.log('clicked')}
  * />
  * ```
- * 
+ *
  * @private utility of `ChatMessageItem` component
  */
 export function AgentChip({ agent, isOngoing = false, isClickable = false, onClick, className }: AgentChipProps) {

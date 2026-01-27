@@ -203,7 +203,9 @@ export const createGoogleExecutionTools = Object.assign(
 
                         if (!response.ok) {
                             throw new PipelineExecutionError(
-                                `Google image generation failed (${response.status} ${response.statusText}): ${responseText || 'No response body'}`,
+                                `Google image generation failed (${response.status} ${response.statusText}): ${
+                                    responseText || 'No response body'
+                                }`,
                             );
                         }
 

@@ -999,7 +999,8 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
 
         if ('attachments' in prompt && Array.isArray(prompt.attachments) && prompt.attachments.length > 0) {
             rawPromptContent +=
-                '\n\n' + prompt.attachments.map((attachment: TODO_any) => `Image attachment: ${attachment.url}`).join('\n');
+                '\n\n' +
+                prompt.attachments.map((attachment: TODO_any) => `Image attachment: ${attachment.url}`).join('\n');
         }
 
         const rawRequest: OpenAI.Images.ImageGenerateParams = {
