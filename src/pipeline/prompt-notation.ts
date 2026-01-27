@@ -90,12 +90,14 @@ function escapePromptParameterValue(value: string, options: { includeBraces: boo
 function formatParameterListItem(name: string, value: string): string {
     const label = `{${name}}`;
 
-    if (!value.includes('\n') && !value.includes('\r')) {
-        return `- ${label}: ${value}`;
+    const wrappedValue = JSON.stringify(value, null, 2);
+
+    if (!wrappedValue.includes('\n')) {
+        return `- ${label}: ${wrappedValue}`;
     }
 
-    const lines = value.split(/\r?\n/);
-    return [`- ${label}:`, ...lines.map((line) => `  ${line}`)].join('\n');
+    const wrappedValueLines = wrappedValue.split(/\r?\n/);
+    return [`- ${label}:`, ...wrappedValueLines.map((line) => `  ${line}`)].join('\n');
 }
 
 /**
