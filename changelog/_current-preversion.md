@@ -316,3 +316,8 @@
     -   Simplified modal header to show only document name (without file extension) for better readability
 -   Fixed image generation caching to consider all generation parameters (model, size, quality, style) in the cache key, ensuring that changing these parameters generates a new image instead of returning a cached one from a previous generation with different settings.
 -   Fixed image generation caching to include input images (attachments) in the cache key, ensuring that using the same prompt with different input images generates new results.
+-   Improved self-learning experience in `Agent` class:
+    -   The agent now returns the generated answer immediately before starting the self-learning process.
+    -   Self-learning is performed asynchronously in the background.
+    -   A "Self learning" chip is displayed during the learning phase, similar to tool usage chips.
+    -   This enhances user experience by eliminating the wait time for self-learning completion.

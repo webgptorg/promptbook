@@ -17,6 +17,7 @@ import { validateBook } from '../../book-2.0/agent-source/string_book';
 import { getAllCommitmentsToolTitles } from '../../commitments/_common/getAllCommitmentsToolTitles';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
+import type { ToolCall } from '../../types/ToolCall';
 import type { Prompt } from '../../types/Prompt';
 import type {
     string_agent_hash,
@@ -164,7 +165,10 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
             this.samples = samples;
             this.knowledgeSources = knowledgeSources;
             this.meta = { ...this.meta, ...meta };
-            this.toolTitles = getAllCommitmentsToolTitles();
+            this.toolTitles = {
+                ...getAllCommitmentsToolTitles(),
+                'self-learning': 'Self learning',
+            };
         });
     }
 
@@ -234,17 +238,29 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
             return result;
         }
 
-        // TODO: !!!!! Return the answer and do the learning asynchronously
+        // Note: [0] Notify start of self-learning
+        const selfLearningToolCall: ToolCall = {
+            name: 'self-learning',
+            arguments: {},
+            createdAt: new Date().toISOString() as string_date_iso8601,
+        };
 
-        // Note: [0] Asynchronously add nonce
+        const resultWithLearning = {
+            ...result,
+            toolCalls: [...(result.toolCalls || []), selfLearningToolCall],
+        };
+
+        onProgress(resultWithLearning);
+
+        // Note: [1] Asynchronously add nonce
         if (just(false)) {
             await this.#selfLearnNonce();
         }
 
-        // Note: [1] Do the append of the samples
+        // Note: [2] Do the append of the samples
         await this.#selfLearnSamples(prompt, result);
 
-        // Note: [2] Asynchronously call the teacher agent and invoke the silver link. When the teacher fails, keep just the samples
+        // Note: [3] Asynchronously call the teacher agent and invoke the silver link. When the teacher fails, keep just the samples
         await this.#selfLearnTeacher(prompt, result).catch((error) => {
             // !!!!! if (this.options.isVerbose) {
             console.error(colors.bgCyan('[Self-learning]') + colors.red(' Failed to learn from teacher agent'));
@@ -252,7 +268,20 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
             // }
         });
 
-        return result;
+        // Note: [4] Notify end of self-learning
+        const completedSelfLearningToolCall: ToolCall = {
+            ...selfLearningToolCall,
+            result: { success: true },
+        };
+
+        const finalResult = {
+            ...result,
+            toolCalls: [...(result.toolCalls || []), completedSelfLearningToolCall],
+        };
+
+        onProgress(finalResult);
+
+        return finalResult;
     }
 
     /**
