@@ -102,11 +102,12 @@ This user should be handled with special care because he is VIP.
 
 ---
 
-[-]
+[ ]
 
-[✨🚶] foo
+[✨🚶] And better and more expressive samples to prompt notation page @@@
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   You are working with the [Utils app](apps/utils)
 -   Add the changes into the `/changelog/_current-preversion.md`
 
 ---
