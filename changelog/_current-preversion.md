@@ -1,5 +1,11 @@
 ### 📚 Book
 
+-   Fixed document source citation in Agents Server chat:
+    -   Resolved issue where clicking on KNOWLEDGE source chips showed "Document preview unavailable" instead of the actual document
+    -   Fixed `/api/profile` endpoint to explicitly include `knowledgeSources` array in the response
+    -   Added inheritance support for `knowledgeSources` so child agents inherit knowledge from parent agents
+    -   Citations from KNOWLEDGE commitments now correctly resolve to their source URLs for preview and download
+    -   Follows DRY principle - parsing logic is centralized in `parseAgentSource()`, data flows through API to `RemoteAgent`
 -   Allow to add image in the image prompt in `ImageGeneratorTestClient`
 -   Ensured the Agents Server chat menu stays above chat action buttons (New chat, Save, etc.).
 -   Added Promptbook SDK integration snippets in Agents Server, including RemoteAgent Node.js and React examples on the integration page.

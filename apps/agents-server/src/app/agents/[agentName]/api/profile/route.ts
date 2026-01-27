@@ -59,6 +59,11 @@ async function inheritMeta(
         if (!agentProfile.initialMessage) {
             agentProfile.initialMessage = parentAgentProfile.initialMessage;
         }
+
+        // Inherit knowledge sources if missing (for citation resolution)
+        if (!agentProfile.knowledgeSources || agentProfile.knowledgeSources.length === 0) {
+            agentProfile.knowledgeSources = parentAgentProfile.knowledgeSources || [];
+        }
     } catch (error) {
         console.error(`Failed to inherit from parent agent "${parentAgentName}":`, error);
     }
@@ -105,6 +110,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
                     parameters: [], // <- TODO: [😰] Implement parameters
                     isVoiceCallingEnabled, // [✨✷] Add voice calling status
                     toolTitles: agentProfile.meta.toolTitles || {}, // <- [🧠] Should we have this in meta?
+                    knowledgeSources: agentProfile.knowledgeSources || [], // <- [📚] Explicitly include knowledge sources for citation resolution
                 },
                 // <- TODO: [🐱‍🚀] Rename `serializeError` to `errorToJson`
                 null,

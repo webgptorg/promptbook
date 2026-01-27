@@ -12,6 +12,20 @@ const PROMPT_PARAMETER_ESCAPE_PATTERN = /[`$]/g;
 const PROMPT_PARAMETER_ESCAPE_WITH_BRACES_PATTERN = /[{}$`]/g;
 
 /**
+ * Hides brackets in a string to avoid confusion with template parameters.
+ */
+function hideBrackets(value: string): string {
+    return value.split('{').join(`${REPLACING_NONCE}beginbracket`).split('}').join(`${REPLACING_NONCE}endbracket`);
+}
+
+/**
+ * Restores brackets in a string.
+ */
+function restoreBrackets(value: string): string {
+    return value.split(`${REPLACING_NONCE}beginbracket`).join('{').split(`${REPLACING_NONCE}endbracket`).join('}');
+}
+
+/**
  * Prompt string wrapper to retain prompt context across interpolations.
  *
  * @public exported from `@promptbook/utils`
@@ -89,16 +103,8 @@ function escapePromptParameterValue(value: string, options: { includeBraces: boo
  */
 function formatParameterListItem(name: string, value: string): string {
     const label = `{${name}}`;
-
-    const wrappedValue =
-        value.length > 100 ? JSON.stringify({ [name]: value }, null, 2) : JSON.stringify({ [name]: value });
-
-    if (!wrappedValue.includes('\n')) {
-        return `- ${label}: ${wrappedValue}`;
-    }
-
-    const wrappedValueLines = wrappedValue.split(/\r?\n/);
-    return [`- ${label}:`, ...wrappedValueLines.map((line) => `  ${line}`)].join('\n');
+    const wrappedValue = JSON.stringify(value);
+    return `- ${label}: ${wrappedValue}`;
 }
 
 /**
@@ -139,10 +145,7 @@ export function prompt(strings: TemplateStringsArray, ...values: Array<really_un
         return new PromptString(spaceTrim(strings.join('')));
     }
 
-    const stringsWithHiddenParameters = strings.map((stringsItem) =>
-        // TODO: [0] DRY
-        stringsItem.split('{').join(`${REPLACING_NONCE}beginbracket`).split('}').join(`${REPLACING_NONCE}endbracket`),
-    );
+    const stringsWithHiddenParameters = strings.map((stringsItem) => hideBrackets(stringsItem));
 
     const parameterEntries = values.map((value, index) => {
         const name = `param${index + 1}`;
@@ -193,12 +196,7 @@ export function prompt(strings: TemplateStringsArray, ...values: Array<really_un
         );
     }
 
-    // TODO: [0] DRY
-    pipelineString = pipelineString
-        .split(`${REPLACING_NONCE}beginbracket`)
-        .join('{')
-        .split(`${REPLACING_NONCE}endbracket`)
-        .join('}');
+    pipelineString = restoreBrackets(pipelineString);
 
     for (const entry of parameterEntries) {
         if (entry.isPrompt) {
