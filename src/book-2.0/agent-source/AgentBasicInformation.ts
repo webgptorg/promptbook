@@ -144,6 +144,13 @@ export type AgentBasicInformation = {
      * List of sample conversations (question/answer pairs)
      */
     samples: Array<{ question: string | null; answer: string }>;
+
+    /**
+     * Knowledge sources (documents, URLs) used by the agent
+     * This is parsed from KNOWLEDGE commitments
+     * Used for resolving document citations when the agent references sources
+     */
+    knowledgeSources: Array<{ url: string; filename: string }>;
 };
 
 /**

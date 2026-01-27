@@ -7,6 +7,7 @@ import spaceTrim from 'spacetrim';
 import { Color, saturate } from '../../../_packages/color.index';
 import { PROMPTBOOK_COLOR } from '../../../config';
 import { asUpdatableSubject } from '../../../types/Updatable';
+import type { TODO_any } from '../../../utils/organization/TODO_any';
 import { LlmChat } from '../LlmChat/LlmChat';
 import type { AgentChatProps } from './AgentChatProps';
 
@@ -56,6 +57,7 @@ export function AgentChat(props: AgentChatProps) {
                         color: brandColor,
                         isMe: false,
                         agentSource: asUpdatableSubject(agent.agentSource).getValue() /* <- TODO: [🐱‍🚀] asValue */,
+                        knowledgeSources: (agent as TODO_any).knowledgeSources,
                     },
                     {
                         name: 'USER',

@@ -86,6 +86,13 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
     public samples: Array<{ question: string | null; answer: string }> = [];
 
     /**
+     * Knowledge sources (documents, URLs) used by the agent
+     * This is parsed from KNOWLEDGE commitments
+     * Used for resolving document citations when the agent references sources
+     */
+    public knowledgeSources: Array<{ url: string; filename: string }> = [];
+
+    /**
      * Computed hash of the agent source for integrity verification
      */
     public get agentHash(): string_agent_hash {
@@ -139,7 +146,7 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
         this.agentSource.subscribe((source) => {
             this.updateAgentSource(source);
 
-            const { agentName, personaDescription, initialMessage, links, meta, capabilities, samples } =
+            const { agentName, personaDescription, initialMessage, links, meta, capabilities, samples, knowledgeSources } =
                 parseAgentSource(source);
             this._agentName = agentName;
             this.personaDescription = personaDescription;
@@ -147,6 +154,7 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
             this.links = links;
             this.capabilities = capabilities;
             this.samples = samples;
+            this.knowledgeSources = knowledgeSources;
             this.meta = { ...this.meta, ...meta };
             this.toolTitles = getAllCommitmentsToolTitles();
         });

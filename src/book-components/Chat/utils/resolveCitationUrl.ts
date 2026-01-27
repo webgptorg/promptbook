@@ -14,31 +14,44 @@ export function resolveCitationUrl(source: string, participants: ReadonlyArray<C
     // TODO: [🧠] If there are multiple agents/teammates, we might need to search all of them or know which one generated the message
     const agent = participants.find((p) => p.name === 'AGENT');
 
-    if (!agent || !agent.agentSource) {
+    if (!agent) {
         return null;
     }
 
-    const lines = agent.agentSource.split(/\r?\n/);
-    for (const line of lines) {
-        const trimmed = line.trim();
-        // Note: Check for KNOWLEDGE command (case-sensitive as per commitment definitions)
-        if (trimmed.startsWith('KNOWLEDGE ')) {
-            const content = trimmed.substring('KNOWLEDGE '.length).trim();
+    // First, try to resolve from knowledgeSources array (more reliable for remote agents)
+    if (agent.knowledgeSources && agent.knowledgeSources.length > 0) {
+        for (const knowledgeSource of agent.knowledgeSources) {
+            // Match by filename
+            if (knowledgeSource.filename === source) {
+                return knowledgeSource.url;
+            }
+        }
+    }
 
-            try {
-                // Ignore query params for matching
-                // Note: handling both URL query params (?) and maybe other things
-                const contentPath = content.split('?')[0]!;
+    // Fallback: Try to resolve from agent source (for local agents or backward compatibility)
+    if (agent.agentSource) {
+        const lines = agent.agentSource.split(/\r?\n/);
+        for (const line of lines) {
+            const trimmed = line.trim();
+            // Note: Check for KNOWLEDGE command (case-sensitive as per commitment definitions)
+            if (trimmed.startsWith('KNOWLEDGE ')) {
+                const content = trimmed.substring('KNOWLEDGE '.length).trim();
 
-                // Check if it matches the source
-                // source: "document.pdf"
-                // content: "https://example.com/files/document.pdf" OR "./files/document.pdf"
+                try {
+                    // Ignore query params for matching
+                    // Note: handling both URL query params (?) and maybe other things
+                    const contentPath = content.split('?')[0]!;
 
-                if (contentPath.endsWith('/' + source) || contentPath === source) {
-                    return content;
+                    // Check if it matches the source
+                    // source: "document.pdf"
+                    // content: "https://example.com/files/document.pdf" OR "./files/document.pdf"
+
+                    if (contentPath.endsWith('/' + source) || contentPath === source) {
+                        return content;
+                    }
+                } catch (error) {
+                    // Ignore errors
                 }
-            } catch (error) {
-                // Ignore errors
             }
         }
     }

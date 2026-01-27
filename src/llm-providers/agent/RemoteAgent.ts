@@ -95,6 +95,7 @@ export class RemoteAgent extends Agent {
         remoteAgent.samples = profile.samples || [];
         remoteAgent.toolTitles = profile.toolTitles || {};
         remoteAgent._isVoiceCallingEnabled = profile.isVoiceCallingEnabled === true; // [✨✷] Store voice calling status
+        remoteAgent.knowledgeSources = profile.knowledgeSources || [];
 
         return remoteAgent;
     }
@@ -107,6 +108,7 @@ export class RemoteAgent extends Agent {
     private _remoteAgentHash: string_agent_hash | undefined;
     public toolTitles: Record<string, string> = {};
     private _isVoiceCallingEnabled: boolean = false; // [✨✷] Track voice calling status
+    public knowledgeSources: Array<{ url: string; filename: string }> = [];
 
     private constructor(options: AgentOptions & RemoteAgentOptions) {
         super(options);

@@ -56,6 +56,7 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
     const links: string[] = [];
     const capabilities: AgentCapability[] = [];
     const samples: Array<{ question: string | null; answer: string }> = [];
+    const knowledgeSources: Array<{ url: string; filename: string }> = [];
     let pendingUserMessage: string | null = null;
 
     for (const commitment of parseResult.commitments) {
@@ -205,11 +206,23 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
             let label = content;
             let iconName = 'Book';
 
+            // Check if this is a URL (for knowledge sources resolution)
             if (content.startsWith('http://') || content.startsWith('https://')) {
                 try {
                     const url = new URL(content);
+                    const filename = url.pathname.split('/').pop() || '';
+
+                    // Store the URL and filename for citation resolution
+                    if (filename) {
+                        knowledgeSources.push({
+                            url: content,
+                            filename,
+                        });
+                    }
+
+                    // Determine display label and icon
                     if (url.pathname.endsWith('.pdf')) {
-                        label = url.pathname.split('/').pop() || 'Document.pdf';
+                        label = filename || 'Document.pdf';
                         iconName = 'FileText';
                     } else {
                         label = url.hostname.replace(/^www\./, '');
@@ -296,6 +309,7 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
         parameters,
         capabilities,
         samples,
+        knowledgeSources,
     };
 }
 
