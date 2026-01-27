@@ -44,7 +44,7 @@ type ClaudeCodeJsonOutput = {
 export function parseClaudeCodeJsonOutput(output: string): Usage {
     try {
         // Extract JSON from the output - it should be a line starting with {"type":"result"
-        const lines = output.split('\n');
+        const lines = output.split(/\r?\n/);
         const jsonLine = lines.find((line) => line.trim().startsWith('{"type":"result"'));
 
         if (!jsonLine) {

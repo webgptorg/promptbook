@@ -13,7 +13,7 @@ export function removeCommentsFromSystemMessage(systemMessage: string): string {
         return systemMessage;
     }
 
-    const lines = systemMessage.split('\n');
+    const lines = systemMessage.split(/\r?\n/);
     const filteredLines = lines.filter((line) => {
         const trimmedLine = line.trim();
         // Remove lines that start with # (comments)

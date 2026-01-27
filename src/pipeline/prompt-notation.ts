@@ -107,7 +107,7 @@ function formatParameterListItem(name: string, value: string): string {
  */
 function buildParametersSection(items: Array<{ name: string; value: string }>): string {
     const entries = items
-        .flatMap((item) => formatParameterListItem(item.name, item.value).split('\n'))
+        .flatMap((item) => formatParameterListItem(item.name, item.value).split(/\r?\n/))
         .filter((line) => line !== '');
 
     return [

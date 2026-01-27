@@ -13,7 +13,7 @@ export function isFlatPipeline(pipelineString: PipelineString): boolean {
     pipelineString = spaceTrim(pipelineString) as PipelineString;
 
     const isMarkdownBeginningWithHeadline = pipelineString.startsWith('# ');
-    //const isLastLineReturnStatement = pipelineString.split('\n').pop()!.split('`').join('').startsWith('->');
+    //const isLastLineReturnStatement = pipelineString.split(/\r?\n/).pop()!.split('`').join('').startsWith('->');
 
     const isBacktickBlockUsed = pipelineString.includes('```');
     const isQuoteBlocksUsed = /^>\s+/m.test(pipelineString);

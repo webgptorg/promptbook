@@ -63,7 +63,7 @@ async function getEmbedding(text) {
         // Ignore mkdir errors; proceed to fetch
     }
 
-    console.info(`🧠 Embedding "${text.split('\n')[0].slice(0, 20)}..."`);
+    console.info(`🧠 Embedding "${text.split(/\r?\n/)[0].slice(0, 20)}..."`);
 
     // Fetch from API only when no cache
     const response = await client.embeddings.create({

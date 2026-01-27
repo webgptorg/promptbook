@@ -95,7 +95,7 @@ export async function resolveInheritedAgentSource(
 
     let isFromResolved = false;
     const newAgentSourceChunks: Array<string> = [];
-    const agentSourceChunks = spaceTrim(agentSource).split('\n');
+    const agentSourceChunks = spaceTrim(agentSource).split(/\r?\n/);
     // <- TODO: [🈲] Simple and encapsulated way to split book into commitments
 
     for (let i = 0; i < agentSourceChunks.length; i++) {

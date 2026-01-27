@@ -3,9 +3,9 @@
 import Editor from '@monaco-editor/react';
 import { useMemo, useState } from 'react';
 import type { string_book } from '../../../book-2.0/agent-source/string_book';
+import { classNames } from '../../_common/react-utils/classNames';
 import { BookEditor } from '../../BookEditor/BookEditor';
 import { downloadFile } from '../utils/downloadFile';
-import { classNames } from '../../_common/react-utils/classNames';
 import styles from './CodeBlock.module.css';
 
 type CodeBlockProps = {
@@ -40,7 +40,7 @@ const LANGUAGE_EXTENSIONS: Record<string, string> = {
  * @private Internal utility of `<ChatMessage />` component
  */
 export function CodeBlock({ code, language, className, onCreateAgent }: CodeBlockProps) {
-    const lines = useMemo(() => code.split('\n').length, [code]);
+    const lines = useMemo(() => code.split(/\r?\n/).length, [code]);
     // Note: 19px is approx line height for fontSize 14. +20 for padding.
     // We cap at 400px to avoid taking too much space, allowing scroll.
     const height = Math.min(Math.max(lines * 19, 19), 400);

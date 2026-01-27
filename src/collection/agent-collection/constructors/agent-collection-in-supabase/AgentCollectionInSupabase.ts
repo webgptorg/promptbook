@@ -160,7 +160,7 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
         let { permanentId } = agentProfile;
 
         // 2. Remove META ID from the source
-        const lines = agentSource.split('\n');
+        const lines = agentSource.split(/\r?\n/);
         const strippedLines = lines.filter((line) => !line.trim().startsWith('META ID '));
 
         if (lines.length !== strippedLines.length) {
@@ -250,7 +250,7 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
         let { permanentId: newPermanentId } = agentProfile;
 
         // 2. Remove META ID from the source
-        const lines = agentSource.split('\n');
+        const lines = agentSource.split(/\r?\n/);
         const strippedLines = lines.filter((line) => !line.trim().startsWith('META ID '));
 
         if (lines.length !== strippedLines.length) {

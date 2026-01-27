@@ -334,7 +334,7 @@ export function MetadataClient() {
                                     value={formState.value.split(',').join('\n')}
                                     onChange={(e) => {
                                         const newValue = e.target.value
-                                            .split('\n')
+                                            .split(/\r?\n/)
                                             .map((line) => line.trim())
                                             .filter((line) => line !== '')
                                             .join(',');

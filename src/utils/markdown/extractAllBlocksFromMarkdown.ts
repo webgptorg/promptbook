@@ -39,7 +39,7 @@ export type MarkdownCodeBlock = {
  */
 export function extractAllBlocksFromMarkdown(markdown: string_markdown): ReadonlyArray<MarkdownCodeBlock> {
     const codeBlocks: Array<MarkdownCodeBlock> = [];
-    const lines = markdown.split('\n');
+    const lines = markdown.split(/\r?\n/);
 
     // Note: [0] Ensure that the last block notated by gt > will be closed
     lines.push('');

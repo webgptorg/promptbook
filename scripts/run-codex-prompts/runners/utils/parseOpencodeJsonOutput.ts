@@ -12,11 +12,11 @@ export function parseOpencodeJsonOutput(output: string): Usage {
         // Extract JSON from the output - it should be a line starting with {"type":"result" or similar
         // Based on ClaudeCodeRunner, it looks for a specific line.
         // For Opencode, we'll try to find the last valid JSON object in the output
-        const lines = output.split('\n');
-        
+        const lines = output.split(/\r?\n/);
+
         // Let's assume Opencode output might have multiple JSON lines (events) and the result is one of them
         // or it's a single JSON object if --format json is used.
-        
+
         const jsonLine = lines.reverse().find((line) => line.trim().startsWith('{') && line.trim().endsWith('}'));
 
         if (!jsonLine) {
@@ -34,7 +34,7 @@ export function parseOpencodeJsonOutput(output: string): Usage {
 
         // If Opencode follows a similar structure to Claude Code:
         if (parsed.usage) {
-             const totalInputTokens =
+            const totalInputTokens =
                 (parsed.usage.input_tokens || 0) +
                 (parsed.usage.cache_creation_input_tokens || 0) +
                 (parsed.usage.cache_read_input_tokens || 0);

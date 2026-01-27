@@ -41,7 +41,9 @@ export function DocumentationContent({ primary, aliases = [], isPrintOnly = fals
                     )}
                 </div>
                 {primary.description && (
-                    <p className="text-xl text-gray-600 leading-relaxed max-w-3xl print:text-lg">{primary.description}</p>
+                    <p className="text-xl text-gray-600 leading-relaxed max-w-3xl print:text-lg">
+                        {primary.description}
+                    </p>
                 )}
             </div>
 
@@ -57,7 +59,7 @@ export function DocumentationContent({ primary, aliases = [], isPrintOnly = fals
                                 if (match && match[1] === 'book') {
                                     const value = String(children).replace(/\n$/, '');
                                     // Estimate height: lines * 30px + padding
-                                    const lineCount = value.split('\n').length;
+                                    const lineCount = value.split(/\r?\n/).length;
                                     const height = lineCount * 30 + 40; // 30px per line + 40px buffer
 
                                     return (

@@ -27,7 +27,7 @@ export function parseAgentSourceWithCommitments(agentSource: string_book): Omit<
         };
     }
 
-    const lines = agentSource.split('\n');
+    const lines = agentSource.split(/\r?\n/);
     let agentName: string_agent_name | null = null;
     let agentNameLineIndex = -1;
 

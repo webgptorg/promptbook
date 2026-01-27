@@ -393,7 +393,7 @@ export function BookEditorMonaco(props: BookEditorProps) {
             decorationIdsRef.current = editor.deltaDecorations(decorationIdsRef.current, newDecorations);
 
             // Add decorations for code blocks
-            const lines = text.split('\n');
+            const lines = text.split(/\r?\n/);
             const codeBlockDecorations: editor.IModelDeltaDecoration[] = [];
             let inCodeBlock = false;
             let codeBlockStartLine = 0;

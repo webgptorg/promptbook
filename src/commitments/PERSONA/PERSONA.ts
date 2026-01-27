@@ -123,7 +123,7 @@ export class PersonaCommitmentDefinition extends BaseCommitmentDefinition<'PERSO
             cleanedMessage = '';
         } else if (currentMessage.startsWith('# PERSONA')) {
             // Remove existing persona section by finding where it ends
-            const lines = currentMessage.split('\n');
+            const lines = currentMessage.split(/\r?\n/);
             let personaEndIndex = lines.length;
 
             // Find the end of the PERSONA section (next comment or end of message)

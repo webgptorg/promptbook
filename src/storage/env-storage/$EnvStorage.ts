@@ -85,7 +85,7 @@ export class $EnvStorage<TItem> implements PromptbookStorage<TItem> {
 
         const transformedKey = this.transformKey(key);
         const updatedEnvContent = envContent
-            .split('\n')
+            .split(/\r?\n/)
             .filter((line) => !line.startsWith(`# ${GENERATOR_WARNING_IN_ENV}`)) // Remove GENERATOR_WARNING_IN_ENV
             .filter((line) => !line.startsWith(`${transformedKey}=`)) // Remove existing key if present
             .join('\n');

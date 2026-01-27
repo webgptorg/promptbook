@@ -16,7 +16,7 @@ export function formatOptionalInstructionBlock(label: string, content: string): 
         - ${label}:
             ${block(
                 trimmedContent
-                    .split('\n')
+                    .split(/\r?\n/)
                     .map((line) => `- ${line}`)
                     .join('\n'),
             )}

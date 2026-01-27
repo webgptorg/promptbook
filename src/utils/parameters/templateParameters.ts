@@ -1,12 +1,9 @@
 import { LOOP_LIMIT } from '../../config';
-import { RESERVED_PARAMETER_MISSING_VALUE } from '../../constants';
-import { RESERVED_PARAMETER_RESTRICTED } from '../../constants';
+import { RESERVED_PARAMETER_MISSING_VALUE, RESERVED_PARAMETER_RESTRICTED } from '../../constants';
 import { LimitReachedError } from '../../errors/LimitReachedError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import { UnexpectedError } from '../../errors/UnexpectedError';
-import type { Parameters } from '../../types/typeAliases';
-import type { string_parameter_name } from '../../types/typeAliases';
-import type { string_template } from '../../types/typeAliases';
+import type { Parameters, string_parameter_name, string_template } from '../../types/typeAliases';
 import type { really_unknown } from '../organization/really_unknown';
 import { valueToString } from './valueToString';
 
@@ -76,7 +73,7 @@ export function templateParameters(
 
         if (parameterValue.includes('\n') && /^\s*\W{0,3}\s*$/.test(precol)) {
             parameterValue = parameterValue
-                .split('\n')
+                .split(/\r?\n/)
                 .map((line, index) => (index === 0 ? line : `${precol}${line}`))
                 .join('\n');
         }

@@ -66,7 +66,7 @@ export type TeamToolResult = {
 function parseSearchResultsFromText(text: string): Array<TODO_any> {
     const results: Array<TODO_any> = [];
     const normalized = text.replace(/\r\n/g, '\n');
-    const lines = normalized.split('\n');
+    const lines = normalized.split(/\r?\n/);
     const urlPattern = /(https?:\/\/[^\s]+)/i;
     let current: { title?: string; url?: string; snippetParts: string[] } | null = null;
 

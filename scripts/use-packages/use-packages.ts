@@ -149,7 +149,7 @@ async function usePackages() {
 
             const changedLines = gitStatusResult
                 .trim()
-                .split('\n')
+                .split(/\r?\n/)
                 .filter((line: string) => line);
 
             if (changedLines.length === 0) {
@@ -239,7 +239,9 @@ async function usePackages() {
     for (const { folder, error } of failedProjects) {
         // Note: Using .split(...).join(...) to remove the CWD prefix from the error message
         console.info(
-            colors.red(`   - ${folder}: ${error.message.split(process.cwd()).join('').split('\n').join(' ').trim()}`),
+            colors.red(
+                `   - ${folder}: ${error.message.split(process.cwd()).join('').split(/\r?\n/).join(' ').trim()}`,
+            ),
         );
     }
     console.info(colors.yellow(`  Skipped (unexpected changes) (${skippedProjects.length}):`));

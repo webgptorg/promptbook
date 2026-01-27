@@ -59,7 +59,7 @@ export function serializeToPromptbookJavascript(value: TODO_any): SerializeToPro
             .map(
                 ([key, val]) =>
                     `    ${JSON.stringify(key)}: ${val
-                        ?.split('\n')
+                        ?.split(/\r?\n/)
                         .map((line) => `    ${line}`)
                         .join('\n')}`,
             )

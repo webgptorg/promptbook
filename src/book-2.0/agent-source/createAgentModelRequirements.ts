@@ -103,7 +103,7 @@ export function extractMcpServers(agentSource: string_book): string[] {
         return [];
     }
 
-    const lines = agentSource.split('\n');
+    const lines = agentSource.split(/\r?\n/);
     const mcpRegex = /^\s*MCP\s+(.+)$/i;
     const mcpServers: string[] = [];
 

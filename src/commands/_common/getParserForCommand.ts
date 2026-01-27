@@ -23,7 +23,7 @@ export function getParserForCommand<TCommand extends Command>(command: TCommand)
 
                     ${block(
                         JSON.stringify(command, null, 4)
-                            .split('\n')
+                            .split(/\r?\n/)
                             .map((line) => `> ${line}`)
                             .join('\n'),
                     )}

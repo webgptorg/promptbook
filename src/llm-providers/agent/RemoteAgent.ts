@@ -304,7 +304,7 @@ export class RemoteAgent extends Agent {
                         let sawToolCalls = false;
                         let hasNonEmptyText = false;
                         const textLines: string[] = [];
-                        const lines = textChunk.split('\n');
+                        const lines = textChunk.split(/\r?\n/);
                         for (const line of lines) {
                             const trimmedLine = line.trim();
                             let isToolCallLine = false;

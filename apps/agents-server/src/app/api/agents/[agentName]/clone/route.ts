@@ -30,7 +30,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             }
         }
 
-        const lines = source.split('\n');
+        const lines = source.split(/\r?\n/);
         lines[0] = newAgentName;
         const newSource = lines.join('\n') as string_book;
 

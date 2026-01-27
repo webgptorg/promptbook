@@ -576,7 +576,7 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
      * @returns Formatted string with line number and content, or empty string if marker not found
      */
     function findMarkerLine(fileContent: string, marker: string, fileName: string): string {
-        const lines = fileContent.split('\n');
+        const lines = fileContent.split(/\r?\n/);
         for (let i = 0; i < lines.length; i++) {
             if (lines[i].includes(marker)) {
                 const lineNumber = i + 1;

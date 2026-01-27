@@ -132,7 +132,7 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
         }
 
         if (commitment.type === 'FROM') {
-            const content = spaceTrim(commitment.content).split('\n')[0] || '';
+            const content = spaceTrim(commitment.content).split(/\r?\n/)[0] || '';
 
             if (content === 'Adam' || content === '' /* <- Note: Adam is implicit */) {
                 continue;
@@ -160,7 +160,7 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
         }
 
         if (commitment.type === 'IMPORT') {
-            const content = spaceTrim(commitment.content).split('\n')[0] || '';
+            const content = spaceTrim(commitment.content).split(/\r?\n/)[0] || '';
             let label = content;
             let iconName = 'ExternalLink'; // Import remote
 
@@ -201,7 +201,7 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
         }
 
         if (commitment.type === 'KNOWLEDGE') {
-            const content = spaceTrim(commitment.content).split('\n')[0] || '';
+            const content = spaceTrim(commitment.content).split(/\r?\n/)[0] || '';
             let label = content;
             let iconName = 'Book';
 

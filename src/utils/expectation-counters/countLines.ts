@@ -16,7 +16,7 @@ export function countLines(text: string): ExpectationAmount {
     text = text.replace('\r\n', '\n');
     text = text.replace('\r', '\n');
 
-    const lines = text.split('\n');
+    const lines = text.split(/\r?\n/);
 
     return lines.reduce((count, line) => count + Math.max(Math.ceil(line.length / CHARACTERS_PER_STANDARD_LINE), 1), 0);
 }

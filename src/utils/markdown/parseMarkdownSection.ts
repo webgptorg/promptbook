@@ -1,8 +1,10 @@
 import spaceTrim from 'spacetrim';
 import { ParseError } from '../../errors/ParseError';
-import type { string_markdown_section } from '../../types/typeAliases';
-import type { string_markdown_section_content } from '../../types/typeAliases';
-import type { string_markdown_text } from '../../types/typeAliases';
+import type {
+    string_markdown_section,
+    string_markdown_section_content,
+    string_markdown_text,
+} from '../../types/typeAliases';
 
 /**
  * Parsed markdown section
@@ -32,7 +34,7 @@ export type MarkdownSection = {
  * @public exported from `@promptbook/markdown-utils`
  */
 export function parseMarkdownSection(value: string_markdown_section): MarkdownSection {
-    const lines = value.split('\n');
+    const lines = value.split(/\r?\n/);
 
     if (!lines[0]!.startsWith('#')) {
         throw new ParseError(

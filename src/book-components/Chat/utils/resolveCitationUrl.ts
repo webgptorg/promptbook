@@ -18,7 +18,7 @@ export function resolveCitationUrl(source: string, participants: ReadonlyArray<C
         return null;
     }
 
-    const lines = agent.agentSource.split('\n');
+    const lines = agent.agentSource.split(/\r?\n/);
     for (const line of lines) {
         const trimmed = line.trim();
         // Note: Check for KNOWLEDGE command (case-sensitive as per commitment definitions)

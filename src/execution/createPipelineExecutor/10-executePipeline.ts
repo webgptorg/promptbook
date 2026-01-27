@@ -1,8 +1,7 @@
 import { spaceTrim } from 'spacetrim';
 import type { PartialDeep, Promisable, ReadonlyDeep, WritableDeep } from 'type-fest';
 import { forTime } from 'waitasecond';
-import { IMMEDIATE_TIME } from '../../config';
-import { LOOP_LIMIT } from '../../config';
+import { IMMEDIATE_TIME, LOOP_LIMIT } from '../../config';
 import { RESERVED_PARAMETER_NAMES } from '../../constants';
 import { assertsError } from '../../errors/assertsError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
@@ -11,17 +10,14 @@ import { serializeError } from '../../errors/utils/serializeError';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
 import type { TaskJson } from '../../pipeline/PipelineJson/TaskJson';
 import { preparePipeline } from '../../prepare/preparePipeline';
-import type { InputParameters } from '../../types/typeAliases';
-import type { Parameters } from '../../types/typeAliases';
-import type { string_name } from '../../types/typeAliases';
-import type { string_reserved_parameter_name } from '../../types/typeAliases';
+import type { LlmCall } from '../../types/LlmCall';
+import type { InputParameters, Parameters, string_name, string_reserved_parameter_name } from '../../types/typeAliases';
 import { valueToString } from '../../utils/parameters/valueToString';
 import { exportJson } from '../../utils/serialization/exportJson';
 import { PROMPTBOOK_ENGINE_VERSION } from '../../version';
 import type { ExecutionReportJson } from '../execution-report/ExecutionReportJson';
 import type { PipelineExecutorResult } from '../PipelineExecutorResult';
 import { addUsage } from '../utils/addUsage';
-import type { LlmCall } from '../../types/LlmCall';
 import { ZERO_USAGE } from '../utils/usage-constants';
 import type { CreatePipelineExecutorOptions } from './00-CreatePipelineExecutorOptions';
 import { executeTask } from './20-executeTask';
@@ -325,7 +321,7 @@ export async function executePipeline(options: ExecutePipelineOptions): Promise<
 
                                         ${block(
                                             JSON.stringify(newOngoingResult, null, 4)
-                                                .split('\n')
+                                                .split(/\r?\n/)
                                                 .map((line) => `> ${line}`)
                                                 .join('\n'),
                                         )}

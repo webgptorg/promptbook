@@ -22,8 +22,8 @@ import { templateParameters } from '../../utils/parameters/templateParameters';
 import { $deepFreeze } from '../../utils/serialization/$deepFreeze';
 import type { ExecutionReportJson } from '../execution-report/ExecutionReportJson';
 import type { PipelineExecutorResult } from '../PipelineExecutorResult';
-import { validatePromptResult } from '../utils/validatePromptResult';
 import type { ValidatePromptResultResult } from '../utils/validatePromptResult';
+import { validatePromptResult } from '../utils/validatePromptResult';
 import type { $OngoingTaskResult } from './$OngoingTaskResult';
 import type { CreatePipelineExecutorOptions } from './00-CreatePipelineExecutorOptions';
 
@@ -501,7 +501,7 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
                             Error ${failure.error?.name || ''}:
                             ${block(
                                 failure.error?.message
-                                    .split('\n')
+                                    .split(/\r?\n/)
                                     .map((line) => `> ${line}`)
                                     .join('\n'),
                             )}
@@ -511,7 +511,7 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
                                 failure.result === null
                                     ? 'null'
                                     : spaceTrim(failure.result)
-                                          .split('\n')
+                                          .split(/\r?\n/)
                                           .map((line) => `> ${line}`)
                                           .join('\n'),
                             )}
@@ -530,7 +530,7 @@ export async function executeAttempts(options: ExecuteAttemptsOptions): Promise<
                         The Prompt:
                         ${block(
                             ($ongoingTaskResult.$prompt?.content || '')
-                                .split('\n')
+                                .split(/\r?\n/)
                                 .map((line) => `> ${line}`)
                                 .join('\n'),
                         )}

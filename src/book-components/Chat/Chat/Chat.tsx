@@ -803,7 +803,7 @@ export function Chat(props: ChatProps) {
                                 // Detect if first message is long
                                 const firstMsg = postprocessedMessages[0];
                                 const firstMsgContent = firstMsg?.content || '';
-                                const firstMsgLines = firstMsgContent.split('\n').length; // <- TODO: Maybe use official counting functions here
+                                const firstMsgLines = firstMsgContent.split(/\r?\n/).length; // <- TODO: Maybe use official counting functions here
                                 const firstMsgChars = firstMsgContent.length;
                                 const isFirstLong = firstMsgLines > 5 || firstMsgChars > 50;
 
@@ -928,8 +928,9 @@ export function Chat(props: ChatProps) {
                                                 height:
                                                     Math.max(
                                                         countLines(textareaRef.current?.value || defaultMessage || ''),
-                                                        (textareaRef.current?.value || defaultMessage || '').split('\n')
-                                                            .length,
+                                                        (textareaRef.current?.value || defaultMessage || '').split(
+                                                            /\r?\n/,
+                                                        ).length,
                                                         3,
                                                     ) *
                                                         25 +

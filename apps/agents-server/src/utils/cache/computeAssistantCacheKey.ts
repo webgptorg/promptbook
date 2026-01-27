@@ -58,7 +58,7 @@ export function extractAssistantConfiguration(
     const { includeDynamicContext = true } = options;
 
     // Separate base agent source from dynamic context if needed
-    const lines = agentSource.split('\n');
+    const lines = agentSource.split(/\r?\n/);
     const contextLines = lines.filter((line) => line.startsWith('CONTEXT '));
     const baseLines = lines.filter((line) => !line.startsWith('CONTEXT '));
     const baseAgentSource = baseLines.join('\n') as string_book;
@@ -122,6 +122,6 @@ export function computeAssistantCacheKey(configuration: AssistantConfiguration):
  * @returns Array of context strings
  */
 export function extractDynamicContext(agentSource: string_book): string[] {
-    const lines = agentSource.split('\n');
+    const lines = agentSource.split(/\r?\n/);
     return lines.filter((line) => line.startsWith('CONTEXT ')).map((line) => line.replace(/^CONTEXT\s+/, ''));
 }
