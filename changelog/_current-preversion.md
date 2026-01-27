@@ -309,3 +309,4 @@
     -   Added proper error handling when preview is unavailable, showing a user-friendly message
     -   Simplified modal header to show only document name (without file extension) for better readability
 -   Fixed image generation caching to consider all generation parameters (model, size, quality, style) in the cache key, ensuring that changing these parameters generates a new image instead of returning a cached one from a previous generation with different settings.
+-   Fixed image generation caching to include input images (attachments) in the cache key, ensuring that using the same prompt with different input images generates new results.

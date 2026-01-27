@@ -1,4 +1,4 @@
-[x] ~$0.00
+[ ]
 
 [✨🪰] Migrate [Agents](src/llm-providers/agent/Agent.ts) from assistants API to Responses API
 
@@ -12,6 +12,7 @@
 -   Keep `OpenAiAssistantExecutionTools`, just mark it as deprecated and do not use in `Agent`.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle, just dont intermingle the code of the new and deprecated stuff.
 -   Add the changes into the `/changelog/_current-preversion.md`
+-   If there is something that I need to do, write me a detailed plan of what needs to be done and save it into the file in the root of the repository.
 
 **The Migration Guide to the Responses API:**
 
@@ -1055,4 +1056,3 @@ As a best practice, we encourage all users to migrate to the Responses API to ta
 Based on developer feedback from the [Assistants API](https://platform.openai.com/docs/api-reference/assistants) beta, we've incorporated key improvements into the Responses API to make it more flexible, faster, and easier to use. The Responses API represents the future direction for building agents on OpenAI.
 
 We now have Assistant-like and Thread-like objects in the Responses API. Learn more in the [migration guide](https://platform.openai.com/docs/guides/assistants/migration). As of August 26th, 2025, we're deprecating the Assistants API, with a sunset date of August 26, 2026.
-

@@ -102,13 +102,15 @@ This user should be handled with special care because he is VIP.
 
 ---
 
-[ ]
+[ ] !
 
-[✨🚶] And better and more expressive samples to prompt notation page @@@
+[✨🚶] And better and more expressive samples to prompt notation page
 
+-   Put real-world examples like trying to pass malicious code into the email templates, etc.
+-   Allow to play with these real-world examples.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   You are working with the [Utils app](apps/utils)
--   Add the changes into the `/changelog/_current-preversion.md`
+-   You are working with the [Utils app](apps/utils) on page http://localhost:4024/prompt-notation
+-   There is both the function which can be used from the package and the showcase page and also unit test. Look at entire vertical of it.
 
 ---
 
