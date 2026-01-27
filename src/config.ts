@@ -268,6 +268,13 @@ export const DEFAULT_INTERMEDIATE_FILES_STRATEGY: IntermediateFilesStrategy = 'H
 export const DEFAULT_MAX_PARALLEL_COUNT = 5; // <- TODO: [🤹‍♂️]
 
 /**
+ * The maximum number of concurrent uploads
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const DEFAULT_MAX_CONCURRENT_UPLOADS = 5;
+
+/**
  * The maximum depth to which recursion can occur
  *
  * @public exported from `@promptbook/core`

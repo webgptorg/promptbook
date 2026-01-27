@@ -80,7 +80,10 @@ export type BookEditorProps = {
     /**
      * returns the URL of the uploaded file on CDN or storage
      */
-    onFileUpload?(file: File): Promisable<string_knowledge_source_content>;
+    onFileUpload?(
+        file: File,
+        onProgress?: (progress: number_percent) => void,
+    ): Promisable<string_knowledge_source_content>;
 
     /**
      * If true, logs verbose debug info to the console and shows additional visual cues

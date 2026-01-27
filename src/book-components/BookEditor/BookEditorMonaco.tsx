@@ -11,7 +11,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'; // <-- added u
 // [🚱]> import { TODO_any } from '../../_packages/types.index';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import { getAllCommitmentDefinitions } from '../../commitments/_common/getAllCommitmentDefinitions';
-import { PROMPTBOOK_SYNTAX_COLORS } from '../../config';
+import { DEFAULT_MAX_CONCURRENT_UPLOADS, PROMPTBOOK_SYNTAX_COLORS } from '../../config';
 import { classNames } from '../_common/react-utils/classNames';
 import { SaveIcon } from '../icons/SaveIcon';
 import type { BookEditorProps } from './BookEditor';
@@ -448,52 +448,90 @@ export function BookEditorMonaco(props: BookEditorProps) {
 
     const handleFiles = useCallback(
         async (files: File[]) => {
-            if (!onFileUpload) return;
+            if (!onFileUpload || !editor || !monaco) return;
             if (files.length === 0) return;
 
+            const model = editor.getModel();
+            if (!model) return;
+
             // [1] Inject placeholders
-            const placeholders = files.map((file) => `KNOWLEDGE ⏳ Uploading ${file.name}...`);
-            const currentValue = value || '';
-            const valueWithPlaceholders = currentValue + '\n' + placeholders.join('\n');
-            onChange?.(valueWithPlaceholders as string_book);
+            const filePlaceholders = files.map((file) => ({
+                file,
+                placeholder: `KNOWLEDGE ⏳ Uploading ${file.name}...`,
+            }));
 
-            try {
-                // [2] Upload files one by one and replace placeholders
-                // Note: We are uploading in parallel
+            const textToAppend = (model.getValue() ? '\n' : '') + filePlaceholders.map((f) => f.placeholder).join('\n');
+
+            const lastLine = model.getLineCount();
+            const lastColumn = model.getLineMaxColumn(lastLine);
+
+            editor.executeEdits('upload-placeholders', [
+                {
+                    range: new monaco.Range(lastLine, lastColumn, lastLine, lastColumn),
+                    text: textToAppend,
+                    forceMoveMarkers: true,
+                },
+            ]);
+
+            // Helper to replace text in the model
+            const replaceText = (search: string, replace: string) => {
+                const model = editor.getModel();
+                if (!model) return;
+
+                const text = model.getValue();
+                const index = text.indexOf(search);
+                if (index !== -1) {
+                    const startPos = model.getPositionAt(index);
+                    const endPos = model.getPositionAt(index + search.length);
+
+                    editor.executeEdits('upload-update', [
+                        {
+                            range: new monaco.Range(
+                                startPos.lineNumber,
+                                startPos.column,
+                                endPos.lineNumber,
+                                endPos.column,
+                            ),
+                            text: replace,
+                            forceMoveMarkers: true,
+                        },
+                    ]);
+                }
+            };
+
+            // [2] Process in chunks
+            const chunkedFiles = [];
+            for (let i = 0; i < filePlaceholders.length; i += DEFAULT_MAX_CONCURRENT_UPLOADS) {
+                chunkedFiles.push(filePlaceholders.slice(i, i + DEFAULT_MAX_CONCURRENT_UPLOADS));
+            }
+
+            for (const chunk of chunkedFiles) {
                 await Promise.all(
-                    files.map(async (file, index) => {
-                        const placeholder = placeholders[index]!;
+                    chunk.map(async ({ file, placeholder }) => {
+                        let currentPlaceholder = placeholder;
+
                         try {
-                            const fileSrc = await onFileUpload(file);
-                            const completedText = `KNOWLEDGE ${fileSrc}`;
+                            const url = await onFileUpload(file, (progress) => {
+                                const percent = Math.floor(progress * 100);
+                                const newPlaceholder = `KNOWLEDGE ⏳ Uploading ${file.name} ${percent}%...`;
 
-                            // Note: We need to get the latest value from the editor to avoid overwriting other changes
-                            const latestValue = editor?.getValue() || '';
-                            const newValue = latestValue.split(placeholder).join(completedText);
+                                if (newPlaceholder !== currentPlaceholder) {
+                                    replaceText(currentPlaceholder, newPlaceholder);
+                                    currentPlaceholder = newPlaceholder;
+                                }
+                            });
 
-                            if (latestValue !== newValue) {
-                                onChange?.(newValue as string_book);
-                            }
+                            const completedText = `KNOWLEDGE ${url}`;
+                            replaceText(currentPlaceholder, completedText);
                         } catch (error) {
                             console.error(`File upload failed for ${file.name}:`, error);
-
-                            // Note: In case of error, we remove the placeholder
-                            const latestValue = editor?.getValue() || '';
-                            const newValue = latestValue
-                                .split(placeholder)
-                                .join(`KNOWLEDGE ❌ Failed to upload ${file.name}`);
-
-                            if (latestValue !== newValue) {
-                                onChange?.(newValue as string_book);
-                            }
+                            replaceText(currentPlaceholder, `KNOWLEDGE ❌ Failed to upload ${file.name}`);
                         }
                     }),
                 );
-            } catch (error) {
-                console.error('File upload failed:', error);
             }
         },
-        [onFileUpload, value, onChange, editor],
+        [onFileUpload, editor, monaco],
     );
 
     const handleDrop = useCallback(

@@ -93,7 +93,7 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
                 height={null}
                 value={agentSource}
                 onChange={handleChange}
-                onFileUpload={async (file) => {
+                onFileUpload={async (file, onProgress) => {
                     console.info('🔼 Uploading file', file);
 
                     // Build the full path including prefix and user/files directory
@@ -108,6 +108,11 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
                             purpose: 'KNOWLEDGE',
                             contentType: file.type,
                         }),
+                        onUploadProgress: (progressEvent) => {
+                            if (onProgress) {
+                                onProgress(progressEvent.percentage / 100);
+                            }
+                        },
                     });
 
                     const fileUrl = blob.url;
