@@ -2,6 +2,7 @@
 
 import Editor from '@monaco-editor/react';
 import { PromptString, prompt, spaceTrim, valueToString } from '@promptbook-local/utils';
+import { Copy, Download, Play } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { TIME_INTERVALS } from '../../../../../src/constants';
 import { DEFAULT_PROMPT_CODE, PROMPT_NOTATION_EXAMPLES, PromptNotationExample } from './promptNotationExamples';
@@ -161,7 +162,8 @@ export function PromptNotationComponent() {
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const editorRef = useRef<HTMLDivElement>(null);
     const actionButtonClassName =
-        'px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded text-sm font-medium transition-colors';
+        'inline-flex items-center gap-2 px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded text-sm font-medium transition-colors';
+    const actionIconClassName = 'h-4 w-4';
 
     /**
      * Loads example code into the playground after warning about overwriting.
@@ -244,16 +246,19 @@ export function PromptNotationComponent() {
                                     onClick={() => handleTryInPlayground(example)}
                                     className={actionButtonClassName}
                                 >
-                                    Try in playground ↓
+                                    <Play className={actionIconClassName} aria-hidden />
+                                    Try in playground
                                 </button>
                                 <button
                                     onClick={() => handleCopyToClipboard(example)}
                                     className={actionButtonClassName}
                                 >
-                                    📋 Copy to clipboard
+                                    <Copy className={actionIconClassName} aria-hidden />
+                                    Copy to clipboard
                                 </button>
                                 <button onClick={() => handleDownload(example)} className={actionButtonClassName}>
-                                    💾 Download
+                                    <Download className={actionIconClassName} aria-hidden />
+                                    Download
                                 </button>
                             </div>
                             <div className="mt-6 grid gap-4">
