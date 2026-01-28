@@ -90,7 +90,8 @@ function formatEvaluationError(error: unknown): string {
 function buildPromptNotationExampleSource(exampleCode: string, includeInstallNote: boolean): string {
     return spaceTrim(
         (block) => `
-            ${includeInstallNote ? `${block(PROMPT_NOTATION_INSTALL_NOTE)}\n\n` : ''}${PROMPT_NOTATION_IMPORT_LINE}
+            ${block(includeInstallNote ? PROMPT_NOTATION_INSTALL_NOTE : '')}
+            ${block(PROMPT_NOTATION_IMPORT_LINE)}
 
             ${block(exampleCode)}
         `,
