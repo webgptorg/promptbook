@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.46
 
 [✨🔉] When creating agents from the homepage of the agents server. The drag-and-drop upload of the file isn't working, fix it
 
@@ -36,3 +36,4 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

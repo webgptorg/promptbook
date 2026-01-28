@@ -2,11 +2,12 @@
 
 import { BookEditor } from '@promptbook-local/components';
 import { string_book } from '@promptbook-local/types';
-import { upload } from '@vercel/blob/client';
 import { useEffect, useRef, useState } from 'react';
-import { getSafeCdnPath } from '../../../../utils/cdn/utils/getSafeCdnPath';
-import { normalizeUploadFilename } from '../../../../utils/normalization/normalizeUploadFilename';
+import { bookEditorUploadHandler } from '../../../../utils/upload/createBookEditorUploadHandler';
 
+/**
+ * Props for the BookEditorWrapper component.
+ */
 type BookEditorWrapperProps = {
     agentName: string;
     initialAgentSource: string_book;
@@ -14,6 +15,9 @@ type BookEditorWrapperProps = {
 
 // TODO: [🐱‍🚀] Rename to BookEditorSavingWrapper
 
+/**
+ * Wraps the BookEditor with autosave and file upload support.
+ */
 export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorWrapperProps) {
     const [agentSource, setAgentSource] = useState<string_book>(initialAgentSource);
     const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
@@ -23,6 +27,9 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
     // Configurable debounce delay (ms) - tweak if needed
     const DEBOUNCE_DELAY = 1000;
 
+    /**
+     * Persists the current agent source to the server.
+     */
     const performSave = async (sourceToSave: string_book) => {
         setSaveStatus('saving');
         try {
@@ -43,6 +50,9 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
         }
     };
 
+    /**
+     * Debounces saves while the user edits the agent source.
+     */
     const scheduleSave = (nextSource: string_book) => {
         // Clear existing pending save
         if (debounceTimerRef.current) {
@@ -55,6 +65,9 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
         }, DEBOUNCE_DELAY);
     };
 
+    /**
+     * Updates local state and schedules a save for editor changes.
+     */
     const handleChange = (newSource: string_book) => {
         setAgentSource(newSource);
         scheduleSave(newSource);
@@ -95,52 +108,7 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
                 height={null}
                 value={agentSource}
                 onChange={handleChange}
-                onFileUpload={async (file, onProgress) => {
-                    console.info('🔼 Uploading file', file);
-
-                    // Build the full path including prefix and user/files directory
-                    const pathPrefix = process.env.NEXT_PUBLIC_CDN_PATH_PREFIX || '';
-                    const normalizedFilename = normalizeUploadFilename(file.name);
-                    const uploadPath = pathPrefix
-                        ? `${pathPrefix}/user/files/${normalizedFilename}`
-                        : `user/files/${normalizedFilename}`;
-                    const safeUploadPath = getSafeCdnPath({ pathname: uploadPath });
-
-                    // Upload directly to Vercel Blob using client upload
-                    const blob = await upload(safeUploadPath, file, {
-                        access: 'public',
-                        handleUploadUrl: '/api/upload',
-                        clientPayload: JSON.stringify({
-                            purpose: 'KNOWLEDGE',
-                            contentType: file.type,
-                        }),
-                        onUploadProgress: (progressEvent) => {
-                            if (onProgress) {
-                                onProgress(progressEvent.percentage / 100);
-                            }
-                        },
-                    });
-
-                    const fileUrl = blob.url;
-
-                    const LONG_URL = `${process.env.NEXT_PUBLIC_CDN_PUBLIC_URL!}/${process.env
-                        .NEXT_PUBLIC_CDN_PATH_PREFIX!}/user/files/`;
-                    const SHORT_URL = `https://ptbk.io/k/`;
-                    // <- TODO: [🌍] Unite this logic in one place
-
-                    const shortFileUrl = fileUrl.split(LONG_URL).join(SHORT_URL);
-
-                    console.log(`🔼 File uploaded:`, {
-                        LONG_URL,
-                        SHORT_URL,
-                        fileUrl,
-                        shortFileUrl,
-                        file,
-                        blob,
-                    });
-
-                    return shortFileUrl;
-                }}
+                onFileUpload={bookEditorUploadHandler}
             />
         </div>
     );

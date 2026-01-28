@@ -4,16 +4,23 @@ import { string_book } from '@promptbook-local/types';
 import { X } from 'lucide-react';
 import { useState } from 'react';
 import { BookEditor } from '../../../../../src/book-components/BookEditor/BookEditor';
+import { bookEditorUploadHandler } from '../../utils/upload/createBookEditorUploadHandler';
 import { Dialog } from '../Portal/Dialog';
 
+/**
+ * Props for the NewAgentDialog component.
+ */
 type NewAgentDialogProps = {
     onClose: () => void;
     initialAgentSource: string_book;
     onCreate: (agentSource: string_book) => Promise<void>;
 };
 
+/**
+ * Renders the create-agent dialog with a BookEditor and upload support.
+ */
 export function NewAgentDialog(props: NewAgentDialogProps) {
-    const {  onClose, initialAgentSource, onCreate } = props;
+    const { onClose, initialAgentSource, onCreate } = props;
     const [agentSource, setAgentSource] = useState(initialAgentSource);
     const [isCreating, setIsCreating] = useState(false);
     // [✨🧬] const [isInteracted, setIsInteracted] = useState(false);
@@ -26,7 +33,9 @@ export function NewAgentDialog(props: NewAgentDialogProps) {
     }, [initialAgentSource, isOpen]);
     */
 
-
+    /**
+     * Creates the agent and manages the dialog loading state.
+     */
     const handleCreate = async () => {
         setIsCreating(true);
         try {
@@ -57,6 +66,7 @@ export function NewAgentDialog(props: NewAgentDialogProps) {
                     }}
                     height="100%"
                     isVerbose={false}
+                    onFileUpload={bookEditorUploadHandler}
                 />
 
                 {/* TODO: [✨🧬] When creating new agent, show the floating hint
