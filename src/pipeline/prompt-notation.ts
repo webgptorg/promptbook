@@ -12,6 +12,19 @@ const PROMPT_PARAMETER_ESCAPE_PATTERN = /[`$]/g;
 const PROMPT_PARAMETER_ESCAPE_WITH_BRACES_PATTERN = /[{}$`]/g;
 
 /**
+ * Normalizes a JSON string so it can be safely rendered without double escaping.
+ *
+ * @param value Candidate JSON string.
+ */
+function normalizeJsonString(value: string): string | null {
+    try {
+        return JSON.stringify(JSON.parse(value));
+    } catch {
+        return null;
+    }
+}
+
+/**
  * Hides brackets in a string to avoid confusion with template parameters.
  */
 function hideBrackets(value: string): string {
@@ -116,12 +129,12 @@ function formatParameterPlaceholder(name: string): string {
 /**
  * Formats a parameter entry for the structured parameters section.
  *
- * @param name Parameter placeholder name.
- * @param value Escaped parameter value.
+ * @param item Parameter entry data.
  */
-function formatParameterListItem(name: string, value: string): string {
-    const wrappedValue = JSON.stringify(value);
-    return `${name}) ${wrappedValue}`;
+function formatParameterListItem(item: { name: string; value: string; jsonValue: string | null }): string {
+    const formattedValue =
+        item.jsonValue ?? JSON.stringify(escapePromptParameterValue(item.value, { includeBraces: true }));
+    return `${item.name}) ${formattedValue}`;
 }
 
 /**
@@ -129,9 +142,9 @@ function formatParameterListItem(name: string, value: string): string {
  *
  * @param items Parameter entries to include.
  */
-function buildParametersSection(items: Array<{ name: string; value: string }>): string {
+function buildParametersSection(items: Array<{ name: string; value: string; jsonValue: string | null }>): string {
     const entries = items
-        .flatMap((item) => formatParameterListItem(item.name, item.value).split(/\r?\n/))
+        .flatMap((item) => formatParameterListItem(item).split(/\r?\n/))
         .filter((line) => line !== '');
 
     return [
@@ -169,6 +182,7 @@ export function prompt(strings: TemplateStringsArray, ...values: Array<really_un
         const isPrompt = isPromptString(value);
         const stringValue = isPrompt ? value.toString() : valueToString(value);
         const isInline = isPrompt ? true : shouldInlineParameterValue(stringValue);
+        const jsonValue = !isPrompt && !isInline ? normalizeJsonString(stringValue) : null;
         const promptMarker = `${REPLACING_NONCE}prompt-${index}`;
         const parameterMarker = `${REPLACING_NONCE}parameter-${index}`;
         const templateValue = isPrompt
@@ -177,7 +191,7 @@ export function prompt(strings: TemplateStringsArray, ...values: Array<really_un
             ? escapePromptParameterValue(stringValue, { includeBraces: false })
             : parameterMarker;
 
-        return { name, stringValue, isPrompt, isInline, promptMarker, parameterMarker, templateValue };
+        return { name, stringValue, jsonValue, isPrompt, isInline, promptMarker, parameterMarker, templateValue };
     });
     const parameters = Object.fromEntries(parameterEntries.map((entry) => [entry.name, entry.templateValue]));
     const parameterNames = parameterEntries.map((entry) => entry.name);
@@ -235,7 +249,8 @@ export function prompt(strings: TemplateStringsArray, ...values: Array<really_un
     if (structuredParameters.length > 0) {
         const parameterItems = structuredParameters.map((entry) => ({
             name: entry.name,
-            value: escapePromptParameterValue(entry.stringValue, { includeBraces: true }),
+            value: entry.stringValue,
+            jsonValue: entry.jsonValue,
         }));
 
         pipelineString = `${pipelineString}\n\n${buildParametersSection(parameterItems)}`;
