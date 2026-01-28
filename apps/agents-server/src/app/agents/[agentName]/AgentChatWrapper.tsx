@@ -13,6 +13,7 @@ import { createDefaultChatEffects } from '../../../utils/chat/createDefaultChatE
 import { getSafeCdnPath } from '../../../utils/cdn/utils/getSafeCdnPath';
 import { handleChatError } from '../../../utils/errorMessages';
 import type { FriendlyErrorMessage } from '../../../utils/errorMessages';
+import { normalizeUploadFilename } from '../../../utils/normalization/normalizeUploadFilename';
 import { createDefaultSoundSystem } from '../../../utils/sound/createDefaultSoundSystem';
 
 type AgentChatWrapperProps = {
@@ -89,7 +90,8 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
     }, [autoExecuteMessage]);
 
     const handleFileUpload = useCallback(async (file: File) => {
-        const uploadPath = getSafeCdnPath({ pathname: file.name });
+        const normalizedFilename = normalizeUploadFilename(file.name);
+        const uploadPath = getSafeCdnPath({ pathname: normalizedFilename });
         const blob = await upload(uploadPath, file, {
             access: 'public',
             handleUploadUrl: '/api/upload',

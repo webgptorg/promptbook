@@ -5,6 +5,7 @@ import { FileTextIcon, HashIcon, ImageIcon, ShieldIcon, ToggleLeftIcon, TypeIcon
 import { useEffect, useRef, useState } from 'react';
 import { metadataDefaults, MetadataType } from '../../../database/metadataDefaults';
 import { getSafeCdnPath } from '../../../utils/cdn/utils/getSafeCdnPath';
+import { normalizeUploadFilename } from '../../../utils/normalization/normalizeUploadFilename';
 
 type MetadataEntry = {
     id: number;
@@ -190,7 +191,10 @@ export function MetadataClient() {
 
             // Build the full path including prefix and user/files directory
             const pathPrefix = process.env.NEXT_PUBLIC_CDN_PATH_PREFIX || '';
-            const uploadPath = pathPrefix ? `${pathPrefix}/user/files/${file.name}` : `user/files/${file.name}`;
+            const normalizedFilename = normalizeUploadFilename(file.name);
+            const uploadPath = pathPrefix
+                ? `${pathPrefix}/user/files/${normalizedFilename}`
+                : `user/files/${normalizedFilename}`;
             const safeUploadPath = getSafeCdnPath({ pathname: uploadPath });
 
             // Upload directly to Vercel Blob using client upload

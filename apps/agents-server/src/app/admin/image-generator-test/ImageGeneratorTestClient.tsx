@@ -5,6 +5,7 @@ import { useCallback, useRef, useState } from 'react';
 import spaceTrim from 'spacetrim';
 import { constructImageFilename } from '../../../utils/normalization/constructImageFilename';
 import { getSafeCdnPath } from '../../../utils/cdn/utils/getSafeCdnPath';
+import { normalizeUploadFilename } from '../../../utils/normalization/normalizeUploadFilename';
 import { Card } from '../../../components/Homepage/Card';
 
 // Using local SVG components because they might not be exported from @promptbook-local/components
@@ -510,7 +511,8 @@ function ImageAttachmentsEditor({ attachments, onChange, disabled }: ImageAttach
             try {
                 const newAttachments = [...attachments];
                 for (const file of Array.from(files)) {
-                    const uploadPath = getSafeCdnPath({ pathname: file.name });
+                    const normalizedFilename = normalizeUploadFilename(file.name);
+                    const uploadPath = getSafeCdnPath({ pathname: normalizedFilename });
                     const blob = await upload(uploadPath, file, {
                         access: 'public',
                         handleUploadUrl: '/api/upload',

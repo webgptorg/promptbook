@@ -20,7 +20,7 @@
 
 ---
 
-[ ]
+[x] ~$0.47
 
 [✨☎️] Normalize the names of files before upload.
 
@@ -62,4 +62,5 @@ KNOWLEDGE https://ptbk.io/k/ss-2023-informace-106-....pdf
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
 
