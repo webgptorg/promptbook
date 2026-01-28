@@ -36,7 +36,7 @@
 
 ---
 
-[ ] !!!!
+[x] ~$0.00
 
 [✨👗] Fix showing the document from which the agent sourced their information
 
@@ -64,3 +64,4 @@ KNOWLEDGE https://ptbk.io/k/SS%202_2023%20-%20Informace%20106-fV9LzkrRbVN3zuMCEM
 
 ![alt text](prompts/screenshots/2026-01-0380-agents-server-source-citation-5.png)
 ![alt text](prompts/screenshots/2026-01-0380-agents-server-source-citation-6.png)
+
