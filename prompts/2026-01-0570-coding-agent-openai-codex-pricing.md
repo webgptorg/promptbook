@@ -1,4 +1,4 @@
-[ ] !!!!!!!!
+[x] ~$0.00
 
 [✨🌟] Count the price of OpenAI codex runner
 
@@ -32,3 +32,4 @@ Commit message:
 -   This is relavant for only OpenAI Codex runner.
 -   You are working with the [coding agent script](./scripts/run-codex-prompts/run-codex-prompts.ts)
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
+

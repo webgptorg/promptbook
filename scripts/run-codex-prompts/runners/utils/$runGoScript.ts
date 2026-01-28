@@ -72,17 +72,18 @@ export async function $runGoScript(options: RunGoScriptOptions): Promise<void> {
 
 /**
  * Creates a temporary script file, runs it, waits for a completion marker and idle time, and then deletes it.
+ * Returns the captured output for post-processing.
  *
  * @private within the run-codex-prompts script
  */
-export async function $runGoScriptUntilMarkerIdle(options: RunGoScriptUntilMarkerIdleOptions): Promise<void> {
+export async function $runGoScriptUntilMarkerIdle(options: RunGoScriptUntilMarkerIdleOptions): Promise<string> {
     const { scriptPath, scriptContent } = options;
 
     await mkdir(dirname(scriptPath), { recursive: true });
     await writeFile(scriptPath, scriptContent, 'utf-8');
 
     try {
-        await runScriptUntilMarkerIdle({
+        return await runScriptUntilMarkerIdle({
             scriptPath,
             completionLineMatcher: options.completionLineMatcher,
             idleTimeoutMs: options.idleTimeoutMs,
@@ -136,15 +137,17 @@ type RunScriptUntilMarkerIdleOptions = {
 
 /**
  * Runs a script until a completion marker is observed and output is idle for a set timeout.
+ * Returns the captured output.
  */
-async function runScriptUntilMarkerIdle(options: RunScriptUntilMarkerIdleOptions): Promise<void> {
+async function runScriptUntilMarkerIdle(options: RunScriptUntilMarkerIdleOptions): Promise<string> {
     const { scriptPath, completionLineMatcher, idleTimeoutMs } = options;
     const scriptPathPosix = toPosixPath(scriptPath);
 
-    await new Promise<void>((resolve, reject) => {
+    return await new Promise<string>((resolve, reject) => {
         const commandProcess = spawn('bash', [scriptPathPosix], { env: process.env });
         let stdoutBuffer = '';
         let stderrBuffer = '';
+        let fullOutput = '';
         let markerSeen = false;
         let idleTimer: NodeJS.Timeout | undefined;
         let settled = false;
@@ -167,7 +170,7 @@ async function runScriptUntilMarkerIdle(options: RunScriptUntilMarkerIdleOptions
             }
             idleTimer = setTimeout(() => {
                 commandProcess.kill();
-                settleOnce(resolve);
+                settleOnce(() => resolve(fullOutput));
             }, idleTimeoutMs);
         };
 
@@ -185,6 +188,7 @@ async function runScriptUntilMarkerIdle(options: RunScriptUntilMarkerIdleOptions
         };
 
         const handleChunk = (chunk: string, source: 'stdout' | 'stderr'): void => {
+            fullOutput += chunk;
             if (source === 'stderr') {
                 if (chunk.trim()) {
                     console.warn(chunk);
@@ -216,7 +220,7 @@ async function runScriptUntilMarkerIdle(options: RunScriptUntilMarkerIdleOptions
         const handleExit = (code: number | null): void => {
             settleOnce(() => {
                 if (code === 0 || markerSeen) {
-                    resolve();
+                    resolve(fullOutput);
                     return;
                 }
                 reject(new Error(`Command "bash ${scriptPathPosix}" exited with code ${code ?? 'unknown'}`));
