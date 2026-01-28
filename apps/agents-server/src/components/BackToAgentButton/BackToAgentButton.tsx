@@ -4,7 +4,7 @@ import { useMenuHoisting } from '@/../../src/book-components/_common/MenuHoistin
 import { ArrowLeftIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { FC, useEffect } from 'react';
+import { FC, useCallback, useEffect } from 'react';
 
 /**
  * Properties for the BackToAgentButton component
@@ -25,27 +25,33 @@ type BackToAgentButtonProps = {
 export const BackToAgentButton: FC<BackToAgentButtonProps> = ({ agentName }) => {
     const router = useRouter();
     const menuHoisting = useMenuHoisting();
+    const setHoistedMenu = menuHoisting?.setMenu;
+
+    /**
+     * Navigates back to the current agent page.
+     */
+    const handleBackToAgent = useCallback(() => {
+        router.push(`/agents/${encodeURIComponent(agentName)}`);
+    }, [agentName, router]);
 
     useEffect(() => {
-        if (!menuHoisting) {
+        if (!setHoistedMenu) {
             return;
         }
 
-        menuHoisting.setMenu([
+        setHoistedMenu([
             {
                 key: 'back-to-agent',
                 name: 'Back to Agent',
                 icon: <ArrowLeftIcon />,
-                onClick: () => {
-                    router.push(`/agents/${encodeURIComponent(agentName)}`);
-                },
+                onClick: handleBackToAgent,
             },
         ]);
 
         return () => {
-            menuHoisting.setMenu([]);
+            setHoistedMenu([]);
         };
-    }, [menuHoisting, agentName, router]);
+    }, [handleBackToAgent, setHoistedMenu]);
 
     if (menuHoisting) {
         return null;

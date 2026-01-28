@@ -273,6 +273,7 @@
         -   Consistent error handling across all chat interfaces
         -   Better debugging with raw errors logged to console
 -   Moved the back button to the top menu bar in agent-specific pages (chat, book, etc.) using the existing hoisting mechanism for a cleaner and more consistent UI.
+-   Fixed Agents Server back button menu hoisting to avoid a render loop that triggered "Maximum update depth exceeded" warnings.
 -   Reduced number of capability chips in Agents Server:
     -   Grouped identical Knowledgebase chips together.
     -   Hid the `VOID` inheritance chip, showing only inheritance from other agents.
