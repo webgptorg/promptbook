@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.45
 
 [✨📸] There is a function to do the linguistic hash, enhance it
 
@@ -33,3 +33,4 @@
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

@@ -1,9 +1,10 @@
 import { linguisticHash } from './linguisticHash';
 
 describe('linguisticHash', () => {
-    it('should return a string with three words', async () => {
+    it('should return a sentence-like story with multiple words', async () => {
         const hash = await linguisticHash('test');
-        expect(hash.split(' ')).toHaveLength(3);
+        expect(hash.split(' ').length).toBeGreaterThanOrEqual(12);
+        expect(hash.endsWith('.')).toBe(true);
     });
 
     it('should be deterministic', async () => {
@@ -24,19 +25,12 @@ describe('linguisticHash', () => {
     it('should handle empty string', async () => {
         const hash = await linguisticHash('');
         expect(hash).toBeDefined();
-        expect(hash.split(' ')).toHaveLength(3);
+        expect(hash.split(' ').length).toBeGreaterThanOrEqual(12);
     });
 
-    it('should have the first word capitalized and others lowercase', async () => {
+    it('should have the first character capitalized and the rest lowercase', async () => {
         const hash = await linguisticHash('some input');
-        const words = hash.split(' ');
-
-        // First word should be capitalized (first letter upper, rest lower)
-        expect(words[0]![0]).toBe(words[0]![0]!.toUpperCase());
-        expect(words[0]!.substring(1)).toBe(words[0]!.substring(1).toLowerCase());
-
-        // Other words should be lowercase
-        expect(words[1]).toBe(words[1]!.toLowerCase());
-        expect(words[2]).toBe(words[2]!.toLowerCase());
+        expect(hash[0]).toBe(hash[0]!.toUpperCase());
+        expect(hash.substring(1)).toBe(hash.substring(1).toLowerCase());
     });
 });

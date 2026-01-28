@@ -2,25 +2,137 @@ import { capitalize } from '../normalization/capitalize';
 import { computeHash } from './computeHash';
 
 /**
- * Creates human-readable hash
+ * Creates a human-readable hash as a short story sentence.
  *
  * @public exported from `@promptbook/utils`
  */
 export async function linguisticHash(input: string): Promise<string> {
     const hash = computeHash(input);
 
-    // Use parts of the hash to select words
-    // SHA256 is 64 hex characters
-    // We use different slices of the hash to ensure variety even with small changes in input
-    const part1 = parseInt(hash.substring(0, 10), 16);
-    const part2 = parseInt(hash.substring(10, 20), 16);
-    const part3 = parseInt(hash.substring(20, 30), 16);
+    return capitalize(createStorySentence(hash));
+}
 
-    const adjective = ADJECTIVES[part1 % ADJECTIVES.length]!;
-    const noun = NOUNS[part2 % NOUNS.length]!;
-    const verb = VERBS[part3 % VERBS.length]!;
+const HASH_SEGMENT_LENGTH = 8;
 
-    return `${capitalize(adjective)} ${noun.toLowerCase()} ${verb.toLowerCase()}`;
+const STORY_OPENERS = [
+    'once',
+    'long ago',
+    'at dawn',
+    'at dusk',
+    'suddenly',
+    'quietly',
+    'meanwhile',
+    'today',
+    'tonight',
+    'in the end',
+    'before long',
+    'for a moment',
+];
+
+const STORY_CONNECTORS = [
+    'while',
+    'as',
+    'when',
+    'because',
+    'and',
+    'just as',
+    'after',
+    'before',
+];
+
+const STORY_PREPOSITIONS = [
+    'near',
+    'beside',
+    'under',
+    'within',
+    'beyond',
+    'around',
+    'behind',
+    'across',
+    'above',
+    'beneath',
+    'over',
+    'inside',
+    'outside',
+    'along',
+];
+
+/**
+ * Represents all the word slots required to render a story sentence.
+ */
+type LinguisticStoryParts = {
+    opener: string;
+    connector: string;
+    preposition: string;
+    adjective1: string;
+    noun1: string;
+    verb1: string;
+    adjective2: string;
+    noun2: string;
+    verb2: string;
+    adjective3: string;
+    noun3: string;
+};
+
+/**
+ * Defines a template that renders a story sentence from deterministic parts.
+ */
+type LinguisticStoryTemplate = (parts: LinguisticStoryParts) => string;
+
+const STORY_TEMPLATES: LinguisticStoryTemplate[] = [
+    (parts) =>
+        `${parts.opener}, the ${parts.adjective1} ${parts.noun1} was ${parts.verb1} ${parts.connector} the ${parts.adjective2} ${parts.noun2} was ${parts.verb2} ${parts.preposition} the ${parts.adjective3} ${parts.noun3}.`,
+    (parts) =>
+        `${parts.opener}, the ${parts.adjective1} ${parts.noun1} was ${parts.verb1} ${parts.preposition} the ${parts.adjective2} ${parts.noun2}, and the ${parts.adjective3} ${parts.noun3} was ${parts.verb2}.`,
+    (parts) =>
+        `${parts.opener}, the ${parts.adjective1} ${parts.noun1} was ${parts.verb1}, and the ${parts.adjective2} ${parts.noun2} was ${parts.verb2} ${parts.preposition} the ${parts.adjective3} ${parts.noun3}.`,
+    (parts) =>
+        `${parts.opener}, the ${parts.adjective1} ${parts.noun1} was ${parts.verb1} ${parts.connector} the ${parts.adjective2} ${parts.noun2} was ${parts.verb2}, ${parts.preposition} the ${parts.adjective3} ${parts.noun3}.`,
+];
+
+/**
+ * Extracts a deterministic numeric seed from a SHA-256 hash.
+ */
+function getHashSeed(hash: string, segmentIndex: number): number {
+    const expandedHash = `${hash}${hash}`;
+    const start = (segmentIndex * HASH_SEGMENT_LENGTH + segmentIndex) % hash.length;
+    return parseInt(expandedHash.substring(start, start + HASH_SEGMENT_LENGTH), 16);
+}
+
+/**
+ * Picks a deterministic item from a list based on the hash seed.
+ */
+function pickFromHash<T>(hash: string, segmentIndex: number, list: readonly T[]): T {
+    const seed = getHashSeed(hash, segmentIndex);
+    return list[seed % list.length]!;
+}
+
+/**
+ * Creates the deterministic story parts used by the sentence templates.
+ */
+function createStoryParts(hash: string): LinguisticStoryParts {
+    return {
+        opener: pickFromHash(hash, 0, STORY_OPENERS),
+        connector: pickFromHash(hash, 1, STORY_CONNECTORS),
+        preposition: pickFromHash(hash, 2, STORY_PREPOSITIONS),
+        adjective1: pickFromHash(hash, 3, ADJECTIVES),
+        noun1: pickFromHash(hash, 4, NOUNS),
+        verb1: pickFromHash(hash, 5, VERBS),
+        adjective2: pickFromHash(hash, 6, ADJECTIVES),
+        noun2: pickFromHash(hash, 7, NOUNS),
+        verb2: pickFromHash(hash, 8, VERBS),
+        adjective3: pickFromHash(hash, 9, ADJECTIVES),
+        noun3: pickFromHash(hash, 10, NOUNS),
+    };
+}
+
+/**
+ * Builds a short, memorable story sentence from the hash.
+ */
+function createStorySentence(hash: string): string {
+    const parts = createStoryParts(hash);
+    const template = pickFromHash(hash, 11, STORY_TEMPLATES);
+    return template(parts).trim();
 }
 
 const ADJECTIVES = [

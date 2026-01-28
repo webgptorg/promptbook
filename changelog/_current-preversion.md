@@ -107,6 +107,7 @@
             -   Ensure connections correctly respect user preferences in checkboxes
 -   Added `linguisticHash` utility function to `@promptbook/utils` that creates human-readable hashes.
 -   Added `Linguistic Hash` tool to the Utils app.
+-   Enhanced `linguisticHash` to return a short story-like sentence for more memorable hashes, updating the Utils app text and unit tests to match.
 -   Prevent caching when tool is used, but still write the messages into the cache or `USER MESSAGE` + `AGENT MESSAGE` pair
 -   Implemented modular voice speech input in `<Chat/>` with two providers: `BrowserSpeechRecognition` (Web Speech API) and `OpenAiSpeechRecognition` (Whisper API).
 -   Added voice input test page at `/admin/voice-input-test` in Agents Server.

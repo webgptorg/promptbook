@@ -6,6 +6,9 @@ import { linguisticHash } from '../../../../../src/utils/misc/linguisticHash';
 
 const defaultInput = 'Promptbook is awesome!';
 
+/**
+ * Renders the interactive linguistic hash demo.
+ */
 export function LinguisticHashComponent() {
     const searchParams = useSearchParams();
     const router = useRouter();
@@ -64,11 +67,11 @@ export function LinguisticHashComponent() {
             <div className="bg-blue-50 p-6 rounded-lg border border-blue-100">
                 <h3 className="text-lg font-semibold text-blue-900 mb-2">What is a Linguistic Hash?</h3>
                 <p className="text-blue-800">
-                    A linguistic hash is a human-readable representation of data. Instead of a random string of characters like <code className="bg-blue-100 px-1 rounded text-sm">7a9f...</code>, it uses a deterministic combination of an <strong>adjective</strong>, a <strong>noun</strong>, and a <strong>verb</strong>. 
+                    A linguistic hash is a human-readable representation of data. Instead of a random string of characters like <code className="bg-blue-100 px-1 rounded text-sm">7a9f...</code>, it uses a deterministic, story-like sentence built from <strong>adjectives</strong>, <strong>nouns</strong>, and <strong>verbs</strong>.
                 </p>
                 <ul className="list-disc list-inside mt-2 text-blue-800 space-y-1">
                     <li><strong>Deterministic:</strong> The same input always produces the same hash.</li>
-                    <li><strong>Human-readable:</strong> Easy to remember and communicate.</li>
+                    <li><strong>Human-readable:</strong> A short sentence that is easy to remember and communicate.</li>
                     <li><strong>Unique:</strong> High probability of being different for different inputs.</li>
                 </ul>
             </div>
