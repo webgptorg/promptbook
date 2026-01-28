@@ -4,7 +4,7 @@ import Editor from '@monaco-editor/react';
 import { PromptString, prompt, spaceTrim, valueToString } from '@promptbook-local/utils';
 import { useEffect, useRef, useState } from 'react';
 import { TIME_INTERVALS } from '../../../../../src/constants';
-import { DEFAULT_PROMPT_CODE, PROMPT_NOTATION_EXAMPLES } from './promptNotationExamples';
+import { DEFAULT_PROMPT_CODE, PROMPT_NOTATION_EXAMPLES, PromptNotationExample } from './promptNotationExamples';
 
 /**
  * Props for the CodeBlock component.
@@ -73,6 +73,48 @@ function formatEvaluationError(error: unknown): string {
 }
 
 /**
+ * Builds a download filename for a prompt notation example.
+ *
+ * @param exampleId Example identifier.
+ */
+function getExampleDownloadFilename(exampleId: string): string {
+    return `prompt-notation-${exampleId}.js`;
+}
+
+/**
+ * Copies text to the clipboard using the browser API.
+ *
+ * @param text Text to copy.
+ */
+async function copyTextToClipboard(text: string): Promise<void> {
+    if (typeof navigator === 'undefined' || !navigator.clipboard?.writeText) {
+        throw new Error('Clipboard API is unavailable.');
+    }
+
+    await navigator.clipboard.writeText(text);
+}
+
+/**
+ * Triggers a browser download for plain text content.
+ *
+ * @param filename File name for the download.
+ * @param content Text content to save.
+ */
+function downloadTextFile(filename: string, content: string): void {
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+
+    anchor.href = url;
+    anchor.download = filename;
+    anchor.rel = 'noreferrer';
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+    URL.revokeObjectURL(url);
+}
+
+/**
  * Evaluates prompt notation code and returns output or error.
  *
  * @param source User-provided JavaScript source code.
@@ -118,6 +160,45 @@ export function PromptNotationComponent() {
     const [output, setOutput] = useState('');
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const editorRef = useRef<HTMLDivElement>(null);
+    const actionButtonClassName =
+        'px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded text-sm font-medium transition-colors';
+
+    /**
+     * Loads example code into the playground after warning about overwriting.
+     *
+     * @param example Example definition to load.
+     */
+    const handleTryInPlayground = (example: PromptNotationExample): void => {
+        const shouldReplace = window.confirm('This will overwrite the playground editor. Continue?');
+
+        if (!shouldReplace) {
+            return;
+        }
+
+        setSource(example.runnableCode);
+        editorRef.current?.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    /**
+     * Copies runnable example code to the clipboard.
+     *
+     * @param example Example definition to copy.
+     */
+    const handleCopyToClipboard = (example: PromptNotationExample): void => {
+        void copyTextToClipboard(example.runnableCode).catch((error) => {
+            console.error('Failed to copy prompt notation example.', error);
+        });
+    };
+
+    /**
+     * Downloads runnable example code as a file.
+     *
+     * @param example Example definition to download.
+     */
+    const handleDownload = (example: PromptNotationExample): void => {
+        const filename = getExampleDownloadFilename(example.id);
+        downloadTextFile(filename, example.runnableCode);
+    };
 
     useEffect(() => {
         const handler = setTimeout(() => {
@@ -158,15 +239,21 @@ export function PromptNotationComponent() {
                                 Example {index + 1}: {example.title}
                             </h3>
                             <p className="text-gray-600 mt-2">{example.description}</p>
-                            <div className="mt-4">
+                            <div className="mt-4 flex flex-wrap gap-2">
                                 <button
-                                    onClick={() => {
-                                        setSource(example.runnableCode);
-                                        editorRef.current?.scrollIntoView({ behavior: 'smooth' });
-                                    }}
-                                    className="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded text-sm font-medium transition-colors"
+                                    onClick={() => handleTryInPlayground(example)}
+                                    className={actionButtonClassName}
                                 >
                                     Try in playground ↓
+                                </button>
+                                <button
+                                    onClick={() => handleCopyToClipboard(example)}
+                                    className={actionButtonClassName}
+                                >
+                                    📋 Copy to clipboard
+                                </button>
+                                <button onClick={() => handleDownload(example)} className={actionButtonClassName}>
+                                    💾 Download
                                 </button>
                             </div>
                             <div className="mt-6 grid gap-4">

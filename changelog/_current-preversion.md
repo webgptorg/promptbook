@@ -16,6 +16,7 @@
 
 -   Enhanced prompt template literal handling to return `PromptString`, inline safe parameters, and append structured parameter/context blocks for unsafe or multiline data with escaping.
 -   Added prompt notation documentation, examples, and a live evaluator to the Utils app.
+-   Enhanced prompt notation example actions in the Utils app with an overwrite warning, clipboard copy, and download shortcuts.
 -   Updated prompt notation output to use numeric parameter placeholders and a numbered parameters list.
 -   Render structured JSON parameters without double-escaping in prompt notation outputs.
 
