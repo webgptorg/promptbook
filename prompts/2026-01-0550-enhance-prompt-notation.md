@@ -125,7 +125,7 @@ Generate a description for: {1}
 
 ---
 
-[ ]
+[x] ~$0.18
 
 [✨🚛] Add import and install instruction in downloaded files from http://localhost:4024/prompt-notation page
 
@@ -175,4 +175,5 @@ const output = writeEmailPrompt.toString();
 -   There is both the function which can be used from the package and the showcase page and also unit test. Look at entire vertical of it.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Utils app](apps/utils) on page http://localhost:4024/prompt-notation
+
 

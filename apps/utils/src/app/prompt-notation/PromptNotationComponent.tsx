@@ -7,6 +7,14 @@ import { useEffect, useRef, useState } from 'react';
 import { TIME_INTERVALS } from '../../../../../src/constants';
 import { DEFAULT_PROMPT_CODE, PROMPT_NOTATION_EXAMPLES, PromptNotationExample } from './promptNotationExamples';
 
+const PROMPT_NOTATION_INSTALL_NOTE = spaceTrim(`
+    // Note 🔽: To install Promptbook run:
+    //         > npm install ptbk
+    //         OR
+    //         > npm install @promptbook/utils
+`);
+const PROMPT_NOTATION_IMPORT_LINE = "import { prompt } from '@promptbook/utils';";
+
 /**
  * Props for the CodeBlock component.
  */
@@ -71,6 +79,22 @@ function formatEvaluationError(error: unknown): string {
     }
 
     return valueToString(error);
+}
+
+/**
+ * Builds prompt notation example source with optional install instructions.
+ *
+ * @param exampleCode Example code body.
+ * @param includeInstallNote Whether to include install instructions comment.
+ */
+function buildPromptNotationExampleSource(exampleCode: string, includeInstallNote: boolean): string {
+    return spaceTrim(
+        (block) => `
+            ${includeInstallNote ? `${block(PROMPT_NOTATION_INSTALL_NOTE)}\n\n` : ''}${PROMPT_NOTATION_IMPORT_LINE}
+
+            ${block(exampleCode)}
+        `,
+    );
 }
 
 /**
@@ -199,7 +223,8 @@ export function PromptNotationComponent() {
      */
     const handleDownload = (example: PromptNotationExample): void => {
         const filename = getExampleDownloadFilename(example.id);
-        downloadTextFile(filename, example.runnableCode);
+        const downloadSource = buildPromptNotationExampleSource(example.runnableCode, true);
+        downloadTextFile(filename, downloadSource);
     };
 
     useEffect(() => {
@@ -265,13 +290,7 @@ export function PromptNotationComponent() {
                                 <CodeBlock
                                     label="Code"
                                     language="javascript"
-                                    content={spaceTrim(
-                                        (block) => `
-                                            import { prompt } from '@promptbook/utils';
-
-                                            ${block(example.code)}
-                                        `,
-                                    )}
+                                    content={buildPromptNotationExampleSource(example.code, false)}
                                 />
                                 <CodeBlock label="Output" language="markdown" content={example.output} />
                             </div>
