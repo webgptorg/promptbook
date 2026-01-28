@@ -306,6 +306,8 @@
     -   It works in the `Agents Server` application `/apps/agents-server`.
     -   All existing features work as before.
     -   Kept `OpenAiAssistantExecutionTools`, marked as deprecated and not used in `Agent`.
+    -   Added Responses API tool-calling loop and citation handling in `OpenAiAgentExecutionTools`.
+    -   Added Agents Server vector store cache manager and Responses provider wiring.
 -   Fixed document preview and download in Agents Server chat:
     -   Resolved issue where source URLs with query parameters (e.g. from blob storage) were not matched correctly, preventing previews.
     -   Fixed download button for cross-origin files by implementing a fetch-and-download mechanism to bypass browser restrictions on `download` attribute.

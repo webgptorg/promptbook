@@ -1,7 +1,6 @@
 import { SHA256 as sha256 } from 'crypto-js';
 import hexEncoder from 'crypto-js/enc-hex';
 import type { Promisable } from 'type-fest';
-import { TODO_any } from '../../_packages/types.index';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import { createAgentModelRequirements } from '../../book-2.0/agent-source/createAgentModelRequirements';
 import { parseAgentSource } from '../../book-2.0/agent-source/parseAgentSource';
@@ -34,17 +33,6 @@ import type { CreateAgentLlmExecutionToolsOptions } from './CreateAgentLlmExecut
  * @public exported from `@promptbook/core`
  */
 export class AgentLlmExecutionTools implements LlmExecutionTools {
-    /**
-     * Cache of OpenAI assistants to avoid creating duplicates
-     */
-    private static assistantCache = new Map<
-        string_title,
-        {
-            assistantId: string;
-            requirementsHash: string;
-        }
-    >();
-
     /**
      * Cache of OpenAI vector stores to avoid creating duplicates
      */
@@ -194,6 +182,12 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
         const chatPrompt = prompt as ChatPrompt;
         let underlyingLlmResult: CommonPromptResult;
 
+        if (OpenAiAssistantExecutionTools.isOpenAiAssistantExecutionTools(this.options.llmTools)) {
+            throw new Error(
+                'OpenAiAssistantExecutionTools is deprecated and is not supported in Agent. Use OpenAiAgentExecutionTools instead.',
+            );
+        }
+
         // Create modified chat prompt with agent system message
         const promptWithAgentModelRequirements: ChatPrompt = {
             ...chatPrompt,
@@ -220,36 +214,28 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
         if (OpenAiAgentExecutionTools.isOpenAiAgentExecutionTools(this.options.llmTools)) {
             const requirementsHash = sha256(JSON.stringify(modelRequirements)).toString();
             const cached = AgentLlmExecutionTools.vectorStoreCache.get(this.title);
+            const baseTools = this.options.llmTools;
+            const hasKnowledgeSources =
+                modelRequirements.knowledgeSources !== undefined && modelRequirements.knowledgeSources.length > 0;
             let agentTools: OpenAiAgentExecutionTools;
+            let vectorStoreId: string | undefined;
 
-            if (cached && cached.requirementsHash === requirementsHash) {
+            if (hasKnowledgeSources && cached && cached.requirementsHash === requirementsHash) {
                 if (this.options.isVerbose) {
                     console.log(`1️⃣ Using cached OpenAI Agent Vector Store for agent ${this.title}...`);
                 }
-                // Create new instance with cached vectorStoreId
-                // We need to access options from the original tool.
-                // We assume isOpenAiAgentExecutionTools implies it has options we can clone.
-                // But protected options are not accessible.
-                // We can cast to access options if they were public, or use a method to clone.
-                // OpenAiAgentExecutionTools doesn't have a clone method.
-                // However, we can just assume the passed tool *might* not have the vector store yet, or we are replacing it.
-                // Actually, if the passed tool IS OpenAiAgentExecutionTools, we should use it as a base.
-
-                // TODO: [🧠] This is a bit hacky, accessing protected options or recreating tools.
-                // Ideally OpenAiAgentExecutionTools should have a method `withVectorStoreId`.
-
-                agentTools = new OpenAiAgentExecutionTools({
-                    ...(this.options.llmTools as TODO_any).options, // Accessing protected options via any cast
-                    vectorStoreId: cached.vectorStoreId,
-                });
+                vectorStoreId = cached.vectorStoreId;
             } else {
-                if (this.options.isVerbose) {
-                    console.log(`1️⃣ Creating/Updating OpenAI Agent Vector Store for agent ${this.title}...`);
-                }
+                if (hasKnowledgeSources && baseTools.vectorStoreId) {
+                    if (this.options.isVerbose) {
+                        console.log(`1️⃣ Using provided OpenAI Agent Vector Store for agent ${this.title}...`);
+                    }
+                    vectorStoreId = baseTools.vectorStoreId;
+                } else if (hasKnowledgeSources) {
+                    if (this.options.isVerbose) {
+                        console.log(`1️⃣ Creating/Updating OpenAI Agent Vector Store for agent ${this.title}...`);
+                    }
 
-                let vectorStoreId: string | undefined;
-
-                if (modelRequirements.knowledgeSources && modelRequirements.knowledgeSources.length > 0) {
                     const client = await this.options.llmTools.getClient();
                     vectorStoreId = await OpenAiAgentExecutionTools.createVectorStore(
                         client,
@@ -258,17 +244,26 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
                     );
                 }
 
-                if (vectorStoreId) {
+                if (hasKnowledgeSources && vectorStoreId) {
                     AgentLlmExecutionTools.vectorStoreCache.set(this.title, {
                         vectorStoreId,
                         requirementsHash,
                     });
                 }
+            }
 
-                agentTools = new OpenAiAgentExecutionTools({
-                    ...(this.options.llmTools as TODO_any).options,
-                    vectorStoreId,
-                });
+            if (hasKnowledgeSources) {
+                if (vectorStoreId) {
+                    agentTools = baseTools.withVectorStoreId(vectorStoreId);
+                } else if (baseTools.vectorStoreId) {
+                    agentTools = baseTools.withVectorStoreId(undefined);
+                } else {
+                    agentTools = baseTools;
+                }
+            } else if (baseTools.vectorStoreId) {
+                agentTools = baseTools.withVectorStoreId(undefined);
+            } else {
+                agentTools = baseTools;
             }
 
             // Create modified chat prompt with agent system message specific to OpenAI Agent
@@ -287,81 +282,9 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
             };
 
             underlyingLlmResult = await agentTools.callChatModelStream(promptForAgent, onProgress);
-        } else if (OpenAiAssistantExecutionTools.isOpenAiAssistantExecutionTools(this.options.llmTools)) {
-            // ... deprecated path ...
-            const requirementsHash = sha256(JSON.stringify(modelRequirements)).toString();
-            const cached = AgentLlmExecutionTools.assistantCache.get(this.title);
-            let assistant: OpenAiAssistantExecutionTools;
-
-            if (cached) {
-                if (cached.requirementsHash === requirementsHash) {
-                    if (this.options.isVerbose) {
-                        console.log(`1️⃣ Using cached OpenAI Assistant for agent ${this.title}...`);
-                    }
-                    assistant = this.options.llmTools.getAssistant(cached.assistantId);
-                } else {
-                    if (this.options.isVerbose) {
-                        console.log(`1️⃣ Updating OpenAI Assistant for agent ${this.title}...`);
-                    }
-                    assistant = await this.options.llmTools.updateAssistant({
-                        assistantId: cached.assistantId,
-                        name: this.title,
-                        instructions: modelRequirements.systemMessage,
-                        knowledgeSources: modelRequirements.knowledgeSources,
-                        tools: modelRequirements.tools ? [...modelRequirements.tools] : undefined,
-                    });
-                    AgentLlmExecutionTools.assistantCache.set(this.title, {
-                        assistantId: assistant.assistantId,
-                        requirementsHash,
-                    });
-                }
-            } else {
-                if (this.options.isVerbose) {
-                    console.log(`1️⃣ Creating new OpenAI Assistant for agent ${this.title}...`);
-                }
-                // <- TODO: [🐱‍🚀] Check also `isCreatingNewAssistantsAllowed` and warn about it
-                assistant = await this.options.llmTools.createNewAssistant({
-                    name: this.title,
-                    instructions: modelRequirements.systemMessage,
-                    knowledgeSources: modelRequirements.knowledgeSources,
-                    tools: modelRequirements.tools ? [...modelRequirements.tools] : undefined,
-                    /*
-                    !!!
-                    metadata: {
-                        agentModelName: this.modelName,
-                    }
-                    */
-                });
-
-                AgentLlmExecutionTools.assistantCache.set(this.title, {
-                    assistantId: assistant.assistantId,
-                    requirementsHash,
-                });
-            }
-
-            // Create modified chat prompt with agent system message specific to OpenAI Assistant
-            const promptWithAgentModelRequirementsForOpenAiAssistantExecutionTools: ChatPrompt = {
-                ...promptWithAgentModelRequirements,
-                modelRequirements: {
-                    ...promptWithAgentModelRequirements.modelRequirements,
-                    modelName: undefined, // <- Note: Clear model name as it's defined by the Assistant
-                    systemMessage: undefined, // <- Note: Clear system message as it's already in the Assistant
-                    temperature: undefined, // <- Note: Let the Assistant use its default temperature
-                },
-            };
-
-            console.log(
-                '!!!! promptWithAgentModelRequirementsForOpenAiAssistantExecutionTools:',
-                promptWithAgentModelRequirementsForOpenAiAssistantExecutionTools,
-            );
-
-            underlyingLlmResult = await assistant.callChatModelStream(
-                promptWithAgentModelRequirementsForOpenAiAssistantExecutionTools,
-                onProgress,
-            );
         } else {
             if (this.options.isVerbose) {
-                console.log(`2️⃣ Creating Assistant ${this.title} on generic LLM execution tools...`);
+                console.log(`2️⃣ Using agent ${this.title} on generic LLM execution tools...`);
             }
 
             if (this.options.llmTools.callChatModelStream) {
