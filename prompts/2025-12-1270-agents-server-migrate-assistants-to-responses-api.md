@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🪰] Migrate [Agents](src/llm-providers/agent/Agent.ts) from assistants API to Responses API
 
@@ -1061,10 +1061,14 @@ We now have Assistant-like and Thread-like objects in the Responses API. Learn m
 
 [ ]
 
+@@@ First unrevert the 71ce381e2259c500d83e8d510fff47c19257d2de
+
 [✨🪰] Fix migration from assistants API to Responses API
 
--   @@@
--   @@@ First unrevert the 71ce381e2259c500d83e8d510fff47c19257d2de
+-   You have done the migration from assistants API to Responses API in [the previous task](prompts/2025-12-1270-agents-server-migrate-assistants-to-responses-api.md).
+-   The migration was done in commit f7451bd3efc48ca941b04365ebcafe060fb67848
+-   However, there is an error happening when trying to use the migrated code.
+-   Fix the error and make sure that the migration works as expected.
 
 **This is the error that is happening after the migration:**
 

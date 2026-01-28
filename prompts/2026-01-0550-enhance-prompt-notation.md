@@ -117,6 +117,56 @@ Generate a description for: {1}
 
 ---
 
+[ ]
+
+[✨🚛] Use Lucide React icons in http://localhost:4024/prompt-notation page buttons instead of utf-8 emojis
+
+-   You are working with the [Utils app](apps/utils) on page http://localhost:4024/prompt-notation
+
+---
+
+[ ]
+
+[✨🚛] Add import and install instruction in downloaded files from http://localhost:4024/prompt-notation page
+
+**Do not download:**
+
+```javascript
+const customer = 'John Doe';
+
+const writeEmailPrompt = prompt`
+    Write email to the customer ${customer}.
+`;
+
+const output = writeEmailPrompt.toString();
+```
+
+**Do download:**
+
+```javascript
+// Note 🔽: To install Promptbook run:
+//         > npm install ptbk
+//         OR
+//         > npm install @promptbook/utils
+
+import { prompt } from '@promptbook/utils';
+
+const customer = 'John Doe';
+
+const writeEmailPrompt = prompt`
+    Write email to the customer ${customer}.
+`;
+
+const output = writeEmailPrompt.toString();
+```
+
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Leverage `spaceTrim` utility
+-   This is relevant only for downloaded files, not for the samples shown on page, Append the import and install instructions dynamically before the downloading.
+-   You are working with the [Utils app](apps/utils) on page http://localhost:4024/prompt-notation
+
+---
+
 [-]
 
 [✨🚛] foo
@@ -125,6 +175,3 @@ Generate a description for: {1}
 -   There is both the function which can be used from the package and the showcase page and also unit test. Look at entire vertical of it.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Utils app](apps/utils) on page http://localhost:4024/prompt-notation
-
-
-
