@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.90
 
 [✨🏫] Enhance function for humanizing the text.
 
@@ -33,3 +33,4 @@
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

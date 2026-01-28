@@ -24,6 +24,29 @@ describe('how `humanizeAiText` works', () => {
             ),
         ));
 
+    it('should normalize additional punctuation variants', () =>
+        expect(
+            humanizeAiText(
+                spaceTrim(`
+                    Here are more cases: \u201fDouble quotes\u201d and \u00abguillemets\u00bb.
+                    Single quotes: \u201bHigh-9\u2019 and \u2039single\u203a.
+                    Dashes: en\u2013dash, non\u2011breaking, minus\u2212sign, full width\uFF0Ddash.
+                    Ellipsis: midline\u22ef and dot leader . . .
+                    Spaces: 10\u202f000 with thin\u2009space and zero\u200b width.
+                `),
+            ),
+        ).toBe(
+            just(
+                spaceTrim(`
+                    Here are more cases: "Double quotes" and "guillemets".
+                    Single quotes: 'High-9' and 'single'.
+                    Dashes: en-dash, non-breaking, minus-sign, full width-dash.
+                    Ellipsis: midline... and dot leader ...
+                    Spaces: 10 000 with thin space and zero width.
+                `),
+            ),
+        ));
+
     it('should keep the text which is already clean', () =>
         expect(
             humanizeAiText(

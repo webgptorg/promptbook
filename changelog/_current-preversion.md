@@ -23,6 +23,7 @@
 -   Enhanced prompt notation example actions in the Utils app with an overwrite warning, clipboard copy, and download shortcuts.
 -   Updated prompt notation output to use numeric parameter placeholders and a numbered parameters list.
 -   Render structured JSON parameters without double-escaping in prompt notation outputs.
+-   Enhanced `humanizeAiText` to normalize more dash, quote, ellipsis, and whitespace variants in AI text.
 
 -   Improved error reporting in package generation script to show the actual line where markers ([🟢], [⚪], [⚫], [🟡], [🔵]) are found when they shouldn't be published in packages. This helps developers quickly identify and fix issues by displaying the line number and content instead of just the filename.
 -   Enhanced all comparison documents in `/documents/comparison/*.md` for better balance and clarity:

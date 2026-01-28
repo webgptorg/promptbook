@@ -1,7 +1,7 @@
 import type { string_markdown } from '../../types/typeAliases';
 
 /**
- * Change ellipsis character to three dots `…` -> `...`
+ * Change ellipsis characters and dot leaders to three dots `…` -> `...`
  *
  * Note: [🔂] This function is idempotent.
  * Tip: If you want to do the full cleanup, look for `humanizeAiText` exported `@promptbook/markdown-utils`
@@ -9,7 +9,7 @@ import type { string_markdown } from '../../types/typeAliases';
  * @public exported from `@promptbook/markdown-utils`
  */
 export function humanizeAiTextEllipsis(aiText: string_markdown): string_markdown {
-    return aiText.replace(/…/g, '...');
+    return aiText.replace(/[…⋯]/g, '...').replace(/\.\s+\.\s+\./g, '...');
 }
 
 /**
