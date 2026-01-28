@@ -6,25 +6,53 @@ export function getAgentDefaultAvatarPrompt(agent: AgentBasicInformation): strin
     const {
         agentName,
         personaDescription,
-        meta: { fullname, color },
+        meta: { fullname, color, font },
     } = agent;
 
     return spaceTrim(
+        // Note: [⚜] When changing the prompt here, mark commit with [⚜]
         (block) => `
-            Professional corporate headshot of ${fullname || agentName}
-            
+
+            Create a historical house sign (domovní znamení) in the style of a Central European baroque or late renaissance facade relief.
+
+            The main motif symbolizes the AI agent named "${fullname || agentName}".
+
+            \`\`\`
             ${block(personaDescription || '')}
-            
-            - Professional business portrait photograph
-            - Photorealistic, studio quality lighting
-            - Shot with 85mm lens, shallow depth of field
-            - Neutral gray or soft gradient background
-            - Subject wearing professional attire with accent colors: ${color}
-            - Confident, approachable expression with slight smile
-            - Eye-level camera angle, centered composition
-            - Soft diffused lighting, subtle rim light
-            - Sharp focus on eyes, cinematic color grading
-            - 8K resolution, ultra detailed
+            \`\`\`
+
+            Visual style:
+            -  oval or cartouche-shaped frame
+            -  Use color scheme based on "${color || 'neutral tones'}"
+            -  Use font style based on "${font || 'classic serif'}"
+            -  hand-crafted stone or stucco relief
+            -  slightly weathered surface, visible age and patina
+            -  muted historical colors (ochre, faded blue, warm terracotta, stone white)
+            -  painterly yet sculptural look, like a carved facade emblem
+            -  shallow relief, not flat illustration
+
+            Symbolism:
+            -  the central figure should be allegorical, readable without text
+            -  avoid modern objects, screens, cables, or explicit technology
+            -  express intelligence, vigilance, guidance, protection, memory, or mediation through classical symbols
+            -  inspiration from animals, mythological figures, tools, or natural elements
+
+            Composition:
+            -  centered motif
+            -  symmetrical or near-symmetrical layout
+            -  decorative baroque flourishes around the frame
+            -  suitable for placement above a historical doorway
+
+            Lighting and texture:
+            -  soft daylight
+            -  realistic stone and plaster texture
+            -  subtle shadows enhancing relief depth
+
+            Overall mood:
+            -  timeless
+            -  dignified
+            -  calm authority
+            -  feels like a house sign named “U …” (At the sign of …)
             
         `,
     );
