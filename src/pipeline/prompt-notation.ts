@@ -96,15 +96,32 @@ function escapePromptParameterValue(value: string, options: { includeBraces: boo
 }
 
 /**
+ * Builds the parameter name used in prompt placeholders.
+ *
+ * @param index Zero-based parameter index.
+ */
+function buildParameterName(index: number): string {
+    return `${index + 1}`;
+}
+
+/**
+ * Formats the placeholder used in the prompt body for a parameter.
+ *
+ * @param name Parameter placeholder name.
+ */
+function formatParameterPlaceholder(name: string): string {
+    return `{${name}}`;
+}
+
+/**
  * Formats a parameter entry for the structured parameters section.
  *
  * @param name Parameter placeholder name.
  * @param value Escaped parameter value.
  */
 function formatParameterListItem(name: string, value: string): string {
-    const label = `{${name}}`;
     const wrappedValue = JSON.stringify(value);
-    return `- ${label}: ${wrappedValue}`;
+    return `${name}) ${wrappedValue}`;
 }
 
 /**
@@ -148,7 +165,7 @@ export function prompt(strings: TemplateStringsArray, ...values: Array<really_un
     const stringsWithHiddenParameters = strings.map((stringsItem) => hideBrackets(stringsItem));
 
     const parameterEntries = values.map((value, index) => {
-        const name = `param${index + 1}`;
+        const name = buildParameterName(index);
         const isPrompt = isPromptString(value);
         const stringValue = isPrompt ? value.toString() : valueToString(value);
         const isInline = isPrompt ? true : shouldInlineParameterValue(stringValue);
@@ -167,10 +184,12 @@ export function prompt(strings: TemplateStringsArray, ...values: Array<really_un
 
     // Combine strings and values
     let pipelineString = stringsWithHiddenParameters.reduce(
-        (result, stringsItem, i) =>
-            parameterNames[i] === undefined
+        (result, stringsItem, i) => {
+            const parameterName = parameterNames[i];
+            return parameterName === undefined
                 ? `${result}${stringsItem}`
-                : `${result}${stringsItem}{${parameterNames[i]}}`,
+                : `${result}${stringsItem}${formatParameterPlaceholder(parameterName)}`;
+        },
         '',
     );
 
@@ -205,7 +224,9 @@ export function prompt(strings: TemplateStringsArray, ...values: Array<really_un
         }
 
         if (!entry.isInline) {
-            pipelineString = pipelineString.split(entry.parameterMarker).join(`{${entry.name}}`);
+            pipelineString = pipelineString
+                .split(entry.parameterMarker)
+                .join(formatParameterPlaceholder(entry.name));
         }
     }
 
