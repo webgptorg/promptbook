@@ -1,4 +1,4 @@
-[ ] !!!!!!!
+[x] ~$0.26
 
 [✨👏] Coding agent should always wait before the next prompt is started.
 
@@ -19,3 +19,4 @@
 -   Do not change the script in any other way, just waiting before each prompt is started.
 -   This is relavant for all runners.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
+

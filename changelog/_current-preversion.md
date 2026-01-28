@@ -30,6 +30,7 @@
 -   Added nonce test files at the repository root for coding agent verification.
 -   Added a script to run prompt files through OpenAI Codex with prompt status tracking and git commits.
 -   Added interactive waits between codex prompt tasks with a `--no-wait` override flag.
+-   Added per-prompt start summaries with a confirmation wait before each prompt runs (unless `--no-wait`).
 -   Estimated OpenAI Codex runner prices from Codex CLI token counts instead of reporting $0.00.
 -   Implemented `USE IMAGE GENERATOR` commitment to allow agents to generate images using an image generation model.
 -   [✨⛪️] Allow to close dialogs by clicking outside of the dialog.

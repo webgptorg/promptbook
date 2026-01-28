@@ -133,10 +133,10 @@ async function run(): Promise<void> {
             return;
         }
 
-        if (options.waitForUser && !hasWaitedForStart) {
-            await waitForEnter(colors.bgWhite('Press Enter to start the first task...'));
+        if (options.waitForUser) {
+            await waitForPromptStart(nextPrompt.file, nextPrompt.section, !hasWaitedForStart);
+            hasWaitedForStart = true;
         }
-        hasWaitedForStart = true;
 
         await ensureWorkingTreeClean();
 
@@ -350,6 +350,25 @@ function printUpcomingTasks(tasks: UpcomingTask[]): void {
             console.info(` ${index + 1}. ${task.label}${summary}`);
         }
     }
+}
+
+/**
+ * Prints a summary of the prompt that will run next.
+ */
+function printPromptStartSummary(file: PromptFile, section: PromptSection): void {
+    const label = buildPromptLabelForDisplay(file, section);
+    const summary = buildPromptSummary(file, section);
+    console.info(colors.cyan('Next prompt:'));
+    console.info(` ${label}: ${summary}`);
+}
+
+/**
+ * Waits for user confirmation before starting the next prompt.
+ */
+async function waitForPromptStart(file: PromptFile, section: PromptSection, isFirstPrompt: boolean): Promise<void> {
+    printPromptStartSummary(file, section);
+    const label = isFirstPrompt ? 'first task' : 'next task';
+    await waitForEnter(colors.bgWhite(`Press Enter to start the ${label}...`));
 }
 
 function groupUpcomingTasksByPriority(tasks: UpcomingTask[]): Array<{ priority: number; tasks: UpcomingTask[] }> {
