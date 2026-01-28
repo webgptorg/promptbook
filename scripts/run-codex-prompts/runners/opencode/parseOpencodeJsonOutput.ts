@@ -3,9 +3,7 @@ import type { Usage } from '../../../../src/execution/Usage';
 import { UNCERTAIN_USAGE } from '../../../../src/execution/utils/usage-constants';
 
 /**
- * Parses Opencode JSON output and extracts usage information
- *
- * @private within the run-codex-prompts script
+ * Parses Opencode JSON output and extracts usage information.
  */
 export function parseOpencodeJsonOutput(output: string): Usage {
     try {

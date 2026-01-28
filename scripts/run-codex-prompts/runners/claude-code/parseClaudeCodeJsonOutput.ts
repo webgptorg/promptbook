@@ -4,7 +4,7 @@ import { UNCERTAIN_USAGE } from '../../../../src/execution/utils/usage-constants
 import { TODO_any } from '../../../../src/utils/organization/TODO_any';
 
 /**
- * Claude Code JSON output structure
+ * Claude Code JSON output structure.
  */
 type ClaudeCodeJsonOutput = {
     type: 'result';
@@ -37,9 +37,7 @@ type ClaudeCodeJsonOutput = {
 };
 
 /**
- * Parses Claude Code JSON output and extracts usage information
- *
- * @private within the run-codex-prompts script
+ * Parses Claude Code JSON output and extracts usage information.
  */
 export function parseClaudeCodeJsonOutput(output: string): Usage {
     try {

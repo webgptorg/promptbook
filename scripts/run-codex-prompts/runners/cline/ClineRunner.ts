@@ -1,20 +1,27 @@
 import { mkdir, unlink, writeFile } from 'fs/promises';
 import { dirname, join } from 'path';
-import { spaceTrim } from '../../../src/utils/organization/spaceTrim';
-import { UNCERTAIN_USAGE } from '../../../src/execution/utils/usage-constants';
-import { PromptRunner, PromptRunOptions, PromptRunResult } from './_PromptRunner';
-import { $runGoScript, toPosixPath } from './utils/$runGoScript';
-import { createCodingContext } from './createCodingContext';
+import { UNCERTAIN_USAGE } from '../../../../src/execution/utils/usage-constants';
+import { $runGoScript } from '../../common/runGoScript/$runGoScript';
+import type { PromptRunOptions } from '../types/PromptRunOptions';
+import type { PromptRunResult } from '../types/PromptRunResult';
+import type { PromptRunner } from '../types/PromptRunner';
+import { buildClineScript } from './buildClineScript';
+import type { ClineRunnerOptions } from './ClineRunnerOptions';
 
+/**
+ * Runs prompts via the Cline CLI.
+ */
 export class ClineRunner implements PromptRunner {
     public readonly name = 'cline';
 
-    public constructor(
-        private readonly options: {
-            model: string;
-        },
-    ) {}
+    /**
+     * Creates a new Cline runner.
+     */
+    public constructor(private readonly options: ClineRunnerOptions) {}
 
+    /**
+     * Runs the prompt using the Cline CLI.
+     */
     public async runPrompt(options: PromptRunOptions): Promise<PromptRunResult> {
         const config = {
             apiProvider: 'google-generative-ai',
@@ -41,25 +48,4 @@ export class ClineRunner implements PromptRunner {
             await unlink(configPath).catch(() => undefined);
         }
     }
-}
-
-type ClineScriptOptions = {
-    prompt: string;
-    configPath: string;
-};
-
-function buildClineScript(options: ClineScriptOptions): string {
-    const delimiter = 'CLINE_PROMPT';
-
-    return spaceTrim(
-        (block) => `
-            cline --config "${toPosixPath(options.configPath)}" --yes <<'${delimiter}'
-
-            ${block(options.prompt)}
-
-            ${block(createCodingContext())}
-
-            ${delimiter}
-        `,
-    );
 }

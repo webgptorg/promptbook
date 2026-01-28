@@ -161,6 +161,7 @@
 -   Added Cline CLI as a second agent runner in the coding agent script with `--agent <openai-codex|cline>` flag.
 -   Added Claude code as a third agent runner in the coding agent script with `--agent <openai-codex|cline|claude-code>` flag.
 -   Standardized runners of coding agent script to use temporary script files for robust prompt execution.
+-   Reorganized the coding agent prompt runner script into runner-specific folders and shared utilities without behavior changes.
 -   Implemented interactive chat animations triggered by emojis in agent messages:
     -   Added `ChatEffectsSystem` component with pluggable architecture for visual effects
     -   Implemented confetti animation effect for 🎉 emoji (particles falling from top)

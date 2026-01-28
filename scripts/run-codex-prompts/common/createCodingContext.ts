@@ -2,7 +2,7 @@ import { prompt } from '../../../src/pipeline/prompt-notation';
 import { string_prompt } from '../../../src/types/typeAliases';
 
 /**
- * @@@
+ * Builds the common coding context appended to runner prompts.
  */
 export function createCodingContext(): string_prompt {
     return prompt`
