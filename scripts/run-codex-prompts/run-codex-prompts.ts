@@ -38,8 +38,14 @@ run()
         process.exit(0);
     });
 
+/**
+ * Status for a prompt section parsed from checklist markers.
+ */
 type PromptStatus = 'done' | 'todo' | 'not-ready';
 
+/**
+ * Parsed section metadata within a prompt markdown file.
+ */
 type PromptSection = {
     index: number;
     startLine: number;
@@ -49,6 +55,9 @@ type PromptSection = {
     statusLineIndex?: number;
 };
 
+/**
+ * Parsed prompt file with section metadata and original content lines.
+ */
 type PromptFile = {
     path: string;
     name: string;
@@ -58,24 +67,36 @@ type PromptFile = {
     sections: PromptSection[];
 };
 
+/**
+ * Aggregated prompt counts for the runner summary.
+ */
 type PromptStats = {
     done: number;
     forAgent: number;
     toBeWritten: number;
 };
 
+/**
+ * CLI options for running the prompt runner.
+ */
 type RunOptions = {
     waitForUser: boolean;
     agentName: 'openai-codex' | 'cline' | 'claude-code' | 'opencode';
     model?: string;
 };
 
+/**
+ * Runnable prompt entry to display in upcoming tasks.
+ */
 type UpcomingTask = {
     label: string;
     summary: string;
     priority: number;
 };
 
+/**
+ * Main entry point for running prompts with the selected agent.
+ */
 async function run(): Promise<void> {
     const options = parseRunOptions(process.argv.slice(2));
 
@@ -166,6 +187,9 @@ async function run(): Promise<void> {
     }
 }
 
+/**
+ * Parses CLI arguments into runner options.
+ */
 function parseRunOptions(args: string[]): RunOptions {
     let agentName: 'openai-codex' | 'cline' | 'claude-code' | 'opencode' | undefined = undefined;
 
@@ -196,6 +220,9 @@ function parseRunOptions(args: string[]): RunOptions {
     };
 }
 
+/**
+ * Loads and parses prompt files from the prompts directory.
+ */
 async function loadPromptFiles(promptsDir: string): Promise<PromptFile[]> {
     const entries = await readdir(promptsDir, { withFileTypes: true });
     const files = entries
@@ -212,6 +239,9 @@ async function loadPromptFiles(promptsDir: string): Promise<PromptFile[]> {
     return promptFiles;
 }
 
+/**
+ * Parses a prompt markdown file into sections and metadata.
+ */
 function parsePromptFile(filePath: string, content: string): PromptFile {
     const eol = content.includes('\r\n') ? '\r\n' : '\n';
     const hasFinalEol = content.endsWith('\n');
@@ -260,6 +290,9 @@ function parsePromptFile(filePath: string, content: string): PromptFile {
     };
 }
 
+/**
+ * Parses a status line like "[ ] !!" into status and priority.
+ */
 function parseStatusLine(line: string): { status: PromptStatus; priority: number } | undefined {
     const match = line.match(/^\[(?<status>[ xX])\]\s*(?<priority>!*)\s*$/);
     if (!match) {
@@ -270,6 +303,9 @@ function parseStatusLine(line: string): { status: PromptStatus; priority: number
     return { status, priority };
 }
 
+/**
+ * Finds the first non-empty line index between two bounds.
+ */
 function findFirstNonEmptyLine(lines: string[], startLine: number, endLine: number): number | undefined {
     for (let i = startLine; i <= endLine; i++) {
         if (lines[i] !== undefined && lines[i].trim() !== '') {
@@ -279,6 +315,9 @@ function findFirstNonEmptyLine(lines: string[], startLine: number, endLine: numb
     return undefined;
 }
 
+/**
+ * Summarizes prompt stats for the runner output.
+ */
 function summarizePrompts(files: PromptFile[]): PromptStats {
     const stats: PromptStats = { done: 0, forAgent: 0, toBeWritten: 0 };
 
@@ -287,8 +326,7 @@ function summarizePrompts(files: PromptFile[]): PromptStats {
             if (section.status === 'done') {
                 stats.done += 1;
             } else if (section.status === 'todo') {
-                const promptText = buildCodexPrompt(file, section);
-                if (promptText.includes('@@@')) {
+                if (isPromptToBeWritten(file, section)) {
                     stats.toBeWritten += 1;
                 } else {
                     stats.forAgent += 1;
@@ -300,25 +338,20 @@ function summarizePrompts(files: PromptFile[]): PromptStats {
     return stats;
 }
 
+/**
+ * Prints the summary stats line.
+ */
 function printStats(stats: PromptStats): void {
     console.info(
         colors.cyan(`Done: ${stats.done} | For agent: ${stats.forAgent} | To be written: ${stats.toBeWritten}`),
     );
 }
 
+/**
+ * Prints the list of prompts that still need to be written.
+ */
 function printPromptsToBeWritten(files: PromptFile[]): void {
-    const promptsToWrite: Array<{ file: PromptFile; section: PromptSection }> = [];
-
-    for (const file of files) {
-        for (const section of file.sections) {
-            if (section.status === 'todo') {
-                const promptText = buildCodexPrompt(file, section);
-                if (promptText.includes('@@@')) {
-                    promptsToWrite.push({ file, section });
-                }
-            }
-        }
-    }
+    const promptsToWrite = listPromptsToBeWritten(files);
 
     let i = 0;
     for (const { file, section } of promptsToWrite) {
@@ -328,14 +361,20 @@ function printPromptsToBeWritten(files: PromptFile[]): void {
     }
 }
 
+/**
+ * Lists upcoming tasks that are ready to run (no authoring placeholders).
+ */
 function listUpcomingTasks(files: PromptFile[]): UpcomingTask[] {
-    return listTodoPrompts(files).map(({ file, section }) => ({
+    return listRunnablePrompts(files).map(({ file, section }) => ({
         label: buildPromptLabelForDisplay(file, section),
         summary: buildPromptSummary(file, section),
         priority: section.priority,
     }));
 }
 
+/**
+ * Prints upcoming tasks grouped by priority.
+ */
 function printUpcomingTasks(tasks: UpcomingTask[]): void {
     if (tasks.length === 0) {
         console.info(colors.green('No upcoming tasks.'));
@@ -371,6 +410,9 @@ async function waitForPromptStart(file: PromptFile, section: PromptSection, isFi
     await waitForEnter(colors.bgWhite(`Press Enter to start the ${label}...`));
 }
 
+/**
+ * Groups upcoming tasks by priority, high to low.
+ */
 function groupUpcomingTasksByPriority(tasks: UpcomingTask[]): Array<{ priority: number; tasks: UpcomingTask[] }> {
     const grouped = new Map<number, UpcomingTask[]>();
     for (const task of tasks) {
@@ -387,28 +429,36 @@ function groupUpcomingTasksByPriority(tasks: UpcomingTask[]): Array<{ priority: 
         .map(([priority, groupedTasks]) => ({ priority, tasks: groupedTasks }));
 }
 
+/**
+ * Builds a label that identifies the prompt section by index.
+ */
 function buildPromptLabel(file: PromptFile, section: PromptSection): string {
     return `${relative(process.cwd(), file.path).replace(/\\/g, '/')}#${section.index + 1}`;
 }
 
+/**
+ * Builds a display label using the prompt line number for easier navigation.
+ */
 function buildPromptLabelForDisplay(file: PromptFile, section: PromptSection): string {
     return `${relative(process.cwd(), file.path).replace(/\\/g, '/')}#${section.startLine + 1}`;
 }
 
+/**
+ * Extracts a short summary line from a prompt section.
+ */
 function buildPromptSummary(file: PromptFile, section: PromptSection): string {
     const lines = buildCodexPrompt(file, section).split(/\r?\n/);
     const firstLine = lines.find((line) => line.trim() !== '');
     return firstLine?.trim() || '(empty prompt)';
 }
 
+/**
+ * Selects the next runnable prompt based on priority.
+ */
 function findNextTodoPrompt(files: PromptFile[]): { file: PromptFile; section: PromptSection } | undefined {
     let nextPrompt: { file: PromptFile; section: PromptSection } | undefined;
 
-    for (const prompt of listTodoPrompts(files)) {
-        const promptText = buildCodexPrompt(prompt.file, prompt.section);
-        if (promptText.includes('@@@')) {
-            continue;
-        }
+    for (const prompt of listRunnablePrompts(files)) {
         if (!nextPrompt || prompt.section.priority > nextPrompt.section.priority) {
             nextPrompt = prompt;
         }
@@ -417,6 +467,9 @@ function findNextTodoPrompt(files: PromptFile[]): { file: PromptFile; section: P
     return nextPrompt;
 }
 
+/**
+ * Lists todo prompts across all files.
+ */
 function listTodoPrompts(files: PromptFile[]): Array<{ file: PromptFile; section: PromptSection }> {
     const prompts: Array<{ file: PromptFile; section: PromptSection }> = [];
     for (const file of files) {
@@ -429,6 +482,30 @@ function listTodoPrompts(files: PromptFile[]): Array<{ file: PromptFile; section
     return prompts;
 }
 
+/**
+ * Lists todo prompts that still contain authoring placeholders.
+ */
+function listPromptsToBeWritten(files: PromptFile[]): Array<{ file: PromptFile; section: PromptSection }> {
+    return listTodoPrompts(files).filter((prompt) => isPromptToBeWritten(prompt.file, prompt.section));
+}
+
+/**
+ * Lists todo prompts that are ready to run (no authoring placeholders).
+ */
+function listRunnablePrompts(files: PromptFile[]): Array<{ file: PromptFile; section: PromptSection }> {
+    return listTodoPrompts(files).filter((prompt) => !isPromptToBeWritten(prompt.file, prompt.section));
+}
+
+/**
+ * Checks whether a prompt section still needs authoring (contains "@@@").
+ */
+function isPromptToBeWritten(file: PromptFile, section: PromptSection): boolean {
+    return buildCodexPrompt(file, section).includes('@@@');
+}
+
+/**
+ * Ensures the git working tree is clean before running the prompt.
+ */
 async function ensureWorkingTreeClean(): Promise<void> {
     const isClean = await isWorkingTreeClean(process.cwd());
     if (!isClean) {
@@ -436,11 +513,17 @@ async function ensureWorkingTreeClean(): Promise<void> {
     }
 }
 
+/**
+ * Builds the commit message from the prompt content.
+ */
 function buildCommitMessage(file: PromptFile, section: PromptSection): string {
     const lines = buildPromptLinesWithoutStatus(file, section);
     return lines.join(file.eol);
 }
 
+/**
+ * Builds the prompt text sent to the agent runner.
+ */
 function buildCodexPrompt(file: PromptFile, section: PromptSection): string {
     const lines = buildPromptLinesWithoutStatus(file, section);
 
@@ -455,6 +538,9 @@ function buildCodexPrompt(file: PromptFile, section: PromptSection): string {
     return lines.join(file.eol);
 }
 
+/**
+ * Extracts prompt lines without the status marker.
+ */
 function buildPromptLinesWithoutStatus(file: PromptFile, section: PromptSection): string[] {
     const lines = file.lines.slice(section.startLine, section.endLine + 1);
 
@@ -468,6 +554,9 @@ function buildPromptLinesWithoutStatus(file: PromptFile, section: PromptSection)
     return trimEmptyEdges(lines);
 }
 
+/**
+ * Trims leading and trailing empty lines.
+ */
 function trimEmptyEdges(lines: string[]): string[] {
     let start = 0;
     while (start < lines.length && lines[start].trim() === '') {
@@ -480,6 +569,9 @@ function trimEmptyEdges(lines: string[]): string[] {
     return lines.slice(start, end + 1);
 }
 
+/**
+ * Marks a prompt section as done and records usage pricing.
+ */
 function markPromptDone(file: PromptFile, section: PromptSection, usage: Usage): void {
     if (section.statusLineIndex === undefined) {
         throw new Error(`Prompt ${section.index + 1} in ${file.name} does not have a status line.`);
@@ -492,27 +584,42 @@ function markPromptDone(file: PromptFile, section: PromptSection, usage: Usage):
     file.lines[section.statusLineIndex] = line.replace(/\[\s*\]\s*!*\s*$/, `[x] ${priceString}`);
 }
 
+/**
+ * Writes updated prompt file content to disk.
+ */
 async function writePromptFile(file: PromptFile): Promise<void> {
     const content = file.lines.join(file.eol) + (file.hasFinalEol ? file.eol : '');
     await writeFile(file.path, content, 'utf-8');
 }
 
+/**
+ * Builds the script path for a prompt section.
+ */
 function buildScriptPath(file: PromptFile, section: PromptSection): string {
     const basePath = file.path.replace(/\.md$/i, '');
     const suffix = file.sections.length > 1 ? `-${section.index + 1}` : '';
     return `${basePath}${suffix}.sh`;
 }
 
+/**
+ * Prints the formatted commit message preview.
+ */
 function printCommitMessage(message: string): void {
     console.info(colors.cyan('Commit message:'));
     console.info(formatCommitMessageForDisplay(message));
 }
 
+/**
+ * Formats commit message lines for console display.
+ */
 function formatCommitMessageForDisplay(message: string): string {
     const lines = message.split(/\r?\n/);
     return lines.map((line) => colors.bgBlue.white(` ${line} `)).join('\n');
 }
 
+/**
+ * Waits for the user to press Enter before continuing.
+ */
 async function waitForEnter(prompt: string): Promise<void> {
     const rl = createInterface({ input: process.stdin, output: process.stdout });
     await new Promise<void>((resolve) => {
@@ -536,6 +643,9 @@ export function toPosixPath(filePath: string): string {
     return filePath.replace(/\\/g, '/');
 }
 
+/**
+ * Commits staged changes with the provided message.
+ */
 async function commitChanges(message: string): Promise<void> {
     const commitMessagePath = join(process.cwd(), '.tmp', 'codex-prompts', `COMMIT_MESSAGE_${Date.now()}.txt`);
     await mkdir(dirname(commitMessagePath), { recursive: true });

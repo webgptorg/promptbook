@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.34
 
 [✨📎] Change the coding agent initial message
 
@@ -51,3 +51,4 @@ Upcoming tasks (grouped by priority):
 Priority 0:
  1. prompts/2026-01-0360-agents-server-images.md#13 - Images are cached BUT other parameters besides `prompt` isn't considered.
 ```
+
