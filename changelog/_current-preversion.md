@@ -8,6 +8,7 @@
     -   Follows DRY principle - parsing logic is centralized in `parseAgentSource()`, data flows through API to `RemoteAgent`
 -   Allow to add image in the image prompt in `ImageGeneratorTestClient`
 -   Ensured the Agents Server chat menu stays above chat action buttons (New chat, Save, etc.).
+-   Added top spacing in Agents Server chat so action buttons no longer overlap the first messages.
 -   Added Promptbook SDK integration snippets in Agents Server, including RemoteAgent Node.js and React examples on the integration page.
 -   Added API key field to the OpenRouter integration section in Agents Server to match OpenAI compatible setup.
 -   Added a Create API Key action on the agent integration page so admins can generate tokens without leaving the integrations screen.

@@ -182,6 +182,10 @@
     scroll-behavior: smooth;
 }
 
+.hasActionsAndFirstMessageIsLong {
+    padding-top: 80px;
+}
+
 /* Custom scrollbar styling */
 .chatMainFlow .chatMessages::-webkit-scrollbar {
     width: 6px;
