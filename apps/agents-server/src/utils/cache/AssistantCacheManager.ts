@@ -34,7 +34,7 @@ export type AssistantCacheResult = {
 };
 
 /**
- * Manages the lifecycle of OpenAI Assistants with intelligent caching.
+ * Manages the lifecycle of OpenAI Assistants with intelligent caching
  *
  * This class provides a centralized way to:
  * - Retrieve assistants from cache when possible
@@ -45,8 +45,6 @@ export type AssistantCacheResult = {
  * The caching strategy ensures that agents with the same base configuration
  * (model, system prompt, temperature, etc.) share the same underlying OpenAI Assistant,
  * improving resource efficiency and reducing API calls.
- *
- * @deprecated Use OpenAiAgentVectorStoreCacheManager when migrating to Responses API.
  */
 export class AssistantCacheManager {
     private readonly isVerbose: boolean;

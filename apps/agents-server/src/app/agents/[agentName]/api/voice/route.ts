@@ -2,7 +2,7 @@ import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import { getMetadata } from '@/src/database/getMetadata';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
-import { $provideOpenAiAgentExecutionToolsForServer } from '@/src/tools/$provideOpenAiAgentExecutionToolsForServer';
+import { $provideOpenAiAssistantExecutionToolsForServer } from '@/src/tools/$provideOpenAiAssistantExecutionToolsForServer';
 import { Agent, computeAgentHash, PROMPTBOOK_ENGINE_VERSION } from '@promptbook-local/core';
 import { computeHash, serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
@@ -52,19 +52,19 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
 
     try {
         const collection = await $provideAgentCollectionForServer();
-        const openAiAgentExecutionTools = await $provideOpenAiAgentExecutionToolsForServer();
+        const openAiAssistantExecutionTools = await $provideOpenAiAssistantExecutionToolsForServer();
         const agentSource = await collection.getAgentSource(agentName);
         const agent = new Agent({
             isVerbose: true,
             executionTools: {
-                llm: openAiAgentExecutionTools,
+                llm: openAiAssistantExecutionTools,
             },
             agentSource,
              teacherAgent: null, // <- TODO: [🦋] DRY place to provide the teacher
         });
 
         // 1. Transcribe Audio (STT)
-        const client = await openAiAgentExecutionTools.getClient();
+        const client = await openAiAssistantExecutionTools.getClient();
         const transcription = await client.audio.transcriptions.create({
             file: audioFile,
             model: 'whisper-1',

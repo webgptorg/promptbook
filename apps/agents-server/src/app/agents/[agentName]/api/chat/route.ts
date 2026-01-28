@@ -1,7 +1,7 @@
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
-import { $provideOpenAiAgentExecutionToolsForServer } from '@/src/tools/$provideOpenAiAgentExecutionToolsForServer';
+import { $provideOpenAiAssistantExecutionToolsForServer } from '@/src/tools/$provideOpenAiAssistantExecutionToolsForServer';
 import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
 import { createChatStreamHandler } from '@/src/utils/createChatStreamHandler';
 import { Agent, computeAgentHash, PROMPTBOOK_ENGINE_VERSION, RemoteAgent } from '@promptbook-local/core';
@@ -55,13 +55,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
     try {
         const collection = await $provideAgentCollectionForServer();
         // [▶️] const executionTools = await $provideExecutionToolsForServer();
-        const openAiAgentExecutionTools = await $provideOpenAiAgentExecutionToolsForServer();
+        const openAiAssistantExecutionTools = await $provideOpenAiAssistantExecutionToolsForServer();
         const agentSource = await collection.getAgentSource(agentName);
         const agent = new Agent({
             isVerbose: true, // <- TODO: [🐱‍🚀] From environment variable
             executionTools: {
                 // [▶️] ...executionTools,
-                llm: openAiAgentExecutionTools, // Note: Providing the OpenAI Responses LLM tools to the Agent
+                llm: openAiAssistantExecutionTools, // Note: Providing the OpenAI Assistant LLM tools to the Agent to be able to create its own Assistants GPTs
             },
             agentSource,
             teacherAgent: await RemoteAgent.connect({

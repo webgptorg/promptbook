@@ -12,9 +12,7 @@ import { JavascriptExecutionTools } from '../../../../src/scripting/javascript/J
 let llmExecutionTools: null | OpenAiAssistantExecutionTools = null;
 
 /**
- * Provides OpenAI Assistants API execution tools for the Agents Server.
- *
- * @deprecated Use `$provideOpenAiAgentExecutionToolsForServer` instead.
+ * [🐱‍🚀]
  */
 export async function $provideOpenAiAssistantExecutionToolsForServer(): Promise<OpenAiAssistantExecutionTools> {
     // TODO: [🐱‍🚀] [🌕] DRY

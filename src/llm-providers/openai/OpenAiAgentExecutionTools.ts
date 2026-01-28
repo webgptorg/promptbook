@@ -1,9 +1,6 @@
 import colors from 'colors';
 import OpenAI from 'openai';
-import spaceTrim from 'spacetrim';
 import { TODO_any } from '../../_packages/types.index';
-import { serializeError } from '../../_packages/utils.index';
-import { assertsError } from '../../errors/assertsError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
@@ -15,7 +12,7 @@ import { templateParameters } from '../../utils/parameters/templateParameters';
 import { exportJson } from '../../utils/serialization/exportJson';
 import type { OpenAiCompatibleExecutionToolsNonProxiedOptions } from './OpenAiCompatibleExecutionToolsOptions';
 import { OpenAiExecutionTools } from './OpenAiExecutionTools';
-import { mapToolsToOpenAiResponses } from './utils/mapToolsToOpenAiResponses';
+import { mapToolsToOpenAi } from './utils/mapToolsToOpenAi';
 
 /**
  * Options for OpenAiAgentExecutionTools
@@ -49,16 +46,6 @@ export class OpenAiAgentExecutionTools extends OpenAiExecutionTools implements L
     }
 
     /**
-     * Returns a new OpenAiAgentExecutionTools instance with the specified vector store ID.
-     */
-    public withVectorStoreId(vectorStoreId?: string): OpenAiAgentExecutionTools {
-        return new OpenAiAgentExecutionTools({
-            ...this.options,
-            vectorStoreId,
-        });
-    }
-
-    /**
      * Calls OpenAI API to use a chat model with streaming.
      */
     public async callChatModelStream(
@@ -82,7 +69,7 @@ export class OpenAiAgentExecutionTools extends OpenAiExecutionTools implements L
         });
 
         // Build input items
-        let input: Array<TODO_any> = []; // TODO: Type properly when OpenAI types are updated
+        const input: Array<TODO_any> = []; // TODO: Type properly when OpenAI types are updated
 
         // Add previous messages from thread (if any)
         if ('thread' in prompt && Array.isArray(prompt.thread)) {
@@ -94,38 +81,13 @@ export class OpenAiAgentExecutionTools extends OpenAiExecutionTools implements L
         }
 
         // Add current user message
-        const userMessage: TODO_any = {
+        input.push({
             role: 'user',
             content: rawPromptContent,
-        };
-
-        if ('files' in prompt && Array.isArray(prompt.files) && prompt.files.length > 0) {
-            const filesContent = await Promise.all(
-                prompt.files.map(async (file: File) => {
-                    const arrayBuffer = await file.arrayBuffer();
-                    const base64 = Buffer.from(arrayBuffer).toString('base64');
-                    return {
-                        type: 'input_image',
-                        image_url: `data:${file.type};base64,${base64}`,
-                    };
-                }),
-            );
-
-            userMessage.content = [
-                {
-                    type: 'input_text',
-                    text: rawPromptContent,
-                },
-                ...filesContent,
-            ];
-        }
-
-        input.push(userMessage);
+        });
 
         // Prepare tools
-        const toolsFromPrompt =
-            'tools' in prompt && Array.isArray(prompt.tools) ? prompt.tools : modelRequirements.tools;
-        const tools = toolsFromPrompt ? mapToolsToOpenAiResponses(toolsFromPrompt) : undefined;
+        const tools = modelRequirements.tools ? mapToolsToOpenAi(modelRequirements.tools) : undefined;
         // Add file_search if vector store is present
         const agentTools: Array<TODO_any> = tools ? [...tools] : [];
 
@@ -172,156 +134,55 @@ export class OpenAiAgentExecutionTools extends OpenAiExecutionTools implements L
             console.info(colors.bgWhite('rawRequest (Responses API)'), JSON.stringify(rawRequest, null, 4));
         }
 
-        const toolCalls: Array<NonNullable<ChatPromptResult['toolCalls']>[number]> = [];
-        let lastRawRequest: TODO_any = rawRequest;
-        let response: TODO_any = await (client as TODO_any).responses.create(rawRequest);
+        // Call Responses API
+        // Note: Using any cast because types might not be updated yet
+        const response = await (client as TODO_any).responses.create(rawRequest);
 
         if (this.options.isVerbose) {
             console.info(colors.bgWhite('rawResponse'), JSON.stringify(response, null, 4));
         }
 
+        const complete: string_date_iso8601 = $getCurrentDate();
         let resultContent = '';
+        const toolCalls: Array<NonNullable<ChatPromptResult['toolCalls']>[number]> = [];
 
-        let isLooping = true;
-
-        while (isLooping) {
-            const outputItems: Array<TODO_any> = Array.isArray(response.output) ? response.output : [];
-            const functionCalls: Array<TODO_any> = outputItems.filter(
-                (item: TODO_any) => item.type === 'function_call',
-            );
-            const { text: responseText, annotations } = this.extractResponseTextAndAnnotations(response);
-
-            if (functionCalls.length === 0) {
-                resultContent = responseText;
-                resultContent = await this.replaceFileCitations(resultContent, annotations, client);
-                isLooping = false;
-                continue;
-            }
-
-            const toolCallStartedAt = new Map<string, string_date_iso8601>();
-            const pendingToolCalls = functionCalls.map((toolCall: TODO_any) => {
-                const calledAt = $getCurrentDate();
-                const callId = toolCall.call_id || toolCall.id;
-                const rawArgs = toolCall.arguments ?? toolCall.function?.arguments ?? '{}';
-                const functionArgs = typeof rawArgs === 'string' ? rawArgs : JSON.stringify(rawArgs);
-                if (callId) {
-                    toolCallStartedAt.set(callId, calledAt);
+        // Parse output items
+        if (response.output) {
+            for (const item of response.output) {
+                if (item.type === 'message' && item.role === 'assistant') {
+                    for (const contentPart of item.content) {
+                        if (contentPart.type === 'output_text') {
+                            // "output_text" based on migration guide, or "text"? Guide says "output_text" in example.
+                            resultContent += contentPart.text;
+                        } else if (contentPart.type === 'text') {
+                            resultContent += contentPart.text.value || contentPart.text;
+                        }
+                    }
+                } else if (item.type === 'function_call') {
+                    // or tool_call?
+                    // Guide says "function-calling API shape is different... function calls sent back... see guide"
+                    // And "In Responses, tool calls and their outputs are two distinct types of Items that are correlated using a call_id"
+                    // It doesn't show the exact shape in the example.
+                    // I'll assume standard tool_calls shape or similar.
+                    // The example showing output structure:
+                    /*
+                     {
+                        "id": "msg_...",
+                        "type": "message",
+                        "content": [ { "type": "output_text", "text": "..." } ],
+                        "role": "assistant"
+                     }
+                     */
                 }
-
-                return {
-                    name: toolCall.name || toolCall.function?.name || 'tool',
-                    arguments: functionArgs,
-                    result: '',
-                    rawToolCall: toolCall,
-                    createdAt: calledAt,
-                };
-            });
-
-            onProgress({
-                content: responseText || '',
-                modelName: response.model || 'agent',
-                timing: { start, complete: $getCurrentDate() },
-                usage: UNCERTAIN_USAGE,
-                rawPromptContent,
-                rawRequest: lastRawRequest,
-                rawResponse: response,
-                toolCalls: pendingToolCalls,
-            });
-
-            const toolOutputs: Array<TODO_any> = [];
-
-            for (const toolCall of functionCalls) {
-                const functionName = toolCall.name || toolCall.function?.name;
-                const rawArgs = toolCall.arguments ?? toolCall.function?.arguments ?? '{}';
-                const functionArgs = typeof rawArgs === 'string' ? rawArgs : JSON.stringify(rawArgs);
-                const callId = toolCall.call_id || toolCall.id;
-                const calledAt = callId ? toolCallStartedAt.get(callId) || $getCurrentDate() : $getCurrentDate();
-
-                if (!functionName) {
-                    throw new PipelineExecutionError('Tool call received without a function name');
-                }
-
-                if (!callId) {
-                    throw new PipelineExecutionError(`Tool call "${functionName}" is missing call_id`);
-                }
-
-                const executionTools = (this.options as OpenAiCompatibleExecutionToolsNonProxiedOptions).executionTools;
-
-                if (!executionTools || !executionTools.script) {
-                    throw new PipelineExecutionError(
-                        `Model requested tool '${functionName}' but no executionTools.script were provided in OpenAiAgentExecutionTools options`,
-                    );
-                }
-
-                const scriptTools = Array.isArray(executionTools.script)
-                    ? executionTools.script
-                    : [executionTools.script];
-
-                let functionResponse: string;
-                let errors: Array<ReturnType<typeof serializeError>> | undefined;
-
-                try {
-                    const scriptTool = scriptTools[0]!; // <- TODO: [🧠] Which script tool to use?
-
-                    functionResponse = await scriptTool.execute({
-                        scriptLanguage: 'javascript', // <- TODO: [🧠] How to determine script language?
-                        script: `
-                            const args = ${functionArgs};
-                            return await ${functionName}(args);
-                        `,
-                        parameters: prompt.parameters,
-                    });
-                } catch (error) {
-                    assertsError(error);
-
-                    const serializedError = serializeError(error as Error);
-                    errors = [serializedError];
-                    functionResponse = spaceTrim(
-                        (block) => `
-
-                            The invoked tool \`${functionName}\` failed with error:
-
-                            \`\`\`json
-                            ${block(JSON.stringify(serializedError, null, 4))}
-                            \`\`\`
-
-                        `,
-                    );
-                    console.error(colors.bgRed(`Error executing tool ${functionName}:`));
-                    console.error(error);
-                }
-
-                toolOutputs.push({
-                    type: 'function_call_output',
-                    call_id: callId,
-                    output: functionResponse,
-                });
-
-                toolCalls.push({
-                    name: functionName,
-                    arguments: functionArgs,
-                    result: functionResponse,
-                    rawToolCall: toolCall,
-                    createdAt: calledAt,
-                    errors,
-                });
-            }
-
-            input = input.concat(outputItems, toolOutputs);
-
-            lastRawRequest = {
-                ...rawRequest,
-                input,
-            };
-
-            response = await (client as TODO_any).responses.create(lastRawRequest);
-
-            if (this.options.isVerbose) {
-                console.info(colors.bgWhite('rawResponse'), JSON.stringify(response, null, 4));
             }
         }
 
-        const complete: string_date_iso8601 = $getCurrentDate();
+        // Use output_text helper if available (mentioned in guide)
+        if (response.output_text) {
+            resultContent = response.output_text;
+        }
+
+        // TODO: Handle tool calls properly (Requires clearer docs or experimentation)
 
         onProgress({
             content: resultContent,
@@ -329,9 +190,8 @@ export class OpenAiAgentExecutionTools extends OpenAiExecutionTools implements L
             timing: { start, complete },
             usage: UNCERTAIN_USAGE, // Responses API usage?
             rawPromptContent,
-            rawRequest: lastRawRequest,
+            rawRequest,
             rawResponse: response,
-            toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
         });
 
         return exportJson({
@@ -344,93 +204,11 @@ export class OpenAiAgentExecutionTools extends OpenAiExecutionTools implements L
                 timing: { start, complete },
                 usage: UNCERTAIN_USAGE,
                 rawPromptContent,
-                rawRequest: lastRawRequest,
+                rawRequest,
                 rawResponse: response,
                 toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
             },
         });
-    }
-
-    /**
-     * Extracts assistant text and annotations from a Responses API output payload.
-     */
-    private extractResponseTextAndAnnotations(response: TODO_any): {
-        text: string;
-        annotations: Array<TODO_any>;
-    } {
-        let text = '';
-        const annotations: Array<TODO_any> = [];
-
-        if (Array.isArray(response.output)) {
-            for (const item of response.output) {
-                if (item.type !== 'message' || item.role !== 'assistant' || !Array.isArray(item.content)) {
-                    continue;
-                }
-
-                for (const contentPart of item.content) {
-                    if (contentPart.type === 'output_text' && typeof contentPart.text === 'string') {
-                        text += contentPart.text;
-                    } else if (contentPart.type === 'text') {
-                        text += contentPart.text?.value || contentPart.text || '';
-                    }
-
-                    if (Array.isArray(contentPart.annotations)) {
-                        annotations.push(...contentPart.annotations);
-                    }
-                }
-            }
-        }
-
-        if (!text && response.output_text) {
-            text = response.output_text;
-        }
-
-        return { text, annotations };
-    }
-
-    /**
-     * Replaces file citation markers with filenames when available.
-     */
-    private async replaceFileCitations(
-        content: string,
-        annotations: Array<TODO_any>,
-        client: OpenAI,
-    ): Promise<string> {
-        if (!content || annotations.length === 0) {
-            return content;
-        }
-
-        const fileIdToName = new Map<string, string>();
-        let updatedContent = content;
-
-        for (const annotation of annotations) {
-            const fileId = annotation.file_citation?.file_id || annotation.file_id;
-            const annotationText = annotation.text;
-
-            if (!fileId || !annotationText) {
-                continue;
-            }
-
-            let filename = fileIdToName.get(fileId);
-
-            if (!filename) {
-                try {
-                    const file = await client.files.retrieve(fileId);
-                    filename = file.filename;
-                    fileIdToName.set(fileId, filename);
-                } catch (error) {
-                    console.error(`Failed to retrieve file info for ${fileId}`, error);
-                    filename = 'Source';
-                }
-            }
-
-            if (filename) {
-                const newText = annotationText.replace(/†.*?】/, `†${filename}】`);
-                updatedContent = updatedContent.replace(annotationText, newText);
-            }
-        }
-
-        return updatedContent;
     }
 
     /**
