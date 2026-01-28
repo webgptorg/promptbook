@@ -212,7 +212,8 @@ export function PromptNotationComponent() {
      * @param example Example definition to copy.
      */
     const handleCopyToClipboard = (example: PromptNotationExample): void => {
-        void copyTextToClipboard(example.runnableCode).catch((error) => {
+        const downloadSource = buildPromptNotationExampleSource(example.runnableCode, true);
+        void copyTextToClipboard(downloadSource).catch((error) => {
             console.error('Failed to copy prompt notation example.', error);
         });
     };
