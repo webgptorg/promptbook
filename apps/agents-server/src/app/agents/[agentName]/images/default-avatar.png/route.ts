@@ -10,6 +10,7 @@ import { assertsError } from '../../../../../../../../src/errors/assertsError';
 import type { LlmExecutionTools } from '../../../../../../../../src/execution/LlmExecutionTools';
 import { getSingleLlmExecutionTools } from '../../../../../../../../src/llm-providers/_multiple/getSingleLlmExecutionTools';
 import type { string_url } from '../../../../../../../../src/types/typeAliases';
+import { getGeneratedImageCdnKey } from '../../../../../utils/cdn/utils/getGeneratedImageCdnKey';
 import { getAgentDefaultAvatarPrompt } from './getAgentDefaultAvatarPrompt';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ agentName: string }> }) {
@@ -124,7 +125,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
                     const buffer = Buffer.from(imageBuffer);
 
                     const cdn = $provideCdnForServer();
-                    const cdnKey = `generated-images/${internalFilename}`;
+                    const cdnKey = getGeneratedImageCdnKey({
+                        filename: internalFilename,
+                        pathPrefix: cdn.pathPrefix,
+                    });
                     await cdn.setItem(cdnKey, {
                         type: 'image/png',
                         data: buffer,

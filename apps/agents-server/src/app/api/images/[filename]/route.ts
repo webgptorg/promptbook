@@ -9,6 +9,7 @@ import { string_url } from '../../../../../../../src/types/typeAliases';
 import { $provideSupabaseForServer } from '../../../../database/$provideSupabaseForServer';
 import { $provideCdnForServer } from '../../../../tools/$provideCdnForServer';
 import { $provideExecutionToolsForServer } from '../../../../tools/$provideExecutionToolsForServer';
+import { getGeneratedImageCdnKey } from '../../../../utils/cdn/utils/getGeneratedImageCdnKey';
 import { filenameToPrompt } from '../../../../utils/normalization/filenameToPrompt';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ filename: string }> }) {
@@ -96,7 +97,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
         // Upload to CDN
         const cdn = $provideCdnForServer();
-        const cdnKey = `generated-images/${filename}`;
+        const cdnKey = getGeneratedImageCdnKey({ filename, pathPrefix: cdn.pathPrefix });
         await cdn.setItem(cdnKey, {
             type: 'image/png', // DALL-E generates PNG
             data: buffer,

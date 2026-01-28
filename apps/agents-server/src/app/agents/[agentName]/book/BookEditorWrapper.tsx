@@ -4,6 +4,7 @@ import { BookEditor } from '@promptbook-local/components';
 import { string_book } from '@promptbook-local/types';
 import { upload } from '@vercel/blob/client';
 import { useEffect, useRef, useState } from 'react';
+import { getSafeCdnPath } from '../../../../utils/cdn/utils/getSafeCdnPath';
 
 type BookEditorWrapperProps = {
     agentName: string;
@@ -99,9 +100,10 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
                     // Build the full path including prefix and user/files directory
                     const pathPrefix = process.env.NEXT_PUBLIC_CDN_PATH_PREFIX || '';
                     const uploadPath = pathPrefix ? `${pathPrefix}/user/files/${file.name}` : `user/files/${file.name}`;
+                    const safeUploadPath = getSafeCdnPath({ pathname: uploadPath });
 
                     // Upload directly to Vercel Blob using client upload
-                    const blob = await upload(uploadPath, file, {
+                    const blob = await upload(safeUploadPath, file, {
                         access: 'public',
                         handleUploadUrl: '/api/upload',
                         clientPayload: JSON.stringify({
