@@ -7,7 +7,7 @@ import { computeHash } from './computeHash';
  * @public exported from `@promptbook/utils`
  */
 export async function linguisticHash(input: string): Promise<string> {
-    const hash = computeHash(input);
+    const hash: string = computeHash(input);
 
     return capitalize(createStorySentence(hash));
 }
@@ -85,8 +85,8 @@ const STORY_TEMPLATES: LinguisticStoryTemplate[] = [
  * Extracts a deterministic numeric seed from a SHA-256 hash.
  */
 function getHashSeed(hash: string, segmentIndex: number): number {
-    const expandedHash = `${hash}${hash}`;
-    const start = (segmentIndex * HASH_SEGMENT_LENGTH + segmentIndex) % hash.length;
+    const expandedHash: string = `${hash}${hash}`;
+    const start: number = (segmentIndex * HASH_SEGMENT_LENGTH + segmentIndex) % hash.length;
     return parseInt(expandedHash.substring(start, start + HASH_SEGMENT_LENGTH), 16);
 }
 
@@ -132,8 +132,8 @@ const STORY_TEMPLATE_INDEX = 11;
  * Builds a short, memorable story sentence from the hash.
  */
 function createStorySentence(hash: string): string {
-    const parts = createStoryParts(hash);
-    const template = pickFromHash(hash, STORY_TEMPLATE_INDEX, STORY_TEMPLATES);
+    const parts: LinguisticStoryParts = createStoryParts(hash);
+    const template: LinguisticStoryTemplate = pickFromHash(hash, STORY_TEMPLATE_INDEX, STORY_TEMPLATES);
     return template(parts).trim();
 }
 

@@ -132,7 +132,7 @@ function formatParameterPlaceholder(name: string): string {
  * @param item Parameter entry data.
  */
 function formatParameterListItem(item: { name: string; value: string; jsonValue: string | null }): string {
-    const formattedValue =
+    const formattedValue: string =
         item.jsonValue ?? JSON.stringify(escapePromptParameterValue(item.value, { includeBraces: true }));
     return `${item.name}) ${formattedValue}`;
 }
@@ -143,7 +143,7 @@ function formatParameterListItem(item: { name: string; value: string; jsonValue:
  * @param items Parameter entries to include.
  */
 function buildParametersSection(items: Array<{ name: string; value: string; jsonValue: string | null }>): string {
-    const entries = items
+    const entries: string[] = items
         .flatMap((item) => formatParameterListItem(item).split(/\r?\n/))
         .filter((line) => line !== '');
 
@@ -177,17 +177,17 @@ export function prompt(strings: TemplateStringsArray, ...values: Array<really_un
         return new PromptString(spaceTrim(strings.join('')));
     }
 
-    const stringsWithHiddenParameters = strings.map((stringsItem) => hideBrackets(stringsItem));
+    const stringsWithHiddenParameters: string[] = strings.map((stringsItem: string) => hideBrackets(stringsItem));
 
-    const parameterEntries = values.map((value, index) => {
-        const name = buildParameterName(index);
-        const isPrompt = isPromptString(value);
-        const stringValue = isPrompt ? value.toString() : valueToString(value);
-        const isInline = isPrompt ? true : shouldInlineParameterValue(stringValue);
-        const jsonValue = !isPrompt && !isInline ? normalizeJsonString(stringValue) : null;
-        const promptMarker = `${REPLACING_NONCE}prompt-${index}`;
-        const parameterMarker = `${REPLACING_NONCE}parameter-${index}`;
-        const templateValue = isPrompt
+    const parameterEntries = values.map((value: really_unknown, index: number) => {
+        const name: string = buildParameterName(index);
+        const isPrompt: boolean = isPromptString(value);
+        const stringValue: string = isPrompt ? (value as PromptString).toString() : valueToString(value);
+        const isInline: boolean = isPrompt ? true : shouldInlineParameterValue(stringValue);
+        const jsonValue: string | null = !isPrompt && !isInline ? normalizeJsonString(stringValue) : null;
+        const promptMarker: string = `${REPLACING_NONCE}prompt-${index}`;
+        const parameterMarker: string = `${REPLACING_NONCE}parameter-${index}`;
+        const templateValue: string = isPrompt
             ? promptMarker
             : isInline
             ? escapePromptParameterValue(stringValue, { includeBraces: false })
@@ -195,8 +195,10 @@ export function prompt(strings: TemplateStringsArray, ...values: Array<really_un
 
         return { name, stringValue, jsonValue, isPrompt, isInline, promptMarker, parameterMarker, templateValue };
     });
-    const parameters = Object.fromEntries(parameterEntries.map((entry) => [entry.name, entry.templateValue]));
-    const parameterNames = parameterEntries.map((entry) => entry.name);
+    const parameters: Record<string, string> = Object.fromEntries(
+        parameterEntries.map((entry) => [entry.name, entry.templateValue]),
+    );
+    const parameterNames: string[] = parameterEntries.map((entry) => entry.name);
 
     // Combine strings and values
     let pipelineString = stringsWithHiddenParameters.reduce(
@@ -249,11 +251,12 @@ export function prompt(strings: TemplateStringsArray, ...values: Array<really_un
     const structuredParameters = parameterEntries.filter((entry) => !entry.isPrompt && !entry.isInline);
 
     if (structuredParameters.length > 0) {
-        const parameterItems = structuredParameters.map((entry) => ({
-            name: entry.name,
-            value: entry.stringValue,
-            jsonValue: entry.jsonValue,
-        }));
+        const parameterItems: Array<{ name: string; value: string; jsonValue: string | null }> =
+            structuredParameters.map((entry) => ({
+                name: entry.name,
+                value: entry.stringValue,
+                jsonValue: entry.jsonValue,
+            }));
 
         pipelineString = `${pipelineString}\n\n${buildParametersSection(parameterItems)}`;
     }

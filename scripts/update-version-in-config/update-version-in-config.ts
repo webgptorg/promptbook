@@ -18,11 +18,11 @@ if (process.cwd() !== join(__dirname, '../..')) {
     process.exit(1);
 }
 
-const program = new commander.Command();
+const program: commander.Command = new commander.Command();
 program.option('--commit', `Autocommit changes`, false);
 program.parse(process.argv);
 
-const { commit: isCommited } = program.opts();
+const { commit: isCommited } = program.opts() as { commit: boolean };
 
 generatePackages({ isCommited })
     .catch((error) => {
@@ -35,12 +35,12 @@ generatePackages({ isCommited })
         process.exit(0);
     });
 
-async function generatePackages({ isCommited }: { isCommited: boolean }) {
+async function generatePackages({ isCommited }: { isCommited: boolean }): Promise<void> {
     if (isCommited && !(await isWorkingTreeClean(process.cwd()))) {
         throw new Error(`Working tree is not clean`);
     }
 
-    const BOOK_LANGUAGE_VERSION = await readFile(`./book/version.txt`, 'utf-8');
+    const BOOK_LANGUAGE_VERSION: string = await readFile(`./book/version.txt`, 'utf-8');
 
     console.info(
         `🆚 Update Promptbook engine version to ${version} and book language version to ${BOOK_LANGUAGE_VERSION}`,
@@ -97,15 +97,15 @@ async function generatePackages({ isCommited }: { isCommited: boolean }) {
     // TODO: Is there a secure and simple way to write in append-only mode?
     // TODO: [🧠] Maybe handle this dynamically via `npm view ptbk/* versions` (but its not complete)
 
-    const allVersions = await readFile(`./src/versions.txt`, 'utf-8');
-    const newAllVersions = `${spaceTrim(allVersions)}\n${version}\n`;
+    const allVersions: string = await readFile(`./src/versions.txt`, 'utf-8');
+    const newAllVersions: string = `${spaceTrim(allVersions)}\n${version}\n`;
     await writeFile(`./src/versions.txt`, newAllVersions, 'utf-8');
 
     if (isCommited) {
         await commit(['src'], `🆚 Add \`${version}\` -> \`versions.txt\``);
     }
 
-    let dockerfile = await readFile(`./Dockerfile`, 'utf-8');
+    let dockerfile: string = await readFile(`./Dockerfile`, 'utf-8');
     dockerfile = dockerfile.replace(/^RUN\s+npm\s+i\s+ptbk@?.*$/m, `RUN npm i ptbk@${version}`);
     await writeFile(`./Dockerfile`, dockerfile, 'utf-8');
 
