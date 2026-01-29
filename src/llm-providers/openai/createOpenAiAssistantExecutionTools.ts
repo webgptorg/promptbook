@@ -8,7 +8,6 @@ import type { OpenAiAssistantExecutionToolsOptions } from './OpenAiAssistantExec
  * Execution Tools for calling OpenAI API
  *
  * @public exported from `@promptbook/openai`
- * @deprecated Use `createOpenAiAgentExecutionTools` instead.
  */
 export const createOpenAiAssistantExecutionTools = Object.assign(
     (options: OpenAiAssistantExecutionToolsOptions): OpenAiAssistantExecutionTools => {

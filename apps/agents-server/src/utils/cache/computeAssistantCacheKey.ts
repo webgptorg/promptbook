@@ -3,16 +3,16 @@ import { string_book } from '@promptbook-local/types';
 import { computeHash } from '@promptbook-local/utils';
 
 /**
- * Configuration that uniquely identifies an OpenAI Responses cache entry
+ * Configuration that uniquely identifies an OpenAI Assistant
  */
-export type AgentCacheConfiguration = {
+export type AssistantConfiguration = {
     /**
      * Base agent source without dynamic CONTEXT lines
      */
     readonly baseAgentSource: string_book;
 
     /**
-     * Agent name derived from agent source
+     * Assistant name derived from agent source
      */
     readonly name: string;
 
@@ -41,20 +41,20 @@ export type AgentCacheConfiguration = {
 };
 
 /**
- * Extracts cache configuration from agent source
+ * Extracts assistant configuration from agent source
  *
- * This function extracts the configuration that uniquely identifies a Responses-backed agent cache entry.
+ * This function extracts the configuration that uniquely identifies an assistant.
  * You can choose to include or exclude dynamic CONTEXT lines from the configuration.
  *
  * @param agentSource - The full agent source (may include CONTEXT lines)
  * @param options - Configuration options
  * @param options.includeDynamicContext - Whether to include CONTEXT lines in configuration (default: true for backward compatibility)
- * @returns Agent cache configuration
+ * @returns Assistant configuration for caching
  */
-export function extractAgentCacheConfiguration(
+export function extractAssistantConfiguration(
     agentSource: string_book,
     options: { includeDynamicContext?: boolean } = {},
-): AgentCacheConfiguration {
+): AssistantConfiguration {
     const { includeDynamicContext = true } = options;
 
     // Separate base agent source from dynamic context if needed
@@ -68,7 +68,7 @@ export function extractAgentCacheConfiguration(
 
     // Parse agent source to get name and persona
     const parsed = parseAgentSource(configAgentSource);
-    const name = parsed.agentName || 'agent';
+    const name = parsed.agentName || 'assistant';
     const baseInstructions = parsed.personaDescription || 'You are a helpful assistant.';
 
     // If including dynamic context, append it to instructions
@@ -87,16 +87,16 @@ export function extractAgentCacheConfiguration(
 }
 
 /**
- * Computes a unique cache key for a Responses-backed agent based on its configuration
+ * Computes a unique cache key for an OpenAI Assistant based on its configuration
  *
- * This key is used to determine if two agents can share the same cached vector store.
+ * This key is used to determine if two agents can share the same OpenAI Assistant.
  * Agents with the same base configuration (but potentially different dynamic context)
- * will share the same cached resources, improving efficiency.
+ * will share the same assistant, improving resource efficiency.
  *
- * @param configuration - Agent cache configuration
- * @returns Cache key (hash) for the agent cache entry
+ * @param configuration - Assistant configuration
+ * @returns Cache key (hash) for the assistant
  */
-export function computeAgentCacheKey(configuration: AgentCacheConfiguration): string {
+export function computeAssistantCacheKey(configuration: AssistantConfiguration): string {
     // Create a deterministic object for hashing
     const cacheObject = {
         name: configuration.name,
@@ -116,7 +116,7 @@ export function computeAgentCacheKey(configuration: AgentCacheConfiguration): st
 /**
  * Extracts dynamic context lines from agent source
  *
- * These context lines are provided per-request and don't affect cache keys.
+ * These context lines are provided per-request and don't affect assistant caching.
  *
  * @param agentSource - The full agent source (may include CONTEXT lines)
  * @returns Array of context strings

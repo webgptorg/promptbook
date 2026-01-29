@@ -19,7 +19,7 @@ import { $sideEffect } from '../../../utils/organization/$sideEffect';
 import { just } from '../../../utils/organization/just';
 import { keepImported } from '../../../utils/organization/keepImported';
 import { cacheLlmTools } from '../../_common/utils/cache/cacheLlmTools';
-import { OpenAiAgentExecutionTools } from '../../openai/OpenAiAgentExecutionTools';
+import { OpenAiAssistantExecutionTools } from '../../openai/OpenAiAssistantExecutionTools';
 import { createAgentLlmExecutionTools } from '../createAgentLlmExecutionTools';
 
 $sideEffect($registrations); // <- Note: LLM Providers are registered by importing their registration files
@@ -53,14 +53,16 @@ async function playground() {
      /**/
 
     /**/
-    const llmTools = new OpenAiAgentExecutionTools({
+    const llmTools = new OpenAiAssistantExecutionTools({
         apiKey: process.env.OPENAI_API_KEY,
+        assistantId: 'abstract_assistant', // <- TODO: [🙎] In `OpenAiAssistantExecutionTools` Allow to create abstract assistants with `isCreatingNewAssistantsAllowed`
         executionTools: {
             script: new JavascriptExecutionTools({
                 isVerbose,
                 functions: getAllCommitmentsToolFunctionsForNode(),
             }),
         },
+        isCreatingNewAssistantsAllowed: true,
         isVerbose,
     });
     /**/

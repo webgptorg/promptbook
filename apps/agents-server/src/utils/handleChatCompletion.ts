@@ -1,7 +1,7 @@
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
-import { $provideOpenAiAgentExecutionToolsForServer } from '@/src/tools/$provideOpenAiAgentExecutionToolsForServer';
+import { $provideOpenAiAssistantExecutionToolsForServer } from '@/src/tools/$provideOpenAiAssistantExecutionToolsForServer';
 import { createChatStreamHandler } from '@/src/utils/createChatStreamHandler';
 import { Agent, computeAgentHash, PROMPTBOOK_ENGINE_VERSION } from '@promptbook-local/core';
 import { ChatMessage, Prompt, string_book, TODO_any } from '@promptbook-local/types';
@@ -9,7 +9,7 @@ import { computeHash } from '@promptbook-local/utils';
 import { NextRequest, NextResponse } from 'next/server';
 import { isAgentDeleted } from '../app/agents/[agentName]/_utils';
 import { HTTP_STATUS_CODES } from '../constants';
-import { AgentVectorStoreCacheManager } from './cache/AgentVectorStoreCacheManager';
+import { AssistantCacheManager } from './cache/AssistantCacheManager';
 import { validateApiKey } from './validateApiKey';
 
 export async function handleChatCompletion(
@@ -118,43 +118,40 @@ export async function handleChatCompletion(
 
         const agentHash = computeAgentHash(agentSource);
 
-        // Use AgentVectorStoreCacheManager for intelligent vector store caching
-        const vectorStoreCacheManager = new AgentVectorStoreCacheManager({ isVerbose: true });
-        const baseOpenAiTools = await $provideOpenAiAgentExecutionToolsForServer();
+        // Use AssistantCacheManager for intelligent assistant caching
+        // This provides a centralized, DRY way to manage assistant lifecycle
+        const assistantCacheManager = new AssistantCacheManager({ isVerbose: true });
+        const baseOpenAiTools = await $provideOpenAiAssistantExecutionToolsForServer();
 
-        // Get or create vector store for knowledge sources
-        const vectorStoreResult = await vectorStoreCacheManager.getOrCreateVectorStore(
+        // Get or create assistant with enhanced caching
+        // By default, includes full configuration (PERSONA + CONTEXT) in cache key for strict matching
+        // Set includeDynamicContext: false to enable better caching by excluding CONTEXT from cache key
+        const assistantResult = await assistantCacheManager.getOrCreateAssistant(
             agentSource,
             agentName,
             baseOpenAiTools,
             { includeDynamicContext: true }, // Default: strict caching (includes CONTEXT)
         );
 
-        const openAiAgentExecutionTools = vectorStoreResult.vectorStoreId
-            ? baseOpenAiTools.withVectorStoreId(vectorStoreResult.vectorStoreId)
-            : baseOpenAiTools;
+        const openAiAssistantExecutionTools = assistantResult.tools;
 
-        if (vectorStoreResult.fromCache && vectorStoreResult.vectorStoreId) {
+        if (assistantResult.fromCache) {
             console.log(
-                `[?????] ? Cache HIT: Reusing vector store for agent ${agentName} (cache key: ${vectorStoreResult.cacheKey})`,
-            );
-        } else if (vectorStoreResult.vectorStoreId) {
-            console.log(
-                `[?????] ? Cache MISS: Created new vector store for agent ${agentName} (cache key: ${vectorStoreResult.cacheKey})`,
+                `[🐱‍🚀] ✓ Cache HIT: Reusing assistant for agent ${agentName} (cache key: ${assistantResult.cacheKey})`,
             );
         } else {
             console.log(
-                `[?????] ? Cache SKIP: No knowledge sources for agent ${agentName} (cache key: ${vectorStoreResult.cacheKey})`,
+                `[🐱‍🚀] ✗ Cache MISS: Created new assistant for agent ${agentName} (cache key: ${assistantResult.cacheKey})`,
             );
         }
 
         const agent = new Agent({
             agentSource,
             executionTools: {
-                llm: openAiAgentExecutionTools,
+                llm: openAiAssistantExecutionTools, // Note: Use the same OpenAI Assistant LLM tools as the chat route
             },
             isVerbose: true, // or false
-            teacherAgent: null, // <- TODO: [??] DRY place to provide the teacher
+            teacherAgent: null, // <- TODO: [🦋] DRY place to provide the teacher
         });
 
         const userAgent = request.headers.get('user-agent');
