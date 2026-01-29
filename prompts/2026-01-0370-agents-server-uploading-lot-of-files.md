@@ -17,10 +17,10 @@
 
 [✨🗑] Fix the Book editor when user Press to upload a lot of files.
 
--   @@@
+-   When uploading a lot of files, some files get stuck in the "⏳ Uploading" state and never finish uploading.
 -   The strange thing about this problem is that there are no errors in the console or in the network panel. Everything seems to be working, there is 100% shown that it's uploaded, but the file never changes from "⏳ Uploading" to the final URL.
 -   Do not show the percent directly in the book, but open some floating panel with all the ongoing uploads. In the book, there should be only the information that the book is being uploaded and then replaced by the final URL.
--   Do not update the content of the book editor in such a rapid way. Update it in some blocks and debounce the updates. 
+-   Do not update the content of the book editor in such a rapid way. Update it in some blocks and debounce the updates.
 -   In this panel, allow to pause and resume the uploading, and also show some upload statistics.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)

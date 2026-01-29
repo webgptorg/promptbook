@@ -1,6 +1,9 @@
+[x] ~$1.71
 [ ]
 
 [✨🪰] Migrate [Agents](src/llm-providers/agent/Agent.ts) from assistants API to Responses API
+
+@@@
 
 -   Migrate `Agent` class and all related classes from using OpenAI Assistants API to OpenAI Responses API, the migration guide is placed below.
 -   You are doing refactoring migration. Do not change features; just migrate them, keep in mind:

@@ -171,7 +171,6 @@ const output = writeEmailPrompt.toString();
 
 [✨🚛] Fix the generated (toStringed) prompts and make them dynamic. They shouldn't be hardcoded in the code. They should be generated on the fly when the page is rendered.
 
--   @@@
 -   Outputs should be generated dynamically, not hard-coded in the code.
 -   There is a prompt notation to escape prompt strings to prevent prompt injection
 -   There is both the function which can be used from the package and the showcase page and also unit test. Look at entire vertical of it.
