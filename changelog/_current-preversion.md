@@ -249,17 +249,12 @@
     -   Added clickable agent name header that opens the agent page in a new window
     -   Modal now focuses on the actual conversation, making it easier to understand agent interactions
 -   Improved TEAM tool call modal UX with linked participant header badges, avatar/name labels in the conversation, and a top-right close button.
--   Enhanced caching of GPT assistants created for agents on Agents Server:
-    -   Created `AssistantCacheManager` class to centralize assistant lifecycle management
-    -   Implemented `computeAssistantCacheKey` utility to compute cache keys based on assistant configuration
-    -   Added `extractAssistantConfiguration` function to separate base agent config from dynamic context
-    -   Supports two caching modes:
-        -   Strict caching (default): includes full configuration including dynamic CONTEXT in cache key
-        -   Enhanced caching: excludes dynamic CONTEXT from cache key for better reuse across similar agents
-    -   Improved code maintainability and DRY principle by consolidating duplicate caching logic
-    -   Made the system extensible for future configuration parameters (model, temperature, tools)
-    -   Added detailed logging for cache hits and misses with cache keys
-    -   Refactored `handleChatCompletion` to use the new `AssistantCacheManager`
+-   Enhanced caching of OpenAI Responses vector stores created for agents in Agents Server:
+    -   Added `AgentVectorStoreCacheManager` to centralize vector store lifecycle management
+    -   Implemented `computeAgentCacheKey` and `extractAgentCacheConfiguration` utilities to compute cache keys from agent configuration
+    -   Supports strict vs enhanced caching via `includeDynamicContext`
+    -   Added detailed logging for cache hits, misses, and skips with cache keys
+    -   Refactored `handleChatCompletion` to use cached vector stores and `OpenAiAgentExecutionTools`
 -   Enhanced error handling for agent chat in Agents Server:
     -   Created centralized error message mapping utility (`errorMessages.ts`) following DRY principle:
         -   Categorizes errors into user-friendly categories (network, authentication, validation, rate limit, server error, timeout, etc.)
@@ -313,13 +308,12 @@
     -   Ensured download button is available when source is present.
 -   Added missing sound files to the Agents Server's public directory.
 -   Enhanced the UI of the chips of `TEAM` commitment to show agent profile picture and name instead of ID in agent lists and profile pages.
--   Migrate `Agent` class and all related classes from using OpenAI Assistants API to OpenAI Responses API.
-    -   `KNOWLEDGE` works as before.
-    -   Tool calling works as before.
-    -   Caching of the agents and underlying assistants works as before.
-    -   It works in the `Agents Server` application `/apps/agents-server`.
-    -   All existing features work as before.
-    -   Kept `OpenAiAssistantExecutionTools`, marked as deprecated and not used in `Agent`.
+-   Migrated `Agent` class and related execution tools from OpenAI Assistants API to the Responses API.
+    -   `KNOWLEDGE` still uses file search with cached vector stores.
+    -   Tool calling runs through Responses function-call items with `call_id` tracking.
+    -   Agents Server now caches vector stores via `AgentVectorStoreCacheManager`.
+    -   Agents Server routes use `OpenAiAgentExecutionTools`.
+    -   Kept `OpenAiAssistantExecutionTools` deprecated and no longer used in `Agent`.
 -   Fixed document preview and download in Agents Server chat:
     -   Resolved issue where source URLs with query parameters (e.g. from blob storage) were not matched correctly, preventing previews.
     -   Fixed download button for cross-origin files by implementing a fetch-and-download mechanism to bypass browser restrictions on `download` attribute.
