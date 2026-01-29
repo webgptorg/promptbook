@@ -1,5 +1,6 @@
 ### 📚 Book
 
+-   Leveraged `spaceTrim` across the repository for better readability and maintainability of multiline strings and string joins.
 -   Fixed drag-and-drop uploads in the Agents Server create-agent dialog by reusing the shared BookEditor upload handler.
 -   Fixed document source citation in Agents Server chat:
     -   Resolved issue where clicking on KNOWLEDGE source chips showed "Document preview unavailable" instead of the actual document
