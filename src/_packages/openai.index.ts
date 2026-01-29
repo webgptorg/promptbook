@@ -2,6 +2,7 @@
 // `@promptbook/openai`
 
 import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
+import { createOpenAiAgentExecutionTools } from '../llm-providers/openai/createOpenAiAgentExecutionTools';
 import { createOpenAiAssistantExecutionTools } from '../llm-providers/openai/createOpenAiAssistantExecutionTools';
 import { createOpenAiCompatibleExecutionTools } from '../llm-providers/openai/createOpenAiCompatibleExecutionTools';
 import { createOpenAiExecutionTools } from '../llm-providers/openai/createOpenAiExecutionTools';
@@ -25,6 +26,7 @@ export { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION };
 
 
 // Note: Entities of the `@promptbook/openai`
+export { createOpenAiAgentExecutionTools };
 export { createOpenAiAssistantExecutionTools };
 export { createOpenAiCompatibleExecutionTools };
 export { createOpenAiExecutionTools };
