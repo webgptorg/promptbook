@@ -185,7 +185,7 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
                         .join('\n'),
                     // <- Note: [🥳] This is for now the only variant how to use parameters in script
                 )}
-                (()=>{ ${script} })()
+                (async ()=>{ ${script} })()
             `,
         );
 

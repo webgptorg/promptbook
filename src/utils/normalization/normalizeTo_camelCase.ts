@@ -14,7 +14,7 @@ type char_type = 'LOWERCASE' | 'UPPERCASE' | 'NUMBER' | 'OTHER';
 
 /**
  * Normalizes a given text to camelCase format.
- * 
+ *
  * Note: [🔂] This function is idempotent.
  *
  * @param text The text to be normalized.

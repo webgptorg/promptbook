@@ -240,7 +240,22 @@ export const GOOGLE_MODELS: ReadonlyArray<
                 output: pricing(`$27.00 / 1M tokens`),
             },
         },
-        // …add any additional from https://ai.google.dev/models/gemini…
+        {
+            modelVariant: 'IMAGE_GENERATION',
+            modelName: 'gemini-2.5-flash-image',
+            modelTitle: 'Gemini 2.5 Flash Image (Nano Banana)',
+            modelDescription:
+                'This model is designed for speed and efficiency, optimized for high-volume, low-latency tasks. All generated images include a SynthID watermark.',
+            documentationUrl: 'https://ai.google.dev/gemini-api/docs/image-generation',
+        },
+        {
+            modelVariant: 'IMAGE_GENERATION',
+            modelName: 'gemini-3-pro-image-preview',
+            modelTitle: 'Gemini 3 Pro Image Preview (Nano Banana Pro)',
+            modelDescription:
+                'This model is designed for professional asset production, utilizing advanced reasoning ("Thinking") to follow complex instructions and render high-fidelity text. All generated images include a SynthID watermark.',
+            documentationUrl: 'https://ai.google.dev/gemini-api/docs/image-generation',
+        },
     ],
 });
 

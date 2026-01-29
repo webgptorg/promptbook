@@ -12,7 +12,7 @@ export function isValidFilePath(filename: really_unknown): filename is string_fi
         return false;
     }
 
-    if (filename.split('\n').length > 1) {
+    if (filename.split(/\r?\n/).length > 1) {
         return false;
     }
 

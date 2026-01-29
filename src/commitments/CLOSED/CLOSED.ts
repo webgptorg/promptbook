@@ -18,7 +18,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * @private [🪔] Maybe export the commitments through some package
  */
 export class ClosedCommitmentDefinition extends BaseCommitmentDefinition<'CLOSED'> {
-    constructor() {
+    public constructor() {
         super('CLOSED');
     }
 

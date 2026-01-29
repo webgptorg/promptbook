@@ -5,8 +5,9 @@ import { isValidUrl } from './isValidUrl';
 /**
  * Tests if given string is valid pipeline URL URL.
  *
- * Note: There are two similar functions:
+ * Note: There are few similar functions:
  * - `isValidUrl` which tests any URL
+ * - `isValidAgentUrl` which tests just agent URL
  * - `isValidPipelineUrl` *(this one)* which tests just pipeline URL
  *
  * @public exported from `@promptbook/utils`

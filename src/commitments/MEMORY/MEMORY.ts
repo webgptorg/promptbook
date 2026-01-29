@@ -20,7 +20,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * @private [🪔] Maybe export the commitments through some package
  */
 export class MemoryCommitmentDefinition extends BaseCommitmentDefinition<'MEMORY' | 'MEMORIES'> {
-    constructor(type: 'MEMORY' | 'MEMORIES' = 'MEMORY') {
+    public constructor(type: 'MEMORY' | 'MEMORIES' = 'MEMORY') {
         super(type);
     }
 

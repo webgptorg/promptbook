@@ -1,5 +1,7 @@
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import { createCommitmentRegex, createCommitmentTypeRegex } from '../../book-2.0/agent-source/createCommitmentRegex';
+import { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
+import { string_javascript_name } from '../../types/typeAliases';
 import type { BookCommitment } from './BookCommitment';
 import type { CommitmentDefinition } from './CommitmentDefinition';
 
@@ -13,7 +15,7 @@ export abstract class BaseCommitmentDefinition<TBookCommitment extends string> i
     public readonly type: TBookCommitment;
     public readonly aliases: string[];
 
-    constructor(type: TBookCommitment, aliases: string[] = []) {
+    public constructor(type: TBookCommitment, aliases: string[] = []) {
         this.type = type;
         this.aliases = aliases;
     }
@@ -22,14 +24,14 @@ export abstract class BaseCommitmentDefinition<TBookCommitment extends string> i
      * Short one-line markdown description; concise, may use inline **markdown**.
      * Must be implemented by each concrete commitment.
      */
-    abstract get description(): string;
+    public abstract get description(): string;
 
     /**
      * Whether this commitment requires content.
      * If true, regex will match only if there is content after the commitment keyword.
      * If false, regex will match even if there is no content.
      */
-    get requiresContent(): boolean {
+    public get requiresContent(): boolean {
         return true;
     }
 
@@ -37,19 +39,19 @@ export abstract class BaseCommitmentDefinition<TBookCommitment extends string> i
      * Icon for this commitment.
      * It should be a single emoji.
      */
-    abstract get icon(): string;
+    public abstract get icon(): string;
 
     /**
      * Human-readable markdown documentation for this commitment, available at runtime.
      * Must be implemented by each concrete commitment.
      */
-    abstract get documentation(): string;
+    public abstract get documentation(): string;
 
     /**
      * Creates a regex pattern to match this commitment in agent source
      * Uses the existing createCommitmentRegex function as internal helper
      */
-    createRegex(): RegExp {
+    public createRegex(): RegExp {
         return createCommitmentRegex(
             this.type as BookCommitment,
             this.aliases as BookCommitment[],
@@ -61,7 +63,7 @@ export abstract class BaseCommitmentDefinition<TBookCommitment extends string> i
      * Creates a regex pattern to match just the commitment type
      * Uses the existing createCommitmentTypeRegex function as internal helper
      */
-    createTypeRegex(): RegExp {
+    public createTypeRegex(): RegExp {
         return createCommitmentTypeRegex(this.type as BookCommitment, this.aliases as BookCommitment[]);
     }
 
@@ -69,7 +71,7 @@ export abstract class BaseCommitmentDefinition<TBookCommitment extends string> i
      * Applies this commitment's logic to the agent model requirements
      * This method must be implemented by each specific commitment
      */
-    abstract applyToAgentModelRequirements(
+    public abstract applyToAgentModelRequirements(
         requirements: AgentModelRequirements,
         content: string,
     ): AgentModelRequirements;
@@ -130,5 +132,23 @@ export abstract class BaseCommitmentDefinition<TBookCommitment extends string> i
         } else {
             return this.appendToSystemMessage(requirements, commentSection);
         }
+    }
+
+    /**
+     * Gets tool function implementations provided by this commitment
+     *
+     * When the `applyToAgentModelRequirements` adds tools to the requirements, this method should return the corresponding function definitions.
+     */
+    public getToolFunctions(): Record<string_javascript_name, ToolFunction> {
+        return {};
+    }
+
+    /**
+     * Gets human-readable titles for tool functions provided by this commitment
+     *
+     * This is used in the UI to show a user-friendly name instead of the technical function name.
+     */
+    public getToolTitles(): Record<string_javascript_name, string> {
+        return {};
     }
 }

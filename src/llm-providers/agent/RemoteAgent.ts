@@ -1,9 +1,15 @@
 import { BehaviorSubject } from 'rxjs';
+import spaceTrim from 'spacetrim';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import type { ChatPromptResult } from '../../execution/PromptResult';
 import { book } from '../../pipeline/book-notation';
 import type { ChatPrompt, Prompt } from '../../types/Prompt';
-import type { string_agent_hash, string_agent_name, string_agent_url } from '../../types/typeAliases';
+import type {
+    string_agent_hash,
+    string_agent_name,
+    string_agent_url,
+    string_date_iso8601,
+} from '../../types/typeAliases';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import { Agent } from './Agent';
 import type { AgentOptions } from './AgentOptions';
@@ -23,10 +29,30 @@ import type { RemoteAgentOptions } from './RemoteAgentOptions';
  */
 export class RemoteAgent extends Agent {
     public static async connect(options: RemoteAgentOptions) {
-        console.log('[🐱‍🚀]', `${options.agentUrl}/api/profile`);
-        const profileResponse = await fetch(`${options.agentUrl}/api/profile`);
+        const agentProfileUrl = `${options.agentUrl}/api/profile`;
+        const profileResponse = await fetch(agentProfileUrl);
         // <- TODO: [🐱‍🚀] What about closed-source agents?
         // <- TODO: [🐱‍🚀] Maybe use promptbookFetch
+
+        if (!profileResponse.ok) {
+            throw new Error(
+                spaceTrim(
+                    (block) => `
+                        Failed to fetch remote agent profile:
+
+                        Agent URL:
+                        ${options.agentUrl}
+
+                        Agent Profile URL:
+                        ${agentProfileUrl}
+                        
+                        Http Error:
+                        ${block(profileResponse.statusText)}
+                
+                `,
+                ),
+            );
+        }
 
         const profile = await profileResponse.json();
 
@@ -56,6 +82,7 @@ export class RemoteAgent extends Agent {
                 */
             },
             agentSource,
+            teacherAgent: null, // <- Note:
         });
 
         remoteAgent._remoteAgentName = profile.agentName;
@@ -64,7 +91,11 @@ export class RemoteAgent extends Agent {
         remoteAgent.initialMessage = profile.initialMessage;
         remoteAgent.links = profile.links;
         remoteAgent.meta = profile.meta;
+        remoteAgent.capabilities = profile.capabilities || [];
+        remoteAgent.samples = profile.samples || [];
+        remoteAgent.toolTitles = profile.toolTitles || {};
         remoteAgent._isVoiceCallingEnabled = profile.isVoiceCallingEnabled === true; // [✨✷] Store voice calling status
+        remoteAgent.knowledgeSources = profile.knowledgeSources || [];
 
         return remoteAgent;
     }
@@ -75,7 +106,9 @@ export class RemoteAgent extends Agent {
     private agentUrl: string_agent_url;
     private _remoteAgentName: string_agent_name | undefined;
     private _remoteAgentHash: string_agent_hash | undefined;
+    public toolTitles: Record<string, string> = {};
     private _isVoiceCallingEnabled: boolean = false; // [✨✷] Track voice calling status
+    public knowledgeSources: Array<{ url: string; filename: string }> = [];
 
     private constructor(options: AgentOptions & RemoteAgentOptions) {
         super(options);
@@ -174,12 +207,86 @@ export class RemoteAgent extends Agent {
             body: JSON.stringify({
                 message: prompt.content,
                 thread: chatPrompt.thread,
+                attachments: chatPrompt.attachments,
             }),
         });
         // <- TODO: [🐱‍🚀] What about closed-source agents?
         // <- TODO: [🐱‍🚀] Maybe use promptbookFetch
 
         let content = '';
+        const toolCalls: Array<NonNullable<ChatPromptResult['toolCalls']>[number]> = [];
+
+        const normalizeToolCall = (
+            toolCall: NonNullable<ChatPromptResult['toolCalls']>[number],
+        ): NonNullable<ChatPromptResult['toolCalls']>[number] => {
+            if (toolCall.createdAt) {
+                return toolCall;
+            }
+
+            return {
+                ...toolCall,
+                createdAt: new Date().toISOString() as string_date_iso8601, // <- TODO: !!!! Make util $getCurrentIsoTimestamp()
+            };
+        };
+
+        const getToolCallKey = (toolCall: NonNullable<ChatPromptResult['toolCalls']>[number]): string => {
+            const rawId = (toolCall.rawToolCall as TODO_any)?.id;
+            if (rawId) {
+                return `id:${rawId}`;
+            }
+
+            const argsKey = (() => {
+                if (typeof toolCall.arguments === 'string') {
+                    return toolCall.arguments;
+                }
+
+                if (!toolCall.arguments) {
+                    return '';
+                }
+
+                try {
+                    return JSON.stringify(toolCall.arguments);
+                } catch {
+                    return '';
+                }
+            })();
+
+            return `${toolCall.name}:${toolCall.createdAt || ''}:${argsKey}`;
+        };
+
+        const mergeToolCall = (
+            existing: NonNullable<ChatPromptResult['toolCalls']>[number],
+            incoming: NonNullable<ChatPromptResult['toolCalls']>[number],
+        ): NonNullable<ChatPromptResult['toolCalls']>[number] => {
+            const incomingResult = incoming.result;
+            const shouldKeepExistingResult =
+                incomingResult === '' && existing.result !== undefined && existing.result !== '';
+
+            return {
+                ...existing,
+                ...incoming,
+                result: shouldKeepExistingResult ? existing.result : incomingResult ?? existing.result,
+                createdAt: existing.createdAt || incoming.createdAt,
+                errors: incoming.errors ? [...(existing.errors || []), ...incoming.errors] : existing.errors,
+                warnings: incoming.warnings ? [...(existing.warnings || []), ...incoming.warnings] : existing.warnings,
+            };
+        };
+
+        const upsertToolCalls = (
+            incomingToolCalls: ReadonlyArray<NonNullable<ChatPromptResult['toolCalls']>[number]>,
+        ) => {
+            for (const toolCall of incomingToolCalls) {
+                const normalized = normalizeToolCall(toolCall);
+                const key = getToolCallKey(normalized);
+                const existingIndex = toolCalls.findIndex((existing) => getToolCallKey(existing) === key);
+
+                if (existingIndex === -1) {
+                    toolCalls.push(normalized);
+                } else {
+                    toolCalls[existingIndex] = mergeToolCall(toolCalls[existingIndex]!, normalized);
+                }
+            }
+        };
 
         if (!bookResponse.body) {
             content = await bookResponse.text();
@@ -195,8 +302,58 @@ export class RemoteAgent extends Agent {
                     doneReading = !!done;
                     if (value) {
                         const textChunk = decoder.decode(value, { stream: true });
-                        // console.debug('RemoteAgent chunk:', textChunk);
-                        content += textChunk;
+
+                        let sawToolCalls = false;
+                        let hasNonEmptyText = false;
+                        const textLines: string[] = [];
+                        const lines = textChunk.split(/\r?\n/);
+                        for (const line of lines) {
+                            const trimmedLine = line.trim();
+                            let isToolCallLine = false;
+                            if (trimmedLine.startsWith('{') && trimmedLine.endsWith('}')) {
+                                try {
+                                    const chunk = JSON.parse(trimmedLine);
+                                    if (chunk.toolCalls) {
+                                        const normalizedToolCalls = chunk.toolCalls.map(normalizeToolCall);
+                                        upsertToolCalls(normalizedToolCalls);
+                                        onProgress({
+                                            content,
+                                            modelName: this.modelName,
+                                            timing: {} as TODO_any,
+                                            usage: {} as TODO_any,
+                                            rawPromptContent: {} as TODO_any,
+                                            rawRequest: {} as TODO_any,
+                                            rawResponse: {} as TODO_any,
+                                            toolCalls: normalizedToolCalls,
+                                        });
+                                        sawToolCalls = true;
+                                        isToolCallLine = true;
+                                    }
+                                } catch (error) {
+                                    // Ignore non-json lines
+                                }
+                            }
+
+                            if (!isToolCallLine) {
+                                textLines.push(line);
+                                if (line.length > 0) {
+                                    hasNonEmptyText = true;
+                                }
+                            }
+                        }
+
+                        if (sawToolCalls) {
+                            if (!hasNonEmptyText) {
+                                continue;
+                            }
+
+                            const textChunkWithoutToolCalls = textLines.join('\n');
+                            content += textChunkWithoutToolCalls;
+                        } else {
+                            // console.debug('RemoteAgent chunk:', textChunk);
+                            content += textChunk;
+                        }
+
                         onProgress({
                             content,
                             modelName: this.modelName,
@@ -205,6 +362,7 @@ export class RemoteAgent extends Agent {
                             rawPromptContent: {} as TODO_any,
                             rawRequest: {} as TODO_any,
                             rawResponse: {} as TODO_any,
+                            toolCalls,
                         });
                     }
                 }
@@ -220,6 +378,7 @@ export class RemoteAgent extends Agent {
                         rawPromptContent: {} as TODO_any,
                         rawRequest: {} as TODO_any,
                         rawResponse: {} as TODO_any,
+                        toolCalls,
                     });
                 }
             } finally {
@@ -237,6 +396,7 @@ export class RemoteAgent extends Agent {
             rawPromptContent: {} as TODO_any,
             rawRequest: {} as TODO_any,
             rawResponse: {} as TODO_any,
+            toolCalls,
             // <- TODO: [🐱‍🚀] Transfer and proxy the metadata
         };
 

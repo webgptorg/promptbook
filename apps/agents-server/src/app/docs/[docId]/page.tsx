@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import { BookCommitment } from '../../../../../../src/commitments/_base/BookCommitment';
 import { getVisibleCommitmentDefinitions } from '../../../utils/getVisibleCommitmentDefinitions';
-import { PrintButton } from '../../../components/PrintButton/PrintButton';
+import { DocsToolbar } from '../../../components/DocsToolbar/DocsToolbar';
 import { PrintHeader } from '../../../components/PrintHeader/PrintHeader';
 import { DocumentationContent } from '../../../components/DocumentationContent/DocumentationContent';
 
@@ -27,9 +27,8 @@ export default async function DocPage(props: DocPageProps) {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-            <PrintButton />
-            
             <div className="container mx-auto px-4 py-16">
+                <DocsToolbar />
                 <PrintHeader title={primary.type} />
                 
                 <DocumentationContent 

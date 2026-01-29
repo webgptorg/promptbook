@@ -114,10 +114,7 @@ export function Footer(props: FooterProps) {
                                 </a>
                             </li>
                             <li>
-                                <a
-                                    href="https://discord.gg/x3QWNaa89N"
-                                    className="text-gray-500 hover:text-gray-900"
-                                >
+                                <a href="https://discord.gg/x3QWNaa89N" className="text-gray-500 hover:text-gray-900">
                                     Discord
                                 </a>
                             </li>
@@ -160,8 +157,10 @@ export function Footer(props: FooterProps) {
                         💜
                     </p>
                 </div>
+                {/*
+                TODO: [🧠] Should we show this in the footer?
                 <div className="flex flex-col items-center mt-8">
-                    {/* <Image src={TechnologyIncubation} alt="Our Sponsor" className="h-32 w-auto" /> */}
+                    {/* <Image src={TechnologyIncubation} alt="Our Sponsor" className="h-32 w-auto" /> * /}
                     <p className="text-center text-sm text-gray-500 mt-4 max-w-lg">
                         This project was implemented with funding from the national budget
                         <br />
@@ -169,6 +168,7 @@ export function Footer(props: FooterProps) {
                         Incubation programme.
                     </p>
                 </div>
+                */}
             </div>
         </footer>
     );

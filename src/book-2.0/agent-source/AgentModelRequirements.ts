@@ -1,4 +1,5 @@
-import type { string_knowledge_source_link } from '../../types/typeAliases';
+import type { LlmToolDefinition } from '../../types/LlmToolDefinition';
+import type { string_agent_url, string_knowledge_source_link } from '../../types/typeAliases';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 
 /**
@@ -24,8 +25,23 @@ export type AgentModelRequirements = {
 
     /**
      * Optional link to the parent agent from which this agent inherits
+     *
+     * Note: [🆓] There are several cases what the agent ancestor could be:
+     * -  1) `parentAgentUrl` is `string_agent_url` valid agent URL
+     * -  2) `parentAgentUrl` is explicitly `null` (forcefully no parent)
+     * -  3) `parentAgentUrl` is not defined `undefined`,  the default ancestor agent, Adam,  will be used
      */
-    readonly parentAgentUrl?: string_knowledge_source_link;
+    readonly parentAgentUrl?: string_agent_url | null;
+
+    /**
+     * List of imported agent URLs
+     */
+    readonly importedAgentUrls?: ReadonlyArray<string_agent_url>;
+
+    /**
+     * List of imported file URLs or paths
+     */
+    readonly importedFileUrls?: ReadonlyArray<string>;
 
     /**
      * Optional list of knowledge source links that the agent can use
@@ -35,7 +51,7 @@ export type AgentModelRequirements = {
     /**
      * List of sample conversations (question/answer pairs)
      */
-    readonly samples?: ReadonlyArray<{ question: string; answer: string }>;
+    readonly samples?: ReadonlyArray<{ question: string | null; answer: string }>;
 
     /**
      * Temperature for the agent's responses, controlling randomness
@@ -53,10 +69,22 @@ export type AgentModelRequirements = {
     readonly topK?: number;
 
     /**
+     * Tools available for the agent
+     */
+    readonly tools?: ReadonlyArray<LlmToolDefinition>;
+
+    /**
      * Arbitrary metadata storage for commitments
      * Each commitment can store its own data here
      */
     readonly metadata?: Record<string, TODO_any>;
+
+    /**
+     * Notes associated with the agent
+     *
+     * Note: This does not affect agent behavior in any way
+     */
+    readonly notes?: ReadonlyArray<string>;
 };
 // <- TODO: In future this will be ModelRequirements from `@promptbook/type`s, but for now we keep it here
 

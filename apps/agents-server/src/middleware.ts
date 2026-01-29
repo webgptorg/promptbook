@@ -1,13 +1,16 @@
 import { TODO_any } from '@promptbook-local/types';
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
-import { SERVERS, SUPABASE_TABLE_PREFIX } from '../config';
+import { SERVERS } from '../config';
+import { $getTableName } from './database/$getTableName';
+import { RESERVED_PATHS } from './generated/reservedPaths';
 import { isIpAllowed } from './utils/isIpAllowed';
 
+// TODO: Use the `normalizeTo_PascalCase` from `@promptbook-local/utils`
 // Note: Re-implementing normalizeTo_PascalCase to avoid importing from @promptbook-local/utils which might have Node.js dependencies
 function normalizeTo_PascalCase(text: string): string {
     return text
-        .replace(/(?:^\w|[A-Z]|\b\w)/g, (word, index) => {
+        .replace(/(?:^\w|[A-Z]|\b\w)/g, (word) => {
             return word.toUpperCase();
         })
         .replace(/\s+/g, '');
@@ -33,8 +36,12 @@ export async function middleware(req: NextRequest) {
     const host = req.headers.get('host');
 
     if (host) {
+        /*
+        Note: [🐔] This code was commented out because results of it are unused
+
         let tablePrefix = SUPABASE_TABLE_PREFIX;
 
+        
         if (SERVERS && SERVERS.length > 0) {
             // Logic mirrored from src/tools/$provideServer.ts
             if (SERVERS.some((server) => server === host)) {
@@ -44,6 +51,7 @@ export async function middleware(req: NextRequest) {
                 tablePrefix = `server_${serverName}_`;
             }
         }
+        */
 
         const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
         const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -58,7 +66,7 @@ export async function middleware(req: NextRequest) {
                 });
 
                 const { data } = await supabase
-                    .from(`${tablePrefix}Metadata`)
+                    .from(await $getTableName(`Metadata`))
                     .select('value')
                     .eq('key', 'RESTRICT_IP')
                     .single();
@@ -82,6 +90,9 @@ export async function middleware(req: NextRequest) {
         const token = authHeader.split(' ')[1];
 
         if (token.startsWith('ptbk_')) {
+            /*
+            Note: [🐔] This code was commented out because results of it are unused
+            
             const host = req.headers.get('host');
             let tablePrefix = SUPABASE_TABLE_PREFIX;
 
@@ -93,6 +104,7 @@ export async function middleware(req: NextRequest) {
                     tablePrefix = `server_${serverName}_`;
                 }
             }
+            */
 
             const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
             const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -107,7 +119,7 @@ export async function middleware(req: NextRequest) {
                     });
 
                     const { data } = await supabase
-                        .from(`${tablePrefix}ApiTokens`)
+                        .from(await $getTableName(`ApiTokens`))
                         .select('id')
                         .eq('token', token)
                         .eq('isRevoked', false)
@@ -186,22 +198,7 @@ export async function middleware(req: NextRequest) {
 
     if (
         potentialAgentName &&
-        ![
-            'agents',
-            'api',
-            'admin',
-            'docs',
-            'test',
-            'embed',
-            '_next',
-            'manifest.webmanifest',
-            'sw.js',
-            'favicon.ico',
-            'sitemap.xml',
-            'robots.txt',
-            'security.txt',
-            'humans.txt',
-        ].includes(potentialAgentName) &&
+        !RESERVED_PATHS.includes(potentialAgentName) &&
         !potentialAgentName.startsWith('.') &&
         // Note: Other static files are excluded by the matcher configuration below
         true
@@ -243,7 +240,7 @@ export async function middleware(req: NextRequest) {
                 let serverName = serverHost;
                 serverName = serverName.replace(/\.ptbk\.io$/, '');
                 serverName = normalizeTo_PascalCase(serverName);
-                const prefix = `server_${serverName}_`;
+                // const prefix = `server_${serverName}_`;
 
                 // Search for agent with matching META LINK
                 // agentProfile->links is an array of strings
@@ -256,7 +253,7 @@ export async function middleware(req: NextRequest) {
 
                 try {
                     const { data } = await supabase
-                        .from(`${prefix}Agent`)
+                        .from(await $getTableName(`Agent`))
                         .select('agentName')
                         .or(orFilter)
                         .limit(1)

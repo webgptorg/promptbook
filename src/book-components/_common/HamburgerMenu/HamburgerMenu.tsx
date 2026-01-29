@@ -8,10 +8,13 @@ type HamburgerMenuProps = {
     className?: string;
 };
 
-
 /**
- * @@@
- * 
+ * An animated hamburger menu button component.
+ *
+ * This component renders a 3-bar hamburger icon that animates into an "X" when
+ * the menu is open.
+ *
+ * @param props - Contains the open state, an optional click handler, and optional className
  * @private Internal component
  */
 export function HamburgerMenu({ isOpen, onClick, className }: HamburgerMenuProps) {

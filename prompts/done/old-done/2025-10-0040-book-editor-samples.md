@@ -17,7 +17,7 @@
 [✨🫒] Samples should be loaded dynamically - [`BookEditorPreview.tsx`](/book-components/src/components/book-editor/BookEditorPreview.tsx) Keep in mind the DRY _(don't repeat yourself)_ principle.
 
 -   There should be NO hardcoded samples in the code and no duplicates
--   Load theese books through api created in the [Next.js book-components project](/book-components)
+-   Load these books through api created in the [Next.js book-components project](/book-components)
 -   The API path should be `/api/books` and implement it
 
 ---

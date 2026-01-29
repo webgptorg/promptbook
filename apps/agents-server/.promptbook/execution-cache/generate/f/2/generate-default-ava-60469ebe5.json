@@ -1,0 +1,90 @@
+{
+    "date": "2025-12-19T11:49:09.798Z",
+    "promptbookVersion": "0.104.0-5",
+    "bookVersion": "2.0.0",
+    "prompt": {
+        "title": "Generate default avatar for benjamin-white",
+        "content": "Image of agent, WRITE ONLY IN UPPERCASE, portrait, use color #ff0000, detailed, high quality",
+        "parameters": {
+            "note": "<- Note: Only relevant parameters are stored in the cache"
+        },
+        "modelRequirements": {
+            "modelVariant": "IMAGE_GENERATION",
+            "modelName": "dall-e-3"
+        }
+    },
+    "promptResult": {
+        "content": "https://oaidalleapiprodscus.blob.core.windows.net/private/org-Sddx3F2IYwJ3Xk4cbuUZ6dU5/user-1nOB0gL9nmmbD6rSUvEEEMFw/img-tsSkfjg5RQnS5QmslVDm4uir.png?st=2025-12-19T10%3A49%3A14Z&se=2025-12-19T12%3A49%3A14Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=ed3ea2f9-5e38-44be-9a1b-7c1e65e4d54f&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-12-19T05%3A11%3A45Z&ske=2025-12-20T05%3A11%3A45Z&sks=b&skv=2024-08-04&sig=WgNPlk9vJ3l7Uk0Gclo9giy9zeAy6/kFtmrkw/ckT/Q%3D",
+        "modelName": "dall-e-3",
+        "timing": {
+            "start": "2025-12-19T11:48:52.125Z",
+            "complete": "2025-12-19T11:49:09.795Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.04
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 0
+                },
+                "charactersCount": {
+                    "value": 92
+                },
+                "wordsCount": {
+                    "value": 14
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 2
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 0
+                },
+                "charactersCount": {
+                    "value": 0
+                },
+                "wordsCount": {
+                    "value": 0
+                },
+                "sentencesCount": {
+                    "value": 0
+                },
+                "linesCount": {
+                    "value": 0
+                },
+                "paragraphsCount": {
+                    "value": 0
+                },
+                "pagesCount": {
+                    "value": 0
+                }
+            }
+        },
+        "rawPromptContent": "Image of agent, WRITE ONLY IN UPPERCASE, portrait, use color #ff0000, detailed, high quality",
+        "rawRequest": {
+            "model": "dall-e-3",
+            "prompt": "Image of agent, WRITE ONLY IN UPPERCASE, portrait, use color #ff0000, detailed, high quality",
+            "response_format": "url"
+        },
+        "rawResponse": {
+            "created": 1766144954,
+            "data": [
+                {
+                    "revised_prompt": "CREATE AN IMAGE OF A HIGHLY DETAILED, HIGH QUALITY PORTRAIT OF AN AGENT. THE PORTRAIT SHOULD BE PREDOMINANTLY IN THE COLOR #FF0000. THE AGENT SHOULD BE PORTRAYED IN A NEUTRAL POSE, FACE EXPRESSION THAT REFLECTS THEIR PROFESSIONALISM. EMPHASIZE IMPORTANT DETAILS SUCH AS THE AGENT'S ATTIRE, EQUIPMENT, AND CONFIDENT DEMEANOR. THIS IMAGE MUST BE CREATED ENTIRELY IN UPPERCASE.",
+                    "url": "https://oaidalleapiprodscus.blob.core.windows.net/private/org-Sddx3F2IYwJ3Xk4cbuUZ6dU5/user-1nOB0gL9nmmbD6rSUvEEEMFw/img-tsSkfjg5RQnS5QmslVDm4uir.png?st=2025-12-19T10%3A49%3A14Z&se=2025-12-19T12%3A49%3A14Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=ed3ea2f9-5e38-44be-9a1b-7c1e65e4d54f&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-12-19T05%3A11%3A45Z&ske=2025-12-20T05%3A11%3A45Z&sks=b&skv=2024-08-04&sig=WgNPlk9vJ3l7Uk0Gclo9giy9zeAy6/kFtmrkw/ckT/Q%3D"
+                }
+            ]
+        }
+    }
+}

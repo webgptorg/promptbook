@@ -95,8 +95,6 @@ export class MarkitdownScraper implements Converter, Scraper {
         if (!(await isFileExisting(cacheFilehandler.filename, this.tools.fs))) {
             const src = source.filename || source.url || null;
 
-            // console.log('!!', { src, source, cacheFilehandler });
-
             if (src === null) {
                 throw new UnexpectedError('Source has no filename or url');
             }
@@ -111,8 +109,6 @@ export class MarkitdownScraper implements Converter, Scraper {
                 throw new Error(`Markitdown could not convert the "${source.source}"`);
                 // <- TODO: [🍀] Make MarkitdownError
             }
-
-            // console.log('!!', { result, cacheFilehandler });
 
             // Note: Try to cache the converted content, but don't fail if the filesystem is read-only
             try {

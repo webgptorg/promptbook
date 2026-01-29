@@ -1,70 +1,146 @@
-import { nextRequestToNodeRequest } from '@/src/utils/cdn/utils/nextRequestToNodeRequest';
-import { TODO_any } from '@promptbook-local/types';
+import type { PostgrestSingleResponse, SupabaseClient } from '@supabase/supabase-js';
+import { $getTableName } from '@/src/database/$getTableName';
+import { $provideSupabase } from '@/src/database/$provideSupabase';
 import { serializeError } from '@promptbook-local/utils';
-import formidable from 'formidable';
-import { readFile } from 'fs/promises';
+import { handleUpload, type HandleUploadBody } from '@vercel/blob/client';
 import { NextRequest, NextResponse } from 'next/server';
-import { forTime } from 'waitasecond';
 import { assertsError } from '../../../../../../src/errors/assertsError';
-import { string_url } from '../../../../../../src/types/typeAliases';
-import { keepUnused } from '../../../../../../src/utils/organization/keepUnused';
-import { $provideCdnForServer } from '../../../../src/tools/$provideCdnForServer';
-import { getUserFileCdnKey } from '../../../../src/utils/cdn/utils/getUserFileCdnKey';
-import { validateMimeType } from '../../../../src/utils/validators/validateMimeType';
+import { getUserIdFromRequest } from '../../../../src/utils/getUserIdFromRequest';
 import { getMetadata } from '../../../database/getMetadata';
+import type { AgentsServerDatabase } from '../../../database/schema';
 
 export async function POST(request: NextRequest) {
     try {
-        await forTime(1);
-        // await forTime(5000);
+        const body = (await request.json()) as HandleUploadBody;
+        const userId = await getUserIdFromRequest(request);
+        const supabase: SupabaseClient<AgentsServerDatabase> = $provideSupabase();
 
-        const nodeRequest = await nextRequestToNodeRequest(request);
-        let maxFileSizeMb = Number((await getMetadata('MAX_FILE_UPLOAD_SIZE_MB')) || '50'); // <- TODO: [🌲] To /config.ts
+        // Handle Vercel Blob client upload protocol
+        const jsonResponse = await handleUpload({
+            body,
+            request,
+            token: process.env.VERCEL_BLOB_READ_WRITE_TOKEN!,
+            onBeforeGenerateToken: async (pathname, clientPayload) => {
+                // Authenticate user and validate upload
 
-        if (Number.isNaN(maxFileSizeMb)) {
-            maxFileSizeMb = 50; // <- TODO: [🌲] To /config.ts
-        }
+                // Parse client payload for additional metadata
+                const payload = clientPayload ? JSON.parse(clientPayload) : {};
+                const { purpose, contentType } = payload;
 
-        const maxFileSize = maxFileSizeMb * 1024 * 1024;
-
-        const files = await new Promise<formidable.Files>((resolve, reject) => {
-            const form = formidable({ maxFileSize });
-            form.parse(nodeRequest as TODO_any, (error, fields, files) => {
-                keepUnused(fields);
-
-                if (error) {
-                    return reject(error);
+                let maxFileSizeMb = Number((await getMetadata('MAX_FILE_UPLOAD_SIZE_MB')) || '50'); // <- TODO: [🌲] To /config.ts
+                if (Number.isNaN(maxFileSizeMb)) {
+                    maxFileSizeMb = 50; // <- TODO: [🌲] To /config.ts
                 }
-                resolve(files);
-            });
+                const maxFileSize = maxFileSizeMb * 1024 * 1024;
+
+                // Generate the proper path with prefix
+                // Note: With client uploads, we use the original filename provided by the client
+                // The file will be stored at: {pathPrefix}/user/files/{filename}
+                const pathPrefix = process.env.NEXT_PUBLIC_CDN_PATH_PREFIX || '';
+
+                // Create a DB record at the start of the upload to track it
+                const uploadPurpose = purpose || 'GENERIC_UPLOAD';
+                const { data: insertedFile, error: insertError }: PostgrestSingleResponse<Pick<AgentsServerDatabase['public']['Tables']['File']['Row'], 'id'>> = await supabase
+                    .from(await $getTableName('File'))
+                    .insert({
+                        userId: userId || null,
+                        fileName: pathname,
+                        fileSize: 0, // <- Will be updated when upload completes
+                        fileType: contentType || 'application/octet-stream',
+                        storageUrl: null, // <- To be updated on completion
+                        shortUrl: null, // <- To be updated on completion
+                        purpose: uploadPurpose,
+                        status: 'UPLOADING',
+                    })
+                    .select('id')
+                    .single();
+
+                if (insertError) {
+                    console.error('🔼 Failed to create file record:', insertError);
+                }
+
+                console.info('🔼 Upload started, tracking file:', {
+                    pathname,
+                    fileId: insertedFile?.id,
+                    purpose: uploadPurpose,
+                });
+
+                return {
+                    allowedContentTypes: contentType ? [contentType] : undefined,
+                    maximumSizeInBytes: maxFileSize,
+                    addRandomSuffix: true, // Add random suffix to avoid filename collisions since we can't hash content
+                    tokenPayload: JSON.stringify({
+                        userId: userId || null,
+                        purpose: uploadPurpose,
+                        fileId: insertedFile?.id || null,
+                        uploadPath: pathname,
+                        pathPrefix,
+                    }),
+                };
+            },
+            onUploadCompleted: async ({ blob, tokenPayload }) => {
+                // !!!!
+                // ⚠️ IMPORTANT: This callback is a WEBHOOK called by Vercel's servers AFTER the upload completes
+                // - It runs in a DIFFERENT request context (not the original user request)
+                // - It WON'T work in local development (Vercel can't reach localhost)
+                // - All data must come from tokenPayload (userId, fileId, etc.)
+                // - Need to create a fresh supabase client here
+                console.info('🔼 Upload completed (webhook callback):', { blob, tokenPayload });
+
+                try {
+                    const payload = tokenPayload ? JSON.parse(tokenPayload) : {};
+                    const { fileId, userId: tokenUserId, purpose: tokenPurpose, uploadPath } = payload;
+
+                    // Create fresh supabase client for this webhook context
+                    const supabase = $provideSupabase();
+
+                    if (fileId) {
+                        // Update the existing record by ID
+                        const { error: updateError } = await supabase
+                            .from(await $getTableName('File'))
+                            .update({
+                                userId: tokenUserId || null,
+                                fileSize: 0, // <- !!!!
+                                fileType: blob.contentType,
+                                storageUrl: blob.url,
+                                // <- TODO: !!!! Split between storageUrl and shortUrl
+                                purpose: tokenPurpose || 'GENERIC_UPLOAD',
+                                status: 'COMPLETED',
+                            })
+                            .eq('id', fileId);
+
+                        if (updateError) {
+                            console.error('🔼 Failed to update file record:', updateError);
+                        } else {
+                            console.info('🔼 File record updated successfully:', { fileId, shortUrl: blob.url });
+                        }
+                    } else if (uploadPath) {
+                        // Fallback: Update by uploadPath if fileId is not available
+                        const { error: updateError } = await supabase
+                            .from(await $getTableName('File'))
+                            .update({
+                                fileSize: 0, // <- !!!!
+                                fileType: blob.contentType,
+                                storageUrl: blob.url,
+                                status: 'COMPLETED',
+                            })
+                            .eq('id', fileId);
+
+                        if (updateError) {
+                            console.error('🔼 Failed to update file record by uploadPath:', updateError);
+                        }
+                    }
+                } catch (error) {
+                    console.error('🔼 Error in onUploadCompleted:', error);
+                }
+            },
         });
 
-        const uploadedFiles = files.file;
-
-        if (!uploadedFiles || uploadedFiles.length !== 1) {
-            return NextResponse.json(
-                { message: 'In form data there is not EXACTLY one "file" field' },
-                { status: 400 },
-            );
-        }
-
-        const uploadedFile = uploadedFiles[0]!;
-        const fileBuffer = await readFile(uploadedFile.filepath);
-        const cdn = $provideCdnForServer();
-        const key = getUserFileCdnKey(fileBuffer, uploadedFile.originalFilename || uploadedFile.newFilename);
-
-        await cdn.setItem(key, {
-            type: validateMimeType(uploadedFile.mimetype),
-            data: fileBuffer,
-        });
-
-        const fileUrl = cdn.getItemUrl(key);
-
-        return NextResponse.json({ fileUrl: fileUrl.href as string_url }, { status: 201 });
+        return NextResponse.json(jsonResponse);
     } catch (error) {
         assertsError(error);
 
-        console.error(error);
+        console.error('🔼', error);
 
         return new Response(
             JSON.stringify(
@@ -81,3 +157,12 @@ export async function POST(request: NextRequest) {
         );
     }
 }
+
+/**
+ * TODO: !!!! Change uploaded URLs from `storageUrl` to `shortUrl`
+ * TODO: !!!! Record both `storageUrl` (actual storage location) and `shortUrl` in `File` table
+ * TODO: !!!! Record `purpose` in `File` table
+ * TODO: !!!! Record `userId` in `File` table
+ * TODO: !!!! Record all things into `File` table
+ * TODO: !!!! File type (mime type) of `.book` files should be `application/book` <- [🧠] !!!! Best mime type?!
+ */

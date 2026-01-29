@@ -30,7 +30,7 @@ export const TextFormatParser: FormatParser<string, string, TODO_any /* <- [1] *
             subvalueName: 'LINE',
             async mapValues(options) {
                 const { value, mapCallback, onProgress } = options;
-                const lines = value.split('\n');
+                const lines = value.split(/\r?\n/);
 
                 TODO_USE(
                     onProgress /* <- TODO: [🛕] Report progress here, report all the data including pending ones, use `PENDING_VALUE_PLACEHOLDER` */,

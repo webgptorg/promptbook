@@ -3,11 +3,12 @@
  * Source of truth: `/apps/agents-server/src/database/schema.sql` *(do not edit table structure here manually)*
  *
  * [💽] Prompt:
- * Re-generate this sub-schema
+ * Re-generate this sub-schema from `/apps/agents-server/src/database/schema.ts` *(which was generated from `/apps/agents-server/src/database/migrations/*.sql`)*
+ * `AgentsDatabaseSchema` is strict subset of `AgentsServerDatabase`
  * Generate Supabase TypeScript schema which is a subset of `AgentsServerDatabase`
  * containing only tables `Agent` and `AgentHistory`
  *
- * NOTE: This file intentionally omits all other tables (EnvironmentVariable, ChatHistory, ChatFeedback)
+ * NOTE: This file intentionally omits all other tables (`Metadata`, `ChatHistory`, `ChatFeedback`, `User`, `LlmCache`, etc.)
  *       and any extra schemas (e.g. `graphql_public`) to remain a strict subset.
  */
 
@@ -23,6 +24,7 @@ export type AgentsDatabaseSchema = {
                     agentName: string; // <- `string_agent_name`
                     createdAt: string; // <- `string_date_iso8601`
                     updatedAt: string | null; // <- `string_date_iso8601`
+                    permanentId: string | null;
                     agentHash: string; // <- `string_agent_hash`
                     agentSource: string; // <- `string_book`
                     agentProfile: Json; // <- `AgentBasicInformation` (serialized)
@@ -30,12 +32,15 @@ export type AgentsDatabaseSchema = {
                     usage: Json | null; // <- `Usage`
                     preparedModelRequirements: Json | null; // <- `ModelRequirements` (prepared)
                     preparedExternals: Json | null; // <- `PreparedExternals`
+                    deletedAt: string | null;
+                    visibility: 'PUBLIC' | 'PRIVATE';
                 };
                 Insert: {
                     id?: number;
                     agentName: string;
                     createdAt: string;
                     updatedAt?: string | null;
+                    permanentId?: string | null;
                     agentHash: string;
                     agentSource: string;
                     agentProfile: Json;
@@ -43,12 +48,15 @@ export type AgentsDatabaseSchema = {
                     usage?: Json | null;
                     preparedModelRequirements?: Json | null;
                     preparedExternals?: Json | null;
+                    deletedAt?: string | null;
+                    visibility?: 'PUBLIC' | 'PRIVATE';
                 };
                 Update: {
                     id?: number;
                     agentName?: string;
                     createdAt?: string;
                     updatedAt?: string | null;
+                    permanentId?: string | null;
                     agentHash?: string;
                     agentSource?: string;
                     agentProfile?: Json;
@@ -56,6 +64,8 @@ export type AgentsDatabaseSchema = {
                     usage?: Json | null;
                     preparedModelRequirements?: Json | null;
                     preparedExternals?: Json | null;
+                    deletedAt?: string | null;
+                    visibility?: 'PUBLIC' | 'PRIVATE';
                 };
                 Relationships: [];
             };
@@ -64,6 +74,7 @@ export type AgentsDatabaseSchema = {
                     id: number;
                     createdAt: string; // <- `string_date_iso8601`
                     agentName: string; // <- `string_agent_name`
+                    permanentId: string; // <- `string_agent_permanent_id`
                     agentHash: string; // <- `string_agent_hash`
                     previousAgentHash: string | null; // <- `string_agent_hash`
                     agentSource: string; // <- `string_book`
@@ -73,6 +84,7 @@ export type AgentsDatabaseSchema = {
                     id?: number;
                     createdAt: string;
                     agentName: string;
+                    permanentId: string;
                     agentHash: string;
                     previousAgentHash?: string | null;
                     agentSource: string;
@@ -82,26 +94,26 @@ export type AgentsDatabaseSchema = {
                     id?: number;
                     createdAt?: string;
                     agentName?: string;
+                    permanentId?: string;
                     agentHash?: string;
                     previousAgentHash?: string | null;
                     agentSource?: string;
                     promptbookEngineVersion?: string;
                 };
-                Relationships: [];
+                Relationships: [
+                    {
+                        foreignKeyName: 'AgentHistory_permanentId_fkey';
+                        columns: ['permanentId'];
+                        referencedRelation: 'Agent';
+                        referencedColumns: ['permanentId'];
+                    },
+                ];
             };
         };
-        Views: {
-            [_ in never]: never;
-        };
-        Functions: {
-            [_ in never]: never;
-        };
-        Enums: {
-            [_ in never]: never;
-        };
-        CompositeTypes: {
-            [_ in never]: never;
-        };
+        Views: Record<string, never>;
+        Functions: Record<string, never>;
+        Enums: Record<string, never>;
+        CompositeTypes: Record<string, never>;
     };
 };
 

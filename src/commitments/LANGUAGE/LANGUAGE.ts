@@ -17,7 +17,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * @private [🪔] Maybe export the commitments through some package
  */
 export class LanguageCommitmentDefinition extends BaseCommitmentDefinition<'LANGUAGE' | 'LANGUAGES'> {
-    constructor(type: 'LANGUAGE' | 'LANGUAGES' = 'LANGUAGE') {
+    public constructor(type: 'LANGUAGE' | 'LANGUAGES' = 'LANGUAGE') {
         super(type);
     }
 
@@ -76,7 +76,6 @@ export class LanguageCommitmentDefinition extends BaseCommitmentDefinition<'LANG
         return this.appendToSystemMessage(requirements, languageSection, '\n\n');
     }
 }
-
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name

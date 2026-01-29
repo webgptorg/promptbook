@@ -11,7 +11,7 @@ describe('createPipelineExecutor + executing scripts in promptbook', () => {
     it('should work when every INPUT  PARAMETER is allowed', async () => {
         const pipelineExecutor = await getPipelineExecutor();
 
-        expect(
+        await expect(
             pipelineExecutor({ thing: 'a cup of coffee' }).asPromise({ isCrashedOnError: true }),
         ).resolves.toMatchObject({
             isSuccessful: true,
@@ -20,14 +20,16 @@ describe('createPipelineExecutor + executing scripts in promptbook', () => {
                 bhing: 'b cup of coffee',
             },
         });
-        expect(pipelineExecutor({ thing: 'arrow' }).asPromise({ isCrashedOnError: true })).resolves.toMatchObject({
-            isSuccessful: true,
-            errors: [],
-            outputParameters: {
-                bhing: 'brrow',
+        await expect(pipelineExecutor({ thing: 'arrow' }).asPromise({ isCrashedOnError: true })).resolves.toMatchObject(
+            {
+                isSuccessful: true,
+                errors: [],
+                outputParameters: {
+                    bhing: 'brrow',
+                },
             },
-        });
-        expect(pipelineExecutor({ thing: 'aaa' }).asPromise({ isCrashedOnError: true })).resolves.toMatchObject({
+        );
+        await expect(pipelineExecutor({ thing: 'aaa' }).asPromise({ isCrashedOnError: true })).resolves.toMatchObject({
             isSuccessful: true,
             errors: [],
             outputParameters: {
@@ -40,7 +42,7 @@ describe('createPipelineExecutor + executing scripts in promptbook', () => {
         const pipelineExecutor = await getPipelineExecutor();
 
         for (const thing of ['apple', 'apples', 'an apple', 'Apple', 'The Apple', '🍏 Apple', 'Apple 🍎']) {
-            expect(pipelineExecutor({ thing }).asPromise({ isCrashedOnError: false })).resolves.toMatchObject({
+            await expect(pipelineExecutor({ thing }).asPromise({ isCrashedOnError: false })).resolves.toMatchObject({
                 isSuccessful: false,
                 errors: [/Error: I do not like Apples!/i],
                 warnings: [
@@ -48,7 +50,7 @@ describe('createPipelineExecutor + executing scripts in promptbook', () => {
                 ],
             });
 
-            expect(() => pipelineExecutor({ thing }).asPromise({ isCrashedOnError: true })).rejects.toThrowError(
+            await expect(() => pipelineExecutor({ thing }).asPromise({ isCrashedOnError: true })).rejects.toThrowError(
                 /I do not like Apples!/i,
             );
         }

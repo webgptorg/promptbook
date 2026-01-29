@@ -5,6 +5,7 @@ import {
     CopyIcon,
     CopyPlusIcon,
     DownloadIcon,
+    FileTextIcon,
     MailIcon,
     MessageCircleQuestionIcon,
     MessageSquareIcon,
@@ -13,10 +14,13 @@ import {
     QrCodeIcon,
     SmartphoneIcon,
     SquareSplitHorizontalIcon,
+    TrashIcon,
 } from 'lucide-react';
 import { Barlow_Condensed } from 'next/font/google';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { string_data_url, string_url_image } from '../../../../../../src/types/typeAliases';
+import { string_agent_permanent_id, string_data_url, string_url_image } from '../../../../../../src/types/typeAliases';
+import { just } from '../../../../../../src/utils/organization/just';
+import { deleteAgent } from '../../recycle-bin/actions';
 import { getAgentLinks } from './agentLinks';
 
 type BeforeInstallPromptEvent = Event & {
@@ -33,6 +37,7 @@ const barlowCondensed = Barlow_Condensed({
 type AgentOptionsMenuProps = {
     agentName: string;
     derivedAgentName: string;
+    permanentId?: string_agent_permanent_id;
     agentUrl: string;
     agentEmail: string;
     brandColorHex: string;
@@ -44,11 +49,10 @@ type AgentOptionsMenuProps = {
 export function AgentOptionsMenu({
     agentName,
     derivedAgentName,
+    permanentId,
     agentUrl,
     agentEmail,
-    brandColorHex,
     isAdmin = false,
-    backgroundImage,
     onShowQrCode,
 }: AgentOptionsMenuProps) {
     const [isOpen, setIsOpen] = useState(false);
@@ -115,11 +119,9 @@ export function AgentOptionsMenu({
         }
     };
 
-    const links = getAgentLinks(agentName);
+    const links = getAgentLinks(permanentId || agentName);
     const editBookLink = links.find((l) => l.title === 'Edit Book')!;
     const integrationLink = links.find((l) => l.title === 'Integration')!;
-    const historyLink = links.find((l) => l.title === 'History & Feedback')!;
-    const allLinksLink = links.find((l) => l.title === 'All Links')!;
 
     // "Update URL" logic
     const showUpdateUrl = agentName !== derivedAgentName;
@@ -128,15 +130,34 @@ export function AgentOptionsMenu({
     const handleUpdateUrl = () => {
         if (
             window.confirm(
-                `Are you sure you want to change the agent URL from "/agents/${agentName}" to "/agents/${derivedAgentName}"?`
+                `Are you sure you want to change the agent URL from "/agents/${agentName}" to "/agents/${derivedAgentName}"?`,
             )
         ) {
             window.location.href = updateUrlHref;
         }
     };
 
+    const handleDeleteAgent = async () => {
+        if (
+            window.confirm(
+                `Are you sure you want to delete the agent "${agentName}"? This action can be undone by restoring it from the recycle bin.`,
+            )
+        ) {
+            try {
+                await deleteAgent(agentName);
+                window.location.href = '/';
+            } catch (error) {
+                console.error('Failed to delete agent:', error);
+                alert('Failed to delete agent. Please try again.');
+            }
+        }
+    };
+
     const menuItems = [
-        ...(showUpdateUrl
+        ...(showUpdateUrl &&
+        just(
+            false /* <- Note: We are now using links like `/agents/qRoRGSPiRwq8RN` not `/agents/john-show` so this is confusing option*/,
+        )
             ? [
                   {
                       type: 'action' as const,
@@ -148,44 +169,18 @@ export function AgentOptionsMenu({
                   { type: 'divider' as const },
               ]
             : []),
-        {
-            type: 'link' as const,
-            href: `/agents/${encodeURIComponent(agentName)}/chat`,
-            icon: MessageSquareShareIcon,
-            label: 'Standalone Chat',
-        },
-        {
-            type: 'link' as const,
-            href: `/agents/${encodeURIComponent(agentName)}/book+chat`,
-            icon: SquareSplitHorizontalIcon,
-            label: 'Edit Book & Chat',
-        },
-        {
-            type: 'link' as const,
-            href: editBookLink.href,
-            icon: editBookLink.icon,
-            label: editBookLink.title,
-        },
-        { type: 'divider' as const },
-        {
-            type: 'link' as const,
-            href: integrationLink.href,
-            icon: integrationLink.icon,
-            label: integrationLink.title,
-        },
-        {
-            type: 'link' as const,
-            href: historyLink.href,
-            icon: historyLink.icon,
-            label: historyLink.title, // 'History & Feedback'
-        },
-        {
-            type: 'link' as const,
-            href: allLinksLink.href,
-            icon: allLinksLink.icon,
-            label: allLinksLink.title,
-        },
-        { type: 'divider' as const },
+
+        // Install App - only show if PWA is installable and not already installed
+        ...(!isInstalled && installPromptEvent
+            ? [
+                  {
+                      type: 'action' as const,
+                      icon: SmartphoneIcon,
+                      label: 'Install Agent as App',
+                      onClick: handleInstallApp,
+                  },
+              ]
+            : []),
         {
             type: 'action' as const,
             icon: CopyIcon,
@@ -204,17 +199,28 @@ export function AgentOptionsMenu({
             label: 'Show QR Code',
             onClick: onShowQrCode,
         },
-        // Install App - only show if PWA is installable and not already installed
-        ...(!isInstalled && installPromptEvent
-            ? [
-                  {
-                      type: 'action' as const,
-                      icon: SmartphoneIcon,
-                      label: 'Install App',
-                      onClick: handleInstallApp,
-                  },
-              ]
-            : []),
+
+        { type: 'divider' as const },
+
+        {
+            type: 'link' as const,
+            href: `/agents/${encodeURIComponent(agentName)}/chat`,
+            icon: MessageSquareShareIcon,
+            label: 'Standalone Chat',
+        },
+        {
+            type: 'link' as const,
+            href: `/agents/${encodeURIComponent(agentName)}/book+chat`,
+            icon: SquareSplitHorizontalIcon,
+            label: 'Edit Book & Chat',
+        },
+        {
+            type: 'link' as const,
+            href: editBookLink.href,
+            icon: editBookLink.icon,
+            label: editBookLink.title,
+        },
+
         // Admin-only items
         ...(isAdmin
             ? [
@@ -231,17 +237,38 @@ export function AgentOptionsMenu({
                       icon: MessageCircleQuestionIcon,
                       label: 'Chat Feedback',
                   },
+                  { type: 'divider' as const },
+                  {
+                      type: 'link' as const,
+                      href: integrationLink.href,
+                      icon: integrationLink.icon,
+                      label: integrationLink.title,
+                  },
+                  {
+                      type: 'link' as const,
+                      href: `/agents/${encodeURIComponent(agentName)}/system-message`,
+                      icon: FileTextIcon,
+                      label: 'Show System Message',
+                  },
+                  {
+                      type: 'link' as const,
+                      href: `/agents/${encodeURIComponent(agentName)}/export-as-transpiled-code`,
+                      icon: DownloadIcon,
+                      label: 'Export Agent',
+                  },
+                  { type: 'divider' as const },
                   {
                       type: 'link' as const,
                       href: `/agents/${encodeURIComponent(agentName)}/clone`,
                       icon: CopyPlusIcon,
                       label: 'Clone Agent',
                   },
+
                   {
-                      type: 'link' as const,
-                      href: `/agents/${encodeURIComponent(agentName)}/export`,
-                      icon: DownloadIcon,
-                      label: 'Export Agent',
+                      type: 'action' as const,
+                      icon: TrashIcon,
+                      label: 'Delete Agent',
+                      onClick: handleDeleteAgent,
                   },
                   // {
                   //     type: 'link' as const,
@@ -297,12 +324,16 @@ export function AgentOptionsMenu({
                                     }
                                 }}
                                 className={`flex items-center gap-3 px-4 py-2.5 w-full text-left transition-colors
-                                    ${item.highlight
-                                        ? 'bg-yellow-100 text-yellow-900 font-bold hover:bg-yellow-200'
-                                        : 'text-gray-700 hover:bg-gray-50'}
+                                    ${
+                                        item.highlight
+                                            ? 'bg-yellow-100 text-yellow-900 font-bold hover:bg-yellow-200'
+                                            : 'text-gray-700 hover:bg-gray-50'
+                                    }
                                 `}
                             >
-                                <item.icon className={`w-4 h-4 ${item.highlight ? 'text-yellow-700' : 'text-gray-500'}`} />
+                                <item.icon
+                                    className={`w-4 h-4 ${item.highlight ? 'text-yellow-700' : 'text-gray-500'}`}
+                                />
                                 <span className="text-sm font-medium">{item.label}</span>
                             </button>
                         );

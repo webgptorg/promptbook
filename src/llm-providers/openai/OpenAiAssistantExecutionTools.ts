@@ -1,5 +1,8 @@
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import OpenAI from 'openai';
+import spaceTrim from 'spacetrim';
+import { serializeError } from '../../_packages/utils.index';
+import { assertsError } from '../../errors/assertsError';
 import { NotAllowed } from '../../errors/NotAllowed';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
@@ -16,10 +19,14 @@ import type {
     string_token,
 } from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/misc/$getCurrentDate';
+import type { chococake } from '../../utils/organization/really_any';
 import { templateParameters } from '../../utils/parameters/templateParameters';
 import { exportJson } from '../../utils/serialization/exportJson';
 import type { OpenAiAssistantExecutionToolsOptions } from './OpenAiAssistantExecutionToolsOptions';
+import type { OpenAiCompatibleExecutionToolsNonProxiedOptions } from './OpenAiCompatibleExecutionToolsOptions';
 import { OpenAiExecutionTools } from './OpenAiExecutionTools';
+import { mapToolsToOpenAi } from './utils/mapToolsToOpenAi';
+import { uploadFilesToOpenAi } from './utils/uploadFilesToOpenAi';
 
 /**
  * Execution Tools for calling OpenAI API Assistants
@@ -34,6 +41,7 @@ import { OpenAiExecutionTools } from './OpenAiExecutionTools';
  * - `RemoteAgent` - which is an `Agent` that connects to a Promptbook Agents Server
  *
  * @public exported from `@promptbook/openai`
+ * @deprecated Use `OpenAiAgentExecutionTools` instead which uses the new OpenAI Responses API
  */
 export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implements LlmExecutionTools {
     /* <- TODO: [🍚] `, Destroyable` */
@@ -75,9 +83,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
     /**
      * Calls OpenAI API to use a chat model.
      */
-    public async callChatModel(
-        prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements' | 'format'>,
-    ): Promise<ChatPromptResult> {
+    public async callChatModel(prompt: Prompt): Promise<ChatPromptResult> {
         return this.callChatModelStream(prompt, () => {});
     }
 
@@ -85,7 +91,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
      * Calls OpenAI API to use a chat model with streaming.
      */
     public async callChatModelStream(
-        prompt: Pick<Prompt, 'content' | 'parameters' | 'modelRequirements' | 'format'>,
+        prompt: Prompt,
         onProgress: (chunk: ChatPromptResult) => void,
     ): Promise<ChatPromptResult> {
         if (this.options.isVerbose) {
@@ -140,38 +146,251 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
 
         // TODO: [🈹] Maybe this should not be here but in other place, look at commit 39d705e75e5bcf7a818c3af36bc13e1c8475c30c
         // Add previous messages from thread (if any)
-        if (
-            'thread' in prompt &&
-            Array.isArray((prompt as { thread?: Array<{ role: string; content: string }> }).thread)
-        ) {
-            const previousMessages = (prompt as { thread: Array<{ role: string; content: string }> }).thread.map(
-                (msg) => ({
-                    role: (msg.role === 'assistant' ? 'assistant' : 'user') as 'user' | 'assistant',
-                    content: msg.content,
-                }),
-            );
+        if ('thread' in prompt && Array.isArray(prompt.thread)) {
+            const previousMessages = prompt.thread.map((msg) => ({
+                role: (msg.sender === 'assistant' ? 'assistant' : 'user') as 'user' | 'assistant',
+                content: msg.content,
+            }));
             threadMessages.push(...previousMessages);
         }
 
         // Always add the current user message
-        threadMessages.push({ role: 'user', content: rawPromptContent });
+        const currentUserMessage: OpenAI.Beta.ThreadCreateAndRunParams.Thread.Message = {
+            role: 'user',
+            content: rawPromptContent,
+        };
 
+        if ('files' in prompt && Array.isArray(prompt.files) && prompt.files.length > 0) {
+            const fileIds = await uploadFilesToOpenAi(client, prompt.files);
+            currentUserMessage.attachments = fileIds.map((fileId) => ({
+                file_id: fileId,
+                tools: [{ type: 'file_search' }, { type: 'code_interpreter' }],
+            }));
+        }
+
+        threadMessages.push(currentUserMessage as { role: 'user' | 'assistant'; content: string });
+
+        // Check if tools are being used - if so, use non-streaming mode
+        const hasTools = modelRequirements.tools !== undefined && modelRequirements.tools.length > 0;
+
+        const start: string_date_iso8601 = $getCurrentDate();
+        let complete: string_date_iso8601;
+
+        // [🐱‍🚀] When tools are present, we need to use the non-streaming Runs API
+        // because streaming doesn't support tool execution flow properly
+        if (hasTools) {
+            onProgress({
+                content: '',
+                modelName: 'assistant',
+                timing: { start, complete: $getCurrentDate() },
+                usage: UNCERTAIN_USAGE,
+                rawPromptContent,
+                rawRequest: null as chococake,
+                rawResponse: null as chococake,
+            });
+
+            const rawRequest: OpenAI.Beta.ThreadCreateAndRunParams = {
+                assistant_id: this.assistantId,
+                thread: {
+                    messages: threadMessages,
+                },
+                tools: mapToolsToOpenAi(modelRequirements.tools!),
+            };
+
+            if (this.options.isVerbose) {
+                console.info(
+                    colors.bgWhite('rawRequest (non-streaming with tools)'),
+                    JSON.stringify(rawRequest, null, 4),
+                );
+            }
+
+            // Create thread and run
+            const threadAndRun = await client.beta.threads.createAndRun(rawRequest);
+            let run = threadAndRun;
+            const completedToolCalls: Array<NonNullable<ChatPromptResult['toolCalls']>[number]> = [];
+            const toolCallStartedAt = new Map<string, string_date_iso8601>();
+
+            // Poll until run completes or requires action
+            while (run.status === 'queued' || run.status === 'in_progress' || run.status === 'requires_action') {
+                if (run.status === 'requires_action' && run.required_action?.type === 'submit_tool_outputs') {
+                    // Execute tools
+                    const toolCalls = run.required_action.submit_tool_outputs.tool_calls;
+                    const toolOutputs: Array<{ tool_call_id: string; output: string }> = [];
+
+                    for (const toolCall of toolCalls) {
+                        if (toolCall.type === 'function') {
+                            const functionName = toolCall.function.name;
+                            const functionArgs = JSON.parse(toolCall.function.arguments);
+                            const calledAt = $getCurrentDate();
+
+                            if (toolCall.id) {
+                                toolCallStartedAt.set(toolCall.id, calledAt);
+                            }
+
+                            onProgress({
+                                content: '',
+                                modelName: 'assistant',
+                                timing: { start, complete: $getCurrentDate() },
+                                usage: UNCERTAIN_USAGE,
+                                rawPromptContent,
+                                rawRequest: null as chococake,
+                                rawResponse: null as chococake,
+                                toolCalls: [
+                                    {
+                                        name: functionName,
+                                        arguments: toolCall.function.arguments,
+                                        result: '',
+                                        rawToolCall: toolCall,
+                                        createdAt: calledAt,
+                                    },
+                                ],
+                            });
+
+                            if (this.options.isVerbose) {
+                                console.info(`🔧 Executing tool: ${functionName}`, functionArgs);
+                            }
+
+                            // Get execution tools for script execution
+                            const executionTools = (this.options as OpenAiCompatibleExecutionToolsNonProxiedOptions)
+                                .executionTools;
+
+                            if (!executionTools || !executionTools.script) {
+                                throw new PipelineExecutionError(
+                                    `Model requested tool '${functionName}' but no executionTools.script were provided in OpenAiAssistantExecutionTools options`,
+                                );
+                            }
+
+                            // TODO: [DRY] Use some common tool caller (similar to OpenAiCompatibleExecutionTools)
+                            const scriptTools = Array.isArray(executionTools.script)
+                                ? executionTools.script
+                                : [executionTools.script];
+
+                            let functionResponse: string;
+                            let errors: Array<ReturnType<typeof serializeError>> | undefined;
+
+                            try {
+                                const scriptTool = scriptTools[0]!; // <- TODO: [🧠] Which script tool to use?
+
+                                functionResponse = await scriptTool.execute({
+                                    scriptLanguage: 'javascript', // <- TODO: [🧠] How to determine script language?
+                                    script: `
+                                        const args = ${JSON.stringify(functionArgs)};
+                                        return await ${functionName}(args);
+                                    `,
+                                    parameters: prompt.parameters,
+                                });
+
+                                if (this.options.isVerbose) {
+                                    console.info(`✅ Tool ${functionName} executed:`, functionResponse);
+                                }
+                            } catch (error) {
+                                assertsError(error);
+
+                                const serializedError = serializeError(error as Error);
+                                errors = [serializedError];
+                                functionResponse = spaceTrim(
+                                    (block) => `
+                                    
+                                        The invoked tool \`${functionName}\` failed with error:
+                                        
+                                        \`\`\`json
+                                        ${block(JSON.stringify(serializedError, null, 4))}
+                                        \`\`\`
+
+                                    `,
+                                );
+                                console.error(colors.bgRed(`❌ Error executing tool ${functionName}:`));
+                                console.error(error);
+                            }
+
+                            toolOutputs.push({
+                                tool_call_id: toolCall.id,
+                                output: functionResponse,
+                            });
+
+                            completedToolCalls.push({
+                                name: functionName,
+                                arguments: toolCall.function.arguments,
+                                result: functionResponse,
+                                rawToolCall: toolCall,
+                                createdAt: toolCall.id ? toolCallStartedAt.get(toolCall.id) || calledAt : calledAt,
+                                errors,
+                            });
+                        }
+                    }
+
+                    // Submit tool outputs
+                    run = await client.beta.threads.runs.submitToolOutputs(run.thread_id, run.id, {
+                        tool_outputs: toolOutputs,
+                    });
+                } else {
+                    // Wait a bit before polling again
+                    await new Promise((resolve) => setTimeout(resolve, 500));
+                    run = await client.beta.threads.runs.retrieve(run.thread_id, run.id);
+                }
+            }
+
+            if (run.status !== 'completed') {
+                throw new PipelineExecutionError(`Assistant run failed with status: ${run.status}`);
+            }
+
+            // Get messages from the thread
+            const messages = await client.beta.threads.messages.list(run.thread_id);
+            const assistantMessages = messages.data.filter((msg) => msg.role === 'assistant');
+
+            if (assistantMessages.length === 0) {
+                throw new PipelineExecutionError('No assistant messages found after run completion');
+            }
+
+            const lastMessage = assistantMessages[0]!;
+            const textContent = lastMessage.content.find((c) => c.type === 'text');
+
+            if (!textContent || textContent.type !== 'text') {
+                throw new PipelineExecutionError('No text content in assistant response');
+            }
+
+            complete = $getCurrentDate();
+            const resultContent = textContent.text.value;
+            const usage = UNCERTAIN_USAGE;
+
+            // Progress callback with final result
+            const finalChunk: ChatPromptResult = {
+                content: resultContent,
+                modelName: 'assistant',
+                timing: { start, complete },
+                usage,
+                rawPromptContent,
+                rawRequest,
+                rawResponse: { run, messages: messages.data },
+                toolCalls: completedToolCalls.length > 0 ? completedToolCalls : undefined,
+            };
+            onProgress(finalChunk);
+
+            return exportJson({
+                name: 'promptResult',
+                message: `Result of \`OpenAiAssistantExecutionTools.callChatModelStream\` (with tools)`,
+                order: [],
+                value: finalChunk,
+            });
+        }
+
+        // Streaming mode (without tools)
         const rawRequest: OpenAI.Beta.ThreadCreateAndRunStreamParams = {
             // TODO: [👨‍👨‍👧‍👧] ...modelSettings,
             // TODO: [👨‍👨‍👧‍👧][🧠] What about system message for assistants, does it make sense - combination of OpenAI assistants with Promptbook Personas
 
-            assistant_id: this.assistantId,
+            assistant_id: this.assistantId, // <- [🙎]
             thread: {
                 messages: threadMessages,
             },
 
+            tools: modelRequirements.tools === undefined ? undefined : mapToolsToOpenAi(modelRequirements.tools),
+
             // <- TODO: Add user identification here> user: this.options.user,
         };
-        const start: string_date_iso8601 = $getCurrentDate();
-        let complete: string_date_iso8601;
 
         if (this.options.isVerbose) {
-            console.info(colors.bgWhite('rawRequest'), JSON.stringify(rawRequest, null, 4));
+            console.info(colors.bgWhite('rawRequest (streaming)'), JSON.stringify(rawRequest, null, 4));
         }
 
         const stream = await client.beta.threads.createAndRunStream(rawRequest);
@@ -215,6 +434,16 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             }
         });
 
+        // TODO: [🐱‍🚀] Handle tool calls in assistants
+        // Note: OpenAI Assistant streaming with tool calls requires special handling.
+        // The stream will pause when a tool call is needed, and we need to:
+        // 1. Wait for the run to reach 'requires_action' status
+        // 2. Execute the tool calls
+        // 3. Submit tool outputs via a separate API call (not on the stream)
+        // 4. Continue the run
+        // This requires switching to non-streaming mode or using the Runs API directly.
+        // For now, tools with assistants should use the non-streaming chat completions API instead.
+
         const rawResponse = await stream.finalMessages();
 
         if (this.options.isVerbose) {
@@ -237,8 +466,43 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             );
         }
 
-        const resultContent = rawResponse[0]!.content[0]?.text.value;
-        //                                                     <- TODO: [🧠] There are also annotations, maybe use them
+        let resultContent = rawResponse[0]!.content[0]?.text.value;
+
+        // Process annotations to replace file IDs with filenames
+        if (rawResponse[0]!.content[0]?.text.annotations) {
+            const annotations = rawResponse[0]!.content[0]?.text.annotations;
+
+            // Map to store file ID -> filename to avoid duplicate requests
+            const fileIdToName = new Map<string, string>();
+
+            for (const annotation of annotations) {
+                if (annotation.type === 'file_citation') {
+                    const fileId = annotation.file_citation.file_id;
+                    let filename = fileIdToName.get(fileId);
+
+                    if (!filename) {
+                        try {
+                            const file = await client.files.retrieve(fileId);
+                            filename = file.filename;
+                            fileIdToName.set(fileId, filename);
+                        } catch (error) {
+                            console.error(`Failed to retrieve file info for ${fileId}`, error);
+                            // Fallback to "Source" or keep original if fetch fails
+                            filename = 'Source';
+                        }
+                    }
+
+                    if (filename && resultContent) {
+                        // Replace the citation marker with filename
+                        // Regex to match the second part of the citation: 【id†source】 -> 【id†filename】
+                        // Note: annotation.text contains the exact marker like 【4:0†source】
+
+                        const newText = annotation.text.replace(/†.*?】/, `†${filename}】`);
+                        resultContent = resultContent.replace(annotation.text, newText);
+                    }
+                }
+            }
+        }
 
         // eslint-disable-next-line prefer-const
         complete = $getCurrentDate();
@@ -278,12 +542,10 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
 
         // List all assistants
         const assistants = await client.beta.assistants.list();
-        console.log('!!! Assistants:', assistants);
-
+     
         // Get details of a specific assistant
         const assistantId = 'asst_MO8fhZf4dGloCfXSHeLcIik0';
         const assistant = await client.beta.assistants.retrieve(assistantId);
-        console.log('!!! Assistant Details:', assistant);
 
         // Update an assistant
         const updatedAssistant = await client.beta.assistants.update(assistantId, {
@@ -293,8 +555,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                 [Math.random().toString(36).substring(2, 15)]: new Date().toISOString(),
             },
         });
-        console.log('!!! Updated Assistant:', updatedAssistant);
-
+  
         await forEver();
     }
     */
@@ -325,7 +586,12 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
          */
         readonly knowledgeSources?: ReadonlyArray<string>;
 
-        // <- TODO: [🧠] [🐱‍🚀] Add also other assistant creation parameters like tools, name, description, model, ...
+        /**
+         * Optional list of tools to attach to the assistant
+         */
+        readonly tools?: ModelRequirements['tools'];
+
+        // <- TODO: [🧠] [🐱‍🚀] Add also other assistant creation parameters like name, description, model, ...
     }): Promise<OpenAiAssistantExecutionTools> {
         if (!this.isCreatingNewAssistantsAllowed) {
             throw new NotAllowed(
@@ -334,7 +600,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
         }
 
         // await this.playground();
-        const { name, instructions, knowledgeSources } = options;
+        const { name, instructions, knowledgeSources, tools } = options;
         const client = await this.getClient();
 
         let vectorStoreId: string | undefined;
@@ -368,7 +634,13 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                             continue;
                         }
                         const buffer = await response.arrayBuffer();
-                        const filename = source.split('/').pop() || 'downloaded-file';
+                        let filename = source.split('/').pop() || 'downloaded-file';
+                        try {
+                            const url = new URL(source);
+                            filename = url.pathname.split('/').pop() || filename;
+                        } catch (error) {
+                            // Keep default filename
+                        }
                         const blob = new Blob([buffer]);
                         const file = new File([blob], filename);
                         fileStreams.push(file);
@@ -410,7 +682,11 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             description: 'Assistant created via Promptbook',
             model: 'gpt-4o',
             instructions,
-            tools: [/* TODO: [🧠] Maybe add { type: 'code_interpreter' }, */ { type: 'file_search' }],
+            tools: [
+                /* TODO: [🧠] Maybe add { type: 'code_interpreter' }, */
+                { type: 'file_search' },
+                ...(tools === undefined ? [] : mapToolsToOpenAi(tools)),
+            ],
         };
 
         // Attach vector store if created
@@ -457,6 +733,11 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
          * Optional list of knowledge source links (URLs or file paths) to attach to the assistant via vector store
          */
         readonly knowledgeSources?: ReadonlyArray<string>;
+
+        /**
+         * Optional list of tools to attach to the assistant
+         */
+        readonly tools?: ModelRequirements['tools'];
     }): Promise<OpenAiAssistantExecutionTools> {
         if (!this.isCreatingNewAssistantsAllowed) {
             throw new NotAllowed(
@@ -464,7 +745,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             );
         }
 
-        const { assistantId, name, instructions, knowledgeSources } = options;
+        const { assistantId, name, instructions, knowledgeSources, tools } = options;
         const client = await this.getClient();
 
         let vectorStoreId: string | undefined;
@@ -501,7 +782,13 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                             continue;
                         }
                         const buffer = await response.arrayBuffer();
-                        const filename = source.split('/').pop() || 'downloaded-file';
+                        let filename = source.split('/').pop() || 'downloaded-file';
+                        try {
+                            const url = new URL(source);
+                            filename = url.pathname.split('/').pop() || filename;
+                        } catch (error) {
+                            // Keep default filename
+                        }
                         const blob = new Blob([buffer]);
                         const file = new File([blob], filename);
                         fileStreams.push(file);
@@ -540,7 +827,11 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
         const assistantUpdate: OpenAI.Beta.AssistantUpdateParams = {
             name,
             instructions,
-            tools: [/* TODO: [🧠] Maybe add { type: 'code_interpreter' }, */ { type: 'file_search' }],
+            tools: [
+                /* TODO: [🧠] Maybe add { type: 'code_interpreter' }, */
+                { type: 'file_search' },
+                ...(tools === undefined ? [] : mapToolsToOpenAi(tools)),
+            ],
         };
 
         if (vectorStoreId) {
@@ -591,6 +882,8 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
 const DISCRIMINANT = 'OPEN_AI_ASSISTANT_V1';
 
 /**
+ * TODO: !!!!! [✨🥚] Knowledge should work both with and without scrapers
+ * TODO: [🙎] In `OpenAiAssistantExecutionTools` Allow to create abstract assistants with `isCreatingNewAssistantsAllowed`
  * TODO: [🧠][🧙‍♂️] Maybe there can be some wizard for those who want to use just OpenAI
  * TODO: Maybe make custom OpenAiError
  * TODO: [🧠][🈁] Maybe use `isDeterministic` from options

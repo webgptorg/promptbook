@@ -18,7 +18,7 @@ export const FormattedBookInMarkdownTranspiler = {
     transpileBook(book: string_book, tools: ExecutionTools, options?: BookTranspilerOptions): string_markdown {
         keepUnused(tools, options);
 
-        let lines = book.trim(/* <- Note: Not using `spaceTrim` because its not needed */).split('\n');
+        let lines = book.trim(/* <- Note: Not using `spaceTrim` because its not needed */).split(/\r?\n/);
 
         if (lines[0]) {
             lines[0] = `**<ins>${lines[0]}</ins>**`;

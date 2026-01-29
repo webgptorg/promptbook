@@ -94,7 +94,7 @@ export function parsePipeline(pipelineString: PipelineString): PipelineJson {
     // ==============
     // Note: 1️⃣◽1️⃣ Remove #!shebang and comments
     if (pipelineString.startsWith('#!')) {
-        const [shebangLine, ...restLines] = pipelineString.split('\n');
+        const [shebangLine, ...restLines] = pipelineString.split(/\r?\n/);
 
         if (!(shebangLine || '').includes('ptbk')) {
             throw new ParseError(
@@ -385,7 +385,7 @@ export function parsePipeline(pipelineString: PipelineString): PipelineJson {
             // <- TODO: [🍙] Some standard order of properties
         };
 
-        const lastLine = section.content.split('\n').pop()!;
+        const lastLine = section.content.split(/\r?\n/).pop()!;
         const resultingParameterNameMatch = /^->\s*\{(?<resultingParamName>[a-z0-9_]+)\}/im.exec(lastLine);
         if (
             resultingParameterNameMatch &&

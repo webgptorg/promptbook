@@ -1,89 +1,339 @@
-### 📖 Book Format- Added a federated servers dropdown to the header in Agents Server. The dropdown lists all federated servers, with the current server shown as selected and not clickable. Navigation is DRY and uses shared logic with the footer.- Allow changing agent URL if agentName in URL differs from derived agentName.  
-  - Shows highlighted "Update URL" in Agent menu if discrepancy exists, with confirmation dialog and redirect.
+### 📚 Book
 
--   Add support for image generation models
-    -   Added `IMAGE_GENERATION` model variant
-    -   Added `callImageGenerationModel` to `LlmExecutionTools`
-    -   Implemented support for DALL-E 2 and DALL-E 3 in `OpenAiExecutionTools`
-    -   Added `ImagePrompt` and `ImagePromptResult` types
--   Horizontal lines (`---`) now end commitments
-    -   Allows separating metadata/configuration from conversation flow
-    -   Supports various horizontal line formats: `---`, `-----`, `- - -`, `___`, `***`
--   Implement `USE BROWSER` commitment to enable browser tool capability
-    -   Indicates that the agent should utilize a web browser tool to access and retrieve up-to-date information from the internet
-    -   Content following `USE BROWSER` is ignored (similar to `NOTE`)
-    -   First commitment in the `USE` family (future: `USE SEARCH ENGINE`, `USE FILE SYSTEM`, `USE MCP`)
-    -   Stores `useBrowser: true` and `tools: ['browser']` in agent metadata
--   Implement `USE SEARCH ENGINE` commitment to enable search engine tool capability
-    -   Indicates that the agent should utilize a search engine tool to access and retrieve up-to-date information from the internet
-    -   Content following `USE SEARCH ENGINE` is ignored (similar to `NOTE`)
-    -   Part of the `USE` family of commitments
-    -   Stores `useSearchEngine: true` and `tools: ['search-engine']` in agent metadata
--   Implement `USE MCP` commitment to connect agent to MCP servers
-    -   Allows specifying an MCP server URL which the agent will connect to for retrieving additional instructions and actions
-    -   Content following `USE MCP` is the URL of the MCP server
-    -   Part of the `USE` family of commitments
-    -   Stores the server URL in `mcpServers` list in agent model requirements
--   Implement `META FONT` commitment to set the agent's font
-    -   Allows setting custom font family for the agent page
-    -   Dynamically loads fonts from Google Fonts
--   Update `META COLOR` commitment to support multiple colors
-    -   Allows specifying multiple colors separated by comma (e.g., `#FF5733, #33FF57`)
-    -   Used to create a gradient background on the agent page
--   Allow both comma and space separators in `META COLOR` and `META FONT` commitments
-    -   Example: `META COLOR red, blue, green` and `META COLOR red blue green` now work the same
-    -   Example: `META FONT Arial, sans-serif` and `META FONT Arial sans-serif` now work the same
+-   Fixed drag-and-drop uploads in the Agents Server create-agent dialog by reusing the shared BookEditor upload handler.
+-   Fixed document source citation in Agents Server chat:
+    -   Resolved issue where clicking on KNOWLEDGE source chips showed "Document preview unavailable" instead of the actual document
+    -   Fixed `/api/profile` endpoint to explicitly include `knowledgeSources` array in the response
+    -   Added inheritance support for `knowledgeSources` so child agents inherit knowledge from parent agents
+    -   Citations from KNOWLEDGE commitments now correctly resolve to their source URLs for preview and download
+    -   Follows DRY principle - parsing logic is centralized in `parseAgentSource()`, data flows through API to `RemoteAgent`
+-   Fixed Agents Server image generation and uploads to safely shorten CDN paths for long filenames, preventing Vercel Blob path length errors.
+-   Normalized file names before uploads in Agents Server (chat attachments, knowledge uploads, admin file uploads) to keep CDN URLs clean and consistent.
+-   Allow to add image in the image prompt in `ImageGeneratorTestClient`
+-   Ensured the Agents Server chat menu stays above chat action buttons (New chat, Save, etc.).
+-   Added top spacing in Agents Server chat so action buttons no longer overlap the first messages.
+-   Added Promptbook SDK integration snippets in Agents Server, including RemoteAgent Node.js and React examples on the integration page.
+-   Added API key field to the OpenRouter integration section in Agents Server to match OpenAI compatible setup.
+-   Added a Create API Key action on the agent integration page so admins can generate tokens without leaving the integrations screen.
+-   Fixed Rollup publishing config to inline dynamic imports so package builds no longer fail on multi-chunk outputs in CI.
+-   Redesigned the Agents Server home graph with D3.js for responsive zooming, panning, and hover highlighting while keeping server clustering, filtering, and federated links.
 
-### 🐇 Agents Server
+-   Enhanced prompt template literal handling to return `PromptString`, inline safe parameters, and append structured parameter/context blocks for unsafe or multiline data with escaping.
+-   Added prompt notation documentation, examples, and a live evaluator to the Utils app.
+-   Enhanced prompt notation example actions in the Utils app with an overwrite warning, clipboard copy, and download shortcuts.
+-   Replaced prompt notation example action emojis with Lucide icons in the Utils app.
+-   Added install instructions and import header to prompt notation example downloads in the Utils app.
+-   Updated prompt notation output to use numeric parameter placeholders and a numbered parameters list.
+-   Render structured JSON parameters without double-escaping in prompt notation outputs.
+-   Enhanced `humanizeAiText` to normalize more dash, quote, ellipsis, and whitespace variants in AI text.
 
--   Add dynamic `/robots.txt`, `/security.txt`, and `/humans.txt` endpoints. All are generated via DRY TypeScript logic, using a shared utility for dynamic content.
--   Add dynamic `/sitemap.xml` endpoint that lists all available agents. Uses DRY agent discovery logic via `$provideAgentCollectionForServer` and outputs valid XML for search engines.
--   Preserve `headless` GET param across all internal navigation (Header, Footer, router navigation). Uses DRY utility and custom Link component for consistent behavior.
--   List federated servers in footer (DRY, merged via layout.tsx)
--   Simplify agent page design (`/agents/[agentName]`)
-    -   New visually appealing profile view with agent's color theme as gradient background
-    -   Added noisy texture to the background for better visual appeal
-    -   Restored quick access links to agent capabilities (Edit Book, Integration, History)
-    -   Large rounded card with agent image (or initial letter fallback)
-    -   Poppins font for agent name display
-    -   Prominent "Start Chat" button
-    -   All secondary actions (standalone chat, edit book, integration, etc.) moved to dropdown "More options" menu
-    -   QR code available via modal dialog from options menu
-    -   Admin-only menu items for chat history, feedback, clone, and export
-    -   Replaced "Start Chat" button with an interactive `<Chat/>` component
-        -   Displays the agent's initial message
-        -   Allows users to send a message directly from the profile
-        -   Seamlessly redirects to the full chat page with the message automatically sent
--   Support `META FONT` on agent page
-    -   Agent page now uses the font specified in `META FONT` commitment for agent name and other text
--   Support multiple colors in `META COLOR` on agent page
-    -   Agent page background now uses a gradient of all colors specified in `META COLOR`
--   Add `/models` endpoint to OpenAI-compatible API (`/agents/[agentName]/api/openai/v1/models`)
-    -   Required for OpenAI-compatible clients (Jan, LM Studio, etc.) to discover available models
--   Fix OpenAI API compatibility route (`/agents/[agentName]/api/openai/v1`) to use server's API keys instead of BYOK (Bring Your Own Keys) strategy
-    -   Moved OpenAI API compatible endpoints to versioned path `/agents/[agentName]/api/openai/v1` (e.g., `/agents/[agentName]/api/openai/v1/chat/completions`)
-    -   The route now uses the same `OpenAiAssistantExecutionTools` as the web chat interface
--   Fix `OpenAiAssistantExecutionTools` to always include current user message in thread
-    -   Previously, when a thread was provided (even empty), the current message was ignored
-    -   Now the current message is always appended to the thread messages
--   Load federated agents dynamically after page load to improve performance
-    -   Add `ExternalAgentsSectionClient` component
-    -   Add `/api/federated-agents` endpoint to list federated servers
-    -   Fetch agents from each federated server independently in parallel
-    -   Show loading spinner for each server while fetching
-    -   Enable CORS on `/api/agents` to allow direct browser calls
--   Implement `FROM` commitment to inherit agent source from another agent
-    -   Allows inheriting from both internal and external agents
--   Implement `COMPONENT` commitment to define UI components that the agent can render in the chat
-    -   Allows defining component name and syntax/usage description
--   Implement `OPEN` and `CLOSED` commitments to control agent learning
-    -   `OPEN` (default) allows agent to learn from conversation and modify its source
-    -   `CLOSED` prevents agent from being modified by conversation
--   Support standalone `USE BROWSER` and `CLOSED` commitments
-    -   These commitments can now be used without any following content (e.g., just `USE BROWSER` on a line)
-    -   This improves readability and consistency in agent source files
--   Implement `LANGUAGE` commitment to specify the language(s) the agent should use in its responses
-
-### 🔒 Security
-
--   Update `next` to `15.4.8` and `react` to `19.1.2` to fix CVE-2025-55182
+-   Improved error reporting in package generation script to show the actual line where markers ([🟢], [⚪], [⚫], [🟡], [🔵]) are found when they shouldn't be published in packages. This helps developers quickly identify and fix issues by displaying the line number and content instead of just the filename.
+-   Enhanced all comparison documents in `/documents/comparison/*.md` for better balance and clarity:
+    -   Balanced pros/cons tables: Added legitimate advantages to alternative platforms (Agno, ChatGPT, Claude, etc.) and acknowledged Promptbook's limitations for fair comparison
+    -   Expanded "Best for" sections: Both Promptbook and alternative platforms now have detailed use case descriptions
+    -   Improved objectivity: Each platform's strengths are now accurately represented, maintaining overall balanced perspective while highlighting Promptbook's unique advantages in federated architecture, commitment system, and cross-platform portability
+-   Implemented `TEMPLATE` commitment to enforce specific message structure or response templates for agent responses.
+-   Added nonce test files at the repository root for coding agent verification.
+-   Added a script to run prompt files through OpenAI Codex with prompt status tracking and git commits.
+-   Added interactive waits between codex prompt tasks with a `--no-wait` override flag.
+-   Added per-prompt start summaries with a confirmation wait before each prompt runs (unless `--no-wait`).
+-   Estimated OpenAI Codex runner prices from Codex CLI token counts instead of reporting $0.00.
+-   Implemented `USE IMAGE GENERATOR` commitment to allow agents to generate images using an image generation model.
+-   [✨⛪️] Allow to close dialogs by clicking outside of the dialog.
+-   Created a series of comprehensive comparison documents between Promptbook and other projects (ChatGPT, Claude, ChatGPT-Assistance, LangChain, N8N, NotebookLM, Wordware, Agno, Letta, Eliza, and Digital Twin platforms like Personal.ai/Delphi) in `/documents/comparison/*.md`. These comparisons highlight Promptbook's unique "Book" language, commitment system (Persona, Knowledge, Rule, Team), and its federated, open-source architecture.
+-   Implemented `IMPORT` commitment that allows to import generic text files (both local and URL) into the agent source with plugin-based architecture.
+-   Created file named `nonce-foo-4.txt` with content `foo`
+-   Created file named `nonce-bar-4.txt` with content `bar`
+-   Created file named `nonce-foo-3.txt` with content of of output of `date +%s`
+-   Created file named `nonce-bar-3.txt` with content of output of `ls -la`
+-   Created nonce test files `nonce-foo-1.txt`, `nonce-bar-1.txt`, `nonce-foo-2.txt`, and `nonce-bar-2.txt` at the root of the project to verify coding agent functionality.
+-   Implemented GitHub import script that fetches issues and discussions from a Promptbook repository and structures them into Markdown files.
+-   Code blocks in the book are assigned to the commitment where they are placed.
+-   Allow to attach files to the chat messages in Agents Server [2025-12-0900-agents-server-chat-attachements.md](https://github.com/webgptorg/promptbook/blob/main/prompts/2025-12-0900-agents-server-chat-attachements.md)
+-   Implement Ctrl+S shortcut in `<BookEditor/>` component
+-   Implement Ctrl+V shortcut in `<BookEditor/>` component for pasting images and files
+-   Implement Ctrl+S shortcut in `<Chat/>` component for opening export menu
+-   Implement tool calling loop into the `LlmExecutionTools`. Currently only for `OpenAiCompatibleExecutionTools`
+-   Show floating hint when creating new agent in Agents Server [2025-12-0920-agents-server-hints.md](https://github.com/webgptorg/promptbook/blob/main/prompts/2025-12-0920-agents-server-hints.md)
+-   Agents Server can generate boilerplate rules and personas in the same language as the agent name [2025-12-0950-agents-server-boilerplate-rules-and-personas-in-language-of-server.md](https://github.com/webgptorg/promptbook/blob/main/prompts/2025-12-0950-agents-server-boilerplate-rules-and-personas-in-language-of-server.md)
+-   Record all tool calls and aggregate usage in `promptResult` when the tool calling loop is used.
+-   Improved the design of the agent server name in the header to prevent wrapping on long names
+-   Samples of communication (USER MESSAGE and AGENT MESSAGE) are now transferred into the system message.
+-   The initial message is now also included in the example interaction within the system message and is passed into the samples with `question` set to `null`.
+-   Horizontal lines (`---`) are now filtered out from the system message.
+-   Use Teacher Agent for self-learning of the agents.
+-   Self-learning is now a two-step process: first appending conversation samples, then asynchronously calling the Teacher Agent.
+-   Added `TEACHER` well-known agent to the core server configuration.
+-   Fixed syntax highlighting for `LANGUAGES` and `RULES` in the book editor to ensure the whole word is highlighted, preferring long forms over short forms
+-   Implemented `USE TIME` commitment to add the ability for agents to determine the current date and time.
+-   Added timezone awareness to `USE TIME` commitment.
+-   Added extra instructions to the system message for `USE TIME`, `USE SEARCH ENGINE`, and `USE BROWSER` commitments to provide explicit guidance for the agent on when and how to use these tools.
+-   Allow optional instructions after `USE SEARCH ENGINE` and `USE TIME` to be included in the system message.
+-   Implemented `USE SEARCH` (and `USE SEARCH ENGINE`) commitment that adds the ability for agents to perform web search using `SerpSearchEngine`.
+-   Implemented `SerpSearchEngine` that uses the SerpApi to fetch Google search results.
+-   Implemented `GoogleSearchEngine` that uses Google Custom Search JSON API to fetch results.
+-   Defined tools in OpenAI Assistant when creating or updating it through `AgentLlmExecutionTools`.
+-   Books can contain Markdown code blocks, which are treated as raw text and not parsed for commitments
+-   Code blocks in the `<BookEditor />` are distinctly highlighted
+-   Do the full proxy of the given LLM tools in `countUsage` and `cacheLlmTools`
+-   Show linked Agents on Agent profile via the capability chips
+-   Implemented `TEAM` commitment with teammate tool calling, chiplets/modals, and team connections in agent profiles and the agents graph
+-   Fixed TEAM commitment tool execution to resolve teammate tool functions dynamically and use `RemoteAgent` for teammate calls.
+-   Implement Ctrl+V shortcut in `<Chat/>` component for pasting images and files
+-   Agents social graph on home page
+    -   Handle agent profile image loading failures gracefully by showing initials fallback
+    -   Limit image loading retries to 3 attempts with exponential backoff
+    -   Show agents as nodes in an interactive graph view
+    -   Visualize connections via inheritance (`FROM`) and `IMPORT`
+    -   Support for zooming, panning, and dragging nodes
+    -   Filter connection types and focus on specific agents
+    -   Persist view and filters in URL query parameters
+    -   Show agents from federated servers in the graph
+    -   Each federated server is represented as a color-coded cluster
+    -   Visualize cross-server links between agents
+    -   Advanced filtering by server and specific agents within servers
+    -   Federated agents are loaded independently and shown in clusters in the graph view.
+    -   Added loading and error indicators for federated servers in the graph and filter dropdown.
+    -   Show tool call indicator (spinner + tool name) during LLM execution in `<Chat/>` component
+    -   Make the Agents Graph visually more appealing [1]
+        -   The arrow should be at the end of the edge showing the direction of the link
+        -   The chip with the agent should be visually more appealing, Use image and color of the agent in a nice looking circle.
+            -   In the agent graph, each agent should have its own profile picture in the circle.
+            -   The color should be preserved but only as a background, not the full picture.
+            -   In The tooltip shows the agent description. Do not replicate the agent name.
+        -   The Group around federated agent server should be circle, not square.
+        -   Also, the group around federated servers should not overlap. It should be separate, distinct clusters. Connection between the agents can go across the federated server group boundary.
+        -   Fixed and improved agent graph relations:
+            -   Show directional graph arrows and moving particles to indicate connection direction
+            -   Corrected URL normalization for inheritance (`FROM`) and `IMPORT` links to ensure agents are correctly connected (e.g., matching Sophia Green and Sophia Supergreen)
+            -   Ensure connections correctly respect user preferences in checkboxes
+-   Added `linguisticHash` utility function to `@promptbook/utils` that creates human-readable hashes.
+-   Added `Linguistic Hash` tool to the Utils app.
+-   Enhanced `linguisticHash` to return a short story-like sentence for more memorable hashes, updating the Utils app text and unit tests to match.
+-   Prevent caching when tool is used, but still write the messages into the cache or `USER MESSAGE` + `AGENT MESSAGE` pair
+-   Implemented modular voice speech input in `<Chat/>` with two providers: `BrowserSpeechRecognition` (Web Speech API) and `OpenAiSpeechRecognition` (Whisper API).
+-   Added voice input test page at `/admin/voice-input-test` in Agents Server.
+-   Added microphone button to `<Chat/>` with visual recording indicators and real-time transcription insertion.
+-   Enhanced visuals of the agent chat page
+-   Refined chat message bubble sizing with a minimum width and responsive max widths for desktop and mobile layouts.
+-   Fixed chat message stack width so source chips wrap within bubble bounds on desktop and mobile in Agents Server.
+-   Added grained background to the chat page (matching the agent profile page)
+-   Increased saturation of agent messages for better visibility
+-   Fixed chat page height to exactly 100vh to prevent unnecessary scrolling
+-   Recursive inheritance for meta properties (e.g. `META COLOR`) in `Agents Server`
+-   Enhanced the visual design of the chat input area with a modern capsule-like design, better padding, refined button styling, and brand-color focus highlights.
+-   Human-readable titles for showing tool calls in chiplets with better labels and emojis (e.g. `[🔎 Venezuela]`).
+-   Clicking on a tool call chiplet opens a modal with tool call details (arguments and results).
+-   Improved tool call details modal with better formatting for arguments and results (especially for search results).
+-   Web Search: Show stored tool results in the source chiplet modal in Agents Server (parsed list or raw output).
+-   Store raw tool call data (arguments/results/errors/timestamps) in `ChatMessage.toolCalls` and render time/search chiplets from stored tool calls (no re-runs).
+-   Improved search results parsing in tool call modal to handle multiple nested result formats (stringified JSON, nested result objects, various field names like `data`, `items`, `results`)
+-   Record timestamp of tool calls and store them in `ChatMessage.completedToolCalls`
+-   Preserve assistant message content in Agents Server chat when tool calls are emitted.
+-   When the `USE TIME` is used, show the chiplet which will show that time was used (similarly to `USE SEARCH ENGINE` chiplets).
+-   User-friendly details popup for the time tool with a visual clock and relative time display based on the tool call timestamp.
+-   Allow AI to leverage all the options and possibilities of SERP search engine (location, localization, pagination, advanced filters, etc.).
+-   Updated `SearchEngine` interface to support advanced options.
+-   Enhanced Search Engine Test page with advanced SERP parameters and raw call details.
+-   Allow to add additional model requirements like image size in the [Image Generator Test](http://localhost:4440/admin/image-generator-test)
+-   Improved the voice input in the chat component to be more natural:
+    -   Implemented silence detection (VAD-like) in `OpenAiSpeechRecognition` using `AudioContext` and `AnalyserNode` to automatically stop recording after 2 seconds of silence.
+    -   Show better visual feedback that the audio is being processed.
+    -   Once transcription is done, automatically insert the transcribed text into the chat input box.
+    -   Cleaned up redundant logic in `<Chat/>` component regarding voice input handling.
+-   Enhance visuals of the agent connections on the Agents Graph on home page
+    -   Increase distance between nodes in the graph
+    -   Remove particle animation from connection links
+    -   Improve connection arrow visibility
+    -   Enhanced visuals with smoother node hover effects, shadowed nodes, and oceanic cluster backgrounds
+-   Removed `isOpen` prop from dialogs in Agents Server and implemented conditional rendering to prevent unnecessary background rendering when closed.
+-   Added "Back to Agent" button to all agent-specific pages in Agents Server for better navigation.
+-   Allow to pass `files` as `Array<File>` into `ChatPrompt`.
+-   Implement file passing in `OpenAiExecutionTools` (currently supporting images via `image_url`).
+-   Implemented `ChatPrompt.files` for `OpenAiAssistantExecutionTools`, allowing to attach files to OpenAI Assistants via the message attachments.
+-   Add sample of passing files in OpenAI playground.
+-   Support for generating images in Google LLM execution tools.
+-   Fixed Google image generation in Agents Server to call the Gemini API directly when using Vercel providers.
+-   Implemented tool calling when transpiling book into the code in `OpenAiSdkTranspiler`.
+-   Added ESLint rule `no-magic-numbers` to the entire project (root and `agents-server`), configured to allow common semantically distinct numbers like -1, 0, 1, 2, 10, 60, 100, 1000.
+-   Added prompt prioritization to the Codex prompt runner, honoring `[ ] !`, `[ ] !!`, `[ ] !!!` and grouping upcoming tasks by priority.
+-   Filtered Codex prompt runner upcoming tasks to exclude prompts that still need authoring (`@@@`).
+-   Added Cline CLI as a second agent runner in the coding agent script with `--agent <openai-codex|cline>` flag.
+-   Added Claude code as a third agent runner in the coding agent script with `--agent <openai-codex|cline|claude-code>` flag.
+-   Standardized runners of coding agent script to use temporary script files for robust prompt execution.
+-   Reorganized the coding agent prompt runner script into runner-specific folders and shared utilities without behavior changes.
+-   Implemented interactive chat animations triggered by emojis in agent messages:
+    -   Added `ChatEffectsSystem` component with pluggable architecture for visual effects
+    -   Implemented confetti animation effect for 🎉 emoji (particles falling from top)
+    -   Implemented floating hearts animation effect for ❤️ and other heart emojis (hearts rising from bottom)
+    -   Effects trigger only once per message even with multiple identical emojis
+    -   Multiple different emojis in the same message trigger multiple effects simultaneously
+    -   Effects only trigger for newly received agent messages (not user messages, not old messages on scroll)
+    -   Decoupled effects logic with separate components for each effect type
+    -   Easily extensible system for adding new effects in the future
+    -   Integrated into all chat components: `<Chat/>`, `<LlmChat/>`, `<AgentChat/>`, `<MockedChat/>`
+    -   Default effects configuration enabled in Agents Server chat interface
+-   Implemented chat sound system with gentle, non-annoying audio feedback:
+    -   Created `SoundSystem` class for managing chat sounds with localStorage persistence
+    -   Implemented `ChatSoundSystem` interface for decoupled sound integration
+    -   Added sound effects for message events:
+        -   Subtle "whoosh" sound when user sends a message
+        -   Soft "ding" sound when agent sends a message
+        -   Light typing indicator sound when agent is thinking
+    -   Added sound effects for button interactions (tap sound on all clickable buttons)
+    -   Added sound effects for emoji-triggered visual effects:
+        -   Celebratory sound for confetti effect (🎉)
+        -   Gentle sound for hearts effect (❤️)
+    -   Implemented sound settings toggle in the save menu (🔊/🔇) with localStorage persistence
+    -   All sounds are:
+        -   Gentle and professional (not jarring or annoying)
+        -   Short duration (< 2 seconds)
+        -   Configurable volume levels
+        -   Can be muted by user
+    -   Sound system is:
+        -   Decoupled from Chat component (passed as prop)
+        -   Scalable for future sound effects
+        -   Follows best practices with separation of concerns
+        -   Pluggable to all Chat implementations (`<Chat/>`, `<LlmChat/>`, `<AgentChat/>`, `<MockedChat/>`)
+    -   Sound assets directory created at `apps/agents-server/public/sounds/` with documentation for required audio files
+    -   Integrated into Agents Server via `AgentChatWrapper`
+-   Enhanced `USE BROWSER` commitment with two-level browser access:
+    -   Implemented `fetch_url_content` tool for one-shot URL content fetching and scraping
+    -   Prepared `run_browser` tool for future complex browser interactions (scrolling, clicking, form filling)
+    -   Agent can now fetch and scrape content from URLs including webpages and documents
+    -   Integrated with existing scraper system (`WebsiteScraper`, `PdfScraper`)
+    -   Added `fetchUrlContent` utility function to handle URL fetching and content conversion to markdown
+    -   Updated tool titles and descriptions to distinguish between one-shot and running browser modes
+    -   Tool functions properly integrated into commitment system via `getToolFunctions()`
+    -   **Refactored for browser safety:**
+        -   Created `/api/scrape` endpoint in Agents Server to proxy server-side scraping functionality
+        -   Implemented `fetchUrlContentViaBrowser` wrapper that safely calls the API from browser environments
+        -   Updated `USE_BROWSER` commitment to automatically detect environment and use appropriate implementation:
+            -   Server-side (Node.js): Direct scraping via `fetchUrlContent`
+            -   Browser: Proxy through Agents Server API via `fetchUrlContentViaBrowser`
+        -   Added environment detection using `$isRunningInBrowser()` utility
+        -   Prevents server-only code (marked with [🟢]) from being executed in browser packages
+-   Implemented `USE EMAIL` commitment to enable agents to send emails:
+    -   Created `UseEmailCommitmentDefinition` with support for optional additional instructions (e.g., "Write always formal and polite emails")
+    -   Implemented `send_email` tool that integrates with the existing email queue system in Agents Server
+    -   Tool supports sending emails with multiple recipients, CC, subject, and markdown-formatted body
+    -   Added email capability chip to agent profiles showing "Email" with a mail icon
+    -   Implemented email chiplet display showing the email subject when the tool is used
+    -   Created interactive email details popup modal with Gmail-like UI showing:
+        -   Email metadata (To, CC, Subject) in a styled header
+        -   Full email body rendered as markdown in a clean, readable layout
+        -   Tool call result showing success/failure status
+    -   Email tool leverages existing `sendMessage` utility and email providers (Sendgrid, Zeptomail)
+    -   All emails are queued through the database-driven message system
+    -   Follows the same pattern as `USE TIME` and `USE SEARCH ENGINE` commitments for consistency
+-   Fixed `USE EMAIL` tool exposure to use commitment-provided functions with node/browser variants and updated the email tool modal to display sender metadata and status.
+-   Enhanced agent-to-agent interaction chips in chat UI:
+    -   Created reusable `<AgentChip/>` component displaying agent avatar and name
+    -   Replaced generic "🤝 Consulting teammate..." text with agent-specific chips showing actual agent profile picture and name
+    -   Removed displaying agent IDs (e.g., "TEoiVpZzBgTPUi") in favor of user-friendly agent names
+    -   Agent chips automatically fetch agent profile data from both local and federated servers
+    -   For ongoing consultations, chips display spinner animation with agent avatar and name
+    -   For completed consultations, chips are clickable and show full team interaction details
+    -   Implemented DRY principle with single reusable chip component inspired by `<AgentProfile/>`
+    -   Works seamlessly with both same-server and federated agent interactions
+    -   Added `teammates` prop to `<Chat/>` and `<ChatMessageItem/>` components to pass agent metadata
+    -   Updated `getToolCallChipletInfo()` to return agent data along with display text
+    -   Enhanced `TeamToolResult` type to include teammate URL and label information
+-   Fixed teammate consultation chips to resolve agent names and avatars from team metadata and tool results, avoiding agent IDs in both ongoing and completed tool calls.
+-   Enhanced team consultation modal design and UI:
+    -   Simplified modal to show only `<MockedChat/>` component with the conversation between agents
+    -   Agent profile pictures and names are now displayed through the existing `participants` prop of `<MockedChat/>`
+    -   Removed "Teammate:" and "When to consult:" sections from the modal for cleaner design
+    -   Display agent names instead of agent IDs (works with both local and federated agents)
+    -   Added clickable agent name header that opens the agent page in a new window
+    -   Modal now focuses on the actual conversation, making it easier to understand agent interactions
+-   Improved TEAM tool call modal UX with linked participant header badges, avatar/name labels in the conversation, and a top-right close button.
+-   Enhanced caching of GPT assistants created for agents on Agents Server:
+    -   Created `AssistantCacheManager` class to centralize assistant lifecycle management
+    -   Implemented `computeAssistantCacheKey` utility to compute cache keys based on assistant configuration
+    -   Added `extractAssistantConfiguration` function to separate base agent config from dynamic context
+    -   Supports two caching modes:
+        -   Strict caching (default): includes full configuration including dynamic CONTEXT in cache key
+        -   Enhanced caching: excludes dynamic CONTEXT from cache key for better reuse across similar agents
+    -   Improved code maintainability and DRY principle by consolidating duplicate caching logic
+    -   Made the system extensible for future configuration parameters (model, temperature, tools)
+    -   Added detailed logging for cache hits and misses with cache keys
+    -   Refactored `handleChatCompletion` to use the new `AssistantCacheManager`
+-   Enhanced error handling for agent chat in Agents Server:
+    -   Created centralized error message mapping utility (`errorMessages.ts`) following DRY principle:
+        -   Categorizes errors into user-friendly categories (network, authentication, validation, rate limit, server error, timeout, etc.)
+        -   Provides context-aware friendly error messages instead of raw technical errors
+        -   Logs raw errors to console.error for debugging while showing user-friendly messages in UI
+    -   Implemented `<ChatErrorDialog/>` component with retry functionality:
+        -   Displays user-friendly error titles and messages in a modal dialog
+        -   Shows retry button for recoverable errors (network issues, timeouts, server errors)
+        -   Allows dismissing errors with cancel/close buttons
+        -   Modern, polished UI with error icons and action buttons
+    -   Added error handling support in `<LlmChat/>` component:
+        -   Introduced optional `onError` prop to handle errors with custom logic
+        -   Stores last failed message for retry functionality
+        -   Provides retry callback to allow re-sending failed messages
+        -   Maintains backward compatibility (errors still shown in chat if no handler provided)
+    -   Integrated error handling in `AgentChatWrapper`:
+        -   Uses `handleChatError` utility to categorize and format errors
+        -   Displays `<ChatErrorDialog/>` with retry button for failed messages
+        -   Automatically retries last failed message when user clicks retry button
+    -   Improved user experience:
+        -   Clear, actionable error messages instead of technical jargon
+        -   Ability to retry failed operations without re-typing messages
+        -   Consistent error handling across all chat interfaces
+        -   Better debugging with raw errors logged to console
+-   Moved the back button to the top menu bar in agent-specific pages (chat, book, etc.) using the existing hoisting mechanism for a cleaner and more consistent UI.
+-   Fixed Agents Server back button menu hoisting to avoid a render loop that triggered "Maximum update depth exceeded" warnings.
+-   Reduced number of capability chips in Agents Server:
+    -   Grouped identical Knowledgebase chips together.
+    -   Hid the `VOID` inheritance chip, showing only inheritance from other agents.
+-   Enhanced RAG source citation display in Agents Server chat:
+    -   Replaced ugly OpenAI annotation format `【5:13†document.pdf】` with native Promptbook chips
+    -   Created `<SourceChip/>` component displaying source document with file icon and citation ID
+    -   Citations now appear as clickable chips below messages (similar to `USE SEARCH ENGINE` commitment)
+    -   Implemented citation preview modal with:
+        -   Source document name and citation ID
+        -   Optional URL link to the source document
+        -   Document excerpt/preview when available
+        -   Clean, user-friendly UI matching existing tool call modals
+    -   Added `citations` field to `ChatMessage` type for storing RAG source annotations
+    -   Implemented `parseCitationsFromContent` utility to extract citations from message content
+    -   Citation references in text are now rendered as numbered superscripts `[5:13]` instead of full annotations
+    -   Follows DRY principle by reusing existing modal styles and chip patterns
+    -   Integrated seamlessly with existing chat UI and tool call chip system
+-   Enhanced document preview in Agents Server chat:
+    -   Clicking on a `KNOWLEDGE` source chip now opens a document preview in an iframe (e.g. for PDFs).
+    -   Added a "Download" button to the source preview modal.
+    -   Automatically detects URLs in source names if explicit URL is missing.
+    -   Improved fallback messaging when no preview is available.
+    -   Moved close button to the top right corner with 'X' icon for better UX.
+    -   Relaxed URL validation to allow previewing documents from relative paths or filenames.
+    -   Ensured download button is available when source is present.
+-   Added missing sound files to the Agents Server's public directory.
+-   Enhanced the UI of the chips of `TEAM` commitment to show agent profile picture and name instead of ID in agent lists and profile pages.
+-   Migrate `Agent` class and all related classes from using OpenAI Assistants API to OpenAI Responses API.
+    -   `KNOWLEDGE` works as before.
+    -   Tool calling works as before.
+    -   Caching of the agents and underlying assistants works as before.
+    -   It works in the `Agents Server` application `/apps/agents-server`.
+    -   All existing features work as before.
+    -   Kept `OpenAiAssistantExecutionTools`, marked as deprecated and not used in `Agent`.
+-   Fixed document preview and download in Agents Server chat:
+    -   Resolved issue where source URLs with query parameters (e.g. from blob storage) were not matched correctly, preventing previews.
+    -   Fixed download button for cross-origin files by implementing a fetch-and-download mechanism to bypass browser restrictions on `download` attribute.
+-   Improve the chat UI responsiveness by allowing user interaction (sending messages) while waiting for the agent reply.
+-   Fixed document preview modal for KNOWLEDGE sources in Agents Server chat:
+    -   Resolved issue where document preview was showing "Agent Not Found" error due to invalid URL resolution
+    -   Fixed preview to only load when a valid URL is available (checks for http:// or https://)
+    -   Removed technical clutter (Citation ID, Source, URL fields) from the modal for a cleaner user experience
+    -   Redesigned download button with modern styling matching the application's design system
+    -   Added proper error handling when preview is unavailable, showing a user-friendly message
+    -   Simplified modal header to show only document name (without file extension) for better readability
+-   Fixed image generation caching to consider all generation parameters (model, size, quality, style) in the cache key, ensuring that changing these parameters generates a new image instead of returning a cached one from a previous generation with different settings.
+-   Fixed image generation caching to include input images (attachments) in the cache key, ensuring that using the same prompt with different input images generates new results.
+-   Improved self-learning experience in `Agent` class:
+    -   The agent now returns the generated answer immediately before starting the self-learning process.
+    -   Self-learning is performed asynchronously in the background.
+    -   A "Self learning" chip is displayed during the learning phase, similar to tool usage chips.
+    -   This enhances user experience by eliminating the wait time for self-learning completion.

@@ -27,14 +27,67 @@ export function parseAgentSourceWithCommitments(agentSource: string_book): Omit<
         };
     }
 
-    const lines = agentSource.split('\n');
-    const agentName = (lines[0]?.trim() || null) as string_agent_name | null;
+    const lines = agentSource.split(/\r?\n/);
+    let agentName: string_agent_name | null = null;
+    let agentNameLineIndex = -1;
+
+    // Find the agent name: first non-empty line that is not a commitment and not a horizontal line
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (line === undefined) {
+            continue;
+        }
+        const trimmed = line.trim();
+        if (!trimmed) {
+            continue;
+        }
+
+        const isHorizontal = HORIZONTAL_LINE_PATTERN.test(line);
+        if (isHorizontal) {
+            continue;
+        }
+
+        let isCommitment = false;
+        for (const definition of COMMITMENT_REGISTRY) {
+            const typeRegex = definition.createTypeRegex();
+            const match = typeRegex.exec(trimmed);
+            if (match && match.groups?.type) {
+                isCommitment = true;
+                break;
+            }
+        }
+
+        if (!isCommitment) {
+            agentName = trimmed as string_agent_name;
+            agentNameLineIndex = i;
+            break;
+        }
+    }
+
     const commitments: ParsedCommitment[] = [];
     const nonCommitmentLines: string[] = [];
 
-    // Always add the first line (agent name) to non-commitment lines
-    if (lines[0] !== undefined) {
-        nonCommitmentLines.push(lines[0]);
+    // Add lines before agentName that are horizontal lines (they are non-commitment)
+    for (let i = 0; i < agentNameLineIndex; i++) {
+        const line = lines[i];
+        if (line === undefined) {
+            continue;
+        }
+        const trimmed = line.trim();
+        if (!trimmed) {
+            continue;
+        }
+
+        const isHorizontal = HORIZONTAL_LINE_PATTERN.test(line);
+        if (isHorizontal) {
+            nonCommitmentLines.push(line);
+        }
+        // Note: Commitments before agentName are not added to nonCommitmentLines
+    }
+
+    // Add the agent name line to non-commitment lines
+    if (agentNameLineIndex >= 0) {
+        nonCommitmentLines.push(lines[agentNameLineIndex]!);
     }
 
     // Parse commitments with multiline support
@@ -45,10 +98,39 @@ export function parseAgentSourceWithCommitments(agentSource: string_book): Omit<
         contentLines: string[];
     } | null = null;
 
-    // Process lines starting from the second line (skip agent name)
-    for (let i = 1; i < lines.length; i++) {
+    // Process lines starting from after the agent name line
+    const startIndex = agentNameLineIndex >= 0 ? agentNameLineIndex + 1 : 0;
+    let isInsideCodeBlock = false;
+    for (let i = startIndex; i < lines.length; i++) {
         const line = lines[i];
         if (line === undefined) {
+            continue;
+        }
+
+        const trimmedLine = line.trim();
+
+        // Check if this line starts or ends a code block
+        if (trimmedLine.startsWith('```')) {
+            isInsideCodeBlock = !isInsideCodeBlock;
+
+            if (currentCommitment) {
+                // If we are inside a commitment, the code block is part of it
+                currentCommitment.contentLines.push(line);
+            } else {
+                // If we are not inside a commitment, the code block is non-commitment
+                nonCommitmentLines.push(line);
+            }
+            continue;
+        }
+
+        if (isInsideCodeBlock) {
+            if (currentCommitment) {
+                // If we are inside a commitment and a code block, the line is part of the commitment
+                currentCommitment.contentLines.push(line);
+            } else {
+                // If we are inside a code block but not a commitment, the line is non-commitment
+                nonCommitmentLines.push(line);
+            }
             continue;
         }
 

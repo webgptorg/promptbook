@@ -33,4 +33,5 @@ export async function $provideExecutablesForNode(options?: PrepareAndScrapeOptio
 /**
  * TODO: [🧠] Allow to override the executables without need to call `locatePandoc` / `locateLibreoffice` in case of provided
  * Note: [🟢] Code in this file should never be never released in packages that could be imported into browser environment
+ * TODO: [🏓] Unite `xxxForServer` and `xxxForNode` naming
  */

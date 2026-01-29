@@ -11,7 +11,7 @@ export function isValidEmail(email: really_unknown): email is string_email {
         return false;
     }
 
-    if (email.split('\n').length > 1) {
+    if (email.split(/\r?\n/).length > 1) {
         return false;
     }
 

@@ -6,7 +6,7 @@ import { NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
-    const txt = generateHumansTxt();
+    const txt = await generateHumansTxt();
     return new NextResponse(txt, {
         headers: {
             'Content-Type': 'text/plain',

@@ -19,12 +19,14 @@ export default function () {
                     file: `./packages/${packageBasename}/esm/index.es.js`,
                     format: 'es',
                     sourcemap: true,
+                    inlineDynamicImports: true,
                 },
                 {
                     file: `./packages/${packageBasename}/umd/index.umd.js`,
                     name: `promptbook-${packageBasename}`,
                     format: 'umd',
                     sourcemap: true,
+                    inlineDynamicImports: true,
                 },
             ];
 

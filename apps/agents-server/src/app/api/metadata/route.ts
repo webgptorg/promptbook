@@ -1,9 +1,12 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { keepUnused } from '../../../../../../src/utils/organization/keepUnused';
 import { $getTableName } from '../../../database/$getTableName';
 import { $provideSupabase } from '../../../database/$provideSupabase';
 import { isUserAdmin } from '../../../utils/isUserAdmin';
-import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
+    keepUnused(request);
+
     if (!(await isUserAdmin())) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -36,11 +39,7 @@ export async function POST(request: NextRequest) {
         const supabase = $provideSupabase();
         const table = await $getTableName('Metadata');
 
-        const { data, error } = await supabase
-            .from(table)
-            .insert({ key, value, note })
-            .select()
-            .single();
+        const { data, error } = await supabase.from(table).insert({ key, value, note }).select().single();
 
         if (error) {
             return NextResponse.json({ error: error.message }, { status: 500 });

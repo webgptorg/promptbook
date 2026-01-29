@@ -20,7 +20,7 @@ import { prompt } from './prompt-notation';
  * @public exported from `@promptbook/core`
  */
 export function book(strings: TemplateStringsArray, ...values: Array<string>): string_book & PipelineString {
-    const bookString = prompt(strings, ...values);
+    const bookString = prompt(strings, ...values).toString();
 
     if (!isValidPipelineString(bookString)) {
         // TODO: Make the CustomError for this

@@ -17,6 +17,7 @@ import { $execCommand } from '../../src/utils/execCommand/$execCommand';
 import { isFileExisting } from '../../src/utils/files/isFileExisting';
 import { prettifyMarkdown } from '../../src/utils/markdown/prettifyMarkdown';
 import { removeMarkdownComments } from '../../src/utils/markdown/removeMarkdownComments';
+import { just } from '../../src/utils/organization/just';
 import { TODO_any } from '../../src/utils/organization/TODO_any';
 import { commit } from '../utils/autocommit/commit';
 import { isWorkingTreeClean } from '../utils/autocommit/isWorkingTreeClean';
@@ -536,7 +537,10 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
 
                 await $execCommand({
                     isVerbose: true,
-                    command: `PACKAGE_BASENAME=${packageBasename} node --max-old-space-size=32000 ./node_modules/rollup/dist/bin/rollup --config rollup.config.js`,
+                    command: `node --max-old-space-size=32000 ./node_modules/rollup/dist/bin/rollup --config rollup.config.js`,
+                    env: {
+                        PACKAGE_BASENAME: packageBasename,
+                    },
                 });
 
                 console.info(colors.green(`✅ Package ${packageFullname} built successfully`));
@@ -563,6 +567,30 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
 
     // TODO: Add GENERATOR_WARNING to each generated file
 
+    /**
+     * Finds the first occurrence of a marker in file content and returns formatted line information
+     *
+     * @param fileContent - The content of the file to search
+     * @param marker - The marker to search for (e.g., '[🟢]', '[⚪]')
+     * @param fileName - The file name for display purposes
+     * @returns Formatted string with line number and content, or empty string if marker not found
+     */
+    function findMarkerLine(fileContent: string, marker: string, fileName: string): string {
+        const lines = fileContent.split(/\r?\n/);
+        for (let i = 0; i < lines.length; i++) {
+            if (lines[i].includes(marker)) {
+                const lineNumber = i + 1;
+                const lineContent = lines[i].trim();
+                return spaceTrim(`
+
+                    In line ${lineNumber}:
+                    ${lineContent}
+                `);
+            }
+        }
+        return '';
+    }
+
     // ==============================
     console.info(colors.cyan(`6️⃣  Test that nothing what should not be published is published`));
 
@@ -583,31 +611,40 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
 
                 if (bundleFileContent.includes('[⚫]')) {
                     throw new Error(
-                        spaceTrim(`
-                            Things marked with [⚫] should never be never released in the bundle
+                        spaceTrim(
+                            (block) => `
+                                Things marked with [⚫] should never be never released in the bundle
 
-                            ${bundleFileName}
-                        `),
+                                ${bundleFileName}
+                                ${block(findMarkerLine(bundleFileContent, '[⚫]', bundleFileName))}
+                            `,
+                        ),
                     );
                 }
 
                 if (bundleFileContent.includes('[⚪]')) {
                     throw new Error(
-                        spaceTrim(`
-                            Things marked with [⚪] should never be in a released package.
+                        spaceTrim(
+                            (block) => `
+                                Things marked with [⚪] should never be in a released package.
 
-                            ${bundleFileName}
-                        `),
+                                ${bundleFileName}
+                                ${block(findMarkerLine(bundleFileContent, '[⚪]', bundleFileName))}
+                            `,
+                        ),
                     );
                 }
 
                 if (packageFullname !== '@promptbook/cli' && bundleFileContent.includes('[🟡]')) {
                     throw new Error(
-                        spaceTrim(`
-                            Things marked with [🟡] should never be never released out of @promptbook/cli
+                        spaceTrim(
+                            (block) => `
+                                Things marked with [🟡] should never be never released out of @promptbook/cli
 
-                            ${bundleFileName}
-                        `),
+                                ${bundleFileName}
+                                ${block(findMarkerLine(bundleFileContent, '[🟡]', bundleFileName))}
+                            `,
+                        ),
                     );
                 }
 
@@ -626,11 +663,18 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                     bundleFileContent.includes('[🟢]')
                 ) {
                     throw new Error(
-                        spaceTrim(`
-                        Things marked with [🟢] should never be never released in packages that could be imported into browser environment
+                        spaceTrim(
+                            (block) => `
+                                Things marked with [🟢] should never be never released in packages that could be imported into browser environment
 
-                        ${bundleFileName}
-                    `),
+                                But found in package \`${packageFullname}\`
+
+                                Analyze the issue in the bundle file:
+                                ${block(bundleFileName)}
+                                <- Search for [🟢] marker
+                                ${block(findMarkerLine(bundleFileContent, '[🟢]', bundleFileName))}
+                            `,
+                        ),
                     );
                 }
 
@@ -641,11 +685,14 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
                     bundleFileContent.includes('[🔵]')
                 ) {
                     throw new Error(
-                        spaceTrim(`
-                        Things marked with [🔵] should never be never released out of @promptbook/browser
+                        spaceTrim(
+                            (block) => `
+                                Things marked with [🔵] should never be never released out of @promptbook/browser
 
-                        ${bundleFileName}
-                    `),
+                                ${bundleFileName}
+                                ${block(findMarkerLine(bundleFileContent, '[🔵]', bundleFileName))}
+                            `,
+                        ),
                     );
                 }
 
@@ -754,28 +801,30 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
     }
 
     // ==============================
-    console.info(colors.cyan(`8️⃣  Copy agents-server app to CLI package`));
+    if (just(false /* <- Note: Temporarily disable the Copy agents-server app */)) {
+        console.info(colors.cyan(`8️⃣  Copy agents-server app to CLI package`));
 
-    // Note: Copy agents-server app files to the CLI package for distribution
-    const agentsServerSourcePath = './apps/agents-server';
-    const agentsServerDestPath = './packages/cli/apps/agents-server';
+        // Note: Copy agents-server app files to the CLI package for distribution
+        const agentsServerSourcePath = './apps/agents-server';
+        const agentsServerDestPath = './packages/cli/apps/agents-server';
 
-    console.info(`Copying ${agentsServerSourcePath} to ${agentsServerDestPath}`);
+        console.info(`Copying ${agentsServerSourcePath} to ${agentsServerDestPath}`);
 
-    // Remove existing destination directory if it exists
-    await $execCommand(`rm -rf ${agentsServerDestPath}`);
+        // Remove existing destination directory if it exists
+        await $execCommand(`rm -rf ${agentsServerDestPath}`);
 
-    // Create destination directory
-    await mkdir(agentsServerDestPath, { recursive: true });
+        // Create destination directory
+        await mkdir(agentsServerDestPath, { recursive: true });
 
-    // Copy all files except .next folder
-    // Using rsync or cp with exclusion pattern
-    await $execCommand(`cp -r ${agentsServerSourcePath}/* ${agentsServerDestPath}/ || true`);
+        // Copy all files except .next folder
+        // Using rsync or cp with exclusion pattern
+        await $execCommand(`cp -r ${agentsServerSourcePath}/* ${agentsServerDestPath}/ || true`);
 
-    // Remove .next folder if it was copied
-    await $execCommand(`rm -rf ${agentsServerDestPath}/.next`);
+        // Remove .next folder if it was copied
+        await $execCommand(`rm -rf ${agentsServerDestPath}/.next`);
 
-    console.info(colors.green('Agents-server app copied successfully'));
+        console.info(colors.green('Agents-server app copied successfully'));
+    }
 
     // ==============================
     console.info(colors.cyan(`9️⃣  Make publishing instructions for Github Actions`));

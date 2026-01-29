@@ -4,14 +4,15 @@ import promptbookLogoBlueTransparent from '@/public/logo-blue-white-256.png';
 import { $createAgentAction, logoutAction } from '@/src/app/actions';
 import { ArrowRight, ChevronDown, Lock, LogIn, LogOut, User } from 'lucide-react';
 import Image from 'next/image';
-import { HeadlessLink, useIsHeadless, pushWithHeadless } from '../_utils/headlessParam';
 import { useRouter } from 'next/navigation';
 import { ReactNode, useState } from 'react';
 import { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
 import { HamburgerMenu } from '../../../../../src/book-components/_common/HamburgerMenu/HamburgerMenu';
+import { useMenuHoisting } from '../../../../../src/book-components/_common/MenuHoisting/MenuHoistingContext';
 import { just } from '../../../../../src/utils/organization/just';
 import type { UserInfo } from '../../utils/getCurrentUser';
 import { getVisibleCommitmentDefinitions } from '../../utils/getVisibleCommitmentDefinitions';
+import { HeadlessLink, pushWithHeadless, useIsHeadless } from '../_utils/headlessParam';
 import { ChangePasswordDialog } from '../ChangePasswordDialog/ChangePasswordDialog';
 import { LoginDialog } from '../LoginDialog/LoginDialog';
 import { useUsersAdmin } from '../UsersList/useUsersAdmin';
@@ -92,6 +93,7 @@ export function Header(props: HeaderProps) {
     const [isCreatingAgent, setIsCreatingAgent] = useState(false);
     const router = useRouter();
     const isHeadless = useIsHeadless();
+    const menuHoisting = useMenuHoisting();
 
     const { users: adminUsers } = useUsersAdmin();
 
@@ -117,16 +119,22 @@ export function Header(props: HeaderProps) {
 
     // Federated servers dropdown items (respect logo, only current is not clickable)
     const [isFederatedOpen, setIsFederatedOpen] = useState(false);
-    const [isMobileFederatedOpen, setIsMobileFederatedOpen] = useState(false);
+    // const [isMobileFederatedOpen, setIsMobileFederatedOpen] = useState(false);
 
-    const federatedDropdownItems: SubMenuItem[] = federatedServers.map(server => {
+    const federatedDropdownItems: SubMenuItem[] = federatedServers.map((server) => {
         const isCurrent = server.url === (typeof window !== 'undefined' ? window.location.origin : '');
         return isCurrent
             ? {
                   label: (
                       <span className="flex items-center gap-2">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={server.logoUrl || serverLogoUrl || promptbookLogoBlueTransparent.src} alt={server.title} width={20} height={20} className="w-5 h-5 object-contain rounded-full" />
+                          <img
+                              src={server.logoUrl || serverLogoUrl || promptbookLogoBlueTransparent.src}
+                              alt={server.title}
+                              width={20}
+                              height={20}
+                              className="w-5 h-5 object-contain rounded-full"
+                          />
                           <span className="font-semibold">{server.title.replace(/^Federated: /, '')}</span>
                           <span className="ml-1 text-xs text-blue-600">(current)</span>
                       </span>
@@ -138,7 +146,13 @@ export function Header(props: HeaderProps) {
                   label: (
                       <span className="flex items-center gap-2">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={server.logoUrl || promptbookLogoBlueTransparent.src} alt={server.title} width={20} height={20} className="w-5 h-5 object-contain rounded-full" />
+                          <img
+                              src={server.logoUrl || promptbookLogoBlueTransparent.src}
+                              alt={server.title}
+                              width={20}
+                              height={20}
+                              className="w-5 h-5 object-contain rounded-full"
+                          />
                           <span>{server.title.replace(/^Federated: /, '')}</span>
                       </span>
                   ),
@@ -164,6 +178,12 @@ export function Header(props: HeaderProps) {
                 {
                     label: 'Overview',
                     href: '/docs',
+                    isBold: true,
+                    isBordered: true,
+                } as SubMenuItem,
+                {
+                    label: 'API Reference',
+                    href: '/swagger',
                     isBold: true,
                     isBordered: true,
                 } as SubMenuItem,
@@ -262,6 +282,10 @@ export function Header(props: HeaderProps) {
                       setIsMobileOpen: setIsMobileSystemOpen,
                       items: [
                           {
+                              label: 'OpenAPI Documentation',
+                              href: '/swagger',
+                          },
+                          {
                               label: 'API Tokens',
                               href: '/admin/api-tokens',
                           },
@@ -274,8 +298,37 @@ export function Header(props: HeaderProps) {
                               href: '/admin/chat-history',
                           },
                           {
+                              label: 'Messages & Emails',
+                              href: '/admin/messages',
+                          },
+                          {
                               label: 'Chat feedback',
                               href: '/admin/chat-feedback',
+                          },
+                          {
+                              label: 'Browser',
+                              href: '/admin/browser-test',
+                          },
+                          {
+                              label: 'Voice Input Test',
+                              href: '/admin/voice-input-test',
+                          },
+                          // Note: Commented out because image generator can became a paid feature later for the clients
+                          // {
+                          //     label: 'Image Generator Test',
+                          //     href: '/admin/image-generator-test',
+                          // },
+                          {
+                              label: 'Search Engine Test',
+                              href: '/admin/search-engine-test',
+                          },
+                          {
+                              label: 'Images gallery',
+                              href: '/admin/images',
+                          },
+                          {
+                              label: 'Files',
+                              href: '/admin/files',
                           },
                       ],
                   },
@@ -290,12 +343,15 @@ export function Header(props: HeaderProps) {
 
     return (
         <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200 h-16">
-            <LoginDialog isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
-            <ChangePasswordDialog isOpen={isChangePasswordOpen} onClose={() => setIsChangePasswordOpen(false)} />
+            {isLoginOpen && <LoginDialog onClose={() => setIsLoginOpen(false)} />}
+            {isChangePasswordOpen && <ChangePasswordDialog onClose={() => setIsChangePasswordOpen(false)} />}
             <div className="container mx-auto px-4 h-full">
                 <div className="flex items-center justify-between h-full">
                     {/* Logo and heading */}
-                    <HeadlessLink href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                    <HeadlessLink
+                        href="/"
+                        className="flex items-center gap-3 hover:opacity-80 transition-opacity overflow-hidden min-w-0 flex-shrink-0 lg:flex-shrink-1"
+                    >
                         {serverLogoUrl ? (
                             // Note: `next/image` does not load external images well without extra config
                             // eslint-disable-next-line @next/next/no-img-element
@@ -304,7 +360,7 @@ export function Header(props: HeaderProps) {
                                 alt={serverName}
                                 width={32}
                                 height={32}
-                                className="w-8 h-8 object-contain"
+                                className="w-8 h-8 object-contain flex-shrink-0"
                             />
                         ) : (
                             <Image
@@ -312,52 +368,54 @@ export function Header(props: HeaderProps) {
                                 alt={serverName}
                                 width={32}
                                 height={32}
-                                className="w-8 h-8 object-contain"
+                                className="w-8 h-8 object-contain flex-shrink-0"
                             />
                         )}
-                        <h1 className="text-xl font-bold tracking-tight text-gray-900">{serverName}</h1>
+                        <h1 className="text-xl font-bold tracking-tight text-gray-900 truncate">{serverName}</h1>
                     </HeadlessLink>
 
                     {/* Desktop Navigation */}
                     <nav className="hidden lg:flex items-center gap-8">
-                        {/* Federated servers dropdown */}
-                        <div className="relative">
-                            <button
-                                className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
-                                onClick={() => setIsFederatedOpen(!isFederatedOpen)}
-                                onBlur={() => setTimeout(() => setIsFederatedOpen(false), 200)}
-                            >
-                                <ChevronDown className="w-4 h-4" />
-                                <span>Switch server</span>
-                            </button>
-                            {isFederatedOpen && (
-                                <div className="absolute top-full left-0 mt-2 w-56 bg-white rounded-md shadow-lg border border-gray-100 py-1 z-50 animate-in fade-in zoom-in-95 duration-200 max-h-[80vh] overflow-y-auto">
-                                    {federatedDropdownItems.map((subItem, subIndex) => {
-                                        const className = `block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 ${
-                                            subItem.isBold ? 'font-medium' : ''
-                                        } ${subItem.isBordered ? 'border-b border-gray-100' : ''}`;
+                        {/* Federated servers dropdown - only show if there are federated servers */}
+                        {federatedServers.length > 0 && (
+                            <div className="relative">
+                                <button
+                                    className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
+                                    onClick={() => setIsFederatedOpen(!isFederatedOpen)}
+                                    onBlur={() => setTimeout(() => setIsFederatedOpen(false), 200)}
+                                >
+                                    <ChevronDown className="w-4 h-4" />
+                                    <span>Switch server</span>
+                                </button>
+                                {isFederatedOpen && (
+                                    <div className="absolute top-full left-0 mt-2 w-56 bg-white rounded-md shadow-lg border border-gray-100 py-1 z-50 animate-in fade-in zoom-in-95 duration-200 max-h-[80vh] overflow-y-auto">
+                                        {federatedDropdownItems.map((subItem, subIndex) => {
+                                            const className = `block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 ${
+                                                subItem.isBold ? 'font-medium' : ''
+                                            } ${subItem.isBordered ? 'border-b border-gray-100' : ''}`;
 
-                                        if (subItem.href) {
+                                            if (subItem.href) {
+                                                return (
+                                                    <HeadlessLink
+                                                        key={subIndex}
+                                                        href={subItem.href}
+                                                        className={className}
+                                                        onClick={() => setIsFederatedOpen(false)}
+                                                    >
+                                                        {subItem.label}
+                                                    </HeadlessLink>
+                                                );
+                                            }
                                             return (
-                                                <HeadlessLink
-                                                    key={subIndex}
-                                                    href={subItem.href}
-                                                    className={className}
-                                                    onClick={() => setIsFederatedOpen(false)}
-                                                >
+                                                <span key={subIndex} className={className}>
                                                     {subItem.label}
-                                                </HeadlessLink>
+                                                </span>
                                             );
-                                        }
-                                        return (
-                                            <span key={subIndex} className={className}>
-                                                {subItem.label}
-                                            </span>
-                                        );
-                                    })}
-                                </div>
-                            )}
-                        </div>
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        )}
                         {menuItems.map((item, index) => {
                             if (item.type === 'link') {
                                 return (
@@ -422,7 +480,7 @@ export function Header(props: HeaderProps) {
                             return null;
                         })}
 
-                        {just(false /* TODO: [🧠] Figure out what to do with theese links */) && (
+                        {just(false /* TODO: [🧠] Figure out what to do with these links */) && (
                             <a
                                 href="https://ptbk.io/"
                                 target="_blank"
@@ -432,6 +490,24 @@ export function Header(props: HeaderProps) {
                             </a>
                         )}
                     </nav>
+
+                    {/* Hoisted Menu Items */}
+                    {menuHoisting && menuHoisting.menu.length > 0 && (
+                        <div className="hidden lg:flex items-center gap-2 border-r border-gray-200 pr-4 mr-2">
+                            {menuHoisting.menu.map((item, index) => (
+                                <button
+                                    key={index}
+                                    onClick={item.onClick}
+                                    className={`p-2 rounded-md hover:bg-gray-100 transition-colors text-gray-600 hover:text-gray-900 ${
+                                        item.isActive ? 'bg-gray-100 text-gray-900' : ''
+                                    }`}
+                                    title={item.name}
+                                >
+                                    {item.icon}
+                                </button>
+                            ))}
+                        </div>
+                    )}
 
                     {/* CTA Button & Mobile Menu Toggle */}
                     <div className="flex items-center gap-4">
@@ -531,6 +607,28 @@ export function Header(props: HeaderProps) {
                         }}
                     >
                         <nav className="container mx-auto flex flex-col gap-4 px-6">
+                            {/* Hoisted Menu Items for Mobile */}
+                            {menuHoisting && menuHoisting.menu.length > 0 && (
+                                <div className="py-2 border-b border-gray-100 mb-2 flex gap-2 overflow-x-auto">
+                                    {menuHoisting.menu.map((item, index) => (
+                                        <button
+                                            key={index}
+                                            onClick={() => {
+                                                item.onClick();
+                                                setIsMenuOpen(false);
+                                            }}
+                                            className={`p-2 rounded-md hover:bg-gray-100 transition-colors text-gray-600 hover:text-gray-900 ${
+                                                item.isActive ? 'bg-gray-100 text-gray-900' : ''
+                                            }`}
+                                            title={item.name}
+                                        >
+                                            {item.icon}
+                                            <span className="sr-only">{item.name}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+
                             {/* Login Status for Mobile */}
                             <div className="py-2 border-b border-gray-100 mb-2">
                                 {!currentUser && !isAdmin && (

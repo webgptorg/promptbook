@@ -425,10 +425,10 @@ export class Color {
      * @param alpha number from 0 (transparent) to 255 (opaque)
      */
     private constructor(
-        readonly red: number,
-        readonly green: number,
-        readonly blue: number,
-        readonly alpha: number = 255,
+        public readonly red: number,
+        public readonly green: number,
+        public readonly blue: number,
+        public readonly alpha: number = 255,
     ) {
         checkChannelValue('Red', red);
         checkChannelValue('Green', green);

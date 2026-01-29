@@ -1,15 +1,16 @@
-import type { BookCommitment } from './_base/BookCommitment';
 import type { CommitmentDefinition } from './_base/CommitmentDefinition';
 
 // Import all commitment definition classes
-import { $deepFreeze } from '../utils/serialization/$deepFreeze';
+import { TODO_any } from '../_packages/types.index';
 import { ActionCommitmentDefinition } from './ACTION/ACTION';
 import { ClosedCommitmentDefinition } from './CLOSED/CLOSED';
 import { ComponentCommitmentDefinition } from './COMPONENT/COMPONENT';
 import { DeleteCommitmentDefinition } from './DELETE/DELETE';
+import { DictionaryCommitmentDefinition } from './DICTIONARY/DICTIONARY';
 import { FormatCommitmentDefinition } from './FORMAT/FORMAT';
 import { FromCommitmentDefinition } from './FROM/FROM';
 import { GoalCommitmentDefinition } from './GOAL/GOAL';
+import { ImportCommitmentDefinition } from './IMPORT/IMPORT';
 import { KnowledgeCommitmentDefinition } from './KNOWLEDGE/KNOWLEDGE';
 import { LanguageCommitmentDefinition } from './LANGUAGE/LANGUAGE';
 import { MemoryCommitmentDefinition } from './MEMORY/MEMORY';
@@ -30,10 +31,15 @@ import { RuleCommitmentDefinition } from './RULE/RULE';
 import { SampleCommitmentDefinition } from './SAMPLE/SAMPLE';
 import { ScenarioCommitmentDefinition } from './SCENARIO/SCENARIO';
 import { StyleCommitmentDefinition } from './STYLE/STYLE';
+import { TeamCommitmentDefinition } from './TEAM/TEAM';
+import { TemplateCommitmentDefinition } from './TEMPLATE/TEMPLATE';
 import { UseCommitmentDefinition } from './USE/USE';
 import { UseBrowserCommitmentDefinition } from './USE_BROWSER/USE_BROWSER';
+import { UseEmailCommitmentDefinition } from './USE_EMAIL/USE_EMAIL';
+import { UseImageGeneratorCommitmentDefinition } from './USE_IMAGE_GENERATOR/USE_IMAGE_GENERATOR';
 import { UseMcpCommitmentDefinition } from './USE_MCP/USE_MCP';
 import { UseSearchEngineCommitmentDefinition } from './USE_SEARCH_ENGINE/USE_SEARCH_ENGINE';
+import { UseTimeCommitmentDefinition } from './USE_TIME/USE_TIME';
 import { NotYetImplementedCommitmentDefinition } from './_base/NotYetImplementedCommitmentDefinition';
 
 /**
@@ -52,15 +58,19 @@ export const COMMITMENT_REGISTRY = [
     new MemoryCommitmentDefinition('MEMORIES'),
     new StyleCommitmentDefinition('STYLE'),
     new StyleCommitmentDefinition('STYLES'),
-    new RuleCommitmentDefinition('RULE'),
     new RuleCommitmentDefinition('RULES'),
-    new LanguageCommitmentDefinition('LANGUAGE'),
+    new RuleCommitmentDefinition('RULE'),
     new LanguageCommitmentDefinition('LANGUAGES'),
+    new LanguageCommitmentDefinition('LANGUAGE'),
     new SampleCommitmentDefinition('SAMPLE'),
     new SampleCommitmentDefinition('EXAMPLE'),
     new FormatCommitmentDefinition('FORMAT'),
     new FormatCommitmentDefinition('FORMATS'),
+    new TemplateCommitmentDefinition('TEMPLATE'),
+    new TemplateCommitmentDefinition('TEMPLATES'),
     new FromCommitmentDefinition('FROM'),
+    new ImportCommitmentDefinition('IMPORT'),
+    new ImportCommitmentDefinition('IMPORTS'),
     new ModelCommitmentDefinition('MODEL'),
     new ModelCommitmentDefinition('MODELS'),
     new ActionCommitmentDefinition('ACTION'),
@@ -75,6 +85,7 @@ export const COMMITMENT_REGISTRY = [
     new NoteCommitmentDefinition('NOTES'),
     new NoteCommitmentDefinition('COMMENT'),
     new NoteCommitmentDefinition('NONCE'),
+    new NoteCommitmentDefinition('TODO'),
     new GoalCommitmentDefinition('GOAL'),
     new GoalCommitmentDefinition('GOALS'),
     new InitialMessageCommitmentDefinition(),
@@ -88,10 +99,20 @@ export const COMMITMENT_REGISTRY = [
     new DeleteCommitmentDefinition('CANCEL'),
     new DeleteCommitmentDefinition('DISCARD'),
     new DeleteCommitmentDefinition('REMOVE'),
+    new DictionaryCommitmentDefinition(),
     new OpenCommitmentDefinition(),
     new ClosedCommitmentDefinition(),
+    new TeamCommitmentDefinition(),
     new UseBrowserCommitmentDefinition(),
     new UseSearchEngineCommitmentDefinition(),
+    new UseTimeCommitmentDefinition(),
+    new UseEmailCommitmentDefinition(),
+    new UseImageGeneratorCommitmentDefinition('USE IMAGE GENERATOR'),
+    new UseImageGeneratorCommitmentDefinition('USE IMAGE GENERATION' as TODO_any /* <- TODO: Remove any */),
+    new UseImageGeneratorCommitmentDefinition('IMAGE GENERATOR' as TODO_any /* <- TODO: Remove any */),
+    new UseImageGeneratorCommitmentDefinition('IMAGE GENERATION' as TODO_any /* <- TODO: Remove any */),
+    new UseImageGeneratorCommitmentDefinition('USE IMAGE' as TODO_any /* <- TODO: Remove any */),
+    // <- Note: [⛹️] How to deal with commitment aliases with defined functions
     new UseMcpCommitmentDefinition(),
     new UseCommitmentDefinition(),
 
@@ -102,108 +123,9 @@ export const COMMITMENT_REGISTRY = [
     new NotYetImplementedCommitmentDefinition('AVOID'),
     new NotYetImplementedCommitmentDefinition('AVOIDANCE'),
     new NotYetImplementedCommitmentDefinition('CONTEXT'),
+
+    // <- TODO: Prompt: Leverage aliases instead of duplicating commitment definitions
 ] as const satisfies ReadonlyArray<CommitmentDefinition>;
-
-/**
- * Gets a commitment definition by its type
- * @param type The commitment type to look up
- * @returns The commitment definition or null if not found
- *
- * @public exported from `@promptbook/core`
- */
-export function getCommitmentDefinition(type: BookCommitment): CommitmentDefinition | null {
-    return COMMITMENT_REGISTRY.find((commitmentDefinition) => commitmentDefinition.type === type) || null;
-}
-
-/**
- * Gets all available commitment definitions
- * @returns Array of all commitment definitions
- *
- * @public exported from `@promptbook/core`
- */
-export function getAllCommitmentDefinitions(): ReadonlyArray<CommitmentDefinition> {
-    return $deepFreeze([...COMMITMENT_REGISTRY]);
-}
-
-/**
- * Gets all available commitment types
- * @returns Array of all commitment types
- *
- * @public exported from `@promptbook/core`
- */
-export function getAllCommitmentTypes(): ReadonlyArray<BookCommitment> {
-    return $deepFreeze(COMMITMENT_REGISTRY.map((commitmentDefinition) => commitmentDefinition.type));
-}
-
-/**
- * Checks if a commitment type is supported
- * @param type The commitment type to check
- * @returns True if the commitment type is supported
- *
- * @public exported from `@promptbook/core`
- */
-export function isCommitmentSupported(type: BookCommitment): boolean {
-    return COMMITMENT_REGISTRY.some((commitmentDefinition) => commitmentDefinition.type === type);
-}
-
-/**
- * Grouped commitment definition
- *
- * @public exported from `@promptbook/core`
- */
-export type GroupedCommitmentDefinition = {
-    primary: CommitmentDefinition;
-    aliases: string[];
-};
-
-/**
- * Gets all commitment definitions grouped by their aliases
- *
- * @returns Array of grouped commitment definitions
- *
- * @public exported from `@promptbook/core`
- */
-export function getGroupedCommitmentDefinitions(): ReadonlyArray<GroupedCommitmentDefinition> {
-    const groupedCommitments: GroupedCommitmentDefinition[] = [];
-
-    for (const commitment of COMMITMENT_REGISTRY) {
-        const lastGroup = groupedCommitments[groupedCommitments.length - 1];
-
-        // Check if we should group with the previous item
-        let shouldGroup = false;
-
-        if (lastGroup) {
-            const lastPrimary = lastGroup.primary;
-
-            // Case 1: Same class constructor (except NotYetImplemented)
-            if (
-                !(commitment instanceof NotYetImplementedCommitmentDefinition) &&
-                commitment.constructor === lastPrimary.constructor
-            ) {
-                shouldGroup = true;
-            }
-            // Case 2: NotYetImplemented with prefix matching (e.g. BEHAVIOUR -> BEHAVIOURS)
-            else if (
-                commitment instanceof NotYetImplementedCommitmentDefinition &&
-                lastPrimary instanceof NotYetImplementedCommitmentDefinition &&
-                commitment.type.startsWith(lastPrimary.type)
-            ) {
-                shouldGroup = true;
-            }
-        }
-
-        if (shouldGroup && lastGroup) {
-            lastGroup.aliases.push(commitment.type);
-        } else {
-            groupedCommitments.push({
-                primary: commitment,
-                aliases: [],
-            });
-        }
-    }
-
-    return $deepFreeze(groupedCommitments);
-}
 
 /**
  * TODO: [🧠] Maybe create through standardized $register

@@ -9,27 +9,46 @@
             "focus": true
         },
         {
-            "name": "👨‍💻🟣 Run ptbk start-agents-server",
+            "name": "🎭👨‍💻🟣 Run ptbk start-agents-server",
             "command": "npx ts-node ./src/cli/test/ptbk.ts start-agents-server ./agents/examples --port 4440 --provider BRING_YOUR_OWN_KEYS",
             "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
-            "name": "👨‍💻🟣 Run ptbk start-agents-server (direct = 🧸🔠 Run Agents server app)",
+            "name": "🎭👨‍💻🟣 Run ptbk start-agents-server (direct = 🧸🔠 Run Agents server app)",
             "cwd": "./apps/agents-server/",
-            "command": "npx next dev --port 4440",
+            "command": "npx tsc --noEmit && npx next build && npx next dev --port 4440",
             "execute": true,
             "onlySingle": false,
             "focus": false
         },
         {
-            "name": "👨‍💻🟣⏩ Migrate agents server (💤)",
+            "name": "🎭👨‍💻🟣⏩ Migrate agents server",
             "cwd": "./apps/agents-server/",
             "command": "npm run migrate-database",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "--note": "Note: [☁] Add here new testing servers when created:"
+        },
+        {
+            "name": "🎭👨‍💻🟣⏩ Migrate agents server development (💤)",
+            "cwd": "./apps/agents-server/",
+            "command": "npx tsx ./src/database/migrate.ts --only=local0_,server_CoreTest_,server_S6_,server_S7_,server_S8_,server_S9_,server_S10_,server_S11_,server_S12_,server_S13_,server_PavolHejny_,server_NeonMedia_",
             "execute": false,
             "onlySingle": false,
             "focus": false
+        },
+        {
+            "name": "🎭👨‍💻🟣🏭 Generate reserved paths for agents server",
+            "cwd": "./apps/agents-server/",
+            "command": "npm run generate-reserved-paths",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
         },
         {
             "name": "👨‍💻🟣 Run ptbk start-pipelines-server",
@@ -178,6 +197,13 @@
             "focus": false
         },
         {
+            "name": "🐙 Import GitHub",
+            "command": "npm run import-github",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
             "name": "🏭💉 Import markdowns",
             "command": "npm run import-markdowns",
             "execute": true,
@@ -185,14 +211,14 @@
             "focus": true
         },
         {
-            "name": "🏭📦 Generate packages",
+            "name": "🏭� Generate packages",
             "command": "npx ts-node ./scripts/generate-packages/generate-packages.ts --skip-bundler",
             "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
-            "name": "🏭📚 Generate documentation",
+            "name": "🏭�📚 Generate documentation",
             "commands": ["npx ts-node ./scripts/generate-documentation/generate-documentation.ts"],
             "execute": true,
             "onlySingle": true,
@@ -237,6 +263,13 @@
             "execute": true,
             "onlySingle": true,
             "focus": true
+        },
+        {
+            "name": "⚡✨ Run Coding Agent (💤)(💸)(⏳)",
+            "command": "npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --agent openai-codex",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
         },
         {
             "name": "🏭🩹 Fix Lint",
@@ -326,7 +359,7 @@
             "focus": true
         },
         {
-            "name": "🧸 Agent LLM tools playground (💸)",
+            "name": "🧸 Agent LLM tools playground (with browser and search) (💸)",
             "command": "npx ts-node ./src/llm-providers/agent/playground/playground.ts",
             "execute": true,
             "onlySingle": true,
@@ -433,7 +466,12 @@
         },
         {
             "name": "🔪👨🏽‍💻 Force reinstall of node modules (⏳)",
-            "commands": ["rm -f ./package-lock.json", "rm -rf ./node_modules", "npm cache clean", "npm install"],
+            "commands": [
+                "rm -f ./package-lock.json",
+                "rm -rf ./node_modules ./.next ./apps/**/node_modules ./apps/**/.next",
+                "npm cache clean",
+                "npm install"
+            ],
             "execute": true,
             "onlySingle": true,
             "focus": true

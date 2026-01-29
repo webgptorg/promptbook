@@ -28,9 +28,9 @@ export function messagesToMarkdown(
 
     const content = messages
         .map((message) => {
-            const participant = (participants || []).find((participant) => participant.name === message.from);
+            const participant = (participants || []).find((participant) => participant.name === message.sender);
 
-            const fullname = participant?.fullname || message.from;
+            const fullname = participant?.fullname || message.sender;
             const avatarSrc = participant?.avatarSrc;
             const senderMd = `**${fullname}**`;
             const avatarMd = avatarSrc ? `![${fullname}](${avatarSrc}) ` : '';

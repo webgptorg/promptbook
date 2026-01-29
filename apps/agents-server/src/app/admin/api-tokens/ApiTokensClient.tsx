@@ -2,16 +2,11 @@
 
 import { Copy, Plus, Trash } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { ApiTokenEntry, createApiToken, deleteApiToken, fetchApiTokens } from '../../../utils/apiTokensClient';
 
-type ApiTokenEntry = {
-    id: number;
-    token: string;
-    note: string | null;
-    createdAt: string;
-    updatedAt: string;
-    isRevoked: boolean;
-};
-
+/**
+ * Renders the admin API token management UI.
+ */
 export function ApiTokensClient() {
     const [tokens, setTokens] = useState<ApiTokenEntry[]>([]);
     const [loading, setLoading] = useState(true);
@@ -19,14 +14,13 @@ export function ApiTokensClient() {
     const [note, setNote] = useState('');
     const [isCreating, setIsCreating] = useState(false);
 
+    /**
+     * Loads the current API tokens for display.
+     */
     const fetchTokens = async () => {
         try {
             setLoading(true);
-            const response = await fetch('/api/api-tokens');
-            if (!response.ok) {
-                throw new Error('Failed to fetch tokens');
-            }
-            const data: ApiTokenEntry[] = await response.json();
+            const data = await fetchApiTokens();
             setTokens(data);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'An error occurred');
@@ -39,23 +33,16 @@ export function ApiTokensClient() {
         fetchTokens();
     }, []);
 
+    /**
+     * Creates a new API token using the provided note.
+     */
     const handleCreate = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
         setIsCreating(true);
 
         try {
-            const response = await fetch('/api/api-tokens', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ note }),
-            });
-
-            if (!response.ok) {
-                const data = await response.json();
-                throw new Error(data.error || 'Failed to create token');
-            }
-
+            await createApiToken(note);
             setNote('');
             fetchTokens();
         } catch (err) {
@@ -65,25 +52,23 @@ export function ApiTokensClient() {
         }
     };
 
+    /**
+     * Deletes a token after confirming with the user.
+     */
     const handleDelete = async (id: number) => {
         if (!confirm('Are you sure you want to delete this token?')) return;
 
         try {
-            const response = await fetch(`/api/api-tokens?id=${id}`, {
-                method: 'DELETE',
-            });
-
-            if (!response.ok) {
-                const data = await response.json();
-                throw new Error(data.error || 'Failed to delete token');
-            }
-
+            await deleteApiToken(id);
             fetchTokens();
         } catch (err) {
             setError(err instanceof Error ? err.message : 'An error occurred');
         }
     };
 
+    /**
+     * Copies a token value to the clipboard.
+     */
     const copyToClipboard = (text: string) => {
         navigator.clipboard.writeText(text);
         // You could add a toast notification here

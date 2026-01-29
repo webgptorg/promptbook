@@ -1,4 +1,9 @@
-import type { string_color, string_person_firstname, string_person_fullname, string_person_lastname } from '../../types/typeAliases';
+import type {
+    string_color,
+    string_person_firstname,
+    string_person_fullname,
+    string_person_lastname,
+} from '../../types/typeAliases';
 import { $randomItem } from './$randomItem';
 
 export type RandomFullnameWithColorResult = {

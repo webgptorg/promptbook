@@ -18,7 +18,7 @@ export function addPipelineCommand(options: AddPipelineCommandOptions): Pipeline
 
     const deflatedPipelineString = deflatePipeline(pipelineString);
 
-    const lines = deflatedPipelineString.split('\n');
+    const lines = deflatedPipelineString.split(/\r?\n/);
     const newLines: Array<string> = [];
     let isCommandAdded = false;
 

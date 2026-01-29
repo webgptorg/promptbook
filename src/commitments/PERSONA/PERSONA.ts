@@ -26,7 +26,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * @private [🪔] Maybe export the commitments through some package
  */
 export class PersonaCommitmentDefinition extends BaseCommitmentDefinition<'PERSONA' | 'PERSONAE'> {
-    constructor(type: 'PERSONA' | 'PERSONAE' = 'PERSONA') {
+    public constructor(type: 'PERSONA' | 'PERSONAE' = 'PERSONA') {
         super(type);
     }
 
@@ -123,7 +123,7 @@ export class PersonaCommitmentDefinition extends BaseCommitmentDefinition<'PERSO
             cleanedMessage = '';
         } else if (currentMessage.startsWith('# PERSONA')) {
             // Remove existing persona section by finding where it ends
-            const lines = currentMessage.split('\n');
+            const lines = currentMessage.split(/\r?\n/);
             let personaEndIndex = lines.length;
 
             // Find the end of the PERSONA section (next comment or end of message)

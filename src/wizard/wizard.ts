@@ -1,8 +1,12 @@
+import { getAllCommitmentsToolFunctionsForNode } from '../commitments/_common/getAllCommitmentsToolFunctionsForNode';
 import { VALUE_STRINGS } from '../config';
 import { EnvironmentMismatchError } from '../errors/EnvironmentMismatchError';
 import { $provideExecutablesForNode } from '../executables/$provideExecutablesForNode';
 import { createPipelineExecutor } from '../execution/createPipelineExecutor/00-createPipelineExecutor';
+import type { Executables } from '../execution/Executables';
 import type { ExecutionTools } from '../execution/ExecutionTools';
+import type { FilesystemTools } from '../execution/FilesystemTools';
+import type { LlmExecutionTools } from '../execution/LlmExecutionTools';
 import type { PipelineExecutorResult } from '../execution/PipelineExecutorResult';
 import { $provideLlmToolsForWizardOrCli } from '../llm-providers/_common/register/$provideLlmToolsForWizardOrCli';
 import type { PipelineJson } from '../pipeline/PipelineJson/PipelineJson';
@@ -11,10 +15,12 @@ import { $provideFilesystemForNode } from '../scrapers/_common/register/$provide
 import { $provideScrapersForNode } from '../scrapers/_common/register/$provideScrapersForNode';
 import { promptbookFetch } from '../scrapers/_common/utils/promptbookFetch';
 import { JavascriptExecutionTools } from '../scripting/javascript/JavascriptExecutionTools';
-import type { InputParameters } from '../types/typeAliases';
-import type { string_filename } from '../types/typeAliases';
-import type { string_parameter_value } from '../types/typeAliases';
-import type { string_pipeline_url } from '../types/typeAliases';
+import type {
+    InputParameters,
+    string_filename,
+    string_parameter_value,
+    string_pipeline_url,
+} from '../types/typeAliases';
 import { $isRunningInNode } from '../utils/environment/$isRunningInNode';
 import { $getCompiledBook } from './$getCompiledBook';
 
@@ -65,16 +71,18 @@ class Wizard {
         }
 
         // ▶ Get the tools
-        const tools = await this.getExecutionTools(options);
+        const tools: Required<Pick<ExecutionTools, 'fs' | 'fetch'>> = await this.getExecutionTools(options);
 
         // ▶ Get the Pipeline
-        const pipeline = await this.getCompiledBook(book, options);
+        const pipeline: PipelineJson = await this.getCompiledBook(book, options);
 
         // ▶ Create executor - the function that will execute the Pipeline
         const pipelineExecutor = createPipelineExecutor({ pipeline, tools });
 
         // 🚀▶ Execute the Pipeline
-        const result = await pipelineExecutor(inputParameters).asPromise({ isCrashedOnError: true });
+        const result: PipelineExecutorResult = await pipelineExecutor(inputParameters).asPromise({
+            isCrashedOnError: true,
+        });
 
         const { outputParameters } = result;
         const outputParametersLength = Object.keys(outputParameters).length;
@@ -111,19 +119,24 @@ class Wizard {
             isVerbose: options.isVerbose ?? false,
             isCacheReloaded: false, // <- TODO: Allow to pass
         }; /* <- TODO: ` satisfies PrepareAndScrapeOptions` */
-        const fs = $provideFilesystemForNode(prepareAndScrapeOptions);
-        const llm = await $provideLlmToolsForWizardOrCli({
+        const fs: FilesystemTools = $provideFilesystemForNode(prepareAndScrapeOptions);
+        const llm: LlmExecutionTools = await $provideLlmToolsForWizardOrCli({
             // TODO: [🌃] Allow to use Promptbook.studio token in wizard> strategy: 'REMOTE_SERVER'
             strategy: 'BRING_YOUR_OWN_KEYS',
             ...prepareAndScrapeOptions,
         });
-        const executables = await $provideExecutablesForNode(prepareAndScrapeOptions);
+        const executables: Executables = await $provideExecutablesForNode(prepareAndScrapeOptions);
         const tools = {
             llm,
             fs,
             fetch: promptbookFetch,
             scrapers: await $provideScrapersForNode({ fs, llm, executables }, prepareAndScrapeOptions),
-            script: [new JavascriptExecutionTools(prepareAndScrapeOptions)],
+            script: [
+                new JavascriptExecutionTools({
+                    ...prepareAndScrapeOptions,
+                    functions: getAllCommitmentsToolFunctionsForNode(),
+                }),
+            ],
         } satisfies ExecutionTools;
 
         this.executionTools = tools;

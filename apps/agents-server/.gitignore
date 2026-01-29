@@ -16,6 +16,9 @@
 /.next/
 /out/
 
+# Promptbook
+/.promptbook/
+
 # production
 /build
 

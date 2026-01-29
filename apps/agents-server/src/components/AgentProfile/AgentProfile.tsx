@@ -1,14 +1,15 @@
 'use client';
 
-import { AgentBasicInformation } from '@promptbook-local/types';
+import { colorToDataUrl } from '@promptbook-local/color';
+import { generatePlaceholderAgentProfileImageUrl } from '@promptbook-local/core';
+import { AgentBasicInformation, string_agent_permanent_id, string_url } from '@promptbook-local/types';
 import { RepeatIcon } from 'lucide-react';
-import { useMemo, useState } from 'react';
-import spaceTrim from 'spacetrim';
-import { Color } from '../../../../../src/utils/color/Color';
-import { darken } from '../../../../../src/utils/color/operators/darken';
-import { lighten } from '../../../../../src/utils/color/operators/lighten';
+import { useState } from 'react';
+import { AgentCapabilityChips } from './AgentCapabilityChips';
+import { AgentProfileImage } from './AgentProfileImage';
 import { AgentQrCode } from './AgentQrCode';
 import { QrCodeModal } from './QrCodeModal';
+import { useAgentBackground } from './useAgentBackground';
 
 type AgentProfileProps = {
     /**
@@ -17,11 +18,21 @@ type AgentProfileProps = {
     readonly agent: AgentBasicInformation;
 
     /**
+     * The permanent ID of the agent
+     */
+    readonly permanentId: string_agent_permanent_id;
+
+    /**
      * URL of the agent page
      *
      * @default undefined - If not provided, some features like QR code for link might be disabled or use generic link
      */
     readonly agentUrl?: string;
+
+    /**
+     * Base URL of the agents server
+     */
+    readonly publicUrl: string_url;
 
     /**
      * Email of the agent
@@ -61,16 +72,19 @@ export function AgentProfile(props: AgentProfileProps) {
         agent,
         agentUrl = '',
         agentEmail = '',
+        publicUrl,
+        permanentId,
         renderMenu,
         children,
         actions,
         isHeadless = false,
         className,
     } = props;
+
     const { meta, agentName } = agent;
     const fullname = (meta.fullname as string) || agentName || 'Agent';
-    const personaDescription = agent.personaDescription || '';
-    const imageUrl = (meta.image as string) || null;
+    const personaDescription = meta.description || agent.personaDescription || '';
+    const imageUrl = meta.image || generatePlaceholderAgentProfileImageUrl(permanentId, publicUrl);
 
     const [isQrModalOpen, setIsQrModalOpen] = useState(false);
     const [isFlipped, setIsFlipped] = useState(false);
@@ -81,102 +95,14 @@ export function AgentProfile(props: AgentProfileProps) {
 
     if (fontString) {
         // [🧠] TODO: Properly parse font string to get family name
-        const primaryFont = fontString.split(',')[0].trim().replace(/['"]/g, '');
+        // const primaryFont = fontString.split(',')[0].trim().replace(/['"]/g, '');
         fontStyle = {
             fontFamily: fontString,
         };
     }
 
     // Compute Colors and Background
-    const { brandColorHex, brandColorLightHex, brandColorDarkHex, backgroundImage } = useMemo(() => {
-        // [🧠] Default color should be imported constant, but for now hardcoded fallback
-        const PROMPTBOOK_COLOR_HEX = '#f15b24'; // TODO: Import PROMPTBOOK_COLOR
-        const brandColorString = meta.color || PROMPTBOOK_COLOR_HEX;
-
-        let brandColor;
-        try {
-            brandColor = Color.fromSafe(brandColorString.split(',')[0].trim());
-        } catch {
-            brandColor = Color.fromHex(PROMPTBOOK_COLOR_HEX);
-        }
-
-        const brandColorHex = brandColor.toHex();
-        const brandColorLightHex = brandColor.then(lighten(0.2)).toHex();
-        const brandColorDarkHex = brandColor.then(darken(0.15)).toHex();
-
-        // Generate Noisy SVG Background
-        const color1 = brandColor;
-        // const color2 = brandColors[1] || brandColors[0]!; // Use secondary color if available?
-        // For simplicity using primary color for now or derive second one
-        const color2 = brandColor;
-
-        // [🧠] Make colors much lighter for the background
-        const color1Light = color1.then(lighten(0.3)).toHex();
-        const color1Main = color1.toHex();
-        const color1Dark = color1.then(darken(0.3)).toHex();
-
-        const color2Light = color2.then(lighten(0.3)).toHex();
-        const color2Main = color2.toHex();
-        const color2Dark = color2.then(darken(0.3)).toHex();
-
-        const svgContent = spaceTrim(`
-            <svg xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 1920 1080"
-              width="1920" height="1080"
-              preserveAspectRatio="xMidYMid slice">
-              <defs>
-                <!-- Bottom-left -->
-                <radialGradient id="grad1" cx="0%" cy="100%" r="90%">
-                  <stop offset="0%" stop-color="${color1Light}" />
-                  <stop offset="50%" stop-color="${color1Main}" />
-                  <stop offset="100%" stop-color="${color1Dark}" />
-                </radialGradient>
-
-                <!-- Bottom-right -->
-                <radialGradient id="grad2" cx="100%" cy="100%" r="90%">
-                  <stop offset="0%" stop-color="${color2Light}" />
-                  <stop offset="50%" stop-color="${color2Main}" />
-                  <stop offset="100%" stop-color="${color2Dark}" />
-                </radialGradient>
-
-                <!-- White top fade -->
-                <linearGradient id="whiteTopGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stop-color="#ffffff" stop-opacity="1" />
-                  <stop offset="100%" stop-color="#ffffff" stop-opacity="0.3" />
-                </linearGradient>
-
-                <!-- Strong grain -->
-                <filter id="grain" x="-10%" y="-10%" width="120%" height="120%">
-                  <feTurbulence type="fractalNoise" baseFrequency="3.5" numOctaves="3" seed="8" result="noise" />
-                  <feComponentTransfer>
-                    <feFuncR type="linear" slope="3.5" intercept="-1.2" />
-                    <feFuncG type="linear" slope="3.5" intercept="-1.2" />
-                    <feFuncB type="linear" slope="3.5" intercept="-1.2" />
-                    <feFuncA type="table" tableValues="0 0.8" />
-                  </feComponentTransfer>
-                </filter>
-              </defs>
-
-              <!-- White base -->
-              <rect width="100%" height="100%" fill="#ffffff" />
-
-              <!-- Gradients -->
-              <rect width="100%" height="100%" fill="url(#grad1)" />
-              <rect width="100%" height="100%" fill="url(#grad2)" style="mix-blend-mode:screen; opacity:0.85" />
-
-              <!-- White fade on top -->
-              <rect width="100%" height="100%" fill="url(#whiteTopGrad)" />
-
-              <!-- Strong visible noise -->
-              <rect width="100%" height="100%" filter="url(#grain)"
-                style="mix-blend-mode:soft-light; opacity:1.2" />
-            </svg>
-        `);
-
-        const backgroundImage = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgContent)}`;
-
-        return { brandColorHex, brandColorLightHex, brandColorDarkHex, backgroundImage };
-    }, [meta.color]);
+    const { brandColorHex, brandColorLightHex, brandColorDarkHex, backgroundImage } = useAgentBackground(meta.color);
 
     return (
         <>
@@ -208,14 +134,14 @@ export function AgentProfile(props: AgentProfileProps) {
                 )}
 
                 {/* Main profile content */}
-                <div className="relative z-10 grid grid-cols-[auto_1fr] gap-x-6 gap-y-4 md:gap-12 max-w-5xl w-full items-start">
+                <div className="relative z-10 flex flex-col md:grid md:grid-cols-[auto_1fr] gap-y-6 md:gap-y-4 md:gap-x-12 max-w-5xl w-full items-center md:items-start">
                     {/* Agent image card (Flippable) */}
                     <div
-                        className="flex-shrink-0 perspective-1000 group row-start-1 col-start-1 md:row-span-3"
+                        className="flex-shrink-0 perspective-1000 group w-full md:w-auto md:row-start-1 md:col-start-1 md:row-span-3"
                         style={{ perspective: '1000px' }}
                     >
                         <div
-                            className="relative w-24 md:w-80 transition-all duration-700 transform-style-3d cursor-pointer"
+                            className="relative w-full md:w-80 transition-all duration-700 transform-style-3d cursor-pointer max-w-sm mx-auto md:max-w-none md:mx-0"
                             style={{
                                 aspectRatio: '1 / 1.618', // Golden Ratio
                                 transformStyle: 'preserve-3d',
@@ -230,19 +156,21 @@ export function AgentProfile(props: AgentProfileProps) {
                                     backfaceVisibility: 'hidden',
                                     backgroundColor: brandColorDarkHex,
                                     boxShadow: `0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px ${brandColorLightHex}40`,
+
+                                    // Note: Make it squircle
+                                    // borderRadius: '50%',
+                                    // ['cornerShape' as really_any /* <- Note: `cornerShape` is non standard CSS property */]: 'squircle ',
                                 }}
                             >
-                                {imageUrl ? (
-                                    // eslint-disable-next-line @next/next/no-img-element
-                                    <img src={imageUrl} alt={fullname} className="w-full h-full object-cover" />
-                                ) : (
-                                    <div
-                                        className="w-full h-full flex items-center justify-center text-3xl md:text-8xl font-bold text-white/80"
-                                        style={{ backgroundColor: brandColorDarkHex }}
-                                    >
-                                        {fullname.charAt(0).toUpperCase()}
-                                    </div>
-                                )}
+                                <AgentProfileImage
+                                    src={imageUrl}
+                                    alt={fullname}
+                                    className="w-full h-full object-cover"
+                                    style={{
+                                        objectFit: 'cover',
+                                        backgroundImage: `url(${colorToDataUrl(brandColorLightHex)})`,
+                                    }}
+                                />
 
                                 {/* Flip hint icon */}
                                 <div className="absolute bottom-2 md:bottom-4 right-2 md:right-4 bg-black/30 p-1 md:p-2 rounded-full text-white/80 backdrop-blur-md opacity-0 group-hover:opacity-100 transition-opacity">
@@ -280,7 +208,7 @@ export function AgentProfile(props: AgentProfileProps) {
                     </div>
 
                     {/* Agent info - Header Area */}
-                    <div className="row-start-1 col-start-2 flex flex-col justify-center md:justify-start h-full md:h-auto gap-1 md:gap-6">
+                    <div className="w-full md:w-auto md:row-start-1 md:col-start-2 flex flex-col justify-center md:justify-start items-center md:items-start h-auto gap-4 md:gap-6 text-center md:text-left">
                         {/* Agent name with custom font */}
                         <h1
                             className="text-2xl md:text-5xl lg:text-6xl font-bold text-gray-900 tracking-tight leading-tight"
@@ -295,16 +223,16 @@ export function AgentProfile(props: AgentProfileProps) {
                         <p className="text-sm md:text-xl text-gray-700 max-w-lg leading-relaxed font-medium line-clamp-3 md:line-clamp-none">
                             {personaDescription}
                         </p>
+
+                        <AgentCapabilityChips agent={agent} />
                     </div>
 
                     {/* Chat Area */}
-                    <div className="col-span-2 md:col-span-1 md:col-start-2 w-full mt-2 md:mt-0">
-                        {children}
-                    </div>
+                    <div className="w-full md:col-span-1 md:col-start-2 mt-4 md:mt-0">{children}</div>
 
                     {/* Secondary Actions */}
                     {!isHeadless && (
-                        <div className="col-span-2 md:col-span-1 md:col-start-2 flex flex-wrap justify-center md:justify-start items-center gap-4 md:gap-6 mt-2">
+                        <div className="w-full md:col-span-1 md:col-start-2 flex flex-wrap justify-center md:justify-start items-center gap-4 md:gap-6 mt-4 md:mt-2">
                             {actions}
                         </div>
                     )}
@@ -320,16 +248,17 @@ export function AgentProfile(props: AgentProfileProps) {
             </div>
 
             {/* QR Code Modal */}
-            <QrCodeModal
-                isOpen={isQrModalOpen}
-                onClose={() => setIsQrModalOpen(false)}
-                agentName={agentName}
-                meta={meta}
-                personaDescription={personaDescription}
-                agentUrl={agentUrl}
-                agentEmail={agentEmail}
-                brandColorHex={brandColorHex}
-            />
+            {isQrModalOpen && (
+                <QrCodeModal
+                    onClose={() => setIsQrModalOpen(false)}
+                    agentName={agentName}
+                    meta={meta}
+                    personaDescription={personaDescription}
+                    agentUrl={agentUrl}
+                    agentEmail={agentEmail}
+                    brandColorHex={brandColorHex}
+                />
+            )}
         </>
     );
 }

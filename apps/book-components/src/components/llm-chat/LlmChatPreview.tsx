@@ -110,9 +110,10 @@ export default function LlmChatPreview() {
         const now = Date.now();
         return [
             {
+                // channel: 'PROMPTBOOK_CHAT',
                 id: `seed-${kind}-user-${now}`,
-                date: new Date(),
-                from: 'ASSISTANT',
+                createdAt: new Date(),
+                sender: 'ASSISTANT',
                 content:
                     (
                         {

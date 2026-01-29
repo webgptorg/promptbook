@@ -1,25 +1,24 @@
+import { Message } from '../../../types/Message';
+import type { ToolCall } from '../../../types/ToolCall';
 import type { id, string_markdown } from '../../../types/typeAliases';
 
+export type ChatToolCall = ToolCall;
+
 /**
- * A message in the chat
+ * Represents a single message within a chat interface.
+ *
+ * This type extends the base `Message` type by omitting internal routing fields
+ * and adding chat-specific properties like markdown content and generation status.
  *
  * @public exported from `@promptbook/components`
  */
-export type ChatMessage = {
+export type ChatMessage = Omit<Message<id>, 'direction' | 'recipients' | 'threadId' | 'metadata'> & {
     /**
-     * Unique identifier of the message
+     * Force the channel to be 'PROMPTBOOK_CHAT'
+     *
+     * @default 'PROMPTBOOK_CHAT'
      */
-    id?: id;
-
-    /**
-     * Date when the message was created
-     */
-    date?: Date;
-
-    /**
-     * The name of the participant who sent the message
-     */
-    from: id;
+    channel?: 'PROMPTBOOK_CHAT';
 
     /**
      * The content of the message with optional markdown formatting
@@ -34,17 +33,80 @@ export type ChatMessage = {
     isComplete?: boolean;
 
     /**
-     * @@@
+     * The expected answer for the message (used for testing or validation)
      */
     expectedAnswer?: string;
 
     /**
-     * @@@
+     * Indicates if the message was sent via a voice call
      */
     isVoiceCall?: boolean;
+
+    /**
+     * Optional tool calls made during the execution
+     */
+    readonly ongoingToolCalls?: ReadonlyArray<ChatToolCall>;
+
+    /**
+     * Optional tool calls used to produce this message.
+     */
+    readonly toolCalls?: ReadonlyArray<ChatToolCall>;
+
+    /**
+     * Optional tool calls that have been completed
+     *
+     * @deprecated Use `toolCalls` instead.
+     */
+    readonly completedToolCalls?: ReadonlyArray<ChatToolCall>;
+
+    /**
+     * Optional file attachments
+     */
+    attachments?: Array<{
+        /**
+         * The name of the file
+         */
+        name: string;
+
+        /**
+         * The type of the file
+         */
+        type: string;
+
+        /**
+         * The URL where the file is stored
+         */
+        url: string;
+    }>;
+
+    /**
+     * Optional source citations/annotations (from RAG systems like OpenAI Assistants)
+     */
+    readonly citations?: ReadonlyArray<{
+        /**
+         * The unique identifier for the citation (e.g., "5:13")
+         */
+        id: string;
+
+        /**
+         * The source document name (e.g., "document.pdf")
+         */
+        source: string;
+
+        /**
+         * Optional URL to the source document
+         */
+        url?: string;
+
+        /**
+         * Optional preview/excerpt from the source
+         */
+        excerpt?: string;
+    }>;
 };
 
 /**
+ * TODO: Make all fields readonly
  * TODO: Delete `expectedAnswer` from ChatMessage
  * TODO: Rename `date` into `created`+`modified`
  */

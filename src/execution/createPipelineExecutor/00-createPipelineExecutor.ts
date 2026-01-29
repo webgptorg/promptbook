@@ -158,7 +158,7 @@ export function createPipelineExecutor(options: CreatePipelineExecutorOptions): 
                     const cv = newOngoingResult as PartialDeep<PipelineExecutorResult>;
 
                     // Calculate progress based on parameters resolved vs total parameters
-                    const totalParameters = pipeline.parameters.filter((p) => !p.isInput).length;
+                    const totalParameters = pipeline.parameters.filter((parameter) => !parameter.isInput).length;
                     let resolvedParameters = 0;
                     let currentTaskTitle = '';
 

@@ -1,0 +1,90 @@
+{
+    "date": "2025-12-20T09:40:11.564Z",
+    "promptbookVersion": "0.104.0-6",
+    "bookVersion": "2.0.0",
+    "prompt": {
+        "title": "Generate default avatar for noah-green",
+        "content": "Image of noah-green\n\nStric lawyer\n\nPortrait photograph, use color #008000, detailed, high quality",
+        "parameters": {
+            "note": "<- Note: Only relevant parameters are stored in the cache"
+        },
+        "modelRequirements": {
+            "modelVariant": "IMAGE_GENERATION",
+            "modelName": "dall-e-3"
+        }
+    },
+    "promptResult": {
+        "content": "https://oaidalleapiprodscus.blob.core.windows.net/private/org-Sddx3F2IYwJ3Xk4cbuUZ6dU5/user-1nOB0gL9nmmbD6rSUvEEEMFw/img-IOY69ysitr9BpyNM8ihBubs3.png?st=2025-12-20T08%3A40%3A16Z&se=2025-12-20T10%3A40%3A16Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=9346e9b9-5d29-4d37-a0a9-c6f95f09f79d&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-12-20T09%3A40%3A16Z&ske=2025-12-21T09%3A40%3A16Z&sks=b&skv=2024-08-04&sig=DAdDlxkhdh1MD46D2Jh91ovcy1Y%2BV4b16ycEs2AOTwk%3D",
+        "modelName": "dall-e-3",
+        "timing": {
+            "start": "2025-12-20T09:39:58.572Z",
+            "complete": "2025-12-20T09:40:11.562Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.04
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 0
+                },
+                "charactersCount": {
+                    "value": 97
+                },
+                "wordsCount": {
+                    "value": 14
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 5
+                },
+                "paragraphsCount": {
+                    "value": 3
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 0
+                },
+                "charactersCount": {
+                    "value": 0
+                },
+                "wordsCount": {
+                    "value": 0
+                },
+                "sentencesCount": {
+                    "value": 0
+                },
+                "linesCount": {
+                    "value": 0
+                },
+                "paragraphsCount": {
+                    "value": 0
+                },
+                "pagesCount": {
+                    "value": 0
+                }
+            }
+        },
+        "rawPromptContent": "Image of noah-green\n\nStric lawyer\n\nPortrait photograph, use color #008000, detailed, high quality",
+        "rawRequest": {
+            "model": "dall-e-3",
+            "prompt": "Image of noah-green\n\nStric lawyer\n\nPortrait photograph, use color #008000, detailed, high quality",
+            "response_format": "url"
+        },
+        "rawResponse": {
+            "created": 1766223617,
+            "data": [
+                {
+                    "revised_prompt": "Create a high-quality and detailed color portrait of a strict lawyer, utilizing the shade #008000 predominantly. The person in the image should appear stern and professional, dressed appropriately in formal lawyers' attire such as a suit and tie. Make sure the background of the portrait is simple and uncluttered, allowing the focus to remain on the individual.",
+                    "url": "https://oaidalleapiprodscus.blob.core.windows.net/private/org-Sddx3F2IYwJ3Xk4cbuUZ6dU5/user-1nOB0gL9nmmbD6rSUvEEEMFw/img-IOY69ysitr9BpyNM8ihBubs3.png?st=2025-12-20T08%3A40%3A16Z&se=2025-12-20T10%3A40%3A16Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=9346e9b9-5d29-4d37-a0a9-c6f95f09f79d&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-12-20T09%3A40%3A16Z&ske=2025-12-21T09%3A40%3A16Z&sks=b&skv=2024-08-04&sig=DAdDlxkhdh1MD46D2Jh91ovcy1Y%2BV4b16ycEs2AOTwk%3D"
+                }
+            ]
+        }
+    }
+}

@@ -10,13 +10,8 @@ import type { string_markdown } from '../../types/typeAliases';
  */
 export function humanizeAiTextQuotes(aiText: string_markdown): string_markdown {
     return aiText
-        .replace(/[“”]/g, '"')
-        .replace(/[‚‘’]/g, "'")
-        .replace(/«/g, '"')
-        .replace(/»/g, '"')
-        .replace(/„/g, '"')
-        .replace(/‹/g, "'")
-        .replace(/›/g, "'");
+        .replace(/[“”„‟«»❝❞〝〞〟＂]/g, '"')
+        .replace(/[‚‘’‛‹›❛❜＇ʼ]/g, "'");
 }
 
 /**

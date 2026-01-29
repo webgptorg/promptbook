@@ -1,7 +1,6 @@
 import spaceTrim from 'spacetrim';
 import { DEFAULT_BOOK_TITLE } from '../../config';
-import type { string_markdown } from '../../types/typeAliases';
-import type { string_markdown_section } from '../../types/typeAliases';
+import type { string_markdown, string_markdown_section } from '../../types/typeAliases';
 
 /**
  * Splits the markdown into sections by headings
@@ -9,7 +8,7 @@ import type { string_markdown_section } from '../../types/typeAliases';
  * @public exported from `@promptbook/markdown-utils`
  */
 export function splitMarkdownIntoSections(markdown: string_markdown): ReadonlyArray<string_markdown_section> {
-    const lines = markdown.split('\n');
+    const lines = markdown.split(/\r?\n/);
     const sections: Array<string_markdown> = [];
 
     // TODO: [🧽] DRY

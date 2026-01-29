@@ -1,3 +1,6 @@
+import spaceTrim from 'spacetrim';
+import { CORE_AGENTS_SERVER } from '../../../../servers';
+
 export type MetadataType = 'TEXT_SINGLE_LINE' | 'TEXT' | 'NUMBER' | 'BOOLEAN' | 'IMAGE_URL' | 'IP_RANGE';
 
 export const metadataDefaults = [
@@ -32,13 +35,34 @@ export const metadataDefaults = [
         type: 'IP_RANGE',
     },
     {
+        key: 'CORE_SERVER',
+        value: CORE_AGENTS_SERVER.url,
+        note: spaceTrim(`
+                Core Promptbook server URL used for agents that are used for common tasks, these agents are called well known agents:
+
+                On the core server, the following well known agents should be hosted: 
+                - \`adam\`: The default ancestor agent for new agents
+                - \`teacher\`: Agent that knows book syntax and can help with self-learning
+            
+            `),
+        type: 'TEXT',
+    },
+    // <- TODO: [🆎] Allow to set well-known agent names via Metadata
+
+    {
         key: 'FEDERATED_SERVERS',
         value: '',
         note: 'Comma separated list of federated servers URLs. The server will look to all federated servers and list their agents.',
         type: 'TEXT',
     },
     {
-        key: 'IS_VOICE_CALLING_ENABLED',
+        key: 'SHOW_FEDERATED_SERVERS_PUBLICLY',
+        value: 'false',
+        note: 'Whether to show federated servers and their agents to anonymous users. When false, federated servers are only visible to authenticated users.',
+        type: 'BOOLEAN',
+    },
+    {
+        key: 'IS_EXPERIMENTAL_VOICE_CALLING_ENABLED',
         value: 'false',
         note: 'Enable or disable voice calling features for agents. When disabled, voice API endpoints will return 403 Forbidden.',
         type: 'BOOLEAN',
@@ -65,6 +89,18 @@ export const metadataDefaults = [
         key: 'NAME_POOL',
         value: 'ENGLISH',
         note: 'Language for generating new agent names. Possible values: ENGLISH, CZECH.',
+        type: 'TEXT_SINGLE_LINE',
+    },
+    {
+        key: 'ADMIN_EMAIL',
+        value: 'support@ptbk.io',
+        note: 'Administrator email address used for password reset and user registration requests.',
+        type: 'TEXT_SINGLE_LINE',
+    },
+    {
+        key: 'DEFAULT_AGENT_VISIBILITY',
+        value: 'PRIVATE',
+        note: 'Default visibility for new agents. Can be PUBLIC or PRIVATE.',
         type: 'TEXT_SINGLE_LINE',
     },
 ] as const satisfies ReadonlyArray<{

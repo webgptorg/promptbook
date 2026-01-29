@@ -1,4 +1,5 @@
-import { PROMPTBOOK_COLOR } from '@promptbook-local/core';
+import { $provideServer } from '@/src/tools/$provideServer';
+import { generatePlaceholderAgentProfileImageUrl, PROMPTBOOK_COLOR } from '@promptbook-local/core';
 import { serializeError } from '@promptbook-local/utils';
 import { ImageResponse } from 'next/og';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
@@ -18,6 +19,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
         const agentName = await getAgentName(params);
         const agentProfile = await getAgentProfile(agentName);
         const agentColor = Color.from(agentProfile.meta.color || PROMPTBOOK_COLOR);
+        const { publicUrl } = await $provideServer();
 
         return new ImageResponse(
             (
@@ -30,6 +32,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
                         alignItems: 'center',
                         justifyContent: 'center',
                         borderRadius: '50%',
+                        aspectRatio: '1 / 1',
                         overflow: 'hidden',
                     }}
                 >
@@ -43,9 +46,18 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
                             justifyContent: 'center',
                         }}
                     >
-                        {/* Note: `next/image` is not working propperly with `next/og` */}
+                        {/* Note: `next/image` is not working properly with `next/og` */}
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={agentProfile.meta.image!} alt="Agent Icon" />
+                        <img
+                            src={
+                                agentProfile.meta.image ||
+                                generatePlaceholderAgentProfileImageUrl(
+                                    agentProfile.permanentId || agentName,
+                                    publicUrl,
+                                )
+                            }
+                            alt="Agent Icon"
+                        />
                     </div>
                 </div>
             ),

@@ -108,15 +108,15 @@ export const htmlSaveFormatDefinition = {
                                 ASSISTANT: '#ffb300',
                                 SYSTEM: '#888',
                             };
-                            const bgColor = participantColors[String(message.from)] || '#2b7cff';
+                            const bgColor = participantColors[String(message.sender)] || '#2b7cff';
                             const textColor = getTextColor(bgColor);
                             return spaceTrim(`
                             <div class="chat-message">
                                 <div class="avatar" style="background:${bgColor};color:${getTextColor(bgColor)};">
-                                    ${String(message.from)[0] || '?'}
+                                    ${String(message.sender)[0] || '?'}
                                 </div>
                                 <div class="bubble" style="background:${bgColor};color:${textColor};">
-                                    <span class="from-label">${String(message.from)}:</span>
+                                    <span class="from-label">${String(message.sender)}:</span>
                                     ${message.content}
                                 </div>
                             </div>

@@ -1,6 +1,6 @@
+import { BackToAgentButton } from '@/src/components/BackToAgentButton/BackToAgentButton';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { HistoryIcon } from 'lucide-react';
-import Link from 'next/link';
 import { RestoreVersionButton } from './RestoreVersionButton';
 
 export const metadata = {
@@ -10,7 +10,8 @@ export const metadata = {
 export default async function AgentHistoryPage({ params }: { params: Promise<{ agentName: string }> }) {
     const { agentName } = await params;
     const collection = await $provideAgentCollectionForServer();
-    const history = await collection.listAgentHistory(agentName);
+    const agentId = await collection.getAgentPermanentId(agentName);
+    const history = await collection.listAgentHistory(agentId);
 
     return (
         <div className="container mx-auto p-6 max-w-4xl">
@@ -18,12 +19,11 @@ export default async function AgentHistoryPage({ params }: { params: Promise<{ a
                 <div className="bg-blue-100 p-3 rounded-full">
                     <HistoryIcon className="w-8 h-8 text-blue-600" />
                 </div>
-                <div>
+                <div className="flex-1">
                     <h1 className="text-3xl font-bold text-gray-900">History: {agentName}</h1>
-                    <p className="text-gray-600">
-                        Previous versions of this agent. <Link href={`/agents/${agentName}`} className="text-blue-600 hover:underline">Back to agent</Link>
-                    </p>
+                    <p className="text-gray-600">Previous versions of this agent.</p>
                 </div>
+                <BackToAgentButton agentName={agentName} />
             </header>
 
             {history.length === 0 ? (
@@ -47,7 +47,10 @@ export default async function AgentHistoryPage({ params }: { params: Promise<{ a
                                             Version {history.length - index}
                                         </h3>
                                         <p className="text-sm text-gray-500">
-                                            Hash: <code className="bg-gray-100 px-1 rounded">{item.agentHash.substring(0, 8)}</code>
+                                            Hash:{' '}
+                                            <code className="bg-gray-100 px-1 rounded">
+                                                {item.agentHash.substring(0, 8)}
+                                            </code>
                                         </p>
                                     </div>
                                     <RestoreVersionButton agentName={agentName} historyId={item.id} />

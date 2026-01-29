@@ -1,7 +1,6 @@
 import { DEFAULT_IS_VERBOSE } from '../../config';
 import type { TODO_any } from '../organization/TODO_any';
-import type { ExecCommandOptions } from './ExecCommandOptions';
-import type { ExecCommandOptionsAdvanced } from './ExecCommandOptions';
+import type { ExecCommandOptions, ExecCommandOptionsAdvanced } from './ExecCommandOptions';
 
 /**
  * Normalize options for `execCommand` and `execCommands`
@@ -12,7 +11,7 @@ import type { ExecCommandOptionsAdvanced } from './ExecCommandOptions';
  */
 export function $execCommandNormalizeOptions(options: ExecCommandOptions): Pick<
     ExecCommandOptionsAdvanced,
-    'command' | 'args' | 'cwd' | 'crashOnError' | 'timeout' | 'isVerbose'
+    'command' | 'args' | 'cwd' | 'crashOnError' | 'timeout' | 'isVerbose' | 'env'
 > & {
     humanReadableCommand: string;
 } {
@@ -22,6 +21,7 @@ export function $execCommandNormalizeOptions(options: ExecCommandOptions): Pick<
     let args: string[] = [];
     let timeout: number;
     let isVerbose: boolean;
+    let env: Record<string, string> | undefined;
 
     if (typeof options === 'string') {
         // TODO: [1] DRY default values
@@ -30,6 +30,7 @@ export function $execCommandNormalizeOptions(options: ExecCommandOptions): Pick<
         crashOnError = true;
         timeout = Infinity; // <- TODO: [⏳]
         isVerbose = DEFAULT_IS_VERBOSE;
+        env = undefined;
     } else {
         /*
         TODO:
@@ -46,6 +47,7 @@ export function $execCommandNormalizeOptions(options: ExecCommandOptions): Pick<
         crashOnError = options.crashOnError ?? true;
         timeout = options.timeout ?? Infinity;
         isVerbose = options.isVerbose ?? DEFAULT_IS_VERBOSE;
+        env = options.env;
     }
 
     // TODO: /(-[a-zA-Z0-9-]+\s+[^\s]*)|[^\s]*/g
@@ -70,7 +72,7 @@ export function $execCommandNormalizeOptions(options: ExecCommandOptions): Pick<
         command = `${command}.cmd`;
     }
 
-    return { command, humanReadableCommand, args, cwd, crashOnError, timeout, isVerbose };
+    return { command, humanReadableCommand, args, cwd, crashOnError, timeout, isVerbose, env };
 }
 
 // TODO: This should show type error> execCommandNormalizeOptions({ command: '', commands: [''] });

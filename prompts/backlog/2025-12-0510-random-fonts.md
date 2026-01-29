@@ -1,0 +1,35 @@
+[.] _<- Not priority _
+
+[✨🙋] bar
+
+-   Look at `C:/Users/me/work/webgpt/webgpt-app/config.ts`
+-   Fonts of agents are done here `/src/utils/random/$generateBookBoilerplate.ts`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Add the changes into the `/changelog/_current-preversion.md`
+
+---
+
+[-]
+
+[✨🙋] bar
+
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Add the changes into the `/changelog/_current-preversion.md`
+
+---
+
+[-]
+
+[✨🙋] bar
+
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Add the changes into the `/changelog/_current-preversion.md`
+
+---
+
+[-]
+
+[✨🙋] bar
+
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Add the changes into the `/changelog/_current-preversion.md`

@@ -35,9 +35,16 @@ export type string_model_name =
 /**
  * Semantic helper
  *
- * For example `"A cat wearing a hat"`
+ * For example `"How many eyes does a cat have?"`
  */
 export type string_prompt = string;
+
+/**
+ * Semantic helper
+ *
+ * For example `"A cat wearing a hat"`
+ */
+export type string_prompt_image = string;
 
 /**
  * Semantic helper
@@ -181,6 +188,8 @@ export type string_title = string;
  * Semantic helper
  *
  * For example `"My AI Assistant"`
+ *
+ * TODO: !!!! Brand the type
  */
 export type string_agent_name = string;
 
@@ -201,6 +210,15 @@ export type string_agent_name_in_book = string;
  */
 export type string_agent_hash = string_sha256;
 // <- TODO: [🧠] Maybe only first X characters of SHA-256
+
+/**
+ * Semantic helper
+ *
+ * For example `"3mJr7AoUXx2Wqd"`
+ *
+ * TODO: !!!! Brand the type
+ */
+export type string_agent_permanent_id = string_base_58;
 
 /**
  * Unstructured description of the persona
@@ -435,6 +453,7 @@ export type string_url = string;
  * For example `"https://s1.ptbk.io/promptbook"`
  */
 export type string_promptbook_server_url = string;
+// <- TODO: [🧠] Maybe split pipeline and agents server
 
 /**
  * Semantic helper
@@ -596,6 +615,13 @@ export type string_user_id = id | string_email;
  * For example `"b126926439c5fcb83609888a11283723c1ef137c0ad599a77a1be81812bd221d"`
  */
 export type string_sha256 = string;
+
+/**
+ * Semantic helper
+ *
+ * For example `"4JmF3b2J5dGVz"`
+ */
+export type string_base_58 = string;
 
 /**
  * Semantic helper
@@ -771,6 +797,11 @@ export type string_license_token = string_token;
 export type string_password = string;
 export type string_ssh_key = string;
 export type string_pgp_key = string;
+
+/**
+ * Language as a string, e.g. 'en-US', 'cs-CZ', 'en'
+ */
+export type string_language = string;
 
 /**
  * Semantic helper for `Date.toISOString()` result

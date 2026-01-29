@@ -10,7 +10,7 @@ import type { PipelineString } from './PipelineString';
  * It does not check if the string is fully logically correct, but if it is a string that can be a pipeline string or the string looks completely different.
  *
  * Note: [🔂] This function is idempotent.
- * 
+ *
  * @param {string} pipelineString the candidate for a pipeline string
  * @returns {PipelineString} the same string as input, but validated as valid
  * @throws {ParseError} if the string is not a valid pipeline string

@@ -16,8 +16,8 @@ describe('validatePipeline with valid examples', () => {
         .filter(({ name }) => name.endsWith('.book'));
 
     for (const { name } of examples) {
-        it(`should validate ${name} syntax, parsing and logic`, () => {
-            expect(
+        it(`should validate ${name} syntax, parsing and logic`, async () => {
+            await expect(
                 (async () => {
                     try {
                         const pipelineString = await importPipelineWithoutPreparation(name as `${string}.book`);

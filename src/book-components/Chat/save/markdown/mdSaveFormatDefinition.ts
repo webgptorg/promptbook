@@ -14,7 +14,7 @@ export const mdSaveFormatDefinition = {
             ${messages
                 .map((message) =>
                     spaceTrim(`
-                        **${message.from}:**
+                        **${message.sender}:**
 
                         > ${message.content.replace(/\n/g, '\n> ')}
                     `),

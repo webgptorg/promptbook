@@ -324,8 +324,7 @@ export class PipelineEditable implements PipelineEditableSerialized {
             ({ message }) => new Error(message) /* <- TODO: Better Error deserialization */,
         );
 
-        // console.log('!! this.data.knownErrors', this.data.knownErrors);
-
+ 
         if (this._errors !== null) {
             return [...knownErrors, ...this._errors];
         }
@@ -772,7 +771,6 @@ export class PipelineEditable implements PipelineEditableSerialized {
         if (pipelineString !== undefined) {
             // TODO: Maybe make utility `renamePipeline(pipeline: PipelineJson|PipelineString)` (similar util as `removePipelineCommand`)
             pipelineString = pipelineString.split('✨ Hello Book').join(title);
-            console.log('!! pipelineString', pipelineString);
         }
 
         const sourceJsonFull = {

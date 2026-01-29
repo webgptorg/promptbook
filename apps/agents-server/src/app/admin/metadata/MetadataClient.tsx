@@ -1,8 +1,11 @@
 'use client';
 
-import { FileText, Hash, Image, Shield, ToggleLeft, Type, Upload } from 'lucide-react';
+import { upload } from '@vercel/blob/client';
+import { FileTextIcon, HashIcon, ImageIcon, ShieldIcon, ToggleLeftIcon, TypeIcon, Upload } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { metadataDefaults, MetadataType } from '../../../database/metadataDefaults';
+import { getSafeCdnPath } from '../../../utils/cdn/utils/getSafeCdnPath';
+import { normalizeUploadFilename } from '../../../utils/normalization/normalizeUploadFilename';
 
 type MetadataEntry = {
     id: number;
@@ -148,19 +151,19 @@ export function MetadataClient() {
     const getTypeIcon = (type?: MetadataType) => {
         switch (type) {
             case 'TEXT_SINGLE_LINE':
-                return <Type className="w-4 h-4" />;
+                return <TypeIcon className="w-4 h-4" />;
             case 'TEXT':
-                return <FileText className="w-4 h-4" />;
+                return <FileTextIcon className="w-4 h-4" />;
             case 'NUMBER':
-                return <Hash className="w-4 h-4" />;
+                return <HashIcon className="w-4 h-4" />;
             case 'BOOLEAN':
-                return <ToggleLeft className="w-4 h-4" />;
+                return <ToggleLeftIcon className="w-4 h-4" />;
             case 'IMAGE_URL':
-                return <Image className="w-4 h-4" />;
+                return <ImageIcon className="w-4 h-4" />;
             case 'IP_RANGE':
-                return <Shield className="w-4 h-4" />;
+                return <ShieldIcon className="w-4 h-4" />;
             default:
-                return <Type className="w-4 h-4" />;
+                return <TypeIcon className="w-4 h-4" />;
         }
     };
 
@@ -185,26 +188,33 @@ export function MetadataClient() {
 
         try {
             setIsUploading(true);
-            const formData = new FormData();
-            formData.append('file', file);
 
-            const response = await fetch('/api/upload', {
-                method: 'POST',
-                body: formData,
+            // Build the full path including prefix and user/files directory
+            const pathPrefix = process.env.NEXT_PUBLIC_CDN_PATH_PREFIX || '';
+            const normalizedFilename = normalizeUploadFilename(file.name);
+            const uploadPath = pathPrefix
+                ? `${pathPrefix}/user/files/${normalizedFilename}`
+                : `user/files/${normalizedFilename}`;
+            const safeUploadPath = getSafeCdnPath({ pathname: uploadPath });
+
+            // Upload directly to Vercel Blob using client upload
+            const blob = await upload(safeUploadPath, file, {
+                access: 'public',
+                handleUploadUrl: '/api/upload',
+                clientPayload: JSON.stringify({
+                    purpose: formState.key || 'METADATA_IMAGE',
+                    contentType: file.type,
+                }),
             });
 
-            if (!response.ok) {
-                throw new Error(`Failed to upload file: ${response.statusText}`);
-            }
-
-            const { fileUrl: longFileUrl } = await response.json();
+            const fileUrl = blob.url;
 
             const LONG_URL = `${process.env.NEXT_PUBLIC_CDN_PUBLIC_URL!}/${process.env
                 .NEXT_PUBLIC_CDN_PATH_PREFIX!}/user/files/`;
             const SHORT_URL = `https://ptbk.io/k/`;
             // <- TODO: [🌍] Unite this logic in one place
 
-            const shortFileUrl = longFileUrl.split(LONG_URL).join(SHORT_URL);
+            const shortFileUrl = fileUrl.split(LONG_URL).join(SHORT_URL);
             setFormState((prev) => ({ ...prev, value: shortFileUrl }));
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to upload image');
@@ -221,7 +231,7 @@ export function MetadataClient() {
     }
 
     return (
-        <div className="container mx-auto p-8 max-w-4xl">
+        <div className="w-full px-2 sm:px-4 md:px-8 py-8 max-w-screen-lg mx-auto">
             <h1 className="text-3xl font-bold mb-8">Metadata Management</h1>
 
             {error && (
@@ -330,7 +340,7 @@ export function MetadataClient() {
                                     value={formState.value.split(',').join('\n')}
                                     onChange={(e) => {
                                         const newValue = e.target.value
-                                            .split('\n')
+                                            .split(/\r?\n/)
                                             .map((line) => line.trim())
                                             .filter((line) => line !== '')
                                             .join(',');
@@ -406,7 +416,7 @@ export function MetadataClient() {
                 </form>
             </div>
 
-            <div className="bg-white shadow rounded-lg overflow-hidden">
+            <div className="bg-white shadow rounded-lg overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                         <tr>
@@ -437,17 +447,21 @@ export function MetadataClient() {
                         ) : (
                             metadata.map((entry) => (
                                 <tr key={entry.id}>
-                                    <td className="px-6 py-4 whitespace-nowrap text-gray-500">
+                                    <td className="px-4 py-2 whitespace-nowrap text-gray-500 text-sm sm:px-6 sm:py-4">
                                         <div className="flex items-center" title={entry.type || 'Unknown'}>
                                             {getTypeIcon(entry.type)}
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    <td className="px-4 py-2 whitespace-normal break-all text-sm font-medium text-gray-900 sm:px-6 sm:py-4">
                                         {entry.key}
                                     </td>
-                                    <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">{entry.value}</td>
-                                    <td className="px-6 py-4 text-sm text-gray-500">{entry.note || '-'}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <td className="px-4 py-2 text-sm text-gray-500 max-w-xs break-all whitespace-normal sm:px-6 sm:py-4">
+                                        {entry.value}
+                                    </td>
+                                    <td className="px-4 py-2 text-sm text-gray-500 break-all whitespace-normal sm:px-6 sm:py-4">
+                                        {entry.note || '-'}
+                                    </td>
+                                    <td className="px-4 py-2 whitespace-nowrap text-right text-sm font-medium sm:px-6 sm:py-4">
                                         <button
                                             onClick={() => handleEdit(entry)}
                                             className="text-blue-600 hover:text-blue-900 mr-4"

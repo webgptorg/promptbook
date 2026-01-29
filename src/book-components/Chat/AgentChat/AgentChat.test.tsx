@@ -53,6 +53,7 @@ describe('AgentChat', () => {
             executionTools: {
                 llm: mockLlmTools,
             },
+            teacherAgent: null, // <- TODO: [🦋] DRY place to provide the teacher
             isVerbose: false,
         });
     }
@@ -64,7 +65,7 @@ describe('AgentChat', () => {
 
         await act(async () => {
             const root = createRoot(container);
-            root.render(<AgentChat agent={agent} />);
+            root.render(<AgentChat agent={agent} visual="STANDALONE" />);
         });
 
         const capturedProps = (globalThis as { __lastLlmChatProps?: CapturedLlmChatProps }).__lastLlmChatProps;
@@ -81,7 +82,7 @@ describe('AgentChat', () => {
 
         await act(async () => {
             const root = createRoot(container);
-            root.render(<AgentChat agent={agent} title="Custom Chat Title" />);
+            root.render(<AgentChat agent={agent} title="Custom Chat Title" visual="STANDALONE" />);
         });
 
         const capturedProps = (globalThis as { __lastLlmChatProps?: CapturedLlmChatProps }).__lastLlmChatProps;
@@ -95,7 +96,7 @@ describe('AgentChat', () => {
 
         await act(async () => {
             const root = createRoot(container);
-            root.render(<AgentChat agent={agent} />);
+            root.render(<AgentChat agent={agent} visual="STANDALONE" />);
         });
 
         const capturedProps = (globalThis as { __lastLlmChatProps?: CapturedLlmChatProps }).__lastLlmChatProps;
@@ -126,18 +127,18 @@ describe('AgentChat', () => {
 
         await act(async () => {
             const root = createRoot(container);
-            root.render(<AgentChat agent={agent} />);
+            root.render(<AgentChat agent={agent} visual="STANDALONE" />);
         });
 
         const capturedProps = (globalThis as { __lastLlmChatProps?: CapturedLlmChatProps }).__lastLlmChatProps;
         expect(capturedProps?.initialMessages).toBeDefined();
         expect(Array.isArray(capturedProps?.initialMessages)).toBe(true);
 
-        const initialMessages = capturedProps?.initialMessages as ChatMessage[];
+        const initialMessages = capturedProps?.initialMessages as Array<ChatMessage>; // <- TODO: Change to `satisfies Array<ChatMessage>`
         expect(initialMessages.length).toBeGreaterThan(0);
 
         const firstMessage = initialMessages[0];
-        expect(firstMessage?.from).toBe('AGENT');
+        expect(firstMessage?.sender).toBe('AGENT');
         expect(firstMessage?.content).toContain('GreeterBot'); // <- TODO: [🕛]
     });
 
@@ -154,9 +155,9 @@ describe('AgentChat', () => {
                     agent={agent}
                     onChange={mockOnChange}
                     isVoiceRecognitionButtonShown={true}
-                    voiceLanguage="en-US"
                     className="custom-class"
                     style={{ height: '500px' }}
+                    visual="STANDALONE"
                 />,
             );
         });
@@ -165,7 +166,6 @@ describe('AgentChat', () => {
         expect(capturedProps).toBeDefined();
         expect(capturedProps?.onChange).toBe(mockOnChange);
         expect(capturedProps?.isVoiceRecognitionButtonShown).toBe(true);
-        expect(capturedProps?.voiceLanguage).toBe('en-US');
         expect(capturedProps?.className).toBe('custom-class');
         expect((capturedProps?.style as TODO_any)?.height).toBe('500px');
     });
@@ -177,7 +177,7 @@ describe('AgentChat', () => {
 
         await act(async () => {
             const root = createRoot(container);
-            root.render(<AgentChat agent={agent} />);
+            root.render(<AgentChat agent={agent} visual="STANDALONE" />);
         });
 
         const capturedProps = (globalThis as { __lastLlmChatProps?: CapturedLlmChatProps }).__lastLlmChatProps;
@@ -194,6 +194,7 @@ describe('AgentChat', () => {
             executionTools: {
                 llm: mockLlmTools,
             },
+            teacherAgent: null, // <- TODO: [🦋] DRY place to provide the teacher
             isVerbose: false,
         });
 
@@ -202,7 +203,7 @@ describe('AgentChat', () => {
 
         await act(async () => {
             const root = createRoot(container);
-            root.render(<AgentChat agent={minimalAgent} />);
+            root.render(<AgentChat agent={minimalAgent} visual="STANDALONE" />);
         });
 
         const capturedProps = (globalThis as { __lastLlmChatProps?: CapturedLlmChatProps }).__lastLlmChatProps;
@@ -219,6 +220,7 @@ describe('AgentChat', () => {
             title: 'Test Chat',
             onChange: () => {},
             className: 'test-class',
+            visual: 'STANDALONE',
         };
 
         expect(props.agent).toBe(agent);
@@ -233,7 +235,7 @@ describe('AgentChat', () => {
 
         await act(async () => {
             const root = createRoot(container);
-            root.render(<AgentChat agent={agent} persistenceKey="test-persistence-key" />);
+            root.render(<AgentChat agent={agent} persistenceKey="test-persistence-key" visual="STANDALONE" />);
         });
 
         const capturedProps = (globalThis as { __lastLlmChatProps?: CapturedLlmChatProps }).__lastLlmChatProps;
@@ -247,7 +249,7 @@ describe('AgentChat', () => {
 
         await act(async () => {
             const root = createRoot(container);
-            root.render(<AgentChat agent={agent} />);
+            root.render(<AgentChat agent={agent} visual="STANDALONE" />);
         });
 
         const capturedProps = (globalThis as { __lastLlmChatProps?: CapturedLlmChatProps }).__lastLlmChatProps;

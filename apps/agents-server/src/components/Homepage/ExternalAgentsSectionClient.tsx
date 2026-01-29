@@ -1,9 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import type { AgentsByServer } from '../../utils/getFederatedAgents';
+import type { AgentsByServer } from '../../utils/AgentsByServer';
 import { AgentCard } from './AgentCard';
 import { Section } from './Section';
+import { string_url } from '@promptbook-local/types';
 
 type FederatedServersResponse = {
     federatedServers: string[];
@@ -15,7 +16,17 @@ type ServerState = {
     error?: string;
 };
 
-export function ExternalAgentsSectionClient() {
+type ExternalAgentsSectionClientProps = {
+    /**
+     * Base URL of the agents server
+     * 
+     * Note: [👭] Using `string_url`, not `URL` object because we are passing prop from server to client. 
+     */
+    readonly publicUrl: string_url
+};
+
+export function ExternalAgentsSectionClient(props: ExternalAgentsSectionClientProps) {
+    const { publicUrl } = props;
     const [servers, setServers] = useState<Record<string, ServerState>>({});
     const [initialLoading, setInitialLoading] = useState(true);
 
@@ -26,24 +37,23 @@ export function ExternalAgentsSectionClient() {
             try {
                 const response = await fetch('/api/federated-agents');
                 if (!response.ok) throw new Error('Failed to fetch federated servers');
-                
+
                 const data: FederatedServersResponse = await response.json();
-                
+
                 if (isCancelled) return;
 
                 const initialServerState: Record<string, ServerState> = {};
-                data.federatedServers.forEach(serverUrl => {
+                data.federatedServers.forEach((serverUrl) => {
                     initialServerState[serverUrl] = { status: 'loading', agents: [] };
                 });
-                
+
                 setServers(initialServerState);
                 setInitialLoading(false);
 
                 // Fetch agents for each server independently
-                data.federatedServers.forEach(serverUrl => {
+                data.federatedServers.forEach((serverUrl) => {
                     fetchAgentsForServer(serverUrl);
                 });
-
             } catch (error) {
                 console.error('Failed to load federated servers list', error);
                 if (!isCancelled) setInitialLoading(false);
@@ -80,7 +90,9 @@ export function ExternalAgentsSectionClient() {
                     const response = await fetch(proxyUrl);
 
                     if (!response.ok) {
-                        throw new Error(`Failed to fetch agents from ${serverUrl} via proxy (Status: ${response.status})`);
+                        throw new Error(
+                            `Failed to fetch agents from ${serverUrl} via proxy (Status: ${response.status})`,
+                        );
                     }
 
                     const data = await response.json();
@@ -134,7 +146,7 @@ export function ExternalAgentsSectionClient() {
 
     return (
         <>
-            {serverUrls.map(serverUrl => {
+            {serverUrls.map((serverUrl) => {
                 const state = servers[serverUrl];
                 const hostname = (() => {
                     try {
@@ -169,7 +181,7 @@ export function ExternalAgentsSectionClient() {
                     return (
                         <Section key={serverUrl} title={`Agents from ${hostname} (${state.agents.length})`}>
                             {state.agents.map((agent) => (
-                                <AgentCard key={agent.url} agent={agent} href={agent.url} />
+                                <AgentCard key={agent.url} agent={agent} href={agent.url} publicUrl={publicUrl} />
                             ))}
                         </Section>
                     );

@@ -12,7 +12,7 @@ export type ExecCommandOptions =
     | RequiredAndOptional<
           ExecCommandOptionsAdvanced,
           'command',
-          'args' | 'cwd' | 'crashOnError' | 'timeout' | 'isVerbose'
+          'args' | 'cwd' | 'crashOnError' | 'timeout' | 'isVerbose' | 'env'
       >;
 // TODO: | RequiredAndOptional<IExecCommandOptionsAdvanced, 'commands', 'args' | 'cwd' | 'crashOnError'>;
 
@@ -54,6 +54,13 @@ export type ExecCommandOptionsAdvanced = {
      */
     readonly isVerbose?: boolean;
     // <- TODO: [🧠] Maybe rename to `isProxyingOutput`
+
+    /**
+     * Environment variables to pass to the command
+     *
+     * Note: These will be merged with process.env
+     */
+    readonly env?: Record<string, string>;
 };
 
 /**

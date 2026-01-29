@@ -1,12 +1,5 @@
-import {
-    BookOpenIcon,
-    CodeIcon,
-    GlobeIcon,
-    HistoryIcon,
-    LinkIcon,
-    MessageSquareIcon,
-    NotebookPenIcon,
-} from 'lucide-react';
+import { string_agent_name, string_agent_permanent_id } from '@promptbook-local/types';
+import { BookOpenIcon, CodeIcon, GlobeIcon, MessageSquareIcon, NotebookPenIcon } from 'lucide-react';
 import type { ComponentType } from 'react';
 
 type AgentLink = {
@@ -18,42 +11,29 @@ type AgentLink = {
     rel?: string;
 };
 
-export const getAgentLinks = (agentName: string): AgentLink[] => {
-    const encodedName = encodeURIComponent(agentName);
+export const getAgentLinks = (permanentId: string_agent_permanent_id | string_agent_name): AgentLink[] => {
     return [
         {
             title: 'Chat with Agent',
-            href: `/agents/${encodedName}`,
+            href: `/agents/${permanentId}`,
             icon: MessageSquareIcon,
             description: 'Direct interface to converse with the agent.',
         },
         {
             title: 'Edit Book',
-            href: `/agents/${encodedName}/book`,
+            href: `/agents/${permanentId}/book`,
             icon: NotebookPenIcon,
             description: "Edit the agent's knowledge book.",
         },
         {
             title: 'Integration',
-            href: `/agents/${encodedName}/integration`,
+            href: `/agents/${permanentId}/integration`,
             icon: CodeIcon,
             description: 'Learn how to integrate this agent into your applications.',
         },
         {
-            title: 'History & Feedback',
-            href: `/agents/${encodedName}/history`,
-            icon: HistoryIcon,
-            description: 'View past conversations and provide feedback.',
-        },
-        {
-            title: 'All Links',
-            href: `/agents/${encodedName}/links`,
-            icon: LinkIcon,
-            description: 'Signpost & Links',
-        },
-        {
             title: 'Website Integration',
-            href: `/agents/${encodedName}/website-integration`,
+            href: `/agents/${permanentId}/website-integration`,
             icon: GlobeIcon,
             description: 'Embed the agent chat widget directly into your React application.',
         },

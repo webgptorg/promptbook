@@ -46,6 +46,17 @@ export function unwrapResult(text: string, options?: UnwrapResultOptions): strin
 
     let processedText = trimmedText;
 
+    // Check for markdown code block
+    const codeBlockRegex = /^```[a-z]*\n([\s\S]*?)\n```\s*$/;
+    const codeBlockMatch = processedText.match(codeBlockRegex);
+    if (codeBlockMatch && codeBlockMatch[1] !== undefined) {
+        // Check if there's only one code block
+        const codeBlockCount = (processedText.match(/```/g) || []).length / 2;
+        if (codeBlockCount === 1) {
+            return unwrapResult(codeBlockMatch[1], { isTrimmed: false, isIntroduceSentenceRemoved: false });
+        }
+    }
+
     if (isIntroduceSentenceRemoved) {
         const introduceSentenceRegex = /^[a-zěščřžýáíéúů:\s]*:\s*/i;
         if (introduceSentenceRegex.test(text)) {
@@ -53,6 +64,15 @@ export function unwrapResult(text: string, options?: UnwrapResultOptions): strin
             processedText = processedText.replace(introduceSentenceRegex, '');
         }
         processedText = spaceTrim(processedText);
+
+        // Check again for code block after removing introduce sentence
+        const codeBlockMatch2 = processedText.match(codeBlockRegex);
+        if (codeBlockMatch2 && codeBlockMatch2[1] !== undefined) {
+            const codeBlockCount = (processedText.match(/```/g) || []).length / 2;
+            if (codeBlockCount === 1) {
+                return unwrapResult(codeBlockMatch2[1], { isTrimmed: false, isIntroduceSentenceRemoved: false });
+            }
+        }
     }
 
     if (processedText.length < 3) {

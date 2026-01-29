@@ -1,0 +1,88 @@
+{
+    "date": "2025-12-17T12:33:33.408Z",
+    "promptbookVersion": "0.104.0-3",
+    "bookVersion": "2.0.0",
+    "prompt": {
+        "title": "Generate image for coffee-in-space,png",
+        "content": "Coffee In Space,png",
+        "parameters": {},
+        "modelRequirements": {
+            "modelVariant": "IMAGE_GENERATION",
+            "modelName": "dall-e-3"
+        }
+    },
+    "promptResult": {
+        "content": "https://oaidalleapiprodscus.blob.core.windows.net/private/org-Sddx3F2IYwJ3Xk4cbuUZ6dU5/user-1nOB0gL9nmmbD6rSUvEEEMFw/img-DoVe6Pgm5FC2AJWhc3jgiAYI.png?st=2025-12-17T11%3A33%3A37Z&se=2025-12-17T13%3A33%3A37Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=13da7400-b3f7-4f8c-9cba-908fecbd114c&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-12-17T10%3A49%3A50Z&ske=2025-12-18T10%3A49%3A50Z&sks=b&skv=2024-08-04&sig=%2BTKlWVHTnX9CtRaWKZUaEKGKRwZ/DtB/wG3PuUMJ9ko%3D",
+        "modelName": "dall-e-3",
+        "timing": {
+            "start": "2025-12-17T12:33:20.410Z",
+            "complete": "2025-12-17T12:33:33.407Z"
+        },
+        "usage": {
+            "price": {
+                "value": 0.04
+            },
+            "input": {
+                "tokensCount": {
+                    "value": 0
+                },
+                "charactersCount": {
+                    "value": 19
+                },
+                "wordsCount": {
+                    "value": 4
+                },
+                "sentencesCount": {
+                    "value": 1
+                },
+                "linesCount": {
+                    "value": 1
+                },
+                "paragraphsCount": {
+                    "value": 1
+                },
+                "pagesCount": {
+                    "value": 1
+                }
+            },
+            "output": {
+                "tokensCount": {
+                    "value": 0
+                },
+                "charactersCount": {
+                    "value": 0
+                },
+                "wordsCount": {
+                    "value": 0
+                },
+                "sentencesCount": {
+                    "value": 0
+                },
+                "linesCount": {
+                    "value": 0
+                },
+                "paragraphsCount": {
+                    "value": 0
+                },
+                "pagesCount": {
+                    "value": 0
+                }
+            }
+        },
+        "rawPromptContent": "Coffee In Space,png",
+        "rawRequest": {
+            "model": "dall-e-3",
+            "prompt": "Coffee In Space,png",
+            "response_format": "url"
+        },
+        "rawResponse": {
+            "created": 1765974817,
+            "data": [
+                {
+                    "revised_prompt": "An image illustrating the concept of coffee in space. This image should depict a floating, three-dimensional, ceramic, white coffee mug amidst the vastness of space. The coffee mug should be detailed with steaming hot dark brown coffee swirling inside due to the lack of gravity. Stars should sprinkle the black space background, with distant planets and galaxies visible. A radiant sun is peeping from the corner to add a contrasting element to the scene. Remember to create a mesmerizing image that conveys the tranquility and loneliness of space mingling with the comforting familiarity of a coffee mug.",
+                    "url": "https://oaidalleapiprodscus.blob.core.windows.net/private/org-Sddx3F2IYwJ3Xk4cbuUZ6dU5/user-1nOB0gL9nmmbD6rSUvEEEMFw/img-DoVe6Pgm5FC2AJWhc3jgiAYI.png?st=2025-12-17T11%3A33%3A37Z&se=2025-12-17T13%3A33%3A37Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=13da7400-b3f7-4f8c-9cba-908fecbd114c&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-12-17T10%3A49%3A50Z&ske=2025-12-18T10%3A49%3A50Z&sks=b&skv=2024-08-04&sig=%2BTKlWVHTnX9CtRaWKZUaEKGKRwZ/DtB/wG3PuUMJ9ko%3D"
+                }
+            ]
+        }
+    }
+}

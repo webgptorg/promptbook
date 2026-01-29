@@ -10,7 +10,7 @@ import { MockedFackedLlmExecutionTools } from '../MockedFackedLlmExecutionTools'
 describe('createPipelineExecutor + MockedFackedLlmExecutionTools with example completion prompt', () => {
     it('should work when every INPUT PARAMETER defined', async () => {
         const pipelineExecutor = await getPipelineExecutor();
-        expect(
+        await expect(
             pipelineExecutor({ thing: 'a cup of coffee' }).asPromise({ isCrashedOnError: true }),
         ).resolves.toMatchObject({
             outputParameters: {
@@ -21,7 +21,7 @@ describe('createPipelineExecutor + MockedFackedLlmExecutionTools with example co
 
     it('should fail when some INPUT PARAMETER is missing', async () => {
         const pipelineExecutor = await getPipelineExecutor();
-        expect(pipelineExecutor({}).asPromise({ isCrashedOnError: false })).resolves.toMatchObject({
+        await expect(pipelineExecutor({}).asPromise({ isCrashedOnError: false })).resolves.toMatchObject({
             isSuccessful: false,
             errors: [/Parameter `{thing}` is required as an input parameter/i],
             executionReport: {

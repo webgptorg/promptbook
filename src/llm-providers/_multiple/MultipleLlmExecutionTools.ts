@@ -9,9 +9,10 @@ import type {
     ChatPromptResult,
     CompletionPromptResult,
     EmbeddingPromptResult,
+    ImagePromptResult,
     PromptResult,
 } from '../../execution/PromptResult';
-import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt, Prompt } from '../../types/Prompt';
+import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt, ImagePrompt, Prompt } from '../../types/Prompt';
 import type { string_markdown, string_markdown_text, string_name, string_title } from '../../types/typeAliases';
 import type { chococake } from '../../utils/organization/really_any';
 
@@ -117,6 +118,13 @@ export class MultipleLlmExecutionTools implements LlmExecutionTools /* <- TODO: 
         return this.callCommonModel(prompt) as Promise<EmbeddingPromptResult>;
     }
 
+    /**
+     * Calls the best available embedding model
+     */
+    public callImageGenerationModel(prompt: ImagePrompt): Promise<ImagePromptResult> {
+        return this.callCommonModel(prompt) as Promise<ImagePromptResult>;
+    }
+
     // <- Note: [🤖]
 
     /**
@@ -149,6 +157,13 @@ export class MultipleLlmExecutionTools implements LlmExecutionTools /* <- TODO: 
                         }
 
                         return await llmExecutionTools.callEmbeddingModel(prompt);
+
+                    case 'IMAGE_GENERATION':
+                        if (llmExecutionTools.callImageGenerationModel === undefined) {
+                            continue llm;
+                        }
+
+                        return await llmExecutionTools.callImageGenerationModel(prompt);
 
                     // <- case [🤖]:
 

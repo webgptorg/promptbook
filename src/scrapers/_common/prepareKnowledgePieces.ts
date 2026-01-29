@@ -62,7 +62,7 @@ export async function prepareKnowledgePieces(
                             The source:
                             ${block(
                                 knowledgeSource.knowledgeSourceContent
-                                    .split('\n')
+                                    .split(/\r?\n/)
                                     .map((line) => `> ${line}`)
                                     .join('\n'),
                             )}
@@ -85,7 +85,7 @@ export async function prepareKnowledgePieces(
                             The source:
                             > ${block(
                                 knowledgeSource.knowledgeSourceContent
-                                    .split('\n')
+                                    .split(/\r?\n/)
                                     .map((line) => `> ${line}`)
                                     .join('\n'),
                             )}

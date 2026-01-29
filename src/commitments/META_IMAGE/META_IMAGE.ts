@@ -20,7 +20,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * @private [🪔] Maybe export the commitments through some package
  */
 export class MetaImageCommitmentDefinition extends BaseCommitmentDefinition<'META IMAGE'> {
-    constructor() {
+    public constructor() {
         super('META IMAGE', ['IMAGE']);
     }
 

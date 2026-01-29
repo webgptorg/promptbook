@@ -1,12 +1,13 @@
 import spaceTrim from 'spacetrim';
+import { TODO_any } from '../../_packages/types.index';
 import { normalizeTo_camelCase } from '../../utils/normalization/normalizeTo_camelCase';
-import { generatePlaceholderAgentProfileImageUrl } from '../utils/generatePlaceholderAgentProfileImageUrl';
-import type { AgentBasicInformation } from './AgentBasicInformation';
+import type { AgentBasicInformation, AgentCapability } from './AgentBasicInformation';
 import { computeAgentHash } from './computeAgentHash';
 import { createDefaultAgentName } from './createDefaultAgentName';
 import { normalizeAgentName } from './normalizeAgentName';
 import { parseAgentSourceWithCommitments } from './parseAgentSourceWithCommitments';
 import { parseParameters } from './parseParameters';
+import { parseTeamCommitmentContent } from './parseTeamCommitment';
 import type { string_book } from './string_book';
 
 /**
@@ -53,8 +54,198 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
 
     const meta: Record<string, string> = {};
     const links: string[] = [];
+    const capabilities: AgentCapability[] = [];
+    const samples: Array<{ question: string | null; answer: string }> = [];
+    const knowledgeSources: Array<{ url: string; filename: string }> = [];
+    let pendingUserMessage: string | null = null;
 
     for (const commitment of parseResult.commitments) {
+        if (commitment.type === 'INITIAL MESSAGE') {
+            samples.push({ question: null, answer: commitment.content });
+            continue;
+        }
+
+        if (commitment.type === 'USER MESSAGE') {
+            pendingUserMessage = commitment.content;
+            continue;
+        }
+
+        if (commitment.type === 'AGENT MESSAGE') {
+            if (pendingUserMessage !== null) {
+                samples.push({ question: pendingUserMessage, answer: commitment.content });
+                pendingUserMessage = null;
+            }
+            continue;
+        }
+
+        if (commitment.type === 'USE BROWSER') {
+            capabilities.push({
+                type: 'browser',
+                label: 'Browser',
+                iconName: 'Globe',
+            });
+            continue;
+        }
+
+        if (commitment.type === 'USE SEARCH ENGINE') {
+            capabilities.push({
+                type: 'search-engine',
+                label: 'Internet',
+                iconName: 'Search',
+            });
+            continue;
+        }
+
+        if (commitment.type === 'USE SEARCH') {
+            capabilities.push({
+                type: 'search-engine',
+                label: 'Internet',
+                iconName: 'Search',
+            });
+            continue;
+        }
+
+        if (commitment.type === 'USE TIME') {
+            capabilities.push({
+                type: 'time',
+                label: 'Time',
+                iconName: 'Clock',
+            });
+            continue;
+        }
+
+        if (commitment.type === 'USE EMAIL' /* || commitment.type === 'EMAIL' || commitment.type === 'MAIL' */) {
+            capabilities.push({
+                type: 'email',
+                label: 'Email',
+                iconName: 'Mail',
+            });
+            continue;
+        }
+
+        if (commitment.type === 'USE IMAGE GENERATOR') {
+            capabilities.push({
+                type: 'image-generator',
+                label: 'Image Generator',
+                iconName: 'Image',
+            });
+            continue;
+        }
+
+        if (commitment.type === 'FROM') {
+            const content = spaceTrim(commitment.content).split(/\r?\n/)[0] || '';
+
+            if (content === 'Adam' || content === '' /* <- Note: Adam is implicit */) {
+                continue;
+            }
+
+            let label = content;
+            let iconName = 'SquareArrowOutUpRight'; // Inheritance remote
+            if (content.startsWith('./') || content.startsWith('../') || content.startsWith('/')) {
+                label = content.split('/').pop() || content;
+                iconName = 'SquareArrowUpRight'; // Inheritance local
+            }
+
+            if (content === 'VOID') {
+                label = 'VOID';
+                iconName = 'ShieldAlert'; // [🧠] Or some other icon for VOID
+            }
+
+            capabilities.push({
+                type: 'inheritance',
+                label,
+                iconName,
+                agentUrl: content as TODO_any,
+            });
+            continue;
+        }
+
+        if (commitment.type === 'IMPORT') {
+            const content = spaceTrim(commitment.content).split(/\r?\n/)[0] || '';
+            let label = content;
+            let iconName = 'ExternalLink'; // Import remote
+
+            try {
+                if (content.startsWith('http://') || content.startsWith('https://')) {
+                    const url = new URL(content);
+                    label = url.hostname.replace(/^www\./, '') + '.../' + url.pathname.split('/').pop();
+                    iconName = 'ExternalLink';
+                } else if (content.startsWith('./') || content.startsWith('../') || content.startsWith('/')) {
+                    label = content.split('/').pop() || content;
+                    iconName = 'Link'; // Import local
+                }
+            } catch (e) {
+                // Invalid URL or path, keep default label
+            }
+
+            capabilities.push({
+                type: 'import',
+                label,
+                iconName,
+                agentUrl: content as TODO_any,
+            });
+            continue;
+        }
+
+        if (commitment.type === 'TEAM') {
+            const teammates = parseTeamCommitmentContent(commitment.content);
+
+            for (const teammate of teammates) {
+                capabilities.push({
+                    type: 'team',
+                    label: teammate.label,
+                    iconName: 'Users',
+                    agentUrl: teammate.url as TODO_any,
+                });
+            }
+            continue;
+        }
+
+        if (commitment.type === 'KNOWLEDGE') {
+            const content = spaceTrim(commitment.content).split(/\r?\n/)[0] || '';
+            let label = content;
+            let iconName = 'Book';
+
+            // Check if this is a URL (for knowledge sources resolution)
+            if (content.startsWith('http://') || content.startsWith('https://')) {
+                try {
+                    const url = new URL(content);
+                    const filename = url.pathname.split('/').pop() || '';
+
+                    // Store the URL and filename for citation resolution
+                    if (filename) {
+                        knowledgeSources.push({
+                            url: content,
+                            filename,
+                        });
+                    }
+
+                    // Determine display label and icon
+                    if (url.pathname.endsWith('.pdf')) {
+                        label = filename || 'Document.pdf';
+                        iconName = 'FileText';
+                    } else {
+                        label = url.hostname.replace(/^www\./, '');
+                    }
+                } catch (e) {
+                    // Invalid URL, treat as text
+                }
+            } else {
+                // Text content - take first few words
+                const words = content.split(/\s+/);
+                if (words.length > 4) {
+                    label = words.slice(0, 4).join(' ') + '...';
+                }
+            }
+
+            capabilities.push({
+                type: 'knowledge',
+                label,
+                iconName,
+            });
+            continue;
+        }
+
         if (commitment.type === 'META LINK') {
             const linkValue = spaceTrim(commitment.content);
             links.push(linkValue);
@@ -64,6 +255,11 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
 
         if (commitment.type === 'META IMAGE') {
             meta.image = spaceTrim(commitment.content);
+            continue;
+        }
+
+        if (commitment.type === 'META DESCRIPTION') {
+            meta.description = spaceTrim(commitment.content);
             continue;
         }
 
@@ -92,11 +288,6 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
         meta[metaType] = spaceTrim(commitment.content.substring(metaTypeRaw.length));
     }
 
-    // Generate gravatar fallback if no meta image specified
-    if (!meta.image) {
-        meta.image = generatePlaceholderAgentProfileImageUrl(parseResult.agentName || '!!');
-    }
-
     // Generate fullname fallback if no meta fullname specified
     if (!meta.fullname) {
         meta.fullname = parseResult.agentName || createDefaultAgentName(agentSource);
@@ -110,11 +301,15 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
     return {
         agentName: normalizeAgentName(parseResult.agentName || createDefaultAgentName(agentSource)),
         agentHash,
+        permanentId: meta.id,
         personaDescription,
         initialMessage,
         meta,
         links,
         parameters,
+        capabilities,
+        samples,
+        knowledgeSources,
     };
 }
 

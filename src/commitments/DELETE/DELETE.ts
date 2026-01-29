@@ -21,7 +21,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * @private [🪔] Maybe export the commitments through some package
  */
 export class DeleteCommitmentDefinition extends BaseCommitmentDefinition<'DELETE' | 'CANCEL' | 'DISCARD' | 'REMOVE'> {
-    constructor(type: 'DELETE' | 'CANCEL' | 'DISCARD' | 'REMOVE') {
+    public constructor(type: 'DELETE' | 'CANCEL' | 'DISCARD' | 'REMOVE') {
         super(type);
     }
 

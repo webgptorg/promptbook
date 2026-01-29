@@ -13,12 +13,12 @@ export async function setSession(user: SessionUser) {
     const payload = JSON.stringify(user);
     const signature = createHmac('sha256', SECRET_KEY).update(payload).digest('hex');
     const token = `${Buffer.from(payload).toString('base64')}.${signature}`;
-    
+
     (await cookies()).set(SESSION_COOKIE_NAME, token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         path: '/',
-        maxAge: 60 * 60 * 24 * 7, // 1 week
+        maxAge: 60 * 60 * 24 * 365 * 2, // 2 years
     });
 }
 

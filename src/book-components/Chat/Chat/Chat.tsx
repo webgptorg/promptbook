@@ -2,10 +2,12 @@
 // <- Note: [👲] 'use client' is enforced by Next.js when building the https://book-components.ptbk.io/ but in ideal case,
 //          this would not be here because the `@promptbook/components` package should be React library independent of Next.js specifics
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import moment from 'moment';
+import { type CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import spaceTrim from 'spacetrim';
 import { USER_CHAT_COLOR } from '../../../config';
+import { SpeechRecognitionEvent, SpeechRecognitionState } from '../../../types/SpeechRecognition';
 import type { id } from '../../../types/typeAliases';
 import { Color } from '../../../utils/color/Color';
 import { textColor } from '../../../utils/color/operators/furthest';
@@ -15,22 +17,87 @@ import { countLines } from '../../../utils/expectation-counters/countLines';
 import { humanizeAiText } from '../../../utils/markdown/humanizeAiText';
 import { promptbookifyAiText } from '../../../utils/markdown/promptbookifyAiText';
 import { normalizeToKebabCase } from '../../../utils/normalization/normalize-to-kebab-case';
+import type { TODO_any } from '../../../utils/organization/TODO_any';
 import { classNames } from '../../_common/react-utils/classNames';
 import { ArrowIcon } from '../../icons/ArrowIcon';
 import { AttachmentIcon } from '../../icons/AttachmentIcon';
 import { CloseIcon } from '../../icons/CloseIcon';
+import { DownloadIcon } from '../../icons/DownloadIcon';
+import { EmailIcon } from '../../icons/EmailIcon';
 import { MicIcon } from '../../icons/MicIcon';
 import { ResetIcon } from '../../icons/ResetIcon';
 import { SaveIcon } from '../../icons/SaveIcon';
 import { SendIcon } from '../../icons/SendIcon';
 import { TemplateIcon } from '../../icons/TemplateIcon';
+import { ChatEffectsSystem } from '../effects/ChatEffectsSystem';
+import type { ChatEffectConfig } from '../effects/types/ChatEffectConfig';
 import { useChatAutoScroll } from '../hooks/useChatAutoScroll';
+import { MarkdownContent } from '../MarkdownContent/MarkdownContent';
+import { FAST_FLOW } from '../MockedChat/constants';
+import { MockedChat } from '../MockedChat/MockedChat'; // <- [🥂]
 import { getChatSaveFormatDefinitions } from '../save/_common/getChatSaveFormatDefinitions';
 import type { string_chat_format_name } from '../save/_common/string_chat_format_name';
 import type { ChatMessage } from '../types/ChatMessage';
+import { ChatParticipant } from '../types/ChatParticipant';
+import type { AgentProfileData } from '../utils/loadAgentProfile';
+import { loadAgentProfile, resolveAgentProfileFallback, resolvePreferredAgentLabel } from '../utils/loadAgentProfile';
+import type { ParsedCitation } from '../utils/parseCitationsFromContent';
+import { resolveCitationUrl } from '../utils/resolveCitationUrl';
+import {
+    extractSearchResults,
+    getToolCallResultDate,
+    getToolCallTimestamp,
+    parseTeamToolResult,
+    parseToolCallArguments,
+    parseToolCallResult,
+} from '../utils/toolCallParsing';
 import styles from './Chat.module.css';
-import { ChatMessageItem } from './ChatMessageItem'; // <- [🥂]
+import { ChatMessageItem } from './ChatMessageItem';
 import type { ChatProps } from './ChatProps';
+import { ChatSoundToggle } from './ChatSoundToggle';
+import { ClockIcon } from './ClockIcon';
+
+/**
+ * Props for a team modal header profile badge.
+ */
+type TeamHeaderProfileProps = {
+    label: string;
+    avatarSrc?: string | null;
+    href?: string;
+    fallbackColor?: string;
+};
+
+/**
+ * Renders a profile badge used in the TEAM modal header.
+ */
+function TeamHeaderProfile({ label, avatarSrc, href, fallbackColor }: TeamHeaderProfileProps) {
+    const avatarStyles: CSSProperties = {
+        backgroundColor: fallbackColor || '#e2e8f0',
+        backgroundImage: avatarSrc ? `url(${avatarSrc})` : undefined,
+    };
+
+    const content = (
+        <>
+            <span className={styles.teamHeaderAvatar} style={avatarStyles} aria-hidden="true" />
+            <span className={styles.teamHeaderName}>{label}</span>
+        </>
+    );
+
+    if (href) {
+        return (
+            <a
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={classNames(styles.teamHeaderProfile, styles.teamHeaderProfileLink)}
+            >
+                {content}
+            </a>
+        );
+    }
+
+    return <div className={styles.teamHeaderProfile}>{content}</div>;
+}
 
 /**
  * Renders a chat with messages and input for new messages
@@ -54,7 +121,7 @@ export function Chat(props: ChatProps) {
         onReset,
         onFeedback,
         onFileUpload,
-        onVoiceInput,
+        speechRecognition,
         // isVoiceRecognitionButtonShown,
         // voiceLanguage = 'en-US',
         placeholderMessageContent,
@@ -78,9 +145,19 @@ export function Chat(props: ChatProps) {
         isCopyButtonEnabled = true,
         buttonColor: buttonColorRaw,
         onUseTemplate,
+        onCreateAgent,
+        toolTitles,
+        teammates,
+        visual,
+        effectConfigs,
+        soundSystem,
     } = props;
 
     const buttonColor = useMemo(() => Color.from(buttonColorRaw || '#0066cc'), [buttonColorRaw]);
+    const agentParticipant = useMemo(
+        () => participants.find((participant) => participant.name === 'AGENT'),
+        [participants],
+    );
 
     // Use the auto-scroll hook
     const {
@@ -96,6 +173,12 @@ export function Chat(props: ChatProps) {
     const buttonSendRef = useRef<HTMLButtonElement | null>(null);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const [ratingModalOpen, setRatingModalOpen] = useState(false);
+    const [toolCallModalOpen, setToolCallModalOpen] = useState(false);
+    const [selectedToolCall, setSelectedToolCall] = useState<NonNullable<ChatMessage['toolCalls']>[number] | null>(
+        null,
+    );
+    const [citationModalOpen, setCitationModalOpen] = useState(false);
+    const [selectedCitation, setSelectedCitation] = useState<ParsedCitation | null>(null);
     const [selectedMessage, setSelectedMessage] = useState<ChatMessage | null>(null);
     const [messageRatings, setMessageRatings] = useState<Map<id, number>>(new Map());
     const [textRating, setTextRating] = useState('');
@@ -107,11 +190,15 @@ export function Chat(props: ChatProps) {
     // const [inputValue, setInputValue] = useState('');
     const [mode] = useState<'LIGHT' | 'DARK'>('LIGHT'); // Simplified light/dark mode
     const [ratingConfirmation, setRatingConfirmation] = useState<string | null>(null);
+    const [teamProfiles, setTeamProfiles] = useState<Record<string, AgentProfileData>>({});
 
     // File upload state
     const [uploadedFiles, setUploadedFiles] = useState<Array<{ id: string; file: File; content: string }>>([]);
     const [isDragOver, setIsDragOver] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
+
+    // Voice recognition state
+    const [speechRecognitionState, setSpeechRecognitionState] = useState<SpeechRecognitionState>('IDLE');
 
     // Use mobile detection from the hook
     const isMobile = isMobileFromHook;
@@ -129,8 +216,105 @@ export function Chat(props: ChatProps) {
                 textareaRef.current.focus();
             }
         },
-        [textareaRef, isMobile],
+        [textareaRef, isMobile, isFocusedOnLoad],
     );
+
+    // Voice recognition effects
+    useEffect(() => {
+        if (!speechRecognition) {
+            return;
+        }
+
+        const unsubscribe = speechRecognition.subscribe((event: SpeechRecognitionEvent) => {
+            if (event.type === 'START') {
+                setSpeechRecognitionState('RECORDING');
+            } else if (event.type === 'RESULT') {
+                // [🧠] Note: This logic assumes that interim results are being updated.
+                //      For OpenAiSpeechRecognition, it's just one final result.
+
+                if (textareaRef.current) {
+                    const textarea = textareaRef.current;
+                    const currentValue = textarea.value;
+
+                    // Append the transcribed text with a space if needed
+                    const separator =
+                        currentValue && !currentValue.endsWith(' ') && !currentValue.endsWith('\n') ? ' ' : '';
+                    textarea.value += separator + event.text;
+
+                    if (onChange) {
+                        onChange(textarea.value);
+                    }
+                }
+            } else if (event.type === 'ERROR') {
+                setSpeechRecognitionState('ERROR');
+                alert(`Speech recognition error: ${event.message}`);
+            } else if (event.type === 'STOP') {
+                setSpeechRecognitionState('IDLE');
+            }
+        });
+
+        return () => {
+            unsubscribe();
+        };
+    }, [speechRecognition, onChange]);
+
+    useEffect(() => {
+        if (!toolCallModalOpen || !selectedToolCall) {
+            return;
+        }
+
+        const resultRaw = parseToolCallResult(selectedToolCall.result);
+        const teamResult = parseTeamToolResult(resultRaw);
+        const teammateUrl = teamResult?.teammate?.url;
+
+        if (!teammateUrl || teammateUrl === 'VOID') {
+            return;
+        }
+
+        const fallbackProfile = resolveAgentProfileFallback({
+            url: teammateUrl,
+            label: teamResult.teammate?.label,
+        });
+
+        setTeamProfiles((previous) => {
+            if (previous[teammateUrl]) {
+                return previous;
+            }
+            return { ...previous, [teammateUrl]: fallbackProfile };
+        });
+
+        let isMounted = true;
+
+        loadAgentProfile({ url: teammateUrl, label: teamResult.teammate?.label }).then((profile) => {
+            if (!isMounted) {
+                return;
+            }
+
+            setTeamProfiles((previous) => {
+                const existing = previous[teammateUrl];
+                if (existing && existing.label === profile.label && existing.imageUrl === profile.imageUrl) {
+                    return previous;
+                }
+                return { ...previous, [teammateUrl]: profile };
+            });
+        });
+
+        return () => {
+            isMounted = false;
+        };
+    }, [toolCallModalOpen, selectedToolCall]);
+
+    const handleToggleVoiceInput = useCallback(() => {
+        if (!speechRecognition) {
+            return;
+        }
+
+        if (speechRecognition.state === 'IDLE' || speechRecognition.state === 'ERROR') {
+            speechRecognition.$start({ language: /* 'en-US' */ 'en' });
+        } else {
+            speechRecognition.$stop();
+        }
+    }, [speechRecognition]);
 
     // File upload handlers inspired by BookEditor
     const handleFileUpload = useCallback(
@@ -153,19 +337,6 @@ export function Chat(props: ChatProps) {
                 }
 
                 setUploadedFiles((prev) => [...prev, ...newUploadedFiles]);
-
-                // Also append the result of onFileUpload to the message input area
-                if (textareaRef.current && newUploadedFiles.length > 0) {
-                    const currentValue = textareaRef.current.value;
-                    const fileContents = newUploadedFiles.map((f) => f.content).join(' ');
-                    const newValue = currentValue ? `${currentValue} ${fileContents}` : fileContents;
-                    textareaRef.current.value = newValue;
-
-                    // Trigger onChange if it exists
-                    if (onChange) {
-                        onChange(newValue);
-                    }
-                }
             } catch (error) {
                 console.error('File upload failed:', error);
                 alert('File upload failed. Please try again.');
@@ -201,6 +372,19 @@ export function Chat(props: ChatProps) {
         setIsDragOver(false);
     }, []);
 
+    const handlePaste = useCallback(
+        (event: React.ClipboardEvent) => {
+            if (!onFileUpload) return;
+
+            const files = event.clipboardData.files;
+            if (files.length > 0) {
+                // event.preventDefault(); // [🧠] Do NOT prevent default, because we want to allow pasting text too
+                handleFileUpload(files);
+            }
+        },
+        [onFileUpload, handleFileUpload],
+    );
+
     const handleFileInputChange = useCallback(
         (event: React.ChangeEvent<HTMLInputElement>) => {
             const files = event.target.files;
@@ -223,36 +407,32 @@ export function Chat(props: ChatProps) {
         }
 
         const textareaElement = textareaRef.current;
-        const buttonSendElement = buttonSendRef.current;
 
         if (!textareaElement) {
-            throw new Error(`Can not find textarea`);
-        }
-        if (!buttonSendElement) {
             throw new Error(`Can not find textarea`);
         }
 
         // Check if textarea was focused before sending to preserve focus only in that case
         const wasTextareaFocused = document.activeElement === textareaElement;
 
-        textareaElement.disabled = true;
-        buttonSendElement.disabled = true;
-
         try {
-            let messageContent = textareaElement.value;
+            const messageContent = textareaElement.value;
+            const attachments = uploadedFiles.map((uploadedFile) => ({
+                name: uploadedFile.file.name,
+                type: uploadedFile.file.type,
+                url: uploadedFile.content,
+            }));
 
-            // Append file upload results to the message if any files are uploaded
-            if (uploadedFiles.length > 0) {
-                const fileContents = uploadedFiles.map((f) => f.content).join(' ');
-                messageContent = messageContent ? `${messageContent} ${fileContents}` : fileContents;
-            }
-
-            if (spaceTrim(messageContent) === '') {
+            if (spaceTrim(messageContent) === '' && attachments.length === 0) {
                 throw new Error(`You need to write some text or upload a file`);
             }
 
-            await onMessage(messageContent);
+            // Play send sound
+            if (soundSystem) {
+                /* not await */ soundSystem.play('message_send');
+            }
 
+            // Clear input immediately
             textareaElement.value = '';
             setUploadedFiles([]); // Clear uploaded files after sending
 
@@ -260,6 +440,16 @@ export function Chat(props: ChatProps) {
             if (wasTextareaFocused) {
                 textareaElement.focus();
             }
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (onMessage as any)(messageContent, attachments).catch((error: unknown) => {
+                console.error(error);
+                if (error instanceof Error) {
+                    alert(error.message);
+                } else {
+                    alert(String(error));
+                }
+            });
         } catch (error) {
             if (!(error instanceof Error)) {
                 throw error;
@@ -267,20 +457,27 @@ export function Chat(props: ChatProps) {
 
             console.error(error);
             alert(error.message);
-        } finally {
-            textareaElement.disabled = false;
-            buttonSendElement.disabled = false;
-
-            // Only restore focus if the textarea was focused when sending the message
-            if (wasTextareaFocused) {
-                textareaElement.focus();
-            }
         }
-    }, [onMessage, uploadedFiles]);
+    }, [onMessage, uploadedFiles, soundSystem]);
 
     const useChatCssClassName = (suffix: string) => `chat-${suffix}`;
 
     const scrollToBottomCssClassName = useChatCssClassName('scrollToBottom');
+
+    // Helper to play button click sound
+    const handleButtonClick = useCallback(
+        (originalHandler?: (event: React.MouseEvent<HTMLButtonElement>) => void) => {
+            return (event: React.MouseEvent<HTMLButtonElement>) => {
+                if (soundSystem) {
+                    /* not await */ soundSystem.play('button_click');
+                }
+                if (originalHandler) {
+                    originalHandler(event);
+                }
+            };
+        },
+        [soundSystem],
+    );
 
     const handleRating = useCallback(async (message: ChatMessage, newRating: number) => {
         setSelectedMessage(message);
@@ -349,7 +546,7 @@ export function Chat(props: ChatProps) {
     }, [ratingModalOpen, isMobile]);
 
     // Determine alignment for actions (Reset button) based on the first message
-    const firstMessageFromUser = messages[0]?.from === 'USER';
+    const firstMessageFromUser = messages[0]?.sender === 'USER';
     const actionsAlignmentClass = firstMessageFromUser
         ? styles.actions + ' ' + styles.left
         : styles.actions + ' ' + styles.right;
@@ -369,8 +566,62 @@ export function Chat(props: ChatProps) {
         handleMessagesChange();
     }, [postprocessedMessages, handleMessagesChange]);
 
+    // Track previous messages to detect new ones
+    const previousMessagesLengthRef = useRef(messages.length);
+
+    // Play sounds when new messages are received or typing indicator appears
+    useEffect(() => {
+        if (!soundSystem || messages.length === 0) {
+            return;
+        }
+
+        const lastMessage = messages[messages.length - 1];
+        if (!lastMessage) {
+            return;
+        }
+
+        // Only trigger sounds for new messages (not on initial render)
+        if (messages.length > previousMessagesLengthRef.current) {
+            // Message from agent/assistant
+            if (lastMessage.sender !== 'USER') {
+                if (lastMessage.isComplete) {
+                    // Complete message - play receive sound
+                    /* not await */ soundSystem.play('message_receive');
+                } else if (lastMessage.content.includes('Thinking...') || lastMessage.content.includes('typing')) {
+                    // Typing indicator - play typing sound
+                    /* not await */ soundSystem.play('message_typing');
+                }
+            }
+        } else if (messages.length === previousMessagesLengthRef.current && lastMessage.sender !== 'USER') {
+            // Message length same but content changed - check for completion
+            if (lastMessage.isComplete && !lastMessage.content.includes('Thinking...')) {
+                // Message just became complete - play receive sound
+                /* not await */ soundSystem.play('message_receive');
+            }
+        }
+
+        previousMessagesLengthRef.current = messages.length;
+    }, [messages, soundSystem]);
+
     // Download logic
     const [showSaveMenu, setShowSaveMenu] = useState(false);
+
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (!(event.ctrlKey || event.metaKey) || event.key !== 's') {
+                return;
+            }
+
+            event.preventDefault();
+            setShowSaveMenu((v) => !v);
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [setShowSaveMenu]);
 
     const handleDownload = useCallback(
         async (format: string_chat_format_name) => {
@@ -409,7 +660,24 @@ export function Chat(props: ChatProps) {
         <>
             {ratingConfirmation && <div className={styles.ratingConfirmation}>{ratingConfirmation}</div>}
 
-            <div className={classNames(className, styles.Chat, useChatCssClassName('Chat'))} {...{ style }}>
+            {effectConfigs && effectConfigs.length > 0 && (
+                <ChatEffectsSystem
+                    messages={postprocessedMessages}
+                    effectConfigs={effectConfigs as ReadonlyArray<ChatEffectConfig>}
+                    soundSystem={soundSystem}
+                />
+            )}
+
+            <div
+                className={classNames(
+                    className,
+                    styles.Chat,
+                    visual === 'STANDALONE' && styles.standaloneVisual,
+                    visual === 'FULL_PAGE' && styles.fullPageVisual,
+                    useChatCssClassName('Chat'),
+                )}
+                {...{ style }}
+            >
                 <div className={classNames(className, styles.chatMainFlow, useChatCssClassName('chatMainFlow'))}>
                     {children && <div className={classNames(styles.chatChildren)}>{children}</div>}
 
@@ -418,7 +686,7 @@ export function Chat(props: ChatProps) {
                             <button
                                 data-button-type="custom"
                                 className={classNames(styles.scrollToBottom, scrollToBottomCssClassName)}
-                                onClick={scrollToBottom}
+                                onClick={handleButtonClick(scrollToBottom)}
                             >
                                 <ArrowIcon direction="DOWN" size={33} />
                             </button>
@@ -443,13 +711,13 @@ export function Chat(props: ChatProps) {
                                 {onReset && postprocessedMessages.length !== 0 && (
                                     <button
                                         className={classNames(styles.chatButton)}
-                                        onClick={() => {
+                                        onClick={handleButtonClick(() => {
                                             if (!confirm(`Do you really want to reset the chat?`)) {
                                                 return;
                                             }
 
                                             onReset();
-                                        }}
+                                        })}
                                     >
                                         <ResetIcon />
                                         <span className={styles.chatButtonText}>New chat</span>
@@ -460,7 +728,7 @@ export function Chat(props: ChatProps) {
                                     <div className={styles.saveButtonContainer}>
                                         <button
                                             className={classNames(styles.chatButton)}
-                                            onClick={() => setShowSaveMenu((v) => !v)}
+                                            onClick={handleButtonClick(() => setShowSaveMenu((v) => !v))}
                                             aria-haspopup="true"
                                             aria-expanded={showSaveMenu}
                                         >
@@ -483,13 +751,22 @@ export function Chat(props: ChatProps) {
                                                         {formatDefinition.label}
                                                     </button>
                                                 ))}
+                                                {soundSystem && (
+                                                    <>
+                                                        <div className={styles.saveMenuDivider} />
+                                                        <ChatSoundToggle soundSystem={soundSystem} />
+                                                    </>
+                                                )}
                                             </div>
                                         )}
                                     </div>
                                 )}
 
                                 {onUseTemplate && (
-                                    <button className={classNames(styles.useTemplateButton)} onClick={onUseTemplate}>
+                                    <button
+                                        className={classNames(styles.useTemplateButton)}
+                                        onClick={handleButtonClick(onUseTemplate)}
+                                    >
                                         <span className={styles.chatButtonText}>Use this template</span>
                                         <TemplateIcon size={16} />
                                     </button>
@@ -526,7 +803,7 @@ export function Chat(props: ChatProps) {
                                 // Detect if first message is long
                                 const firstMsg = postprocessedMessages[0];
                                 const firstMsgContent = firstMsg?.content || '';
-                                const firstMsgLines = firstMsgContent.split('\n').length; // <- TODO: Maybe use official counting functions here
+                                const firstMsgLines = firstMsgContent.split(/\r?\n/).length; // <- TODO: Maybe use official counting functions here
                                 const firstMsgChars = firstMsgContent.length;
                                 const isFirstLong = firstMsgLines > 5 || firstMsgChars > 50;
 
@@ -541,7 +818,7 @@ export function Chat(props: ChatProps) {
                         onScroll={handleScroll}
                     >
                         {postprocessedMessages.map((message, i) => {
-                            const participant = participants.find((participant) => participant.name === message.from);
+                            const participant = participants.find((participant) => participant.name === message.sender);
                             const isLastMessage = i === postprocessedMessages.length - 1;
                             const isExpanded = expandedMessageId === message.id;
                             const currentRating = messageRatings.get(message.id || message.content /* <-[💃] */) || 0;
@@ -562,6 +839,17 @@ export function Chat(props: ChatProps) {
                                     isCopyButtonEnabled={isCopyButtonEnabled}
                                     isFeedbackEnabled={isFeedbackEnabled}
                                     onCopy={handleCopy}
+                                    onCreateAgent={onCreateAgent}
+                                    toolTitles={toolTitles}
+                                    teammates={teammates}
+                                    onToolCallClick={(toolCall) => {
+                                        setSelectedToolCall(toolCall);
+                                        setToolCallModalOpen(true);
+                                    }}
+                                    onCitationClick={(citation) => {
+                                        setSelectedCitation(citation);
+                                        setCitationModalOpen(true);
+                                    }}
                                 />
                             );
                         })}
@@ -627,6 +915,7 @@ export function Chat(props: ChatProps) {
                                                 // <- TODO: Remove
                                                 '--input-bg-color': inputBgColor.toHex(),
                                                 '--input-text-color': inputTextColor.toHex(),
+                                                '--brand-color': buttonColor.toHex(),
                                             } as React.CSSProperties
                                         }
                                     >
@@ -634,12 +923,14 @@ export function Chat(props: ChatProps) {
                                             ref={(element) => {
                                                 textareaRef.current = element;
                                             }}
+                                            onPaste={handlePaste}
                                             style={{
                                                 height:
                                                     Math.max(
                                                         countLines(textareaRef.current?.value || defaultMessage || ''),
-                                                        (textareaRef.current?.value || defaultMessage || '').split('\n')
-                                                            .length,
+                                                        (textareaRef.current?.value || defaultMessage || '').split(
+                                                            /\r?\n/,
+                                                        ).length,
                                                         3,
                                                     ) *
                                                         25 +
@@ -687,7 +978,7 @@ export function Chat(props: ChatProps) {
                                                         color: buttonColor.then(textColor).toHex(),
                                                     }}
                                                     className={styles.attachmentButton}
-                                                    onClick={() => fileInputRef.current?.click()}
+                                                    onClick={handleButtonClick(() => fileInputRef.current?.click())}
                                                     disabled={isUploading}
                                                     title="Attach file"
                                                 >
@@ -696,22 +987,43 @@ export function Chat(props: ChatProps) {
                                             </>
                                         )}
 
-                                        {onVoiceInput && (
+                                        {speechRecognition && (
                                             <button
                                                 data-button-type="voice"
+                                                disabled={
+                                                    speechRecognitionState === 'STARTING' ||
+                                                    speechRecognitionState === 'TRANSCRIBING'
+                                                }
                                                 style={{
-                                                    backgroundColor: buttonColor.toHex(),
-                                                    color: buttonColor.then(textColor).toHex(),
+                                                    backgroundColor: (speechRecognitionState === 'RECORDING' ||
+                                                    speechRecognitionState === 'TRANSCRIBING'
+                                                        ? Color.from('#ff4444')
+                                                        : buttonColor
+                                                    ).toHex(),
+                                                    color: (speechRecognitionState === 'RECORDING' ||
+                                                    speechRecognitionState === 'TRANSCRIBING'
+                                                        ? Color.from('#ffffff')
+                                                        : buttonColor.then(textColor)
+                                                    ).toHex(),
                                                 }}
                                                 className={classNames(
                                                     styles.voiceButton,
-                                                    isVoiceCalling && styles.voiceButtonActive,
+                                                    (isVoiceCalling ||
+                                                        speechRecognitionState === 'RECORDING' ||
+                                                        speechRecognitionState === 'TRANSCRIBING') &&
+                                                        styles.voiceButtonActive,
                                                 )}
-                                                onClick={(event) => {
+                                                onClick={handleButtonClick((event) => {
                                                     event.preventDefault();
-                                                    onVoiceInput();
-                                                }}
-                                                title={isVoiceCalling ? 'Stop voice call' : 'Start voice call'}
+                                                    handleToggleVoiceInput();
+                                                })}
+                                                title={
+                                                    speechRecognitionState === 'RECORDING'
+                                                        ? 'Stop recording'
+                                                        : speechRecognitionState === 'TRANSCRIBING'
+                                                        ? 'Transcribing...'
+                                                        : 'Start voice input'
+                                                }
                                             >
                                                 <MicIcon size={25} />
                                             </button>
@@ -724,14 +1036,14 @@ export function Chat(props: ChatProps) {
                                                 color: buttonColor.then(textColor).toHex(),
                                             }}
                                             ref={buttonSendRef}
-                                            onClick={(event) => {
+                                            onClick={handleButtonClick((event) => {
                                                 if (!onMessage) {
                                                     return;
                                                 }
 
                                                 event.preventDefault();
                                                 /* not await */ handleSend();
-                                            }}
+                                            })}
                                         >
                                             <SendIcon size={25} />
                                         </button>
@@ -762,6 +1074,563 @@ export function Chat(props: ChatProps) {
                     )}
                 </div>
             </div>
+
+            {toolCallModalOpen && selectedToolCall && (
+                <div
+                    className={styles.ratingModal}
+                    onClick={(e) => {
+                        if (e.target === e.currentTarget) {
+                            setToolCallModalOpen(false);
+                        }
+                    }}
+                >
+                    <div className={classNames(styles.ratingModalContent, styles.toolCallModal)}>
+                        <button
+                            type="button"
+                            className={styles.modalCloseButton}
+                            onClick={() => setToolCallModalOpen(false)}
+                            aria-label="Close dialog"
+                        >
+                            <CloseIcon />
+                        </button>
+                        {(() => {
+                            const isSearch =
+                                selectedToolCall.name === 'web_search' ||
+                                selectedToolCall.name === 'useSearchEngine' ||
+                                selectedToolCall.name === 'search';
+
+                            const isTime =
+                                selectedToolCall.name === 'get_current_time' || selectedToolCall.name === 'useTime';
+
+                            const isEmail =
+                                selectedToolCall.name === 'send_email' || selectedToolCall.name === 'useEmail';
+
+                            const args = parseToolCallArguments(selectedToolCall);
+
+                            const resultRaw = parseToolCallResult(selectedToolCall.result);
+                            const teamResult = parseTeamToolResult(resultRaw);
+
+                            const toolCallDate = getToolCallTimestamp(selectedToolCall);
+
+                            const { results, rawText } = extractSearchResults(resultRaw);
+                            const hasResults = results.length > 0;
+                            const hasRawText = !hasResults && !!rawText && rawText.trim().length > 0;
+
+                            if (teamResult?.teammate) {
+                                const teammateUrl = teamResult.teammate.url || '';
+                                const baseTime = toolCallDate ? toolCallDate.getTime() : Date.now();
+
+                                // Build messages from conversation
+                                const messages = (teamResult.conversation || [])
+                                    .filter((entry) => entry && entry.content)
+                                    .map((entry, index) => ({
+                                        id: `team-${index}`,
+                                        createdAt: new Date(baseTime + index * 1000),
+                                        sender:
+                                            entry.sender === 'TEAMMATE' || entry.role === 'TEAMMATE'
+                                                ? 'TEAMMATE'
+                                                : 'AGENT',
+                                        content: entry.content || '',
+                                        isComplete: true,
+                                    }));
+
+                                if (messages.length === 0) {
+                                    if (teamResult.request) {
+                                        messages.push({
+                                            id: 'team-request',
+                                            createdAt: new Date(baseTime),
+                                            sender: 'AGENT',
+                                            content: teamResult.request,
+                                            isComplete: true,
+                                        });
+                                    }
+                                    if (teamResult.response) {
+                                        messages.push({
+                                            id: 'team-response',
+                                            createdAt: new Date(baseTime + 1000),
+                                            sender: 'TEAMMATE',
+                                            content: teamResult.response,
+                                            isComplete: true,
+                                        });
+                                    }
+                                }
+
+                                // Extract agent names from conversation or use defaults
+                                const agentName =
+                                    teamResult.conversation?.find(
+                                        (entry) => entry.sender === 'AGENT' || entry.role === 'AGENT',
+                                    )?.name || 'Agent';
+
+                                const teammateConversationName =
+                                    teamResult.conversation?.find(
+                                        (entry) => entry.sender === 'TEAMMATE' || entry.role === 'TEAMMATE',
+                                    )?.name || '';
+                                const teammateProfile = teammateUrl ? teamProfiles[teammateUrl] : undefined;
+                                const teammateFallbackProfile = teammateUrl
+                                    ? resolveAgentProfileFallback({
+                                          url: teammateUrl,
+                                          label: teamResult.teammate.label,
+                                      })
+                                    : { label: 'Teammate', imageUrl: null };
+
+                                const resolvedAgentLabel = resolvePreferredAgentLabel(
+                                    [agentParticipant?.fullname, agentName],
+                                    agentName,
+                                );
+                                const resolvedAgentAvatar = agentParticipant?.avatarSrc || null;
+                                const resolvedAgentHeaderColor = agentParticipant?.color
+                                    ? Color.fromSafe(agentParticipant.color).toHex()
+                                    : '#64748b';
+
+                                const resolvedTeammateLabel = resolvePreferredAgentLabel(
+                                    [teammateConversationName, teammateProfile?.label, teammateFallbackProfile.label],
+                                    teammateFallbackProfile.label,
+                                );
+                                const resolvedTeammateAvatar =
+                                    teammateProfile?.imageUrl || teammateFallbackProfile.imageUrl || null;
+                                const teammateLink = teammateUrl && teammateUrl !== 'VOID' ? teammateUrl : undefined;
+
+                                const participants = [
+                                    {
+                                        name: 'AGENT',
+                                        fullname: resolvedAgentLabel,
+                                        color: agentParticipant?.color || '#64748b',
+                                        avatarSrc: resolvedAgentAvatar || undefined,
+                                        isMe: true,
+                                    },
+                                    {
+                                        name: 'TEAMMATE',
+                                        fullname: resolvedTeammateLabel,
+                                        color: '#0ea5e9',
+                                        avatarSrc: resolvedTeammateAvatar || undefined,
+                                    },
+                                ] satisfies Array<ChatParticipant>;
+
+                                return (
+                                    <>
+                                        <div className={classNames(styles.searchModalHeader, styles.teamModalHeader)}>
+                                            <div className={styles.teamHeaderParticipants}>
+                                                <TeamHeaderProfile
+                                                    label={resolvedAgentLabel}
+                                                    avatarSrc={resolvedAgentAvatar}
+                                                    fallbackColor={resolvedAgentHeaderColor}
+                                                />
+                                                <span className={styles.teamHeaderDivider}>talking with</span>
+                                                <TeamHeaderProfile
+                                                    label={resolvedTeammateLabel}
+                                                    avatarSrc={resolvedTeammateAvatar}
+                                                    fallbackColor="#0ea5e9"
+                                                    href={teammateLink}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className={styles.searchModalContent}>
+                                            {messages.length > 0 ? (
+                                                <div className={styles.teamChatContainer}>
+                                                    <MockedChat
+                                                        title={`Chat between ${resolvedAgentLabel} and ${resolvedTeammateLabel}`}
+                                                        messages={messages}
+                                                        participants={participants}
+                                                        isResettable={false}
+                                                        isPausable={false}
+                                                        isSaveButtonEnabled={false}
+                                                        isCopyButtonEnabled={false}
+                                                        visual="STANDALONE"
+                                                        delayConfig={FAST_FLOW}
+                                                    />
+                                                </div>
+                                            ) : (
+                                                <div className={styles.noResults}>
+                                                    No teammate conversation available.
+                                                </div>
+                                            )}
+                                        </div>
+                                    </>
+                                );
+                            }
+
+                            if (isSearch) {
+                                return (
+                                    <>
+                                        <div className={styles.searchModalHeader}>
+                                            <span className={styles.searchModalIcon}>🔎</span>
+                                            <h3 className={styles.searchModalQuery}>
+                                                {args.query || args.searchText || 'Search Results'}
+                                            </h3>
+                                        </div>
+
+                                        <div className={styles.searchModalContent}>
+                                            {hasResults ? (
+                                                <div className={styles.searchResultsList}>
+                                                    {(results as Array<TODO_any>).map((item, i) => (
+                                                        <div key={i} className={styles.searchResultItem}>
+                                                            <div className={styles.searchResultUrl}>
+                                                                {item.url && (
+                                                                    <a href={item.url} target="_blank" rel="noreferrer">
+                                                                        {item.url}
+                                                                    </a>
+                                                                )}
+                                                            </div>
+                                                            <h4 className={styles.searchResultTitle}>
+                                                                {item.url ? (
+                                                                    <a href={item.url} target="_blank" rel="noreferrer">
+                                                                        {item.title || 'Untitled'}
+                                                                    </a>
+                                                                ) : (
+                                                                    item.title || 'Untitled'
+                                                                )}
+                                                            </h4>
+                                                            <p className={styles.searchResultSnippet}>
+                                                                {item.snippet || item.content || ''}
+                                                            </p>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            ) : hasRawText ? (
+                                                <MarkdownContent
+                                                    className={styles.searchResultsRaw}
+                                                    content={rawText!}
+                                                />
+                                            ) : (
+                                                <div className={styles.noResults}>
+                                                    {resultRaw
+                                                        ? 'No search results found.'
+                                                        : 'Search results are not available.'}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </>
+                                );
+                            }
+
+                            if (isTime) {
+                                const timeResultDate = getToolCallResultDate(resultRaw);
+                                const displayDate = timeResultDate || toolCallDate;
+                                const isValidDate = !!displayDate && !isNaN(displayDate.getTime());
+                                const relativeLabel = toolCallDate ? `called ${moment(toolCallDate).fromNow()}` : null;
+
+                                return (
+                                    <>
+                                        <div className={styles.searchModalHeader}>
+                                            <span className={styles.searchModalIcon}>🕒</span>
+                                            <h3 className={styles.searchModalQuery}>Time at call</h3>
+                                        </div>
+
+                                        <div className={styles.searchModalContent}>
+                                            <div
+                                                style={{
+                                                    display: 'flex',
+                                                    flexDirection: 'column',
+                                                    alignItems: 'center',
+                                                    gap: '20px',
+                                                    padding: '20px',
+                                                }}
+                                            >
+                                                {isValidDate && displayDate && (
+                                                    <ClockIcon date={displayDate} size={150} />
+                                                )}
+                                                <div style={{ textAlign: 'center' }}>
+                                                    <div style={{ fontSize: '2em', fontWeight: 'bold' }}>
+                                                        {isValidDate && displayDate
+                                                            ? displayDate.toLocaleTimeString([], {
+                                                                  hour: '2-digit',
+                                                                  minute: '2-digit',
+                                                              })
+                                                            : 'Unknown time'}
+                                                    </div>
+                                                    <div style={{ color: '#666' }}>
+                                                        {isValidDate && displayDate
+                                                            ? displayDate.toLocaleDateString()
+                                                            : 'Unknown date'}
+                                                    </div>
+                                                    {relativeLabel && (
+                                                        <div
+                                                            style={{
+                                                                fontSize: '0.9em',
+                                                                color: '#888',
+                                                                marginTop: '5px',
+                                                            }}
+                                                        >
+                                                            ({relativeLabel})
+                                                        </div>
+                                                    )}
+                                                    {args.timezone && (
+                                                        <div
+                                                            style={{
+                                                                fontSize: '0.9em',
+                                                                color: '#888',
+                                                                marginTop: '5px',
+                                                            }}
+                                                        >
+                                                            Timezone: {args.timezone}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <div className={styles.toolCallDetails}>
+                                                <p>
+                                                    <strong>Timestamp of call:</strong>
+                                                </p>
+                                                <div className={styles.toolCallDataContainer}>
+                                                    <pre className={styles.toolCallData}>
+                                                        {toolCallDate ? toolCallDate.toLocaleString() : 'Unknown'}
+                                                    </pre>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </>
+                                );
+                            }
+
+                            if (isEmail) {
+                                const to = args.to || [];
+                                const cc = args.cc || [];
+                                const subject = args.subject || 'No subject';
+                                const body = args.body || '';
+                                const recipients = Array.isArray(to) ? to : [to];
+                                const ccRecipients = Array.isArray(cc) ? cc : [];
+                                const emailResult =
+                                    resultRaw && typeof resultRaw === 'object'
+                                        ? (resultRaw as Record<string, TODO_any>)
+                                        : null;
+                                const from =
+                                    (emailResult?.from as string | undefined) ||
+                                    (emailResult?.sender as string | undefined) ||
+                                    'Configured sender';
+                                const sentAt = toolCallDate ? toolCallDate.toLocaleString() : null;
+                                const status = typeof emailResult?.status === 'string' ? emailResult.status : null;
+
+                                return (
+                                    <>
+                                        <div className={classNames(styles.searchModalHeader, styles.emailModalHeader)}>
+                                            <span className={styles.searchModalIcon}>
+                                                <EmailIcon size={26} />
+                                            </span>
+                                            <div className={styles.emailHeaderText}>
+                                                <span className={styles.emailHeaderLabel}>Email</span>
+                                                <h3 className={styles.searchModalQuery}>{subject}</h3>
+                                            </div>
+                                        </div>
+
+                                        <div className={styles.searchModalContent}>
+                                            <div className={styles.emailContainer}>
+                                                <div className={styles.emailMetadata}>
+                                                    <div className={styles.emailField}>
+                                                        <strong>From:</strong>
+                                                        <span className={styles.emailRecipients}>{from}</span>
+                                                    </div>
+                                                    <div className={styles.emailField}>
+                                                        <strong>To:</strong>
+                                                        <span className={styles.emailRecipients}>
+                                                            {recipients.join(', ')}
+                                                        </span>
+                                                    </div>
+                                                    {ccRecipients.length > 0 && (
+                                                        <div className={styles.emailField}>
+                                                            <strong>CC:</strong>
+                                                            <span className={styles.emailRecipients}>
+                                                                {ccRecipients.join(', ')}
+                                                            </span>
+                                                        </div>
+                                                    )}
+                                                    <div className={styles.emailField}>
+                                                        <strong>Subject:</strong>
+                                                        <span>{subject}</span>
+                                                    </div>
+                                                    {sentAt && (
+                                                        <div className={styles.emailField}>
+                                                            <strong>Sent:</strong>
+                                                            <span>{sentAt}</span>
+                                                        </div>
+                                                    )}
+                                                    {status && (
+                                                        <div className={styles.emailField}>
+                                                            <strong>Status:</strong>
+                                                            <span className={styles.emailStatus}>{status}</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className={styles.emailBody}>
+                                                    <strong>Message:</strong>
+                                                    <div className={styles.emailBodyContent}>
+                                                        <MarkdownContent content={body} />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className={styles.toolCallDetails}>
+                                                <p>
+                                                    <strong>Result:</strong>
+                                                </p>
+                                                <div className={styles.toolCallDataContainer}>
+                                                    <pre className={styles.toolCallData}>
+                                                        {typeof resultRaw === 'object'
+                                                            ? JSON.stringify(resultRaw, null, 2)
+                                                            : String(resultRaw)}
+                                                    </pre>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </>
+                                );
+                            }
+
+                            // Fallback for other tools
+                            return (
+                                <>
+                                    <h3>Tool Call: {toolTitles?.[selectedToolCall.name] || selectedToolCall.name}</h3>
+                                    <div className={styles.toolCallDetails}>
+                                        <p>
+                                            <strong>Arguments:</strong>
+                                        </p>
+                                        <div className={styles.toolCallDataContainer}>
+                                            {args && typeof args === 'object' ? (
+                                                <ul className={styles.toolCallArgsList}>
+                                                    {Object.entries(args).map(([key, value]) => (
+                                                        <li key={key}>
+                                                            <strong>{key}:</strong>{' '}
+                                                            {typeof value === 'object'
+                                                                ? JSON.stringify(value)
+                                                                : String(value)}
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            ) : (
+                                                <pre className={styles.toolCallData}>{String(args)}</pre>
+                                            )}
+                                        </div>
+                                        <p>
+                                            <strong>Result:</strong>
+                                        </p>
+                                        <div className={styles.toolCallDataContainer}>
+                                            <pre className={styles.toolCallData}>
+                                                {typeof resultRaw === 'object'
+                                                    ? JSON.stringify(resultRaw, null, 4)
+                                                    : String(resultRaw)}
+                                            </pre>
+                                        </div>
+                                    </div>
+                                </>
+                            );
+                        })()}
+                    </div>
+                </div>
+            )}
+
+            {citationModalOpen && selectedCitation && (
+                <div
+                    className={styles.ratingModal}
+                    onClick={(e) => {
+                        if (e.target === e.currentTarget) {
+                            setCitationModalOpen(false);
+                        }
+                    }}
+                >
+                    <div className={classNames(styles.ratingModalContent, styles.toolCallModal)}>
+                        <button
+                            type="button"
+                            className={styles.modalCloseButton}
+                            onClick={() => setCitationModalOpen(false)}
+                            aria-label="Close dialog"
+                        >
+                            <CloseIcon />
+                        </button>
+                        <div className={styles.searchModalHeader}>
+                            <span className={styles.searchModalIcon}>📄</span>
+                            <h3 className={styles.searchModalQuery}>{selectedCitation.source}</h3>
+                        </div>
+
+                        <div className={styles.searchModalContent}>
+                            <div className={styles.citationDetails}>
+                                {(() => {
+                                    // Resolve the URL properly
+                                    const resolvedUrl =
+                                        selectedCitation.url ||
+                                        resolveCitationUrl(selectedCitation.source, participants);
+
+                                    const isValidUrl = !!resolvedUrl;
+                                    const extension = selectedCitation.source.split('.').pop()?.toLowerCase();
+                                    const isImage = ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(
+                                        extension || '',
+                                    );
+
+                                    return (
+                                        <>
+                                            {isValidUrl ? (
+                                                <div className={styles.citationPreview}>
+                                                    {isImage ? (
+                                                        <img
+                                                            src={resolvedUrl}
+                                                            className={styles.citationImage}
+                                                            alt={`Preview of ${selectedCitation.source}`}
+                                                            style={{
+                                                                maxWidth: '100%',
+                                                                maxHeight: '100%',
+                                                                objectFit: 'contain',
+                                                                display: 'block',
+                                                                margin: '0 auto',
+                                                            }}
+                                                        />
+                                                    ) : (
+                                                        <iframe
+                                                            src={resolvedUrl}
+                                                            className={styles.citationIframe}
+                                                            title={`Preview of ${selectedCitation.source}`}
+                                                        />
+                                                    )}
+                                                </div>
+                                            ) : selectedCitation.excerpt ? (
+                                                <div className={styles.citationExcerpt}>
+                                                    <h4>Excerpt:</h4>
+                                                    <MarkdownContent content={selectedCitation.excerpt} />
+                                                </div>
+                                            ) : (
+                                                <div
+                                                    className={styles.noResults}
+                                                    onClick={() => {
+                                                        console.info({ selectedCitation });
+                                                    }}
+                                                >
+                                                    <p>📄 Document preview unavailable</p>
+                                                </div>
+                                            )}
+                                        </>
+                                    );
+                                })()}
+                            </div>
+                        </div>
+
+                        <div className={styles.ratingActions}>
+                            {(() => {
+                                const resolvedUrl =
+                                    selectedCitation.url || resolveCitationUrl(selectedCitation.source, participants);
+
+                                if (!resolvedUrl) {
+                                    return null;
+                                }
+
+                                return (
+                                    <a
+                                        href={resolvedUrl}
+                                        download={selectedCitation.source}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className={styles.downloadButton}
+                                        onClick={() => {
+                                            if (soundSystem) {
+                                                /* not await */ soundSystem.play('button_click');
+                                            }
+                                        }}
+                                    >
+                                        <DownloadIcon size={18} />
+                                        <span>Download</span>
+                                    </a>
+                                );
+                            })()}
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {ratingModalOpen && selectedMessage && (
                 <div
@@ -819,13 +1688,13 @@ export function Chat(props: ChatProps) {
                                 if (idx > 0) {
                                     const prev = postprocessedMessages[idx - 1];
 
-                                    if (prev!.from === 'USER') {
+                                    if (prev!.sender === 'USER') {
                                         return prev!.content;
                                     }
                                 }
                                 // fallback: find last USER message before selectedMessage
                                 for (let i = messages.findIndex((m) => m.id === selectedMessage.id) - 1; i >= 0; i--) {
-                                    if (messages![i]!.from === 'USER') {
+                                    if (messages![i]!.sender === 'USER') {
                                         return messages![i]!.content;
                                     }
                                 }

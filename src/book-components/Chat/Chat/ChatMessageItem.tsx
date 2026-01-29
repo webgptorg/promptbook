@@ -3,16 +3,23 @@
 //          this would not be here because the `@promptbook/components` package should be React library independent of Next.js specifics
 
 import { memo, useEffect, useRef, useState } from 'react';
+import { colorToDataUrl } from '../../../_packages/color.index';
 import { PROMPTBOOK_CHAT_COLOR, USER_CHAT_COLOR } from '../../../config';
 import type { id } from '../../../types/typeAliases';
 import { Color } from '../../../utils/color/Color';
 import { textColor } from '../../../utils/color/operators/furthest';
 import { AvatarProfileTooltip } from '../../AvatarProfile/AvatarProfile/AvatarProfileTooltip';
 import { classNames } from '../../_common/react-utils/classNames';
+import { AgentChip, type AgentChipData } from '../AgentChip';
 import { MarkdownContent } from '../MarkdownContent/MarkdownContent';
+import { SourceChip } from '../SourceChip';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
+import type { ToolCallChipletInfo } from '../utils/getToolCallChipletText';
+import { getToolCallChipletInfo, TOOL_TITLES } from '../utils/getToolCallChipletText';
+import { extractCitationsFromMessage, type ParsedCitation } from '../utils/parseCitationsFromContent';
 import { parseMessageButtons } from '../utils/parseMessageButtons';
+import { isTeamToolName } from '../utils/createTeamToolNameFromUrl';
 import styles from './Chat.module.css';
 import type { ChatProps } from './ChatProps';
 import { AVATAR_SIZE, LOADING_INTERACTIVE_IMAGE } from './constants';
@@ -43,7 +50,85 @@ type ChatMessageItemProps = Pick<ChatProps, 'onMessage' | 'participants'> & {
      * Called when the copy button is pressed.
      */
     onCopy?: () => void;
+    /**
+     * Called when the create agent button is pressed for book code blocks.
+     */
+    onCreateAgent?: (bookContent: string) => void;
+    /**
+     * Optional mapping of technical tool names to human-readable titles.
+     * e.g., { "web_search": "Searching the web..." }
+     */
+    toolTitles?: Record<string, string>;
+    /**
+     * Optional metadata about teammates for team tool calls
+     * Maps tool name to agent information
+     */
+    teammates?: TeammatesMap;
+    /**
+     * Called when a tool call chiplet is clicked.
+     */
+    onToolCallClick?: (toolCall: NonNullable<ChatMessage['toolCalls']>[number]) => void;
+
+    /**
+     * Called when a source citation chip is clicked.
+     */
+    onCitationClick?: (citation: ParsedCitation) => void;
 };
+
+/**
+ * Metadata for a teammate agent tool.
+ */
+type TeammateMetadata = {
+    url: string;
+    label?: string;
+    instructions?: string;
+    toolName: string;
+};
+
+/**
+ * Lookup map of teammate metadata by tool name.
+ */
+type TeammatesMap = Record<string, TeammateMetadata>;
+
+/**
+ * Finds teammate metadata by tool name, falling back to the toolName field when needed.
+ */
+function findTeammateByToolName(teammates: TeammatesMap | undefined, toolName: string): TeammateMetadata | undefined {
+    if (!teammates) {
+        return undefined;
+    }
+
+    return teammates[toolName] || Object.values(teammates).find((teammate) => teammate.toolName === toolName);
+}
+
+/**
+ * Resolves agent chip data for TEAM tool calls using tool results or teammate metadata.
+ */
+function resolveTeamAgentChipData(
+    toolCall: NonNullable<ChatMessage['toolCalls']>[number],
+    teammates: TeammatesMap | undefined,
+    chipletInfo?: ToolCallChipletInfo,
+): AgentChipData | null {
+    const resolvedChipletInfo = chipletInfo || getToolCallChipletInfo(toolCall);
+
+    if (resolvedChipletInfo.agentData) {
+        return resolvedChipletInfo.agentData;
+    }
+
+    if (!isTeamToolName(toolCall.name)) {
+        return null;
+    }
+
+    const teammate = findTeammateByToolName(teammates, toolCall.name);
+    if (!teammate?.url) {
+        return null;
+    }
+
+    return {
+        url: teammate.url,
+        label: teammate.label,
+    };
+}
 
 /**
  * Renders a single chat message item with avatar, content, buttons, and rating.
@@ -51,22 +136,34 @@ type ChatMessageItemProps = Pick<ChatProps, 'onMessage' | 'participants'> & {
  * @private internal subcomponent of `<Chat>` component
  */
 export const ChatMessageItem = memo(
-    ({
-        message,
-        participant,
-        participants,
-        isLastMessage,
-        onMessage,
-        setExpandedMessageId,
-        isExpanded,
-        currentRating,
-        handleRating,
-        mode,
-        isCopyButtonEnabled,
-        isFeedbackEnabled,
-        onCopy,
-    }: ChatMessageItemProps) => {
-        const avatarSrc = participant?.avatarSrc || '';
+    //                           <- TODO: [🧠] Should we wrap more components in `React.memo`
+    //                                          Or make normal function from this?
+    (props: ChatMessageItemProps) => {
+        const {
+            message,
+            participant,
+            participants,
+            isLastMessage,
+            onMessage,
+            setExpandedMessageId,
+            isExpanded,
+            currentRating,
+            handleRating,
+            mode,
+            isCopyButtonEnabled,
+            isFeedbackEnabled,
+            onCopy,
+            onCreateAgent,
+            toolTitles,
+            teammates,
+            onToolCallClick,
+            onCitationClick,
+        } = props;
+        const {
+            isComplete = true,
+            // <- TODO: Destruct all `messages` properties like `isComplete`
+        } = message;
+        const avatarSrc = participant?.avatarSrc || null;
         const [isAvatarTooltipVisible, setIsAvatarTooltipVisible] = useState(false);
         const [avatarTooltipPosition, setAvatarTooltipPosition] = useState<{ top: number; left: number } | null>(null);
         const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -146,12 +243,19 @@ export const ChatMessageItem = memo(
         };
 
         const isMe = participant?.isMe;
+        const shouldShowParticipantLabel = (participants || []).some((entry) => entry.name === 'TEAMMATE');
+        const participantLabel = participant?.fullname || participant?.name;
         const color = Color.fromSafe(
             (participant && participant.color) || (isMe ? USER_CHAT_COLOR : PROMPTBOOK_CHAT_COLOR),
         );
         const colorOfText = color.then(textColor);
         const { contentWithoutButtons, buttons } = parseMessageButtons(message.content);
+        const completedToolCalls = message.toolCalls || message.completedToolCalls;
         const shouldShowButtons = isLastMessage && buttons.length > 0 && onMessage;
+
+        // Extract citations from message content
+        const messageWithCitations = extractCitationsFromMessage(message);
+        const citations = messageWithCitations.citations || [];
         const [localHoveredRating, setLocalHoveredRating] = useState(0);
         const [copied, setCopied] = useState(false);
         const [tooltipAlign, setTooltipAlign] = useState<'center' | 'left' | 'right'>('center');
@@ -170,7 +274,7 @@ export const ChatMessageItem = memo(
                 className={classNames(
                     styles.chatMessage,
                     isMe && styles.isMe,
-                    !message.isComplete && styles.isNotCompleteMessage,
+                    !isComplete && styles.isNotCompleteMessage,
                 )}
                 onClick={() => {
                     console.group('💬', message.content);
@@ -190,14 +294,21 @@ export const ChatMessageItem = memo(
                         onMouseLeave={handleMouseLeave}
                         onClick={showTooltip}
                     >
-                        <img
-                            width={AVATAR_SIZE}
-                            src={avatarSrc}
-                            alt={`Avatar of ${message.from.toString().toLocaleLowerCase()}`}
+                        {/* Note: [㊗️] Using <div/> not <img/> for avatar to 1:1 aspect ratio in every circumstance */}
+                        <div
                             style={
                                 {
-                                    '--avatar-bg-color': color.toHex(),
                                     width: AVATAR_SIZE,
+                                    height: AVATAR_SIZE,
+                                    aspectRatio: '1 / 1',
+
+                                    backgroundImage: `url(${participant?.avatarSrc || colorToDataUrl(color)})`,
+                                    backgroundColor: color.toHex(),
+                                    backgroundRepeat: 'no-repeat',
+                                    backgroundSize: 'cover',
+                                    borderRadius: '50%',
+                                    backgroundPosition: '50% 20%', // <- Note: Center avatar image to the head
+                                    '--avatar-bg-color': color.toHex(), // <- TODO: Maybe remove these deprecated CSS variables
                                 } as React.CSSProperties
                             }
                         />
@@ -211,192 +322,302 @@ export const ChatMessageItem = memo(
                     </div>
                 )}
 
-                <div
-                    className={styles.messageText}
-                    style={
-                        {
-                            '--message-bg-color': color.toHex(),
-                            '--message-text-color': colorOfText.toHex(),
-                        } as React.CSSProperties
-                    }
-                >
-                    {isCopyButtonEnabled && message.isComplete && (
-                        <div className={styles.copyButtonContainer}>
-                            <button
-                                className={styles.copyButton}
-                                title="Copy message"
-                                onClick={async (e) => {
-                                    e.stopPropagation();
-
-                                    if (navigator.clipboard && window.ClipboardItem) {
-                                        const clipboardItems: Record<string, Blob> = {};
-
-                                        if (contentWithoutButtonsRef.current) {
-                                            const html = contentWithoutButtonsRef.current.innerHTML;
-                                            clipboardItems['text/html'] = new Blob([html], {
-                                                type: 'text/html',
-                                            });
-                                        }
-
-                                        if (contentWithoutButtonsRef.current) {
-                                            const plain = contentWithoutButtonsRef.current.innerText;
-                                            clipboardItems['text/plain'] = new Blob([plain], { type: 'text/plain' });
-                                        }
-
-                                        await navigator.clipboard.write([new window.ClipboardItem(clipboardItems)]);
-                                        setCopied(true);
-                                        setTimeout(() => setCopied(false), 2000);
-
-                                        // Tooltip positioning logic
-                                        setTimeout(() => {
-                                            const tooltip = copyTooltipRef.current;
-                                            if (tooltip) {
-                                                const rect = tooltip.getBoundingClientRect();
-                                                if (rect.left < 8) {
-                                                    setTooltipAlign('left');
-                                                } else if (rect.right > window.innerWidth - 8) {
-                                                    setTooltipAlign('right');
-                                                } else {
-                                                    setTooltipAlign('center');
-                                                }
-                                            }
-                                        }, 10);
-                                        if (typeof onCopy === 'function') {
-                                            onCopy();
-                                        }
-                                    } else {
-                                        throw new Error(
-                                            `Your browser does not support copying to clipboard: navigator.clipboard && window.ClipboardItem.`,
-                                        );
-                                    }
-                                }}
-                            >
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                                    <rect
-                                        x="7"
-                                        y="7"
-                                        width="10"
-                                        height="14"
-                                        rx="2"
-                                        fill="#fff"
-                                        stroke="#bbb"
-                                        strokeWidth="1.5"
-                                    />
-                                    <rect
-                                        x="3"
-                                        y="3"
-                                        width="10"
-                                        height="14"
-                                        rx="2"
-                                        fill="#fff"
-                                        stroke="#bbb"
-                                        strokeWidth="1.5"
-                                    />
-                                </svg>
-                                {copied && (
-                                    <span
-                                        ref={copyTooltipRef}
-                                        className={
-                                            styles.copiedTooltip +
-                                            (tooltipAlign === 'left'
-                                                ? ' ' + styles.copiedTooltipLeft
-                                                : tooltipAlign === 'right'
-                                                ? ' ' + styles.copiedTooltipRight
-                                                : '')
-                                        }
-                                    >
-                                        Copied!
-                                    </span>
-                                )}
-                            </button>
-                        </div>
+                <div className={styles.messageStack}>
+                    {shouldShowParticipantLabel && participantLabel && (
+                        <div className={styles.participantLabel}>{participantLabel}</div>
                     )}
-                    {message.isVoiceCall && (
-                        <div className={styles.voiceCallIndicator}>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
-                            </svg>
-                        </div>
-                    )}
-
-                    {message.content === LOADING_INTERACTIVE_IMAGE ? (
-                        <>
-                            {/* Loading Case: B */}
-                            {/* <LoadingInteractiveImage width={50} height={50} isLoading /> */}
-                        </>
-                    ) : (
-                        <div ref={contentWithoutButtonsRef}>
-                            <MarkdownContent content={contentWithoutButtons} />
-                        </div>
-                    )}
-
-                    {!message.isComplete && <span className={styles.NonCompleteMessageFiller}>{'_'.repeat(70)}</span>}
-
-                    {shouldShowButtons && (
-                        <div className={styles.messageButtons}>
-                            {buttons.map((button, buttonIndex) => (
+                    <div
+                        className={styles.messageText}
+                        style={
+                            {
+                                '--message-bg-color': color.toHex(),
+                                '--message-text-color': colorOfText.toHex(),
+                            } as React.CSSProperties
+                        }
+                    >
+                        {isCopyButtonEnabled && isComplete && (
+                            <div className={styles.copyButtonContainer}>
                                 <button
-                                    key={buttonIndex}
-                                    className={styles.messageButton}
-                                    onClick={(event) => {
-                                        event.stopPropagation();
-                                        if (onMessage) {
-                                            onMessage(button.message);
+                                    className={styles.copyButton}
+                                    title="Copy message"
+                                    onClick={async (e) => {
+                                        e.stopPropagation();
+
+                                        if (navigator.clipboard && window.ClipboardItem) {
+                                            const clipboardItems: Record<string, Blob> = {};
+
+                                            if (contentWithoutButtonsRef.current) {
+                                                const html = contentWithoutButtonsRef.current.innerHTML;
+                                                clipboardItems['text/html'] = new Blob([html], {
+                                                    type: 'text/html',
+                                                });
+                                            }
+
+                                            if (contentWithoutButtonsRef.current) {
+                                                const plain = contentWithoutButtonsRef.current.innerText;
+                                                clipboardItems['text/plain'] = new Blob([plain], {
+                                                    type: 'text/plain',
+                                                });
+                                            }
+
+                                            await navigator.clipboard.write([new window.ClipboardItem(clipboardItems)]);
+                                            setCopied(true);
+                                            setTimeout(() => setCopied(false), 2000);
+
+                                            // Tooltip positioning logic
+                                            setTimeout(() => {
+                                                const tooltip = copyTooltipRef.current;
+                                                if (tooltip) {
+                                                    const rect = tooltip.getBoundingClientRect();
+                                                    if (rect.left < 8) {
+                                                        setTooltipAlign('left');
+                                                    } else if (rect.right > window.innerWidth - 8) {
+                                                        setTooltipAlign('right');
+                                                    } else {
+                                                        setTooltipAlign('center');
+                                                    }
+                                                }
+                                            }, 10);
+                                            if (typeof onCopy === 'function') {
+                                                onCopy();
+                                            }
+                                        } else {
+                                            throw new Error(
+                                                `Your browser does not support copying to clipboard: navigator.clipboard && window.ClipboardItem.`,
+                                            );
                                         }
                                     }}
-                                    // <- TODO: [🐱‍🚀] `Color` should work with forma `#ff00ff55` *(with alpha)*
                                 >
-                                    <MarkdownContent content={button.text} />
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                                        <rect
+                                            x="7"
+                                            y="7"
+                                            width="10"
+                                            height="14"
+                                            rx="2"
+                                            fill="#fff"
+                                            stroke="#bbb"
+                                            strokeWidth="1.5"
+                                        />
+                                        <rect
+                                            x="3"
+                                            y="3"
+                                            width="10"
+                                            height="14"
+                                            rx="2"
+                                            fill="#fff"
+                                            stroke="#bbb"
+                                            strokeWidth="1.5"
+                                        />
+                                    </svg>
+                                    {copied && (
+                                        <span
+                                            ref={copyTooltipRef}
+                                            className={
+                                                styles.copiedTooltip +
+                                                (tooltipAlign === 'left'
+                                                    ? ' ' + styles.copiedTooltipLeft
+                                                    : tooltipAlign === 'right'
+                                                    ? ' ' + styles.copiedTooltipRight
+                                                    : '')
+                                            }
+                                        >
+                                            Copied!
+                                        </span>
+                                    )}
                                 </button>
-                            ))}
-                        </div>
-                    )}
+                            </div>
+                        )}
+                        {message.isVoiceCall && (
+                            <div className={styles.voiceCallIndicator}>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
+                                </svg>
+                            </div>
+                        )}
 
-                    {isFeedbackEnabled && message.isComplete && (
-                        <div
-                            className={styles.rating}
-                            onMouseEnter={() => {
-                                setExpandedMessageId(message.id || message.content /* <-[💃] */);
-                            }}
-                            onMouseLeave={() => {
-                                setExpandedMessageId(null);
-                                setLocalHoveredRating(0);
-                            }}
-                        >
-                            {isExpanded ? (
-                                [1, 2, 3, 4, 5].map((star) => (
+                        {message.content === LOADING_INTERACTIVE_IMAGE ? (
+                            <>
+                                {/* Loading Case: B */}
+                                {/* <LoadingInteractiveImage width={50} height={50} isLoading /> */}
+                            </>
+                        ) : (
+                            <div ref={contentWithoutButtonsRef}>
+                                <MarkdownContent content={contentWithoutButtons} onCreateAgent={onCreateAgent} />
+                            </div>
+                        )}
+
+                        {message.attachments && message.attachments.length > 0 && (
+                            <div className={styles.attachments}>
+                                {message.attachments.map((attachment, index) => (
+                                    <a
+                                        key={index}
+                                        href={attachment.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className={styles.attachment}
+                                        title={attachment.name}
+                                    >
+                                        <span className={styles.attachmentIcon}>📎</span>
+                                        <span className={styles.attachmentName}>{attachment.name}</span>
+                                    </a>
+                                ))}
+                            </div>
+                        )}
+
+                        {completedToolCalls && completedToolCalls.length > 0 && (
+                            <div className={styles.completedToolCalls}>
+                                {completedToolCalls.map((toolCall, index) => {
+                                    const chipletInfo = getToolCallChipletInfo(toolCall);
+                                    const teamAgentData = resolveTeamAgentChipData(toolCall, teammates, chipletInfo);
+
+                                    // If this is a team tool with agent data, use AgentChip
+                                    if (teamAgentData) {
+                                        return (
+                                            <AgentChip
+                                                key={index}
+                                                agent={teamAgentData}
+                                                isClickable={true}
+                                                onClick={(event) => {
+                                                    event?.stopPropagation?.();
+                                                    if (onToolCallClick) {
+                                                        onToolCallClick(toolCall);
+                                                    }
+                                                }}
+                                            />
+                                        );
+                                    }
+
+                                    // Otherwise, use the old button style
+                                    return (
+                                        <button
+                                            key={index}
+                                            className={styles.completedToolCall}
+                                            onClick={(event) => {
+                                                event.stopPropagation();
+                                                if (onToolCallClick) {
+                                                    onToolCallClick(toolCall);
+                                                }
+                                            }}
+                                        >
+                                            [{chipletInfo.text}]
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        )}
+
+                        {citations.length > 0 && (
+                            <div className={styles.sourceCitations}>
+                                {citations.map((citation, index) => (
+                                    <SourceChip
+                                        key={`${citation.id}-${citation.source}-${index}`}
+                                        citation={citation}
+                                        onClick={onCitationClick}
+                                    />
+                                ))}
+                            </div>
+                        )}
+
+                        {!isComplete && message.ongoingToolCalls && message.ongoingToolCalls.length > 0 && (
+                            <div className={styles.ongoingToolCalls}>
+                                {message.ongoingToolCalls.map((toolCall, index) => {
+                                    const toolInfo = TOOL_TITLES[toolCall.name];
+                                    const isTeamTool = isTeamToolName(toolCall.name);
+                                    const teamAgentData = resolveTeamAgentChipData(toolCall, teammates);
+
+                                    // If this is a team tool with teammate data, use AgentChip
+                                    if (teamAgentData) {
+                                        return <AgentChip key={index} agent={teamAgentData} isOngoing={true} />;
+                                    }
+
+                                    // Otherwise, use the old style
+                                    const toolTitle =
+                                        toolTitles?.[toolCall.name] ||
+                                        toolInfo?.title ||
+                                        (isTeamTool ? 'Consulting teammate' : undefined);
+                                    const emoji = isTeamTool ? '🤝' : toolInfo?.emoji || '🛠️';
+
+                                    return (
+                                        <div key={index} className={styles.ongoingToolCall}>
+                                            <div className={styles.ongoingToolCallSpinner} />
+                                            <span className={styles.ongoingToolCallName}>
+                                                {toolTitle
+                                                    ? `${emoji} ${toolTitle}...`
+                                                    : `${emoji} Executing ${toolCall.name}...`}
+                                            </span>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+
+                        {shouldShowButtons && (
+                            <div className={styles.messageButtons}>
+                                {buttons.map((button, buttonIndex) => (
+                                    <button
+                                        key={buttonIndex}
+                                        className={styles.messageButton}
+                                        onClick={(event) => {
+                                            event.stopPropagation();
+                                            if (onMessage) {
+                                                onMessage(button.message);
+                                            }
+                                        }}
+                                        // <- TODO: [🐱‍🚀] `Color` should work with forma `#ff00ff55` *(with alpha)*
+                                    >
+                                        <MarkdownContent content={button.text} />
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+
+                        {isFeedbackEnabled && isComplete && (
+                            <div
+                                className={styles.rating}
+                                onMouseEnter={() => {
+                                    setExpandedMessageId(message.id || message.content /* <-[💃] */);
+                                }}
+                                onMouseLeave={() => {
+                                    setExpandedMessageId(null);
+                                    setLocalHoveredRating(0);
+                                }}
+                            >
+                                {isExpanded ? (
+                                    [1, 2, 3, 4, 5].map((star) => (
+                                        <span
+                                            key={star}
+                                            onClick={() => handleRating(message, star)}
+                                            onMouseEnter={() => setLocalHoveredRating(star)}
+                                            className={classNames(
+                                                styles.ratingStar,
+                                                star <= (localHoveredRating || currentRating || 0) && styles.active,
+                                            )}
+                                            style={
+                                                {
+                                                    '--star-inactive-color': mode === 'LIGHT' ? '#ccc' : '#555',
+                                                } as React.CSSProperties
+                                            }
+                                        >
+                                            ⭐
+                                        </span>
+                                    ))
+                                ) : (
                                     <span
-                                        key={star}
-                                        onClick={() => handleRating(message, star)}
-                                        onMouseEnter={() => setLocalHoveredRating(star)}
-                                        className={classNames(
-                                            styles.ratingStar,
-                                            star <= (localHoveredRating || currentRating || 0) && styles.active,
-                                        )}
+                                        onClick={() => handleRating(message, currentRating || 1)}
+                                        className={classNames(styles.ratingStar, currentRating && styles.active)}
                                         style={
                                             {
-                                                '--star-inactive-color': mode === 'LIGHT' ? '#ccc' : '#555',
+                                                '--star-inactive-color': mode === 'LIGHT' ? '#888' : '#666',
                                             } as React.CSSProperties
                                         }
                                     >
                                         ⭐
                                     </span>
-                                ))
-                            ) : (
-                                <span
-                                    onClick={() => handleRating(message, currentRating || 1)}
-                                    className={classNames(styles.ratingStar, currentRating && styles.active)}
-                                    style={
-                                        {
-                                            '--star-inactive-color': mode === 'LIGHT' ? '#888' : '#666',
-                                        } as React.CSSProperties
-                                    }
-                                >
-                                    ⭐
-                                </span>
-                            )}
-                        </div>
-                    )}
+                                )}
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         );
@@ -407,6 +628,10 @@ export const ChatMessageItem = memo(
         }
 
         if (prev.message.content !== next.message.content) {
+            return false;
+        }
+
+        if (JSON.stringify(prev.message.attachments) !== JSON.stringify(next.message.attachments)) {
             return false;
         }
 
@@ -447,6 +672,22 @@ export const ChatMessageItem = memo(
         }
 
         if (prev.handleRating !== next.handleRating) {
+            return false;
+        }
+
+        if (prev.toolTitles !== next.toolTitles) {
+            return false;
+        }
+
+        if (prev.teammates !== next.teammates) {
+            return false;
+        }
+
+        if (prev.onToolCallClick !== next.onToolCallClick) {
+            return false;
+        }
+
+        if (prev.onCitationClick !== next.onCitationClick) {
             return false;
         }
 

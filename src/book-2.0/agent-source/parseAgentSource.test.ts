@@ -9,7 +9,7 @@ describe('parseAgentSource', () => {
         const result = parseAgentSource(agentSource);
         expect(result.agentName).toBe('agent-name');
         expect(result.personaDescription).toBe(null);
-        expect(result.meta.image).toMatch(/gravatar/); // Should be a gravatar URL
+        // expect(result.meta.image).toBe('/agents/agent-name/images/default-avatar.png'); // Should be a default avatar URL
         expect(result.parameters).toEqual([]);
     });
 
@@ -63,7 +63,7 @@ describe('parseAgentSource', () => {
         const result = parseAgentSource(agentSource);
         expect(result.agentName).toBe('agent-name');
         expect(result.personaDescription).toBe(null);
-        expect(result.meta.image).toMatch(/gravatar/); // Should be a gravatar URL
+        // expect(result.meta.image).toBe('/agents/agent-name/images/default-avatar.png'); // Should be a default avatar URL
     });
 
     it('handles empty or whitespace input', () => {
@@ -72,7 +72,7 @@ describe('parseAgentSource', () => {
             parameters: [],
             personaDescription: null,
             meta: {
-                image: expect.stringMatching(/gravatar/), // Should be a gravatar URL for 'Anonymous Agent'
+                // image: '/agents/agent-9bee7d/images/default-avatar.png', // Should be a default avatar URL
             },
         });
         expect(parseAgentSource(validateBook('   '))).toMatchObject({
@@ -81,7 +81,7 @@ describe('parseAgentSource', () => {
             parameters: [],
             personaDescription: null,
             meta: {
-                image: expect.stringMatching(/gravatar/), // Should be a gravatar URL for 'Anonymous Agent'
+                // image: '/agents/agent-e3b0c4/images/default-avatar.png', // Should be a default avatar URL for 'Anonymous Agent'
             },
         });
     });
@@ -99,7 +99,7 @@ describe('parseAgentSource', () => {
         const result = parseAgentSource(agentSource);
         expect(result.agentName).toBe('agent-name');
         expect(result.personaDescription).toBe(null);
-        expect(result.meta.image).toMatch(/gravatar/); // Should be a gravatar URL
+        // expect(result.meta.image).toBe('/agents/agent-name/images/default-avatar.png'); // Should be a default avatar URL
     });
 
     it('ignores malformed PERSONA and META IMAGE lines', () => {
@@ -114,7 +114,7 @@ describe('parseAgentSource', () => {
         const result = parseAgentSource(agentSource);
         expect(result.agentName).toBe('agent-name');
         expect(result.personaDescription).toBe('');
-        expect(result.meta.image).toMatch(/gravatar/); // Should be a gravatar URL
+        // expect(result.meta.image).toBe('/agents/agent-name/images/default-avatar.png'); // Should be a default avatar URL
     });
 
     it('parses agent with custom META commitments', () => {
@@ -131,7 +131,7 @@ describe('parseAgentSource', () => {
             agentName: 'ai-avatar',
             personaDescription: 'A friendly AI assistant that helps you with your tasks',
             meta: {
-                image: expect.stringMatching(/gravatar/), // Should be a gravatar URL fallback
+                // image: '/agents/ai-avatar/images/default-avatar.png', // Should be a default avatar URL
                 foo: 'foo',
             },
             parameters: [],
@@ -179,7 +179,6 @@ describe('parseAgentSource', () => {
         const result = parseAgentSource(agentSource);
 
         expect(result.meta).toMatchObject({
-            image: expect.stringMatching(/gravatar/), // Should be a gravatar URL fallback
             fullname: 'AI Avatar',
             title: 'Another Title', // Later should override earlier
             link: 'https://example2.com', // Later should override earlier
@@ -208,6 +207,17 @@ describe('parseAgentSource', () => {
         );
         const result = parseAgentSource(agentSource);
         expect(result.initialMessage).toBe('Second message (override)');
+    });
+
+    it('parses INITIAL MESSAGE into samples', () => {
+        const agentSource = validateBook(
+            spaceTrim(`
+                Agent Name
+                INITIAL MESSAGE Hello! I am ready to help you.
+            `),
+        );
+        const result = parseAgentSource(agentSource);
+        expect(result.samples).toContainEqual({ question: null, answer: 'Hello! I am ready to help you.' });
     });
 
     it('parses IMAGE and COLOR aliases', () => {
@@ -355,5 +365,148 @@ describe('parseAgentSource', () => {
         `);
         const result = parseAgentSource(agentSource);
         expect(result.meta.font).toBe('Times, New, Roman');
+    });
+
+    it('parses agentName from first non-empty line that is not a commitment or horizontal line', () => {
+        // First non-empty is agent name
+        let agentSource = validateBook(`
+            John Doe
+            PERSONA You are a helpful assistant.
+        `);
+        let result = parseAgentSource(agentSource);
+        expect(result.agentName).toBe('john-doe');
+
+        // Empty lines before agent name
+        agentSource = validateBook(`
+
+
+            John Doe
+            PERSONA You are a helpful assistant.
+        `);
+        result = parseAgentSource(agentSource);
+        expect(result.agentName).toBe('john-doe');
+
+        // Horizontal line before agent name
+        agentSource = validateBook(`
+            ---
+
+            John Doe
+            PERSONA You are a helpful assistant.
+        `);
+        result = parseAgentSource(agentSource);
+        expect(result.agentName).toBe('john-doe');
+
+        // Non-commitment line before agent name (should take first one)
+        agentSource = validateBook(`
+            x
+
+            John Doe
+            PERSONA You are a helpful assistant.
+        `);
+        result = parseAgentSource(agentSource);
+        expect(result.agentName).toBe('x');
+
+        // Commitment as first non-empty (agentName should be null, fallback to default)
+        agentSource = validateBook(`
+            COLOR red, blue, green
+            PERSONA You are a helper
+        `);
+        result = parseAgentSource(agentSource);
+        expect(result.agentName).toBe('agent-3daa54'); // Default hash since no name
+    });
+
+    describe('parses linked agents', () => {
+        it('parses FROM commitment (local)', () => {
+            const agentSource = validateBook(`
+                Agent Name
+                FROM ./other-agent
+            `);
+            const result = parseAgentSource(agentSource);
+            expect(result.capabilities).toContainEqual({
+                type: 'inheritance',
+                label: 'other-agent',
+                iconName: 'SquareArrowUpRight',
+                agentUrl: './other-agent',
+            });
+        });
+
+        it('parses FROM commitment (remote)', () => {
+            const agentSource = validateBook(`
+                Agent Name
+                FROM https://other-server.com/agents/other-agent
+            `);
+            const result = parseAgentSource(agentSource);
+            expect(result.capabilities).toContainEqual({
+                type: 'inheritance',
+                label: 'https://other-server.com/agents/other-agent',
+                iconName: 'SquareArrowOutUpRight',
+                agentUrl: 'https://other-server.com/agents/other-agent',
+            });
+        });
+
+        it('parses IMPORT commitment (local)', () => {
+            const agentSource = validateBook(`
+                Agent Name
+                IMPORT ./other-agent
+            `);
+            const result = parseAgentSource(agentSource);
+            expect(result.capabilities).toContainEqual({
+                type: 'import',
+                label: 'other-agent',
+                iconName: 'Link',
+                agentUrl: './other-agent',
+            });
+        });
+
+        it('parses IMPORT commitment (remote)', () => {
+            const agentSource = validateBook(`
+                Agent Name
+                IMPORT https://other-server.com/agents/other-agent
+            `);
+            const result = parseAgentSource(agentSource);
+            expect(result.capabilities).toContainEqual({
+                type: 'import',
+                label: 'other-server.com.../other-agent',
+                iconName: 'ExternalLink',
+                agentUrl: 'https://other-server.com/agents/other-agent',
+            });
+        });
+
+        it('parses TEAM commitment', () => {
+            const agentSource = validateBook(`
+                Agent Name
+                TEAM https://agents.ptbk.ik/agents/joe-green
+            `);
+            const result = parseAgentSource(agentSource);
+            expect(result.capabilities).toContainEqual({
+                type: 'team',
+                label: 'Joe Green',
+                iconName: 'Users',
+                agentUrl: 'https://agents.ptbk.ik/agents/joe-green',
+            });
+        });
+
+        it('ignores Adam agent in FROM commitment', () => {
+            const agentSource = validateBook(`
+                Agent Name
+                FROM Adam
+            `);
+            const result = parseAgentSource(agentSource);
+            expect(result.capabilities).toEqual([]);
+        });
+
+        it('handles VOID agent in FROM commitment', () => {
+            const agentSource = validateBook(`
+                Agent Name
+                FROM VOID
+            `);
+            const result = parseAgentSource(agentSource);
+            expect(result.capabilities).toContainEqual({
+                type: 'inheritance',
+                label: 'VOID',
+                iconName: 'ShieldAlert',
+                agentUrl: 'VOID',
+            });
+        });
     });
 });

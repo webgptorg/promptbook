@@ -6,8 +6,8 @@ import { getMetadata } from '../database/getMetadata';
 import { $provideAgentCollectionForServer } from '../tools/$provideAgentCollectionForServer';
 import { $provideServer } from '../tools/$provideServer';
 import { getCurrentUser } from '../utils/getCurrentUser';
+import { getFederatedServers } from '../utils/getFederatedServers';
 import { isUserAdmin } from '../utils/isUserAdmin';
-import { getFederatedServersFromMetadata } from '../utils/getFederatedServersFromMetadata';
 import './globals.css';
 
 const barlowCondensed = Barlow_Condensed({
@@ -31,7 +31,7 @@ export async function generateMetadata(): Promise<Metadata> {
     return {
         title: serverName,
         description: serverDescription,
-        // TODO: keywords: ['@@@'],
+        // TODO: keywords: ['@@@'], <- Do the keywords dynamically, each agents server could have its own keywords + some common ones
         authors: [{ name: 'Promptbook Team' }],
         icons: {
             icon: serverFaviconUrl,
@@ -83,31 +83,37 @@ export default async function RootLayout({
         console.error('Failed to parse FOOTER_LINKS', error);
     }
 
-    // Fetch federated servers and add to footerLinks
+    // Fetch federated servers and add to footerLinks (only if user is authenticated or SHOW_FEDERATED_SERVERS_PUBLICLY is true)
     let federatedServers: Array<{ url: string; title: string; logoUrl: string | null }> = [];
     try {
-        const federatedServersRaw = await getFederatedServersFromMetadata();
-        federatedServers = await Promise.all(
-            federatedServersRaw.map(async (url: string) => {
-                let logoUrl: string | null = null;
-                try {
-                    // Try to fetch logo from metadata endpoint if available
-                    const res = await fetch(`${url}/api/metadata`);
-                    if (res.ok) {
-                        const meta = await res.json();
-                        logoUrl = meta.SERVER_LOGO_URL || null;
+        const showFederatedServersPublicly =
+            ((await getMetadata('SHOW_FEDERATED_SERVERS_PUBLICLY')) || 'false') === 'true';
+
+        // Only show federated servers in footer if user is authenticated or if SHOW_FEDERATED_SERVERS_PUBLICLY is true
+        if (currentUser || showFederatedServersPublicly) {
+            const federatedServersUrls = await getFederatedServers();
+            federatedServers = await Promise.all(
+                federatedServersUrls.map(async (url: string) => {
+                    let logoUrl: string | null = null;
+                    try {
+                        // Try to fetch logo from metadata endpoint if available
+                        const res = await fetch(`${url}/api/metadata`);
+                        if (res.ok) {
+                            const meta = await res.json();
+                            logoUrl = meta.SERVER_LOGO_URL || null;
+                        }
+                    } catch {
+                        logoUrl = null;
                     }
-                } catch {
-                    logoUrl = null;
-                }
-                return {
-                    title: `Federated: ${new URL(url).hostname}`,
-                    url,
-                    logoUrl,
-                };
-            })
-        );
-        footerLinks = [...footerLinks, ...federatedServers];
+                    return {
+                        title: `Federated: ${new URL(url).hostname}`,
+                        url,
+                        logoUrl,
+                    };
+                }),
+            );
+            footerLinks = [...footerLinks, ...federatedServers];
+        }
     } catch (error) {
         console.error('Failed to fetch federated servers for footer', error);
     }

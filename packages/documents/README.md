@@ -61,19 +61,20 @@ Rest of the documentation is common for **entire promptbook ecosystem**:
 
 ## 📖 The Book Whitepaper
 
-For most business applications nowadays, the biggest challenge isn't about the raw capabilities of AI models. Large language models like GPT-5 or Claude-4.1 are extremely capable.
+Nowadays, the biggest challenge for most business applications isn't the raw capabilities of AI models. Large language models such as GPT-5.2 and Claude-4.5 are incredibly capable.
 
-The main challenge is to narrow it down, constrain it, set the proper **context, rules, knowledge, and personality**. There are a lot of tools which can do exactly this. On one side, there are no-code platforms which can launch your agent in seconds. On the other side, there are heavy frameworks like Langchain or Semantic Kernel, which can give you deep control.
+The main challenge lies in **managing the context**, providing rules and knowledge, and narrowing the personality.
 
-Promptbook takes the best from both worlds. You are defining your AI behavior by simple **books**, which are very explicit. They are automatically enforced, but they are very easy to understand, very easy to write, and very reliable and portable.
+In Promptbook, you can define your context **using simple Books** that are very explicit, easy to understand and write, reliable, and highly portable.
 
 <table style="border: 1px solid #777; border-radius: 10px;"><tr><td>
 
-**<ins>Paul Smith & Associés</ins>**<br/>
+**<ins>Paul Smith</ins>**<br/>
 <br/>
 **PERSONA** You are a company lawyer.<br/>
 Your job is to provide legal advice and support to the company and its employees.<br/>
-You are knowledgeable, professional, and detail-oriented.<br/>
+**RULE** You are knowledgeable, professional, and detail-oriented.<br/>
+TEAM You are part of the legal team of Paul Smith & Associés, you discuss with {Emily White}, the head of the compliance department. {George Brown} is expert in corporate law and {Sophia Black} is expert in labor law.<br/>
 
 </td></tr></table>
 
@@ -83,7 +84,9 @@ You are knowledgeable, professional, and detail-oriented.<br/>
 
 We have created a language called **Book**, which allows you to write AI agents in their native language and create your own AI persona. Book provides a guide to define all the traits and commitments.
 
-You can look at it as prompting (or writing a system message), but decorated by **commitments**.
+You can look at it as "prompting" _(or writing a system message)_, but decorated by **commitments**.
+
+**Commitments** are special syntax elements that define contracts between you and the AI agent. They are transformed by Promptbook Engine into low-level parameters like which model to use, its temperature, system message, RAG index, MCP servers, and many other parameters. For some commitments _(for example `RULE` commitment)_ Promptbook Engine can even create adversary agents and extra checks to enforce the rules.
 
 #### `Persona` commitment
 
@@ -94,8 +97,6 @@ Personas define the character of your AI persona, its role, and how it should in
 **<ins>Paul Smith & Associés</ins>**<br/>
 <br/>
 **PERSONA** You are a company lawyer.<br/>
-Your job is to provide legal advice and support to the company and its employees.<br/>
-You are knowledgeable, professional, and detail-oriented.<br/>
 
 </td></tr></table>
 
@@ -115,7 +116,7 @@ Promptbook Engine will automatically enforce this knowledge during interactions.
 Your job is to provide legal advice and support to the company and its employees.<br/>
 You are knowledgeable, professional, and detail-oriented.<br/>
 <br/>
-**KNOWLEDGE** https://company.com/company-policies.pdf<br/>
+**KNOWLEDGE**  https://company.com/company-policies.pdf<br/>
 **KNOWLEDGE** https://company.com/internal-documents/employee-handbook.docx<br/>
 
 </td></tr></table>
@@ -137,14 +138,14 @@ You are knowledgeable, professional, and detail-oriented.<br/>
 **RULE** Always ensure compliance with laws and regulations.<br/>
 **RULE** Never provide legal advice outside your area of expertise.<br/>
 **RULE** Never provide legal advice about criminal law.<br/>
-**KNOWLEDGE** https://company.com/company-policies.pdf<br/>
+**KNOWLEDGE**  https://company.com/company-policies.pdf<br/>
 **KNOWLEDGE** https://company.com/internal-documents/employee-handbook.docx<br/>
 
 </td></tr></table>
 
-#### `Action` commitment
+#### `Team` commitment
 
-Action Commitment allows you to define specific actions that the AI can take during interactions. This can include things like posting on a social media platform, sending emails, creating calendar events, or interacting with your internal systems.
+Team commitment allows you to define the team structure and advisory fellow members the AI can consult with. This allows the AI to simulate collaboration and consultation with other experts, enhancing the quality of its responses.
 
 <table style="border: 1px solid #777; border-radius: 10px;"><tr><td>
 
@@ -157,77 +158,32 @@ You are knowledgeable, professional, and detail-oriented.<br/>
 **RULE** Always ensure compliance with laws and regulations.<br/>
 **RULE** Never provide legal advice outside your area of expertise.<br/>
 **RULE** Never provide legal advice about criminal law.<br/>
-**KNOWLEDGE** https://company.com/company-policies.pdf<br/>
+**KNOWLEDGE**  https://company.com/company-policies.pdf<br/>
 **KNOWLEDGE** https://company.com/internal-documents/employee-handbook.docx<br/>
-**ACTION** When a user asks about an issue that could be treated as a crime, notify legal@company.com.<br/>
+TEAM You are part of the legal team of Paul Smith & Associés, you discuss with {Emily White}, the head of the compliance department. {George Brown} is expert in corporate law and {Sophia Black} is expert in labor law.<br/>
 
 </td></tr></table>
 
-[Read more about the language](./BLUEPRINT.md)
 
-<div style="page-break-after: always;"></div>
 
-### Where to use your AI agent in book
+### Promptbook Ecosystem
 
-Books can be useful in various applications and scenarios. Here are some examples:
+!!!@@@
 
-#### Chat apps:
+#### Promptbook Server
 
-Create your own chat shopping assistant and place it in your eShop.
-You will be able to answer customer questions, help them find products, and provide personalized recommendations. Everything is tightly controlled by the book you have written.
+!!!@@@
 
-#### Reply Agent:
+#### Promptbook Engine
 
-Create your own AI agent, which will look at your emails and reply to them. It can even create drafts for you to review before sending.
-
-#### Coding Agent:
-
-Do you love Vibecoding, but the AI code is not always aligned with your coding style and architecture, rules, security, etc.? Create your own coding agent to help enforce your specific coding standards and practices.
-
-This can be integrated to almost any Vibecoding platform, like GitHub Copilot, Amazon CodeWhisperer, Cursor, Cline, Kilocode, Roocode,...
-
-They will work the same as you are used to, but with your specific rules written in book.
-
-#### Internal Expertise
-
-Do you have an app written in TypeScript, Python, C#, Java, or any other language, and you are integrating the AI.
-
-You can avoid struggle with choosing the best model, its settings like temperature, max tokens, etc., by writing a book agent and using it as your AI expertise.
-
-Doesn't matter if you do automations, data analysis, customer support, sentiment analysis, classification, or any other task. Your AI agent will be tailored to your specific needs and requirements.
-
-Even works in no-code platforms!
-
-<div style="page-break-after: always;"></div>
-
-### How to create your AI agent in book
-
-Now you want to use it. There are several ways how to write your first book:
-
-#### From scratch with help from Paul
-
-We have written ai asistant in book who can help you with writing your first book.
-
-#### Your AI twin
-
-Copy your own behavior, personality, and knowledge into book and create your AI twin. It can help you with your work, personal life, or any other task.
-
-#### AI persona workpool
-
-Or you can pick from our library of pre-written books for various roles and tasks. You can find books for customer support, coding, marketing, sales, HR, legal, and many other roles.
+!!!@@@
 
 
 
 
 
 
-## 🚀 Get started
 
-Take a look at the simple starter kit with books integrated into the **Hello World** sample applications:
-
--   [Hello Book](https://github.com/webgptorg/hello-world)
--   [Hello Book in Node.js](https://github.com/webgptorg/hello-world-node-js)
--   [Hello Book in Next.js](https://github.com/webgptorg/hello-world-next-js)
 
 
 
@@ -247,9 +203,15 @@ Promptbook project is ecosystem of multiple projects and tools, following is a l
   </thead>
   <tbody>
     <tr>
+      <td><a href="https://gallery.ptbk.io/">Agents Server</a></td>
+      <td>
+          Place where you "AI agents live". It allows to create, manage, deploy, and interact with AI agents created in Book language.
+      </td>
+    </tr>
+    <tr>
       <td><a href="https://github.com/webgptorg/book">Book language</a></td>
       <td>
-          Book is a human-understandable markup language for writing AI applications such as chatbots, knowledge bases, agents, avarars, translators, automations and more.
+          Human-friendly, high-level language that abstracts away low-level details of AI. It allows to focus on personality, behavior, knowledge, and rules of AI agents rather than on models, parameters, and prompt engineering.
           <hr>
           There is also <a href="https://github.com/webgptorg/book-extension">a plugin for VSCode</a> to support <code>.book</code> file extension
       </td>
@@ -257,23 +219,16 @@ Promptbook project is ecosystem of multiple projects and tools, following is a l
     <tr>
       <td><a href="https://github.com/webgptorg/promptbook">Promptbook Engine</a></td>
       <td>
-          Promptbook engine can run applications written in Book language. It is released as <a href="https://www.npmjs.com/package/@promptbook/core#-packages-for-developers">multiple NPM packages</a> and <a href="https://hub.docker.com/r/hejny/promptbook">Docker HUB</a>
+          Promptbook engine can run AI agents based on Book language.
+          It is released as <a href="https://www.npmjs.com/package/@promptbook/core#-packages-for-developers">multiple NPM packages</a> and <a href="https://hub.docker.com/r/hejny/promptbook">Promptbook Agent Server as Docker Package</a>
+          Agent Server is based on Promptbook Engine.
       </td>
     </tr>
-    <tr>
-      <td><a href="https://promptbook.studio">Promptbook Studio</a></td>
-      <td>
-          Promptbook.studio is a web-based editor and runner for book applications. It is still in the experimental MVP stage.
-      </td>
-    </tr>
+    
   </tbody>
 </table>
 
-Hello world examples:
 
--   [Hello world](https://github.com/webgptorg/hello-world)
--   [Hello world in Node.js](https://github.com/webgptorg/hello-world-node-js)
--   [Hello world in Next.js](https://github.com/webgptorg/hello-world-next-js)
 
 ### 🌐 Community & Social Media
 
@@ -323,6 +278,8 @@ Join our growing community of developers and users:
     
   </tbody>
 </table>
+
+
 
 
 
@@ -406,6 +363,8 @@ The following glossary is used to clarify certain concepts:
 -   **Longtail** refers to non-common or rare events, items, or entities that are not well-represented in the training data of machine learning models. Longtail items are often challenging for models to predict accurately.
 
 _Note: This section is not a complete dictionary, more list of general AI / LLM terms that has connection with Promptbook_
+
+
 
 ### 💯 Core concepts
 

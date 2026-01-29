@@ -16,10 +16,10 @@ export function messagesToJson(messages: ChatMessage[], shareUrl: string): strin
         },
         messages: messages.map((message, index) => ({
             id: message.id || `msg_${index}`,
-            from: message.from,
+            sender: message.sender,
             content: message.content,
             isComplete: message.isComplete ?? true,
-            timestamp: new Date().toISOString(), // Note: Real timestamp would come from message data
+            createdAt: new Date().toISOString(), // Note: Real timestamp would come from message data
         })),
     };
 

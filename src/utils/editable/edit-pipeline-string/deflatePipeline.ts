@@ -22,7 +22,7 @@ export function deflatePipeline(pipelineString: PipelineString): PipelineString 
 
     pipelineString = spaceTrim(pipelineString) as PipelineString;
 
-    const pipelineStringLines = pipelineString.split('\n');
+    const pipelineStringLines = pipelineString.split(/\r?\n/);
     const potentialReturnStatement = pipelineStringLines.pop()!;
     let returnStatement: string;
 
@@ -39,7 +39,7 @@ export function deflatePipeline(pipelineString: PipelineString): PipelineString 
 
     let quotedPrompt: string_prompt;
 
-    if (prompt.split('\n').length <= 1) {
+    if (prompt.split(/\r?\n/).length <= 1) {
         quotedPrompt = `> ${prompt}`;
     } else {
         quotedPrompt = spaceTrim(

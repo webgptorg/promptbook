@@ -5,13 +5,13 @@
  *
  * @public exported from `@promptbook/utils`
  */
-export const $isRunningInNode = new Function(`
+export function $isRunningInNode(): boolean {
     try {
-        return this === global;
+        return typeof process !== 'undefined' && process.versions != null && process.versions.node != null;
     } catch (e) {
         return false;
     }
-`);
+}
 
 /**
  * TODO: [🎺]

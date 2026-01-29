@@ -1,0 +1,127 @@
+import { AgentBasicInformation } from '@promptbook-local/types';
+import {
+    Book,
+    Clock8Icon,
+    ExternalLink,
+    FileText,
+    Globe,
+    Link,
+    Search,
+    ShieldAlert,
+    ShieldQuestionMarkIcon,
+    SquareArrowOutUpRight,
+    SquareArrowUpRight,
+    Users,
+} from 'lucide-react';
+import NextLink from 'next/link';
+import { TeamCommitmentChip } from './TeamCommitmentChip';
+
+type AgentCapabilityChipsProps = {
+    readonly agent: AgentBasicInformation;
+    readonly className?: string;
+};
+
+export function AgentCapabilityChips({ agent, className }: AgentCapabilityChipsProps) {
+    if (!agent.capabilities || agent.capabilities.length === 0) {
+        return null;
+    }
+
+    const displayedCapabilities = agent.capabilities
+        .filter((capability) => {
+            if (capability.type === 'inheritance' && capability.agentUrl === 'VOID') {
+                return false;
+            }
+
+            return true;
+        })
+        .filter((capability, index, self) => {
+            if (capability.type !== 'knowledge') {
+                return true;
+            }
+
+            return index === self.findIndex((c) => c.type === 'knowledge' && c.label === capability.label);
+        });
+
+    return (
+        <div className={`flex flex-wrap gap-2 ${className || ''}`}>
+            {displayedCapabilities.map((capability, i) => {
+                let href: string | undefined;
+
+                if (capability.agentUrl) {
+                    href = capability.agentUrl;
+
+                    if (href.startsWith('./') || href.startsWith('../')) {
+                        // [🧠] How to resolve relative paths?
+                        // For now let's assume they are relative to /agents/
+                        href = `/agents/${href.split('/').pop()}`;
+                    } else if (href.startsWith('/')) {
+                        href = `/agents${href}`;
+                    }
+                }
+
+                if (capability.iconName === 'Users' && href) {
+                    const content = <TeamCommitmentChip url={href} label={capability.label} />;
+
+                    return (
+                        <NextLink
+                            key={i}
+                            href={href}
+                            className="no-underline"
+                            onClick={(e) => {
+                                // Note: Prevent card click when clicking on the chip
+                                e.stopPropagation();
+                            }}
+                        >
+                            {content}
+                        </NextLink>
+                    );
+                }
+
+                const Icon =
+                    {
+                        Globe,
+                        Search,
+                        Book,
+                        FileText,
+                        Clock: Clock8Icon,
+                        SquareArrowOutUpRight,
+                        SquareArrowUpRight,
+                        ShieldAlert,
+                        ExternalLink,
+                        Link,
+                        Users,
+                        // <- [🪀] Add icons for new capabilities here
+                    }[capability.iconName] || ShieldQuestionMarkIcon;
+
+                const content = (
+                    <div
+                        key={i}
+                        className="flex items-center gap-1.5 bg-white/50 backdrop-blur-sm px-2.5 py-1 rounded-full text-xs font-semibold text-gray-800 border border-white/20 shadow-sm"
+                        title={capability.label}
+                    >
+                        <Icon className="w-3.5 h-3.5 opacity-70" />
+                        <span className="truncate max-w-[150px]">{capability.label}</span>
+                    </div>
+                );
+
+                if (href) {
+                    return (
+                        <NextLink
+                            key={i}
+                            href={href}
+                            className="no-underline"
+                            onClick={(e) => {
+                                // Note: Prevent card click when clicking on the chip
+                                e.stopPropagation();
+                            }}
+                        >
+                            {content}
+                        </NextLink>
+                    );
+                }
+
+                return content;
+            })}
+        </div>
+    );
+}

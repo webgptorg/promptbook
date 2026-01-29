@@ -19,7 +19,7 @@ export function padBook(content: string_book): string_book {
         return '\n'.repeat(PADDING_LINES) as string_book;
     }
 
-    const lines = content.split('\n');
+    const lines = content.split(/\r?\n/);
     let trailingEmptyLines = 0;
     for (let i = lines.length - 1; i >= 0; i--) {
         const line = lines[i];

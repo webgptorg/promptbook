@@ -1,20 +1,45 @@
+import { $getTableName } from '@/src/database/$getTableName';
 import { $provideServer } from '@/src/tools/$provideServer';
 import { NextResponse } from 'next/server';
+import { $provideSupabaseForServer } from '../../../database/$provideSupabaseForServer';
 import { $provideAgentCollectionForServer } from '../../../tools/$provideAgentCollectionForServer';
-import { getFederatedServersFromMetadata } from '../../../utils/getFederatedServersFromMetadata';
+import { getFederatedServers } from '../../../utils/getFederatedServers';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
     try {
         const collection = await $provideAgentCollectionForServer();
-        const agents = await collection.listAgents();
-        const federatedServers = await getFederatedServersFromMetadata();
+        const allAgents = await collection.listAgents();
+        const federatedServers = await getFederatedServers();
         const { publicUrl } = await $provideServer();
 
-        const agentsWithUrl = agents.map((agent) => ({
+        // Filter to only include PUBLIC agents for federated API
+        const supabase = $provideSupabaseForServer();
+        const visibilityResult = await supabase
+            .from(await $getTableName(`Agent`))
+            .select('agentName, visibility')
+            .is('deletedAt', null);
+
+        let publicAgents = allAgents;
+        if (!visibilityResult.error) {
+            const visibilityMap = new Map(
+                visibilityResult.data.map((item: { agentName: string; visibility: 'PUBLIC' | 'PRIVATE' }) => [
+                    item.agentName,
+                    item.visibility,
+                ]),
+            );
+
+            // Only include PUBLIC agents in federated API
+            publicAgents = allAgents.filter((agent) => {
+                const visibility = visibilityMap.get(agent.agentName);
+                return visibility === 'PUBLIC';
+            });
+        }
+
+        const agentsWithUrl = publicAgents.map((agent) => ({
             ...agent,
-            url: `${publicUrl.href}agents/${encodeURIComponent(agent.agentName)}`,
+            url: `${publicUrl.href}agents/${encodeURIComponent(agent.permanentId || agent.agentName)}`,
         }));
 
         const response = NextResponse.json({

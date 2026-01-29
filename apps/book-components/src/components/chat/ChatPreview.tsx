@@ -101,9 +101,10 @@ export default function ChatPreview() {
     const handleMessage = async (content: string) => {
         // Add user message
         const userMessage: ChatMessage = {
+            // channel: 'PROMPTBOOK_CHAT',
             id: Date.now().toString(),
-            date: new Date(),
-            from: 'USER',
+            createdAt: new Date(),
+            sender: 'USER',
             content,
             isComplete: true,
         };
@@ -120,9 +121,10 @@ export default function ChatPreview() {
             ];
 
             const assistantMessage: ChatMessage = {
+                // channel: 'PROMPTBOOK_CHAT',
                 id: (Date.now() + 1).toString(),
-                date: new Date(),
-                from: 'ASSISTANT_1',
+                createdAt: new Date(),
+                sender: 'ASSISTANT_1',
                 content: responses[Math.floor(Math.random() * responses.length)],
                 isComplete: true,
             };

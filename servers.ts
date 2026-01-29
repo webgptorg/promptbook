@@ -1,3 +1,4 @@
+import { PROMPTBOOK_LEGAL_ENTITY } from './src/config';
 import type { string_legal_entity, string_promptbook_server_url, string_title } from './src/types/typeAliases';
 
 /**
@@ -24,63 +25,79 @@ type ServerConfiguration = {
      *
      Note: lising more for loadbalancing
      */
-    urls: Array<string_promptbook_server_url>;
+    url: string_promptbook_server_url;
+    // <- TODO: [🧠]  Maybe change to URL
 };
 
 /**
- * Core Promptbook server configuration.
+ * Core Promptbook server configuration
  *
- * This server is also used for auto-federation in the Agents Server.
+ * Used for "Adam" agent which is built in as default ancestor for new agents and other well known agents
+ *
+ * @public exported from `@promptbook/core`
  */
-const CORE_SERVER: ServerConfiguration = {
+export const CORE_AGENTS_SERVER: ServerConfiguration = {
     title: 'Promptbook Core',
-    description: `Core Promptbook server used for auto-federation`,
-    owner: 'AI Web, LLC <legal@ptbk.io> (https://www.ptbk.io/)',
-    urls: ['https://core.ptbk.io/'],
+    description: `Core Promptbook server used for Adam agent which is built in as default ancestor for new agents and other well known agents.`,
+    owner: PROMPTBOOK_LEGAL_ENTITY,
+    url: 'https://core.ptbk.io/',
 };
 
 /**
- * Available remote servers for the Promptbook
+ * Names of well known agents hosted on Core Promptbook server
+ *
+ * - `Adam`: The default ancestor agent for new agents
+ * - `Teacher`: Agent that knows book syntax and can help with self-learning
  *
  * @public exported from `@promptbook/core`
  */
-export const REMOTE_SERVER_URLS: Array<ServerConfiguration> = [
-    {
-        title: 'Promptbook.Studio',
-        description: `Server of Promptbook.studio`,
-        owner: 'AI Web, LLC <legal@ptbk.io> (https://www.ptbk.io/)',
-        urls: [
-            'https://promptbook.s5.ptbk.io/',
-            // Note: Servers 1-4 are not running
-        ],
-    },
-    {
-        title: 'Testing Agents',
-        description: `Testing Agents server on Vercel`,
-        owner: 'AI Web, LLC <legal@ptbk.io> (https://www.ptbk.io/)',
-        urls: ['https://s6.ptbk.io/'],
-    },
-    CORE_SERVER,
-    /*
-    Note: Working on older version of Promptbook and not supported anymore
-    {
-        title: 'Pavol Promptbook Server',
-        description: `Personal server of Pavol Hejný with simple testing server, DO NOT USE IT FOR PRODUCTION`,
-        owner: 'Pavol Hejný <pavol@ptbk.io> (https://www.pavolhejny.com/)',
-        isAnonymousModeAllowed: true,
-        urls: ['https://api.pavolhejny.com/promptbook'],
-    },
-    */
-];
+export const CORE_AGENTS_SERVER_WELL_KNOWN_AGENT_NAMES = {
+    /**
+     * The default ancestor agent for new agents
+     */
+    ADAM: 'adam',
+
+    /**
+     * Agent that knows book syntax and can help with self-learning
+     */
+    TEACHER: 'teacher',
+} as const;
+// <- TODO: [🆎] Allow to override (set) well-known agent names via Metadata
 
 /**
- * Remote servers that are auto-federated by the Agents Server.
+ * Available agents servers for the Promptbook
  *
- * These servers are always added in addition to the `FEDERATED_SERVERS` metadata.
- * 
+ * Tip: 💡 If you are running your own server, you can add it to this list by creating a pull request!
+ *
  * @public exported from `@promptbook/core`
  */
-export const AUTO_FEDERATED_AGENT_SERVER_URLS: Array<string_promptbook_server_url> = CORE_SERVER.urls;
+export const PUBLIC_AGENTS_SERVERS: Array<ServerConfiguration> = [
+    CORE_AGENTS_SERVER,
+    {
+        title: 'Promptbook Gallery',
+        description: `Gallery of ideas, AI professions,... like AI Agenta photobank.`,
+        owner: PROMPTBOOK_LEGAL_ENTITY,
+        url: 'https://gallery.ptbk.io/',
+    },
+    {
+        title: 'Promptbook Testing server 6',
+        description: `General-purpose testing server.`,
+        owner: PROMPTBOOK_LEGAL_ENTITY,
+        url: 'https://s6.ptbk.io/',
+    },
+    {
+        title: 'Promptbook Testing server 7',
+        description: `General-purpose testing server.`,
+        owner: PROMPTBOOK_LEGAL_ENTITY,
+        url: 'https://s7.ptbk.io/',
+    },
+    {
+        title: 'Promptbook Testing server 8',
+        description: `General-purpose testing server.`,
+        owner: PROMPTBOOK_LEGAL_ENTITY,
+        url: 'https://s8.ptbk.io/',
+    },
+];
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name

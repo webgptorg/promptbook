@@ -21,15 +21,15 @@ export async function $provideAgentCollectionForServer(): Promise<AgentCollectio
 
     // TODO: [🐱‍🚀] [🌕] DRY
 
-    const isVerbose = true; // <- TODO: [🐱‍🚀] Pass
+    const isVerbose = false; // true; // <- TODO: [🐱‍🚀] Pass
 
     if (agentCollection !== null && just(false /* <- TODO: [🐱‍🚀] Fix caching */)) {
-        console.log('[🐱‍🚀] Returning cached agent collection');
+        // console.info('[🐱‍🚀] Returning cached agent collection');
         return agentCollection;
         // TODO: [🐱‍🚀] Be aware of options changes
     }
 
-    console.log('[🐱‍🚀] Creating NEW agent collection');
+    // console.info('[🐱‍🚀] Creating NEW agent collection');
 
     /*
     // TODO: [🧟‍♂️][◽] DRY:
@@ -52,3 +52,8 @@ export async function $provideAgentCollectionForServer(): Promise<AgentCollectio
 
     return agentCollection;
 }
+
+
+/**
+ * TODO: [🏓] Unite `xxxForServer` and `xxxForNode` naming
+ */

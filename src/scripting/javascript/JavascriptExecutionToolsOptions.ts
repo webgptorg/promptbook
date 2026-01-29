@@ -1,4 +1,5 @@
 import type { Promisable } from 'type-fest';
+import { TODO_any } from '../../_packages/types.index';
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
 import type { string_postprocessing_function_name } from '../../types/typeAliases';
 
@@ -16,7 +17,7 @@ export type JavascriptExecutionToolsOptions = CommonToolsOptions & {
      * Note: There are also some built-in functions available:
      *      @see ./JavascriptEvalExecutionTools.ts
      */
-    functions?: Record<string_postprocessing_function_name, PostprocessingFunction>;
+    functions?: Record<string_postprocessing_function_name, PostprocessingFunction | ToolFunction>;
 };
 
 /**
@@ -27,6 +28,11 @@ export type PostprocessingFunction =
     // Note: [0]
     // eslint-disable-next-line @typescript-eslint/ban-types
     | Function;
+
+/**
+ * Function that can be used as tool for AI model
+ */
+export type ToolFunction = (args: TODO_any) => Promise<TODO_any>;
 
 /**
  * TODO: [🧠][💙] Distinct between options passed into ExecutionTools and to ExecutionTools.execute

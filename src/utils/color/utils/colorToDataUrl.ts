@@ -1,3 +1,4 @@
+import { string_color, string_data_url, string_url_image } from '../../../types/typeAliases';
 import { Color } from '../Color';
 
 /**
@@ -5,7 +6,11 @@ import { Color } from '../Color';
  *
  * @public exported from `@promptbook/color`
  */
-export function colorToDataUrl(color: Color): string /*_dataurl*/ {
+export function colorToDataUrl(color: Color | string_color): string_data_url & string_url_image {
+    if (typeof color === 'string') {
+        color = Color.fromHex(color);
+    }
+
     return rgbDataURL(color.red, color.green, color.blue);
 }
 
@@ -42,7 +47,7 @@ const triplet = (e1: number, e2: number, e3: number) =>
  *
  * @private util of `colorToDataUrl`
  */
-const rgbDataURL = (r: number, g: number, b: number) =>
+const rgbDataURL = (r: number, g: number, b: number): string_data_url & string_url_image =>
     `data:image/gif;base64,R0lGODlhAQABAPAA${
         triplet(0, r, g) + triplet(b, 255, 255)
     }/yH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==`;

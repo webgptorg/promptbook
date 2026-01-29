@@ -3,13 +3,72 @@
 //          this would not be here because the `@promptbook/components` package should be React library independent of Next.js specifics
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { AgentCapability } from '../../../book-2.0/agent-source/AgentBasicInformation';
 import type { string_markdown } from '../../../types/typeAliases';
+import { TODO_USE } from '../../../utils/organization/TODO_USE';
+import type { TODO_any } from '../../../utils/organization/TODO_any';
 import { Chat } from '../Chat/Chat';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
-/* Context removed – using attachable sendMessage from hook */
 import { ChatPersistence } from '../utils/ChatPersistence';
+import { createTeamToolNameFromUrl } from '../utils/createTeamToolNameFromUrl';
 import type { LlmChatProps } from './LlmChatProps';
+import type { FriendlyErrorMessage } from './FriendlyErrorMessage';
+
+/**
+ * Metadata for a teammate agent tool.
+ */
+type TeammateMetadata = {
+    url: string;
+    label?: string;
+    instructions?: string;
+    toolName: string;
+};
+
+/**
+ * Lookup map of teammate metadata by tool name.
+ */
+type TeammatesMap = Record<string, TeammateMetadata>;
+
+/**
+ * Builds a teammates lookup map from a list of teammate metadata entries.
+ */
+function buildTeammatesMap(entries: Array<TeammateMetadata>): TeammatesMap | undefined {
+    const teammatesMap: TeammatesMap = {};
+
+    for (const teammate of entries) {
+        if (teammate.toolName) {
+            teammatesMap[teammate.toolName] = teammate;
+        }
+    }
+
+    return Object.keys(teammatesMap).length > 0 ? teammatesMap : undefined;
+}
+
+/**
+ * Builds teammate metadata based on team capabilities when model requirements are unavailable.
+ */
+function buildTeammatesMapFromCapabilities(capabilities: Array<AgentCapability> | undefined): TeammatesMap | undefined {
+    if (!capabilities || capabilities.length === 0) {
+        return undefined;
+    }
+
+    const teamEntries: Array<TeammateMetadata> = [];
+
+    for (const capability of capabilities) {
+        if (capability.type !== 'team' || !capability.agentUrl) {
+            continue;
+        }
+
+        teamEntries.push({
+            url: capability.agentUrl,
+            label: capability.label,
+            toolName: createTeamToolNameFromUrl(capability.agentUrl),
+        });
+    }
+
+    return buildTeammatesMap(teamEntries);
+}
 
 /**
  * LlmChat component that provides chat functionality with LLM integration
@@ -29,32 +88,40 @@ export function LlmChat(props: LlmChatProps) {
         persistenceKey,
         onChange,
         onReset,
+        onError,
         initialMessages,
         sendMessage,
         userParticipantName = 'USER',
         llmParticipantName = 'ASSISTANT',
         autoExecuteMessage,
         buttonColor,
+        toolTitles,
         ...restProps
     } = props;
 
     // Internal state management
     // DRY: Single factory for seeding initial messages (used on mount and after reset)
     const buildInitialMessages = useCallback(
-        () => (initialMessages ? ([...initialMessages] as ChatMessage[]) : ([] as ChatMessage[])),
+        () =>
+            initialMessages ? ([...initialMessages] satisfies Array<ChatMessage>) : ([] satisfies Array<ChatMessage>),
         [initialMessages],
     );
     const [messages, setMessages] = useState<ChatMessage[]>(() => buildInitialMessages());
     const [tasksProgress, setTasksProgress] = useState<Array<{ id: string; name: string; progress?: number }>>([]);
-    const [isVoiceCalling, setIsVoiceCalling] = useState(false);
-    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+    const [isVoiceCalling] = useState(false);
+    const [teammates, setTeammates] = useState<TeammatesMap | undefined>(undefined);
+    const [currentError, setCurrentError] = useState<FriendlyErrorMessage | null>(null);
+    TODO_USE(currentError);
 
-    // Refs to keep latest state for long-lived voice handlers
+    const [lastFailedMessage, setLastFailedMessage] = useState<{
+        content: string;
+        attachments: ChatMessage['attachments'];
+    } | null>(null);
+
+    // Refs to keep latest state for long-lived handlers
     const messagesRef = useRef<ChatMessage[]>([]);
     const participantsRef = useRef<ReadonlyArray<ChatParticipant>>([]);
-    const isProcessingVoiceChunkRef = useRef<boolean>(false);
-    const allVoiceChunksRef = useRef<Blob[]>([]);
-    const utteranceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const handleRetryRef = useRef<() => void>(() => {});
 
     /**
      * Tracks whether the user (or system via persistence restoration) has interacted.
@@ -69,13 +136,9 @@ export function LlmChat(props: LlmChatProps) {
             if (persistedMessages.length > 0) {
                 setMessages(persistedMessages);
                 hasUserInteractedRef.current = true; // Persisted conversation exists; allow saving next changes
-                // Notify about loaded messages
-                if (onChange) {
-                    onChange(persistedMessages, participants);
-                }
             }
         }
-    }, [persistenceKey]); // Only depend on persistenceKey, not participants or onChange to avoid infinite loops
+    }, [persistenceKey]);
 
     // Save messages to localStorage whenever messages change (and persistence is enabled)
     useEffect(() => {
@@ -101,8 +164,38 @@ export function LlmChat(props: LlmChatProps) {
                     color: '#10b981',
                 },
             ],
-        [llmTools.profile, llmTools.title],
+        [llmTools.profile, llmTools.title, props.participants, userParticipantName, llmParticipantName],
     );
+
+    // Load teammates metadata from llmTools
+    useEffect(() => {
+        const loadTeammates = async () => {
+            // Check if llmTools has getModelRequirements method (AgentLlmExecutionTools)
+            const llmToolsWithMetadata = llmTools as TODO_any;
+
+            let resolvedTeammates: TeammatesMap | undefined;
+
+            if (typeof llmToolsWithMetadata.getModelRequirements === 'function') {
+                try {
+                    const modelRequirements = await llmToolsWithMetadata.getModelRequirements();
+
+                    if (modelRequirements?.metadata?.teammates && Array.isArray(modelRequirements.metadata.teammates)) {
+                        resolvedTeammates = buildTeammatesMap(modelRequirements.metadata.teammates);
+                    }
+                } catch (error) {
+                    console.warn('Failed to load teammates metadata:', error);
+                }
+            }
+
+            if (!resolvedTeammates) {
+                resolvedTeammates = buildTeammatesMapFromCapabilities(llmToolsWithMetadata.capabilities);
+            }
+
+            setTeammates(resolvedTeammates);
+        };
+
+        loadTeammates();
+    }, [llmTools]);
 
     // Keep refs in sync for usage inside long-lived callbacks
     useEffect(() => {
@@ -113,210 +206,53 @@ export function LlmChat(props: LlmChatProps) {
         participantsRef.current = participants;
     }, [participants]);
 
-    // Handle voice input in a fluent, multi-message way:
-    // - While the call is active we keep recording audio.
-    // - When the user is silent for ~2 seconds, we treat it as the end of an utterance
-    //   and send one combined audio blob to the agent (one agent turn per utterance).
-    const processCurrentUtterance = useCallback(async () => {
-        if (!llmTools.callVoiceChatModel) {
-            return;
+    // Notify about changes whenever messages or participants change
+    // This replaces manual onChange calls to ensure consistency
+    useEffect(() => {
+        if (onChange) {
+            onChange(messages, participants);
         }
-
-        if (isProcessingVoiceChunkRef.current) {
-            return;
-        }
-
-        const chunks = allVoiceChunksRef.current;
-        if (!chunks.length) {
-            return;
-        }
-
-        isProcessingVoiceChunkRef.current = true;
-        allVoiceChunksRef.current = [];
-
-        const blob = new Blob(chunks, {
-            type: chunks[0]?.type || 'audio/webm',
-        });
-
-        const taskId = `voice_call_${Date.now()}`;
-        setTasksProgress([{ id: taskId, name: 'Processing voice...', progress: 50 }]);
-
-        try {
-            const thread = props.thread ? [...props.thread] : [...messagesRef.current];
-
-            const result = await llmTools.callVoiceChatModel(blob, {
-                title: 'Voice Message',
-                content: '',
-                parameters: {},
-                modelRequirements: { modelVariant: 'CHAT' as const },
-                thread,
-            });
-
-            setTasksProgress([{ id: taskId, name: 'Playing response...', progress: 100 }]);
-
-            const now = Date.now();
-
-            const userMessage: ChatMessage = {
-                id: `user_${now}`,
-                date: new Date(),
-                from: userParticipantName,
-                content: (result.userMessage || '(Voice message)') as string_markdown,
-                isComplete: true,
-                isVoiceCall: true,
-            };
-
-            const agentMessage: ChatMessage = {
-                id: `agent_${now}`,
-                date: new Date(),
-                from: llmParticipantName,
-                content: (result.agentMessage || result.text) as string_markdown,
-                isComplete: true,
-                isVoiceCall: true,
-            };
-
-            setMessages((prevMessages) => {
-                const newMessages = [...prevMessages, userMessage, agentMessage];
-                messagesRef.current = newMessages;
-
-                if (onChange) {
-                    onChange(newMessages, participantsRef.current);
-                }
-
-                return newMessages;
-            });
-
-            // Play audio
-            const audioUrl = URL.createObjectURL(result.audio);
-            const audioEl = new Audio(audioUrl);
-            audioEl.play();
-
-            setTimeout(() => setTasksProgress([]), 1000);
-        } catch (error) {
-            console.error('Error calling Voice LLM:', error);
-            setTasksProgress([]);
-        } finally {
-            isProcessingVoiceChunkRef.current = false;
-        }
-    }, [llmTools, onChange, userParticipantName, llmParticipantName, props.thread]);
-
-    const handleVoiceInput = useCallback(async () => {
-        if (!llmTools.callVoiceChatModel) {
-            return;
-        }
-
-        if (isVoiceCalling) {
-            // Stop recording and end call
-            const recorder = mediaRecorderRef.current;
-            if (recorder) {
-                recorder.stop();
-            }
-            mediaRecorderRef.current = null;
-            setIsVoiceCalling(false);
-
-            // Process any remaining audio as the final utterance
-            if (utteranceTimeoutRef.current) {
-                clearTimeout(utteranceTimeoutRef.current);
-                utteranceTimeoutRef.current = null;
-            }
-            void processCurrentUtterance();
-        } else {
-            // Start recording and keep listening for utterances separated by ~2s of silence
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                const mediaRecorder = new MediaRecorder(stream);
-                mediaRecorderRef.current = mediaRecorder;
-
-                allVoiceChunksRef.current = [];
-                isProcessingVoiceChunkRef.current = false;
-                if (utteranceTimeoutRef.current) {
-                    clearTimeout(utteranceTimeoutRef.current);
-                    utteranceTimeoutRef.current = null;
-                }
-
-                mediaRecorder.ondataavailable = (event) => {
-                    const chunk = event.data;
-                    if (!chunk || chunk.size === 0) {
-                        return;
-                    }
-
-                    // Accumulate chunks for the current utterance
-                    allVoiceChunksRef.current.push(chunk);
-
-                    // Reset the silence timer; if there is no new audio for 2s,
-                    // treat it as the end of the current utterance.
-                    if (utteranceTimeoutRef.current) {
-                        clearTimeout(utteranceTimeoutRef.current);
-                    }
-                    utteranceTimeoutRef.current = setTimeout(() => {
-                        void processCurrentUtterance();
-                    }, 2000);
-                };
-
-                mediaRecorder.onstop = () => {
-                    mediaRecorder.stream.getTracks().forEach((track) => track.stop());
-                    if (utteranceTimeoutRef.current) {
-                        clearTimeout(utteranceTimeoutRef.current);
-                        utteranceTimeoutRef.current = null;
-                    }
-                    // Process any remaining audio when the recorder stops
-                    void processCurrentUtterance();
-                };
-
-                // Use timeslices so ondataavailable is fired continuously
-                mediaRecorder.start(500);
-                setIsVoiceCalling(true);
-            } catch (err) {
-                console.error('Error accessing microphone:', err);
-            }
-        }
-    }, [isVoiceCalling, llmTools, processCurrentUtterance]);
+    }, [messages, participants, onChange]);
 
     // Handle user messages and LLM responses
     const handleMessage = useCallback(
-        async (messageContent: string) => {
+        async (messageContent: string, attachments: ChatMessage['attachments'] = []) => {
             hasUserInteractedRef.current = true;
 
             // Add user message
             const userMessage: ChatMessage = {
+                // channel: 'PROMPTBOOK_CHAT',
                 id: `user_${Date.now()}`,
-                date: new Date(),
-                from: userParticipantName,
+                createdAt: new Date(),
+                sender: userParticipantName,
                 content: messageContent as string_markdown,
                 isComplete: true,
+                attachments,
             };
-
-            const newMessages = [...messages, userMessage];
-            setMessages(newMessages);
-
-            // Notify about changes
-            if (onChange) {
-                onChange(newMessages, participants);
-            }
 
             // Add loading message for assistant
             const loadingMessage: ChatMessage = {
+                // channel: 'PROMPTBOOK_CHAT',
                 id: `assistant_${Date.now()}`,
-                date: new Date(),
-                from: llmParticipantName,
+                createdAt: new Date(),
+                sender: llmParticipantName,
                 content: 'Thinking...' as string_markdown,
                 isComplete: false,
             };
 
-            const messagesWithLoading = [...newMessages, loadingMessage];
-            setMessages(messagesWithLoading);
-
-            // Notify about changes
-            if (onChange) {
-                onChange(newMessages, participants);
-            }
+            // Functional update: Append both messages at once
+            setMessages((prev) => [...prev, userMessage, loadingMessage]);
 
             // Add task progress for LLM call
             const taskId = `llm_call_${Date.now()}`;
             setTasksProgress([{ id: taskId, name: 'Generating response...', progress: 0 }]);
 
             try {
-                // Build thread: use props.thread if provided, otherwise use current messages
-                const thread = props.thread ? [...props.thread] : [...newMessages];
+                // Build thread: use props.thread if provided, otherwise use current messages + new user message
+                // We filter out incomplete messages from the history to avoid including "Thinking..." from concurrent requests
+                const currentHistory = messages.filter((m) => m.isComplete);
+                const thread = props.thread ? [...props.thread] : [...currentHistory, userMessage];
+
                 const prompt = {
                     title: 'User Message',
                     content: messageContent as string_markdown,
@@ -325,6 +261,7 @@ export function LlmChat(props: LlmChatProps) {
                         modelVariant: 'CHAT' as const,
                     },
                     thread,
+                    attachments,
                 };
 
                 // Update task progress
@@ -335,19 +272,19 @@ export function LlmChat(props: LlmChatProps) {
                 if (llmTools.callChatModelStream) {
                     result = await llmTools.callChatModelStream(prompt, (chunk) => {
                         const assistantMessage: ChatMessage = {
+                            // channel: 'PROMPTBOOK_CHAT',
                             id: loadingMessage.id,
-                            date: new Date(),
-                            from: llmParticipantName,
+                            createdAt: new Date(),
+                            sender: llmParticipantName,
                             content: chunk.content as string_markdown,
                             isComplete: false,
+                            ongoingToolCalls: chunk.toolCalls,
                         };
 
-                        const currentMessages = [...newMessages, assistantMessage];
-                        setMessages(currentMessages);
-
-                        if (onChange) {
-                            onChange(currentMessages, participants);
-                        }
+                        // Functional update: Replace loading message with streaming update
+                        setMessages((prev) =>
+                            prev.map((msg) => (msg.id === loadingMessage.id ? assistantMessage : msg)),
+                        );
                     });
                 } else if (llmTools.callChatModel) {
                     result = await llmTools.callChatModel(prompt);
@@ -360,52 +297,55 @@ export function LlmChat(props: LlmChatProps) {
 
                 // Replace loading message with actual response
                 const assistantMessage: ChatMessage = {
+                    // channel: 'PROMPTBOOK_CHAT',
                     id: loadingMessage.id,
-                    date: new Date(),
-                    from: llmParticipantName,
+                    createdAt: new Date(),
+                    sender: llmParticipantName,
                     content: result.content as string_markdown,
                     isComplete: true,
+                    toolCalls: result.toolCalls,
+                    completedToolCalls: result.toolCalls,
                 };
 
-                const finalMessages = [...newMessages, assistantMessage];
-                setMessages(finalMessages);
+                // Functional update: Replace loading message with final response
+                setMessages((prev) => prev.map((msg) => (msg.id === loadingMessage.id ? assistantMessage : msg)));
 
                 // Clear task progress after a short delay
                 setTimeout(() => {
                     setTasksProgress([]);
                 }, 1000);
-
-                // Notify about changes
-                if (onChange) {
-                    onChange(finalMessages, participants);
-                }
             } catch (error) {
+                // Log raw error for debugging
                 console.error('Error calling LLM:', error);
 
-                // Replace loading message with error message
+                // Store the failed message for retry functionality
+                setLastFailedMessage({ content: messageContent, attachments });
+
+                // Call custom error handler if provided
+                if (onError) {
+                    onError(error, () => handleRetryRef.current());
+                }
+
+                // Replace loading message with error message in chat
                 const errorMessage: ChatMessage = {
+                    // channel: 'PROMPTBOOK_CHAT',
                     id: loadingMessage.id,
-                    date: new Date(),
-                    from: llmParticipantName,
-                    content: `Sorry, I encountered an error: ${
-                        error instanceof Error ? error.message : 'Unknown error'
+                    createdAt: new Date(),
+                    sender: llmParticipantName,
+                    content: `Sorry, I encountered an error processing your message. ${
+                        error instanceof Error ? error.message : 'Please try again.'
                     }` as string_markdown,
                     isComplete: true,
                 };
 
-                const finalMessages = [...newMessages, errorMessage];
-                setMessages(finalMessages);
+                // Functional update: Replace loading message with error
+                setMessages((prev) => prev.map((msg) => (msg.id === loadingMessage.id ? errorMessage : msg)));
 
                 // Clear task progress
                 setTasksProgress([]);
-
-                // Notify about changes
-                if (onChange) {
-                    onChange(finalMessages, participants);
-                }
             }
         },
-        [messages, llmTools, onChange, participants],
+        [messages, llmTools, props.thread, onError, llmParticipantName, userParticipantName],
     );
 
     // Handle chat reset
@@ -415,6 +355,10 @@ export function LlmChat(props: LlmChatProps) {
         setTasksProgress([]);
         hasUserInteractedRef.current = false;
 
+        // Clear error state
+        setCurrentError(null);
+        setLastFailedMessage(null);
+
         // Clear persisted messages if persistence is enabled
         if (persistenceKey && ChatPersistence.isAvailable()) {
             ChatPersistence.clearMessages(persistenceKey);
@@ -423,12 +367,30 @@ export function LlmChat(props: LlmChatProps) {
         if (onReset) {
             await onReset();
         }
+    }, [persistenceKey, onReset, buildInitialMessages]);
 
-        // Notify about changes
-        if (onChange) {
-            onChange(buildInitialMessages(), participants);
+    // Handle retry of last failed message
+    const handleRetry = useCallback(() => {
+        if (lastFailedMessage) {
+            // Clear error state
+            setCurrentError(null);
+
+            // Retry sending the message
+            handleMessage(lastFailedMessage.content, lastFailedMessage.attachments);
         }
-    }, [persistenceKey, onReset, onChange, participants, buildInitialMessages]);
+    }, [lastFailedMessage, handleMessage]);
+
+    // Keep handleRetry ref in sync
+    useEffect(() => {
+        handleRetryRef.current = handleRetry;
+    }, [handleRetry]);
+
+    // Handle dismissing error dialog
+    const handleDismissError = useCallback(() => {
+        setCurrentError(null);
+    }, []);
+
+    TODO_USE(handleDismissError);
 
     // Attach internal handler to external sendMessage (from useSendMessageToLlmChat) if provided
     useEffect(() => {
@@ -450,10 +412,9 @@ export function LlmChat(props: LlmChatProps) {
         <>
             <Chat
                 {...restProps}
-                {...{ messages, onReset, tasksProgress, participants, buttonColor }}
+                {...{ messages, onReset, tasksProgress, participants, buttonColor, toolTitles, teammates }}
                 onMessage={handleMessage}
                 onReset={handleReset}
-                onVoiceInput={llmTools.callVoiceChatModel ? handleVoiceInput : undefined}
                 isVoiceCalling={isVoiceCalling}
             />
         </>

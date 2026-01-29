@@ -55,8 +55,8 @@ export function parseParameters(text: string): BookParameter[] {
     });
 
     // Remove duplicates based on name (keep the first occurrence)
-    const uniqueParameters = parameters.filter((param, index, array) => {
-        return array.findIndex((p) => p.name === param.name) === index;
+    const uniqueParameters = parameters.filter((parameter, index, array) => {
+        return array.findIndex((parameterItem) => parameterItem.name === parameter.name) === index;
     });
 
     return uniqueParameters;

@@ -17,9 +17,9 @@ export function messagesToText(
     const header = headerMarkdown ? `${headerMarkdown}\n\n` : '';
     const content = messages
         .map((message) => {
-            const participant = (participants || []).find((participant) => participant.name === message.from);
+            const participant = (participants || []).find((participant) => participant.name === message.sender);
 
-            const fullname = participant?.fullname || message.from;
+            const fullname = participant?.fullname || message.sender;
             return `${fullname}:\n${message.content}\n`;
         })
         .join('\n');

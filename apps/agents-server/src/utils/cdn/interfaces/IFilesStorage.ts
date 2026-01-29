@@ -5,6 +5,23 @@ export type IFile = {
     // Maybe TODO name: string_name;
     type: string_mime_type;
     data: Buffer;
+
+    /**
+     * User who uploaded the file
+     */
+    userId?: number;
+
+    /**
+     * Purpose of the upload (e.g. KNOWLEDGE, SERVER_FAVICON_URL)
+     */
+    purpose?: string;
+
+    /**
+     * Size of the file in bytes
+     *
+     * Note: This is optional, if not provided, the size of the buffer is used
+     */
+    fileSize?: number;
 };
 
 /**
@@ -17,6 +34,7 @@ export type IFilesStorage = Omit<IStorage<IFile>, 'length' | 'clear' | 'key'>;
  */
 export type IIFilesStorageWithCdn = IFilesStorage & {
     readonly cdnPublicUrl: URL;
+    readonly pathPrefix?: string;
     getItemUrl(key: string): URL;
 };
 

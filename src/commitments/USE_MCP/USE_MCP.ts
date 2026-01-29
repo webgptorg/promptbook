@@ -19,7 +19,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * @private [🪔] Maybe export the commitments through some package
  */
 export class UseMcpCommitmentDefinition extends BaseCommitmentDefinition<'USE MCP'> {
-    constructor() {
+    public constructor() {
         super('USE MCP', ['MCP']);
     }
 

@@ -4,11 +4,28 @@
 
 import type { CSSProperties, ReactNode } from 'react';
 import type { Promisable } from 'type-fest';
+import { Color } from '../../../_packages/color.index';
+import { SpeechRecognition } from '../../../types/SpeechRecognition';
+import { string_color } from '../../../types/typeAliases';
 import type { string_chat_format_name } from '../save/_common/string_chat_format_name';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
-import { string_color } from '../../../types/typeAliases';
-import { Color } from '../../../_packages/color.index';
+
+/**
+ * Interface for sound system that can be passed to Chat component
+ * This allows the chat to trigger sounds without tight coupling
+ *
+ * @public exported from `@promptbook/components`
+ */
+export type ChatSoundSystem = {
+    /**
+     * @@@
+     */
+    play(event: string): Promise<void>;
+    isEnabled(): boolean;
+    setEnabled(enabled: boolean): void;
+    toggle(): boolean;
+};
 
 /**
  * @public exported from `@promptbook/components`
@@ -60,14 +77,9 @@ export type ChatProps = {
     readonly isVoiceRecognitionButtonShown?: boolean;
 
     /**
-     * Optional callback to trigger voice input
+     * Speech recognition provider
      */
-    onVoiceInput?(): void;
-
-    /**
-     * The language code to use for voice recognition
-     */
-    readonly voiceLanguage?: string;
+    readonly speechRecognition?: SpeechRecognition;
 
     /**
      * Optional placeholder message for the textarea
@@ -182,6 +194,32 @@ export type ChatProps = {
     readonly participants?: ReadonlyArray<ChatParticipant>;
 
     /**
+     * Optional mapping of technical tool names to human-readable titles.
+     * e.g., { "web_search": "Searching the web..." }
+     */
+    readonly toolTitles?: Record<string, string>;
+
+    /**
+     * Optional metadata about teammates for team tool calls
+     * Maps tool name to agent information
+     */
+    readonly teammates?: Record<
+        string,
+        {
+            url: string;
+            label?: string;
+            instructions?: string;
+            toolName: string;
+        }
+    >;
+
+    /**
+     * Optional callback to create a new agent from the template.
+     * If provided, renders the [Create Agent] button for book code blocks.
+     */
+    onCreateAgent?: (bookContent: string) => void;
+
+    /**
      * Optional callback for handling user feedback on messages
      * When provided, star rating buttons (1-5 stars) will be displayed next to each message
      *
@@ -218,6 +256,58 @@ export type ChatProps = {
      * @default true
      */
     isCopyButtonEnabled?: boolean;
+
+    /**
+     * Called when a tool call chiplet is clicked.
+     */
+    onToolCallClick?: (toolCall: NonNullable<ChatMessage['toolCalls']>[number]) => void;
+
+    /**
+     * Visual style of the chat component
+     */
+    readonly visual: 'STANDALONE' | 'FULL_PAGE';
+
+    /**
+     * Optional array of effect configurations for chat animations
+     * When provided, enables visual effects (confetti, hearts, etc.) based on emojis in messages
+     *
+     * Example:
+     * ```typescript
+     * [
+     *   { trigger: '🎉', effectType: 'CONFETTI' },
+     *   { trigger: /❤️|💙|💚/, effectType: 'HEARTS' }
+     * ]
+     * ```
+     */
+    readonly effectConfigs?: ReadonlyArray<{ trigger: string | RegExp; effectType: string }>;
+
+    /**
+     * Optional sound system for playing chat sounds
+     * When provided, enables sound effects for message events, button clicks, and visual effects
+     *
+     * The sound system should implement the ChatSoundSystem interface:
+     * - play(event: string): Plays a sound for the given event
+     * - isEnabled(): Returns whether sounds are enabled
+     * - setEnabled(enabled: boolean): Enables or disables sounds
+     * - toggle(): Toggles sound on/off and returns the new state
+     *
+     * Supported events:
+     * - 'message_send': When user sends a message
+     * - 'message_receive': When agent sends a message
+     * - 'message_typing': When agent is typing/thinking
+     * - 'button_click': When any button is clicked
+     * - 'effect_confetti': When confetti effect is triggered
+     * - 'effect_hearts': When hearts effect is triggered
+     *
+     * @example
+     * ```typescript
+     * import { createDefaultSoundSystem } from '@/utils/sound/createDefaultSoundSystem';
+     *
+     * const soundSystem = createDefaultSoundSystem();
+     * <Chat soundSystem={soundSystem} ... />
+     * ```
+     */
+    readonly soundSystem?: ChatSoundSystem;
 };
 
 /**

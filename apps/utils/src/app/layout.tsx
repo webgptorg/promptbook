@@ -1,4 +1,3 @@
-import { NEXT_PUBLIC_SITE_URL } from '@/config';
 import faviconLogoImage from '@/public/favicon.ico';
 import type { Metadata } from 'next';
 import { Barlow_Condensed } from 'next/font/google';
@@ -10,14 +9,14 @@ const barlowCondensed = Barlow_Condensed({
 });
 
 export const metadata: Metadata = {
-    metadataBase: NEXT_PUBLIC_SITE_URL,
+    metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://utils.ptbk.io'),
     title: 'Promptbook utils app',
-    description: '@@@',
-    keywords: ['@@@'],
+    description: 'Misc utilities and tools for the Promptbook framework',
+    keywords: ['promptbook', 'utils', 'development', 'tools', 'ai', 'agents'],
     authors: [{ name: 'Promptbook Team' }],
     openGraph: {
         title: 'Promptbook utils app',
-        description: '@@@',
+        description: 'Misc utilities and tools for the Promptbook framework',
         type: 'website',
         images: [
             /*
@@ -34,7 +33,7 @@ export const metadata: Metadata = {
     twitter: {
         card: 'summary_large_image',
         title: 'Promptbook utils app',
-        description: '@@@',
+        description: 'Development utilities and tools for the Promptbook framework',
         // TODO: images: ['https://www.ptbk.io/design'],
     },
 };

@@ -1,6 +1,7 @@
 import type { FormatCommand } from '../commands/FORMAT/FormatCommand';
 import type { ChatMessage } from '../book-components/Chat/types/ChatMessage';
 import type { Expectations } from '../pipeline/PipelineJson/Expectations';
+import type { LlmToolDefinition } from './LlmToolDefinition';
 import type { ChatModelRequirements } from './ModelRequirements';
 import type { CompletionModelRequirements } from './ModelRequirements';
 import type { EmbeddingModelRequirements } from './ModelRequirements';
@@ -48,6 +49,25 @@ export type ChatPrompt = CommonPrompt & {
      * Optional chat thread (history of previous messages)
      */
     thread?: ChatMessage[];
+
+    /**
+     * Optional file attachments
+     */
+    attachments?: Array<{
+        name: string;
+        type: string;
+        url: string;
+    }>;
+
+    /**
+     * Optional tools that can be called by the model
+     */
+    tools?: Array<LlmToolDefinition>;
+
+    /**
+     * Optional file attachments
+     */
+    files?: Array<File>;
 };
 
 /**
@@ -60,6 +80,15 @@ export type ImagePrompt = CommonPrompt & {
      * Requirements for image generation model
      */
     modelRequirements: ImageGenerationModelRequirements;
+
+    /**
+     * Optional file attachments
+     */
+    attachments?: Array<{
+        name: string;
+        type: string;
+        url: string;
+    }>;
 };
 
 /**

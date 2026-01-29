@@ -1,7 +1,12 @@
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import { preparePersona } from '../../personas/preparePersona';
-import type { string_model_name } from '../../types/typeAliases';
+import type {
+    string_agent_name,
+    string_model_name,
+    string_system_message,
+    string_url_image,
+} from '../../types/typeAliases';
 import type { AgentModelRequirements } from './AgentModelRequirements';
 import { createAgentModelRequirementsWithCommitments } from './createAgentModelRequirementsWithCommitments';
 import { parseAgentSource } from './parseAgentSource';
@@ -98,7 +103,7 @@ export function extractMcpServers(agentSource: string_book): string[] {
         return [];
     }
 
-    const lines = agentSource.split('\n');
+    const lines = agentSource.split(/\r?\n/);
     const mcpRegex = /^\s*MCP\s+(.+)$/i;
     const mcpServers: string[] = [];
 
@@ -118,7 +123,7 @@ export function extractMcpServers(agentSource: string_book): string[] {
  * @deprecated Use createAgentModelRequirements instead
  * @private
  */
-export async function createAgentSystemMessage(agentSource: string_book): Promise<string> {
+export async function createAgentSystemMessage(agentSource: string_book): Promise<string_system_message> {
     const modelRequirements = await createAgentModelRequirements(agentSource);
     return modelRequirements.systemMessage;
 }
@@ -128,7 +133,7 @@ export async function createAgentSystemMessage(agentSource: string_book): Promis
  * @deprecated Use parseAgentSource instead
  * @private
  */
-export function extractAgentName(agentSource: string_book): string {
+export function extractAgentName(agentSource: string_book): string_agent_name {
     const { agentName } = parseAgentSource(agentSource);
 
     if (!agentName) {
@@ -139,13 +144,13 @@ export function extractAgentName(agentSource: string_book): string {
 }
 
 /**
- * Extracts the profile image URL from agent source or returns gravatar fallback
+ * Extracts the profile image URL from agent source or returns default avatar fallback
  * @param agentSource The agent source string that may contain META IMAGE line
- * @returns Profile image URL (from source or gravatar fallback)
+ * @returns Profile image URL (from source or default avatar fallback)
  * @deprecated Use parseAgentSource instead
  * @private
  */
-export function extractAgentProfileImage(agentSource: string_book): string {
+export function extractAgentProfileImage(agentSource: string_book): string_url_image | null {
     const { meta } = parseAgentSource(agentSource);
-    return meta.image!;
+    return meta.image || null;
 }

@@ -2,12 +2,16 @@ import spaceTrim from 'spacetrim';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { ParseError } from '../../errors/ParseError';
 import type { PipelineJson } from '../../pipeline/PipelineJson/PipelineJson';
-import type { ModelRequirements } from '../../types/ModelRequirements';
 import { MODEL_VARIANTS } from '../../types/ModelVariant';
 import type { string_markdown_text } from '../../types/typeAliases';
 import type { $side_effect } from '../../utils/organization/$side_effect';
 import { keepUnused } from '../../utils/organization/keepUnused';
-import type { $PipelineJson, $TaskJson, CommandParserInput, PipelineBothCommandParser } from '../_common/types/CommandParser';
+import type {
+    $PipelineJson,
+    $TaskJson,
+    CommandParserInput,
+    PipelineBothCommandParser,
+} from '../_common/types/CommandParser';
 import type { ModelCommand } from './ModelCommand';
 
 /**
@@ -167,15 +171,9 @@ export const modelCommandParser: PipelineBothCommandParser<ModelCommand> = {
         if ($taskJson.modelRequirements[command.key] !== undefined) {
             if ($taskJson.modelRequirements[command.key] === command.value) {
                 console.warn(
-                    `Multiple commands \`MODEL ${
-                        (
-                            {
-                                modelName: 'NAME',
-                                modelVariant: 'VARIANT',
-                                maxTokens: '???',
-                            } as Record<keyof ModelRequirements, string>
-                        )[command.key]
-                    } ${command.value}\` in the task "${$taskJson.title || $taskJson.name}"`,
+                    `Multiple commands \`MODEL ${command.key} ${command.value}\` in the task "${
+                        $taskJson.title || $taskJson.name
+                    }"`,
                 );
                 // <- TODO: [🏮] Some standard way how to transform errors into warnings and how to handle non-critical fails during the tasks
             } else {

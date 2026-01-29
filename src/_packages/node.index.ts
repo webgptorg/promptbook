@@ -3,6 +3,7 @@
 
 import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION } from '../version';
 import { createPipelineCollectionFromDirectory } from '../collection/pipeline-collection/constructors/createPipelineCollectionFromDirectory';
+import { getAllCommitmentsToolFunctionsForNode } from '../commitments/_common/getAllCommitmentsToolFunctionsForNode';
 import { $provideExecutablesForNode } from '../executables/$provideExecutablesForNode';
 import { $provideExecutionToolsForNode } from '../execution/utils/$provideExecutionToolsForNode';
 import { $provideLlmToolsConfigurationFromEnv } from '../llm-providers/_common/register/$provideLlmToolsConfigurationFromEnv';
@@ -21,6 +22,7 @@ export { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION };
 
 // Note: Entities of the `@promptbook/node`
 export { createPipelineCollectionFromDirectory };
+export { getAllCommitmentsToolFunctionsForNode };
 export { $provideExecutablesForNode };
 export { $provideExecutionToolsForNode };
 export { $provideLlmToolsConfigurationFromEnv };

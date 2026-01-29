@@ -1,11 +1,12 @@
 import colors from 'colors';
 import type {
-    Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */
+    Command as Program /* <- Note: [🔸] Using Program because Command is misleading name */,
 } from 'commander';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import prompts from 'prompts';
 import spaceTrim from 'spacetrim';
+import { getAllCommitmentsToolFunctionsForNode } from '../../commitments/_common/getAllCommitmentsToolFunctionsForNode';
 import { DEFAULT_MAX_EXECUTION_ATTEMPTS } from '../../config';
 import { validatePipeline } from '../../conversion/validation/validatePipeline';
 import { assertsError } from '../../errors/assertsError';
@@ -193,7 +194,12 @@ export function $initializeRunCommand(program: Program): $side_effect {
                 fs,
                 fetch: promptbookFetch,
                 scrapers: await $provideScrapersForNode({ fs, llm, executables }, prepareAndScrapeOptions),
-                script: [new JavascriptExecutionTools(cliOptions)],
+                script: [
+                    new JavascriptExecutionTools({
+                        ...cliOptions,
+                        functions: getAllCommitmentsToolFunctionsForNode(),
+                    }),
+                ],
             } satisfies ExecutionTools; /* <- Note: [🤛] */
 
             if (isVerbose) {

@@ -1,10 +1,10 @@
 import hexEncoder from 'crypto-js/enc-hex';
 import sha256 from 'crypto-js/sha256';
 import spaceTrim from 'spacetrim';
-import type { Promisable } from 'type-fest';
+import { serializeError } from '../../../../_packages/utils.index';
 import { DEFAULT_IS_VERBOSE, MAX_FILENAME_LENGTH } from '../../../../config';
+import { assertsError } from '../../../../errors/assertsError';
 import { PipelineExecutionError } from '../../../../errors/PipelineExecutionError';
-import type { AvailableModel } from '../../../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../../../execution/LlmExecutionTools';
 import type {
     ChatPromptResult,
@@ -26,9 +26,10 @@ import type { CacheLlmToolsOptions } from './CacheLlmToolsOptions';
  * Intercepts LLM tools and counts total usage of the tools
  *
  * Note: It can take extended `LlmExecutionTools` and cache the
+ * Note: Returns full proxy of all LLM tool properties and methods
  *
  * @param llmTools LLM tools to be intercepted with usage counting, it can contain extra methods like `totalUsage`
- * @returns LLM tools with same functionality with added total cost counting
+ * @returns Full proxy of LLM tools with same functionality with added caching
  * @public exported from `@promptbook/core`
  */
 export function cacheLlmTools<TLlmTools extends LlmExecutionTools>(
@@ -36,28 +37,6 @@ export function cacheLlmTools<TLlmTools extends LlmExecutionTools>(
     options: Partial<CacheLlmToolsOptions> = {},
 ): TLlmTools {
     const { storage = new MemoryStorage(), isCacheReloaded = false, isVerbose = DEFAULT_IS_VERBOSE } = options;
-
-    const proxyTools: TLlmTools = {
-        ...llmTools,
-        // <- Note: [🥫]
-
-        get title() {
-            return `${llmTools.title} (cached)`;
-            // <- TODO: [🧈] Maybe standartize the suffix when wrapping `LlmExecutionTools` up
-            // <- TODO: [🧈][🧠] Does it make sense to suffix "(cached)"?
-        },
-
-        get description() {
-            return `${llmTools.description} (cached)`;
-            // <- TODO: [🧈] Maybe standartize the suffix when wrapping `LlmExecutionTools` up
-            // <- TODO: [🧈][🧠] Does it make sense to suffix "(cached)"?
-        },
-
-        listModels(): Promisable<ReadonlyArray<AvailableModel>> {
-            // TODO: [🧠] Should be model listing also cached?
-            return /* not await */ llmTools.listModels();
-        },
-    };
 
     const callCommonModel = async (prompt: Prompt): Promise<TODO_any> => {
         const { parameters, content, modelRequirements } = prompt;
@@ -119,6 +98,10 @@ export function cacheLlmTools<TLlmTools extends LlmExecutionTools>(
                 promptResult = await llmTools.callEmbeddingModel!(prompt);
                 break variant;
 
+            case 'IMAGE_GENERATION':
+                promptResult = await llmTools.callImageGenerationModel!(prompt);
+                break variant;
+
             // <- case [🤖]:
 
             default:
@@ -164,14 +147,28 @@ export function cacheLlmTools<TLlmTools extends LlmExecutionTools>(
                     });
                 }
             } catch (error) {
+                assertsError(error);
+
                 // If validation throws an unexpected error, don't cache
                 shouldCache = false;
                 if (isVerbose) {
                     console.info('Not caching result due to validation error for key:', key, {
                         content: promptResult.content,
-                        validationError: error instanceof Error ? error.message : String(error),
+                        validationError: serializeError(error),
                     });
                 }
+            }
+        }
+
+        if (shouldCache && (promptResult as ChatPromptResult).toolCalls !== undefined) {
+            // Note: Do not cache results that contain tool calls because they are dynamic and should be always fresh
+            //       For example, it doesn't make sense to cache the message 'What time is it? 3:30 pm' because when the question is asked another time, it can be a different time.
+            shouldCache = false;
+
+            if (isVerbose) {
+                console.info('Not caching result that contains tool calls for key:', key, {
+                    toolCalls: (promptResult as ChatPromptResult).toolCalls,
+                });
             }
         }
 
@@ -203,25 +200,64 @@ export function cacheLlmTools<TLlmTools extends LlmExecutionTools>(
         return promptResult;
     };
 
-    if (llmTools.callChatModel !== undefined) {
-        proxyTools.callChatModel = async (prompt: Prompt): Promise<ChatPromptResult> => {
-            return /* not await */ callCommonModel(prompt);
-        };
-    }
+    // Create a Proxy to intercept all property access and ensure full proxying of all properties
+    const proxyTools = new Proxy(llmTools, {
+        get(target, prop, receiver) {
+            // Handle title property
+            if (prop === 'title') {
+                return `${target.title} (cached)`;
+                // <- TODO: [🧈] Maybe standartize the suffix when wrapping `LlmExecutionTools` up
+                // <- TODO: [🧈][🧠] Does it make sense to suffix "(cached)"?
+            }
 
-    if (llmTools.callCompletionModel !== undefined) {
-        proxyTools.callCompletionModel = async (prompt: Prompt): Promise<CompletionPromptResult> => {
-            return /* not await */ callCommonModel(prompt);
-        };
-    }
+            // Handle description property
+            if (prop === 'description') {
+                return `${target.description} (cached)`;
+                // <- TODO: [🧈] Maybe standartize the suffix when wrapping `LlmExecutionTools` up
+                // <- TODO: [🧈][🧠] Does it make sense to suffix "(cached)"?
+            }
 
-    if (llmTools.callEmbeddingModel !== undefined) {
-        proxyTools.callEmbeddingModel = async (prompt: Prompt): Promise<EmbeddingPromptResult> => {
-            return /* not await */ callCommonModel(prompt);
-        };
-    }
+            // Handle callChatModel method
+            if (prop === 'callChatModel' && target.callChatModel !== undefined) {
+                return async (prompt: Prompt): Promise<ChatPromptResult> => {
+                    return /* not await */ callCommonModel(prompt);
+                };
+            }
 
-    // <- Note: [🤖]
+            // Handle callCompletionModel method
+            if (prop === 'callCompletionModel' && target.callCompletionModel !== undefined) {
+                return async (prompt: Prompt): Promise<CompletionPromptResult> => {
+                    return /* not await */ callCommonModel(prompt);
+                };
+            }
+
+            // Handle callEmbeddingModel method
+            if (prop === 'callEmbeddingModel' && target.callEmbeddingModel !== undefined) {
+                return async (prompt: Prompt): Promise<EmbeddingPromptResult> => {
+                    return /* not await */ callCommonModel(prompt);
+                };
+            }
+
+            // Handle callImageGenerationModel method
+            if (prop === 'callImageGenerationModel' && target.callImageGenerationModel !== undefined) {
+                return async (prompt: Prompt): Promise<TODO_any> => {
+                    return /* not await */ callCommonModel(prompt);
+                };
+            }
+
+            // <- Note: [🤖]
+
+            // For all other properties and methods, delegate to the original target
+            const value = Reflect.get(target, prop, receiver);
+
+            // If it's a function, bind it to the target to preserve context
+            if (typeof value === 'function') {
+                return value.bind(target);
+            }
+
+            return value;
+        },
+    }) as TLlmTools;
 
     return proxyTools;
 }

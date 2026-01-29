@@ -3,7 +3,7 @@
 // import type { string_book } from '../../book-2.0/agent-source/string_book';
 // import { Agent } from '../../llm-providers/agent/Agent';
 // import type { string_agent_name } from '../../types/typeAliases';
-import { AgentCollectionInSupabase } from './constructors/agent-collection-in-supabase/AgentCollectionInSupabase';
+import type { AgentCollectionInSupabase } from './constructors/agent-collection-in-supabase/AgentCollectionInSupabase';
 
 /**
  * Collection that groups together multiple AI Agents
@@ -13,6 +13,7 @@ import { AgentCollectionInSupabase } from './constructors/agent-collection-in-su
  * - `PipelineCollection` - which groups together *(deprecated)* pipelines
  */
 export type AgentCollection = AgentCollectionInSupabase;
+// <- TODO: [🌈][🐱‍🚀] Do `AgentCollectionInSupabase implements AgentCollection` not reverse, there can be more collection types like `AgentCollectionInFilesystem`, `RemoteAgentCollection`
 
 /*
 {

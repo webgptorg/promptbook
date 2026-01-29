@@ -1,17 +1,27 @@
-import type { string_agent_name, string_url_image } from '../../types/typeAliases';
-import { generateGravatarUrl } from './generateGravatarUrl';
+import type {
+    string_agent_name,
+    string_agent_permanent_id,
+    string_url,
+    string_url_image,
+} from '../../types/typeAliases';
 
 /**
  * Generates an image for the agent to use as profile image
  *
- * @param agentName The agent name to generate avatar for
+ * @param agentId - The permanent ID of the agent
  * @returns The placeholder profile image URL for the agent
  *
  * @public exported from `@promptbook/core`
  */
-export function generatePlaceholderAgentProfileImageUrl(agentName?: string_agent_name): string_url_image {
-    // Note: [🤹] The fact that profile image is Gravatar is just implementation detail which should be hidden for consumer
-    return generateGravatarUrl(agentName);
+export function generatePlaceholderAgentProfileImageUrl(
+    agentIdOrName: string_agent_permanent_id | string_agent_name,
+    agentsServerUrl: URL | string_url,
+): string_url_image {
+    if (typeof agentsServerUrl === 'string') {
+        agentsServerUrl = new URL(agentsServerUrl);
+    }
+
+    return `${agentsServerUrl.href}agents/${agentIdOrName}/images/default-avatar.png`;
 }
 
 /**

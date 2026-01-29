@@ -10,9 +10,10 @@ import { useCallback, useEffect, useRef, useState } from 'react'; // <-- added u
 // [🚱]> import * as Y from 'yjs';
 // [🚱]> import { TODO_any } from '../../_packages/types.index';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
-import { getAllCommitmentDefinitions } from '../../commitments/index';
-import { PROMPTBOOK_SYNTAX_COLORS } from '../../config';
+import { getAllCommitmentDefinitions } from '../../commitments/_common/getAllCommitmentDefinitions';
+import { DEFAULT_MAX_CONCURRENT_UPLOADS, PROMPTBOOK_SYNTAX_COLORS } from '../../config';
 import { classNames } from '../_common/react-utils/classNames';
+import { SaveIcon } from '../icons/SaveIcon';
 import type { BookEditorProps } from './BookEditor';
 import styles from './BookEditor.module.css';
 import { BookEditorActionbar } from './BookEditorActionbar';
@@ -61,6 +62,7 @@ export function BookEditorMonaco(props: BookEditorProps) {
     const [editor, setEditor] = useState<editor.IStandaloneCodeEditor | null>(null);
     const [isFocused, setIsFocused] = useState(false);
     const [isTouchDevice, setIsTouchDevice] = useState(false);
+    const [isSavedShown, setIsSavedShown] = useState(false);
 
     const monaco = useMonaco();
 
@@ -134,11 +136,37 @@ export function BookEditorMonaco(props: BookEditorProps) {
             setIsFocused(false);
         });
 
+        const saveAction = editor.addAction({
+            id: 'save-book',
+            label: 'Save',
+            keybindings: [monaco!.KeyMod.CtrlCmd | monaco!.KeyCode.KeyS],
+            run: () => {
+                setIsSavedShown(false);
+                setTimeout(() => setIsSavedShown(true), 0);
+                // Note: We don't prevent default, so browser's save dialog still opens
+            },
+        });
+
         return () => {
             focusListener.dispose();
             blurListener.dispose();
+            saveAction.dispose();
         };
-    }, [editor]);
+    }, [editor, monaco]);
+
+    useEffect(() => {
+        if (!isSavedShown) {
+            return;
+        }
+
+        const timer = setTimeout(() => {
+            setIsSavedShown(false);
+        }, 2000);
+
+        return () => {
+            clearTimeout(timer);
+        };
+    }, [isSavedShown]);
 
     useEffect(() => {
         if (!monaco) {
@@ -150,7 +178,10 @@ export function BookEditorMonaco(props: BookEditorProps) {
 
         const commitmentTypes = [...new Set(getAllCommitmentDefinitions().map(({ type }) => type))];
         const commitmentRegex = new RegExp(
-            `^(${commitmentTypes.map((type) => (type === 'META' ? 'META\\s+\\w+' : type)).join('|')})`,
+            `^\\s*(${commitmentTypes
+                .sort((a, b) => b.length - a.length) // [1] Prefer longer commitments to avoid partial matching (e.g. LANGUAGES vs LANGUAGE)
+                .map((type) => (type === 'META' ? 'META\\s+\\w+' : type.replace(/\s+/, '\\s+')))
+                .join('|')})(?=\\s|$)`, // [2] Use lookahead for space or end of line to ensure exact match
         );
 
         // Note: Using a broad character set for Latin and Cyrillic to support international characters in parameters.
@@ -159,6 +190,8 @@ export function BookEditorMonaco(props: BookEditorProps) {
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const bookRules: any = [
+            [/^---[-]*$/, ''], // Horizontal lines get no highlighting
+            [/^```.*$/, 'code-block', '@codeblock'],
             [parameterRegex, 'parameter'],
             [/\{[^}]+\}/, 'parameter'],
             [commitmentRegex, 'commitment'],
@@ -168,8 +201,18 @@ export function BookEditorMonaco(props: BookEditorProps) {
         const tokenProvider = monaco.languages.setMonarchTokensProvider(BOOK_LANGUAGE_ID, {
             ignoreCase: true,
             tokenizer: {
-                root: [[/^.*$/, 'title', '@body']],
+                root: [
+                    [/^\s*$/, 'empty'], // Empty token whitespace lines
+                    [/^-*$/, 'line'], // Horizontal lines get no highlighting
+                    [/^```.*$/, 'code-block', '@codeblock'],
+                    [/^.*$/, 'title', '@body'], // First non-empty, non-horizontal line is title
+                    [commitmentRegex, 'commitment'],
+                ],
                 body: bookRules,
+                codeblock: [
+                    [/^```.*$/, 'code-block', '@pop'],
+                    [/^.*$/, 'code-block'],
+                ],
             },
         });
 
@@ -214,6 +257,10 @@ export function BookEditorMonaco(props: BookEditorProps) {
                     token: 'parameter',
                     foreground: PROMPTBOOK_SYNTAX_COLORS.PARAMETER.toHex(),
                     fontStyle: `italic`,
+                },
+                {
+                    token: 'code-block',
+                    foreground: PROMPTBOOK_SYNTAX_COLORS.CODE_BLOCK.toHex(),
                 },
             ],
             colors: {
@@ -278,6 +325,28 @@ export function BookEditorMonaco(props: BookEditorProps) {
             .${instanceClass} .monaco-editor .transparent-text {
                 color: transparent !important;
             }
+            
+            .${instanceClass} .monaco-editor .code-block-box {
+                background-color: #f5f5f566;
+                border-left: 1px solid ${PROMPTBOOK_SYNTAX_COLORS.CODE_BLOCK.toHex()};
+                border-right: 1px solid ${PROMPTBOOK_SYNTAX_COLORS.CODE_BLOCK.toHex()};
+                padding-left: ${Math.round(8 * zoomLevel)}px;
+                padding-right: ${Math.round(8 * zoomLevel)}px;
+            }
+            
+            .${instanceClass} .monaco-editor .code-block-top {
+                border-top: 1px solid ${PROMPTBOOK_SYNTAX_COLORS.CODE_BLOCK.toHex()};
+                border-top-left-radius: ${Math.round(10 * zoomLevel)}px;
+                border-top-right-radius: ${Math.round(10 * zoomLevel)}px;
+                overflow: hidden;
+            }
+            
+            .${instanceClass} .monaco-editor .code-block-bottom {
+                border-bottom: 1px solid ${PROMPTBOOK_SYNTAX_COLORS.CODE_BLOCK.toHex()};
+                border-bottom-left-radius: ${Math.round(10 * zoomLevel)}px;
+                border-bottom-right-radius: ${Math.round(10 * zoomLevel)}px;
+                overflow: hidden;
+            }
         `;
 
         return () => {
@@ -286,6 +355,7 @@ export function BookEditorMonaco(props: BookEditorProps) {
     }, [scaledLineHeight, scaledContentPaddingLeft, scaledVerticalLineLeft]);
 
     const decorationIdsRef = useRef<string[]>([]);
+    const codeBlockDecorationIdsRef = useRef<string[]>([]);
 
     useEffect(() => {
         if (!editor || !monaco) {
@@ -321,6 +391,48 @@ export function BookEditorMonaco(props: BookEditorProps) {
             }
 
             decorationIdsRef.current = editor.deltaDecorations(decorationIdsRef.current, newDecorations);
+
+            // Add decorations for code blocks
+            const lines = text.split(/\r?\n/);
+            const codeBlockDecorations: editor.IModelDeltaDecoration[] = [];
+            let inCodeBlock = false;
+            let codeBlockStartLine = 0;
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                if (line?.trim().startsWith('```')) {
+                    if (!inCodeBlock) {
+                        // Starting a code block
+                        inCodeBlock = true;
+                        codeBlockStartLine = i + 1; // 1-based line number
+                    } else {
+                        // Ending a code block
+                        inCodeBlock = false;
+                        const endLine = i + 1; // 1-based line number
+
+                        // Add decorations for each line in the code block
+                        for (let j = codeBlockStartLine; j <= endLine; j++) {
+                            const isFirst = j === codeBlockStartLine;
+                            const isLast = j === endLine;
+
+                            codeBlockDecorations.push({
+                                range: new monaco.Range(j, 1, j, 1),
+                                options: {
+                                    isWholeLine: true,
+                                    className: `code-block-box${isFirst ? ' code-block-top' : ''}${
+                                        isLast ? ' code-block-bottom' : ''
+                                    }`,
+                                },
+                            });
+                        }
+                    }
+                }
+            }
+
+            codeBlockDecorationIdsRef.current = editor.deltaDecorations(
+                codeBlockDecorationIdsRef.current,
+                codeBlockDecorations,
+            );
         };
 
         updateDecorations();
@@ -336,52 +448,90 @@ export function BookEditorMonaco(props: BookEditorProps) {
 
     const handleFiles = useCallback(
         async (files: File[]) => {
-            if (!onFileUpload) return;
+            if (!onFileUpload || !editor || !monaco) return;
             if (files.length === 0) return;
 
+            const model = editor.getModel();
+            if (!model) return;
+
             // [1] Inject placeholders
-            const placeholders = files.map((file) => `KNOWLEDGE ⏳ Uploading ${file.name}...`);
-            const currentValue = value || '';
-            const valueWithPlaceholders = currentValue + '\n' + placeholders.join('\n');
-            onChange?.(valueWithPlaceholders as string_book);
+            const filePlaceholders = files.map((file) => ({
+                file,
+                placeholder: `KNOWLEDGE ⏳ Uploading ${file.name}...`,
+            }));
 
-            try {
-                // [2] Upload files one by one and replace placeholders
-                // Note: We are uploading in parallel
+            const textToAppend = (model.getValue() ? '\n' : '') + filePlaceholders.map((f) => f.placeholder).join('\n');
+
+            const lastLine = model.getLineCount();
+            const lastColumn = model.getLineMaxColumn(lastLine);
+
+            editor.executeEdits('upload-placeholders', [
+                {
+                    range: new monaco.Range(lastLine, lastColumn, lastLine, lastColumn),
+                    text: textToAppend,
+                    forceMoveMarkers: true,
+                },
+            ]);
+
+            // Helper to replace text in the model
+            const replaceText = (search: string, replace: string) => {
+                const model = editor.getModel();
+                if (!model) return;
+
+                const text = model.getValue();
+                const index = text.indexOf(search);
+                if (index !== -1) {
+                    const startPos = model.getPositionAt(index);
+                    const endPos = model.getPositionAt(index + search.length);
+
+                    editor.executeEdits('upload-update', [
+                        {
+                            range: new monaco.Range(
+                                startPos.lineNumber,
+                                startPos.column,
+                                endPos.lineNumber,
+                                endPos.column,
+                            ),
+                            text: replace,
+                            forceMoveMarkers: true,
+                        },
+                    ]);
+                }
+            };
+
+            // [2] Process in chunks
+            const chunkedFiles = [];
+            for (let i = 0; i < filePlaceholders.length; i += DEFAULT_MAX_CONCURRENT_UPLOADS) {
+                chunkedFiles.push(filePlaceholders.slice(i, i + DEFAULT_MAX_CONCURRENT_UPLOADS));
+            }
+
+            for (const chunk of chunkedFiles) {
                 await Promise.all(
-                    files.map(async (file, index) => {
-                        const placeholder = placeholders[index]!;
+                    chunk.map(async ({ file, placeholder }) => {
+                        let currentPlaceholder = placeholder;
+
                         try {
-                            const fileSrc = await onFileUpload(file);
-                            const completedText = `KNOWLEDGE ${fileSrc}`;
+                            const url = await onFileUpload(file, (progress) => {
+                                const percent = Math.floor(progress * 100);
+                                const newPlaceholder = `KNOWLEDGE ⏳ Uploading ${file.name} ${percent}%...`;
 
-                            // Note: We need to get the latest value from the editor to avoid overwriting other changes
-                            const latestValue = editor?.getValue() || '';
-                            const newValue = latestValue.split(placeholder).join(completedText);
+                                if (newPlaceholder !== currentPlaceholder) {
+                                    replaceText(currentPlaceholder, newPlaceholder);
+                                    currentPlaceholder = newPlaceholder;
+                                }
+                            });
 
-                            if (latestValue !== newValue) {
-                                onChange?.(newValue as string_book);
-                            }
+                            const completedText = `KNOWLEDGE ${url}`;
+                            replaceText(currentPlaceholder, completedText);
                         } catch (error) {
                             console.error(`File upload failed for ${file.name}:`, error);
-
-                            // Note: In case of error, we remove the placeholder
-                            const latestValue = editor?.getValue() || '';
-                            const newValue = latestValue
-                                .split(placeholder)
-                                .join(`KNOWLEDGE ❌ Failed to upload ${file.name}`);
-
-                            if (latestValue !== newValue) {
-                                onChange?.(newValue as string_book);
-                            }
+                            replaceText(currentPlaceholder, `KNOWLEDGE ❌ Failed to upload ${file.name}`);
                         }
                     }),
                 );
-            } catch (error) {
-                console.error('File upload failed:', error);
             }
         },
-        [onFileUpload, value, onChange, editor],
+        [onFileUpload, editor, monaco],
     );
 
     const handleDrop = useCallback(
@@ -394,6 +544,23 @@ export function BookEditorMonaco(props: BookEditorProps) {
         },
         [handleFiles],
     );
+
+    const handlePaste = useCallback(
+        async (event: React.ClipboardEvent<HTMLDivElement>) => {
+            const files = Array.from(event.clipboardData.files);
+
+            if (files.length === 0) {
+                return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+
+            await handleFiles(files);
+        },
+        [handleFiles],
+    );
+    // <- TODO: [✨🏺] !!!! Maybe not working
 
     const handleUploadDocument = useCallback(() => {
         if (fileUploadInputRef.current) {
@@ -436,6 +603,7 @@ export function BookEditorMonaco(props: BookEditorProps) {
         <div
             className={classNames(styles.bookEditorContainer, instanceClass)} // <-- add instance-scoped class
             onDrop={handleDrop}
+            onPaste={handlePaste}
             onDragOver={handleDragOver}
             onDragEnter={handleDragEnter}
             onDragLeave={handleDragLeave}
@@ -476,6 +644,12 @@ export function BookEditorMonaco(props: BookEditorProps) {
                 onChange={handleFileInputChange}
             />
             {isDragOver && <div className={styles.dropOverlay}>Drop files to upload</div>}
+            {isSavedShown && (
+                <div className={styles.savedNotification}>
+                    <SaveIcon />
+                    Saved
+                </div>
+            )}
             <div
                 style={{
                     position: 'relative',

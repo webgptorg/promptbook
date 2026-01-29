@@ -1,6 +1,7 @@
 import type {
     string_agent_hash,
     string_agent_name,
+    string_agent_permanent_id,
     string_agent_url,
     string_color,
     string_fonts,
@@ -35,6 +36,44 @@ export type BookParameter = {
     description?: string;
 };
 
+/**
+ * Capability of the agent
+ * This is parsed from commitments like USE BROWSER, USE SEARCH ENGINE, KNOWLEDGE, etc.
+ */
+export type AgentCapability = {
+    /**
+     * The type of the capability
+     */
+    type:
+        | 'browser'
+        | 'search-engine'
+        | 'knowledge'
+        | 'time'
+        | 'inheritance'
+        | 'import'
+        | 'image-generator'
+        | 'team'
+        | 'email';
+
+    /**
+     * The label to display for this capability
+     */
+    label: string;
+
+    /**
+     * The name of the icon to display for this capability
+     */
+    iconName: string;
+
+    /**
+     * Optional link to another agent
+     * This is used for 'inheritance' and 'import' types
+     */
+    agentUrl?: string_agent_url;
+
+    // <- Note: When creating new capabilities, look for [🪀] to add new icons
+};
+
 export type AgentBasicInformation = {
     /**
      * Name of the agent
@@ -46,6 +85,12 @@ export type AgentBasicInformation = {
      * Hash of the agent source for integrity verification
      */
     agentHash: string_agent_hash;
+
+    /**
+     * Unique identifier of the agent
+     * This is a random base58 string assigned by the server
+     */
+    permanentId?: string_agent_permanent_id;
 
     /**
      * Optional description of the agent
@@ -67,6 +112,7 @@ export type AgentBasicInformation = {
      */
     meta: {
         fullname?: string;
+        description?: string;
         image?: string_url_image;
         font?: string_fonts;
         color?: string_color;
@@ -85,8 +131,26 @@ export type AgentBasicInformation = {
      * - @Parameter (single word parameter starting with @)
      * - {parameterName} or {parameter with multiple words} or {parameterName: description text}
      */
-    parameters: BookParameter[];
+    parameters: Array<BookParameter>;
     // <- TODO: [🧠][😰] Maybe remove, Agent is not working with the parameters
+
+    /**
+     * Capabilities of the agent
+     * This is parsed from commitments like USE BROWSER, USE SEARCH ENGINE, KNOWLEDGE, etc.
+     */
+    capabilities: Array<AgentCapability>;
+
+    /**
+     * List of sample conversations (question/answer pairs)
+     */
+    samples: Array<{ question: string | null; answer: string }>;
+
+    /**
+     * Knowledge sources (documents, URLs) used by the agent
+     * This is parsed from KNOWLEDGE commitments
+     * Used for resolving document citations when the agent references sources
+     */
+    knowledgeSources: Array<{ url: string; filename: string }>;
 };
 
 /**

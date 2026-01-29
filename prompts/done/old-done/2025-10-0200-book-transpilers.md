@@ -7,7 +7,7 @@
 -   Each transpiler has its public profile _(similar to `LlmTools`, Scrapers, Convertors, etc.)_
 -   Transpiling is async process
 -   Transpiler can internally use other tools, it has passable `ExecutionTools` in constructor
--   Allow to pass additional options into transpiler like `isVerbose`, `shouldIncludeComments`, etc., look how theese options are passed in other places
+-   Allow to pass additional options into transpiler like `isVerbose`, `shouldIncludeComments`, etc., look how these options are passed in other places
 -   Use system of registers - each transpiler is registered in a central place
     -   Look how registration logic work, use it: for example: `/src/llm-providers/_common/register/$llmToolsRegister.ts`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.

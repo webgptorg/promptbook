@@ -1,3 +1,4 @@
+import { spaceTrim } from '@promptbook-local/utils';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
@@ -5,84 +6,103 @@ export async function GET(request: NextRequest) {
     const host = request.nextUrl.host;
     const baseUrl = `${protocol}//${host}`;
 
-    const script = `
-(function() {
-    if (customElements.get('promptbook-agent')) {
-        return;
-    }
+    const script = spaceTrim(`
+        console.info('[🔌] Promptbook integration script from ${baseUrl}');
 
-    class PromptbookAgentElement extends HTMLElement {
-        constructor() {
-            super();
-            this.iframe = null;
-        }
-
-        static get observedAttributes() {
-            return ['agent-url'];
-        }
-
-        connectedCallback() {
-            this.render();
-            window.addEventListener('message', this.handleMessage.bind(this));
-        }
-
-        disconnectedCallback() {
-            window.removeEventListener('message', this.handleMessage.bind(this));
-        }
-
-        attributeChangedCallback(name, oldValue, newValue) {
-            if (name === 'agent-url' && oldValue !== newValue) {
-                this.render();
+        (function() {
+            if (customElements.get('promptbook-agent-integration')) {
+                return;
             }
-        }
 
-        handleMessage(event) {
-            if (event.data && event.data.type === 'PROMPTBOOK_AGENT_RESIZE') {
-                if (event.data.isOpen) {
-                    this.iframe.style.width = '450px';
-                    this.iframe.style.height = '650px';
-                    this.iframe.style.maxHeight = '90vh';
-                    this.iframe.style.maxWidth = '90vw';
-                    this.iframe.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
-                    this.iframe.style.borderRadius = '12px';
-                } else {
-                    this.iframe.style.width = '60px';
-                    this.iframe.style.height = '60px';
-                    this.iframe.style.boxShadow = 'none';
-                    this.iframe.style.borderRadius = '0';
+            class PromptbookAgentIntegrationElement extends HTMLElement {
+                constructor() {
+                    super();
+                    console.info('[🔌] Initializing <promptbook-agent-integration/>',this);
+                    this.iframe = null;
+                }
+
+                static get observedAttributes() {
+                    return ['agent-url', 'meta'];
+                }
+
+                connectedCallback() {
+                    this.render();
+                    window.addEventListener('message', this.handleMessage.bind(this));
+                }
+
+                disconnectedCallback() {
+                    window.removeEventListener('message', this.handleMessage.bind(this));
+                }
+
+                attributeChangedCallback(name, oldValue, newValue) {
+                    if ((name === 'agent-url' || name === 'meta') && oldValue !== newValue) {
+                        this.render();
+                    }
+                }
+
+                handleMessage(event) {
+                    if (event.data && event.data.type === 'PROMPTBOOK_AGENT_RESIZE') {
+                        if (event.data.isOpen) {
+                            // Match PromptbookAgentSeamlessIntegration.module.css dimensions
+                            // Window is 380x600 + 20px padding on each side
+                            this.iframe.style.width = '420px';
+                            this.iframe.style.height = '640px';
+                            this.iframe.style.maxHeight = 'calc(80vh + 40px)';
+                            this.iframe.style.maxWidth = 'calc(100vw - 20px)';
+                        } else {
+                            // Closed state - button area with padding and shadow space
+                            // Button is ~140px wide + 20px right margin + shadow space
+                            this.iframe.style.width = '180px';
+                            this.iframe.style.height = '100px';
+                            this.iframe.style.maxHeight = 'none';
+                            this.iframe.style.maxWidth = 'none';
+                        }
+                    }
+                }
+
+                render() {
+                    const agentUrl = this.getAttribute('agent-url');
+                    if (!agentUrl) return;
+
+                    if (!this.iframe) {
+                        this.attachShadow({ mode: 'open' });
+                        this.iframe = document.createElement('iframe');
+                        this.iframe.style.border = 'none';
+                        this.iframe.style.position = 'fixed';
+                        this.iframe.style.bottom = '0';
+                        this.iframe.style.right = '0';
+                        // Initial size for the closed button state (with padding and shadow space)
+                        this.iframe.style.width = '180px';
+                        this.iframe.style.height = '100px';
+                        this.iframe.style.zIndex = '2147483647'; // Max z-index
+                        this.iframe.style.transition = 'width 0.3s ease, height 0.3s ease';
+                        this.iframe.style.backgroundColor = 'transparent';
+                        this.iframe.setAttribute('allow', 'microphone'); // Allow microphone if needed for voice
+                        this.shadowRoot.appendChild(this.iframe);
+                    }
+
+                    // Construct embed URL pointing to the Next.js page we created
+                    let embedUrl = '${baseUrl}/embed?agentUrl=' + encodeURIComponent(agentUrl);
+                    
+                    // Add meta parameter if provided
+                    const metaAttr = this.getAttribute('meta');
+                    if (metaAttr) {
+                        try {
+                            // Validate that it's valid JSON
+                            JSON.parse(metaAttr);
+                            embedUrl += '&meta=' + encodeURIComponent(metaAttr);
+                        } catch (e) {
+                            console.error('[🔌] Invalid meta JSON:', e);
+                        }
+                    }
+                    
+                    this.iframe.src = embedUrl;
                 }
             }
-        }
 
-        render() {
-            const agentUrl = this.getAttribute('agent-url');
-            if (!agentUrl) return;
-
-            if (!this.iframe) {
-                this.attachShadow({ mode: 'open' });
-                this.iframe = document.createElement('iframe');
-                this.iframe.style.border = 'none';
-                this.iframe.style.position = 'fixed';
-                this.iframe.style.bottom = '20px';
-                this.iframe.style.right = '20px';
-                this.iframe.style.width = '60px';
-                this.iframe.style.height = '60px';
-                this.iframe.style.zIndex = '2147483647'; // Max z-index
-                this.iframe.style.transition = 'width 0.3s ease, height 0.3s ease';
-                this.iframe.style.backgroundColor = 'transparent';
-                this.iframe.setAttribute('allow', 'microphone'); // Allow microphone if needed for voice
-                this.shadowRoot.appendChild(this.iframe);
-            }
-
-            // Construct embed URL pointing to the Next.js page we created
-            const embedUrl = '${baseUrl}/embed?agentUrl=' + encodeURIComponent(agentUrl);
-            this.iframe.src = embedUrl;
-        }
-    }
-
-    customElements.define('promptbook-agent', PromptbookAgentElement);
-})();
-    `;
+            customElements.define('promptbook-agent-integration', PromptbookAgentIntegrationElement);
+        })();
+    `);
 
     return new NextResponse(script, {
         headers: {

@@ -2,25 +2,31 @@
 
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { revalidatePath } from 'next/cache';
+import { isUserAdmin } from '../../utils/isUserAdmin';
 
 export async function restoreDeletedAgent(agentName: string) {
-    const collection = await $provideAgentCollectionForServer();
-    
-    // Find the latest history item for this agent
-    const history = await collection.listAgentHistory(agentName);
-    
-    if (history.length === 0) {
-        throw new Error(`No history found for agent ${agentName}`);
-    }
-    
-    const latestVersion = history[0];
-    
-    if (!latestVersion) {
-         throw new Error(`No history found for agent ${agentName}`);
+    if (!(await isUserAdmin())) {
+        throw new Error('You are not authorized to restore agents');
     }
 
-    await collection.restoreAgent(latestVersion.id);
-    
+    const collection = await $provideAgentCollectionForServer();
+
+    await collection.restoreAgent(agentName);
+
+    revalidatePath('/recycle-bin');
+    revalidatePath(`/agents/${agentName}`);
+    revalidatePath('/');
+}
+
+export async function deleteAgent(agentName: string) {
+    if (!(await isUserAdmin())) {
+        throw new Error('You are not authorized to delete agents');
+    }
+
+    const collection = await $provideAgentCollectionForServer();
+
+    await collection.deleteAgent(agentName);
+
     revalidatePath('/recycle-bin');
     revalidatePath(`/agents/${agentName}`);
     revalidatePath('/');

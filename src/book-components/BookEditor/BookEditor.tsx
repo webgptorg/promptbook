@@ -8,7 +8,12 @@ import type { Promisable } from 'type-fest';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import { DEFAULT_BOOK } from '../../book-2.0/agent-source/string_book';
 import { DEFAULT_IS_VERBOSE } from '../../config';
-import type { number_percent, number_positive, string_css_value, string_knowledge_source_content } from '../../types/typeAliases';
+import type {
+    number_percent,
+    number_positive,
+    string_css_value,
+    string_knowledge_source_content,
+} from '../../types/typeAliases';
 import { countLines } from '../../utils/expectation-counters/countLines';
 import { classNames } from '../_common/react-utils/classNames';
 import styles from './BookEditor.module.css';
@@ -75,7 +80,10 @@ export type BookEditorProps = {
     /**
      * returns the URL of the uploaded file on CDN or storage
      */
-    onFileUpload?(file: File): Promisable<string_knowledge_source_content>;
+    onFileUpload?(
+        file: File,
+        onProgress?: (progress: number_percent) => void,
+    ): Promisable<string_knowledge_source_content>;
 
     /**
      * If true, logs verbose debug info to the console and shows additional visual cues

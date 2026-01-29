@@ -1,11 +1,12 @@
 'use server';
 
+import { BackToAgentButton } from '@/src/components/BackToAgentButton/BackToAgentButton';
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabase } from '@/src/database/$provideSupabase';
 import { $provideServer } from '@/src/tools/$provideServer';
 import { isUserAdmin } from '@/src/utils/isUserAdmin';
-import { PROMPTBOOK_COLOR } from '@promptbook-local/core';
-import { ArrowLeftIcon, BoxIcon, CodeIcon, GlobeIcon, ServerIcon, TerminalIcon } from 'lucide-react';
+import { generatePlaceholderAgentProfileImageUrl, PROMPTBOOK_COLOR } from '@promptbook-local/core';
+import { BoxIcon, CodeIcon, GlobeIcon } from 'lucide-react';
 import { headers } from 'next/headers';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -14,16 +15,28 @@ import { Color } from '../../../../../../../src/utils/color/Color';
 import { withAlpha } from '../../../../../../../src/utils/color/operators/withAlpha';
 import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
 import { CodePreview } from '../../../../../../_common/components/CodePreview/CodePreview';
-import { getAgentLinks } from '../agentLinks';
-import { CopyField } from '../CopyField';
 import { getAgentName, getAgentProfile } from '../_utils';
+import { getAgentLinks } from '../agentLinks';
 import { generateAgentMetadata } from '../generateAgentMetadata';
-import { SdkCodeTabs } from './SdkCodeTabs';
+import { ApiKeyIntegrationSections } from './ApiKeyIntegrationSections';
+import { PromptbookSdkTabs } from './PromptbookSdkTabs';
+import { WebsiteIntegrationTabs } from './WebsiteIntegrationTabs';
 
 export const generateMetadata = generateAgentMetadata;
 
-export default async function AgentIntegrationPage({ params }: { params: Promise<{ agentName: string }> }) {
+/**
+ * Props for AgentIntegrationPage.
+ */
+type AgentIntegrationPageProps = {
+    params: Promise<{ agentName: string }>;
+};
+
+/**
+ * Renders the integration options page for a specific agent.
+ */
+export default async function AgentIntegrationPage({ params }: AgentIntegrationPageProps) {
     $sideEffect(headers());
+
     const agentName = await getAgentName(params);
     const isAdmin = await isUserAdmin();
 
@@ -48,6 +61,7 @@ export default async function AgentIntegrationPage({ params }: { params: Promise
 
     // Get API Key if admin
     let apiKey = 'ptbk_...';
+    let hasApiKey = false;
     if (isAdmin) {
         const supabase = $provideSupabase();
         const table = await $getTableName('ApiTokens');
@@ -60,6 +74,7 @@ export default async function AgentIntegrationPage({ params }: { params: Promise
 
         if (data && data.length > 0) {
             apiKey = data[0].token;
+            hasApiKey = true;
         }
     }
 
@@ -71,13 +86,13 @@ export default async function AgentIntegrationPage({ params }: { params: Promise
 
     // Website Integration Code
     const { fullname, color, image, ...restMeta } = agentProfile.meta;
-    const websiteIntegrationCode = spaceTrim(
+    const websiteIntegrationReactCode = spaceTrim(
         (block) => `
-            import { PromptbookAgent } from '@promptbook/components';
+            import { PromptbookAgentIntegration } from '@promptbook/components';
 
             export function YourComponent() {
                 return(
-                    <PromptbookAgent
+                    <PromptbookAgentIntegration
                         agentUrl="${baseUrl}"
                         meta={${block(JSON.stringify({ fullname, color, image, ...restMeta }, null, 4))}}
                     />
@@ -86,57 +101,73 @@ export default async function AgentIntegrationPage({ params }: { params: Promise
         `,
     );
 
-    // OpenAI Compatible Curl
-    const curlCode = spaceTrim(`
-        curl ${agentApiBase}/api/openai/v1/chat/completions \\
-          -H "Content-Type: application/json" \\
-          -H "Authorization: Bearer ${apiKey}" \\
-          -d '{
-            "model": "agent:${agentName}",
-            "messages": [
-              {"role": "user", "content": "Hello!"}
-            ]
-          }'
-    `);
+    // HTML Integration Code - use single quotes for meta attribute to allow JSON with double quotes inside
+    const metaJsonString = JSON.stringify({ fullname, color, image, ...restMeta }, null, 4);
+    const websiteIntegrationHtmlCode = spaceTrim(
+        (block) => `
+            <script src="${publicUrl.href}api/embed.js" async defer></script>
 
-    // OpenAI Compatible Python
-    const pythonCode = spaceTrim(`
-        from openai import OpenAI
+            <promptbook-agent-integration
+                agent-url="${baseUrl}"
+                meta='${block(metaJsonString)}'
+            />
+        `,
+    );
 
-        client = OpenAI(
-            base_url="${agentApiBase}/api/openai/v1",
-            api_key="${apiKey}",
-        )
-
-        response = client.chat.completions.create(
-            model="agent:${agentName}",
-            messages=[
-                {"role": "user", "content": "Hello!"}
-            ]
-        )
-
-        print(response.choices[0].message.content)
-    `);
-
-    // OpenAI Compatible JS
-    const jsCode = spaceTrim(`
-        import OpenAI from 'openai';
-
-        const client = new OpenAI({
-            baseURL: '${agentApiBase}/api/openai/v1',
-            apiKey: '${apiKey}',
-        });
+    // Promptbook SDK Integration Code
+    const promptbookSdkNodeCode = spaceTrim(`
+        import { RemoteAgent } from '@promptbook/core';
 
         async function main() {
-            const response = await client.chat.completions.create({
-                model: 'agent:${agentName}',
-                messages: [{ role: 'user', content: 'Hello!' }],
+            const agent = await RemoteAgent.connect({
+                agentUrl: '${baseUrl}',
             });
 
-            console.log(response.choices[0].message.content);
+            const result = await agent.callChatModel({
+                title: 'Remote chat',
+                content: 'Hello from another agent!',
+                parameters: {},
+                modelRequirements: {
+                    modelVariant: 'CHAT',
+                },
+            });
+
+            console.log(result.content);
         }
 
         main();
+    `);
+
+    const promptbookSdkBrowserCode = spaceTrim(`
+        import { useEffect, useMemo, useState } from 'react';
+        import { AgentChat } from '@promptbook/components';
+        import { RemoteAgent } from '@promptbook/core';
+
+        export function RemoteAgentChat() {
+            const agentUrl = '${baseUrl}';
+            const agentPromise = useMemo(() => RemoteAgent.connect({ agentUrl }), [agentUrl]);
+            const [agent, setAgent] = useState<RemoteAgent | null>(null);
+
+            useEffect(() => {
+                let isMounted = true;
+
+                agentPromise.then((connectedAgent) => {
+                    if (isMounted) {
+                        setAgent(connectedAgent);
+                    }
+                });
+
+                return () => {
+                    isMounted = false;
+                };
+            }, [agentPromise]);
+
+            if (!agent) {
+                return <div>Connecting to agent...</div>;
+            }
+
+            return <AgentChat agent={agent} visual="STANDALONE" />;
+        }
     `);
 
     // MCP Config
@@ -156,8 +187,8 @@ export default async function AgentIntegrationPage({ params }: { params: Promise
         }
     `);
 
-    const agentLinks = getAgentLinks(agentName);
-    const chatLink = agentLinks.find((l) => l.title === 'Chat with Agent')!;
+    const agentLinks = getAgentLinks(agentProfile.permanentId || agentName);
+    // const chatLink = agentLinks.find((l) => l.title === 'Chat with Agent')!;
     const websiteIntegrationLink = agentLinks.find((l) => l.title === 'Website Integration')!;
 
     return (
@@ -173,7 +204,13 @@ export default async function AgentIntegrationPage({ params }: { params: Promise
                     {agentProfile.meta.image && (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
-                            src={agentProfile.meta.image as string}
+                            src={
+                                agentProfile.meta.image ||
+                                generatePlaceholderAgentProfileImageUrl(
+                                    agentProfile.permanentId || agentName,
+                                    publicUrl,
+                                )
+                            }
                             alt={agentProfile.meta.fullname || agentName}
                             className="w-16 h-16 rounded-full object-cover border-2"
                             style={{ borderColor: primaryColor }}
@@ -186,13 +223,7 @@ export default async function AgentIntegrationPage({ params }: { params: Promise
                             Integration Options
                         </p>
                     </div>
-                    <Link
-                        href={chatLink.href}
-                        className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
-                        title="Back to Agent"
-                    >
-                        <ArrowLeftIcon className="w-6 h-6" />
-                    </Link>
+                    <BackToAgentButton agentName={agentName} />
                 </div>
 
                 <div className="p-6 space-y-6">
@@ -214,67 +245,38 @@ export default async function AgentIntegrationPage({ params }: { params: Promise
                                 </p>
                             </div>
                         </div>
-                        <CodePreview code={websiteIntegrationCode} language="typescript" />
+                        <WebsiteIntegrationTabs
+                            reactCode={websiteIntegrationReactCode}
+                            htmlCode={websiteIntegrationHtmlCode}
+                        />
                     </div>
 
-                    {/* OpenAI API Compatible Endpoint */}
-                    <div className="p-6 rounded-xl border-2 border-blue-200 bg-blue-50/30 shadow-sm">
+                    {/* Promptbook SDK Integration */}
+                    <div className="p-6 rounded-xl border-2 border-cyan-200 bg-cyan-50/30 shadow-sm">
                         <div className="flex items-start gap-4 mb-4">
-                            <div className="p-3 rounded-xl bg-blue-100 text-blue-600 shadow-sm">
-                                <TerminalIcon className="w-6 h-6" />
-                            </div>
-                            <div className="flex-1">
-                                <h2 className="text-xl font-bold text-gray-900">OpenAI Compatible API</h2>
-                                <p className="text-gray-600">
-                                    Use the agent as a drop-in replacement for OpenAI API in your existing applications.
-                                </p>
-                                <div className="grid md:grid-cols-3 gap-4 mt-4 mb-2">
-                                    <CopyField label="Endpoint URL" value={`${agentApiBase}/api/openai/v1`} />
-                                    <CopyField label="Model Name" value={`agent:${agentName}`} />
-                                    {isAdmin ? (
-                                        <CopyField label="API Key" value={apiKey} />
-                                    ) : (
-                                        <div className="flex flex-col gap-1">
-                                            <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                API Key
-                                            </span>
-                                            <div className="text-sm text-gray-500 italic bg-gray-50 p-2 rounded border border-gray-200">
-                                                Contact admin for API Key
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                                {isAdmin && apiKey === 'ptbk_...' && (
-                                    <p className="text-sm text-amber-600 mt-2">
-                                        No API token found.{' '}
-                                        <Link href="/admin/api-tokens" className="underline font-medium">
-                                            Create one in settings
-                                        </Link>
-                                        .
-                                    </p>
-                                )}
-                            </div>
-                        </div>
-
-                        <SdkCodeTabs curlCode={curlCode} pythonCode={pythonCode} jsCode={jsCode} />
-                    </div>
-
-                    {/* OpenRouter Integration */}
-                    <div className="p-6 rounded-xl border-2 border-purple-200 bg-purple-50/30 shadow-sm">
-                        <div className="flex items-start gap-4 mb-4">
-                            <div className="p-3 rounded-xl bg-purple-100 text-purple-600 shadow-sm">
-                                <ServerIcon className="w-6 h-6" />
+                            <div className="p-3 rounded-xl bg-cyan-100 text-cyan-600 shadow-sm">
+                                <CodeIcon className="w-6 h-6" />
                             </div>
                             <div>
-                                <h2 className="text-xl font-bold text-gray-900">OpenRouter Integration</h2>
-                                <p className="text-gray-600">Connect via OpenRouter compatible endpoint.</p>
-                                <div className="grid md:grid-cols-2 gap-4 mt-4">
-                                    <CopyField label="Endpoint URL" value={`${agentApiBase}/api/openrouter`} />
-                                    <CopyField label="Model Name" value={`agent:${agentName}`} />
-                                </div>
+                                <h2 className="text-xl font-bold text-gray-900">Promptbook SDK</h2>
+                                <p className="text-gray-600">
+                                    Connect to this agent using the Promptbook SDK with RemoteAgent.
+                                </p>
                             </div>
                         </div>
+                        <PromptbookSdkTabs
+                            nodeCode={promptbookSdkNodeCode}
+                            browserCode={promptbookSdkBrowserCode}
+                        />
                     </div>
+
+                    <ApiKeyIntegrationSections
+                        agentName={agentName}
+                        agentApiBase={agentApiBase}
+                        isAdmin={isAdmin}
+                        initialApiKey={apiKey}
+                        hasApiKey={hasApiKey}
+                    />
 
                     {/* MCP Integration */}
                     <div className="p-6 rounded-xl border-2 border-orange-200 bg-orange-50/30 shadow-sm">

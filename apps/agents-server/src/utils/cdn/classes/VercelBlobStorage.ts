@@ -14,6 +14,10 @@ export class VercelBlobStorage implements IIFilesStorageWithCdn {
         return this.config.cdnPublicUrl;
     }
 
+    public get pathPrefix() {
+        return this.config.pathPrefix;
+    }
+
     public constructor(private readonly config: IVercelBlobStorageConfig) {}
 
     public getItemUrl(key: string): URL {

@@ -2,10 +2,14 @@ import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideOpenAiAssistantExecutionToolsForServer } from '@/src/tools/$provideOpenAiAssistantExecutionToolsForServer';
+import { createChatStreamHandler } from '@/src/utils/createChatStreamHandler';
 import { Agent, computeAgentHash, PROMPTBOOK_ENGINE_VERSION } from '@promptbook-local/core';
-import { ChatMessage, ChatPromptResult, Prompt, string_book, TODO_any } from '@promptbook-local/types';
+import { ChatMessage, Prompt, string_book, TODO_any } from '@promptbook-local/types';
 import { computeHash } from '@promptbook-local/utils';
 import { NextRequest, NextResponse } from 'next/server';
+import { isAgentDeleted } from '../app/agents/[agentName]/_utils';
+import { HTTP_STATUS_CODES } from '../constants';
+import { AssistantCacheManager } from './cache/AssistantCacheManager';
 import { validateApiKey } from './validateApiKey';
 
 export async function handleChatCompletion(
@@ -25,7 +29,7 @@ export async function handleChatCompletion(
                     type: 'authentication_error',
                 },
             },
-            { status: 401 },
+            { status: HTTP_STATUS_CODES.UNAUTHORIZED },
         );
     }
     const apiKey = apiKeyValidation.token || null;
@@ -44,7 +48,7 @@ export async function handleChatCompletion(
                         type: 'invalid_request_error',
                     },
                 },
-                { status: 400 },
+                { status: HTTP_STATUS_CODES.BAD_REQUEST },
             );
         }
 
@@ -56,7 +60,20 @@ export async function handleChatCompletion(
                         type: 'invalid_request_error',
                     },
                 },
-                { status: 400 },
+                { status: HTTP_STATUS_CODES.BAD_REQUEST },
+            );
+        }
+
+        // Check if agent is deleted
+        if (await isAgentDeleted(agentName)) {
+            return NextResponse.json(
+                {
+                    error: {
+                        message: 'This agent has been deleted. You can restore it from the Recycle Bin.',
+                        type: 'agent_deleted',
+                    },
+                },
+                { status: 410 }, // Gone - indicates the resource is no longer available
             );
         }
 
@@ -67,14 +84,14 @@ export async function handleChatCompletion(
         } catch (error) {
             return NextResponse.json(
                 { error: { message: `Agent '${agentName}' not found.`, type: 'invalid_request_error' } },
-                { status: 404 },
+                { status: HTTP_STATUS_CODES.NOT_FOUND },
             );
         }
 
         if (!agentSource) {
             return NextResponse.json(
                 { error: { message: `Agent '${agentName}' not found.`, type: 'invalid_request_error' } },
-                { status: 404 },
+                { status: HTTP_STATUS_CODES.NOT_FOUND },
             );
         }
 
@@ -95,27 +112,56 @@ export async function handleChatCompletion(
                         type: 'invalid_request_error',
                     },
                 },
-                { status: 400 },
+                { status: HTTP_STATUS_CODES.BAD_REQUEST },
             );
         }
 
-        const openAiAssistantExecutionTools = await $provideOpenAiAssistantExecutionToolsForServer();
+        const agentHash = computeAgentHash(agentSource);
+
+        // Use AssistantCacheManager for intelligent assistant caching
+        // This provides a centralized, DRY way to manage assistant lifecycle
+        const assistantCacheManager = new AssistantCacheManager({ isVerbose: true });
+        const baseOpenAiTools = await $provideOpenAiAssistantExecutionToolsForServer();
+
+        // Get or create assistant with enhanced caching
+        // By default, includes full configuration (PERSONA + CONTEXT) in cache key for strict matching
+        // Set includeDynamicContext: false to enable better caching by excluding CONTEXT from cache key
+        const assistantResult = await assistantCacheManager.getOrCreateAssistant(
+            agentSource,
+            agentName,
+            baseOpenAiTools,
+            { includeDynamicContext: true }, // Default: strict caching (includes CONTEXT)
+        );
+
+        const openAiAssistantExecutionTools = assistantResult.tools;
+
+        if (assistantResult.fromCache) {
+            console.log(
+                `[🐱‍🚀] ✓ Cache HIT: Reusing assistant for agent ${agentName} (cache key: ${assistantResult.cacheKey})`,
+            );
+        } else {
+            console.log(
+                `[🐱‍🚀] ✗ Cache MISS: Created new assistant for agent ${agentName} (cache key: ${assistantResult.cacheKey})`,
+            );
+        }
+
         const agent = new Agent({
             agentSource,
             executionTools: {
                 llm: openAiAssistantExecutionTools, // Note: Use the same OpenAI Assistant LLM tools as the chat route
             },
             isVerbose: true, // or false
+            teacherAgent: null, // <- TODO: [🦋] DRY place to provide the teacher
         });
 
-        const agentHash = computeAgentHash(agentSource);
         const userAgent = request.headers.get('user-agent');
         const ip =
             request.headers.get('x-forwarded-for') ||
             request.headers.get('x-real-ip') ||
             request.headers.get('x-client-ip');
 
-        // Note: Capture language and platform information
+        // Note: Capture timezone, language and platform information
+        const timezone = request.headers.get('x-timezone') || undefined;
         const language = request.headers.get('accept-language');
         // Simple platform extraction from userAgent parentheses content (e.g., Windows NT 10.0; Win64; x64)
         const platform = userAgent ? userAgent.match(/\(([^)]+)\)/)?.[1] : undefined; // <- TODO: [🧠] Improve platform parsing
@@ -125,8 +171,9 @@ export async function handleChatCompletion(
         const previousMessages = threadMessages.slice(0, -1);
 
         const thread: ChatMessage[] = previousMessages.map((msg: TODO_any, index: number) => ({
+            // channel: 'PROMPTBOOK_CHAT',
             id: `msg-${index}`, // Placeholder ID
-            from: msg.role === 'assistant' ? 'agent' : 'user', // Mapping standard OpenAI roles
+            sender: msg.role === 'assistant' ? 'agent' : 'user', // Mapping standard OpenAI roles
             content: msg.content,
             isComplete: true,
             date: new Date(), // We don't have the real date, using current
@@ -138,23 +185,24 @@ export async function handleChatCompletion(
             content: lastMessage.content,
         };
 
-        const supabase = $provideSupabaseForServer();
-        await supabase.from(await $getTableName('ChatHistory')).insert({
-            createdAt: new Date().toISOString(),
-            messageHash: computeHash(userMessageContent),
-            previousMessageHash: null,
-            agentName,
-            agentHash,
-            message: userMessageContent,
-            promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
-            url: request.url,
-            ip,
-            userAgent,
-            language,
-            platform,
-            source: 'OPENAI_API_COMPATIBILITY',
-            apiKey,
-        });
+        await $provideSupabaseForServer()
+            .from(await $getTableName('ChatHistory'))
+            .insert({
+                createdAt: new Date().toISOString(),
+                messageHash: computeHash(userMessageContent),
+                previousMessageHash: null,
+                agentName,
+                agentHash,
+                message: userMessageContent,
+                promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
+                url: request.url,
+                ip,
+                userAgent,
+                language,
+                platform,
+                source: 'OPENAI_API_COMPATIBILITY',
+                apiKey,
+            });
 
         const prompt: Prompt = {
             title,
@@ -163,7 +211,9 @@ export async function handleChatCompletion(
                 modelVariant: 'CHAT',
                 // We could pass 'model' from body if we wanted to enforce it, but Agent usually has its own config
             },
-            parameters: {},
+            parameters: {
+                timezone,
+            },
             thread,
         } as Prompt;
         // Note: Casting as Prompt because the type definition might require properties we don't strictly use or that are optional but TS complains
@@ -194,15 +244,9 @@ export async function handleChatCompletion(
                     };
                     controller.enqueue(encoder.encode(`data: ${JSON.stringify(initialChunkData)}\n\n`));
 
-                    let previousContent = '';
-
                     try {
-                        const result = await agent.callChatModelStream(prompt, (chunk: ChatPromptResult) => {
-                            const fullContent = chunk.content;
-                            const deltaContent = fullContent.substring(previousContent.length);
-                            previousContent = fullContent;
-
-                            if (deltaContent) {
+                        const handleStreamChunk = createChatStreamHandler({
+                            onDelta: (deltaContent) => {
                                 const chunkData = {
                                     id: runId,
                                     object: 'chat.completion.chunk',
@@ -219,8 +263,13 @@ export async function handleChatCompletion(
                                     ],
                                 };
                                 controller.enqueue(encoder.encode(`data: ${JSON.stringify(chunkData)}\n\n`));
-                            }
+                            },
+                            onToolCalls: (toolCalls) => {
+                                controller.enqueue(encoder.encode('\n' + JSON.stringify({ toolCalls }) + '\n'));
+                            },
                         });
+
+                        const result = await agent.callChatModelStream(prompt, handleStreamChunk);
 
                         // Note: Identify the agent message
                         const agentMessageContent = {
@@ -229,22 +278,24 @@ export async function handleChatCompletion(
                         };
 
                         // Record the agent message
-                        await supabase.from(await $getTableName('ChatHistory')).insert({
-                            createdAt: new Date().toISOString(),
-                            messageHash: computeHash(agentMessageContent),
-                            previousMessageHash: computeHash(userMessageContent),
-                            agentName,
-                            agentHash,
-                            message: agentMessageContent,
-                            promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
-                            url: request.url,
-                            ip,
-                            userAgent,
-                            language,
-                            platform,
-                            source: 'OPENAI_API_COMPATIBILITY',
-                            apiKey,
-                        });
+                        await $provideSupabaseForServer()
+                            .from(await $getTableName('ChatHistory'))
+                            .insert({
+                                createdAt: new Date().toISOString(),
+                                messageHash: computeHash(agentMessageContent),
+                                previousMessageHash: computeHash(userMessageContent),
+                                agentName,
+                                agentHash,
+                                message: agentMessageContent,
+                                promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
+                                url: request.url,
+                                ip,
+                                userAgent,
+                                language,
+                                platform,
+                                source: 'OPENAI_API_COMPATIBILITY',
+                                apiKey,
+                            });
 
                         // Note: [🐱‍🚀] Save the learned data
                         const newAgentSource = agent.agentSource.value;
@@ -294,22 +345,24 @@ export async function handleChatCompletion(
             };
 
             // Record the agent message
-            await supabase.from(await $getTableName('ChatHistory')).insert({
-                createdAt: new Date().toISOString(),
-                messageHash: computeHash(agentMessageContent),
-                previousMessageHash: computeHash(userMessageContent),
-                agentName,
-                agentHash,
-                message: agentMessageContent,
-                promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
-                url: request.url,
-                ip,
-                userAgent,
-                language,
-                platform,
-                source: 'OPENAI_API_COMPATIBILITY',
-                apiKey,
-            });
+            await $provideSupabaseForServer()
+                .from(await $getTableName('ChatHistory'))
+                .insert({
+                    createdAt: new Date().toISOString(),
+                    messageHash: computeHash(agentMessageContent),
+                    previousMessageHash: computeHash(userMessageContent),
+                    agentName,
+                    agentHash,
+                    message: agentMessageContent,
+                    promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
+                    url: request.url,
+                    ip,
+                    userAgent,
+                    language,
+                    platform,
+                    source: 'OPENAI_API_COMPATIBILITY',
+                    apiKey,
+                });
 
             // Note: [🐱‍🚀] Save the learned data
             const newAgentSource = agent.agentSource.value;
@@ -345,7 +398,7 @@ export async function handleChatCompletion(
         console.error(`Error in ${title} handler:`, error);
         return NextResponse.json(
             { error: { message: (error as Error).message || 'Internal Server Error', type: 'server_error' } },
-            { status: 500 },
+            { status: HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR },
         );
     }
 }

@@ -1,6 +1,7 @@
 import { spaceTrim } from 'spacetrim';
+import { isValidAgentUrl } from '../../_packages/utils.index';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
-import type { string_knowledge_source_link } from '../../types/typeAliases';
+import type { string_agent_url } from '../../types/typeAliases';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 
 /**
@@ -17,7 +18,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * @private [🪔] Maybe export the commitments through some package
  */
 export class FromCommitmentDefinition extends BaseCommitmentDefinition<'FROM'> {
-    constructor(type: 'FROM' = 'FROM') {
+    public constructor(type: 'FROM' = 'FROM') {
         super(type);
     }
 
@@ -59,22 +60,45 @@ export class FromCommitmentDefinition extends BaseCommitmentDefinition<'FROM'> {
         const trimmedContent = content.trim();
 
         if (!trimmedContent) {
-            return requirements;
+            return {
+                ...requirements,
+                parentAgentUrl: undefined,
+            };
         }
 
-        // Validate URL
-        try {
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const url = new URL(trimmedContent);
-            // TODO: Add more validation if needed (e.g. check for valid protocol)
-        } catch (error) {
-            console.warn(`Invalid URL in FROM commitment: ${trimmedContent}`);
-            return requirements;
+        if (
+            trimmedContent.toUpperCase() === 'VOID' ||
+            trimmedContent.toUpperCase() === 'NULL' ||
+            trimmedContent.toUpperCase() === 'NONE' ||
+            trimmedContent.toUpperCase() === 'NIL'
+        ) {
+            return {
+                ...requirements,
+                parentAgentUrl: null,
+            };
         }
+
+        if (!isValidAgentUrl(trimmedContent)) {
+            throw new Error(
+                spaceTrim(
+                    (block) => `
+                        Invalid agent URL in FROM commitment: "${trimmedContent}"
+
+                        \`\`\`book
+                        ${block(content)}
+                        \`\`\`
+
+
+                `,
+                ),
+            );
+        }
+
+        const parentAgentUrl: string_agent_url = trimmedContent;
 
         return {
             ...requirements,
-            parentAgentUrl: trimmedContent as string_knowledge_source_link,
+            parentAgentUrl,
         };
     }
 }

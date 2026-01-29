@@ -3,6 +3,7 @@ import { createAgentModelRequirements } from '../../book-2.0/agent-source/create
 import { parseAgentSource } from '../../book-2.0/agent-source/parseAgentSource';
 import { parseAgentSourceWithCommitments } from '../../book-2.0/agent-source/parseAgentSourceWithCommitments';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
+import { getAllCommitmentDefinitions } from '../../commitments/_common/getAllCommitmentDefinitions';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
 import type { string_script } from '../../types/typeAliases';
 import { TODO_USE } from '../../utils/organization/TODO_USE';
@@ -50,6 +51,20 @@ export const OpenAiSdkTranspiler = {
                     return false;
                 }
             });
+
+        const usedToolFunctions: Record<string, string> = {};
+
+        if (modelRequirements.tools && modelRequirements.tools.length > 0) {
+            const allCommitmentDefinitions = getAllCommitmentDefinitions();
+            for (const tool of modelRequirements.tools) {
+                for (const definition of allCommitmentDefinitions) {
+                    const functions = definition.getToolFunctions();
+                    if (functions[tool.name]) {
+                        usedToolFunctions[tool.name] = functions[tool.name]!.toString();
+                    }
+                }
+            }
+        }
 
         TODO_USE(tools);
         TODO_USE(options);
@@ -103,6 +118,17 @@ export const OpenAiSdkTranspiler = {
                         }
                     }
 
+                    // ---- TOOLS ----
+                    const tools = {
+                        ${block(
+                            Object.entries(usedToolFunctions)
+                                .map(([name, impl]) => `${name}: ${impl},`)
+                                .join('\n'),
+                        )}
+                    };
+
+                    const toolDefinitions = ${block(JSON.stringify(modelRequirements.tools || [], null, 4))};
+
                     // ---- CLI SETUP ----
                     const rl = readline.createInterface({
                         input: process.stdin,
@@ -113,7 +139,7 @@ export const OpenAiSdkTranspiler = {
                         {
                             role: 'system',
                             content: spaceTrim(\`
-                                ${block(modelRequirements.systemMessage)}
+                                ${block(modelRequirements.systemMessage.split('`').join('\\`'))}
                             \`),
                         },
                     ];
@@ -126,31 +152,70 @@ export const OpenAiSdkTranspiler = {
                             context = relevantNodes.map((node) => node.getContent()).join('\\n\\n');
                         }
 
-                        const userMessage = spaceTrim(\`
-                            ${block(
-                                spaceTrim(`
-                                    Here is some additional context to help you answer the question:
-                                    \${context}
+                        if (context) {
+                            question = spaceTrim(\`
+                                ${block(
+                                    spaceTrim(`
+                                        Here is some additional context to help you answer the question:
+                                        \${context}
 
-                                    ---
+                                        ---
 
-                                    My question is:
-                                    \${question}
-                                `),
-                                // <- TODO: !!! Maybe block in the spaceTrim shoud do the spaceTrim automatically?
-                            )}
-                        \`);
+                                        My question is:
+                                        \${question}
+                                    `),
+                                    // <- TODO: !!! Maybe block in the spaceTrim shoud do the spaceTrim automatically?
+                                )}
+                            \`);
+                        }
 
+                        chatHistory.push({ role: 'user', content: question });
 
-                        chatHistory.push({ role: 'user', content: userMessage });
+                        await performAiCall();
+                    }
 
+                    async function performAiCall() {
                         const response = await client.chat.completions.create({
                             model: 'gpt-4o',
                             messages: chatHistory,
                             temperature: ${modelRequirements.temperature},
+                            ${
+                                modelRequirements.tools && modelRequirements.tools.length > 0
+                                    ? `tools: toolDefinitions.map(tool => ({ type: 'function', function: tool })),`
+                                    : ''
+                            }
                         });
 
-                        const answer = response.choices[0].message.content;
+                        const message = response.choices[0].message;
+
+                        if (message.tool_calls && message.tool_calls.length > 0) {
+                            chatHistory.push(message);
+
+                            for (const toolCall of message.tool_calls) {
+                                const functionName = toolCall.function.name;
+                                const functionArgs = JSON.parse(toolCall.function.arguments);
+
+                                console.log(\`🛠️ Calling tool \${functionName}...\`);
+                                let result;
+                                try {
+                                    result = await tools[functionName](functionArgs);
+                                } catch (error) {
+                                    result = \`Error: \${error.message}\`;
+                                }
+
+                                chatHistory.push({
+                                    tool_call_id: toolCall.id,
+                                    role: 'tool',
+                                    name: functionName,
+                                    content: typeof result === 'string' ? result : JSON.stringify(result),
+                                });
+                            }
+
+                            await performAiCall();
+                            return;
+                        }
+
+                        const answer = message.content;
                         console.log('\\n🧠 ${
                             agentName /* <- TODO: [🕛] There should be `agentFullname` not `agentName` */
                         }:', answer, '\\n');
@@ -199,6 +264,17 @@ export const OpenAiSdkTranspiler = {
                     apiKey: process.env.OPENAI_API_KEY,
                 });
 
+                // ---- TOOLS ----
+                const tools = {
+                    ${block(
+                        Object.entries(usedToolFunctions)
+                            .map(([name, impl]) => `${name}: ${impl},`)
+                            .join('\n'),
+                    )}
+                };
+
+                const toolDefinitions = ${block(JSON.stringify(modelRequirements.tools || [], null, 4))};
+
                 // ---- CLI SETUP ----
                 const rl = readline.createInterface({
                     input: process.stdin,
@@ -209,21 +285,58 @@ export const OpenAiSdkTranspiler = {
                     {
                         role: 'system',
                         content: spaceTrim(\`
-                            ${block(modelRequirements.systemMessage)}
+                            ${block(modelRequirements.systemMessage.split('`').join('\\`'))}
                         \`),
                     },
                 ];
 
                 async function ask(question) {
                     chatHistory.push({ role: 'user', content: question });
+                    await performAiCall();
+                }
 
+                async function performAiCall() {
                     const response = await client.chat.completions.create({
                         model: 'gpt-4o',
                         messages: chatHistory,
                         temperature: ${modelRequirements.temperature},
+                        ${
+                            modelRequirements.tools && modelRequirements.tools.length > 0
+                                ? `tools: toolDefinitions.map(tool => ({ type: 'function', function: tool })),`
+                                : ''
+                        }
                     });
 
-                    const answer = response.choices[0].message.content;
+                    const message = response.choices[0].message;
+
+                    if (message.tool_calls && message.tool_calls.length > 0) {
+                        chatHistory.push(message);
+
+                        for (const toolCall of message.tool_calls) {
+                            const functionName = toolCall.function.name;
+                            const functionArgs = JSON.parse(toolCall.function.arguments);
+
+                            console.log(\`🛠️ Calling tool \${functionName}...\`);
+                            let result;
+                            try {
+                                result = await tools[functionName](functionArgs);
+                            } catch (error) {
+                                result = \`Error: \${error.message}\`;
+                            }
+
+                            chatHistory.push({
+                                tool_call_id: toolCall.id,
+                                role: 'tool',
+                                name: functionName,
+                                content: typeof result === 'string' ? result : JSON.stringify(result),
+                            });
+                        }
+
+                        await performAiCall();
+                        return;
+                    }
+
+                    const answer = message.content;
                     console.log('\\n🧠 ${
                         agentName /* <- TODO: [🕛] There should be `agentFullname` not `agentName` */
                     }:', answer, '\\n');

@@ -87,7 +87,7 @@ exports.parse = async function parse(docOptions, callbacks) {
         pages[page.pageNumber - 1].items = textItems;
         pageParsed(pages);
 
-        const fontIds = new Set(textItems.map((t) => t.font));
+        const fontIds = new Set(textItems.map((textItem) => textItem.font));
         for (const fontId of fontIds) {
             if (!fonts.ids.has(fontId) && fontId.startsWith('g_d')) {
                 // Depending on which build of pdfjs-dist is used, the

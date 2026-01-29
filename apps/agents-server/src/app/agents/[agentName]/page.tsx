@@ -3,10 +3,11 @@
 import { $provideServer } from '@/src/tools/$provideServer';
 import { isUserAdmin } from '@/src/utils/isUserAdmin';
 import { saturate } from '@promptbook-local/color';
-import { PROMPTBOOK_COLOR } from '@promptbook-local/core';
+import { generatePlaceholderAgentProfileImageUrl, NotFoundError, PROMPTBOOK_COLOR } from '@promptbook-local/core';
 import { notFound } from 'next/navigation';
 import { Color } from '../../../../../../src/utils/color/Color';
-import { getAgentName, getAgentProfile } from './_utils';
+import { DeletedAgentBanner } from '../../../components/DeletedAgentBanner';
+import { getAgentName, getAgentProfile, isAgentDeleted } from './_utils';
 import { getAgentLinks } from './agentLinks';
 import { AgentProfileChat } from './AgentProfileChat';
 import { AgentProfileWrapper } from './AgentProfileWrapper';
@@ -26,23 +27,23 @@ export default async function AgentPage({
     const isAdmin = await isUserAdmin();
     const { headless: headlessParam } = await searchParams;
     const isHeadless = headlessParam !== undefined;
+    const { publicUrl } = await $provideServer();
 
     let agentProfile;
     try {
         agentProfile = await getAgentProfile(agentName);
     } catch (error) {
         if (
-            error instanceof Error &&
-            // Note: This is a bit hacky, but valid way to check for specific error message
-            (error.message.includes('Cannot coerce the result to a single JSON object') ||
-                error.message.includes('JSON object requested, multiple (or no) results returned'))
+            error instanceof NotFoundError ||
+            (error instanceof Error &&
+                // Note: This is a bit hacky, but valid way to check for specific error message
+                (error.message.includes('Cannot coerce the result to a single JSON object') ||
+                    error.message.includes('JSON object requested, multiple (or no) results returned')))
         ) {
             notFound();
         }
         throw error;
     }
-
-    const { publicUrl } = await $provideServer();
 
     // Build agent page URL for QR and copy
     const agentUrl = `${publicUrl.href}${encodeURIComponent(agentName)}`;
@@ -54,6 +55,7 @@ export default async function AgentPage({
     const brandColorHex = brandColor.then(saturate(-0.5)).toHex();
 
     const fullname = (agentProfile.meta.fullname || agentProfile.agentName || 'Agent') as string;
+    const isDeleted = await isAgentDeleted(agentName);
 
     return (
         <>
@@ -61,6 +63,7 @@ export default async function AgentPage({
             <AgentProfileWrapper
                 agent={agentProfile}
                 agentUrl={agentUrl}
+                publicUrl={publicUrl.href}
                 agentEmail={agentEmail}
                 agentName={agentName}
                 brandColorHex={brandColorHex}
@@ -68,7 +71,7 @@ export default async function AgentPage({
                 isHeadless={isHeadless}
                 actions={
                     <>
-                        {getAgentLinks(agentName)
+                        {getAgentLinks(agentProfile.permanentId || agentName)
                             .filter((link) => ['Edit Book', 'Integration', 'All Links'].includes(link.title))
                             .map((link) => (
                                 <a
@@ -86,12 +89,18 @@ export default async function AgentPage({
                     </>
                 }
             >
+                {isDeleted && <DeletedAgentBanner />}
                 <AgentProfileChat
                     agentUrl={agentUrl}
                     agentName={agentName}
                     fullname={fullname}
                     brandColorHex={brandColorHex}
-                    avatarSrc={agentProfile.meta.image!}
+                    avatarSrc={
+                        agentProfile.meta.image ||
+                        generatePlaceholderAgentProfileImageUrl(agentProfile.permanentId || agentName, publicUrl)
+                    }
+                    isDeleted={isDeleted}
+               
                 />
             </AgentProfileWrapper>
         </>

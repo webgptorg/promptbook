@@ -95,7 +95,7 @@ export async function findAllProjectEntities(): Promise<ReadonlyArray<EntityMeta
     let isDuplicateNameFound = false;
     const reportedEntityNames = new Set<string>();
     for (const entity of entitities) {
-        const duplicates = entitities.filter((e) => e.name === entity.name && e.filename !== entity.filename);
+            const duplicates = entitities.filter((existingEntity) => existingEntity.name === entity.name && existingEntity.filename !== entity.filename);
 
         if (duplicates.length > 0) {
             isDuplicateNameFound = true;
@@ -110,7 +110,7 @@ export async function findAllProjectEntities(): Promise<ReadonlyArray<EntityMeta
             console.error(
                 `Duplicate entity name "${entity.name}" found in files:\n${[
                     entity.filename,
-                    ...duplicates.map((e) => e.filename),
+                    ...duplicates.map((existingEntity) => existingEntity.filename),
                 ]
                     .map((filename) => ` - ${filename}`)
                     .join('\n')}`,

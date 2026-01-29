@@ -36,7 +36,7 @@ export async function forEachAsync<TItem>(
         runningTasks.push(task);
 
         /* not await */ Promise.resolve(task).then(() => {
-            runningTasks = runningTasks.filter((t) => t !== task);
+            runningTasks = runningTasks.filter((runningTask) => runningTask !== task);
         });
 
         if (maxParallelCount < runningTasks.length) {

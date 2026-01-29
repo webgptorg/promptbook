@@ -3,10 +3,15 @@
 import { usePromise } from '@common/hooks/usePromise';
 import { Chat } from '@promptbook-local/components';
 import { RemoteAgent } from '@promptbook-local/core';
+import { string_book } from '@promptbook-local/types';
 import { useRouter } from 'next/navigation';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import spaceTrim from 'spacetrim';
+import { OpenAiSpeechRecognition } from '../../../../../../src/speech-recognition/OpenAiSpeechRecognition';
 import { string_agent_url, string_color } from '../../../../../../src/types/typeAliases';
+import { keepUnused } from '../../../../../../src/utils/organization/keepUnused';
+import { $createAgentFromBookAction } from '../../../app/actions';
+import { DeletedAgentBanner } from '../../../components/DeletedAgentBanner';
 
 type AgentProfileChatProps = {
     agentUrl: string_agent_url;
@@ -14,10 +19,21 @@ type AgentProfileChatProps = {
     fullname: string;
     brandColorHex: string_color;
     avatarSrc: string;
+    isDeleted?: boolean;
 };
 
-export function AgentProfileChat({ agentUrl, agentName, fullname, brandColorHex, avatarSrc }: AgentProfileChatProps) {
+export function AgentProfileChat({
+    agentUrl,
+    agentName,
+    fullname,
+    brandColorHex,
+    avatarSrc,
+    isDeleted = false,
+}: AgentProfileChatProps) {
     const router = useRouter();
+    const [isCreatingAgent, setIsCreatingAgent] = useState(false);
+
+    keepUnused(isCreatingAgent);
 
     const agentPromise = useMemo(
         () =>
@@ -38,6 +54,33 @@ export function AgentProfileChat({ agentUrl, agentName, fullname, brandColorHex,
         [agentName, router],
     );
 
+    const speechRecognition = useMemo(() => {
+        if (typeof window === 'undefined') {
+            return undefined;
+        }
+        // Note: [🧠] We could have a mechanism to check if OPENAI_API_KEY is set on the server
+        //       For now, we always provide OpenAiSpeechRecognition which uses proxy
+        return new OpenAiSpeechRecognition();
+    }, []);
+
+    const handleCreateAgent = useCallback(
+        async (bookContent: string) => {
+            setIsCreatingAgent(true);
+            try {
+                const { permanentId } = await $createAgentFromBookAction(bookContent as string_book);
+                if (permanentId) {
+                    router.push(`/agents/${permanentId}`);
+                }
+            } catch (error) {
+                console.error('Failed to create agent:', error);
+                alert('Failed to create agent. Please try again.');
+            } finally {
+                setIsCreatingAgent(false);
+            }
+        },
+        [router],
+    );
+
     const initialMessage = useMemo(() => {
         if (!agent) {
             return 'Loading...';
@@ -51,6 +94,15 @@ export function AgentProfileChat({ agentUrl, agentName, fullname, brandColorHex,
             `)
         );
     }, [agent, fullname, agentName]);
+
+    // If agent is deleted, show banner instead of chat
+    if (isDeleted) {
+        return (
+            <div className="w-full min-h-[350px] md:min-h-[500px] flex items-center justify-center">
+                <DeletedAgentBanner message="This agent has been deleted. You can restore it from the Recycle Bin." />
+            </div>
+        );
+    }
 
     // If agent is not loaded yet, we can show a skeleton or just the default Chat structure
     // But to match "same initial message", we need the agent loaded or at least the default fallback.
@@ -72,19 +124,22 @@ export function AgentProfileChat({ agentUrl, agentName, fullname, brandColorHex,
                 ]}
                 messages={[
                     {
-                        from: 'AGENT',
+                        sender: 'AGENT',
                         content: initialMessage,
-                        date: new Date(),
+                        createdAt: new Date(),
                         id: 'initial-message',
                         isComplete: true,
                     },
                 ]}
                 onMessage={handleMessage}
+                onCreateAgent={handleCreateAgent}
                 isSaveButtonEnabled={false}
                 isCopyButtonEnabled={false}
                 className="bg-transparent"
                 buttonColor={brandColorHex}
                 style={{ background: 'transparent' }}
+                speechRecognition={speechRecognition}
+                visual={'STANDALONE'}
             />
         </div>
     );

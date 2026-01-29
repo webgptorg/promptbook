@@ -172,7 +172,7 @@ export function $registeredLlmToolsMessage(): string_markdown {
                                     ${morePieces.join('; ')}
                             `);
 
-                            if ($isRunningInNode) {
+                            if ($isRunningInNode()) {
                                 if (isInstalled && isFullyConfigured) {
                                     providerMessage = colors.green(providerMessage);
                                 } else if (isInstalled && isPartiallyConfigured) {

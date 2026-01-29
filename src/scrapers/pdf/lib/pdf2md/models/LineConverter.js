@@ -123,8 +123,8 @@ class WordDetectionStream extends StashingStream {
         const words = combinedText.split(' ');
         const format = formatName ? WordFormat.enumValueOf(formatName) : null;
         return words
-            .filter((w) => w.trim().length > 0)
-            .map((word) => {
+            .filter((wordItem) => wordItem.trim().length > 0)
+            .map((wordText) => {
                 var type = null;
                 if (word.startsWith('http:')) {
                     this.containLinks = true;

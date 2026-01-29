@@ -1,5 +1,6 @@
 import type { ClientOptions } from 'openai';
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
+import type { ExecutionTools } from '../../execution/ExecutionTools';
 import type { RemoteClientOptions } from '../../remote-server/types/RemoteClientOptions';
 
 /**
@@ -33,6 +34,11 @@ export type OpenAiCompatibleExecutionToolsNonProxiedOptions = CommonToolsOptions
          * @example 'https://api.deepseek.com/v1' (DeepSeek)
          */
         baseURL?: string;
+
+        /**
+         * Tools for executing the scripts
+         */
+        readonly executionTools?: Pick<ExecutionTools, 'script'>;
 
         isProxied?: false;
     };

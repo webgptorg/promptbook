@@ -1,6 +1,44 @@
-import { createAgentModelRequirements } from '@promptbook-local/core';
-import type { AgentCollection } from '@promptbook-local/types';
-type string_book = string & { readonly __type: 'book' };
+import {
+    createAgentModelRequirements,
+    padBook,
+    ParseError,
+    UnexpectedError,
+    validateBook,
+} from '../../../../src/_packages/core.index'; // <- [🚾]
+import { string_agent_url, string_book } from '../../../../src/_packages/types.index'; // <- [🚾]
+import { isValidAgentUrl } from '../../../../src/_packages/utils.index'; // <- [🚾]
+import { spaceTrim } from '../../../../src/utils/organization/spaceTrim';
+import { importAgent, ImportAgentOptions } from './importAgent';
+
+/**
+ * Gets the corpus of an agent source (removes title and trailing status)
+ *
+ * @param agentSource The agent source
+ * @returns The agent source corpus
+ */
+function getAgentSourceCorpus(agentSource: string_book): string {
+    // Remove trailing OPEN or CLOSED if present
+    const agentSourceWithoutStatus = agentSource.replace(/\n?(OPEN|CLOSED)\s*$/i, '') as string_book;
+    // <- TODO: [🈲] Simple and encapsulated way to get book corpus
+
+    // Remove the first line (title) from agent source
+    const agentSourceCorpus = spaceTrim(agentSourceWithoutStatus.replace(/^.*$/m, ''));
+    // <- TODO: [🈲] Simple and encapsulated way to get book corpus
+
+    return agentSourceCorpus;
+}
+
+/**
+ * @@@
+ */
+type ResolveInheritedAgentSourceOptions = ImportAgentOptions & {
+    /**
+     * The URL of the Adam agent to use as the default ancestor
+     *
+     * @default 'https://core.ptbk.io/agents/adam'
+     */
+    readonly adamAgentUrl: string_agent_url;
+};
 
 /**
  * Resolves agent source with inheritance (FROM commitment)
@@ -8,93 +46,157 @@ type string_book = string & { readonly __type: 'book' };
  * It recursively fetches the parent agent source and merges it with the current source.
  *
  * @param agentSource The initial agent source
- * @param collection Optional agent collection to resolve local agents efficiently
  * @returns The resolved agent source with inheritance applied
  */
 export async function resolveInheritedAgentSource(
     agentSource: string_book,
-    collection?: AgentCollection,
+    options?: ResolveInheritedAgentSourceOptions,
 ): Promise<string_book> {
+    const { adamAgentUrl = 'https://core.ptbk.io/agents/adam', recursionLevel = 0 } = options || {};
+
     // Check if the source has FROM commitment
     // We use createAgentModelRequirements to parse commitments
     // Note: We don't provide tools/models here as we only care about parsing commitments
     const requirements = await createAgentModelRequirements(agentSource);
 
-    if (!requirements.parentAgentUrl) {
+    let parentAgentUrl: string_agent_url;
+
+    // Note: [🆓] There are several cases what the agent ancestor could be:
+    // 1️⃣ Parent URL is explicitly defined and valid
+    if (isValidAgentUrl(requirements.parentAgentUrl)) {
+        parentAgentUrl = requirements.parentAgentUrl as string_agent_url;
+    }
+    // 2️⃣ Parent URL is explicitly defined as null (forcefully no parent)
+    else if (requirements.parentAgentUrl === null) {
         return agentSource;
     }
+    // 3️⃣ Parent URL is not defined, use the default ancestor - Adam
+    else if (requirements.parentAgentUrl === undefined) {
+        parentAgentUrl = adamAgentUrl;
+    }
+    // 4️⃣ Parent URL is defined but invalid
+    else {
+        throw new ParseError(
+            spaceTrim(
+                (block) => `
+                    Invalid parent agent URL in FROM "${requirements.parentAgentUrl}" commitment:
 
-    const parentUrl = requirements.parentAgentUrl;
-    let parentSource: string_book;
-
-    try {
-        // 1. Try to resolve locally using collection if possible
-        // This is an optimization for internal agents
-        // We assume the URL might be relative or contain the agent name, or we just check if it's a full URL
-        // If it's a full URL, we need to check if it matches our server, but without knowing our server URL it's hard.
-        // So we might need to parse the URL to extract agent name if it matches expected pattern.
-        // For now, let's rely on fetch for external and check collection if it looks like a local reference (though FROM expects URL)
-
-    // If the URL is valid, we try to fetch it
-    // TODO: Handle authentication/tokens for private agents if needed
-
-    // TODO: [🧠] Do this logic more robustly
-    let fetchUrl = parentUrl;
-    if (!fetchUrl.endsWith('/api/book') && !fetchUrl.endsWith('.book') && !fetchUrl.endsWith('.md')) {
-        fetchUrl = `${fetchUrl.replace(/\/$/, '')}/api/book`;
+                    \`\`\`book
+                    ${block(agentSource)}
+                    \`\`\`
+            
+                `,
+            ),
+        );
     }
 
-    const response = await fetch(fetchUrl);
+    const parentAgentSource = await importAgent(parentAgentUrl, { recursionLevel });
+    const parentAgentSourceCorpus = getAgentSourceCorpus(parentAgentSource as string_book);
 
-    if (!response.ok) {
-        throw new Error(`Failed to fetch parent agent from ${fetchUrl}: ${response.status} ${response.statusText}`);
-    }
+    let isFromResolved = false;
+    const newAgentSourceChunks: Array<string> = [];
+    const agentSourceChunks = spaceTrim(agentSource).split(/\r?\n/);
+    // <- TODO: [🈲] Simple and encapsulated way to split book into commitments
 
-        // We assume the response is the agent source text
-        // TODO: Handle content negotiation or JSON responses if the server returns JSON
-        const contentType = response.headers.get('content-type');
-        if (contentType && contentType.includes('application/json')) {
-             const data = await response.json();
-             // Assume some structure or that the API returns source in a property
-             // For Agents Server API modelRequirements/route.ts returns AgentModelRequirements, not source.
-             // If we point to a raw source endpoint, it returns text.
-             // If we point to the agent page, it returns HTML.
-             // We need a standard way to get source.
-                 // For now, let's assume the URL points to the source or an API returning source.
-             if (typeof data === 'string') {
-                 parentSource = data as string_book;
-             } else if (data.source) {
-                 parentSource = data.source as string_book;
-             } else {
-                 // Fallback or error
-                 console.warn(`Received JSON from ${parentUrl} but couldn't determine source property. Using text.`);
-                 // Re-fetch as text? Or assume body text was read? response.json() consumes body.
-                 // So we might have failed here.
-                 throw new Error(`Received JSON from ${parentUrl} but structure is unknown.`);
-             }
-        } else {
-            parentSource = (await response.text()) as string_book;
+    for (let i = 0; i < agentSourceChunks.length; i++) {
+        const line = agentSourceChunks[i]!;
+
+        if (line.trim().startsWith('IMPORT ')) {
+            const importedUrlOrPath = line.trim().substring('IMPORT '.length).trim();
+
+            if (isValidAgentUrl(importedUrlOrPath)) {
+                const importedAgentUrl = importedUrlOrPath as string_agent_url;
+                const importedAgentSource = await importAgent(importedAgentUrl, { recursionLevel });
+                const resolvedImportedAgentSource = await resolveInheritedAgentSource(importedAgentSource, {
+                    ...options,
+                    adamAgentUrl,
+                    recursionLevel: recursionLevel + 1,
+                });
+                const importedAgentSourceCorpus = getAgentSourceCorpus(resolvedImportedAgentSource);
+
+                newAgentSourceChunks.push(
+                    spaceTrim(
+                        (block) => `
+
+                            NOTE Imported from ${importedAgentUrl}
+                            ${block(importedAgentSourceCorpus)}
+
+                            ---
+                    `,
+                    ),
+                    '', // <- Note: Add an extra newline for separation
+                );
+                continue;
+            }
+
+            // Note: For non-agent imports, we keep the line as is.
+            //       The createAgentModelRequirements function will handle fetching and embedding generic files.
+            newAgentSourceChunks.push(line);
+            continue;
         }
 
-    } catch (error) {
-        console.warn(`Failed to resolve parent agent ${parentUrl}`, error);
-        // If we fail to resolve parent, we return the original source (maybe with a warning or error commitment?)
-        // Or we could throw to fail the build.
-        // For robustness, let's append a warning comment
-        return `${agentSource}\n\n# Warning: Failed to inherit from ${parentUrl}: ${error}` as string_book;
+        if (line.trim().startsWith('FROM ')) {
+            if (isFromResolved === true) {
+                throw new UnexpectedError(
+                    spaceTrim(
+                        (block) => `
+                            Multiple \`FROM\` commitments found in agent source:
+        
+                            \`\`\`book
+                            ${block(agentSource)}
+                            \`\`\`
+                        `,
+                    ),
+                );
+            }
+
+            newAgentSourceChunks.push(
+                spaceTrim(
+                    (block) => `
+
+                        NOTE Inherited FROM ${parentAgentUrl}
+                        ${block(parentAgentSourceCorpus)}
+
+                        ---
+                `,
+                ),
+                '', // <- Note: Add an extra newline for separation
+            );
+            isFromResolved = true;
+            continue;
+        }
+
+        newAgentSourceChunks.push(line);
+    }
+    // <- TODO: [🈲] Simple and encapsulated way to split book into commitments
+
+    // If no FROM was found and the parent is Adam, insert Adam's corpus after the title
+    if (!isFromResolved && parentAgentUrl === adamAgentUrl) {
+        // Insert after the first line (title)
+        const titleLine = newAgentSourceChunks[0] || '';
+        const restLines = newAgentSourceChunks.slice(1);
+        newAgentSourceChunks.length = 0;
+        newAgentSourceChunks.push(
+            titleLine,
+            '',
+            spaceTrim(
+                (block) => `
+                    NOTE Inherited Adam FROM ${parentAgentUrl}
+                    ${block(parentAgentSourceCorpus)}
+
+                    ---
+                `,
+            ),
+            ...restLines,
+        );
     }
 
-    // Recursively resolve the parent source
-    const effectiveParentSource = await resolveInheritedAgentSource(parentSource, collection);
+    const newAgentSource = padBook(validateBook(newAgentSourceChunks.join('\n')));
 
-    // Strip the FROM commitment from the child source to avoid infinite recursion or re-processing
-    // We can filter lines starting with FROM
-    const childSourceLines = agentSource.split('\n');
-    const filteredChildSource = childSourceLines
-        .filter((line: string) => !line.trim().startsWith('FROM ')) // Simple string check, ideally should use parser location
-        .join('\n');
-
-    // Append child source to parent source
-    // "appends the RULE commitment to its source" -> Parent + Child
-    return `${effectiveParentSource}\n\n${filteredChildSource}` as string_book;
+    return newAgentSource;
 }
+
+/**
+ * TODO: [🈲] Create a function that can manipulate books by modifying commitments, splitting the book up into commitments or syntactic tokens, and editing or deleting these via object methods.
+ * TODO: [🐱‍🚀][⏩] This function should be in `/src` and exported from `@promptbook/core`
+ */

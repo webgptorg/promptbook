@@ -8,8 +8,8 @@ import type { PipelineString } from '../../pipeline/PipelineString';
 import { JavascriptExecutionTools } from '../javascript/JavascriptExecutionTools';
 
 describe('createPipelineExecutor + executing scripts in promptbook', () => {
-    it('should work when every INPUT  PARAMETER defined', () => {
-        expect(
+    it('should work when every INPUT  PARAMETER defined', async () => {
+        await expect(
             getPipelineExecutor().then((pipelineExecutor) =>
                 pipelineExecutor({ thing: 'apple' }).asPromise({ isCrashedOnError: true }),
             ),
@@ -20,7 +20,7 @@ describe('createPipelineExecutor + executing scripts in promptbook', () => {
                 bhing: 'bpple',
             },
         });
-        expect(
+        await expect(
             getPipelineExecutor().then((pipelineExecutor) =>
                 pipelineExecutor({ thing: 'a cup of coffee' }).asPromise({ isCrashedOnError: true }),
             ),
@@ -33,8 +33,8 @@ describe('createPipelineExecutor + executing scripts in promptbook', () => {
         });
     });
 
-    it('should fail when some INPUT  PARAMETER is missing', () => {
-        expect(
+    it('should fail when some INPUT  PARAMETER is missing', async () => {
+        await expect(
             getPipelineExecutor().then((pipelineExecutor) =>
                 pipelineExecutor({}).asPromise({ isCrashedOnError: false }),
             ),
@@ -62,7 +62,7 @@ describe('createPipelineExecutor + executing scripts in promptbook', () => {
             */
         });
 
-        expect(() =>
+        await expect(() =>
             getPipelineExecutor().then((pipelineExecutor) =>
                 pipelineExecutor({}).asPromise({ isCrashedOnError: true }),
             ),

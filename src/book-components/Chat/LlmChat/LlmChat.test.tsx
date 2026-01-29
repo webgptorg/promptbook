@@ -42,16 +42,18 @@ describe('LlmChat', () => {
 
         const thread: ChatMessage[] = [
             {
+                // channel: 'PROMPTBOOK_CHAT',
                 id: 't1',
-                date: new Date(),
-                from: 'USER',
+                createdAt: new Date(),
+                sender: 'USER',
                 content: 'First',
                 isComplete: true,
             },
             {
+                // channel: 'PROMPTBOOK_CHAT',
                 id: 't2',
-                date: new Date(),
-                from: 'ASSISTANT',
+                createdAt: new Date(),
+                sender: 'ASSISTANT',
                 content: 'Second',
                 isComplete: true,
             },
@@ -63,7 +65,9 @@ describe('LlmChat', () => {
 
         await act(async () => {
             const root = createRoot(container);
-            root.render(<LlmChat title="Test" llmTools={customLlmTools as TODO_any} thread={thread} />);
+            root.render(
+                <LlmChat title="Test" llmTools={customLlmTools as TODO_any} thread={thread} visual="STANDALONE" />,
+            );
         });
 
         // Simulate sending a message
@@ -87,6 +91,7 @@ describe('LlmChat', () => {
             title: 'Test',
             llmTools: mockLlmTools,
             placeholderMessageContent: 'Test placeholder',
+            visual: 'STANDALONE',
         };
 
         expect(props.llmTools).toBe(mockLlmTools);
@@ -148,6 +153,7 @@ describe('LlmChat', () => {
         const validProps: LlmChatProps = {
             title: 'Test',
             llmTools: mockLlmTools,
+            visual: 'STANDALONE',
         };
 
         expect(validProps.llmTools).toBeDefined();
@@ -162,7 +168,6 @@ describe('LlmChat', () => {
             onChange: () => {},
             onReset: async () => {},
             isVoiceRecognitionButtonShown: true,
-            voiceLanguage: 'en-US',
             placeholderMessageContent: 'Type here...',
             defaultMessage: 'Hello',
             className: 'test-class',
@@ -171,27 +176,29 @@ describe('LlmChat', () => {
             isExperimental: true,
             isSaveButtonEnabled: false,
             exportHeaderMarkdown: '# Chat Export',
+            visual: 'STANDALONE',
             onUseTemplate: () => {},
         };
 
         expect(fullProps.llmTools).toBe(mockLlmTools);
-        expect(fullProps.voiceLanguage).toBe('en-US');
         expect(fullProps.style?.height).toBe('400px');
     });
 
     it('should accept initialMessages with USER and ASSISTANT messages', () => {
         const initialMessages: ChatMessage[] = [
             {
+                // channel: 'PROMPTBOOK_CHAT',
                 id: 'seed-user',
-                date: new Date(),
-                from: 'USER',
+                createdAt: new Date(),
+                sender: 'USER',
                 content: 'Hello assistant, are you initialized?',
                 isComplete: true,
             },
             {
+                // channel: 'PROMPTBOOK_CHAT',
                 id: 'seed-assistant',
-                date: new Date(),
-                from: 'ASSISTANT',
+                createdAt: new Date(),
+                sender: 'ASSISTANT',
                 content: 'Initialization complete. Ready to echo your thoughts.',
                 isComplete: true,
             },
@@ -201,12 +208,13 @@ describe('LlmChat', () => {
             title: 'Test',
             llmTools: mockLlmTools,
             initialMessages,
+            visual: 'STANDALONE',
         };
 
         expect(props.initialMessages).toBeDefined();
         expect(props.initialMessages?.length).toBe(2);
-        expect(props.initialMessages?.[0]?.from).toBe('USER');
-        expect(props.initialMessages?.[1]?.from).toBe('ASSISTANT');
+        expect(props.initialMessages?.[0]?.sender).toBe('USER');
+        expect(props.initialMessages?.[1]?.sender).toBe('ASSISTANT');
     });
 
     it('should allow optional external sendMessage prop in LlmChatProps', () => {
@@ -236,6 +244,7 @@ describe('LlmChat', () => {
             title: 'Test',
             llmTools: mockLlmTools,
             sendMessage: fakeSend,
+            visual: 'STANDALONE',
         };
 
         expect(typeof props.sendMessage).toBe('function');
@@ -245,16 +254,18 @@ describe('LlmChat', () => {
     it('should re-seed initialMessages after reset (New chat)', async () => {
         const initialMessages: ChatMessage[] = [
             {
+                // channel: 'PROMPTBOOK_CHAT',
                 id: 'init-user',
-                date: new Date(),
-                from: 'USER',
+                createdAt: new Date(),
+                sender: 'USER',
                 content: 'Hi assistant (seed)',
                 isComplete: true,
             },
             {
+                // channel: 'PROMPTBOOK_CHAT',
                 id: 'init-assistant',
-                date: new Date(),
-                from: 'ASSISTANT',
+                createdAt: new Date(),
+                sender: 'ASSISTANT',
                 content: 'Hello user (seed)',
                 isComplete: true,
             },
@@ -266,7 +277,9 @@ describe('LlmChat', () => {
 
         await act(async () => {
             const root = createRoot(container);
-            root.render(<LlmChat title="Test" llmTools={mockLlmTools} initialMessages={initialMessages} />);
+            root.render(
+                <LlmChat title="Test" llmTools={mockLlmTools} initialMessages={initialMessages} visual="STANDALONE" />,
+            );
         });
 
         const rawFirstProps = (globalThis as { __lastChatProps?: CapturedChatProps }).__lastChatProps;

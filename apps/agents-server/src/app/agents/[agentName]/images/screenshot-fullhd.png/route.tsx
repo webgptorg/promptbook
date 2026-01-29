@@ -1,3 +1,4 @@
+import { $provideServer } from '@/src/tools/$provideServer';
 import { PROMPTBOOK_COLOR } from '@promptbook-local/core';
 import { serializeError } from '@promptbook-local/utils';
 import { ImageResponse } from 'next/og';
@@ -21,6 +22,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
         const agentProfile = await getAgentProfile(agentName);
         const agentColor = Color.from(agentProfile.meta.color || PROMPTBOOK_COLOR);
         const backgroundColor = agentColor.then(grayscale(0.5));
+        const { publicUrl } = await $provideServer();
 
         return new ImageResponse(
             (
@@ -43,15 +45,14 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
                             justifyContent: 'center',
                         }}
                     >
-                        {/* Note: `next/image` is not working propperly with `next/og` */}
+                        {/* Note: `next/image` is not working properly with `next/og` */}
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                             style={{
                                 width: '80%',
-                                backgroundColor: agentColor.toHex(),
-                                borderRadius: '50%',
+                                // backgroundColor: agentColor.toHex(),
                             }}
-                            src={agentProfile.meta.image!}
+                            src={`${publicUrl.href}agents/${agentProfile.permanentId || agentName}/images/icon-256.png`}
                             alt="Agent Icon"
                         />
                     </div>

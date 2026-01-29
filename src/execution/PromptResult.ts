@@ -1,3 +1,4 @@
+import type { ToolCall } from '../types/ToolCall';
 import type { string_date_iso8601, string_model_name, string_prompt } from '../types/typeAliases';
 import type { TODO_object } from '../utils/organization/TODO_object';
 import type { EmbeddingVector } from './EmbeddingVector';
@@ -9,7 +10,11 @@ import type { Usage } from './Usage';
  *
  * @see https://github.com/webgptorg/promptbook#prompt-result
  */
-export type PromptResult = CompletionPromptResult | ChatPromptResult | ImagePromptResult | EmbeddingPromptResult /* <- [🤖] */;
+export type PromptResult =
+    | CompletionPromptResult
+    | ChatPromptResult
+    | ImagePromptResult
+    | EmbeddingPromptResult /* <- [🤖] */;
 
 /**
  * Completion prompt result
@@ -26,6 +31,11 @@ export type CompletionPromptResult = CommonPromptResult;
  */
 export type ChatPromptResult = CommonPromptResult & {
     // TODO: [🗯][🧠] Figure out way how to pass thread / previous messages
+
+    /**
+     * Optional tool calls made during the execution
+     */
+    readonly toolCalls?: ReadonlyArray<ToolCall>;
 };
 
 /**

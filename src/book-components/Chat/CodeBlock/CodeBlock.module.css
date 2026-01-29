@@ -1,0 +1,43 @@
+.CodeBlock {
+    margin: 10px 0;
+    border-radius: 5px;
+    overflow: hidden;
+    border: 1px solid #444; /* Dark mode border */
+}
+
+.CodeBlockHeader {
+    background-color: #2d2d2d;
+    color: #ccc;
+    padding: 5px 10px;
+    font-size: 0.8em;
+    border-bottom: 1px solid #444;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.CodeBlockButtons {
+    display: flex;
+    gap: 8px;
+}
+
+.CopyButton,
+.DownloadButton,
+.CreateAgentButton {
+    background: transparent;
+    border: none;
+    color: #aaa;
+    cursor: pointer;
+    font-size: inherit;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: color 0.2s;
+}
+
+.CopyButton:hover,
+.DownloadButton:hover,
+.CreateAgentButton:hover {
+    color: #fff;
+}

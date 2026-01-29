@@ -7,6 +7,7 @@ import spaceTrim from 'spacetrim';
 import { Color, saturate } from '../../../_packages/color.index';
 import { PROMPTBOOK_COLOR } from '../../../config';
 import { asUpdatableSubject } from '../../../types/Updatable';
+import type { TODO_any } from '../../../utils/organization/TODO_any';
 import { LlmChat } from '../LlmChat/LlmChat';
 import type { AgentChatProps } from './AgentChatProps';
 
@@ -23,9 +24,9 @@ import type { AgentChatProps } from './AgentChatProps';
  * @public exported from `@promptbook/components`
  */
 export function AgentChat(props: AgentChatProps) {
-    const { agent, title, persistenceKey, onChange, sendMessage, ...restProps } = props;
+    const { agent, title, persistenceKey, onChange, sendMessage, toolTitles, ...restProps } = props;
 
-    const brandColor = Color.fromSafe(agent.meta.color || PROMPTBOOK_COLOR).then(saturate(-0.5));
+    const brandColor = Color.fromSafe(agent.meta.color || PROMPTBOOK_COLOR).then(saturate(-0.2));
 
     return (
         <>
@@ -36,7 +37,8 @@ export function AgentChat(props: AgentChatProps) {
                 llmParticipantName="AGENT" // <- TODO: [🧠] Maybe dynamic agent id
                 initialMessages={[
                     {
-                        from: 'AGENT',
+                        // channel: 'PROMPTBOOK_CHAT',
+                        sender: 'AGENT',
                         content:
                             agent.initialMessage ||
                             spaceTrim(`
@@ -55,6 +57,7 @@ export function AgentChat(props: AgentChatProps) {
                         color: brandColor,
                         isMe: false,
                         agentSource: asUpdatableSubject(agent.agentSource).getValue() /* <- TODO: [🐱‍🚀] asValue */,
+                        knowledgeSources: (agent as TODO_any).knowledgeSources,
                     },
                     {
                         name: 'USER',
@@ -64,7 +67,7 @@ export function AgentChat(props: AgentChatProps) {
                     },
                 ]}
                 buttonColor={brandColor}
-                {...{ llmTools: agent, onChange, sendMessage }}
+                {...{ llmTools: agent, onChange, sendMessage, toolTitles }}
                 {...restProps}
             />
         </>

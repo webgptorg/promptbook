@@ -6,7 +6,7 @@ import type { PromptbookStorage } from '../_common/PromptbookStorage';
  * @public exported from `@promptbook/core`
  */
 export class PrefixStorage<TItem> implements PromptbookStorage<TItem> {
-    constructor(
+    public constructor(
         private baseStorage: PromptbookStorage<TItem>,
         private keyPrefix: string,
         private separator: string = '_',

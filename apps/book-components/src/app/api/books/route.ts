@@ -10,7 +10,7 @@ import { assertsError } from '../../../../../../src/errors/assertsError';
 export async function GET() {
     const examplesDir = path.resolve(process.cwd(), '../../', 'books/examples');
     try {
-        const files = fs.readdirSync(examplesDir).filter((f) => f.endsWith('.book'));
+        const files = fs.readdirSync(examplesDir).filter((file) => file.endsWith('.book'));
         return NextResponse.json(files);
     } catch (error) {
         assertsError(error);

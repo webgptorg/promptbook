@@ -8,7 +8,17 @@ import { CloseIcon } from '../icons/CloseIcon';
 import { PromptbookAgentIntegrationProps } from './PromptbookAgentIntegration';
 import styles from './PromptbookAgentSeamlessIntegration.module.css';
 
-type PromptbookAgentSeamlessIntegrationProps = Omit<PromptbookAgentIntegrationProps, 'formfactor'>;
+type PromptbookAgentSeamlessIntegrationProps = Omit<PromptbookAgentIntegrationProps, 'formfactor'> & {
+    /**
+     * Use iframe instead of implementing the chat directly
+     *
+     * When `true`, the chat will be rendered in an iframe pointing to the agent's chat endpoint.
+     * When `false`, the chat will be rendered directly using React components.
+     *
+     * @default false
+     */
+    readonly isIframeUsed?: boolean;
+};
 
 /**
  * Renders a floating agent button that opens a chat window with the remote agent.
@@ -16,13 +26,17 @@ type PromptbookAgentSeamlessIntegrationProps = Omit<PromptbookAgentIntegrationPr
  * @private component of PromptbookAgentIntegration
  */
 export function PromptbookAgentSeamlessIntegration(props: PromptbookAgentSeamlessIntegrationProps) {
-    const { agentUrl, meta, onOpenChange, className, style } = props;
+    const { agentUrl, meta, onOpenChange, className, style, isFocusedOnLoad, isIframeUsed = false } = props;
     const [isOpen, setIsOpen] = useState(false);
     const [headerElement, setHeaderElement] = useState<HTMLDivElement | null>(null);
+    const [isIframeLoaded, setIsIframeLoaded] = useState(false);
 
     useEffect(() => {
         if (onOpenChange) {
             onOpenChange(isOpen);
+        }
+        if (!isOpen) {
+            setIsIframeLoaded(false);
         }
     }, [isOpen, onOpenChange]);
     const [agent, setAgent] = useState<RemoteAgent | null>(null);
@@ -73,7 +87,8 @@ export function PromptbookAgentSeamlessIntegration(props: PromptbookAgentSeamles
     const image =
         agent?.meta?.image ||
         meta?.image ||
-        'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y';
+        // Note: [🤹] Using default avatar from the agent server
+        `${agentUrl}/images/default-avatar.png`;
     const color = agent?.meta?.color || meta?.color;
 
     let connectionStatus: 'connected' | 'pending' | 'error' = 'pending';
@@ -122,12 +137,37 @@ export function PromptbookAgentSeamlessIntegration(props: PromptbookAgentSeamles
                         <div className={styles.PromptbookAgentSeamlessIntegrationTitle}>
                             {agent?.meta.fullname || meta?.fullname || agent?.agentName || 'Chat with Agent'}
                         </div>
+                        {isIframeUsed && (
+                            <button
+                                className={styles.PromptbookAgentSeamlessIntegrationClose}
+                                onClick={() => setIsOpen(false)}
+                                title="Close"
+                            >
+                                <CloseIcon />
+                            </button>
+                        )}
                     </div>
                     <div className={styles.PromptbookAgentSeamlessIntegrationContent}>
-                        {agent ? (
+                        {isIframeUsed ? (
+                            <>
+                                {!isIframeLoaded && (
+                                    <div className={styles.PromptbookAgentSeamlessIntegrationLoading}>
+                                        Loading chat...
+                                    </div>
+                                )}
+                                <iframe
+                                    src={agentUrl + '/chat?headless'}
+                                    className={styles.PromptbookAgentSeamlessIntegrationIframe}
+                                    style={{ opacity: isIframeLoaded ? 1 : 0 }}
+                                    tabIndex={-1}
+                                    onLoad={() => setIsIframeLoaded(true)}
+                                />
+                            </>
+                        ) : agent ? (
                             <AgentChat
                                 agent={agent}
                                 actionsContainer={headerElement}
+                                isFocusedOnLoad={isFocusedOnLoad}
                                 extraActions={
                                     <button
                                         className={styles.PromptbookAgentSeamlessIntegrationClose}
@@ -137,6 +177,7 @@ export function PromptbookAgentSeamlessIntegration(props: PromptbookAgentSeamles
                                         <CloseIcon />
                                     </button>
                                 }
+                                visual="STANDALONE"
                             />
                         ) : error ? (
                             <div className={styles.PromptbookAgentSeamlessIntegrationError}>
@@ -156,7 +197,6 @@ export function PromptbookAgentSeamlessIntegration(props: PromptbookAgentSeamles
 }
 
 /**
- * TODO: !!!! Use iframe here instead of implementing the chat directly, allow to switch between seamless and iframe mode via `isIframeUsed` prop
  * TODO: !!! Load the full branding
  * TODO: !!! <promptbook-agent> element
  */

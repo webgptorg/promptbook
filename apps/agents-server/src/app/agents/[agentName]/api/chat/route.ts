@@ -2,9 +2,13 @@ import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideOpenAiAssistantExecutionToolsForServer } from '@/src/tools/$provideOpenAiAssistantExecutionToolsForServer';
-import { Agent, computeAgentHash, PROMPTBOOK_ENGINE_VERSION } from '@promptbook-local/core';
+import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
+import { createChatStreamHandler } from '@/src/utils/createChatStreamHandler';
+import { Agent, computeAgentHash, PROMPTBOOK_ENGINE_VERSION, RemoteAgent } from '@promptbook-local/core';
 import { computeHash, serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
+import { keepUnused } from '../../../../../../../../src/utils/organization/keepUnused';
+import { isAgentDeleted } from '../../_utils';
 
 /**
  * Allow long-running streams: set to platform maximum (seconds)
@@ -12,6 +16,8 @@ import { assertsError } from '../../../../../../../../src/errors/assertsError';
 export const maxDuration = 300;
 
 export async function OPTIONS(request: Request) {
+    keepUnused(request);
+
     return new Response(null, {
         status: 200,
         headers: {
@@ -26,8 +32,24 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
     let { agentName } = await params;
     agentName = decodeURIComponent(agentName);
 
+    // Check if agent is deleted
+    if (await isAgentDeleted(agentName)) {
+        return new Response(
+            JSON.stringify({
+                error: {
+                    message: 'This agent has been deleted. You can restore it from the Recycle Bin.',
+                    type: 'agent_deleted',
+                },
+            }),
+            {
+                status: 410, // Gone - indicates the resource is no longer available
+                headers: { 'Content-Type': 'application/json' },
+            },
+        );
+    }
+
     const body = await request.json();
-    const { message = 'Tell me more about yourself.', thread } = body;
+    const { message = 'Tell me more about yourself.', thread, attachments = [] } = body;
     //      <- TODO: [🐱‍🚀] To configuration DEFAULT_INITIAL_HIDDEN_MESSAGE
 
     try {
@@ -42,6 +64,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                 llm: openAiAssistantExecutionTools, // Note: Providing the OpenAI Assistant LLM tools to the Agent to be able to create its own Assistants GPTs
             },
             agentSource,
+            teacherAgent: await RemoteAgent.connect({
+                agentUrl: await getWellKnownAgentUrl('TEACHER'),
+            }), // <- [🦋]
         });
 
         const agentHash = computeAgentHash(agentSource);
@@ -60,6 +85,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         const userMessageContent = {
             role: 'USER',
             content: message,
+            attachments,
         };
 
         // Record the user message
@@ -71,6 +97,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             agentName,
             agentHash,
             message: userMessageContent,
+            attachments: attachments.length > 0 ? attachments : null,
             promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
             url: request.url,
             ip,
@@ -84,7 +111,14 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         const encoder = new TextEncoder();
         const readableStream = new ReadableStream({
             start(controller) {
-                let previousContent = '';
+                const handleStreamChunk = createChatStreamHandler({
+                    onDelta: (deltaContent) => {
+                        controller.enqueue(encoder.encode(deltaContent));
+                    },
+                    onToolCalls: (toolCalls) => {
+                        controller.enqueue(encoder.encode('\n' + JSON.stringify({ toolCalls }) + '\n'));
+                    },
+                });
 
                 agent.callChatModelStream!(
                     {
@@ -98,13 +132,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                         content: message,
                         thread,
                     },
-                    (chunk) => {
-                        const fullContent = chunk.content;
-                        const deltaContent = fullContent.substring(previousContent.length);
-                        previousContent = fullContent;
-
-                        controller.enqueue(encoder.encode(deltaContent));
-                    },
+                    handleStreamChunk,
                 )
                     .then(async (response) => {
                         // Note: Identify the agent message
@@ -135,6 +163,12 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                         const newAgentSource = agent.agentSource.value;
                         if (newAgentSource !== agentSource) {
                             await collection.updateAgentSource(agentName, newAgentSource);
+                        }
+
+                        if (response.toolCalls && response.toolCalls.length > 0) {
+                            controller.enqueue(
+                                encoder.encode('\n' + JSON.stringify({ toolCalls: response.toolCalls }) + '\n'),
+                            );
                         }
 
                         controller.close();

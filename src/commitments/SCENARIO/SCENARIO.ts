@@ -20,7 +20,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * @private [🪔] Maybe export the commitments through some package
  */
 export class ScenarioCommitmentDefinition extends BaseCommitmentDefinition<'SCENARIO' | 'SCENARIOS'> {
-    constructor(type: 'SCENARIO' | 'SCENARIOS' = 'SCENARIO') {
+    public constructor(type: 'SCENARIO' | 'SCENARIOS' = 'SCENARIO') {
         super(type);
     }
 

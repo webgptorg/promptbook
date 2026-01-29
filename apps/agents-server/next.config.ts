@@ -2,8 +2,8 @@ import type { NextConfig } from 'next';
 import path from 'path';
 
 const nextConfig: NextConfig = {
-    output: 'standalone',
-    // <- TODO: [🐱‍🚀][🧠] How to propperly build Next.js app
+    // output: 'standalone',
+    // <- TODO: [🐱‍🚀][🧠] How to properly build Next.js app, for both Vercel and Doceker?
 
     experimental: {
         externalDir: true,
@@ -20,17 +20,20 @@ const nextConfig: NextConfig = {
         },
     },
 
-    /*/
-    // Note: In case you need to use Webpack instead of Turbopack
-    webpack(config) {
-        // Use TsconfigPathsPlugin for all path alias resolution
-        config.resolve.plugins = config.resolve.plugins || [];
-        config.resolve.plugins.push(
-            new TsconfigPathsPlugin({
-                configFile: path.resolve(__dirname, 'tsconfig.json'),
-                extensions: config.resolve.extensions,
-            }),
-        );
+    webpack(config, { isServer }) {
+        // Exclude Node.js-only modules from client bundle
+        if (!isServer) {
+            config.resolve.fallback = {
+                ...config.resolve.fallback,
+                fs: false,
+                net: false,
+                tls: false,
+                dns: false,
+                child_process: false,
+                // jsdom and related dependencies that require Node.js APIs
+                canvas: false,
+            };
+        }
 
         config.module.rules.push({
             test: /\.txt$/,
@@ -39,7 +42,6 @@ const nextConfig: NextConfig = {
 
         return config;
     },
-    /**/
 };
 
 export default nextConfig;
