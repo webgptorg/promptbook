@@ -3,14 +3,19 @@
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import {
+    DEFAULT_LINGUISTIC_HASH_LANGUAGE,
     DEFAULT_LINGUISTIC_HASH_WORD_COUNT,
+    LINGUISTIC_HASH_LANGUAGES,
     MAX_LINGUISTIC_HASH_WORD_COUNT,
     MIN_LINGUISTIC_HASH_WORD_COUNT,
     linguisticHash,
+    normalizeLinguisticHashLanguage,
     normalizeLinguisticHashWordCount,
+    type LinguisticHashLanguage,
 } from '../../../../../src/utils/misc/linguisticHash';
 
 const defaultInput = 'Promptbook is awesome!';
+const LANGUAGE_QUERY_PARAM = 'lang';
 
 /**
  * Renders the interactive linguistic hash demo.
@@ -22,16 +27,19 @@ export function LinguisticHashComponent() {
 
     const initialInput = searchParams.get('input') || defaultInput;
     const initialWordCountParam = searchParams.get('words');
+    const initialLanguageParam = searchParams.get(LANGUAGE_QUERY_PARAM);
     const initialWordCount = normalizeLinguisticHashWordCount(
         initialWordCountParam ? Number.parseInt(initialWordCountParam, 10) : undefined,
     );
+    const initialLanguage = normalizeLinguisticHashLanguage(initialLanguageParam);
     const [input, setInput] = useState(initialInput);
     const [hash, setHash] = useState<string>('');
     const [wordCount, setWordCount] = useState<number>(initialWordCount);
+    const [language, setLanguage] = useState<LinguisticHashLanguage>(initialLanguage);
 
     useEffect(() => {
         const updateHash = async () => {
-            const newHash = await linguisticHash(input, wordCount);
+            const newHash = await linguisticHash(input, wordCount, language);
             setHash(newHash);
         };
         updateHash();
@@ -50,10 +58,16 @@ export function LinguisticHashComponent() {
             params.set('words', wordCount.toString());
         }
 
+        if (language === DEFAULT_LINGUISTIC_HASH_LANGUAGE) {
+            params.delete(LANGUAGE_QUERY_PARAM);
+        } else {
+            params.set(LANGUAGE_QUERY_PARAM, language);
+        }
+
         // Use replace to avoid filling history with every keystroke
         const queryString = params.toString();
         router.replace(`${pathname}${queryString ? `?${queryString}` : ''}`, { scroll: false });
-    }, [input, wordCount, searchParams, router, pathname]);
+    }, [input, wordCount, language, searchParams, router, pathname]);
 
     const handleWordCountChange = (value: string) => {
         const parsedValue = Number.parseInt(value, 10);
@@ -61,6 +75,10 @@ export function LinguisticHashComponent() {
             return;
         }
         setWordCount(normalizeLinguisticHashWordCount(parsedValue));
+    };
+
+    const handleLanguageChange = (value: string) => {
+        setLanguage(normalizeLinguisticHashLanguage(value));
     };
 
     const showLowUniquenessWarning = wordCount <= 2;
@@ -79,6 +97,27 @@ export function LinguisticHashComponent() {
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                 />
+            </div>
+
+            <div className="flex flex-col gap-2">
+                <label htmlFor="language-select" className="text-sm font-medium text-gray-700">
+                    Language
+                </label>
+                <select
+                    id="language-select"
+                    value={language}
+                    onChange={(e) => handleLanguageChange(e.target.value)}
+                    className="w-full md:w-64 p-3 text-base border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white"
+                >
+                    {LINGUISTIC_HASH_LANGUAGES.map((languageOption) => (
+                        <option key={languageOption.language} value={languageOption.language}>
+                            {languageOption.label}
+                        </option>
+                    ))}
+                </select>
+                <p className="text-xs text-gray-500">
+                    Each language uses its own curated word lists while keeping the same word structure.
+                </p>
             </div>
 
             <div className="flex flex-col gap-2">
@@ -151,6 +190,9 @@ export function LinguisticHashComponent() {
                     </li>
                     <li>
                         <strong>Word structure:</strong> One word uses a single noun, two words use adjective + noun.
+                    </li>
+                    <li>
+                        <strong>Language-aware:</strong> Pick a language to swap the word lists while keeping the same structure.
                     </li>
                     <li>
                         <strong>Uniqueness:</strong> Longer hashes are more unique; 1 to 2 words can collide easily.

@@ -28,7 +28,7 @@
 
 ---
 
-[ ]
+[x] ~$0.74
 
 [✨📸] Make linguistic hash in other languages
 
@@ -40,4 +40,5 @@
 -   You are working with the [Utils app](apps/utils) on page http://localhost:4024/linguistic-hash
 
 ![alt text](prompts/screenshots/2026-01-0540-enhance-linguistic-hash.png)
+
 

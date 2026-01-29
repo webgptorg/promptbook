@@ -1,4 +1,9 @@
-import { DEFAULT_LINGUISTIC_HASH_WORD_COUNT, linguisticHash } from './linguisticHash';
+import {
+    DEFAULT_LINGUISTIC_HASH_LANGUAGE,
+    DEFAULT_LINGUISTIC_HASH_WORD_COUNT,
+    linguisticHash,
+    normalizeLinguisticHashLanguage,
+} from './linguisticHash';
 
 describe('linguisticHash', () => {
     it('should return the default number of words', async () => {
@@ -53,5 +58,16 @@ describe('linguisticHash', () => {
         expect(oneWordHash.split(' ').length).toBe(1);
         expect(twoWordParts).toHaveLength(2);
         expect(oneWordHash.toLowerCase()).toBe(twoWordParts[1]);
+    });
+
+    it('should normalize language codes', () => {
+        expect(normalizeLinguisticHashLanguage('cs')).toBe('cs');
+        expect(normalizeLinguisticHashLanguage('CS')).toBe('cs');
+        expect(normalizeLinguisticHashLanguage('unknown')).toBe(DEFAULT_LINGUISTIC_HASH_LANGUAGE);
+    });
+
+    it('should support Czech output', async () => {
+        const hash = await linguisticHash('test', 4, 'cs');
+        expect(hash.split(' ').length).toBe(4);
     });
 });
