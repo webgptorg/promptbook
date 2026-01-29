@@ -29,16 +29,7 @@ const STORY_OPENERS = [
     'for a moment',
 ];
 
-const STORY_CONNECTORS = [
-    'while',
-    'as',
-    'when',
-    'because',
-    'and',
-    'just as',
-    'after',
-    'before',
-];
+const STORY_CONNECTORS = ['while', 'as', 'when', 'because', 'and', 'just as', 'after', 'before'];
 
 const STORY_PREPOSITIONS = [
     'near',
@@ -108,6 +99,12 @@ function pickFromHash<T>(hash: string, segmentIndex: number, list: readonly T[])
 }
 
 /**
+ * Index constants for story part selection to avoid magic numbers.
+ */
+const ADJECTIVE3_INDEX = 9;
+const NOUN3_INDEX = 10;
+
+/**
  * Creates the deterministic story parts used by the sentence templates.
  */
 function createStoryParts(hash: string): LinguisticStoryParts {
@@ -121,17 +118,22 @@ function createStoryParts(hash: string): LinguisticStoryParts {
         adjective2: pickFromHash(hash, 6, ADJECTIVES),
         noun2: pickFromHash(hash, 7, NOUNS),
         verb2: pickFromHash(hash, 8, VERBS),
-        adjective3: pickFromHash(hash, 9, ADJECTIVES),
-        noun3: pickFromHash(hash, 10, NOUNS),
+        adjective3: pickFromHash(hash, ADJECTIVE3_INDEX, ADJECTIVES),
+        noun3: pickFromHash(hash, NOUN3_INDEX, NOUNS),
     };
 }
+
+/**
+ * Index constant for story template selection to avoid magic numbers.
+ */
+const STORY_TEMPLATE_INDEX = 11;
 
 /**
  * Builds a short, memorable story sentence from the hash.
  */
 function createStorySentence(hash: string): string {
     const parts = createStoryParts(hash);
-    const template = pickFromHash(hash, 11, STORY_TEMPLATES);
+    const template = pickFromHash(hash, STORY_TEMPLATE_INDEX, STORY_TEMPLATES);
     return template(parts).trim();
 }
 
@@ -810,3 +812,7 @@ const VERBS = [
     'weaving',
     'spinning',
 ];
+
+/**
+ * TODO: Prompt: Extract number constants and word list to a separate file for reuse.
+ */
