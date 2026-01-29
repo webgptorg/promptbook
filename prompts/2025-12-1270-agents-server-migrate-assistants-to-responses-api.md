@@ -1,4 +1,4 @@
-[x]
+[ ]
 
 [✨🪰] Migrate [Agents](src/llm-providers/agent/Agent.ts) from assistants API to Responses API
 
@@ -1056,35 +1056,3 @@ As a best practice, we encourage all users to migrate to the Responses API to ta
 Based on developer feedback from the [Assistants API](https://platform.openai.com/docs/api-reference/assistants) beta, we've incorporated key improvements into the Responses API to make it more flexible, faster, and easier to use. The Responses API represents the future direction for building agents on OpenAI.
 
 We now have Assistant-like and Thread-like objects in the Responses API. Learn more in the [migration guide](https://platform.openai.com/docs/guides/assistants/migration). As of August 26th, 2025, we're deprecating the Assistants API, with a sunset date of August 26, 2026.
-
----
-
-[ ]
-
-@@@ First unrevert the 71ce381e2259c500d83e8d510fff47c19257d2de
-
-[✨🪰] Fix migration from assistants API to Responses API
-
--   You have done the migration from assistants API to Responses API in [the previous task](prompts/2025-12-1270-agents-server-migrate-assistants-to-responses-api.md).
--   The migration was done in commit f7451bd3efc48ca941b04365ebcafe060fb67848
--   However, there is an error happening when trying to use the migrated code.
--   Fix the error and make sure that the migration works as expected.
-
-**This is the error that is happening after the migration:**
-
-```
-[Error: failed to pipe response] {
-  [cause]: TypeError: Cannot read properties of undefined (reading 'create')
-      at OpenAiAgentExecutionTools.callChatModelStream (..\..\src\llm-providers\openai\OpenAiAgentExecutionTools.ts:177:70)
-      at async Agent.callChatModelStream (..\..\src\llm-providers\agent\AgentLlmExecutionTools.ts:284:34)
-      at async Agent.callChatModelStream (..\..\src\llm-providers\agent\Agent.ts:231:23)
-    175 |         const toolCalls: Array<NonNullable<ChatPromptResult['toolCalls']>[number]> = [];
-    176 |         let lastRawRequest: TODO_any = rawRequest;
-  > 177 |         let response: TODO_any = await (client as TODO_any).responses.create(rawRequest);
-        |                                                                      ^
-    178 |
-    179 |         if (this.options.isVerbose) {
-    180 |             console.info(colors.bgWhite('rawResponse'), JSON.stringify(response, null, 4));
-}
- POST /agents/9y7EKtuwxdVsaB/api/chat 500 in 10966ms
-```
