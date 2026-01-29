@@ -3,9 +3,14 @@
 import Editor from '@monaco-editor/react';
 import { PromptString, prompt, spaceTrim, valueToString } from '@promptbook-local/utils';
 import { Copy, Download, Play } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { TIME_INTERVALS } from '../../../../../src/constants';
-import { DEFAULT_PROMPT_CODE, PROMPT_NOTATION_EXAMPLES, PromptNotationExample } from './promptNotationExamples';
+import {
+    DEFAULT_PROMPT_CODE,
+    getPromptNotationRunnableCode,
+    PROMPT_NOTATION_EXAMPLES,
+    PromptNotationExample,
+} from './promptNotationExamples';
 
 const PROMPT_NOTATION_INSTALL_NOTE = spaceTrim(`
     // Note 🔽: To install Promptbook run:
@@ -22,6 +27,16 @@ type CodeBlockProps = {
     label: string;
     content: string;
     language: string;
+};
+
+/**
+ * Combines a prompt notation example with evaluated output for display.
+ */
+type PromptNotationExampleWithOutput = {
+    example: PromptNotationExample;
+    runnableCode: string;
+    output: string;
+    error: string | null;
 };
 
 /**
@@ -179,6 +194,23 @@ function evaluatePromptSource(source: string): { output: string; error: string |
 }
 
 /**
+ * Evaluates a prompt notation example so docs can render output dynamically.
+ *
+ * @param example Example definition.
+ */
+function evaluatePromptNotationExample(example: PromptNotationExample): PromptNotationExampleWithOutput {
+    const runnableCode = getPromptNotationRunnableCode(example);
+    const result = evaluatePromptSource(runnableCode);
+
+    return {
+        example,
+        runnableCode,
+        output: result.output,
+        error: result.error,
+    };
+}
+
+/**
  * Renders the prompt notation documentation and interactive evaluator.
  */
 export function PromptNotationComponent() {
@@ -186,6 +218,10 @@ export function PromptNotationComponent() {
     const [output, setOutput] = useState('');
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const editorRef = useRef<HTMLDivElement>(null);
+    const exampleOutputs = useMemo(
+        () => PROMPT_NOTATION_EXAMPLES.map((example) => evaluatePromptNotationExample(example)),
+        [PROMPT_NOTATION_EXAMPLES, evaluatePromptNotationExample],
+    );
     const actionButtonClassName =
         'inline-flex items-center gap-2 px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded text-sm font-medium transition-colors';
     const actionIconClassName = 'h-4 w-4';
@@ -202,7 +238,7 @@ export function PromptNotationComponent() {
             return;
         }
 
-        setSource(example.runnableCode);
+        setSource(getPromptNotationRunnableCode(example));
         editorRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
 
@@ -212,7 +248,7 @@ export function PromptNotationComponent() {
      * @param example Example definition to copy.
      */
     const handleCopyToClipboard = (example: PromptNotationExample): void => {
-        const downloadSource = buildPromptNotationExampleSource(example.runnableCode, true);
+        const downloadSource = buildPromptNotationExampleSource(getPromptNotationRunnableCode(example), true);
         void copyTextToClipboard(downloadSource).catch((error) => {
             console.error('Failed to copy prompt notation example.', error);
         });
@@ -225,7 +261,7 @@ export function PromptNotationComponent() {
      */
     const handleDownload = (example: PromptNotationExample): void => {
         const filename = getExampleDownloadFilename(example.id);
-        const downloadSource = buildPromptNotationExampleSource(example.runnableCode, true);
+        const downloadSource = buildPromptNotationExampleSource(getPromptNotationRunnableCode(example), true);
         downloadTextFile(filename, downloadSource);
     };
 
@@ -262,28 +298,34 @@ export function PromptNotationComponent() {
             <section className="space-y-6">
                 <h2 className="text-2xl font-semibold text-gray-900">Examples</h2>
                 <div className="grid gap-6 lg:grid-cols-2">
-                    {PROMPT_NOTATION_EXAMPLES.map((example, index) => (
-                        <div key={example.id} className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+                    {exampleOutputs.map((exampleResult, index) => (
+                        <div
+                            key={exampleResult.example.id}
+                            className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm"
+                        >
                             <h3 className="text-lg font-semibold text-gray-900">
-                                Example {index + 1}: {example.title}
+                                Example {index + 1}: {exampleResult.example.title}
                             </h3>
-                            <p className="text-gray-600 mt-2">{example.description}</p>
+                            <p className="text-gray-600 mt-2">{exampleResult.example.description}</p>
                             <div className="mt-4 flex flex-wrap gap-2">
                                 <button
-                                    onClick={() => handleTryInPlayground(example)}
+                                    onClick={() => handleTryInPlayground(exampleResult.example)}
                                     className={actionButtonClassName}
                                 >
                                     <Play className={actionIconClassName} aria-hidden />
                                     Try in playground
                                 </button>
                                 <button
-                                    onClick={() => handleCopyToClipboard(example)}
+                                    onClick={() => handleCopyToClipboard(exampleResult.example)}
                                     className={actionButtonClassName}
                                 >
                                     <Copy className={actionIconClassName} aria-hidden />
                                     Copy to clipboard
                                 </button>
-                                <button onClick={() => handleDownload(example)} className={actionButtonClassName}>
+                                <button
+                                    onClick={() => handleDownload(exampleResult.example)}
+                                    className={actionButtonClassName}
+                                >
                                     <Download className={actionIconClassName} aria-hidden />
                                     Download
                                 </button>
@@ -292,9 +334,17 @@ export function PromptNotationComponent() {
                                 <CodeBlock
                                     label="Code"
                                     language="javascript"
-                                    content={buildPromptNotationExampleSource(example.code, false)}
+                                    content={buildPromptNotationExampleSource(exampleResult.example.code, false)}
                                 />
-                                <CodeBlock label="Output" language="markdown" content={example.output} />
+                                <CodeBlock
+                                    label="Output"
+                                    language="markdown"
+                                    content={
+                                        exampleResult.error
+                                            ? `Error: ${exampleResult.error}`
+                                            : exampleResult.output
+                                    }
+                                />
                             </div>
                         </div>
                     ))}
