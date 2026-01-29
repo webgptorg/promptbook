@@ -9,7 +9,7 @@
 
 ---
 
-[ ]
+[x] ~$0.89
 
 [✨📸] Allow to set number of words in linguistic hash.
 
@@ -40,3 +40,4 @@
 -   You are working with the [Utils app](apps/utils) on page http://localhost:4024/linguistic-hash
 
 ![alt text](prompts/screenshots/2026-01-0540-enhance-linguistic-hash.png)
+

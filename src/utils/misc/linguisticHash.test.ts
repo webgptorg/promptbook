@@ -1,10 +1,9 @@
-import { linguisticHash } from './linguisticHash';
+import { DEFAULT_LINGUISTIC_HASH_WORD_COUNT, linguisticHash } from './linguisticHash';
 
 describe('linguisticHash', () => {
-    it('should return a sentence-like story with multiple words', async () => {
+    it('should return the default number of words', async () => {
         const hash = await linguisticHash('test');
-        expect(hash.split(' ').length).toBeGreaterThanOrEqual(12);
-        expect(hash.endsWith('.')).toBe(true);
+        expect(hash.split(' ').length).toBe(DEFAULT_LINGUISTIC_HASH_WORD_COUNT);
     });
 
     it('should be deterministic', async () => {
@@ -25,12 +24,34 @@ describe('linguisticHash', () => {
     it('should handle empty string', async () => {
         const hash = await linguisticHash('');
         expect(hash).toBeDefined();
-        expect(hash.split(' ').length).toBeGreaterThanOrEqual(12);
+        expect(hash.split(' ').length).toBe(DEFAULT_LINGUISTIC_HASH_WORD_COUNT);
     });
 
     it('should have the first character capitalized and the rest lowercase', async () => {
         const hash = await linguisticHash('some input');
         expect(hash[0]).toBe(hash[0]!.toUpperCase());
         expect(hash.substring(1)).toBe(hash.substring(1).toLowerCase());
+    });
+
+    it('should return the requested word count', async () => {
+        const hash = await linguisticHash('test', 3);
+        expect(hash.split(' ').length).toBe(3);
+    });
+
+    it('should keep the same prefix when word count increases', async () => {
+        const shortHash = await linguisticHash('test', 7);
+        const longHash = await linguisticHash('test', 8);
+        const shortWords = shortHash.split(' ');
+        const longWords = longHash.split(' ');
+        expect(longWords.slice(0, shortWords.length)).toEqual(shortWords);
+    });
+
+    it('should use the same noun for one and two word hashes', async () => {
+        const oneWordHash = await linguisticHash('test', 1);
+        const twoWordHash = await linguisticHash('test', 2);
+        const twoWordParts = twoWordHash.split(' ');
+        expect(oneWordHash.split(' ').length).toBe(1);
+        expect(twoWordParts).toHaveLength(2);
+        expect(oneWordHash.toLowerCase()).toBe(twoWordParts[1]);
     });
 });

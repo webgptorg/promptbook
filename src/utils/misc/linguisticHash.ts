@@ -2,84 +2,32 @@ import { capitalize } from '../normalization/capitalize';
 import { computeHash } from './computeHash';
 
 /**
- * Creates a human-readable hash as a short story sentence.
+ * Creates a human-readable hash as a short, story-like phrase.
+ *
+ * @param wordCount how many words to include (defaults to {@link DEFAULT_LINGUISTIC_HASH_WORD_COUNT}, clamped to
+ * {@link MIN_LINGUISTIC_HASH_WORD_COUNT}..{@link MAX_LINGUISTIC_HASH_WORD_COUNT})
  *
  * @public exported from `@promptbook/utils`
  */
-export async function linguisticHash(input: string): Promise<string> {
+export async function linguisticHash(input: string, wordCount?: number): Promise<string> {
     const hash: string = computeHash(input);
+    const normalizedWordCount = normalizeLinguisticHashWordCount(wordCount);
+    const words = createLinguisticHashWords(hash, normalizedWordCount);
 
-    return capitalize(createStorySentence(hash));
+    return capitalize(words.join(' '));
 }
 
 const HASH_SEGMENT_LENGTH = 8;
 
-const STORY_OPENERS = [
-    'once',
-    'long ago',
-    'at dawn',
-    'at dusk',
-    'suddenly',
-    'quietly',
-    'meanwhile',
-    'today',
-    'tonight',
-    'in the end',
-    'before long',
-    'for a moment',
-];
-
-const STORY_CONNECTORS = ['while', 'as', 'when', 'because', 'and', 'just as', 'after', 'before'];
-
-const STORY_PREPOSITIONS = [
-    'near',
-    'beside',
-    'under',
-    'within',
-    'beyond',
-    'around',
-    'behind',
-    'across',
-    'above',
-    'beneath',
-    'over',
-    'inside',
-    'outside',
-    'along',
-];
+/**
+ * The minimum number of words for a linguistic hash.
+ */
+export const MIN_LINGUISTIC_HASH_WORD_COUNT = 1;
 
 /**
- * Represents all the word slots required to render a story sentence.
+ * The default number of words for a linguistic hash.
  */
-type LinguisticStoryParts = {
-    opener: string;
-    connector: string;
-    preposition: string;
-    adjective1: string;
-    noun1: string;
-    verb1: string;
-    adjective2: string;
-    noun2: string;
-    verb2: string;
-    adjective3: string;
-    noun3: string;
-};
-
-/**
- * Defines a template that renders a story sentence from deterministic parts.
- */
-type LinguisticStoryTemplate = (parts: LinguisticStoryParts) => string;
-
-const STORY_TEMPLATES: LinguisticStoryTemplate[] = [
-    (parts) =>
-        `${parts.opener}, the ${parts.adjective1} ${parts.noun1} was ${parts.verb1} ${parts.connector} the ${parts.adjective2} ${parts.noun2} was ${parts.verb2} ${parts.preposition} the ${parts.adjective3} ${parts.noun3}.`,
-    (parts) =>
-        `${parts.opener}, the ${parts.adjective1} ${parts.noun1} was ${parts.verb1} ${parts.preposition} the ${parts.adjective2} ${parts.noun2}, and the ${parts.adjective3} ${parts.noun3} was ${parts.verb2}.`,
-    (parts) =>
-        `${parts.opener}, the ${parts.adjective1} ${parts.noun1} was ${parts.verb1}, and the ${parts.adjective2} ${parts.noun2} was ${parts.verb2} ${parts.preposition} the ${parts.adjective3} ${parts.noun3}.`,
-    (parts) =>
-        `${parts.opener}, the ${parts.adjective1} ${parts.noun1} was ${parts.verb1} ${parts.connector} the ${parts.adjective2} ${parts.noun2} was ${parts.verb2}, ${parts.preposition} the ${parts.adjective3} ${parts.noun3}.`,
-];
+export const DEFAULT_LINGUISTIC_HASH_WORD_COUNT = 7;
 
 /**
  * Extracts a deterministic numeric seed from a SHA-256 hash.
@@ -99,42 +47,83 @@ function pickFromHash<T>(hash: string, segmentIndex: number, list: readonly T[])
 }
 
 /**
- * Index constants for story part selection to avoid magic numbers.
+ * Types of words used in linguistic hash output.
  */
-const ADJECTIVE3_INDEX = 9;
-const NOUN3_INDEX = 10;
+type LinguisticWordKind = 'adjective' | 'noun' | 'verb';
 
 /**
- * Creates the deterministic story parts used by the sentence templates.
+ * Ordered word kinds used to build the linguistic hash output.
  */
-function createStoryParts(hash: string): LinguisticStoryParts {
-    return {
-        opener: pickFromHash(hash, 0, STORY_OPENERS),
-        connector: pickFromHash(hash, 1, STORY_CONNECTORS),
-        preposition: pickFromHash(hash, 2, STORY_PREPOSITIONS),
-        adjective1: pickFromHash(hash, 3, ADJECTIVES),
-        noun1: pickFromHash(hash, 4, NOUNS),
-        verb1: pickFromHash(hash, 5, VERBS),
-        adjective2: pickFromHash(hash, 6, ADJECTIVES),
-        noun2: pickFromHash(hash, 7, NOUNS),
-        verb2: pickFromHash(hash, 8, VERBS),
-        adjective3: pickFromHash(hash, ADJECTIVE3_INDEX, ADJECTIVES),
-        noun3: pickFromHash(hash, NOUN3_INDEX, NOUNS),
-    };
+const WORD_SEQUENCE: LinguisticWordKind[] = [
+    'adjective',
+    'noun',
+    'verb',
+    'adjective',
+    'noun',
+    'verb',
+    'adjective',
+    'noun',
+    'verb',
+    'adjective',
+    'noun',
+    'verb',
+    'adjective',
+    'noun',
+    'verb',
+    'adjective',
+    'noun',
+    'verb',
+    'adjective',
+    'noun',
+];
+
+/**
+ * The maximum number of words for a linguistic hash.
+ */
+export const MAX_LINGUISTIC_HASH_WORD_COUNT = WORD_SEQUENCE.length;
+
+/**
+ * Index of the noun used for single-word hashes.
+ */
+const SINGLE_WORD_INDEX = 1;
+
+/**
+ * Normalizes the word count to a supported integer range.
+ */
+export function normalizeLinguisticHashWordCount(wordCount?: number | null): number {
+    if (typeof wordCount !== 'number' || !Number.isFinite(wordCount)) {
+        return DEFAULT_LINGUISTIC_HASH_WORD_COUNT;
+    }
+
+    const rounded = Math.round(wordCount);
+    return Math.min(MAX_LINGUISTIC_HASH_WORD_COUNT, Math.max(MIN_LINGUISTIC_HASH_WORD_COUNT, rounded));
 }
 
 /**
- * Index constant for story template selection to avoid magic numbers.
+ * Picks a deterministic word from the hash by kind.
  */
-const STORY_TEMPLATE_INDEX = 11;
+function pickWordFromHash(hash: string, segmentIndex: number, wordKind: LinguisticWordKind): string {
+    return pickFromHash(hash, segmentIndex, WORD_LISTS[wordKind]);
+}
 
 /**
- * Builds a short, memorable story sentence from the hash.
+ * Creates the deterministic word sequence used for the linguistic hash output.
  */
-function createStorySentence(hash: string): string {
-    const parts: LinguisticStoryParts = createStoryParts(hash);
-    const template: LinguisticStoryTemplate = pickFromHash(hash, STORY_TEMPLATE_INDEX, STORY_TEMPLATES);
-    return template(parts).trim();
+function createLinguisticHashWordSequence(hash: string): string[] {
+    return WORD_SEQUENCE.map((wordKind, index) => pickWordFromHash(hash, index, wordKind));
+}
+
+/**
+ * Selects the requested number of words from the hash output.
+ */
+function createLinguisticHashWords(hash: string, wordCount: number): string[] {
+    const words = createLinguisticHashWordSequence(hash);
+
+    if (wordCount === 1) {
+        return [words[SINGLE_WORD_INDEX]!];
+    }
+
+    return words.slice(0, wordCount);
 }
 
 const ADJECTIVES = [
@@ -812,6 +801,15 @@ const VERBS = [
     'weaving',
     'spinning',
 ];
+
+/**
+ * Maps each word kind to its source list.
+ */
+const WORD_LISTS: Record<LinguisticWordKind, readonly string[]> = {
+    adjective: ADJECTIVES,
+    noun: NOUNS,
+    verb: VERBS,
+};
 
 /**
  * TODO: Prompt: Extract number constants and word list to a separate file for reuse.
