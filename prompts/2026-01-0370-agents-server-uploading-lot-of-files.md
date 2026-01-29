@@ -13,7 +13,7 @@
 
 ---
 
-[ ]
+[x] ~$1.20
 
 [✨🗑] Fix the Book editor when user Press to upload a lot of files.
 
@@ -156,3 +156,4 @@ KNOWLEDGE ⏳ Uploading NT 242_2014 - Výstroj ostrahy radnice.pdf 100%...
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
