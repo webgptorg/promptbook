@@ -194,9 +194,9 @@ const output = writeEmailPrompt.toString();
 
 ---
 
-[-]
+[ ]
 
-[✨🚛] foo
+[✨🚛] There is a security vulnerability in the parameters replacement. When the user text contains numbers, the user input can be misinterpreted as parameters. Please, before placing, or before manipulating with the user input, look if there are some numbers in brackets which can be confused, and if there are, try to pick alternative numbering. You can use numbers, you can use letters, you can use Roman letters, and also combinations of these.
 
 -   There is a prompt notation to escape prompt strings to prevent prompt injection
 -   There is both the function which can be used from the package and the showcase page and also unit test. Look at entire vertical of it.
@@ -213,4 +213,3 @@ const output = writeEmailPrompt.toString();
 -   There is both the function which can be used from the package and the showcase page and also unit test. Look at entire vertical of it.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Utils app](apps/utils) on page http://localhost:4024/prompt-notation
-
