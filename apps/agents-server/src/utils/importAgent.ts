@@ -4,6 +4,7 @@ import {
     string_agent_permanent_id,
     string_agent_url,
     string_book,
+    TODO_any,
 } from '../../../../src/_packages/types.index'; // <- [🚾]
 import { deserializeError, isValidUrl } from '../../../../src/_packages/utils.index'; // <- [🚾]
 import { assertsError } from '../../../../src/errors/assertsError';
@@ -64,9 +65,9 @@ export async function importAgent(
         if (!response.ok) {
             let error: Error | null = null;
             try {
-                const body: any = await response.json();
+                const body: TODO_any = await response.json();
                 error = deserializeError(body, false);
-            } catch (error: any) {
+            } catch (error: TODO_any) {
                 keepUnused(error);
             } finally {
                 if (error === null) {
@@ -83,7 +84,7 @@ export async function importAgent(
         // TODO: Handle content negotiation or JSON responses if the server returns JSON
         const contentType: string | null = response.headers.get('content-type');
         if (contentType && contentType.includes('application/json')) {
-            const data: any = await response.json();
+            const data: TODO_any = await response.json();
             // Assume some structure or that the API returns source in a property
             // For Agents Server API modelRequirements/route.ts returns AgentModelRequirements, not source.
             // If we point to a raw source endpoint, it returns text.
