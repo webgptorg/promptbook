@@ -9,6 +9,7 @@ import { useCallback, useMemo, useState } from 'react';
 import spaceTrim from 'spacetrim';
 import { OpenAiSpeechRecognition } from '../../../../../../src/speech-recognition/OpenAiSpeechRecognition';
 import { string_agent_url, string_color } from '../../../../../../src/types/typeAliases';
+import { $getCurrentDate } from '../../../../../../src/utils/misc/$getCurrentDate';
 import { keepUnused } from '../../../../../../src/utils/organization/keepUnused';
 import { $createAgentFromBookAction } from '../../../app/actions';
 import { DeletedAgentBanner } from '../../../components/DeletedAgentBanner';
@@ -126,7 +127,7 @@ export function AgentProfileChat({
                     {
                         sender: 'AGENT',
                         content: initialMessage,
-                        createdAt: new Date(),
+                        createdAt: $getCurrentDate(),
                         id: 'initial-message',
                         isComplete: true,
                     },

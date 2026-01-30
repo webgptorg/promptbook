@@ -232,6 +232,29 @@
     max-width: 100%;
 }
 
+.messageMeta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 4px 6px 0;
+    font-size: 11px;
+    color: #6b7280;
+    line-height: 1.4;
+}
+
+.chatMainFlow .chatMessage.isMe .messageMeta {
+    align-self: flex-end;
+    text-align: right;
+}
+
+.messageTimestamp {
+    letter-spacing: 0.02em;
+}
+
+.messageDuration {
+    opacity: 0.85;
+}
+
 .participantLabel {
     font-size: 12px;
     font-weight: 600;

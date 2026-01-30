@@ -8,7 +8,7 @@ import { createPortal } from 'react-dom';
 import spaceTrim from 'spacetrim';
 import { USER_CHAT_COLOR } from '../../../config';
 import { SpeechRecognitionEvent, SpeechRecognitionState } from '../../../types/SpeechRecognition';
-import type { id } from '../../../types/typeAliases';
+import type { id, string_date_iso8601 } from '../../../types/typeAliases';
 import { Color } from '../../../utils/color/Color';
 import { textColor } from '../../../utils/color/operators/furthest';
 import { grayscale } from '../../../utils/color/operators/grayscale';
@@ -1125,7 +1125,7 @@ export function Chat(props: ChatProps) {
                                     .filter((entry) => entry && entry.content)
                                     .map((entry, index) => ({
                                         id: `team-${index}`,
-                                        createdAt: new Date(baseTime + index * 1000),
+                                        createdAt: new Date(baseTime + index * 1000).toISOString() as string_date_iso8601,
                                         sender:
                                             entry.sender === 'TEAMMATE' || entry.role === 'TEAMMATE'
                                                 ? 'TEAMMATE'
@@ -1138,7 +1138,7 @@ export function Chat(props: ChatProps) {
                                     if (teamResult.request) {
                                         messages.push({
                                             id: 'team-request',
-                                            createdAt: new Date(baseTime),
+                                            createdAt: new Date(baseTime).toISOString() as string_date_iso8601,
                                             sender: 'AGENT',
                                             content: teamResult.request,
                                             isComplete: true,
@@ -1147,7 +1147,7 @@ export function Chat(props: ChatProps) {
                                     if (teamResult.response) {
                                         messages.push({
                                             id: 'team-response',
-                                            createdAt: new Date(baseTime + 1000),
+                                            createdAt: new Date(baseTime + 1000).toISOString() as string_date_iso8601,
                                             sender: 'TEAMMATE',
                                             content: teamResult.response,
                                             isComplete: true,

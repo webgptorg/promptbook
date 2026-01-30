@@ -17,6 +17,7 @@ import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
 import type { ToolCallChipletInfo } from '../utils/getToolCallChipletText';
 import { getToolCallChipletInfo, TOOL_TITLES } from '../utils/getToolCallChipletText';
+import { getChatMessageTimingDisplay } from '../utils/getChatMessageTimingDisplay';
 import { extractCitationsFromMessage, type ParsedCitation } from '../utils/parseCitationsFromContent';
 import { parseMessageButtons } from '../utils/parseMessageButtons';
 import { isTeamToolName } from '../utils/createTeamToolNameFromUrl';
@@ -243,6 +244,8 @@ export const ChatMessageItem = memo(
         };
 
         const isMe = participant?.isMe;
+        const timingDisplay = getChatMessageTimingDisplay(message);
+        const shouldShowTiming = Boolean(isComplete && timingDisplay);
         const shouldShowParticipantLabel = (participants || []).some((entry) => entry.name === 'TEAMMATE');
         const participantLabel = participant?.fullname || participant?.name;
         const color = Color.fromSafe(
@@ -618,6 +621,16 @@ export const ChatMessageItem = memo(
                             </div>
                         )}
                     </div>
+                    {shouldShowTiming && timingDisplay && (
+                        <div className={styles.messageMeta} title={timingDisplay.fullLabel}>
+                            <span className={styles.messageTimestamp}>{timingDisplay.timeLabel}</span>
+                            {!isMe && timingDisplay.durationLabel && (
+                                <span className={styles.messageDuration}>
+                                    ({timingDisplay.durationLabel} to generate)
+                                </span>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
         );
@@ -628,6 +641,14 @@ export const ChatMessageItem = memo(
         }
 
         if (prev.message.content !== next.message.content) {
+            return false;
+        }
+
+        if (prev.message.createdAt !== next.message.createdAt) {
+            return false;
+        }
+
+        if (prev.message.generationDurationMs !== next.message.generationDurationMs) {
             return false;
         }
 

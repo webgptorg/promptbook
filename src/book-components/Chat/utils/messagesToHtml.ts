@@ -3,6 +3,7 @@ import { PROMPTBOOK_LOGO_URL } from '../../../config';
 import { escapeHtml } from '../../_common/react-utils/escapeHtml';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
+import { getChatMessageTimingDisplay } from './getChatMessageTimingDisplay';
 import { getPromptbookBranding } from './getPromptbookBranding';
 
 /**
@@ -26,6 +27,8 @@ export function messagesToHtml(
             const senderClass = isUser ? 'user' : 'assistant';
             const name = participant?.fullname || message.sender;
             const avatarSrc = participant?.avatarSrc;
+            const timing = getChatMessageTimingDisplay(message);
+            const timestampLabel = timing ? `<span class="timestamp">${escapeHtml(timing.fullLabel)}</span>` : '';
             const messageContent = message.content
                 .replace(/&/g, '&amp;')
                 .replace(/</g, '&lt;')
@@ -41,6 +44,7 @@ export function messagesToHtml(
                                 : ''
                         }
                         <div class="sender">${escapeHtml(name.toString())}:</div>
+                        ${timestampLabel}
                     </div>
                     <div class="content">${messageContent}</div>
                 </div>
@@ -159,6 +163,11 @@ export function messagesToHtml(
                     }
                     .sender {
                         font-weight: 600;
+                    }
+                    .timestamp {
+                        font-size: 12px;
+                        color: #64748b;
+                        margin-left: 6px;
                     }
                     .content {
                         line-height: 1.5;

@@ -1,6 +1,7 @@
 /** @jest-environment jsdom */
 import { describe, expect, it } from '@jest/globals';
 import { MockedEchoLlmExecutionTools } from '../../../llm-providers/mocked/MockedEchoLlmExecutionTools';
+import { $getCurrentDate } from '../../../utils/misc/$getCurrentDate';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { LlmChatProps } from './LlmChatProps';
 
@@ -44,7 +45,7 @@ describe('LlmChat', () => {
             {
                 // channel: 'PROMPTBOOK_CHAT',
                 id: 't1',
-                createdAt: new Date(),
+                createdAt: $getCurrentDate(),
                 sender: 'USER',
                 content: 'First',
                 isComplete: true,
@@ -52,7 +53,7 @@ describe('LlmChat', () => {
             {
                 // channel: 'PROMPTBOOK_CHAT',
                 id: 't2',
-                createdAt: new Date(),
+                createdAt: $getCurrentDate(),
                 sender: 'ASSISTANT',
                 content: 'Second',
                 isComplete: true,
@@ -189,7 +190,7 @@ describe('LlmChat', () => {
             {
                 // channel: 'PROMPTBOOK_CHAT',
                 id: 'seed-user',
-                createdAt: new Date(),
+                createdAt: $getCurrentDate(),
                 sender: 'USER',
                 content: 'Hello assistant, are you initialized?',
                 isComplete: true,
@@ -197,7 +198,7 @@ describe('LlmChat', () => {
             {
                 // channel: 'PROMPTBOOK_CHAT',
                 id: 'seed-assistant',
-                createdAt: new Date(),
+                createdAt: $getCurrentDate(),
                 sender: 'ASSISTANT',
                 content: 'Initialization complete. Ready to echo your thoughts.',
                 isComplete: true,
@@ -256,7 +257,7 @@ describe('LlmChat', () => {
             {
                 // channel: 'PROMPTBOOK_CHAT',
                 id: 'init-user',
-                createdAt: new Date(),
+                createdAt: $getCurrentDate(),
                 sender: 'USER',
                 content: 'Hi assistant (seed)',
                 isComplete: true,
@@ -264,7 +265,7 @@ describe('LlmChat', () => {
             {
                 // channel: 'PROMPTBOOK_CHAT',
                 id: 'init-assistant',
-                createdAt: new Date(),
+                createdAt: $getCurrentDate(),
                 sender: 'ASSISTANT',
                 content: 'Hello user (seed)',
                 isComplete: true,

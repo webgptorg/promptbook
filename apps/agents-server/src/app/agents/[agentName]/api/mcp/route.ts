@@ -5,6 +5,7 @@ import { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 import { JSONRPCMessage } from '@modelcontextprotocol/sdk/types.js';
 import { Agent } from '@promptbook-local/core';
 import { ChatMessage, Prompt, TODO_any } from '@promptbook-local/types';
+import { $getCurrentDate } from '@promptbook-local/utils';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
@@ -118,7 +119,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
                             sender: msg.role === 'assistant' ? 'agent' : 'user', // Mapping standard roles
                             content: msg.content,
                             isComplete: true,
-                            date: new Date(),
+                            createdAt: $getCurrentDate(),
                         }));
 
                         const prompt: Prompt = {

@@ -5,6 +5,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { AgentCapability } from '../../../book-2.0/agent-source/AgentBasicInformation';
 import type { string_markdown } from '../../../types/typeAliases';
+import { $getCurrentDate } from '../../../utils/misc/$getCurrentDate';
 import { TODO_USE } from '../../../utils/organization/TODO_USE';
 import type { TODO_any } from '../../../utils/organization/TODO_any';
 import { Chat } from '../Chat/Chat';
@@ -219,11 +220,14 @@ export function LlmChat(props: LlmChatProps) {
         async (messageContent: string, attachments: ChatMessage['attachments'] = []) => {
             hasUserInteractedRef.current = true;
 
+            const userMessageCreatedAt = $getCurrentDate();
+            const assistantMessageStartedAt = $getCurrentDate();
+
             // Add user message
             const userMessage: ChatMessage = {
                 // channel: 'PROMPTBOOK_CHAT',
                 id: `user_${Date.now()}`,
-                createdAt: new Date(),
+                createdAt: userMessageCreatedAt,
                 sender: userParticipantName,
                 content: messageContent as string_markdown,
                 isComplete: true,
@@ -234,7 +238,7 @@ export function LlmChat(props: LlmChatProps) {
             const loadingMessage: ChatMessage = {
                 // channel: 'PROMPTBOOK_CHAT',
                 id: `assistant_${Date.now()}`,
-                createdAt: new Date(),
+                createdAt: assistantMessageStartedAt,
                 sender: llmParticipantName,
                 content: 'Thinking...' as string_markdown,
                 isComplete: false,
@@ -246,6 +250,8 @@ export function LlmChat(props: LlmChatProps) {
             // Add task progress for LLM call
             const taskId = `llm_call_${Date.now()}`;
             setTasksProgress([{ id: taskId, name: 'Generating response...', progress: 0 }]);
+
+            const generationStartedAtMs = Date.now();
 
             try {
                 // Build thread: use props.thread if provided, otherwise use current messages + new user message
@@ -274,7 +280,7 @@ export function LlmChat(props: LlmChatProps) {
                         const assistantMessage: ChatMessage = {
                             // channel: 'PROMPTBOOK_CHAT',
                             id: loadingMessage.id,
-                            createdAt: new Date(),
+                            createdAt: assistantMessageStartedAt,
                             sender: llmParticipantName,
                             content: chunk.content as string_markdown,
                             isComplete: false,
@@ -296,15 +302,17 @@ export function LlmChat(props: LlmChatProps) {
                 setTasksProgress([{ id: taskId, name: 'Response generated', progress: 100 }]);
 
                 // Replace loading message with actual response
+                const generationDurationMs = Date.now() - generationStartedAtMs;
                 const assistantMessage: ChatMessage = {
                     // channel: 'PROMPTBOOK_CHAT',
                     id: loadingMessage.id,
-                    createdAt: new Date(),
+                    createdAt: $getCurrentDate(),
                     sender: llmParticipantName,
                     content: result.content as string_markdown,
                     isComplete: true,
                     toolCalls: result.toolCalls,
                     completedToolCalls: result.toolCalls,
+                    generationDurationMs,
                 };
 
                 // Functional update: Replace loading message with final response
@@ -330,12 +338,13 @@ export function LlmChat(props: LlmChatProps) {
                 const errorMessage: ChatMessage = {
                     // channel: 'PROMPTBOOK_CHAT',
                     id: loadingMessage.id,
-                    createdAt: new Date(),
+                    createdAt: $getCurrentDate(),
                     sender: llmParticipantName,
                     content: `Sorry, I encountered an error processing your message. ${
                         error instanceof Error ? error.message : 'Please try again.'
                     }` as string_markdown,
                     isComplete: true,
+                    generationDurationMs: Date.now() - generationStartedAtMs,
                 };
 
                 // Functional update: Replace loading message with error

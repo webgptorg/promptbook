@@ -101,8 +101,8 @@ import { Chat } from '@promptbook/components';
 const messages = [
     {
         id: '1',
-        date: new Date(),
-        from: 'USER',
+        createdAt: new Date().toISOString(),
+        sender: 'USER',
         content: '**Hello!** This is *markdown* content with `code`.',
         isComplete: true,
     },
