@@ -1,5 +1,10 @@
 import type { LinguisticHashWordLists } from './linguisticHashTypes';
 
+/**
+ * @@@
+ * 
+ * @private utility of `linguisticHash`
+ */
 const ADJECTIVES = [
     'red',
     'blue',
@@ -678,6 +683,8 @@ const VERBS = [
 
 /**
  * English word lists used by the linguistic hash.
+ * 
+ * @private utility of `linguisticHash`
  */
 export const LINGUISTIC_HASH_WORD_LISTS_EN: LinguisticHashWordLists = {
     adjective: ADJECTIVES,

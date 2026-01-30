@@ -1,5 +1,5 @@
-import type { string_date_iso8601 } from './typeAliases';
 import type { TODO_any } from '../utils/organization/TODO_any';
+import type { string_date_iso8601 } from './typeAliases';
 
 /**
  * Represents a single tool call with its inputs, outputs, and timing.
@@ -45,11 +45,15 @@ export type ToolCall = {
 
 /**
  * Tool call name emitted while preparing a GPT assistant for an agent.
+ *
+ * @public exported from `@promptbook/types`
  */
 export const ASSISTANT_PREPARATION_TOOL_CALL_NAME = 'assistant_preparation';
 
 /**
  * Checks whether a tool call is the assistant preparation marker.
+ *
+ * @public exported from `@promptbook/types`
  */
 export function isAssistantPreparationToolCall(toolCall: ToolCall): boolean {
     return toolCall.name === ASSISTANT_PREPARATION_TOOL_CALL_NAME;

@@ -4,11 +4,15 @@ import { LINGUISTIC_HASH_WORD_LISTS_EN } from './linguisticHashWords.en';
 
 /**
  * Supported language codes for linguistic hash output.
+ *
+ * @private utility of `linguisticHash`
  */
 export type LinguisticHashLanguage = 'en' | 'cs';
 
 /**
  * Language-specific configuration for linguistic hash generation.
+ *
+ * @private utility of `linguisticHash`
  */
 export type LinguisticHashLanguageConfig = {
     language: LinguisticHashLanguage;
@@ -18,9 +22,16 @@ export type LinguisticHashLanguageConfig = {
 
 /**
  * Default language used for linguistic hashes.
+ *
+ * @private utility of `linguisticHash`
  */
 export const DEFAULT_LINGUISTIC_HASH_LANGUAGE: LinguisticHashLanguage = 'en';
 
+/**
+ * @@@
+ *
+ * @private utility of `linguisticHash`
+ */
 const LANGUAGE_CONFIGS: Record<LinguisticHashLanguage, LinguisticHashLanguageConfig> = {
     en: {
         language: 'en',
@@ -36,6 +47,8 @@ const LANGUAGE_CONFIGS: Record<LinguisticHashLanguage, LinguisticHashLanguageCon
 
 /**
  * Ordered list of supported linguistic hash languages.
+ *
+ * @private utility of `linguisticHash`
  */
 export const LINGUISTIC_HASH_LANGUAGES: readonly LinguisticHashLanguageConfig[] = [
     LANGUAGE_CONFIGS.en,
@@ -44,6 +57,8 @@ export const LINGUISTIC_HASH_LANGUAGES: readonly LinguisticHashLanguageConfig[] 
 
 /**
  * Normalizes a requested language to a supported linguistic hash language.
+ *
+ * @private utility of `linguisticHash`
  */
 export function normalizeLinguisticHashLanguage(language?: string | null): LinguisticHashLanguage {
     if (typeof language !== 'string') {
@@ -64,6 +79,8 @@ export function normalizeLinguisticHashLanguage(language?: string | null): Lingu
 
 /**
  * Returns the language configuration for linguistic hash generation.
+ *
+ * @private utility of `linguisticHash`
  */
 export function getLinguisticHashLanguageConfig(language?: string | null): LinguisticHashLanguageConfig {
     const normalized = normalizeLinguisticHashLanguage(language);
