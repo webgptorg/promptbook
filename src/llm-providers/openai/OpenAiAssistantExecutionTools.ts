@@ -601,6 +601,18 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
 
         // await this.playground();
         const { name, instructions, knowledgeSources, tools } = options;
+        const preparationStartedAtMs = Date.now();
+        const knowledgeSourcesCount = knowledgeSources?.length ?? 0;
+        const toolsCount = tools?.length ?? 0;
+
+        if (this.options.isVerbose) {
+            console.info('[🤰]', 'Starting OpenAI assistant creation', {
+                name,
+                knowledgeSourcesCount,
+                toolsCount,
+                instructionsLength: instructions.length,
+            });
+        }
         const client = await this.getClient();
 
         let vectorStoreId: string | undefined;
@@ -608,7 +620,10 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
         // If knowledge sources are provided, create a vector store with them
         if (knowledgeSources && knowledgeSources.length > 0) {
             if (this.options.isVerbose) {
-                console.info(`📚 Creating vector store with ${knowledgeSources.length} knowledge sources...`);
+                console.info('[🤰]', 'Creating vector store with knowledge sources', {
+                    name,
+                    knowledgeSourcesCount,
+                });
             }
 
             // Create a vector store
@@ -618,13 +633,24 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             vectorStoreId = vectorStore.id;
 
             if (this.options.isVerbose) {
-                console.info(`✅ Vector store created: ${vectorStoreId}`);
+                console.info('[🤰]', 'Vector store created', {
+                    vectorStoreId,
+                });
             }
 
             // Upload files from knowledge sources to the vector store
             const fileStreams = [];
-            for (const source of knowledgeSources) {
+            for (const [index, source] of knowledgeSources.entries()) {
                 try {
+                    if (this.options.isVerbose) {
+                        console.info('[🤰]', 'Processing knowledge source', {
+                            index: index + 1,
+                            total: knowledgeSources.length,
+                            source,
+                            sourceType: source.startsWith('http') || source.startsWith('https') ? 'url' : 'file',
+                        });
+                    }
+
                     // Check if it's a URL
                     if (source.startsWith('http://') || source.startsWith('https://')) {
                         // Download the file
@@ -668,7 +694,10 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                     });
 
                     if (this.options.isVerbose) {
-                        console.info(`✅ Uploaded ${fileStreams.length} files to vector store`);
+                        console.info('[🤰]', 'Uploaded files to vector store', {
+                            vectorStoreId,
+                            fileCount: fileStreams.length,
+                        });
                     }
                 } catch (error) {
                     console.error('Error uploading files to vector store:', error);
@@ -698,9 +727,23 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             };
         }
 
+        if (this.options.isVerbose) {
+            console.info('[🤰]', 'Creating OpenAI assistant', {
+                name,
+                model: assistantConfig.model,
+                toolCount: assistantConfig.tools.length,
+                hasVectorStore: Boolean(vectorStoreId),
+            });
+        }
+
         const assistant = await client.beta.assistants.create(assistantConfig);
 
-        console.log(`✅ Assistant created: ${assistant.id}`);
+        if (this.options.isVerbose) {
+            console.info('[🤰]', 'OpenAI assistant created', {
+                assistantId: assistant.id,
+                elapsedMs: Date.now() - preparationStartedAtMs,
+            });
+        }
 
         // TODO: [🐱‍🚀] Try listing existing assistants
         // TODO: [🐱‍🚀] Try marking existing assistants by DISCRIMINANT
@@ -746,6 +789,19 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
         }
 
         const { assistantId, name, instructions, knowledgeSources, tools } = options;
+        const preparationStartedAtMs = Date.now();
+        const knowledgeSourcesCount = knowledgeSources?.length ?? 0;
+        const toolsCount = tools?.length ?? 0;
+
+        if (this.options.isVerbose) {
+            console.info('[🤰]', 'Starting OpenAI assistant update', {
+                assistantId,
+                name,
+                knowledgeSourcesCount,
+                toolsCount,
+                instructionsLength: instructions?.length ?? 0,
+            });
+        }
         const client = await this.getClient();
 
         let vectorStoreId: string | undefined;
@@ -754,9 +810,11 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
         // TODO: [🧠] Reuse vector store creation logic from createNewAssistant
         if (knowledgeSources && knowledgeSources.length > 0) {
             if (this.options.isVerbose) {
-                console.info(
-                    `📚 Creating vector store for update with ${knowledgeSources.length} knowledge sources...`,
-                );
+                console.info('[🤰]', 'Creating vector store for assistant update', {
+                    assistantId,
+                    name,
+                    knowledgeSourcesCount,
+                });
             }
 
             // Create a vector store
@@ -766,13 +824,24 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             vectorStoreId = vectorStore.id;
 
             if (this.options.isVerbose) {
-                console.info(`✅ Vector store created: ${vectorStoreId}`);
+                console.info('[🤰]', 'Vector store created for assistant update', {
+                    vectorStoreId,
+                });
             }
 
             // Upload files from knowledge sources to the vector store
             const fileStreams = [];
-            for (const source of knowledgeSources) {
+            for (const [index, source] of knowledgeSources.entries()) {
                 try {
+                    if (this.options.isVerbose) {
+                        console.info('[🤰]', 'Processing knowledge source for update', {
+                            index: index + 1,
+                            total: knowledgeSources.length,
+                            source,
+                            sourceType: source.startsWith('http') || source.startsWith('https') ? 'url' : 'file',
+                        });
+                    }
+
                     // Check if it's a URL
                     if (source.startsWith('http://') || source.startsWith('https://')) {
                         // Download the file
@@ -816,7 +885,10 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                     });
 
                     if (this.options.isVerbose) {
-                        console.info(`✅ Uploaded ${fileStreams.length} files to vector store`);
+                        console.info('[🤰]', 'Uploaded files to vector store for update', {
+                            vectorStoreId,
+                            fileCount: fileStreams.length,
+                        });
                     }
                 } catch (error) {
                     console.error('Error uploading files to vector store:', error);
@@ -842,10 +914,22 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             };
         }
 
+        if (this.options.isVerbose) {
+            console.info('[🤰]', 'Updating OpenAI assistant', {
+                assistantId,
+                name,
+                toolCount: assistantUpdate.tools.length,
+                hasVectorStore: Boolean(vectorStoreId),
+            });
+        }
+
         const assistant = await client.beta.assistants.update(assistantId, assistantUpdate);
 
         if (this.options.isVerbose) {
-            console.log(`✅ Assistant updated: ${assistant.id}`);
+            console.info('[🤰]', 'OpenAI assistant updated', {
+                assistantId: assistant.id,
+                elapsedMs: Date.now() - preparationStartedAtMs,
+            });
         }
 
         return new OpenAiAssistantExecutionTools({

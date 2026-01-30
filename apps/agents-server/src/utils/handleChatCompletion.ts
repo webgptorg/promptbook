@@ -136,13 +136,17 @@ export async function handleChatCompletion(
         const openAiAssistantExecutionTools = assistantResult.tools;
 
         if (assistantResult.fromCache) {
-            console.log(
-                `[🐱‍🚀] ✓ Cache HIT: Reusing assistant for agent ${agentName} (cache key: ${assistantResult.cacheKey})`,
-            );
+            console.info('[🤰]', 'Assistant cache hit (OpenAI)', {
+                agentName,
+                cacheKey: assistantResult.cacheKey,
+                assistantId: assistantResult.tools.assistantId,
+            });
         } else {
-            console.log(
-                `[🐱‍🚀] ✗ Cache MISS: Created new assistant for agent ${agentName} (cache key: ${assistantResult.cacheKey})`,
-            );
+            console.info('[🤰]', 'Assistant cache miss (OpenAI)', {
+                agentName,
+                cacheKey: assistantResult.cacheKey,
+                assistantId: assistantResult.tools.assistantId,
+            });
         }
 
         const agent = new Agent({

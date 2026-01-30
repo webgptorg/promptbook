@@ -20,6 +20,7 @@ import { isTeamToolName } from '../utils/createTeamToolNameFromUrl';
 import { getChatMessageTimingDisplay } from '../utils/getChatMessageTimingDisplay';
 import type { ToolCallChipletInfo } from '../utils/getToolCallChipletInfo';
 import { getToolCallChipletInfo, TOOL_TITLES } from '../utils/getToolCallChipletInfo';
+import { parseToolCallArguments } from '../utils/toolCallParsing';
 import { extractCitationsFromMessage, type ParsedCitation } from '../utils/parseCitationsFromContent';
 import { parseMessageButtons } from '../utils/parseMessageButtons';
 import styles from './Chat.module.css';
@@ -531,6 +532,12 @@ export const ChatMessageItem = memo(
                                     const toolInfo = TOOL_TITLES[toolCall.name];
                                     const isTeamTool = isTeamToolName(toolCall.name);
                                     const teamAgentData = resolveTeamAgentChipData(toolCall, teammates);
+                                    const toolArguments = parseToolCallArguments(toolCall);
+                                    const preparationPhase =
+                                        isAssistantPreparationToolCall(toolCall) &&
+                                        typeof toolArguments.phase === 'string'
+                                            ? toolArguments.phase
+                                            : undefined;
 
                                     // If this is a team tool with teammate data, use AgentChip
                                     if (teamAgentData) {
@@ -542,14 +549,17 @@ export const ChatMessageItem = memo(
                                         toolTitles?.[toolCall.name] ||
                                         toolInfo?.title ||
                                         (isTeamTool ? 'Consulting teammate' : undefined);
+                                    const displayTitle = preparationPhase
+                                        ? `${toolTitle || toolCall.name}: ${preparationPhase}`
+                                        : toolTitle;
                                     const emoji = isTeamTool ? '🤝' : toolInfo?.emoji || '🛠️';
 
                                     return (
                                         <div key={index} className={styles.ongoingToolCall}>
                                             <div className={styles.ongoingToolCallSpinner} />
                                             <span className={styles.ongoingToolCallName}>
-                                                {toolTitle
-                                                    ? `${emoji} ${toolTitle}...`
+                                                {displayTitle
+                                                    ? `${emoji} ${displayTitle}...`
                                                     : `${emoji} Executing ${toolCall.name}...`}
                                             </span>
                                         </div>

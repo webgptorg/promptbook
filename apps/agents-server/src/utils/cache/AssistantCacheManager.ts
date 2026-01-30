@@ -87,9 +87,13 @@ export class AssistantCacheManager {
         const cacheKey = computeAssistantCacheKey(configuration);
 
         if (this.isVerbose) {
-            console.log(
-                `[AssistantCacheManager] Looking up assistant for agent "${agentName}" (cache key: ${cacheKey})`,
-            );
+            console.info('[🤰]', 'Resolving assistant cache key', {
+                agentName,
+                cacheKey,
+                includeDynamicContext,
+                instructionsLength: configuration.instructions.length,
+                baseSourceLength: configuration.baseAgentSource.length,
+            });
         }
 
         // Check cache
@@ -97,9 +101,11 @@ export class AssistantCacheManager {
 
         if (cachedAssistant) {
             if (this.isVerbose) {
-                console.log(
-                    `[AssistantCacheManager] ✓ Cache HIT for agent "${agentName}" - reusing assistant ${cachedAssistant}`,
-                );
+                console.info('[🤰]', 'Assistant cache hit', {
+                    agentName,
+                    cacheKey,
+                    assistantId: cachedAssistant,
+                });
             }
 
             return {
@@ -112,7 +118,10 @@ export class AssistantCacheManager {
 
         // Cache miss - create new assistant
         if (this.isVerbose) {
-            console.log(`[AssistantCacheManager] ✗ Cache MISS for agent "${agentName}" - creating new assistant`);
+            console.info('[🤰]', 'Assistant cache miss, creating assistant', {
+                agentName,
+                cacheKey,
+            });
         }
 
         const newTools = await this.createAndCacheAssistant(configuration, agentName, cacheKey, baseTools);
@@ -167,6 +176,15 @@ export class AssistantCacheManager {
     ): Promise<OpenAiAssistantExecutionTools> {
         // Create the assistant with the configuration
         // Instructions already include any dynamic context if includeDynamicContext was true
+        const creationStartedAtMs = Date.now();
+
+        if (this.isVerbose) {
+            console.info('[🤰]', 'Creating assistant via cache manager', {
+                agentName,
+                assistantName: configuration.name || agentName,
+                instructionsLength: configuration.instructions.length,
+            });
+        }
         const newTools = await baseTools.createNewAssistant({
             name: configuration.name || agentName,
             instructions: configuration.instructions,
@@ -183,9 +201,12 @@ export class AssistantCacheManager {
         await this.cacheAssistant(cacheKey, newAssistantId);
 
         if (this.isVerbose) {
-            console.log(
-                `[AssistantCacheManager] ✓ Created and cached new assistant ${newAssistantId} for agent "${agentName}"`,
-            );
+            console.info('[🤰]', 'Assistant created and cached', {
+                agentName,
+                cacheKey,
+                assistantId: newAssistantId,
+                elapsedMs: Date.now() - creationStartedAtMs,
+            });
         }
 
         return newTools;
