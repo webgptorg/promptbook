@@ -2,6 +2,7 @@
 
 -   Leveraged `spaceTrim` across the repository for better readability and maintainability of multiline strings and string joins.
 -   Fixed Agents Server Book editor multi-file uploads by debouncing editor updates, tracking placeholders safely, and adding a floating upload panel with pause/resume controls and upload stats.
+-   Fixed Agents Server chat markdown rendering for sublists by normalizing unordered list indentation under ordered items.
 -   Fixed drag-and-drop uploads in the Agents Server create-agent dialog by reusing the shared BookEditor upload handler.
 -   Fixed document source citation in Agents Server chat:
     -   Resolved issue where clicking on KNOWLEDGE source chips showed "Document preview unavailable" instead of the actual document
