@@ -1,0 +1,404 @@
+#!/usr/bin/env ts-node
+
+import * as dotenv from 'dotenv';
+
+dotenv.config({ path: '.env' });
+
+import colors from 'colors';
+import { existsSync } from 'fs';
+import { mkdir, readFile, writeFile } from 'fs/promises';
+import glob from 'glob-promise';
+import { basename, extname, join, relative, resolve } from 'path';
+import spaceTrim from 'spacetrim';
+import type { SourceFile } from 'typescript';
+import * as ts from 'typescript';
+import { assertsError } from '../../src/errors/assertsError';
+import {
+    DEFAULT_MAX_LINE_COUNT,
+    ENTITY_COUNT_EXTENSIONS,
+    GENERATED_CODE_MARKERS,
+    LINE_COUNT_EXEMPT_GLOBS,
+    LINE_COUNT_LIMITS_BY_EXTENSION,
+    MAX_ENTITIES_PER_FILE,
+    PROMPTS_DIR_NAME,
+    PROMPT_NUMBER_STEP,
+    PROMPT_SLUG_MAX_LENGTH,
+    PROMPT_SLUG_PREFIX,
+    PROMPT_TARGET_LABEL,
+    SOURCE_FILE_EXTENSIONS,
+    SOURCE_FILE_IGNORE_GLOBS,
+    SOURCE_ROOTS,
+} from './find-refactor-candidates.constants';
+import { buildPromptFilename, getPromptNumbering } from '../utils/prompts/getPromptNumbering';
+
+if (process.cwd() !== join(__dirname, '../..')) {
+    console.error(colors.red(`CWD must be root of the project`));
+    process.exit(1);
+}
+
+findRefactorCandidates()
+    .catch((error) => {
+        assertsError(error);
+        console.error(colors.bgRed(`${error.name} in ${basename(__filename)}`));
+        console.error(colors.red(error.stack || error.message));
+        process.exit(1);
+    })
+    .then(() => {
+        process.exit(0);
+    });
+
+/**
+ * Details about a file that should be refactored.
+ */
+type RefactorCandidate = {
+    /**
+     * Absolute path to the file on disk.
+     */
+    readonly absolutePath: string;
+    /**
+     * Repo-relative path used in prompt content.
+     */
+    readonly relativePath: string;
+    /**
+     * Reasons that triggered the refactor prompt.
+     */
+    readonly reasons: ReadonlyArray<string>;
+};
+
+/**
+ * Orchestrates scanning for refactor candidates and generating prompts.
+ */
+async function findRefactorCandidates(): Promise<void> {
+    console.info(colors.cyan('?? Find refactor candidates'));
+
+    const rootDir = process.cwd();
+    const promptsDir = join(rootDir, PROMPTS_DIR_NAME);
+
+    const existingTargets = await loadExistingPromptTargets(promptsDir);
+    const lineCountExemptPaths = await buildExemptPathSet(rootDir, LINE_COUNT_EXEMPT_GLOBS);
+    const sourceFiles = await listSourceFiles(rootDir);
+
+    const candidates: RefactorCandidate[] = [];
+
+    for (const filePath of sourceFiles) {
+        const normalizedPath = normalizeAbsolutePath(filePath);
+        const content = await readFile(filePath, 'utf-8');
+
+        if (isGeneratedFile(content)) {
+            continue;
+        }
+
+        const extension = extname(filePath).toLowerCase();
+        const relativePath = normalizeRelativePath(relative(rootDir, filePath));
+        const reasons: string[] = [];
+
+        if (!lineCountExemptPaths.has(normalizedPath)) {
+            const lineCount = countLines(content);
+            const maxLines = getMaxLinesForExtension(extension);
+            if (lineCount > maxLines) {
+                reasons.push(`lines ${lineCount}/${maxLines}`);
+            }
+        }
+
+        if (ENTITY_COUNT_EXTENSIONS.includes(extension)) {
+            const entityCount = countEntities(content, extension, filePath);
+            if (entityCount > MAX_ENTITIES_PER_FILE) {
+                reasons.push(`entities ${entityCount}/${MAX_ENTITIES_PER_FILE}`);
+            }
+        }
+
+        if (reasons.length > 0) {
+            candidates.push({
+                absolutePath: filePath,
+                relativePath,
+                reasons,
+            });
+        }
+    }
+
+    if (candidates.length === 0) {
+        console.info(colors.green('No refactor candidates found.'));
+        return;
+    }
+
+    for (const candidate of candidates) {
+        console.info(colors.yellow(`${candidate.relativePath} <- ${candidate.reasons.join('; ')}`));
+    }
+
+    const candidatesToWrite = candidates.filter((candidate) => !existingTargets.has(candidate.relativePath));
+    const alreadyTracked = candidates.length - candidatesToWrite.length;
+
+    if (candidatesToWrite.length === 0) {
+        console.info(colors.green('All candidates already have prompts.'));
+        return;
+    }
+
+    const promptNumbering = await getPromptNumbering({
+        promptsDir,
+        step: PROMPT_NUMBER_STEP,
+        ignoreGlobs: ['**/node_modules/**'],
+    });
+
+    await mkdir(promptsDir, { recursive: true });
+
+    const createdPrompts: string[] = [];
+
+    for (const [index, candidate] of candidatesToWrite.entries()) {
+        const slug = buildPromptSlug(candidate.relativePath);
+        const number = promptNumbering.startNumber + index * promptNumbering.step;
+        const filename = buildPromptFilename(promptNumbering.datePrefix, number, slug);
+        const promptPath = join(promptsDir, filename);
+        const promptContent = buildPromptContent(candidate);
+
+        await writeFile(promptPath, promptContent, 'utf-8');
+        createdPrompts.push(filename);
+    }
+
+    console.info(colors.green(`Created ${createdPrompts.length} prompt(s) in ${PROMPTS_DIR_NAME}.`));
+    if (alreadyTracked > 0) {
+        console.info(colors.gray(`Skipped ${alreadyTracked} candidate(s) with existing prompts.`));
+    }
+}
+
+/**
+ * Builds prompt content for a refactor candidate.
+ */
+function buildPromptContent(candidate: RefactorCandidate): string {
+    const reasons = candidate.reasons.join('; ');
+    return spaceTrim(`
+
+        [ ]
+
+        [???] Refactor \`${candidate.relativePath}\`
+
+        -   ${PROMPT_TARGET_LABEL}: \`${candidate.relativePath}\`
+        -   Reasons: ${reasons}
+        -   @@@ Replace this line with refactor instructions. Do not refactor in this script.
+    `);
+}
+
+/**
+ * Creates the prompt slug from a file path while keeping it readable.
+ */
+function buildPromptSlug(relativePath: string): string {
+    const normalized = normalizeRelativePath(relativePath);
+    const base = normalized
+        .replace(/[^a-zA-Z0-9]+/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .toLowerCase();
+    const prefixed = `${PROMPT_SLUG_PREFIX}-${base || 'file'}`;
+    if (prefixed.length <= PROMPT_SLUG_MAX_LENGTH) {
+        return prefixed;
+    }
+
+    const hash = hashString(normalized).slice(0, 6);
+    const trimmed = prefixed.slice(0, PROMPT_SLUG_MAX_LENGTH - hash.length - 1).replace(/-+$/g, '');
+    return `${trimmed}-${hash}`;
+}
+
+/**
+ * Collects all repo-relative target paths already referenced in prompts.
+ */
+async function loadExistingPromptTargets(promptsDir: string): Promise<Set<string>> {
+    if (!existsSync(promptsDir)) {
+        return new Set();
+    }
+
+    const promptFiles = await glob('**/*.md', {
+        cwd: promptsDir,
+        nodir: true,
+    });
+
+    const targets = new Set<string>();
+    const targetRegex = new RegExp(
+        `^\\s*-\\s+${escapeRegExp(PROMPT_TARGET_LABEL)}:\\s+\\\`(?<path>[^\\\`]+)\\\``,
+        'gm',
+    );
+
+    for (const promptFile of promptFiles) {
+        const content = await readFile(join(promptsDir, promptFile), 'utf-8');
+        for (const match of content.matchAll(targetRegex)) {
+            const captured = match.groups?.path;
+            if (captured) {
+                targets.add(normalizeRelativePath(captured));
+            }
+        }
+    }
+
+    return targets;
+}
+
+/**
+ * Lists all source files to scan based on configured roots and extensions.
+ */
+async function listSourceFiles(rootDir: string): Promise<ReadonlyArray<string>> {
+    const extensions = SOURCE_FILE_EXTENSIONS.map((extension) => extension.replace(/^\./, '')).join(',');
+    const extensionGlob = `{${extensions}}`;
+    const patterns = [...SOURCE_ROOTS.map((root) => `${root}/**/*.${extensionGlob}`), `*.${extensionGlob}`];
+
+    const files = new Set<string>();
+
+    for (const pattern of patterns) {
+        const matches = await glob(pattern, {
+            cwd: rootDir,
+            ignore: SOURCE_FILE_IGNORE_GLOBS,
+            nodir: true,
+            absolute: true,
+        });
+
+        for (const match of matches) {
+            files.add(match);
+        }
+    }
+
+    return Array.from(files).sort();
+}
+
+/**
+ * Builds a set of normalized paths exempt from line-count checks.
+ */
+async function buildExemptPathSet(rootDir: string, patterns: ReadonlyArray<string>): Promise<Set<string>> {
+    const exemptPaths = new Set<string>();
+
+    for (const pattern of patterns) {
+        const matches = await glob(pattern, {
+            cwd: rootDir,
+            ignore: SOURCE_FILE_IGNORE_GLOBS,
+            nodir: true,
+            absolute: true,
+        });
+
+        for (const match of matches) {
+            exemptPaths.add(normalizeAbsolutePath(match));
+        }
+    }
+
+    return exemptPaths;
+}
+
+/**
+ * Determines whether a file is generated by scanning for known markers.
+ */
+function isGeneratedFile(content: string): boolean {
+    return GENERATED_CODE_MARKERS.some((marker) => content.includes(marker));
+}
+
+/**
+ * Gets the maximum allowed lines for a file extension.
+ */
+function getMaxLinesForExtension(extension: string): number {
+    return LINE_COUNT_LIMITS_BY_EXTENSION[extension] ?? DEFAULT_MAX_LINE_COUNT;
+}
+
+/**
+ * Counts lines while ignoring a trailing newline.
+ */
+function countLines(content: string): number {
+    if (content.length === 0) {
+        return 0;
+    }
+    const lines = content.split(/\r?\n/);
+    return lines[lines.length - 1] === '' ? lines.length - 1 : lines.length;
+}
+
+/**
+ * Counts top-level entities in a source file.
+ */
+function countEntities(content: string, extension: string, filePath: string): number {
+    const scriptKind = getScriptKindForExtension(extension);
+    const sourceFile = ts.createSourceFile(filePath, content, ts.ScriptTarget.Latest, false, scriptKind);
+    return countEntitiesInSourceFile(sourceFile);
+}
+
+/**
+ * Counts top-level entities in a parsed TypeScript source file.
+ */
+function countEntitiesInSourceFile(sourceFile: SourceFile): number {
+    let count = 0;
+
+    // Only count top-level declarations to avoid inflating with members or nested scopes.
+    for (const statement of sourceFile.statements) {
+        if (
+            ts.isFunctionDeclaration(statement) ||
+            ts.isClassDeclaration(statement) ||
+            ts.isInterfaceDeclaration(statement) ||
+            ts.isTypeAliasDeclaration(statement) ||
+            ts.isEnumDeclaration(statement) ||
+            ts.isModuleDeclaration(statement)
+        ) {
+            count += 1;
+            continue;
+        }
+
+        if (ts.isVariableStatement(statement)) {
+            for (const declaration of statement.declarationList.declarations) {
+                const initializer = declaration.initializer;
+                if (
+                    initializer &&
+                    (ts.isArrowFunction(initializer) ||
+                        ts.isFunctionExpression(initializer) ||
+                        ts.isClassExpression(initializer))
+                ) {
+                    count += 1;
+                }
+            }
+        }
+    }
+
+    return count;
+}
+
+/**
+ * Resolves the script kind for a source file extension.
+ */
+function getScriptKindForExtension(extension: string): ts.ScriptKind {
+    if (extension === '.tsx') {
+        return ts.ScriptKind.TSX;
+    }
+    if (extension === '.jsx') {
+        return ts.ScriptKind.JSX;
+    }
+    if (extension === '.js') {
+        return ts.ScriptKind.JS;
+    }
+    return ts.ScriptKind.TS;
+}
+
+/**
+ * Normalizes a path to use forward slashes.
+ */
+function normalizeRelativePath(pathValue: string): string {
+    const normalized = pathValue.replace(/\\/g, '/');
+    return normalized.replace(/^\.\//, '');
+}
+
+/**
+ * Normalizes an absolute path for consistent comparisons.
+ */
+function normalizeAbsolutePath(pathValue: string): string {
+    const normalized = resolve(pathValue);
+    return process.platform === 'win32' ? normalized.toLowerCase() : normalized;
+}
+
+/**
+ * Escapes a string for use in a regular expression literal.
+ */
+function escapeRegExp(value: string): string {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * Creates a short stable hash used for trimmed slugs.
+ */
+function hashString(value: string): string {
+    let hash = 5381;
+    for (let i = 0; i < value.length; i += 1) {
+        hash = (hash << 5) + hash + value.charCodeAt(i);
+    }
+    return (hash >>> 0).toString(36);
+}
+
+/**
+ * Note: [?] Code in this file should never be published in any package
+ */

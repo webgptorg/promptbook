@@ -1,5 +1,6 @@
 ### 📚 Book
 
+-   Added a refactor-candidate scanner script that flags oversized or entity-heavy source files and generates per-file refactor prompts in `prompts`.
 -   Leveraged `spaceTrim` across the repository for better readability and maintainability of multiline strings and string joins.
 -   Simplified the Agents Server home page to focus on agents, moved the previous dashboard to `/dashboard`, and linked it from the System menu.
 -   Added a configurable Markdown message (via metadata) shown above the agents list on the Agents Server homepage.
