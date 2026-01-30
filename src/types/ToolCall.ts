@@ -42,3 +42,15 @@ export type ToolCall = {
      */
     readonly warnings?: ReadonlyArray<TODO_any>;
 };
+
+/**
+ * Tool call name emitted while preparing a GPT assistant for an agent.
+ */
+export const ASSISTANT_PREPARATION_TOOL_CALL_NAME = 'assistant_preparation';
+
+/**
+ * Checks whether a tool call is the assistant preparation marker.
+ */
+export function isAssistantPreparationToolCall(toolCall: ToolCall): boolean {
+    return toolCall.name === ASSISTANT_PREPARATION_TOOL_CALL_NAME;
+}

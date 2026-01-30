@@ -1,4 +1,4 @@
-[ ] !!
+[x] ~$1.58
 
 [✨📰] Show that the GPT assistant is pending in UI
 
@@ -39,3 +39,4 @@ Make some look how the chips or tool chips are implemented. For example, how it 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

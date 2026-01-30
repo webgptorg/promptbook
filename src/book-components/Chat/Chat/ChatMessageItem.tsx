@@ -21,6 +21,7 @@ import { getChatMessageTimingDisplay } from '../utils/getChatMessageTimingDispla
 import { extractCitationsFromMessage, type ParsedCitation } from '../utils/parseCitationsFromContent';
 import { parseMessageButtons } from '../utils/parseMessageButtons';
 import { isTeamToolName } from '../utils/createTeamToolNameFromUrl';
+import { isAssistantPreparationToolCall } from '../../../types/ToolCall';
 import styles from './Chat.module.css';
 import type { ChatProps } from './ChatProps';
 import { AVATAR_SIZE, LOADING_INTERACTIVE_IMAGE } from './constants';
@@ -253,7 +254,9 @@ export const ChatMessageItem = memo(
         );
         const colorOfText = color.then(textColor);
         const { contentWithoutButtons, buttons } = parseMessageButtons(message.content);
-        const completedToolCalls = message.toolCalls || message.completedToolCalls;
+        const completedToolCalls = (message.toolCalls || message.completedToolCalls)?.filter(
+            (toolCall) => !isAssistantPreparationToolCall(toolCall),
+        );
         const shouldShowButtons = isLastMessage && buttons.length > 0 && onMessage;
 
         // Extract citations from message content

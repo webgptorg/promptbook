@@ -10,14 +10,65 @@ import type { ChatParticipant } from '../../book-components/Chat/types/ChatParti
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult, CommonPromptResult } from '../../execution/PromptResult';
+import { UNCERTAIN_USAGE } from '../../execution/utils/usage-constants';
 import type { ChatPrompt, Prompt } from '../../types/Prompt';
-import type { string_markdown, string_markdown_text, string_model_name, string_title } from '../../types/typeAliases';
+import { ASSISTANT_PREPARATION_TOOL_CALL_NAME } from '../../types/ToolCall';
+import type {
+    string_markdown,
+    string_markdown_text,
+    string_model_name,
+    string_prompt,
+    string_title,
+} from '../../types/typeAliases';
 import { humanizeAiText } from '../../utils/markdown/humanizeAiText';
 import { promptbookifyAiText } from '../../utils/markdown/promptbookifyAiText';
+import { $getCurrentDate } from '../../utils/misc/$getCurrentDate';
 import { normalizeToKebabCase } from '../../utils/normalization/normalize-to-kebab-case';
 import { OpenAiAgentExecutionTools } from '../openai/OpenAiAgentExecutionTools';
 import { OpenAiAssistantExecutionTools } from '../openai/OpenAiAssistantExecutionTools';
 import type { CreateAgentLlmExecutionToolsOptions } from './CreateAgentLlmExecutionToolsOptions';
+
+/**
+ * Emits a progress update to signal assistant preparation before long setup work.
+ */
+function emitAssistantPreparationProgress(options: {
+    /**
+     * Callback to send progress updates to the caller.
+     */
+    readonly onProgress: (chunk: ChatPromptResult) => void;
+    /**
+     * Original prompt being executed.
+     */
+    readonly prompt: Prompt;
+    /**
+     * Model name used for the update payload.
+     */
+    readonly modelName: string_model_name;
+}): void {
+    const startedAt = $getCurrentDate();
+
+    options.onProgress({
+        content: '',
+        modelName: options.modelName,
+        timing: {
+            start: startedAt,
+            complete: startedAt,
+        },
+        usage: UNCERTAIN_USAGE,
+        rawPromptContent: options.prompt.content as string_prompt,
+        rawRequest: null,
+        rawResponse: {
+            status: 'assistant_preparation',
+        },
+        toolCalls: [
+            {
+                name: ASSISTANT_PREPARATION_TOOL_CALL_NAME,
+                arguments: {},
+                createdAt: startedAt,
+            },
+        ],
+    });
+}
 
 /**
  * Execution Tools for calling LLM models with a predefined agent "soul"
@@ -303,6 +354,11 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
                     if (this.options.isVerbose) {
                         console.log(`1️⃣ Updating OpenAI Assistant for agent ${this.title}...`);
                     }
+                    emitAssistantPreparationProgress({
+                        onProgress,
+                        prompt,
+                        modelName: this.modelName,
+                    });
                     assistant = await this.options.llmTools.updateAssistant({
                         assistantId: cached.assistantId,
                         name: this.title,
@@ -320,6 +376,11 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
                     console.log(`1️⃣ Creating new OpenAI Assistant for agent ${this.title}...`);
                 }
                 // <- TODO: [🐱‍🚀] Check also `isCreatingNewAssistantsAllowed` and warn about it
+                emitAssistantPreparationProgress({
+                    onProgress,
+                    prompt,
+                    modelName: this.modelName,
+                });
                 assistant = await this.options.llmTools.createNewAssistant({
                     name: this.title,
                     instructions: modelRequirements.systemMessage,

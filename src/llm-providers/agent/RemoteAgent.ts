@@ -10,6 +10,7 @@ import type {
     string_agent_url,
     string_date_iso8601,
 } from '../../types/typeAliases';
+import { isAssistantPreparationToolCall } from '../../types/ToolCall';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import { Agent } from './Agent';
 import type { AgentOptions } from './AgentOptions';
@@ -215,6 +216,8 @@ export class RemoteAgent extends Agent {
 
         let content = '';
         const toolCalls: Array<NonNullable<ChatPromptResult['toolCalls']>[number]> = [];
+        const preparationToolCalls: Array<NonNullable<ChatPromptResult['toolCalls']>[number]> = [];
+        let hasReceivedModelOutput = false;
 
         const normalizeToolCall = (
             toolCall: NonNullable<ChatPromptResult['toolCalls']>[number],
@@ -277,6 +280,17 @@ export class RemoteAgent extends Agent {
         ) => {
             for (const toolCall of incomingToolCalls) {
                 const normalized = normalizeToolCall(toolCall);
+                if (isAssistantPreparationToolCall(normalized)) {
+                    if (hasReceivedModelOutput) {
+                        continue;
+                    }
+                    preparationToolCalls.length = 0;
+                    preparationToolCalls.push(normalized);
+                    continue;
+                }
+                if (preparationToolCalls.length > 0) {
+                    preparationToolCalls.length = 0;
+                }
                 const key = getToolCallKey(normalized);
                 const existingIndex = toolCalls.findIndex((existing) => getToolCallKey(existing) === key);
 
@@ -287,6 +301,12 @@ export class RemoteAgent extends Agent {
                 }
             }
         };
+
+        /**
+         * Builds the tool call list including any preparation marker still active.
+         */
+        const getActiveToolCalls = () =>
+            preparationToolCalls.length > 0 ? [...preparationToolCalls, ...toolCalls] : toolCalls;
 
         if (!bookResponse.body) {
             content = await bookResponse.text();
@@ -324,7 +344,7 @@ export class RemoteAgent extends Agent {
                                             rawPromptContent: {} as TODO_any,
                                             rawRequest: {} as TODO_any,
                                             rawResponse: {} as TODO_any,
-                                            toolCalls: normalizedToolCalls,
+                                            toolCalls: getActiveToolCalls(),
                                         });
                                         sawToolCalls = true;
                                         isToolCallLine = true;
@@ -354,6 +374,11 @@ export class RemoteAgent extends Agent {
                             content += textChunk;
                         }
 
+                        if (!hasReceivedModelOutput && content.trim().length > 0) {
+                            hasReceivedModelOutput = true;
+                            preparationToolCalls.length = 0;
+                        }
+
                         onProgress({
                             content,
                             modelName: this.modelName,
@@ -362,7 +387,7 @@ export class RemoteAgent extends Agent {
                             rawPromptContent: {} as TODO_any,
                             rawRequest: {} as TODO_any,
                             rawResponse: {} as TODO_any,
-                            toolCalls,
+                            toolCalls: getActiveToolCalls(),
                         });
                     }
                 }
@@ -370,6 +395,10 @@ export class RemoteAgent extends Agent {
                 const lastChunk = decoder.decode();
                 if (lastChunk) {
                     content += lastChunk;
+                    if (!hasReceivedModelOutput && content.trim().length > 0) {
+                        hasReceivedModelOutput = true;
+                        preparationToolCalls.length = 0;
+                    }
                     onProgress({
                         content: lastChunk,
                         modelName: this.modelName,
@@ -378,7 +407,7 @@ export class RemoteAgent extends Agent {
                         rawPromptContent: {} as TODO_any,
                         rawRequest: {} as TODO_any,
                         rawResponse: {} as TODO_any,
-                        toolCalls,
+                        toolCalls: getActiveToolCalls(),
                     });
                 }
             } finally {

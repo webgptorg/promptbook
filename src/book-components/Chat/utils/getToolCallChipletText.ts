@@ -1,4 +1,4 @@
-import type { ToolCall } from '../../../types/ToolCall';
+import { ASSISTANT_PREPARATION_TOOL_CALL_NAME, type ToolCall } from '../../../types/ToolCall';
 import type { AgentChipData } from '../AgentChip';
 import {
     getToolCallResultDate,
@@ -32,6 +32,7 @@ export type ToolCallChipletInfo = {
  * @private [🧠] Maybe public?
  */
 export const TOOL_TITLES: Record<string, { title: string; emoji: string }> = {
+    [ASSISTANT_PREPARATION_TOOL_CALL_NAME]: { title: 'Preparing agent', emoji: '...' },
     web_search: { title: 'Searching the web', emoji: '🔎' },
     useSearchEngine: { title: 'Searching the web', emoji: '🔎' },
     search: { title: 'Searching the web', emoji: '🔎' },
