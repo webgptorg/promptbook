@@ -289,7 +289,7 @@ export function PromptNotationComponent() {
                 </p>
                 <ul className="list-disc list-inside text-gray-700 space-y-1">
                     <li>Simple values are inlined directly into the prompt.</li>
-                    <li>Unsafe or multiline values are replaced with numbered parameters and appended as data.</li>
+                    <li>Unsafe or multiline values are replaced with labeled parameters (numbers or letters) and appended as data.</li>
                     <li>Nested prompt values stay as prompt content and are not escaped.</li>
                     <li>Non-string values are stringified via Promptbook utilities.</li>
                 </ul>

@@ -63,6 +63,22 @@ export const PROMPT_NOTATION_EXAMPLES: PromptNotationExample[] = [
         `),
     },
     {
+        id: 'avoid-collisions',
+        title: 'Avoid placeholder collisions',
+        description: 'Bracketed numbers trigger lettered parameters to avoid confusion.',
+        code: spaceTrim(`
+            const userInput = 'Reference {1} and {2} from the notes.';
+            const followUp = 'Compare with section {3}.';
+
+            const analysisPrompt = prompt\`
+                Summarize: \${userInput}
+                Follow-up: \${followUp}
+            \`;
+
+            const output = analysisPrompt.toString();
+        `),
+    },
+    {
         id: 'code-injection',
         title: 'Code injection attempt',
         description: 'Code-like syntax that could break parsing is safely escaped.',

@@ -35,6 +35,7 @@
 -   Added install instructions and import header to prompt notation example downloads in the Utils app.
 -   Generated prompt notation example outputs dynamically on render in the Utils app to keep outputs in sync with the prompt notation implementation.
 -   Updated prompt notation output to use numeric parameter placeholders and a numbered parameters list.
+-   Switched prompt notation parameter placeholders to alternate labels when bracketed numbers appear in user input to avoid collisions.
 -   Render structured JSON parameters without double-escaping in prompt notation outputs.
 -   Enhanced `humanizeAiText` to normalize more dash, quote, ellipsis, and whitespace variants in AI text.
 -   Removed bracketed source citation artifacts (e.g. `\u30105:1\u2020source\u3011`) from `humanizeAiText` output.
