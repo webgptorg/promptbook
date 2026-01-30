@@ -731,7 +731,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             console.info('[🤰]', 'Creating OpenAI assistant', {
                 name,
                 model: assistantConfig.model,
-                toolCount: assistantConfig.tools.length,
+                toolCount: assistantConfig?.tools?.length,
                 hasVectorStore: Boolean(vectorStoreId),
             });
         }
@@ -918,7 +918,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             console.info('[🤰]', 'Updating OpenAI assistant', {
                 assistantId,
                 name,
-                toolCount: assistantUpdate.tools.length,
+                toolCount: assistantUpdate?.tools?.length,
                 hasVectorStore: Boolean(vectorStoreId),
             });
         }
