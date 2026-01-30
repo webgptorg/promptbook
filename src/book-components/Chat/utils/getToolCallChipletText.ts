@@ -48,16 +48,6 @@ export const TOOL_TITLES: Record<string, { title: string; emoji: string }> = {
 };
 
 /**
- * Gets the user-friendly text for a tool call chiplet.
- *
- * @deprecated Use getToolCallChipletInfo instead which returns both text and agent data
- * @private [🧠] Maybe public?
- */
-export function getToolCallChipletText(toolCall: ToolCall): string {
-    return getToolCallChipletInfo(toolCall).text;
-}
-
-/**
  * Gets the chiplet information including text and agent data (for team tools).
  *
  * @private [🧠] Maybe public?
