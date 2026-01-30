@@ -9,7 +9,7 @@
 
 ---
 
-[ ]
+[x] ~$0.51
 
 [✨🏫] Text humanization should remove the sourcing artifacts. 
 
@@ -64,4 +64,5 @@ Pokud potřebujete další informace nebo asistenci, můžete kontaktovat Odbor 
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
 

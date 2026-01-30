@@ -71,6 +71,27 @@ describe('how `humanizeAiText` works', () => {
             ),
         ));
 
+    it('should remove source artifacts', () => {
+        const sourceMarker = '\u30105:1\u2020source\u3011';
+        const sourceMarkerTwo = '\u301012:4\u2020source\u3011';
+
+        expect(
+            humanizeAiText(
+                spaceTrim(`
+                    Example text${sourceMarker}.
+                    Another line ${sourceMarkerTwo} should stay readable.
+                `),
+            ),
+        ).toBe(
+            just(
+                spaceTrim(`
+                    Example text.
+                    Another line should stay readable.
+                `),
+            ),
+        );
+    });
+
     it('should be idempotent', () => {
         const originalText = spaceTrim(`
             This is an example of AI-generated text — it may contain some “smart quotes” and unprintable hard spaces.

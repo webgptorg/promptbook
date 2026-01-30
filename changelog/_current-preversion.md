@@ -37,6 +37,7 @@
 -   Updated prompt notation output to use numeric parameter placeholders and a numbered parameters list.
 -   Render structured JSON parameters without double-escaping in prompt notation outputs.
 -   Enhanced `humanizeAiText` to normalize more dash, quote, ellipsis, and whitespace variants in AI text.
+-   Removed bracketed source citation artifacts (e.g. `\u30105:1\u2020source\u3011`) from `humanizeAiText` output.
 
 -   Improved error reporting in package generation script to show the actual line where markers ([🟢], [⚪], [⚫], [🟡], [🔵]) are found when they shouldn't be published in packages. This helps developers quickly identify and fix issues by displaying the line number and content instead of just the filename.
 -   Enhanced all comparison documents in `/documents/comparison/*.md` for better balance and clarity:
