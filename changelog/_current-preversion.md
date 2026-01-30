@@ -293,6 +293,7 @@
 -   Reduced number of capability chips in Agents Server:
     -   Grouped identical Knowledgebase chips together.
     -   Hid the `VOID` inheritance chip, showing only inheritance from other agents.
+-   Limited capability chips on Agents Server cards and profiles with priority ordering and grouped knowledge/PDF sources to reduce chip overload.
 -   Enhanced RAG source citation display in Agents Server chat:
     -   Replaced ugly OpenAI annotation format `【5:13†document.pdf】` with native Promptbook chips
     -   Created `<SourceChip/>` component displaying source document with file icon and citation ID

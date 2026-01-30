@@ -5,7 +5,7 @@ import { generatePlaceholderAgentProfileImageUrl } from '@promptbook-local/core'
 import { AgentBasicInformation, string_agent_permanent_id, string_url } from '@promptbook-local/types';
 import { RepeatIcon } from 'lucide-react';
 import { useState } from 'react';
-import { AgentCapabilityChips } from './AgentCapabilityChips';
+import { AgentCapabilityChips, AGENT_PROFILE_CAPABILITY_CHIPS_LIMIT } from './AgentCapabilityChips';
 import { AgentProfileImage } from './AgentProfileImage';
 import { AgentQrCode } from './AgentQrCode';
 import { QrCodeModal } from './QrCodeModal';
@@ -224,7 +224,7 @@ export function AgentProfile(props: AgentProfileProps) {
                             {personaDescription}
                         </p>
 
-                        <AgentCapabilityChips agent={agent} />
+                        <AgentCapabilityChips agent={agent} maxChips={AGENT_PROFILE_CAPABILITY_CHIPS_LIMIT} />
                     </div>
 
                     {/* Chat Area */}
