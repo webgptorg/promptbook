@@ -476,6 +476,10 @@ export const ChatMessageItem = memo(
                             <div className={styles.completedToolCalls}>
                                 {completedToolCalls.map((toolCall, index) => {
                                     const chipletInfo = getToolCallChipletInfo(toolCall);
+                                    const chipletText =
+                                        chipletInfo.wrapInBrackets === false
+                                            ? chipletInfo.text
+                                            : `[${chipletInfo.text}]`;
                                     const teamAgentData = resolveTeamAgentChipData(toolCall, teammates, chipletInfo);
 
                                     // If this is a team tool with agent data, use AgentChip
@@ -507,7 +511,7 @@ export const ChatMessageItem = memo(
                                                 }
                                             }}
                                         >
-                                            [{chipletInfo.text}]
+                                            {chipletText}
                                         </button>
                                     );
                                 })}

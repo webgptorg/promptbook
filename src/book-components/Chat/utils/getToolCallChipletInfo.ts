@@ -24,6 +24,13 @@ export type ToolCallChipletInfo = {
      * Agent data for team tools (if applicable)
      */
     agentData?: AgentChipData;
+
+    /**
+     * Whether to wrap the chip text in brackets when rendering.
+     *
+     * @default true
+     */
+    wrapInBrackets?: boolean;
 };
 
 /**
@@ -31,8 +38,9 @@ export type ToolCallChipletInfo = {
  *
  * @private [🧠] Maybe public?
  */
-export const TOOL_TITLES: Record<string, { title: string; emoji: string }> = {
+export const TOOL_TITLES: Record<string, { title: string; emoji: string; wrapInBrackets?: boolean }> = {
     [ASSISTANT_PREPARATION_TOOL_CALL_NAME]: { title: 'Preparing agent', emoji: '...' },
+    'self-learning': { title: 'self-learning', emoji: '🧠', wrapInBrackets: false },
     web_search: { title: 'Searching the web', emoji: '🔎' },
     useSearchEngine: { title: 'Searching the web', emoji: '🔎' },
     search: { title: 'Searching the web', emoji: '🔎' },
@@ -56,6 +64,7 @@ export function getToolCallChipletInfo(toolCall: ToolCall): ToolCallChipletInfo 
     const toolInfo = TOOL_TITLES[toolCall.name];
     const baseTitle = toolInfo?.title || toolCall.name;
     const emoji = toolInfo?.emoji || '🛠️';
+    const wrapInBrackets = toolInfo?.wrapInBrackets ?? true;
 
     const args = parseToolCallArguments(toolCall);
     const isTimeTool = toolCall.name === 'get_current_time' || toolCall.name === 'useTime';
@@ -72,6 +81,7 @@ export function getToolCallChipletInfo(toolCall: ToolCall): ToolCallChipletInfo 
         return {
             text: label,
             agentData,
+            wrapInBrackets,
         };
     }
 
@@ -81,6 +91,7 @@ export function getToolCallChipletInfo(toolCall: ToolCall): ToolCallChipletInfo 
         if (resultDate) {
             return {
                 text: `${emoji} ${resultDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
+                wrapInBrackets,
             };
         }
     }
@@ -89,6 +100,7 @@ export function getToolCallChipletInfo(toolCall: ToolCall): ToolCallChipletInfo 
         if (args.subject) {
             return {
                 text: `${emoji} ${args.subject}`,
+                wrapInBrackets,
             };
         }
     }
@@ -96,6 +108,7 @@ export function getToolCallChipletInfo(toolCall: ToolCall): ToolCallChipletInfo 
     if (args.query) {
         return {
             text: `${emoji} ${args.query}`,
+            wrapInBrackets,
         };
     }
 
@@ -104,15 +117,18 @@ export function getToolCallChipletInfo(toolCall: ToolCall): ToolCallChipletInfo 
             const url = new URL(args.url);
             return {
                 text: `${emoji} ${url.hostname}`,
+                wrapInBrackets,
             };
         } catch (e) {
             return {
                 text: `${emoji} ${args.url}`,
+                wrapInBrackets,
             };
         }
     }
 
     return {
         text: `${emoji} ${baseTitle}`,
+        wrapInBrackets,
     };
 }
