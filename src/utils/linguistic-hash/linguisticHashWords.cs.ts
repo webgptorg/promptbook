@@ -1,5 +1,7 @@
 import type { LinguisticHashWordLists } from './linguisticHashTypes';
 
+// spell-checker: disable
+
 /**
  * @@@
  *
