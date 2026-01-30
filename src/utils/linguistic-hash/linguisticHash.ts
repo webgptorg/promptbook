@@ -1,5 +1,5 @@
+import { computeHash } from '../misc/computeHash';
 import { capitalize } from '../normalization/capitalize';
-import { computeHash } from './computeHash';
 import type { LinguisticHashLanguage } from './LinguisticHashLanguage';
 import { getLinguisticHashLanguageConfig } from './LinguisticHashLanguage';
 import type { LinguisticHashWordKind, LinguisticHashWordLists } from './linguisticHashTypes';
@@ -10,6 +10,7 @@ export {
     normalizeLinguisticHashLanguage,
 } from './LinguisticHashLanguage';
 export type { LinguisticHashLanguage } from './LinguisticHashLanguage';
+// <- TODO: !!!! Remove re-exports
 
 /**
  * Creates a human-readable hash as a short, story-like phrase.
