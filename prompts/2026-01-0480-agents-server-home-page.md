@@ -15,7 +15,7 @@
 
 ---
 
-[ ] !!
+[x] ~$0.61
 
 [✨⛵️] Allows to add a custom message on the homepage of the agent's server.
 
@@ -46,4 +46,5 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
 

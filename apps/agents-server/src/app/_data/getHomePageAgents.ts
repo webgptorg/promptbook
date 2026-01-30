@@ -3,6 +3,7 @@
 import type { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
 import { $getTableName } from '../../database/$getTableName';
 import { $provideSupabaseForServer } from '../../database/$provideSupabaseForServer';
+import { getMetadata } from '../../database/getMetadata';
 import { $provideAgentCollectionForServer } from '../../tools/$provideAgentCollectionForServer';
 import { getCurrentUser } from '../../utils/getCurrentUser';
 
@@ -19,6 +20,10 @@ export type HomePageAgent = AgentBasicInformation & {
 export type HomePageAgentsResult = {
     agents: ReadonlyArray<HomePageAgent>;
     currentUser: Awaited<ReturnType<typeof getCurrentUser>>;
+    /**
+     * Markdown message displayed above the agents list on the homepage.
+     */
+    homepageMessage: string | null;
 };
 
 /**
@@ -28,6 +33,7 @@ export async function getHomePageAgents(): Promise<HomePageAgentsResult> {
     const currentUser = await getCurrentUser();
     const collection = await $provideAgentCollectionForServer();
     const allAgents = await collection.listAgents();
+    const homepageMessage = await getMetadata('HOMEPAGE_MESSAGE');
 
     const supabase = $provideSupabaseForServer();
     const visibilityResult = await supabase
@@ -37,11 +43,11 @@ export async function getHomePageAgents(): Promise<HomePageAgentsResult> {
 
     if (visibilityResult.error) {
         console.error('Error fetching agent visibility:', visibilityResult.error);
-        return { agents: allAgents, currentUser };
+        return { agents: allAgents, currentUser, homepageMessage };
     }
 
     if (!visibilityResult.data) {
-        return { agents: allAgents, currentUser };
+        return { agents: allAgents, currentUser, homepageMessage };
     }
 
     const visibilityMap = new Map<string, 'PUBLIC' | 'PRIVATE'>(
@@ -65,5 +71,5 @@ export async function getHomePageAgents(): Promise<HomePageAgentsResult> {
             visibility: visibilityMap.get(agent.agentName) as 'PUBLIC' | 'PRIVATE',
         }));
 
-    return { agents, currentUser };
+    return { agents, currentUser, homepageMessage };
 }

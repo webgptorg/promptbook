@@ -2,6 +2,7 @@
 
 -   Leveraged `spaceTrim` across the repository for better readability and maintainability of multiline strings and string joins.
 -   Simplified the Agents Server home page to focus on agents, moved the previous dashboard to `/dashboard`, and linked it from the System menu.
+-   Added a configurable Markdown message (via metadata) shown above the agents list on the Agents Server homepage.
 -   Added a chat preparation chip in Agents Server to signal when GPT assistants are being created before the first response.
 -   Added `[🤰]`-tagged assistant preparation logging (cache lookup, model requirement timing, assistant create/update, vector store progress) and surfaced preparation phases on the "Preparing agent" chip.
 -   Fixed Agents Server Book editor multi-file uploads by debouncing editor updates, tracking placeholders safely, and adding a floating upload panel with pause/resume controls and upload stats.

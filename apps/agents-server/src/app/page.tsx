@@ -4,6 +4,7 @@ import { headers } from 'next/headers';
 import { $sideEffect } from '../../../../src/utils/organization/$sideEffect';
 import { AgentsList } from '../components/Homepage/AgentsList';
 import { ExternalAgentsSectionClient } from '../components/Homepage/ExternalAgentsSectionClient';
+import { HomepageMessage } from '../components/Homepage/HomepageMessage';
 import { $provideServer } from '../tools/$provideServer';
 import { isUserAdmin } from '../utils/isUserAdmin';
 import { getHomePageAgents } from './_data/getHomePageAgents';
@@ -23,7 +24,7 @@ export default async function HomePage(props: HomePageProps) {
 
     const { publicUrl } = await $provideServer();
     const isAdmin = await isUserAdmin(); /* <- TODO: [??] Here should be user permissions */
-    const { agents } = await getHomePageAgents();
+    const { agents, homepageMessage } = await getHomePageAgents();
 
     const searchParams = await props.searchParams;
     const isGraphView = searchParams?.view === 'graph';
@@ -31,6 +32,7 @@ export default async function HomePage(props: HomePageProps) {
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
             <div className="container mx-auto px-4 py-16">
+                <HomepageMessage message={homepageMessage} />
                 <AgentsList agents={[...agents]} isAdmin={isAdmin} publicUrl={publicUrl.href /* <- [??] */} />
 
                 {!isGraphView && <ExternalAgentsSectionClient publicUrl={publicUrl.href /* <- [??] */} />}
