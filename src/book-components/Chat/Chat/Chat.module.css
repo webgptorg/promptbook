@@ -1437,6 +1437,110 @@
     background: #fdfdfd;
 }
 
+.selfLearningModalHeader {
+    align-items: flex-start;
+    gap: 20px;
+    background: linear-gradient(135deg, #f8fafc 0%, #fef9c3 45%, #ecfccb 100%);
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.selfLearningIcon {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #facc15 0%, #4ade80 100%);
+    color: #0f172a;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 16px;
+    letter-spacing: 0.04em;
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.18);
+}
+
+.selfLearningHeaderText {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    text-align: left;
+}
+
+.selfLearningEyebrow {
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #64748b;
+    font-weight: 600;
+}
+
+.selfLearningTitle {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.selfLearningSubtitle {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #475569;
+    max-width: 420px;
+}
+
+.selfLearningHighlights {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.selfLearningCard {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+}
+
+.selfLearningCardLabel {
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #94a3b8;
+    font-weight: 600;
+}
+
+.selfLearningCardValue {
+    margin-top: 8px;
+    font-size: 20px;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.selfLearningCardDescription {
+    margin: 6px 0 0;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #475569;
+}
+
+.selfLearningMeta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #64748b;
+    margin-bottom: 12px;
+}
+
+.selfLearningFooter {
+    margin: 0;
+    font-size: 13px;
+    color: #64748b;
+}
+
 .modalCloseButton {
     position: absolute;
     top: 16px;
@@ -2307,6 +2411,19 @@
         padding: 14px;
         font-size: 16px;
         border-radius: 10px;
+    }
+
+    .selfLearningModalHeader {
+        flex-direction: column;
+    }
+
+    .selfLearningIcon {
+        width: 48px;
+        height: 48px;
+    }
+
+    .selfLearningHighlights {
+        grid-template-columns: 1fr;
     }
 }
 

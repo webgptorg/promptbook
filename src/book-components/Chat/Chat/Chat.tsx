@@ -8,6 +8,7 @@ import { createPortal } from 'react-dom';
 import spaceTrim from 'spacetrim';
 import { USER_CHAT_COLOR } from '../../../config';
 import { SpeechRecognitionEvent, SpeechRecognitionState } from '../../../types/SpeechRecognition';
+import type { SelfLearningCommitmentTypeCounts, SelfLearningToolCallResult } from '../../../types/ToolCall';
 import type { id, string_date_iso8601 } from '../../../types/typeAliases';
 import { Color } from '../../../utils/color/Color';
 import { textColor } from '../../../utils/color/operators/furthest';
@@ -97,6 +98,132 @@ function TeamHeaderProfile({ label, avatarSrc, href, fallbackColor }: TeamHeader
     }
 
     return <div className={styles.teamHeaderProfile}>{content}</div>;
+}
+
+/**
+ * UI-friendly summary item for self-learning details.
+ */
+type SelfLearningSummaryItem = {
+    title: string;
+    value: string;
+    description: string;
+};
+
+/**
+ * Resolved summary data for self-learning tool calls.
+ */
+type SelfLearningSummaryData = {
+    items: SelfLearningSummaryItem[];
+    updatedLabel: string | null;
+};
+
+/**
+ * Parses ISO timestamps into Date instances.
+ */
+function parseIsoDate(value: unknown): Date | null {
+    if (typeof value !== 'string') {
+        return null;
+    }
+
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+/**
+ * Formats singular/plural labels from numeric counts.
+ */
+function formatCountLabel(count: number, singular: string, plural?: string): string {
+    if (count === 1) {
+        return `${count} ${singular}`;
+    }
+
+    const resolvedPlural = plural ?? `${singular}s`;
+    return `${count} ${resolvedPlural}`;
+}
+
+/**
+ * Builds a short, friendly breakdown of learned commitment counts.
+ */
+function formatCommitmentBreakdown(counts: SelfLearningCommitmentTypeCounts): string | null {
+    const parts: string[] = [];
+
+    if (counts.knowledge > 0) {
+        parts.push(formatCountLabel(counts.knowledge, 'fact'));
+    }
+    if (counts.rule > 0) {
+        parts.push(formatCountLabel(counts.rule, 'guideline'));
+    }
+    if (counts.persona > 0) {
+        parts.push(formatCountLabel(counts.persona, 'tone hint', 'tone hints'));
+    }
+    if (counts.other > 0) {
+        parts.push(formatCountLabel(counts.other, 'note'));
+    }
+
+    if (parts.length === 0) {
+        return null;
+    }
+
+    return parts.join(', ');
+}
+
+/**
+ * Builds UI-ready data for the self-learning modal from a tool call.
+ */
+function buildSelfLearningSummary(
+    toolCall: NonNullable<ChatMessage['toolCalls']>[number],
+    resultRaw: TODO_any,
+): SelfLearningSummaryData {
+    const typedResult =
+        resultRaw && typeof resultRaw === 'object' ? (resultRaw as Partial<SelfLearningToolCallResult>) : null;
+    const startedAt = parseIsoDate(typedResult?.startedAt) || getToolCallTimestamp(toolCall);
+    const completedAt = parseIsoDate(typedResult?.completedAt);
+    const updatedAt = completedAt || startedAt;
+    const updatedLabel = updatedAt ? moment(updatedAt).fromNow() : null;
+
+    const samplesAdded =
+        typeof typedResult?.samplesAdded === 'number' ? Math.max(typedResult.samplesAdded, 0) : null;
+    const exampleCount = samplesAdded ?? 1;
+    const exampleValue = formatCountLabel(exampleCount, 'example');
+    const exampleDescription =
+        samplesAdded === null
+            ? 'Saved a small example from this chat to help with similar questions next time.'
+            : `Saved ${exampleValue} from this chat to guide similar questions.`;
+
+    const items: SelfLearningSummaryItem[] = [
+        {
+            title: 'Saved example',
+            value: exampleValue,
+            description: exampleDescription,
+        },
+    ];
+
+    const teacher = typedResult?.teacher;
+    if (teacher) {
+        const commitmentTypes: SelfLearningCommitmentTypeCounts = teacher.commitmentTypes || {
+            total: 0,
+            knowledge: 0,
+            rule: 0,
+            persona: 0,
+            other: 0,
+        };
+        const totalCommitments = Math.max(commitmentTypes.total, 0);
+        const breakdown = formatCommitmentBreakdown(commitmentTypes);
+        const notesValue =
+            totalCommitments > 0 ? formatCountLabel(totalCommitments, 'new note', 'new notes') : 'No new notes';
+        const notesDescription =
+            totalCommitments > 0
+                ? `Added ${breakdown || notesValue.toLowerCase()} to make future replies clearer.`
+                : 'Reviewed this chat and did not find anything new to add.';
+
+        items.push({
+            title: 'Helpful notes',
+            value: notesValue,
+            description: notesDescription,
+        });
+    }
+
+    return { items, updatedLabel };
 }
 
 /**
@@ -1105,6 +1232,8 @@ export function Chat(props: ChatProps) {
                             const isEmail =
                                 selectedToolCall.name === 'send_email' || selectedToolCall.name === 'useEmail';
 
+                            const isSelfLearning = selectedToolCall.name === 'self-learning';
+
                             const args = parseToolCallArguments(selectedToolCall);
 
                             const resultRaw = parseToolCallResult(selectedToolCall.result);
@@ -1245,6 +1374,63 @@ export function Chat(props: ChatProps) {
                                                     No teammate conversation available.
                                                 </div>
                                             )}
+                                        </div>
+                                    </>
+                                );
+                            }
+
+                            if (isSelfLearning) {
+                                const summary = buildSelfLearningSummary(selectedToolCall, resultRaw);
+                                return (
+                                    <>
+                                        <div
+                                            className={classNames(
+                                                styles.searchModalHeader,
+                                                styles.selfLearningModalHeader,
+                                            )}
+                                        >
+                                            <span className={styles.selfLearningIcon} aria-hidden="true">
+                                                AI
+                                            </span>
+                                            <div className={styles.selfLearningHeaderText}>
+                                                <span className={styles.selfLearningEyebrow}>Learning update</span>
+                                                <h3 className={styles.selfLearningTitle}>
+                                                    This agent learned from your chat
+                                                </h3>
+                                                <p className={styles.selfLearningSubtitle}>
+                                                    It quietly saves helpful examples so future replies feel more
+                                                    useful.
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div className={styles.searchModalContent}>
+                                            <div className={styles.selfLearningHighlights}>
+                                                {summary.items.map((item) => (
+                                                    <div key={item.title} className={styles.selfLearningCard}>
+                                                        <span className={styles.selfLearningCardLabel}>
+                                                            {item.title}
+                                                        </span>
+                                                        <div className={styles.selfLearningCardValue}>
+                                                            {item.value}
+                                                        </div>
+                                                        <p className={styles.selfLearningCardDescription}>
+                                                            {item.description}
+                                                        </p>
+                                                    </div>
+                                                ))}
+                                            </div>
+
+                                            {summary.updatedLabel && (
+                                                <div className={styles.selfLearningMeta}>
+                                                    <span>Updated {summary.updatedLabel}</span>
+                                                </div>
+                                            )}
+
+                                            <p className={styles.selfLearningFooter}>
+                                                Learning happens in the background after the reply, so you never have
+                                                to wait.
+                                            </p>
                                         </div>
                                     </>
                                 );

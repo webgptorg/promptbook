@@ -17,7 +17,12 @@ import { validateBook } from '../../book-2.0/agent-source/string_book';
 import { getAllCommitmentsToolTitles } from '../../commitments/_common/getAllCommitmentsToolTitles';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
-import type { ToolCall } from '../../types/ToolCall';
+import type {
+    SelfLearningCommitmentTypeCounts,
+    SelfLearningTeacherSummary,
+    SelfLearningToolCallResult,
+    ToolCall,
+} from '../../types/ToolCall';
 import type { Prompt } from '../../types/Prompt';
 import type {
     string_agent_hash,
@@ -36,6 +41,72 @@ import { just } from '../../utils/organization/just';
 import { getSingleLlmExecutionTools } from '../_multiple/getSingleLlmExecutionTools';
 import { AgentLlmExecutionTools } from './AgentLlmExecutionTools';
 import type { AgentOptions } from './AgentOptions';
+
+/**
+ * Mutable commitment breakdown used while building self-learning summaries.
+ */
+type MutableSelfLearningCommitmentTypeCounts = {
+    total: number;
+    knowledge: number;
+    rule: number;
+    persona: number;
+    other: number;
+};
+
+/**
+ * Creates an empty commitment breakdown for self-learning summaries.
+ */
+function createEmptySelfLearningCommitmentCounts(): MutableSelfLearningCommitmentTypeCounts {
+    return {
+        total: 0,
+        knowledge: 0,
+        rule: 0,
+        persona: 0,
+        other: 0,
+    };
+}
+
+/**
+ * Summarizes teacher commitments into user-friendly counts for self-learning.
+ */
+function summarizeTeacherCommitments(commitments: string): SelfLearningCommitmentTypeCounts {
+    const counts = createEmptySelfLearningCommitmentCounts();
+    const lines = commitments
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0 && line !== '---' && !line.startsWith('```'));
+
+    for (const line of lines) {
+        const keyword = line.split(/\s+/)[0]?.toUpperCase() ?? '';
+        if (!/^[A-Z][A-Z_-]*$/.test(keyword)) {
+            continue;
+        }
+
+        counts.total += 1;
+
+        if (keyword === 'KNOWLEDGE') {
+            counts.knowledge += 1;
+        } else if (keyword === 'RULE') {
+            counts.rule += 1;
+        } else if (keyword === 'PERSONA') {
+            counts.persona += 1;
+        } else {
+            counts.other += 1;
+        }
+    }
+
+    return counts;
+}
+
+/**
+ * Builds the teacher summary payload for the self-learning tool call.
+ */
+function buildTeacherSummary(commitments: string, used: boolean): SelfLearningTeacherSummary {
+    return {
+        used,
+        commitmentTypes: summarizeTeacherCommitments(commitments),
+    };
+}
 
 /**
  * Represents one AI Agent
@@ -261,17 +332,29 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
         await this.#selfLearnSamples(prompt, result);
 
         // Note: [3] Asynchronously call the teacher agent and invoke the silver link. When the teacher fails, keep just the samples
-        await this.#selfLearnTeacher(prompt, result).catch((error) => {
+        let teacherSummary: SelfLearningTeacherSummary | null = null;
+        try {
+            teacherSummary = await this.#selfLearnTeacher(prompt, result);
+        } catch (error) {
             // !!!!! if (this.options.isVerbose) {
             console.error(colors.bgCyan('[Self-learning]') + colors.red(' Failed to learn from teacher agent'));
             console.error(error);
             // }
-        });
+            teacherSummary = this.teacherAgent ? buildTeacherSummary('', true) : null;
+        }
 
         // Note: [4] Notify end of self-learning
+        const completedAt = new Date().toISOString() as string_date_iso8601;
+        const selfLearningResult: SelfLearningToolCallResult = {
+            success: true,
+            startedAt: selfLearningToolCall.createdAt,
+            completedAt,
+            samplesAdded: 1,
+            teacher: teacherSummary || undefined,
+        };
         const completedSelfLearningToolCall: ToolCall = {
             ...selfLearningToolCall,
-            result: { success: true },
+            result: selfLearningResult,
         };
 
         const finalResult = {
@@ -334,11 +417,11 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
     /**
      * Self-learning Step 2: Asynchronously call the teacher agent and invoke the silver link
      */
-    async #selfLearnTeacher(prompt: Prompt, result: ChatPromptResult): Promise<void> {
+    async #selfLearnTeacher(prompt: Prompt, result: ChatPromptResult): Promise<SelfLearningTeacherSummary | null> {
         // [1] Call the teacher agent // <- !!!!! Emojis
 
         if (this.teacherAgent === null) {
-            return;
+            return null;
         }
 
         console.info(colors.bgCyan('[Self-learning]') + colors.cyan(' Teacher'));
@@ -402,7 +485,7 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
                 colors.bgCyan('[Self-learning]') +
                     colors.cyan(' Teacher agent did not provide new commitments to learn'),
             );
-            return;
+            return buildTeacherSummary('', true);
         }
 
         // [2] Append to the current source
@@ -412,6 +495,8 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
 
         // [3] Update the source
         this.agentSource.next(newSource as string_book);
+
+        return buildTeacherSummary(teacherCommitments, true);
     }
 }
 
