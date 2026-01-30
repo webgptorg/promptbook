@@ -1,6 +1,7 @@
 ### 📚 Book
 
 -   Leveraged `spaceTrim` across the repository for better readability and maintainability of multiline strings and string joins.
+-   Simplified the Agents Server home page to focus on agents, moved the previous dashboard to `/dashboard`, and linked it from the System menu.
 -   Added a chat preparation chip in Agents Server to signal when GPT assistants are being created before the first response.
 -   Added `[🤰]`-tagged assistant preparation logging (cache lookup, model requirement timing, assistant create/update, vector store progress) and surfaced preparation phases on the "Preparing agent" chip.
 -   Fixed Agents Server Book editor multi-file uploads by debouncing editor updates, tracking placeholders safely, and adding a floating upload panel with pause/resume controls and upload stats.
@@ -348,3 +349,4 @@
     -   A "Self learning" chip is displayed during the learning phase, similar to tool usage chips.
     -   This enhances user experience by eliminating the wait time for self-learning completion.
 -   Enhanced codebase by using explicit types instead of type inference across multiple files in `src/`, `apps/`, and `scripts/` directories to improve readability and maintainability.
+
