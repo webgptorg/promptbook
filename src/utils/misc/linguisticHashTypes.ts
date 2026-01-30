@@ -11,3 +11,7 @@ export type LinguisticHashWordLists = {
     noun: readonly string[];
     verb: readonly string[];
 };
+
+/**
+ * Note: [💞] Ignore a discrepancy between file name and entity name
+ */

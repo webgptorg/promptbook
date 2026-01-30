@@ -684,3 +684,7 @@ export const LINGUISTIC_HASH_WORD_LISTS_EN: LinguisticHashWordLists = {
     noun: NOUNS,
     verb: VERBS,
 };
+
+/**
+ * Note: [💞] Ignore a discrepancy between file name and entity name
+ */

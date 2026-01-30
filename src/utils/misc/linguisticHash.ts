@@ -1,15 +1,15 @@
 import { capitalize } from '../normalization/capitalize';
 import { computeHash } from './computeHash';
-import { getLinguisticHashLanguageConfig } from './linguisticHashLanguages';
-import type { LinguisticHashLanguage } from './linguisticHashLanguages';
+import { getLinguisticHashLanguageConfig } from './LinguisticHashLanguage';
+import type { LinguisticHashLanguage } from './LinguisticHashLanguage';
 import type { LinguisticHashWordKind, LinguisticHashWordLists } from './linguisticHashTypes';
 
 export {
     DEFAULT_LINGUISTIC_HASH_LANGUAGE,
     LINGUISTIC_HASH_LANGUAGES,
     normalizeLinguisticHashLanguage,
-} from './linguisticHashLanguages';
-export type { LinguisticHashLanguage } from './linguisticHashLanguages';
+} from './LinguisticHashLanguage';
+export type { LinguisticHashLanguage } from './LinguisticHashLanguage';
 
 /**
  * Creates a human-readable hash as a short, story-like phrase.
