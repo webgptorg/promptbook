@@ -353,6 +353,7 @@
     -   Ensured download button is available when source is present.
 -   Added missing sound files to the Agents Server's public directory.
 -   Enhanced the UI of the chips of `TEAM` commitment to show agent profile picture and name instead of ID in agent lists and profile pages.
+-   Rendered chat chip emojis (tool calls and source citations) with the OpenMoji color font in Agents Server.
 -   Migrate `Agent` class and all related classes from using OpenAI Assistants API to OpenAI Responses API.
     -   `KNOWLEDGE` works as before.
     -   Tool calling works as before.
