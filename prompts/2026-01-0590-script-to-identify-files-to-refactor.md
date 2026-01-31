@@ -14,7 +14,7 @@
 
 ---
 
-[ ]
+[x] ~$0.41
 
 [✨🐮] In [script `find-refactor-candidates.ts`](scripts/find-refactor-candidates/find-refactor-candidates.ts) Ignore some paths and files:
 
@@ -61,4 +61,5 @@ Refactor [`ResizablePanels.tsx` file](apps/_common/components/ResizablePanels/Re
 [x]
 
 [✨🐮] In [script `find-refactor-candidates.ts`](scripts/find-refactor-candidates/find-refactor-candidates.ts)
+
 
