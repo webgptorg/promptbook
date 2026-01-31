@@ -889,7 +889,7 @@ export function AgentsList(props: AgentsListProps) {
                 </div>
             </h2>
             {viewMode === 'LIST' ? (
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                     {visibleFolders.map((folder) => (
                         <div
                             key={folder.id}

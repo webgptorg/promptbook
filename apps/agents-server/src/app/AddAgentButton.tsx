@@ -4,10 +4,13 @@ import { string_book } from '@promptbook-local/types';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { forTime } from 'waitasecond';
-import { Card } from '../components/Homepage/Card';
+import { FileCard } from '../components/Homepage/FileCard';
 import { NewAgentDialog } from '../components/NewAgentDialog/NewAgentDialog';
 import { $createAgentFromBookAction, $generateAgentBoilerplateAction } from './actions';
 
+/**
+ * Renders the add-agent card and creation dialog workflow.
+ */
 export function AddAgentButton() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
@@ -48,7 +51,7 @@ export function AddAgentButton() {
                 onClick={isLoading ? undefined : handleAddAgent}
                 className={`cursor-pointer h-full group ${isLoading ? 'pointer-events-none' : ''}`}
             >
-                <Card className="flex items-center justify-center text-lg font-medium text-gray-500 group-hover:text-blue-500 group-hover:border-blue-400 border-dashed border-2">
+                <FileCard className="flex items-center justify-center text-sm font-medium text-gray-500 group-hover:text-blue-500 group-hover:border-blue-400 border-dashed border-2 border-gray-300">
                     {isLoading ? (
                         <>
                             <span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
