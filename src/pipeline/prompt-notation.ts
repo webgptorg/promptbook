@@ -197,10 +197,7 @@ function buildRomanParameterName(index: number): string {
  * @param prefix Prefix to add.
  * @param builder Base builder to wrap.
  */
-function buildPrefixedParameterName(
-    prefix: string,
-    builder: (index: number) => string,
-): (index: number) => string {
+function buildPrefixedParameterName(prefix: string, builder: (index: number) => string): (index: number) => string {
     return (index: number) => `${prefix}${builder(index)}`;
 }
 
@@ -365,15 +362,12 @@ export function prompt(strings: TemplateStringsArray, ...values: Array<really_un
     const parameterNamesOrdered: string[] = parameterEntries.map((entry) => entry.name);
 
     // Combine strings and values
-    let pipelineString = stringsWithHiddenParameters.reduce(
-        (result, stringsItem, i) => {
-            const parameterName = parameterNamesOrdered[i];
-            return parameterName === undefined
-                ? `${result}${stringsItem}`
-                : `${result}${stringsItem}${formatParameterPlaceholder(parameterName)}`;
-        },
-        '',
-    );
+    let pipelineString = stringsWithHiddenParameters.reduce((result, stringsItem, i) => {
+        const parameterName = parameterNamesOrdered[i];
+        return parameterName === undefined
+            ? `${result}${stringsItem}`
+            : `${result}${stringsItem}${formatParameterPlaceholder(parameterName)}`;
+    }, '');
 
     pipelineString = spaceTrim(pipelineString);
 
@@ -406,9 +400,7 @@ export function prompt(strings: TemplateStringsArray, ...values: Array<really_un
         }
 
         if (!entry.isInline) {
-            pipelineString = pipelineString
-                .split(entry.parameterMarker)
-                .join(formatParameterPlaceholder(entry.name));
+            pipelineString = pipelineString.split(entry.parameterMarker).join(formatParameterPlaceholder(entry.name));
         }
     }
 

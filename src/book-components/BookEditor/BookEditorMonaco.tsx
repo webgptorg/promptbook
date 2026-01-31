@@ -1168,10 +1168,7 @@ export function BookEditorMonaco(props: BookEditorProps) {
         };
     }, [uploadItems]);
 
-    const activeUploadItems = useMemo(
-        () => uploadItems.filter((item) => item.status !== 'completed'),
-        [uploadItems],
-    );
+    const activeUploadItems = useMemo(() => uploadItems.filter((item) => item.status !== 'completed'), [uploadItems]);
 
     return (
         <div
@@ -1229,7 +1226,8 @@ export function BookEditorMonaco(props: BookEditorProps) {
                     <div className={styles.uploadPanelHeader}>
                         <div className={styles.uploadPanelTitle}>Uploads</div>
                         <div className={styles.uploadPanelHeaderMeta}>
-                            {uploadStats.uploadingFiles + uploadStats.queuedFiles} active / {uploadStats.totalFiles} total
+                            {uploadStats.uploadingFiles + uploadStats.queuedFiles} active / {uploadStats.totalFiles}{' '}
+                            total
                         </div>
                     </div>
                     <div className={styles.uploadPanelSummary}>
@@ -1260,11 +1258,7 @@ export function BookEditorMonaco(props: BookEditorProps) {
                         {activeUploadItems.map((item) => {
                             const percent = Math.round(item.progress * 100);
                             const actionLabel =
-                                item.status === 'paused'
-                                    ? 'Resume'
-                                    : item.status === 'failed'
-                                    ? 'Retry'
-                                    : 'Pause';
+                                item.status === 'paused' ? 'Resume' : item.status === 'failed' ? 'Retry' : 'Pause';
                             const canPause = item.status === 'uploading' || item.status === 'queued';
                             const canResume = item.status === 'paused' || item.status === 'failed';
 

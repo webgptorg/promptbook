@@ -181,8 +181,7 @@ function buildSelfLearningSummary(
     const updatedAt = completedAt || startedAt;
     const updatedLabel = updatedAt ? moment(updatedAt).fromNow() : null;
 
-    const samplesAdded =
-        typeof typedResult?.samplesAdded === 'number' ? Math.max(typedResult.samplesAdded, 0) : null;
+    const samplesAdded = typeof typedResult?.samplesAdded === 'number' ? Math.max(typedResult.samplesAdded, 0) : null;
     const exampleCount = samplesAdded ?? 1;
     const exampleValue = formatCountLabel(exampleCount, 'example');
     const exampleDescription =
@@ -1254,7 +1253,9 @@ export function Chat(props: ChatProps) {
                                     .filter((entry) => entry && entry.content)
                                     .map((entry, index) => ({
                                         id: `team-${index}`,
-                                        createdAt: new Date(baseTime + index * 1000).toISOString() as string_date_iso8601,
+                                        createdAt: new Date(
+                                            baseTime + index * 1000,
+                                        ).toISOString() as string_date_iso8601,
                                         sender:
                                             entry.sender === 'TEAMMATE' || entry.role === 'TEAMMATE'
                                                 ? 'TEAMMATE'
@@ -1411,9 +1412,7 @@ export function Chat(props: ChatProps) {
                                                         <span className={styles.selfLearningCardLabel}>
                                                             {item.title}
                                                         </span>
-                                                        <div className={styles.selfLearningCardValue}>
-                                                            {item.value}
-                                                        </div>
+                                                        <div className={styles.selfLearningCardValue}>{item.value}</div>
                                                         <p className={styles.selfLearningCardDescription}>
                                                             {item.description}
                                                         </p>
@@ -1428,8 +1427,8 @@ export function Chat(props: ChatProps) {
                                             )}
 
                                             <p className={styles.selfLearningFooter}>
-                                                Learning happens in the background after the reply, so you never have
-                                                to wait.
+                                                Learning happens in the background after the reply, so you never have to
+                                                wait.
                                             </p>
                                         </div>
                                     </>
