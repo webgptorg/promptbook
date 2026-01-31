@@ -31,6 +31,7 @@
 -   Faded Agents Server chat action buttons while scrolling when they overlap the first visible message.
 -   Updated the Agents Server self-learning chip to use the brain icon without brackets.
 -   Enhanced the Agents Server self-learning modal with a friendly summary and server-provided learning details.
+-   Updated the Agents Server self-learning modal to show agent + teacher avatars and render learned commitments in a read-only BookEditor.
 -   Added per-message timestamps in Agents Server chat with agent generation durations, and included timestamps in exported chat files.
 -   Added Promptbook SDK integration snippets in Agents Server, including RemoteAgent Node.js and React examples on the integration page.
 -   Added API key field to the OpenRouter integration section in Agents Server to match OpenAI compatible setup.

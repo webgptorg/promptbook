@@ -1445,25 +1445,41 @@
 }
 
 .selfLearningModalHeader {
-    align-items: flex-start;
-    gap: 20px;
+    align-items: center;
+    gap: 18px;
     background: linear-gradient(135deg, #f8fafc 0%, #fef9c3 45%, #ecfccb 100%);
     border-bottom: 1px solid #e2e8f0;
 }
 
-.selfLearningIcon {
-    width: 52px;
-    height: 52px;
-    border-radius: 16px;
-    background: linear-gradient(135deg, #facc15 0%, #4ade80 100%);
+.selfLearningAvatarGroup {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.selfLearningAvatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #e2e8f0;
     color: #0f172a;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-weight: 700;
-    font-size: 16px;
-    letter-spacing: 0.04em;
-    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.18);
+    font-weight: 600;
+    font-size: 18px;
+    letter-spacing: 0.02em;
+    background-size: cover;
+    background-position: center;
+    box-shadow: 0 10px 20px rgba(15, 23, 42, 0.18);
+}
+
+.selfLearningAvatarInitial {
+    line-height: 1;
+}
+
+.selfLearningTeacher {
+    background: linear-gradient(135deg, #fde68a 0%, #86efac 100%);
 }
 
 .selfLearningHeaderText {
@@ -1473,45 +1489,45 @@
     text-align: left;
 }
 
-.selfLearningEyebrow {
-    font-size: 12px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: #64748b;
-    font-weight: 600;
-}
-
 .selfLearningTitle {
     margin: 0;
-    font-size: 22px;
+    font-size: 20px;
     font-weight: 600;
     color: #0f172a;
 }
 
-.selfLearningSubtitle {
-    margin: 0;
-    font-size: 14px;
-    line-height: 1.5;
-    color: #475569;
-    max-width: 420px;
+.selfLearningMetaRow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: #64748b;
+    margin-bottom: 12px;
 }
 
-.selfLearningHighlights {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 16px;
-    margin-bottom: 16px;
+.selfLearningMeta {
+    font-size: 13px;
+    color: #64748b;
 }
 
-.selfLearningCard {
+.selfLearningMetaChip {
+    background: #e2e8f0;
+    color: #0f172a;
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.selfLearningCommitments {
     background: #f8fafc;
     border: 1px solid #e2e8f0;
     border-radius: 16px;
     padding: 16px;
-    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
 }
 
-.selfLearningCardLabel {
+.selfLearningCommitmentsLabel {
     font-size: 12px;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -1519,33 +1535,16 @@
     font-weight: 600;
 }
 
-.selfLearningCardValue {
-    margin-top: 8px;
-    font-size: 20px;
-    font-weight: 600;
-    color: #0f172a;
+.selfLearningBookEditor {
+    margin-top: 12px;
+    overflow: hidden;
+    border-radius: 12px;
 }
 
-.selfLearningCardDescription {
-    margin: 6px 0 0;
+.selfLearningEmpty {
+    margin-top: 12px;
     font-size: 13px;
-    line-height: 1.5;
     color: #475569;
-}
-
-.selfLearningMeta {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 13px;
-    color: #64748b;
-    margin-bottom: 12px;
-}
-
-.selfLearningFooter {
-    margin: 0;
-    font-size: 13px;
-    color: #64748b;
 }
 
 .modalCloseButton {
@@ -2422,15 +2421,15 @@
 
     .selfLearningModalHeader {
         flex-direction: column;
+        align-items: flex-start;
     }
 
-    .selfLearningIcon {
-        width: 48px;
-        height: 48px;
+    .selfLearningAvatarGroup {
+        justify-content: flex-start;
     }
 
-    .selfLearningHighlights {
-        grid-template-columns: 1fr;
+    .selfLearningMetaRow {
+        align-items: flex-start;
     }
 }
 

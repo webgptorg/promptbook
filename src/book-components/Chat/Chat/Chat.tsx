@@ -3,12 +3,13 @@
 //          this would not be here because the `@promptbook/components` package should be React library independent of Next.js specifics
 
 import moment from 'moment';
-import { type CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { type CSSProperties, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import spaceTrim from 'spacetrim';
+import { validateBook } from '../../../book-2.0/agent-source/string_book';
 import { USER_CHAT_COLOR } from '../../../config';
 import { SpeechRecognitionEvent, SpeechRecognitionState } from '../../../types/SpeechRecognition';
-import type { SelfLearningCommitmentTypeCounts, SelfLearningToolCallResult } from '../../../types/ToolCall';
+import type { SelfLearningToolCallResult } from '../../../types/ToolCall';
 import type { id, string_date_iso8601 } from '../../../types/typeAliases';
 import { Color } from '../../../utils/color/Color';
 import { textColor } from '../../../utils/color/operators/furthest';
@@ -20,6 +21,7 @@ import { promptbookifyAiText } from '../../../utils/markdown/promptbookifyAiText
 import { normalizeToKebabCase } from '../../../utils/normalization/normalize-to-kebab-case';
 import type { TODO_any } from '../../../utils/organization/TODO_any';
 import { classNames } from '../../_common/react-utils/classNames';
+import { BookEditor } from '../../BookEditor/BookEditor';
 import { ArrowIcon } from '../../icons/ArrowIcon';
 import { AttachmentIcon } from '../../icons/AttachmentIcon';
 import { CloseIcon } from '../../icons/CloseIcon';
@@ -29,6 +31,7 @@ import { MicIcon } from '../../icons/MicIcon';
 import { ResetIcon } from '../../icons/ResetIcon';
 import { SaveIcon } from '../../icons/SaveIcon';
 import { SendIcon } from '../../icons/SendIcon';
+import { TeacherIcon } from '../../icons/TeacherIcon';
 import { TemplateIcon } from '../../icons/TemplateIcon';
 import { ChatEffectsSystem } from '../effects/ChatEffectsSystem';
 import type { ChatEffectConfig } from '../effects/types/ChatEffectConfig';
@@ -69,6 +72,17 @@ type TeamHeaderProfileProps = {
 };
 
 /**
+ * Props for a self-learning modal avatar.
+ */
+type SelfLearningAvatarProps = {
+    label: string;
+    avatarSrc?: string | null;
+    fallbackColor?: string;
+    className?: string;
+    children?: ReactNode;
+};
+
+/**
  * Renders a profile badge used in the TEAM modal header.
  */
 function TeamHeaderProfile({ label, avatarSrc, href, fallbackColor }: TeamHeaderProfileProps) {
@@ -101,19 +115,44 @@ function TeamHeaderProfile({ label, avatarSrc, href, fallbackColor }: TeamHeader
 }
 
 /**
- * UI-friendly summary item for self-learning details.
+ * Renders an avatar badge for the self-learning modal header.
  */
-type SelfLearningSummaryItem = {
-    title: string;
-    value: string;
-    description: string;
-};
+function SelfLearningAvatar({
+    label,
+    avatarSrc,
+    fallbackColor = '#e2e8f0',
+    className,
+    children,
+}: SelfLearningAvatarProps) {
+    const avatarStyle: CSSProperties = {
+        backgroundColor: fallbackColor,
+        backgroundImage: avatarSrc ? `url(${avatarSrc})` : undefined,
+    };
+
+    const initial = label.trim().charAt(0).toUpperCase() || '?';
+
+    return (
+        <div
+            className={classNames(styles.selfLearningAvatar, className)}
+            style={avatarStyle}
+            role="img"
+            aria-label={label}
+            title={label}
+        >
+            {!avatarSrc && (children || <span className={styles.selfLearningAvatarInitial}>{initial}</span>)}
+        </div>
+    );
+}
 
 /**
  * Resolved summary data for self-learning tool calls.
  */
 type SelfLearningSummaryData = {
-    items: SelfLearningSummaryItem[];
+    commitments: Array<string>;
+    commitmentsText: string;
+    commitmentsLineCount: number;
+    hasTeacherCommitments: boolean;
+    samplesLabel: string | null;
     updatedLabel: string | null;
 };
 
@@ -142,32 +181,6 @@ function formatCountLabel(count: number, singular: string, plural?: string): str
 }
 
 /**
- * Builds a short, friendly breakdown of learned commitment counts.
- */
-function formatCommitmentBreakdown(counts: SelfLearningCommitmentTypeCounts): string | null {
-    const parts: string[] = [];
-
-    if (counts.knowledge > 0) {
-        parts.push(formatCountLabel(counts.knowledge, 'fact'));
-    }
-    if (counts.rule > 0) {
-        parts.push(formatCountLabel(counts.rule, 'guideline'));
-    }
-    if (counts.persona > 0) {
-        parts.push(formatCountLabel(counts.persona, 'tone hint', 'tone hints'));
-    }
-    if (counts.other > 0) {
-        parts.push(formatCountLabel(counts.other, 'note'));
-    }
-
-    if (parts.length === 0) {
-        return null;
-    }
-
-    return parts.join(', ');
-}
-
-/**
  * Builds UI-ready data for the self-learning modal from a tool call.
  */
 function buildSelfLearningSummary(
@@ -181,48 +194,25 @@ function buildSelfLearningSummary(
     const updatedAt = completedAt || startedAt;
     const updatedLabel = updatedAt ? moment(updatedAt).fromNow() : null;
 
-    const samplesAdded = typeof typedResult?.samplesAdded === 'number' ? Math.max(typedResult.samplesAdded, 0) : null;
-    const exampleCount = samplesAdded ?? 1;
-    const exampleValue = formatCountLabel(exampleCount, 'example');
-    const exampleDescription =
-        samplesAdded === null
-            ? 'Saved a small example from this chat to help with similar questions next time.'
-            : `Saved ${exampleValue} from this chat to guide similar questions.`;
-
-    const items: SelfLearningSummaryItem[] = [
-        {
-            title: 'Saved example',
-            value: exampleValue,
-            description: exampleDescription,
-        },
-    ];
-
     const teacher = typedResult?.teacher;
-    if (teacher) {
-        const commitmentTypes: SelfLearningCommitmentTypeCounts = teacher.commitmentTypes || {
-            total: 0,
-            knowledge: 0,
-            rule: 0,
-            persona: 0,
-            other: 0,
-        };
-        const totalCommitments = Math.max(commitmentTypes.total, 0);
-        const breakdown = formatCommitmentBreakdown(commitmentTypes);
-        const notesValue =
-            totalCommitments > 0 ? formatCountLabel(totalCommitments, 'new note', 'new notes') : 'No new notes';
-        const notesDescription =
-            totalCommitments > 0
-                ? `Added ${breakdown || notesValue.toLowerCase()} to make future replies clearer.`
-                : 'Reviewed this chat and did not find anything new to add.';
+    const commitmentLines = Array.isArray(teacher?.commitments) ? [...teacher.commitments] : [];
+    const commitmentsText = commitmentLines.join('\n');
+    const commitmentsLineCount = commitmentsText ? countLines(commitmentsText) : 0;
+    const totalCommitments =
+        typeof teacher?.commitmentTypes?.total === 'number' ? Math.max(teacher.commitmentTypes.total, 0) : 0;
+    const hasTeacherCommitments = totalCommitments > 0 || commitmentLines.length > 0;
+    const samplesAdded = typeof typedResult?.samplesAdded === 'number' ? Math.max(typedResult.samplesAdded, 0) : null;
+    const samplesLabel =
+        samplesAdded && samplesAdded > 0 ? `${formatCountLabel(samplesAdded, 'example')} saved` : null;
 
-        items.push({
-            title: 'Helpful notes',
-            value: notesValue,
-            description: notesDescription,
-        });
-    }
-
-    return { items, updatedLabel };
+    return {
+        commitments: commitmentLines,
+        commitmentsText,
+        commitmentsLineCount,
+        hasTeacherCommitments,
+        samplesLabel,
+        updatedLabel,
+    };
 }
 
 /**
@@ -1513,6 +1503,13 @@ export function Chat(props: ChatProps) {
 
                             if (isSelfLearning) {
                                 const summary = buildSelfLearningSummary(selectedToolCall, resultRaw);
+                                const agentLabel = agentParticipant?.fullname || agentParticipant?.name || 'Agent';
+                                const agentAvatarColor = Color.fromSafe(
+                                    agentParticipant?.color || buttonColor,
+                                ).toHex();
+                                const commitmentsHeight = summary.commitmentsLineCount
+                                    ? Math.min(Math.max(summary.commitmentsLineCount * 26, 140), 320)
+                                    : 0;
                                 return (
                                     <>
                                         <div
@@ -1521,46 +1518,61 @@ export function Chat(props: ChatProps) {
                                                 styles.selfLearningModalHeader,
                                             )}
                                         >
-                                            <span className={styles.selfLearningIcon} aria-hidden="true">
-                                                AI
-                                            </span>
+                                            <div className={styles.selfLearningAvatarGroup}>
+                                                <SelfLearningAvatar
+                                                    label={agentLabel}
+                                                    avatarSrc={agentParticipant?.avatarSrc}
+                                                    fallbackColor={agentAvatarColor}
+                                                />
+                                                <SelfLearningAvatar label="Teacher" className={styles.selfLearningTeacher}>
+                                                    <TeacherIcon size={18} />
+                                                </SelfLearningAvatar>
+                                            </div>
                                             <div className={styles.selfLearningHeaderText}>
-                                                <span className={styles.selfLearningEyebrow}>Learning update</span>
-                                                <h3 className={styles.selfLearningTitle}>
-                                                    This agent learned from your chat
-                                                </h3>
-                                                <p className={styles.selfLearningSubtitle}>
-                                                    It quietly saves helpful examples so future replies feel more
-                                                    useful.
-                                                </p>
+                                                <h3 className={styles.selfLearningTitle}>Learned commitments</h3>
                                             </div>
                                         </div>
 
                                         <div className={styles.searchModalContent}>
-                                            <div className={styles.selfLearningHighlights}>
-                                                {summary.items.map((item) => (
-                                                    <div key={item.title} className={styles.selfLearningCard}>
-                                                        <span className={styles.selfLearningCardLabel}>
-                                                            {item.title}
+                                            {(summary.samplesLabel || summary.updatedLabel) && (
+                                                <div className={styles.selfLearningMetaRow}>
+                                                    {summary.samplesLabel && (
+                                                        <span className={styles.selfLearningMetaChip}>
+                                                            {summary.samplesLabel}
                                                         </span>
-                                                        <div className={styles.selfLearningCardValue}>{item.value}</div>
-                                                        <p className={styles.selfLearningCardDescription}>
-                                                            {item.description}
-                                                        </p>
-                                                    </div>
-                                                ))}
-                                            </div>
-
-                                            {summary.updatedLabel && (
-                                                <div className={styles.selfLearningMeta}>
-                                                    <span>Updated {summary.updatedLabel}</span>
+                                                    )}
+                                                    {summary.updatedLabel && (
+                                                        <span className={styles.selfLearningMeta}>
+                                                            Updated {summary.updatedLabel}
+                                                        </span>
+                                                    )}
                                                 </div>
                                             )}
-
-                                            <p className={styles.selfLearningFooter}>
-                                                Learning happens in the background after the reply, so you never have to
-                                                wait.
-                                            </p>
+                                            <div className={styles.selfLearningCommitments}>
+                                                <span className={styles.selfLearningCommitmentsLabel}>
+                                                    Teacher updates
+                                                </span>
+                                                {summary.commitments.length > 0 ? (
+                                                    <div className={styles.selfLearningBookEditor}>
+                                                        <BookEditor
+                                                            value={validateBook(summary.commitmentsText)}
+                                                            isReadonly={true}
+                                                            height={commitmentsHeight}
+                                                            isUploadButtonShown={false}
+                                                            isCameraButtonShown={false}
+                                                            isDownloadButtonShown={false}
+                                                            isAboutButtonShown={false}
+                                                            isFullscreenButtonShown={false}
+                                                        />
+                                                    </div>
+                                                ) : (
+                                                    <div className={styles.selfLearningEmpty}>
+                                                        {summary.hasTeacherCommitments
+                                                            ? 'Commitments were added, but details were not provided.'
+                                                            : 'No new commitments were added.'}
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                     </>
                                 );
