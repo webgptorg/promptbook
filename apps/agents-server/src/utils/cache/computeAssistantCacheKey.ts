@@ -2,6 +2,8 @@ import { parseAgentSource } from '@promptbook-local/core';
 import { string_book } from '@promptbook-local/types';
 import { computeHash } from '@promptbook-local/utils';
 
+const ASSISTANT_NAME_HASH_LENGTH = 8;
+
 /**
  * Configuration that uniquely identifies an OpenAI Assistant
  */
@@ -111,6 +113,18 @@ export function computeAssistantCacheKey(configuration: AssistantConfiguration):
 
     // Hash the configuration object
     return computeHash(JSON.stringify(cacheObject));
+}
+
+/**
+ * Builds an assistant name by appending a short hash suffix to the base name.
+ *
+ * @param name - Base agent or assistant name
+ * @param cacheKey - Full cache key hash
+ * @returns Assistant name with hash suffix
+ */
+export function formatAssistantNameWithHash(name: string, cacheKey: string): string {
+    const suffix = cacheKey.slice(0, ASSISTANT_NAME_HASH_LENGTH);
+    return `${name} - ${suffix}`;
 }
 
 /**

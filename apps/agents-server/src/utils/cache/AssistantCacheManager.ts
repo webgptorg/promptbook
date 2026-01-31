@@ -6,6 +6,7 @@ import {
     AssistantConfiguration,
     computeAssistantCacheKey,
     extractAssistantConfiguration,
+    formatAssistantNameWithHash,
 } from './computeAssistantCacheKey';
 
 /**
@@ -177,16 +178,17 @@ export class AssistantCacheManager {
         // Create the assistant with the configuration
         // Instructions already include any dynamic context if includeDynamicContext was true
         const creationStartedAtMs = Date.now();
+        const assistantName = formatAssistantNameWithHash(configuration.name || agentName, cacheKey);
 
         if (this.isVerbose) {
             console.info('[🤰]', 'Creating assistant via cache manager', {
                 agentName,
-                assistantName: configuration.name || agentName,
+                assistantName,
                 instructionsLength: configuration.instructions.length,
             });
         }
         const newTools = await baseTools.createNewAssistant({
-            name: configuration.name || agentName,
+            name: assistantName,
             instructions: configuration.instructions,
             // Future: Add knowledge sources, tools when supported
         });

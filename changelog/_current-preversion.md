@@ -275,6 +275,7 @@
     -   Made the system extensible for future configuration parameters (model, temperature, tools)
     -   Added detailed logging for cache hits and misses with cache keys
     -   Refactored `handleChatCompletion` to use the new `AssistantCacheManager`
+-   Appended an 8-character assistant cache hash to GPT assistant names in Agents Server for clearer differentiation (e.g. `My Agent - abcd1234`).
 -   Enhanced error handling for agent chat in Agents Server:
     -   Created centralized error message mapping utility (`errorMessages.ts`) following DRY principle:
         -   Categorizes errors into user-friendly categories (network, authentication, validation, rate limit, server error, timeout, etc.)
@@ -355,4 +356,3 @@
     -   A "Self learning" chip is displayed during the learning phase, similar to tool usage chips.
     -   This enhances user experience by eliminating the wait time for self-learning completion.
 -   Enhanced codebase by using explicit types instead of type inference across multiple files in `src/`, `apps/`, and `scripts/` directories to improve readability and maintainability.
-
