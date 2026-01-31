@@ -173,6 +173,57 @@ type MermaidGraph = {
 const normalizeServerUrl = (url: string): string => url.replace(/\/$/, '');
 
 /**
+ * Normalize a selected agent identifier by stripping agent URL prefixes.
+ */
+const normalizeSelectedAgentIdentifier = (value: string): string => {
+    const trimmed = value.trim();
+    if (!trimmed) {
+        return '';
+    }
+
+    const withoutHash = trimmed.split('#')[0] ?? trimmed;
+    const withoutQuery = withoutHash.split('?')[0] ?? withoutHash;
+    const normalized = withoutQuery.replace(/\/$/, '');
+    const agentsIndex = normalized.lastIndexOf('/agents/');
+    if (agentsIndex >= 0) {
+        return normalized.slice(agentsIndex + '/agents/'.length);
+    }
+
+    return normalized.replace(/^\/agents\//, '');
+};
+
+/**
+ * Parse the selected agent input into identifier and optional server URL.
+ */
+const parseSelectedAgentInput = (value: string): { identifier: string; serverUrl: string | null } => {
+    const trimmed = value.trim();
+    if (!trimmed) {
+        return { identifier: '', serverUrl: null };
+    }
+
+    if (trimmed.includes('://') && trimmed.includes('/agents/')) {
+        const [serverPart] = trimmed.split('/agents/');
+        return {
+            identifier: normalizeSelectedAgentIdentifier(trimmed),
+            serverUrl: normalizeServerUrl(serverPart),
+        };
+    }
+
+    return { identifier: normalizeSelectedAgentIdentifier(trimmed), serverUrl: null };
+};
+
+/**
+ * Check whether the agent matches the selected identifier.
+ */
+const matchesSelectedAgentIdentifier = (agent: AgentWithVisibility, identifier: string): boolean => {
+    if (!identifier) {
+        return false;
+    }
+
+    return agent.agentName === identifier || agent.permanentId === identifier;
+};
+
+/**
  * Check if a capability type is a graph connection type.
  */
 const isConnectionType = (value: string): value is ConnectionType => CONNECTION_TYPES.includes(value as ConnectionType);
@@ -259,6 +310,60 @@ const matchesAgentUrl = (agent: AgentWithVisibility, targetUrl: string, fallback
 };
 
 /**
+ * Resolve focused node ids based on server and agent selection.
+ */
+const resolveFocusedNodeIds = (
+    nodes: GraphNode[],
+    selectedServerUrl: string | null,
+    selectedAgentName: string | null,
+): Set<string> => {
+    if (!selectedAgentName) {
+        return new Set();
+    }
+
+    const parsedSelection = parseSelectedAgentInput(selectedAgentName);
+    if (!parsedSelection.identifier) {
+        return new Set();
+    }
+
+    const serverFilter =
+        parsedSelection.serverUrl && parsedSelection.serverUrl !== 'ALL'
+            ? parsedSelection.serverUrl
+            : selectedServerUrl && selectedServerUrl !== 'ALL'
+            ? selectedServerUrl
+            : null;
+
+    const focusedNodes = nodes.filter((node) => {
+        if (serverFilter && node.serverUrl !== serverFilter) {
+            return false;
+        }
+
+        return matchesSelectedAgentIdentifier(node.agent, parsedSelection.identifier);
+    });
+
+    return new Set(focusedNodes.map((node) => node.id));
+};
+
+/**
+ * Collect node ids connected to any focused node via graph links.
+ */
+const collectRelatedNodeIds = (links: GraphLink[], focusedNodeIds: Set<string>): Set<string> => {
+    const relatedNodeIds = new Set(focusedNodeIds);
+
+    links.forEach((link) => {
+        if (focusedNodeIds.has(link.source)) {
+            relatedNodeIds.add(link.target);
+        }
+
+        if (focusedNodeIds.has(link.target)) {
+            relatedNodeIds.add(link.source);
+        }
+    });
+
+    return relatedNodeIds;
+};
+
+/**
  * Build the graph nodes and links from agents and filters.
  */
 const buildGraphData = (input: GraphDataInput): GraphData => {
@@ -316,47 +421,20 @@ const buildGraphData = (input: GraphDataInput): GraphData => {
     const normalizedSelectedServerUrl =
         selectedServerUrl && selectedServerUrl !== 'ALL' ? normalizeServerUrl(selectedServerUrl) : selectedServerUrl;
 
-    if (normalizedSelectedServerUrl && normalizedSelectedServerUrl !== 'ALL') {
-        const serverNodes = nodes.filter((node) => node.serverUrl === normalizedSelectedServerUrl);
-        const serverNodeIds = new Set(serverNodes.map((node) => node.id));
+    const focusedNodeIds = resolveFocusedNodeIds(nodes, normalizedSelectedServerUrl, selectedAgentName);
 
-        if (selectedAgentName) {
-            const relatedNodeIds = new Set<string>();
-            const focusedNodeId = `${normalizedSelectedServerUrl}/${selectedAgentName}`;
-            relatedNodeIds.add(focusedNodeId);
-
-            links.forEach((link) => {
-                if (link.source === focusedNodeId) {
-                    relatedNodeIds.add(link.target);
-                }
-                if (link.target === focusedNodeId) {
-                    relatedNodeIds.add(link.source);
-                }
-            });
-
-            filteredNodes = nodes.filter((node) => relatedNodeIds.has(node.id));
-            filteredLinks = links.filter((link) => relatedNodeIds.has(link.source) && relatedNodeIds.has(link.target));
-        } else {
-            filteredNodes = serverNodes;
-            filteredLinks = links.filter((link) => serverNodeIds.has(link.source) && serverNodeIds.has(link.target));
-        }
-    } else if (selectedAgentName) {
-        const relatedNodeIds = new Set<string>();
-        const focusedNodes = nodes.filter((node) => node.agent.agentName === selectedAgentName);
-
-        focusedNodes.forEach((node) => relatedNodeIds.add(node.id));
-
-        links.forEach((link) => {
-            if (focusedNodes.some((node) => node.id === link.source)) {
-                relatedNodeIds.add(link.target);
-            }
-            if (focusedNodes.some((node) => node.id === link.target)) {
-                relatedNodeIds.add(link.source);
-            }
-        });
-
+    if (focusedNodeIds.size > 0) {
+        const relatedNodeIds = collectRelatedNodeIds(links, focusedNodeIds);
         filteredNodes = nodes.filter((node) => relatedNodeIds.has(node.id));
         filteredLinks = links.filter((link) => relatedNodeIds.has(link.source) && relatedNodeIds.has(link.target));
+    } else if (normalizedSelectedServerUrl && normalizedSelectedServerUrl !== 'ALL') {
+        const serverNodes = nodes.filter((node) => node.serverUrl === normalizedSelectedServerUrl);
+        const serverNodeIds = new Set(serverNodes.map((node) => node.id));
+        filteredNodes = serverNodes;
+        filteredLinks = links.filter((link) => serverNodeIds.has(link.source) && serverNodeIds.has(link.target));
+    } else if (selectedAgentName) {
+        filteredNodes = [];
+        filteredLinks = [];
     }
 
     return { nodes: filteredNodes, links: filteredLinks };
