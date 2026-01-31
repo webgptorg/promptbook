@@ -120,6 +120,37 @@ body {
     height: 100%;
 }
 
+.agents-graph-surface {
+    background: radial-gradient(circle at 15% 15%, rgba(186, 230, 253, 0.45), transparent 55%),
+        radial-gradient(circle at 85% 85%, rgba(253, 230, 138, 0.35), transparent 60%), #f8fafc;
+}
+
+.agents-graph-surface::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(148, 163, 184, 0.25) 1px, transparent 1px);
+    background-size: 28px 28px;
+    opacity: 0.35;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.agents-graph-canvas {
+    position: relative;
+    z-index: 1;
+}
+
+.agents-graph-surface .mermaid-container svg {
+    font-family: var(--font-poppins), 'Poppins', system-ui, -apple-system, sans-serif;
+    text-rendering: optimizeLegibility;
+}
+
+.agents-graph-surface .mermaid-container svg .edgePath path {
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
 /* Code block styling */
 pre code {
     font-family: var(--font-mono), 'Courier New', monospace;

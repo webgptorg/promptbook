@@ -12,34 +12,67 @@ const DEFAULT_CONNECTION_TYPES = [...CONNECTION_TYPES];
 const GRAPH_MIN_HEIGHT = 480;
 const GRAPH_HEIGHT_OFFSET = 340;
 const MERMAID_LABEL_TOKEN = '__PB_NODE__';
-const MERMAID_LABEL_PADDING = '          ';
-const MERMAID_NODE_STROKE_WIDTH = '0.75';
-const MERMAID_NODE_RADIUS = 12;
-const MERMAID_IMAGE_SIZE = 22;
-const MERMAID_IMAGE_PADDING = 6;
-const MERMAID_TEXT_PADDING = 8;
+const MERMAID_LABEL_PADDING = '            ';
+const MERMAID_NODE_RADIUS = 18;
+const MERMAID_NODE_BORDER_WIDTH = 1;
+const MERMAID_NODE_FILL = '#ffffff';
+const MERMAID_NODE_BORDER_REMOTE = '#e2e8f0';
+const MERMAID_NODE_BORDER_LOCAL = '#bae6fd';
+const MERMAID_NODE_TEXT_COLOR = '#0f172a';
+const MERMAID_NODE_SHADOW_ID = 'pb-agent-node-shadow';
+const MERMAID_NODE_SHADOW_COLOR = '#0f172a';
+const MERMAID_NODE_SHADOW_OPACITY = 0.12;
+const MERMAID_NODE_SHADOW_BLUR = 10;
+const MERMAID_NODE_SHADOW_OFFSET_Y = 6;
+const MERMAID_IMAGE_SIZE = 28;
+const MERMAID_IMAGE_PADDING = 8;
+const MERMAID_TEXT_PADDING = 12;
 const MERMAID_LABEL_FONT_WEIGHT = '600';
+const MERMAID_LABEL_FONT_SIZE = 13;
+const MERMAID_LABEL_LETTER_SPACING = '0.01em';
+const MERMAID_AVATAR_RING_WIDTH = 1.5;
+const MERMAID_AVATAR_RING_PADDING = 1.5;
+const MERMAID_AVATAR_RING_FILL = '#ffffff';
+const MERMAID_AVATAR_RING_LOCAL = '#38bdf8';
+const MERMAID_AVATAR_RING_REMOTE = '#cbd5e1';
+const MERMAID_CLUSTER_FILL = '#f1f5f9';
+const MERMAID_CLUSTER_STROKE = '#e2e8f0';
+const MERMAID_CLUSTER_TEXT = '#64748b';
+const MERMAID_CLUSTER_BORDER_WIDTH = 1;
+const MERMAID_CLUSTER_RADIUS = 18;
 const MERMAID_LAYOUT_BREAKPOINT = 900;
+const MERMAID_FLOWCHART_NODE_SPACING = 36;
+const MERMAID_FLOWCHART_RANK_SPACING = 72;
+const MERMAID_INIT = `%%{init: {"flowchart":{"curve":"basis","nodeSpacing":${MERMAID_FLOWCHART_NODE_SPACING},"rankSpacing":${MERMAID_FLOWCHART_RANK_SPACING}}}}%%`;
 const MERMAID_THEME = {
     bg: '#f8fafc',
     fg: '#0f172a',
-    line: '#94a3b8',
-    accent: '#64748b',
-    muted: '#64748b',
+    line: '#cbd5e1',
+    accent: '#38bdf8',
+    muted: '#94a3b8',
     surface: '#ffffff',
     border: '#e2e8f0',
     transparent: true,
 };
-const MERMAID_EDGE_LABELS: Record<ConnectionType, string> = {
-    inheritance: 'parent',
-    import: 'import',
-    team: 'team',
-};
 const MERMAID_EDGE_STYLES: Record<ConnectionType, string> = {
-    inheritance: '-.->',
-    import: '-->',
-    team: '==>',
+    inheritance: '---',
+    import: '---',
+    team: '---',
 };
+const MERMAID_EDGE_COLORS: Record<ConnectionType, string> = {
+    inheritance: '#38bdf8',
+    import: '#94a3b8',
+    team: '#34d399',
+};
+const MERMAID_EDGE_WIDTHS: Record<ConnectionType, number> = {
+    inheritance: 1.5,
+    import: 1.25,
+    team: 2.5,
+};
+const MERMAID_EDGE_DASHES: Partial<Record<ConnectionType, string>> = {
+    inheritance: '6 6',
+};
+const MERMAID_EDGE_OPACITY = 0.7;
 const SVG_NAMESPACE = 'http://www.w3.org/2000/svg';
 
 /**
@@ -346,6 +379,26 @@ const buildMermaidLabel = (label: string, mermaidId: string): string =>
     `${MERMAID_LABEL_PADDING}${label}${MERMAID_LABEL_TOKEN}${mermaidId}`;
 
 /**
+ * Build the Mermaid linkStyle clause for a connection type.
+ */
+const buildMermaidLinkStyle = (type: ConnectionType): string => {
+    const dashPattern = MERMAID_EDGE_DASHES[type];
+    const styles = [
+        `stroke:${MERMAID_EDGE_COLORS[type]}`,
+        `stroke-width:${MERMAID_EDGE_WIDTHS[type]}px`,
+        `opacity:${MERMAID_EDGE_OPACITY}`,
+        'stroke-linecap:round',
+        'stroke-linejoin:round',
+    ];
+
+    if (dashPattern) {
+        styles.push(`stroke-dasharray:${dashPattern}`);
+    }
+
+    return styles.join(',');
+};
+
+/**
  * Build Mermaid graph data for the current set of agents.
  */
 const buildMermaidGraph = (graphData: GraphData, publicUrl: string, direction: 'LR' | 'TB'): MermaidGraph => {
@@ -393,7 +446,9 @@ const buildMermaidGraph = (graphData: GraphData, publicUrl: string, direction: '
         return left.localeCompare(right);
     });
 
-    const lines: string[] = [`flowchart ${direction}`];
+    const lines: string[] = [MERMAID_INIT, `flowchart ${direction}`];
+    const linkStyleLines: string[] = [];
+    let linkIndex = 0;
 
     sortedServers.forEach((serverUrl, index) => {
         const clusterId = sanitizeMermaidId(`server_${index}_${serverUrl}`);
@@ -413,10 +468,13 @@ const buildMermaidGraph = (graphData: GraphData, publicUrl: string, direction: '
             return;
         }
 
-        const edgeLabel = MERMAID_EDGE_LABELS[link.type];
         const edgeStyle = MERMAID_EDGE_STYLES[link.type];
-        lines.push(`${sourceId} ${edgeStyle}|${edgeLabel}| ${targetId}`);
+        lines.push(`${sourceId} ${edgeStyle} ${targetId}`);
+        linkStyleLines.push(`linkStyle ${linkIndex} ${buildMermaidLinkStyle(link.type)}`);
+        linkIndex += 1;
     });
+
+    lines.push(...linkStyleLines);
 
     return { diagram: lines.join('\n'), nodes };
 };
@@ -445,27 +503,15 @@ const parseSvgNumber = (value: string | null, fallback = 0): number => {
 };
 
 /**
- * Find the closest node rectangle to a label position.
+ * Find the node rectangle associated with a label element.
  */
-const findClosestNodeRect = (rects: SVGRectElement[], labelX: number, labelY: number): SVGRectElement | null => {
-    let closest: SVGRectElement | null = null;
-    let closestDistance = Number.POSITIVE_INFINITY;
+const findNodeRectForLabel = (text: SVGTextElement): SVGRectElement | null => {
+    const group = text.closest('g.node');
+    if (!group) {
+        return null;
+    }
 
-    rects.forEach((rect) => {
-        const rectX = parseSvgNumber(rect.getAttribute('x'));
-        const rectY = parseSvgNumber(rect.getAttribute('y'));
-        const rectHeight = parseSvgNumber(rect.getAttribute('height'));
-        const centerX = rectX + rectWidth / 2;
-        const centerY = rectY + rectHeight / 2;
-        const distance = Math.hypot(centerX - labelX, centerY - labelY);
-
-        if (distance < closestDistance) {
-            closestDistance = distance;
-            closest = rect;
-        }
-    });
-
-    return closest;
+    return group.querySelector('rect') as SVGRectElement | null;
 };
 
 /**
@@ -490,6 +536,56 @@ const ensureSvgDefs = (svg: SVGSVGElement, document: Document): SVGDefsElement =
 };
 
 /**
+ * Ensure the SVG has a drop shadow filter for node cards.
+ */
+const ensureSvgNodeShadow = (defs: SVGDefsElement, document: Document): string => {
+    const existing = defs.querySelector(`#${MERMAID_NODE_SHADOW_ID}`);
+    if (existing) {
+        return MERMAID_NODE_SHADOW_ID;
+    }
+
+    const filter = document.createElementNS(SVG_NAMESPACE, 'filter');
+    filter.setAttribute('id', MERMAID_NODE_SHADOW_ID);
+    filter.setAttribute('x', '-20%');
+    filter.setAttribute('y', '-20%');
+    filter.setAttribute('width', '140%');
+    filter.setAttribute('height', '140%');
+
+    const dropShadow = document.createElementNS(SVG_NAMESPACE, 'feDropShadow');
+    dropShadow.setAttribute('dx', '0');
+    dropShadow.setAttribute('dy', MERMAID_NODE_SHADOW_OFFSET_Y.toString());
+    dropShadow.setAttribute('stdDeviation', MERMAID_NODE_SHADOW_BLUR.toString());
+    dropShadow.setAttribute('flood-color', MERMAID_NODE_SHADOW_COLOR);
+    dropShadow.setAttribute('flood-opacity', MERMAID_NODE_SHADOW_OPACITY.toString());
+    filter.appendChild(dropShadow);
+    defs.appendChild(filter);
+
+    return MERMAID_NODE_SHADOW_ID;
+};
+
+/**
+ * Apply soft styling to Mermaid cluster containers.
+ */
+const styleClusterElements = (svg: SVGSVGElement): void => {
+    const clusterRects = Array.from(svg.querySelectorAll('g.cluster rect')) as SVGRectElement[];
+    const clusterLabels = Array.from(svg.querySelectorAll('g.cluster text')) as SVGTextElement[];
+
+    clusterRects.forEach((rect) => {
+        rect.setAttribute('rx', MERMAID_CLUSTER_RADIUS.toString());
+        rect.setAttribute('ry', MERMAID_CLUSTER_RADIUS.toString());
+        rect.setAttribute('fill', MERMAID_CLUSTER_FILL);
+        rect.setAttribute('stroke', MERMAID_CLUSTER_STROKE);
+        rect.setAttribute('stroke-width', MERMAID_CLUSTER_BORDER_WIDTH.toString());
+    });
+
+    clusterLabels.forEach((label) => {
+        label.setAttribute('fill', MERMAID_CLUSTER_TEXT);
+        label.setAttribute('font-weight', MERMAID_LABEL_FONT_WEIGHT);
+        label.setAttribute('font-size', MERMAID_LABEL_FONT_SIZE.toString());
+    });
+};
+
+/**
  * Decorate Mermaid SVG output with agent avatars and interaction hooks.
  */
 const decorateMermaidSvg = (
@@ -511,9 +607,8 @@ const decorateMermaidSvg = (
 
     const defs = ensureSvgDefs(svg, document);
     const nodeLookup = new Map(nodes.map((node) => [node.mermaidId, node]));
-    const rects = Array.from(svg.querySelectorAll('rect')).filter(
-        (rect) => rect.getAttribute('stroke-width') === MERMAID_NODE_STROKE_WIDTH,
-    );
+    const nodeShadowId = ensureSvgNodeShadow(defs, document);
+    styleClusterElements(svg);
     const textNodes = Array.from(svg.querySelectorAll('text')).filter((text) =>
         text.textContent?.includes(MERMAID_LABEL_TOKEN),
     );
@@ -534,13 +629,10 @@ const decorateMermaidSvg = (
         const label = labelWithPadding.trimStart();
         text.textContent = label;
         text.setAttribute('data-node-id', mermaidId);
-        text.setAttribute('font-weight', MERMAID_LABEL_FONT_WEIGHT);
         text.setAttribute('text-anchor', 'start');
         text.setAttribute('xml:space', 'preserve');
 
-        const labelX = parseSvgNumber(text.getAttribute('x'));
-        const labelY = parseSvgNumber(text.getAttribute('y'));
-        const rect = findClosestNodeRect(rects, labelX, labelY);
+        const rect = findNodeRectForLabel(text);
 
         if (!rect) {
             return;
@@ -549,19 +641,33 @@ const decorateMermaidSvg = (
         const rectX = parseSvgNumber(rect.getAttribute('x'));
         const rectY = parseSvgNumber(rect.getAttribute('y'));
         const rectHeight = parseSvgNumber(rect.getAttribute('height'));
-        const imageSize = Math.min(MERMAID_IMAGE_SIZE, rectHeight - MERMAID_IMAGE_PADDING * 2);
+        const imageSize = Math.max(0, Math.min(MERMAID_IMAGE_SIZE, rectHeight - MERMAID_IMAGE_PADDING * 2));
+        if (imageSize === 0) {
+            return;
+        }
         const imageX = rectX + MERMAID_IMAGE_PADDING;
         const imageY = rectY + (rectHeight - imageSize) / 2;
         const textX = imageX + imageSize + MERMAID_TEXT_PADDING;
+        const borderColor = node.isLocal ? MERMAID_NODE_BORDER_LOCAL : MERMAID_NODE_BORDER_REMOTE;
+        const ringColor = node.isLocal ? MERMAID_AVATAR_RING_LOCAL : MERMAID_AVATAR_RING_REMOTE;
+        const ringRadius = imageSize / 2 + MERMAID_AVATAR_RING_PADDING;
 
         rect.setAttribute('rx', MERMAID_NODE_RADIUS.toString());
         rect.setAttribute('ry', MERMAID_NODE_RADIUS.toString());
+        rect.setAttribute('fill', MERMAID_NODE_FILL);
+        rect.setAttribute('stroke', borderColor);
+        rect.setAttribute('stroke-width', MERMAID_NODE_BORDER_WIDTH.toString());
+        rect.setAttribute('filter', `url(#${nodeShadowId})`);
         rect.setAttribute('data-node-id', mermaidId);
         rect.setAttribute('style', 'cursor: pointer;');
 
         text.setAttribute('x', textX.toString());
         text.setAttribute('y', (rectY + rectHeight / 2).toString());
         text.setAttribute('dominant-baseline', 'central');
+        text.setAttribute('font-weight', MERMAID_LABEL_FONT_WEIGHT);
+        text.setAttribute('font-size', MERMAID_LABEL_FONT_SIZE.toString());
+        text.setAttribute('letter-spacing', MERMAID_LABEL_LETTER_SPACING);
+        text.setAttribute('fill', MERMAID_NODE_TEXT_COLOR);
         text.setAttribute('style', 'cursor: pointer;');
 
         const imageUrl = resolveNodeImageUrl(node, imageStatusMap[node.graphNodeId]);
@@ -575,6 +681,16 @@ const decorateMermaidSvg = (
         clipCircle.setAttribute('r', (imageSize / 2).toString());
         clipPath.appendChild(clipCircle);
         defs.appendChild(clipPath);
+
+        const ring = document.createElementNS(SVG_NAMESPACE, 'circle');
+        ring.setAttribute('cx', (imageX + imageSize / 2).toString());
+        ring.setAttribute('cy', (imageY + imageSize / 2).toString());
+        ring.setAttribute('r', ringRadius.toString());
+        ring.setAttribute('fill', MERMAID_AVATAR_RING_FILL);
+        ring.setAttribute('stroke', ringColor);
+        ring.setAttribute('stroke-width', MERMAID_AVATAR_RING_WIDTH.toString());
+        ring.setAttribute('data-node-id', mermaidId);
+        ring.setAttribute('style', 'cursor: pointer;');
 
         const image = document.createElementNS(SVG_NAMESPACE, 'image');
         image.setAttribute('href', imageUrl);
@@ -591,6 +707,7 @@ const decorateMermaidSvg = (
         title.textContent = node.tooltip;
         rect.appendChild(title);
 
+        svg.insertBefore(ring, text);
         svg.insertBefore(image, text);
     });
 
@@ -875,7 +992,7 @@ export function AgentsGraph(props: AgentsGraphProps) {
 
     return (
         <div className="space-y-4">
-            <div className="flex flex-wrap items-center gap-4 bg-white p-4 rounded-lg border shadow-sm">
+            <div className="flex flex-wrap items-center gap-4 rounded-xl border border-slate-200 bg-white/90 p-4 shadow-sm">
                 <div className="flex items-center gap-2">
                     <span className="text-sm font-medium text-gray-700">Show connections:</span>
                     <label className="flex items-center gap-1 cursor-pointer">
@@ -964,7 +1081,7 @@ export function AgentsGraph(props: AgentsGraphProps) {
             </div>
 
             <div
-                className="relative border rounded-xl overflow-auto bg-slate-50 shadow-inner"
+                className="agents-graph-surface relative overflow-auto rounded-2xl border border-slate-200 shadow-inner"
                 style={{ height: graphHeight }}
             >
                 {graphData.nodes.length === 0 ? (
@@ -975,7 +1092,11 @@ export function AgentsGraph(props: AgentsGraphProps) {
                         <span className="text-xs text-red-400">{renderError}</span>
                     </div>
                 ) : (
-                    <div className="mermaid-container w-full h-full" onClick={handleSvgClick} role="presentation">
+                    <div
+                        className="mermaid-container agents-graph-canvas w-full h-full"
+                        onClick={handleSvgClick}
+                        role="presentation"
+                    >
                         {isRendering && !decoratedSvg ? (
                             <div className="flex h-full items-center justify-center text-sm text-gray-500">
                                 Rendering graph...
@@ -986,17 +1107,17 @@ export function AgentsGraph(props: AgentsGraphProps) {
                     </div>
                 )}
 
-                <div className="absolute bottom-4 right-4 flex flex-col gap-2 text-[10px] bg-white/80 p-2 rounded border shadow-sm">
+                <div className="absolute bottom-4 right-4 z-10 flex flex-col gap-2 text-[10px] rounded-lg border border-slate-200 bg-white/80 p-2 shadow-sm">
                     <div className="flex items-center gap-2">
-                        <div className="w-5 border-t border-dashed border-slate-500"></div>
+                        <div className="w-6 border-t-2 border-dashed border-sky-400"></div>
                         <span>Parent</span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <div className="w-5 border-t border-slate-500"></div>
+                        <div className="w-6 border-t-2 border-slate-400"></div>
                         <span>Import</span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <div className="w-5 border-t-2 border-slate-500"></div>
+                        <div className="w-6 border-t-4 border-emerald-400"></div>
                         <span>Team</span>
                     </div>
                 </div>
