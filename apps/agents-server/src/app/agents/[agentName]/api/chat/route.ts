@@ -97,7 +97,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             agentName,
             agentHash,
             message: userMessageContent,
-            attachments: attachments.length > 0 ? attachments : null,
             promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
             url: request.url,
             ip,
