@@ -8,6 +8,7 @@ import type { AgentBasicInformation } from '../../../../../src/book-2.0/agent-so
 import type { AgentOrganizationAgent, AgentOrganizationFolder } from '../../utils/agentOrganization/types';
 import { AgentCard } from './AgentCard';
 import { FolderCard } from './FolderCard';
+import { showAlert } from '../AsyncDialogs/asyncDialogs';
 import {
     buildFolderMaps,
     buildFolderPath,
@@ -115,7 +116,10 @@ export function RecycleBinList(props: RecycleBinListProps) {
             }
             router.refresh();
         } catch (error) {
-            alert(error instanceof Error ? error.message : 'Failed to restore agent.');
+            await showAlert({
+                title: 'Restore failed',
+                message: error instanceof Error ? error.message : 'Failed to restore agent.',
+            }).catch(() => undefined);
         }
     };
 
@@ -137,7 +141,10 @@ export function RecycleBinList(props: RecycleBinListProps) {
             }
             router.refresh();
         } catch (error) {
-            alert(error instanceof Error ? error.message : 'Failed to restore folder.');
+            await showAlert({
+                title: 'Restore failed',
+                message: error instanceof Error ? error.message : 'Failed to restore folder.',
+            }).catch(() => undefined);
         }
     };
 

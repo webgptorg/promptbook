@@ -26,6 +26,7 @@ import { AddAgentButton } from '../../app/AddAgentButton';
 import { AgentContextMenuPopover, type AgentContextMenuRenamePayload } from '../AgentContextMenu/AgentContextMenu';
 import { QrCodeModal } from '../AgentProfile/QrCodeModal';
 import { useAgentBackground } from '../AgentProfile/useAgentBackground';
+import { showAlert, showConfirm, showPrompt } from '../AsyncDialogs/asyncDialogs';
 import type {
     AgentOrganizationAgent,
     AgentOrganizationFolder,
@@ -901,7 +902,10 @@ export function AgentsList(props: AgentsListProps) {
 
         const descendantIds = collectDescendantFolderIds(folderId, folderMaps.childrenByParentId);
         if (targetParentId !== null && descendantIds.includes(targetParentId)) {
-            alert('Cannot move a folder into one of its subfolders.');
+            await showAlert({
+                title: 'Invalid move',
+                message: 'Cannot move a folder into one of its subfolders.',
+            }).catch(() => undefined);
             return;
         }
 
@@ -988,19 +992,32 @@ export function AgentsList(props: AgentsListProps) {
      * Creates a new folder under the current folder.
      */
     const handleCreateFolder = async () => {
-        const name = window.prompt('Folder name');
+        const name = await showPrompt({
+            title: 'Create folder',
+            message: 'Choose a name for the new folder.',
+            confirmLabel: 'Create folder',
+            cancelLabel: 'Cancel',
+            placeholder: 'Folder name',
+            inputLabel: 'Folder name',
+        }).catch(() => null);
         if (!name) {
             return;
         }
 
         const trimmedName = name.trim();
         if (!trimmedName) {
-            alert('Folder name cannot be empty.');
+            await showAlert({
+                title: 'Invalid name',
+                message: 'Folder name cannot be empty.',
+            }).catch(() => undefined);
             return;
         }
 
         if (trimmedName.includes('/')) {
-            alert('Folder name cannot include "/".');
+            await showAlert({
+                title: 'Invalid name',
+                message: 'Folder name cannot include "/".',
+            }).catch(() => undefined);
             return;
         }
 
@@ -1016,7 +1033,10 @@ export function AgentsList(props: AgentsListProps) {
             }
             setFolders((prev) => [...prev, data.folder]);
         } catch (error) {
-            alert(error instanceof Error ? error.message : 'Failed to create folder.');
+            await showAlert({
+                title: 'Create failed',
+                message: error instanceof Error ? error.message : 'Failed to create folder.',
+            }).catch(() => undefined);
         }
     };
 
@@ -1031,19 +1051,33 @@ export function AgentsList(props: AgentsListProps) {
             return;
         }
 
-        const name = window.prompt('Rename folder', folder.name);
+        const name = await showPrompt({
+            title: 'Rename folder',
+            message: 'Enter the new folder name.',
+            defaultValue: folder.name,
+            confirmLabel: 'Rename',
+            cancelLabel: 'Cancel',
+            placeholder: 'Folder name',
+            inputLabel: 'Folder name',
+        }).catch(() => null);
         if (!name) {
             return;
         }
 
         const trimmedName = name.trim();
         if (!trimmedName) {
-            alert('Folder name cannot be empty.');
+            await showAlert({
+                title: 'Invalid name',
+                message: 'Folder name cannot be empty.',
+            }).catch(() => undefined);
             return;
         }
 
         if (trimmedName.includes('/')) {
-            alert('Folder name cannot include "/".');
+            await showAlert({
+                title: 'Invalid name',
+                message: 'Folder name cannot include "/".',
+            }).catch(() => undefined);
             return;
         }
 
@@ -1063,7 +1097,10 @@ export function AgentsList(props: AgentsListProps) {
                 navigateToFolder(currentFolderId ?? null, nextFolders);
             }
         } catch (error) {
-            alert(error instanceof Error ? error.message : 'Failed to rename folder.');
+            await showAlert({
+                title: 'Rename failed',
+                message: error instanceof Error ? error.message : 'Failed to rename folder.',
+            }).catch(() => undefined);
         }
     };
 
@@ -1085,11 +1122,13 @@ export function AgentsList(props: AgentsListProps) {
             (agent) => agent.folderId !== null && descendantSet.has(agent.folderId),
         ).length;
 
-        if (
-            !window.confirm(
-                `Delete folder "${folder.name}"? It will move ${agentCount} agents and ${subfolderCount} subfolders to the Recycle Bin.`,
-            )
-        ) {
+        const confirmed = await showConfirm({
+            title: 'Delete folder',
+            message: `Delete folder "${folder.name}"? It will move ${agentCount} agents and ${subfolderCount} subfolders to the Recycle Bin.`,
+            confirmLabel: 'Delete folder',
+            cancelLabel: 'Cancel',
+        }).catch(() => false);
+        if (!confirmed) {
             return;
         }
 
@@ -1107,7 +1146,10 @@ export function AgentsList(props: AgentsListProps) {
                 navigateToFolder(null);
             }
         } catch (error) {
-            alert(error instanceof Error ? error.message : 'Failed to delete folder.');
+            await showAlert({
+                title: 'Delete failed',
+                message: error instanceof Error ? error.message : 'Failed to delete folder.',
+            }).catch(() => undefined);
         }
     };
 
@@ -1119,17 +1161,31 @@ export function AgentsList(props: AgentsListProps) {
     const handleDelete = async (agentIdentifier: string) => {
         const agent = agents.find((a) => a.permanentId === agentIdentifier || a.agentName === agentIdentifier);
         if (!agent) return;
-        if (!window.confirm(`Delete agent "${agent.agentName}"? It will be moved to Recycle Bin.`)) return;
+        const confirmed = await showConfirm({
+            title: 'Delete agent',
+            message: `Delete agent "${agent.agentName}"? It will be moved to Recycle Bin.`,
+            confirmLabel: 'Delete agent',
+            cancelLabel: 'Cancel',
+        }).catch(() => false);
+        if (!confirmed) {
+            return;
+        }
 
         try {
             const response = await fetch(`/api/agents/${encodeURIComponent(agentIdentifier)}`, { method: 'DELETE' });
             if (response.ok) {
                 setAgents(agents.filter((a) => a.permanentId !== agent.permanentId && a.agentName !== agent.agentName));
             } else {
-                alert('Failed to delete agent');
+                await showAlert({
+                    title: 'Delete failed',
+                    message: 'Failed to delete agent',
+                }).catch(() => undefined);
             }
         } catch (error) {
-            alert('Failed to delete agent');
+            await showAlert({
+                title: 'Delete failed',
+                message: 'Failed to delete agent',
+            }).catch(() => undefined);
         }
     };
 
@@ -1141,7 +1197,15 @@ export function AgentsList(props: AgentsListProps) {
     const handleClone = async (agentIdentifier: string) => {
         const agent = agents.find((a) => a.permanentId === agentIdentifier || a.agentName === agentIdentifier);
         if (!agent) return;
-        if (!window.confirm(`Clone agent "${agent.agentName}"?`)) return;
+        const confirmed = await showConfirm({
+            title: 'Clone agent',
+            message: `Clone agent "${agent.agentName}"?`,
+            confirmLabel: 'Clone agent',
+            cancelLabel: 'Cancel',
+        }).catch(() => false);
+        if (!confirmed) {
+            return;
+        }
 
         try {
             const response = await fetch(`/api/agents/${encodeURIComponent(agentIdentifier)}/clone`, {
@@ -1167,10 +1231,16 @@ export function AgentsList(props: AgentsListProps) {
                 });
                 router.refresh();
             } else {
-                alert('Failed to clone agent');
+                await showAlert({
+                    title: 'Clone failed',
+                    message: 'Failed to clone agent',
+                }).catch(() => undefined);
             }
         } catch (error) {
-            alert('Failed to clone agent');
+            await showAlert({
+                title: 'Clone failed',
+                message: 'Failed to clone agent',
+            }).catch(() => undefined);
         }
     };
     /**
@@ -1183,7 +1253,15 @@ export function AgentsList(props: AgentsListProps) {
         if (!agent) return;
 
         const newVisibility = agent.visibility === 'PUBLIC' ? 'PRIVATE' : 'PUBLIC';
-        if (!window.confirm(`Make agent "${agent.agentName}" ${newVisibility.toLowerCase()}?`)) return;
+        const confirmed = await showConfirm({
+            title: 'Update visibility',
+            message: `Make agent "${agent.agentName}" ${newVisibility.toLowerCase()}?`,
+            confirmLabel: 'Update visibility',
+            cancelLabel: 'Cancel',
+        }).catch(() => false);
+        if (!confirmed) {
+            return;
+        }
 
         const response = await fetch(`/api/agents/${encodeURIComponent(agentIdentifier)}`, {
             method: 'PATCH',
@@ -1201,7 +1279,10 @@ export function AgentsList(props: AgentsListProps) {
             );
             router.refresh();
         } else {
-            alert('Failed to update agent visibility');
+            await showAlert({
+                title: 'Update failed',
+                message: 'Failed to update agent visibility',
+            }).catch(() => undefined);
         }
     };
 
@@ -1355,7 +1436,10 @@ export function AgentsList(props: AgentsListProps) {
                 }
             }
         } catch (error) {
-            alert(error instanceof Error ? error.message : 'Failed to update organization.');
+            await showAlert({
+                title: 'Update failed',
+                message: error instanceof Error ? error.message : 'Failed to update organization.',
+            }).catch(() => undefined);
             router.refresh();
         }
     };

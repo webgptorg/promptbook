@@ -2,6 +2,7 @@
 
 import { Copy, Plus, Trash } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { showConfirm } from '../../../components/AsyncDialogs/asyncDialogs';
 import { ApiTokenEntry, createApiToken, deleteApiToken, fetchApiTokens } from '../../../utils/apiTokensClient';
 
 /**
@@ -56,7 +57,13 @@ export function ApiTokensClient() {
      * Deletes a token after confirming with the user.
      */
     const handleDelete = async (id: number) => {
-        if (!confirm('Are you sure you want to delete this token?')) return;
+        const confirmed = await showConfirm({
+            title: 'Delete API token',
+            message: 'Are you sure you want to delete this token?',
+            confirmLabel: 'Delete token',
+            cancelLabel: 'Cancel',
+        }).catch(() => false);
+        if (!confirmed) return;
 
         try {
             await deleteApiToken(id);

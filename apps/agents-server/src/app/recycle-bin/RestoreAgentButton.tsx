@@ -3,6 +3,7 @@
 import { RefreshCcwIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { showAlert } from '@/src/components/AsyncDialogs/asyncDialogs';
 import { restoreDeletedAgent } from './actions';
 
 type RestoreAgentButtonProps = {
@@ -20,7 +21,10 @@ export function RestoreAgentButton({ agentName }: RestoreAgentButtonProps) {
             router.refresh();
         } catch (error) {
             console.error('Failed to restore agent:', error);
-            alert('Failed to restore agent');
+            await showAlert({
+                title: 'Restore failed',
+                message: 'Failed to restore agent',
+            }).catch(() => undefined);
         } finally {
             setIsRestoring(false);
         }

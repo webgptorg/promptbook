@@ -3,6 +3,7 @@
 import { RefreshCcwIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { showAlert, showConfirm } from '../../../../components/AsyncDialogs/asyncDialogs';
 import { restoreAgentVersion } from './actions';
 
 type RestoreVersionButtonProps = {
@@ -15,7 +16,13 @@ export function RestoreVersionButton({ agentName, historyId }: RestoreVersionBut
     const [isRestoring, setIsRestoring] = useState(false);
 
     const handleRestore = async () => {
-        if (!confirm('Are you sure you want to restore this version? Current changes will be saved to history.')) {
+        const confirmed = await showConfirm({
+            title: 'Restore version',
+            message: 'Are you sure you want to restore this version? Current changes will be saved to history.',
+            confirmLabel: 'Restore version',
+            cancelLabel: 'Cancel',
+        }).catch(() => false);
+        if (!confirmed) {
             return;
         }
 
@@ -26,7 +33,10 @@ export function RestoreVersionButton({ agentName, historyId }: RestoreVersionBut
             router.push(`/agents/${agentName}`);
         } catch (error) {
             console.error('Failed to restore version:', error);
-            alert('Failed to restore version');
+            await showAlert({
+                title: 'Restore failed',
+                message: 'Failed to restore version',
+            }).catch(() => undefined);
         } finally {
             setIsRestoring(false);
         }

@@ -23,6 +23,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { just } from '../../../../../src/utils/organization/just';
 import { deleteAgent } from '../../app/recycle-bin/actions';
 import { getAgentLinks } from '../../app/agents/[agentName]/agentLinks';
+import { showAlert, showConfirm, showPrompt } from '../AsyncDialogs/asyncDialogs';
 
 type BeforeInstallPromptEvent = Event & {
     prompt: () => Promise<void>;
@@ -321,12 +322,15 @@ function AgentContextMenuContent(props: AgentContextMenuBaseProps & { onClose: (
     /**
      * Confirms and performs the URL update redirect.
      */
-    const handleUpdateUrl = useCallback(() => {
-        if (
-            window.confirm(
-                `Are you sure you want to change the agent URL from "/agents/${agentName}" to "/agents/${derivedAgentName}"?`,
-            )
-        ) {
+    const handleUpdateUrl = useCallback(async () => {
+        const confirmed = await showConfirm({
+            title: 'Update agent URL',
+            message: `Are you sure you want to change the agent URL from "/agents/${agentName}" to "/agents/${derivedAgentName}"?`,
+            confirmLabel: 'Update URL',
+            cancelLabel: 'Cancel',
+        }).catch(() => false);
+
+        if (confirmed) {
             window.location.href = updateUrlHref;
         }
     }, [agentName, derivedAgentName, updateUrlHref]);
@@ -337,18 +341,26 @@ function AgentContextMenuContent(props: AgentContextMenuBaseProps & { onClose: (
     const handleDeleteAgent = useCallback(async () => {
         const agentIdentifier = permanentId || agentName;
         const displayName = derivedAgentName || agentName;
-        if (
-            window.confirm(
-                `Are you sure you want to delete the agent "${displayName}"? This action can be undone by restoring it from the recycle bin.`,
-            )
-        ) {
-            try {
-                await deleteAgent(agentIdentifier);
-                window.location.href = '/';
-            } catch (error) {
-                console.error('Failed to delete agent:', error);
-                alert('Failed to delete agent. Please try again.');
-            }
+        const confirmed = await showConfirm({
+            title: 'Delete agent',
+            message: `Are you sure you want to delete the agent "${displayName}"? This action can be undone by restoring it from the recycle bin.`,
+            confirmLabel: 'Delete agent',
+            cancelLabel: 'Cancel',
+        }).catch(() => false);
+
+        if (!confirmed) {
+            return;
+        }
+
+        try {
+            await deleteAgent(agentIdentifier);
+            window.location.href = '/';
+        } catch (error) {
+            console.error('Failed to delete agent:', error);
+            await showAlert({
+                title: 'Delete failed',
+                message: 'Failed to delete agent. Please try again.',
+            }).catch(() => undefined);
         }
     }, [agentName, derivedAgentName, permanentId]);
 
@@ -360,14 +372,25 @@ function AgentContextMenuContent(props: AgentContextMenuBaseProps & { onClose: (
             return;
         }
 
-        const name = window.prompt('Rename agent', derivedAgentName || agentName);
+        const name = await showPrompt({
+            title: 'Rename agent',
+            message: 'Enter a new name for this agent.',
+            defaultValue: derivedAgentName || agentName,
+            confirmLabel: 'Rename',
+            cancelLabel: 'Cancel',
+            placeholder: 'Agent name',
+            inputLabel: 'Agent name',
+        }).catch(() => null);
         if (!name) {
             return;
         }
 
         const trimmedName = name.trim();
         if (!trimmedName) {
-            alert('Agent name cannot be empty.');
+            await showAlert({
+                title: 'Invalid name',
+                message: 'Agent name cannot be empty.',
+            }).catch(() => undefined);
             return;
         }
 
@@ -385,7 +408,10 @@ function AgentContextMenuContent(props: AgentContextMenuBaseProps & { onClose: (
             onAgentRenamed?.({ agent: data.agent, previousIdentifier: agentIdentifier });
             onRequestClose?.();
         } catch (error) {
-            alert(error instanceof Error ? error.message : 'Failed to rename agent.');
+            await showAlert({
+                title: 'Rename failed',
+                message: error instanceof Error ? error.message : 'Failed to rename agent.',
+            }).catch(() => undefined);
         }
     }, [agentName, derivedAgentName, isAdmin, onAgentRenamed, onRequestClose, permanentId]);
 

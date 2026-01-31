@@ -2,6 +2,7 @@
 
 import { CopyIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { showAlert, showConfirm } from '../../../components/AsyncDialogs/asyncDialogs';
 
 type CloneAgentButtonProps = {
     agentName: string;
@@ -11,7 +12,13 @@ export function CloneAgentButton({ agentName }: CloneAgentButtonProps) {
     const router = useRouter();
 
     const handleClone = async () => {
-        if (!window.confirm(`Clone agent "${agentName}"?`)) return;
+        const confirmed = await showConfirm({
+            title: 'Clone agent',
+            message: `Clone agent "${agentName}"?`,
+            confirmLabel: 'Clone agent',
+            cancelLabel: 'Cancel',
+        }).catch(() => false);
+        if (!confirmed) return;
 
         try {
             const response = await fetch(`/api/agents/${encodeURIComponent(agentName)}/clone`, { method: 'POST' });
@@ -24,7 +31,10 @@ export function CloneAgentButton({ agentName }: CloneAgentButtonProps) {
             router.push(`/${newAgent.agentName}`);
             router.refresh();
         } catch (error) {
-            alert('Failed to clone agent');
+            await showAlert({
+                title: 'Clone failed',
+                message: 'Failed to clone agent',
+            }).catch(() => undefined);
             console.error(error);
         }
     };

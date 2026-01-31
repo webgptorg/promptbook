@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { showConfirm } from '../../../components/AsyncDialogs/asyncDialogs';
 import { $clearAgentChatFeedback } from '../../../utils/chatFeedbackAdmin';
 
 type ClearAgentChatFeedbackButtonProps = {
@@ -28,9 +29,12 @@ export function ClearAgentChatFeedbackButton({ agentName, onCleared }: ClearAgen
     const handleClick = async () => {
         if (!agentName) return;
 
-        const confirmed = window.confirm(
-            `Are you sure you want to permanently delete all feedback for agent "${agentName}"?`,
-        );
+        const confirmed = await showConfirm({
+            title: 'Clear chat feedback',
+            message: `Are you sure you want to permanently delete all feedback for agent "${agentName}"?`,
+            confirmLabel: 'Delete feedback',
+            cancelLabel: 'Cancel',
+        }).catch(() => false);
         if (!confirmed) return;
 
         try {

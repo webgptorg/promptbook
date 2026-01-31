@@ -2,6 +2,7 @@
 'use client';
 
 import { useState } from 'react';
+import { showAlert, showConfirm } from '../AsyncDialogs/asyncDialogs';
 import { AgentCard } from './AgentCard';
 
 import { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
@@ -30,7 +31,15 @@ export function DeletedAgentsList(props: DeletedAgentsListProps) {
     const handleRestore = async (agentIdentifier: string) => {
         const agent = agents.find((a) => a.permanentId === agentIdentifier || a.agentName === agentIdentifier);
         if (!agent) return;
-        if (!window.confirm(`Restore agent "${agent.agentName}"?`)) return;
+        const confirmed = await showConfirm({
+            title: 'Restore agent',
+            message: `Restore agent "${agent.agentName}"?`,
+            confirmLabel: 'Restore agent',
+            cancelLabel: 'Cancel',
+        }).catch(() => false);
+        if (!confirmed) {
+            return;
+        }
 
         try {
             const response = await fetch(`/api/agents/${encodeURIComponent(agentIdentifier)}/restore`, {
@@ -42,10 +51,16 @@ export function DeletedAgentsList(props: DeletedAgentsListProps) {
                 // Note: router.refresh() is not needed here as the local state update is sufficient
                 // and prevents the brief empty list issue during refresh
             } else {
-                alert('Failed to restore agent');
+                await showAlert({
+                    title: 'Restore failed',
+                    message: 'Failed to restore agent',
+                }).catch(() => undefined);
             }
         } catch (error) {
-            alert('Failed to restore agent');
+            await showAlert({
+                title: 'Restore failed',
+                message: 'Failed to restore agent',
+            }).catch(() => undefined);
         }
     };
 

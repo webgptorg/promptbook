@@ -11,6 +11,7 @@ import { Color } from '../../../../../src/utils/color/Color';
 import { darken } from '../../../../../src/utils/color/operators/darken';
 import { textColor } from '../../../../../src/utils/color/operators/furthest';
 import { lighten } from '../../../../../src/utils/color/operators/lighten';
+import { showAlert } from '../AsyncDialogs/asyncDialogs';
 
 const CONNECTION_TYPES = ['inheritance', 'import', 'team'] as const;
 const DEFAULT_CONNECTION_TYPES = [...CONNECTION_TYPES];
@@ -1368,7 +1369,10 @@ export function AgentsGraph(props: AgentsGraphProps) {
             triggerBlobDownload(blob, buildGraphFilename('png'));
         } catch (error) {
             console.error('Failed to export graph as PNG.', error);
-            alert('Failed to export PNG. Try downloading the SVG instead.');
+            await showAlert({
+                title: 'Export failed',
+                message: 'Failed to export PNG. Try downloading the SVG instead.',
+            }).catch(() => undefined);
         }
     }, [decoratedSvg]);
 
