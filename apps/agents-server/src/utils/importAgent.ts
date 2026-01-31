@@ -4,6 +4,7 @@ import {
     string_agent_permanent_id,
     string_agent_url,
     string_book,
+    TODO_any,
 } from '../../../../src/_packages/types.index'; // <- [🚾]
 import { deserializeError, isValidUrl } from '../../../../src/_packages/utils.index'; // <- [🚾]
 import { assertsError } from '../../../../src/errors/assertsError';
@@ -35,7 +36,7 @@ export async function importAgent(
 ): Promise<string_book> {
     console.log(`importAgent "${agentIdentification}"`);
 
-    const { recursionLevel = 0 } = options || {};
+    const { recursionLevel = 0 }: ImportAgentOptions = options || {};
 
     if (!isValidUrl(agentIdentification)) {
         throw new NotYetImplementedError(`[🏠] Importing local agents be name or permanent id is not implemented yet`);
@@ -53,20 +54,20 @@ export async function importAgent(
         // TODO: Handle authentication/tokens for private agents if needed
 
         // TODO: [🧠] Do this logic more robustly
-        let agentBookUrl = agentIdentification;
+        let agentBookUrl: string = agentIdentification;
         if (!agentBookUrl.endsWith('/api/book') && !agentBookUrl.endsWith('.book') && !agentBookUrl.endsWith('.md')) {
             // Note: [🕺] Fetching the `/agents/[agentName]/api/book` endpoint for agent source
             agentBookUrl = `${agentBookUrl.replace(/\/$/, '')}/api/book?recursionLevel=${recursionLevel + 1}`;
         }
 
-        const response = await fetch(agentBookUrl);
+        const response: Response = await fetch(agentBookUrl);
 
         if (!response.ok) {
             let error: Error | null = null;
             try {
-                const body = await response.json();
+                const body: TODO_any = await response.json();
                 error = deserializeError(body, false);
-            } catch (error) {
+            } catch (error: TODO_any) {
                 keepUnused(error);
             } finally {
                 if (error === null) {
@@ -81,9 +82,9 @@ export async function importAgent(
 
         // We assume the response is the agent source text
         // TODO: Handle content negotiation or JSON responses if the server returns JSON
-        const contentType = response.headers.get('content-type');
+        const contentType: string | null = response.headers.get('content-type');
         if (contentType && contentType.includes('application/json')) {
-            const data = await response.json();
+            const data: TODO_any = await response.json();
             // Assume some structure or that the API returns source in a property
             // For Agents Server API modelRequirements/route.ts returns AgentModelRequirements, not source.
             // If we point to a raw source endpoint, it returns text.

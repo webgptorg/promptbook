@@ -5,7 +5,7 @@ import { really_any, string_url } from '@promptbook-local/types';
 import { EyeIcon, EyeOffIcon, RotateCcwIcon } from 'lucide-react';
 import Link from 'next/link';
 import { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
-import { AgentCapabilityChips } from '../AgentProfile/AgentCapabilityChips';
+import { AgentCapabilityChips, HOMEPAGE_CAPABILITY_CHIPS_LIMIT } from '../AgentProfile/AgentCapabilityChips';
 import { useAgentBackground } from '../AgentProfile/useAgentBackground';
 
 type AgentCardProps = {
@@ -127,7 +127,11 @@ export function AgentCard({
                         </p>
 
                         <div className="flex justify-center w-full">
-                            <AgentCapabilityChips agent={agent} className="justify-center mt-3 opacity-90 scale-90" />
+                            <AgentCapabilityChips
+                                agent={agent}
+                                className="justify-center mt-3 opacity-90 scale-90"
+                                maxChips={HOMEPAGE_CAPABILITY_CHIPS_LIMIT}
+                            />
                         </div>
                     </div>
                 </div>

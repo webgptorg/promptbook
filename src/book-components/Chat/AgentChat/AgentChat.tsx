@@ -7,6 +7,7 @@ import spaceTrim from 'spacetrim';
 import { Color, saturate } from '../../../_packages/color.index';
 import { PROMPTBOOK_COLOR } from '../../../config';
 import { asUpdatableSubject } from '../../../types/Updatable';
+import { $getCurrentDate } from '../../../utils/misc/$getCurrentDate';
 import type { TODO_any } from '../../../utils/organization/TODO_any';
 import { LlmChat } from '../LlmChat/LlmChat';
 import type { AgentChatProps } from './AgentChatProps';
@@ -47,6 +48,7 @@ export function AgentChat(props: AgentChatProps) {
                         
                         [Hello](?message=Hello, can you tell me about yourself?)
                     `),
+                        createdAt: $getCurrentDate(),
                     },
                 ]}
                 participants={[

@@ -167,6 +167,44 @@ const output = writeEmailPrompt.toString();
 
 ---
 
+[x] ~$0.41
+
+[✨🚛] Fix the generated (toStringed) prompts and make them dynamic. They shouldn't be hardcoded in the code. They should be generated on the fly when the page is rendered.
+
+-   Outputs should be generated dynamically, not hard-coded in the code.
+-   There is a prompt notation to escape prompt strings to prevent prompt injection
+-   There is both the function which can be used from the package and the showcase page and also unit test. Look at entire vertical of it.
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   You are working with the [Utils app](apps/utils) on page http://localhost:4024/prompt-notation
+
+![alt text](prompts/screenshots/2026-01-0550-enhance-prompt-notation.png)
+
+---
+
+[ ]
+
+[✨🚛] Add options to the string function in the prompt notation.
+
+-   @@@
+    -   Instead of numbers use linguistic hash 3 normalized toCamelCase
+-   There is a prompt notation to escape prompt strings to prevent prompt injection
+-   There is both the function which can be used from the package and the showcase page and also unit test. Look at entire vertical of it.
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   You are working with the [Utils app](apps/utils) on page http://localhost:4024/prompt-notation
+
+---
+
+[x] ~$0.62
+
+[✨🚛] There is a security vulnerability in the parameters replacement. When the user text contains numbers, the user input can be misinterpreted as parameters. Please, before placing, or before manipulating with the user input, look if there are some numbers in brackets which can be confused, and if there are, try to pick alternative numbering. You can use numbers, you can use letters, you can use Roman letters, and also combinations of these.
+
+-   There is a prompt notation to escape prompt strings to prevent prompt injection
+-   There is both the function which can be used from the package and the showcase page and also unit test. Look at entire vertical of it.
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   You are working with the [Utils app](apps/utils) on page http://localhost:4024/prompt-notation
+
+---
+
 [-]
 
 [✨🚛] foo
@@ -175,5 +213,4 @@ const output = writeEmailPrompt.toString();
 -   There is both the function which can be used from the package and the showcase page and also unit test. Look at entire vertical of it.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Utils app](apps/utils) on page http://localhost:4024/prompt-notation
-
 

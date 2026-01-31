@@ -29,6 +29,12 @@ export const metadataDefaults = [
         type: 'IMAGE_URL',
     },
     {
+        key: 'HOMEPAGE_MESSAGE',
+        value: '',
+        note: 'Markdown message displayed above the agents list on the homepage.',
+        type: 'TEXT',
+    },
+    {
         key: 'RESTRICT_IP',
         value: '',
         note: 'Comma separated list of allowed IPs or CIDR ranges. If set, only clients from these IPs are allowed to access the server.',

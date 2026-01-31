@@ -1,5 +1,13 @@
 ### 📚 Book
 
+-   Added a refactor-candidate scanner script that flags oversized or entity-heavy source files and generates per-file refactor prompts in `prompts`.
+-   Leveraged `spaceTrim` across the repository for better readability and maintainability of multiline strings and string joins.
+-   Simplified the Agents Server home page to focus on agents, moved the previous dashboard to `/dashboard`, and linked it from the System menu.
+-   Added a configurable Markdown message (via metadata) shown above the agents list on the Agents Server homepage.
+-   Added a chat preparation chip in Agents Server to signal when GPT assistants are being created before the first response.
+-   Added `[🤰]`-tagged assistant preparation logging (cache lookup, model requirement timing, assistant create/update, vector store progress) and surfaced preparation phases on the "Preparing agent" chip.
+-   Fixed Agents Server Book editor multi-file uploads by debouncing editor updates, tracking placeholders safely, and adding a floating upload panel with pause/resume controls and upload stats.
+-   Fixed Agents Server chat markdown rendering for sublists by normalizing unordered list indentation under ordered items.
 -   Fixed drag-and-drop uploads in the Agents Server create-agent dialog by reusing the shared BookEditor upload handler.
 -   Fixed document source citation in Agents Server chat:
     -   Resolved issue where clicking on KNOWLEDGE source chips showed "Document preview unavailable" instead of the actual document
@@ -12,6 +20,9 @@
 -   Allow to add image in the image prompt in `ImageGeneratorTestClient`
 -   Ensured the Agents Server chat menu stays above chat action buttons (New chat, Save, etc.).
 -   Added top spacing in Agents Server chat so action buttons no longer overlap the first messages.
+-   Updated the Agents Server self-learning chip to use the brain icon without brackets.
+-   Enhanced the Agents Server self-learning modal with a friendly summary and server-provided learning details.
+-   Added per-message timestamps in Agents Server chat with agent generation durations, and included timestamps in exported chat files.
 -   Added Promptbook SDK integration snippets in Agents Server, including RemoteAgent Node.js and React examples on the integration page.
 -   Added API key field to the OpenRouter integration section in Agents Server to match OpenAI compatible setup.
 -   Added a Create API Key action on the agent integration page so admins can generate tokens without leaving the integrations screen.
@@ -23,9 +34,12 @@
 -   Enhanced prompt notation example actions in the Utils app with an overwrite warning, clipboard copy, and download shortcuts.
 -   Replaced prompt notation example action emojis with Lucide icons in the Utils app.
 -   Added install instructions and import header to prompt notation example downloads in the Utils app.
+-   Generated prompt notation example outputs dynamically on render in the Utils app to keep outputs in sync with the prompt notation implementation.
 -   Updated prompt notation output to use numeric parameter placeholders and a numbered parameters list.
+-   Switched prompt notation parameter placeholders to alternate labels when bracketed numbers appear in user input to avoid collisions.
 -   Render structured JSON parameters without double-escaping in prompt notation outputs.
 -   Enhanced `humanizeAiText` to normalize more dash, quote, ellipsis, and whitespace variants in AI text.
+-   Removed bracketed source citation artifacts (e.g. `\u30105:1\u2020source\u3011`) from `humanizeAiText` output.
 
 -   Improved error reporting in package generation script to show the actual line where markers ([🟢], [⚪], [⚫], [🟡], [🔵]) are found when they shouldn't be published in packages. This helps developers quickly identify and fix issues by displaying the line number and content instead of just the filename.
 -   Enhanced all comparison documents in `/documents/comparison/*.md` for better balance and clarity:
@@ -110,6 +124,8 @@
 -   Added `linguisticHash` utility function to `@promptbook/utils` that creates human-readable hashes.
 -   Added `Linguistic Hash` tool to the Utils app.
 -   Enhanced `linguisticHash` to return a short story-like sentence for more memorable hashes, updating the Utils app text and unit tests to match.
+-   Added configurable word counts (1-20, default 7) to `linguisticHash`, including Utils app controls, warnings for short hashes, and updated tests.
+-   Added multilingual support to `linguisticHash` with Czech word lists and a language selector in the Utils app.
 -   Prevent caching when tool is used, but still write the messages into the cache or `USER MESSAGE` + `AGENT MESSAGE` pair
 -   Implemented modular voice speech input in `<Chat/>` with two providers: `BrowserSpeechRecognition` (Web Speech API) and `OpenAiSpeechRecognition` (Whisper API).
 -   Added voice input test page at `/admin/voice-input-test` in Agents Server.
@@ -288,6 +304,7 @@
 -   Reduced number of capability chips in Agents Server:
     -   Grouped identical Knowledgebase chips together.
     -   Hid the `VOID` inheritance chip, showing only inheritance from other agents.
+-   Limited capability chips on Agents Server cards and profiles with priority ordering and grouped knowledge/PDF sources to reduce chip overload.
 -   Enhanced RAG source citation display in Agents Server chat:
     -   Replaced ugly OpenAI annotation format `【5:13†document.pdf】` with native Promptbook chips
     -   Created `<SourceChip/>` component displaying source document with file icon and citation ID
@@ -337,3 +354,5 @@
     -   Self-learning is performed asynchronously in the background.
     -   A "Self learning" chip is displayed during the learning phase, similar to tool usage chips.
     -   This enhances user experience by eliminating the wait time for self-learning completion.
+-   Enhanced codebase by using explicit types instead of type inference across multiple files in `src/`, `apps/`, and `scripts/` directories to improve readability and maintainability.
+

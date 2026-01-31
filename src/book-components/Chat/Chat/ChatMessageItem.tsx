@@ -5,6 +5,7 @@
 import { memo, useEffect, useRef, useState } from 'react';
 import { colorToDataUrl } from '../../../_packages/color.index';
 import { PROMPTBOOK_CHAT_COLOR, USER_CHAT_COLOR } from '../../../config';
+import { isAssistantPreparationToolCall } from '../../../types/ToolCall';
 import type { id } from '../../../types/typeAliases';
 import { Color } from '../../../utils/color/Color';
 import { textColor } from '../../../utils/color/operators/furthest';
@@ -15,11 +16,13 @@ import { MarkdownContent } from '../MarkdownContent/MarkdownContent';
 import { SourceChip } from '../SourceChip';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
-import type { ToolCallChipletInfo } from '../utils/getToolCallChipletText';
-import { getToolCallChipletInfo, TOOL_TITLES } from '../utils/getToolCallChipletText';
+import { isTeamToolName } from '../utils/createTeamToolNameFromUrl';
+import { getChatMessageTimingDisplay } from '../utils/getChatMessageTimingDisplay';
+import type { ToolCallChipletInfo } from '../utils/getToolCallChipletInfo';
+import { getToolCallChipletInfo, TOOL_TITLES } from '../utils/getToolCallChipletInfo';
 import { extractCitationsFromMessage, type ParsedCitation } from '../utils/parseCitationsFromContent';
 import { parseMessageButtons } from '../utils/parseMessageButtons';
-import { isTeamToolName } from '../utils/createTeamToolNameFromUrl';
+import { parseToolCallArguments } from '../utils/toolCallParsing';
 import styles from './Chat.module.css';
 import type { ChatProps } from './ChatProps';
 import { AVATAR_SIZE, LOADING_INTERACTIVE_IMAGE } from './constants';
@@ -243,6 +246,8 @@ export const ChatMessageItem = memo(
         };
 
         const isMe = participant?.isMe;
+        const timingDisplay = getChatMessageTimingDisplay(message);
+        const shouldShowTiming = Boolean(isComplete && timingDisplay);
         const shouldShowParticipantLabel = (participants || []).some((entry) => entry.name === 'TEAMMATE');
         const participantLabel = participant?.fullname || participant?.name;
         const color = Color.fromSafe(
@@ -250,7 +255,9 @@ export const ChatMessageItem = memo(
         );
         const colorOfText = color.then(textColor);
         const { contentWithoutButtons, buttons } = parseMessageButtons(message.content);
-        const completedToolCalls = message.toolCalls || message.completedToolCalls;
+        const completedToolCalls = (message.toolCalls || message.completedToolCalls)?.filter(
+            (toolCall) => !isAssistantPreparationToolCall(toolCall),
+        );
         const shouldShowButtons = isLastMessage && buttons.length > 0 && onMessage;
 
         // Extract citations from message content
@@ -469,6 +476,10 @@ export const ChatMessageItem = memo(
                             <div className={styles.completedToolCalls}>
                                 {completedToolCalls.map((toolCall, index) => {
                                     const chipletInfo = getToolCallChipletInfo(toolCall);
+                                    const chipletText =
+                                        chipletInfo.wrapInBrackets === false
+                                            ? chipletInfo.text
+                                            : `[${chipletInfo.text}]`;
                                     const teamAgentData = resolveTeamAgentChipData(toolCall, teammates, chipletInfo);
 
                                     // If this is a team tool with agent data, use AgentChip
@@ -500,7 +511,7 @@ export const ChatMessageItem = memo(
                                                 }
                                             }}
                                         >
-                                            [{chipletInfo.text}]
+                                            {chipletText}
                                         </button>
                                     );
                                 })}
@@ -525,6 +536,12 @@ export const ChatMessageItem = memo(
                                     const toolInfo = TOOL_TITLES[toolCall.name];
                                     const isTeamTool = isTeamToolName(toolCall.name);
                                     const teamAgentData = resolveTeamAgentChipData(toolCall, teammates);
+                                    const toolArguments = parseToolCallArguments(toolCall);
+                                    const preparationPhase =
+                                        isAssistantPreparationToolCall(toolCall) &&
+                                        typeof toolArguments.phase === 'string'
+                                            ? toolArguments.phase
+                                            : undefined;
 
                                     // If this is a team tool with teammate data, use AgentChip
                                     if (teamAgentData) {
@@ -536,14 +553,17 @@ export const ChatMessageItem = memo(
                                         toolTitles?.[toolCall.name] ||
                                         toolInfo?.title ||
                                         (isTeamTool ? 'Consulting teammate' : undefined);
+                                    const displayTitle = preparationPhase
+                                        ? `${toolTitle || toolCall.name}: ${preparationPhase}`
+                                        : toolTitle;
                                     const emoji = isTeamTool ? '🤝' : toolInfo?.emoji || '🛠️';
 
                                     return (
                                         <div key={index} className={styles.ongoingToolCall}>
                                             <div className={styles.ongoingToolCallSpinner} />
                                             <span className={styles.ongoingToolCallName}>
-                                                {toolTitle
-                                                    ? `${emoji} ${toolTitle}...`
+                                                {displayTitle
+                                                    ? `${emoji} ${displayTitle}...`
                                                     : `${emoji} Executing ${toolCall.name}...`}
                                             </span>
                                         </div>
@@ -618,6 +638,16 @@ export const ChatMessageItem = memo(
                             </div>
                         )}
                     </div>
+                    {shouldShowTiming && timingDisplay && (
+                        <div className={styles.messageMeta} title={timingDisplay.fullLabel}>
+                            <span className={styles.messageTimestamp}>{timingDisplay.timeLabel}</span>
+                            {!isMe && timingDisplay.durationLabel && (
+                                <span className={styles.messageDuration}>
+                                    ({timingDisplay.durationLabel} to answer)
+                                </span>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
         );
@@ -628,6 +658,14 @@ export const ChatMessageItem = memo(
         }
 
         if (prev.message.content !== next.message.content) {
+            return false;
+        }
+
+        if (prev.message.createdAt !== next.message.createdAt) {
+            return false;
+        }
+
+        if (prev.message.generationDurationMs !== next.message.generationDurationMs) {
             return false;
         }
 

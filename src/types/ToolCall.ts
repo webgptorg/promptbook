@@ -1,5 +1,5 @@
-import type { string_date_iso8601 } from './typeAliases';
 import type { TODO_any } from '../utils/organization/TODO_any';
+import type { string_date_iso8601 } from './typeAliases';
 
 /**
  * Represents a single tool call with its inputs, outputs, and timing.
@@ -42,3 +42,94 @@ export type ToolCall = {
      */
     readonly warnings?: ReadonlyArray<TODO_any>;
 };
+
+/**
+ * Breakdown of teacher-learned commitment categories for self-learning.
+ */
+export type SelfLearningCommitmentTypeCounts = {
+    /**
+     * Total number of learned commitments.
+     */
+    readonly total: number;
+
+    /**
+     * Count of knowledge commitments.
+     */
+    readonly knowledge: number;
+
+    /**
+     * Count of rule commitments.
+     */
+    readonly rule: number;
+
+    /**
+     * Count of persona commitments.
+     */
+    readonly persona: number;
+
+    /**
+     * Count of other commitment types.
+     */
+    readonly other: number;
+};
+
+/**
+ * Summary of the teacher review step during self-learning.
+ */
+export type SelfLearningTeacherSummary = {
+    /**
+     * Indicates whether the teacher step was used.
+     */
+    readonly used: boolean;
+
+    /**
+     * Commitment breakdown produced by the teacher step.
+     */
+    readonly commitmentTypes: SelfLearningCommitmentTypeCounts;
+};
+
+/**
+ * Result payload for the self-learning tool call.
+ */
+export type SelfLearningToolCallResult = {
+    /**
+     * Indicates whether self-learning completed successfully.
+     */
+    readonly success: boolean;
+
+    /**
+     * Timestamp for when self-learning started.
+     */
+    readonly startedAt?: string_date_iso8601;
+
+    /**
+     * Timestamp for when self-learning finished.
+     */
+    readonly completedAt?: string_date_iso8601;
+
+    /**
+     * Number of conversation examples saved from this turn.
+     */
+    readonly samplesAdded?: number;
+
+    /**
+     * Summary of the teacher review step.
+     */
+    readonly teacher?: SelfLearningTeacherSummary;
+};
+
+/**
+ * Tool call name emitted while preparing a GPT assistant for an agent.
+ *
+ * @public exported from `@promptbook/types`
+ */
+export const ASSISTANT_PREPARATION_TOOL_CALL_NAME = 'assistant_preparation';
+
+/**
+ * Checks whether a tool call is the assistant preparation marker.
+ *
+ * @public exported from `@promptbook/types`
+ */
+export function isAssistantPreparationToolCall(toolCall: ToolCall): boolean {
+    return toolCall.name === ASSISTANT_PREPARATION_TOOL_CALL_NAME;
+}

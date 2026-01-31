@@ -1,4 +1,5 @@
 import { string_date_iso8601 } from '../../../types/typeAliases';
+import { $getCurrentDate } from '../../../utils/misc/$getCurrentDate';
 import type { ChatMessage } from '../types/ChatMessage';
 
 /**
@@ -22,13 +23,18 @@ export class ChatPersistence {
      */
     static saveMessages(persistenceKey: string, messages: ReadonlyArray<ChatMessage>): void {
         try {
-            const serializableMessages: SerializableChatMessage[] = messages.map((message) => ({
-                ...message,
-                createdAt: (typeof message.createdAt === 'string'
-                    ? new Date(message.createdAt)
-                    : message.createdAt || new Date()
-                ).toISOString() as string_date_iso8601,
-            }));
+            const serializableMessages: SerializableChatMessage[] = messages.map((message) => {
+                const createdAtValue = (message as { createdAt?: string | Date }).createdAt;
+                const createdAt =
+                    createdAtValue instanceof Date
+                        ? createdAtValue.toISOString()
+                        : createdAtValue || $getCurrentDate();
+
+                return {
+                    ...message,
+                    createdAt: createdAt as string_date_iso8601,
+                };
+            });
 
             const storageKey = this.STORAGE_PREFIX + persistenceKey;
             localStorage.setItem(storageKey, JSON.stringify(serializableMessages));
@@ -51,10 +57,9 @@ export class ChatPersistence {
 
             const serializableMessages: SerializableChatMessage[] = JSON.parse(stored);
 
-            // Convert date strings back to Date objects
             return serializableMessages.map((message) => ({
                 ...message,
-                createdAt: new Date(message.createdAt),
+                createdAt: message.createdAt,
             }));
         } catch (error) {
             console.warn('Failed to load chat messages from localStorage:', error);

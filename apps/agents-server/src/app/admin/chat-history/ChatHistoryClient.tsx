@@ -1,7 +1,7 @@
 'use client';
 
 import { MockedChat } from '@promptbook-local/components';
-import type { ChatMessage } from '@promptbook-local/types';
+import type { ChatMessage, string_date_iso8601 } from '@promptbook-local/types';
 import { useEffect, useMemo, useState } from 'react';
 import { Card } from '../../../components/Homepage/Card';
 import {
@@ -305,7 +305,7 @@ export function ChatHistoryClient({ initialAgentName }: ChatHistoryClientProps) 
                 sender: role === 'USER' ? 'USER' : 'ASSISTANT',
                 content: message.content || JSON.stringify(message),
                 isComplete: true,
-                createdAt: new Date(row.createdAt),
+                createdAt: row.createdAt as string_date_iso8601,
             } satisfies ChatMessage;
         });
     }, [items, viewMode]);

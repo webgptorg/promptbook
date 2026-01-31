@@ -2,9 +2,20 @@
 
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { linguisticHash } from '../../../../../src/utils/misc/linguisticHash';
+import {
+    DEFAULT_LINGUISTIC_HASH_LANGUAGE,
+    DEFAULT_LINGUISTIC_HASH_WORD_COUNT,
+    LINGUISTIC_HASH_LANGUAGES,
+    MAX_LINGUISTIC_HASH_WORD_COUNT,
+    MIN_LINGUISTIC_HASH_WORD_COUNT,
+    linguisticHash,
+    normalizeLinguisticHashLanguage,
+    normalizeLinguisticHashWordCount,
+    type LinguisticHashLanguage,
+} from '../../../../../src/utils/misc/linguisticHash';
 
 const defaultInput = 'Promptbook is awesome!';
+const LANGUAGE_QUERY_PARAM = 'lang';
 
 /**
  * Renders the interactive linguistic hash demo.
@@ -15,12 +26,20 @@ export function LinguisticHashComponent() {
     const pathname = usePathname();
 
     const initialInput = searchParams.get('input') || defaultInput;
+    const initialWordCountParam = searchParams.get('words');
+    const initialLanguageParam = searchParams.get(LANGUAGE_QUERY_PARAM);
+    const initialWordCount = normalizeLinguisticHashWordCount(
+        initialWordCountParam ? Number.parseInt(initialWordCountParam, 10) : undefined,
+    );
+    const initialLanguage = normalizeLinguisticHashLanguage(initialLanguageParam);
     const [input, setInput] = useState(initialInput);
     const [hash, setHash] = useState<string>('');
+    const [wordCount, setWordCount] = useState<number>(initialWordCount);
+    const [language, setLanguage] = useState<LinguisticHashLanguage>(initialLanguage);
 
     useEffect(() => {
         const updateHash = async () => {
-            const newHash = await linguisticHash(input);
+            const newHash = await linguisticHash(input, wordCount, language);
             setHash(newHash);
         };
         updateHash();
@@ -32,12 +51,37 @@ export function LinguisticHashComponent() {
         } else {
             params.set('input', input);
         }
-        
+
+        if (wordCount === DEFAULT_LINGUISTIC_HASH_WORD_COUNT) {
+            params.delete('words');
+        } else {
+            params.set('words', wordCount.toString());
+        }
+
+        if (language === DEFAULT_LINGUISTIC_HASH_LANGUAGE) {
+            params.delete(LANGUAGE_QUERY_PARAM);
+        } else {
+            params.set(LANGUAGE_QUERY_PARAM, language);
+        }
+
         // Use replace to avoid filling history with every keystroke
         const queryString = params.toString();
         router.replace(`${pathname}${queryString ? `?${queryString}` : ''}`, { scroll: false });
+    }, [input, wordCount, language, searchParams, router, pathname]);
 
-    }, [input, searchParams, router, pathname]);
+    const handleWordCountChange = (value: string) => {
+        const parsedValue = Number.parseInt(value, 10);
+        if (Number.isNaN(parsedValue)) {
+            return;
+        }
+        setWordCount(normalizeLinguisticHashWordCount(parsedValue));
+    };
+
+    const handleLanguageChange = (value: string) => {
+        setLanguage(normalizeLinguisticHashLanguage(value));
+    };
+
+    const showLowUniquenessWarning = wordCount <= 2;
 
     return (
         <div className="h-full flex flex-col gap-8">
@@ -56,8 +100,69 @@ export function LinguisticHashComponent() {
             </div>
 
             <div className="flex flex-col gap-2">
+                <label htmlFor="language-select" className="text-sm font-medium text-gray-700">
+                    Language
+                </label>
+                <select
+                    id="language-select"
+                    value={language}
+                    onChange={(e) => handleLanguageChange(e.target.value)}
+                    className="w-full md:w-64 p-3 text-base border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white"
+                >
+                    {LINGUISTIC_HASH_LANGUAGES.map((languageOption) => (
+                        <option key={languageOption.language} value={languageOption.language}>
+                            {languageOption.label}
+                        </option>
+                    ))}
+                </select>
+                <p className="text-xs text-gray-500">
+                    Each language uses its own curated word lists while keeping the same word structure.
+                </p>
+            </div>
+
+            <div className="flex flex-col gap-2">
+                <label htmlFor="word-count" className="text-sm font-medium text-gray-700">
+                    Word Count
+                </label>
+                <div className="flex flex-col gap-3 md:flex-row md:items-center">
+                    <input
+                        id="word-count"
+                        type="range"
+                        min={MIN_LINGUISTIC_HASH_WORD_COUNT}
+                        max={MAX_LINGUISTIC_HASH_WORD_COUNT}
+                        step={1}
+                        value={wordCount}
+                        onChange={(e) => handleWordCountChange(e.target.value)}
+                        className="w-full accent-blue-600"
+                    />
+                    <div className="flex items-center gap-2">
+                        <input
+                            type="number"
+                            min={MIN_LINGUISTIC_HASH_WORD_COUNT}
+                            max={MAX_LINGUISTIC_HASH_WORD_COUNT}
+                            step={1}
+                            value={wordCount}
+                            onChange={(e) => handleWordCountChange(e.target.value)}
+                            className="w-24 p-2 text-base border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                        />
+                        <span className="text-sm text-gray-500">words</span>
+                    </div>
+                </div>
+                <p className="text-xs text-gray-500">
+                    Default is {DEFAULT_LINGUISTIC_HASH_WORD_COUNT}. Range is {MIN_LINGUISTIC_HASH_WORD_COUNT} to{' '}
+                    {MAX_LINGUISTIC_HASH_WORD_COUNT}. Increasing the count appends more detail without changing earlier
+                    words.
+                </p>
+                {showLowUniquenessWarning ? (
+                    <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                        1 to 2 word hashes are short and easy to collide, so expect lower uniqueness.
+                    </div>
+                ) : null}
+            </div>
+
+            <div className="flex flex-col gap-2">
                 <label className="text-sm font-medium text-gray-700">
-                    Linguistic Hash
+                    Linguistic Hash ({wordCount} words)
                 </label>
                 <div className="w-full p-8 text-3xl md:text-5xl font-bold text-center bg-white border-2 border-dashed border-blue-200 rounded-xl text-blue-600 shadow-inner min-h-[120px] flex items-center justify-center">
                     {hash}
@@ -67,12 +172,31 @@ export function LinguisticHashComponent() {
             <div className="bg-blue-50 p-6 rounded-lg border border-blue-100">
                 <h3 className="text-lg font-semibold text-blue-900 mb-2">What is a Linguistic Hash?</h3>
                 <p className="text-blue-800">
-                    A linguistic hash is a human-readable representation of data. Instead of a random string of characters like <code className="bg-blue-100 px-1 rounded text-sm">7a9f...</code>, it uses a deterministic, story-like sentence built from <strong>adjectives</strong>, <strong>nouns</strong>, and <strong>verbs</strong>.
+                    A linguistic hash is a human-readable representation of data. Instead of a random string of characters like{' '}
+                    <code className="bg-blue-100 px-1 rounded text-sm">7a9f...</code>, it uses a deterministic,
+                    story-like phrase built from <strong>adjectives</strong>, <strong>nouns</strong>, and{' '}
+                    <strong>verbs</strong>.
                 </p>
                 <ul className="list-disc list-inside mt-2 text-blue-800 space-y-1">
-                    <li><strong>Deterministic:</strong> The same input always produces the same hash.</li>
-                    <li><strong>Human-readable:</strong> A short sentence that is easy to remember and communicate.</li>
-                    <li><strong>Unique:</strong> High probability of being different for different inputs.</li>
+                    <li>
+                        <strong>Deterministic:</strong> The same input and word count always produce the same hash.
+                    </li>
+                    <li>
+                        <strong>Avalanche on input:</strong> Tiny input changes cause completely different word sequences.
+                    </li>
+                    <li>
+                        <strong>Stable length:</strong> Increasing the word count only appends more words, keeping the
+                        earlier ones intact (e.g. "Slick sigh beating" to "Slick sigh beating dancing").
+                    </li>
+                    <li>
+                        <strong>Word structure:</strong> One word uses a single noun, two words use adjective + noun.
+                    </li>
+                    <li>
+                        <strong>Language-aware:</strong> Pick a language to swap the word lists while keeping the same structure.
+                    </li>
+                    <li>
+                        <strong>Uniqueness:</strong> Longer hashes are more unique; 1 to 2 words can collide easily.
+                    </li>
                 </ul>
             </div>
         </div>

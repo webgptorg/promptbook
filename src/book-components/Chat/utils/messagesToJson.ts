@@ -1,4 +1,5 @@
 import type { ChatMessage } from '../types/ChatMessage';
+import { $getCurrentDate } from '../../../utils/misc/$getCurrentDate';
 
 /**
  * Converts chat messages to JSON format
@@ -14,13 +15,19 @@ export function messagesToJson(messages: ChatMessage[], shareUrl: string): strin
             messageCount: messages.length,
             shareUrl,
         },
-        messages: messages.map((message, index) => ({
-            id: message.id || `msg_${index}`,
-            sender: message.sender,
-            content: message.content,
-            isComplete: message.isComplete ?? true,
-            createdAt: new Date().toISOString(), // Note: Real timestamp would come from message data
-        })),
+        messages: messages.map((message, index) => {
+            const createdAtValue = (message as { createdAt?: string | Date }).createdAt;
+            const createdAt =
+                createdAtValue instanceof Date ? createdAtValue.toISOString() : createdAtValue || $getCurrentDate();
+
+            return {
+                id: message.id || `msg_${index}`,
+                sender: message.sender,
+                content: message.content,
+                isComplete: message.isComplete ?? true,
+                createdAt,
+            };
+        }),
     };
 
     return JSON.stringify(exportData, null, 2);

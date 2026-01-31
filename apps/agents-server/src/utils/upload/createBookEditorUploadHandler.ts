@@ -10,8 +10,51 @@ import { normalizeUploadFilename } from '../normalization/normalizeUploadFilenam
  */
 export type BookEditorUploadHandler = (
     file: File,
-    onProgress?: (progress: number_percent) => void,
+    optionsOrOnProgress?: BookEditorUploadOptions | BookEditorUploadProgressCallback,
 ) => Promise<string_knowledge_source_content>;
+
+/**
+ * Upload progress callback for BookEditor uploads.
+ */
+export type BookEditorUploadProgressCallback = (
+    progress: number_percent,
+    stats?: {
+        loadedBytes: number;
+        totalBytes: number;
+    },
+) => void;
+
+/**
+ * Options for BookEditor uploads.
+ */
+export type BookEditorUploadOptions = {
+    /**
+     * Progress callback invoked during upload.
+     */
+    onProgress?: BookEditorUploadProgressCallback;
+
+    /**
+     * Optional abort signal for canceling an upload.
+     */
+    abortSignal?: AbortSignal;
+};
+
+/**
+ * Normalizes the upload options input into a single shape.
+ */
+const normalizeUploadOptions = (
+    optionsOrOnProgress?: BookEditorUploadOptions | BookEditorUploadProgressCallback,
+): BookEditorUploadOptions => {
+    if (typeof optionsOrOnProgress === 'function') {
+        return {
+            onProgress: optionsOrOnProgress,
+            abortSignal: (optionsOrOnProgress as BookEditorUploadProgressCallback & { abortSignal?: AbortSignal })
+                .abortSignal,
+        };
+    }
+
+    return optionsOrOnProgress ?? {};
+};
 
 /**
  * Configuration options for creating a BookEditor upload handler.
@@ -34,9 +77,10 @@ export function createBookEditorUploadHandler(
 ): BookEditorUploadHandler {
     const { purpose = 'KNOWLEDGE' } = options;
 
-    return async (file, onProgress) => {
+    return async (file, optionsOrOnProgress) => {
         console.info('Uploading file', file);
 
+        const { onProgress, abortSignal } = normalizeUploadOptions(optionsOrOnProgress);
         const pathPrefix = process.env.NEXT_PUBLIC_CDN_PATH_PREFIX || '';
         const normalizedFilename = normalizeUploadFilename(file.name);
         const uploadPath = pathPrefix
@@ -51,10 +95,12 @@ export function createBookEditorUploadHandler(
                 purpose,
                 contentType: file.type,
             }),
+            abortSignal,
             onUploadProgress: (progressEvent) => {
-                if (onProgress) {
-                    onProgress(progressEvent.percentage / 100);
-                }
+                onProgress?.(progressEvent.percentage / 100, {
+                    loadedBytes: progressEvent.loaded,
+                    totalBytes: progressEvent.total,
+                });
             },
         });
 

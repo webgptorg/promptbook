@@ -1,6 +1,7 @@
 import { PROMPTBOOK_LOGO_URL } from '../../../config';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
+import { getChatMessageTimingDisplay } from './getChatMessageTimingDisplay';
 import { getPromptbookBranding } from './getPromptbookBranding';
 
 /**
@@ -34,7 +35,9 @@ export function messagesToMarkdown(
             const avatarSrc = participant?.avatarSrc;
             const senderMd = `**${fullname}**`;
             const avatarMd = avatarSrc ? `![${fullname}](${avatarSrc}) ` : '';
-            return `${avatarMd}${senderMd}:\n\n${message.content}\n`;
+            const timing = getChatMessageTimingDisplay(message);
+            const timestampLabel = timing ? ` _${timing.fullLabel}_` : '';
+            return `${avatarMd}${senderMd}${timestampLabel}:\n\n${message.content}\n`;
         })
         .join('\n---\n\n');
 

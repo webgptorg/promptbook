@@ -1,7 +1,7 @@
 'use client';
 
 import { Chat } from '@promptbook-local/components';
-import type { ChatMessage } from '@promptbook-local/types';
+import type { ChatMessage, string_date_iso8601 } from '@promptbook-local/types';
 import { useEffect, useMemo, useState } from 'react';
 import { Card } from '../../../components/Homepage/Card';
 import {
@@ -201,12 +201,24 @@ export function ChatFeedbackClient({ initialAgentName }: ChatFeedbackClientProps
             return;
         }
         try {
-            // Ensure dates are Date objects
+            // Normalize chat thread timestamps to ISO strings
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const thread = (row.chatThread as unknown as any[]).map((msg) => ({
-                ...msg,
-                date: msg.date ? new Date(msg.date) : msg.createdAt ? new Date(msg.createdAt) : undefined,
-            })) satisfies Array<ChatMessage>;
+            const thread = (row.chatThread as unknown as any[]).map((msg) => {
+                const value = msg.createdAt ?? msg.date;
+                let createdAt: string_date_iso8601 | undefined;
+
+                if (value) {
+                    const date = value instanceof Date ? value : new Date(value);
+                    if (!Number.isNaN(date.getTime())) {
+                        createdAt = date.toISOString() as string_date_iso8601;
+                    }
+                }
+
+                return {
+                    ...msg,
+                    createdAt,
+                };
+            }) satisfies Array<ChatMessage>;
             setSelectedThread(thread);
         } catch (e) {
             console.error('Failed to parse chat thread', e);

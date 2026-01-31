@@ -29,6 +29,36 @@ import { BookEditorMonaco } from './BookEditorMonaco';
 export const DEFAULT_BOOK_EDITOR_HEIGHT = countLines(DEFAULT_BOOK) * 30 + 20;
 
 /**
+ * Upload progress callback for BookEditor uploads.
+ *
+ * @public exported from `@promptbook/components`
+ */
+export type BookEditorUploadProgressCallback = (
+    progress: number_percent,
+    stats?: {
+        loadedBytes: number;
+        totalBytes: number;
+    },
+) => void;
+
+/**
+ * Options for BookEditor uploads.
+ *
+ * @public exported from `@promptbook/components`
+ */
+export type BookEditorUploadOptions = {
+    /**
+     * Progress callback invoked during upload.
+     */
+    readonly onProgress?: BookEditorUploadProgressCallback;
+
+    /**
+     * Optional abort signal for canceling an upload.
+     */
+    readonly abortSignal?: AbortSignal;
+};
+
+/**
  * Props of `BookEditor`
  *
  * @public exported from `@promptbook/components`
@@ -78,11 +108,11 @@ export type BookEditorProps = {
     onChange?(value: string_book): void;
 
     /**
-     * returns the URL of the uploaded file on CDN or storage
+     * Returns the URL of the uploaded file on CDN or storage.
      */
     onFileUpload?(
         file: File,
-        onProgress?: (progress: number_percent) => void,
+        options?: BookEditorUploadOptions | BookEditorUploadProgressCallback,
     ): Promisable<string_knowledge_source_content>;
 
     /**
@@ -202,6 +232,9 @@ export function BookEditor(props: BookEditorProps) {
 
     const [isFullscreen, setIsFullscreen] = useState(false);
 
+    /**
+     * Toggles fullscreen mode for the editor.
+     */
     const handleFullscreenToggle = () => {
         setIsFullscreen(!isFullscreen);
     };

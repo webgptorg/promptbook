@@ -2,6 +2,8 @@ import { spaceTrim } from 'spacetrim';
 import { string_javascript_name } from '../../_packages/types.index';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import { parseTeamCommitmentContent, type TeamTeammate } from '../../book-2.0/agent-source/parseTeamCommitment';
+import type { PromptResult } from '../../execution/PromptResult';
+import type { LlmToolDefinition } from '../../types/LlmToolDefinition';
 import type { RemoteAgent } from '../../llm-providers/agent/RemoteAgent';
 import { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
 import type { ChatPrompt } from '../../types/Prompt';
@@ -111,19 +113,19 @@ export class TeamCommitmentDefinition extends BaseCommitmentDefinition<'TEAM'> {
     }
 
     applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
-        const trimmedContent = content.trim();
+        const trimmedContent: string = content.trim();
         if (!trimmedContent) {
             return requirements;
         }
 
-        const teammates = parseTeamCommitmentContent(trimmedContent, { strict: true });
+        const teammates: TeamTeammate[] = parseTeamCommitmentContent(trimmedContent, { strict: true });
         if (teammates.length === 0) {
             return requirements;
         }
 
-        const agentName = (requirements.metadata?.agentName as string) || 'Agent';
+        const agentName: string = (requirements.metadata?.agentName as string) || 'Agent';
 
-        const teamEntries = teammates.map((teammate) => ({
+        const teamEntries: TeamToolEntry[] = teammates.map((teammate) => ({
             toolName: createTeamToolName(teammate.url),
             teammate,
             agentName,
@@ -133,8 +135,8 @@ export class TeamCommitmentDefinition extends BaseCommitmentDefinition<'TEAM'> {
             registerTeamTool(entry);
         }
 
-        const existingTools = requirements.tools || [];
-        const updatedTools = [...existingTools];
+        const existingTools: readonly LlmToolDefinition[] = requirements.tools || [];
+        const updatedTools: LlmToolDefinition[] = [...existingTools];
 
         for (const entry of teamEntries) {
             if (updatedTools.some((tool) => tool.name === entry.toolName)) {
@@ -168,7 +170,12 @@ export class TeamCommitmentDefinition extends BaseCommitmentDefinition<'TEAM'> {
             });
         }
 
-        const existingTeammates =
+        const existingTeammates: Array<{
+            url: string;
+            toolName: string;
+            label?: string;
+            instructions?: string;
+        }> =
             (requirements.metadata?.teammates as
                 | Array<{
                       url: string;
@@ -177,7 +184,12 @@ export class TeamCommitmentDefinition extends BaseCommitmentDefinition<'TEAM'> {
                       instructions?: string;
                   }>
                 | undefined) || [];
-        const updatedTeammates = [...existingTeammates];
+        const updatedTeammates: Array<{
+            url: string;
+            toolName: string;
+            label?: string;
+            instructions?: string;
+        }> = [...existingTeammates];
 
         for (const entry of teamEntries) {
             if (updatedTeammates.some((existing) => existing.url === entry.teammate.url)) {
@@ -192,13 +204,14 @@ export class TeamCommitmentDefinition extends BaseCommitmentDefinition<'TEAM'> {
             });
         }
 
-        const teamSystemMessage = spaceTrim(
+        const teamSystemMessage: string = spaceTrim(
             (block) => `
                 Teammates:
                 ${block(
                     teamEntries
-                        .map((entry) => {
-                            const whenToConsult = entry.teammate.instructions || 'Use when their expertise is needed.';
+                        .map((entry: TeamToolEntry) => {
+                            const whenToConsult: string =
+                                entry.teammate.instructions || 'Use when their expertise is needed.';
                             return spaceTrim(
                                 () => `
                                     - ${entry.teammate.label} (${entry.teammate.url})
@@ -244,7 +257,7 @@ export class TeamCommitmentDefinition extends BaseCommitmentDefinition<'TEAM'> {
  * Builds a deterministic tool name for a teammate URL.
  */
 function createTeamToolName(url: string): string_javascript_name {
-    const hash = computeHash(url).substring(0, 10);
+    const hash: string = computeHash(url).substring(0, 10);
     return `${TEAM_TOOL_PREFIX}${hash}` as string_javascript_name;
 }
 
@@ -293,12 +306,12 @@ function buildTeammatePrompt(request: string): ChatPrompt {
  * Resolves a RemoteAgent for the given teammate URL, caching the connection.
  */
 async function getRemoteTeammateAgent(agentUrl: string): Promise<RemoteAgent> {
-    const cached = remoteAgentsByUrl.get(agentUrl);
+    const cached: Promise<RemoteAgent> | undefined = remoteAgentsByUrl.get(agentUrl);
     if (cached) {
         return cached;
     }
 
-    const connection = (async () => {
+    const connection: Promise<RemoteAgent> = (async (): Promise<RemoteAgent> => {
         const { RemoteAgent } = await import('../../llm-providers/agent/RemoteAgent');
         return RemoteAgent.connect({ agentUrl });
     })();
@@ -317,8 +330,8 @@ async function getRemoteTeammateAgent(agentUrl: string): Promise<RemoteAgent> {
  */
 function createTeamToolFunction(entry: TeamToolEntry): ToolFunction {
     return async (args: TeamToolArgs): Promise<string> => {
-        const message = (args.message || args.question || '').trim();
-        const teammateMetadata = buildTeammateMetadata(entry);
+        const message: string = (args.message || args.question || '').trim();
+        const teammateMetadata: TeamToolResult['teammate'] = buildTeammateMetadata(entry);
 
         if (!message) {
             const result: Partial<TeamToolResult> = {
@@ -328,20 +341,20 @@ function createTeamToolFunction(entry: TeamToolEntry): ToolFunction {
             return JSON.stringify(result);
         }
 
-        const request = buildTeammateRequest(message, args.context);
-        let response = '';
+        const request: string = buildTeammateRequest(message, args.context);
+        let response: string = '';
         let error: string | null = null;
 
         try {
-            const remoteAgent = await getRemoteTeammateAgent(entry.teammate.url);
-            const prompt = buildTeammatePrompt(request);
-            const teammateResult = await remoteAgent.callChatModel(prompt);
+            const remoteAgent: RemoteAgent = await getRemoteTeammateAgent(entry.teammate.url);
+            const prompt: ChatPrompt = buildTeammatePrompt(request);
+            const teammateResult: PromptResult = await remoteAgent.callChatModel(prompt);
             response = teammateResult.content || '';
-        } catch (err) {
+        } catch (err: unknown) {
             error = err instanceof Error ? err.message : String(err);
         }
 
-        const teammateReply =
+        const teammateReply: string =
             response || (error ? `Unable to reach teammate. Error: ${error}` : 'No response received.');
 
         const result: TeamToolResult = {

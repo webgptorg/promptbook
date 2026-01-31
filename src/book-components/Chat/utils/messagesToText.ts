@@ -1,5 +1,6 @@
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
+import { getChatMessageTimingDisplay } from './getChatMessageTimingDisplay';
 import { getPromptbookBranding } from './getPromptbookBranding';
 
 /**
@@ -20,7 +21,9 @@ export function messagesToText(
             const participant = (participants || []).find((participant) => participant.name === message.sender);
 
             const fullname = participant?.fullname || message.sender;
-            return `${fullname}:\n${message.content}\n`;
+            const timing = getChatMessageTimingDisplay(message);
+            const timestampLabel = timing ? ` [${timing.fullLabel}]` : '';
+            return `${fullname}${timestampLabel}:\n${message.content}\n`;
         })
         .join('\n');
 

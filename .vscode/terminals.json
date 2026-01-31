@@ -265,6 +265,13 @@
             "focus": true
         },
         {
+            "name": "🏭✨ Find refactor candidates",
+            "command": "npx ts-node ./scripts/find-refactor-candidates/find-refactor-candidates.ts",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
             "name": "⚡✨ Run Coding Agent (💤)(💸)(⏳)",
             "command": "npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --agent openai-codex",
             "execute": false,

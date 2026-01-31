@@ -9,10 +9,12 @@
  * @see /apps/agents-server/src/middleware.ts - where this is used
  */
 export const RESERVED_PATHS: readonly string[] = [
+    "_data",
     "_next",
     "admin",
     "agents",
     "api",
+    "dashboard",
     "docs",
     "embed",
     "favicon.ico",

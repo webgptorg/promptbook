@@ -4,7 +4,7 @@
 
 import Editor, { useMonaco } from '@monaco-editor/react';
 import { editor } from 'monaco-editor';
-import { useCallback, useEffect, useRef, useState } from 'react'; // <-- added useRef
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 // [🚱]> import { MonacoBinding } from 'y-monaco';
 // [🚱]> import { WebsocketProvider } from 'y-websocket';
 // [🚱]> import * as Y from 'yjs';
@@ -14,7 +14,7 @@ import { getAllCommitmentDefinitions } from '../../commitments/_common/getAllCom
 import { DEFAULT_MAX_CONCURRENT_UPLOADS, PROMPTBOOK_SYNTAX_COLORS } from '../../config';
 import { classNames } from '../_common/react-utils/classNames';
 import { SaveIcon } from '../icons/SaveIcon';
-import type { BookEditorProps } from './BookEditor';
+import type { BookEditorProps, BookEditorUploadProgressCallback } from './BookEditor';
 import styles from './BookEditor.module.css';
 import { BookEditorActionbar } from './BookEditorActionbar';
 
@@ -22,6 +22,145 @@ const BOOK_LANGUAGE_ID = 'book';
 const LINE_HEIGHT = 28;
 const CONTENT_PADDING_LEFT = 20;
 const VERTICAL_LINE_LEFT = 0; // <- TODO: This value is weird
+const UPLOAD_EDIT_DEBOUNCE_MS = 300;
+const UPLOAD_PROGRESS_DEBOUNCE_MS = 150;
+
+let uploadSequenceCounter = 0;
+
+/**
+ * States for a tracked BookEditor upload.
+ */
+type UploadStatus = 'queued' | 'uploading' | 'paused' | 'completed' | 'failed';
+
+/**
+ * Upload metadata tracked for the floating panel.
+ */
+type UploadItem = {
+    id: string;
+    fileName: string;
+    fileSize: number;
+    status: UploadStatus;
+    progress: number;
+    loadedBytes: number;
+    totalBytes: number;
+    startedAt: number | null;
+    completedAt: number | null;
+    errorMessage?: string;
+};
+
+/**
+ * Pending progress updates batched for UI refresh.
+ */
+type UploadProgressUpdate = {
+    progress: number;
+    loadedBytes: number;
+    totalBytes: number;
+};
+
+/**
+ * Pending placeholder replacements batched for editor updates.
+ */
+type UploadReplacement = {
+    uploadId: string;
+    decorationId: string;
+    replacementText: string;
+};
+
+/**
+ * Aggregated stats for the upload panel.
+ */
+type UploadStats = {
+    totalFiles: number;
+    queuedFiles: number;
+    uploadingFiles: number;
+    pausedFiles: number;
+    failedFiles: number;
+    completedFiles: number;
+    totalBytes: number;
+    uploadedBytes: number;
+    progress: number;
+    elapsedMs: number;
+    speedBytesPerSecond: number;
+};
+
+const UPLOAD_STATUS_LABELS: Record<UploadStatus, string> = {
+    queued: 'Queued',
+    uploading: 'Uploading',
+    paused: 'Paused',
+    completed: 'Completed',
+    failed: 'Failed',
+};
+
+/**
+ * Builds the placeholder text for an in-progress upload entry.
+ */
+const getUploadPlaceholderText = (fileName: string) => `KNOWLEDGE ⏳ Uploading ${fileName}...`;
+
+/**
+ * Formats a byte size into a readable string.
+ */
+const formatBytes = (bytes: number) => {
+    if (!Number.isFinite(bytes) || bytes <= 0) {
+        return '0 B';
+    }
+
+    const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const exponent = Math.min(units.length - 1, Math.floor(Math.log(bytes) / Math.log(1024)));
+    const value = bytes / Math.pow(1024, exponent);
+    const precision = value >= 10 || exponent === 0 ? 0 : 1;
+
+    return `${value.toFixed(precision)} ${units[exponent]}`;
+};
+
+/**
+ * Formats a duration in milliseconds into a readable timer string.
+ */
+const formatDuration = (durationMs: number) => {
+    if (!Number.isFinite(durationMs) || durationMs <= 0) {
+        return '0:00';
+    }
+
+    const totalSeconds = Math.floor(durationMs / 1000);
+    const seconds = totalSeconds % 60;
+    const minutes = Math.floor(totalSeconds / 60) % 60;
+    const hours = Math.floor(totalSeconds / 3600);
+    const paddedSeconds = `${seconds}`.padStart(2, '0');
+
+    if (hours > 0) {
+        const paddedMinutes = `${minutes}`.padStart(2, '0');
+        return `${hours}:${paddedMinutes}:${paddedSeconds}`;
+    }
+
+    return `${minutes}:${paddedSeconds}`;
+};
+
+/**
+ * Generates a unique id for upload tracking.
+ */
+const createUploadId = () => {
+    if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+        return crypto.randomUUID();
+    }
+
+    uploadSequenceCounter += 1;
+    return `upload-${Date.now()}-${uploadSequenceCounter}`;
+};
+
+/**
+ * Detects whether an error represents an aborted upload.
+ */
+const isAbortError = (error: unknown) => {
+    if (!error) {
+        return false;
+    }
+
+    if (typeof error === 'object' && 'name' in error) {
+        return (error as { name?: string }).name === 'AbortError';
+    }
+
+    const message = error instanceof Error ? error.message : String(error);
+    return message.toLowerCase().includes('abort');
+};
 
 /**
  * @private Internal component used by `BookEditor`
@@ -63,6 +202,7 @@ export function BookEditorMonaco(props: BookEditorProps) {
     const [isFocused, setIsFocused] = useState(false);
     const [isTouchDevice, setIsTouchDevice] = useState(false);
     const [isSavedShown, setIsSavedShown] = useState(false);
+    const [uploadItems, setUploadItemsState] = useState<UploadItem[]>([]);
 
     const monaco = useMonaco();
 
@@ -75,6 +215,16 @@ export function BookEditorMonaco(props: BookEditorProps) {
 
     const fileUploadInputRef = useRef<HTMLInputElement>(null);
     const cameraInputRef = useRef<HTMLInputElement>(null);
+    const uploadItemsRef = useRef<UploadItem[]>([]);
+    const uploadFilesRef = useRef<Map<string, File>>(new Map());
+    const uploadDecorationIdsRef = useRef<Map<string, string>>(new Map());
+    const uploadControllersRef = useRef<Map<string, AbortController>>(new Map());
+    const uploadQueueTimerRef = useRef<number | null>(null);
+    const editorUpdateTimerRef = useRef<number | null>(null);
+    const progressUpdateTimerRef = useRef<number | null>(null);
+    const pendingReplacementsRef = useRef<UploadReplacement[]>([]);
+    const pendingProgressUpdatesRef = useRef<Map<string, UploadProgressUpdate>>(new Map());
+    const processUploadQueueRef = useRef<() => void>(() => undefined);
 
     /*
     Note+TODO: [🚱] Yjs logic is commented out because it causes errors in the build of Next.js projects:
@@ -123,6 +273,321 @@ export function BookEditorMonaco(props: BookEditorProps) {
         setIsTouchDevice(typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches);
     }, []);
 
+    /**
+     * Updates upload items state and keeps the ref in sync.
+     */
+    const setUploadItems = useCallback((updater: (items: UploadItem[]) => UploadItem[]) => {
+        const next = updater(uploadItemsRef.current);
+        uploadItemsRef.current = next;
+        setUploadItemsState(next);
+    }, []);
+
+    /**
+     * Batches upload progress updates to reduce render churn.
+     */
+    const queueProgressUpdate = useCallback(
+        (uploadId: string, progress: number, loadedBytes: number, totalBytes: number) => {
+            pendingProgressUpdatesRef.current.set(uploadId, {
+                progress,
+                loadedBytes,
+                totalBytes,
+            });
+
+            if (progressUpdateTimerRef.current !== null) {
+                return;
+            }
+
+            progressUpdateTimerRef.current = window.setTimeout(() => {
+                progressUpdateTimerRef.current = null;
+                const updates = pendingProgressUpdatesRef.current;
+                pendingProgressUpdatesRef.current = new Map();
+
+                setUploadItems((items) =>
+                    items.map((item) => {
+                        const update = updates.get(item.id);
+                        if (!update) {
+                            return item;
+                        }
+
+                        return {
+                            ...item,
+                            progress: update.progress,
+                            loadedBytes: update.loadedBytes,
+                            totalBytes: update.totalBytes,
+                        };
+                    }),
+                );
+            }, UPLOAD_PROGRESS_DEBOUNCE_MS);
+        },
+        [setUploadItems],
+    );
+
+    /**
+     * Applies queued placeholder replacements in a single editor edit batch.
+     */
+    const flushEditorReplacements = useCallback(() => {
+        if (!editor) {
+            return;
+        }
+
+        const model = editor.getModel();
+        if (!model) {
+            return;
+        }
+
+        const replacements = pendingReplacementsRef.current;
+        pendingReplacementsRef.current = [];
+
+        const edits: editor.IIdentifiedSingleEditOperation[] = [];
+        const decorationsToRemove: string[] = [];
+
+        for (const replacement of replacements) {
+            const range = model.getDecorationRange(replacement.decorationId);
+            if (!range) {
+                uploadDecorationIdsRef.current.delete(replacement.uploadId);
+                continue;
+            }
+
+            edits.push({
+                range,
+                text: replacement.replacementText,
+                forceMoveMarkers: true,
+            });
+            decorationsToRemove.push(replacement.decorationId);
+            uploadDecorationIdsRef.current.delete(replacement.uploadId);
+        }
+
+        if (edits.length > 0) {
+            editor.executeEdits('upload-replacements', edits);
+        }
+
+        if (decorationsToRemove.length > 0) {
+            editor.deltaDecorations(decorationsToRemove, []);
+        }
+    }, [editor]);
+
+    /**
+     * Queues a placeholder replacement and debounces editor updates.
+     */
+    const queueEditorReplacement = useCallback(
+        (uploadId: string, replacementText: string) => {
+            const decorationId = uploadDecorationIdsRef.current.get(uploadId);
+            if (!decorationId) {
+                return;
+            }
+
+            const pendingIndex = pendingReplacementsRef.current.findIndex((item) => item.uploadId === uploadId);
+            const nextReplacement: UploadReplacement = {
+                uploadId,
+                decorationId,
+                replacementText,
+            };
+
+            if (pendingIndex >= 0) {
+                pendingReplacementsRef.current[pendingIndex] = nextReplacement;
+            } else {
+                pendingReplacementsRef.current.push(nextReplacement);
+            }
+
+            if (editorUpdateTimerRef.current !== null) {
+                return;
+            }
+
+            editorUpdateTimerRef.current = window.setTimeout(() => {
+                editorUpdateTimerRef.current = null;
+                flushEditorReplacements();
+            }, UPLOAD_EDIT_DEBOUNCE_MS);
+        },
+        [flushEditorReplacements],
+    );
+
+    /**
+     * Schedules upload queue processing on the next tick.
+     */
+    const queueUploadProcessing = useCallback(() => {
+        if (uploadQueueTimerRef.current !== null) {
+            return;
+        }
+
+        uploadQueueTimerRef.current = window.setTimeout(() => {
+            uploadQueueTimerRef.current = null;
+            processUploadQueueRef.current();
+        }, 0);
+    }, []);
+
+    /**
+     * Starts uploading a queued item.
+     */
+    const startUpload = useCallback(
+        async (uploadId: string) => {
+            if (!onFileUpload) {
+                return;
+            }
+
+            const file = uploadFilesRef.current.get(uploadId);
+            if (!file) {
+                return;
+            }
+
+            const current = uploadItemsRef.current.find((item) => item.id === uploadId);
+            if (!current || current.status === 'uploading' || current.status === 'completed') {
+                return;
+            }
+
+            const controller = new AbortController();
+            uploadControllersRef.current.set(uploadId, controller);
+
+            setUploadItems((items) =>
+                items.map((item) =>
+                    item.id === uploadId
+                        ? {
+                              ...item,
+                              status: 'uploading',
+                              startedAt: item.startedAt ?? Date.now(),
+                              errorMessage: undefined,
+                          }
+                        : item,
+                ),
+            );
+
+            try {
+                const progressHandler = ((progress, stats) => {
+                    const loadedBytes = stats?.loadedBytes ?? Math.round(Math.min(1, progress) * (file.size || 0));
+                    const totalBytes = stats?.totalBytes ?? (file.size || loadedBytes);
+                    queueProgressUpdate(uploadId, progress, loadedBytes, totalBytes);
+                }) as BookEditorUploadProgressCallback & {
+                    onProgress?: BookEditorUploadProgressCallback;
+                    abortSignal?: AbortSignal;
+                };
+
+                progressHandler.onProgress = progressHandler;
+                progressHandler.abortSignal = controller.signal;
+
+                const url = await onFileUpload(file, progressHandler);
+
+                queueProgressUpdate(uploadId, 1, file.size, file.size);
+                queueEditorReplacement(uploadId, `KNOWLEDGE ${url}`);
+
+                setUploadItems((items) =>
+                    items.map((item) =>
+                        item.id === uploadId
+                            ? {
+                                  ...item,
+                                  status: 'completed',
+                                  progress: 1,
+                                  loadedBytes: item.totalBytes || file.size,
+                                  completedAt: Date.now(),
+                              }
+                            : item,
+                    ),
+                );
+            } catch (error) {
+                if (isAbortError(error)) {
+                    setUploadItems((items) =>
+                        items.map((item) =>
+                            item.id === uploadId
+                                ? {
+                                      ...item,
+                                      status: 'paused',
+                                      errorMessage: undefined,
+                                  }
+                                : item,
+                        ),
+                    );
+                } else {
+                    console.error(`File upload failed for ${file.name}:`, error);
+                    queueEditorReplacement(uploadId, `KNOWLEDGE ❌ Failed to upload ${file.name}`);
+                    setUploadItems((items) =>
+                        items.map((item) =>
+                            item.id === uploadId
+                                ? {
+                                      ...item,
+                                      status: 'failed',
+                                      errorMessage: error instanceof Error ? error.message : 'Upload failed',
+                                  }
+                                : item,
+                        ),
+                    );
+                }
+            } finally {
+                uploadControllersRef.current.delete(uploadId);
+                queueUploadProcessing();
+            }
+        },
+        [onFileUpload, queueEditorReplacement, queueProgressUpdate, queueUploadProcessing, setUploadItems],
+    );
+
+    /**
+     * Starts queued uploads up to the concurrency limit.
+     */
+    const processUploadQueue = useCallback(() => {
+        if (!onFileUpload) {
+            return;
+        }
+
+        const currentItems = uploadItemsRef.current;
+        const activeCount = currentItems.filter((item) => item.status === 'uploading').length;
+        const availableSlots = Math.max(0, DEFAULT_MAX_CONCURRENT_UPLOADS - activeCount);
+        if (availableSlots === 0) {
+            return;
+        }
+
+        const queuedItems = currentItems.filter((item) => item.status === 'queued').slice(0, availableSlots);
+        queuedItems.forEach((item) => {
+            void startUpload(item.id);
+        });
+    }, [onFileUpload, startUpload]);
+
+    processUploadQueueRef.current = processUploadQueue;
+
+    /**
+     * Pauses a queued or active upload.
+     */
+    const pauseUpload = useCallback(
+        (uploadId: string) => {
+            setUploadItems((items) =>
+                items.map((item) =>
+                    item.id === uploadId && item.status === 'queued'
+                        ? {
+                              ...item,
+                              status: 'paused',
+                          }
+                        : item,
+                ),
+            );
+
+            const controller = uploadControllersRef.current.get(uploadId);
+            controller?.abort();
+        },
+        [setUploadItems],
+    );
+
+    /**
+     * Resumes a paused or failed upload by re-queuing it.
+     */
+    const resumeUpload = useCallback(
+        (uploadId: string) => {
+            setUploadItems((items) =>
+                items.map((item) =>
+                    item.id === uploadId
+                        ? {
+                              ...item,
+                              status: 'queued',
+                              progress: 0,
+                              loadedBytes: 0,
+                              startedAt: null,
+                              completedAt: null,
+                              errorMessage: undefined,
+                          }
+                        : item,
+                ),
+            );
+
+            queueUploadProcessing();
+        },
+        [queueUploadProcessing, setUploadItems],
+    );
+
     useEffect(() => {
         if (!editor) {
             return;
@@ -167,6 +632,49 @@ export function BookEditorMonaco(props: BookEditorProps) {
             clearTimeout(timer);
         };
     }, [isSavedShown]);
+
+    useEffect(() => {
+        return () => {
+            if (uploadQueueTimerRef.current !== null) {
+                clearTimeout(uploadQueueTimerRef.current);
+            }
+
+            if (editorUpdateTimerRef.current !== null) {
+                clearTimeout(editorUpdateTimerRef.current);
+            }
+
+            if (progressUpdateTimerRef.current !== null) {
+                clearTimeout(progressUpdateTimerRef.current);
+            }
+
+            for (const controller of uploadControllersRef.current.values()) {
+                controller.abort();
+            }
+
+            uploadControllersRef.current.clear();
+        };
+    }, []);
+
+    useEffect(() => {
+        if (uploadItems.length === 0) {
+            return;
+        }
+
+        const hasActive = uploadItems.some((item) => item.status !== 'completed');
+        if (hasActive) {
+            return;
+        }
+
+        const timer = window.setTimeout(() => {
+            uploadFilesRef.current.clear();
+            uploadDecorationIdsRef.current.clear();
+            setUploadItems(() => []);
+        }, 1500);
+
+        return () => {
+            clearTimeout(timer);
+        };
+    }, [setUploadItems, uploadItems]);
 
     useEffect(() => {
         if (!monaco) {
@@ -446,24 +954,35 @@ export function BookEditorMonaco(props: BookEditorProps) {
         };
     }, [editor, monaco]);
 
+    /**
+     * Inserts upload placeholders and queues uploads for processing.
+     */
     const handleFiles = useCallback(
         async (files: File[]) => {
-            if (!onFileUpload || !editor || !monaco) return;
-            if (files.length === 0) return;
+            if (!onFileUpload || !editor || !monaco) {
+                return;
+            }
+
+            if (files.length === 0) {
+                return;
+            }
 
             const model = editor.getModel();
-            if (!model) return;
+            if (!model) {
+                return;
+            }
 
-            // [1] Inject placeholders
-            const filePlaceholders = files.map((file) => ({
+            const placeholders = files.map((file) => ({
+                id: createUploadId(),
                 file,
-                placeholder: `KNOWLEDGE ⏳ Uploading ${file.name}...`,
+                placeholder: getUploadPlaceholderText(file.name),
             }));
 
-            const textToAppend = (model.getValue() ? '\n' : '') + filePlaceholders.map((f) => f.placeholder).join('\n');
-
+            const prefix = model.getValue() ? '\n' : '';
+            const textToAppend = prefix + placeholders.map((entry) => entry.placeholder).join('\n');
             const lastLine = model.getLineCount();
             const lastColumn = model.getLineMaxColumn(lastLine);
+            const insertStartOffset = model.getOffsetAt(new monaco.Position(lastLine, lastColumn));
 
             editor.executeEdits('upload-placeholders', [
                 {
@@ -473,67 +992,57 @@ export function BookEditorMonaco(props: BookEditorProps) {
                 },
             ]);
 
-            // Helper to replace text in the model
-            const replaceText = (search: string, replace: string) => {
-                const model = editor.getModel();
-                if (!model) return;
+            const decorations: editor.IModelDeltaDecoration[] = [];
+            let runningOffset = prefix.length;
 
-                const text = model.getValue();
-                const index = text.indexOf(search);
-                if (index !== -1) {
-                    const startPos = model.getPositionAt(index);
-                    const endPos = model.getPositionAt(index + search.length);
+            for (const entry of placeholders) {
+                const startOffset = insertStartOffset + runningOffset;
+                const endOffset = startOffset + entry.placeholder.length;
+                const startPos = model.getPositionAt(startOffset);
+                const endPos = model.getPositionAt(endOffset);
 
-                    editor.executeEdits('upload-update', [
-                        {
-                            range: new monaco.Range(
-                                startPos.lineNumber,
-                                startPos.column,
-                                endPos.lineNumber,
-                                endPos.column,
-                            ),
-                            text: replace,
-                            forceMoveMarkers: true,
-                        },
-                    ]);
+                decorations.push({
+                    range: new monaco.Range(startPos.lineNumber, startPos.column, endPos.lineNumber, endPos.column),
+                    options: {
+                        stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
+                    },
+                });
+
+                runningOffset += entry.placeholder.length + 1;
+            }
+
+            const decorationIds = editor.deltaDecorations([], decorations);
+
+            placeholders.forEach((entry, index) => {
+                uploadFilesRef.current.set(entry.id, entry.file);
+                const decorationId = decorationIds[index];
+                if (decorationId) {
+                    uploadDecorationIdsRef.current.set(entry.id, decorationId);
                 }
-            };
+            });
 
-            // [2] Process in chunks
-            const chunkedFiles = [];
-            for (let i = 0; i < filePlaceholders.length; i += DEFAULT_MAX_CONCURRENT_UPLOADS) {
-                chunkedFiles.push(filePlaceholders.slice(i, i + DEFAULT_MAX_CONCURRENT_UPLOADS));
-            }
+            const newUploadItems: UploadItem[] = placeholders.map((entry) => ({
+                id: entry.id,
+                fileName: entry.file.name,
+                fileSize: entry.file.size,
+                status: 'queued',
+                progress: 0,
+                loadedBytes: 0,
+                totalBytes: entry.file.size,
+                startedAt: null,
+                completedAt: null,
+            }));
 
-            for (const chunk of chunkedFiles) {
-                await Promise.all(
-                    chunk.map(async ({ file, placeholder }) => {
-                        let currentPlaceholder = placeholder;
+            setUploadItems((items) => [...items, ...newUploadItems]);
 
-                        try {
-                            const url = await onFileUpload(file, (progress) => {
-                                const percent = Math.floor(progress * 100);
-                                const newPlaceholder = `KNOWLEDGE ⏳ Uploading ${file.name} ${percent}%...`;
-
-                                if (newPlaceholder !== currentPlaceholder) {
-                                    replaceText(currentPlaceholder, newPlaceholder);
-                                    currentPlaceholder = newPlaceholder;
-                                }
-                            });
-
-                            const completedText = `KNOWLEDGE ${url}`;
-                            replaceText(currentPlaceholder, completedText);
-                        } catch (error) {
-                            console.error(`File upload failed for ${file.name}:`, error);
-                            replaceText(currentPlaceholder, `KNOWLEDGE ❌ Failed to upload ${file.name}`);
-                        }
-                    }),
-                );
-            }
+            queueUploadProcessing();
         },
-        [onFileUpload, editor, monaco],
+        [onFileUpload, editor, monaco, queueUploadProcessing, setUploadItems],
     );
 
+    /**
+     * Handles file drop uploads.
+     */
     const handleDrop = useCallback(
         async (event: React.DragEvent<HTMLDivElement>) => {
             event.preventDefault();
@@ -545,6 +1054,9 @@ export function BookEditorMonaco(props: BookEditorProps) {
         [handleFiles],
     );
 
+    /**
+     * Handles paste uploads.
+     */
     const handlePaste = useCallback(
         async (event: React.ClipboardEvent<HTMLDivElement>) => {
             const files = Array.from(event.clipboardData.files);
@@ -562,18 +1074,27 @@ export function BookEditorMonaco(props: BookEditorProps) {
     );
     // <- TODO: [✨🏺] !!!! Maybe not working
 
+    /**
+     * Opens the document upload input.
+     */
     const handleUploadDocument = useCallback(() => {
         if (fileUploadInputRef.current) {
             fileUploadInputRef.current.click();
         }
     }, []);
 
+    /**
+     * Opens the camera capture input.
+     */
     const handleTakePhoto = useCallback(() => {
         if (cameraInputRef.current) {
             cameraInputRef.current.click();
         }
     }, []);
 
+    /**
+     * Handles file selection from hidden inputs.
+     */
     const handleFileInputChange = useCallback(
         (event: React.ChangeEvent<HTMLInputElement>) => {
             const files = Array.from(event.target.files || []);
@@ -584,20 +1105,73 @@ export function BookEditorMonaco(props: BookEditorProps) {
         [handleFiles],
     );
 
+    /**
+     * Shows drag overlay while dragging over the editor.
+     */
     const handleDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
         event.preventDefault();
         setIsDragOver(true);
     }, []);
 
+    /**
+     * Shows drag overlay when entering the editor.
+     */
     const handleDragEnter = useCallback((event: React.DragEvent<HTMLDivElement>) => {
         event.preventDefault();
         setIsDragOver(true);
     }, []);
 
+    /**
+     * Hides drag overlay when leaving the editor.
+     */
     const handleDragLeave = useCallback((event: React.DragEvent<HTMLDivElement>) => {
         event.preventDefault();
         setIsDragOver(false);
     }, []);
+
+    const uploadStats = useMemo<UploadStats>(() => {
+        const totalFiles = uploadItems.length;
+        const queuedFiles = uploadItems.filter((item) => item.status === 'queued').length;
+        const uploadingFiles = uploadItems.filter((item) => item.status === 'uploading').length;
+        const pausedFiles = uploadItems.filter((item) => item.status === 'paused').length;
+        const failedFiles = uploadItems.filter((item) => item.status === 'failed').length;
+        const completedFiles = uploadItems.filter((item) => item.status === 'completed').length;
+        const totalBytes = uploadItems.reduce((sum, item) => sum + item.totalBytes, 0);
+        const uploadedBytes = uploadItems.reduce((sum, item) => {
+            const total = item.totalBytes || 0;
+            const loaded = total > 0 ? Math.min(item.loadedBytes, total) : item.loadedBytes;
+            return sum + loaded;
+        }, 0);
+        const progress = totalBytes > 0 ? uploadedBytes / totalBytes : 0;
+        const startedAt = uploadItems.reduce((min, item) => {
+            if (!item.startedAt) {
+                return min;
+            }
+
+            return Math.min(min, item.startedAt);
+        }, Number.POSITIVE_INFINITY);
+        const elapsedMs = Number.isFinite(startedAt) ? Math.max(0, Date.now() - startedAt) : 0;
+        const speedBytesPerSecond = elapsedMs > 0 ? uploadedBytes / (elapsedMs / 1000) : 0;
+
+        return {
+            totalFiles,
+            queuedFiles,
+            uploadingFiles,
+            pausedFiles,
+            failedFiles,
+            completedFiles,
+            totalBytes,
+            uploadedBytes,
+            progress,
+            elapsedMs,
+            speedBytesPerSecond,
+        };
+    }, [uploadItems]);
+
+    const activeUploadItems = useMemo(
+        () => uploadItems.filter((item) => item.status !== 'completed'),
+        [uploadItems],
+    );
 
     return (
         <div
@@ -648,6 +1222,101 @@ export function BookEditorMonaco(props: BookEditorProps) {
                 <div className={styles.savedNotification}>
                     <SaveIcon />
                     Saved
+                </div>
+            )}
+            {activeUploadItems.length > 0 && (
+                <div className={styles.uploadPanel} role="status" aria-live="polite">
+                    <div className={styles.uploadPanelHeader}>
+                        <div className={styles.uploadPanelTitle}>Uploads</div>
+                        <div className={styles.uploadPanelHeaderMeta}>
+                            {uploadStats.uploadingFiles + uploadStats.queuedFiles} active / {uploadStats.totalFiles} total
+                        </div>
+                    </div>
+                    <div className={styles.uploadPanelSummary}>
+                        <div>
+                            Files: {uploadStats.totalFiles} total, {uploadStats.completedFiles} done
+                        </div>
+                        <div>
+                            Data: {formatBytes(uploadStats.uploadedBytes)} / {formatBytes(uploadStats.totalBytes)}
+                        </div>
+                        <div>
+                            Speed:{' '}
+                            {uploadStats.speedBytesPerSecond > 0
+                                ? `${formatBytes(uploadStats.speedBytesPerSecond)}/s`
+                                : '--'}
+                        </div>
+                        <div>Elapsed: {formatDuration(uploadStats.elapsedMs)}</div>
+                        <div>
+                            Paused: {uploadStats.pausedFiles}, Failed: {uploadStats.failedFiles}
+                        </div>
+                    </div>
+                    <div className={styles.uploadPanelProgressBar}>
+                        <div
+                            className={styles.uploadPanelProgressFill}
+                            style={{ width: `${Math.round(uploadStats.progress * 100)}%` }}
+                        />
+                    </div>
+                    <div className={styles.uploadPanelList}>
+                        {activeUploadItems.map((item) => {
+                            const percent = Math.round(item.progress * 100);
+                            const actionLabel =
+                                item.status === 'paused'
+                                    ? 'Resume'
+                                    : item.status === 'failed'
+                                    ? 'Retry'
+                                    : 'Pause';
+                            const canPause = item.status === 'uploading' || item.status === 'queued';
+                            const canResume = item.status === 'paused' || item.status === 'failed';
+
+                            return (
+                                <div key={item.id} className={styles.uploadRow}>
+                                    <div className={styles.uploadRowHeader}>
+                                        <div className={styles.uploadRowName} title={item.fileName}>
+                                            {item.fileName}
+                                        </div>
+                                        <div className={styles.uploadRowStatus}>
+                                            {UPLOAD_STATUS_LABELS[item.status]}
+                                        </div>
+                                    </div>
+                                    <div className={styles.uploadRowMeta}>
+                                        <span>
+                                            {formatBytes(item.loadedBytes)} / {formatBytes(item.totalBytes)}
+                                        </span>
+                                        <span>{percent}%</span>
+                                    </div>
+                                    <div className={styles.uploadRowProgressBar}>
+                                        <div
+                                            className={styles.uploadRowProgressFill}
+                                            style={{ width: `${percent}%` }}
+                                        />
+                                    </div>
+                                    <div className={styles.uploadRowActions}>
+                                        {canPause && (
+                                            <button
+                                                type="button"
+                                                className={styles.uploadActionButton}
+                                                onClick={() => pauseUpload(item.id)}
+                                            >
+                                                Pause
+                                            </button>
+                                        )}
+                                        {canResume && (
+                                            <button
+                                                type="button"
+                                                className={styles.uploadActionButton}
+                                                onClick={() => resumeUpload(item.id)}
+                                            >
+                                                {actionLabel}
+                                            </button>
+                                        )}
+                                    </div>
+                                    {item.errorMessage && item.status === 'failed' && (
+                                        <div className={styles.uploadRowError}>{item.errorMessage}</div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
                 </div>
             )}
             <div

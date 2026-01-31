@@ -13,6 +13,7 @@ import type { string_char_emoji } from '../../src/types/typeAliasEmoji';
 import { difference } from '../../src/utils/sets/difference';
 import { $shuffleItems } from '../find-fresh-emoji-tag/utils/$shuffleItems';
 import { EMOJIS_OF_SINGLE_PICTOGRAM } from '../find-fresh-emoji-tag/utils/emojis';
+import { buildPromptFilename, getPromptNumbering } from '../utils/prompts/getPromptNumbering';
 
 if (process.cwd() !== join(__dirname, '../..')) {
     console.error(colors.red(`CWD must be root of the project`));
@@ -43,36 +44,16 @@ async function generatePromptBoilerplate() {
         }
         return Math.floor(n);
     })();
-
-    // Generate current date in YYYY-MM format
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = (now.getMonth() + 1).toString().padStart(2, '0');
-    const datePrefix = `${year}-${month}`;
-
-    // Find the highest existing number in prompts for the current month only
-    const promptFiles = await glob('prompts/**/*.md', {
-        ignore: '**/node_modules/**', // <- TODO: [🚰] Ignore also hidden folders like *(`.promptbook`, `.next`, `.git`,...)*
+    const promptNumbering = await getPromptNumbering({
+        promptsDir: join(process.cwd(), 'prompts'),
+        step: 10,
+        ignoreGlobs: ['**/node_modules/**'],
     });
-
-    let highestNumber = -10; // So first will be 0000 if none found
-    const numberPattern = new RegExp(`${datePrefix}-(\\d{4})-`);
-
-    for (const file of promptFiles) {
-        const match = file.match(numberPattern);
-        if (match && match[1]) {
-            const number = parseInt(match[1], 10);
-            if (number > highestNumber) {
-                highestNumber = number;
-            }
-        }
-    }
-
-    // If no files for this month, highestNumber will be -10, so first will be 0000
-    const startNumber = highestNumber < 0 ? 0 : highestNumber + 10;
+    const highestNumber =
+        promptNumbering.startNumber === 0 ? 0 : promptNumbering.startNumber - promptNumbering.step;
     console.info(
         colors.blue(
-            `Highest existing number for ${datePrefix} found: ${Math.max(0, highestNumber)
+            `Highest existing number for ${promptNumbering.datePrefix} found: ${Math.max(0, highestNumber)}
                 .toString()
                 .padStart(4, '0')}`,
         ),
@@ -113,10 +94,10 @@ async function generatePromptBoilerplate() {
     // Generate files
     const filesToCreate = [];
     for (let i = 0; i < filesCount; i++) {
-        const number = (startNumber + i * 10).toString().padStart(4, '0');
+        const number = promptNumbering.startNumber + i * promptNumbering.step;
         const title = titles[i % titles.length];
         const emoji = selectedEmojis[i];
-        const filename = `${datePrefix}-${number}-${title}.md`;
+        const filename = buildPromptFilename(promptNumbering.datePrefix, number, title);
         const filepath = join('prompts', filename);
         const one = spaceTrim(`
 

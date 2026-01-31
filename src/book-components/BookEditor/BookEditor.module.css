@@ -135,6 +135,148 @@
     animation: fadeOut 2s forwards;
 }
 
+.uploadPanel {
+    position: absolute;
+    right: 20px;
+    bottom: 20px;
+    width: 420px;
+    max-width: calc(100% - 40px);
+    background: rgba(255, 255, 255, 0.98);
+    border: 1px solid rgba(209, 213, 219, 0.9);
+    border-radius: 12px;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.15);
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 220;
+}
+
+.uploadPanelHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.uploadPanelTitle {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #111827;
+}
+
+.uploadPanelHeaderMeta {
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+.uploadPanelSummary {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 12px;
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+.uploadPanelProgressBar {
+    height: 6px;
+    background: #e5e7eb;
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.uploadPanelProgressFill {
+    height: 100%;
+    background: linear-gradient(90deg, #2563eb, #10b981);
+    transition: width 0.2s ease;
+}
+
+.uploadPanelList {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 220px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.uploadRow {
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    background: #fff;
+}
+
+.uploadRowHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.uploadRowName {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #111827;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.uploadRowStatus {
+    font-size: 0.7rem;
+    color: #6b7280;
+}
+
+.uploadRowMeta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.7rem;
+    color: #6b7280;
+}
+
+.uploadRowProgressBar {
+    height: 4px;
+    background: #e5e7eb;
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.uploadRowProgressFill {
+    height: 100%;
+    background: #3b82f6;
+    transition: width 0.2s ease;
+}
+
+.uploadRowActions {
+    display: flex;
+    gap: 6px;
+}
+
+.uploadActionButton {
+    border: 1px solid #d1d5db;
+    background: #f9fafb;
+    color: #374151;
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease-in-out;
+}
+
+.uploadActionButton:hover {
+    background: #eef2f7;
+    border-color: #cbd5f5;
+}
+
+.uploadRowError {
+    font-size: 0.7rem;
+    color: #b91c1c;
+}
+
 @keyframes fadeOut {
     0% {
         opacity: 0;

@@ -10,14 +10,69 @@ import type { ChatParticipant } from '../../book-components/Chat/types/ChatParti
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult, CommonPromptResult } from '../../execution/PromptResult';
+import { UNCERTAIN_USAGE } from '../../execution/utils/usage-constants';
 import type { ChatPrompt, Prompt } from '../../types/Prompt';
-import type { string_markdown, string_markdown_text, string_model_name, string_title } from '../../types/typeAliases';
+import { ASSISTANT_PREPARATION_TOOL_CALL_NAME } from '../../types/ToolCall';
+import type {
+    string_markdown,
+    string_markdown_text,
+    string_model_name,
+    string_prompt,
+    string_title,
+} from '../../types/typeAliases';
 import { humanizeAiText } from '../../utils/markdown/humanizeAiText';
 import { promptbookifyAiText } from '../../utils/markdown/promptbookifyAiText';
+import { $getCurrentDate } from '../../utils/misc/$getCurrentDate';
 import { normalizeToKebabCase } from '../../utils/normalization/normalize-to-kebab-case';
 import { OpenAiAgentExecutionTools } from '../openai/OpenAiAgentExecutionTools';
 import { OpenAiAssistantExecutionTools } from '../openai/OpenAiAssistantExecutionTools';
 import type { CreateAgentLlmExecutionToolsOptions } from './CreateAgentLlmExecutionToolsOptions';
+
+/**
+ * Emits a progress update to signal assistant preparation before long setup work.
+ */
+function emitAssistantPreparationProgress(options: {
+    /**
+     * Callback to send progress updates to the caller.
+     */
+    readonly onProgress: (chunk: ChatPromptResult) => void;
+    /**
+     * Original prompt being executed.
+     */
+    readonly prompt: Prompt;
+    /**
+     * Model name used for the update payload.
+     */
+    readonly modelName: string_model_name;
+    /**
+     * Optional detail describing the current preparation phase.
+     */
+    readonly phase?: string;
+}): void {
+    const startedAt = $getCurrentDate();
+
+    options.onProgress({
+        content: '',
+        modelName: options.modelName,
+        timing: {
+            start: startedAt,
+            complete: startedAt,
+        },
+        usage: UNCERTAIN_USAGE,
+        rawPromptContent: options.prompt.content as string_prompt,
+        rawRequest: null,
+        rawResponse: {
+            status: 'assistant_preparation',
+        },
+        toolCalls: [
+            {
+                name: ASSISTANT_PREPARATION_TOOL_CALL_NAME,
+                arguments: options.phase ? { phase: options.phase } : {},
+                createdAt: startedAt,
+            },
+        ],
+    });
+}
 
 /**
  * Execution Tools for calling LLM models with a predefined agent "soul"
@@ -102,13 +157,40 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
      */
     public async getModelRequirements(): Promise<AgentModelRequirements> {
         if (this._cachedModelRequirements === null) {
+            const preparationStartedAtMs = Date.now();
+
+            if (this.options.isVerbose) {
+                console.info('[🤰]', 'Preparing agent model requirements', {
+                    agent: this.title,
+                });
+            }
+
             // Get available models from underlying LLM tools for best model selection
+            const availableModelsStartedAtMs = Date.now();
             const availableModels = await this.options.llmTools.listModels();
+
+            if (this.options.isVerbose) {
+                console.info('[🤰]', 'Available models resolved for agent', {
+                    agent: this.title,
+                    modelCount: availableModels.length,
+                    elapsedMs: Date.now() - availableModelsStartedAtMs,
+                });
+            }
+
+            const requirementsStartedAtMs = Date.now();
             this._cachedModelRequirements = await createAgentModelRequirements(
                 this.options.agentSource,
                 undefined, // Let the function pick the best model
                 availableModels,
             );
+
+            if (this.options.isVerbose) {
+                console.info('[🤰]', 'Agent model requirements ready', {
+                    agent: this.title,
+                    elapsedMs: Date.now() - requirementsStartedAtMs,
+                    totalElapsedMs: Date.now() - preparationStartedAtMs,
+                });
+            }
         }
         return this._cachedModelRequirements;
     }
@@ -296,13 +378,25 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
             if (cached) {
                 if (cached.requirementsHash === requirementsHash) {
                     if (this.options.isVerbose) {
-                        console.log(`1️⃣ Using cached OpenAI Assistant for agent ${this.title}...`);
+                        console.info('[🤰]', 'Using cached OpenAI Assistant', {
+                            agent: this.title,
+                            assistantId: cached.assistantId,
+                        });
                     }
                     assistant = this.options.llmTools.getAssistant(cached.assistantId);
                 } else {
                     if (this.options.isVerbose) {
-                        console.log(`1️⃣ Updating OpenAI Assistant for agent ${this.title}...`);
+                        console.info('[🤰]', 'Updating OpenAI Assistant', {
+                            agent: this.title,
+                            assistantId: cached.assistantId,
+                        });
                     }
+                    emitAssistantPreparationProgress({
+                        onProgress,
+                        prompt,
+                        modelName: this.modelName,
+                        phase: 'Updating assistant',
+                    });
                     assistant = await this.options.llmTools.updateAssistant({
                         assistantId: cached.assistantId,
                         name: this.title,
@@ -317,9 +411,17 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
                 }
             } else {
                 if (this.options.isVerbose) {
-                    console.log(`1️⃣ Creating new OpenAI Assistant for agent ${this.title}...`);
+                    console.info('[🤰]', 'Creating new OpenAI Assistant', {
+                        agent: this.title,
+                    });
                 }
                 // <- TODO: [🐱‍🚀] Check also `isCreatingNewAssistantsAllowed` and warn about it
+                emitAssistantPreparationProgress({
+                    onProgress,
+                    prompt,
+                    modelName: this.modelName,
+                    phase: 'Creating assistant',
+                });
                 assistant = await this.options.llmTools.createNewAssistant({
                     name: this.title,
                     instructions: modelRequirements.systemMessage,

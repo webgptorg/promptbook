@@ -5,7 +5,7 @@ import { $provideOpenAiAssistantExecutionToolsForServer } from '@/src/tools/$pro
 import { createChatStreamHandler } from '@/src/utils/createChatStreamHandler';
 import { Agent, computeAgentHash, PROMPTBOOK_ENGINE_VERSION } from '@promptbook-local/core';
 import { ChatMessage, Prompt, string_book, TODO_any } from '@promptbook-local/types';
-import { computeHash } from '@promptbook-local/utils';
+import { $getCurrentDate, computeHash } from '@promptbook-local/utils';
 import { NextRequest, NextResponse } from 'next/server';
 import { isAgentDeleted } from '../app/agents/[agentName]/_utils';
 import { HTTP_STATUS_CODES } from '../constants';
@@ -136,13 +136,17 @@ export async function handleChatCompletion(
         const openAiAssistantExecutionTools = assistantResult.tools;
 
         if (assistantResult.fromCache) {
-            console.log(
-                `[🐱‍🚀] ✓ Cache HIT: Reusing assistant for agent ${agentName} (cache key: ${assistantResult.cacheKey})`,
-            );
+            console.info('[🤰]', 'Assistant cache hit (OpenAI)', {
+                agentName,
+                cacheKey: assistantResult.cacheKey,
+                assistantId: assistantResult.tools.assistantId,
+            });
         } else {
-            console.log(
-                `[🐱‍🚀] ✗ Cache MISS: Created new assistant for agent ${agentName} (cache key: ${assistantResult.cacheKey})`,
-            );
+            console.info('[🤰]', 'Assistant cache miss (OpenAI)', {
+                agentName,
+                cacheKey: assistantResult.cacheKey,
+                assistantId: assistantResult.tools.assistantId,
+            });
         }
 
         const agent = new Agent({
@@ -176,7 +180,7 @@ export async function handleChatCompletion(
             sender: msg.role === 'assistant' ? 'agent' : 'user', // Mapping standard OpenAI roles
             content: msg.content,
             isComplete: true,
-            date: new Date(), // We don't have the real date, using current
+            createdAt: $getCurrentDate(), // We don't have the real date, using current
         }));
 
         // Note: Identify the user message

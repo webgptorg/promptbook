@@ -11,6 +11,68 @@ import { CodeBlock } from '../CodeBlock/CodeBlock';
 import styles from './MarkdownContent.module.css';
 
 /**
+ * Normalizes markdown sublists so they render correctly under ordered list items.
+ *
+ * @param markdown - Markdown content to normalize.
+ * @returns Markdown with normalized sublist indentation.
+ *
+ * @private utility of `MarkdownContent` component
+ */
+function normalizeMarkdownSublists(markdown: string_markdown): string_markdown {
+    const lines = markdown.split(/\r?\n/);
+    let orderedIndent: number | null = null;
+    let shouldIndentUnordered = false;
+    let activeFence: '```' | '~~~' | null = null;
+
+    const normalizedLines = lines.map((line) => {
+        const trimmedLine = line.trim();
+
+        const fenceMatch = trimmedLine.match(/^(```|~~~)/);
+        if (fenceMatch) {
+            const fence = fenceMatch[1] as '```' | '~~~';
+            activeFence = activeFence === fence ? null : fence;
+            return line;
+        }
+
+        if (activeFence) {
+            return line;
+        }
+
+        if (trimmedLine === '') {
+            return line;
+        }
+
+        const orderedMatch = line.match(/^(\s*)(\d+)\.\s+/);
+        if (orderedMatch) {
+            orderedIndent = orderedMatch[1]!.length;
+            shouldIndentUnordered = true;
+            return line;
+        }
+
+        const unorderedMatch = line.match(/^(\s*)([-+*])\s+/);
+        if (unorderedMatch) {
+            if (shouldIndentUnordered && orderedIndent !== null) {
+                const currentIndent = unorderedMatch[1]!.length;
+                const targetIndent = orderedIndent + 4;
+
+                if (currentIndent < targetIndent) {
+                    return `${' '.repeat(targetIndent)}${line.trimStart()}`;
+                }
+            }
+
+            return line;
+        }
+
+        orderedIndent = null;
+        shouldIndentUnordered = false;
+
+        return line;
+    });
+
+    return normalizedLines.join('\n') as string_markdown;
+}
+
+/**
  * Creates a showdown converter configured for chat markdown rendering
  *
  * @private utility of `MarkdownContent` component
@@ -112,7 +174,8 @@ function renderMarkdown(markdown: string_markdown): string_html {
     }
 
     try {
-        const processedMarkdown = renderMathInMarkdown(markdown);
+        const normalizedMarkdown = normalizeMarkdownSublists(markdown);
+        const processedMarkdown = renderMathInMarkdown(normalizedMarkdown);
         const html = chatMarkdownConverter.makeHtml(processedMarkdown);
 
         if (typeof window !== 'undefined') {
