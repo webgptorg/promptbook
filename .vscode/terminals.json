@@ -265,7 +265,7 @@
             "focus": true
         },
         {
-            "name": "🧰 Find refactor candidates",
+            "name": "🏭✨ Find refactor candidates",
             "command": "npx ts-node ./scripts/find-refactor-candidates/find-refactor-candidates.ts",
             "execute": true,
             "onlySingle": true,
