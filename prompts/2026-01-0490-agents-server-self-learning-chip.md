@@ -30,13 +30,20 @@
 
 ---
 
-[-]
+[ ]
 
-[✨📇] brr
+[✨📇] Enhanced self-learning chip popup modal
 
+-   Instead of the generic AI icon, show the icon of the agent and a teacher. Alongside together.
+-   Remove clutter text "Learning update", "This agent learned from your chat", "It quietly saves helpful examples so future replies feel more useful." and "Learning happens in the background after the reply, so you never have to wait."
+-   Instead of "1 new note" show exactly what happen like "RULE Vždy odpovídejte v češtině."
+-   Show in in the <BookEditor/>
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+![alt text](prompts/screenshots/2026-01-0490-agents-server-self-learning-chip.png)
+![alt text](prompts/screenshots/2026-01-0490-agents-server-self-learning-chip-1.png)
 
 ---
 
@@ -47,5 +54,3 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
-
