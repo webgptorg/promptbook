@@ -89,6 +89,7 @@
 -   Implement Ctrl+S shortcut in `<BookEditor/>` component
 -   Implement Ctrl+V shortcut in `<BookEditor/>` component for pasting images and files
 -   Implement Ctrl+S shortcut in `<Chat/>` component for opening export menu
+-   Refactored the `<Chat/>` component into smaller, single-responsibility modules to improve readability and maintainability.
 -   Implement tool calling loop into the `LlmExecutionTools`. Currently only for `OpenAiCompatibleExecutionTools`
 -   Show floating hint when creating new agent in Agents Server [2025-12-0920-agents-server-hints.md](https://github.com/webgptorg/promptbook/blob/main/prompts/2025-12-0920-agents-server-hints.md)
 -   Agents Server can generate boilerplate rules and personas in the same language as the agent name [2025-12-0950-agents-server-boilerplate-rules-and-personas-in-language-of-server.md](https://github.com/webgptorg/promptbook/blob/main/prompts/2025-12-0950-agents-server-boilerplate-rules-and-personas-in-language-of-server.md)

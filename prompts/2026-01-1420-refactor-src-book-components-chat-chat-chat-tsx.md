@@ -1,4 +1,4 @@
-[ ]
+[x] ~$1.21
 
 [✨🤨] Refactor [`Chat` files](src/book-components/Chat/)
 
@@ -11,3 +11,4 @@
 -   Consider breaking down large functions into smaller, more manageable ones, removing any redundant code, and ensuring that the file adheres to the project coding standards.
 -   Keep in mind DRY (Do not repeat yourself) and SOLID principles while refactoring.
 -   **DO NOT change the external behavior** of the code. Focus solely on improving the internal structure and organization of the code.
+
