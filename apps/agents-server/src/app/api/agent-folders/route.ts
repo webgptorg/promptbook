@@ -40,14 +40,16 @@ export async function POST(request: Request) {
     const supabase = $provideSupabaseForServer();
     const folderTable = await $getTableName('AgentFolder');
 
-    const sortOrderResult = await supabase
+    const sortOrderQuery = supabase
         .from(folderTable)
         .select('sortOrder')
-        .eq('parentId', normalizedParentId)
         .is('deletedAt', null)
         .order('sortOrder', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        .limit(1);
+    const sortOrderResult =
+        normalizedParentId === null
+            ? await sortOrderQuery.is('parentId', null).maybeSingle()
+            : await sortOrderQuery.eq('parentId', normalizedParentId).maybeSingle();
 
     if (sortOrderResult.error) {
         return NextResponse.json({ success: false, error: sortOrderResult.error.message }, { status: 500 });
