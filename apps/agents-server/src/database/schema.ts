@@ -55,6 +55,8 @@ export type AgentsServerDatabase = {
                     usage: Json | null;
                     preparedModelRequirements: Json | null;
                     preparedExternals: Json | null;
+                    folderId: number | null;
+                    sortOrder: number;
                     deletedAt: string | null;
                     visibility: 'PUBLIC' | 'PRIVATE';
                 };
@@ -71,6 +73,8 @@ export type AgentsServerDatabase = {
                     usage?: Json | null;
                     preparedModelRequirements?: Json | null;
                     preparedExternals?: Json | null;
+                    folderId?: number | null;
+                    sortOrder?: number;
                     deletedAt?: string | null;
                     visibility?: 'PUBLIC' | 'PRIVATE';
                 };
@@ -87,10 +91,56 @@ export type AgentsServerDatabase = {
                     usage?: Json | null;
                     preparedModelRequirements?: Json | null;
                     preparedExternals?: Json | null;
+                    folderId?: number | null;
+                    sortOrder?: number;
                     deletedAt?: string | null;
                     visibility?: 'PUBLIC' | 'PRIVATE';
                 };
-                Relationships: [];
+                Relationships: [
+                    {
+                        foreignKeyName: 'Agent_folderId_fkey';
+                        columns: ['folderId'];
+                        referencedRelation: 'AgentFolder';
+                        referencedColumns: ['id'];
+                    },
+                ];
+            };
+            AgentFolder: {
+                Row: {
+                    id: number;
+                    name: string;
+                    parentId: number | null;
+                    createdAt: string;
+                    updatedAt: string | null;
+                    deletedAt: string | null;
+                    sortOrder: number;
+                };
+                Insert: {
+                    id?: number;
+                    name: string;
+                    parentId?: number | null;
+                    createdAt?: string;
+                    updatedAt?: string | null;
+                    deletedAt?: string | null;
+                    sortOrder?: number;
+                };
+                Update: {
+                    id?: number;
+                    name?: string;
+                    parentId?: number | null;
+                    createdAt?: string;
+                    updatedAt?: string | null;
+                    deletedAt?: string | null;
+                    sortOrder?: number;
+                };
+                Relationships: [
+                    {
+                        foreignKeyName: 'AgentFolder_parentId_fkey';
+                        columns: ['parentId'];
+                        referencedRelation: 'AgentFolder';
+                        referencedColumns: ['id'];
+                    },
+                ];
             };
             AgentHistory: {
                 Row: {

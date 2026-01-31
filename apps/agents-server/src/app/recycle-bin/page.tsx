@@ -1,9 +1,9 @@
-import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideServer } from '@/src/tools/$provideServer';
 import { TrashIcon } from 'lucide-react';
 import Link from 'next/link';
-import { DeletedAgentsList } from '../../components/Homepage/DeletedAgentsList';
+import { RecycleBinList } from '../../components/Homepage/RecycleBinList';
 import { isUserAdmin } from '../../utils/isUserAdmin';
+import { getRecycleBinItems } from './_data/getRecycleBinItems';
 
 export const metadata = {
     title: 'Recycle Bin',
@@ -11,9 +11,9 @@ export const metadata = {
 
 export default async function RecycleBinPage() {
     const { publicUrl } = await $provideServer();
-    const collection = await $provideAgentCollectionForServer();
-    const deletedAgents = await collection.listDeletedAgents();
+    const { agents, folders, currentUser } = await getRecycleBinItems();
     const isAdmin = await isUserAdmin();
+    const canRestore = Boolean(currentUser);
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
@@ -24,11 +24,11 @@ export default async function RecycleBinPage() {
                     </div>
                     <div>
                         <h1 className="text-3xl font-bold text-gray-900">Recycle Bin</h1>
-                        <p className="text-gray-600">Restore deleted agents from here.</p>
+                        <p className="text-gray-600">Restore deleted agents and folders from here.</p>
                     </div>
                 </header>
 
-                {deletedAgents.length === 0 ? (
+                {agents.length === 0 && folders.length === 0 ? (
                     <div className="text-center py-12 bg-gray-50 rounded-lg border border-dashed border-gray-300">
                         <p className="text-gray-500 text-lg">Recycle bin is empty</p>
                         <Link href="/" className="text-blue-600 hover:underline mt-2 inline-block">
@@ -36,7 +36,12 @@ export default async function RecycleBinPage() {
                         </Link>
                     </div>
                 ) : (
-                    <DeletedAgentsList agents={deletedAgents} isAdmin={isAdmin} publicUrl={publicUrl} />
+                    <RecycleBinList
+                        agents={agents}
+                        folders={folders}
+                        canRestore={canRestore || isAdmin}
+                        publicUrl={publicUrl.href}
+                    />
                 )}
             </div>
         </div>

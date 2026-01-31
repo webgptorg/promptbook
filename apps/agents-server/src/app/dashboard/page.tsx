@@ -45,7 +45,7 @@ export default async function DashboardPage(props: DashboardPageProps) {
     const server = await $provideServer();
     const { publicUrl } = server;
     const isAdmin = await isUserAdmin(); /* <- TODO: [??] Here should be user permissions */
-    const { agents, homepageMessage } = await getHomePageAgents();
+    const { agents, folders, homepageMessage, currentUser } = await getHomePageAgents();
 
     const longRunningTask = getLongRunningTask();
 
@@ -68,7 +68,13 @@ export default async function DashboardPage(props: DashboardPageProps) {
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
             <div className="container mx-auto px-4 py-16">
                 <HomepageMessage message={homepageMessage} />
-                <AgentsList agents={[...agents]} isAdmin={isAdmin} publicUrl={publicUrl.href /* <- [??] */} />
+                <AgentsList
+                    agents={[...agents]}
+                    folders={[...folders]}
+                    isAdmin={isAdmin}
+                    canOrganize={Boolean(currentUser)}
+                    publicUrl={publicUrl.href /* <- [??] */}
+                />
 
                 {!isGraphView && <ExternalAgentsSectionClient publicUrl={publicUrl.href /* <- [??] */} />}
 

@@ -1,0 +1,78 @@
+import { NextResponse } from 'next/server';
+import { $getTableName } from '../../../database/$getTableName';
+import { $provideSupabaseForServer } from '../../../database/$provideSupabaseForServer';
+import { getCurrentUser } from '../../../utils/getCurrentUser';
+
+/**
+ * Creates a new agent folder under the provided parent.
+ *
+ * @param request - Incoming request with folder details.
+ * @returns JSON response with the created folder.
+ */
+export async function POST(request: Request) {
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+        return NextResponse.json({ success: false, error: 'Authentication required.' }, { status: 401 });
+    }
+
+    let payload: { name?: string; parentId?: number | null };
+    try {
+        payload = await request.json();
+    } catch (error) {
+        return NextResponse.json({ success: false, error: 'Invalid JSON payload.' }, { status: 400 });
+    }
+
+    const name = (payload.name || '').trim();
+    if (!name) {
+        return NextResponse.json({ success: false, error: 'Folder name is required.' }, { status: 400 });
+    }
+
+    if (name.includes('/')) {
+        return NextResponse.json({ success: false, error: 'Folder name cannot include "/".' }, { status: 400 });
+    }
+
+    const parentId = payload.parentId ?? null;
+    if (parentId !== null && Number.isNaN(Number(parentId))) {
+        return NextResponse.json({ success: false, error: 'Invalid parent folder id.' }, { status: 400 });
+    }
+    const normalizedParentId = parentId === null ? null : Number(parentId);
+
+    const supabase = $provideSupabaseForServer();
+    const folderTable = await $getTableName('AgentFolder');
+
+    const sortOrderResult = await supabase
+        .from(folderTable)
+        .select('sortOrder')
+        .eq('parentId', normalizedParentId)
+        .is('deletedAt', null)
+        .order('sortOrder', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+    if (sortOrderResult.error) {
+        return NextResponse.json({ success: false, error: sortOrderResult.error.message }, { status: 500 });
+    }
+
+    const nextSortOrder = (sortOrderResult.data?.sortOrder ?? 0) + 1;
+
+    const insertResult = await supabase
+        .from(folderTable)
+        .insert({
+            name,
+            parentId: normalizedParentId,
+            sortOrder: nextSortOrder,
+            createdAt: new Date().toISOString(),
+            updatedAt: null,
+        })
+        .select('id, name, parentId, sortOrder')
+        .single();
+
+    if (insertResult.error || !insertResult.data) {
+        return NextResponse.json(
+            { success: false, error: insertResult.error?.message || 'Failed to create folder.' },
+            { status: 500 },
+        );
+    }
+
+    return NextResponse.json({ success: true, folder: insertResult.data });
+}

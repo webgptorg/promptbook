@@ -1,5 +1,6 @@
 ### 📚 Book
 
+-   Added Agents Server folder organization with nested folders, drag-and-drop ordering, URL folder paths, and recycle bin support for folders.
 -   Refined the agent avatar hover tooltip in Agents Server chat with a cleaner card, profile link, and resilient image fallback.
 -   Enhanced refactor-candidate prompt generation with richer guidance, clearer file linking, and reason-aware context.
 -   Added shared prompt emoji tag selection so generated refactor and boilerplate prompts use fresh unique `[✨]` tags across the repo.

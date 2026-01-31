@@ -24,7 +24,7 @@ export default async function HomePage(props: HomePageProps) {
 
     const { publicUrl } = await $provideServer();
     const isAdmin = await isUserAdmin(); /* <- TODO: [??] Here should be user permissions */
-    const { agents, homepageMessage } = await getHomePageAgents();
+    const { agents, folders, homepageMessage, currentUser } = await getHomePageAgents();
 
     const searchParams = await props.searchParams;
     const isGraphView = searchParams?.view === 'graph';
@@ -33,7 +33,13 @@ export default async function HomePage(props: HomePageProps) {
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
             <div className="container mx-auto px-4 py-16">
                 <HomepageMessage message={homepageMessage} />
-                <AgentsList agents={[...agents]} isAdmin={isAdmin} publicUrl={publicUrl.href /* <- [??] */} />
+                <AgentsList
+                    agents={[...agents]}
+                    folders={[...folders]}
+                    isAdmin={isAdmin}
+                    canOrganize={Boolean(currentUser)}
+                    publicUrl={publicUrl.href /* <- [??] */}
+                />
 
                 {!isGraphView && <ExternalAgentsSectionClient publicUrl={publicUrl.href /* <- [??] */} />}
             </div>

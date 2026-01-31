@@ -32,6 +32,8 @@ export type AgentsDatabaseSchema = {
                     usage: Json | null; // <- `Usage`
                     preparedModelRequirements: Json | null; // <- `ModelRequirements` (prepared)
                     preparedExternals: Json | null; // <- `PreparedExternals`
+                    folderId: number | null;
+                    sortOrder: number;
                     deletedAt: string | null;
                     visibility: 'PUBLIC' | 'PRIVATE';
                 };
@@ -48,6 +50,8 @@ export type AgentsDatabaseSchema = {
                     usage?: Json | null;
                     preparedModelRequirements?: Json | null;
                     preparedExternals?: Json | null;
+                    folderId?: number | null;
+                    sortOrder?: number;
                     deletedAt?: string | null;
                     visibility?: 'PUBLIC' | 'PRIVATE';
                 };
@@ -64,6 +68,8 @@ export type AgentsDatabaseSchema = {
                     usage?: Json | null;
                     preparedModelRequirements?: Json | null;
                     preparedExternals?: Json | null;
+                    folderId?: number | null;
+                    sortOrder?: number;
                     deletedAt?: string | null;
                     visibility?: 'PUBLIC' | 'PRIVATE';
                 };
