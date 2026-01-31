@@ -44,6 +44,15 @@
 
 [ ]
 
+[✨♿️] Agents graph on home page should look like graph showing relationships between the agents.
+
+It shouldn't look like something for the programmers. It should look more like the social graph visualization.
+Try to replicate this as close as possible in the beautiful Mermaid.
+
+---
+
+[ ]
+
 [✨♿️] Agents graph on home page should be redesigned using vis.js / vis-network library
 
 (@@@ Which graph technology to use?)

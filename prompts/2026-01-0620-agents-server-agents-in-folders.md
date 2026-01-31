@@ -32,13 +32,15 @@
 
 ---
 
-[-]
+[ ]
 
-[✨🦢] baz
+[✨🦢] When creating folders in agent server, it ends up with an error: 'invalid input syntax for type bigint: "null"'
 
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Fix it
+-   If you need to create database migration for the change
+    -   Migrations are located in `/apps/agents-server/src/database/migrations`
+    -   Be aware that table names in migrations have prefix `prefix_` _(look at existing migrations for reference)_
 -   You are working with the [Agents Server](apps/agents-server)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
 
@@ -59,4 +61,3 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
