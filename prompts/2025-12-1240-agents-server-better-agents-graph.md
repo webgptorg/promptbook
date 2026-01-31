@@ -46,6 +46,8 @@
 
 [✨♿️] Agents graph on home page should be redesigned using vis.js / vis-network library
 
+(@@@ Which graph technology to use?)
+
 -   Keep in mind UI and UX best practices for graph visualization.
 -   Implement interactive features such as zooming, panning, and node highlighting on hover.
 -   Ensure the graph is responsive and works well on different screen sizes.
@@ -83,4 +85,3 @@
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
-
