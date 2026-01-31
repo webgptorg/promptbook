@@ -20,9 +20,9 @@ import { isTeamToolName } from '../utils/createTeamToolNameFromUrl';
 import { getChatMessageTimingDisplay } from '../utils/getChatMessageTimingDisplay';
 import type { ToolCallChipletInfo } from '../utils/getToolCallChipletInfo';
 import { getToolCallChipletInfo, TOOL_TITLES } from '../utils/getToolCallChipletInfo';
-import { parseToolCallArguments } from '../utils/toolCallParsing';
 import { extractCitationsFromMessage, type ParsedCitation } from '../utils/parseCitationsFromContent';
 import { parseMessageButtons } from '../utils/parseMessageButtons';
+import { parseToolCallArguments } from '../utils/toolCallParsing';
 import styles from './Chat.module.css';
 import type { ChatProps } from './ChatProps';
 import { AVATAR_SIZE, LOADING_INTERACTIVE_IMAGE } from './constants';
@@ -643,7 +643,7 @@ export const ChatMessageItem = memo(
                             <span className={styles.messageTimestamp}>{timingDisplay.timeLabel}</span>
                             {!isMe && timingDisplay.durationLabel && (
                                 <span className={styles.messageDuration}>
-                                    ({timingDisplay.durationLabel} to generate)
+                                    ({timingDisplay.durationLabel} to answer)
                                 </span>
                             )}
                         </div>
