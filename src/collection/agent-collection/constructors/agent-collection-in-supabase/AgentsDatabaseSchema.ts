@@ -12,8 +12,14 @@
  *       and any extra schemas (e.g. `graphql_public`) to remain a strict subset.
  */
 
+/**
+ * Supabase-style JSON helper type.
+ */
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
+/**
+ * Subset of the Agents Server database schema containing only Agent and AgentHistory tables.
+ */
 export type AgentsDatabaseSchema = {
     // <- TODO: [🧠][🕜] Better naming
     public: {
@@ -40,7 +46,7 @@ export type AgentsDatabaseSchema = {
                 Insert: {
                     id?: number;
                     agentName: string;
-                    createdAt: string;
+                    createdAt?: string;
                     updatedAt?: string | null;
                     permanentId?: string | null;
                     agentHash: string;
@@ -73,7 +79,14 @@ export type AgentsDatabaseSchema = {
                     deletedAt?: string | null;
                     visibility?: 'PUBLIC' | 'PRIVATE';
                 };
-                Relationships: [];
+                Relationships: [
+                    {
+                        foreignKeyName: 'Agent_folderId_fkey';
+                        columns: ['folderId'];
+                        referencedRelation: 'AgentFolder';
+                        referencedColumns: ['id'];
+                    },
+                ];
             };
             AgentHistory: {
                 Row: {
@@ -88,7 +101,7 @@ export type AgentsDatabaseSchema = {
                 };
                 Insert: {
                     id?: number;
-                    createdAt: string;
+                    createdAt?: string;
                     agentName: string;
                     permanentId: string;
                     agentHash: string;
@@ -123,8 +136,14 @@ export type AgentsDatabaseSchema = {
     };
 };
 
+/**
+ * Public schema reference for helper types.
+ */
 type PublicSchema = AgentsDatabaseSchema[Extract<keyof AgentsDatabaseSchema, 'public'>];
 
+/**
+ * Helper type to extract table row types from the public schema.
+ */
 export type Tables<
     PublicTableNameOrOptions extends
         | keyof (PublicSchema['Tables'] & PublicSchema['Views'])
@@ -148,6 +167,9 @@ export type Tables<
         : never
     : never;
 
+/**
+ * Helper type to extract table insert types from the public schema.
+ */
 export type TablesInsert<
     PublicTableNameOrOptions extends keyof PublicSchema['Tables'] | { schema: keyof AgentsDatabaseSchema },
     TableName extends PublicTableNameOrOptions extends { schema: keyof AgentsDatabaseSchema }
@@ -167,6 +189,9 @@ export type TablesInsert<
         : never
     : never;
 
+/**
+ * Helper type to extract table update types from the public schema.
+ */
 export type TablesUpdate<
     PublicTableNameOrOptions extends keyof PublicSchema['Tables'] | { schema: keyof AgentsDatabaseSchema },
     TableName extends PublicTableNameOrOptions extends { schema: keyof AgentsDatabaseSchema }
@@ -186,6 +211,9 @@ export type TablesUpdate<
         : never
     : never;
 
+/**
+ * Helper type to extract enum types from the public schema.
+ */
 export type Enums<
     PublicEnumNameOrOptions extends keyof PublicSchema['Enums'] | { schema: keyof AgentsDatabaseSchema },
     EnumName extends PublicEnumNameOrOptions extends { schema: keyof AgentsDatabaseSchema }
@@ -197,6 +225,9 @@ export type Enums<
     ? PublicSchema['Enums'][PublicEnumNameOrOptions]
     : never;
 
+/**
+ * Helper type to extract composite types from the public schema.
+ */
 export type CompositeTypes<
     PublicCompositeTypeNameOrOptions extends
         | keyof PublicSchema['CompositeTypes']
