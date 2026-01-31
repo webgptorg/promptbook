@@ -1,13 +1,13 @@
 // Client Component for rendering and deleting agents
 'use client';
 
+import { string_url } from '@promptbook-local/types';
 import { FolderPlusIcon, Grid, Network, TrashIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { string_url } from '@promptbook-local/types';
-import { AddAgentButton } from '../../app/AddAgentButton';
 import type { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
+import { AddAgentButton } from '../../app/AddAgentButton';
 import type {
     AgentOrganizationAgent,
     AgentOrganizationFolder,
@@ -369,9 +369,7 @@ export function AgentsList(props: AgentsListProps) {
             .filter(Boolean) as AgentOrganizationAgent[];
 
         const updatedMap = new Map(updates.map((agent) => [(agent.permanentId || agent.agentName)!, agent]));
-        setAgents((prev) =>
-            prev.map((agent) => updatedMap.get(agent.permanentId || agent.agentName) || agent),
-        );
+        setAgents((prev) => prev.map((agent) => updatedMap.get(agent.permanentId || agent.agentName) || agent));
 
         await persistOrganizationUpdates({
             agents: updates.map((agent) => ({
@@ -453,7 +451,8 @@ export function AgentsList(props: AgentsListProps) {
 
         const sourceAgents = sortBySortOrder(
             agents.filter(
-                (item) => (item.folderId ?? null) === sourceFolderId && (item.permanentId || item.agentName) !== identifier,
+                (item) =>
+                    (item.folderId ?? null) === sourceFolderId && (item.permanentId || item.agentName) !== identifier,
             ),
             (item) => item.agentName,
         );
@@ -471,9 +470,7 @@ export function AgentsList(props: AgentsListProps) {
         ];
 
         const updatedMap = new Map(updates.map((item) => [(item.permanentId || item.agentName)!, item]));
-        setAgents((prev) =>
-            prev.map((item) => updatedMap.get(item.permanentId || item.agentName) || item),
-        );
+        setAgents((prev) => prev.map((item) => updatedMap.get(item.permanentId || item.agentName) || item));
 
         await persistOrganizationUpdates({
             agents: updates.map((item) => ({
@@ -581,7 +578,9 @@ export function AgentsList(props: AgentsListProps) {
         const descendantIds = collectDescendantFolderIds(folderId, folderMaps.childrenByParentId);
         const descendantSet = new Set(descendantIds);
         const subfolderCount = descendantIds.length - 1;
-        const agentCount = agents.filter((agent) => agent.folderId !== null && descendantSet.has(agent.folderId)).length;
+        const agentCount = agents.filter(
+            (agent) => agent.folderId !== null && descendantSet.has(agent.folderId),
+        ).length;
 
         if (
             !window.confirm(
@@ -599,9 +598,7 @@ export function AgentsList(props: AgentsListProps) {
             }
 
             setFolders((prev) => prev.filter((item) => !descendantSet.has(item.id)));
-            setAgents((prev) =>
-                prev.filter((agent) => agent.folderId === null || !descendantSet.has(agent.folderId)),
-            );
+            setAgents((prev) => prev.filter((agent) => agent.folderId === null || !descendantSet.has(agent.folderId)));
 
             if (currentFolderId !== null && descendantSet.has(currentFolderId)) {
                 navigateToFolder(null);

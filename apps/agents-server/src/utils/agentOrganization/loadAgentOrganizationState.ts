@@ -22,7 +22,9 @@ type AgentFolderRow = AgentsServerDatabase['public']['Tables']['AgentFolder']['R
  * @param row - Raw agent row from Supabase.
  * @returns Agent payload enriched with organization metadata.
  */
-function mapAgentRowToOrganizationAgent(row: AgentRow): AgentOrganizationAgent {
+function mapAgentRowToOrganizationAgent(
+    row: Pick<AgentRow, 'agentName' | 'agentProfile' | 'permanentId' | 'visibility' | 'folderId' | 'sortOrder'>,
+): AgentOrganizationAgent {
     const profile = row.agentProfile as AgentBasicInformation;
 
     return {
@@ -41,7 +43,9 @@ function mapAgentRowToOrganizationAgent(row: AgentRow): AgentOrganizationAgent {
  * @param row - Raw folder row from Supabase.
  * @returns Folder payload with organization metadata.
  */
-function mapFolderRowToOrganizationFolder(row: AgentFolderRow): AgentOrganizationFolder {
+function mapFolderRowToOrganizationFolder(
+    row: Pick<AgentFolderRow, 'id' | 'name' | 'parentId' | 'sortOrder'>,
+): AgentOrganizationFolder {
     return {
         id: row.id,
         name: row.name,

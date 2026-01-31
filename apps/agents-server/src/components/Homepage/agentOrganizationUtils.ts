@@ -20,7 +20,7 @@ export type FolderMaps = {
  * @param folders - Folder list to index.
  * @returns Folder maps for tree traversal.
  */
-export function buildFolderMaps(folders: AgentOrganizationFolder[]): FolderMaps {
+export function buildFolderMaps(folders: ReadonlyArray<AgentOrganizationFolder>): FolderMaps {
     const folderById = new Map<number, AgentOrganizationFolder>();
     const childrenByParentId = new Map<number | null, number[]>();
 
@@ -187,10 +187,7 @@ export function pickPreviewAgents(
  * @param getFallback - Function returning fallback string value.
  * @returns Sorted copy of the input array.
  */
-export function sortBySortOrder<T>(
-    items: T[],
-    getFallback: (item: T) => string,
-): T[] {
+export function sortBySortOrder<T>(items: T[], getFallback: (item: T) => string): T[] {
     return [...items].sort((left, right) => {
         const leftOrder = (left as { sortOrder?: number }).sortOrder ?? 0;
         const rightOrder = (right as { sortOrder?: number }).sortOrder ?? 0;

@@ -3,6 +3,7 @@
 import { restoreAgentAndFolders } from '@/src/utils/agentOrganization/restoreAgentAndFolders';
 import { revalidatePath } from 'next/cache';
 import { isUserAdmin } from '../../utils/isUserAdmin';
+import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 
 /**
  * Restores a deleted agent from the recycle bin.

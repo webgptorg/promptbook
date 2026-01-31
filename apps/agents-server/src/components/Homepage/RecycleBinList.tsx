@@ -1,9 +1,9 @@
 // Client Component for rendering deleted agents and folders
 'use client';
 
-import { useMemo } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
 import type { string_url } from '@promptbook-local/types';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useMemo } from 'react';
 import type { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
 import type { AgentOrganizationAgent, AgentOrganizationFolder } from '../../utils/agentOrganization/types';
 import { AgentCard } from './AgentCard';
@@ -26,11 +26,11 @@ type RecycleBinListProps = {
     /**
      * Deleted agents to render.
      */
-    readonly agents: AgentOrganizationAgent[];
+    readonly agents: ReadonlyArray<AgentOrganizationAgent>;
     /**
      * Deleted folders to render.
      */
-    readonly folders: AgentOrganizationFolder[];
+    readonly folders: ReadonlyArray<AgentOrganizationFolder>;
     /**
      * Indicates whether the current user can restore items.
      */
@@ -50,7 +50,7 @@ export function RecycleBinList(props: RecycleBinListProps) {
     const searchParams = useSearchParams();
     const folderPathSegments = parseFolderPath(searchParams.get('folder'));
     const currentFolderId = useMemo(
-        () => resolveFolderIdFromPath(folders, folderPathSegments),
+        () => resolveFolderIdFromPath([...folders], folderPathSegments),
         [folders, folderPathSegments],
     );
     const folderMaps = useMemo(() => buildFolderMaps(folders), [folders]);
@@ -150,14 +150,18 @@ export function RecycleBinList(props: RecycleBinListProps) {
     const getFolderPreviewAgents = (folderId: number): AgentBasicInformation[] => {
         const descendantIds = collectDescendantFolderIds(folderId, folderMaps.childrenByParentId);
         const previewSet = new Set(descendantIds);
-        const orderedAgents = sortBySortOrder(agents, (agent) => agent.agentName);
+        const orderedAgents = sortBySortOrder([...agents], (agent) => agent.agentName);
         return pickPreviewAgents(orderedAgents, previewSet, 4);
     };
 
     return (
         <div className="space-y-6">
             <div className="flex items-center gap-2 text-sm text-gray-600">
-                <button type="button" onClick={() => navigateToFolder(null)} className="hover:text-blue-600 transition-colors">
+                <button
+                    type="button"
+                    onClick={() => navigateToFolder(null)}
+                    className="hover:text-blue-600 transition-colors"
+                >
                     Recycle Bin
                 </button>
                 {breadcrumbFolders.map((folder) => (
