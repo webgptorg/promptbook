@@ -173,17 +173,115 @@ async function findRefactorCandidates(): Promise<void> {
  * @param emojiTag - Unique emoji tag for the prompt title.
  */
 function buildPromptContent(candidate: RefactorCandidate, emojiTag: string): string {
-    const reasons = candidate.reasons.join('; ');
+    const fileName = basename(candidate.relativePath);
+    const guidanceLines = buildPromptGuidance(candidate);
     return spaceTrim(`
 
         [ ]
 
-        ${emojiTag} Refactor \`${candidate.relativePath}\`
+        ${emojiTag} Refactor [\`${fileName}\` file](${candidate.relativePath})
 
         -   ${PROMPT_TARGET_LABEL}: \`${candidate.relativePath}\`
-        -   Reasons: ${reasons}
-        -   @@@ Replace this line with refactor instructions. Do not refactor in this script.
+${guidanceLines.map((line) => `        ${line}`).join('\n')}
     `);
+}
+
+/**
+ * Builds the refactor guidance section for a prompt.
+ */
+function buildPromptGuidance(candidate: RefactorCandidate): ReadonlyArray<string> {
+    const guidance: string[] = ['-   @@'];
+    const counts = extractReasonCounts(candidate.reasons);
+    const densityNote = buildDensityNote(counts);
+
+    if (densityNote) {
+        guidance.push(`-   ${densityNote}`);
+    }
+
+    if (counts.lineCount !== null && counts.maxLines !== null) {
+        guidance.push(
+            `-   The file contains excessive lines of code (${counts.lineCount} lines), exceeding the ${counts.maxLines}-line guideline.`,
+        );
+    }
+
+    if (counts.entityCount !== null && counts.maxEntities !== null) {
+        guidance.push(
+            `-   The file defines too many top-level entities (${counts.entityCount} vs ${counts.maxEntities} allowed), increasing cognitive load.`,
+        );
+    }
+
+    guidance.push(
+        '-   Look at the internal structure, the usage and also surrounding code to understand how to best refactor this file.',
+        '-   Keep in mind that the purpose of this refactoring is to improve code maintainability and readability.',
+        '-   Consider breaking down large functions into smaller, more manageable ones, removing any redundant code, and ensuring that the file adheres to the project coding standards.',
+        '-   Keep in mind DRY (Do not repeat yourself) and SOLID principles while refactoring.',
+        '-   DO NOT change the external behavior of the code. Focus solely on improving the internal structure and organization of the code.',
+    );
+
+    return guidance;
+}
+
+/**
+ * Extracts line and entity counts from refactor reasons.
+ */
+function extractReasonCounts(
+    reasons: ReadonlyArray<string>,
+): {
+    readonly lineCount: number | null;
+    readonly maxLines: number | null;
+    readonly entityCount: number | null;
+    readonly maxEntities: number | null;
+} {
+    let lineCount: number | null = null;
+    let maxLines: number | null = null;
+    let entityCount: number | null = null;
+    let maxEntities: number | null = null;
+
+    for (const reason of reasons) {
+        const lineMatch = reason.match(/lines\s+(?<count>\d+)\/(?<max>\d+)/i);
+        if (lineMatch?.groups) {
+            lineCount = Number(lineMatch.groups.count);
+            maxLines = Number(lineMatch.groups.max);
+            continue;
+        }
+
+        const entityMatch = reason.match(/entities\s+(?<count>\d+)\/(?<max>\d+)/i);
+        if (entityMatch?.groups) {
+            entityCount = Number(entityMatch.groups.count);
+            maxEntities = Number(entityMatch.groups.max);
+        }
+    }
+
+    return {
+        lineCount,
+        maxLines,
+        entityCount,
+        maxEntities,
+    };
+}
+
+/**
+ * Builds a summary note about file density based on counts.
+ */
+function buildDensityNote(counts: {
+    readonly lineCount: number | null;
+    readonly maxLines: number | null;
+    readonly entityCount: number | null;
+    readonly maxEntities: number | null;
+}): string | null {
+    if (counts.lineCount !== null && counts.entityCount !== null) {
+        return 'The file mixes multiple concerns, making it harder to follow.';
+    }
+
+    if (counts.lineCount !== null) {
+        return 'The file is large enough that it is hard to follow.';
+    }
+
+    if (counts.entityCount !== null) {
+        return 'The file is dense enough that it is hard to follow.';
+    }
+
+    return null;
 }
 
 /**

@@ -1,5 +1,6 @@
 ### 📚 Book
 
+-   Enhanced refactor-candidate prompt generation with richer guidance, clearer file linking, and reason-aware context.
 -   Added shared prompt emoji tag selection so generated refactor and boilerplate prompts use fresh unique `[✨]` tags across the repo.
 -   Added a refactor-candidate scanner script that flags oversized or entity-heavy source files and generates per-file refactor prompts in `prompts`.
 -   Scoped the refactor-candidate scanner to `.ts/.tsx/.js/.jsx` files while skipping hidden directories, `node_modules`, and `packages/`.

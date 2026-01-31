@@ -25,7 +25,7 @@
 
 ---
 
-[ ]
+[x] ~$0.34
 
 [✨🐮] In [script `find-refactor-candidates.ts`](scripts/find-refactor-candidates/find-refactor-candidates.ts) enhance the generated messages
 
@@ -61,5 +61,6 @@ Refactor [`ResizablePanels.tsx` file](apps/_common/components/ResizablePanels/Re
 [x]
 
 [✨🐮] In [script `find-refactor-candidates.ts`](scripts/find-refactor-candidates/find-refactor-candidates.ts)
+
 
 
