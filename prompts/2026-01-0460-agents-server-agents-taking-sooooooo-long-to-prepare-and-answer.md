@@ -29,12 +29,28 @@ Make some look how the chips or tool chips are implemented. For example, how it 
 
 ---
 
+[ ] !!
+
+[✨📰] When creating the underlying GPT assistant of the agent, put the hashing key in the agent name.
+
+-   Now the GPT assistants are 1:1 called like the agent.
+-   Agent is names "My Agent", the underlying GPT assistant is also named "My Agent".
+-   Change is such as the underlying GPT assistant is named like "My Agent - abcd1234" where "abcd1234" is some hashing key which is derived from the agents model requirements.
+-   Use first 8 characters of the hashing key.
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   You are working with the [Agents Server](apps/agents-server) with the agent chat _(for example, [here](https://my-agent-server.com/agents/FVLv8APAf2S1WV/chat))_
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+![alt text](prompts/screenshots/2026-01-0460-agents-server-pending-creating-assistant-2.png)
+
+---
+
 [-]
 
 [✨📰] bar
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   You are working with the [Agents Server](apps/agents-server)
+-   You are working with the [Agents Server](apps/agents-server) with the agent chat _(for example, [here](https://my-agent-server.com/agents/FVLv8APAf2S1WV/chat))_
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
@@ -44,6 +60,25 @@ Make some look how the chips or tool chips are implemented. For example, how it 
 [✨📰] bar
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   You are working with the [Agents Server](apps/agents-server)
+-   You are working with the [Agents Server](apps/agents-server) with the agent chat _(for example, [here](https://my-agent-server.com/agents/FVLv8APAf2S1WV/chat))_
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
+---
+
+[-]
+
+[✨📰] bar
+
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   You are working with the [Agents Server](apps/agents-server) with the agent chat _(for example, [here](https://my-agent-server.com/agents/FVLv8APAf2S1WV/chat))_
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+---
+
+[-]
+
+[✨📰] bar
+
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   You are working with the [Agents Server](apps/agents-server) with the agent chat _(for example, [here](https://my-agent-server.com/agents/FVLv8APAf2S1WV/chat))_
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
