@@ -50,7 +50,7 @@
 
     font-family: Arial, Helvetica, sans-serif, 'OpenMojiBlack';
 
-    --chat-message-min-width: 160px;
+    --chat-message-min-width: 240px;
     --chat-message-max-width: min(70%, 600px);
     /* <- TODO: [🧠][🎱] Better, define other fonts */
 }
