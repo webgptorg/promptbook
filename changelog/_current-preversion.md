@@ -39,6 +39,7 @@
 -   Redesigned the Agents Server home graph with Beautiful Mermaid diagrams while keeping server clustering, filtering, federated links, and avatar labels.
 -   Refined the Agents Server home agents graph to a social-style relationship map with softer nodes, avatar rings, and curved, color-coded links.
 -   Improved Agents Server graph filtering so focused agents include directly connected neighbors across local and federated servers.
+-   Enhanced the Agents Server agents graph with category-based node shapes, status colors, and roomier layout spacing for cleaner clusters.
 
 -   Enhanced prompt template literal handling to return `PromptString`, inline safe parameters, and append structured parameter/context blocks for unsafe or multiline data with escaping.
 -   Added prompt notation documentation, examples, and a live evaluator to the Utils app.

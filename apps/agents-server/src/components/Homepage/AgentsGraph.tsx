@@ -14,10 +14,7 @@ const GRAPH_HEIGHT_OFFSET = 340;
 const MERMAID_LABEL_TOKEN = '__PB_NODE__';
 const MERMAID_LABEL_PADDING = '            ';
 const MERMAID_NODE_RADIUS = 18;
-const MERMAID_NODE_BORDER_WIDTH = 1;
-const MERMAID_NODE_FILL = '#ffffff';
-const MERMAID_NODE_BORDER_REMOTE = '#e2e8f0';
-const MERMAID_NODE_BORDER_LOCAL = '#bae6fd';
+const MERMAID_NODE_BORDER_WIDTH = 1.2;
 const MERMAID_NODE_TEXT_COLOR = '#0f172a';
 const MERMAID_NODE_SHADOW_ID = 'pb-agent-node-shadow';
 const MERMAID_NODE_SHADOW_COLOR = '#0f172a';
@@ -33,16 +30,16 @@ const MERMAID_LABEL_LETTER_SPACING = '0.01em';
 const MERMAID_AVATAR_RING_WIDTH = 1.5;
 const MERMAID_AVATAR_RING_PADDING = 1.5;
 const MERMAID_AVATAR_RING_FILL = '#ffffff';
-const MERMAID_AVATAR_RING_LOCAL = '#38bdf8';
-const MERMAID_AVATAR_RING_REMOTE = '#cbd5e1';
+const MERMAID_NODE_SHAPE_HEXAGON_INDENT = 14;
+const MERMAID_NODE_SHAPE_CUT_SIZE = 10;
 const MERMAID_CLUSTER_FILL = '#f1f5f9';
 const MERMAID_CLUSTER_STROKE = '#e2e8f0';
 const MERMAID_CLUSTER_TEXT = '#64748b';
 const MERMAID_CLUSTER_BORDER_WIDTH = 1;
 const MERMAID_CLUSTER_RADIUS = 18;
 const MERMAID_LAYOUT_BREAKPOINT = 900;
-const MERMAID_FLOWCHART_NODE_SPACING = 36;
-const MERMAID_FLOWCHART_RANK_SPACING = 72;
+const MERMAID_FLOWCHART_NODE_SPACING = 52;
+const MERMAID_FLOWCHART_RANK_SPACING = 96;
 const MERMAID_INIT = `%%{init: {"flowchart":{"curve":"basis","nodeSpacing":${MERMAID_FLOWCHART_NODE_SPACING},"rankSpacing":${MERMAID_FLOWCHART_RANK_SPACING}}}}%%`;
 const MERMAID_THEME = {
     bg: '#f8fafc',
@@ -53,6 +50,26 @@ const MERMAID_THEME = {
     surface: '#ffffff',
     border: '#e2e8f0',
     transparent: true,
+};
+const MERMAID_NODE_STYLES: Record<NodeCategory, NodeVisualStyle> = {
+    LOCAL: {
+        fill: '#ffffff',
+        border: '#38bdf8',
+        ring: '#38bdf8',
+        shape: 'rounded',
+    },
+    FEDERATED: {
+        fill: '#f0fdf4',
+        border: '#22c55e',
+        ring: '#22c55e',
+        shape: 'hexagon',
+    },
+    PRIVATE: {
+        fill: '#fff7ed',
+        border: '#f59e0b',
+        ring: '#f59e0b',
+        shape: 'cut',
+    },
 };
 const MERMAID_EDGE_STYLES: Record<ConnectionType, string> = {
     inheritance: '---',
@@ -87,6 +104,26 @@ type AgentWithVisibility = AgentBasicInformation & {
  * Graph connection types supported by the UI.
  */
 type ConnectionType = (typeof CONNECTION_TYPES)[number];
+
+/**
+ * Visual category for agent nodes in the graph.
+ */
+type NodeCategory = 'LOCAL' | 'FEDERATED' | 'PRIVATE';
+
+/**
+ * Shape variants supported for node rendering.
+ */
+type NodeShape = 'rounded' | 'hexagon' | 'cut';
+
+/**
+ * Visual styling for a node category.
+ */
+type NodeVisualStyle = {
+    fill: string;
+    border: string;
+    ring: string;
+    shape: NodeShape;
+};
 
 /**
  * Props for the AgentsGraph component.
@@ -558,6 +595,104 @@ const buildMermaidGraph = (graphData: GraphData, publicUrl: string, direction: '
 };
 
 /**
+ * Resolve the styling category for an agent node.
+ */
+const resolveNodeCategory = (node: MermaidNode): NodeCategory => {
+    if (node.agent.visibility === 'PRIVATE') {
+        return 'PRIVATE';
+    }
+
+    return node.isLocal ? 'LOCAL' : 'FEDERATED';
+};
+
+/**
+ * Resolve the visual style for a node category.
+ */
+const resolveNodeStyle = (node: MermaidNode): NodeVisualStyle => MERMAID_NODE_STYLES[resolveNodeCategory(node)];
+
+/**
+ * Build hexagon polygon points within a rectangle.
+ */
+const buildHexagonPoints = (x: number, y: number, width: number, height: number): string => {
+    const indent = Math.min(MERMAID_NODE_SHAPE_HEXAGON_INDENT, height / 2, width / 4);
+    const midY = y + height / 2;
+    const right = x + width;
+    const bottom = y + height;
+
+    return [
+        `${x + indent},${y}`,
+        `${right - indent},${y}`,
+        `${right},${midY}`,
+        `${right - indent},${bottom}`,
+        `${x + indent},${bottom}`,
+        `${x},${midY}`,
+    ].join(' ');
+};
+
+/**
+ * Build cut-corner polygon points within a rectangle.
+ */
+const buildCutCornerPoints = (x: number, y: number, width: number, height: number): string => {
+    const cutSize = Math.min(MERMAID_NODE_SHAPE_CUT_SIZE, height / 3, width / 6);
+    const right = x + width;
+    const bottom = y + height;
+
+    return [
+        `${x + cutSize},${y}`,
+        `${right - cutSize},${y}`,
+        `${right},${y + cutSize}`,
+        `${right},${bottom - cutSize}`,
+        `${right - cutSize},${bottom}`,
+        `${x + cutSize},${bottom}`,
+        `${x},${bottom - cutSize}`,
+        `${x},${y + cutSize}`,
+    ].join(' ');
+};
+
+/**
+ * Create an SVG element that represents the node shape.
+ */
+const createNodeShapeElement = (
+    document: Document,
+    shape: NodeShape,
+    rect: { x: number; y: number; width: number; height: number },
+    style: NodeVisualStyle,
+    nodeShadowId: string,
+    mermaidId: string,
+): SVGElement => {
+    let element: SVGElement;
+
+    if (shape === 'rounded') {
+        const rectElement = document.createElementNS(SVG_NAMESPACE, 'rect');
+        rectElement.setAttribute('x', rect.x.toString());
+        rectElement.setAttribute('y', rect.y.toString());
+        rectElement.setAttribute('width', rect.width.toString());
+        rectElement.setAttribute('height', rect.height.toString());
+        rectElement.setAttribute('rx', MERMAID_NODE_RADIUS.toString());
+        rectElement.setAttribute('ry', MERMAID_NODE_RADIUS.toString());
+        element = rectElement;
+    } else {
+        const polygon = document.createElementNS(SVG_NAMESPACE, 'polygon');
+        const points =
+            shape === 'hexagon'
+                ? buildHexagonPoints(rect.x, rect.y, rect.width, rect.height)
+                : buildCutCornerPoints(rect.x, rect.y, rect.width, rect.height);
+        polygon.setAttribute('points', points);
+        polygon.setAttribute('stroke-linejoin', 'round');
+        element = polygon;
+    }
+
+    element.setAttribute('fill', style.fill);
+    element.setAttribute('stroke', style.border);
+    element.setAttribute('stroke-width', MERMAID_NODE_BORDER_WIDTH.toString());
+    element.setAttribute('filter', `url(#${nodeShadowId})`);
+    element.setAttribute('data-node-id', mermaidId);
+    element.setAttribute('style', 'cursor: pointer;');
+
+    return element;
+};
+
+/**
  * Determine the image URL for the node based on load status.
  */
 const resolveNodeImageUrl = (node: MermaidNode, status: ImageLoadStatus | undefined): string => {
@@ -718,6 +853,7 @@ const decorateMermaidSvg = (
 
         const rectX = parseSvgNumber(rect.getAttribute('x'));
         const rectY = parseSvgNumber(rect.getAttribute('y'));
+        const rectWidth = parseSvgNumber(rect.getAttribute('width'));
         const rectHeight = parseSvgNumber(rect.getAttribute('height'));
         const imageSize = Math.max(0, Math.min(MERMAID_IMAGE_SIZE, rectHeight - MERMAID_IMAGE_PADDING * 2));
         if (imageSize === 0) {
@@ -726,18 +862,24 @@ const decorateMermaidSvg = (
         const imageX = rectX + MERMAID_IMAGE_PADDING;
         const imageY = rectY + (rectHeight - imageSize) / 2;
         const textX = imageX + imageSize + MERMAID_TEXT_PADDING;
-        const borderColor = node.isLocal ? MERMAID_NODE_BORDER_LOCAL : MERMAID_NODE_BORDER_REMOTE;
-        const ringColor = node.isLocal ? MERMAID_AVATAR_RING_LOCAL : MERMAID_AVATAR_RING_REMOTE;
+        const nodeStyle = resolveNodeStyle(node);
+        const ringColor = nodeStyle.ring;
         const ringRadius = imageSize / 2 + MERMAID_AVATAR_RING_PADDING;
 
-        rect.setAttribute('rx', MERMAID_NODE_RADIUS.toString());
-        rect.setAttribute('ry', MERMAID_NODE_RADIUS.toString());
-        rect.setAttribute('fill', MERMAID_NODE_FILL);
-        rect.setAttribute('stroke', borderColor);
-        rect.setAttribute('stroke-width', MERMAID_NODE_BORDER_WIDTH.toString());
-        rect.setAttribute('filter', `url(#${nodeShadowId})`);
-        rect.setAttribute('data-node-id', mermaidId);
-        rect.setAttribute('style', 'cursor: pointer;');
+        const shapeElement = createNodeShapeElement(
+            document,
+            nodeStyle.shape,
+            {
+                x: rectX,
+                y: rectY,
+                width: rectWidth,
+                height: rectHeight,
+            },
+            nodeStyle,
+            nodeShadowId,
+            mermaidId,
+        );
+        rect.replaceWith(shapeElement);
 
         text.setAttribute('x', textX.toString());
         text.setAttribute('y', (rectY + rectHeight / 2).toString());
@@ -783,7 +925,7 @@ const decorateMermaidSvg = (
 
         const title = document.createElementNS(SVG_NAMESPACE, 'title');
         title.textContent = node.tooltip;
-        rect.appendChild(title);
+        shapeElement.appendChild(title);
 
         svg.insertBefore(ring, text);
         svg.insertBefore(image, text);
