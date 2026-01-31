@@ -30,6 +30,7 @@ import {
     SOURCE_ROOTS,
 } from './find-refactor-candidates.constants';
 import { buildPromptFilename, getPromptNumbering } from '../utils/prompts/getPromptNumbering';
+import { formatPromptEmojiTag, getFreshPromptEmojiTags } from '../utils/prompts/promptEmojiTags';
 
 if (process.cwd() !== join(__dirname, '../..')) {
     console.error(colors.red(`CWD must be root of the project`));
@@ -138,6 +139,10 @@ async function findRefactorCandidates(): Promise<void> {
         step: PROMPT_NUMBER_STEP,
         ignoreGlobs: ['**/node_modules/**'],
     });
+    const { selectedEmojis } = await getFreshPromptEmojiTags({
+        count: candidatesToWrite.length,
+        rootDir,
+    });
 
     await mkdir(promptsDir, { recursive: true });
 
@@ -148,7 +153,8 @@ async function findRefactorCandidates(): Promise<void> {
         const number = promptNumbering.startNumber + index * promptNumbering.step;
         const filename = buildPromptFilename(promptNumbering.datePrefix, number, slug);
         const promptPath = join(promptsDir, filename);
-        const promptContent = buildPromptContent(candidate);
+        const emojiTag = formatPromptEmojiTag(selectedEmojis[index]);
+        const promptContent = buildPromptContent(candidate, emojiTag);
 
         await writeFile(promptPath, promptContent, 'utf-8');
         createdPrompts.push(filename);
@@ -162,14 +168,17 @@ async function findRefactorCandidates(): Promise<void> {
 
 /**
  * Builds prompt content for a refactor candidate.
+ *
+ * @param candidate - Candidate metadata to include.
+ * @param emojiTag - Unique emoji tag for the prompt title.
  */
-function buildPromptContent(candidate: RefactorCandidate): string {
+function buildPromptContent(candidate: RefactorCandidate, emojiTag: string): string {
     const reasons = candidate.reasons.join('; ');
     return spaceTrim(`
 
         [ ]
 
-        [???] Refactor \`${candidate.relativePath}\`
+        ${emojiTag} Refactor \`${candidate.relativePath}\`
 
         -   ${PROMPT_TARGET_LABEL}: \`${candidate.relativePath}\`
         -   Reasons: ${reasons}
