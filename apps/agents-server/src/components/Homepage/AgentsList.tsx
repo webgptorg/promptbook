@@ -474,6 +474,11 @@ type AgentsListProps = {
     readonly canOrganize: boolean;
 
     /**
+     * Controls whether federated agents are loaded and shown in graph view.
+     */
+    readonly showFederatedAgents: boolean;
+
+    /**
      * Base URL of the agents server
      *
      * Note: [??] Using `string_url`, not `URL` object because we are passing prop from server to client.
@@ -485,7 +490,8 @@ type AgentsListProps = {
  * Renders the agents list with folder navigation and graph view toggles.
  */
 export function AgentsList(props: AgentsListProps) {
-    const { agents: initialAgents, folders: initialFolders, isAdmin, canOrganize, publicUrl } = props;
+    const { agents: initialAgents, folders: initialFolders, isAdmin, canOrganize, publicUrl, showFederatedAgents } =
+        props;
     const router = useRouter();
     const searchParams = useSearchParams();
     const [agents, setAgents] = useState<AgentOrganizationAgent[]>(Array.from(initialAgents));
@@ -498,6 +504,7 @@ export function AgentsList(props: AgentsListProps) {
     const [dropIndicator, setDropIndicator] = useState<DropIndicator | null>(null);
 
     const viewMode = searchParams.get('view') === 'graph' ? 'GRAPH' : 'LIST';
+    const showFederatedAgentsInGraph = showFederatedAgents && viewMode === 'GRAPH';
     const folderPathSegments = parseFolderPath(searchParams.get('folder'));
     const currentFolderId = useMemo(
         () => resolveFolderIdFromPath(folders, folderPathSegments),
@@ -564,6 +571,12 @@ export function AgentsList(props: AgentsListProps) {
     }, [activeDragItem, folders]);
 
     useEffect(() => {
+        if (!showFederatedAgentsInGraph) {
+            setFederatedAgents([]);
+            setFederatedServersStatus({});
+            return;
+        }
+
         let isCancelled = false;
 
         const fetchFederatedAgents = async () => {
@@ -631,7 +644,7 @@ export function AgentsList(props: AgentsListProps) {
         return () => {
             isCancelled = true;
         };
-    }, []);
+    }, [showFederatedAgentsInGraph]);
     /**
      * Updates the view mode query param.
      *
@@ -1219,12 +1232,19 @@ export function AgentsList(props: AgentsListProps) {
         return pickPreviewAgents(orderedAgents, previewSet, 4);
     };
 
+    const headingTitle =
+        viewMode === 'LIST' && currentFolderId !== null
+            ? folderMaps.folderById.get(currentFolderId)?.name || 'Agents'
+            : 'Agents';
+
     return (
         <section className="mt-16 first:mt-4 mb-4">
             <h2 className="text-3xl text-gray-900 mb-6 font-light">
                 <div className="flex flex-wrap items-center justify-between w-full gap-4">
                     <div>
-                        <span>Agents ({agentCount})</span>
+                        <span>
+                            {headingTitle} ({agentCount})
+                        </span>
                         {viewMode === 'LIST' && (
                             <div className="mt-2 flex items-center gap-2 text-sm text-gray-600">
                                 <BreadcrumbDropTarget

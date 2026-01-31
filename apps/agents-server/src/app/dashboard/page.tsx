@@ -16,6 +16,7 @@ import VercelDeploymentCard from '../../components/VercelDeploymentCard/VercelDe
 import { getLongRunningTask } from '../../deamons/longRunningTask';
 import { $provideExecutionToolsForServer } from '../../tools/$provideExecutionToolsForServer';
 import { $provideServer } from '../../tools/$provideServer';
+import { getIsSubfolderView } from '../../utils/getIsSubfolderView';
 import { isUserAdmin } from '../../utils/isUserAdmin';
 import { getHomePageAgents } from '../_data/getHomePageAgents';
 
@@ -63,20 +64,24 @@ export default async function DashboardPage(props: DashboardPageProps) {
 
     const searchParams = await props.searchParams;
     const isGraphView = searchParams?.view === 'graph';
+    const isSubfolderView = getIsSubfolderView(searchParams);
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
             <div className="container mx-auto px-4 py-16">
-                <HomepageMessage message={homepageMessage} />
+                {!isSubfolderView && <HomepageMessage message={homepageMessage} />}
                 <AgentsList
                     agents={[...agents]}
                     folders={[...folders]}
                     isAdmin={isAdmin}
                     canOrganize={Boolean(currentUser)}
                     publicUrl={publicUrl.href /* <- [??] */}
+                    showFederatedAgents={!isSubfolderView}
                 />
 
-                {!isGraphView && <ExternalAgentsSectionClient publicUrl={publicUrl.href /* <- [??] */} />}
+                {!isGraphView && !isSubfolderView && (
+                    <ExternalAgentsSectionClient publicUrl={publicUrl.href /* <- [??] */} />
+                )}
 
                 {isAdmin && <UsersList allowCreate={false} />}
 
