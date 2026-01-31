@@ -226,6 +226,46 @@ function buildSelfLearningSummary(
 }
 
 /**
+ * Checks whether the chat action buttons overlap the first visible message.
+ */
+function isActionsOverlappingFirstVisibleMessage(
+    actionsElement: HTMLElement | null,
+    chatMessagesElement: HTMLElement | null,
+    messageSelector: string,
+): boolean {
+    if (!actionsElement || !chatMessagesElement) {
+        return false;
+    }
+
+    const actionsRect = actionsElement.getBoundingClientRect();
+    const messagesRect = chatMessagesElement.getBoundingClientRect();
+
+    if (actionsRect.bottom <= messagesRect.top || actionsRect.top >= messagesRect.bottom) {
+        return false;
+    }
+
+    const messageElements = Array.from(chatMessagesElement.querySelectorAll<HTMLElement>(messageSelector));
+    if (messageElements.length === 0) {
+        return false;
+    }
+
+    const firstVisibleMessage = messageElements.find((element) => {
+        const rect = element.getBoundingClientRect();
+        return rect.bottom > messagesRect.top && rect.top < messagesRect.bottom;
+    });
+
+    if (!firstVisibleMessage) {
+        return false;
+    }
+
+    const messageRect = firstVisibleMessage.getBoundingClientRect();
+    const overlapsVertically = actionsRect.bottom > messageRect.top && actionsRect.top < messageRect.bottom;
+    const overlapsHorizontally = actionsRect.right > messageRect.left && actionsRect.left < messageRect.right;
+
+    return overlapsVertically && overlapsHorizontally;
+}
+
+/**
  * Renders a chat with messages and input for new messages
  *
  * Note: 🔇 This component does NOT have speak functionality, it just allows to trigger voice recognition
@@ -294,6 +334,65 @@ export function Chat(props: ChatProps) {
         scrollToBottom,
         isMobile: isMobileFromHook,
     } = useChatAutoScroll();
+
+    const chatMessagesElementRef = useRef<HTMLDivElement | null>(null);
+    const actionsRef = useRef<HTMLDivElement | null>(null);
+    const actionsFadeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const actionsFadeFrameRef = useRef<number | null>(null);
+    const [isActionsScrolling, setIsActionsScrolling] = useState(false);
+    const [isActionsOverlapping, setIsActionsOverlapping] = useState(false);
+    const chatMessageSelector = `.${styles.chatMessage}`;
+
+    /**
+     * Schedules a measurement pass to determine whether actions overlap the first visible message.
+     */
+    const scheduleActionsOverlapCheck = useCallback(() => {
+        if (actionsFadeFrameRef.current !== null) {
+            cancelAnimationFrame(actionsFadeFrameRef.current);
+        }
+
+        actionsFadeFrameRef.current = requestAnimationFrame(() => {
+            actionsFadeFrameRef.current = null;
+            const isOverlapping = isActionsOverlappingFirstVisibleMessage(
+                actionsRef.current,
+                chatMessagesElementRef.current,
+                chatMessageSelector,
+            );
+            setIsActionsOverlapping(isOverlapping);
+        });
+    }, [chatMessageSelector]);
+
+    /**
+     * Syncs chat message ref usage between auto-scroll and action button overlap tracking.
+     */
+    const setChatMessagesElement = useCallback(
+        (element: HTMLDivElement | null) => {
+            chatMessagesElementRef.current = element;
+            chatMessagesRef(element);
+            scheduleActionsOverlapCheck();
+        },
+        [chatMessagesRef, scheduleActionsOverlapCheck],
+    );
+
+    /**
+     * Handles scroll events to keep action buttons from obstructing messages while scrolling.
+     */
+    const handleChatScroll = useCallback(
+        (event: React.UIEvent<HTMLDivElement>) => {
+            handleScroll(event);
+
+            setIsActionsScrolling(true);
+            if (actionsFadeTimeoutRef.current) {
+                clearTimeout(actionsFadeTimeoutRef.current);
+            }
+            actionsFadeTimeoutRef.current = setTimeout(() => {
+                setIsActionsScrolling(false);
+            }, 150);
+
+            scheduleActionsOverlapCheck();
+        },
+        [handleScroll, scheduleActionsOverlapCheck],
+    );
 
     const textareaRef = useRef<HTMLTextAreaElement | null>(null);
     const buttonSendRef = useRef<HTMLButtonElement | null>(null);
@@ -692,6 +791,29 @@ export function Chat(props: ChatProps) {
         handleMessagesChange();
     }, [postprocessedMessages, handleMessagesChange]);
 
+    useEffect(() => {
+        scheduleActionsOverlapCheck();
+    }, [postprocessedMessages, scheduleActionsOverlapCheck]);
+
+    useEffect(() => {
+        window.addEventListener('resize', scheduleActionsOverlapCheck);
+
+        return () => {
+            window.removeEventListener('resize', scheduleActionsOverlapCheck);
+        };
+    }, [scheduleActionsOverlapCheck]);
+
+    useEffect(() => {
+        return () => {
+            if (actionsFadeTimeoutRef.current) {
+                clearTimeout(actionsFadeTimeoutRef.current);
+            }
+            if (actionsFadeFrameRef.current !== null) {
+                cancelAnimationFrame(actionsFadeFrameRef.current);
+            }
+        };
+    }, []);
+
     // Track previous messages to detect new ones
     const previousMessagesLengthRef = useRef(messages.length);
 
@@ -782,6 +904,8 @@ export function Chat(props: ChatProps) {
     // Handler for copy button
     const handleCopy = () => {};
 
+    const shouldFadeActions = isActionsScrolling && isActionsOverlapping;
+
     return (
         <>
             {ratingConfirmation && <div className={styles.ratingConfirmation}>{ratingConfirmation}</div>}
@@ -833,7 +957,14 @@ export function Chat(props: ChatProps) {
 
                     {(() => {
                         const actionsContent = (
-                            <div className={classNames(actionsAlignmentClass, actionsContainer && styles.portal)}>
+                            <div
+                                ref={actionsRef}
+                                className={classNames(
+                                    actionsAlignmentClass,
+                                    actionsContainer && styles.portal,
+                                    shouldFadeActions && styles.actionsFaded,
+                                )}
+                            >
                                 {onReset && postprocessedMessages.length !== 0 && (
                                     <button
                                         className={classNames(styles.chatButton)}
@@ -940,8 +1071,8 @@ export function Chat(props: ChatProps) {
                                 return true;
                             })() && styles.hasActionsAndFirstMessageIsLong,
                         )}
-                        ref={chatMessagesRef}
-                        onScroll={handleScroll}
+                        ref={setChatMessagesElement}
+                        onScroll={handleChatScroll}
                     >
                         {postprocessedMessages.map((message, i) => {
                             const participant = participants.find((participant) => participant.name === message.sender);

@@ -23,6 +23,7 @@
 -   Allow to add image in the image prompt in `ImageGeneratorTestClient`
 -   Ensured the Agents Server chat menu stays above chat action buttons (New chat, Save, etc.).
 -   Added top spacing in Agents Server chat so action buttons no longer overlap the first messages.
+-   Faded Agents Server chat action buttons while scrolling when they overlap the first visible message.
 -   Updated the Agents Server self-learning chip to use the brain icon without brackets.
 -   Enhanced the Agents Server self-learning modal with a friendly summary and server-provided learning details.
 -   Added per-message timestamps in Agents Server chat with agent generation durations, and included timestamps in exported chat files.
