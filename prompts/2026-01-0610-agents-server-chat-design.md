@@ -22,7 +22,7 @@
 
 ---
 
-[ ]
+[x] ~$1.07
 
 [✨📮] Fix the design and the UX of the pop-up when hovering over the agent profile image.
 
@@ -32,5 +32,6 @@
 -   You are working with the [Agents Server](apps/agents-server) with the agent chat _(for example, [here](https://my-agent-server.com/agents/FVLv8APAf2S1WV/chat))_
 
 ![alt text](prompts/screenshots/2026-01-0610-agents-server-chat-design-2.png)
+
 
 

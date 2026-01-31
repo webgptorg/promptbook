@@ -1,5 +1,6 @@
 ### 📚 Book
 
+-   Refined the agent avatar hover tooltip in Agents Server chat with a cleaner card, profile link, and resilient image fallback.
 -   Enhanced refactor-candidate prompt generation with richer guidance, clearer file linking, and reason-aware context.
 -   Added shared prompt emoji tag selection so generated refactor and boilerplate prompts use fresh unique `[✨]` tags across the repo.
 -   Added a refactor-candidate scanner script that flags oversized or entity-heavy source files and generates per-file refactor prompts in `prompts`.
