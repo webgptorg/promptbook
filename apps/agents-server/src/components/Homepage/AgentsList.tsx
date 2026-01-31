@@ -1357,7 +1357,7 @@ export function AgentsList(props: AgentsListProps) {
                                 />
                             ))}
                         </SortableContext>
-                        {isAdmin && <AddAgentButton />}
+                        {isAdmin && <AddAgentButton currentFolderId={currentFolderId} />}
                         {canOrganize && (
                             <Link
                                 href="/recycle-bin"

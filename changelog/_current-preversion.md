@@ -14,6 +14,7 @@
 -   Made Agents Server home list cards more compact and file-like, including smaller capability chips.
 -   Improved Agents Server list drag-and-drop with live reordering, drag overlays, and clearer drop targets for agents and folders.
 -   Added a parent folder card in Agents Server list view to quickly navigate up and drag agents or folders to the parent.
+-   Created new agents inside the active folder when adding from a subfolder view in the Agents Server home list.
 -   Added a configurable Markdown message (via metadata) shown above the agents list on the Agents Server homepage.
 -   Scoped the Agents Server homepage message and federated agents to the root view, and updated folder headings to show the folder name with per-folder agent counts.
 -   Added a chat preparation chip in Agents Server to signal when GPT assistants are being created before the first response.

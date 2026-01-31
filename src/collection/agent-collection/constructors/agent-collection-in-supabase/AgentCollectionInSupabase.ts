@@ -20,6 +20,20 @@ import type { AgentsDatabaseSchema } from './AgentsDatabaseSchema';
 // <- TODO: [🐱‍🚀] Prevent imports from `/apps` -> `/src`
 
 /**
+ * Options for creating a new agent entry.
+ */
+type CreateAgentOptions = {
+    /**
+     * Folder identifier to assign the new agent to.
+     */
+    readonly folderId?: number | null;
+    /**
+     * Sort order for the agent within its parent folder.
+     */
+    readonly sortOrder?: number;
+};
+
+/**
  * Agent collection stored in a Supabase table.
  *
  * This class provides a way to manage a collection of agents (pipelines) using Supabase
@@ -149,9 +163,13 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
      * Creates a new agent in the collection
      *
      * Note: You can set 'PARENT' in the agent source to inherit from another agent in the collection.
+     *
+     * @param agentSource - Source content of the agent.
+     * @param options - Optional folder placement and ordering data.
      */
     public async createAgent(
         agentSource: string_book,
+        options: CreateAgentOptions = {},
     ): Promise<AgentBasicInformation & Required<Pick<AgentBasicInformation, 'permanentId'>>> {
         let agentProfile = parseAgentSource(agentSource as string_book);
         //     <- TODO: [🕛]
@@ -175,7 +193,7 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
             permanentId = $randomBase58(14);
         }
 
-        const insertAgentResult = await this.supabaseClient.from(this.getTableName('Agent')).insert({
+        const insertPayload: AgentsDatabaseSchema['public']['Tables']['Agent']['Insert'] = {
             agentName,
             agentHash,
             permanentId,
@@ -185,7 +203,16 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
             promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
             usage: ZERO_USAGE,
             agentSource: agentSource,
-        });
+        };
+
+        if (options.folderId !== undefined) {
+            insertPayload.folderId = options.folderId;
+        }
+        if (options.sortOrder !== undefined) {
+            insertPayload.sortOrder = options.sortOrder;
+        }
+
+        const insertAgentResult = await this.supabaseClient.from(this.getTableName('Agent')).insert(insertPayload);
 
         if (insertAgentResult.error) {
             throw new DatabaseError(

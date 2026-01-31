@@ -9,14 +9,27 @@ import { NewAgentDialog } from '../components/NewAgentDialog/NewAgentDialog';
 import { $createAgentFromBookAction, $generateAgentBoilerplateAction } from './actions';
 
 /**
+ * Props for the AddAgentButton component.
+ */
+type AddAgentButtonProps = {
+    /**
+     * Folder identifier for the current list view, or null for the root.
+     */
+    readonly currentFolderId: number | null;
+};
+
+/**
  * Renders the add-agent card and creation dialog workflow.
  */
-export function AddAgentButton() {
+export function AddAgentButton({ currentFolderId }: AddAgentButtonProps) {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [agentSource, setAgentSource] = useState<string_book>('' as string_book);
 
+    /**
+     * Loads boilerplate content and opens the creation dialog.
+     */
     const handleAddAgent = async () => {
         setIsLoading(true);
         try {
@@ -34,9 +47,14 @@ export function AddAgentButton() {
         }
     };
 
+    /**
+     * Creates a new agent and navigates to its profile.
+     *
+     * @param source - Agent source to create.
+     */
     const handleCreate = async (source: string_book) => {
         // Note: [🧠] Logic for creation is now handled inside the dialog (waiting for promise), here we just handle navigation
-        const { permanentId } = await $createAgentFromBookAction(source);
+        const { permanentId } = await $createAgentFromBookAction(source, currentFolderId ?? undefined);
 
         if (permanentId) {
             router.push(`/agents/${permanentId}`);
