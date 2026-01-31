@@ -1,0 +1,637 @@
+'use client';
+
+import type { AgentBasicInformation, TODO_any, string_agent_permanent_id } from '@promptbook-local/types';
+import {
+    CopyIcon,
+    CopyPlusIcon,
+    DownloadIcon,
+    FileTextIcon,
+    MailIcon,
+    MessageCircleQuestionIcon,
+    MessageSquareIcon,
+    MessageSquareShareIcon,
+    MoreHorizontalIcon,
+    PencilIcon,
+    QrCodeIcon,
+    SmartphoneIcon,
+    SquareSplitHorizontalIcon,
+    TrashIcon,
+} from 'lucide-react';
+import { Barlow_Condensed } from 'next/font/google';
+import type { CSSProperties, RefObject } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { just } from '../../../../../src/utils/organization/just';
+import { deleteAgent } from '../../app/recycle-bin/actions';
+import { getAgentLinks } from '../../app/agents/[agentName]/agentLinks';
+
+type BeforeInstallPromptEvent = Event & {
+    prompt: () => Promise<void>;
+    userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
+};
+
+/**
+ * Payload passed when an agent is successfully renamed.
+ */
+export type AgentContextMenuRenamePayload = {
+    /**
+     * Updated agent profile returned from the rename API.
+     */
+    readonly agent: AgentBasicInformation;
+    /**
+     * Identifier used before the rename (permanent id or agent name).
+     */
+    readonly previousIdentifier: string;
+};
+
+/**
+ * Base props shared by agent context menu variants.
+ */
+type AgentContextMenuBaseProps = {
+    /**
+     * Agent name used in the current route or list context.
+     */
+    readonly agentName: string;
+    /**
+     * Agent name derived from the source content.
+     */
+    readonly derivedAgentName: string;
+    /**
+     * Permanent id for the agent, when available.
+     */
+    readonly permanentId?: string_agent_permanent_id;
+    /**
+     * Full agent URL used for share/copy actions.
+     */
+    readonly agentUrl: string;
+    /**
+     * Agent email address used for share/copy actions.
+     */
+    readonly agentEmail: string;
+    /**
+     * Whether the current user is an admin.
+     */
+    readonly isAdmin?: boolean;
+    /**
+     * Callback to open the QR code modal.
+     */
+    readonly onShowQrCode?: () => void;
+    /**
+     * Callback fired after the agent is renamed.
+     */
+    readonly onAgentRenamed?: (payload: AgentContextMenuRenamePayload) => void;
+    /**
+     * Callback invoked to close the menu.
+     */
+    readonly onRequestClose?: () => void;
+    /**
+     * Stored install prompt event, when available.
+     */
+    readonly installPromptEvent?: BeforeInstallPromptEvent | null;
+    /**
+     * Whether the app is already installed.
+     */
+    readonly isInstalled?: boolean;
+    /**
+     * Callback to trigger the install prompt.
+     */
+    readonly onInstallApp?: () => void;
+};
+
+/**
+ * Props for the button-triggered context menu.
+ */
+type AgentContextMenuButtonProps = AgentContextMenuBaseProps;
+
+/**
+ * Props for the right-click context menu popover.
+ */
+type AgentContextMenuPopoverProps = AgentContextMenuBaseProps & {
+    /**
+     * Whether the popover is open.
+     */
+    readonly isOpen: boolean;
+    /**
+     * Cursor anchor point for positioning the menu.
+     */
+    readonly anchorPoint: { x: number; y: number } | null;
+    /**
+     * Callback to close the popover.
+     */
+    readonly onClose: () => void;
+};
+
+const barlowCondensed = Barlow_Condensed({
+    subsets: ['latin'],
+    weight: ['300', '400', '500', '600', '700'],
+    variable: '--font-barlow-condensed',
+});
+
+/**
+ * Keeps track of PWA install prompt state for the menu.
+ *
+ * @returns Install prompt event, install status, and installer callback.
+ */
+function useInstallPromptState() {
+    const [installPromptEvent, setInstallPromptEvent] = useState<BeforeInstallPromptEvent | null>(null);
+    const [isInstalled, setIsInstalled] = useState(false);
+
+    useEffect(() => {
+        /**
+         * Captures the browser PWA install prompt event for later use.
+         *
+         * @param event - Before-install prompt event.
+         */
+        function handleBeforeInstallPrompt(event: Event) {
+            event.preventDefault();
+            setInstallPromptEvent(event as BeforeInstallPromptEvent);
+        }
+
+        /**
+         * Updates the installed status based on display mode.
+         */
+        function updateInstalledStatus() {
+            const mediaMatch = window.matchMedia('(display-mode: standalone)');
+            const standalone = mediaMatch.matches || (window.navigator as TODO_any).standalone === true;
+            setIsInstalled(standalone);
+        }
+
+        window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+        updateInstalledStatus();
+        window.matchMedia('(display-mode: standalone)').addEventListener('change', updateInstalledStatus);
+
+        return () => {
+            window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+            window.matchMedia('(display-mode: standalone)').removeEventListener('change', updateInstalledStatus);
+        };
+    }, []);
+
+    /**
+     * Triggers the install prompt when available.
+     */
+    const handleInstallApp = useCallback(async () => {
+        if (!installPromptEvent) {
+            return;
+        }
+        try {
+            installPromptEvent.prompt();
+            const choice = await installPromptEvent.userChoice.catch(() => null);
+            if (choice?.outcome === 'accepted') {
+                setIsInstalled(true);
+            }
+        } finally {
+            setInstallPromptEvent(null);
+        }
+    }, [installPromptEvent]);
+
+    return { installPromptEvent, isInstalled, handleInstallApp };
+}
+
+/**
+ * Registers an outside click listener that closes the menu.
+ *
+ * @param ref - Ref for the menu container.
+ * @param onClose - Callback to close the menu.
+ * @param isActive - Whether the listener should be active.
+ */
+function useCloseOnOutsideClick(
+    ref: RefObject<HTMLElement>,
+    onClose: () => void,
+    isActive: boolean,
+) {
+    useEffect(() => {
+        if (!isActive) {
+            return;
+        }
+
+        /**
+         * Closes the menu when clicking outside the menu container.
+         *
+         * @param event - Mouse event from the document.
+         */
+        function handleClickOutside(event: MouseEvent) {
+            if (ref.current && !ref.current.contains(event.target as Node)) {
+                onClose();
+            }
+        }
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [isActive, onClose, ref]);
+}
+
+/**
+ * Computes a clamped menu position based on cursor coordinates.
+ *
+ * @param anchorPoint - Cursor position used as the anchor.
+ * @param isOpen - Whether the menu is currently visible.
+ * @param menuRef - Ref to the menu element for measurement.
+ * @returns The adjusted menu position.
+ */
+function useClampedMenuPosition(
+    anchorPoint: { x: number; y: number } | null,
+    isOpen: boolean,
+    menuRef: RefObject<HTMLDivElement>,
+) {
+    const [position, setPosition] = useState<{ x: number; y: number } | null>(null);
+
+    useEffect(() => {
+        if (!isOpen || !anchorPoint || !menuRef.current) {
+            return;
+        }
+
+        const rect = menuRef.current.getBoundingClientRect();
+        const padding = 12;
+        const maxX = Math.max(padding, window.innerWidth - rect.width - padding);
+        const maxY = Math.max(padding, window.innerHeight - rect.height - padding);
+        const nextX = Math.min(anchorPoint.x, maxX);
+        const nextY = Math.min(anchorPoint.y, maxY);
+
+        setPosition({ x: Math.max(padding, nextX), y: Math.max(padding, nextY) });
+    }, [anchorPoint, isOpen, menuRef]);
+
+    return position;
+}
+
+/**
+ * Shared menu content for agent menus.
+ */
+function AgentContextMenuContent(props: AgentContextMenuBaseProps & { onClose: () => void }) {
+    const {
+        agentName,
+        derivedAgentName,
+        permanentId,
+        agentUrl,
+        agentEmail,
+        isAdmin = false,
+        onShowQrCode,
+        onAgentRenamed,
+        onRequestClose,
+        installPromptEvent,
+        isInstalled = false,
+        onInstallApp,
+        onClose,
+    } = props;
+
+    const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
+    const copyTimeoutRef = useRef<number | null>(null);
+
+    /**
+     * Clears pending copy feedback timeout.
+     */
+    const clearCopyTimeout = useCallback(() => {
+        if (copyTimeoutRef.current !== null) {
+            window.clearTimeout(copyTimeoutRef.current);
+            copyTimeoutRef.current = null;
+        }
+    }, []);
+
+    useEffect(() => {
+        return () => {
+            clearCopyTimeout();
+        };
+    }, [clearCopyTimeout]);
+
+    /**
+     * Copies a value to the clipboard and updates feedback state.
+     *
+     * @param value - The value to copy.
+     * @param label - Feedback label to show.
+     */
+    const handleCopy = useCallback(
+        async (value: string, label: string) => {
+            try {
+                await navigator.clipboard.writeText(value);
+                clearCopyTimeout();
+                setCopyFeedback(label);
+                copyTimeoutRef.current = window.setTimeout(() => setCopyFeedback(null), 2000);
+            } catch (error) {
+                console.error('Failed to copy:', error);
+            }
+        },
+        [clearCopyTimeout],
+    );
+
+    const links = useMemo(() => getAgentLinks(permanentId || agentName), [agentName, permanentId]);
+    const editBookLink = links.find((link) => link.title === 'Edit Book')!;
+    const integrationLink = links.find((link) => link.title === 'Integration')!;
+
+    const showUpdateUrl = agentName !== derivedAgentName;
+    const updateUrlHref = `/agents/${encodeURIComponent(derivedAgentName)}`;
+
+    /**
+     * Confirms and performs the URL update redirect.
+     */
+    const handleUpdateUrl = useCallback(() => {
+        if (
+            window.confirm(
+                `Are you sure you want to change the agent URL from "/agents/${agentName}" to "/agents/${derivedAgentName}"?`,
+            )
+        ) {
+            window.location.href = updateUrlHref;
+        }
+    }, [agentName, derivedAgentName, updateUrlHref]);
+
+    /**
+     * Deletes the agent after confirmation.
+     */
+    const handleDeleteAgent = useCallback(async () => {
+        const agentIdentifier = permanentId || agentName;
+        const displayName = derivedAgentName || agentName;
+        if (
+            window.confirm(
+                `Are you sure you want to delete the agent "${displayName}"? This action can be undone by restoring it from the recycle bin.`,
+            )
+        ) {
+            try {
+                await deleteAgent(agentIdentifier);
+                window.location.href = '/';
+            } catch (error) {
+                console.error('Failed to delete agent:', error);
+                alert('Failed to delete agent. Please try again.');
+            }
+        }
+    }, [agentName, derivedAgentName, permanentId]);
+
+    /**
+     * Prompts for a new agent name and updates it via the API.
+     */
+    const handleRenameAgent = useCallback(async () => {
+        if (!isAdmin) {
+            return;
+        }
+
+        const name = window.prompt('Rename agent', derivedAgentName || agentName);
+        if (!name) {
+            return;
+        }
+
+        const trimmedName = name.trim();
+        if (!trimmedName) {
+            alert('Agent name cannot be empty.');
+            return;
+        }
+
+        try {
+            const agentIdentifier = permanentId || agentName;
+            const response = await fetch(`/api/agents/${encodeURIComponent(agentIdentifier)}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: trimmedName }),
+            });
+            const data = (await response.json()) as { success: boolean; agent?: AgentBasicInformation; error?: string };
+            if (!response.ok || !data.agent) {
+                throw new Error(data.error || 'Failed to rename agent.');
+            }
+            onAgentRenamed?.({ agent: data.agent, previousIdentifier: agentIdentifier });
+            onRequestClose?.();
+        } catch (error) {
+            alert(error instanceof Error ? error.message : 'Failed to rename agent.');
+        }
+    }, [agentName, derivedAgentName, isAdmin, onAgentRenamed, onRequestClose, permanentId]);
+
+    const menuItems = [
+        ...(showUpdateUrl &&
+        just(
+            false /* <- Note: We are now using links like `/agents/qRoRGSPiRwq8RN` not `/agents/john-show` so this is confusing option*/,
+        )
+            ? [
+                  {
+                      type: 'action' as const,
+                      icon: MoreHorizontalIcon,
+                      label: 'Update URL',
+                      onClick: handleUpdateUrl,
+                      highlight: true,
+                  },
+                  { type: 'divider' as const },
+              ]
+            : []),
+
+        ...(!isInstalled && installPromptEvent && onInstallApp
+            ? [
+                  {
+                      type: 'action' as const,
+                      icon: SmartphoneIcon,
+                      label: 'Install Agent as App',
+                      onClick: onInstallApp,
+                  },
+              ]
+            : []),
+        {
+            type: 'action' as const,
+            icon: CopyIcon,
+            label: copyFeedback === 'URL' ? 'Copied!' : 'Copy Agent URL',
+            onClick: () => handleCopy(agentUrl, 'URL'),
+        },
+        {
+            type: 'action' as const,
+            icon: MailIcon,
+            label: copyFeedback === 'Email' ? 'Copied!' : 'Copy Agent Email',
+            onClick: () => handleCopy(agentEmail, 'Email'),
+        },
+        {
+            type: 'action' as const,
+            icon: QrCodeIcon,
+            label: 'Show QR Code',
+            onClick: onShowQrCode,
+        },
+
+        { type: 'divider' as const },
+
+        {
+            type: 'link' as const,
+            href: `/agents/${encodeURIComponent(agentName)}/chat`,
+            icon: MessageSquareShareIcon,
+            label: 'Standalone Chat',
+        },
+        {
+            type: 'link' as const,
+            href: `/agents/${encodeURIComponent(agentName)}/book+chat`,
+            icon: SquareSplitHorizontalIcon,
+            label: 'Edit Book & Chat',
+        },
+        {
+            type: 'link' as const,
+            href: editBookLink.href,
+            icon: editBookLink.icon,
+            label: editBookLink.title,
+        },
+
+        ...(isAdmin
+            ? [
+                  { type: 'divider' as const },
+                  {
+                      type: 'action' as const,
+                      icon: PencilIcon,
+                      label: 'Rename Agent',
+                      onClick: handleRenameAgent,
+                  },
+                  {
+                      type: 'link' as const,
+                      href: `/admin/chat-history?agentName=${encodeURIComponent(agentName)}`,
+                      icon: MessageSquareIcon,
+                      label: 'Chat History',
+                  },
+                  {
+                      type: 'link' as const,
+                      href: `/admin/chat-feedback?agentName=${encodeURIComponent(agentName)}`,
+                      icon: MessageCircleQuestionIcon,
+                      label: 'Chat Feedback',
+                  },
+                  { type: 'divider' as const },
+                  {
+                      type: 'link' as const,
+                      href: integrationLink.href,
+                      icon: integrationLink.icon,
+                      label: integrationLink.title,
+                  },
+                  {
+                      type: 'link' as const,
+                      href: `/agents/${encodeURIComponent(agentName)}/system-message`,
+                      icon: FileTextIcon,
+                      label: 'Show System Message',
+                  },
+                  {
+                      type: 'link' as const,
+                      href: `/agents/${encodeURIComponent(agentName)}/export-as-transpiled-code`,
+                      icon: DownloadIcon,
+                      label: 'Export Agent',
+                  },
+                  { type: 'divider' as const },
+                  {
+                      type: 'link' as const,
+                      href: `/agents/${encodeURIComponent(agentName)}/clone`,
+                      icon: CopyPlusIcon,
+                      label: 'Clone Agent',
+                  },
+
+                  {
+                      type: 'action' as const,
+                      icon: TrashIcon,
+                      label: 'Delete Agent',
+                      onClick: handleDeleteAgent,
+                  },
+              ]
+            : []),
+    ];
+
+    return (
+        <div
+            className={`w-56 bg-white rounded-xl shadow-2xl border border-gray-100 py-2 z-[9999] animate-in fade-in slide-in-from-top-2 duration-200 ${barlowCondensed.className}`}
+        >
+            {menuItems.map((item, index) => {
+                if (item.type === 'divider') {
+                    return <div key={index} className="h-px bg-gray-100 my-2" />;
+                }
+
+                if (item.type === 'link') {
+                    return (
+                        <a
+                            key={index}
+                            href={item.href}
+                            className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition-colors"
+                            onClick={onClose}
+                        >
+                            <item.icon className="w-4 h-4 text-gray-500" />
+                            <span className="text-sm font-medium">{item.label}</span>
+                        </a>
+                    );
+                }
+
+                return (
+                    <button
+                        key={index}
+                        onClick={() => {
+                            item.onClick?.();
+                        }}
+                        className={`flex items-center gap-3 px-4 py-2.5 w-full text-left transition-colors
+                            ${
+                                item.highlight
+                                    ? 'bg-yellow-100 text-yellow-900 font-bold hover:bg-yellow-200'
+                                    : 'text-gray-700 hover:bg-gray-50'
+                            }
+                        `}
+                    >
+                        <item.icon className={`w-4 h-4 ${item.highlight ? 'text-yellow-700' : 'text-gray-500'}`} />
+                        <span className="text-sm font-medium">{item.label}</span>
+                    </button>
+                );
+            })}
+        </div>
+    );
+}
+
+/**
+ * Renders the agent context menu using a dot-button trigger.
+ */
+export function AgentContextMenuButton(props: AgentContextMenuButtonProps) {
+    const [isOpen, setIsOpen] = useState(false);
+    const menuRef = useRef<HTMLDivElement>(null);
+    const { installPromptEvent, isInstalled, handleInstallApp } = useInstallPromptState();
+
+    /**
+     * Closes the menu popover.
+     */
+    const handleClose = useCallback(() => {
+        setIsOpen(false);
+    }, []);
+
+    useCloseOnOutsideClick(menuRef, handleClose, isOpen);
+
+    return (
+        <div ref={menuRef} className="relative z-[9999]">
+            <button
+                onClick={() => setIsOpen((prev) => !prev)}
+                className="p-3 rounded-full hover:bg-white/30 transition-all duration-200"
+                aria-label="More options"
+            >
+                <MoreHorizontalIcon className="w-5 h-5 text-black" />
+            </button>
+
+            {isOpen && (
+                <div className="absolute right-0 top-full mt-2">
+                    <AgentContextMenuContent
+                        {...props}
+                        installPromptEvent={installPromptEvent}
+                        isInstalled={isInstalled}
+                        onInstallApp={handleInstallApp}
+                        onRequestClose={handleClose}
+                        onClose={handleClose}
+                    />
+                </div>
+            )}
+        </div>
+    );
+}
+
+/**
+ * Renders the agent context menu at a cursor position.
+ */
+export function AgentContextMenuPopover(props: AgentContextMenuPopoverProps) {
+    const { isOpen, anchorPoint, onClose, ...menuProps } = props;
+    const menuRef = useRef<HTMLDivElement>(null);
+    const clampedPosition = useClampedMenuPosition(anchorPoint, isOpen, menuRef);
+    const { installPromptEvent, isInstalled, handleInstallApp } = useInstallPromptState();
+
+    useCloseOnOutsideClick(menuRef, onClose, isOpen);
+
+    if (!isOpen || !anchorPoint) {
+        return null;
+    }
+
+    const style: CSSProperties | undefined = clampedPosition
+        ? { left: clampedPosition.x, top: clampedPosition.y }
+        : { left: anchorPoint.x, top: anchorPoint.y };
+
+    return (
+        <div ref={menuRef} className="fixed z-[9999]" style={style}>
+            <AgentContextMenuContent
+                {...menuProps}
+                installPromptEvent={installPromptEvent}
+                isInstalled={isInstalled}
+                onInstallApp={handleInstallApp}
+                onRequestClose={onClose}
+                onClose={onClose}
+            />
+        </div>
+    );
+}

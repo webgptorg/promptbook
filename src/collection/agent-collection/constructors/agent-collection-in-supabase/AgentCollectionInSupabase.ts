@@ -312,7 +312,7 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
         const updateAgentResult = await this.supabaseClient
             .from(this.getTableName('Agent'))
             .update({
-                // TODO: [🐱‍🚀] Compare not update> agentName: agentProfile.agentName || '[🐱‍🚀]' /* <- TODO: [🐱‍🚀] Remove */,
+                agentName,
                 permanentId,
                 agentProfile,
                 updatedAt: new Date().toISOString(),

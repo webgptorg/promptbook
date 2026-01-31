@@ -17,6 +17,7 @@
 -   Created new agents inside the active folder when adding from a subfolder view in the Agents Server home list.
 -   Added a configurable Markdown message (via metadata) shown above the agents list on the Agents Server homepage.
 -   Scoped the Agents Server homepage message and federated agents to the root view, and updated folder headings to show the folder name with per-folder agent counts.
+-   Added a shared Agents Server context menu with right-click support on agent cards, plus rename actions reused on agent profile pages.
 -   Added a chat preparation chip in Agents Server to signal when GPT assistants are being created before the first response.
 -   Added `[🤰]`-tagged assistant preparation logging (cache lookup, model requirement timing, assistant create/update, vector store progress) and surfaced preparation phases on the "Preparing agent" chip.
 -   Fixed Agents Server Book editor multi-file uploads by debouncing editor updates, tracking placeholders safely, and adding a floating upload panel with pause/resume controls and upload stats.

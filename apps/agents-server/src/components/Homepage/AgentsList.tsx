@@ -20,9 +20,12 @@ import { string_url } from '@promptbook-local/types';
 import { ArrowUp, FolderPlusIcon, Grid, Network, TrashIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useMemo, useState, type CSSProperties, type MouseEvent } from 'react';
 import type { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
 import { AddAgentButton } from '../../app/AddAgentButton';
+import { AgentContextMenuPopover, type AgentContextMenuRenamePayload } from '../AgentContextMenu/AgentContextMenu';
+import { QrCodeModal } from '../AgentProfile/QrCodeModal';
+import { useAgentBackground } from '../AgentProfile/useAgentBackground';
 import type {
     AgentOrganizationAgent,
     AgentOrganizationFolder,
@@ -78,6 +81,20 @@ type BreadcrumbDropTargetData = {
 type DropIndicator = {
     id: UniqueIdentifier;
     intent: DropIntent;
+};
+
+/**
+ * State for the agent context menu.
+ */
+type AgentContextMenuState = {
+    /**
+     * Agent currently associated with the context menu.
+     */
+    readonly agent: AgentOrganizationAgent;
+    /**
+     * Cursor position for the menu anchor.
+     */
+    readonly anchorPoint: { x: number; y: number };
 };
 
 const AGENT_DRAG_ID_PREFIX = 'agent:';
@@ -192,6 +209,10 @@ type SortableAgentCardProps = {
      * Visibility toggle handler for the agent.
      */
     readonly onToggleVisibility: (agentIdentifier: string) => void;
+    /**
+     * Context menu handler for the agent.
+     */
+    readonly onContextMenu?: (event: MouseEvent<HTMLDivElement>, agent: AgentOrganizationAgent) => void;
 };
 
 /**
@@ -206,6 +227,7 @@ function SortableAgentCard({
     onDelete,
     onClone,
     onToggleVisibility,
+    onContextMenu,
 }: SortableAgentCardProps) {
     const agentIdentifier = agent.permanentId || agent.agentName;
     const dragId = getAgentDragId(agentIdentifier);
@@ -232,6 +254,7 @@ function SortableAgentCard({
             className={`relative ${canOrganize ? 'cursor-grab active:cursor-grabbing select-none touch-none' : ''} ${
                 isDragging ? 'opacity-0' : ''
             } ${isDropTarget ? 'ring-2 ring-blue-400 ring-offset-2 ring-offset-white' : ''}`}
+            onContextMenu={(event) => onContextMenu?.(event, agent)}
             {...attributes}
             {...listeners}
         >
@@ -450,6 +473,48 @@ function ParentFolderCard({ label, folderId, onOpen, canOrganize }: ParentFolder
 }
 
 /**
+ * Props for the agent QR code modal wrapper.
+ */
+type AgentQrCodeModalProps = {
+    /**
+     * Agent to render the QR code for.
+     */
+    readonly agent: AgentOrganizationAgent;
+    /**
+     * Public URL to the agent page.
+     */
+    readonly agentUrl: string;
+    /**
+     * Agent email address.
+     */
+    readonly agentEmail: string;
+    /**
+     * Close handler for the modal.
+     */
+    readonly onClose: () => void;
+};
+
+/**
+ * Renders the agent QR code modal with the correct brand color.
+ */
+function AgentQrCodeModal({ agent, agentUrl, agentEmail, onClose }: AgentQrCodeModalProps) {
+    const { brandColorHex } = useAgentBackground(agent.meta.color);
+    const personaDescription = agent.meta.description || agent.personaDescription || '';
+
+    return (
+        <QrCodeModal
+            onClose={onClose}
+            agentName={agent.agentName}
+            meta={agent.meta}
+            personaDescription={personaDescription}
+            agentUrl={agentUrl}
+            agentEmail={agentEmail}
+            brandColorHex={brandColorHex}
+        />
+    );
+}
+
+/**
  * Props for the agents list component.
  */
 type AgentsListProps = {
@@ -502,6 +567,20 @@ export function AgentsList(props: AgentsListProps) {
     >({});
     const [activeDragItem, setActiveDragItem] = useState<DragItem | null>(null);
     const [dropIndicator, setDropIndicator] = useState<DropIndicator | null>(null);
+    const [contextMenuState, setContextMenuState] = useState<AgentContextMenuState | null>(null);
+    const [qrCodeAgent, setQrCodeAgent] = useState<AgentOrganizationAgent | null>(null);
+
+    const normalizedPublicUrl = useMemo(
+        () => (publicUrl.endsWith('/') ? publicUrl : `${publicUrl}/`),
+        [publicUrl],
+    );
+    const publicUrlHost = useMemo(() => {
+        try {
+            return new URL(normalizedPublicUrl).hostname;
+        } catch (error) {
+            return '';
+        }
+    }, [normalizedPublicUrl]);
 
     const viewMode = searchParams.get('view') === 'graph' ? 'GRAPH' : 'LIST';
     const showFederatedAgentsInGraph = showFederatedAgents && viewMode === 'GRAPH';
@@ -569,6 +648,28 @@ export function AgentsList(props: AgentsListProps) {
         }
         return folders.find((folder) => String(folder.id) === activeDragItem.identifier) || null;
     }, [activeDragItem, folders]);
+
+    /**
+     * Builds a full agent URL from a list identifier.
+     *
+     * @param identifier - Agent identifier used in list URLs.
+     * @returns Fully qualified URL for the agent.
+     */
+    const buildAgentUrl = useCallback(
+        (identifier: string) => `${normalizedPublicUrl}${encodeURIComponent(identifier)}`,
+        [normalizedPublicUrl],
+    );
+
+    /**
+     * Builds a stable agent email from an identifier.
+     *
+     * @param identifier - Agent identifier used for the email alias.
+     * @returns Agent email string.
+     */
+    const buildAgentEmail = useCallback(
+        (identifier: string) => (publicUrlHost ? `${identifier}@${publicUrlHost}` : ''),
+        [publicUrlHost],
+    );
 
     useEffect(() => {
         if (!showFederatedAgentsInGraph) {
@@ -1105,6 +1206,53 @@ export function AgentsList(props: AgentsListProps) {
     };
 
     /**
+     * Opens the agent context menu at the cursor position.
+     *
+     * @param event - Mouse event that triggered the context menu.
+     * @param agent - Agent to show in the context menu.
+     */
+    const handleAgentContextMenu = useCallback(
+        (event: MouseEvent<HTMLDivElement>, agent: AgentOrganizationAgent) => {
+            event.preventDefault();
+            setContextMenuState({ agent, anchorPoint: { x: event.clientX, y: event.clientY } });
+        },
+        [],
+    );
+
+    /**
+     * Closes the agent context menu.
+     */
+    const handleCloseContextMenu = useCallback(() => {
+        setContextMenuState(null);
+    }, []);
+
+    /**
+     * Updates agent state after a rename action.
+     *
+     * @param payload - Rename payload from the context menu.
+     */
+    const handleContextMenuAgentRenamed = useCallback((payload: AgentContextMenuRenamePayload) => {
+        setAgents((prev) =>
+            prev.map((agent) => {
+                const identifier = agent.permanentId || agent.agentName;
+                if (identifier !== payload.previousIdentifier) {
+                    return agent;
+                }
+                return { ...agent, ...payload.agent };
+            }),
+        );
+    }, []);
+
+    /**
+     * Opens the QR code modal for the active context menu agent.
+     */
+    const handleShowQrCode = useCallback(() => {
+        if (contextMenuState) {
+            setQrCodeAgent(contextMenuState.agent);
+        }
+    }, [contextMenuState]);
+
+    /**
      * Resets drag-related UI state.
      */
     const resetDragState = () => {
@@ -1236,6 +1384,13 @@ export function AgentsList(props: AgentsListProps) {
         viewMode === 'LIST' && currentFolderId !== null
             ? folderMaps.folderById.get(currentFolderId)?.name || 'Agents'
             : 'Agents';
+    const contextMenuAgent = contextMenuState?.agent ?? null;
+    const contextMenuIdentifier = contextMenuAgent ? contextMenuAgent.permanentId || contextMenuAgent.agentName : '';
+    const contextMenuAgentUrl = contextMenuAgent ? buildAgentUrl(contextMenuIdentifier) : '';
+    const contextMenuAgentEmail = contextMenuAgent ? buildAgentEmail(contextMenuIdentifier) : '';
+    const qrCodeIdentifier = qrCodeAgent ? qrCodeAgent.permanentId || qrCodeAgent.agentName : '';
+    const qrCodeAgentUrl = qrCodeAgent ? buildAgentUrl(qrCodeIdentifier) : '';
+    const qrCodeAgentEmail = qrCodeAgent ? buildAgentEmail(qrCodeIdentifier) : '';
 
     return (
         <section className="mt-16 first:mt-4 mb-4">
@@ -1354,6 +1509,7 @@ export function AgentsList(props: AgentsListProps) {
                                     onDelete={handleDelete}
                                     onClone={handleClone}
                                     onToggleVisibility={handleToggleVisibility}
+                                    onContextMenu={handleAgentContextMenu}
                                 />
                             ))}
                         </SortableContext>
@@ -1401,6 +1557,27 @@ export function AgentsList(props: AgentsListProps) {
                         publicUrl={publicUrl}
                     />
                 </div>
+            )}
+            <AgentContextMenuPopover
+                isOpen={Boolean(contextMenuState)}
+                anchorPoint={contextMenuState?.anchorPoint ?? null}
+                onClose={handleCloseContextMenu}
+                agentName={contextMenuIdentifier}
+                derivedAgentName={contextMenuAgent?.agentName ?? ''}
+                permanentId={contextMenuAgent?.permanentId}
+                agentUrl={contextMenuAgentUrl}
+                agentEmail={contextMenuAgentEmail}
+                isAdmin={isAdmin}
+                onShowQrCode={handleShowQrCode}
+                onAgentRenamed={handleContextMenuAgentRenamed}
+            />
+            {qrCodeAgent && (
+                <AgentQrCodeModal
+                    agent={qrCodeAgent}
+                    agentUrl={qrCodeAgentUrl}
+                    agentEmail={qrCodeAgentEmail}
+                    onClose={() => setQrCodeAgent(null)}
+                />
             )}
         </section>
     );

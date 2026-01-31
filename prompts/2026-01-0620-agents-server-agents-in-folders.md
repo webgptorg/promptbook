@@ -102,7 +102,7 @@
 
 ---
 
-[ ]
+[x] ~$1.28
 
 [✨🦢] Create context menu when clicking the right button on the agent.
 
@@ -148,6 +148,7 @@
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server) with the Agents on the home page `/` on List view
+
 
 
 
