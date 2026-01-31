@@ -1,11 +1,26 @@
 // Client Component for rendering and deleting agents
 'use client';
 
+import {
+    DndContext,
+    DragOverlay,
+    PointerSensor,
+    closestCenter,
+    useDroppable,
+    useSensor,
+    useSensors,
+    type DragEndEvent,
+    type DragOverEvent,
+    type DragStartEvent,
+    type UniqueIdentifier,
+} from '@dnd-kit/core';
+import { SortableContext, rectSortingStrategy, useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { string_url } from '@promptbook-local/types';
 import { FolderPlusIcon, Grid, Network, TrashIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import type { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
 import { AddAgentButton } from '../../app/AddAgentButton';
 import type {
@@ -47,6 +62,325 @@ type DragItem = {
  * Drop placement intent derived from cursor position.
  */
 type DropIntent = 'before' | 'after' | 'inside';
+
+/**
+ * Drag metadata for breadcrumb drop targets.
+ */
+type BreadcrumbDropTargetData = {
+    type: 'BREADCRUMB';
+    folderId: number | null;
+};
+
+/**
+ * Drop indicator metadata for live folder moves.
+ */
+type DropIndicator = {
+    id: UniqueIdentifier;
+    intent: DropIntent;
+};
+
+const AGENT_DRAG_ID_PREFIX = 'agent:';
+const FOLDER_DRAG_ID_PREFIX = 'folder:';
+const BREADCRUMB_DRAG_ID_PREFIX = 'breadcrumb:';
+
+/**
+ * Builds a unique drag identifier with a stable prefix.
+ *
+ * @param prefix - Prefix describing the drag item type.
+ * @param identifier - Unique identifier for the item.
+ * @returns Stable drag identifier string.
+ */
+const buildDragId = (prefix: string, identifier: string) => `${prefix}${identifier}`;
+
+/**
+ * Builds a drag identifier for an agent.
+ *
+ * @param identifier - Agent identifier.
+ * @returns Drag identifier string.
+ */
+const getAgentDragId = (identifier: string) => buildDragId(AGENT_DRAG_ID_PREFIX, identifier);
+
+/**
+ * Builds a drag identifier for a folder.
+ *
+ * @param folderId - Folder id to encode.
+ * @returns Drag identifier string.
+ */
+const getFolderDragId = (folderId: number) => buildDragId(FOLDER_DRAG_ID_PREFIX, String(folderId));
+
+/**
+ * Builds a drag identifier for breadcrumb drop targets.
+ *
+ * @param folderId - Folder id represented by the breadcrumb.
+ * @returns Drag identifier string.
+ */
+const getBreadcrumbDragId = (folderId: number | null) =>
+    buildDragId(BREADCRUMB_DRAG_ID_PREFIX, folderId === null ? 'root' : String(folderId));
+
+/**
+ * Determines the drop intent based on active and target rectangles.
+ *
+ * @param activeRect - Active drag rectangle.
+ * @param overRect - Target drop rectangle.
+ * @returns Drop intent for inside/before/after placement.
+ */
+const getDropIntentFromRects = (activeRect: ClientRect | null, overRect: ClientRect): DropIntent => {
+    if (!activeRect) {
+        return 'inside';
+    }
+    const activeCenterY = activeRect.top + activeRect.height / 2;
+    const insideTop = overRect.top + overRect.height / 4;
+    const insideBottom = overRect.top + (overRect.height * 3) / 4;
+    if (activeCenterY > insideTop && activeCenterY < insideBottom) {
+        return 'inside';
+    }
+    return activeCenterY >= insideBottom ? 'after' : 'before';
+};
+
+/**
+ * Props for sortable agent cards.
+ */
+type SortableAgentCardProps = {
+    /**
+     * Agent to render.
+     */
+    readonly agent: AgentOrganizationAgent;
+    /**
+     * Base URL of the agents server.
+     */
+    readonly publicUrl: string_url;
+    /**
+     * Whether the current user is an admin.
+     */
+    readonly isAdmin: boolean;
+    /**
+     * Whether drag-and-drop organization is enabled.
+     */
+    readonly canOrganize: boolean;
+    /**
+     * Active drag type for visual indicators.
+     */
+    readonly activeDragType: DragItem['type'] | null;
+    /**
+     * Delete handler for the agent.
+     */
+    readonly onDelete: (agentIdentifier: string) => void;
+    /**
+     * Clone handler for the agent.
+     */
+    readonly onClone: (agentIdentifier: string) => void;
+    /**
+     * Visibility toggle handler for the agent.
+     */
+    readonly onToggleVisibility: (agentIdentifier: string) => void;
+};
+
+/**
+ * Renders a sortable agent card with drag affordances.
+ */
+function SortableAgentCard({
+    agent,
+    publicUrl,
+    isAdmin,
+    canOrganize,
+    activeDragType,
+    onDelete,
+    onClone,
+    onToggleVisibility,
+}: SortableAgentCardProps) {
+    const agentIdentifier = agent.permanentId || agent.agentName;
+    const dragId = getAgentDragId(agentIdentifier);
+    const { attributes, listeners, setNodeRef, transform, transition, isDragging, isOver } = useSortable({
+        id: dragId,
+        data: {
+            type: 'AGENT',
+            identifier: agentIdentifier,
+            parentId: agent.folderId ?? null,
+        } satisfies DragItem,
+        disabled: !canOrganize,
+    });
+
+    const style: CSSProperties = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+    };
+    const isDropTarget = isOver && activeDragType === 'AGENT';
+
+    return (
+        <div
+            ref={setNodeRef}
+            style={style}
+            className={`relative ${canOrganize ? 'cursor-grab active:cursor-grabbing select-none touch-none' : ''} ${
+                isDragging ? 'opacity-0' : ''
+            } ${isDropTarget ? 'ring-2 ring-blue-400 ring-offset-2 ring-offset-white' : ''}`}
+            {...attributes}
+            {...listeners}
+        >
+            <AgentCard
+                agent={agent}
+                publicUrl={publicUrl}
+                href={`/agents/${encodeURIComponent(agentIdentifier)}`}
+                isAdmin={isAdmin}
+                onDelete={onDelete}
+                onClone={onClone}
+                onToggleVisibility={onToggleVisibility}
+                visibility={agent.visibility}
+            />
+        </div>
+    );
+}
+
+/**
+ * Props for sortable folder cards.
+ */
+type SortableFolderCardProps = {
+    /**
+     * Folder to render.
+     */
+    readonly folder: AgentOrganizationFolder;
+    /**
+     * Preview agents for the folder.
+     */
+    readonly previewAgents: AgentBasicInformation[];
+    /**
+     * Base URL of the agents server.
+     */
+    readonly publicUrl: string_url;
+    /**
+     * Whether drag-and-drop organization is enabled.
+     */
+    readonly canOrganize: boolean;
+    /**
+     * Active drag type for visual indicators.
+     */
+    readonly activeDragType: DragItem['type'] | null;
+    /**
+     * Current drop indicator state.
+     */
+    readonly dropIndicator: DropIndicator | null;
+    /**
+     * Open handler for the folder.
+     */
+    readonly onOpen: () => void;
+    /**
+     * Rename handler for the folder.
+     */
+    readonly onRename?: () => void;
+    /**
+     * Delete handler for the folder.
+     */
+    readonly onDelete?: () => void;
+};
+
+/**
+ * Renders a sortable folder card with drop state styling.
+ */
+function SortableFolderCard({
+    folder,
+    previewAgents,
+    publicUrl,
+    canOrganize,
+    activeDragType,
+    dropIndicator,
+    onOpen,
+    onRename,
+    onDelete,
+}: SortableFolderCardProps) {
+    const dragId = getFolderDragId(folder.id);
+    const { attributes, listeners, setNodeRef, transform, transition, isDragging, isOver } = useSortable({
+        id: dragId,
+        data: {
+            type: 'FOLDER',
+            identifier: String(folder.id),
+            parentId: folder.parentId ?? null,
+        } satisfies DragItem,
+        disabled: !canOrganize,
+    });
+
+    const style: CSSProperties = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+    };
+    const isDropTarget = isOver && activeDragType === 'AGENT';
+    const isInsideTarget =
+        activeDragType === 'FOLDER' && dropIndicator?.id === dragId && dropIndicator.intent === 'inside';
+    const isReorderTarget =
+        activeDragType === 'FOLDER' && dropIndicator?.id === dragId && dropIndicator.intent !== 'inside';
+    const dropClasses =
+        isInsideTarget || isDropTarget
+            ? 'ring-2 ring-emerald-400 ring-offset-2 ring-offset-white bg-emerald-50/40'
+            : isReorderTarget
+              ? 'ring-2 ring-blue-400 ring-offset-2 ring-offset-white'
+              : '';
+
+    return (
+        <div
+            ref={setNodeRef}
+            style={style}
+            className={`relative ${canOrganize ? 'cursor-grab active:cursor-grabbing select-none touch-none' : ''} ${
+                isDragging ? 'opacity-0' : ''
+            } ${dropClasses}`}
+            {...attributes}
+            {...listeners}
+        >
+            <FolderCard
+                folderName={folder.name}
+                previewAgents={previewAgents}
+                publicUrl={publicUrl}
+                onOpen={onOpen}
+                onRename={onRename}
+                onDelete={onDelete}
+            />
+        </div>
+    );
+}
+
+/**
+ * Props for breadcrumb drop targets.
+ */
+type BreadcrumbDropTargetProps = {
+    /**
+     * Label for the breadcrumb.
+     */
+    readonly label: string;
+    /**
+     * Folder id represented by the breadcrumb.
+     */
+    readonly folderId: number | null;
+    /**
+     * Click handler for navigation.
+     */
+    readonly onClick: () => void;
+    /**
+     * Whether drag-and-drop organization is enabled.
+     */
+    readonly canOrganize: boolean;
+};
+
+/**
+ * Renders a breadcrumb button that accepts drag-and-drop.
+ */
+function BreadcrumbDropTarget({ label, folderId, onClick, canOrganize }: BreadcrumbDropTargetProps) {
+    const { isOver, setNodeRef } = useDroppable({
+        id: getBreadcrumbDragId(folderId),
+        data: {
+            type: 'BREADCRUMB',
+            folderId,
+        } satisfies BreadcrumbDropTargetData,
+        disabled: !canOrganize,
+    });
+
+    return (
+        <button
+            type="button"
+            ref={setNodeRef}
+            onClick={onClick}
+            className={`transition-colors ${isOver && canOrganize ? 'text-blue-700 bg-blue-50/70 rounded px-1 -mx-1' : 'hover:text-blue-600'}`}
+        >
+            {label}
+        </button>
+    );
+}
 
 /**
  * Props for the agents list component.
@@ -93,7 +427,8 @@ export function AgentsList(props: AgentsListProps) {
     const [federatedServersStatus, setFederatedServersStatus] = useState<
         Record<string, { status: 'loading' | 'success' | 'error'; error?: string }>
     >({});
-    const dragItemRef = useRef<DragItem | null>(null);
+    const [activeDragItem, setActiveDragItem] = useState<DragItem | null>(null);
+    const [dropIndicator, setDropIndicator] = useState<DropIndicator | null>(null);
 
     const viewMode = searchParams.get('view') === 'graph' ? 'GRAPH' : 'LIST';
     const folderPathSegments = parseFolderPath(searchParams.get('folder'));
@@ -125,6 +460,31 @@ export function AgentsList(props: AgentsListProps) {
     );
 
     const agentCount = viewMode === 'LIST' ? visibleAgents.length : agents.length;
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: { distance: 8 },
+        }),
+    );
+    const visibleFolderDragIds = useMemo(
+        () => visibleFolders.map((folder) => getFolderDragId(folder.id)),
+        [visibleFolders],
+    );
+    const visibleAgentDragIds = useMemo(
+        () => visibleAgents.map((agent) => getAgentDragId(agent.permanentId || agent.agentName)),
+        [visibleAgents],
+    );
+    const activeAgent = useMemo(() => {
+        if (activeDragItem?.type !== 'AGENT') {
+            return null;
+        }
+        return agents.find((agent) => (agent.permanentId || agent.agentName) === activeDragItem.identifier) || null;
+    }, [activeDragItem, agents]);
+    const activeFolder = useMemo(() => {
+        if (activeDragItem?.type !== 'FOLDER') {
+            return null;
+        }
+        return folders.find((folder) => String(folder.id) === activeDragItem.identifier) || null;
+    }, [activeDragItem, folders]);
 
     useEffect(() => {
         let isCancelled = false;
@@ -232,33 +592,6 @@ export function AgentsList(props: AgentsListProps) {
     };
 
     /**
-     * Stores drag metadata for later drop handling.
-     *
-     * @param item - Dragged item details.
-     */
-    const startDrag = (item: DragItem) => {
-        dragItemRef.current = item;
-    };
-
-    /**
-     * Reads drag metadata from state or the event payload.
-     *
-     * @param event - Drag event to read from.
-     * @returns Drag metadata or null.
-     */
-    const readDragItem = (event: React.DragEvent<HTMLElement>): DragItem | null => {
-        if (dragItemRef.current) {
-            return dragItemRef.current;
-        }
-        try {
-            const raw = event.dataTransfer.getData('application/json');
-            return raw ? (JSON.parse(raw) as DragItem) : null;
-        } catch (error) {
-            return null;
-        }
-    };
-
-    /**
      * Persists organization updates to the server.
      *
      * @param payload - Update payload with folder and agent updates.
@@ -293,39 +626,20 @@ export function AgentsList(props: AgentsListProps) {
     };
 
     /**
-     * Determines how a drop should be handled based on cursor position.
-     *
-     * @param event - Drag event on the drop target.
-     * @returns Drop intent describing placement.
-     */
-    const getDropIntent = (event: React.DragEvent<HTMLElement>): DropIntent => {
-        const rect = event.currentTarget.getBoundingClientRect();
-        const offsetY = event.clientY - rect.top;
-        const insideTop = rect.height / 4;
-        const insideBottom = (rect.height * 3) / 4;
-        if (offsetY > insideTop && offsetY < insideBottom) {
-            return 'inside';
-        }
-        return offsetY >= insideBottom ? 'after' : 'before';
-    };
-
-    /**
      * Reorders folders within the current parent folder.
      *
      * @param draggedId - Folder id being moved.
      * @param targetId - Target folder id.
-     * @param intent - Drop intent for before/after placement.
      */
-    const reorderFolders = async (draggedId: number, targetId: number, intent: DropIntent) => {
+    const reorderFolders = async (draggedId: number, targetId: number) => {
         const ordered = visibleFolders.map((folder) => folder.id);
         const fromIndex = ordered.indexOf(draggedId);
         const targetIndex = ordered.indexOf(targetId);
-        if (fromIndex === -1 || targetIndex === -1) {
+        if (fromIndex === -1 || targetIndex === -1 || fromIndex === targetIndex) {
             return;
         }
 
-        const insertIndex = intent === 'after' ? targetIndex + 1 : targetIndex;
-        const nextOrder = moveItem(ordered, fromIndex, insertIndex);
+        const nextOrder = moveItem(ordered, fromIndex, targetIndex);
         const updatedFolders = nextOrder.map((id, index) => {
             const folder = folders.find((item) => item.id === id);
             return folder ? { ...folder, sortOrder: index } : null;
@@ -349,18 +663,16 @@ export function AgentsList(props: AgentsListProps) {
      *
      * @param draggedId - Agent identifier being moved.
      * @param targetId - Target agent identifier.
-     * @param intent - Drop intent for before/after placement.
      */
-    const reorderAgents = async (draggedId: string, targetId: string, intent: DropIntent) => {
+    const reorderAgents = async (draggedId: string, targetId: string) => {
         const ordered = visibleAgents.map((agent) => agent.permanentId || agent.agentName);
         const fromIndex = ordered.indexOf(draggedId);
         const targetIndex = ordered.indexOf(targetId);
-        if (fromIndex === -1 || targetIndex === -1) {
+        if (fromIndex === -1 || targetIndex === -1 || fromIndex === targetIndex) {
             return;
         }
 
-        const insertIndex = intent === 'after' ? targetIndex + 1 : targetIndex;
-        const nextOrder = moveItem(ordered, fromIndex, insertIndex);
+        const nextOrder = moveItem(ordered, fromIndex, targetIndex);
         const updates = nextOrder
             .map((identifier, index) => {
                 const agent = agents.find((item) => (item.permanentId || item.agentName) === identifier);
@@ -703,101 +1015,118 @@ export function AgentsList(props: AgentsListProps) {
     };
 
     /**
-     * Handles drop actions on folder cards.
-     *
-     * @param event - Drag event.
-     * @param targetFolder - Folder receiving the drop.
+     * Resets drag-related UI state.
      */
-    const handleFolderDrop = async (event: React.DragEvent<HTMLElement>, targetFolder: AgentOrganizationFolder) => {
-        event.preventDefault();
+    const resetDragState = () => {
+        setActiveDragItem(null);
+        setDropIndicator(null);
+    };
+
+    /**
+     * Handles drag start events for sortable items.
+     *
+     * @param event - Drag start event.
+     */
+    const handleDragStart = (event: DragStartEvent) => {
         if (!canOrganize) {
             return;
         }
-        const dragItem = readDragItem(event);
-        if (!dragItem) {
+        const dragData = event.active.data.current as DragItem | undefined;
+        if (dragData) {
+            setActiveDragItem(dragData);
+        }
+    };
+
+    /**
+     * Tracks drop intent for folder-to-folder moves.
+     *
+     * @param event - Drag over event.
+     */
+    const handleDragOver = (event: DragOverEvent) => {
+        if (!canOrganize) {
+            return;
+        }
+        const dragData = event.active.data.current as DragItem | undefined;
+        const overData = event.over?.data.current as DragItem | BreadcrumbDropTargetData | undefined;
+        if (!dragData || dragData.type !== 'FOLDER' || !event.over || !overData || overData.type !== 'FOLDER') {
+            setDropIndicator(null);
+            return;
+        }
+        const activeRect = event.active.rect.current.translated || event.active.rect.current.initial;
+        const intent = getDropIntentFromRects(activeRect, event.over.rect);
+        setDropIndicator({ id: event.over.id, intent });
+    };
+
+    /**
+     * Finalizes drag actions and persists reordering or moves.
+     *
+     * @param event - Drag end event.
+     */
+    const handleDragEnd = async (event: DragEndEvent) => {
+        const currentIndicator = dropIndicator;
+        const dragData = event.active.data.current as DragItem | undefined;
+        const overData = event.over?.data.current as DragItem | BreadcrumbDropTargetData | undefined;
+        resetDragState();
+
+        if (!canOrganize || !dragData || !event.over || !overData) {
             return;
         }
 
         try {
-            if (dragItem.type === 'AGENT') {
-                await moveAgentToFolder(dragItem.identifier, targetFolder.id);
-                return;
+            if (dragData.type === 'AGENT') {
+                if (overData.type === 'AGENT') {
+                    await reorderAgents(dragData.identifier, overData.identifier);
+                    return;
+                }
+                if (overData.type === 'FOLDER') {
+                    const targetFolderId = Number(overData.identifier);
+                    if (!Number.isNaN(targetFolderId)) {
+                        await moveAgentToFolder(dragData.identifier, targetFolderId);
+                    }
+                    return;
+                }
+                if (overData.type === 'BREADCRUMB') {
+                    await moveAgentToFolder(dragData.identifier, overData.folderId ?? null);
+                    return;
+                }
             }
 
-            const draggedFolderId = Number(dragItem.identifier);
-            if (Number.isNaN(draggedFolderId) || draggedFolderId === targetFolder.id) {
-                return;
-            }
+            if (dragData.type === 'FOLDER') {
+                const draggedFolderId = Number(dragData.identifier);
+                if (Number.isNaN(draggedFolderId)) {
+                    return;
+                }
 
-            const intent = getDropIntent(event);
-            if (intent === 'inside') {
-                await moveFolderToParent(draggedFolderId, targetFolder.id);
-                return;
-            }
+                if (overData.type === 'FOLDER') {
+                    const targetFolderId = Number(overData.identifier);
+                    if (Number.isNaN(targetFolderId) || draggedFolderId === targetFolderId) {
+                        return;
+                    }
+                    const isInsideDrop =
+                        currentIndicator?.id === event.over.id && currentIndicator.intent === 'inside';
+                    if (isInsideDrop) {
+                        await moveFolderToParent(draggedFolderId, targetFolderId);
+                        return;
+                    }
+                    await reorderFolders(draggedFolderId, targetFolderId);
+                    return;
+                }
 
-            await reorderFolders(draggedFolderId, targetFolder.id, intent);
+                if (overData.type === 'BREADCRUMB') {
+                    await moveFolderToParent(draggedFolderId, overData.folderId ?? null);
+                }
+            }
         } catch (error) {
-            alert(error instanceof Error ? error.message : 'Failed to update folders.');
+            alert(error instanceof Error ? error.message : 'Failed to update organization.');
             router.refresh();
         }
     };
 
     /**
-     * Handles drop actions on agent cards.
-     *
-     * @param event - Drag event.
-     * @param targetAgentIdentifier - Target agent identifier.
+     * Clears drag state when the drag interaction is canceled.
      */
-    const handleAgentDrop = async (event: React.DragEvent<HTMLElement>, targetAgentIdentifier: string) => {
-        event.preventDefault();
-        if (!canOrganize) {
-            return;
-        }
-        const dragItem = readDragItem(event);
-        if (!dragItem || dragItem.type !== 'AGENT') {
-            return;
-        }
-
-        try {
-            const intent = getDropIntent(event);
-            await reorderAgents(dragItem.identifier, targetAgentIdentifier, intent);
-        } catch (error) {
-            alert(error instanceof Error ? error.message : 'Failed to update agents.');
-            router.refresh();
-        }
-    };
-
-    /**
-     * Allows dropping items onto breadcrumb segments.
-     *
-     * @param event - Drag event.
-     * @param targetFolderId - Folder id represented by the breadcrumb.
-     */
-    const handleBreadcrumbDrop = async (event: React.DragEvent<HTMLElement>, targetFolderId: number | null) => {
-        event.preventDefault();
-        if (!canOrganize) {
-            return;
-        }
-        const dragItem = readDragItem(event);
-        if (!dragItem) {
-            return;
-        }
-
-        try {
-            if (dragItem.type === 'AGENT') {
-                await moveAgentToFolder(dragItem.identifier, targetFolderId);
-                return;
-            }
-
-            const draggedFolderId = Number(dragItem.identifier);
-            if (Number.isNaN(draggedFolderId)) {
-                return;
-            }
-            await moveFolderToParent(draggedFolderId, targetFolderId);
-        } catch (error) {
-            alert(error instanceof Error ? error.message : 'Failed to update folders.');
-            router.refresh();
-        }
+    const handleDragCancel = () => {
+        resetDragState();
     };
 
     /**
@@ -821,27 +1150,21 @@ export function AgentsList(props: AgentsListProps) {
                         <span>Agents ({agentCount})</span>
                         {viewMode === 'LIST' && (
                             <div className="mt-2 flex items-center gap-2 text-sm text-gray-600">
-                                <button
-                                    type="button"
+                                <BreadcrumbDropTarget
+                                    label="All Agents"
+                                    folderId={null}
                                     onClick={() => navigateToFolder(null)}
-                                    onDragOver={(event) => canOrganize && event.preventDefault()}
-                                    onDrop={(event) => handleBreadcrumbDrop(event, null)}
-                                    className="hover:text-blue-600 transition-colors"
-                                >
-                                    All Agents
-                                </button>
+                                    canOrganize={canOrganize}
+                                />
                                 {breadcrumbFolders.map((folder) => (
                                     <div key={folder.id} className="flex items-center gap-2">
                                         <span>/</span>
-                                        <button
-                                            type="button"
+                                        <BreadcrumbDropTarget
+                                            label={folder.name}
+                                            folderId={folder.id}
                                             onClick={() => navigateToFolder(folder.id)}
-                                            onDragOver={(event) => canOrganize && event.preventDefault()}
-                                            onDrop={(event) => handleBreadcrumbDrop(event, folder.id)}
-                                            className="hover:text-blue-600 transition-colors"
-                                        >
-                                            {folder.name}
-                                        </button>
+                                            canOrganize={canOrganize}
+                                        />
                                     </div>
                                 ))}
                             </div>
@@ -889,77 +1212,81 @@ export function AgentsList(props: AgentsListProps) {
                 </div>
             </h2>
             {viewMode === 'LIST' ? (
-                <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-                    {visibleFolders.map((folder) => (
-                        <div
-                            key={folder.id}
-                            draggable={canOrganize}
-                            onDragStart={(event) => {
-                                const dragItem: DragItem = {
-                                    type: 'FOLDER',
-                                    identifier: String(folder.id),
-                                    parentId: folder.parentId ?? null,
-                                };
-                                startDrag(dragItem);
-                                event.dataTransfer.setData('application/json', JSON.stringify(dragItem));
-                                event.dataTransfer.effectAllowed = 'move';
-                            }}
-                            onDragOver={(event) => canOrganize && event.preventDefault()}
-                            onDrop={(event) => handleFolderDrop(event, folder)}
-                        >
-                            <FolderCard
-                                folderName={folder.name}
-                                previewAgents={getFolderPreviewAgents(folder.id)}
-                                publicUrl={publicUrl}
-                                onOpen={() => navigateToFolder(folder.id)}
-                                onRename={canOrganize ? () => handleRenameFolder(folder.id) : undefined}
-                                onDelete={canOrganize ? () => handleDeleteFolder(folder.id) : undefined}
-                            />
-                        </div>
-                    ))}
-                    {visibleAgents.map((agent) => {
-                        const agentIdentifier = agent.permanentId || agent.agentName;
-                        return (
-                            <div
-                                key={agentIdentifier}
-                                draggable={canOrganize}
-                                onDragStart={(event) => {
-                                    const dragItem: DragItem = {
-                                        type: 'AGENT',
-                                        identifier: agentIdentifier,
-                                        parentId: agent.folderId ?? null,
-                                    };
-                                    startDrag(dragItem);
-                                    event.dataTransfer.setData('application/json', JSON.stringify(dragItem));
-                                    event.dataTransfer.effectAllowed = 'move';
-                                }}
-                                onDragOver={(event) => canOrganize && event.preventDefault()}
-                                onDrop={(event) => handleAgentDrop(event, agentIdentifier)}
-                            >
-                                <AgentCard
+                <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragStart={handleDragStart}
+                    onDragOver={handleDragOver}
+                    onDragEnd={handleDragEnd}
+                    onDragCancel={handleDragCancel}
+                >
+                    <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                        <SortableContext items={visibleFolderDragIds} strategy={rectSortingStrategy}>
+                            {visibleFolders.map((folder) => (
+                                <SortableFolderCard
+                                    key={folder.id}
+                                    folder={folder}
+                                    previewAgents={getFolderPreviewAgents(folder.id)}
+                                    publicUrl={publicUrl}
+                                    canOrganize={canOrganize}
+                                    activeDragType={activeDragItem?.type ?? null}
+                                    dropIndicator={dropIndicator}
+                                    onOpen={() => navigateToFolder(folder.id)}
+                                    onRename={canOrganize ? () => handleRenameFolder(folder.id) : undefined}
+                                    onDelete={canOrganize ? () => handleDeleteFolder(folder.id) : undefined}
+                                />
+                            ))}
+                        </SortableContext>
+                        <SortableContext items={visibleAgentDragIds} strategy={rectSortingStrategy}>
+                            {visibleAgents.map((agent) => (
+                                <SortableAgentCard
+                                    key={agent.permanentId || agent.agentName}
                                     agent={agent}
                                     publicUrl={publicUrl}
-                                    href={`/agents/${encodeURIComponent(agentIdentifier)}`}
                                     isAdmin={isAdmin}
+                                    canOrganize={canOrganize}
+                                    activeDragType={activeDragItem?.type ?? null}
                                     onDelete={handleDelete}
                                     onClone={handleClone}
                                     onToggleVisibility={handleToggleVisibility}
-                                    visibility={agent.visibility}
+                                />
+                            ))}
+                        </SortableContext>
+                        {isAdmin && <AddAgentButton />}
+                        {canOrganize && (
+                            <Link
+                                href="/recycle-bin"
+                                className="flex items-center gap-2 px-4 py-2 mt-4 text-gray-600 hover:text-red-600 transition-colors"
+                            >
+                                <TrashIcon className="w-4 h-4" />
+                                Open Recycle Bin
+                            </Link>
+                        )}
+                    </div>
+                    <DragOverlay>
+                        {activeDragItem?.type === 'AGENT' && activeAgent ? (
+                            <div className="pointer-events-none scale-105 drop-shadow-2xl">
+                                <AgentCard
+                                    agent={activeAgent}
+                                    publicUrl={publicUrl}
+                                    href={`/agents/${encodeURIComponent(
+                                        activeAgent.permanentId || activeAgent.agentName,
+                                    )}`}
+                                    isAdmin={false}
+                                    visibility={activeAgent.visibility}
                                 />
                             </div>
-                        );
-                    })}
-                    {isAdmin && <AddAgentButton />}
-                    {canOrganize && (
-                        <Link
-                            href="/recycle-bin"
-                            className="flex items-center gap-2 px-4 py-2 mt-4 text-gray-600 hover:text-red-600 transition-colors"
-                        >
-                            <TrashIcon className="w-4 h-4" />
-                            Open Recycle Bin
-                        </Link>
-                    )}
-                </div>
+                        ) : activeDragItem?.type === 'FOLDER' && activeFolder ? (
+                            <div className="pointer-events-none scale-105 drop-shadow-2xl">
+                                <FolderCard
+                                    folderName={activeFolder.name}
+                                    previewAgents={getFolderPreviewAgents(activeFolder.id)}
+                                    publicUrl={publicUrl}
+                                />
+                            </div>
+                        ) : null}
+                    </DragOverlay>
+                </DndContext>
             ) : (
                 <div className="w-full">
                     <AgentsGraph

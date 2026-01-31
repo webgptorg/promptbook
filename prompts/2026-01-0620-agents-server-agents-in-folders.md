@@ -58,7 +58,7 @@
 
 ---
 
-[ ]
+[x] ~$0.76
 
 [✨🦢] Enhance the UI and UX of the agents reordering.
 
@@ -148,4 +148,5 @@
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server) with the Agents on the home page `/` on List view
+
 

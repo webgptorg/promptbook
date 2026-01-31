@@ -12,6 +12,7 @@
 -   Leveraged `spaceTrim` across the repository for better readability and maintainability of multiline strings and string joins.
 -   Simplified the Agents Server home page to focus on agents, moved the previous dashboard to `/dashboard`, and linked it from the System menu.
 -   Made Agents Server home list cards more compact and file-like, including smaller capability chips.
+-   Improved Agents Server list drag-and-drop with live reordering, drag overlays, and clearer drop targets for agents and folders.
 -   Added a configurable Markdown message (via metadata) shown above the agents list on the Agents Server homepage.
 -   Added a chat preparation chip in Agents Server to signal when GPT assistants are being created before the first response.
 -   Added `[🤰]`-tagged assistant preparation logging (cache lookup, model requirement timing, assistant create/update, vector store progress) and surfaced preparation phases on the "Preparing agent" chip.
