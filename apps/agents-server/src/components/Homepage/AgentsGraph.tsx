@@ -2,60 +2,45 @@
 
 import { generatePlaceholderAgentProfileImageUrl } from '@promptbook-local/core';
 import { string_url } from '@promptbook-local/types';
-import * as d3 from 'd3';
+import { renderMermaid } from 'beautiful-mermaid';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react';
 import { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
 
 const CONNECTION_TYPES = ['inheritance', 'import', 'team'] as const;
 const DEFAULT_CONNECTION_TYPES = [...CONNECTION_TYPES];
-const GRAPH_MIN_HEIGHT = 500;
-const GRAPH_HEIGHT_OFFSET = 400;
-const GRAPH_MIN_WIDTH = 300;
-const NODE_RADIUS = 15;
-const NODE_RADIUS_HOVER = 20;
-const NODE_LABEL_FONT_SIZE = 14;
-const NODE_LABEL_FONT_SIZE_HOVER = 16;
-const NODE_LABEL_OFFSET = 6;
-const NODE_IMAGE_PADDING = 2;
-const LINK_DISTANCE = 200;
-const LINK_STRENGTH = 0.5;
-const LINK_STROKE_WIDTH = 2;
-const LINK_STROKE_WIDTH_HIGHLIGHT = 3;
-const LINK_OPACITY = 0.5;
-const LINK_OPACITY_DIM = 0.1;
-const LINK_OPACITY_HIGHLIGHT = 0.9;
-const LINK_NODE_PADDING = 10;
-const CHARGE_STRENGTH = -1 * 400;
-const COLLISION_PADDING = 20;
-const COLLISION_STRENGTH = 0.5;
-const CLUSTER_FORCE_STRENGTH = 0.1;
-const CLUSTER_PADDING = 50;
-const CLUSTER_LABEL_OFFSET = 16;
-const CLUSTER_LABEL_FONT_SIZE = 14;
-const CLUSTER_STROKE_WIDTH = 2;
-const ZOOM_MIN_SCALE = 0.5;
-const ZOOM_MAX_SCALE = 2;
-const ZOOM_TO_FIT_PADDING = 100;
-const ZOOM_TO_FIT_DURATION_MS = 500;
-const ZOOM_TO_FIT_FALLBACK_MS = 800;
-const IMAGE_RETRY_LIMIT = 3;
-const IMAGE_RETRY_DELAY_MS = 500;
-const LOCAL_NODE_COLOR = '#3b82f6';
-const EXTERNAL_NODE_COLOR = '#f59e0b';
-const LINK_COLORS: Record<ConnectionType, string> = {
-    inheritance: '#8b5cf6',
-    import: '#10b981',
-    team: '#f97316',
+const GRAPH_MIN_HEIGHT = 480;
+const GRAPH_HEIGHT_OFFSET = 340;
+const MERMAID_LABEL_TOKEN = '__PB_NODE__';
+const MERMAID_LABEL_PADDING = '          ';
+const MERMAID_NODE_STROKE_WIDTH = '0.75';
+const MERMAID_NODE_RADIUS = 12;
+const MERMAID_IMAGE_SIZE = 22;
+const MERMAID_IMAGE_PADDING = 6;
+const MERMAID_TEXT_PADDING = 8;
+const MERMAID_LABEL_FONT_WEIGHT = '600';
+const MERMAID_LAYOUT_BREAKPOINT = 900;
+const MERMAID_THEME = {
+    bg: '#f8fafc',
+    fg: '#0f172a',
+    line: '#94a3b8',
+    accent: '#64748b',
+    muted: '#64748b',
+    surface: '#ffffff',
+    border: '#e2e8f0',
+    transparent: true,
 };
-const CLUSTER_COLORS = {
-    localFill: 'rgba(59, 130, 246, 0.08)',
-    localStroke: 'rgba(59, 130, 246, 0.2)',
-    localLabel: 'rgba(59, 130, 246, 0.7)',
-    externalFill: 'rgba(245, 158, 11, 0.08)',
-    externalStroke: 'rgba(245, 158, 11, 0.2)',
-    externalLabel: 'rgba(245, 158, 11, 0.7)',
+const MERMAID_EDGE_LABELS: Record<ConnectionType, string> = {
+    inheritance: 'parent',
+    import: 'import',
+    team: 'team',
 };
+const MERMAID_EDGE_STYLES: Record<ConnectionType, string> = {
+    inheritance: '-.->',
+    import: '-->',
+    team: '==>',
+};
+const SVG_NAMESPACE = 'http://www.w3.org/2000/svg';
 
 /**
  * Agent metadata plus visibility and server details used by the graph UI.
@@ -81,22 +66,23 @@ type AgentsGraphProps = {
 };
 
 /**
- * D3 node for a single agent in the graph layout.
+ * Graph node data for a single agent.
  */
-type GraphNode = d3.SimulationNodeDatum & {
+type GraphNode = {
     id: string;
     name: string;
     agent: AgentWithVisibility;
     serverUrl: string;
-    imageUrl: string;
+    imageUrl: string | null;
     isLocal: boolean;
-    clipPathId: string;
 };
 
 /**
- * D3 link between two agents.
+ * Graph link between two agents.
  */
-type GraphLink = d3.SimulationLinkDatum<GraphNode> & {
+type GraphLink = {
+    source: string;
+    target: string;
     type: ConnectionType;
 };
 
@@ -114,14 +100,6 @@ type GraphData = {
 type ImageLoadStatus = 'loading' | 'success' | 'error';
 
 /**
- * Cached image entry with retry tracking.
- */
-type ImageCacheEntry = {
-    status: ImageLoadStatus;
-    retryCount: number;
-};
-
-/**
  * Inputs needed to build the graph data structure.
  */
 type GraphDataInput = {
@@ -134,14 +112,28 @@ type GraphDataInput = {
 };
 
 /**
- * Server cluster metadata used for rendering background groups.
+ * Structured data for a Mermaid-rendered agent node.
  */
-type ServerCluster = {
+type MermaidNode = {
+    mermaidId: string;
+    graphNodeId: string;
+    displayName: string;
+    agent: AgentWithVisibility;
     serverUrl: string;
-    label: string;
     isLocal: boolean;
-    nodes: GraphNode[];
+    explicitImageUrl: string | null;
+    placeholderImageUrl: string;
+    tooltip: string;
 };
+
+/**
+ * Mermaid graph data plus node lookup.
+ */
+type MermaidGraph = {
+    diagram: string;
+    nodes: MermaidNode[];
+};
+
 /**
  * Normalize a server URL by removing any trailing slash.
  */
@@ -194,10 +186,15 @@ const getAgentTooltip = (agent: AgentWithVisibility): string =>
     agent.meta.description || agent.personaDescription || agent.agentName;
 
 /**
- * Resolve the agent image URL, falling back to a generated placeholder.
+ * Resolve the agent image URL, falling back to null if none is set.
  */
-const getAgentImageUrl = (agent: AgentWithVisibility, publicUrl: string): string =>
-    agent.meta.image || generatePlaceholderAgentProfileImageUrl(agent.agentName, publicUrl);
+const getAgentExplicitImageUrl = (agent: AgentWithVisibility): string | null => agent.meta.image || null;
+
+/**
+ * Resolve a placeholder image URL for the agent.
+ */
+const getAgentPlaceholderImageUrl = (agent: AgentWithVisibility, publicUrl: string): string =>
+    generatePlaceholderAgentProfileImageUrl(agent.agentName, publicUrl);
 
 /**
  * Normalize a target agent URL from a capability link.
@@ -229,16 +226,6 @@ const matchesAgentUrl = (agent: AgentWithVisibility, targetUrl: string, fallback
 };
 
 /**
- * Build a safe SVG id from a node identifier.
- */
-const sanitizeForId = (value: string): string => value.replace(/[^a-zA-Z0-9_-]/g, '-');
-
-/**
- * Build a stable clipPath id for node images.
- */
-const buildClipPathId = (nodeId: string, index: number): string => `agent-clip-${sanitizeForId(nodeId)}-${index}`;
-
-/**
  * Build the graph nodes and links from agents and filters.
  */
 const buildGraphData = (input: GraphDataInput): GraphData => {
@@ -246,7 +233,7 @@ const buildGraphData = (input: GraphDataInput): GraphData => {
     const normalizedPublicUrl = normalizeServerUrl(publicUrl);
     const allAgents = [...agents, ...federatedAgents];
 
-    const nodes: GraphNode[] = allAgents.map((agent, index) => {
+    const nodes: GraphNode[] = allAgents.map((agent) => {
         const serverUrl = getAgentServerUrl(agent, normalizedPublicUrl);
         const id = buildAgentNodeId(agent, normalizedPublicUrl);
 
@@ -255,9 +242,8 @@ const buildGraphData = (input: GraphDataInput): GraphData => {
             name: getAgentDisplayName(agent),
             agent,
             serverUrl,
-            imageUrl: getAgentImageUrl(agent, publicUrl),
+            imageUrl: getAgentExplicitImageUrl(agent),
             isLocal: serverUrl === normalizedPublicUrl,
-            clipPathId: buildClipPathId(id, index),
         };
     });
 
@@ -307,30 +293,19 @@ const buildGraphData = (input: GraphDataInput): GraphData => {
             relatedNodeIds.add(focusedNodeId);
 
             links.forEach((link) => {
-                const sourceId = getLinkEndpointId(link.source);
-                const targetId = getLinkEndpointId(link.target);
-
-                if (sourceId === focusedNodeId) {
-                    relatedNodeIds.add(targetId);
+                if (link.source === focusedNodeId) {
+                    relatedNodeIds.add(link.target);
                 }
-                if (targetId === focusedNodeId) {
-                    relatedNodeIds.add(sourceId);
+                if (link.target === focusedNodeId) {
+                    relatedNodeIds.add(link.source);
                 }
             });
 
             filteredNodes = nodes.filter((node) => relatedNodeIds.has(node.id));
-            filteredLinks = links.filter((link) => {
-                const sourceId = getLinkEndpointId(link.source);
-                const targetId = getLinkEndpointId(link.target);
-                return relatedNodeIds.has(sourceId) && relatedNodeIds.has(targetId);
-            });
+            filteredLinks = links.filter((link) => relatedNodeIds.has(link.source) && relatedNodeIds.has(link.target));
         } else {
             filteredNodes = serverNodes;
-            filteredLinks = links.filter((link) => {
-                const sourceId = getLinkEndpointId(link.source);
-                const targetId = getLinkEndpointId(link.target);
-                return serverNodeIds.has(sourceId) && serverNodeIds.has(targetId);
-            });
+            filteredLinks = links.filter((link) => serverNodeIds.has(link.source) && serverNodeIds.has(link.target));
         }
     } else if (selectedAgentName) {
         const relatedNodeIds = new Set<string>();
@@ -339,137 +314,300 @@ const buildGraphData = (input: GraphDataInput): GraphData => {
         focusedNodes.forEach((node) => relatedNodeIds.add(node.id));
 
         links.forEach((link) => {
-            const sourceId = getLinkEndpointId(link.source);
-            const targetId = getLinkEndpointId(link.target);
-
-            if (focusedNodes.some((node) => node.id === sourceId)) {
-                relatedNodeIds.add(targetId);
+            if (focusedNodes.some((node) => node.id === link.source)) {
+                relatedNodeIds.add(link.target);
             }
-            if (focusedNodes.some((node) => node.id === targetId)) {
-                relatedNodeIds.add(sourceId);
+            if (focusedNodes.some((node) => node.id === link.target)) {
+                relatedNodeIds.add(link.source);
             }
         });
 
         filteredNodes = nodes.filter((node) => relatedNodeIds.has(node.id));
-        filteredLinks = links.filter((link) => {
-            const sourceId = getLinkEndpointId(link.source);
-            const targetId = getLinkEndpointId(link.target);
-            return relatedNodeIds.has(sourceId) && relatedNodeIds.has(targetId);
-        });
+        filteredLinks = links.filter((link) => relatedNodeIds.has(link.source) && relatedNodeIds.has(link.target));
     }
 
     return { nodes: filteredNodes, links: filteredLinks };
 };
 
 /**
- * Build a quick lookup table for node adjacency.
+ * Sanitize a Mermaid node identifier for safe rendering.
  */
-const buildAdjacencyMap = (links: GraphLink[]): Map<string, Set<string>> => {
-    const adjacency = new Map<string, Set<string>>();
+const sanitizeMermaidId = (value: string): string => value.replace(/[^a-zA-Z0-9_]/g, '_');
 
-    links.forEach((link) => {
-        const sourceId = getLinkEndpointId(link.source);
-        const targetId = getLinkEndpointId(link.target);
-
-        if (!adjacency.has(sourceId)) {
-            adjacency.set(sourceId, new Set());
-        }
-        adjacency.get(sourceId)!.add(targetId);
-
-        if (!adjacency.has(targetId)) {
-            adjacency.set(targetId, new Set());
-        }
-        adjacency.get(targetId)!.add(sourceId);
-    });
-
-    return adjacency;
-};
 /**
- * Create data entries for server clusters.
+ * Escape a Mermaid label value for safe rendering.
  */
-const buildClusterData = (nodes: GraphNode[], publicUrl: string): ServerCluster[] => {
+const escapeMermaidLabel = (value: string): string => value.replace(/"/g, '\\"');
+
+/**
+ * Build a Mermaid label with a hidden token for node mapping.
+ */
+const buildMermaidLabel = (label: string, mermaidId: string): string =>
+    `${MERMAID_LABEL_PADDING}${label}${MERMAID_LABEL_TOKEN}${mermaidId}`;
+
+/**
+ * Build Mermaid graph data for the current set of agents.
+ */
+const buildMermaidGraph = (graphData: GraphData, publicUrl: string, direction: 'LR' | 'TB'): MermaidGraph => {
+    if (graphData.nodes.length === 0) {
+        return { diagram: '', nodes: [] };
+    }
+
     const normalizedPublicUrl = normalizeServerUrl(publicUrl);
-    const grouped = d3.group(nodes, (node) => node.serverUrl);
+    const nodes: MermaidNode[] = graphData.nodes.map((node, index) => {
+        const mermaidId = sanitizeMermaidId(`node_${index}_${node.id}`);
+        const displayName = getAgentDisplayName(node.agent);
+        const explicitImageUrl = getAgentExplicitImageUrl(node.agent);
+        const placeholderImageUrl = getAgentPlaceholderImageUrl(node.agent, publicUrl);
 
-    return Array.from(grouped.entries()).map(([serverUrl, serverNodes]) => ({
-        serverUrl,
-        label: serverUrl.replace(/^https?:\/\//, ''),
-        isLocal: serverUrl === normalizedPublicUrl,
-        nodes: serverNodes,
-    }));
-};
-
-/**
- * Compute deterministic cluster centers to keep server groups separated.
- */
-const computeServerCenters = (
-    nodes: GraphNode[],
-    width: number,
-    height: number,
-): Map<string, { x: number; y: number }> => {
-    const servers = Array.from(new Set(nodes.map((node) => node.serverUrl)));
-    const centers = new Map<string, { x: number; y: number }>();
-    const centerX = width / 2;
-    const centerY = height / 2;
-
-    if (servers.length === 1) {
-        centers.set(servers[0]!, { x: centerX, y: centerY });
-        return centers;
-    }
-
-    const radius = Math.min(width, height) / 3;
-    const angleStep = (Math.PI * 2) / servers.length;
-
-    servers.forEach((serverUrl, index) => {
-        const angle = index * angleStep;
-        centers.set(serverUrl, {
-            x: centerX + radius * Math.cos(angle),
-            y: centerY + radius * Math.sin(angle),
-        });
+        return {
+            mermaidId,
+            graphNodeId: node.id,
+            displayName,
+            agent: node.agent,
+            serverUrl: node.serverUrl,
+            isLocal: node.serverUrl === normalizedPublicUrl,
+            explicitImageUrl,
+            placeholderImageUrl,
+            tooltip: getAgentTooltip(node.agent),
+        };
     });
 
-    return centers;
+    const nodeIdLookup = new Map(nodes.map((node) => [node.graphNodeId, node.mermaidId]));
+    const groupedByServer = nodes.reduce<Record<string, MermaidNode[]>>((groups, node) => {
+        const key = node.serverUrl;
+        if (!groups[key]) {
+            groups[key] = [];
+        }
+        groups[key]!.push(node);
+        return groups;
+    }, {});
+
+    const sortedServers = Object.keys(groupedByServer).sort((left, right) => {
+        if (left === normalizedPublicUrl) {
+            return -1;
+        }
+        if (right === normalizedPublicUrl) {
+            return 1;
+        }
+        return left.localeCompare(right);
+    });
+
+    const lines: string[] = [`flowchart ${direction}`];
+
+    sortedServers.forEach((serverUrl, index) => {
+        const clusterId = sanitizeMermaidId(`server_${index}_${serverUrl}`);
+        const label = serverUrl.replace(/^https?:\/\//, '');
+        lines.push(`subgraph ${clusterId}["${escapeMermaidLabel(label)}"]`);
+        groupedByServer[serverUrl]!.forEach((node) => {
+            const labelWithToken = buildMermaidLabel(node.displayName, node.mermaidId);
+            lines.push(`  ${node.mermaidId}["${escapeMermaidLabel(labelWithToken)}"]`);
+        });
+        lines.push('end');
+    });
+
+    graphData.links.forEach((link) => {
+        const sourceId = nodeIdLookup.get(link.source);
+        const targetId = nodeIdLookup.get(link.target);
+        if (!sourceId || !targetId) {
+            return;
+        }
+
+        const edgeLabel = MERMAID_EDGE_LABELS[link.type];
+        const edgeStyle = MERMAID_EDGE_STYLES[link.type];
+        lines.push(`${sourceId} ${edgeStyle}|${edgeLabel}| ${targetId}`);
+    });
+
+    return { diagram: lines.join('\n'), nodes };
 };
 
 /**
- * Extract the endpoint id for a link.
+ * Determine the image URL for the node based on load status.
  */
-const getLinkEndpointId = (endpoint: GraphLink['source'] | GraphLink['target']): string => {
-    if (typeof endpoint === 'string') {
-        return endpoint;
-    }
-    if (typeof endpoint === 'number') {
-        return String(endpoint);
+const resolveNodeImageUrl = (node: MermaidNode, status: ImageLoadStatus | undefined): string => {
+    if (!node.explicitImageUrl) {
+        return node.placeholderImageUrl;
     }
 
-    return endpoint.id;
+    if (status === 'success') {
+        return node.explicitImageUrl;
+    }
+
+    return node.placeholderImageUrl;
 };
 
 /**
- * Build a stable key for links to help D3 reuse elements.
+ * Parse a numeric SVG attribute with a fallback.
  */
-const getLinkKey = (link: GraphLink): string =>
-    `${getLinkEndpointId(link.source)}-${getLinkEndpointId(link.target)}-${link.type}`;
+const parseSvgNumber = (value: string | null, fallback = 0): number => {
+    const parsed = Number.parseFloat(value ?? '');
+    return Number.isNaN(parsed) ? fallback : parsed;
+};
 
 /**
- * Agents graph rendered with D3 force simulation and SVG.
+ * Find the closest node rectangle to a label position.
+ */
+const findClosestNodeRect = (rects: SVGRectElement[], labelX: number, labelY: number): SVGRectElement | null => {
+    let closest: SVGRectElement | null = null;
+    let closestDistance = Number.POSITIVE_INFINITY;
+
+    rects.forEach((rect) => {
+        const rectX = parseSvgNumber(rect.getAttribute('x'));
+        const rectY = parseSvgNumber(rect.getAttribute('y'));
+        const rectHeight = parseSvgNumber(rect.getAttribute('height'));
+        const centerX = rectX + rectWidth / 2;
+        const centerY = rectY + rectHeight / 2;
+        const distance = Math.hypot(centerX - labelX, centerY - labelY);
+
+        if (distance < closestDistance) {
+            closestDistance = distance;
+            closest = rect;
+        }
+    });
+
+    return closest;
+};
+
+/**
+ * Ensure the SVG has a <defs> element for clip paths.
+ */
+const ensureSvgDefs = (svg: SVGSVGElement, document: Document): SVGDefsElement => {
+    const existingDefs = svg.querySelector('defs');
+    if (existingDefs) {
+        return existingDefs;
+    }
+
+    const defs = document.createElementNS(SVG_NAMESPACE, 'defs') as SVGDefsElement;
+    const styleNode = svg.querySelector('style');
+
+    if (styleNode?.nextSibling) {
+        svg.insertBefore(defs, styleNode.nextSibling);
+    } else {
+        svg.insertBefore(defs, svg.firstChild);
+    }
+
+    return defs;
+};
+
+/**
+ * Decorate Mermaid SVG output with agent avatars and interaction hooks.
+ */
+const decorateMermaidSvg = (
+    svgMarkup: string,
+    nodes: MermaidNode[],
+    imageStatusMap: Record<string, ImageLoadStatus>,
+): string => {
+    const parser = new DOMParser();
+    const document = parser.parseFromString(svgMarkup, 'image/svg+xml');
+    const svg = document.querySelector('svg');
+
+    if (!svg) {
+        return svgMarkup;
+    }
+
+    svg.setAttribute('width', '100%');
+    svg.setAttribute('height', '100%');
+    svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+
+    const defs = ensureSvgDefs(svg, document);
+    const nodeLookup = new Map(nodes.map((node) => [node.mermaidId, node]));
+    const rects = Array.from(svg.querySelectorAll('rect')).filter(
+        (rect) => rect.getAttribute('stroke-width') === MERMAID_NODE_STROKE_WIDTH,
+    );
+    const textNodes = Array.from(svg.querySelectorAll('text')).filter((text) =>
+        text.textContent?.includes(MERMAID_LABEL_TOKEN),
+    );
+
+    textNodes.forEach((text) => {
+        const rawValue = text.textContent ?? '';
+        const [labelWithPadding, mermaidId] = rawValue.split(MERMAID_LABEL_TOKEN);
+
+        if (!mermaidId) {
+            return;
+        }
+
+        const node = nodeLookup.get(mermaidId);
+        if (!node) {
+            return;
+        }
+
+        const label = labelWithPadding.trimStart();
+        text.textContent = label;
+        text.setAttribute('data-node-id', mermaidId);
+        text.setAttribute('font-weight', MERMAID_LABEL_FONT_WEIGHT);
+        text.setAttribute('text-anchor', 'start');
+        text.setAttribute('xml:space', 'preserve');
+
+        const labelX = parseSvgNumber(text.getAttribute('x'));
+        const labelY = parseSvgNumber(text.getAttribute('y'));
+        const rect = findClosestNodeRect(rects, labelX, labelY);
+
+        if (!rect) {
+            return;
+        }
+
+        const rectX = parseSvgNumber(rect.getAttribute('x'));
+        const rectY = parseSvgNumber(rect.getAttribute('y'));
+        const rectHeight = parseSvgNumber(rect.getAttribute('height'));
+        const imageSize = Math.min(MERMAID_IMAGE_SIZE, rectHeight - MERMAID_IMAGE_PADDING * 2);
+        const imageX = rectX + MERMAID_IMAGE_PADDING;
+        const imageY = rectY + (rectHeight - imageSize) / 2;
+        const textX = imageX + imageSize + MERMAID_TEXT_PADDING;
+
+        rect.setAttribute('rx', MERMAID_NODE_RADIUS.toString());
+        rect.setAttribute('ry', MERMAID_NODE_RADIUS.toString());
+        rect.setAttribute('data-node-id', mermaidId);
+        rect.setAttribute('style', 'cursor: pointer;');
+
+        text.setAttribute('x', textX.toString());
+        text.setAttribute('y', (rectY + rectHeight / 2).toString());
+        text.setAttribute('dominant-baseline', 'central');
+        text.setAttribute('style', 'cursor: pointer;');
+
+        const imageUrl = resolveNodeImageUrl(node, imageStatusMap[node.graphNodeId]);
+        const clipId = sanitizeMermaidId(`clip_${mermaidId}`);
+        const clipPath = document.createElementNS(SVG_NAMESPACE, 'clipPath');
+        clipPath.setAttribute('id', clipId);
+
+        const clipCircle = document.createElementNS(SVG_NAMESPACE, 'circle');
+        clipCircle.setAttribute('cx', (imageX + imageSize / 2).toString());
+        clipCircle.setAttribute('cy', (imageY + imageSize / 2).toString());
+        clipCircle.setAttribute('r', (imageSize / 2).toString());
+        clipPath.appendChild(clipCircle);
+        defs.appendChild(clipPath);
+
+        const image = document.createElementNS(SVG_NAMESPACE, 'image');
+        image.setAttribute('href', imageUrl);
+        image.setAttribute('x', imageX.toString());
+        image.setAttribute('y', imageY.toString());
+        image.setAttribute('width', imageSize.toString());
+        image.setAttribute('height', imageSize.toString());
+        image.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+        image.setAttribute('clip-path', `url(#${clipId})`);
+        image.setAttribute('data-node-id', mermaidId);
+        image.setAttribute('style', 'cursor: pointer;');
+
+        const title = document.createElementNS(SVG_NAMESPACE, 'title');
+        title.textContent = node.tooltip;
+        rect.appendChild(title);
+
+        svg.insertBefore(image, text);
+    });
+
+    const serializer = new XMLSerializer();
+    return serializer.serializeToString(svg);
+};
+
+/**
+ * Agents graph rendered with Beautiful Mermaid and enhanced SVG nodes.
  */
 export function AgentsGraph(props: AgentsGraphProps) {
     const { agents, federatedAgents, federatedServersStatus, publicUrl } = props;
     const router = useRouter();
     const searchParams = useSearchParams();
     const normalizedPublicUrl = useMemo(() => normalizeServerUrl(publicUrl), [publicUrl]);
-    const graphContainerRef = useRef<HTMLDivElement | null>(null);
-    const svgRef = useRef<SVGSVGElement | null>(null);
-    const zoomBehaviorRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
-    const updateImageVisibilityRef = useRef<(() => void) | null>(null);
-    const imageCacheRef = useRef<Record<string, ImageCacheEntry>>({});
-    const simulationRef = useRef<d3.Simulation<GraphNode, GraphLink> | null>(null);
-    const hasZoomedRef = useRef(false);
-    const isMountedRef = useRef(true);
-    const [dimensions, setDimensions] = useState({ width: GRAPH_MIN_WIDTH, height: GRAPH_MIN_HEIGHT });
-    const [imageStatusMap, setImageStatusMap] = useState<Record<string, ImageLoadStatus>>({});
-    const imageStatusRef = useRef(imageStatusMap);
+    const [graphHeight, setGraphHeight] = useState(GRAPH_MIN_HEIGHT);
+    const [layoutDirection, setLayoutDirection] = useState<'LR' | 'TB'>('LR');
     const [filterType, setFilterType] = useState<ConnectionType[]>(
         parseConnectionTypes(searchParams.get('connectionTypes')),
     );
@@ -486,43 +624,36 @@ export function AgentsGraph(props: AgentsGraphProps) {
     const [selectedAgentName, setSelectedAgentName] = useState<string | null>(
         searchParams.get('selectedAgent') || null,
     );
+    const [imageStatusMap, setImageStatusMap] = useState<Record<string, ImageLoadStatus>>({});
+    const [baseSvg, setBaseSvg] = useState<string>('');
+    const [decoratedSvg, setDecoratedSvg] = useState<string>('');
+    const [renderError, setRenderError] = useState<string | null>(null);
+    const [isRendering, setIsRendering] = useState(false);
+    const nodeLookupRef = useRef<Map<string, MermaidNode>>(new Map());
 
-    /**
-     * Update the graph size using the container width and viewport height.
-     */
-    const updateDimensions = useCallback(() => {
-        const element = graphContainerRef.current;
-        if (!element) {
-            return;
-        }
+    useEffect(() => {
+        const updateHeight = () => {
+            setGraphHeight(Math.max(GRAPH_MIN_HEIGHT, window.innerHeight - GRAPH_HEIGHT_OFFSET));
+        };
 
-        const rect = element.getBoundingClientRect();
-        const width = Math.max(GRAPH_MIN_WIDTH, Math.round(rect.width));
-        const height = Math.max(GRAPH_MIN_HEIGHT, Math.round(window.innerHeight - GRAPH_HEIGHT_OFFSET));
+        updateHeight();
+        window.addEventListener('resize', updateHeight);
 
-        setDimensions({ width, height });
+        return () => {
+            window.removeEventListener('resize', updateHeight);
+        };
     }, []);
 
     useEffect(() => {
-        updateDimensions();
-        const element = graphContainerRef.current;
-        if (!element) {
-            return;
-        }
-
-        const observer = new ResizeObserver(() => updateDimensions());
-        observer.observe(element);
-        window.addEventListener('resize', updateDimensions);
-
-        return () => {
-            observer.disconnect();
-            window.removeEventListener('resize', updateDimensions);
+        const updateDirection = () => {
+            setLayoutDirection(window.innerWidth < MERMAID_LAYOUT_BREAKPOINT ? 'TB' : 'LR');
         };
-    }, [updateDimensions]);
 
-    useEffect(() => {
+        updateDirection();
+        window.addEventListener('resize', updateDirection);
+
         return () => {
-            isMountedRef.current = false;
+            window.removeEventListener('resize', updateDirection);
         };
     }, []);
 
@@ -539,87 +670,92 @@ export function AgentsGraph(props: AgentsGraphProps) {
         [agents, federatedAgents, filterType, selectedServerUrl, selectedAgentName, normalizedPublicUrl],
     );
 
-    const adjacencyMap = useMemo(() => buildAdjacencyMap(graphData.links), [graphData.links]);
-
-    useEffect(() => {
-        hasZoomedRef.current = false;
-    }, [graphData]);
-    /**
-     * Store status changes for image URLs while avoiding unnecessary state churn.
-     */
-    const setImageStatus = useCallback((url: string, status: ImageLoadStatus) => {
-        if (!isMountedRef.current) {
-            return;
-        }
-
-        setImageStatusMap((prev) => {
-            if (prev[url] === status) {
-                return prev;
-            }
-            return { ...prev, [url]: status };
-        });
-    }, []);
-
-    /**
-     * Load an agent image with retry support and cache the result.
-     */
-    const loadAgentImage = useCallback(
-        (url: string) => {
-            if (imageCacheRef.current[url]) {
-                return;
-            }
-
-            imageCacheRef.current[url] = { status: 'loading', retryCount: 0 };
-            setImageStatus(url, 'loading');
-
-            const image = new Image();
-
-            /**
-             * Attempt to load the image and schedule retries on failure.
-             */
-            const attemptLoad = () => {
-                image.onload = () => {
-                    imageCacheRef.current[url] = { status: 'success', retryCount: 0 };
-                    setImageStatus(url, 'success');
-                };
-
-                image.onerror = () => {
-                    const entry = imageCacheRef.current[url];
-                    if (!entry) {
-                        return;
-                    }
-
-                    if (entry.retryCount < IMAGE_RETRY_LIMIT) {
-                        entry.retryCount += 1;
-                        const retryDelay = IMAGE_RETRY_DELAY_MS * entry.retryCount;
-                        window.setTimeout(() => {
-                            image.src = `${url}${url.includes('?') ? '&' : '?'}retry=${entry.retryCount}`;
-                        }, retryDelay);
-                    } else {
-                        imageCacheRef.current[url] = { status: 'error', retryCount: entry.retryCount };
-                        setImageStatus(url, 'error');
-                    }
-                };
-
-                image.src = url;
-            };
-
-            attemptLoad();
-        },
-        [setImageStatus],
+    const mermaidGraph = useMemo(
+        () => buildMermaidGraph(graphData, normalizedPublicUrl, layoutDirection),
+        [graphData, normalizedPublicUrl, layoutDirection],
     );
 
     useEffect(() => {
-        graphData.nodes.forEach((node) => {
-            loadAgentImage(node.imageUrl);
+        nodeLookupRef.current = new Map(mermaidGraph.nodes.map((node) => [node.mermaidId, node]));
+    }, [mermaidGraph.nodes]);
+
+    useEffect(() => {
+        const imageNodes = graphData.nodes.filter((node) => node.imageUrl);
+
+        imageNodes.forEach((node) => {
+            if (imageStatusMap[node.id]) {
+                return;
+            }
+
+            const imageUrl = node.imageUrl;
+            if (!imageUrl) {
+                return;
+            }
+
+            setImageStatusMap((prev) => ({ ...prev, [node.id]: 'loading' }));
+
+            const image = new Image();
+            image.onload = () => {
+                setImageStatusMap((prev) => ({ ...prev, [node.id]: 'success' }));
+            };
+            image.onerror = () => {
+                setImageStatusMap((prev) => ({ ...prev, [node.id]: 'error' }));
+            };
+            image.src = imageUrl;
         });
-    }, [graphData.nodes, loadAgentImage]);
+    }, [graphData.nodes, imageStatusMap]);
+
+    useEffect(() => {
+        let isCancelled = false;
+
+        const renderGraph = async () => {
+            if (!mermaidGraph.diagram) {
+                setBaseSvg('');
+                return;
+            }
+
+            setIsRendering(true);
+            setRenderError(null);
+
+            try {
+                const svg = await renderMermaid(mermaidGraph.diagram, MERMAID_THEME);
+                if (!isCancelled) {
+                    setBaseSvg(svg);
+                }
+            } catch (error) {
+                if (!isCancelled) {
+                    setRenderError(error instanceof Error ? error.message : 'Failed to render graph.');
+                    setBaseSvg('');
+                }
+            } finally {
+                if (!isCancelled) {
+                    setIsRendering(false);
+                }
+            }
+        };
+
+        renderGraph();
+
+        return () => {
+            isCancelled = true;
+        };
+    }, [mermaidGraph.diagram]);
+
+    useEffect(() => {
+        if (!baseSvg) {
+            setDecoratedSvg('');
+            return;
+        }
+
+        const decorated = decorateMermaidSvg(baseSvg, mermaidGraph.nodes, imageStatusMap);
+        setDecoratedSvg(decorated);
+    }, [baseSvg, mermaidGraph.nodes, imageStatusMap]);
 
     /**
      * Open the agent page or federated agent URL when a node is clicked.
      */
     const handleNodeClick = useCallback(
-        (node: GraphNode) => {
+        (node: MermaidNode) => {
             const agent = node.agent;
             if (agent.serverUrl && normalizeServerUrl(agent.serverUrl) !== normalizedPublicUrl) {
                 window.open(`${agent.serverUrl}/agents/${agent.agentName}`, '_blank');
@@ -628,6 +764,27 @@ export function AgentsGraph(props: AgentsGraphProps) {
             }
         },
         [router, normalizedPublicUrl],
+    );
+
+    /**
+     * Handle click events within the Mermaid SVG.
+     */
+    const handleSvgClick = useCallback(
+        (event: ReactMouseEvent<HTMLDivElement>) => {
+            const target = event.target as HTMLElement | null;
+            const nodeId = target?.closest('[data-node-id]')?.getAttribute('data-node-id');
+            if (!nodeId) {
+                return;
+            }
+
+            const node = nodeLookupRef.current.get(nodeId);
+            if (!node) {
+                return;
+            }
+
+            handleNodeClick(node);
+        },
+        [handleNodeClick],
     );
 
     /**
@@ -712,434 +869,6 @@ export function AgentsGraph(props: AgentsGraphProps) {
         [filterType, updateUrl],
     );
 
-    useEffect(() => {
-        const svgElement = svgRef.current;
-        if (!svgElement) {
-            return;
-        }
-
-        const svg = d3.select(svgElement);
-        svg.selectAll('*').remove();
-
-        if (graphData.nodes.length === 0) {
-            return;
-        }
-
-        svg.attr('width', dimensions.width);
-        svg.attr('height', dimensions.height);
-        svg.attr('viewBox', `0 0 ${dimensions.width} ${dimensions.height}`);
-
-        const defs = svg.append('defs');
-        const markerData = CONNECTION_TYPES.map((type) => ({ type, color: LINK_COLORS[type] }));
-
-        defs.selectAll('marker')
-            .data(markerData)
-            .enter()
-            .append('marker')
-            .attr('id', (item) => `arrow-${item.type}`)
-            .attr('viewBox', `0 ${-1 * 5} 10 10`)
-            .attr('refX', NODE_RADIUS + LINK_NODE_PADDING)
-            .attr('refY', 0)
-            .attr('markerWidth', 6)
-            .attr('markerHeight', 6)
-            .attr('orient', 'auto')
-            .append('path')
-            .attr('d', 'M0,-5 L10,0 L0,5')
-            .attr('fill', (item) => item.color);
-
-        defs.selectAll('clipPath')
-            .data(graphData.nodes, (node) => (node as GraphNode).clipPathId)
-            .join((enter) => {
-                const clip = enter.append('clipPath').attr('id', (node) => (node as GraphNode).clipPathId);
-                clip.attr('clipPathUnits', 'objectBoundingBox')
-                    .append('circle')
-                    .attr('cx', 0.5)
-                    .attr('cy', 0.5)
-                    .attr('r', 0.5);
-                return clip;
-            });
-
-        const root = svg.append('g').attr('class', 'graph-root');
-        const clusterLayer = root.append('g').attr('class', 'graph-clusters').attr('pointer-events', 'none');
-        const linkLayer = root.append('g').attr('class', 'graph-links');
-        const nodeLayer = root.append('g').attr('class', 'graph-nodes');
-
-        const zoomBehavior = d3
-            .zoom<SVGSVGElement, unknown>()
-            .scaleExtent([ZOOM_MIN_SCALE, ZOOM_MAX_SCALE])
-            .on('zoom', (event) => {
-                root.attr('transform', event.transform);
-            });
-
-        svg.call(zoomBehavior as d3.ZoomBehavior<SVGSVGElement, unknown>);
-        zoomBehaviorRef.current = zoomBehavior;
-
-        const clusterData = buildClusterData(graphData.nodes, normalizedPublicUrl);
-        const clusterSelection = clusterLayer
-            .selectAll<SVGGElement, ServerCluster>('g.cluster')
-            .data(clusterData, (cluster) => cluster.serverUrl)
-            .join((enter) => {
-                const group = enter.append('g').attr('class', 'cluster');
-                group.append('circle').attr('class', 'cluster-circle');
-                group.append('text').attr('class', 'cluster-label');
-                return group;
-            });
-
-        clusterSelection
-            .select('text.cluster-label')
-            .attr('font-size', CLUSTER_LABEL_FONT_SIZE)
-            .attr('font-style', 'italic')
-            .attr('font-weight', '600')
-            .attr('text-anchor', 'middle');
-
-        const linkSelection = linkLayer
-            .selectAll<SVGPathElement, GraphLink>('path')
-            .data(graphData.links, (link) => getLinkKey(link as GraphLink))
-            .join('path')
-            .attr('fill', 'none')
-            .attr('stroke', (link) => LINK_COLORS[link.type])
-            .attr('stroke-width', LINK_STROKE_WIDTH)
-            .attr('stroke-linecap', 'round')
-            .attr('marker-end', (link) => `url(#arrow-${link.type})`)
-            .attr('stroke-opacity', LINK_OPACITY)
-            .style('vector-effect', 'non-scaling-stroke');
-
-        const nodeSelection = nodeLayer
-            .selectAll<SVGGElement, GraphNode>('g.node')
-            .data(graphData.nodes, (node) => node.id)
-            .join((enter) => {
-                const node = enter.append('g').attr('class', 'node').style('cursor', 'pointer');
-
-                node.append('title').text((item) => getAgentTooltip(item.agent));
-
-                node.append('circle')
-                    .attr('class', 'node-ring')
-                    .attr('r', NODE_RADIUS)
-                    .attr(
-                        'fill',
-                        (item) => item.agent.meta.color || (item.isLocal ? LOCAL_NODE_COLOR : EXTERNAL_NODE_COLOR),
-                    )
-                    .attr('stroke', '#ffffff')
-                    .attr('stroke-width', 2)
-                    .style('vector-effect', 'non-scaling-stroke');
-
-                node.append('image')
-                    .attr('class', 'node-image')
-                    .attr('href', (item) => item.imageUrl)
-                    .attr('x', -NODE_RADIUS + NODE_IMAGE_PADDING)
-                    .attr('y', -NODE_RADIUS + NODE_IMAGE_PADDING)
-                    .attr('width', (NODE_RADIUS - NODE_IMAGE_PADDING) * 2)
-                    .attr('height', (NODE_RADIUS - NODE_IMAGE_PADDING) * 2)
-                    .attr('clip-path', (item) => `url(#${item.clipPathId})`)
-                    .attr('preserveAspectRatio', 'xMidYMid slice')
-                    .attr('opacity', 0)
-                    .attr('pointer-events', 'none');
-
-                node.append('text')
-                    .attr('class', 'node-initial')
-                    .attr('text-anchor', 'middle')
-                    .attr('dominant-baseline', 'central')
-                    .attr('font-size', NODE_LABEL_FONT_SIZE)
-                    .attr('font-weight', '700')
-                    .attr('fill', '#ffffff')
-                    .attr('opacity', 0)
-                    .text((item) => getAgentDisplayName(item.agent).charAt(0).toUpperCase());
-
-                node.append('text')
-                    .attr('class', 'node-label')
-                    .attr('text-anchor', 'middle')
-                    .attr('font-size', NODE_LABEL_FONT_SIZE)
-                    .attr('font-weight', '500')
-                    .attr('fill', '#1f2937')
-                    .attr('y', NODE_RADIUS + NODE_LABEL_OFFSET)
-                    .text((item) => item.name);
-
-                return node;
-            });
-
-        const dragBehavior = d3
-            .drag<SVGGElement, GraphNode>()
-            .on('start', (event, node) => {
-                if (!event.active) {
-                    simulation.alphaTarget(0.5).restart();
-                }
-                node.fx = node.x;
-                node.fy = node.y;
-            })
-            .on('drag', (event, node) => {
-                node.fx = event.x;
-                node.fy = event.y;
-            })
-            .on('end', (event, node) => {
-                if (!event.active) {
-                    simulation.alphaTarget(0);
-                }
-                node.fx = null;
-                node.fy = null;
-            });
-
-        /**
-         * Emphasize hovered nodes and their connected links.
-         */
-        const updateHoverState = (hoveredId: string | null) => {
-            const relatedNodes = hoveredId ? adjacencyMap.get(hoveredId) : null;
-
-            nodeSelection
-                .attr('opacity', (node) => {
-                    if (!hoveredId) {
-                        return 1;
-                    }
-
-                    if (node.id === hoveredId || relatedNodes?.has(node.id)) {
-                        return 1;
-                    }
-
-                    return LINK_OPACITY;
-                })
-                .select('circle.node-ring')
-                .attr('r', (node) => (node.id === hoveredId ? NODE_RADIUS_HOVER : NODE_RADIUS));
-
-            nodeSelection
-                .select('text.node-label')
-                .attr('font-size', (node) =>
-                    node.id === hoveredId ? NODE_LABEL_FONT_SIZE_HOVER : NODE_LABEL_FONT_SIZE,
-                )
-                .attr('font-weight', (node) => (node.id === hoveredId ? '700' : '500'));
-
-            linkSelection
-                .attr('stroke-opacity', (link) => {
-                    if (!hoveredId) {
-                        return LINK_OPACITY;
-                    }
-
-                    const sourceId = getLinkEndpointId(link.source);
-                    const targetId = getLinkEndpointId(link.target);
-
-                    if (sourceId === hoveredId || targetId === hoveredId) {
-                        return LINK_OPACITY_HIGHLIGHT;
-                    }
-
-                    return LINK_OPACITY_DIM;
-                })
-                .attr('stroke-width', (link) => {
-                    if (!hoveredId) {
-                        return LINK_STROKE_WIDTH;
-                    }
-
-                    const sourceId = getLinkEndpointId(link.source);
-                    const targetId = getLinkEndpointId(link.target);
-
-                    if (sourceId === hoveredId || targetId === hoveredId) {
-                        return LINK_STROKE_WIDTH_HIGHLIGHT;
-                    }
-
-                    return LINK_STROKE_WIDTH;
-                });
-        };
-
-        nodeSelection
-            .call(dragBehavior)
-            .on('mouseenter', (_event, node) => {
-                updateHoverState(node.id);
-            })
-            .on('mouseleave', () => {
-                updateHoverState(null);
-            })
-            .on('click', (event, node) => {
-                if (event.defaultPrevented) {
-                    return;
-                }
-                handleNodeClick(node);
-            });
-
-        /**
-         * Sync node images with the latest load statuses.
-         */
-        /**
-         * Sync node images with the latest load statuses.
-         */
-        const applyImageStatus = () => {
-            const statusMap = imageStatusRef.current;
-
-            nodeSelection
-                .selectAll<SVGImageElement, GraphNode>('image.node-image')
-                .attr('opacity', (node) => (statusMap[node.imageUrl] === 'success' ? 1 : 0));
-
-            nodeSelection
-                .selectAll<SVGTextElement, GraphNode>('text.node-initial')
-                .attr('opacity', (node) => (statusMap[node.imageUrl] === 'error' ? 1 : 0));
-        };
-
-        updateImageVisibilityRef.current = applyImageStatus;
-        applyImageStatus();
-
-        const serverCenters = computeServerCenters(graphData.nodes, dimensions.width, dimensions.height);
-        const centerX = dimensions.width / 2;
-        const centerY = dimensions.height / 2;
-
-        const simulation = d3
-            .forceSimulation(graphData.nodes)
-            .alpha(1)
-            .alphaDecay(0.1)
-            .force(
-                'link',
-                d3
-                    .forceLink<GraphNode, GraphLink>(graphData.links)
-                    .id((node) => node.id)
-                    .distance(LINK_DISTANCE)
-                    .strength(LINK_STRENGTH),
-            )
-            .force('charge', d3.forceManyBody().strength(CHARGE_STRENGTH))
-            .force('center', d3.forceCenter(centerX, centerY))
-            .force(
-                'collide',
-                d3
-                    .forceCollide<GraphNode>()
-                    .radius(NODE_RADIUS + COLLISION_PADDING)
-                    .strength(COLLISION_STRENGTH),
-            )
-            .force(
-                'clusterX',
-                d3
-                    .forceX<GraphNode>()
-                    .x((node) => serverCenters.get(node.serverUrl)?.x ?? centerX)
-                    .strength(CLUSTER_FORCE_STRENGTH),
-            )
-            .force(
-                'clusterY',
-                d3
-                    .forceY<GraphNode>()
-                    .y((node) => serverCenters.get(node.serverUrl)?.y ?? centerY)
-                    .strength(CLUSTER_FORCE_STRENGTH),
-            );
-
-        simulation.on('tick', () => {
-            linkSelection.attr('d', (link) => {
-                const source = link.source as GraphNode;
-                const target = link.target as GraphNode;
-                const sourceX = source.x ?? centerX;
-                const sourceY = source.y ?? centerY;
-                const targetX = target.x ?? centerX;
-                const targetY = target.y ?? centerY;
-                const dx = targetX - sourceX;
-                const dy = targetY - sourceY;
-                const distance = Math.sqrt(dx * dx + dy * dy) || 1;
-                const offset = NODE_RADIUS + LINK_NODE_PADDING;
-                const startX = sourceX + (dx / distance) * offset;
-                const startY = sourceY + (dy / distance) * offset;
-                const endX = targetX - (dx / distance) * offset;
-                const endY = targetY - (dy / distance) * offset;
-
-                return `M${startX},${startY} L${endX},${endY}`;
-            });
-
-            nodeSelection.attr('transform', (node) => `translate(${node.x ?? centerX},${node.y ?? centerY})`);
-
-            clusterSelection.each((cluster, index, elements) => {
-                const clusterNodes = cluster.nodes;
-                if (clusterNodes.length === 0) {
-                    return;
-                }
-
-                let clusterX = 0;
-                let clusterY = 0;
-
-                clusterNodes.forEach((node) => {
-                    clusterX += node.x ?? centerX;
-                    clusterY += node.y ?? centerY;
-                });
-
-                clusterX /= clusterNodes.length;
-                clusterY /= clusterNodes.length;
-
-                let maxDistance = 0;
-                clusterNodes.forEach((node) => {
-                    const dxNode = (node.x ?? centerX) - clusterX;
-                    const dyNode = (node.y ?? centerY) - clusterY;
-                    const distance = Math.sqrt(dxNode * dxNode + dyNode * dyNode);
-                    maxDistance = Math.max(maxDistance, distance);
-                });
-
-                const radius = Math.max(NODE_RADIUS + CLUSTER_PADDING, maxDistance + CLUSTER_PADDING);
-                const clusterElement = d3.select(elements[index] as SVGGElement);
-                const fill = cluster.isLocal ? CLUSTER_COLORS.localFill : CLUSTER_COLORS.externalFill;
-                const stroke = cluster.isLocal ? CLUSTER_COLORS.localStroke : CLUSTER_COLORS.externalStroke;
-                const labelColor = cluster.isLocal ? CLUSTER_COLORS.localLabel : CLUSTER_COLORS.externalLabel;
-
-                clusterElement
-                    .select('circle.cluster-circle')
-                    .attr('cx', clusterX)
-                    .attr('cy', clusterY)
-                    .attr('r', radius)
-                    .attr('fill', fill)
-                    .attr('stroke', stroke)
-                    .attr('stroke-width', CLUSTER_STROKE_WIDTH)
-                    .attr('stroke-dasharray', '10 6')
-                    .style('vector-effect', 'non-scaling-stroke');
-
-                clusterElement
-                    .select('text.cluster-label')
-                    .attr('x', clusterX)
-                    .attr('y', clusterY - radius - CLUSTER_LABEL_OFFSET)
-                    .attr('fill', labelColor)
-                    .text(cluster.label);
-            });
-        });
-
-        simulationRef.current = simulation;
-
-        /**
-         * Fit the zoom to the current node bounds.
-         */
-        const zoomToFit = () => {
-            if (!zoomBehaviorRef.current || graphData.nodes.length === 0) {
-                return;
-            }
-
-            const xs = graphData.nodes.map((node) => node.x ?? centerX);
-            const ys = graphData.nodes.map((node) => node.y ?? centerY);
-            const minX = Math.min(...xs);
-            const maxX = Math.max(...xs);
-            const minY = Math.min(...ys);
-            const maxY = Math.max(...ys);
-            const width = Math.max(maxX - minX, 1);
-            const height = Math.max(maxY - minY, 1);
-            const scale = Math.min(
-                dimensions.width / (width + ZOOM_TO_FIT_PADDING),
-                dimensions.height / (height + ZOOM_TO_FIT_PADDING),
-                ZOOM_MAX_SCALE,
-            );
-            const translateX = dimensions.width / 2 - (scale * (minX + maxX)) / 2;
-            const translateY = dimensions.height / 2 - (scale * (minY + maxY)) / 2;
-            const transform = d3.zoomIdentity.translate(translateX, translateY).scale(scale);
-
-            svg.transition().duration(ZOOM_TO_FIT_DURATION_MS).call(zoomBehaviorRef.current.transform, transform);
-        };
-
-        simulation.on('end', () => {
-            if (!hasZoomedRef.current) {
-                zoomToFit();
-                hasZoomedRef.current = true;
-            }
-        });
-
-        window.setTimeout(() => {
-            if (!hasZoomedRef.current) {
-                zoomToFit();
-                hasZoomedRef.current = true;
-            }
-        }, ZOOM_TO_FIT_FALLBACK_MS);
-
-        return () => {
-            simulation.stop();
-            svg.on('.zoom', null);
-        };
-    }, [adjacencyMap, dimensions, graphData, handleNodeClick, normalizedPublicUrl]);
-
-    useEffect(() => {
-        imageStatusRef.current = imageStatusMap;
-        updateImageVisibilityRef.current?.();
-    }, [imageStatusMap]);
     if (agents.length === 0) {
         return <div className="flex justify-center py-12 text-gray-500">No agents to show in graph.</div>;
     }
@@ -1235,26 +964,39 @@ export function AgentsGraph(props: AgentsGraphProps) {
             </div>
 
             <div
-                ref={graphContainerRef}
-                className="relative border rounded-xl overflow-hidden bg-gray-50 shadow-inner"
-                style={{ height: dimensions.height }}
+                className="relative border rounded-xl overflow-auto bg-slate-50 shadow-inner"
+                style={{ height: graphHeight }}
             >
                 {graphData.nodes.length === 0 ? (
                     <div className="flex justify-center py-12 text-gray-500">No agents to show in graph.</div>
+                ) : renderError ? (
+                    <div className="flex flex-col items-center justify-center py-12 text-red-500">
+                        <span className="text-sm font-medium">Unable to render graph</span>
+                        <span className="text-xs text-red-400">{renderError}</span>
+                    </div>
                 ) : (
-                    <svg ref={svgRef} className="w-full h-full" />
+                    <div className="mermaid-container w-full h-full" onClick={handleSvgClick} role="presentation">
+                        {isRendering && !decoratedSvg ? (
+                            <div className="flex h-full items-center justify-center text-sm text-gray-500">
+                                Rendering graph...
+                            </div>
+                        ) : (
+                            <div className="w-full h-full" dangerouslySetInnerHTML={{ __html: decoratedSvg }} />
+                        )}
+                    </div>
                 )}
+
                 <div className="absolute bottom-4 right-4 flex flex-col gap-2 text-[10px] bg-white/80 p-2 rounded border shadow-sm">
                     <div className="flex items-center gap-2">
-                        <div className="w-3 h-0.5 bg-purple-500"></div>
+                        <div className="w-5 border-t border-dashed border-slate-500"></div>
                         <span>Parent</span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <div className="w-3 h-0.5 bg-emerald-500"></div>
+                        <div className="w-5 border-t border-slate-500"></div>
                         <span>Import</span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <div className="w-3 h-0.5 bg-orange-500"></div>
+                        <div className="w-5 border-t-2 border-slate-500"></div>
                         <span>Team</span>
                     </div>
                 </div>

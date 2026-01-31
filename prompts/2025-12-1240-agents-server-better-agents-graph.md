@@ -20,7 +20,7 @@
 
 ---
 
-[ ] !!!!!!
+[x] ~$1.35
 
 [✨♿️] Agents graph on home page should be redesigned using [beautiful-mermaid](https://github.com/lukilabs/beautiful-mermaid?tab=readme-ov-file) library
 
@@ -83,3 +83,4 @@
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
+
