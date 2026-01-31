@@ -1,11 +1,15 @@
 'use client';
 
-import { generatePlaceholderAgentProfileImageUrl } from '@promptbook-local/core';
+import { generatePlaceholderAgentProfileImageUrl, PROMPTBOOK_COLOR } from '@promptbook-local/core';
 import { string_url } from '@promptbook-local/types';
 import { renderMermaid } from 'beautiful-mermaid';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react';
 import { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
+import { Color } from '../../../../../src/utils/color/Color';
+import { darken } from '../../../../../src/utils/color/operators/darken';
+import { textColor } from '../../../../../src/utils/color/operators/furthest';
+import { lighten } from '../../../../../src/utils/color/operators/lighten';
 
 const CONNECTION_TYPES = ['inheritance', 'import', 'team'] as const;
 const DEFAULT_CONNECTION_TYPES = [...CONNECTION_TYPES];
@@ -13,14 +17,15 @@ const GRAPH_MIN_HEIGHT = 480;
 const GRAPH_HEIGHT_OFFSET = 340;
 const MERMAID_LABEL_TOKEN = '__PB_NODE__';
 const MERMAID_LABEL_PADDING = '            ';
-const MERMAID_NODE_RADIUS = 18;
 const MERMAID_NODE_BORDER_WIDTH = 1.2;
-const MERMAID_NODE_TEXT_COLOR = '#0f172a';
 const MERMAID_NODE_SHADOW_ID = 'pb-agent-node-shadow';
 const MERMAID_NODE_SHADOW_COLOR = '#0f172a';
 const MERMAID_NODE_SHADOW_OPACITY = 0.12;
 const MERMAID_NODE_SHADOW_BLUR = 10;
 const MERMAID_NODE_SHADOW_OFFSET_Y = 6;
+const MERMAID_CHIP_LIGHTEN_AMOUNT = 0.35;
+const MERMAID_CHIP_BORDER_DARKEN_AMOUNT = 0.08;
+const MERMAID_CHIP_RING_DARKEN_AMOUNT = 0.04;
 const MERMAID_IMAGE_SIZE = 28;
 const MERMAID_IMAGE_PADDING = 8;
 const MERMAID_TEXT_PADDING = 12;
@@ -50,26 +55,6 @@ const MERMAID_THEME = {
     surface: '#ffffff',
     border: '#e2e8f0',
     transparent: true,
-};
-const MERMAID_NODE_STYLES: Record<NodeCategory, NodeVisualStyle> = {
-    LOCAL: {
-        fill: '#ffffff',
-        border: '#38bdf8',
-        ring: '#38bdf8',
-        shape: 'rounded',
-    },
-    FEDERATED: {
-        fill: '#f0fdf4',
-        border: '#22c55e',
-        ring: '#22c55e',
-        shape: 'hexagon',
-    },
-    PRIVATE: {
-        fill: '#fff7ed',
-        border: '#f59e0b',
-        ring: '#f59e0b',
-        shape: 'cut',
-    },
 };
 const MERMAID_EDGE_STYLES: Record<ConnectionType, string> = {
     inheritance: '---',
@@ -106,22 +91,18 @@ type AgentWithVisibility = AgentBasicInformation & {
 type ConnectionType = (typeof CONNECTION_TYPES)[number];
 
 /**
- * Visual category for agent nodes in the graph.
- */
-type NodeCategory = 'LOCAL' | 'FEDERATED' | 'PRIVATE';
-
-/**
  * Shape variants supported for node rendering.
  */
 type NodeShape = 'rounded' | 'hexagon' | 'cut';
 
 /**
- * Visual styling for a node category.
+ * Visual styling for a node chip.
  */
 type NodeVisualStyle = {
     fill: string;
     border: string;
     ring: string;
+    text: string;
     shape: NodeShape;
 };
 
@@ -194,6 +175,7 @@ type MermaidNode = {
     explicitImageUrl: string | null;
     placeholderImageUrl: string;
     tooltip: string;
+    chipStyle: NodeVisualStyle;
 };
 
 /**
@@ -527,6 +509,7 @@ const buildMermaidGraph = (graphData: GraphData, publicUrl: string, direction: '
         const displayName = getAgentDisplayName(node.agent);
         const explicitImageUrl = getAgentExplicitImageUrl(node.agent);
         const placeholderImageUrl = getAgentPlaceholderImageUrl(node.agent, publicUrl);
+        const chipStyle = buildAgentChipStyle(node.agent);
 
         return {
             mermaidId,
@@ -538,6 +521,7 @@ const buildMermaidGraph = (graphData: GraphData, publicUrl: string, direction: '
             explicitImageUrl,
             placeholderImageUrl,
             tooltip: getAgentTooltip(node.agent),
+            chipStyle,
         };
     });
 
@@ -595,20 +579,20 @@ const buildMermaidGraph = (graphData: GraphData, publicUrl: string, direction: '
 };
 
 /**
- * Resolve the styling category for an agent node.
+ * Build the visual chip style for an agent node based on its brand color.
  */
-const resolveNodeCategory = (node: MermaidNode): NodeCategory => {
-    if (node.agent.visibility === 'PRIVATE') {
-        return 'PRIVATE';
-    }
+const buildAgentChipStyle = (agent: AgentWithVisibility): NodeVisualStyle => {
+    const brandColor = Color.fromSafe(agent.meta.color || PROMPTBOOK_COLOR);
+    const softenedColor = brandColor.then(lighten(MERMAID_CHIP_LIGHTEN_AMOUNT));
 
-    return node.isLocal ? 'LOCAL' : 'FEDERATED';
+    return {
+        fill: softenedColor.toHex(),
+        border: brandColor.then(darken(MERMAID_CHIP_BORDER_DARKEN_AMOUNT)).toHex(),
+        ring: brandColor.then(darken(MERMAID_CHIP_RING_DARKEN_AMOUNT)).toHex(),
+        text: softenedColor.then(textColor).toHex(),
+        shape: 'rounded',
+    };
 };
-
-/**
- * Resolve the visual style for a node category.
- */
-const resolveNodeStyle = (node: MermaidNode): NodeVisualStyle => MERMAID_NODE_STYLES[resolveNodeCategory(node)];
 
 /**
  * Build hexagon polygon points within a rectangle.
@@ -664,12 +648,13 @@ const createNodeShapeElement = (
 
     if (shape === 'rounded') {
         const rectElement = document.createElementNS(SVG_NAMESPACE, 'rect');
+        const radius = rect.height / 2;
         rectElement.setAttribute('x', rect.x.toString());
         rectElement.setAttribute('y', rect.y.toString());
         rectElement.setAttribute('width', rect.width.toString());
         rectElement.setAttribute('height', rect.height.toString());
-        rectElement.setAttribute('rx', MERMAID_NODE_RADIUS.toString());
-        rectElement.setAttribute('ry', MERMAID_NODE_RADIUS.toString());
+        rectElement.setAttribute('rx', radius.toString());
+        rectElement.setAttribute('ry', radius.toString());
         element = rectElement;
     } else {
         const polygon = document.createElementNS(SVG_NAMESPACE, 'polygon');
@@ -862,7 +847,7 @@ const decorateMermaidSvg = (
         const imageX = rectX + MERMAID_IMAGE_PADDING;
         const imageY = rectY + (rectHeight - imageSize) / 2;
         const textX = imageX + imageSize + MERMAID_TEXT_PADDING;
-        const nodeStyle = resolveNodeStyle(node);
+        const nodeStyle = node.chipStyle;
         const ringColor = nodeStyle.ring;
         const ringRadius = imageSize / 2 + MERMAID_AVATAR_RING_PADDING;
 
@@ -887,7 +872,7 @@ const decorateMermaidSvg = (
         text.setAttribute('font-weight', MERMAID_LABEL_FONT_WEIGHT);
         text.setAttribute('font-size', MERMAID_LABEL_FONT_SIZE.toString());
         text.setAttribute('letter-spacing', MERMAID_LABEL_LETTER_SPACING);
-        text.setAttribute('fill', MERMAID_NODE_TEXT_COLOR);
+        text.setAttribute('fill', nodeStyle.text);
         text.setAttribute('style', 'cursor: pointer;');
 
         const imageUrl = resolveNodeImageUrl(node, imageStatusMap[node.graphNodeId]);
