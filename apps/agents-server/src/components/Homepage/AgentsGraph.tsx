@@ -2,7 +2,8 @@
 
 import { generatePlaceholderAgentProfileImageUrl, PROMPTBOOK_COLOR } from '@promptbook-local/core';
 import { string_url } from '@promptbook-local/types';
-import { renderMermaid } from 'beautiful-mermaid';
+import { renderMermaid, renderMermaidAscii } from 'beautiful-mermaid';
+import { Code, FileImage, FileText } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react';
 import { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
@@ -16,6 +17,7 @@ const DEFAULT_CONNECTION_TYPES = [...CONNECTION_TYPES];
 const GRAPH_MIN_HEIGHT = 480;
 const GRAPH_HEIGHT_OFFSET = 340;
 const MERMAID_LABEL_TOKEN = '__PB_NODE__';
+const MERMAID_LABEL_TOKEN_REGEX = new RegExp(`${MERMAID_LABEL_TOKEN}[^"]+`, 'g');
 const MERMAID_LABEL_PADDING = '            ';
 const MERMAID_NODE_BORDER_WIDTH = 1.2;
 const MERMAID_NODE_SHADOW_ID = 'pb-agent-node-shadow';
@@ -76,6 +78,8 @@ const MERMAID_EDGE_DASHES: Partial<Record<ConnectionType, string>> = {
 };
 const MERMAID_EDGE_OPACITY = 0.7;
 const SVG_NAMESPACE = 'http://www.w3.org/2000/svg';
+const GRAPH_DOWNLOAD_PREFIX = 'agents-graph';
+const MERMAID_EXPORT_MIN_SCALE = 2;
 
 /**
  * Agent metadata plus visibility and server details used by the graph UI.
@@ -184,6 +188,14 @@ type MermaidNode = {
 type MermaidGraph = {
     diagram: string;
     nodes: MermaidNode[];
+};
+
+/**
+ * Dimensions for SVG exports.
+ */
+type SvgDimensions = {
+    width: number;
+    height: number;
 };
 
 /**
@@ -476,6 +488,12 @@ const buildMermaidLabel = (label: string, mermaidId: string): string =>
     `${MERMAID_LABEL_PADDING}${label}${MERMAID_LABEL_TOKEN}${mermaidId}`;
 
 /**
+ * Remove internal label tokens from a Mermaid diagram string.
+ */
+const stripMermaidLabelTokens = (diagram: string): string =>
+    diagram.replace(MERMAID_LABEL_TOKEN_REGEX, '').split(MERMAID_LABEL_PADDING).join('');
+
+/**
  * Build the Mermaid linkStyle clause for a connection type.
  */
 const buildMermaidLinkStyle = (type: ConnectionType): string => {
@@ -493,6 +511,29 @@ const buildMermaidLinkStyle = (type: ConnectionType): string => {
     }
 
     return styles.join(',');
+};
+
+/**
+ * Build a timestamped filename for graph downloads.
+ */
+const buildGraphFilename = (extension: string): string => {
+    const timestamp = new Date().toISOString().replace(/[:]/g, '-');
+    return `${GRAPH_DOWNLOAD_PREFIX}-${timestamp}.${extension}`;
+};
+
+/**
+ * Trigger a browser download for the provided blob payload.
+ */
+const triggerBlobDownload = (blob: Blob, filename: string): void => {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.rel = 'noopener';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
 };
 
 /**
@@ -698,6 +739,100 @@ const resolveNodeImageUrl = (node: MermaidNode, status: ImageLoadStatus | undefi
 const parseSvgNumber = (value: string | null, fallback = 0): number => {
     const parsed = Number.parseFloat(value ?? '');
     return Number.isNaN(parsed) ? fallback : parsed;
+};
+
+/**
+ * Read SVG dimensions from markup attributes or viewBox.
+ */
+const getSvgDimensions = (svgMarkup: string): SvgDimensions | null => {
+    const parser = new DOMParser();
+    const document = parser.parseFromString(svgMarkup, 'image/svg+xml');
+    const svg = document.querySelector('svg');
+    if (!svg) {
+        return null;
+    }
+
+    const width = Number.parseFloat(svg.getAttribute('width') ?? '');
+    const height = Number.parseFloat(svg.getAttribute('height') ?? '');
+    if (Number.isFinite(width) && Number.isFinite(height) && width > 0 && height > 0) {
+        return { width, height };
+    }
+
+    const viewBox = svg.getAttribute('viewBox');
+    if (!viewBox) {
+        return null;
+    }
+
+    const parts = viewBox.trim().split(/\s+/).map((value) => Number.parseFloat(value));
+    if (parts.length !== 4 || parts.some((value) => Number.isNaN(value))) {
+        return null;
+    }
+
+    const [, , viewWidth, viewHeight] = parts;
+    if (viewWidth <= 0 || viewHeight <= 0) {
+        return null;
+    }
+
+    return { width: viewWidth, height: viewHeight };
+};
+
+/**
+ * Determine the device-aware scale for PNG exports.
+ */
+const getPngExportScale = (): number => Math.max(window.devicePixelRatio || 1, MERMAID_EXPORT_MIN_SCALE);
+
+/**
+ * Rasterize an SVG string into a PNG blob.
+ */
+const renderSvgToPngBlob = async (svgMarkup: string, scale: number): Promise<Blob> => {
+    const dimensions = getSvgDimensions(svgMarkup);
+    if (!dimensions) {
+        throw new Error('Unable to determine SVG dimensions for export.');
+    }
+
+    const svgBlob = new Blob([svgMarkup], { type: 'image/svg+xml;charset=utf-8' });
+    const svgUrl = URL.createObjectURL(svgBlob);
+    const image = new Image();
+    image.decoding = 'async';
+    image.crossOrigin = 'anonymous';
+
+    return new Promise((resolve, reject) => {
+        image.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = Math.round(dimensions.width * scale);
+            canvas.height = Math.round(dimensions.height * scale);
+
+            const context = canvas.getContext('2d');
+            if (!context) {
+                URL.revokeObjectURL(svgUrl);
+                reject(new Error('Canvas context unavailable for export.'));
+                return;
+            }
+
+            context.imageSmoothingEnabled = true;
+            context.imageSmoothingQuality = 'high';
+            context.scale(scale, scale);
+            context.fillStyle = MERMAID_THEME.bg;
+            context.fillRect(0, 0, dimensions.width, dimensions.height);
+            context.drawImage(image, 0, 0, dimensions.width, dimensions.height);
+
+            canvas.toBlob((blob) => {
+                URL.revokeObjectURL(svgUrl);
+                if (!blob) {
+                    reject(new Error('Failed to create PNG export.'));
+                    return;
+                }
+                resolve(blob);
+            }, 'image/png');
+        };
+
+        image.onerror = () => {
+            URL.revokeObjectURL(svgUrl);
+            reject(new Error('Failed to load SVG for PNG export.'));
+        };
+
+        image.src = svgUrl;
+    });
 };
 
 /**
@@ -919,6 +1054,18 @@ const decorateMermaidSvg = (
     const serializer = new XMLSerializer();
     return serializer.serializeToString(svg);
 };
+
+/**
+ * Build the class name for a download button based on enabled state.
+ */
+const getDownloadButtonClassName = (isEnabled: boolean): string =>
+    [
+        'flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-semibold transition-colors',
+        'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1',
+        isEnabled
+            ? 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+            : 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed',
+    ].join(' ');
 
 /**
  * Agents graph rendered with Beautiful Mermaid and enhanced SVG nodes.
@@ -1191,6 +1338,53 @@ export function AgentsGraph(props: AgentsGraphProps) {
         [filterType, updateUrl],
     );
 
+    const canDownloadSvg = Boolean(decoratedSvg);
+    const canDownloadPng = Boolean(decoratedSvg);
+    const canDownloadAscii = Boolean(mermaidGraph.diagram);
+
+    /**
+     * Download the rendered graph as an SVG.
+     */
+    const handleDownloadSvg = useCallback(() => {
+        if (!decoratedSvg) {
+            return;
+        }
+
+        const blob = new Blob([decoratedSvg], { type: 'image/svg+xml;charset=utf-8' });
+        triggerBlobDownload(blob, buildGraphFilename('svg'));
+    }, [decoratedSvg]);
+
+    /**
+     * Download the rendered graph as a PNG.
+     */
+    const handleDownloadPng = useCallback(async () => {
+        if (!decoratedSvg) {
+            return;
+        }
+
+        try {
+            const scale = getPngExportScale();
+            const blob = await renderSvgToPngBlob(decoratedSvg, scale);
+            triggerBlobDownload(blob, buildGraphFilename('png'));
+        } catch (error) {
+            console.error('Failed to export graph as PNG.', error);
+            alert('Failed to export PNG. Try downloading the SVG instead.');
+        }
+    }, [decoratedSvg]);
+
+    /**
+     * Download the graph as ASCII text.
+     */
+    const handleDownloadAscii = useCallback(() => {
+        if (!mermaidGraph.diagram) {
+            return;
+        }
+
+        const ascii = renderMermaidAscii(stripMermaidLabelTokens(mermaidGraph.diagram), { useAscii: true });
+        const blob = new Blob([ascii], { type: 'text/plain;charset=utf-8' });
+        triggerBlobDownload(blob, buildGraphFilename('txt'));
+    }, [mermaidGraph.diagram]);
+
     if (agents.length === 0) {
         return <div className="flex justify-center py-12 text-gray-500">No agents to show in graph.</div>;
     }
@@ -1198,91 +1392,131 @@ export function AgentsGraph(props: AgentsGraphProps) {
     return (
         <div className="space-y-4">
             <div className="flex flex-wrap items-center gap-4 rounded-xl border border-slate-200 bg-white/90 p-4 shadow-sm">
-                <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-gray-700">Show connections:</span>
-                    <label className="flex items-center gap-1 cursor-pointer">
-                        <input
-                            type="checkbox"
-                            checked={filterType.includes('inheritance')}
-                            onChange={() => toggleFilter('inheritance')}
-                            className="rounded text-blue-600"
-                        />
-                        <span className="text-sm">Parent</span>
-                    </label>
-                    <label className="flex items-center gap-1 cursor-pointer">
-                        <input
-                            type="checkbox"
-                            checked={filterType.includes('import')}
-                            onChange={() => toggleFilter('import')}
-                            className="rounded text-blue-600"
-                        />
-                        <span className="text-sm">Import</span>
-                    </label>
-                    <label className="flex items-center gap-1 cursor-pointer">
-                        <input
-                            type="checkbox"
-                            checked={filterType.includes('team')}
-                            onChange={() => toggleFilter('team')}
-                            className="rounded text-blue-600"
-                        />
-                        <span className="text-sm">Team</span>
-                    </label>
-                </div>
+                <div className="flex flex-wrap items-center gap-4">
+                    <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-gray-700">Show connections:</span>
+                        <label className="flex items-center gap-1 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={filterType.includes('inheritance')}
+                                onChange={() => toggleFilter('inheritance')}
+                                className="rounded text-blue-600"
+                            />
+                            <span className="text-sm">Parent</span>
+                        </label>
+                        <label className="flex items-center gap-1 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={filterType.includes('import')}
+                                onChange={() => toggleFilter('import')}
+                                className="rounded text-blue-600"
+                            />
+                            <span className="text-sm">Import</span>
+                        </label>
+                        <label className="flex items-center gap-1 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={filterType.includes('team')}
+                                onChange={() => toggleFilter('team')}
+                                className="rounded text-blue-600"
+                            />
+                            <span className="text-sm">Team</span>
+                        </label>
+                    </div>
 
-                <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-gray-700">Filter:</span>
-                    <select
-                        value={
-                            selectedAgentName
-                                ? `${selectedServerUrl}|${selectedAgentName}`
-                                : selectedServerUrl === 'ALL'
-                                ? 'ALL'
-                                : selectedServerUrl
-                                ? `SERVER:${selectedServerUrl}`
-                                : ''
-                        }
-                        onChange={(event) => selectServerAndAgent(event.target.value)}
-                        className="text-sm border rounded-md p-1 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                        <option value="">All Agents</option>
-                        <optgroup label="This Server">
-                            <option value={`SERVER:${normalizedPublicUrl}`}>Entire This Server</option>
-                            {agents.map((agent) => (
-                                <option key={agent.agentName} value={`${normalizedPublicUrl}|${agent.agentName}`}>
-                                    {agent.meta.fullname || agent.agentName}
-                                </option>
-                            ))}
-                        </optgroup>
-                        {Object.entries(federatedServersStatus).map(([serverUrl, status]) => (
-                            <optgroup
-                                key={serverUrl}
-                                label={
-                                    serverUrl.replace(/^https?:\/\//, '') +
-                                    (status.status === 'loading'
-                                        ? ' (loading...)'
-                                        : status.status === 'error'
-                                        ? ' (error)'
-                                        : '')
-                                }
-                            >
-                                <option value={`SERVER:${serverUrl}`}>Entire Server</option>
-                                {federatedAgents
-                                    .filter((agent) => agent.serverUrl === serverUrl)
-                                    .map((agent) => (
-                                        <option key={agent.agentName} value={`${serverUrl}|${agent.agentName}`}>
-                                            {agent.meta.fullname || agent.agentName}
-                                        </option>
-                                    ))}
+                    <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-gray-700">Filter:</span>
+                        <select
+                            value={
+                                selectedAgentName
+                                    ? `${selectedServerUrl}|${selectedAgentName}`
+                                    : selectedServerUrl === 'ALL'
+                                    ? 'ALL'
+                                    : selectedServerUrl
+                                    ? `SERVER:${selectedServerUrl}`
+                                    : ''
+                            }
+                            onChange={(event) => selectServerAndAgent(event.target.value)}
+                            className="text-sm border rounded-md p-1 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            <option value="">All Agents</option>
+                            <optgroup label="This Server">
+                                <option value={`SERVER:${normalizedPublicUrl}`}>Entire This Server</option>
+                                {agents.map((agent) => (
+                                    <option key={agent.agentName} value={`${normalizedPublicUrl}|${agent.agentName}`}>
+                                        {agent.meta.fullname || agent.agentName}
+                                    </option>
+                                ))}
                             </optgroup>
-                        ))}
-                    </select>
+                            {Object.entries(federatedServersStatus).map(([serverUrl, status]) => (
+                                <optgroup
+                                    key={serverUrl}
+                                    label={
+                                        serverUrl.replace(/^https?:\/\//, '') +
+                                        (status.status === 'loading'
+                                            ? ' (loading...)'
+                                            : status.status === 'error'
+                                            ? ' (error)'
+                                            : '')
+                                    }
+                                >
+                                    <option value={`SERVER:${serverUrl}`}>Entire Server</option>
+                                    {federatedAgents
+                                        .filter((agent) => agent.serverUrl === serverUrl)
+                                        .map((agent) => (
+                                            <option key={agent.agentName} value={`${serverUrl}|${agent.agentName}`}>
+                                                {agent.meta.fullname || agent.agentName}
+                                            </option>
+                                        ))}
+                                </optgroup>
+                            ))}
+                        </select>
+                    </div>
+
+                    {(selectedAgentName || selectedServerUrl) && (
+                        <button
+                            type="button"
+                            onClick={() => selectServerAndAgent('')}
+                            className="text-xs text-blue-600 hover:underline"
+                        >
+                            Clear focus
+                        </button>
+                    )}
                 </div>
 
-                {(selectedAgentName || selectedServerUrl) && (
-                    <button onClick={() => selectServerAndAgent('')} className="text-xs text-blue-600 hover:underline">
-                        Clear focus
+                <div className="flex flex-wrap items-center gap-2 sm:ml-auto">
+                    <span className="text-xs font-medium text-slate-500">Download:</span>
+                    <button
+                        type="button"
+                        onClick={handleDownloadPng}
+                        disabled={!canDownloadPng}
+                        className={getDownloadButtonClassName(canDownloadPng)}
+                        title="Download graph as PNG"
+                    >
+                        <FileImage className="w-4 h-4" />
+                        PNG
                     </button>
-                )}
+                    <button
+                        type="button"
+                        onClick={handleDownloadSvg}
+                        disabled={!canDownloadSvg}
+                        className={getDownloadButtonClassName(canDownloadSvg)}
+                        title="Download graph as SVG"
+                    >
+                        <Code className="w-4 h-4" />
+                        SVG
+                    </button>
+                    <button
+                        type="button"
+                        onClick={handleDownloadAscii}
+                        disabled={!canDownloadAscii}
+                        className={getDownloadButtonClassName(canDownloadAscii)}
+                        title="Download graph as ASCII"
+                    >
+                        <FileText className="w-4 h-4" />
+                        ASCII
+                    </button>
+                </div>
             </div>
 
             <div
