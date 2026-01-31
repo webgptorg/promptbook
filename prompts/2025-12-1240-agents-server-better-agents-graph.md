@@ -53,6 +53,53 @@ Try to replicate this as close as possible in the beautiful Mermaid.
 
 [ ]
 
+[✨♿️] Agents graph on home page should have better filtering
+
+-   When you have selected/filtered some agent _(for example https://s6.ptbk.io/?view=graph&selectedServer=https%3A%2F%2Fs6.ptbk.io&selectedAgent=pasu-v2)_, show also the agents which are connected to or from this agent.
+-   This should work for both current server and federated servers.
+
+---
+
+[ ]
+
+[✨♿️] Agents graph on home page should be visually improved.
+
+-   Use Subgraphs Grouped nodes inside labeled subgraph containers.
+-   Use different shapes for different types of nodes
+-   Use colors to differentiate between various categories or statuses of agents.
+-   Ensure that the layout is clean and uncluttered, with sufficient spacing between nodes and edges.
+
+![alt text](prompts/screenshots/2025-12-1240-agents-server-better-agents-graph.png)
+
+---
+
+[ ]
+
+[✨♿️] Agents graph on home page should show agent as nice, visually appealing chips.
+
+-   The agent chip should contain
+    -   Agent image (either custom or default)
+    -   Agent name
+    -   Be colored in the color of the agent
+-   When clicking on the agent chip, it should lead to the agent profile _(for example `http://localhost:4440/agents/7ZEA1J4MuyeFLG`)_
+-   Be aware of great UI and UX.
+-   Reuse the existing components.
+
+---
+
+[ ]
+
+[✨♿️] Agents graph on home page should be downloadable
+
+-   Add buttons for downloading the graph as PNG and SVG or ASCII
+-   For the download button, inspire how the chat can be downloaded, or use the design patterns and components.
+-   Ensure the downloaded images maintain high quality and clarity.
+-   Use `beautiful-mermaid` capabilities for exporting the graph.
+
+---
+
+[ ]
+
 [✨♿️] Agents graph on home page should be redesigned using vis.js / vis-network library
 
 (@@@ Which graph technology to use?)
@@ -94,4 +141,3 @@ Try to replicate this as close as possible in the beautiful Mermaid.
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
-

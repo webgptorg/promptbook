@@ -44,13 +44,74 @@
 
 ---
 
-[-]
+[ ]
 
-[✨🦢] baz
+[✨🦢] Make agent chips smaller.
+
+-   The agent boxes on the home page are too large. Make them smaller. Take inspiration, for example, from the Windows File Explorer view.
+-   The agents should look more like files.
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   You are working with the [Agents Server](apps/agents-server) with the Agents on the home page `/` on List view
+
+![alt text](prompts/screenshots/2026-01-0620-agents-server-agents-in-folders-2.png)
+![alt text](prompts/screenshots/2026-01-0620-agents-server-agents-in-folders-3.png)
+
+---
+
+[ ]
+
+[✨🦢] Enhance the UI and UX of the agents reordering.
+
+-   Reordering has a terrible user experience. It is working, but you need to drag the agent onto another agent, and you have no visual feedback that it is working until the reorder is finished.
+-   Once the user starts to drag, it should snap out the agent from the list and work highly interactively.
+-   While dragging, there should be visual indicators where the agent will be dropped.
+-   Feel free to use some library to do this properly.
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   You are working with the [Agents Server](apps/agents-server) with the Agents on the home page `/` on List view
+
+---
+
+[ ]
+
+[✨🦢] Add parent folder when in some subfolder _(for example `http://localhost:4440/?folder=aaa`)_, and allow agent to be dragged out to the parent folder.
+
+-   When you are looking into some folder or subfolder, you should be able to very easily and quickly drag the agent to the parent folder.
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   You are working with the [Agents Server](apps/agents-server) with the Agents on the home page `/` on List view
+
+---
+
+[ ]
+
+[✨🦢] When showing the subfolder _(for example `http://localhost:4440/?folder=aaa`)_, do not show `HOMEPAGE_MESSAGE` or federated servers.
+
+-   The homepage _(for example `http://localhost:4440/`)_ should look like now, folder _(for example `http://localhost:4440/?folder=aaa`)_ should show the folder name with number of agents inside, for example not "Agents (31)" but "Aaa (15)".
+-   Also `HOMEPAGE_MESSAGE` is relevant only for the homepage, not for the subfolder view.
+-   Also federated servers and their agents are relevant only for the homepage, not for the subfolder view.
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   You are working with the [Agents Server](apps/agents-server) with the Agents on the home page `/` on List view
+
+---
+
+[ ]
+
+[✨🦢] When the new agent is created, and you are in the subfolder _(for example `http://localhost:4440/?folder=aaa`)_, create this agent in this subfolder.
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   You are working with the [Agents Server](apps/agents-server)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
+-   You are working with the [Agents Server](apps/agents-server) with the Agents on the home page `/` on List view
+
+---
+
+[ ]
+
+[✨🦢] Create context menu when clicking the right button on the agent.
+
+-   This context menu should be the same as the menu in the agent. _(for example `http://localhost:4440/agents/7ZEA1J4MuyeFLG`)_
+-   Allow to rename the agent from this context menu.
+-   Keep in mind the DRY _(don't repeat yourself)_ principle, There should be only one place where this context menu lives: reuse it in the agent list view _(for example `http://localhost:4440/`)_ and also in the agent profile page _(for example `http://localhost:4440/agents/7ZEA1J4MuyeFLG`)_.
+-   You are working with the [Agents Server](apps/agents-server) with the Agents on the home page `/` on List view
+
+![alt text](prompts/screenshots/2026-01-0620-agents-server-agents-in-folders-1.png)
 
 ---
 
@@ -59,6 +120,31 @@
 [✨🦢] baz
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   You are working with the [Agents Server](apps/agents-server)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
+-   You are working with the [Agents Server](apps/agents-server) with the Agents on the home page `/` on List view
 
+---
+
+[-]
+
+[✨🦢] baz
+
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   You are working with the [Agents Server](apps/agents-server) with the Agents on the home page `/` on List view
+
+---
+
+[-]
+
+[✨🦢] baz
+
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   You are working with the [Agents Server](apps/agents-server) with the Agents on the home page `/` on List view
+
+---
+
+[-]
+
+[✨🦢] baz
+
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   You are working with the [Agents Server](apps/agents-server) with the Agents on the home page `/` on List view
