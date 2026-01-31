@@ -71,7 +71,7 @@
 
 ---
 
-[ ]
+[x] ~$0.33
 
 [✨🦢] Add parent folder when in some subfolder _(for example `http://localhost:4440/?folder=aaa`)_, and allow agent to be dragged out to the parent folder.
 
@@ -148,5 +148,6 @@
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server) with the Agents on the home page `/` on List view
+
 
 

@@ -17,7 +17,7 @@ import {
 import { SortableContext, rectSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { string_url } from '@promptbook-local/types';
-import { FolderPlusIcon, Grid, Network, TrashIcon } from 'lucide-react';
+import { ArrowUp, FolderPlusIcon, Grid, Network, TrashIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
@@ -30,6 +30,7 @@ import type {
 } from '../../utils/agentOrganization/types';
 import { AgentCard } from './AgentCard';
 import { AgentsGraph } from './AgentsGraph';
+import { FileCard } from './FileCard';
 import { FolderCard } from './FolderCard';
 import {
     buildFolderMaps,
@@ -116,6 +117,24 @@ const getFolderDragId = (folderId: number) => buildDragId(FOLDER_DRAG_ID_PREFIX,
  */
 const getBreadcrumbDragId = (folderId: number | null) =>
     buildDragId(BREADCRUMB_DRAG_ID_PREFIX, folderId === null ? 'root' : String(folderId));
+
+/**
+ * Provides droppable state for breadcrumb-style drop targets.
+ *
+ * @param folderId - Folder id represented by the drop target.
+ * @param canOrganize - Whether drag-and-drop organization is enabled.
+ * @returns Droppable state for the target.
+ */
+function useBreadcrumbDropTarget(folderId: number | null, canOrganize: boolean) {
+    return useDroppable({
+        id: getBreadcrumbDragId(folderId),
+        data: {
+            type: 'BREADCRUMB',
+            folderId,
+        } satisfies BreadcrumbDropTargetData,
+        disabled: !canOrganize,
+    });
+}
 
 /**
  * Determines the drop intent based on active and target rectangles.
@@ -361,14 +380,7 @@ type BreadcrumbDropTargetProps = {
  * Renders a breadcrumb button that accepts drag-and-drop.
  */
 function BreadcrumbDropTarget({ label, folderId, onClick, canOrganize }: BreadcrumbDropTargetProps) {
-    const { isOver, setNodeRef } = useDroppable({
-        id: getBreadcrumbDragId(folderId),
-        data: {
-            type: 'BREADCRUMB',
-            folderId,
-        } satisfies BreadcrumbDropTargetData,
-        disabled: !canOrganize,
-    });
+    const { isOver, setNodeRef } = useBreadcrumbDropTarget(folderId, canOrganize);
 
     return (
         <button
@@ -378,6 +390,61 @@ function BreadcrumbDropTarget({ label, folderId, onClick, canOrganize }: Breadcr
             className={`transition-colors ${isOver && canOrganize ? 'text-blue-700 bg-blue-50/70 rounded px-1 -mx-1' : 'hover:text-blue-600'}`}
         >
             {label}
+        </button>
+    );
+}
+
+/**
+ * Props for the parent folder navigation card.
+ */
+type ParentFolderCardProps = {
+    /**
+     * Label shown for the parent folder.
+     */
+    readonly label: string;
+    /**
+     * Folder id represented by the parent card.
+     */
+    readonly folderId: number | null;
+    /**
+     * Click handler for navigating to the parent folder.
+     */
+    readonly onOpen: () => void;
+    /**
+     * Whether drag-and-drop organization is enabled.
+     */
+    readonly canOrganize: boolean;
+};
+
+/**
+ * Renders a card for navigating to the parent folder with drop support.
+ */
+function ParentFolderCard({ label, folderId, onOpen, canOrganize }: ParentFolderCardProps) {
+    const { isOver, setNodeRef } = useBreadcrumbDropTarget(folderId, canOrganize);
+    const isDropTarget = isOver && canOrganize;
+
+    return (
+        <button
+            type="button"
+            ref={setNodeRef}
+            onClick={onOpen}
+            className="block h-full w-full text-left"
+        >
+            <FileCard
+                className={`flex h-full items-center gap-3 border-blue-200 bg-blue-50/60 hover:border-blue-300 ${
+                    isDropTarget ? 'ring-2 ring-blue-400 ring-offset-2 ring-offset-white' : ''
+                }`}
+            >
+                <div className="flex h-12 w-12 items-center justify-center rounded-md bg-blue-100 border border-blue-200 text-blue-700">
+                    <ArrowUp className="w-5 h-5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                    <p className="text-[11px] uppercase tracking-wide text-blue-700">Parent folder</p>
+                    <h3 className="text-sm font-semibold text-gray-900 truncate" title={label}>
+                        {label}
+                    </h3>
+                </div>
+            </FileCard>
         </button>
     );
 }
@@ -441,6 +508,16 @@ export function AgentsList(props: AgentsListProps) {
         () => getFolderPathSegments(currentFolderId, folderMaps.folderById),
         [currentFolderId, folderMaps.folderById],
     );
+    const parentFolderInfo = useMemo(() => {
+        if (currentFolderId === null) {
+            return null;
+        }
+        const currentFolder = folderMaps.folderById.get(currentFolderId);
+        const parentFolderId = currentFolder?.parentId ?? null;
+        const parentFolderName =
+            parentFolderId === null ? 'All Agents' : folderMaps.folderById.get(parentFolderId)?.name || 'All Agents';
+        return { id: parentFolderId, label: parentFolderName };
+    }, [currentFolderId, folderMaps]);
 
     const visibleFolders = useMemo(
         () =>
@@ -1221,6 +1298,14 @@ export function AgentsList(props: AgentsListProps) {
                     onDragCancel={handleDragCancel}
                 >
                     <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                        {parentFolderInfo && (
+                            <ParentFolderCard
+                                label={parentFolderInfo.label}
+                                folderId={parentFolderInfo.id}
+                                onOpen={() => navigateToFolder(parentFolderInfo.id)}
+                                canOrganize={canOrganize}
+                            />
+                        )}
                         <SortableContext items={visibleFolderDragIds} strategy={rectSortingStrategy}>
                             {visibleFolders.map((folder) => (
                                 <SortableFolderCard
