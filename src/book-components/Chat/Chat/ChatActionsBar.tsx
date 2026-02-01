@@ -1,8 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useState, type MouseEvent, type MutableRefObject, type ReactNode } from 'react';
-import type { Promisable } from 'type-fest';
 import { createPortal } from 'react-dom';
+import type { Promisable } from 'type-fest';
 import { normalizeToKebabCase } from '../../../utils/normalization/normalize-to-kebab-case';
 import { classNames } from '../../_common/react-utils/classNames';
 import { ResetIcon } from '../../icons/ResetIcon';
@@ -12,12 +12,14 @@ import { getChatSaveFormatDefinitions } from '../save/_common/getChatSaveFormatD
 import type { string_chat_format_name } from '../save/_common/string_chat_format_name';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
+import styles from './Chat.module.css';
 import type { ChatSoundSystem } from './ChatProps';
 import { ChatSoundToggle } from './ChatSoundToggle';
-import styles from './Chat.module.css';
 
 /**
  * Props for the Chat actions toolbar.
+ *
+ * @private component of `<Chat/>`
  */
 export type ChatActionsBarProps = {
     actionsRef: MutableRefObject<HTMLDivElement | null>;
@@ -31,12 +33,16 @@ export type ChatActionsBarProps = {
     saveFormats?: Array<string_chat_format_name>;
     isSaveButtonEnabled: boolean;
     shouldFadeActions: boolean;
-    onButtonClick: (handler?: (event: MouseEvent<HTMLButtonElement>) => void) => (event: MouseEvent<HTMLButtonElement>) => void;
+    onButtonClick: (
+        handler?: (event: MouseEvent<HTMLButtonElement>) => void,
+    ) => (event: MouseEvent<HTMLButtonElement>) => void;
     soundSystem?: ChatSoundSystem;
 };
 
 /**
  * Renders the action buttons row for Chat.
+ *
+ * @private component of `<Chat/>`
  */
 export function ChatActionsBar(props: ChatActionsBarProps) {
     const {

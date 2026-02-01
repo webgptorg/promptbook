@@ -6,6 +6,8 @@ import styles from './Chat.module.css';
 
 /**
  * Props for a team modal header profile badge.
+ * 
+ * @private component of `<Chat/>`
  */
 export type TeamHeaderProfileProps = {
     label: string;
@@ -16,6 +18,8 @@ export type TeamHeaderProfileProps = {
 
 /**
  * Renders a profile badge used in the TEAM modal header.
+ * 
+ * @private component of `<Chat/>`
  */
 export function TeamHeaderProfile({ label, avatarSrc, href, fallbackColor }: TeamHeaderProfileProps) {
     const avatarStyles: CSSProperties = {
@@ -48,6 +52,8 @@ export function TeamHeaderProfile({ label, avatarSrc, href, fallbackColor }: Tea
 
 /**
  * Props for a self-learning modal avatar.
+ * 
+ * @private component of `<Chat/>`
  */
 export type SelfLearningAvatarProps = {
     label: string;
@@ -59,6 +65,8 @@ export type SelfLearningAvatarProps = {
 
 /**
  * Renders an avatar badge for the self-learning modal header.
+ * 
+ * @private component of `<Chat/>`
  */
 export function SelfLearningAvatar({
     label,

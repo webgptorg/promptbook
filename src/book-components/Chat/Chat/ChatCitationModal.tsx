@@ -7,11 +7,13 @@ import { MarkdownContent } from '../MarkdownContent/MarkdownContent';
 import type { ChatParticipant } from '../types/ChatParticipant';
 import type { ParsedCitation } from '../utils/parseCitationsFromContent';
 import { resolveCitationUrl } from '../utils/resolveCitationUrl';
-import type { ChatSoundSystem } from './ChatProps';
 import styles from './Chat.module.css';
+import type { ChatSoundSystem } from './ChatProps';
 
 /**
  * Props for the citation preview modal.
+ *
+ * @private component of `<Chat/>`
  */
 export type ChatCitationModalProps = {
     isOpen: boolean;
@@ -23,6 +25,8 @@ export type ChatCitationModalProps = {
 
 /**
  * Modal that previews a citation source or excerpt.
+ *
+ * @private component of `<Chat/>`
  */
 export function ChatCitationModal(props: ChatCitationModalProps) {
     const { isOpen, citation, participants, soundSystem, onClose } = props;

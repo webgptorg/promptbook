@@ -34,6 +34,8 @@ import { SelfLearningAvatar, TeamHeaderProfile } from './ChatToolCallModalCompon
 
 /**
  * Props for the tool call details modal.
+ * 
+ * @private component of `<Chat/>`
  */
 export type ChatToolCallModalProps = {
     isOpen: boolean;
@@ -46,6 +48,8 @@ export type ChatToolCallModalProps = {
 
 /**
  * Modal that renders rich tool call details for chat chiplets.
+ * 
+ * @private component of `<Chat/>`
  */
 export function ChatToolCallModal(props: ChatToolCallModalProps) {
     const { isOpen, toolCall, onClose, toolTitles, agentParticipant, buttonColor } = props;

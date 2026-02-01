@@ -7,6 +7,8 @@ import styles from './Chat.module.css';
 
 /**
  * Props for the rating modal used in Chat.
+ * 
+ * @private component of `<Chat/>`
  */
 export type ChatRatingModalProps = {
     isOpen: boolean;
@@ -28,6 +30,8 @@ export type ChatRatingModalProps = {
 
 /**
  * Modal that captures per-message rating feedback.
+ * 
+ * @private component of `<Chat/>`
  */
 export function ChatRatingModal(props: ChatRatingModalProps) {
     const {

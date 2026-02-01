@@ -31,6 +31,8 @@ import styles from './Chat.module.css';
 
 /**
  * Wrapper for consistent button-click sound handling.
+ * 
+ * @private component of `<Chat/>`
  */
 export type ChatInputButtonClickHandler = (
     handler?: (event: MouseEvent<HTMLButtonElement>) => void,
@@ -38,6 +40,8 @@ export type ChatInputButtonClickHandler = (
 
 /**
  * Internal representation of an uploaded file in the chat input.
+ * 
+ * @private component of `<Chat/>`
  */
 export type ChatInputUploadedFile = {
     id: string;
@@ -47,6 +51,8 @@ export type ChatInputUploadedFile = {
 
 /**
  * Props for the chat input area.
+ * 
+ * @private component of `<Chat/>`
  */
 export type ChatInputAreaProps = {
     onMessage?: ChatProps['onMessage'];
@@ -67,6 +73,8 @@ export type ChatInputAreaProps = {
 
 /**
  * Renders the chat input area with text, file upload, and voice controls.
+ * 
+ * @private component of `<Chat/>`
  */
 export function ChatInputArea(props: ChatInputAreaProps) {
     const {

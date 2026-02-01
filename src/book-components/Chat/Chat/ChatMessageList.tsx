@@ -4,15 +4,17 @@ import type { UIEvent } from 'react';
 import type { Promisable } from 'type-fest';
 import type { id } from '../../../types/typeAliases';
 import { classNames } from '../../_common/react-utils/classNames';
-import type { ParsedCitation } from '../utils/parseCitationsFromContent';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
-import type { ChatProps } from './ChatProps';
-import { ChatMessageItem } from './ChatMessageItem';
+import type { ParsedCitation } from '../utils/parseCitationsFromContent';
 import styles from './Chat.module.css';
+import { ChatMessageItem } from './ChatMessageItem';
+import type { ChatProps } from './ChatProps';
 
 /**
  * Props for the Chat message list container.
+ *
+ * @private component of `<Chat/>`
  */
 export type ChatMessageListProps = {
     messages: ReadonlyArray<ChatMessage>;
@@ -39,6 +41,8 @@ export type ChatMessageListProps = {
 
 /**
  * Renders the list of chat messages.
+ *
+ * @private component of `<Chat/>`
  */
 export function ChatMessageList(props: ChatMessageListProps) {
     const {

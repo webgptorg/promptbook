@@ -7,6 +7,8 @@ import { getToolCallTimestamp } from '../utils/toolCallParsing';
 
 /**
  * Resolved summary data for self-learning tool calls.
+ * 
+ * @private component of `<Chat/>`
  */
 export type SelfLearningSummaryData = {
     commitments: Array<string>;
@@ -19,6 +21,8 @@ export type SelfLearningSummaryData = {
 
 /**
  * Parses ISO timestamps into Date instances.
+ * 
+ * @private component of `<Chat/>`
  */
 function parseIsoDate(value: unknown): Date | null {
     if (typeof value !== 'string') {
@@ -31,6 +35,8 @@ function parseIsoDate(value: unknown): Date | null {
 
 /**
  * Formats singular/plural labels from numeric counts.
+ * 
+ * @private component of `<Chat/>`
  */
 function formatCountLabel(count: number, singular: string, plural?: string): string {
     if (count === 1) {
@@ -43,6 +49,8 @@ function formatCountLabel(count: number, singular: string, plural?: string): str
 
 /**
  * Builds UI-ready data for the self-learning modal from a tool call.
+ * 
+ * @private component of `<Chat/>`
  */
 export function buildSelfLearningSummary(
     toolCall: NonNullable<ChatMessage['toolCalls']>[number],
