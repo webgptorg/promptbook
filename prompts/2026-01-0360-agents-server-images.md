@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨👒] Add actions to image gallery
 

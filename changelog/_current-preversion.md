@@ -32,6 +32,9 @@
     -   Follows DRY principle - parsing logic is centralized in `parseAgentSource()`, data flows through API to `RemoteAgent`
 -   Fixed Agents Server image generation and uploads to safely shorten CDN paths for long filenames, preventing Vercel Blob path length errors.
 -   Normalized file names before uploads in Agents Server (chat attachments, knowledge uploads, admin file uploads) to keep CDN URLs clean and consistent.
+-   Added actions to image gallery in Agent's Server:
+    -   Copy image prompts to clipboard
+    -   Display technical parameters (model, size, quality, style) extracted from filenames
 -   Allow to add image in the image prompt in `ImageGeneratorTestClient`
 -   Ensured the Agents Server chat menu stays above chat action buttons (New chat, Save, etc.).
 -   Added top spacing in Agents Server chat so action buttons no longer overlap the first messages.
