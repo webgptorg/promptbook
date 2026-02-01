@@ -213,8 +213,11 @@ function buildPromptGuidance(candidate: RefactorCandidate): ReadonlyArray<string
         '-   Keep in mind that the purpose of this refactoring is to improve code maintainability and readability.',
         '-   Consider breaking down large functions into smaller, more manageable ones, removing any redundant code, and ensuring that the file adheres to the project coding standards.',
         '-   Keep in mind DRY (Do not repeat yourself) and SOLID principles while refactoring.',
-        '-   After the refactoring, ensure that `npm run test-name-discrepancies` and `npm run test-package-generation` are passing successfully.',
+        '-   After the refactoring, ensure that (1) `npm run test-name-discrepancies` and (2) `npm run test-package-generation` are passing successfully.',
+        '    1) All the things you have moved to new files should correspond the thing in the file with the file name, for example `MyComponent.tsx` should export `MyComponent`.',
+        '    2) All the things you have moved to new files but are private things to the outside world should have `@private function of TheMainThing` JSDoc comment.',
         '-   **DO NOT change the external behavior** of the code. Focus solely on improving the internal structure and organization of the code.',
+        // <- TODO: !!!!!!!!!! Is this prompt working as expected?
     );
     // <- TODO: Leverage `spaceTrim` here
 
