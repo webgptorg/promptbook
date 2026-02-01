@@ -78,7 +78,7 @@ export function AddAgentButton({ currentFolderId }: AddAgentButtonProps) {
                     ) : (
                         '+ Add New Agent'
                     )}
-                </Card>
+                </FileCard>
             </div>
 
             {isDialogOpen && (
