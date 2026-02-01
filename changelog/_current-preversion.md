@@ -149,6 +149,7 @@
 -   Enhanced `linguisticHash` to return a short story-like sentence for more memorable hashes, updating the Utils app text and unit tests to match.
 -   Added configurable word counts (1-20, default 7) to `linguisticHash`, including Utils app controls, warnings for short hashes, and updated tests.
 -   Added multilingual support to `linguisticHash` with Czech word lists and a language selector in the Utils app.
+-   Refactored `linguisticHash` internals to split word selection and word count helpers into focused modules for easier maintenance.
 -   Prevent caching when tool is used, but still write the messages into the cache or `USER MESSAGE` + `AGENT MESSAGE` pair
 -   Implemented modular voice speech input in `<Chat/>` with two providers: `BrowserSpeechRecognition` (Web Speech API) and `OpenAiSpeechRecognition` (Whisper API).
 -   Added voice input test page at `/admin/voice-input-test` in Agents Server.
