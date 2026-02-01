@@ -13,6 +13,8 @@ import spaceTrim from 'spacetrim';
 import type { SourceFile } from 'typescript';
 import * as ts from 'typescript';
 import { assertsError } from '../../src/errors/assertsError';
+import { buildPromptFilename, getPromptNumbering } from '../utils/prompts/getPromptNumbering';
+import { formatPromptEmojiTag, getFreshPromptEmojiTags } from '../utils/prompts/promptEmojiTags';
 import {
     DEFAULT_MAX_LINE_COUNT,
     ENTITY_COUNT_EXTENSIONS,
@@ -29,8 +31,6 @@ import {
     SOURCE_FILE_IGNORE_GLOBS,
     SOURCE_ROOTS,
 } from './find-refactor-candidates.constants';
-import { buildPromptFilename, getPromptNumbering } from '../utils/prompts/getPromptNumbering';
-import { formatPromptEmojiTag, getFreshPromptEmojiTags } from '../utils/prompts/promptEmojiTags';
 
 if (process.cwd() !== join(__dirname, '../..')) {
     console.error(colors.red(`CWD must be root of the project`));
@@ -190,7 +190,7 @@ ${guidanceLines.map((line) => `        ${line}`).join('\n')}
  * Builds the refactor guidance section for a prompt.
  */
 function buildPromptGuidance(candidate: RefactorCandidate): ReadonlyArray<string> {
-    const guidance: string[] = ['-   @@'];
+    const guidance: string[] = ['-   @@@'];
     const counts = extractReasonCounts(candidate.reasons);
     const densityNote = buildDensityNote(counts);
 
@@ -199,14 +199,12 @@ function buildPromptGuidance(candidate: RefactorCandidate): ReadonlyArray<string
     }
 
     if (counts.lineCount !== null && counts.maxLines !== null) {
-        guidance.push(
-            `-   The file contains excessive lines of code (${counts.lineCount} lines), exceeding the ${counts.maxLines}-line guideline.`,
-        );
+        guidance.push(`-   The file contains excessive lines of code (${counts.lineCount} lines)`);
     }
 
     if (counts.entityCount !== null && counts.maxEntities !== null) {
         guidance.push(
-            `-   The file defines too many top-level entities (${counts.entityCount} vs ${counts.maxEntities} allowed), increasing cognitive load.`,
+            `-   The file defines too many top-level entities (${counts.entityCount}), increasing cognitive load.`,
         );
     }
 
@@ -215,8 +213,10 @@ function buildPromptGuidance(candidate: RefactorCandidate): ReadonlyArray<string
         '-   Keep in mind that the purpose of this refactoring is to improve code maintainability and readability.',
         '-   Consider breaking down large functions into smaller, more manageable ones, removing any redundant code, and ensuring that the file adheres to the project coding standards.',
         '-   Keep in mind DRY (Do not repeat yourself) and SOLID principles while refactoring.',
-        '-   DO NOT change the external behavior of the code. Focus solely on improving the internal structure and organization of the code.',
+        '-   After the refactoring, ensure that `npm run test-name-discrepancies` and `npm run test-package-generation` are passing successfully.',
+        '-   **DO NOT change the external behavior** of the code. Focus solely on improving the internal structure and organization of the code.',
     );
+    // <- TODO: Leverage `spaceTrim` here
 
     return guidance;
 }
@@ -224,9 +224,7 @@ function buildPromptGuidance(candidate: RefactorCandidate): ReadonlyArray<string
 /**
  * Extracts line and entity counts from refactor reasons.
  */
-function extractReasonCounts(
-    reasons: ReadonlyArray<string>,
-): {
+function extractReasonCounts(reasons: ReadonlyArray<string>): {
     readonly lineCount: number | null;
     readonly maxLines: number | null;
     readonly entityCount: number | null;
