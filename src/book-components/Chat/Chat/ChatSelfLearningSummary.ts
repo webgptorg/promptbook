@@ -1,9 +1,9 @@
 import moment from 'moment';
-import { countLines } from '../../../utils/expectation-counters/countLines';
 import type { SelfLearningToolCallResult } from '../../../types/ToolCall';
+import { countLines } from '../../../utils/expectation-counters/countLines';
 import type { TODO_any } from '../../../utils/organization/TODO_any';
-import { getToolCallTimestamp } from '../utils/toolCallParsing';
 import type { ChatMessage } from '../types/ChatMessage';
+import { getToolCallTimestamp } from '../utils/toolCallParsing';
 
 /**
  * Resolved summary data for self-learning tool calls.
@@ -63,8 +63,7 @@ export function buildSelfLearningSummary(
     const totalCommitments = typeof totalCommitmentsRaw === 'number' ? Math.max(totalCommitmentsRaw, 0) : 0;
     const hasTeacherCommitments = totalCommitments > 0 || commitmentLines.length > 0;
     const samplesAdded = typeof typedResult?.samplesAdded === 'number' ? Math.max(typedResult.samplesAdded, 0) : null;
-    const samplesLabel =
-        samplesAdded && samplesAdded > 0 ? `${formatCountLabel(samplesAdded, 'example')} saved` : null;
+    const samplesLabel = samplesAdded && samplesAdded > 0 ? `${formatCountLabel(samplesAdded, 'example')} saved` : null;
 
     return {
         commitments: commitmentLines,
@@ -75,3 +74,7 @@ export function buildSelfLearningSummary(
         updatedLabel,
     };
 }
+
+/**
+ * Note: [💞] Ignore a discrepancy between file name and entity name, BUT maybe rename to `buildSelfLearningSummary`
+ */

@@ -86,3 +86,7 @@ export function SelfLearningAvatar({
         </div>
     );
 }
+
+/**
+ * Note: [💞] Ignore a discrepancy between file name and entity name, BUT maybe split to multiple files
+ */
