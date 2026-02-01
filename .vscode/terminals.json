@@ -211,14 +211,14 @@
             "focus": true
         },
         {
-            "name": "🏭� Generate packages",
+            "name": "🏭📦 Generate packages",
             "command": "npx ts-node ./scripts/generate-packages/generate-packages.ts --skip-bundler",
             "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
-            "name": "🏭�📚 Generate documentation",
+            "name": "🏭📦📚 Generate documentation",
             "commands": ["npx ts-node ./scripts/generate-documentation/generate-documentation.ts"],
             "execute": true,
             "onlySingle": true,
@@ -265,7 +265,7 @@
             "focus": true
         },
         {
-            "name": "🏭✨ Find refactor candidates",
+            "name": "🏭⚡✨ Find refactor candidates for Coding Agent",
             "command": "npx ts-node ./scripts/find-refactor-candidates/find-refactor-candidates.ts",
             "execute": true,
             "onlySingle": true,
