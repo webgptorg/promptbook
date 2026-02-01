@@ -16,22 +16,22 @@ import {
 } from '@dnd-kit/core';
 import { SortableContext, rectSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { string_url } from '@promptbook-local/types';
+import { TODO_any, string_url } from '@promptbook-local/types';
 import { ArrowUp, FolderPlusIcon, Grid, Network, TrashIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState, type CSSProperties, type MouseEvent } from 'react';
 import type { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
 import { AddAgentButton } from '../../app/AddAgentButton';
-import { AgentContextMenuPopover, type AgentContextMenuRenamePayload } from '../AgentContextMenu/AgentContextMenu';
-import { QrCodeModal } from '../AgentProfile/QrCodeModal';
-import { useAgentBackground } from '../AgentProfile/useAgentBackground';
-import { showAlert, showConfirm, showPrompt } from '../AsyncDialogs/asyncDialogs';
 import type {
     AgentOrganizationAgent,
     AgentOrganizationFolder,
     AgentOrganizationUpdatePayload,
 } from '../../utils/agentOrganization/types';
+import { AgentContextMenuPopover, type AgentContextMenuRenamePayload } from '../AgentContextMenu/AgentContextMenu';
+import { QrCodeModal } from '../AgentProfile/QrCodeModal';
+import { useAgentBackground } from '../AgentProfile/useAgentBackground';
+import { showAlert, showConfirm, showPrompt } from '../AsyncDialogs/asyncDialogs';
 import { AgentCard } from './AgentCard';
 import { AgentsGraph } from './AgentsGraph';
 import { FileCard } from './FileCard';
@@ -353,8 +353,8 @@ function SortableFolderCard({
         isInsideTarget || isDropTarget
             ? 'ring-2 ring-emerald-400 ring-offset-2 ring-offset-white bg-emerald-50/40'
             : isReorderTarget
-              ? 'ring-2 ring-blue-400 ring-offset-2 ring-offset-white'
-              : '';
+            ? 'ring-2 ring-blue-400 ring-offset-2 ring-offset-white'
+            : '';
 
     return (
         <div
@@ -411,7 +411,9 @@ function BreadcrumbDropTarget({ label, folderId, onClick, canOrganize }: Breadcr
             type="button"
             ref={setNodeRef}
             onClick={onClick}
-            className={`transition-colors ${isOver && canOrganize ? 'text-blue-700 bg-blue-50/70 rounded px-1 -mx-1' : 'hover:text-blue-600'}`}
+            className={`transition-colors ${
+                isOver && canOrganize ? 'text-blue-700 bg-blue-50/70 rounded px-1 -mx-1' : 'hover:text-blue-600'
+            }`}
         >
             {label}
         </button>
@@ -448,12 +450,7 @@ function ParentFolderCard({ label, folderId, onOpen, canOrganize }: ParentFolder
     const isDropTarget = isOver && canOrganize;
 
     return (
-        <button
-            type="button"
-            ref={setNodeRef}
-            onClick={onOpen}
-            className="block h-full w-full text-left"
-        >
+        <button type="button" ref={setNodeRef} onClick={onOpen} className="block h-full w-full text-left">
             <FileCard
                 className={`flex h-full items-center gap-3 border-blue-200 bg-blue-50/60 hover:border-blue-300 ${
                     isDropTarget ? 'ring-2 ring-blue-400 ring-offset-2 ring-offset-white' : ''
@@ -556,8 +553,14 @@ type AgentsListProps = {
  * Renders the agents list with folder navigation and graph view toggles.
  */
 export function AgentsList(props: AgentsListProps) {
-    const { agents: initialAgents, folders: initialFolders, isAdmin, canOrganize, publicUrl, showFederatedAgents } =
-        props;
+    const {
+        agents: initialAgents,
+        folders: initialFolders,
+        isAdmin,
+        canOrganize,
+        publicUrl,
+        showFederatedAgents,
+    } = props;
     const router = useRouter();
     const searchParams = useSearchParams();
     const [agents, setAgents] = useState<AgentOrganizationAgent[]>(Array.from(initialAgents));
@@ -571,10 +574,7 @@ export function AgentsList(props: AgentsListProps) {
     const [contextMenuState, setContextMenuState] = useState<AgentContextMenuState | null>(null);
     const [qrCodeAgent, setQrCodeAgent] = useState<AgentOrganizationAgent | null>(null);
 
-    const normalizedPublicUrl = useMemo(
-        () => (publicUrl.endsWith('/') ? publicUrl : `${publicUrl}/`),
-        [publicUrl],
-    );
+    const normalizedPublicUrl = useMemo(() => (publicUrl.endsWith('/') ? publicUrl : `${publicUrl}/`), [publicUrl]);
     const publicUrlHost = useMemo(() => {
         try {
             return new URL(normalizedPublicUrl).hostname;
@@ -1292,13 +1292,10 @@ export function AgentsList(props: AgentsListProps) {
      * @param event - Mouse event that triggered the context menu.
      * @param agent - Agent to show in the context menu.
      */
-    const handleAgentContextMenu = useCallback(
-        (event: MouseEvent<HTMLDivElement>, agent: AgentOrganizationAgent) => {
-            event.preventDefault();
-            setContextMenuState({ agent, anchorPoint: { x: event.clientX, y: event.clientY } });
-        },
-        [],
-    );
+    const handleAgentContextMenu = useCallback((event: MouseEvent<HTMLDivElement>, agent: AgentOrganizationAgent) => {
+        event.preventDefault();
+        setContextMenuState({ agent, anchorPoint: { x: event.clientX, y: event.clientY } });
+    }, []);
 
     /**
      * Closes the agent context menu.
@@ -1372,7 +1369,7 @@ export function AgentsList(props: AgentsListProps) {
             return;
         }
         const activeRect = event.active.rect.current.translated || event.active.rect.current.initial;
-        const intent = getDropIntentFromRects(activeRect, event.over.rect);
+        const intent = getDropIntentFromRects(activeRect as TODO_any, event.over.rect as TODO_any);
         setDropIndicator({ id: event.over.id, intent });
     };
 
@@ -1421,8 +1418,7 @@ export function AgentsList(props: AgentsListProps) {
                     if (Number.isNaN(targetFolderId) || draggedFolderId === targetFolderId) {
                         return;
                     }
-                    const isInsideDrop =
-                        currentIndicator?.id === event.over.id && currentIndicator.intent === 'inside';
+                    const isInsideDrop = currentIndicator?.id === event.over.id && currentIndicator.intent === 'inside';
                     if (isInsideDrop) {
                         await moveFolderToParent(draggedFolderId, targetFolderId);
                         return;

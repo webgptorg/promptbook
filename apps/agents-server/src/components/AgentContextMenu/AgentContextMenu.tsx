@@ -21,8 +21,8 @@ import { Barlow_Condensed } from 'next/font/google';
 import type { CSSProperties, RefObject } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { just } from '../../../../../src/utils/organization/just';
-import { deleteAgent } from '../../app/recycle-bin/actions';
 import { getAgentLinks } from '../../app/agents/[agentName]/agentLinks';
+import { deleteAgent } from '../../app/recycle-bin/actions';
 import { showAlert, showConfirm, showPrompt } from '../AsyncDialogs/asyncDialogs';
 
 type BeforeInstallPromptEvent = Event & {
@@ -194,11 +194,7 @@ function useInstallPromptState() {
  * @param onClose - Callback to close the menu.
  * @param isActive - Whether the listener should be active.
  */
-function useCloseOnOutsideClick(
-    ref: RefObject<HTMLElement>,
-    onClose: () => void,
-    isActive: boolean,
-) {
+function useCloseOnOutsideClick(ref: RefObject<HTMLElement | null>, onClose: () => void, isActive: boolean) {
     useEffect(() => {
         if (!isActive) {
             return;
@@ -231,7 +227,7 @@ function useCloseOnOutsideClick(
 function useClampedMenuPosition(
     anchorPoint: { x: number; y: number } | null,
     isOpen: boolean,
-    menuRef: RefObject<HTMLDivElement>,
+    menuRef: RefObject<HTMLDivElement | null>,
 ) {
     const [position, setPosition] = useState<{ x: number; y: number } | null>(null);
 
@@ -591,7 +587,7 @@ function AgentContextMenuContent(props: AgentContextMenuBaseProps & { onClose: (
  */
 export function AgentContextMenuButton(props: AgentContextMenuButtonProps) {
     const [isOpen, setIsOpen] = useState(false);
-    const menuRef = useRef<HTMLDivElement>(null);
+    const menuRef = useRef<HTMLDivElement | null>(null);
     const { installPromptEvent, isInstalled, handleInstallApp } = useInstallPromptState();
 
     /**
