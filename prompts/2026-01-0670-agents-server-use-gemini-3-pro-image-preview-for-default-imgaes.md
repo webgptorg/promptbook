@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨𓀂] Use model `gemini-3-pro-image-preview` for the agent of Avatar Images.
 
