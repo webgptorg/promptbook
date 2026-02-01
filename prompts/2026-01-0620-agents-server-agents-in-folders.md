@@ -115,12 +115,34 @@
 
 ---
 
-[-]
+[ ]
 
-[✨🦢] baz
+[✨🦢] Enhance the graphics of the Agent item on the home page in the list folder view.
 
+-   Now the items look very basic. Enhance the graphics to look more professional and beautiful.
+-   Take inspiration from the old version of the Agents Server, just keep the items smaller as it is now.
+-   Use the colors of the agent in the item background
+-   Agent shouldn't be solid color, but similar to the agent profile page _(for example `http://localhost:4440/agents/7ZEA1J4MuyeFLG`)_
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server) with the Agents on the home page `/` on List view
+
+![alt text](prompts/screenshots/2026-01-0620-agents-server-agents-in-folders-4.png)
+![Inspiration](prompts/screenshots/2026-01-0620-agents-server-agents-in-folders-5.png)
+
+---
+
+[ ]
+
+[✨🦢] Fix the design of the federated agent item on the home page in the list folder view.
+
+-   Federated agents should look and feel the same as the local agents.
+-   Fix the agent image - Image of federated agent should work either if its set by `META IMAGE` or if its default generated image.
+-   The agent item should look the same in local and in federated agents.
+-   You just cannot them organize in the folders and/or reorder them.
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   You are working with the [Agents Server](apps/agents-server) with the Agents on the home page `/` on List view
+
+![alt text](prompts/screenshots/2026-01-0620-agents-server-agents-in-folders-6.png)
 
 ---
 
@@ -139,18 +161,3 @@
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server) with the Agents on the home page `/` on List view
-
----
-
-[-]
-
-[✨🦢] baz
-
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   You are working with the [Agents Server](apps/agents-server) with the Agents on the home page `/` on List view
-
-
-
-
-
-
