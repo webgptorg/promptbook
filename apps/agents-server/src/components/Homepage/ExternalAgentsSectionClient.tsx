@@ -181,7 +181,13 @@ export function ExternalAgentsSectionClient(props: ExternalAgentsSectionClientPr
                     return (
                         <Section key={serverUrl} title={`Agents from ${hostname} (${state.agents.length})`}>
                             {state.agents.map((agent) => (
-                                <AgentCard key={agent.url} agent={agent} href={agent.url} publicUrl={publicUrl} />
+                                <AgentCard
+                                    key={agent.url}
+                                    agent={agent}
+                                    href={agent.url}
+                                    publicUrl={publicUrl}
+                                    serverUrl={serverUrl}
+                                />
                             ))}
                         </Section>
                     );

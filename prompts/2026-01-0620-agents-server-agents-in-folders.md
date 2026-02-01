@@ -131,7 +131,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🦢] Fix the design of the federated agent item on the home page in the list folder view.
 

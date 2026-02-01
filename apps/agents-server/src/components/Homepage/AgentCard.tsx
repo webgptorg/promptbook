@@ -59,6 +59,11 @@ type AgentCardProps = {
      * The current visibility status of the agent
      */
     readonly visibility?: 'PUBLIC' | 'PRIVATE';
+
+    /**
+     * The URL of the server where the agent is hosted
+     */
+    readonly serverUrl?: string_url;
 };
 
 /**
@@ -74,10 +79,11 @@ export function AgentCard({
     onToggleVisibility,
     onRestore,
     visibility,
+    serverUrl,
 }: AgentCardProps) {
     const { meta, agentName } = agent;
     const fullname = (meta.fullname as string) || agentName || 'Agent';
-    const imageUrl = meta.image || generatePlaceholderAgentProfileImageUrl(agentName, publicUrl);
+    const imageUrl = meta.image || generatePlaceholderAgentProfileImageUrl(agentName, serverUrl || publicUrl);
     const personaDescription = agent.personaDescription || '';
 
     const { brandColorLightHex, brandColorDarkHex, backgroundImage } = useAgentBackground(meta.color);

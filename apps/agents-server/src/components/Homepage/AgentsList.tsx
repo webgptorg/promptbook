@@ -547,6 +547,11 @@ type AgentsListProps = {
      * Note: [??] Using `string_url`, not `URL` object because we are passing prop from server to client.
      */
     readonly publicUrl: string_url;
+
+    /**
+     * Optional external agents to display in the list view (used for federated agents)
+     */
+    readonly externalAgents?: AgentWithVisibility[];
 };
 
 /**
@@ -560,12 +565,15 @@ export function AgentsList(props: AgentsListProps) {
         canOrganize,
         publicUrl,
         showFederatedAgents,
+        externalAgents: initialExternalAgents,
     } = props;
     const router = useRouter();
     const searchParams = useSearchParams();
     const [agents, setAgents] = useState<AgentOrganizationAgent[]>(Array.from(initialAgents));
     const [folders, setFolders] = useState<AgentOrganizationFolder[]>(Array.from(initialFolders));
-    const [federatedAgents, setFederatedAgents] = useState<AgentWithVisibility[]>([]);
+    const [federatedAgents, setFederatedAgents] = useState<AgentWithVisibility[]>(
+        initialExternalAgents || [],
+    );
     const [federatedServersStatus, setFederatedServersStatus] = useState<
         Record<string, { status: 'loading' | 'success' | 'error'; error?: string }>
     >({});
@@ -673,7 +681,7 @@ export function AgentsList(props: AgentsListProps) {
     );
 
     useEffect(() => {
-        if (!showFederatedAgentsInGraph) {
+        if (!showFederatedAgents) {
             setFederatedAgents([]);
             setFederatedServersStatus({});
             return;
@@ -1593,6 +1601,18 @@ export function AgentsList(props: AgentsListProps) {
                                 />
                             ))}
                         </SortableContext>
+                        {currentFolderId === null &&
+                            federatedAgents.map((agent) => (
+                                <AgentCard
+                                    key={agent.permanentId || agent.agentName}
+                                    agent={agent}
+                                    publicUrl={publicUrl}
+                                    serverUrl={agent.serverUrl}
+                                    href={`/agents/${encodeURIComponent(
+                                        agent.permanentId || agent.agentName,
+                                    )}`}
+                                />
+                            ))}
                         {isAdmin && <AddAgentButton currentFolderId={currentFolderId} />}
                         {canOrganize && (
                             <Link
