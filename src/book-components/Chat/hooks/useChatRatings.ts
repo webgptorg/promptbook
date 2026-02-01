@@ -5,7 +5,7 @@ import type { ChatMessage } from '../types/ChatMessage';
 
 /**
  * Input parameters for the chat rating hook.
- * 
+ *
  * @private component of `<Chat/>`
  */
 export type UseChatRatingsOptions = {
@@ -32,7 +32,7 @@ export type UseChatRatingsOptions = {
 
 /**
  * Rating state tracked for the chat UI.
- * 
+ *
  * @private component of `<Chat/>`
  */
 export type ChatRatingsState = {
@@ -47,7 +47,7 @@ export type ChatRatingsState = {
 
 /**
  * Rating actions for the chat UI.
- * 
+ *
  * @private component of `<Chat/>`
  */
 export type ChatRatingsActions = {
@@ -63,10 +63,13 @@ export type ChatRatingsActions = {
 
 /**
  * Hook that centralizes rating state and handlers for Chat.
- * 
+ *
  * @private component of `<Chat/>`
  */
-export function useChatRatings(options: UseChatRatingsOptions): { state: ChatRatingsState; actions: ChatRatingsActions } {
+export function useChatRatings(options: UseChatRatingsOptions): {
+    state: ChatRatingsState;
+    actions: ChatRatingsActions;
+} {
     const { messages, onFeedback, isMobile } = options;
     const [ratingModalOpen, setRatingModalOpen] = useState(false);
     const [selectedMessage, setSelectedMessage] = useState<ChatMessage | null>(null);

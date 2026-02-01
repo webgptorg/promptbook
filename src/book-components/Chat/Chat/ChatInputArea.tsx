@@ -31,7 +31,7 @@ import styles from './Chat.module.css';
 
 /**
  * Wrapper for consistent button-click sound handling.
- * 
+ *
  * @private component of `<Chat/>`
  */
 export type ChatInputButtonClickHandler = (
@@ -40,7 +40,7 @@ export type ChatInputButtonClickHandler = (
 
 /**
  * Internal representation of an uploaded file in the chat input.
- * 
+ *
  * @private component of `<Chat/>`
  */
 export type ChatInputUploadedFile = {
@@ -51,7 +51,7 @@ export type ChatInputUploadedFile = {
 
 /**
  * Props for the chat input area.
- * 
+ *
  * @private component of `<Chat/>`
  */
 export type ChatInputAreaProps = {
@@ -73,7 +73,7 @@ export type ChatInputAreaProps = {
 
 /**
  * Renders the chat input area with text, file upload, and voice controls.
- * 
+ *
  * @private component of `<Chat/>`
  */
 export function ChatInputArea(props: ChatInputAreaProps) {
@@ -418,9 +418,7 @@ export function ChatInputArea(props: ChatInputAreaProps) {
                 {speechRecognition && (
                     <button
                         data-button-type="voice"
-                        disabled={
-                            speechRecognitionState === 'STARTING' || speechRecognitionState === 'TRANSCRIBING'
-                        }
+                        disabled={speechRecognitionState === 'STARTING' || speechRecognitionState === 'TRANSCRIBING'}
                         style={{
                             backgroundColor:
                                 speechRecognitionState === 'RECORDING' || speechRecognitionState === 'TRANSCRIBING'

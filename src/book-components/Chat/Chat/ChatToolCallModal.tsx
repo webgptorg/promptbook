@@ -34,7 +34,7 @@ import { SelfLearningAvatar, TeamHeaderProfile } from './ChatToolCallModalCompon
 
 /**
  * Props for the tool call details modal.
- * 
+ *
  * @private component of `<Chat/>`
  */
 export type ChatToolCallModalProps = {
@@ -48,7 +48,7 @@ export type ChatToolCallModalProps = {
 
 /**
  * Modal that renders rich tool call details for chat chiplets.
- * 
+ *
  * @private component of `<Chat/>`
  */
 export function ChatToolCallModal(props: ChatToolCallModalProps) {
@@ -337,7 +337,9 @@ export function ChatToolCallModal(props: ChatToolCallModalProps) {
                                                 item.title || 'Untitled'
                                             )}
                                         </h4>
-                                        <p className={styles.searchResultSnippet}>{item.snippet || item.content || ''}</p>
+                                        <p className={styles.searchResultSnippet}>
+                                            {item.snippet || item.content || ''}
+                                        </p>
                                     </div>
                                 ))}
                             </div>
@@ -423,7 +425,8 @@ export function ChatToolCallModal(props: ChatToolCallModalProps) {
             const body = args.body || '';
             const recipients = Array.isArray(to) ? to : [to];
             const ccRecipients = Array.isArray(cc) ? cc : [];
-            const emailResult = resultRaw && typeof resultRaw === 'object' ? (resultRaw as Record<string, TODO_any>) : null;
+            const emailResult =
+                resultRaw && typeof resultRaw === 'object' ? (resultRaw as Record<string, TODO_any>) : null;
             const from =
                 (emailResult?.from as string | undefined) ||
                 (emailResult?.sender as string | undefined) ||
@@ -490,7 +493,9 @@ export function ChatToolCallModal(props: ChatToolCallModalProps) {
                             </p>
                             <div className={styles.toolCallDataContainer}>
                                 <pre className={styles.toolCallData}>
-                                    {typeof resultRaw === 'object' ? JSON.stringify(resultRaw, null, 2) : String(resultRaw)}
+                                    {typeof resultRaw === 'object'
+                                        ? JSON.stringify(resultRaw, null, 2)
+                                        : String(resultRaw)}
                                 </pre>
                             </div>
                         </div>
@@ -511,7 +516,8 @@ export function ChatToolCallModal(props: ChatToolCallModalProps) {
                             <ul className={styles.toolCallArgsList}>
                                 {Object.entries(args).map(([key, value]) => (
                                     <li key={key}>
-                                        <strong>{key}:</strong> {typeof value === 'object' ? JSON.stringify(value) : String(value)}
+                                        <strong>{key}:</strong>{' '}
+                                        {typeof value === 'object' ? JSON.stringify(value) : String(value)}
                                     </li>
                                 ))}
                             </ul>

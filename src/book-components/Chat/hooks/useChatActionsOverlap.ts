@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState, type MutableRefObject, type U
 
 /**
  * Configuration for tracking action button overlap and scroll state.
- * 
+ *
  * @private component of `<Chat/>`
  */
 export type ChatActionsOverlapConfig = {
@@ -52,7 +52,7 @@ export type ChatActionsOverlapResult = {
 
 /**
  * Checks whether the chat action buttons overlap the first visible message.
- * 
+ *
  * @private component of `<Chat/>`
  */
 function isActionsOverlappingFirstVisibleMessage(
@@ -94,7 +94,7 @@ function isActionsOverlappingFirstVisibleMessage(
 
 /**
  * Tracks action toolbar overlap while coordinating with chat auto-scroll.
- * 
+ *
  * @private component of `<Chat/>`
  */
 export function useChatActionsOverlap(config: ChatActionsOverlapConfig): ChatActionsOverlapResult {

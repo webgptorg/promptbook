@@ -98,7 +98,11 @@ function createLinguisticHashWordSequence(hash: string, wordLists: LinguisticHas
  *
  * @private utility of `linguisticHash`
  */
-export function createLinguisticHashWords(hash: string, wordCount: number, wordLists: LinguisticHashWordLists): string[] {
+export function createLinguisticHashWords(
+    hash: string,
+    wordCount: number,
+    wordLists: LinguisticHashWordLists,
+): string[] {
     const words = createLinguisticHashWordSequence(hash, wordLists);
 
     if (wordCount === 1) {

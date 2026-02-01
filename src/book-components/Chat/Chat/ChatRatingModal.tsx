@@ -7,7 +7,7 @@ import styles from './Chat.module.css';
 
 /**
  * Props for the rating modal used in Chat.
- * 
+ *
  * @private component of `<Chat/>`
  */
 export type ChatRatingModalProps = {
@@ -30,7 +30,7 @@ export type ChatRatingModalProps = {
 
 /**
  * Modal that captures per-message rating feedback.
- * 
+ *
  * @private component of `<Chat/>`
  */
 export function ChatRatingModal(props: ChatRatingModalProps) {
@@ -93,10 +93,7 @@ export function ChatRatingModal(props: ChatRatingModalProps) {
                             onClick={() =>
                                 setMessageRatings((previousRatings) => {
                                     const nextRatings = new Map(previousRatings);
-                                    nextRatings.set(
-                                        selectedMessage.id || selectedMessage.content /* <-[??] */,
-                                        star,
-                                    );
+                                    nextRatings.set(selectedMessage.id || selectedMessage.content /* <-[??] */, star);
                                     return nextRatings;
                                 })
                             }
