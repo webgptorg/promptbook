@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨📮] Fix the width of the message in the chat.
 

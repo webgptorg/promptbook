@@ -385,3 +385,4 @@
     -   A "Self learning" chip is displayed during the learning phase, similar to tool usage chips.
     -   This enhances user experience by eliminating the wait time for self-learning completion.
 -   Enhanced codebase by using explicit types instead of type inference across multiple files in `src/`, `apps/`, and `scripts/` directories to improve readability and maintainability.
+-   Fix width of the message in the chat by adding a minimum width and improving layout for short messages.

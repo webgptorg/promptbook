@@ -3,6 +3,7 @@
 import { book } from '@promptbook-local/core';
 import { useEffect, useMemo, useState } from 'react';
 import { Chat } from '../../../../../src/book-components/Chat/Chat/Chat';
+import { $getCurrentDate } from '../../../../../src/utils/misc/$getCurrentDate';
 import type { ChatMessage } from '../../../../../src/book-components/Chat/types/ChatMessage';
 import type { ChatParticipant } from '../../../../../src/book-components/Chat/types/ChatParticipant';
 import {
@@ -16,6 +17,7 @@ import {
     multiParticipantScenario,
     richFormattingScenario,
     simpleScenario,
+    shortMessagesScenario,
 } from './scenarios';
 
 export default function ChatPreview() {
@@ -69,6 +71,7 @@ export default function ChatPreview() {
             chatWithChildren: chatWithChildrenScenario,
             chatWithFeedback: chatWithFeedbackScenario,
             richFormatting: richFormattingScenario,
+            shortMessages: shortMessagesScenario,
         }),
         [],
     );
@@ -103,7 +106,7 @@ export default function ChatPreview() {
         const userMessage: ChatMessage = {
             // channel: 'PROMPTBOOK_CHAT',
             id: Date.now().toString(),
-            createdAt: new Date(),
+            createdAt: $getCurrentDate(),
             sender: 'USER',
             content,
             isComplete: true,
@@ -123,7 +126,7 @@ export default function ChatPreview() {
             const assistantMessage: ChatMessage = {
                 // channel: 'PROMPTBOOK_CHAT',
                 id: (Date.now() + 1).toString(),
-                createdAt: new Date(),
+                createdAt: $getCurrentDate(),
                 sender: 'ASSISTANT_1',
                 content: responses[Math.floor(Math.random() * responses.length)],
                 isComplete: true,
@@ -171,6 +174,7 @@ export default function ChatPreview() {
                 onReset={handleReset}
                 isFocusedOnLoad={false}
                 isSaveButtonEnabled={true}
+                visual="STANDALONE"
                 {...(scenario === 'chatWithChildren'
                     ? {
                           children: (
