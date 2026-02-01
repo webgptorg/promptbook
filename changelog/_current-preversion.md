@@ -13,6 +13,7 @@
 -   Leveraged `spaceTrim` across the repository for better readability and maintainability of multiline strings and string joins.
 -   Simplified the Agents Server home page to focus on agents, moved the previous dashboard to `/dashboard`, and linked it from the System menu.
 -   Made Agents Server home list cards more compact and file-like, including smaller capability chips.
+-   Enhanced Agents Server home agent cards with dynamic, color-based backgrounds and subtle noise effects for a more professional look.
 -   Improved Agents Server list drag-and-drop with live reordering, drag overlays, and clearer drop targets for agents and folders.
 -   Added a parent folder card in Agents Server list view to quickly navigate up and drag agents or folders to the parent.
 -   Created new agents inside the active folder when adding from a subfolder view in the Agents Server home list.

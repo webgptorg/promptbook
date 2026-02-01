@@ -80,15 +80,24 @@ export function AgentCard({
     const imageUrl = meta.image || generatePlaceholderAgentProfileImageUrl(agentName, publicUrl);
     const personaDescription = agent.personaDescription || '';
 
-    const { brandColorLightHex, brandColorDarkHex } = useAgentBackground(meta.color);
+    const { brandColorLightHex, brandColorDarkHex, backgroundImage } = useAgentBackground(meta.color);
 
     return (
         <div className="relative h-full group">
             <Link href={href} className="block h-full">
-                <FileCard className="flex h-full items-start gap-3">
+                <FileCard
+                    className="flex h-full items-start gap-3 relative overflow-hidden"
+                    style={{
+                        background: `url("${backgroundImage}")`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                    }}
+                >
+                    <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px] pointer-events-none" />
+
                     <div
-                        className="mt-0.5 h-12 w-12 rounded-md overflow-hidden flex-shrink-0 bg-white border"
-                        style={{ borderColor: brandColorLightHex }}
+                        className="relative z-10 mt-0.5 h-12 w-12 rounded-lg overflow-hidden flex-shrink-0 bg-white shadow-sm border"
+                        style={{ borderColor: `${brandColorLightHex}80` }}
                     >
                         {imageUrl ? (
                             // eslint-disable-next-line @next/next/no-img-element
@@ -102,12 +111,12 @@ export function AgentCard({
                             </div>
                         )}
                     </div>
-                    <div className="min-w-0 flex-1">
-                        <h3 className="text-sm font-semibold text-gray-900 truncate" title={fullname}>
+                    <div className="relative z-10 min-w-0 flex-1">
+                        <h3 className="text-sm font-bold text-gray-900 truncate" title={fullname}>
                             {fullname}
                         </h3>
                         {personaDescription && (
-                            <p className="text-xs text-gray-600 line-clamp-2 leading-snug mt-1">
+                            <p className="text-xs text-gray-800 line-clamp-2 leading-snug mt-1 font-medium">
                                 {personaDescription}
                             </p>
                         )}

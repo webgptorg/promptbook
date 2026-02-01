@@ -115,7 +115,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🦢] Enhance the graphics of the Agent item on the home page in the list folder view.
 
