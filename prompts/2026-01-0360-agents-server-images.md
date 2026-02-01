@@ -1,13 +1,15 @@
-[x] ~$0.00
+[ ]
 
 [✨👒] Add actions to image gallery
 
--   Allow to copy image prompts by clicking
+-   Allow to copy image prompts by clicking on [copy prompt] button.
 -   Allow to See other parameters like what model generated the image, the other technical parameters.
--   Do not allow to delete images.
+-   Kepp that you are not allow to delete images.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server) on /admin/images page
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+![alt text](prompts/screenshots/2026-01-0360-agents-server-images.png)
 
 ---
 
@@ -40,4 +42,3 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
