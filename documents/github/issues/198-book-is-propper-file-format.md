@@ -1,6 +1,6 @@
 <!--⚠️ WARNING: This code has been generated so that any manual changes will be overwritten-->
 
-# `.book` is proper file format
+# `.book` is propper file format
 
 -   Author: [hejny](https://github.com/hejny)
 -   Created at: 1/31/2025, 1:36:05 PM
