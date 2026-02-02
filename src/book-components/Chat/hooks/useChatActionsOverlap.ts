@@ -119,9 +119,14 @@ export function useChatActionsOverlap(config: ChatActionsOverlapConfig): ChatAct
                 chatMessagesElementRef.current,
                 messageSelector,
             );
-            setIsActionsOverlapping(isOverlapping);
+
+            if (isOverlapping) {
+                setIsActionsOverlapping(true);
+            } else if (!isActionsScrolling) {
+                setIsActionsOverlapping(false);
+            }
         });
-    }, [messageSelector]);
+    }, [messageSelector, isActionsScrolling]);
 
     const setChatMessagesElement = useCallback(
         (element: HTMLDivElement | null) => {
@@ -136,17 +141,28 @@ export function useChatActionsOverlap(config: ChatActionsOverlapConfig): ChatAct
         (event: UIEvent<HTMLDivElement>) => {
             handleScroll(event);
 
-            setIsActionsScrolling(true);
             if (actionsFadeTimeoutRef.current) {
                 clearTimeout(actionsFadeTimeoutRef.current);
             }
-            actionsFadeTimeoutRef.current = setTimeout(() => {
-                setIsActionsScrolling(false);
-            }, actionsFadeDelayMs);
 
-            scheduleActionsOverlapCheck();
+            const isOverlapping = isActionsOverlappingFirstVisibleMessage(
+                actionsRef.current,
+                chatMessagesElementRef.current,
+                messageSelector,
+            );
+
+            if (isOverlapping) {
+                setIsActionsScrolling(true);
+                setIsActionsOverlapping(true);
+            } else {
+                setIsActionsScrolling(true);
+                actionsFadeTimeoutRef.current = setTimeout(() => {
+                    setIsActionsScrolling(false);
+                }, actionsFadeDelayMs);
+                setIsActionsOverlapping(false);
+            }
         },
-        [handleScroll, scheduleActionsOverlapCheck],
+        [handleScroll, messageSelector, actionsFadeDelayMs],
     );
 
     useEffect(() => {

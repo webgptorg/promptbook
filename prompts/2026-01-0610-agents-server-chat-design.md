@@ -12,7 +12,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨📮] Fix overlapping action buttons in the chat.
 
@@ -22,7 +22,6 @@
 -   You are working with the [Agents Server](apps/agents-server) with the agent chat _(for example, [here](https://my-agent-server.com/agents/FVLv8APAf2S1WV/chat))_
 
 ![alt text](prompts/screenshots/2026-01-0610-agents-server-chat-design-1.png)
-![alt text](prompts/screenshots/2026-01-0610-agents-server-chat-design-4.png)
 
 ---
 
