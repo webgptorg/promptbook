@@ -10,7 +10,7 @@ export function buildGeminiScript(options: GeminiScriptOptions): string {
 
     return spaceTrim(
         (block) => `
-            gemini -y -p <<'${delimiter}'
+            gemini -y -p "$(cat <<'${delimiter}'
 
             ${block(options.prompt)}
 
@@ -18,6 +18,7 @@ export function buildGeminiScript(options: GeminiScriptOptions): string {
             
 
             ${delimiter}
+            )"
         `,
     );
 }
