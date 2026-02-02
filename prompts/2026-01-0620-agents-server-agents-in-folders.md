@@ -150,7 +150,9 @@
 
 [✨🦢] Federated agents shouldn't be mixed into the local agents.
 
--   @@@
+-   There should be two separate sections: Local Agents and Federated Agents for each server
+-   Federated agents section is working fine
+-   Local agents section is working but listing both local and federated agents mixed together - this is wrong
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server) with the Agents on the home page `/` on List view
 

@@ -49,10 +49,14 @@ Make some look how the chips or tool chips are implemented. For example, how it 
 
 [✨📰] When creating the underlying GPT assistant of the agent, the caching is not working very well
 
--   @@@
+-   The Assistant is sometimes cached, but very often it is unnecessarily created again and again.
+-   You should use `preparedExternals` in `Agent` table - Store there the cached underlying GPT assistant id.
+-   When the agent is called, check if there is already some cached underlying GPT assistant id
+    -   If yes, check if the underlying GPT assistant with this id exists and is up-to-date with the agent requirements (hashing key)
+        -   If yes, use it
+        -   If not, create a new underlying GPT assistant, and store its id into `preparedExternals`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server) with the agent chat _(for example, [here](https://my-agent-server.com/agents/FVLv8APAf2S1WV/chat))_
--   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
 
