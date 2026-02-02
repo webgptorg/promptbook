@@ -566,6 +566,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
     public getAssistant(assistantId: string_token): OpenAiAssistantExecutionTools {
         return new OpenAiAssistantExecutionTools({
             ...this.options,
+            isCreatingNewAssistantsAllowed: false,
             assistantId,
         });
     }

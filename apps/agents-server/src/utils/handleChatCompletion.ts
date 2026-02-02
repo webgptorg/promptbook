@@ -152,7 +152,7 @@ export async function handleChatCompletion(
         const agent = new Agent({
             agentSource,
             executionTools: {
-                llm: openAiAssistantExecutionTools, // Note: Use the same OpenAI Assistant LLM tools as the chat route
+                llm: await $provideOpenAiAssistantExecutionToolsForServer(),
             },
             isVerbose: true, // or false
             teacherAgent: null, // <- TODO: [🦋] DRY place to provide the teacher

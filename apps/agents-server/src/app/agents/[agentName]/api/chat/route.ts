@@ -2,8 +2,8 @@ import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideOpenAiAssistantExecutionToolsForServer } from '@/src/tools/$provideOpenAiAssistantExecutionToolsForServer';
-import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
 import { createChatStreamHandler } from '@/src/utils/createChatStreamHandler';
+import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
 import { Agent, computeAgentHash, PROMPTBOOK_ENGINE_VERSION, RemoteAgent } from '@promptbook-local/core';
 import { computeHash, serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
@@ -55,13 +55,12 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
     try {
         const collection = await $provideAgentCollectionForServer();
         // [▶️] const executionTools = await $provideExecutionToolsForServer();
-        const openAiAssistantExecutionTools = await $provideOpenAiAssistantExecutionToolsForServer();
         const agentSource = await collection.getAgentSource(agentName);
         const agent = new Agent({
             isVerbose: true, // <- TODO: [🐱‍🚀] From environment variable
             executionTools: {
                 // [▶️] ...executionTools,
-                llm: openAiAssistantExecutionTools, // Note: Providing the OpenAI Assistant LLM tools to the Agent to be able to create its own Assistants GPTs
+                llm: await $provideOpenAiAssistantExecutionToolsForServer(), // Note: Providing the OpenAI Assistant LLM tools to the Agent to be able to create its own Assistants GPTs
             },
             agentSource,
             teacherAgent: await RemoteAgent.connect({

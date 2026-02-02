@@ -14,7 +14,7 @@ export type OpenAiAssistantExecutionToolsOptions = OpenAiCompatibleExecutionTool
          *
          * @default false
          */
-        readonly isCreatingNewAssistantsAllowed?: boolean;
+        readonly isCreatingNewAssistantsAllowed: boolean;
 
         /**
          * Which assistant to use
