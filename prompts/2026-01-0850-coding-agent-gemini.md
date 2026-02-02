@@ -1,4 +1,4 @@
-[ ] !!!!
+[x] !!!!
 
 [✨🦅] Add [Gemini CLI](https://github.com/google-gemini/gemini-cli) to the [coding agent script](./scripts/run-codex-prompts/run-codex-prompts.ts)
 

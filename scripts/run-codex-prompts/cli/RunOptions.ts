@@ -3,6 +3,6 @@
  */
 export type RunOptions = {
     waitForUser: boolean;
-    agentName: 'openai-codex' | 'cline' | 'claude-code' | 'opencode';
+    agentName: 'openai-codex' | 'cline' | 'claude-code' | 'opencode' | 'gemini';
     model?: string;
 };
