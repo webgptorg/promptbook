@@ -1,9 +1,4 @@
--   Agents graph on home page should be redesigned using vis.js / vis-network library
-    -   Keep in mind UI and UX best practices for graph visualization.
-    -   Implement interactive features such as zooming, panning, and node highlighting on hover.
-    -   Ensure the graph is responsive and works well on different screen sizes.
-    -   Keep in mind that all features of the current graph should be preserved.
--   ### 📚 Book
+### 📚 Book
 
 -   Regenerated the Agents Server Supabase subset schema for `Agent` and `AgentHistory` to stay aligned with the canonical database schema.
 -   Regenerated the Agents Server Supabase schema types from migrations, aligning ChatHistory and File table fields.

@@ -33,7 +33,7 @@ import { QrCodeModal } from '../AgentProfile/QrCodeModal';
 import { useAgentBackground } from '../AgentProfile/useAgentBackground';
 import { showAlert, showConfirm, showPrompt } from '../AsyncDialogs/asyncDialogs';
 import { AgentCard } from './AgentCard';
-import { AgentsGraph } from './AgentsGraphVis';
+import { AgentsGraph } from './AgentsGraph';
 import { FileCard } from './FileCard';
 import { FolderCard } from './FolderCard';
 import {

@@ -98,7 +98,7 @@ Try to replicate this as close as possible in the beautiful Mermaid.
 
 ---
 
-[x]
+[ ]
 
 [✨♿️] Agents graph on home page should be redesigned using vis.js / vis-network library
 
