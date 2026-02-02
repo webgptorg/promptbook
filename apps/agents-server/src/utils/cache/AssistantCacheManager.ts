@@ -98,7 +98,7 @@ export class AssistantCacheManager {
         }
 
         // Check cache
-        const cachedAssistant = await this.getCachedAssistant(cacheKey);
+        const cachedAssistant = await this.getCachedAssistant(cacheKey, baseTools);
 
         if (cachedAssistant) {
             if (this.isVerbose) {
@@ -139,10 +139,11 @@ export class AssistantCacheManager {
      * Retrieves an assistant ID from the cache
      *
      * @param cacheKey - The cache key to look up
+     * @param baseTools - Base OpenAI Assistant execution tools instance
      * @returns Assistant ID if found, null otherwise
      * @private
      */
-    private async getCachedAssistant(cacheKey: string): Promise<string | null> {
+    private async getCachedAssistant(cacheKey: string, baseTools: OpenAiAssistantExecutionTools): Promise<string | null> {
         const supabase = $provideSupabaseForServer();
 
         const { data, error } = await supabase
@@ -156,7 +157,21 @@ export class AssistantCacheManager {
             return null;
         }
 
-        return data?.assistantId || null;
+        const assistantId = data?.assistantId;
+
+        if (!assistantId) {
+            return null;
+        }
+
+        try {
+            const client = await baseTools.getClient();
+            await client.beta.assistants.retrieve(assistantId);
+            return assistantId;
+        } catch (error) {
+            console.warn(`[AssistantCacheManager] Cached assistant ${assistantId} not found on OpenAI, invalidating cache.`);
+            await this.invalidateCache(cacheKey);
+            return null;
+        }
     }
 
     /**
