@@ -1,7 +1,9 @@
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
 import type { ExecutionTools } from '../../execution/ExecutionTools';
+import type { PreparedExternals } from '../../types/PreparedExternals';
 import type { Updatable } from '../../types/Updatable';
+
 import { Agent } from './Agent';
 
 /**
@@ -26,4 +28,15 @@ export type AgentOptions = CommonToolsOptions & {
      * Note: If provided, the agent can do full self-learning from the teacher agent during its operation.
      */
     teacherAgent: Agent | null;
+
+    /**
+     * Callback for updating prepared externals.
+     * This is called when a new external resource (like OpenAI Assistant) is created.
+     */
+    onPreparedExternalsUpdate?: (preparedExternals: PreparedExternals) => void;
+
+    /**
+     * Initial prepared externals (if any) to use for caching.
+     */
+    preparedExternals?: PreparedExternals;
 };

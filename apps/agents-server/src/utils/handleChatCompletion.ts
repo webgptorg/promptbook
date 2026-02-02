@@ -3,9 +3,10 @@ import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForSer
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideOpenAiAssistantExecutionToolsForServer } from '@/src/tools/$provideOpenAiAssistantExecutionToolsForServer';
 import { createChatStreamHandler } from '@/src/utils/createChatStreamHandler';
-import { Agent, computeAgentHash, PROMPTBOOK_ENGINE_VERSION } from '@promptbook-local/core';
-import { ChatMessage, Prompt, string_book, TODO_any } from '@promptbook-local/types';
+import { Agent, computeAgentHash, PROMPTBOOK_ENGINE_VERSION, AgentCollectionInSupabase } from '@promptbook-local/core';
+import { ChatMessage, Prompt, string_agent_permanent_id, string_book, TODO_any } from '@promptbook-local/types';
 import { $getCurrentDate, computeHash } from '@promptbook-local/utils';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { isAgentDeleted } from '../app/agents/[agentName]/_utils';
 import { HTTP_STATUS_CODES } from '../constants';
@@ -118,36 +119,8 @@ export async function handleChatCompletion(
 
         const agentHash = computeAgentHash(agentSource);
 
-        // Use AssistantCacheManager for intelligent assistant caching
-        // This provides a centralized, DRY way to manage assistant lifecycle
-        const assistantCacheManager = new AssistantCacheManager({ isVerbose: true });
-        const baseOpenAiTools = await $provideOpenAiAssistantExecutionToolsForServer();
-
-        // Get or create assistant with enhanced caching
-        // By default, includes full configuration (PERSONA + CONTEXT) in cache key for strict matching
-        // Set includeDynamicContext: false to enable better caching by excluding CONTEXT from cache key
-        const assistantResult = await assistantCacheManager.getOrCreateAssistant(
-            agentSource,
-            agentName,
-            baseOpenAiTools,
-            { includeDynamicContext: true }, // Default: strict caching (includes CONTEXT)
-        );
-
-        const openAiAssistantExecutionTools = assistantResult.tools;
-
-        if (assistantResult.fromCache) {
-            console.info('[🤰]', 'Assistant cache hit (OpenAI)', {
-                agentName,
-                cacheKey: assistantResult.cacheKey,
-                assistantId: assistantResult.tools.assistantId,
-            });
-        } else {
-            console.info('[🤰]', 'Assistant cache miss (OpenAI)', {
-                agentName,
-                cacheKey: assistantResult.cacheKey,
-                assistantId: assistantResult.tools.assistantId,
-            });
-        }
+        const agentPermanentId = (await collection.getAgentPermanentId(agentName)) as string_agent_permanent_id;
+        const preparedExternals = await (collection as AgentCollectionInSupabase).getAgentPreparedExternals(agentPermanentId);
 
         const agent = new Agent({
             agentSource,
@@ -156,6 +129,10 @@ export async function handleChatCompletion(
             },
             isVerbose: true, // or false
             teacherAgent: null, // <- TODO: [🦋] DRY place to provide the teacher
+            preparedExternals: (preparedExternals as PreparedExternals) || undefined,
+            onPreparedExternalsUpdate: (preparedExternals) => {
+                (collection as AgentCollectionInSupabase).updateAgentPreparedExternals(agentPermanentId, preparedExternals);
+            },
         });
 
         const userAgent = request.headers.get('user-agent');

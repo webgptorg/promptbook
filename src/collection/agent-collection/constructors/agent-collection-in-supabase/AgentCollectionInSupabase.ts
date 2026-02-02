@@ -12,9 +12,12 @@ import { keepUnused } from '../../../../utils/organization/keepUnused';
 import { spaceTrim } from '../../../../utils/organization/spaceTrim';
 import { TODO_USE } from '../../../../utils/organization/TODO_USE';
 import { $randomBase58 } from '../../../../utils/random/$randomBase58';
+import { TODO_any } from '../../../../_packages/types.index';
+import type { PreparedExternals } from '../../../../types/PreparedExternals';
 import { PROMPTBOOK_ENGINE_VERSION } from '../../../../version';
 import { AgentCollectionInSupabaseOptions } from './AgentCollectionInSupabaseOptions';
 import type { AgentsDatabaseSchema } from './AgentsDatabaseSchema';
+
 
 // import { getTableName } from '../../../../../apps/agents-server/src/database/getTableName';
 // <- TODO: [🐱‍🚀] Prevent imports from `/apps` -> `/src`
@@ -354,6 +357,35 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
 
     // TODO: [🐱‍🚀] public async getAgentSourceSubject(permanentId: string_agent_permanent_id): Promise<BehaviorSubject<string_book>>
     //            Use Supabase realtime logic
+
+    /**
+     * Updates prepared externals of an existing agent in the collection
+     */
+    public async updateAgentPreparedExternals(
+        permanentId: string_agent_permanent_id,
+        preparedExternals: PreparedExternals,
+    ): Promise<void> {
+        const updateAgentResult = await this.supabaseClient
+            .from(this.getTableName('Agent'))
+            .update({
+                preparedExternals: preparedExternals as TODO_any,
+                updatedAt: new Date().toISOString(),
+                promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
+            })
+            .eq('permanentId', permanentId);
+
+        if (updateAgentResult.error) {
+            throw new DatabaseError(
+                spaceTrim(
+                    (block) => `
+                        Error updating agent prepared externals "${permanentId}" in Supabase:
+                        
+                        ${block(updateAgentResult.error.message)}
+                    `,
+                ),
+            );
+        }
+    }
 
     /**
      * List agents that are soft deleted (deletedAt IS NOT NULL)
