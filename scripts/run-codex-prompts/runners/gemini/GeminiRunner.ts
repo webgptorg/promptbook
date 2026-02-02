@@ -34,3 +34,7 @@ export class GeminiRunner implements PromptRunner {
         return { usage };
     }
 }
+
+/**
+ * TODO !!!!!!??? Images probably arent wotking in Gemini CLI yet
+ */
