@@ -47,7 +47,7 @@ Make some look how the chips or tool chips are implemented. For example, how it 
 
 [ ] !!!!
 
-[✨📰] bar
+[✨📰] When creating the underlying GPT assistant of the agent, the caching is not working very well
 
 -   @@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
