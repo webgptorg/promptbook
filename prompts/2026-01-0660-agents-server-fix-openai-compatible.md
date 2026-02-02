@@ -1,6 +1,8 @@
-[.] _<- Note: This is probably working. Maybe it's not working for the first time, but after that the OpenAI compatibility mode is working. _
+[ ]
 
 [✨🚆] bar
+
+-   @@@
 
 ```bash
 me@DESKTOP-2QD9KQQ MINGW64 ~/work/ai/promptbook (main)

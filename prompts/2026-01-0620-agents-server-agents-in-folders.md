@@ -146,10 +146,11 @@
 
 ---
 
-[-]
+[ ]
 
-[✨🦢] baz
+[✨🦢] Federated agents shouldn't be mixed into the local agents.
 
+-   @@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server) with the Agents on the home page `/` on List view
 
