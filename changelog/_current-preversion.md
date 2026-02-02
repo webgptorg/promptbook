@@ -390,4 +390,3 @@
 -   Enhanced codebase by using explicit types instead of type inference across multiple files in `src/`, `apps/`, and `scripts/` directories to improve readability and maintainability.
 -   Fix width of the message in the chat by adding a minimum width and improving layout for short messages.
 -   Use model `gemini-3-pro-image-preview` for the agent of Avatar Images
--   Fixed overlapping action buttons (New Chat, Save) in Agents Server chat by keeping them hidden while they obstruct messages, even after scrolling stops.
