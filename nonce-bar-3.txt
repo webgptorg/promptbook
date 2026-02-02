@@ -1,0 +1,1158 @@
+    Directory: C:\Users\me\work\ai\promptbook
+
+
+Name           : .github
+CreationTime   : 9/27/2023 5:04:10 PM
+LastWriteTime  : 9/2/2025 5:27:42 PM 
+LastAccessTime : 2/2/2026 3:34:07 PM 
+Mode           : d-----
+LinkType       :
+Target         : {}
+
+Name           : .idea
+CreationTime   : 9/5/2024 11:51:12 AM
+LastWriteTime  : 9/18/2024 5:51:07 PM
+LastAccessTime : 2/2/2026 3:33:16 PM 
+Mode           : d-----
+LinkType       :
+Target         : {}
+
+Name           : .promptbook
+CreationTime   : 4/23/2025 3:09:24 PM
+LastWriteTime  : 11/10/2025 3:46:16 PM
+LastAccessTime : 2/2/2026 3:33:16 PM
+Mode           : d-----
+LinkType       :
+Target         : {}
+
+Name           : .tmp
+CreationTime   : 10/28/2023 9:07:51 PM
+LastWriteTime  : 2/1/2026 3:31:34 PM
+LastAccessTime : 2/2/2026 3:32:21 PM
+Mode           : d-----
+LinkType       :
+Target         : {}
+
+Name           : .vscode
+CreationTime   : 9/27/2023 5:04:10 PM
+LastWriteTime  : 1/31/2026 3:23:42 AM
+LastAccessTime : 2/2/2026 3:34:07 PM
+Mode           : d-----
+LinkType       :
+Target         : {}
+
+Name           : agents
+CreationTime   : 11/15/2025 3:40:40 PM
+LastWriteTime  : 11/15/2025 3:40:48 PM
+LastAccessTime : 2/2/2026 3:33:16 PM
+Mode           : d-----
+LinkType       :
+Target         : {}
+
+Name           : apps
+CreationTime   : 10/26/2025 10:27:57 AM
+LastWriteTime  : 11/13/2025 11:52:38 PM
+LastAccessTime : 2/2/2026 3:34:07 PM
+Mode           : d-----
+LinkType       :
+Target         : {}
+
+Name           : book
+CreationTime   : 11/7/2024 9:55:24 PM
+LastWriteTime  : 1/31/2026 3:24:02 AM
+LastAccessTime : 2/2/2026 3:33:16 PM
+Mode           : d-----
+LinkType       :
+Target         : {}
+
+Name           : books
+CreationTime   : 12/27/2024 1:29:32 PM
+LastWriteTime  : 1/31/2026 3:24:27 AM
+LastAccessTime : 2/2/2026 3:33:16 PM
+Mode           : d-----
+LinkType       :
+Target         : {}
+
+Name           : changelog
+CreationTime   : 11/15/2025 12:15:06 PM
+LastWriteTime  : 2/2/2026 2:56:55 PM
+LastAccessTime : 2/2/2026 3:57:10 PM
+Mode           : d-----
+LinkType       :
+Target         : {}
+
+Name           : coverage
+CreationTime   : 8/29/2025 12:00:08 PM
+LastWriteTime  : 8/29/2025 12:00:13 PM
+LastAccessTime : 2/2/2026 3:33:50 PM
+Mode           : d-----
+LinkType       :
+Target         : {}
+
+Name           : design
+CreationTime   : 2/23/2025 10:37:36 PM
+LastWriteTime  : 1/29/2026 1:23:48 AM
+LastAccessTime : 2/2/2026 3:34:07 PM
+Mode           : d-----
+LinkType       :
+Target         : {}
+
+Name           : documents
+CreationTime   : 9/27/2023 5:23:32 PM
+LastWriteTime  : 1/31/2026 3:24:46 AM
+LastAccessTime : 2/2/2026 3:33:16 PM
+Mode           : d-----
+LinkType       :
+Target         : {}
+
+Name           : examples
+CreationTime   : 10/23/2023 1:58:58 PM
+LastWriteTime  : 1/31/2026 3:23:49 AM
+LastAccessTime : 2/2/2026 3:33:16 PM
+Mode           : d-----
+LinkType       :
+Target         : {}
+
+Name           : home
+CreationTime   : 12/16/2025 12:46:00 AM
+LastWriteTime  : 12/16/2025 12:46:00 AM
+LastAccessTime : 2/2/2026 3:49:15 PM
+Mode           : d-----
+LinkType       :
+Target         : {}
+
+Name           : node_modules
+CreationTime   : 1/21/2026 10:33:26 AM
+LastWriteTime  : 1/31/2026 11:08:41 PM
+LastAccessTime : 2/2/2026 3:33:49 PM
+Mode           : d-----
+LinkType       :
+Target         : {}
+
+Name           : other
+CreationTime   : 10/26/2023 10:44:39 PM
+LastWriteTime  : 1/29/2026 1:25:25 PM
+LastAccessTime : 2/2/2026 3:34:07 PM
+Mode           : d-----
+LinkType       :
+Target         : {}
+
+Name           : packages
+CreationTime   : 1/30/2025 2:18:40 PM
+LastWriteTime  : 10/31/2025 8:54:41 PM
+LastAccessTime : 2/2/2026 3:34:07 PM
+Mode           : d-----
+LinkType       :
+Target         : {}
+
+Name           : personas
+CreationTime   : 12/27/2024 1:29:33 PM
+LastWriteTime  : 1/31/2026 3:24:20 AM
+LastAccessTime : 2/2/2026 3:34:08 PM
+Mode           : d-----
+LinkType       :
+Target         : {}
+
+Name           : prompts
+CreationTime   : 8/10/2025 2:09:06 PM
+LastWriteTime  : 2/2/2026 4:08:10 PM
+LastAccessTime : 2/2/2026 4:08:10 PM
+Mode           : d-----
+LinkType       :
+Target         : {}
+
+Name           : scripts
+CreationTime   : 10/24/2023 9:13:33 PM
+LastWriteTime  : 1/31/2026 3:24:25 AM
+LastAccessTime : 2/2/2026 3:34:07 PM
+Mode           : d-----
+LinkType       :
+Target         : {}
+
+Name           : src
+CreationTime   : 9/27/2023 5:04:11 PM
+LastWriteTime  : 1/31/2026 3:28:46 AM
+LastAccessTime : 2/2/2026 3:34:07 PM
+Mode           : d-----
+LinkType       :
+Target         : {}
+
+Name           : .clinerules
+Length         : 2206
+CreationTime   : 8/17/2025 1:20:15 PM
+LastWriteTime  : 11/15/2025 1:17:28 PM
+LastAccessTime : 2/2/2026 3:56:41 PM
+Mode           : -a----
+LinkType       :
+Target         : {}
+VersionInfo    : File:             C:\Users\me\work\ai\promptbook\.clinerules   
+                 InternalName:
+                 OriginalFilename:
+                 FileVersion:
+                 FileDescription:
+                 Product:
+                 ProductVersion:
+                 Debug:            False
+                 Patched:          False
+                 PreRelease:       False
+                 PrivateBuild:     False
+                 SpecialBuild:     False
+                 Language:
+
+
+Name           : .editorconfig
+Length         : 189
+CreationTime   : 9/27/2023 5:04:10 PM
+LastWriteTime  : 5/21/2025 2:39:51 PM
+LastAccessTime : 2/2/2026 3:56:41 PM
+Mode           : -a----
+LinkType       :
+Target         : {}
+VersionInfo    : File:             C:\Users\me\work\ai\promptbook\.editorconfig 
+                 InternalName:
+                 OriginalFilename:
+                 FileVersion:
+                 FileDescription:
+                 Product:
+                 ProductVersion:
+                 Debug:            False
+                 Patched:          False
+                 PreRelease:       False
+                 PrivateBuild:     False
+                 SpecialBuild:     False
+                 Language:
+
+
+Name           : .env
+Length         : 7057
+CreationTime   : 10/27/2023 4:53:46 PM
+LastWriteTime  : 2/2/2026 3:33:55 PM
+LastAccessTime : 2/2/2026 3:33:55 PM
+Mode           : -a----
+LinkType       :
+Target         : {}
+VersionInfo    : File:             C:\Users\me\work\ai\promptbook\.env
+                 InternalName:
+                 OriginalFilename:
+                 FileVersion:
+                 FileDescription:
+                 Product:
+                 ProductVersion:
+                 Debug:            False
+                 Patched:          False
+                 PreRelease:       False
+                 PrivateBuild:     False
+                 SpecialBuild:     False
+                 Language:
+
+
+Name           : .env.backup
+Length         : 5886
+CreationTime   : 4/7/2025 4:19:03 PM
+LastWriteTime  : 9/21/2025 3:31:54 PM
+LastAccessTime : 1/28/2026 11:01:49 AM
+Mode           : -a----
+LinkType       :
+Target         : {}
+VersionInfo    : File:             C:\Users\me\work\ai\promptbook\.env.backup   
+                 InternalName:
+                 OriginalFilename:
+                 FileVersion:
+                 FileDescription:
+                 Product:
+                 ProductVersion:
+                 Debug:            False
+                 Patched:          False
+                 PreRelease:       False
+                 PrivateBuild:     False
+                 SpecialBuild:     False
+                 Language:
+
+
+Name           : .eslintignore
+Length         : 66
+CreationTime   : 12/27/2024 1:29:31 PM
+LastWriteTime  : 1/22/2025 7:51:57 PM
+LastAccessTime : 2/2/2026 3:33:18 PM
+Mode           : -a----
+LinkType       :
+Target         : {}
+VersionInfo    : File:             C:\Users\me\work\ai\promptbook\.eslintignore 
+                 InternalName:
+                 OriginalFilename:
+                 FileVersion:
+                 FileDescription:
+                 Product:
+                 ProductVersion:
+                 Debug:            False
+                 Patched:          False
+                 PreRelease:       False
+                 PrivateBuild:     False
+                 SpecialBuild:     False
+                 Language:
+
+
+Name           : .eslintrc.js
+Length         : 7809
+CreationTime   : 10/25/2023 12:03:54 AM
+LastWriteTime  : 1/29/2026 1:23:48 AM
+LastAccessTime : 2/2/2026 3:33:18 PM
+Mode           : -a----
+LinkType       :
+Target         : {}
+VersionInfo    : File:             C:\Users\me\work\ai\promptbook\.eslintrc.js  
+                 InternalName:
+                 OriginalFilename:
+                 FileVersion:
+                 FileDescription:
+                 Product:
+                 ProductVersion:
+                 Debug:            False
+                 Patched:          False
+                 PreRelease:       False
+                 PrivateBuild:     False
+                 SpecialBuild:     False
+                 Language:
+
+
+Name           : .gitattributes
+Length         : 18
+CreationTime   : 9/27/2023 5:04:10 PM
+LastWriteTime  : 9/27/2023 5:04:10 PM
+LastAccessTime : 2/2/2026 3:33:16 PM
+Mode           : -a----
+LinkType       :
+Target         : {}
+VersionInfo    : File:
+                 C:\Users\me\work\ai\promptbook\.gitattributes
+                 InternalName:
+                 OriginalFilename:
+                 FileVersion:
+                 FileDescription:
+                 Product:
+                 ProductVersion:
+                 Debug:            False
+                 Patched:          False
+                 PreRelease:       False
+                 PrivateBuild:     False
+                 SpecialBuild:     False
+                 Language:
+
+
+Name           : .gitignore
+Length         : 98
+CreationTime   : 9/27/2023 5:04:10 PM
+LastWriteTime  : 1/29/2026 1:23:48 AM
+LastAccessTime : 2/2/2026 3:31:15 PM
+Mode           : -a----
+LinkType       :
+Target         : {}
+VersionInfo    : File:             C:\Users\me\work\ai\promptbook\.gitignore    
+                 InternalName:
+                 OriginalFilename:
+                 FileVersion:
+                 FileDescription:
+                 Product:
+                 ProductVersion:
+                 Debug:            False
+                 Patched:          False
+                 PreRelease:       False
+                 PrivateBuild:     False
+                 SpecialBuild:     False
+                 Language:
+
+
+Name           : .gitmodules
+Length         : 73
+CreationTime   : 12/27/2024 1:29:31 PM
+LastWriteTime  : 12/27/2024 1:29:31 PM
+LastAccessTime : 2/2/2026 3:33:16 PM
+Mode           : -a----
+LinkType       :
+Target         : {}
+VersionInfo    : File:             C:\Users\me\work\ai\promptbook\.gitmodules   
+                 InternalName:
+                 OriginalFilename:
+                 FileVersion:
+                 FileDescription:
+                 Product:
+                 ProductVersion:
+                 Debug:            False
+                 Patched:          False
+                 PreRelease:       False
+                 PrivateBuild:     False
+                 SpecialBuild:     False
+                 Language:
+
+
+Name           : .npmignore
+Length         : 73
+CreationTime   : 9/27/2023 5:04:10 PM
+LastWriteTime  : 7/2/2024 5:27:04 PM
+LastAccessTime : 2/2/2026 3:56:41 PM
+Mode           : -a----
+LinkType       :
+Target         : {}
+VersionInfo    : File:             C:\Users\me\work\ai\promptbook\.npmignore    
+                 InternalName:
+                 OriginalFilename:
+                 FileVersion:
+                 FileDescription:
+                 Product:
+                 ProductVersion:
+                 Debug:            False
+                 Patched:          False
+                 PreRelease:       False
+                 PrivateBuild:     False
+                 SpecialBuild:     False
+                 Language:
+
+
+Name           : .prettierrc
+Length         : 150
+CreationTime   : 9/27/2023 5:04:10 PM
+LastWriteTime  : 10/24/2023 11:54:08 PM
+LastAccessTime : 2/2/2026 3:22:51 PM
+Mode           : -a----
+LinkType       :
+Target         : {}
+VersionInfo    : File:             C:\Users\me\work\ai\promptbook\.prettierrc   
+                 InternalName:
+                 OriginalFilename:
+                 FileVersion:
+                 FileDescription:
+                 Product:
+                 ProductVersion:
+                 Debug:            False
+                 Patched:          False
+                 PreRelease:       False
+                 PrivateBuild:     False
+                 SpecialBuild:     False
+                 Language:
+
+
+Name           : .whitesource
+Length         : 213
+CreationTime   : 9/27/2023 5:04:10 PM
+LastWriteTime  : 9/27/2023 5:04:10 PM
+LastAccessTime : 2/2/2026 3:56:41 PM
+Mode           : -a----
+LinkType       :
+Target         : {}
+VersionInfo    : File:             C:\Users\me\work\ai\promptbook\.whitesource  
+                 InternalName:
+                 OriginalFilename:
+                 FileVersion:
+                 FileDescription:
+                 Product:
+                 ProductVersion:
+                 Debug:            False
+                 Patched:          False
+                 PreRelease:       False
+                 PrivateBuild:     False
+                 SpecialBuild:     False
+                 Language:
+
+
+Name           : AGENTS.md
+Length         : 3725
+CreationTime   : 10/10/2025 5:40:49 PM
+LastWriteTime  : 1/29/2026 1:23:48 AM
+LastAccessTime : 2/2/2026 3:56:41 PM
+Mode           : -a----
+LinkType       :
+Target         : {}
+VersionInfo    : File:             C:\Users\me\work\ai\promptbook\AGENTS.md     
+                 InternalName:
+                 OriginalFilename:
+                 FileVersion:
+                 FileDescription:
+                 Product:
+                 ProductVersion:
+                 Debug:            False
+                 Patched:          False
+                 PreRelease:       False
+                 PrivateBuild:     False
+                 SpecialBuild:     False
+                 Language:
+
+
+Name           : batch-project-editor.js
+Length         : 271
+CreationTime   : 10/10/2023 3:21:31 PM
+LastWriteTime  : 4/2/2025 1:40:19 PM
+LastAccessTime : 2/2/2026 3:56:41 PM
+Mode           : -a----
+LinkType       :
+Target         : {}
+VersionInfo    : File:
+                 C:\Users\me\work\ai\promptbook\batch-project-editor.js
+                 InternalName:
+                 OriginalFilename:
+                 FileVersion:
+                 FileDescription:
+                 Product:
+                 ProductVersion:
+                 Debug:            False
+                 Patched:          False
+                 PreRelease:       False
+                 PrivateBuild:     False
+                 SpecialBuild:     False
+                 Language:
+
+
+Name           : CHANGELOG.md
+Length         : 79
+CreationTime   : 1/31/2026 3:28:47 AM
+LastWriteTime  : 1/31/2026 3:28:47 AM
+LastAccessTime : 2/2/2026 3:56:41 PM
+Mode           : -a----
+LinkType       :
+Target         : {}
+VersionInfo    : File:             C:\Users\me\work\ai\promptbook\CHANGELOG.md  
+                 InternalName:
+                 OriginalFilename:
+                 FileVersion:
+                 FileDescription:
+                 Product:
+                 ProductVersion:
+                 Debug:            False
+                 Patched:          False
+                 PreRelease:       False
+                 PrivateBuild:     False
+                 SpecialBuild:     False
+                 Language:
+
+
+Name           : CODE_OF_CONDUCT.md
+Length         : 114
+CreationTime   : 4/15/2025 5:03:09 PM
+LastWriteTime  : 5/21/2025 2:53:05 PM
+LastAccessTime : 2/2/2026 3:56:41 PM
+Mode           : -a----
+LinkType       :
+Target         : {}
+VersionInfo    : File:
+                 C:\Users\me\work\ai\promptbook\CODE_OF_CONDUCT.md
+                 InternalName:
+                 OriginalFilename:
+                 FileVersion:
+                 FileDescription:
+                 Product:
+                 ProductVersion:
+                 Debug:            False
+                 Patched:          False
+                 PreRelease:       False
+                 PrivateBuild:     False
+                 SpecialBuild:     False
+                 Language:
+
+
+Name           : CONTRIBUTING.md
+Length         : 4930
+CreationTime   : 4/15/2025 5:03:09 PM
+LastWriteTime  : 11/15/2025 1:17:23 PM
+LastAccessTime : 2/2/2026 3:56:41 PM
+Mode           : -a----
+LinkType       :
+Target         : {}
+VersionInfo    : File:
+                 C:\Users\me\work\ai\promptbook\CONTRIBUTING.md
+                 InternalName:
+                 OriginalFilename:
+                 FileVersion:
+                 FileDescription:
+                 Product:
+                 ProductVersion:
+                 Debug:            False
+                 Patched:          False
+                 PreRelease:       False
+                 PrivateBuild:     False
+                 SpecialBuild:     False
+                 Language:
+
+
+Name           : cspell.json
+Length         : 1172
+CreationTime   : 5/21/2025 5:55:41 PM
+LastWriteTime  : 11/19/2025 1:21:46 PM
+LastAccessTime : 2/2/2026 3:56:41 PM
+Mode           : -a----
+LinkType       :
+Target         : {}
+VersionInfo    : File:             C:\Users\me\work\ai\promptbook\cspell.json   
+                 InternalName:
+                 OriginalFilename:
+                 FileVersion:
+                 FileDescription:
+                 Product:
+                 ProductVersion:
+                 Debug:            False
+                 Patched:          False
+                 PreRelease:       False
+                 PrivateBuild:     False
+                 SpecialBuild:     False
+                 Language:
+
+
+Name           : docker-compose.yml
+Length         : 862
+CreationTime   : 2/11/2025 11:54:33 AM
+LastWriteTime  : 11/17/2025 2:38:05 PM
+LastAccessTime : 2/2/2026 3:56:41 PM
+Mode           : -a----
+LinkType       :
+Target         : {}
+VersionInfo    : File:
+                 C:\Users\me\work\ai\promptbook\docker-compose.yml
+                 InternalName:
+                 OriginalFilename:
+                 FileVersion:
+                 FileDescription:
+                 Product:
+                 ProductVersion:
+                 Debug:            False
+                 Patched:          False
+                 PreRelease:       False
+                 SpecialBuild:     False
+                 Language:
+
+
+Name           : Dockerfile
+Length         : 1754
+CreationTime   : 2/11/2025 11:54:33 AM
+LastWriteTime  : 2/1/2026 3:31:23 PM
+LastAccessTime : 2/2/2026 3:56:41 PM
+Mode           : -a----
+LinkType       :
+Target         : {}
+VersionInfo    : File:             C:\Users\me\work\ai\promptbook\Dockerfile    
+                 InternalName:
+                 OriginalFilename:
+                 FileVersion:
+                 FileDescription:
+                 Product:
+                 ProductVersion:
+                 Debug:            False
+                 Patched:          False
+                 PreRelease:       False
+                 PrivateBuild:     False
+                 SpecialBuild:     False
+                 Language:
+
+
+Name           : install.cmd
+Length         : 6222
+CreationTime   : 1/29/2026 1:23:48 AM
+LastWriteTime  : 1/29/2026 1:23:48 AM
+LastAccessTime : 2/2/2026 3:56:41 PM
+Mode           : -a----
+LinkType       :
+Target         : {}
+VersionInfo    : File:             C:\Users\me\work\ai\promptbook\install.cmd   
+                 InternalName:
+                 OriginalFilename:
+                 FileVersion:
+                 FileDescription:
+                 Product:
+                 ProductVersion:
+                 Debug:            False
+                 Patched:          False
+                 PreRelease:       False
+                 PrivateBuild:     False
+                 SpecialBuild:     False
+                 Language:
+
+
+Name           : jest.config.js
+Length         : 500
+CreationTime   : 1/31/2026 3:28:48 AM
+LastWriteTime  : 1/31/2026 3:28:48 AM
+LastAccessTime : 2/2/2026 3:32:50 PM
+Mode           : -a----
+LinkType       :
+Target         : {}
+VersionInfo    : File:
+                 C:\Users\me\work\ai\promptbook\jest.config.js
+                 InternalName:
+                 OriginalFilename:
+                 FileVersion:
+                 FileDescription:
+                 Product:
+                 ProductVersion:
+                 Debug:            False
+                 Patched:          False
+                 PreRelease:       False
+                 PrivateBuild:     False
+                 SpecialBuild:     False
+                 Language:
+
+
+Name           : jest.setup.js
+Length         : 278
+CreationTime   : 1/31/2026 3:28:48 AM
+LastWriteTime  : 1/31/2026 3:28:48 AM
+LastAccessTime : 2/2/2026 3:56:41 PM
+Mode           : -a----
+LinkType       :
+Target         : {}
+VersionInfo    : File:             C:\Users\me\work\ai\promptbook\jest.setup.js 
+                 InternalName:
+                 OriginalFilename:
+                 FileVersion:
+                 FileDescription:
+                 Product:
+                 ProductVersion:
+                 Debug:            False
+                 Patched:          False
+                 PreRelease:       False
+                 PrivateBuild:     False
+                 SpecialBuild:     False
+                 Language:
+
+
+Name           : LICENSE.md
+Length         : 418
+CreationTime   : 2/17/2025 2:32:59 PM
+LastWriteTime  : 5/14/2025 9:39:25 AM
+LastAccessTime : 2/2/2026 3:56:41 PM
+Mode           : -a----
+LinkType       :
+Target         : {}
+VersionInfo    : File:             C:\Users\me\work\ai\promptbook\LICENSE.md    
+                 InternalName:
+                 OriginalFilename:
+                 FileVersion:
+                 FileDescription:
+                 Product:
+                 ProductVersion:
+                 Debug:            False
+                 Patched:          False
+                 PreRelease:       False
+                 PrivateBuild:     False
+                 SpecialBuild:     False
+                 Language:
+
+
+Name           : nonce
+Length         : 146
+CreationTime   : 12/27/2024 1:29:32 PM
+LastWriteTime  : 1/31/2026 1:55:43 AM
+LastAccessTime : 2/2/2026 3:56:41 PM
+Mode           : -a----
+LinkType       :
+Target         : {}
+VersionInfo    : File:             C:\Users\me\work\ai\promptbook\nonce
+                 InternalName:
+                 OriginalFilename:
+                 FileVersion:
+                 FileDescription:
+                 Product:
+                 ProductVersion:
+                 Debug:            False
+                 Patched:          False
+                 PreRelease:       False
+                 PrivateBuild:     False
+                 SpecialBuild:     False
+                 Language:
+
+
+Name           : nonce-bar-1.txt
+Length         : 3
+CreationTime   : 2/2/2026 4:06:57 PM
+LastWriteTime  : 2/2/2026 4:06:57 PM
+LastAccessTime : 2/2/2026 4:06:57 PM
+Mode           : -a----
+LinkType       :
+Target         : {}
+VersionInfo    : File:
+                 C:\Users\me\work\ai\promptbook\nonce-bar-1.txt
+                 InternalName:
+                 OriginalFilename:
+                 FileVersion:
+                 FileDescription:
+                 Product:
+                 ProductVersion:
+                 Debug:            False
+                 Patched:          False
+                 PreRelease:       False
+                 PrivateBuild:     False
+                 SpecialBuild:     False
+                 Language:
+
+
+Name           : nonce-bar-2.txt
+Length         : 3
+CreationTime   : 2/2/2026 4:07:35 PM
+LastWriteTime  : 2/2/2026 4:07:35 PM
+LastAccessTime : 2/2/2026 4:07:35 PM
+Mode           : -a----
+LinkType       :
+Target         : {}
+VersionInfo    : File:
+                 C:\Users\me\work\ai\promptbook\nonce-bar-2.txt
+                 InternalName:
+                 OriginalFilename:
+                 FileVersion:
+                 FileDescription:
+                 Product:
+                 ProductVersion:
+                 Debug:            False
+                 Patched:          False
+                 PreRelease:       False
+                 PrivateBuild:     False
+                 SpecialBuild:     False
+                 Language:
+
+
+Name           : nonce-foo-1.txt
+Length         : 3
+CreationTime   : 2/2/2026 4:06:55 PM
+LastWriteTime  : 2/2/2026 4:06:55 PM
+LastAccessTime : 2/2/2026 4:06:55 PM
+Mode           : -a----
+LinkType       :
+Target         : {}
+VersionInfo    : File:
+                 C:\Users\me\work\ai\promptbook\nonce-foo-1.txt
+                 InternalName:
+                 OriginalFilename:
+                 FileVersion:
+                 FileDescription:
+                 Product:
+                 ProductVersion:
+                 Debug:            False
+                 Patched:          False
+                 PreRelease:       False
+                 PrivateBuild:     False
+                 SpecialBuild:     False
+                 Language:
+
+
+Name           : nonce-foo-2.txt
+Length         : 3
+CreationTime   : 2/2/2026 4:07:35 PM
+LastWriteTime  : 2/2/2026 4:07:35 PM
+LastAccessTime : 2/2/2026 4:07:35 PM
+Mode           : -a----
+LinkType       :
+Target         : {}
+VersionInfo    : File:
+                 C:\Users\me\work\ai\promptbook\nonce-foo-2.txt
+                 InternalName:
+                 OriginalFilename:
+                 FileVersion:
+                 FileDescription:
+                 Product:
+                 ProductVersion:
+                 Debug:            False
+                 Patched:          False
+                 PreRelease:       False
+                 PrivateBuild:     False
+                 SpecialBuild:     False
+                 Language:
+
+
+Name           : nonce-foo-3.txt
+Length         : 10
+CreationTime   : 2/2/2026 4:08:36 PM
+LastWriteTime  : 2/2/2026 4:08:36 PM
+LastAccessTime : 2/2/2026 4:08:36 PM
+Mode           : -a----
+LinkType       :
+Target         : {}
+VersionInfo    : File:
+                 C:\Users\me\work\ai\promptbook\nonce-foo-3.txt
+                 InternalName:
+                 OriginalFilename:
+                 FileVersion:
+                 FileDescription:
+                 Product:
+                 ProductVersion:
+                 Debug:            False
+                 Patched:          False
+                 PreRelease:       False
+                 PrivateBuild:     False
+                 SpecialBuild:     False
+                 Language:
+
+
+Name           : package-lock.json
+Length         : 1286402
+CreationTime   : 1/31/2026 3:28:47 AM
+LastWriteTime  : 2/1/2026 3:31:09 PM
+LastAccessTime : 2/2/2026 3:33:17 PM
+Mode           : -a----
+LinkType       :
+Target         : {}
+VersionInfo    : File:
+                 C:\Users\me\work\ai\promptbook\package-lock.json
+                 InternalName:
+                 OriginalFilename:
+                 FileVersion:
+                 FileDescription:
+                 Product:
+                 ProductVersion:
+                 Debug:            False
+                 Patched:          False
+                 PreRelease:       False
+                 PrivateBuild:     False
+                 SpecialBuild:     False
+                 Language:
+
+
+Name           : package.json
+Length         : 15129
+CreationTime   : 1/31/2026 3:28:48 AM
+LastWriteTime  : 2/1/2026 3:31:09 PM
+LastAccessTime : 2/2/2026 3:32:26 PM
+Mode           : -a----
+LinkType       :
+Target         : {}
+VersionInfo    : File:             C:\Users\me\work\ai\promptbook\package.json  
+                 InternalName:
+                 OriginalFilename:
+                 FileVersion:
+                 FileDescription:
+                 Product:
+                 ProductVersion:
+                 Debug:            False
+                 Patched:          False
+                 PreRelease:       False
+                 PrivateBuild:     False
+                 SpecialBuild:     False
+                 Language:
+
+
+Name           : README.md
+Length         : 26756
+CreationTime   : 1/31/2026 3:28:47 AM
+LastWriteTime  : 1/31/2026 3:28:47 AM
+LastAccessTime : 2/2/2026 3:56:41 PM
+Mode           : -a----
+LinkType       :
+Target         : {}
+VersionInfo    : File:             C:\Users\me\work\ai\promptbook\README.md
+                 InternalName:
+                 OriginalFilename:
+                 FileVersion:
+                 FileDescription:
+                 Product:
+                 ProductVersion:
+                 Debug:            False
+                 Patched:          False
+                 PreRelease:       False
+                 PrivateBuild:     False
+                 SpecialBuild:     False
+                 Language:
+
+
+Name           : reproduce_escape.ts
+Length         : 777
+CreationTime   : 1/29/2026 1:23:52 AM
+LastWriteTime  : 1/29/2026 1:23:52 AM
+LastAccessTime : 2/2/2026 3:56:41 PM
+Mode           : -a----
+LinkType       :
+Target         : {}
+VersionInfo    : File:
+                 C:\Users\me\work\ai\promptbook\reproduce_escape.ts
+                 InternalName:
+                 OriginalFilename:
+                 FileVersion:
+                 FileDescription:
+                 Product:
+                 ProductVersion:
+                 Debug:            False
+                 Patched:          False
+                 PreRelease:       False
+                 PrivateBuild:     False
+                 SpecialBuild:     False
+                 Language:
+
+
+Name           : reproduce_issue.ts
+Length         : 289
+CreationTime   : 1/29/2026 2:00:50 AM
+LastWriteTime  : 1/29/2026 2:00:50 AM
+LastAccessTime : 2/2/2026 3:56:41 PM
+Mode           : -a----
+LinkType       :
+Target         : {}
+VersionInfo    : File:
+                 C:\Users\me\work\ai\promptbook\reproduce_issue.ts
+                 InternalName:
+                 OriginalFilename:
+                 FileVersion:
+                 FileDescription:
+                 Product:
+                 ProductVersion:
+                 Debug:            False
+                 Patched:          False
+                 PreRelease:       False
+                 PrivateBuild:     False
+                 SpecialBuild:     False
+                 Language:
+
+
+Name           : rollup.config.js
+Length         : 9664
+CreationTime   : 1/31/2026 3:28:48 AM
+LastWriteTime  : 1/31/2026 3:28:48 AM
+LastAccessTime : 2/2/2026 3:56:41 PM
+Mode           : -a----
+LinkType       :
+Target         : {}
+VersionInfo    : File:
+                 C:\Users\me\work\ai\promptbook\rollup.config.js
+                 InternalName:
+                 OriginalFilename:
+                 FileVersion:
+                 FileDescription:
+                 Product:
+                 ProductVersion:
+                 Debug:            False
+                 Patched:          False
+                 PreRelease:       False
+                 PrivateBuild:     False
+                 SpecialBuild:     False
+                 Language:
+
+
+Name           : security.config.ts
+Length         : 868
+CreationTime   : 1/29/2026 1:23:52 AM
+LastWriteTime  : 1/29/2026 1:23:52 AM
+LastAccessTime : 2/2/2026 3:21:58 PM
+Mode           : -a----
+LinkType       :
+Target         : {}
+VersionInfo    : File:
+                 C:\Users\me\work\ai\promptbook\security.config.ts
+                 InternalName:
+                 OriginalFilename:
+                 FileVersion:
+                 FileDescription:
+                 Product:
+                 ProductVersion:
+                 Debug:            False
+                 Patched:          False
+                 PreRelease:       False
+                 PrivateBuild:     False
+                 SpecialBuild:     False
+                 Language:
+
+
+Name           : SECURITY.md
+Length         : 1740
+CreationTime   : 4/15/2025 5:03:09 PM
+LastWriteTime  : 5/14/2025 10:42:56 AM
+LastAccessTime : 2/2/2026 3:56:41 PM
+Mode           : -a----
+LinkType       :
+Target         : {}
+VersionInfo    : File:             C:\Users\me\work\ai\promptbook\SECURITY.md   
+                 InternalName:
+                 OriginalFilename: 
+                 FileVersion:
+                 FileDescription:
+                 Product:
+                 ProductVersion:
+                 Debug:            False
+                 Patched:          False
+                 PreRelease:       False
+                 PrivateBuild:     False
+                 SpecialBuild:     False
+                 Language:
+
+
+Name           : servers.ts
+Length         : 3003
+CreationTime   : 4/15/2025 5:03:09 PM
+LastWriteTime  : 1/29/2026 1:23:52 AM
+LastAccessTime : 2/2/2026 3:21:58 PM
+Mode           : -a----
+LinkType       :
+Target         : {}
+VersionInfo    : File:             C:\Users\me\work\ai\promptbook\servers.ts    
+                 InternalName:
+                 OriginalFilename:
+                 FileVersion:
+                 FileDescription:
+                 Product:
+                 ProductVersion:
+                 Debug:            False
+                 Patched:          False
+                 PreRelease:       False
+                 PrivateBuild:     False
+                 SpecialBuild:     False
+                 Language:
+
+
+Name           : SIGNPOST.md
+Length         : 3073
+CreationTime   : 4/15/2025 5:03:09 PM
+LastWriteTime  : 1/29/2026 1:23:48 AM
+LastAccessTime : 2/2/2026 3:56:41 PM
+Mode           : -a----
+LinkType       :
+Target         : {}
+VersionInfo    : File:             C:\Users\me\work\ai\promptbook\SIGNPOST.md   
+                 InternalName:
+                 OriginalFilename:
+                 FileVersion:
+                 FileDescription:
+                 Product:
+                 ProductVersion:
+                 Debug:            False
+                 Patched:          False
+                 PreRelease:       False
+                 PrivateBuild:     False
+                 SpecialBuild:     False
+                 Language:
+
+
+Name           : TODO.md
+Length         : 3488
+CreationTime   : 1/31/2026 3:28:47 AM
+LastWriteTime  : 1/31/2026 3:28:47 AM
+LastAccessTime : 2/2/2026 3:56:41 PM
+Mode           : -a----
+LinkType       :
+Target         : {}
+VersionInfo    : File:             C:\Users\me\work\ai\promptbook\TODO.md       
+                 InternalName:
+                 OriginalFilename:
+                 FileVersion:
+                 FileDescription:
+                 Product:
+                 ProductVersion:
+                 Debug:            False
+                 Patched:          False
+                 PreRelease:       False
+                 PrivateBuild:     False
+                 SpecialBuild:     False
+                 Language:
+
+
+Name           : tsconfig.json
+Length         : 862
+CreationTime   : 1/31/2026 3:28:48 AM
+LastWriteTime  : 1/31/2026 3:28:48 AM
+LastAccessTime : 2/2/2026 3:56:41 PM
+Mode           : -a----
+LinkType       :
+Target         : {}
+VersionInfo    : File:             C:\Users\me\work\ai\promptbook\tsconfig.json 
+                 InternalName:
+                 OriginalFilename:
+                 FileVersion:
+                 FileDescription:
+                 Product:
+                 ProductVersion:
+                 Debug:            False
+                 Patched:          False
+                 PreRelease:       False
+                 PrivateBuild:     False
+                 SpecialBuild:     False
+                 Language:
