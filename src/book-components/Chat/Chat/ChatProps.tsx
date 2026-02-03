@@ -10,6 +10,7 @@ import { string_color } from '../../../types/typeAliases';
 import type { string_chat_format_name } from '../save/_common/string_chat_format_name';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
+import type { Agent } from '../../../llm-providers/agent/Agent';
 
 /**
  * Interface for sound system that can be passed to Chat component
@@ -31,6 +32,13 @@ export type ChatSoundSystem = {
  * @public exported from `@promptbook/components`
  */
 export type ChatProps = {
+    /**
+     * The agent that is used in the chat
+     *
+     * Note: This is not used directly but passed to subcomponents
+     */
+    readonly agent?: Agent;
+
     /**
      * Optional callback to create a new agent from the template.
      * If provided, renders the [Use this template] button.

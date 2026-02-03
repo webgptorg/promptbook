@@ -10,6 +10,7 @@ import type { ParsedCitation } from '../utils/parseCitationsFromContent';
 import styles from './Chat.module.css';
 import { ChatMessageItem } from './ChatMessageItem';
 import type { ChatProps } from './ChatProps';
+import { Agent } from '../../../llm-providers/agent/Agent';
 
 /**
  * Props for the Chat message list container.
@@ -17,6 +18,7 @@ import type { ChatProps } from './ChatProps';
  * @private component of `<Chat/>`
  */
 export type ChatMessageListProps = {
+    agent?: Agent;
     messages: ReadonlyArray<ChatMessage>;
     participants: ReadonlyArray<ChatParticipant>;
     expandedMessageId: id | null;
@@ -46,6 +48,7 @@ export type ChatMessageListProps = {
  */
 export function ChatMessageList(props: ChatMessageListProps) {
     const {
+        agent,
         messages,
         participants,
         expandedMessageId,
@@ -94,6 +97,7 @@ export function ChatMessageList(props: ChatMessageListProps) {
                 return (
                     <ChatMessageItem
                         key={message.id}
+                        agent={agent}
                         message={message}
                         participant={participant}
                         participants={participants}

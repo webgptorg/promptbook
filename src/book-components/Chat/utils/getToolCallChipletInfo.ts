@@ -1,4 +1,5 @@
-import { ASSISTANT_PREPARATION_TOOL_CALL_NAME, type ToolCall } from '../../../types/ToolCall';
+import { ASSISTANT_PREPARATION_TOOL_CALL_NAME, isAssistantPreparationToolCall, type ToolCall } from '../../../types/ToolCall';
+import type { Agent } from '../../../llm-providers/agent/Agent';
 import type { AgentChipData } from '../AgentChip';
 import {
     getToolCallResultDate,
@@ -60,13 +61,22 @@ export const TOOL_TITLES: Record<string, { title: string; emoji: string; wrapInB
  *
  * @private [🧠] Maybe public?
  */
-export function getToolCallChipletInfo(toolCall: ToolCall): ToolCallChipletInfo {
+export function getToolCallChipletInfo(toolCall: ToolCall, agent?: Agent): ToolCallChipletInfo {
     const toolInfo = TOOL_TITLES[toolCall.name];
     const baseTitle = toolInfo?.title || toolCall.name;
     const emoji = toolInfo?.emoji || '🛠️';
     const wrapInBrackets = toolInfo?.wrapInBrackets ?? true;
 
     const args = parseToolCallArguments(toolCall);
+
+    if (isAssistantPreparationToolCall(toolCall) && agent?.preparedExternals.openaiAssistantId) {
+        // Note: When OpenAI assistant is already prepared, we are just using the cache, no need to show "Preparing agent" chiplet
+        return {
+            text: `Using cached agent...`,
+            wrapInBrackets,
+        };
+    }
+
     const isTimeTool = toolCall.name === 'get_current_time' || toolCall.name === 'useTime';
     const isEmailTool = toolCall.name === 'send_email' || toolCall.name === 'useEmail';
     const resultRaw = parseToolCallResult(toolCall.result);

@@ -68,7 +68,7 @@ Make some look how the chips or tool chips are implemented. For example, how it 
 
 ---
 
-[ ] !
+[x] ~$0.00
 
 [✨📰] Show the chip "... Preparing agent: Creating assistant ..." only on cache miss, when the `Agent.preparedExternals.openaiAssistantId` is used, do not show The agent is being prepared.
 
@@ -106,3 +106,4 @@ Make some look how the chips or tool chips are implemented. For example, how it 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server) with the agent chat _(for example, [here](https://my-agent-server.com/agents/FVLv8APAf2S1WV/chat))_
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

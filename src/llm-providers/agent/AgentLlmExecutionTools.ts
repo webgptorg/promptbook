@@ -441,6 +441,11 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
                 });
             }
 
+            // [0] Expose prepared externals
+            if ((this as any).preparedExternals) {
+                (this as any).preparedExternals.openaiAssistantId = assistant.assistantId;
+            }
+
             // Create modified chat prompt with agent system message specific to OpenAI Assistant
             const promptWithAgentModelRequirementsForOpenAiAssistantExecutionTools: ChatPrompt = {
                 ...promptWithAgentModelRequirements,

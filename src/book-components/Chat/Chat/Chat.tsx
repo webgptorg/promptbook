@@ -39,6 +39,7 @@ import styles from './Chat.module.css';
  */
 export function Chat(props: ChatProps) {
     const {
+        agent,
         title = 'Chat',
         messages,
         onChange,
@@ -260,6 +261,7 @@ export function Chat(props: ChatProps) {
                     />
 
                     <ChatMessageList
+                        agent={agent}
                         messages={postprocessedMessages}
                         participants={participants}
                         expandedMessageId={expandedMessageId}

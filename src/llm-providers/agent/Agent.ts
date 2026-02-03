@@ -200,6 +200,13 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
     public toolTitles: Record<string, string> = {};
 
     /**
+     * Externals prepared for the agent, like OpenAI assistant, etc.
+     */
+    public preparedExternals: {
+        openaiAssistantId?: string;
+    } = {};
+
+    /**
      * Not used in Agent, always returns empty array
      */
     get parameters(): Array<BookParameter> {

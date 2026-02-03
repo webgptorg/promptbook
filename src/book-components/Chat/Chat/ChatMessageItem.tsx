@@ -26,13 +26,14 @@ import { parseToolCallArguments } from '../utils/toolCallParsing';
 import styles from './Chat.module.css';
 import type { ChatProps } from './ChatProps';
 import { AVATAR_SIZE, LOADING_INTERACTIVE_IMAGE } from './constants';
+import { Agent } from '../../../llm-providers/agent/Agent';
 
 /**
  * Props for the `ChatMessageItem` component
  *
  * @private props for internal subcomponent
  */
-type ChatMessageItemProps = Pick<ChatProps, 'onMessage' | 'participants'> & {
+type ChatMessageItemProps = Pick<ChatProps, 'onMessage' | 'participants' | 'agent'> & {
     message: ChatMessage;
     participant: ChatParticipant | undefined;
     isLastMessage: boolean;
@@ -110,9 +111,10 @@ function findTeammateByToolName(teammates: TeammatesMap | undefined, toolName: s
 function resolveTeamAgentChipData(
     toolCall: NonNullable<ChatMessage['toolCalls']>[number],
     teammates: TeammatesMap | undefined,
+    agent: Agent | undefined,
     chipletInfo?: ToolCallChipletInfo,
 ): AgentChipData | null {
-    const resolvedChipletInfo = chipletInfo || getToolCallChipletInfo(toolCall);
+    const resolvedChipletInfo = chipletInfo || getToolCallChipletInfo(toolCall, agent);
 
     if (resolvedChipletInfo.agentData) {
         return resolvedChipletInfo.agentData;
@@ -143,6 +145,7 @@ export const ChatMessageItem = memo(
     //                                          Or make normal function from this?
     (props: ChatMessageItemProps) => {
         const {
+            agent,
             message,
             participant,
             participants,
@@ -257,6 +260,11 @@ export const ChatMessageItem = memo(
         const { contentWithoutButtons, buttons } = parseMessageButtons(message.content);
         const completedToolCalls = (message.toolCalls || message.completedToolCalls)?.filter(
             (toolCall) => !isAssistantPreparationToolCall(toolCall),
+        );
+        const ongoingToolCalls = message.ongoingToolCalls?.filter(
+            (toolCall) =>
+                !isAssistantPreparationToolCall(toolCall) ||
+                (isAssistantPreparationToolCall(toolCall) && !agent?.preparedExternals.openaiAssistantId),
         );
         const shouldShowButtons = isLastMessage && buttons.length > 0 && onMessage;
 
@@ -475,12 +483,17 @@ export const ChatMessageItem = memo(
                         {completedToolCalls && completedToolCalls.length > 0 && (
                             <div className={styles.completedToolCalls}>
                                 {completedToolCalls.map((toolCall, index) => {
-                                    const chipletInfo = getToolCallChipletInfo(toolCall);
+                                    const chipletInfo = getToolCallChipletInfo(toolCall, agent);
                                     const chipletText =
                                         chipletInfo.wrapInBrackets === false
                                             ? chipletInfo.text
                                             : `[${chipletInfo.text}]`;
-                                    const teamAgentData = resolveTeamAgentChipData(toolCall, teammates, chipletInfo);
+                                    const teamAgentData = resolveTeamAgentChipData(
+                                        toolCall,
+                                        teammates,
+                                        agent,
+                                        chipletInfo,
+                                    );
 
                                     // If this is a team tool with agent data, use AgentChip
                                     if (teamAgentData) {
@@ -530,12 +543,12 @@ export const ChatMessageItem = memo(
                             </div>
                         )}
 
-                        {!isComplete && message.ongoingToolCalls && message.ongoingToolCalls.length > 0 && (
+                        {!isComplete && ongoingToolCalls && ongoingToolCalls.length > 0 && (
                             <div className={styles.ongoingToolCalls}>
-                                {message.ongoingToolCalls.map((toolCall, index) => {
+                                {ongoingToolCalls.map((toolCall, index) => {
                                     const toolInfo = TOOL_TITLES[toolCall.name];
                                     const isTeamTool = isTeamToolName(toolCall.name);
-                                    const teamAgentData = resolveTeamAgentChipData(toolCall, teammates);
+                                    const teamAgentData = resolveTeamAgentChipData(toolCall, teammates, agent);
                                     const toolArguments = parseToolCallArguments(toolCall);
                                     const preparationPhase =
                                         isAssistantPreparationToolCall(toolCall) &&
