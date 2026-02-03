@@ -225,7 +225,6 @@ import type {
 } from '../types/ModelRequirements';
 import type { ModelVariant } from '../types/ModelVariant';
 import type { NonEmptyArray, NonEmptyReadonlyArray } from '../types/NonEmptyArray';
-import type { PreparedExternals } from '../types/PreparedExternals';
 import type { ChatPrompt, CompletionPrompt, EmbeddingPrompt, ImagePrompt, Prompt } from '../types/Prompt';
 import type { ScriptLanguage } from '../types/ScriptLanguage';
 import type { SectionType } from '../types/SectionType';
@@ -632,7 +631,6 @@ export type {
     PreparationJson,
     PreparationTask,
     PrepareAndScrapeOptions,
-    PreparedExternals,
     PrettifyOptions,
     Prompt,
     PromptbookFetch,
