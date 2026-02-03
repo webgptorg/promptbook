@@ -33,7 +33,7 @@ import { QrCodeModal } from '../AgentProfile/QrCodeModal';
 import { useAgentBackground } from '../AgentProfile/useAgentBackground';
 import { showAlert, showConfirm, showPrompt } from '../AsyncDialogs/asyncDialogs';
 import { AgentCard } from './AgentCard';
-import { AgentsGraph } from './AgentsGraph';
+import { AgentsGraphV2 } from './AgentsGraphV2';
 import { FileCard } from './FileCard';
 import { FolderCard } from './FolderCard';
 import {
@@ -1643,7 +1643,7 @@ export function AgentsList(props: AgentsListProps) {
                 </DndContext>
             ) : (
                 <div className="w-full">
-                    <AgentsGraph
+                    <AgentsGraphV2
                         agents={agents.map((a) => ({ ...a, serverUrl: publicUrl.replace(/\/$/, '') }))}
                         federatedAgents={federatedAgents}
                         federatedServersStatus={federatedServersStatus}

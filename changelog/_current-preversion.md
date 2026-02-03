@@ -1,5 +1,12 @@
 ### 📚 Book
 
+-   Redesigned the agents graph on the home page using the React Flow library, featuring:
+    -   Improved UI and UX for graph visualization.
+    -   Interactive features such as zooming, panning, and node highlighting on hover.
+    -   Responsive design for different screen sizes.
+    -   Preservation of all existing features, including displaying agent images, working with default and explicit agent images, supporting current and federated agent servers, grouping agents by server, displaying relationships, and filtering.
+    -   Interactive editing capabilities, allowing users to edit agents inside the graph layout by dragging and repositioning nodes.
+
 -   Regenerated the Agents Server Supabase subset schema for `Agent` and `AgentHistory` to stay aligned with the canonical database schema.
 -   Regenerated the Agents Server Supabase schema types from migrations, aligning ChatHistory and File table fields.
 -   Added Agents Server folder organization with nested folders, drag-and-drop ordering, URL folder paths, and recycle bin support for folders.
