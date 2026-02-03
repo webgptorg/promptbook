@@ -111,6 +111,8 @@ export function computeAssistantCacheKey(configuration: AssistantConfiguration):
         ...(configuration.tools && { tools: configuration.tools }),
     };
 
+    // TODO: !!!!! Is this doing what is it supposed to do?
+
     // Hash the configuration object
     return computeHash(JSON.stringify(cacheObject));
 }
