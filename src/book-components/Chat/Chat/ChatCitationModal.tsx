@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react';
+import { Document, Page, pdfjs } from 'react-pdf';
 import { classNames } from '../../_common/react-utils/classNames';
 import { CloseIcon } from '../../icons/CloseIcon';
 import { DownloadIcon } from '../../icons/DownloadIcon';
@@ -9,6 +11,11 @@ import type { ParsedCitation } from '../utils/parseCitationsFromContent';
 import { resolveCitationUrl } from '../utils/resolveCitationUrl';
 import styles from './Chat.module.css';
 import type { ChatSoundSystem } from './ChatProps';
+
+// TODO: [🎞] This is a bit of a hack. We should probably have a more robust way of handling this.
+//           The best way would be to NOT depend on external file but embed the worker in the bundle.
+//           @see https://github.com/wojtekmaj/react-pdf/tree/main/packages/react-pdf#pdfjs-worker
+pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
 
 /**
  * Props for the citation preview modal.
@@ -31,6 +38,8 @@ export type ChatCitationModalProps = {
 export function ChatCitationModal(props: ChatCitationModalProps) {
     const { isOpen, citation, participants, soundSystem, onClose } = props;
 
+    const [numPages, setNumPages] = useState<number>();
+
     if (!isOpen || !citation) {
         return null;
     }
@@ -39,6 +48,11 @@ export function ChatCitationModal(props: ChatCitationModalProps) {
     const isValidUrl = !!resolvedUrl;
     const extension = citation.source.split('.').pop()?.toLowerCase();
     const isImage = ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(extension || '');
+    const isPdf = extension === 'pdf';
+
+    function onDocumentLoadSuccess({ numPages }: { numPages: number }): void {
+        setNumPages(numPages);
+    }
 
     return (
         <div
@@ -75,6 +89,12 @@ export function ChatCitationModal(props: ChatCitationModalProps) {
                                             margin: '0 auto',
                                         }}
                                     />
+                                ) : isPdf ? (
+                                    <Document file={resolvedUrl} onLoadSuccess={onDocumentLoadSuccess}>
+                                        {Array.from(new Array(numPages), (el, index) => (
+                                            <Page key={`page_${index + 1}`} pageNumber={index + 1} />
+                                        ))}
+                                    </Document>
                                 ) : (
                                     <iframe
                                         src={resolvedUrl}
