@@ -42,6 +42,7 @@ export default async function HomePage(props: HomePageProps) {
                     canOrganize={Boolean(currentUser)}
                     publicUrl={publicUrl.href /* <- [??] */}
                     showFederatedAgents={!isSubfolderView}
+                    isSubfolderView={isSubfolderView}
                 />
 
                 {!isGraphView && !isSubfolderView && (

@@ -552,6 +552,11 @@ type AgentsListProps = {
      * Optional external agents to display in the list view (used for federated agents)
      */
     readonly externalAgents?: AgentWithVisibility[];
+
+    /**
+     * Whether the current view is inside a subfolder.
+     */
+    readonly isSubfolderView: boolean;
 };
 
 /**
@@ -566,6 +571,7 @@ export function AgentsList(props: AgentsListProps) {
         publicUrl,
         showFederatedAgents,
         externalAgents: initialExternalAgents,
+        isSubfolderView,
     } = props;
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -985,13 +991,13 @@ export function AgentsList(props: AgentsListProps) {
         ];
 
         const updatedMap = new Map(updates.map((item) => [(item.permanentId || item.agentName)!, item]));
-        setAgents((prev) => prev.map((item) => updatedMap.get(item.permanentId || item.agentName) || item));
+        setAgents((prev) => prev.map((item) => updatedMap.get(item.permanentId || agent.agentName) || item));
 
         await persistOrganizationUpdates({
-            agents: updates.map((item) => ({
-                identifier: item.permanentId || item.agentName,
-                folderId: item.folderId ?? null,
-                sortOrder: item.sortOrder,
+            agents: updates.map((agent) => ({
+                identifier: agent.permanentId || agent.agentName,
+                folderId: agent.folderId ?? null,
+                sortOrder: agent.sortOrder,
             })),
         });
     };
@@ -1193,7 +1199,7 @@ export function AgentsList(props: AgentsListProps) {
             await showAlert({
                 title: 'Delete failed',
                 message: 'Failed to delete agent',
-            }).catch(() => undefined);
+                }).catch(() => undefined);
         }
     };
 
@@ -1470,8 +1476,8 @@ export function AgentsList(props: AgentsListProps) {
 
     const headingTitle =
         viewMode === 'LIST' && currentFolderId !== null
-            ? folderMaps.folderById.get(currentFolderId)?.name || 'Agents'
-            : 'Agents';
+            ? folderMaps.folderById.get(currentFolderId)?.name || 'Local Agents'
+            : 'Local Agents';
     const contextMenuAgent = contextMenuState?.agent ?? null;
     const contextMenuIdentifier = contextMenuAgent ? contextMenuAgent.permanentId || contextMenuAgent.agentName : '';
     const contextMenuAgentUrl = contextMenuAgent ? buildAgentUrl(contextMenuIdentifier) : '';
@@ -1511,7 +1517,7 @@ export function AgentsList(props: AgentsListProps) {
                         )}
                     </div>
                     <div className="flex items-center gap-2">
-                        {viewMode === 'LIST' && canOrganize && (
+                        {viewMode === 'LIST' && canOrganize && !isSubfolderView && (
                             <button
                                 type="button"
                                 onClick={handleCreateFolder}
@@ -1601,18 +1607,7 @@ export function AgentsList(props: AgentsListProps) {
                                 />
                             ))}
                         </SortableContext>
-                        {currentFolderId === null &&
-                            federatedAgents.map((agent) => (
-                                <AgentCard
-                                    key={agent.permanentId || agent.agentName}
-                                    agent={agent}
-                                    publicUrl={publicUrl}
-                                    serverUrl={agent.serverUrl}
-                                    href={`/agents/${encodeURIComponent(
-                                        agent.permanentId || agent.agentName,
-                                    )}`}
-                                />
-                            ))}
+
                         {isAdmin && <AddAgentButton currentFolderId={currentFolderId} />}
                         {canOrganize && (
                             <Link

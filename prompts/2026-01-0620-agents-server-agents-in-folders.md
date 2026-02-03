@@ -146,7 +146,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🦢] Federated agents shouldn't be mixed into the local agents.
 

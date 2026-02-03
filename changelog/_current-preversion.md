@@ -392,3 +392,6 @@
 -   Fix width of the message in the chat by adding a minimum width and improving layout for short messages.
 -   Use model `gemini-3-pro-image-preview` for the agent of Avatar Images
 -   **Persistent caching of OpenAI Assistants** using `preparedExternals` column in the `Agent` table, ensuring efficient reuse and validation against agent requirements.
+-   [✨🦢] Separated local and federated agents into distinct sections on the homepage.
+>>>>+++ REPLACE
+
