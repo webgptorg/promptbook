@@ -17,30 +17,4 @@ export type CreateAgentLlmExecutionToolsOptions = CommonToolsOptions & {
      * The agent source string that defines the agent's behavior
      */
     agentSource: string_book;
-
-    /**
-     * Cached prepared externals from database (e.g., OpenAI Assistant ID)
-     * Used to avoid recreating assistants when they already exist
-     */
-    preparedExternals?: {
-        /**
-         * The OpenAI Assistant ID that was previously created
-         */
-        openAiAssistantId?: string;
-        
-        /**
-         * Hash of the requirements used to create the assistant
-         * Used to detect if the assistant needs to be updated
-         */
-        requirementsHash?: string;
-    } | null;
-
-    /**
-     * Callback to persist prepared externals to database
-     * Called when a new assistant is created or updated
-     */
-    onPreparedExternalsUpdate?: (preparedExternals: {
-        openAiAssistantId: string;
-        requirementsHash: string;
-    }) => void;
 };

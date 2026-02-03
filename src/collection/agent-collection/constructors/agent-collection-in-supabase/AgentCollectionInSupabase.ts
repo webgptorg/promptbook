@@ -14,7 +14,7 @@ import { TODO_USE } from '../../../../utils/organization/TODO_USE';
 import { $randomBase58 } from '../../../../utils/random/$randomBase58';
 import { PROMPTBOOK_ENGINE_VERSION } from '../../../../version';
 import { AgentCollectionInSupabaseOptions } from './AgentCollectionInSupabaseOptions';
-import type { AgentsDatabaseSchema, Json } from './AgentsDatabaseSchema';
+import type { AgentsDatabaseSchema } from './AgentsDatabaseSchema';
 
 // import { getTableName } from '../../../../../apps/agents-server/src/database/getTableName';
 // <- TODO: [🐱‍🚀] Prevent imports from `/apps` -> `/src`
@@ -157,70 +157,6 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
         }
 
         return selectResult.data[0]!.agentSource as string_book;
-    }
-
-    /**
-     * Retrieves the prepared externals (cached assistant data) of an agent by its name or permanent ID.
-     */
-    public async getAgentPreparedExternals(
-        agentNameOrPermanentId: string_agent_name | string_agent_permanent_id,
-    ): Promise<{ openAiAssistantId?: string; requirementsHash?: string } | null> {
-        const selectResult = await this.supabaseClient
-            .from(this.getTableName('Agent'))
-            .select('preparedExternals')
-            .or(`agentName.eq.${agentNameOrPermanentId},permanentId.eq.${agentNameOrPermanentId}`)
-            .is('deletedAt', null);
-
-        if (selectResult.data && selectResult.data.length === 0) {
-            throw new NotFoundError(`Agent "${agentNameOrPermanentId}" not found`);
-        } else if (selectResult.data && selectResult.data.length > 1) {
-            throw new UnexpectedError(`More agents with name or id "${agentNameOrPermanentId}" found`);
-        } else if (selectResult.error) {
-            throw new DatabaseError(
-                spaceTrim(
-                    (block) => `
-                        Error fetching agent "${agentNameOrPermanentId}" from Supabase:
-                        
-                        ${block(selectResult.error.message)}
-                    `,
-                ),
-            );
-        }
-
-        const preparedExternals = selectResult.data[0]!.preparedExternals;
-        if (!preparedExternals || typeof preparedExternals !== 'object') {
-            return null;
-        }
-
-        return preparedExternals as { openAiAssistantId?: string; requirementsHash?: string };
-    }
-
-    /**
-     * Updates the prepared externals (cached assistant data) for an agent.
-     */
-    public async updateAgentPreparedExternals(
-        agentNameOrPermanentId: string_agent_name | string_agent_permanent_id,
-        preparedExternals: { openAiAssistantId: string; requirementsHash: string },
-    ): Promise<void> {
-        // First get the permanent ID
-        const permanentId = await this.getAgentPermanentId(agentNameOrPermanentId);
-
-        const updateResult = await this.supabaseClient
-            .from(this.getTableName('Agent'))
-            .update({ preparedExternals: preparedExternals as Json })
-            .eq('permanentId', permanentId);
-
-        if (updateResult.error) {
-            throw new DatabaseError(
-                spaceTrim(
-                    (block) => `
-                        Error updating prepared externals for agent "${agentNameOrPermanentId}" in Supabase:
-                        
-                        ${block(updateResult.error.message)}
-                    `,
-                ),
-            );
-        }
     }
 
     /**

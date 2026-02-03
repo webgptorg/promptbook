@@ -46,7 +46,6 @@ Make some look how the chips or tool chips are implemented. For example, how it 
 ---
 
 [x] ~$0.00
-[x]
 
 [✨📰] When creating the underlying GPT assistant of the agent, the caching is not working very well
 
