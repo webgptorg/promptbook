@@ -409,6 +409,25 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
                         requirementsHash,
                     });
                 }
+            } else if (
+                this.options.preparedExternals &&
+                this.options.preparedExternals.openAiAssistantId &&
+                this.options.preparedExternals.requirementsHash === requirementsHash
+            ) {
+                // Check persistent cache from database (preparedExternals)
+                if (this.options.isVerbose) {
+                    console.info('[🤰]', 'Using persistent cached OpenAI Assistant', {
+                        agent: this.title,
+                        assistantId: this.options.preparedExternals.openAiAssistantId,
+                    });
+                }
+                assistant = this.options.llmTools.getAssistant(this.options.preparedExternals.openAiAssistantId);
+                
+                // Update in-memory cache
+                AgentLlmExecutionTools.assistantCache.set(this.title, {
+                    assistantId: assistant.assistantId,
+                    requirementsHash,
+                });
             } else {
                 if (this.options.isVerbose) {
                     console.info('[🤰]', 'Creating new OpenAI Assistant', {
@@ -435,10 +454,19 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
                     */
                 });
 
+                // Update in-memory cache
                 AgentLlmExecutionTools.assistantCache.set(this.title, {
                     assistantId: assistant.assistantId,
                     requirementsHash,
                 });
+                
+                // Persist to database via callback
+                if (this.options.onPreparedExternalsUpdate) {
+                    this.options.onPreparedExternalsUpdate({
+                        openAiAssistantId: assistant.assistantId,
+                        requirementsHash,
+                    });
+                }
             }
 
             // Create modified chat prompt with agent system message specific to OpenAI Assistant

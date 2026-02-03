@@ -149,6 +149,9 @@ export async function handleChatCompletion(
             });
         }
 
+        // Get prepared externals (cached assistant data) from database
+        const preparedExternals = await collection.getAgentPreparedExternals(agentName);
+
         const agent = new Agent({
             agentSource,
             executionTools: {
@@ -156,6 +159,11 @@ export async function handleChatCompletion(
             },
             isVerbose: true, // or false
             teacherAgent: null, // <- TODO: [🦋] DRY place to provide the teacher
+            preparedExternals,
+            onPreparedExternalsUpdate: async (updatedExternals) => {
+                // Persist the updated prepared externals to the database
+                await collection.updateAgentPreparedExternals(agentName, updatedExternals);
+            },
         });
 
         const userAgent = request.headers.get('user-agent');
