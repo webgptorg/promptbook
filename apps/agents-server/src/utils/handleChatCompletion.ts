@@ -117,6 +117,7 @@ export async function handleChatCompletion(
         }
 
         const agentHash = computeAgentHash(agentSource);
+        const agentId = await collection.getAgentPermanentId(agentName);
 
         // Use AssistantCacheManager for intelligent assistant caching
         // This provides a centralized, DRY way to manage assistant lifecycle
@@ -130,7 +131,10 @@ export async function handleChatCompletion(
             agentSource,
             agentName,
             baseOpenAiTools,
-            { includeDynamicContext: true }, // Default: strict caching (includes CONTEXT)
+            {
+                includeDynamicContext: true, // Default: strict caching (includes CONTEXT)
+                agentId,
+            },
         );
 
         if (assistantResult.fromCache) {

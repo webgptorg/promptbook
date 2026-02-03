@@ -9,6 +9,7 @@ import { computeHash, serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
 import { keepUnused } from '../../../../../../../../src/utils/organization/keepUnused';
 import { isAgentDeleted } from '../../_utils';
+import { AssistantCacheManager } from '@/src/utils/cache/AssistantCacheManager';
 
 /**
  * Allow long-running streams: set to platform maximum (seconds)
@@ -55,12 +56,29 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
     try {
         const collection = await $provideAgentCollectionForServer();
         // [▶️] const executionTools = await $provideExecutionToolsForServer();
+        const agentId = await collection.getAgentPermanentId(agentName);
         const agentSource = await collection.getAgentSource(agentName);
+
+        // Use AssistantCacheManager for intelligent assistant caching
+        const assistantCacheManager = new AssistantCacheManager({ isVerbose: true });
+        const baseOpenAiTools = await $provideOpenAiAssistantExecutionToolsForServer();
+
+        // Get or create assistant with enhanced caching
+        const assistantResult = await assistantCacheManager.getOrCreateAssistant(
+            agentSource,
+            agentName,
+            baseOpenAiTools,
+            {
+                includeDynamicContext: true,
+                agentId,
+            },
+        );
+
         const agent = new Agent({
             isVerbose: true, // <- TODO: [🐱‍🚀] From environment variable
             executionTools: {
                 // [▶️] ...executionTools,
-                llm: await $provideOpenAiAssistantExecutionToolsForServer(), // Note: Providing the OpenAI Assistant LLM tools to the Agent to be able to create its own Assistants GPTs
+                llm: assistantResult.tools,
             },
             agentSource,
             teacherAgent: await RemoteAgent.connect({
