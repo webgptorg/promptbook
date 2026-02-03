@@ -5,15 +5,11 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 
 import colors from 'colors';
-import { readFileSync, writeFileSync } from 'fs';
-import glob from 'glob-promise'; // <- TODO: [🚰] Use just 'glob' // <- TODO: [🚰] Use just 'glob'
+import { writeFileSync } from 'fs';
 import { join } from 'path';
 import { spaceTrim } from 'spacetrim';
-import type { string_char_emoji } from '../../src/types/typeAliasEmoji';
-import { difference } from '../../src/utils/sets/difference';
-import { $shuffleItems } from '../find-fresh-emoji-tag/utils/$shuffleItems';
-import { EMOJIS_OF_SINGLE_PICTOGRAM } from '../find-fresh-emoji-tag/utils/emojis';
 import { buildPromptFilename, getPromptNumbering } from '../utils/prompts/getPromptNumbering';
+import { formatPromptEmojiTag, getFreshPromptEmojiTags } from '../utils/prompts/promptEmojiTags';
 
 if (process.cwd() !== join(__dirname, '../..')) {
     console.error(colors.red(`CWD must be root of the project`));
@@ -30,7 +26,10 @@ generatePromptBoilerplate()
         process.exit(0);
     });
 
-async function generatePromptBoilerplate() {
+/**
+ * Generates boilerplate prompt files with unique emoji tags.
+ */
+async function generatePromptBoilerplate(): Promise<void> {
     console.info(`🚀  Generate prompt boilerplate files`);
 
     // Determine how many files to generate from CLI arg (default: 5)
@@ -59,34 +58,15 @@ async function generatePromptBoilerplate() {
         ),
     );
 
-    // Find used emojis in the codebase
-    const allFiles = await glob('**/*.{ts,tsx,js,jsx,json,md,txt}', {
-        ignore: '**/node_modules/**', // <- TODO: [🚰] Ignore also hidden folders like (`.promptbook`, `.next`, `.git`,...)
+    const { availableCount, selectedEmojis } = await getFreshPromptEmojiTags({
+        count: filesCount,
+        rootDir: process.cwd(),
     });
 
-    const usedEmojis = new Set<string_char_emoji>();
-
-    for (const file of allFiles) {
-        try {
-            const content = readFileSync(file, 'utf-8'); /* <- Note: Its OK to use sync in tooling for scripts */
-
-            for (const emoji of EMOJIS_OF_SINGLE_PICTOGRAM) {
-                const tag = `[✨${emoji}]`;
-                if (content.includes(tag)) {
-                    usedEmojis.add(emoji);
-                }
-            }
-        } catch (error) {
-            console.error(colors.red('Error in checking file file /' + file));
-            console.error(error);
-        }
-    }
-
-    const freshEmojis = difference(EMOJIS_OF_SINGLE_PICTOGRAM, usedEmojis);
-    const selectedEmojis = $shuffleItems(...Array.from(freshEmojis)).slice(0, filesCount);
-
-    console.info(colors.green(`Found ${freshEmojis.size} available fresh emojis`));
-    console.info(colors.green(`Selected emojis: ${selectedEmojis.map((emoji) => `[✨${emoji}]`).join(' ')}`));
+    console.info(colors.green(`Found ${availableCount} available fresh emojis`));
+    console.info(
+        colors.green(`Selected emojis: ${selectedEmojis.map((emoji) => formatPromptEmojiTag(emoji)).join(' ')}`),
+    );
 
     // Placeholder titles
     const titles = ['foo', 'bar', 'baz', 'qux', 'brr'];
@@ -99,11 +79,12 @@ async function generatePromptBoilerplate() {
         const emoji = selectedEmojis[i];
         const filename = buildPromptFilename(promptNumbering.datePrefix, number, title);
         const filepath = join('prompts', filename);
+        const emojiTag = formatPromptEmojiTag(emoji);
         const one = spaceTrim(`
 
             [-]
 
-            [✨${emoji}] ${title}
+            ${emojiTag} ${title}
 
             -   Keep in mind the DRY _(don't repeat yourself)_ principle.
             -   Add the changes into the [changelog](./changelog/_current-preversion.md)
@@ -142,8 +123,12 @@ async function generatePromptBoilerplate() {
 
     for (const file of filesToCreate) {
         writeFileSync(file.filepath, file.content, 'utf-8');
-        console.info(colors.green(`✓ Created: ${file.filename} with [✨${file.emoji}]`));
+        console.info(colors.green(`✓ Created: ${file.filename} with ${formatPromptEmojiTag(file.emoji)}`));
     }
 
     console.info(colors.bgGreen(` Successfully created ${filesToCreate.length} prompt boilerplate files! `));
 }
+
+
+
+

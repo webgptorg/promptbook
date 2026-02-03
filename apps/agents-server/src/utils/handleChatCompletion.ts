@@ -117,6 +117,7 @@ export async function handleChatCompletion(
         }
 
         const agentHash = computeAgentHash(agentSource);
+        const agentId = await collection.getAgentPermanentId(agentName);
 
         // Use AssistantCacheManager for intelligent assistant caching
         // This provides a centralized, DRY way to manage assistant lifecycle
@@ -130,10 +131,11 @@ export async function handleChatCompletion(
             agentSource,
             agentName,
             baseOpenAiTools,
-            { includeDynamicContext: true }, // Default: strict caching (includes CONTEXT)
+            {
+                includeDynamicContext: true, // Default: strict caching (includes CONTEXT)
+                agentId,
+            },
         );
-
-        const openAiAssistantExecutionTools = assistantResult.tools;
 
         if (assistantResult.fromCache) {
             console.info('[🤰]', 'Assistant cache hit (OpenAI)', {
@@ -152,7 +154,7 @@ export async function handleChatCompletion(
         const agent = new Agent({
             agentSource,
             executionTools: {
-                llm: openAiAssistantExecutionTools, // Note: Use the same OpenAI Assistant LLM tools as the chat route
+                llm: await $provideOpenAiAssistantExecutionToolsForServer(),
             },
             isVerbose: true, // or false
             teacherAgent: null, // <- TODO: [🦋] DRY place to provide the teacher

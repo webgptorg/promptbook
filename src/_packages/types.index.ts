@@ -23,6 +23,7 @@ import type { ChatEffect } from '../book-components/Chat/effects/types/ChatEffec
 import type { ChatEffectConfig } from '../book-components/Chat/effects/types/ChatEffectConfig';
 import type { ChatEffectsSystemProps } from '../book-components/Chat/effects/types/ChatEffectsSystemProps';
 import type { ChatEffectType } from '../book-components/Chat/effects/types/ChatEffectType';
+import type { ChatActionsOverlapResult } from '../book-components/Chat/hooks/useChatActionsOverlap';
 import type { ChatAutoScrollConfig } from '../book-components/Chat/hooks/useChatAutoScroll';
 import type { SendMessageToLlmChatFunction } from '../book-components/Chat/hooks/useSendMessageToLlmChat';
 import type { FriendlyErrorMessage } from '../book-components/Chat/LlmChat/FriendlyErrorMessage';
@@ -427,6 +428,7 @@ export type { ChatEffect };
 export type { ChatEffectConfig };
 export type { ChatEffectsSystemProps };
 export type { ChatEffectType };
+export type { ChatActionsOverlapResult };
 export type { ChatAutoScrollConfig };
 export type { SendMessageToLlmChatFunction };
 export type { FriendlyErrorMessage };

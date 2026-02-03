@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { showConfirm } from '../../../components/AsyncDialogs/asyncDialogs';
 import { $clearAgentChatHistory } from '../../../utils/chatHistoryAdmin';
 
 type ClearAgentChatHistoryButtonProps = {
@@ -28,9 +29,12 @@ export function ClearAgentChatHistoryButton({ agentName, onCleared }: ClearAgent
     const handleClick = async () => {
         if (!agentName) return;
 
-        const confirmed = window.confirm(
-            `Are you sure you want to permanently delete all chat history for agent "${agentName}"?`,
-        );
+        const confirmed = await showConfirm({
+            title: 'Clear chat history',
+            message: `Are you sure you want to permanently delete all chat history for agent "${agentName}"?`,
+            confirmLabel: 'Delete history',
+            cancelLabel: 'Cancel',
+        }).catch(() => false);
         if (!confirmed) return;
 
         try {

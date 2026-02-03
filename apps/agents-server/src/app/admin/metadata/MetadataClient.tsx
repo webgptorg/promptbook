@@ -3,6 +3,7 @@
 import { upload } from '@vercel/blob/client';
 import { FileTextIcon, HashIcon, ImageIcon, ShieldIcon, ToggleLeftIcon, TypeIcon, Upload } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { showConfirm } from '../../../components/AsyncDialogs/asyncDialogs';
 import { metadataDefaults, MetadataType } from '../../../database/metadataDefaults';
 import { getSafeCdnPath } from '../../../utils/cdn/utils/getSafeCdnPath';
 import { normalizeUploadFilename } from '../../../utils/normalization/normalizeUploadFilename';
@@ -125,7 +126,13 @@ export function MetadataClient() {
     };
 
     const handleDelete = async (key: string) => {
-        if (!confirm('Are you sure you want to delete this metadata?')) return;
+        const confirmed = await showConfirm({
+            title: 'Delete metadata',
+            message: 'Are you sure you want to delete this metadata?',
+            confirmLabel: 'Delete metadata',
+            cancelLabel: 'Cancel',
+        }).catch(() => false);
+        if (!confirmed) return;
 
         try {
             const response = await fetch(`/api/metadata?key=${encodeURIComponent(key)}`, {

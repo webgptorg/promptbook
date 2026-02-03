@@ -3,6 +3,7 @@
 import { usePathname, useSearchParams } from 'next/navigation';
 import { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
 import { MenuHoistingProvider } from '../../../../../src/book-components/_common/MenuHoisting/MenuHoistingContext';
+import { AsyncDialogsProvider } from '../AsyncDialogs/AsyncDialogsProvider';
 import type { UserInfo } from '../../utils/getCurrentUser';
 import { Footer, type FooterLink } from '../Footer/Footer';
 import { Header } from '../Header/Header';
@@ -38,22 +39,26 @@ export function LayoutWrapper({
     const isHeaderHidden = false; // pathname?.includes('/chat') && !isAdminChatPage;
     const isFooterHiddenOnPage = pathname ? /^\/agents\/[^/]+\/(book|chat|book\+chat)$/.test(pathname) : false;
 
-    if (isHeaderHidden || isHeadless) {
-        return <main className={`pt-0`}>{children}</main>;
-    }
-
     return (
-        <MenuHoistingProvider>
-            <Header
-                isAdmin={isAdmin}
-                currentUser={currentUser}
-                serverName={serverName}
-                serverLogoUrl={serverLogoUrl}
-                agents={agents}
-                federatedServers={federatedServers}
-            />
-            <main className={isChatPage ? `h-[100dvh] pt-[60px] overflow-hidden` : `pt-[60px]`}>{children}</main>
-            {isFooterShown && !isFooterHiddenOnPage && <Footer extraLinks={footerLinks} />}
-        </MenuHoistingProvider>
+        <AsyncDialogsProvider>
+            {isHeaderHidden || isHeadless ? (
+                <main className="pt-0">{children}</main>
+            ) : (
+                <MenuHoistingProvider>
+                    <Header
+                        isAdmin={isAdmin}
+                        currentUser={currentUser}
+                        serverName={serverName}
+                        serverLogoUrl={serverLogoUrl}
+                        agents={agents}
+                        federatedServers={federatedServers}
+                    />
+                    <main className={isChatPage ? `h-[100dvh] pt-[60px] overflow-hidden` : `pt-[60px]`}>
+                        {children}
+                    </main>
+                    {isFooterShown && !isFooterHiddenOnPage && <Footer extraLinks={footerLinks} />}
+                </MenuHoistingProvider>
+            )}
+        </AsyncDialogsProvider>
     );
 }

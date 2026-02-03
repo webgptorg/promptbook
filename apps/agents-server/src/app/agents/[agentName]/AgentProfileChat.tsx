@@ -12,6 +12,7 @@ import { string_agent_url, string_color } from '../../../../../../src/types/type
 import { $getCurrentDate } from '../../../../../../src/utils/misc/$getCurrentDate';
 import { keepUnused } from '../../../../../../src/utils/organization/keepUnused';
 import { $createAgentFromBookAction } from '../../../app/actions';
+import { showAlert } from '../../../components/AsyncDialogs/asyncDialogs';
 import { DeletedAgentBanner } from '../../../components/DeletedAgentBanner';
 
 type AgentProfileChatProps = {
@@ -74,7 +75,10 @@ export function AgentProfileChat({
                 }
             } catch (error) {
                 console.error('Failed to create agent:', error);
-                alert('Failed to create agent. Please try again.');
+                await showAlert({
+                    title: 'Create failed',
+                    message: 'Failed to create agent. Please try again.',
+                }).catch(() => undefined);
             } finally {
                 setIsCreatingAgent(false);
             }

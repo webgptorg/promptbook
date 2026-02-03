@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { showConfirm } from '../AsyncDialogs/asyncDialogs';
 
 export type AdminUser = {
     id: number;
@@ -83,7 +84,16 @@ export function useUsersAdmin() {
 
     const deleteUser = useCallback(
         async (username: string) => {
-            if (!confirm(`Are you sure you want to delete user ${username}?`)) return;
+            const confirmed = await showConfirm({
+                title: 'Delete user',
+                message: `Are you sure you want to delete user ${username}?`,
+                confirmLabel: 'Delete user',
+                cancelLabel: 'Cancel',
+            }).catch(() => false);
+
+            if (!confirmed) {
+                return;
+            }
 
             try {
                 const response = await fetch(`/api/users/${username}`, {

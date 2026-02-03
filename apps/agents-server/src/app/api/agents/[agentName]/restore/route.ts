@@ -1,15 +1,25 @@
 // POST /api/agents/[agentName]/restore - restore deleted agent
-import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
+import { restoreAgentAndFolders } from '@/src/utils/agentOrganization/restoreAgentAndFolders';
+import { getCurrentUser } from '@/src/utils/getCurrentUser';
 import { TODO_any } from '@promptbook-local/types';
 import { NextResponse } from 'next/server';
 
+/**
+ * Restores a deleted agent and any missing parent folders.
+ *
+ * @param request - Incoming request.
+ * @param params - Route params containing the agent name or permanent id.
+ * @returns JSON response confirming restoration.
+ */
 export async function POST(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+        return NextResponse.json({ success: false, error: 'Authentication required.' }, { status: 401 });
+    }
     const { agentName } = await params;
-    const collection = await $provideAgentCollectionForServer();
 
     try {
-        const agentId = await collection.getAgentPermanentId(agentName);
-        await collection.restoreAgent(agentId);
+        await restoreAgentAndFolders(agentName);
         return NextResponse.json({ success: true });
     } catch (error) {
         return NextResponse.json(

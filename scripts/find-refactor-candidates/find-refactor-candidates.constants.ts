@@ -6,21 +6,22 @@ export const SOURCE_ROOTS: ReadonlyArray<string> = [
     'apps',
     'scripts',
     'examples',
-    'packages',
     'agents',
     'other',
 ];
 
 /**
- * File extensions treated as source code or source-like text.
+ * File extensions treated as source code.
  */
-export const SOURCE_FILE_EXTENSIONS: ReadonlyArray<string> = ['.ts', '.tsx', '.js', '.jsx', '.md', '.txt'];
+export const SOURCE_FILE_EXTENSIONS: ReadonlyArray<string> = ['.ts', '.tsx', '.js', '.jsx'];
 
 /**
  * Glob patterns that should be ignored when scanning for source files.
  */
 export const SOURCE_FILE_IGNORE_GLOBS: ReadonlyArray<string> = [
     '**/node_modules/**',
+    '**/packages/**',
+    '**/.*/**',
     '**/.git/**',
     '**/.idea/**',
     '**/.vscode/**',
@@ -49,8 +50,6 @@ export const LINE_COUNT_LIMITS_BY_EXTENSION: Readonly<Record<string, number>> = 
     '.tsx': 500,
     '.js': 500,
     '.jsx': 500,
-    '.md': 500,
-    '.txt': 500,
 };
 
 /**

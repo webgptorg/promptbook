@@ -1,12 +1,30 @@
 ### 📚 Book
 
+-   Regenerated the Agents Server Supabase subset schema for `Agent` and `AgentHistory` to stay aligned with the canonical database schema.
+-   Regenerated the Agents Server Supabase schema types from migrations, aligning ChatHistory and File table fields.
+-   Added Agents Server folder organization with nested folders, drag-and-drop ordering, URL folder paths, and recycle bin support for folders.
+-   Fixed Agents Server folder creation at the root level by querying `parentId` with null-aware filters to avoid bigint "null" errors.
+-   Replaced blocking browser `alert`, `prompt`, and `confirm` calls in Agents Server with queued async dialogs rendered via a global provider.
+-   Refined the agent avatar hover tooltip in Agents Server chat with a cleaner card, profile link, and resilient image fallback.
+-   Enhanced refactor-candidate prompt generation with richer guidance, clearer file linking, and reason-aware context.
+-   Added shared prompt emoji tag selection so generated refactor and boilerplate prompts use fresh unique `[✨]` tags across the repo.
 -   Added a refactor-candidate scanner script that flags oversized or entity-heavy source files and generates per-file refactor prompts in `prompts`.
+-   Scoped the refactor-candidate scanner to `.ts/.tsx/.js/.jsx` files while skipping hidden directories, `node_modules`, and `packages/`.
 -   Leveraged `spaceTrim` across the repository for better readability and maintainability of multiline strings and string joins.
 -   Simplified the Agents Server home page to focus on agents, moved the previous dashboard to `/dashboard`, and linked it from the System menu.
+-   Made Agents Server home list cards more compact and file-like, including smaller capability chips.
+-   Enhanced Agents Server home agent cards with dynamic, color-based backgrounds and subtle noise effects for a more professional look.
+-   Improved Agents Server list drag-and-drop with live reordering, drag overlays, and clearer drop targets for agents and folders.
+-   Added a parent folder card in Agents Server list view to quickly navigate up and drag agents or folders to the parent.
+-   Created new agents inside the active folder when adding from a subfolder view in the Agents Server home list.
 -   Added a configurable Markdown message (via metadata) shown above the agents list on the Agents Server homepage.
+-   Scoped the Agents Server homepage message and federated agents to the root view, and updated folder headings to show the folder name with per-folder agent counts.
+-   Added a shared Agents Server context menu with right-click support on agent cards, plus rename actions reused on agent profile pages.
 -   Added a chat preparation chip in Agents Server to signal when GPT assistants are being created before the first response.
 -   Added `[🤰]`-tagged assistant preparation logging (cache lookup, model requirement timing, assistant create/update, vector store progress) and surfaced preparation phases on the "Preparing agent" chip.
 -   Fixed Agents Server Book editor multi-file uploads by debouncing editor updates, tracking placeholders safely, and adding a floating upload panel with pause/resume controls and upload stats.
+-   Fixed federated agent item design on home page to match local agents.
+-   Fix federated agent images by correctly resolving placeholder URLs from the originating server.
 -   Fixed Agents Server chat markdown rendering for sublists by normalizing unordered list indentation under ordered items.
 -   Fixed drag-and-drop uploads in the Agents Server create-agent dialog by reusing the shared BookEditor upload handler.
 -   Fixed document source citation in Agents Server chat:
@@ -17,17 +35,27 @@
     -   Follows DRY principle - parsing logic is centralized in `parseAgentSource()`, data flows through API to `RemoteAgent`
 -   Fixed Agents Server image generation and uploads to safely shorten CDN paths for long filenames, preventing Vercel Blob path length errors.
 -   Normalized file names before uploads in Agents Server (chat attachments, knowledge uploads, admin file uploads) to keep CDN URLs clean and consistent.
+-   Added actions to image gallery in Agent's Server:
+    -   Copy image prompts to clipboard
+    -   Display technical parameters (model, size, quality, style) extracted from filenames
 -   Allow to add image in the image prompt in `ImageGeneratorTestClient`
 -   Ensured the Agents Server chat menu stays above chat action buttons (New chat, Save, etc.).
 -   Added top spacing in Agents Server chat so action buttons no longer overlap the first messages.
+-   Faded Agents Server chat action buttons while scrolling when they overlap the first visible message.
 -   Updated the Agents Server self-learning chip to use the brain icon without brackets.
 -   Enhanced the Agents Server self-learning modal with a friendly summary and server-provided learning details.
+-   Updated the Agents Server self-learning modal to show agent + teacher avatars and render learned commitments in a read-only BookEditor.
 -   Added per-message timestamps in Agents Server chat with agent generation durations, and included timestamps in exported chat files.
 -   Added Promptbook SDK integration snippets in Agents Server, including RemoteAgent Node.js and React examples on the integration page.
 -   Added API key field to the OpenRouter integration section in Agents Server to match OpenAI compatible setup.
 -   Added a Create API Key action on the agent integration page so admins can generate tokens without leaving the integrations screen.
 -   Fixed Rollup publishing config to inline dynamic imports so package builds no longer fail on multi-chunk outputs in CI.
--   Redesigned the Agents Server home graph with D3.js for responsive zooming, panning, and hover highlighting while keeping server clustering, filtering, and federated links.
+-   Redesigned the Agents Server home graph with Beautiful Mermaid diagrams while keeping server clustering, filtering, federated links, and avatar labels.
+-   Refined the Agents Server home agents graph to a social-style relationship map with softer nodes, avatar rings, and curved, color-coded links.
+-   Improved Agents Server graph filtering so focused agents include directly connected neighbors across local and federated servers.
+-   Enhanced the Agents Server agents graph with category-based node shapes, status colors, and roomier layout spacing for cleaner clusters.
+-   Updated Agents Server home graph nodes to render agent-brand chips with avatars, brand-based fills, and readable text.
+-   Added Agents Server home graph download buttons for PNG, SVG, and ASCII exports powered by Beautiful Mermaid.
 
 -   Enhanced prompt template literal handling to return `PromptString`, inline safe parameters, and append structured parameter/context blocks for unsafe or multiline data with escaping.
 -   Added prompt notation documentation, examples, and a live evaluator to the Utils app.
@@ -49,6 +77,7 @@
 -   Implemented `TEMPLATE` commitment to enforce specific message structure or response templates for agent responses.
 -   Added nonce test files at the repository root for coding agent verification.
 -   Added a script to run prompt files through OpenAI Codex with prompt status tracking and git commits.
+-   Added support for Gemini CLI to the coding agent script with the `--agent gemini` flag, allowing non-interactive prompt execution and automated git commits.
 -   Added interactive waits between codex prompt tasks with a `--no-wait` override flag.
 -   Added per-prompt start summaries with a confirmation wait before each prompt runs (unless `--no-wait`).
 -   Estimated OpenAI Codex runner prices from Codex CLI token counts instead of reporting $0.00.
@@ -67,6 +96,7 @@
 -   Implement Ctrl+S shortcut in `<BookEditor/>` component
 -   Implement Ctrl+V shortcut in `<BookEditor/>` component for pasting images and files
 -   Implement Ctrl+S shortcut in `<Chat/>` component for opening export menu
+-   Refactored the `<Chat/>` component into smaller, single-responsibility modules to improve readability and maintainability.
 -   Implement tool calling loop into the `LlmExecutionTools`. Currently only for `OpenAiCompatibleExecutionTools`
 -   Show floating hint when creating new agent in Agents Server [2025-12-0920-agents-server-hints.md](https://github.com/webgptorg/promptbook/blob/main/prompts/2025-12-0920-agents-server-hints.md)
 -   Agents Server can generate boilerplate rules and personas in the same language as the agent name [2025-12-0950-agents-server-boilerplate-rules-and-personas-in-language-of-server.md](https://github.com/webgptorg/promptbook/blob/main/prompts/2025-12-0950-agents-server-boilerplate-rules-and-personas-in-language-of-server.md)
@@ -126,12 +156,14 @@
 -   Enhanced `linguisticHash` to return a short story-like sentence for more memorable hashes, updating the Utils app text and unit tests to match.
 -   Added configurable word counts (1-20, default 7) to `linguisticHash`, including Utils app controls, warnings for short hashes, and updated tests.
 -   Added multilingual support to `linguisticHash` with Czech word lists and a language selector in the Utils app.
+-   Refactored `linguisticHash` internals to split word selection and word count helpers into focused modules for easier maintenance.
 -   Prevent caching when tool is used, but still write the messages into the cache or `USER MESSAGE` + `AGENT MESSAGE` pair
 -   Implemented modular voice speech input in `<Chat/>` with two providers: `BrowserSpeechRecognition` (Web Speech API) and `OpenAiSpeechRecognition` (Whisper API).
 -   Added voice input test page at `/admin/voice-input-test` in Agents Server.
 -   Added microphone button to `<Chat/>` with visual recording indicators and real-time transcription insertion.
 -   Enhanced visuals of the agent chat page
 -   Refined chat message bubble sizing with a minimum width and responsive max widths for desktop and mobile layouts.
+-   Increased the minimum chat bubble width so short messages no longer render as tiny pills in Agents Server chat.
 -   Fixed chat message stack width so source chips wrap within bubble bounds on desktop and mobile in Agents Server.
 -   Added grained background to the chat page (matching the agent profile page)
 -   Increased saturation of agent messages for better visibility
@@ -275,6 +307,7 @@
     -   Made the system extensible for future configuration parameters (model, temperature, tools)
     -   Added detailed logging for cache hits and misses with cache keys
     -   Refactored `handleChatCompletion` to use the new `AssistantCacheManager`
+-   Appended an 8-character assistant cache hash to GPT assistant names in Agents Server for clearer differentiation (e.g. `My Agent - abcd1234`).
 -   Enhanced error handling for agent chat in Agents Server:
     -   Created centralized error message mapping utility (`errorMessages.ts`) following DRY principle:
         -   Categorizes errors into user-friendly categories (network, authentication, validation, rate limit, server error, timeout, etc.)
@@ -329,6 +362,7 @@
     -   Ensured download button is available when source is present.
 -   Added missing sound files to the Agents Server's public directory.
 -   Enhanced the UI of the chips of `TEAM` commitment to show agent profile picture and name instead of ID in agent lists and profile pages.
+-   Rendered chat chip emojis (tool calls and source citations) with the OpenMoji color font in Agents Server.
 -   Migrate `Agent` class and all related classes from using OpenAI Assistants API to OpenAI Responses API.
     -   `KNOWLEDGE` works as before.
     -   Tool calling works as before.
@@ -355,4 +389,5 @@
     -   A "Self learning" chip is displayed during the learning phase, similar to tool usage chips.
     -   This enhances user experience by eliminating the wait time for self-learning completion.
 -   Enhanced codebase by using explicit types instead of type inference across multiple files in `src/`, `apps/`, and `scripts/` directories to improve readability and maintainability.
-
+-   Fix width of the message in the chat by adding a minimum width and improving layout for short messages.
+-   Use model `gemini-3-pro-image-preview` for the agent of Avatar Images

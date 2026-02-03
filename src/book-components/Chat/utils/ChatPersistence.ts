@@ -26,9 +26,7 @@ export class ChatPersistence {
             const serializableMessages: SerializableChatMessage[] = messages.map((message) => {
                 const createdAtValue = (message as { createdAt?: string | Date }).createdAt;
                 const createdAt =
-                    createdAtValue instanceof Date
-                        ? createdAtValue.toISOString()
-                        : createdAtValue || $getCurrentDate();
+                    createdAtValue instanceof Date ? createdAtValue.toISOString() : createdAtValue || $getCurrentDate();
 
                 return {
                     ...message,

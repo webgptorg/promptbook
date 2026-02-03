@@ -6,3 +6,4 @@
 -   Create file named `nonce-bar-3.txt` with content of output of `ls -la`
 -   This task is just to test the coding agent functionality
 
+

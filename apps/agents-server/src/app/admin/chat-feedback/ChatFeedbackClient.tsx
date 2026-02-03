@@ -4,6 +4,7 @@ import { Chat } from '@promptbook-local/components';
 import type { ChatMessage, string_date_iso8601 } from '@promptbook-local/types';
 import { useEffect, useMemo, useState } from 'react';
 import { Card } from '../../../components/Homepage/Card';
+import { showAlert, showConfirm } from '../../../components/AsyncDialogs/asyncDialogs';
 import {
     $clearAgentChatFeedback,
     $deleteChatFeedbackRow,
@@ -195,9 +196,12 @@ export function ChatFeedbackClient({ initialAgentName }: ChatFeedbackClientProps
         }
     };
 
-    const handleViewChat = (row: ChatFeedbackRow) => {
+    const handleViewChat = async (row: ChatFeedbackRow) => {
         if (!row.chatThread) {
-            alert('No chat thread available for this feedback.');
+            await showAlert({
+                title: 'Missing chat thread',
+                message: 'No chat thread available for this feedback.',
+            }).catch(() => undefined);
             return;
         }
         try {
@@ -222,14 +226,22 @@ export function ChatFeedbackClient({ initialAgentName }: ChatFeedbackClientProps
             setSelectedThread(thread);
         } catch (e) {
             console.error('Failed to parse chat thread', e);
-            alert('Failed to parse chat thread.');
+            await showAlert({
+                title: 'Parse failed',
+                message: 'Failed to parse chat thread.',
+            }).catch(() => undefined);
         }
     };
 
     const handleDeleteRow = async (row: ChatFeedbackRow) => {
         if (!row.id) return;
 
-        const confirmed = window.confirm('Are you sure you want to delete this feedback entry?');
+        const confirmed = await showConfirm({
+            title: 'Delete feedback',
+            message: 'Are you sure you want to delete this feedback entry?',
+            confirmLabel: 'Delete feedback',
+            cancelLabel: 'Cancel',
+        }).catch(() => false);
         if (!confirmed) return;
 
         try {
@@ -253,9 +265,12 @@ export function ChatFeedbackClient({ initialAgentName }: ChatFeedbackClientProps
     const handleClearAgentFeedback = async () => {
         if (!agentName) return;
 
-        const confirmed = window.confirm(
-            `Are you sure you want to permanently delete all feedback for agent "${agentName}"?`,
-        );
+        const confirmed = await showConfirm({
+            title: 'Clear feedback',
+            message: `Are you sure you want to permanently delete all feedback for agent "${agentName}"?`,
+            confirmLabel: 'Delete feedback',
+            cancelLabel: 'Cancel',
+        }).catch(() => false);
         if (!confirmed) return;
 
         try {

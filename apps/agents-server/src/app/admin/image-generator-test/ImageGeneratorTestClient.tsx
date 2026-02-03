@@ -7,6 +7,7 @@ import { constructImageFilename } from '../../../utils/normalization/constructIm
 import { getSafeCdnPath } from '../../../utils/cdn/utils/getSafeCdnPath';
 import { normalizeUploadFilename } from '../../../utils/normalization/normalizeUploadFilename';
 import { Card } from '../../../components/Homepage/Card';
+import { showAlert } from '../../../components/AsyncDialogs/asyncDialogs';
 
 // Using local SVG components because they might not be exported from @promptbook-local/components
 function CameraIcon({ size = 24, color = 'currentColor' }: { size?: number; color?: string }) {
@@ -527,7 +528,10 @@ function ImageAttachmentsEditor({ attachments, onChange, disabled }: ImageAttach
                 onChange(newAttachments);
             } catch (error) {
                 console.error('Upload failed:', error);
-                alert('Failed to upload image');
+                await showAlert({
+                    title: 'Upload failed',
+                    message: 'Failed to upload image',
+                }).catch(() => undefined);
             } finally {
                 setIsUploading(false);
                 if (fileInputRef.current) fileInputRef.current.value = '';

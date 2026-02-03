@@ -281,12 +281,15 @@ export function Header(props: HeaderProps) {
                       isMobileOpen: isMobileSystemOpen,
                       setIsMobileOpen: setIsMobileSystemOpen,
                       items: [
+                          /*
+                          Note: [🙍] `/dashboard` page is disabled
                           {
                               label: 'Dashboard',
                               href: '/dashboard',
                               isBold: true,
                               isBordered: true,
                           } as SubMenuItem,
+                          */
                           {
                               label: 'OpenAPI Documentation',
                               href: '/swagger',

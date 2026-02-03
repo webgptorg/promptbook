@@ -9,9 +9,7 @@ import type { string_markdown } from '../../types/typeAliases';
  * @public exported from `@promptbook/markdown-utils`
  */
 export function humanizeAiTextQuotes(aiText: string_markdown): string_markdown {
-    return aiText
-        .replace(/[“”„‟«»❝❞〝〞〟＂]/g, '"')
-        .replace(/[‚‘’‛‹›❛❜＇ʼ]/g, "'");
+    return aiText.replace(/[“”„‟«»❝❞〝〞〟＂]/g, '"').replace(/[‚‘’‛‹›❛❜＇ʼ]/g, "'");
 }
 
 /**

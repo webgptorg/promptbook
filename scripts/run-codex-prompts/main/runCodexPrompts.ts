@@ -22,6 +22,7 @@ import { waitForPromptStart } from '../prompts/waitForPromptStart';
 import { writePromptFile } from '../prompts/writePromptFile';
 import { ClaudeCodeRunner } from '../runners/claude-code/ClaudeCodeRunner';
 import { ClineRunner } from '../runners/cline/ClineRunner';
+import { GeminiRunner } from '../runners/gemini/GeminiRunner';
 import { OpenAiCodexRunner } from '../runners/openai-codex/OpenAiCodexRunner';
 import { OpencodeRunner } from '../runners/opencode/OpencodeRunner';
 import type { PromptRunner } from '../runners/types/PromptRunner';
@@ -53,6 +54,8 @@ export async function runCodexPrompts(): Promise<void> {
         runner = new OpencodeRunner({
             model: options.model,
         });
+    } else if (options.agentName === 'gemini') {
+        runner = new GeminiRunner();
     } else {
         throw new Error(`Unknown agent: ${options.agentName}`);
     }

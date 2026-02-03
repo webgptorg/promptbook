@@ -67,14 +67,20 @@ function createEmptySelfLearningCommitmentCounts(): MutableSelfLearningCommitmen
 }
 
 /**
- * Summarizes teacher commitments into user-friendly counts for self-learning.
+ * Normalizes teacher commitments into trimmed, display-ready lines.
  */
-function summarizeTeacherCommitments(commitments: string): SelfLearningCommitmentTypeCounts {
-    const counts = createEmptySelfLearningCommitmentCounts();
-    const lines = commitments
+function getTeacherCommitmentLines(commitments: string): Array<string> {
+    return commitments
         .split(/\r?\n/)
         .map((line) => line.trim())
         .filter((line) => line.length > 0 && line !== '---' && !line.startsWith('```'));
+}
+
+/**
+ * Summarizes teacher commitment lines into user-friendly counts for self-learning.
+ */
+function summarizeTeacherCommitmentLines(lines: ReadonlyArray<string>): SelfLearningCommitmentTypeCounts {
+    const counts = createEmptySelfLearningCommitmentCounts();
 
     for (const line of lines) {
         const keyword = line.split(/\s+/)[0]?.toUpperCase() ?? '';
@@ -102,9 +108,12 @@ function summarizeTeacherCommitments(commitments: string): SelfLearningCommitmen
  * Builds the teacher summary payload for the self-learning tool call.
  */
 function buildTeacherSummary(commitments: string, used: boolean): SelfLearningTeacherSummary {
+    const commitmentLines = getTeacherCommitmentLines(commitments);
+
     return {
         used,
-        commitmentTypes: summarizeTeacherCommitments(commitments),
+        commitmentTypes: summarizeTeacherCommitmentLines(commitmentLines),
+        commitments: commitmentLines.length > 0 ? commitmentLines : undefined,
     };
 }
 

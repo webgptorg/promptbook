@@ -66,7 +66,6 @@ export default async function AgentPage({
                 publicUrl={publicUrl.href}
                 agentEmail={agentEmail}
                 agentName={agentName}
-                brandColorHex={brandColorHex}
                 isAdmin={isAdmin}
                 isHeadless={isHeadless}
                 actions={

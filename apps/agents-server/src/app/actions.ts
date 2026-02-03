@@ -10,6 +10,11 @@ import { authenticateUser } from '../utils/authenticateUser';
 import { isUserAdmin } from '../utils/isUserAdmin';
 import { clearSession, setSession } from '../utils/session';
 
+/**
+ * Creates a new agent from the generated boilerplate template.
+ *
+ * @returns Agent name and permanent identifier.
+ */
 export async function $createAgentAction(): Promise<{ agentName: string_agent_name; permanentId: string_agent_permanent_id }> {
     // TODO: [👹] Check permissions here
     if (!(await isUserAdmin())) {
@@ -25,23 +30,45 @@ export async function $createAgentAction(): Promise<{ agentName: string_agent_na
     return { agentName, permanentId };
 }
 
+/**
+ * Generates boilerplate book content for a new agent.
+ *
+ * @returns Generated boilerplate agent source.
+ */
 export async function $generateAgentBoilerplateAction(): Promise<string_book> {
     const namePool = (await getMetadata('NAME_POOL')) || 'ENGLISH';
     return $generateBookBoilerplate({ namePool });
 }
 
-export async function $createAgentFromBookAction(bookContent: string_book): Promise<{ agentName: string_agent_name; permanentId: string_agent_permanent_id }> {
+/**
+ * Creates a new agent using provided book content.
+ *
+ * @param bookContent - Agent source content to store.
+ * @param folderId - Optional folder to place the newly created agent into.
+ * @returns Agent name and permanent identifier.
+ */
+export async function $createAgentFromBookAction(
+    bookContent: string_book,
+    folderId?: number | null,
+): Promise<{ agentName: string_agent_name; permanentId: string_agent_permanent_id }> {
     // TODO: [👹] Check permissions here
     if (!(await isUserAdmin())) {
         throw new Error('You are not authorized to create agents');
     }
 
     const collection = await $provideAgentCollectionForServer();
-    const { agentName, permanentId } = await collection.createAgent(bookContent);
+    const createOptions = folderId === undefined ? undefined : { folderId };
+    const { agentName, permanentId } = await collection.createAgent(bookContent, createOptions);
 
     return { agentName, permanentId };
 }
 
+/**
+ * Authenticates a user session from the login form.
+ *
+ * @param formData - Login form submission payload.
+ * @returns Success state for the login attempt.
+ */
 export async function loginAction(formData: FormData) {
     const username = formData.get('username') as string;
     const password = formData.get('password') as string;
@@ -59,6 +86,9 @@ export async function loginAction(formData: FormData) {
     }
 }
 
+/**
+ * Clears the active session and refreshes cached layout data.
+ */
 export async function logoutAction() {
     await clearSession();
     revalidatePath('/', 'layout');

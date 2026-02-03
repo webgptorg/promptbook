@@ -53,7 +53,17 @@ type AgentCapabilityChipsProps = {
      * Maximum number of chips to show after prioritization and grouping.
      */
     readonly maxChips?: number;
+
+    /**
+     * Visual size preset for chip rendering.
+     */
+    readonly size?: AgentCapabilityChipsSize;
 };
+
+/**
+ * Size options for capability chips.
+ */
+type AgentCapabilityChipsSize = 'default' | 'compact';
 
 /**
  * Capability with original ordering metadata for stable sorting.
@@ -73,7 +83,7 @@ type OrderedCapability = {
 /**
  * Render capability chips for an agent with priority, grouping, and limits.
  */
-export function AgentCapabilityChips({ agent, className, maxChips }: AgentCapabilityChipsProps) {
+export function AgentCapabilityChips({ agent, className, maxChips, size = 'default' }: AgentCapabilityChipsProps) {
     if (!agent.capabilities || agent.capabilities.length === 0) {
         return null;
     }
@@ -85,8 +95,12 @@ export function AgentCapabilityChips({ agent, className, maxChips }: AgentCapabi
         return null;
     }
 
+    const containerGapClass = size === 'compact' ? 'gap-1.5' : 'gap-2';
+    const chipPaddingClass = size === 'compact' ? 'px-2 py-0.5 text-[11px]' : 'px-2.5 py-1 text-xs';
+    const iconSizeClass = size === 'compact' ? 'w-3 h-3' : 'w-3.5 h-3.5';
+
     return (
-        <div className={`flex flex-wrap gap-2 ${className || ''}`}>
+        <div className={`flex flex-wrap ${containerGapClass} ${className || ''}`}>
             {displayedCapabilities.map((capability, i) => {
                 let href: string | undefined;
 
@@ -103,7 +117,7 @@ export function AgentCapabilityChips({ agent, className, maxChips }: AgentCapabi
                 }
 
                 if (capability.iconName === 'Users' && href) {
-                    const content = <TeamCommitmentChip url={href} label={capability.label} />;
+                    const content = <TeamCommitmentChip url={href} label={capability.label} size={size} />;
 
                     return (
                         <NextLink
@@ -139,10 +153,10 @@ export function AgentCapabilityChips({ agent, className, maxChips }: AgentCapabi
                 const content = (
                     <div
                         key={i}
-                        className="flex items-center gap-1.5 bg-white/50 backdrop-blur-sm px-2.5 py-1 rounded-full text-xs font-semibold text-gray-800 border border-white/20 shadow-sm"
+                        className={`flex items-center gap-1.5 bg-white/50 backdrop-blur-sm rounded-full font-semibold text-gray-800 border border-white/20 shadow-sm ${chipPaddingClass}`}
                         title={capability.label}
                     >
-                        <Icon className="w-3.5 h-3.5 opacity-70" />
+                        <Icon className={`${iconSizeClass} opacity-70`} />
                         <span className="truncate max-w-[150px]">{capability.label}</span>
                     </div>
                 );

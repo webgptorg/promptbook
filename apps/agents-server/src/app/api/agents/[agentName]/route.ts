@@ -4,6 +4,8 @@
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
+import { renameAgentSource } from '@/src/utils/renameAgentSource';
+import { parseAgentSource } from '@promptbook-local/core';
 import { TODO_any } from '@promptbook-local/types';
 import { NextResponse } from 'next/server';
 
@@ -11,8 +13,29 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ ag
     const { agentName } = await params;
 
     try {
-        const body = await request.json();
-        const { visibility }: { visibility: 'PUBLIC' | 'PRIVATE' } = body;
+        const body = (await request.json()) as { visibility?: 'PUBLIC' | 'PRIVATE'; name?: string };
+
+        if (typeof body.name === 'string') {
+            const trimmedName = body.name.trim();
+            if (!trimmedName) {
+                return NextResponse.json({ success: false, error: 'Agent name cannot be empty.' }, { status: 400 });
+            }
+
+            const collection = await $provideAgentCollectionForServer();
+            const agentId = await collection.getAgentPermanentId(agentName);
+            const agentSource = await collection.getAgentSource(agentId);
+            const nextAgentSource = renameAgentSource(agentSource, trimmedName);
+            const nextAgentProfile = parseAgentSource(nextAgentSource);
+
+            await collection.updateAgentSource(agentId, nextAgentSource);
+
+            return NextResponse.json({
+                success: true,
+                agent: { ...nextAgentProfile, permanentId: agentId },
+            });
+        }
+
+        const { visibility } = body;
 
         if (!visibility || !['PUBLIC', 'PRIVATE'].includes(visibility)) {
             return NextResponse.json(
@@ -22,7 +45,6 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ ag
         }
 
         const supabase = $provideSupabaseForServer();
-        // const { tablePrefix } = await $provideServer();
 
         const updateResult = await supabase
             .from(await $getTableName(`Agent`))

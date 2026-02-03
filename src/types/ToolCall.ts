@@ -86,6 +86,11 @@ export type SelfLearningTeacherSummary = {
      * Commitment breakdown produced by the teacher step.
      */
     readonly commitmentTypes: SelfLearningCommitmentTypeCounts;
+
+    /**
+     * Normalized commitment lines produced by the teacher step.
+     */
+    readonly commitments?: ReadonlyArray<string>;
 };
 
 /**

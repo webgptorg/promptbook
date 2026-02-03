@@ -12,7 +12,10 @@ import { basename, extname, join, relative, resolve } from 'path';
 import spaceTrim from 'spacetrim';
 import type { SourceFile } from 'typescript';
 import * as ts from 'typescript';
+import { normalizeToKebabCase } from '../../src/_packages/utils.index';
 import { assertsError } from '../../src/errors/assertsError';
+import { buildPromptFilename, getPromptNumbering } from '../utils/prompts/getPromptNumbering';
+import { formatPromptEmojiTag, getFreshPromptEmojiTags } from '../utils/prompts/promptEmojiTags';
 import {
     DEFAULT_MAX_LINE_COUNT,
     ENTITY_COUNT_EXTENSIONS,
@@ -29,7 +32,6 @@ import {
     SOURCE_FILE_IGNORE_GLOBS,
     SOURCE_ROOTS,
 } from './find-refactor-candidates.constants';
-import { buildPromptFilename, getPromptNumbering } from '../utils/prompts/getPromptNumbering';
 
 if (process.cwd() !== join(__dirname, '../..')) {
     console.error(colors.red(`CWD must be root of the project`));
@@ -138,6 +140,10 @@ async function findRefactorCandidates(): Promise<void> {
         step: PROMPT_NUMBER_STEP,
         ignoreGlobs: ['**/node_modules/**'],
     });
+    const { selectedEmojis } = await getFreshPromptEmojiTags({
+        count: candidatesToWrite.length,
+        rootDir,
+    });
 
     await mkdir(promptsDir, { recursive: true });
 
@@ -148,7 +154,8 @@ async function findRefactorCandidates(): Promise<void> {
         const number = promptNumbering.startNumber + index * promptNumbering.step;
         const filename = buildPromptFilename(promptNumbering.datePrefix, number, slug);
         const promptPath = join(promptsDir, filename);
-        const promptContent = buildPromptContent(candidate);
+        const emojiTag = formatPromptEmojiTag(selectedEmojis[index]);
+        const promptContent = buildPromptContent(candidate, emojiTag);
 
         await writeFile(promptPath, promptContent, 'utf-8');
         createdPrompts.push(filename);
@@ -162,37 +169,140 @@ async function findRefactorCandidates(): Promise<void> {
 
 /**
  * Builds prompt content for a refactor candidate.
+ *
+ * @param candidate - Candidate metadata to include.
+ * @param emojiTag - Unique emoji tag for the prompt title.
  */
-function buildPromptContent(candidate: RefactorCandidate): string {
-    const reasons = candidate.reasons.join('; ');
-    return spaceTrim(`
+function buildPromptContent(candidate: RefactorCandidate, emojiTag: string): string {
+    const fileName = basename(candidate.relativePath);
+    const guidanceLines = buildPromptGuidance(candidate);
+    return spaceTrim(
+        (block) => `
 
-        [ ]
+            [ ]
 
-        [???] Refactor \`${candidate.relativePath}\`
+            ${emojiTag} Refactor [\`${fileName}\` file](${candidate.relativePath})
 
-        -   ${PROMPT_TARGET_LABEL}: \`${candidate.relativePath}\`
-        -   Reasons: ${reasons}
-        -   @@@ Replace this line with refactor instructions. Do not refactor in this script.
-    `);
+            ${block(guidanceLines.join('\n'))}
+        `,
+    );
+}
+
+/**
+ * Builds the refactor guidance section for a prompt.
+ */
+function buildPromptGuidance(candidate: RefactorCandidate): ReadonlyArray<string> {
+    const guidance: string[] = ['- @@@'];
+    const counts = extractReasonCounts(candidate.reasons);
+    const densityNote = buildDensityNote(counts);
+
+    if (densityNote) {
+        guidance.push(`- ${densityNote}`);
+    }
+
+    if (counts.lineCount !== null && counts.maxLines !== null) {
+        guidance.push(
+            `- The file contains excessive lines of code (${counts.lineCount} lines)`,
+            `    - Keep in mind the Single Responsibility Principle (SRP)`,
+            `    - Consider breaking it down into smaller, focused modules or components.`,
+        );
+    }
+
+    if (counts.entityCount !== null && counts.maxEntities !== null) {
+        guidance.push(
+            `- The file defines too many responsibilities (${counts.entityCount} in single file)`,
+            `    - Keep in mind the Single Responsibility Principle (SRP)`,
+            `    - Consider breaking it down into smaller, focused modules or components.`,
+        );
+    }
+
+    guidance.push(
+        '- Purpose of this refactoring is to improve code maintainability and readability.',
+        '- Look at the internal structure, the usage and also surrounding code to understand how to best refactor this file.',
+        '- Consider breaking down large functions into smaller, more manageable ones, removing any redundant code, and ensuring that the file adheres to the project coding standards.',
+        '- After the refactoring, ensure that (1) `npm run test-name-discrepancies` and (2) `npm run test-package-generation` are passing successfully.',
+        '    1. All the things you have moved to new files should correspond the thing in the file with the file name, for example `MyComponent.tsx` should export `MyComponent`.',
+        '    2. All the things you have moved to new files but are private things to the outside world should have `@private function of TheMainThing` JSDoc comment.',
+        '- Keep in mind DRY *(Do not repeat yourself)* and SOLID principles while refactoring.',
+        '- **Do not change the external behavior** of the code. Focus solely on improving the internal structure and organization of the code.',
+        // <- TODO: !!!!!!!!!! Is this prompt working as expected?
+    );
+    // <- TODO: Leverage `spaceTrim` here
+
+    return guidance;
+}
+
+/**
+ * Extracts line and entity counts from refactor reasons.
+ */
+function extractReasonCounts(reasons: ReadonlyArray<string>): {
+    readonly lineCount: number | null;
+    readonly maxLines: number | null;
+    readonly entityCount: number | null;
+    readonly maxEntities: number | null;
+} {
+    let lineCount: number | null = null;
+    let maxLines: number | null = null;
+    let entityCount: number | null = null;
+    let maxEntities: number | null = null;
+
+    for (const reason of reasons) {
+        const lineMatch = reason.match(/lines\s+(?<count>\d+)\/(?<max>\d+)/i);
+        if (lineMatch?.groups) {
+            lineCount = Number(lineMatch.groups.count);
+            maxLines = Number(lineMatch.groups.max);
+            continue;
+        }
+
+        const entityMatch = reason.match(/entities\s+(?<count>\d+)\/(?<max>\d+)/i);
+        if (entityMatch?.groups) {
+            entityCount = Number(entityMatch.groups.count);
+            maxEntities = Number(entityMatch.groups.max);
+        }
+    }
+
+    return {
+        lineCount,
+        maxLines,
+        entityCount,
+        maxEntities,
+    };
+}
+
+/**
+ * Builds a summary note about file density based on counts.
+ */
+function buildDensityNote(counts: {
+    readonly lineCount: number | null;
+    readonly maxLines: number | null;
+    readonly entityCount: number | null;
+    readonly maxEntities: number | null;
+}): string | null {
+    if (counts.lineCount !== null && counts.entityCount !== null) {
+        return 'The file mixes multiple concerns, making it harder to follow.';
+    }
+
+    if (counts.lineCount !== null) {
+        return 'The file is large enough that it is hard to follow.';
+    }
+
+    if (counts.entityCount !== null) {
+        return 'The file is dense enough that it is hard to follow.';
+    }
+
+    return null;
 }
 
 /**
  * Creates the prompt slug from a file path while keeping it readable.
  */
 function buildPromptSlug(relativePath: string): string {
-    const normalized = normalizeRelativePath(relativePath);
-    const base = normalized
-        .replace(/[^a-zA-Z0-9]+/g, '-')
-        .replace(/-+/g, '-')
-        .replace(/^-+|-+$/g, '')
-        .toLowerCase();
-    const prefixed = `${PROMPT_SLUG_PREFIX}-${base || 'file'}`;
+    const prefixed = `${PROMPT_SLUG_PREFIX}-${normalizeToKebabCase(relativePath) || 'file'}`;
     if (prefixed.length <= PROMPT_SLUG_MAX_LENGTH) {
         return prefixed;
     }
 
-    const hash = hashString(normalized).slice(0, 6);
+    const hash = hashString(prefixed).slice(0, 6);
     const trimmed = prefixed.slice(0, PROMPT_SLUG_MAX_LENGTH - hash.length - 1).replace(/-+$/g, '');
     return `${trimmed}-${hash}`;
 }

@@ -1,8 +1,9 @@
 'use client';
 
-import { ChevronLeft, ChevronRight, Grid, LayoutList, Loader2 } from 'lucide-react';
+import { Check, ChevronLeft, ChevronRight, Copy, Grid, Info, LayoutList, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { extractParametersFromFilename } from '../../../utils/normalization/extractParametersFromFilename';
 import { ImageWithAgent, listImages } from './actions';
 
 type ViewMode = 'TABLE' | 'GRID';
@@ -15,6 +16,17 @@ export function ImagesGalleryClient() {
     const [page, setPage] = useState(1);
     const [limit] = useState(20);
     const [hasMore, setHasMore] = useState(true);
+    const [copiedId, setCopiedId] = useState<number | null>(null);
+
+    const copyToClipboard = async (text: string, id: number) => {
+        try {
+            await navigator.clipboard.writeText(text);
+            setCopiedId(id);
+            setTimeout(() => setCopiedId(null), 2000);
+        } catch (err) {
+            console.error('Failed to copy text: ', err);
+        }
+    };
 
     const loadImages = useCallback(
         async (pageNum: number, isNewView: boolean) => {
@@ -120,13 +132,16 @@ export function ImagesGalleryClient() {
                                     <th className="px-6 py-3 w-32">Image</th>
                                     <th className="px-6 py-3">Prompt</th>
                                     <th className="px-6 py-3">Agent</th>
+                                    <th className="px-6 py-3">Parameters</th>
                                     <th className="px-6 py-3">Purpose</th>
                                     <th className="px-6 py-3">Created At</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {images.map((image) => (
-                                    <tr key={image.id} className="bg-white border-b hover:bg-gray-50">
+                                {images.map((image) => {
+                                    const params = extractParametersFromFilename(image.filename);
+                                    return (
+                                        <tr key={image.id} className="bg-white border-b hover:bg-gray-50">
                                         <td className="px-6 py-4">
                                             <a
                                                 href={image.cdnUrl}
@@ -143,8 +158,21 @@ export function ImagesGalleryClient() {
                                             </a>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <div className="max-w-md truncate" title={image.prompt}>
-                                                {image.prompt}
+                                            <div className="flex items-start gap-2 group">
+                                                <div className="max-w-md truncate" title={image.prompt}>
+                                                    {image.prompt}
+                                                </div>
+                                                <button
+                                                    onClick={() => copyToClipboard(image.prompt, image.id)}
+                                                    className="p-1 rounded hover:bg-gray-200 transition-colors opacity-0 group-hover:opacity-100"
+                                                    title="Copy prompt"
+                                                >
+                                                    {copiedId === image.id ? (
+                                                        <Check className="w-3 h-3 text-green-600" />
+                                                    ) : (
+                                                        <Copy className="w-3 h-3 text-gray-400" />
+                                                    )}
+                                                </button>
                                             </div>
                                             <div className="text-xs text-gray-400 mt-1">{image.filename}</div>
                                         </td>
@@ -159,6 +187,28 @@ export function ImagesGalleryClient() {
                                             ) : (
                                                 <span className="text-gray-400">-</span>
                                             )}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex flex-wrap gap-1">
+                                                <span className="px-1.5 py-0.5 rounded bg-gray-100 text-[10px] text-gray-600 border">
+                                                    {params.modelName}
+                                                </span>
+                                                {params.size && (
+                                                    <span className="px-1.5 py-0.5 rounded bg-blue-50 text-[10px] text-blue-600 border border-blue-100">
+                                                        {params.size}
+                                                    </span>
+                                                )}
+                                                {params.quality && (
+                                                    <span className="px-1.5 py-0.5 rounded bg-green-50 text-[10px] text-green-600 border border-green-100">
+                                                        {params.quality}
+                                                    </span>
+                                                )}
+                                                {params.style && (
+                                                    <span className="px-1.5 py-0.5 rounded bg-orange-50 text-[10px] text-orange-600 border border-orange-100">
+                                                        {params.style}
+                                                    </span>
+                                                )}
+                                            </div>
                                         </td>
                                         <td className="px-6 py-4">
                                             {image.purpose ? (
@@ -179,7 +229,8 @@ export function ImagesGalleryClient() {
                                             {new Date(image.createdAt).toLocaleString()}
                                         </td>
                                     </tr>
-                                ))}
+                                    );
+                                })}
                                 {images.length === 0 && !isLoading && (
                                     <tr>
                                         <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
@@ -218,11 +269,13 @@ export function ImagesGalleryClient() {
             ) : (
                 <>
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                        {images.map((image) => (
-                            <div
-                                key={image.id}
-                                className="group relative border rounded-lg overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow"
-                            >
+                        {images.map((image) => {
+                            const params = extractParametersFromFilename(image.filename);
+                            return (
+                                <div
+                                    key={image.id}
+                                    className="group relative border rounded-lg overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow"
+                                >
                                 <a
                                     href={image.cdnUrl}
                                     target="_blank"
@@ -269,12 +322,50 @@ export function ImagesGalleryClient() {
                                             })}
                                         </span>
                                     </div>
-                                    <p className="text-xs text-gray-600 line-clamp-2" title={image.prompt}>
-                                        {image.prompt}
-                                    </p>
+                                    <div className="relative group/prompt">
+                                        <p className="text-xs text-gray-600 line-clamp-2 pr-6" title={image.prompt}>
+                                            {image.prompt}
+                                        </p>
+                                        <button
+                                            onClick={() => copyToClipboard(image.prompt, image.id)}
+                                            className="absolute top-0 right-0 p-1 rounded hover:bg-gray-100 transition-colors opacity-0 group-hover/prompt:opacity-100"
+                                            title="Copy prompt"
+                                        >
+                                            {copiedId === image.id ? (
+                                                <Check className="w-3 h-3 text-green-600" />
+                                            ) : (
+                                                <Copy className="w-3 h-3 text-gray-400" />
+                                            )}
+                                        </button>
+                                    </div>
+                                    <div className="mt-2 pt-2 border-t flex flex-wrap gap-1">
+                                        <span
+                                            className="px-1 py-0.5 rounded bg-gray-50 text-[9px] text-gray-500 border border-gray-100 flex items-center gap-1"
+                                            title="Model"
+                                        >
+                                            <Info className="w-2 h-2" />
+                                            {params.modelName}
+                                        </span>
+                                        {params.size && (
+                                            <span className="px-1 py-0.5 rounded bg-blue-50 text-[9px] text-blue-500 border border-blue-100">
+                                                {params.size}
+                                            </span>
+                                        )}
+                                        {params.quality && (
+                                            <span className="px-1 py-0.5 rounded bg-green-50 text-[9px] text-green-500 border border-green-100">
+                                                {params.quality}
+                                            </span>
+                                        )}
+                                        {params.style && (
+                                            <span className="px-1 py-0.5 rounded bg-orange-50 text-[9px] text-orange-500 border border-orange-100">
+                                                {params.style}
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
-                        ))}
+                            );
+                        })}
                     </div>
 
                     {images.length === 0 && !isLoading && (

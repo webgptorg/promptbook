@@ -83,6 +83,7 @@ export const _OpenAiAssistantMetadataRegistration = $llmToolsMetadataRegister.re
                 apiKey: 'sk-',
                 assistantId: 'asst_',
                 maxRequestsPerMinute: DEFAULT_MAX_REQUESTS_PER_MINUTE,
+                isCreatingNewAssistantsAllowed: false,
             } satisfies OpenAiAssistantExecutionToolsOptions,
         };
     },

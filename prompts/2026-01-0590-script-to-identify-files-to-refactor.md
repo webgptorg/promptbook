@@ -4,7 +4,7 @@
 
 ---
 
-[ ]
+[x] ~$0.88
 
 [✨🐮] In [script `find-refactor-candidates.ts`](scripts/find-refactor-candidates/find-refactor-candidates.ts) implement a mechanism for marking prompts by unique emoji tags like `[✨🐮]` take it from `scripts/generate-prompt-boilerplate/generate-prompt-boilerplate.ts`
 
@@ -14,7 +14,7 @@
 
 ---
 
-[ ]
+[x] ~$0.41
 
 [✨🐮] In [script `find-refactor-candidates.ts`](scripts/find-refactor-candidates/find-refactor-candidates.ts) Ignore some paths and files:
 
@@ -25,7 +25,7 @@
 
 ---
 
-[ ]
+[x] ~$0.34
 
 [✨🐮] In [script `find-refactor-candidates.ts`](scripts/find-refactor-candidates/find-refactor-candidates.ts) enhance the generated messages
 
@@ -61,3 +61,6 @@ Refactor [`ResizablePanels.tsx` file](apps/_common/components/ResizablePanels/Re
 [x]
 
 [✨🐮] In [script `find-refactor-candidates.ts`](scripts/find-refactor-candidates/find-refactor-candidates.ts)
+
+
+

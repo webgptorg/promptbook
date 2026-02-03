@@ -1,11 +1,12 @@
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import { OpenAiAssistantExecutionTools } from '@promptbook-local/openai';
-import { string_book } from '@promptbook-local/types';
+import { string_agent_permanent_id, string_book } from '@promptbook-local/types';
 import {
     AssistantConfiguration,
     computeAssistantCacheKey,
     extractAssistantConfiguration,
+    formatAssistantNameWithHash,
 } from './computeAssistantCacheKey';
 
 /**
@@ -69,16 +70,26 @@ export class AssistantCacheManager {
      * @param agentSource - The agent source (may include dynamic CONTEXT lines)
      * @param agentName - The agent name for logging and fallback
      * @param baseTools - Base OpenAI Assistant execution tools instance
-     * @param includeDynamicContext - Whether to include dynamic CONTEXT in assistant instructions (default: false for better caching)
+     * @param options - Cache options
      * @returns Assistant cache result with tools and metadata
      */
     public async getOrCreateAssistant(
         agentSource: string_book,
         agentName: string,
         baseTools: OpenAiAssistantExecutionTools,
-        options: { includeDynamicContext?: boolean } = {},
+        options: {
+            /**
+             * Whether to include dynamic CONTEXT in assistant instructions (default: true for better caching)
+             */
+            includeDynamicContext?: boolean;
+
+            /**
+             * The agent permanent ID for persistent caching in Agent table
+             */
+            agentId?: string_agent_permanent_id;
+        } = {},
     ): Promise<AssistantCacheResult> {
-        const { includeDynamicContext = true } = options; // Default to true for backward compatibility
+        const { includeDynamicContext = true, agentId } = options; // Default to true for backward compatibility
 
         // Extract assistant configuration
         const configuration = extractAssistantConfiguration(agentSource, { includeDynamicContext });
@@ -86,27 +97,24 @@ export class AssistantCacheManager {
         // Compute cache key based on configuration
         const cacheKey = computeAssistantCacheKey(configuration);
 
-        if (this.isVerbose) {
-            console.info('[🤰]', 'Resolving assistant cache key', {
-                agentName,
-                cacheKey,
-                includeDynamicContext,
-                instructionsLength: configuration.instructions.length,
-                baseSourceLength: configuration.baseAgentSource.length,
-            });
-        }
+        console.info('[🤰]', 'Resolving assistant cache key', {
+            agentName,
+            cacheKey,
+            includeDynamicContext,
+            instructionsLength: configuration.instructions.length,
+            baseSourceLength: configuration.baseAgentSource.length,
+            agentId,
+        });
 
         // Check cache
-        const cachedAssistant = await this.getCachedAssistant(cacheKey);
+        const cachedAssistant = await this.getCachedAssistant(cacheKey, baseTools, agentId);
 
         if (cachedAssistant) {
-            if (this.isVerbose) {
-                console.info('[🤰]', 'Assistant cache hit', {
-                    agentName,
-                    cacheKey,
-                    assistantId: cachedAssistant,
-                });
-            }
+            console.info('[🤰]', 'Assistant cache hit', {
+                agentName,
+                cacheKey,
+                assistantId: cachedAssistant,
+            });
 
             return {
                 tools: baseTools.getAssistant(cachedAssistant),
@@ -121,10 +129,11 @@ export class AssistantCacheManager {
             console.info('[🤰]', 'Assistant cache miss, creating assistant', {
                 agentName,
                 cacheKey,
+                agentId,
             });
         }
 
-        const newTools = await this.createAndCacheAssistant(configuration, agentName, cacheKey, baseTools);
+        const newTools = await this.createAndCacheAssistant(configuration, agentName, cacheKey, baseTools, agentId);
 
         return {
             tools: newTools,
@@ -138,24 +147,77 @@ export class AssistantCacheManager {
      * Retrieves an assistant ID from the cache
      *
      * @param cacheKey - The cache key to look up
+     * @param baseTools - Base OpenAI Assistant execution tools instance
+     * @param agentId - Optional agent permanent ID to check in Agent table
      * @returns Assistant ID if found, null otherwise
      * @private
      */
-    private async getCachedAssistant(cacheKey: string): Promise<string | null> {
+    private async getCachedAssistant(
+        cacheKey: string,
+        baseTools: OpenAiAssistantExecutionTools,
+        agentId?: string_agent_permanent_id,
+    ): Promise<string | null> {
         const supabase = $provideSupabaseForServer();
 
-        const { data, error } = await supabase
-            .from(await $getTableName('OpenAiAssistantCache'))
-            .select('assistantId')
-            .eq('agentHash', cacheKey)
-            .maybeSingle();
+        let assistantId: string | null = null;
 
-        if (error) {
-            console.error('[AssistantCacheManager] Error querying cache:', error);
+        // 1. Check in Agent table first (preferred persistent cache)
+        if (agentId) {
+            const { data: agentData, error: agentError } = await supabase
+                .from(await $getTableName('Agent'))
+                .select('preparedExternals')
+                .eq('permanentId', agentId)
+                .maybeSingle();
+
+            if (!agentError && agentData?.preparedExternals) {
+                const preparedExternals = agentData.preparedExternals as {
+                    openaiAssistantHash?: string;
+                    openaiAssistantId?: string;
+                };
+                if (preparedExternals.openaiAssistantHash === cacheKey && preparedExternals.openaiAssistantId) {
+                    assistantId = preparedExternals.openaiAssistantId;
+
+                    if (this.isVerbose) {
+                        console.info('[🤰]', 'Assistant cache hit (Agent table)', {
+                            agentId,
+                            cacheKey,
+                            assistantId,
+                        });
+                    }
+                }
+            }
+        }
+
+        // 2. Check in OpenAiAssistantCache table (fallback/shared cache)
+        if (!assistantId) {
+            const { data, error } = await supabase
+                .from(await $getTableName('OpenAiAssistantCache'))
+                .select('assistantId')
+                .eq('agentHash', cacheKey)
+                .maybeSingle();
+
+            if (error) {
+                console.error('[AssistantCacheManager] Error querying cache:', error);
+            } else {
+                assistantId = data?.assistantId || null;
+            }
+        }
+
+        if (!assistantId) {
             return null;
         }
 
-        return data?.assistantId || null;
+        try {
+            const client = await baseTools.getClient();
+            await client.beta.assistants.retrieve(assistantId);
+            return assistantId;
+        } catch (error) {
+            console.warn(
+                `[AssistantCacheManager] Cached assistant ${assistantId} not found on OpenAI, invalidating cache.`,
+            );
+            await this.invalidateCache(cacheKey, agentId);
+            return null;
+        }
     }
 
     /**
@@ -165,6 +227,7 @@ export class AssistantCacheManager {
      * @param agentName - Agent name for logging
      * @param cacheKey - Cache key for storage
      * @param baseTools - Base OpenAI Assistant execution tools
+     * @param agentId - Optional agent permanent ID to update in Agent table
      * @returns New assistant execution tools
      * @private
      */
@@ -173,20 +236,22 @@ export class AssistantCacheManager {
         agentName: string,
         cacheKey: string,
         baseTools: OpenAiAssistantExecutionTools,
+        agentId?: string_agent_permanent_id,
     ): Promise<OpenAiAssistantExecutionTools> {
         // Create the assistant with the configuration
         // Instructions already include any dynamic context if includeDynamicContext was true
         const creationStartedAtMs = Date.now();
+        const assistantName = formatAssistantNameWithHash(configuration.name || agentName, cacheKey);
 
         if (this.isVerbose) {
             console.info('[🤰]', 'Creating assistant via cache manager', {
                 agentName,
-                assistantName: configuration.name || agentName,
+                assistantName,
                 instructionsLength: configuration.instructions.length,
             });
         }
         const newTools = await baseTools.createNewAssistant({
-            name: configuration.name || agentName,
+            name: assistantName,
             instructions: configuration.instructions,
             // Future: Add knowledge sources, tools when supported
         });
@@ -198,7 +263,7 @@ export class AssistantCacheManager {
         }
 
         // Store in cache
-        await this.cacheAssistant(cacheKey, newAssistantId);
+        await this.cacheAssistant(cacheKey, newAssistantId, agentId);
 
         if (this.isVerbose) {
             console.info('[🤰]', 'Assistant created and cached', {
@@ -217,21 +282,61 @@ export class AssistantCacheManager {
      *
      * @param cacheKey - Cache key
      * @param assistantId - OpenAI Assistant ID
-     * @param configuration - Assistant configuration (for debugging/analytics)
+     * @param agentId - Optional agent permanent ID to update in Agent table
      * @private
      */
-    private async cacheAssistant(cacheKey: string, assistantId: string): Promise<void> {
+    private async cacheAssistant(
+        cacheKey: string,
+        assistantId: string,
+        agentId?: string_agent_permanent_id,
+    ): Promise<void> {
         const supabase = $provideSupabaseForServer();
 
-        const { error } = await supabase.from(await $getTableName('OpenAiAssistantCache')).insert({
+        // 1. Store in shared cache
+        const { error: cacheError } = await supabase.from(await $getTableName('OpenAiAssistantCache')).insert({
             agentHash: cacheKey,
             assistantId,
-            // Store configuration for debugging (optional, depends on schema)
         });
 
-        if (error) {
-            console.error('[AssistantCacheManager] Error storing assistant in cache:', error);
-            throw error;
+        if (cacheError && cacheError.code !== '23505') {
+            // Ignore unique constraint violation (already cached)
+            console.error('[AssistantCacheManager] Error storing assistant in shared cache:', cacheError);
+        }
+
+        // 2. Store in Agent table (preferred persistent cache)
+        if (agentId) {
+            const { data: agentData, error: fetchError } = await supabase
+                .from(await $getTableName('Agent'))
+                .select('preparedExternals')
+                .eq('permanentId', agentId)
+                .maybeSingle();
+
+            if (fetchError) {
+                console.error('[AssistantCacheManager] Error fetching agent for cache update:', fetchError);
+            } else {
+                const preparedExternals =
+                    (agentData?.preparedExternals as {
+                        openaiAssistantId?: string;
+                        openaiAssistantHash?: string;
+                    }) || {};
+                preparedExternals.openaiAssistantId = assistantId;
+                preparedExternals.openaiAssistantHash = cacheKey;
+
+                const { error: updateError } = await supabase
+                    .from(await $getTableName('Agent'))
+                    .update({ preparedExternals })
+                    .eq('permanentId', agentId);
+
+                if (updateError) {
+                    console.error('[AssistantCacheManager] Error updating Agent preparedExternals:', updateError);
+                } else {
+                    console.info('[🤰]', 'Assistant cached in Agent table', {
+                        agentId,
+                        assistantId,
+                        cacheKey,
+                    });
+                }
+            }
         }
     }
 
@@ -242,23 +347,53 @@ export class AssistantCacheManager {
      * (e.g., after configuration changes).
      *
      * @param cacheKey - Cache key to invalidate
+     * @param agentId - Optional agent permanent ID to also invalidate in Agent table
      */
-    public async invalidateCache(cacheKey: string): Promise<void> {
+    public async invalidateCache(cacheKey: string, agentId?: string_agent_permanent_id): Promise<void> {
         const supabase = $provideSupabaseForServer();
 
-        const { error } = await supabase
+        // 1. Invalidate in shared cache
+        const { error: cacheError } = await supabase
             .from(await $getTableName('OpenAiAssistantCache'))
             .delete()
             .eq('agentHash', cacheKey);
 
-        if (error) {
-            console.error('[AssistantCacheManager] Error invalidating cache:', error);
-            throw error;
+        if (cacheError) {
+            console.error('[AssistantCacheManager] Error invalidating cache:', cacheError);
+            throw cacheError;
         }
 
-        if (this.isVerbose) {
-            console.log(`[AssistantCacheManager] Invalidated cache for key: ${cacheKey}`);
+        // 2. Invalidate in Agent table
+        if (agentId) {
+            const { data: agentData, error: fetchError } = await supabase
+                .from(await $getTableName('Agent'))
+                .select('preparedExternals')
+                .eq('permanentId', agentId)
+                .maybeSingle();
+
+            if (!fetchError && agentData?.preparedExternals) {
+                const preparedExternals = agentData.preparedExternals as {
+                    openaiAssistantHash?: string;
+                    openaiAssistantId?: string;
+                };
+
+                if (preparedExternals.openaiAssistantHash === cacheKey) {
+                    delete preparedExternals.openaiAssistantHash;
+                    delete preparedExternals.openaiAssistantId;
+
+                    const { error: updateError } = await supabase
+                        .from(await $getTableName('Agent'))
+                        .update({ preparedExternals })
+                        .eq('permanentId', agentId);
+
+                    if (updateError) {
+                        console.error('[AssistantCacheManager] Error invalidating Agent preparedExternals:', updateError);
+                    }
+                }
+            }
         }
+
+        console.info('[🤰]', 'Invalidated assistant cache', { cacheKey, agentId });
     }
 
     /**

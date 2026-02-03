@@ -4,6 +4,7 @@ import { MockedChat } from '@promptbook-local/components';
 import type { ChatMessage, string_date_iso8601 } from '@promptbook-local/types';
 import { useEffect, useMemo, useState } from 'react';
 import { Card } from '../../../components/Homepage/Card';
+import { showConfirm } from '../../../components/AsyncDialogs/asyncDialogs';
 import {
     $clearAgentChatHistory,
     $deleteChatHistoryRow,
@@ -231,7 +232,12 @@ export function ChatHistoryClient({ initialAgentName }: ChatHistoryClientProps) 
     const handleDeleteRow = async (row: ChatHistoryRow) => {
         if (!row.id) return;
 
-        const confirmed = window.confirm('Are you sure you want to delete this chat message?');
+        const confirmed = await showConfirm({
+            title: 'Delete chat message',
+            message: 'Are you sure you want to delete this chat message?',
+            confirmLabel: 'Delete message',
+            cancelLabel: 'Cancel',
+        }).catch(() => false);
         if (!confirmed) return;
 
         try {
@@ -255,9 +261,12 @@ export function ChatHistoryClient({ initialAgentName }: ChatHistoryClientProps) 
     const handleClearAgentHistory = async () => {
         if (!agentName) return;
 
-        const confirmed = window.confirm(
-            `Are you sure you want to permanently delete all chat history for agent "${agentName}"?`,
-        );
+        const confirmed = await showConfirm({
+            title: 'Clear chat history',
+            message: `Are you sure you want to permanently delete all chat history for agent "${agentName}"?`,
+            confirmLabel: 'Delete history',
+            cancelLabel: 'Cancel',
+        }).catch(() => false);
         if (!confirmed) return;
 
         try {

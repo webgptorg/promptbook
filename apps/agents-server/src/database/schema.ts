@@ -6,10 +6,14 @@
  * Re-generate supabase typescript schema from `./migrations/*.sql`
  */
 
-// Json helper (Supabase style)
+/**
+ * Json helper (Supabase style).
+ */
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
-// Public schema database interface (Supabase convention)
+/**
+ * Public schema database interface (Supabase convention).
+ */
 export type AgentsServerDatabase = {
     // <- TODO: [🧠][🕜] Better naming
     public: {
@@ -55,13 +59,15 @@ export type AgentsServerDatabase = {
                     usage: Json | null;
                     preparedModelRequirements: Json | null;
                     preparedExternals: Json | null;
+                    folderId: number | null;
+                    sortOrder: number;
                     deletedAt: string | null;
                     visibility: 'PUBLIC' | 'PRIVATE';
                 };
                 Insert: {
                     id?: number;
                     agentName: string;
-                    createdAt: string;
+                    createdAt?: string;
                     updatedAt?: string | null;
                     permanentId?: string | null;
                     agentHash: string;
@@ -71,6 +77,8 @@ export type AgentsServerDatabase = {
                     usage?: Json | null;
                     preparedModelRequirements?: Json | null;
                     preparedExternals?: Json | null;
+                    folderId?: number | null;
+                    sortOrder?: number;
                     deletedAt?: string | null;
                     visibility?: 'PUBLIC' | 'PRIVATE';
                 };
@@ -87,10 +95,56 @@ export type AgentsServerDatabase = {
                     usage?: Json | null;
                     preparedModelRequirements?: Json | null;
                     preparedExternals?: Json | null;
+                    folderId?: number | null;
+                    sortOrder?: number;
                     deletedAt?: string | null;
                     visibility?: 'PUBLIC' | 'PRIVATE';
                 };
-                Relationships: [];
+                Relationships: [
+                    {
+                        foreignKeyName: 'Agent_folderId_fkey';
+                        columns: ['folderId'];
+                        referencedRelation: 'AgentFolder';
+                        referencedColumns: ['id'];
+                    },
+                ];
+            };
+            AgentFolder: {
+                Row: {
+                    id: number;
+                    name: string;
+                    parentId: number | null;
+                    createdAt: string;
+                    updatedAt: string | null;
+                    deletedAt: string | null;
+                    sortOrder: number;
+                };
+                Insert: {
+                    id?: number;
+                    name: string;
+                    parentId?: number | null;
+                    createdAt?: string;
+                    updatedAt?: string | null;
+                    deletedAt?: string | null;
+                    sortOrder?: number;
+                };
+                Update: {
+                    id?: number;
+                    name?: string;
+                    parentId?: number | null;
+                    createdAt?: string;
+                    updatedAt?: string | null;
+                    deletedAt?: string | null;
+                    sortOrder?: number;
+                };
+                Relationships: [
+                    {
+                        foreignKeyName: 'AgentFolder_parentId_fkey';
+                        columns: ['parentId'];
+                        referencedRelation: 'AgentFolder';
+                        referencedColumns: ['id'];
+                    },
+                ];
             };
             AgentHistory: {
                 Row: {
@@ -105,7 +159,7 @@ export type AgentsServerDatabase = {
                 };
                 Insert: {
                     id?: number;
-                    createdAt: string;
+                    createdAt?: string;
                     agentName: string;
                     permanentId: string;
                     agentHash: string;
@@ -149,11 +203,10 @@ export type AgentsServerDatabase = {
                     platform: string | null;
                     source: 'AGENT_PAGE_CHAT' | 'OPENAI_API_COMPATIBILITY' | null;
                     apiKey: string | null;
-                    attachments: Json | null;
                 };
                 Insert: {
                     id?: number;
-                    createdAt: string;
+                    createdAt?: string;
                     messageHash: string;
                     previousMessageHash?: string | null;
                     agentName: string;
@@ -167,7 +220,6 @@ export type AgentsServerDatabase = {
                     platform?: string | null;
                     source?: 'AGENT_PAGE_CHAT' | 'OPENAI_API_COMPATIBILITY' | null;
                     apiKey?: string | null;
-                    attachments?: Json | null;
                 };
                 Update: {
                     id?: number;
@@ -185,7 +237,6 @@ export type AgentsServerDatabase = {
                     platform?: string | null;
                     source?: 'AGENT_PAGE_CHAT' | 'OPENAI_API_COMPATIBILITY' | null;
                     apiKey?: string | null;
-                    attachments?: Json | null;
                 };
                 Relationships: [
                     {
@@ -216,7 +267,7 @@ export type AgentsServerDatabase = {
                 };
                 Insert: {
                     id?: number;
-                    createdAt: string;
+                    createdAt?: string;
                     agentName: string;
                     agentHash: string;
                     rating?: string | null;
@@ -437,7 +488,8 @@ export type AgentsServerDatabase = {
                     storageUrl: string | null;
                     shortUrl: string | null;
                     purpose: string;
-                    status: 'UPLOADING' | 'COMPLETED' | 'FAILED';
+                    status: string;
+                    agentId: number | null;
                 };
                 Insert: {
                     id?: number;
@@ -449,7 +501,8 @@ export type AgentsServerDatabase = {
                     storageUrl?: string | null;
                     shortUrl?: string | null;
                     purpose: string;
-                    status?: 'UPLOADING' | 'COMPLETED' | 'FAILED';
+                    status?: string;
+                    agentId?: number | null;
                 };
                 Update: {
                     id?: number;
@@ -461,13 +514,20 @@ export type AgentsServerDatabase = {
                     storageUrl?: string | null;
                     shortUrl?: string | null;
                     purpose?: string;
-                    status?: 'UPLOADING' | 'COMPLETED' | 'FAILED';
+                    status?: string;
+                    agentId?: number | null;
                 };
                 Relationships: [
                     {
                         foreignKeyName: 'File_userId_fkey';
                         columns: ['userId'];
                         referencedRelation: 'User';
+                        referencedColumns: ['id'];
+                    },
+                    {
+                        foreignKeyName: 'File_agentId_fkey';
+                        columns: ['agentId'];
+                        referencedRelation: 'Agent';
                         referencedColumns: ['id'];
                     },
                 ];

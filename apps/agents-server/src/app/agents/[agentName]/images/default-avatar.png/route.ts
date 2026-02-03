@@ -103,7 +103,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
                         parameters: {},
                         modelRequirements: {
                             modelVariant: 'IMAGE_GENERATION',
-                            modelName: 'dall-e-3',
+                            modelName: 'gemini-3-pro-image-preview', // <- [🕕]
                             size: '1024x1792', // <- Vertical orientation
                             // <- TODO: [🤐] DRY
                             quality: 'hd',
