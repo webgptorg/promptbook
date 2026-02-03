@@ -68,6 +68,17 @@ Make some look how the chips or tool chips are implemented. For example, how it 
 
 ---
 
+[ ] !
+
+[✨📰] Show the chip "... Preparing agent: Creating assistant ..." only on cache miss, when the `Agent.preparedExternals.openaiAssistantId` is used, do not show The agent is being prepared.
+
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   You are working with the [Agents Server](apps/agents-server) with the agent chat _(for example, [here](https://my-agent-server.com/agents/FVLv8APAf2S1WV/chat))_
+
+![alt text](prompts/screenshots/2026-01-0460-agents-server-agents-taking-sooooooo-long-to-prepare-and-answer.png)
+
+---
+
 [-]
 
 [✨📰] bar
