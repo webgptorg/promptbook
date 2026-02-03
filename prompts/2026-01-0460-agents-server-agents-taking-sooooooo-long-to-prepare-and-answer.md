@@ -46,17 +46,25 @@ Make some look how the chips or tool chips are implemented. For example, how it 
 ---
 
 [x] ~$0.00
+[x] $1.89 - `claude-sonnet-4.5`
+[ ]
 
 [✨📰] When creating the underlying GPT assistant of the agent, the caching is not working very well
 
--   The Assistant is sometimes cached, but very often it is unnecessarily created again and again.
--   You should use `preparedExternals` in `Agent` table - Store there the cached underlying GPT assistant id.
--   When the agent is called, check if there is already some cached underlying GPT assistant id
+-   The Assistant is sometimes cached, but very often it is unnecessarily re-created again and again.
+-   The thing that the agent isnt cached properly but re-re-created again and again is indicated by "Preparing agent" chip under a chat message _(see the screenshot)_
+-   You should use `preparedExternals` in `Agent` table - Store there the cached underlying GPT assistant id from the OpenAI
+-   Store this assistant ID from the OpenAI first time agent is called and then reuse it for the next calls.
+-   When the agent is called, check if there is already some cached underlying GPT assistant in `preparedExternals`
     -   If yes, check if the underlying GPT assistant with this id exists and is up-to-date with the agent requirements (hashing key)
         -   If yes, use it
         -   If not, create a new underlying GPT assistant, and store its id into `preparedExternals`
+-   Purpose of `Agent.preparedExternals` is to store things like IDs created outside of the Agents Server, so we have connection between the agent and the underlying GPT assistant created in the OpenAI or some other system.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server) with the agent chat _(for example, [here](https://my-agent-server.com/agents/FVLv8APAf2S1WV/chat))_
+
+![alt text](prompts/screenshots/2026-01-0460-agents-server-agents-taking-sooooooo-long-to-prepare-and-answer.png)
+![alt text](prompts/screenshots/2026-01-0460-agents-server-agents-taking-sooooooo-long-to-prepare-and-answer-1.png)
 
 ---
 
@@ -87,4 +95,3 @@ Make some look how the chips or tool chips are implemented. For example, how it 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server) with the agent chat _(for example, [here](https://my-agent-server.com/agents/FVLv8APAf2S1WV/chat))_
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
