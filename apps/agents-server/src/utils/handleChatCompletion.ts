@@ -133,8 +133,6 @@ export async function handleChatCompletion(
             { includeDynamicContext: true }, // Default: strict caching (includes CONTEXT)
         );
 
-        const openAiAssistantExecutionTools = assistantResult.tools;
-
         if (assistantResult.fromCache) {
             console.info('[🤰]', 'Assistant cache hit (OpenAI)', {
                 agentName,

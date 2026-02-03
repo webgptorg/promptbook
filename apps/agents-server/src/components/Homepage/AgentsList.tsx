@@ -577,9 +577,7 @@ export function AgentsList(props: AgentsListProps) {
     const searchParams = useSearchParams();
     const [agents, setAgents] = useState<AgentOrganizationAgent[]>(Array.from(initialAgents));
     const [folders, setFolders] = useState<AgentOrganizationFolder[]>(Array.from(initialFolders));
-    const [federatedAgents, setFederatedAgents] = useState<AgentWithVisibility[]>(
-        initialExternalAgents || [],
-    );
+    const [federatedAgents, setFederatedAgents] = useState<AgentWithVisibility[]>(initialExternalAgents || []);
     const [federatedServersStatus, setFederatedServersStatus] = useState<
         Record<string, { status: 'loading' | 'success' | 'error'; error?: string }>
     >({});
@@ -760,7 +758,7 @@ export function AgentsList(props: AgentsListProps) {
         return () => {
             isCancelled = true;
         };
-    }, [showFederatedAgentsInGraph]);
+    }, [showFederatedAgentsInGraph, showFederatedAgents]);
     /**
      * Updates the view mode query param.
      *
@@ -1199,7 +1197,7 @@ export function AgentsList(props: AgentsListProps) {
             await showAlert({
                 title: 'Delete failed',
                 message: 'Failed to delete agent',
-                }).catch(() => undefined);
+            }).catch(() => undefined);
         }
     };
 
