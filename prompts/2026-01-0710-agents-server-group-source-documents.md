@@ -1,10 +1,10 @@
-[-]
+[ ]
 
-[✨📤] bar
+[✨📤] When there is the same document in the sources in the chip below the message in the chat show only one, not same, duplicated multiple times. 
 
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+![alt text](prompts/screenshots/2026-01-0710-agents-server-group-source-documents.png)
 
 ---
 
