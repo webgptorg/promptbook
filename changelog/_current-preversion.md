@@ -1,5 +1,6 @@
 ### 📚 Book
 
+-   Added a loading indicator to the Agents Server that appears when navigating between pages, providing visual feedback to the user that a new page is loading.
 -   Redesigned the agents graph on the home page using the React Flow library, featuring:
     -   Improved UI and UX for graph visualization.
     -   Interactive features such as zooming, panning, and node highlighting on hover.

@@ -15,6 +15,7 @@
         "postinstall": "cd ../../ && npm ci"
     },
     "dependencies": {
+        "@tanem/react-nprogress": "^5.0.0",
         "reactflow": "^11.11.4"
     }
 }

@@ -1,5 +1,6 @@
 import faviconLogoImage from '@/public/favicon.ico';
 import { LayoutWrapper } from '@/src/components/LayoutWrapper/LayoutWrapper';
+import { NprogressProvider } from '@/src/components/NprogressProvider';
 import type { Metadata } from 'next';
 import { Barlow_Condensed, Poppins } from 'next/font/google';
 import { getMetadata } from '../database/getMetadata';
@@ -125,18 +126,20 @@ export default async function RootLayout({
         <html lang="en">
             {/* Note: Icon is set via metadata to allow agent-page specific icons to override it */}
             <body className={`${barlowCondensed.variable} ${poppins.variable} antialiased bg-white text-gray-900`}>
-                <LayoutWrapper
-                    isAdmin={isAdmin}
-                    currentUser={currentUser}
-                    serverName={serverName}
-                    serverLogoUrl={serverLogoUrl}
-                    agents={JSON.parse(JSON.stringify(agents))}
-                    isFooterShown={isFooterShown}
-                    footerLinks={footerLinks}
-                    federatedServers={federatedServers}
-                >
-                    {children}
-                </LayoutWrapper>
+                <NprogressProvider>
+                    <LayoutWrapper
+                        isAdmin={isAdmin}
+                        currentUser={currentUser}
+                        serverName={serverName}
+                        serverLogoUrl={serverLogoUrl}
+                        agents={JSON.parse(JSON.stringify(agents))}
+                        isFooterShown={isFooterShown}
+                        footerLinks={footerLinks}
+                        federatedServers={federatedServers}
+                    >
+                        {children}
+                    </LayoutWrapper>
+                </NprogressProvider>
                 {/* Global portal root for modals/popups */}
                 <div id="portal-root" />
             </body>
