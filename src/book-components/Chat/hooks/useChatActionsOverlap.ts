@@ -40,14 +40,12 @@ export type ChatActionsOverlapResult = {
      * Scroll handler that updates both auto-scroll and overlap state.
      */
     handleChatScroll: (event: UIEvent<HTMLDivElement>) => void;
+
     /**
-     * Whether the actions toolbar is currently being scrolled.
+     * Note: Previously there were `isActionsScrolling` and `isActionsOverlapping` states,
+     * now there is just one state `shouldFadeActions` which is calculated based on the scroll position and overlap.
      */
-    isActionsScrolling: boolean;
-    /**
-     * Whether the actions toolbar overlaps the first visible message.
-     */
-    isActionsOverlapping: boolean;
+    shouldFadeActions: boolean;
 };
 
 /**
@@ -99,13 +97,11 @@ function isActionsOverlappingFirstVisibleMessage(
  */
 export function useChatActionsOverlap(config: ChatActionsOverlapConfig): ChatActionsOverlapResult {
     const { chatMessagesRef, handleScroll, messageSelector, messages } = config;
-    const actionsFadeDelayMs = 150;
     const chatMessagesElementRef = useRef<HTMLDivElement | null>(null);
     const actionsRef = useRef<HTMLDivElement | null>(null);
-    const actionsFadeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const actionsFadeFrameRef = useRef<number | null>(null);
-    const [isActionsScrolling, setIsActionsScrolling] = useState(false);
     const [isActionsOverlapping, setIsActionsOverlapping] = useState(false);
+    const [isScrolledToTop, setIsScrolledToTop] = useState(true);
 
     const scheduleActionsOverlapCheck = useCallback(() => {
         if (actionsFadeFrameRef.current !== null) {
@@ -136,13 +132,8 @@ export function useChatActionsOverlap(config: ChatActionsOverlapConfig): ChatAct
         (event: UIEvent<HTMLDivElement>) => {
             handleScroll(event);
 
-            setIsActionsScrolling(true);
-            if (actionsFadeTimeoutRef.current) {
-                clearTimeout(actionsFadeTimeoutRef.current);
-            }
-            actionsFadeTimeoutRef.current = setTimeout(() => {
-                setIsActionsScrolling(false);
-            }, actionsFadeDelayMs);
+            const SCROLL_THRESHOLD_PX = 25;
+            setIsScrolledToTop(event.currentTarget.scrollTop < SCROLL_THRESHOLD_PX /* Note: Just a small threshold */);
 
             scheduleActionsOverlapCheck();
         },
@@ -163,20 +154,18 @@ export function useChatActionsOverlap(config: ChatActionsOverlapConfig): ChatAct
 
     useEffect(() => {
         return () => {
-            if (actionsFadeTimeoutRef.current) {
-                clearTimeout(actionsFadeTimeoutRef.current);
-            }
             if (actionsFadeFrameRef.current !== null) {
                 cancelAnimationFrame(actionsFadeFrameRef.current);
             }
         };
     }, []);
 
+    const shouldFadeActions = isActionsOverlapping && !isScrolledToTop;
+
     return {
         actionsRef,
         setChatMessagesElement,
         handleChatScroll,
-        isActionsScrolling,
-        isActionsOverlapping,
+        shouldFadeActions,
     };
 }

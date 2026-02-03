@@ -98,13 +98,12 @@ export function Chat(props: ChatProps) {
     } = useChatAutoScroll();
 
     const chatMessageSelector = `.${styles.chatMessage}`;
-    const { actionsRef, setChatMessagesElement, handleChatScroll, isActionsOverlapping, isActionsScrolling } =
-        useChatActionsOverlap({
-            chatMessagesRef,
-            handleScroll,
-            messageSelector: chatMessageSelector,
-            messages: postprocessedMessages,
-        });
+    const { actionsRef, setChatMessagesElement, handleChatScroll, shouldFadeActions } = useChatActionsOverlap({
+        chatMessagesRef,
+        handleScroll,
+        messageSelector: chatMessageSelector,
+        messages: postprocessedMessages,
+    });
 
     const {
         state: {
@@ -159,7 +158,6 @@ export function Chat(props: ChatProps) {
 
     const handleCopy = useCallback(() => {}, []);
     const isFeedbackEnabled = !!onFeedback;
-    const shouldFadeActions = isActionsScrolling && isActionsOverlapping;
     const hasActions =
         (!!onReset && postprocessedMessages.length !== 0) ||
         (isSaveButtonEnabled && postprocessedMessages.length !== 0) ||
