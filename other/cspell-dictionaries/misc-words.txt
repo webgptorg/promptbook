@@ -415,7 +415,9 @@ strikethrough
 sublist
 sublists
 pseudotoken
+pseudotokens
 subcomponent
+subcomponents
 openmoji
 katex
 actionbar
