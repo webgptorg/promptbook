@@ -163,37 +163,6 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
     }
 
     /**
-     * Retrieves the prepared externals of an agent by its name or permanent ID.
-     */
-    public async getAgentPreparedExternals(
-        agentNameOrPermanentId: string_agent_name | string_agent_permanent_id,
-    ): Promise<PreparedExternals | null> {
-        const selectResult = await this.supabaseClient
-            .from(this.getTableName('Agent'))
-            .select('preparedExternals')
-            .or(`agentName.eq.${agentNameOrPermanentId},permanentId.eq.${agentNameOrPermanentId}`)
-            .is('deletedAt', null);
-
-        if (selectResult.data && selectResult.data.length === 0) {
-            throw new NotFoundError(`Agent "${agentNameOrPermanentId}" not found`);
-        } else if (selectResult.data && selectResult.data.length > 1) {
-            throw new UnexpectedError(`More agents with name or id "${agentNameOrPermanentId}" found`);
-        } else if (selectResult.error) {
-            throw new DatabaseError(
-                spaceTrim(
-                    (block) => `
-                        Error fetching agent prepared externals "${agentNameOrPermanentId}" from Supabase:
-                        
-                        ${block(selectResult.error.message)}
-                    `,
-                ),
-            );
-        }
-
-        return (selectResult.data[0]!.preparedExternals as PreparedExternals) || null;
-    }
-
-    /**
      * Creates a new agent in the collection
      *
      * Note: You can set 'PARENT' in the agent source to inherit from another agent in the collection.

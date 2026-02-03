@@ -4,9 +4,10 @@ import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentColle
 import { $provideOpenAiAssistantExecutionToolsForServer } from '@/src/tools/$provideOpenAiAssistantExecutionToolsForServer';
 import { createChatStreamHandler } from '@/src/utils/createChatStreamHandler';
 import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
-import { Agent, computeAgentHash, PROMPTBOOK_ENGINE_VERSION, RemoteAgent } from '@promptbook-local/core';
+import { Agent, computeAgentHash, PROMPTBOOK_ENGINE_VERSION, RemoteAgent, AgentCollectionInSupabase } from '@promptbook-local/core';
 import { string_agent_permanent_id, TODO_any } from '@promptbook-local/types';
 import { computeHash, serializeError } from '@promptbook-local/utils';
+
 
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
 import { keepUnused } from '../../../../../../../../src/utils/organization/keepUnused';
@@ -60,7 +61,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         const agentSource = await collection.getAgentSource(agentName);
 
         const agentPermanentId = (await collection.getAgentPermanentId(agentName)) as string_agent_permanent_id;
-        const preparedExternals = await (collection as TODO_any).getAgentPreparedExternals(agentPermanentId);
+        const preparedExternals = await (collection as any).getAgentPreparedExternals(agentPermanentId);
 
         const agent = new Agent({
             isVerbose: true, // <- TODO: [🐱‍🚀] From environment variable
