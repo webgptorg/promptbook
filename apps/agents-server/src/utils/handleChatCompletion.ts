@@ -4,7 +4,7 @@ import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentColle
 import { $provideOpenAiAssistantExecutionToolsForServer } from '@/src/tools/$provideOpenAiAssistantExecutionToolsForServer';
 import { createChatStreamHandler } from '@/src/utils/createChatStreamHandler';
 import { Agent, computeAgentHash, PROMPTBOOK_ENGINE_VERSION, AgentCollectionInSupabase } from '@promptbook-local/core';
-import { ChatMessage, Prompt, string_agent_permanent_id, string_book, TODO_any } from '@promptbook-local/types';
+import { ChatMessage, PreparedExternals, Prompt, string_agent_permanent_id, string_book, TODO_any } from '@promptbook-local/types';
 import { $getCurrentDate, computeHash } from '@promptbook-local/utils';
 
 import { NextRequest, NextResponse } from 'next/server';

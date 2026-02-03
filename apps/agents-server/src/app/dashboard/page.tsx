@@ -75,8 +75,9 @@ export default async function DashboardPage(props: DashboardPageProps) {
                     folders={[...folders]}
                     isAdmin={isAdmin}
                     canOrganize={Boolean(currentUser)}
-                    publicUrl={publicUrl.href /* <- [??] */}
+                    publicUrl={publicUrl.href}
                     showFederatedAgents={!isSubfolderView}
+                    isSubfolderView={isSubfolderView}
                 />
 
                 {!isGraphView && !isSubfolderView && (
