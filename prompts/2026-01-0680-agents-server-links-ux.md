@@ -1,4 +1,4 @@
-[ ] !
+[x] ~$0.24 by OpenAI Codex `gpt-5.2-codex`
 
 [✨💓] When you click on the link anywhere in the agent server, the user doesn't see some feedback loading etc.
 
@@ -37,3 +37,4 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

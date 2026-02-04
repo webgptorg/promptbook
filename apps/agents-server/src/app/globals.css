@@ -176,6 +176,71 @@ textarea:focus-visible {
     animation: spin 1s linear infinite;
 }
 
+/* Route transition loading indicator */
+.route-loading {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    pointer-events: none;
+}
+
+.route-loading-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 3px;
+    width: 100%;
+    background: linear-gradient(90deg, #38bdf8, #6366f1, #f59e0b);
+    animation: route-loading-bar 1.2s ease-in-out infinite;
+}
+
+.route-loading-label {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.85);
+    color: #f8fafc;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.25);
+    animation: route-loading-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes route-loading-bar {
+    0% {
+        transform: translateX(-100%) scaleX(0.3);
+        opacity: 0.6;
+    }
+    50% {
+        transform: translateX(0) scaleX(0.7);
+        opacity: 1;
+    }
+    100% {
+        transform: translateX(100%) scaleX(0.3);
+        opacity: 0.6;
+    }
+}
+
+@keyframes route-loading-pulse {
+    0%,
+    100% {
+        opacity: 0.7;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .route-loading-bar,
+    .route-loading-label {
+        animation: none;
+    }
+}
+
 /* Tailwind CSS animation utilities */
 @keyframes fade-in {
     from {

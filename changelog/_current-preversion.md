@@ -7,6 +7,7 @@
 -   Fixed Agents Server folder creation at the root level by querying `parentId` with null-aware filters to avoid bigint "null" errors.
 -   Replaced blocking browser `alert`, `prompt`, and `confirm` calls in Agents Server with queued async dialogs rendered via a global provider.
 -   Refined the agent avatar hover tooltip in Agents Server chat with a cleaner card, profile link, and resilient image fallback.
+-   Added a global route loading indicator in Agents Server to show feedback during link navigation.
 -   Enhanced refactor-candidate prompt generation with richer guidance, clearer file linking, and reason-aware context.
 -   Added shared prompt emoji tag selection so generated refactor and boilerplate prompts use fresh unique `[✨]` tags across the repo.
 -   Added a refactor-candidate scanner script that flags oversized or entity-heavy source files and generates per-file refactor prompts in `prompts`.
