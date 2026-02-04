@@ -1,3 +1,5 @@
+export const runtime = 'nodejs';
+
 import faviconLogoImage from '@/public/favicon.ico';
 import { LayoutWrapper } from '@/src/components/LayoutWrapper/LayoutWrapper';
 import { NprogressProvider } from '@/src/components/NprogressProvider';

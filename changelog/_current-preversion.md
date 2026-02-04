@@ -1,7 +1,10 @@
 ### 📚 Book
 
--   Fixed deployment on Vercel by removing `"use server"` from page files.
--   Fixed deployment on Vercel by disabling Edge runtime in some files and forcing dynamic rendering on pages that depend on headers or other dynamic information.
+-   Fixed deployment on Vercel by:
+    -   Explicitly setting `export const runtime = 'nodejs'` in the main layout and major routes to avoid Edge Runtime compatibility issues with Node.js modules like `net`, `path`, and `crypto`.
+    -   Ensuring `export const dynamic = 'force-dynamic'` is used consistently for pages accessing headers or server-side metadata.
+    -   Wrapping `NotFoundPage` in a `Suspense` boundary in `apps/agents-server/src/app/not-found.tsx` to resolve `useContext` errors during prerendering of the `/404` page.
+    -   Updating `$isRunningInNode` utility to be more robust against environments that partially emulate the `process` object.
 -   Fixed `react-pdf` initialization in `ChatCitationModal.tsx` to avoid SSR issues and `TypeError: Object.defineProperty called on non-object` error.
 -   Added a loading indicator to the Agents Server that appears when navigating between pages, providing visual feedback to the user that a new page is loading.
 -   Redesigned the agents graph on the home page using the React Flow library, featuring:

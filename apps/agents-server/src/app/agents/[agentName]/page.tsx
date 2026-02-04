@@ -15,6 +15,7 @@ import { ServiceWorkerRegister } from './ServiceWorkerRegister';
 export const generateMetadata = generateAgentMetadata;
 
 export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 export default async function AgentPage({
     params,

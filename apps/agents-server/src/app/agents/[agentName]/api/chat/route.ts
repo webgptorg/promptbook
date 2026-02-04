@@ -15,6 +15,7 @@ import { AssistantCacheManager } from '@/src/utils/cache/AssistantCacheManager';
  * Allow long-running streams: set to platform maximum (seconds)
  */
 export const maxDuration = 300;
+export const runtime = 'nodejs';
 
 export async function OPTIONS(request: Request) {
     keepUnused(request);

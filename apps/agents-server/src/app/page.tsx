@@ -19,6 +19,7 @@ type HomePageProps = {
  * Renders the simplified agents home page with local and federated agents.
  */
 export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 export default async function HomePage(props: HomePageProps) {
     $sideEffect(/* Note: [??] This will ensure dynamic rendering of page and avoid Next.js pre-render */ headers());
