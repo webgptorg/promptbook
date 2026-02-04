@@ -1,4 +1,3 @@
-
 'use client';
 
 import { generatePlaceholderAgentProfileImageUrl } from '@promptbook-local/core';
@@ -30,7 +29,7 @@ type AgentWithVisibility = AgentBasicInformation & {
 
 type AgentsGraphV2Props = {
     readonly agents: AgentWithVisibility[];
-    readonly federatedAgents: AgentWithVIisibility[];
+    readonly federatedAgents: AgentWithVisibility[];
     readonly federatedServersStatus: Record<string, { status: 'loading' | 'success' | 'error'; error?: string }>;
     readonly publicUrl: string_url;
 };

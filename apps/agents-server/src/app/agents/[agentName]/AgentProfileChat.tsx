@@ -116,7 +116,7 @@ export function AgentProfileChat({
     return (
         <div className="w-full h-[calc(100dvh-300px)] min-h-[350px] md:h-[500px]">
             <Chat
-                agent={agent}
+                agent={agent! /* <- TODO: !!! Remove ! and handle `undefined` or `null` agent */}
                 title={`Chat with ${fullname}`}
                 participants={[
                     {
