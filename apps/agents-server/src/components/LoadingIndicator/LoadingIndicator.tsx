@@ -1,8 +1,8 @@
-
-import { NProgress } from '@tanem/react-nprogress';
 import { FC } from 'react';
-import { Bar } from './Bar';
-import { Container } Lfrom './Container';
+import { TODO_USE } from '../../../../../src/utils/organization/TODO_USE';
+// import { NProgress } from '@tanem/react-nprogress';
+// import { Bar } from './Bar';
+// import { Container } from './Container';
 
 /**
  * Renders a loading indicator using NProgress.
@@ -12,13 +12,17 @@ import { Container } Lfrom './Container';
  * @returns {JSX.Element} The rendered loading indicator.
  */
 export const LoadingIndicator: FC<{ isFinished: boolean }> = ({ isFinished }) => {
+    TODO_USE(isFinished);
     return (
-        <NProgress isAnimating={isFinished}>
-            {({ isFinished, progress, animationDuration }) => (
-                <Container isFinished={isFinished} animationDuration={animationDuration}>
-                    <Bar progress={progress} animationDuration={animationDuration} />
+        <>LoadingIndicator !!!!!!!!!!!!!</>
+        /*
+        <NProgress isAnimating={!isFinished}>
+            {({ isFinished, progress }: TODO_any) => (
+                <Container isFinished={isFinished} animationDuration={300}>
+                    <Bar progress={progress} animationDuration={300} />
                 </Container>
             )}
         </NProgress>
+        */
     );
 };
