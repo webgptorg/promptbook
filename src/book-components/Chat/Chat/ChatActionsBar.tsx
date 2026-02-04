@@ -33,6 +33,10 @@ export type ChatActionsBarProps = {
     saveFormats?: Array<string_chat_format_name>;
     isSaveButtonEnabled: boolean;
     shouldFadeActions: boolean;
+    /**
+     * Disables action interactions while scroll is active.
+     */
+    shouldDisableActions: boolean;
     onButtonClick: (
         handler?: (event: MouseEvent<HTMLButtonElement>) => void,
     ) => (event: MouseEvent<HTMLButtonElement>) => void;
@@ -57,6 +61,7 @@ export function ChatActionsBar(props: ChatActionsBarProps) {
         saveFormats,
         isSaveButtonEnabled,
         shouldFadeActions,
+        shouldDisableActions,
         onButtonClick,
         soundSystem,
     } = props;
@@ -119,6 +124,7 @@ export function ChatActionsBar(props: ChatActionsBarProps) {
                 actionsAlignmentClass,
                 actionsContainer && styles.portal,
                 shouldFadeActions && styles.actionsFaded,
+                shouldDisableActions && styles.actionsScrolling,
             )}
         >
             {onReset && messages.length !== 0 && (

@@ -115,6 +115,10 @@
 }
 
 .actionsFaded {
+    opacity: 0.3;
+}
+
+.actionsScrolling {
     opacity: 0.15;
     pointer-events: none;
 }

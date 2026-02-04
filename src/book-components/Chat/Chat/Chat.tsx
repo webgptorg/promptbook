@@ -158,7 +158,8 @@ export function Chat(props: ChatProps) {
 
     const handleCopy = useCallback(() => {}, []);
     const isFeedbackEnabled = !!onFeedback;
-    const shouldFadeActions = isActionsScrolling && isActionsOverlapping;
+    const shouldFadeActions = isActionsOverlapping;
+    const shouldDisableActions = isActionsOverlapping && isActionsScrolling;
     const hasActions =
         (!!onReset && postprocessedMessages.length !== 0) ||
         (isSaveButtonEnabled && postprocessedMessages.length !== 0) ||
@@ -255,6 +256,7 @@ export function Chat(props: ChatProps) {
                         saveFormats={saveFormats}
                         isSaveButtonEnabled={isSaveButtonEnabled}
                         shouldFadeActions={shouldFadeActions}
+                        shouldDisableActions={shouldDisableActions}
                         onButtonClick={handleButtonClick}
                         soundSystem={soundSystem}
                     />

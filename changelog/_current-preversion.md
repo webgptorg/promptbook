@@ -47,6 +47,7 @@
 -   Ensured the Agents Server chat menu stays above chat action buttons (New chat, Save, etc.).
 -   Added top spacing in Agents Server chat so action buttons no longer overlap the first messages.
 -   Faded Agents Server chat action buttons while scrolling when they overlap the first visible message.
+-   Kept Agents Server chat action buttons softly faded when they still overlap messages after scrolling, while restoring clickability once scrolling stops.
 -   Updated the Agents Server self-learning chip to use the brain icon without brackets.
 -   Enhanced the Agents Server self-learning modal with a friendly summary and server-provided learning details.
 -   Updated the Agents Server self-learning modal to show agent + teacher avatars and render learned commitments in a read-only BookEditor.
