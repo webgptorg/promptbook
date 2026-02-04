@@ -134,7 +134,9 @@ export async function runCodexPrompts(): Promise<void> {
             hasWaitedForStart = true;
         }
 
-        await ensureWorkingTreeClean();
+        if (!options.ignoreGitChanges) {
+            await ensureWorkingTreeClean();
+        }
 
         const commitMessage = buildCommitMessage(nextPrompt.file, nextPrompt.section);
         const codexPrompt = buildCodexPrompt(nextPrompt.file, nextPrompt.section);

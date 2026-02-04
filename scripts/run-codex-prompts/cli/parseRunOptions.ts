@@ -26,15 +26,19 @@ export function parseRunOptions(args: string[]): RunOptions {
         const index = args.indexOf('--model');
         model = args[index + 1];
     }
+    const ignoreGitChanges = args.includes('--ignore-git-changes');
 
     if (!agentName) {
         console.error(colors.red('You must choose an agent using --agent <openai-codex|cline|claude-code|opencode|gemini>'));
-        console.error(colors.gray('Usage: run-codex-prompts --agent <agent-name> [--model <model>] [--no-wait]'));
+        console.error(
+            colors.gray('Usage: run-codex-prompts --agent <agent-name> [--model <model>] [--no-wait] [--ignore-git-changes]'),
+        );
         process.exit(1);
     }
 
     return {
         waitForUser: !args.includes('--no-wait'),
+        ignoreGitChanges,
         agentName,
         model,
     };

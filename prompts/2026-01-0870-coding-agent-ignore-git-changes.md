@@ -1,4 +1,4 @@
-[ ] !
+[x] ~$0.27 by OpenAI Codex `gpt-5.2-codex`
 
 [✨🦁] Allow to ignore non-empty Git work tree in coding agent script.
 
@@ -72,3 +72,4 @@ Press Enter to start the first task...
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the [changelog](./changelog/_current-preversion.md)
+

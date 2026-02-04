@@ -85,6 +85,7 @@
 -   Added a script to run prompt files through OpenAI Codex with prompt status tracking and git commits.
 -   Added support for Gemini CLI to the coding agent script with the `--agent gemini` flag, allowing non-interactive prompt execution and automated git commits.
 -   Added interactive waits between codex prompt tasks with a `--no-wait` override flag.
+-   Added `--ignore-git-changes` flag to the coding agent runner to skip the clean working tree check.
 -   Added per-prompt start summaries with a confirmation wait before each prompt runs (unless `--no-wait`).
 -   Estimated OpenAI Codex runner prices from Codex CLI token counts instead of reporting $0.00.
 -   Added coding runner and model signatures to coding agent prompt status lines.
