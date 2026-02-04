@@ -3,6 +3,7 @@ import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForSer
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideOpenAiAssistantExecutionToolsForServer } from '@/src/tools/$provideOpenAiAssistantExecutionToolsForServer';
 import { createChatStreamHandler } from '@/src/utils/createChatStreamHandler';
+import { ensureNonEmptyChatContent } from '@/src/utils/chat/ensureNonEmptyChatContent';
 import { Agent, computeAgentHash, PROMPTBOOK_ENGINE_VERSION } from '@promptbook-local/core';
 import { ChatMessage, Prompt, string_book, TODO_any } from '@promptbook-local/types';
 import { $getCurrentDate, computeHash } from '@promptbook-local/utils';
@@ -250,9 +251,14 @@ export async function handleChatCompletion(
                     };
                     controller.enqueue(encoder.encode(`data: ${JSON.stringify(initialChunkData)}\n\n`));
 
+                    let hasMeaningfulDelta = false;
+
                     try {
                         const handleStreamChunk = createChatStreamHandler({
                             onDelta: (deltaContent) => {
+                                if (deltaContent.trim().length > 0) {
+                                    hasMeaningfulDelta = true;
+                                }
                                 const chunkData = {
                                     id: runId,
                                     object: 'chat.completion.chunk',
@@ -277,10 +283,34 @@ export async function handleChatCompletion(
 
                         const result = await agent.callChatModelStream(prompt, handleStreamChunk);
 
+                        const normalizedResponse = ensureNonEmptyChatContent({
+                            content: result.content,
+                            context: title,
+                        });
+
+                        if (normalizedResponse.wasEmpty && !hasMeaningfulDelta) {
+                            const fallbackChunkData = {
+                                id: runId,
+                                object: 'chat.completion.chunk',
+                                created,
+                                model: model || 'promptbook-agent',
+                                choices: [
+                                    {
+                                        index: 0,
+                                        delta: {
+                                            content: normalizedResponse.content,
+                                        },
+                                        finish_reason: null,
+                                    },
+                                ],
+                            };
+                            controller.enqueue(encoder.encode(`data: ${JSON.stringify(fallbackChunkData)}\n\n`));
+                        }
+
                         // Note: Identify the agent message
                         const agentMessageContent = {
                             role: 'MODEL',
-                            content: result.content,
+                            content: normalizedResponse.content,
                         };
 
                         // Record the agent message
@@ -344,10 +374,15 @@ export async function handleChatCompletion(
         } else {
             const result = await agent.callChatModel(prompt);
 
+            const normalizedResponse = ensureNonEmptyChatContent({
+                content: result.content,
+                context: title,
+            });
+
             // Note: Identify the agent message
             const agentMessageContent = {
                 role: 'MODEL',
-                content: result.content,
+                content: normalizedResponse.content,
             };
 
             // Record the agent message
@@ -386,7 +421,7 @@ export async function handleChatCompletion(
                         index: 0,
                         message: {
                             role: 'assistant',
-                            content: result.content,
+                            content: normalizedResponse.content,
                         },
                         finish_reason: 'stop',
                     },

@@ -4,6 +4,7 @@ import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentColle
 import { $provideOpenAiAssistantExecutionToolsForServer } from '@/src/tools/$provideOpenAiAssistantExecutionToolsForServer';
 import { createChatStreamHandler } from '@/src/utils/createChatStreamHandler';
 import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
+import { ensureNonEmptyChatContent } from '@/src/utils/chat/ensureNonEmptyChatContent';
 import { Agent, computeAgentHash, PROMPTBOOK_ENGINE_VERSION, RemoteAgent } from '@promptbook-local/core';
 import { computeHash, serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
@@ -127,8 +128,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         const encoder = new TextEncoder();
         const readableStream = new ReadableStream({
             start(controller) {
+                let hasMeaningfulDelta = false;
+
                 const handleStreamChunk = createChatStreamHandler({
                     onDelta: (deltaContent) => {
+                        if (deltaContent.trim().length > 0) {
+                            hasMeaningfulDelta = true;
+                        }
                         controller.enqueue(encoder.encode(deltaContent));
                     },
                     onToolCalls: (toolCalls) => {
@@ -151,10 +157,19 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                     handleStreamChunk,
                 )
                     .then(async (response) => {
+                        const normalizedResponse = ensureNonEmptyChatContent({
+                            content: response.content,
+                            context: `Agent chat ${agentName}`,
+                        });
+
+                        if (normalizedResponse.wasEmpty && !hasMeaningfulDelta) {
+                            controller.enqueue(encoder.encode(normalizedResponse.content));
+                        }
+
                         // Note: Identify the agent message
                         const agentMessageContent = {
                             role: 'MODEL',
-                            content: response.content,
+                            content: normalizedResponse.content,
                         };
 
                         // Record the agent message
