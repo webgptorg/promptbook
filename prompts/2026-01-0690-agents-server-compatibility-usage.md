@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.39 by OpenAI Codex `gpt-5.2-codex`
 
 [✨🎏] Report usage when using agents through the compatibility mode for example OpenAI compatibility or Open Router compatibility mode.
 
@@ -66,3 +66,4 @@ ces":[{"index":0,"message":{"role":"assistant","content":"Hello! How can I assis
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

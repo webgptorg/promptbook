@@ -1,5 +1,7 @@
 ### 📚 Book
 
+-   Reported word-based usage for OpenAI/OpenRouter compatibility chat completions in Agents Server, including native Promptbook usage details.
+
 -   Added root nonce test files `nonce-foo-1.txt` and `nonce-bar-1.txt` for coding agent verification.
 -   Regenerated the Agents Server Supabase subset schema for `Agent` and `AgentHistory` to stay aligned with the canonical database schema.
 -   Regenerated the Agents Server Supabase schema types from migrations, aligning ChatHistory and File table fields.

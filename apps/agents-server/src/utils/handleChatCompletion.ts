@@ -5,13 +5,43 @@ import { $provideOpenAiAssistantExecutionToolsForServer } from '@/src/tools/$pro
 import { createChatStreamHandler } from '@/src/utils/createChatStreamHandler';
 import { ensureNonEmptyChatContent } from '@/src/utils/chat/ensureNonEmptyChatContent';
 import { Agent, computeAgentHash, PROMPTBOOK_ENGINE_VERSION } from '@promptbook-local/core';
+import type { Usage } from '@promptbook-local/types';
 import { ChatMessage, Prompt, string_book, TODO_any } from '@promptbook-local/types';
-import { $getCurrentDate, computeHash } from '@promptbook-local/utils';
+import { $getCurrentDate, computeHash, countWords } from '@promptbook-local/utils';
 import { NextRequest, NextResponse } from 'next/server';
 import { isAgentDeleted } from '../app/agents/[agentName]/_utils';
 import { HTTP_STATUS_CODES } from '../constants';
 import { AssistantCacheManager } from './cache/AssistantCacheManager';
 import { validateApiKey } from './validateApiKey';
+
+/**
+ * Creates OpenAI-compatible usage fields based on word counts.
+ *
+ * @param promptContent - Prompt content used for the request.
+ * @param completionContent - Assistant response content.
+ * @param usage - Native Promptbook usage details.
+ * @returns Usage payload for compatibility responses.
+ */
+function createCompatibilityUsage(
+    promptContent: string,
+    completionContent: string,
+    usage: Usage,
+): {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+    details: Usage;
+} {
+    const promptWords = countWords(promptContent);
+    const completionWords = countWords(completionContent);
+
+    return {
+        prompt_tokens: promptWords,
+        completion_tokens: completionWords,
+        total_tokens: promptWords + completionWords,
+        details: usage,
+    };
+}
 
 export async function handleChatCompletion(
     request: NextRequest,
@@ -426,13 +456,7 @@ export async function handleChatCompletion(
                         finish_reason: 'stop',
                     },
                 ],
-                usage: {
-                    prompt_tokens: result.usage?.input?.tokensCount?.value || 0,
-                    completion_tokens: result.usage?.output?.tokensCount?.value || 0,
-                    total_tokens:
-                        (result.usage?.input?.tokensCount?.value || 0) +
-                        (result.usage?.output?.tokensCount?.value || 0),
-                },
+                usage: createCompatibilityUsage(prompt.content, normalizedResponse.content, result.usage),
             });
         }
     } catch (error) {
