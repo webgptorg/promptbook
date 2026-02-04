@@ -1,5 +1,6 @@
 import type { AgentBasicInformation } from '../../../book-2.0/agent-source/AgentBasicInformation';
 import type { string_css_class } from '../../../types/typeAliases';
+import { resolveAgentAvatarImageUrl } from '../../../utils/agents/resolveAgentAvatarImageUrl';
 import { classNames } from '../../_common/react-utils/classNames';
 import styles from './AvatarChip.module.css';
 
@@ -43,6 +44,7 @@ export type AvatarChipProps = {
 export function AvatarChip(props: AvatarChipProps) {
     const { avatarBasicInformation, className, onSelect, isSelected, isTemplate } = props;
     const { agentName, meta } = avatarBasicInformation;
+    const avatarUrl = resolveAgentAvatarImageUrl({ agent: avatarBasicInformation });
 
     return (
         <div
@@ -50,7 +52,7 @@ export function AvatarChip(props: AvatarChipProps) {
             onClick={() => onSelect?.(avatarBasicInformation)}
             style={{ cursor: onSelect ? 'pointer' : undefined }}
         >
-            <img src={meta.image} alt={agentName || ''} className={styles.Avatar} />
+            {avatarUrl && <img src={avatarUrl} alt={agentName || ''} className={styles.Avatar} />}
             {meta.fullname || agentName}
             {isTemplate && <span className={styles.TemplateLabel}>Template</span>}
         </div>

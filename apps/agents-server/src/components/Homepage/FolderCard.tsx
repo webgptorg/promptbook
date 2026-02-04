@@ -1,9 +1,9 @@
 'use client';
 
-import { generatePlaceholderAgentProfileImageUrl } from '@promptbook-local/core';
 import { string_url } from '@promptbook-local/types';
 import { Edit3Icon, FolderIcon, RotateCcwIcon, Trash2Icon } from 'lucide-react';
 import type { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
+import { resolveAgentAvatarImageUrl } from '../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 import { FILE_ACTION_BUTTON_CLASSES, FileCard } from './FileCard';
 
 /**
@@ -72,9 +72,7 @@ export function FolderCard({ folderName, previewAgents, publicUrl, onOpen, onRen
                                     );
                                 }
 
-                                const imageUrl =
-                                    agent.meta.image ||
-                                    generatePlaceholderAgentProfileImageUrl(agent.agentName, publicUrl);
+                                const imageUrl = resolveAgentAvatarImageUrl({ agent, baseUrl: publicUrl });
 
                                 return (
                                     <div

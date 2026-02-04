@@ -1,6 +1,6 @@
 'use client';
 
-import { generatePlaceholderAgentProfileImageUrl, PROMPTBOOK_COLOR } from '@promptbook-local/core';
+import { PROMPTBOOK_COLOR } from '@promptbook-local/core';
 import { string_url } from '@promptbook-local/types';
 import { Code, FileImage, FileText } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -23,6 +23,10 @@ import { Color } from '../../../../../src/utils/color/Color';
 import { darken } from '../../../../../src/utils/color/operators/darken';
 import { textColor } from '../../../../../src/utils/color/operators/furthest';
 import { lighten } from '../../../../../src/utils/color/operators/lighten';
+import {
+    resolveAgentAvatarFallbackUrl,
+    resolveAgentAvatarImageUrl,
+} from '../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 import { showAlert } from '../AsyncDialogs/asyncDialogs';
 import type { AgentOrganizationFolder } from '../../utils/agentOrganization/types';
 import { buildFolderMaps, getFolderPathSegments, sortBySortOrder } from './agentOrganizationUtils';
@@ -320,16 +324,20 @@ const getAgentTooltip = (agent: AgentWithVisibility): string =>
     agent.meta.description || agent.personaDescription || agent.agentName;
 
 /**
- * Resolve the agent image URL, falling back to null if none is set.
+ * Resolve the agent image URLs for display and fallback handling.
  */
-const getAgentExplicitImageUrl = (agent: AgentWithVisibility): string | null => agent.meta.image || null;
-
-/**
- * Resolve a placeholder image URL for the agent.
- */
-const getAgentPlaceholderImageUrl = (agent: AgentWithVisibility, publicUrl: string): string => {
+const getAgentImageUrls = (
+    agent: AgentWithVisibility,
+    publicUrl: string,
+): { imageUrl: string; placeholderUrl: string } => {
     const serverUrl = getAgentServerUrl(agent, publicUrl);
-    return generatePlaceholderAgentProfileImageUrl(agent.agentName, serverUrl);
+    const fallbackId = agent.permanentId || agent.agentName;
+    const placeholderUrl =
+        resolveAgentAvatarFallbackUrl({ agent, baseUrl: serverUrl }) ||
+        `/agents/${encodeURIComponent(fallbackId)}/images/default-avatar.png`;
+    const imageUrl = resolveAgentAvatarImageUrl({ agent, baseUrl: serverUrl }) || placeholderUrl;
+
+    return { imageUrl, placeholderUrl };
 };
 
 /**
@@ -892,8 +900,7 @@ const buildGraphLayoutNodes = (params: {
             });
 
             folder.agents.forEach((agent, index) => {
-                const placeholderUrl = getAgentPlaceholderImageUrl(agent.agent, publicUrl);
-                const explicitUrl = getAgentExplicitImageUrl(agent.agent);
+                const { imageUrl, placeholderUrl } = getAgentImageUrls(agent.agent, publicUrl);
                 const style = buildAgentChipStyle(agent.agent);
                 const orderIndex = orderIndexByNodeId.get(agent.id) ?? null;
                 const tooltipParts = [getAgentTooltip(agent.agent)];
@@ -929,7 +936,7 @@ const buildGraphLayoutNodes = (params: {
                     data: {
                         name: agent.name,
                         agent: agent.agent,
-                        imageUrl: explicitUrl || placeholderUrl,
+                        imageUrl,
                         placeholderUrl,
                         tooltip,
                         style,

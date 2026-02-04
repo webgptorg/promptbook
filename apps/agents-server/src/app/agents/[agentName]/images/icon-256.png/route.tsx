@@ -1,8 +1,9 @@
 import { $provideServer } from '@/src/tools/$provideServer';
-import { generatePlaceholderAgentProfileImageUrl, PROMPTBOOK_COLOR } from '@promptbook-local/core';
+import { PROMPTBOOK_COLOR } from '@promptbook-local/core';
 import { serializeError } from '@promptbook-local/utils';
 import { ImageResponse } from 'next/og';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
+import { resolveAgentAvatarImageUrl } from '../../../../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 import { Color } from '../../../../../../../../src/utils/color/Color';
 import { keepUnused } from '../../../../../../../../src/utils/organization/keepUnused';
 import { getAgentName, getAgentProfile } from '../../_utils';
@@ -50,11 +51,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                             src={
-                                agentProfile.meta.image ||
-                                generatePlaceholderAgentProfileImageUrl(
-                                    agentProfile.permanentId || agentName,
-                                    publicUrl,
-                                )
+                                resolveAgentAvatarImageUrl({ agent: agentProfile, baseUrl: publicUrl.href }) ||
+                                `/agents/${encodeURIComponent(agentProfile.permanentId || agentName)}/images/default-avatar.png`
                             }
                             alt="Agent Icon"
                         />

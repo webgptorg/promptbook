@@ -1,5 +1,6 @@
 import { BehaviorSubject } from 'rxjs';
 import spaceTrim from 'spacetrim';
+import type { AgentCapability } from '../../book-2.0/agent-source/AgentBasicInformation';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import type { ChatPromptResult } from '../../execution/PromptResult';
 import { book } from '../../pipeline/book-notation';
@@ -8,13 +9,110 @@ import type {
     string_agent_hash,
     string_agent_name,
     string_agent_url,
+    string_color,
     string_date_iso8601,
+    string_fonts,
+    string_url_image,
 } from '../../types/typeAliases';
 import { isAssistantPreparationToolCall } from '../../types/ToolCall';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import { Agent } from './Agent';
 import type { AgentOptions } from './AgentOptions';
 import type { RemoteAgentOptions } from './RemoteAgentOptions';
+
+/**
+ * Payload returned by remote agent profile endpoint.
+ */
+type RemoteAgentProfile = {
+    agentName: string_agent_name;
+    agentHash?: string_agent_hash;
+    personaDescription?: string | null;
+    initialMessage?: string | null;
+    links?: string[];
+    meta?: {
+        fullname?: string;
+        image?: string_url_image;
+        link?: string;
+        font?: string_fonts;
+        color?: string_color;
+        title?: string;
+        description?: string;
+        [key: string]: string | undefined;
+    };
+    capabilities?: AgentCapability[];
+    samples?: Array<{ question: string | null; answer: string }>;
+    toolTitles?: Record<string, string>;
+    isVoiceCallingEnabled?: boolean;
+    knowledgeSources?: Array<{ url: string; filename: string }>;
+};
+
+/**
+ * Resolve a remote META IMAGE value into an absolute URL when possible.
+ */
+function resolveRemoteImageUrl(
+    imageUrl: string_url_image | undefined,
+    agentUrl: string_agent_url,
+): string_url_image | undefined {
+    if (!imageUrl) {
+        return undefined;
+    }
+
+    if (
+        imageUrl.startsWith('http://') ||
+        imageUrl.startsWith('https://') ||
+        imageUrl.startsWith('data:') ||
+        imageUrl.startsWith('blob:')
+    ) {
+        return imageUrl;
+    }
+
+    try {
+        return new URL(imageUrl, agentUrl).href as string_url_image;
+    } catch {
+        return imageUrl;
+    }
+}
+
+/**
+ * Format a META commitment line when the value is provided.
+ */
+function formatMetaLine(label: string, value?: string): string | null {
+    if (!value) {
+        return null;
+    }
+
+    return `META ${label} ${value}`;
+}
+
+/**
+ * Build a minimal agent source snapshot for remote agents.
+ */
+function buildRemoteAgentSource(profile: RemoteAgentProfile, meta: RemoteAgentProfile['meta']): string_book {
+    const metaLines = [
+        formatMetaLine('FULLNAME', meta?.fullname),
+        formatMetaLine('IMAGE', meta?.image),
+        formatMetaLine('DESCRIPTION', meta?.description),
+        formatMetaLine('COLOR', meta?.color),
+        formatMetaLine('FONT', meta?.font),
+        formatMetaLine('LINK', meta?.link),
+    ]
+        .filter((line): line is string => Boolean(line))
+        .join('\n');
+    const personaBlock = profile.personaDescription
+        ? spaceTrim((block) => `
+            PERSONA
+            ${block(profile.personaDescription || '')}
+        `)
+        : '';
+
+    return book`
+        ${profile.agentName}
+
+        ${metaLines}
+
+        ${personaBlock}
+    `;
+}
 
 /**
  * Represents one AI Agent
@@ -55,15 +153,17 @@ export class RemoteAgent extends Agent {
             );
         }
 
-        const profile = await profileResponse.json();
+        const profile = (await profileResponse.json()) as RemoteAgentProfile;
+        const resolvedMeta = {
+            ...(profile.meta || {}),
+            image: resolveRemoteImageUrl(profile.meta?.image, options.agentUrl),
+        };
 
         // Note: We are creating dummy agent source because we don't have the source from the remote agent
         //       But we populate the metadata from the profile
-        const agentSource: BehaviorSubject<string_book> = new BehaviorSubject<string_book>(book`
-            ${profile.agentName}
-
-            ${profile.personaDescription}
-        `);
+        const agentSource: BehaviorSubject<string_book> = new BehaviorSubject<string_book>(
+            buildRemoteAgentSource(profile, resolvedMeta),
+        );
         // <- TODO: [🐱‍🚀] createBookFromProfile
         // <- TODO: [🐱‍🚀] Support updating and self-updating
 
@@ -88,10 +188,10 @@ export class RemoteAgent extends Agent {
 
         remoteAgent._remoteAgentName = profile.agentName;
         remoteAgent._remoteAgentHash = profile.agentHash;
-        remoteAgent.personaDescription = profile.personaDescription;
-        remoteAgent.initialMessage = profile.initialMessage;
-        remoteAgent.links = profile.links;
-        remoteAgent.meta = profile.meta;
+        remoteAgent.personaDescription = profile.personaDescription ?? null;
+        remoteAgent.initialMessage = profile.initialMessage ?? null;
+        remoteAgent.links = profile.links || [];
+        remoteAgent.meta = resolvedMeta;
         remoteAgent.capabilities = profile.capabilities || [];
         remoteAgent.samples = profile.samples || [];
         remoteAgent.toolTitles = profile.toolTitles || {};

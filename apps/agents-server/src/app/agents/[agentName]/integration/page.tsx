@@ -5,13 +5,14 @@ import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabase } from '@/src/database/$provideSupabase';
 import { $provideServer } from '@/src/tools/$provideServer';
 import { isUserAdmin } from '@/src/utils/isUserAdmin';
-import { generatePlaceholderAgentProfileImageUrl, PROMPTBOOK_COLOR } from '@promptbook-local/core';
+import { PROMPTBOOK_COLOR } from '@promptbook-local/core';
 import { BoxIcon, CodeIcon, GlobeIcon } from 'lucide-react';
 import { headers } from 'next/headers';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import spaceTrim from 'spacetrim';
 import { Color } from '../../../../../../../src/utils/color/Color';
+import { resolveAgentAvatarImageUrl } from '../../../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 import { withAlpha } from '../../../../../../../src/utils/color/operators/withAlpha';
 import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
 import { CodePreview } from '../../../../../../_common/components/CodePreview/CodePreview';
@@ -201,21 +202,16 @@ export default async function AgentIntegrationPage({ params }: AgentIntegrationP
             <div className="w-full max-w-5xl bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                 {/* Header */}
                 <div className="p-6 border-b flex items-center gap-4" style={{ borderColor }}>
-                    {agentProfile.meta.image && (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                            src={
-                                agentProfile.meta.image ||
-                                generatePlaceholderAgentProfileImageUrl(
-                                    agentProfile.permanentId || agentName,
-                                    publicUrl,
-                                )
-                            }
-                            alt={agentProfile.meta.fullname || agentName}
-                            className="w-16 h-16 rounded-full object-cover border-2"
-                            style={{ borderColor: primaryColor }}
-                        />
-                    )}
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                        src={
+                            resolveAgentAvatarImageUrl({ agent: agentProfile, baseUrl: publicUrl.href }) ||
+                            `/agents/${encodeURIComponent(agentProfile.permanentId || agentName)}/images/default-avatar.png`
+                        }
+                        alt={agentProfile.meta.fullname || agentName}
+                        className="w-16 h-16 rounded-full object-cover border-2"
+                        style={{ borderColor: primaryColor }}
+                    />
                     <div className="flex-1">
                         <h1 className="text-2xl font-bold text-gray-900">{agentProfile.meta.fullname || agentName}</h1>
                         <p className="text-gray-500 flex items-center gap-2">

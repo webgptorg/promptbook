@@ -1,7 +1,6 @@
 'use client';
 
 import { colorToDataUrl } from '@promptbook-local/color';
-import { generatePlaceholderAgentProfileImageUrl } from '@promptbook-local/core';
 import { AgentBasicInformation, string_agent_permanent_id, string_url } from '@promptbook-local/types';
 import { RepeatIcon } from 'lucide-react';
 import { useState } from 'react';
@@ -10,6 +9,7 @@ import { AgentProfileImage } from './AgentProfileImage';
 import { AgentQrCode } from './AgentQrCode';
 import { QrCodeModal } from './QrCodeModal';
 import { useAgentBackground } from './useAgentBackground';
+import { resolveAgentAvatarImageUrl } from '../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 
 type AgentProfileProps = {
     /**
@@ -84,7 +84,7 @@ export function AgentProfile(props: AgentProfileProps) {
     const { meta, agentName } = agent;
     const fullname = (meta.fullname as string) || agentName || 'Agent';
     const personaDescription = meta.description || agent.personaDescription || '';
-    const imageUrl = meta.image || generatePlaceholderAgentProfileImageUrl(permanentId, publicUrl);
+    const imageUrl = resolveAgentAvatarImageUrl({ agent, baseUrl: publicUrl });
 
     const [isQrModalOpen, setIsQrModalOpen] = useState(false);
     const [isFlipped, setIsFlipped] = useState(false);

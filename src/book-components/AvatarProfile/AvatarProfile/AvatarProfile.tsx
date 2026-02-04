@@ -3,8 +3,11 @@
 import { CSSProperties } from 'react';
 import type { AgentBasicInformation } from '../../../book-2.0/agent-source/AgentBasicInformation';
 import type { string_book } from '../../../book-2.0/agent-source/string_book';
-import { generatePlaceholderAgentProfileImageUrl } from '../../../_packages/core.index';
-import type { string_css_class, string_url_image } from '../../../types/typeAliases';
+import type { string_css_class } from '../../../types/typeAliases';
+import {
+    resolveAgentAvatarFallbackUrl,
+    resolveAgentAvatarImageUrl,
+} from '../../../utils/agents/resolveAgentAvatarImageUrl';
 import { classNames } from '../../_common/react-utils/classNames';
 import styles from './AvatarProfile.module.css';
 
@@ -49,58 +52,6 @@ function buildAgentProfileUrl(agent: AgentBasicInformation): string | null {
 }
 
 /**
- * Builds a fallback avatar URL for the agent profile.
- */
-function buildFallbackAvatarUrl(agent: AgentBasicInformation): string_url_image | null {
-    const agentId = agent.permanentId || agent.agentName;
-
-    if (!agentId) {
-        return null;
-    }
-
-    if (typeof window !== 'undefined') {
-        return generatePlaceholderAgentProfileImageUrl(agentId, window.location.origin);
-    }
-
-    return `/agents/${agentId}/images/default-avatar.png` as string_url_image;
-}
-
-/**
- * Resolves the avatar image URL with support for relative paths and fallbacks.
- */
-function resolveAvatarImageUrl(
-    avatarUrl: string_url_image | undefined,
-    fallbackUrl: string_url_image | null,
-): string_url_image | null {
-    if (!avatarUrl) {
-        return fallbackUrl;
-    }
-
-    if (
-        avatarUrl.startsWith('http://') ||
-        avatarUrl.startsWith('https://') ||
-        avatarUrl.startsWith('data:') ||
-        avatarUrl.startsWith('blob:')
-    ) {
-        return avatarUrl;
-    }
-
-    if (avatarUrl.startsWith('/')) {
-        return avatarUrl;
-    }
-
-    if (typeof window === 'undefined') {
-        return avatarUrl;
-    }
-
-    try {
-        return new URL(avatarUrl, window.location.href).href as string_url_image;
-    } catch {
-        return avatarUrl;
-    }
-}
-
-/**
  * Shows a box with user avatar, name and description
  *
  * @public exported from `@promptbook/components`
@@ -108,8 +59,8 @@ function resolveAvatarImageUrl(
 export function AvatarProfile(props: AvatarProfileProps) {
     const { agent, agentSource, className, style } = props;
     const { agentName, personaDescription, meta } = agent;
-    const fallbackAvatarUrl = buildFallbackAvatarUrl(agent);
-    const avatarUrl = resolveAvatarImageUrl(meta.image, fallbackAvatarUrl);
+    const fallbackAvatarUrl = resolveAgentAvatarFallbackUrl({ agent });
+    const avatarUrl = resolveAgentAvatarImageUrl({ agent });
     const profileUrl = buildAgentProfileUrl(agent);
     const displayName = meta.fullname || agentName || 'Agent';
     const description = personaDescription?.trim();

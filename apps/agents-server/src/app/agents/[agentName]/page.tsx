@@ -3,9 +3,10 @@
 import { $provideServer } from '@/src/tools/$provideServer';
 import { isUserAdmin } from '@/src/utils/isUserAdmin';
 import { saturate } from '@promptbook-local/color';
-import { generatePlaceholderAgentProfileImageUrl, NotFoundError, PROMPTBOOK_COLOR } from '@promptbook-local/core';
+import { NotFoundError, PROMPTBOOK_COLOR } from '@promptbook-local/core';
 import { notFound } from 'next/navigation';
 import { Color } from '../../../../../../src/utils/color/Color';
+import { resolveAgentAvatarImageUrl } from '../../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 import { DeletedAgentBanner } from '../../../components/DeletedAgentBanner';
 import { getAgentName, getAgentProfile, isAgentDeleted } from './_utils';
 import { getAgentLinks } from './agentLinks';
@@ -95,8 +96,8 @@ export default async function AgentPage({
                     fullname={fullname}
                     brandColorHex={brandColorHex}
                     avatarSrc={
-                        agentProfile.meta.image ||
-                        generatePlaceholderAgentProfileImageUrl(agentProfile.permanentId || agentName, publicUrl)
+                        resolveAgentAvatarImageUrl({ agent: agentProfile, baseUrl: publicUrl.href }) ||
+                        `/agents/${encodeURIComponent(agentProfile.permanentId || agentName)}/images/default-avatar.png`
                     }
                     isDeleted={isDeleted}
                

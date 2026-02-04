@@ -1,10 +1,10 @@
 'use client';
 
-import { generatePlaceholderAgentProfileImageUrl } from '@promptbook-local/core';
 import { string_url } from '@promptbook-local/types';
 import { EyeIcon, EyeOffIcon, RotateCcwIcon } from 'lucide-react';
 import Link from 'next/link';
 import { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
+import { resolveAgentAvatarImageUrl } from '../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 import { AgentCapabilityChips, HOMEPAGE_CAPABILITY_CHIPS_LIMIT } from '../AgentProfile/AgentCapabilityChips';
 import { useAgentBackground } from '../AgentProfile/useAgentBackground';
 import { FILE_ACTION_BUTTON_CLASSES, FileCard } from './FileCard';
@@ -83,7 +83,7 @@ export function AgentCard({
 }: AgentCardProps) {
     const { meta, agentName } = agent;
     const fullname = (meta.fullname as string) || agentName || 'Agent';
-    const imageUrl = meta.image || generatePlaceholderAgentProfileImageUrl(agentName, serverUrl || publicUrl);
+    const imageUrl = resolveAgentAvatarImageUrl({ agent, baseUrl: serverUrl || publicUrl });
     const personaDescription = agent.personaDescription || '';
 
     const { brandColorLightHex, brandColorDarkHex, backgroundImage } = useAgentBackground(meta.color);

@@ -7,6 +7,7 @@ import spaceTrim from 'spacetrim';
 import { Color, saturate } from '../../../_packages/color.index';
 import { PROMPTBOOK_COLOR } from '../../../config';
 import { asUpdatableSubject } from '../../../types/Updatable';
+import { resolveAgentAvatarImageUrl } from '../../../utils/agents/resolveAgentAvatarImageUrl';
 import { $getCurrentDate } from '../../../utils/misc/$getCurrentDate';
 import type { TODO_any } from '../../../utils/organization/TODO_any';
 import { LlmChat } from '../LlmChat/LlmChat';
@@ -28,6 +29,7 @@ export function AgentChat(props: AgentChatProps) {
     const { agent, title, persistenceKey, onChange, sendMessage, toolTitles, ...restProps } = props;
 
     const brandColor = Color.fromSafe(agent.meta.color || PROMPTBOOK_COLOR).then(saturate(-0.2));
+    const agentAvatarUrl = resolveAgentAvatarImageUrl({ agent });
 
     return (
         <>
@@ -55,7 +57,7 @@ export function AgentChat(props: AgentChatProps) {
                     {
                         name: 'AGENT',
                         fullname: agent.meta.fullname || agent.agentName || 'Agent',
-                        avatarSrc: agent.meta.image,
+                        avatarSrc: agentAvatarUrl || undefined,
                         color: brandColor,
                         isMe: false,
                         agentSource: asUpdatableSubject(agent.agentSource).getValue() /* <- TODO: [🐱‍🚀] asValue */,
