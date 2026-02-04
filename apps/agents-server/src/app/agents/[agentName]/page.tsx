@@ -1,5 +1,3 @@
-'use server';
-
 import { $provideServer } from '@/src/tools/$provideServer';
 import { isUserAdmin } from '@/src/utils/isUserAdmin';
 import { saturate } from '@promptbook-local/color';

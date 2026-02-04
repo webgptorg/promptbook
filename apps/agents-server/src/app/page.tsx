@@ -1,5 +1,3 @@
-'use server';
-
 import { headers } from 'next/headers';
 import { $sideEffect } from '../../../../src/utils/organization/$sideEffect';
 import { AgentsList } from '../components/Homepage/AgentsList';
