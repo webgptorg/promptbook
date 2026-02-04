@@ -69,6 +69,44 @@ export function stripCitationsFromContent(content: string): string {
 }
 
 /**
+ * Deduplicates citations by source while preserving the first-seen order.
+ *
+ * @param citations - Parsed citations to deduplicate.
+ * @returns Deduplicated citations in original order.
+ *
+ * @private utility for internal use
+ */
+export function dedupeCitationsBySource(citations: ReadonlyArray<ParsedCitation>): ParsedCitation[] {
+    const deduped: ParsedCitation[] = [];
+    const indexBySource = new Map<string, number>();
+
+    for (const citation of citations) {
+        const key = citation.source.trim().toLowerCase();
+        const existingIndex = indexBySource.get(key);
+
+        if (existingIndex === undefined) {
+            indexBySource.set(key, deduped.length);
+            deduped.push(citation);
+            continue;
+        }
+
+        const existing = deduped[existingIndex];
+        if (!existing) {
+            continue;
+        }
+
+        deduped[existingIndex] = {
+            id: existing.id,
+            source: existing.source,
+            url: existing.url || citation.url,
+            excerpt: existing.excerpt || citation.excerpt,
+        };
+    }
+
+    return deduped;
+}
+
+/**
  * Extracts citations from a chat message if not already present
  *
  * @param message - The chat message to extract citations from

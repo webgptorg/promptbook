@@ -28,6 +28,7 @@
 -   Fixed federated agent item design on home page to match local agents.
 -   Fix federated agent images by correctly resolving placeholder URLs from the originating server.
 -   Fixed Agents Server chat markdown rendering for sublists by normalizing unordered list indentation under ordered items.
+-   Deduplicated Agents Server chat source chips so repeated document sources show only once per message.
 -   Fixed drag-and-drop uploads in the Agents Server create-agent dialog by reusing the shared BookEditor upload handler.
 -   Fixed document source citation in Agents Server chat:
     -   Resolved issue where clicking on KNOWLEDGE source chips showed "Document preview unavailable" instead of the actual document

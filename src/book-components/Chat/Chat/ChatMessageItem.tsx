@@ -20,7 +20,7 @@ import { isTeamToolName } from '../utils/createTeamToolNameFromUrl';
 import { getChatMessageTimingDisplay } from '../utils/getChatMessageTimingDisplay';
 import type { ToolCallChipletInfo } from '../utils/getToolCallChipletInfo';
 import { getToolCallChipletInfo, TOOL_TITLES } from '../utils/getToolCallChipletInfo';
-import { extractCitationsFromMessage, type ParsedCitation } from '../utils/parseCitationsFromContent';
+import { dedupeCitationsBySource, extractCitationsFromMessage, type ParsedCitation } from '../utils/parseCitationsFromContent';
 import { parseMessageButtons } from '../utils/parseMessageButtons';
 import { parseToolCallArguments } from '../utils/toolCallParsing';
 import styles from './Chat.module.css';
@@ -263,6 +263,7 @@ export const ChatMessageItem = memo(
         // Extract citations from message content
         const messageWithCitations = extractCitationsFromMessage(message);
         const citations = messageWithCitations.citations || [];
+        const displayCitations = dedupeCitationsBySource(citations);
         const [localHoveredRating, setLocalHoveredRating] = useState(0);
         const [copied, setCopied] = useState(false);
         const [tooltipAlign, setTooltipAlign] = useState<'center' | 'left' | 'right'>('center');
@@ -518,11 +519,11 @@ export const ChatMessageItem = memo(
                             </div>
                         )}
 
-                        {citations.length > 0 && (
+                        {displayCitations.length > 0 && (
                             <div className={styles.sourceCitations}>
-                                {citations.map((citation, index) => (
+                                {displayCitations.map((citation) => (
                                     <SourceChip
-                                        key={`${citation.id}-${citation.source}-${index}`}
+                                        key={`${citation.source}-${citation.url || 'no-url'}`}
                                         citation={citation}
                                         onClick={onCitationClick}
                                     />
