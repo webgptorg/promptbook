@@ -1810,34 +1810,12 @@
     background: #f8f8f8;
 }
 
-.citationPdfPreview {
-    padding: 16px;
-}
-
-.citationPdfDocument {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-
-.citationPdfPage {
-    display: flex;
-    justify-content: center;
-}
-
-.citationPdfPage canvas {
-    width: 100% !important;
-    height: auto !important;
-    border-radius: 6px;
-    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
-}
-
-.citationPdfLoading,
-.citationPdfError {
-    padding: 32px;
-    text-align: center;
-    color: #70757a;
-    font-style: italic;
+.citationIframe {
+    width: 100%;
+    height: 60vh;
+    min-height: 400px;
+    border: none;
+    display: block;
 }
 
 .citationMetadata {

@@ -1,8 +1,5 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
-import { Document, Page, pdfjs } from 'react-pdf';
-import type { PDFDocumentProxy } from 'pdfjs-dist';
 import { classNames } from '../../_common/react-utils/classNames';
 import { CloseIcon } from '../../icons/CloseIcon';
 import { DownloadIcon } from '../../icons/DownloadIcon';
@@ -12,10 +9,6 @@ import type { ParsedCitation } from '../utils/parseCitationsFromContent';
 import { resolveCitationUrl } from '../utils/resolveCitationUrl';
 import styles from './Chat.module.css';
 import type { ChatSoundSystem } from './ChatProps';
-
-if (typeof window !== 'undefined') {
-    pdfjs.GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url).toString();
-}
 
 /**
  * Props for the citation preview modal.
@@ -37,8 +30,6 @@ export type ChatCitationModalProps = {
  */
 export function ChatCitationModal(props: ChatCitationModalProps) {
     const { isOpen, citation, participants, soundSystem, onClose } = props;
-    const [pdfPageCount, setPdfPageCount] = useState<number>(0);
-    const [pdfLoadError, setPdfLoadError] = useState<string | null>(null);
 
     if (!isOpen || !citation) {
         return null;
@@ -46,38 +37,8 @@ export function ChatCitationModal(props: ChatCitationModalProps) {
 
     const resolvedUrl = citation.url || resolveCitationUrl(citation.source, participants);
     const isValidUrl = !!resolvedUrl;
-    const sourcePath = citation.source.split('?')[0]!.split('#')[0]!;
-    const resolvedPath = resolvedUrl ? resolvedUrl.split('?')[0]!.split('#')[0]! : '';
-    const extension = sourcePath.split('.').pop()?.toLowerCase() || resolvedPath.split('.').pop()?.toLowerCase();
+    const extension = citation.source.split('.').pop()?.toLowerCase();
     const isImage = ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(extension || '');
-    const isPdf = extension === 'pdf';
-    const shouldRenderPdf = isValidUrl && isPdf;
-
-    /**
-     * Handles successful PDF load events by capturing the page count.
-     *
-     * @param pdf - Loaded PDF document proxy.
-     */
-    const handlePdfLoadSuccess = useCallback((pdf: PDFDocumentProxy) => {
-        setPdfPageCount(pdf.numPages);
-        setPdfLoadError(null);
-    }, []);
-
-    /**
-     * Handles PDF load errors by clearing pages and showing a fallback message.
-     *
-     * @param error - Error thrown while loading the PDF.
-     */
-    const handlePdfLoadError = useCallback((error: Error) => {
-        console.error('Failed to load PDF preview', error);
-        setPdfPageCount(0);
-        setPdfLoadError('PDF preview unavailable.');
-    }, []);
-
-    useEffect(() => {
-        setPdfPageCount(0);
-        setPdfLoadError(null);
-    }, [resolvedUrl]);
 
     return (
         <div
@@ -114,49 +75,12 @@ export function ChatCitationModal(props: ChatCitationModalProps) {
                                             margin: '0 auto',
                                         }}
                                     />
-                                ) : shouldRenderPdf ? (
-                                    <div className={styles.citationPdfPreview}>
-                                        {pdfLoadError ? (
-                                            <div className={styles.citationPdfError}>{pdfLoadError}</div>
-                                        ) : (
-                                            <Document
-                                                file={resolvedUrl}
-                                                onLoadSuccess={handlePdfLoadSuccess}
-                                                onLoadError={handlePdfLoadError}
-                                                loading={
-                                                    <div className={styles.citationPdfLoading}>
-                                                        Loading PDF preview...
-                                                    </div>
-                                                }
-                                                error={
-                                                    <div className={styles.citationPdfError}>
-                                                        PDF preview unavailable.
-                                                    </div>
-                                                }
-                                                className={styles.citationPdfDocument}
-                                            >
-                                                {Array.from({ length: pdfPageCount }, (_, index) => (
-                                                    <Page
-                                                        key={`page_${index + 1}`}
-                                                        pageNumber={index + 1}
-                                                        width={720}
-                                                        renderTextLayer={false}
-                                                        renderAnnotationLayer={false}
-                                                        className={styles.citationPdfPage}
-                                                    />
-                                                ))}
-                                            </Document>
-                                        )}
-                                    </div>
-                                ) : citation.excerpt ? (
-                                    <div className={styles.citationExcerpt}>
-                                        <h4>Excerpt:</h4>
-                                        <MarkdownContent content={citation.excerpt} />
-                                    </div>
                                 ) : (
-                                    <div className={styles.noResults}>
-                                        <p>?? Document preview unavailable</p>
-                                    </div>
+                                    <iframe
+                                        src={resolvedUrl}
+                                        className={styles.citationIframe}
+                                        title={`Preview of ${citation.source}`}
+                                    />
                                 )}
                             </div>
                         ) : citation.excerpt ? (

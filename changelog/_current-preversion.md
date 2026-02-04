@@ -373,7 +373,6 @@
     -   Moved close button to the top right corner with 'X' icon for better UX.
     -   Relaxed URL validation to allow previewing documents from relative paths or filenames.
     -   Ensured download button is available when source is present.
--   Rendered citation PDF previews in Agents Server chat with `react-pdf` instead of iframe embeds.
 -   Added missing sound files to the Agents Server's public directory.
 -   Enhanced the UI of the chips of `TEAM` commitment to show agent profile picture and name instead of ID in agent lists and profile pages.
 -   Rendered chat chip emojis (tool calls and source citations) with the OpenMoji color font in Agents Server.
