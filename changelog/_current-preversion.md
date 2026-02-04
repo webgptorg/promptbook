@@ -59,6 +59,7 @@
 -   Enhanced the Agents Server agents graph with category-based node shapes, status colors, and roomier layout spacing for cleaner clusters.
 -   Updated Agents Server home graph nodes to render agent-brand chips with avatars, brand-based fills, and readable text.
 -   Added Agents Server home graph download buttons for PNG, SVG, and ASCII exports powered by Beautiful Mermaid.
+-   Redesigned the Agents Server home graph with React Flow, adding draggable layout edits, server/folder grouping, and responsive graph interactions.
 
 -   Enhanced prompt template literal handling to return `PromptString`, inline safe parameters, and append structured parameter/context blocks for unsafe or multiline data with escaping.
 -   Added prompt notation documentation, examples, and a live evaluator to the Utils app.

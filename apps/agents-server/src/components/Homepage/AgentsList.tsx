@@ -1648,6 +1648,7 @@ export function AgentsList(props: AgentsListProps) {
                         federatedAgents={federatedAgents}
                         federatedServersStatus={federatedServersStatus}
                         publicUrl={publicUrl}
+                        folders={folders}
                     />
                 </div>
             )}

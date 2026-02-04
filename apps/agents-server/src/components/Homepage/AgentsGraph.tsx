@@ -2,92 +2,59 @@
 
 import { generatePlaceholderAgentProfileImageUrl, PROMPTBOOK_COLOR } from '@promptbook-local/core';
 import { string_url } from '@promptbook-local/types';
-import { renderMermaid, renderMermaidAscii } from 'beautiful-mermaid';
 import { Code, FileImage, FileText } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import ReactFlow, {
+    Background,
+    BackgroundVariant,
+    Controls,
+    MiniMap,
+    useNodesState,
+    type Edge,
+    type Node,
+    type NodeProps,
+    type ReactFlowInstance,
+} from 'reactflow';
+import { toPng, toSvg } from 'html-to-image';
+import 'reactflow/dist/style.css';
 import { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
 import { Color } from '../../../../../src/utils/color/Color';
 import { darken } from '../../../../../src/utils/color/operators/darken';
 import { textColor } from '../../../../../src/utils/color/operators/furthest';
 import { lighten } from '../../../../../src/utils/color/operators/lighten';
 import { showAlert } from '../AsyncDialogs/asyncDialogs';
+import type { AgentOrganizationFolder } from '../../utils/agentOrganization/types';
+import { buildFolderMaps, getFolderPathSegments, sortBySortOrder } from './agentOrganizationUtils';
 
 const CONNECTION_TYPES = ['inheritance', 'import', 'team'] as const;
 const DEFAULT_CONNECTION_TYPES = [...CONNECTION_TYPES];
 const GRAPH_MIN_HEIGHT = 480;
 const GRAPH_HEIGHT_OFFSET = 340;
-const MERMAID_LABEL_TOKEN = '__PB_NODE__';
-const MERMAID_LABEL_TOKEN_REGEX = new RegExp(`${MERMAID_LABEL_TOKEN}[^"]+`, 'g');
-const MERMAID_LABEL_PADDING = '            ';
-const MERMAID_NODE_BORDER_WIDTH = 1.2;
-const MERMAID_NODE_SHADOW_ID = 'pb-agent-node-shadow';
-const MERMAID_NODE_SHADOW_COLOR = '#0f172a';
-const MERMAID_NODE_SHADOW_OPACITY = 0.12;
-const MERMAID_NODE_SHADOW_BLUR = 10;
-const MERMAID_NODE_SHADOW_OFFSET_Y = 6;
-const MERMAID_CHIP_LIGHTEN_AMOUNT = 0.35;
-const MERMAID_CHIP_BORDER_DARKEN_AMOUNT = 0.08;
-const MERMAID_CHIP_RING_DARKEN_AMOUNT = 0.04;
-const MERMAID_IMAGE_SIZE = 28;
-const MERMAID_IMAGE_PADDING = 8;
-const MERMAID_TEXT_PADDING = 12;
-const MERMAID_LABEL_FONT_WEIGHT = '600';
-const MERMAID_LABEL_FONT_SIZE = 13;
-const MERMAID_LABEL_LETTER_SPACING = '0.01em';
-const MERMAID_AVATAR_RING_WIDTH = 1.5;
-const MERMAID_AVATAR_RING_PADDING = 1.5;
-const MERMAID_AVATAR_RING_FILL = '#ffffff';
-const MERMAID_NODE_SHAPE_HEXAGON_INDENT = 14;
-const MERMAID_NODE_SHAPE_CUT_SIZE = 10;
-const MERMAID_CLUSTER_FILL = '#f1f5f9';
-const MERMAID_CLUSTER_STROKE = '#e2e8f0';
-const MERMAID_CLUSTER_TEXT = '#64748b';
-const MERMAID_CLUSTER_BORDER_WIDTH = 1;
-const MERMAID_CLUSTER_RADIUS = 18;
-const MERMAID_LAYOUT_BREAKPOINT = 900;
-const MERMAID_FLOWCHART_NODE_SPACING = 52;
-const MERMAID_FLOWCHART_RANK_SPACING = 96;
-const MERMAID_INIT = `%%{init: {"flowchart":{"curve":"basis","nodeSpacing":${MERMAID_FLOWCHART_NODE_SPACING},"rankSpacing":${MERMAID_FLOWCHART_RANK_SPACING}}}}%%`;
-const MERMAID_THEME = {
-    bg: '#f8fafc',
-    fg: '#0f172a',
-    line: '#cbd5e1',
-    accent: '#38bdf8',
-    muted: '#94a3b8',
-    surface: '#ffffff',
-    border: '#e2e8f0',
-    transparent: true,
-};
-const MERMAID_EDGE_STYLES: Record<ConnectionType, string> = {
-    inheritance: '---',
-    import: '---',
-    team: '---',
-};
-const MERMAID_EDGE_COLORS: Record<ConnectionType, string> = {
-    inheritance: '#38bdf8',
-    import: '#94a3b8',
-    team: '#34d399',
-};
-const MERMAID_EDGE_WIDTHS: Record<ConnectionType, number> = {
-    inheritance: 1.5,
-    import: 1.25,
-    team: 2.5,
-};
-const MERMAID_EDGE_DASHES: Partial<Record<ConnectionType, string>> = {
-    inheritance: '6 6',
-};
-const MERMAID_EDGE_OPACITY = 0.7;
-const SVG_NAMESPACE = 'http://www.w3.org/2000/svg';
+const GRAPH_LAYOUT_BREAKPOINT = 900;
 const GRAPH_DOWNLOAD_PREFIX = 'agents-graph';
-const MERMAID_EXPORT_MIN_SCALE = 2;
+const GRAPH_POSITIONS_STORAGE_KEY = 'agents-graph-positions-v1';
+const GRAPH_EXPORT_BACKGROUND = '#f8fafc';
+const NODE_WIDTH = 220;
+const NODE_HEIGHT = 64;
+const NODE_GAP = 16;
+const FOLDER_HEADER_HEIGHT = 24;
+const FOLDER_PADDING_X = 20;
+const FOLDER_PADDING_Y = 16;
+const FOLDER_GAP = 20;
+const SERVER_HEADER_HEIGHT = 28;
+const SERVER_PADDING_X = 24;
+const SERVER_PADDING_Y = 20;
+const SERVER_GAP = 48;
 
 /**
- * Agent metadata plus visibility and server details used by the graph UI.
+ * Agent metadata plus visibility, server, and folder details used by the graph UI.
  */
 type AgentWithVisibility = AgentBasicInformation & {
     visibility?: 'PUBLIC' | 'PRIVATE';
     serverUrl?: string;
+    folderId?: number | null;
+    sortOrder?: number;
 };
 
 /**
@@ -96,9 +63,14 @@ type AgentWithVisibility = AgentBasicInformation & {
 type ConnectionType = (typeof CONNECTION_TYPES)[number];
 
 /**
- * Shape variants supported for node rendering.
+ * Link types used in the graph view.
  */
-type NodeShape = 'rounded' | 'hexagon' | 'cut';
+type GraphLinkKind = ConnectionType | 'order';
+
+/**
+ * Layout directions supported for responsive graph rendering.
+ */
+type LayoutDirection = 'LR' | 'TB';
 
 /**
  * Visual styling for a node chip.
@@ -108,7 +80,6 @@ type NodeVisualStyle = {
     border: string;
     ring: string;
     text: string;
-    shape: NodeShape;
 };
 
 /**
@@ -119,6 +90,7 @@ type AgentsGraphProps = {
     readonly federatedAgents: AgentWithVisibility[];
     readonly federatedServersStatus: Record<string, { status: 'loading' | 'success' | 'error'; error?: string }>;
     readonly publicUrl: string_url;
+    readonly folders: AgentOrganizationFolder[];
 };
 
 /**
@@ -129,8 +101,9 @@ type GraphNode = {
     name: string;
     agent: AgentWithVisibility;
     serverUrl: string;
-    imageUrl: string | null;
     isLocal: boolean;
+    folderId: number | null;
+    sortOrder: number;
 };
 
 /**
@@ -139,7 +112,7 @@ type GraphNode = {
 type GraphLink = {
     source: string;
     target: string;
-    type: ConnectionType;
+    type: GraphLinkKind;
 };
 
 /**
@@ -148,12 +121,9 @@ type GraphLink = {
 type GraphData = {
     nodes: GraphNode[];
     links: GraphLink[];
+    orderLinks: GraphLink[];
+    orderIndexByNodeId: Map<string, number>;
 };
-
-/**
- * Cached image load status.
- */
-type ImageLoadStatus = 'loading' | 'success' | 'error';
 
 /**
  * Inputs needed to build the graph data structure.
@@ -168,35 +138,83 @@ type GraphDataInput = {
 };
 
 /**
- * Structured data for a Mermaid-rendered agent node.
+ * Folder grouping information for layout.
  */
-type MermaidNode = {
-    mermaidId: string;
-    graphNodeId: string;
-    displayName: string;
-    agent: AgentWithVisibility;
+type FolderGroup = {
+    id: number | null;
+    label: string;
+    agents: GraphNode[];
+};
+
+/**
+ * Server grouping information for layout.
+ */
+type ServerGroup = {
     serverUrl: string;
+    label: string;
     isLocal: boolean;
-    explicitImageUrl: string | null;
-    placeholderImageUrl: string;
+    folders: FolderGroup[];
+};
+
+/**
+ * Stored position for a draggable node.
+ */
+type StoredNodePosition = {
+    x: number;
+    y: number;
+    parentId: string;
+};
+
+/**
+ * Record of stored positions by node id.
+ */
+type StoredPositions = Record<string, StoredNodePosition>;
+
+/**
+ * Node data for agent nodes.
+ */
+type AgentNodeData = {
+    name: string;
+    agent: AgentWithVisibility;
+    imageUrl: string;
+    placeholderUrl: string;
     tooltip: string;
-    chipStyle: NodeVisualStyle;
+    style: NodeVisualStyle;
+    orderIndex: number | null;
+    isDimmed?: boolean;
+    isHighlighted?: boolean;
+    isNeighbor?: boolean;
+    onOpen: () => void;
 };
 
 /**
- * Mermaid graph data plus node lookup.
+ * Node data for server group nodes.
  */
-type MermaidGraph = {
-    diagram: string;
-    nodes: MermaidNode[];
+type ServerGroupNodeData = {
+    label: string;
+    agentCount: number;
+    isLocal: boolean;
 };
 
 /**
- * Dimensions for SVG exports.
+ * Node data for folder group nodes.
  */
-type SvgDimensions = {
-    width: number;
-    height: number;
+type FolderGroupNodeData = {
+    label: string;
+    agentCount: number;
+};
+
+const EDGE_STYLES: Record<GraphLinkKind, { color: string; width: number; dash?: string }> = {
+    inheritance: { color: '#38bdf8', width: 1.6, dash: '6 6' },
+    import: { color: '#94a3b8', width: 1.25 },
+    team: { color: '#34d399', width: 2.5 },
+    order: { color: '#f59e0b', width: 1.1, dash: '2 6' },
+};
+const EDGE_LABELS: Record<GraphLinkKind, string> = {
+    inheritance: 'Parent',
+    import: 'Import',
+    team: 'Team',
+    order: 'Folder order',
 };
 
 /**
@@ -309,8 +327,10 @@ const getAgentExplicitImageUrl = (agent: AgentWithVisibility): string | null => 
 /**
  * Resolve a placeholder image URL for the agent.
  */
-const getAgentPlaceholderImageUrl = (agent: AgentWithVisibility, publicUrl: string): string =>
-    generatePlaceholderAgentProfileImageUrl(agent.agentName, publicUrl);
+const getAgentPlaceholderImageUrl = (agent: AgentWithVisibility, publicUrl: string): string => {
+    const serverUrl = getAgentServerUrl(agent, publicUrl);
+    return generatePlaceholderAgentProfileImageUrl(agent.agentName, serverUrl);
+};
 
 /**
  * Normalize a target agent URL from a capability link.
@@ -396,6 +416,37 @@ const collectRelatedNodeIds = (links: GraphLink[], focusedNodeIds: Set<string>):
 };
 
 /**
+ * Build folder order links and index mapping for local agents.
+ */
+const buildFolderOrderLinks = (nodes: GraphNode[]): { links: GraphLink[]; orderIndexByNodeId: Map<string, number> } => {
+    const links: GraphLink[] = [];
+    const orderIndexByNodeId = new Map<string, number>();
+    const nodesByFolder = new Map<number | null, GraphNode[]>();
+
+    nodes
+        .filter((node) => node.isLocal)
+        .forEach((node) => {
+            const folderId = node.folderId ?? null;
+            const bucket = nodesByFolder.get(folderId) || [];
+            bucket.push(node);
+            nodesByFolder.set(folderId, bucket);
+        });
+
+    nodesByFolder.forEach((folderNodes) => {
+        const orderedNodes = sortBySortOrder(folderNodes, (node) => node.name);
+        orderedNodes.forEach((node, index) => {
+            orderIndexByNodeId.set(node.id, index + 1);
+            const nextNode = orderedNodes[index + 1];
+            if (nextNode) {
+                links.push({ source: node.id, target: nextNode.id, type: 'order' });
+            }
+        });
+    });
+
+    return { links, orderIndexByNodeId };
+};
+
+/**
  * Build the graph nodes and links from agents and filters.
  */
 const buildGraphData = (input: GraphDataInput): GraphData => {
@@ -406,14 +457,17 @@ const buildGraphData = (input: GraphDataInput): GraphData => {
     const nodes: GraphNode[] = allAgents.map((agent) => {
         const serverUrl = getAgentServerUrl(agent, normalizedPublicUrl);
         const id = buildAgentNodeId(agent, normalizedPublicUrl);
+        const folderId = agent.folderId ?? null;
+        const sortOrder = agent.sortOrder ?? 0;
 
         return {
             id,
             name: getAgentDisplayName(agent),
             agent,
             serverUrl,
-            imageUrl: getAgentExplicitImageUrl(agent),
             isLocal: serverUrl === normalizedPublicUrl,
+            folderId,
+            sortOrder,
         };
     });
 
@@ -469,49 +523,164 @@ const buildGraphData = (input: GraphDataInput): GraphData => {
         filteredLinks = [];
     }
 
-    return { nodes: filteredNodes, links: filteredLinks };
+    const { links: orderLinks, orderIndexByNodeId } = buildFolderOrderLinks(filteredNodes);
+
+    return { nodes: filteredNodes, links: filteredLinks, orderLinks, orderIndexByNodeId };
 };
 
 /**
- * Sanitize a Mermaid node identifier for safe rendering.
+ * Build a path label for a folder id.
  */
-const sanitizeMermaidId = (value: string): string => value.replace(/[^a-zA-Z0-9_]/g, '_');
-
-/**
- * Escape a Mermaid label value for safe rendering.
- */
-const escapeMermaidLabel = (value: string): string => value.replace(/"/g, '\\"');
-
-/**
- * Build a Mermaid label with a hidden token for node mapping.
- */
-const buildMermaidLabel = (label: string, mermaidId: string): string =>
-    `${MERMAID_LABEL_PADDING}${label}${MERMAID_LABEL_TOKEN}${mermaidId}`;
-
-/**
- * Remove internal label tokens from a Mermaid diagram string.
- */
-const stripMermaidLabelTokens = (diagram: string): string =>
-    diagram.replace(MERMAID_LABEL_TOKEN_REGEX, '').split(MERMAID_LABEL_PADDING).join('');
-
-/**
- * Build the Mermaid linkStyle clause for a connection type.
- */
-const buildMermaidLinkStyle = (type: ConnectionType): string => {
-    const dashPattern = MERMAID_EDGE_DASHES[type];
-    const styles = [
-        `stroke:${MERMAID_EDGE_COLORS[type]}`,
-        `stroke-width:${MERMAID_EDGE_WIDTHS[type]}px`,
-        `opacity:${MERMAID_EDGE_OPACITY}`,
-        'stroke-linecap:round',
-        'stroke-linejoin:round',
-    ];
-
-    if (dashPattern) {
-        styles.push(`stroke-dasharray:${dashPattern}`);
+const buildFolderLabel = (folderId: number | null, folderMaps: ReturnType<typeof buildFolderMaps>): string => {
+    if (folderId === null) {
+        return 'Root';
     }
 
-    return styles.join(',');
+    const segments = getFolderPathSegments(folderId, folderMaps.folderById);
+    if (segments.length === 0) {
+        return `Folder ${folderId}`;
+    }
+
+    return segments.map((segment) => segment.name).join(' / ');
+};
+
+/**
+ * Build ordered folder ids by traversing the folder tree.
+ */
+const buildOrderedFolderIds = (
+    agentsByFolderId: Map<number | null, GraphNode[]>,
+    folderMaps: ReturnType<typeof buildFolderMaps>,
+): number[] => {
+    const ordered: number[] = [];
+
+    const visitFolder = (parentId: number | null) => {
+        const childIds = folderMaps.childrenByParentId.get(parentId) || [];
+        const childFolders = childIds
+            .map((childId) => folderMaps.folderById.get(childId))
+            .filter((folder): folder is AgentOrganizationFolder => Boolean(folder));
+        const sortedFolders = sortBySortOrder(childFolders, (folder) => folder.name);
+
+        sortedFolders.forEach((folder) => {
+            if (agentsByFolderId.has(folder.id)) {
+                ordered.push(folder.id);
+            }
+            visitFolder(folder.id);
+        });
+    };
+
+    visitFolder(null);
+
+    return ordered;
+};
+
+/**
+ * Build server group descriptors from graph nodes and folders.
+ */
+const buildServerGroups = (
+    nodes: GraphNode[],
+    folders: AgentOrganizationFolder[],
+    publicUrl: string,
+): ServerGroup[] => {
+    const normalizedPublicUrl = normalizeServerUrl(publicUrl);
+    const nodesByServer = new Map<string, GraphNode[]>();
+
+    nodes.forEach((node) => {
+        const bucket = nodesByServer.get(node.serverUrl) || [];
+        bucket.push(node);
+        nodesByServer.set(node.serverUrl, bucket);
+    });
+
+    const serverUrls = Array.from(nodesByServer.keys()).sort((left, right) => {
+        if (left === normalizedPublicUrl) {
+            return -1;
+        }
+        if (right === normalizedPublicUrl) {
+            return 1;
+        }
+        return left.localeCompare(right);
+    });
+
+    return serverUrls.map((serverUrl) => {
+        const serverNodes = nodesByServer.get(serverUrl) || [];
+        const isLocal = serverUrl === normalizedPublicUrl;
+        const serverLabel = serverUrl.replace(/^https?:\/\//, '');
+
+        if (!isLocal || folders.length === 0) {
+            return {
+                serverUrl,
+                label: serverLabel,
+                isLocal,
+                folders: [
+                    {
+                        id: null,
+                        label: 'Agents',
+                        agents: sortBySortOrder(serverNodes, (node) => node.name),
+                    },
+                ],
+            };
+        }
+
+        const folderMaps = buildFolderMaps(folders);
+        const agentsByFolderId = new Map<number | null, GraphNode[]>();
+        serverNodes.forEach((node) => {
+            const folderId = node.folderId ?? null;
+            const bucket = agentsByFolderId.get(folderId) || [];
+            bucket.push(node);
+            agentsByFolderId.set(folderId, bucket);
+        });
+
+        const folderGroups: FolderGroup[] = [];
+        if (agentsByFolderId.has(null)) {
+            folderGroups.push({
+                id: null,
+                label: buildFolderLabel(null, folderMaps),
+                agents: sortBySortOrder(agentsByFolderId.get(null) || [], (node) => node.name),
+            });
+        }
+
+        const orderedFolderIds = buildOrderedFolderIds(agentsByFolderId, folderMaps);
+        orderedFolderIds.forEach((folderId) => {
+            const agentsInFolder = agentsByFolderId.get(folderId);
+            if (!agentsInFolder) {
+                return;
+            }
+            folderGroups.push({
+                id: folderId,
+                label: buildFolderLabel(folderId, folderMaps),
+                agents: sortBySortOrder(agentsInFolder, (node) => node.name),
+            });
+        });
+
+        if (folderGroups.length === 0) {
+            folderGroups.push({
+                id: null,
+                label: 'Agents',
+                agents: sortBySortOrder(serverNodes, (node) => node.name),
+            });
+        }
+
+        return {
+            serverUrl,
+            label: serverLabel,
+            isLocal,
+            folders: folderGroups,
+        };
+    });
+};
+
+/**
+ * Build the visual chip style for an agent node based on its brand color.
+ */
+const buildAgentChipStyle = (agent: AgentWithVisibility): NodeVisualStyle => {
+    const brandColor = Color.fromSafe(agent.meta.color || PROMPTBOOK_COLOR);
+    const softenedColor = brandColor.then(lighten(0.3));
+
+    return {
+        fill: softenedColor.toHex(),
+        border: brandColor.then(darken(0.08)).toHex(),
+        ring: brandColor.then(darken(0.04)).toHex(),
+        text: softenedColor.then(textColor).toHex(),
+    };
 };
 
 /**
@@ -538,546 +707,403 @@ const triggerBlobDownload = (blob: Blob, filename: string): void => {
 };
 
 /**
- * Build Mermaid graph data for the current set of agents.
+ * Build the storage key for graph positions.
  */
-const buildMermaidGraph = (graphData: GraphData, publicUrl: string, direction: 'LR' | 'TB'): MermaidGraph => {
-    if (graphData.nodes.length === 0) {
-        return { diagram: '', nodes: [] };
+const buildPositionsStorageKey = (publicUrl: string, layout: LayoutDirection): string => {
+    const normalized = normalizeServerUrl(publicUrl);
+    return `${GRAPH_POSITIONS_STORAGE_KEY}:${normalized}:${layout}`;
+};
+
+/**
+ * Load node positions from local storage.
+ */
+const loadStoredPositions = (storageKey: string): StoredPositions => {
+    try {
+        const raw = window.localStorage.getItem(storageKey);
+        if (!raw) {
+            return {};
+        }
+        const parsed = JSON.parse(raw) as StoredPositions;
+        return parsed || {};
+    } catch (error) {
+        return {};
+    }
+};
+
+/**
+ * Persist node positions to local storage.
+ */
+const saveStoredPositions = (storageKey: string, positions: StoredPositions): void => {
+    try {
+        window.localStorage.setItem(storageKey, JSON.stringify(positions));
+    } catch (error) {
+        console.warn('Failed to save graph positions.', error);
+    }
+};
+
+/**
+ * Convert a data URL into a blob.
+ */
+const dataUrlToBlob = async (dataUrl: string): Promise<Blob> => {
+    const response = await fetch(dataUrl);
+    return response.blob();
+};
+
+/**
+ * Determine whether a DOM node should be included in exports.
+ */
+const shouldExportNode = (node: HTMLElement): boolean => {
+    if (node.dataset?.exportExclude === 'true') {
+        return false;
     }
 
-    const normalizedPublicUrl = normalizeServerUrl(publicUrl);
-    const nodes: MermaidNode[] = graphData.nodes.map((node, index) => {
-        const mermaidId = sanitizeMermaidId(`node_${index}_${node.id}`);
-        const displayName = getAgentDisplayName(node.agent);
-        const explicitImageUrl = getAgentExplicitImageUrl(node.agent);
-        const placeholderImageUrl = getAgentPlaceholderImageUrl(node.agent, publicUrl);
-        const chipStyle = buildAgentChipStyle(node.agent);
+    if (node.classList?.contains('react-flow__panel')) {
+        return false;
+    }
 
-        return {
-            mermaidId,
-            graphNodeId: node.id,
-            displayName,
-            agent: node.agent,
-            serverUrl: node.serverUrl,
-            isLocal: node.serverUrl === normalizedPublicUrl,
-            explicitImageUrl,
-            placeholderImageUrl,
-            tooltip: getAgentTooltip(node.agent),
-            chipStyle,
-        };
-    });
+    return true;
+};
 
-    const nodeIdLookup = new Map(nodes.map((node) => [node.graphNodeId, node.mermaidId]));
-    const groupedByServer = nodes.reduce<Record<string, MermaidNode[]>>((groups, node) => {
-        const key = node.serverUrl;
-        if (!groups[key]) {
-            groups[key] = [];
-        }
-        groups[key]!.push(node);
-        return groups;
-    }, {});
+/**
+ * Build a readable ASCII summary of the graph.
+ */
+const buildAsciiGraph = (graphData: GraphData, serverGroups: ServerGroup[]): string => {
+    const lines: string[] = [];
+    const nodeNameById = new Map(graphData.nodes.map((node) => [node.id, node.name]));
 
-    const sortedServers = Object.keys(groupedByServer).sort((left, right) => {
-        if (left === normalizedPublicUrl) {
-            return -1;
-        }
-        if (right === normalizedPublicUrl) {
-            return 1;
-        }
-        return left.localeCompare(right);
-    });
-
-    const lines: string[] = [MERMAID_INIT, `flowchart ${direction}`];
-    const linkStyleLines: string[] = [];
-    let linkIndex = 0;
-
-    sortedServers.forEach((serverUrl, index) => {
-        const clusterId = sanitizeMermaidId(`server_${index}_${serverUrl}`);
-        const label = serverUrl.replace(/^https?:\/\//, '');
-        lines.push(`subgraph ${clusterId}["${escapeMermaidLabel(label)}"]`);
-        groupedByServer[serverUrl]!.forEach((node) => {
-            const labelWithToken = buildMermaidLabel(node.displayName, node.mermaidId);
-            lines.push(`  ${node.mermaidId}["${escapeMermaidLabel(labelWithToken)}"]`);
+    serverGroups.forEach((serverGroup) => {
+        lines.push(`Server: ${serverGroup.label}`);
+        serverGroup.folders.forEach((folder) => {
+            lines.push(`  Folder: ${folder.label}`);
+            folder.agents.forEach((agent) => {
+                const orderIndex = graphData.orderIndexByNodeId.get(agent.id);
+                const orderLabel = orderIndex ? `#${orderIndex} ` : '';
+                lines.push(`    ${orderLabel}${agent.name}`);
+            });
         });
-        lines.push('end');
+        lines.push('');
     });
 
-    graphData.links.forEach((link) => {
-        const sourceId = nodeIdLookup.get(link.source);
-        const targetId = nodeIdLookup.get(link.target);
-        if (!sourceId || !targetId) {
-            return;
-        }
+    if (graphData.links.length > 0) {
+        lines.push('Relationships:');
+        graphData.links.forEach((link) => {
+            const source = nodeNameById.get(link.source) || link.source;
+            const target = nodeNameById.get(link.target) || link.target;
+            lines.push(`  ${source} --${EDGE_LABELS[link.type]}--> ${target}`);
+        });
+        lines.push('');
+    }
 
-        const edgeStyle = MERMAID_EDGE_STYLES[link.type];
-        lines.push(`${sourceId} ${edgeStyle} ${targetId}`);
-        linkStyleLines.push(`linkStyle ${linkIndex} ${buildMermaidLinkStyle(link.type)}`);
-        linkIndex += 1;
-    });
+    if (graphData.orderLinks.length > 0) {
+        lines.push('Folder order:');
+        graphData.orderLinks.forEach((link) => {
+            const source = nodeNameById.get(link.source) || link.source;
+            const target = nodeNameById.get(link.target) || link.target;
+            lines.push(`  ${source} -> ${target}`);
+        });
+    }
 
-    lines.push(...linkStyleLines);
-
-    return { diagram: lines.join('\n'), nodes };
+    return lines.join('\n');
 };
 
 /**
- * Build the visual chip style for an agent node based on its brand color.
+ * Create agent nodes, folder nodes, and server nodes for the graph layout.
  */
-const buildAgentChipStyle = (agent: AgentWithVisibility): NodeVisualStyle => {
-    const brandColor = Color.fromSafe(agent.meta.color || PROMPTBOOK_COLOR);
-    const softenedColor = brandColor.then(lighten(MERMAID_CHIP_LIGHTEN_AMOUNT));
+const buildGraphLayoutNodes = (params: {
+    serverGroups: ServerGroup[];
+    orderIndexByNodeId: Map<string, number>;
+    layoutDirection: LayoutDirection;
+    publicUrl: string;
+    storedPositions: StoredPositions;
+    onNodeOpen: (node: GraphNode) => void;
+}): Node[] => {
+    const { serverGroups, orderIndexByNodeId, layoutDirection, publicUrl, storedPositions, onNodeOpen } = params;
+    const nodes: Node[] = [];
+    let cursorX = 0;
+    let cursorY = 0;
 
-    return {
-        fill: softenedColor.toHex(),
-        border: brandColor.then(darken(MERMAID_CHIP_BORDER_DARKEN_AMOUNT)).toHex(),
-        ring: brandColor.then(darken(MERMAID_CHIP_RING_DARKEN_AMOUNT)).toHex(),
-        text: softenedColor.then(textColor).toHex(),
-        shape: 'rounded',
-    };
-};
-
-/**
- * Build hexagon polygon points within a rectangle.
- */
-const buildHexagonPoints = (x: number, y: number, width: number, height: number): string => {
-    const indent = Math.min(MERMAID_NODE_SHAPE_HEXAGON_INDENT, height / 2, width / 4);
-    const midY = y + height / 2;
-    const right = x + width;
-    const bottom = y + height;
-
-    return [
-        `${x + indent},${y}`,
-        `${right - indent},${y}`,
-        `${right},${midY}`,
-        `${right - indent},${bottom}`,
-        `${x + indent},${bottom}`,
-        `${x},${midY}`,
-    ].join(' ');
-};
-
-/**
- * Build cut-corner polygon points within a rectangle.
- */
-const buildCutCornerPoints = (x: number, y: number, width: number, height: number): string => {
-    const cutSize = Math.min(MERMAID_NODE_SHAPE_CUT_SIZE, height / 3, width / 6);
-    const right = x + width;
-    const bottom = y + height;
-
-    return [
-        `${x + cutSize},${y}`,
-        `${right - cutSize},${y}`,
-        `${right},${y + cutSize}`,
-        `${right},${bottom - cutSize}`,
-        `${right - cutSize},${bottom}`,
-        `${x + cutSize},${bottom}`,
-        `${x},${bottom - cutSize}`,
-        `${x},${y + cutSize}`,
-    ].join(' ');
-};
-
-/**
- * Create an SVG element that represents the node shape.
- */
-const createNodeShapeElement = (
-    document: Document,
-    shape: NodeShape,
-    rect: { x: number; y: number; width: number; height: number },
-    style: NodeVisualStyle,
-    nodeShadowId: string,
-    mermaidId: string,
-): SVGElement => {
-    let element: SVGElement;
-
-    if (shape === 'rounded') {
-        const rectElement = document.createElementNS(SVG_NAMESPACE, 'rect');
-        const radius = rect.height / 2;
-        rectElement.setAttribute('x', rect.x.toString());
-        rectElement.setAttribute('y', rect.y.toString());
-        rectElement.setAttribute('width', rect.width.toString());
-        rectElement.setAttribute('height', rect.height.toString());
-        rectElement.setAttribute('rx', radius.toString());
-        rectElement.setAttribute('ry', radius.toString());
-        element = rectElement;
-    } else {
-        const polygon = document.createElementNS(SVG_NAMESPACE, 'polygon');
-        const points =
-            shape === 'hexagon'
-                ? buildHexagonPoints(rect.x, rect.y, rect.width, rect.height)
-                : buildCutCornerPoints(rect.x, rect.y, rect.width, rect.height);
-        polygon.setAttribute('points', points);
-        polygon.setAttribute('stroke-linejoin', 'round');
-        element = polygon;
-    }
-
-    element.setAttribute('fill', style.fill);
-    element.setAttribute('stroke', style.border);
-    element.setAttribute('stroke-width', MERMAID_NODE_BORDER_WIDTH.toString());
-    element.setAttribute('filter', `url(#${nodeShadowId})`);
-    element.setAttribute('data-node-id', mermaidId);
-    element.setAttribute('style', 'cursor: pointer;');
-
-    return element;
-};
-
-/**
- * Determine the image URL for the node based on load status.
- */
-const resolveNodeImageUrl = (node: MermaidNode, status: ImageLoadStatus | undefined): string => {
-    if (!node.explicitImageUrl) {
-        return node.placeholderImageUrl;
-    }
-
-    if (status === 'success') {
-        return node.explicitImageUrl;
-    }
-
-    return node.placeholderImageUrl;
-};
-
-/**
- * Parse a numeric SVG attribute with a fallback.
- */
-const parseSvgNumber = (value: string | null, fallback = 0): number => {
-    const parsed = Number.parseFloat(value ?? '');
-    return Number.isNaN(parsed) ? fallback : parsed;
-};
-
-/**
- * Read SVG dimensions from markup attributes or viewBox.
- */
-const getSvgDimensions = (svgMarkup: string): SvgDimensions | null => {
-    const parser = new DOMParser();
-    const document = parser.parseFromString(svgMarkup, 'image/svg+xml');
-    const svg = document.querySelector('svg');
-    if (!svg) {
-        return null;
-    }
-
-    const width = Number.parseFloat(svg.getAttribute('width') ?? '');
-    const height = Number.parseFloat(svg.getAttribute('height') ?? '');
-    if (Number.isFinite(width) && Number.isFinite(height) && width > 0 && height > 0) {
-        return { width, height };
-    }
-
-    const viewBox = svg.getAttribute('viewBox');
-    if (!viewBox) {
-        return null;
-    }
-
-    const parts = viewBox.trim().split(/\s+/).map((value) => Number.parseFloat(value));
-    if (parts.length !== 4 || parts.some((value) => Number.isNaN(value))) {
-        return null;
-    }
-
-    const [, , viewWidth, viewHeight] = parts;
-    if (viewWidth <= 0 || viewHeight <= 0) {
-        return null;
-    }
-
-    return { width: viewWidth, height: viewHeight };
-};
-
-/**
- * Determine the device-aware scale for PNG exports.
- */
-const getPngExportScale = (): number => Math.max(window.devicePixelRatio || 1, MERMAID_EXPORT_MIN_SCALE);
-
-/**
- * Rasterize an SVG string into a PNG blob.
- */
-const renderSvgToPngBlob = async (svgMarkup: string, scale: number): Promise<Blob> => {
-    const dimensions = getSvgDimensions(svgMarkup);
-    if (!dimensions) {
-        throw new Error('Unable to determine SVG dimensions for export.');
-    }
-
-    const svgBlob = new Blob([svgMarkup], { type: 'image/svg+xml;charset=utf-8' });
-    const svgUrl = URL.createObjectURL(svgBlob);
-    const image = new Image();
-    image.decoding = 'async';
-    image.crossOrigin = 'anonymous';
-
-    return new Promise((resolve, reject) => {
-        image.onload = () => {
-            const canvas = document.createElement('canvas');
-            canvas.width = Math.round(dimensions.width * scale);
-            canvas.height = Math.round(dimensions.height * scale);
-
-            const context = canvas.getContext('2d');
-            if (!context) {
-                URL.revokeObjectURL(svgUrl);
-                reject(new Error('Canvas context unavailable for export.'));
-                return;
+    serverGroups.forEach((serverGroup) => {
+        const folderLayouts = serverGroup.folders.map((folder) => {
+            const agentCount = Math.max(folder.agents.length, 1);
+            if (layoutDirection === 'LR') {
+                return {
+                    width: NODE_WIDTH + FOLDER_PADDING_X * 2,
+                    height:
+                        FOLDER_HEADER_HEIGHT +
+                        FOLDER_PADDING_Y * 2 +
+                        agentCount * NODE_HEIGHT +
+                        (agentCount - 1) * NODE_GAP,
+                };
             }
 
-            context.imageSmoothingEnabled = true;
-            context.imageSmoothingQuality = 'high';
-            context.scale(scale, scale);
-            context.fillStyle = MERMAID_THEME.bg;
-            context.fillRect(0, 0, dimensions.width, dimensions.height);
-            context.drawImage(image, 0, 0, dimensions.width, dimensions.height);
+            return {
+                width: FOLDER_PADDING_X * 2 + agentCount * NODE_WIDTH + (agentCount - 1) * NODE_GAP,
+                height: FOLDER_HEADER_HEIGHT + FOLDER_PADDING_Y * 2 + NODE_HEIGHT,
+            };
+        });
 
-            canvas.toBlob((blob) => {
-                URL.revokeObjectURL(svgUrl);
-                if (!blob) {
-                    reject(new Error('Failed to create PNG export.'));
-                    return;
-                }
-                resolve(blob);
-            }, 'image/png');
-        };
+        const maxFolderWidth = folderLayouts.reduce((max, layout) => Math.max(max, layout.width), 0);
+        const totalFolderHeight = folderLayouts.reduce((sum, layout) => sum + layout.height, 0);
+        const totalFolderGap = Math.max(folderLayouts.length - 1, 0) * FOLDER_GAP;
+        const serverWidth = maxFolderWidth + SERVER_PADDING_X * 2;
+        const serverHeight = SERVER_HEADER_HEIGHT + SERVER_PADDING_Y * 2 + totalFolderHeight + totalFolderGap;
+        const serverNodeId = `server:${serverGroup.serverUrl}`;
 
-        image.onerror = () => {
-            URL.revokeObjectURL(svgUrl);
-            reject(new Error('Failed to load SVG for PNG export.'));
-        };
-
-        image.src = svgUrl;
-    });
-};
-
-/**
- * Find the node rectangle associated with a label element.
- */
-const findNodeRectForLabel = (text: SVGTextElement): SVGRectElement | null => {
-    const group = text.closest('g.node');
-    if (!group) {
-        return null;
-    }
-
-    return group.querySelector('rect') as SVGRectElement | null;
-};
-
-/**
- * Ensure the SVG has a <defs> element for clip paths.
- */
-const ensureSvgDefs = (svg: SVGSVGElement, document: Document): SVGDefsElement => {
-    const existingDefs = svg.querySelector('defs');
-    if (existingDefs) {
-        return existingDefs;
-    }
-
-    const defs = document.createElementNS(SVG_NAMESPACE, 'defs') as SVGDefsElement;
-    const styleNode = svg.querySelector('style');
-
-    if (styleNode?.nextSibling) {
-        svg.insertBefore(defs, styleNode.nextSibling);
-    } else {
-        svg.insertBefore(defs, svg.firstChild);
-    }
-
-    return defs;
-};
-
-/**
- * Ensure the SVG has a drop shadow filter for node cards.
- */
-const ensureSvgNodeShadow = (defs: SVGDefsElement, document: Document): string => {
-    const existing = defs.querySelector(`#${MERMAID_NODE_SHADOW_ID}`);
-    if (existing) {
-        return MERMAID_NODE_SHADOW_ID;
-    }
-
-    const filter = document.createElementNS(SVG_NAMESPACE, 'filter');
-    filter.setAttribute('id', MERMAID_NODE_SHADOW_ID);
-    filter.setAttribute('x', '-20%');
-    filter.setAttribute('y', '-20%');
-    filter.setAttribute('width', '140%');
-    filter.setAttribute('height', '140%');
-
-    const dropShadow = document.createElementNS(SVG_NAMESPACE, 'feDropShadow');
-    dropShadow.setAttribute('dx', '0');
-    dropShadow.setAttribute('dy', MERMAID_NODE_SHADOW_OFFSET_Y.toString());
-    dropShadow.setAttribute('stdDeviation', MERMAID_NODE_SHADOW_BLUR.toString());
-    dropShadow.setAttribute('flood-color', MERMAID_NODE_SHADOW_COLOR);
-    dropShadow.setAttribute('flood-opacity', MERMAID_NODE_SHADOW_OPACITY.toString());
-    filter.appendChild(dropShadow);
-    defs.appendChild(filter);
-
-    return MERMAID_NODE_SHADOW_ID;
-};
-
-/**
- * Apply soft styling to Mermaid cluster containers.
- */
-const styleClusterElements = (svg: SVGSVGElement): void => {
-    const clusterRects = Array.from(svg.querySelectorAll('g.cluster rect')) as SVGRectElement[];
-    const clusterLabels = Array.from(svg.querySelectorAll('g.cluster text')) as SVGTextElement[];
-
-    clusterRects.forEach((rect) => {
-        rect.setAttribute('rx', MERMAID_CLUSTER_RADIUS.toString());
-        rect.setAttribute('ry', MERMAID_CLUSTER_RADIUS.toString());
-        rect.setAttribute('fill', MERMAID_CLUSTER_FILL);
-        rect.setAttribute('stroke', MERMAID_CLUSTER_STROKE);
-        rect.setAttribute('stroke-width', MERMAID_CLUSTER_BORDER_WIDTH.toString());
-    });
-
-    clusterLabels.forEach((label) => {
-        label.setAttribute('fill', MERMAID_CLUSTER_TEXT);
-        label.setAttribute('font-weight', MERMAID_LABEL_FONT_WEIGHT);
-        label.setAttribute('font-size', MERMAID_LABEL_FONT_SIZE.toString());
-    });
-};
-
-/**
- * Decorate Mermaid SVG output with agent avatars and interaction hooks.
- */
-const decorateMermaidSvg = (
-    svgMarkup: string,
-    nodes: MermaidNode[],
-    imageStatusMap: Record<string, ImageLoadStatus>,
-): string => {
-    const parser = new DOMParser();
-    const document = parser.parseFromString(svgMarkup, 'image/svg+xml');
-    const svg = document.querySelector('svg');
-
-    if (!svg) {
-        return svgMarkup;
-    }
-
-    svg.setAttribute('width', '100%');
-    svg.setAttribute('height', '100%');
-    svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-
-    const defs = ensureSvgDefs(svg, document);
-    const nodeLookup = new Map(nodes.map((node) => [node.mermaidId, node]));
-    const nodeShadowId = ensureSvgNodeShadow(defs, document);
-    styleClusterElements(svg);
-    const textNodes = Array.from(svg.querySelectorAll('text')).filter((text) =>
-        text.textContent?.includes(MERMAID_LABEL_TOKEN),
-    );
-
-    textNodes.forEach((text) => {
-        const rawValue = text.textContent ?? '';
-        const [labelWithPadding, mermaidId] = rawValue.split(MERMAID_LABEL_TOKEN);
-
-        if (!mermaidId) {
-            return;
-        }
-
-        const node = nodeLookup.get(mermaidId);
-        if (!node) {
-            return;
-        }
-
-        const label = labelWithPadding.trimStart();
-        text.textContent = label;
-        text.setAttribute('data-node-id', mermaidId);
-        text.setAttribute('text-anchor', 'start');
-        text.setAttribute('xml:space', 'preserve');
-
-        const rect = findNodeRectForLabel(text);
-
-        if (!rect) {
-            return;
-        }
-
-        const rectX = parseSvgNumber(rect.getAttribute('x'));
-        const rectY = parseSvgNumber(rect.getAttribute('y'));
-        const rectWidth = parseSvgNumber(rect.getAttribute('width'));
-        const rectHeight = parseSvgNumber(rect.getAttribute('height'));
-        const imageSize = Math.max(0, Math.min(MERMAID_IMAGE_SIZE, rectHeight - MERMAID_IMAGE_PADDING * 2));
-        if (imageSize === 0) {
-            return;
-        }
-        const imageX = rectX + MERMAID_IMAGE_PADDING;
-        const imageY = rectY + (rectHeight - imageSize) / 2;
-        const textX = imageX + imageSize + MERMAID_TEXT_PADDING;
-        const nodeStyle = node.chipStyle;
-        const ringColor = nodeStyle.ring;
-        const ringRadius = imageSize / 2 + MERMAID_AVATAR_RING_PADDING;
-
-        const shapeElement = createNodeShapeElement(
-            document,
-            nodeStyle.shape,
-            {
-                x: rectX,
-                y: rectY,
-                width: rectWidth,
-                height: rectHeight,
+        nodes.push({
+            id: serverNodeId,
+            type: 'serverGroup',
+            position: { x: cursorX, y: cursorY },
+            data: {
+                label: serverGroup.label,
+                agentCount: serverGroup.folders.reduce((sum, folder) => sum + folder.agents.length, 0),
+                isLocal: serverGroup.isLocal,
+            } satisfies ServerGroupNodeData,
+            style: {
+                width: serverWidth,
+                height: serverHeight,
+                zIndex: 0,
             },
-            nodeStyle,
-            nodeShadowId,
-            mermaidId,
-        );
-        rect.replaceWith(shapeElement);
+            selectable: false,
+            draggable: false,
+        });
 
-        text.setAttribute('x', textX.toString());
-        text.setAttribute('y', (rectY + rectHeight / 2).toString());
-        text.setAttribute('dominant-baseline', 'central');
-        text.setAttribute('font-weight', MERMAID_LABEL_FONT_WEIGHT);
-        text.setAttribute('font-size', MERMAID_LABEL_FONT_SIZE.toString());
-        text.setAttribute('letter-spacing', MERMAID_LABEL_LETTER_SPACING);
-        text.setAttribute('fill', nodeStyle.text);
-        text.setAttribute('style', 'cursor: pointer;');
+        let folderCursorY = SERVER_HEADER_HEIGHT + SERVER_PADDING_Y;
+        serverGroup.folders.forEach((folder, folderIndex) => {
+            const folderLayout = folderLayouts[folderIndex];
+            const folderNodeId = `folder:${serverGroup.serverUrl}:${folder.id ?? 'root'}`;
 
-        const imageUrl = resolveNodeImageUrl(node, imageStatusMap[node.graphNodeId]);
-        const clipId = sanitizeMermaidId(`clip_${mermaidId}`);
-        const clipPath = document.createElementNS(SVG_NAMESPACE, 'clipPath');
-        clipPath.setAttribute('id', clipId);
+            nodes.push({
+                id: folderNodeId,
+                type: 'folderGroup',
+                parentId: serverNodeId,
+                extent: 'parent',
+                position: { x: SERVER_PADDING_X, y: folderCursorY },
+                data: {
+                    label: folder.label,
+                    agentCount: folder.agents.length,
+                } satisfies FolderGroupNodeData,
+                style: {
+                    width: folderLayout.width,
+                    height: folderLayout.height,
+                    zIndex: 1,
+                },
+                selectable: false,
+                draggable: false,
+            });
 
-        const clipCircle = document.createElementNS(SVG_NAMESPACE, 'circle');
-        clipCircle.setAttribute('cx', (imageX + imageSize / 2).toString());
-        clipCircle.setAttribute('cy', (imageY + imageSize / 2).toString());
-        clipCircle.setAttribute('r', (imageSize / 2).toString());
-        clipPath.appendChild(clipCircle);
-        defs.appendChild(clipPath);
+            folder.agents.forEach((agent, index) => {
+                const placeholderUrl = getAgentPlaceholderImageUrl(agent.agent, publicUrl);
+                const explicitUrl = getAgentExplicitImageUrl(agent.agent);
+                const style = buildAgentChipStyle(agent.agent);
+                const orderIndex = orderIndexByNodeId.get(agent.id) ?? null;
+                const tooltipParts = [getAgentTooltip(agent.agent)];
+                if (folder.label) {
+                    tooltipParts.push(`Folder: ${folder.label}`);
+                }
+                const tooltip = tooltipParts.filter(Boolean).join('\n');
+                const defaultPosition =
+                    layoutDirection === 'LR'
+                        ? {
+                              x: FOLDER_PADDING_X,
+                              y:
+                                  FOLDER_HEADER_HEIGHT +
+                                  FOLDER_PADDING_Y +
+                                  index * (NODE_HEIGHT + NODE_GAP),
+                          }
+                        : {
+                              x: FOLDER_PADDING_X + index * (NODE_WIDTH + NODE_GAP),
+                              y: FOLDER_HEADER_HEIGHT + FOLDER_PADDING_Y,
+                          };
+                const storedPosition = storedPositions[agent.id];
+                const position =
+                    storedPosition && storedPosition.parentId === folderNodeId
+                        ? { x: storedPosition.x, y: storedPosition.y }
+                        : defaultPosition;
 
-        const ring = document.createElementNS(SVG_NAMESPACE, 'circle');
-        ring.setAttribute('cx', (imageX + imageSize / 2).toString());
-        ring.setAttribute('cy', (imageY + imageSize / 2).toString());
-        ring.setAttribute('r', ringRadius.toString());
-        ring.setAttribute('fill', MERMAID_AVATAR_RING_FILL);
-        ring.setAttribute('stroke', ringColor);
-        ring.setAttribute('stroke-width', MERMAID_AVATAR_RING_WIDTH.toString());
-        ring.setAttribute('data-node-id', mermaidId);
-        ring.setAttribute('style', 'cursor: pointer;');
+                nodes.push({
+                    id: agent.id,
+                    type: 'agent',
+                    parentId: folderNodeId,
+                    extent: 'parent',
+                    position,
+                    data: {
+                        name: agent.name,
+                        agent: agent.agent,
+                        imageUrl: explicitUrl || placeholderUrl,
+                        placeholderUrl,
+                        tooltip,
+                        style,
+                        orderIndex,
+                        onOpen: () => onNodeOpen(agent),
+                    } satisfies AgentNodeData,
+                    style: {
+                        width: NODE_WIDTH,
+                        height: NODE_HEIGHT,
+                        zIndex: 2,
+                    },
+                    draggable: true,
+                });
+            });
 
-        const image = document.createElementNS(SVG_NAMESPACE, 'image');
-        image.setAttribute('href', imageUrl);
-        image.setAttribute('x', imageX.toString());
-        image.setAttribute('y', imageY.toString());
-        image.setAttribute('width', imageSize.toString());
-        image.setAttribute('height', imageSize.toString());
-        image.setAttribute('preserveAspectRatio', 'xMidYMid slice');
-        image.setAttribute('clip-path', `url(#${clipId})`);
-        image.setAttribute('data-node-id', mermaidId);
-        image.setAttribute('style', 'cursor: pointer;');
+            folderCursorY += folderLayout.height + FOLDER_GAP;
+        });
 
-        const title = document.createElementNS(SVG_NAMESPACE, 'title');
-        title.textContent = node.tooltip;
-        shapeElement.appendChild(title);
-
-        svg.insertBefore(ring, text);
-        svg.insertBefore(image, text);
+        if (layoutDirection === 'LR') {
+            cursorX += serverWidth + SERVER_GAP;
+        } else {
+            cursorY += serverHeight + SERVER_GAP;
+        }
     });
 
-    const serializer = new XMLSerializer();
-    return serializer.serializeToString(svg);
+    return nodes;
 };
 
 /**
- * Build the class name for a download button based on enabled state.
+ * Renders an agent node inside the React Flow canvas.
  */
-const getDownloadButtonClassName = (isEnabled: boolean): string =>
-    [
-        'flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-semibold transition-colors',
-        'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1',
-        isEnabled
-            ? 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-            : 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed',
-    ].join(' ');
+function AgentGraphNode({ data }: NodeProps<AgentNodeData>) {
+    const [imageSrc, setImageSrc] = useState(data.imageUrl);
+
+    useEffect(() => {
+        setImageSrc(data.imageUrl);
+    }, [data.imageUrl]);
+
+    const handleImageError = () => {
+        if (imageSrc !== data.placeholderUrl) {
+            setImageSrc(data.placeholderUrl);
+        }
+    };
+
+    const highlightClass = data.isHighlighted
+        ? 'ring-2 ring-sky-400 shadow-lg'
+        : data.isNeighbor
+        ? 'ring-1 ring-sky-200'
+        : '';
+    const dimClass = data.isDimmed ? 'opacity-40' : 'opacity-100';
+
+    return (
+        <div
+            className={`agents-graph-node relative h-full w-full rounded-2xl border shadow-sm cursor-pointer transition-transform duration-200 ${highlightClass} ${dimClass}`}
+            style={{ backgroundColor: data.style.fill, borderColor: data.style.border, color: data.style.text }}
+            onClick={data.onOpen}
+            title={data.tooltip}
+        >
+            {data.orderIndex ? (
+                <div className="absolute top-1.5 right-1.5 rounded-full bg-white/80 px-2 py-0.5 text-[10px] font-semibold text-slate-600 shadow">
+                    {data.orderIndex}
+                </div>
+            ) : null}
+            <div className="flex h-full items-center gap-3 px-3">
+                <div
+                    className="flex h-9 w-9 items-center justify-center rounded-full border"
+                    style={{ borderColor: data.style.ring }}
+                >
+                    <div className="relative h-8 w-8 overflow-hidden rounded-full bg-white">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                            src={imageSrc}
+                            alt={data.name}
+                            className="h-full w-full object-cover"
+                            onError={handleImageError}
+                        />
+                    </div>
+                </div>
+                <div className="min-w-0">
+                    <div className="text-sm font-semibold truncate">{data.name}</div>
+                    <div className="text-[11px] text-slate-600 truncate">{data.agent.agentName}</div>
+                </div>
+            </div>
+        </div>
+    );
+}
 
 /**
- * Agents graph rendered with Beautiful Mermaid and enhanced SVG nodes.
+ * Renders a server group container.
+ */
+function ServerGroupNode({ data }: NodeProps<ServerGroupNodeData>) {
+    const ringClass = data.isLocal ? 'border-sky-200 bg-sky-50/40' : 'border-slate-200 bg-white/70';
+
+    return (
+        <div className={`relative h-full w-full rounded-[28px] border ${ringClass} shadow-sm`}>
+            <div className="absolute left-4 top-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                {data.label}
+            </div>
+            <div className="absolute right-4 top-3 text-[11px] text-slate-400">{data.agentCount} agents</div>
+        </div>
+    );
+}
+
+/**
+ * Renders a folder group container.
+ */
+function FolderGroupNode({ data }: NodeProps<FolderGroupNodeData>) {
+    return (
+        <div className="relative h-full w-full rounded-2xl border border-slate-200 bg-white/80 shadow-sm">
+            <div className="absolute left-3 top-2 text-xs font-semibold text-slate-500">{data.label}</div>
+            <div className="absolute right-3 top-2 text-[10px] text-slate-400">{data.agentCount} agents</div>
+        </div>
+    );
+}
+
+/**
+ * Build React Flow edges from graph links.
+ */
+const buildGraphEdges = (graphData: GraphData): Edge[] => {
+    const links = [...graphData.links, ...graphData.orderLinks];
+
+    return links.map((link, index) => ({
+        id: `edge:${link.type}:${link.source}:${link.target}:${index}`,
+        source: link.source,
+        target: link.target,
+        type: 'smoothstep',
+        data: { type: link.type },
+        style: {
+            stroke: EDGE_STYLES[link.type].color,
+            strokeWidth: EDGE_STYLES[link.type].width,
+            strokeDasharray: EDGE_STYLES[link.type].dash,
+            opacity: 0.8,
+        },
+        selectable: false,
+    }));
+};
+
+/**
+ * Apply hover-based styling to edges.
+ */
+const applyEdgeHighlighting = (
+    edges: Edge[],
+    hoveredNodeId: string | null,
+    relatedNodeIds: Set<string> | null,
+): Edge[] => {
+    if (!hoveredNodeId || !relatedNodeIds) {
+        return edges;
+    }
+
+    return edges.map((edge) => {
+        const isRelated = relatedNodeIds.has(edge.source) && relatedNodeIds.has(edge.target);
+        const isPrimary = edge.source === hoveredNodeId || edge.target === hoveredNodeId;
+        const opacity = isRelated ? (isPrimary ? 1 : 0.8) : 0.15;
+
+        return {
+            ...edge,
+            style: {
+                ...edge.style,
+                opacity,
+            },
+        };
+    });
+};
+
+/**
+ * Render the AgentsGraph component.
  */
 export function AgentsGraph(props: AgentsGraphProps) {
-    const { agents, federatedAgents, federatedServersStatus, publicUrl } = props;
+    const { agents, federatedAgents, federatedServersStatus, publicUrl, folders } = props;
     const router = useRouter();
     const searchParams = useSearchParams();
     const normalizedPublicUrl = useMemo(() => normalizeServerUrl(publicUrl), [publicUrl]);
     const [graphHeight, setGraphHeight] = useState(GRAPH_MIN_HEIGHT);
-    const [layoutDirection, setLayoutDirection] = useState<'LR' | 'TB'>('LR');
+    const [layoutDirection, setLayoutDirection] = useState<LayoutDirection>('LR');
     const [filterType, setFilterType] = useState<ConnectionType[]>(
         parseConnectionTypes(searchParams.get('connectionTypes')),
     );
@@ -1094,12 +1120,10 @@ export function AgentsGraph(props: AgentsGraphProps) {
     const [selectedAgentName, setSelectedAgentName] = useState<string | null>(
         searchParams.get('selectedAgent') || null,
     );
-    const [imageStatusMap, setImageStatusMap] = useState<Record<string, ImageLoadStatus>>({});
-    const [baseSvg, setBaseSvg] = useState<string>('');
-    const [decoratedSvg, setDecoratedSvg] = useState<string>('');
-    const [renderError, setRenderError] = useState<string | null>(null);
-    const [isRendering, setIsRendering] = useState(false);
-    const nodeLookupRef = useRef<Map<string, MermaidNode>>(new Map());
+    const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
+    const storedPositionsRef = useRef<StoredPositions>({});
+    const reactFlowInstanceRef = useRef<ReactFlowInstance | null>(null);
+    const graphWrapperRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
         const updateHeight = () => {
@@ -1116,7 +1140,7 @@ export function AgentsGraph(props: AgentsGraphProps) {
 
     useEffect(() => {
         const updateDirection = () => {
-            setLayoutDirection(window.innerWidth < MERMAID_LAYOUT_BREAKPOINT ? 'TB' : 'LR');
+            setLayoutDirection(window.innerWidth < GRAPH_LAYOUT_BREAKPOINT ? 'TB' : 'LR');
         };
 
         updateDirection();
@@ -1126,6 +1150,15 @@ export function AgentsGraph(props: AgentsGraphProps) {
             window.removeEventListener('resize', updateDirection);
         };
     }, []);
+
+    const storageKey = useMemo(
+        () => buildPositionsStorageKey(normalizedPublicUrl, layoutDirection),
+        [normalizedPublicUrl, layoutDirection],
+    );
+
+    useEffect(() => {
+        storedPositionsRef.current = loadStoredPositions(storageKey);
+    }, [storageKey]);
 
     const graphData = useMemo(
         () =>
@@ -1140,92 +1173,16 @@ export function AgentsGraph(props: AgentsGraphProps) {
         [agents, federatedAgents, filterType, selectedServerUrl, selectedAgentName, normalizedPublicUrl],
     );
 
-    const mermaidGraph = useMemo(
-        () => buildMermaidGraph(graphData, normalizedPublicUrl, layoutDirection),
-        [graphData, normalizedPublicUrl, layoutDirection],
+    const serverGroups = useMemo(
+        () => buildServerGroups(graphData.nodes, folders, normalizedPublicUrl),
+        [graphData.nodes, folders, normalizedPublicUrl],
     );
-
-    useEffect(() => {
-        nodeLookupRef.current = new Map(mermaidGraph.nodes.map((node) => [node.mermaidId, node]));
-    }, [mermaidGraph.nodes]);
-
-    useEffect(() => {
-        const imageNodes = graphData.nodes.filter((node) => node.imageUrl);
-
-        imageNodes.forEach((node) => {
-            if (imageStatusMap[node.id]) {
-                return;
-            }
-
-            const imageUrl = node.imageUrl;
-            if (!imageUrl) {
-                return;
-            }
-
-            setImageStatusMap((prev) => ({ ...prev, [node.id]: 'loading' }));
-
-            const image = new Image();
-            image.onload = () => {
-                setImageStatusMap((prev) => ({ ...prev, [node.id]: 'success' }));
-            };
-            image.onerror = () => {
-                setImageStatusMap((prev) => ({ ...prev, [node.id]: 'error' }));
-            };
-            image.src = imageUrl;
-        });
-    }, [graphData.nodes, imageStatusMap]);
-
-    useEffect(() => {
-        let isCancelled = false;
-
-        const renderGraph = async () => {
-            if (!mermaidGraph.diagram) {
-                setBaseSvg('');
-                return;
-            }
-
-            setIsRendering(true);
-            setRenderError(null);
-
-            try {
-                const svg = await renderMermaid(mermaidGraph.diagram, MERMAID_THEME);
-                if (!isCancelled) {
-                    setBaseSvg(svg);
-                }
-            } catch (error) {
-                if (!isCancelled) {
-                    setRenderError(error instanceof Error ? error.message : 'Failed to render graph.');
-                    setBaseSvg('');
-                }
-            } finally {
-                if (!isCancelled) {
-                    setIsRendering(false);
-                }
-            }
-        };
-
-        renderGraph();
-
-        return () => {
-            isCancelled = true;
-        };
-    }, [mermaidGraph.diagram]);
-
-    useEffect(() => {
-        if (!baseSvg) {
-            setDecoratedSvg('');
-            return;
-        }
-
-        const decorated = decorateMermaidSvg(baseSvg, mermaidGraph.nodes, imageStatusMap);
-        setDecoratedSvg(decorated);
-    }, [baseSvg, mermaidGraph.nodes, imageStatusMap]);
 
     /**
      * Open the agent page or federated agent URL when a node is clicked.
      */
     const handleNodeClick = useCallback(
-        (node: MermaidNode) => {
+        (node: GraphNode) => {
             const agent = node.agent;
             if (agent.serverUrl && normalizeServerUrl(agent.serverUrl) !== normalizedPublicUrl) {
                 window.open(`${agent.serverUrl}/agents/${agent.agentName}`, '_blank');
@@ -1236,25 +1193,68 @@ export function AgentsGraph(props: AgentsGraphProps) {
         [router, normalizedPublicUrl],
     );
 
-    /**
-     * Handle click events within the Mermaid SVG.
-     */
-    const handleSvgClick = useCallback(
-        (event: ReactMouseEvent<HTMLDivElement>) => {
-            const target = event.target as HTMLElement | null;
-            const nodeId = target?.closest('[data-node-id]')?.getAttribute('data-node-id');
-            if (!nodeId) {
-                return;
+    const layoutNodes = useMemo(
+        () =>
+            buildGraphLayoutNodes({
+                serverGroups,
+                orderIndexByNodeId: graphData.orderIndexByNodeId,
+                layoutDirection,
+                publicUrl: normalizedPublicUrl,
+                storedPositions: storedPositionsRef.current,
+                onNodeOpen: handleNodeClick,
+            }),
+        [serverGroups, graphData.orderIndexByNodeId, layoutDirection, normalizedPublicUrl, handleNodeClick],
+    );
+
+    const [nodes, setNodes, onNodesChange] = useNodesState(layoutNodes);
+
+    useEffect(() => {
+        setNodes(layoutNodes);
+        if (layoutNodes.length > 0) {
+            requestAnimationFrame(() => {
+                reactFlowInstanceRef.current?.fitView({ padding: 0.2, duration: 500 });
+            });
+        }
+    }, [layoutNodes, setNodes]);
+
+    const baseEdges = useMemo(() => buildGraphEdges(graphData), [graphData]);
+
+    const relatedNodeIds = useMemo(() => {
+        if (!hoveredNodeId) {
+            return null;
+        }
+
+        return collectRelatedNodeIds([...graphData.links, ...graphData.orderLinks], new Set([hoveredNodeId]));
+    }, [hoveredNodeId, graphData.links, graphData.orderLinks]);
+
+    const displayedNodes = useMemo(() => {
+        if (!relatedNodeIds) {
+            return nodes;
+        }
+
+        return nodes.map((node) => {
+            if (node.type !== 'agent') {
+                return node;
             }
 
-            const node = nodeLookupRef.current.get(nodeId);
-            if (!node) {
-                return;
-            }
+            const isRelated = relatedNodeIds.has(node.id);
+            const isHighlighted = hoveredNodeId === node.id;
 
-            handleNodeClick(node);
-        },
-        [handleNodeClick],
+            return {
+                ...node,
+                data: {
+                    ...(node.data as AgentNodeData),
+                    isDimmed: !isRelated,
+                    isHighlighted,
+                    isNeighbor: isRelated && !isHighlighted,
+                } satisfies AgentNodeData,
+            };
+        });
+    }, [nodes, relatedNodeIds, hoveredNodeId]);
+
+    const displayedEdges = useMemo(
+        () => applyEdgeHighlighting(baseEdges, hoveredNodeId, relatedNodeIds),
+        [baseEdges, hoveredNodeId, relatedNodeIds],
     );
 
     /**
@@ -1339,33 +1339,66 @@ export function AgentsGraph(props: AgentsGraphProps) {
         [filterType, updateUrl],
     );
 
-    const canDownloadSvg = Boolean(decoratedSvg);
-    const canDownloadPng = Boolean(decoratedSvg);
-    const canDownloadAscii = Boolean(mermaidGraph.diagram);
-
     /**
-     * Download the rendered graph as an SVG.
+     * Handle click events within the React Flow canvas.
      */
-    const handleDownloadSvg = useCallback(() => {
-        if (!decoratedSvg) {
+    const handleFlowNodeClick = useCallback((_event: React.MouseEvent, node: Node) => {
+        if (node.type !== 'agent') {
             return;
         }
+        const nodeData = node.data as AgentNodeData;
+        nodeData.onOpen();
+    }, []);
 
-        const blob = new Blob([decoratedSvg], { type: 'image/svg+xml;charset=utf-8' });
-        triggerBlobDownload(blob, buildGraphFilename('svg'));
-    }, [decoratedSvg]);
+    /**
+     * Track hover state for highlighting.
+     */
+    const handleNodeHover = useCallback((node: Node | null) => {
+        if (!node || node.type !== 'agent') {
+            setHoveredNodeId(null);
+            return;
+        }
+        setHoveredNodeId(node.id);
+    }, []);
+
+    /**
+     * Persist node positions after dragging.
+     */
+    const handleNodeDragStop = useCallback(
+        (_event: React.MouseEvent, node: Node) => {
+            if (node.type !== 'agent' || !node.parentId) {
+                return;
+            }
+
+            storedPositionsRef.current[node.id] = {
+                x: node.position.x,
+                y: node.position.y,
+                parentId: node.parentId,
+            };
+            saveStoredPositions(storageKey, storedPositionsRef.current);
+        },
+        [storageKey],
+    );
+
+    const canDownloadPng = graphData.nodes.length > 0;
+    const canDownloadSvg = graphData.nodes.length > 0;
+    const canDownloadAscii = graphData.nodes.length > 0;
 
     /**
      * Download the rendered graph as a PNG.
      */
     const handleDownloadPng = useCallback(async () => {
-        if (!decoratedSvg) {
+        if (!graphWrapperRef.current) {
             return;
         }
 
         try {
-            const scale = getPngExportScale();
-            const blob = await renderSvgToPngBlob(decoratedSvg, scale);
+            const dataUrl = await toPng(graphWrapperRef.current, {
+                backgroundColor: GRAPH_EXPORT_BACKGROUND,
+                filter: (node) => shouldExportNode(node as HTMLElement),
+                pixelRatio: Math.max(window.devicePixelRatio || 1, 2),
+            });
+            const blob = await dataUrlToBlob(dataUrl);
             triggerBlobDownload(blob, buildGraphFilename('png'));
         } catch (error) {
             console.error('Failed to export graph as PNG.', error);
@@ -1374,22 +1407,51 @@ export function AgentsGraph(props: AgentsGraphProps) {
                 message: 'Failed to export PNG. Try downloading the SVG instead.',
             }).catch(() => undefined);
         }
-    }, [decoratedSvg]);
+    }, []);
+
+    /**
+     * Download the rendered graph as an SVG.
+     */
+    const handleDownloadSvg = useCallback(async () => {
+        if (!graphWrapperRef.current) {
+            return;
+        }
+
+        try {
+            const dataUrl = await toSvg(graphWrapperRef.current, {
+                backgroundColor: GRAPH_EXPORT_BACKGROUND,
+                filter: (node) => shouldExportNode(node as HTMLElement),
+            });
+            const blob = await dataUrlToBlob(dataUrl);
+            triggerBlobDownload(blob, buildGraphFilename('svg'));
+        } catch (error) {
+            console.error('Failed to export graph as SVG.', error);
+            await showAlert({
+                title: 'Export failed',
+                message: 'Failed to export SVG. Try downloading the PNG instead.',
+            }).catch(() => undefined);
+        }
+    }, []);
 
     /**
      * Download the graph as ASCII text.
      */
     const handleDownloadAscii = useCallback(() => {
-        if (!mermaidGraph.diagram) {
-            return;
-        }
-
-        const ascii = renderMermaidAscii(stripMermaidLabelTokens(mermaidGraph.diagram), { useAscii: true });
+        const ascii = buildAsciiGraph(graphData, serverGroups);
         const blob = new Blob([ascii], { type: 'text/plain;charset=utf-8' });
         triggerBlobDownload(blob, buildGraphFilename('txt'));
-    }, [mermaidGraph.diagram]);
+    }, [graphData, serverGroups]);
 
-    if (agents.length === 0) {
+    const nodeTypes = useMemo(
+        () => ({
+            agent: AgentGraphNode,
+            serverGroup: ServerGroupNode,
+            folderGroup: FolderGroupNode,
+        }),
+        [],
+    );
+
+    if (agents.length === 0 && federatedAgents.length === 0) {
         return <div className="flex justify-center py-12 text-gray-500">No agents to show in graph.</div>;
     }
 
@@ -1494,7 +1556,11 @@ export function AgentsGraph(props: AgentsGraphProps) {
                         type="button"
                         onClick={handleDownloadPng}
                         disabled={!canDownloadPng}
-                        className={getDownloadButtonClassName(canDownloadPng)}
+                        className={`flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs font-medium transition-colors ${
+                            canDownloadPng
+                                ? 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
+                                : 'border-slate-100 bg-slate-50 text-slate-300 cursor-not-allowed'
+                        }`}
                         title="Download graph as PNG"
                     >
                         <FileImage className="w-4 h-4" />
@@ -1504,7 +1570,11 @@ export function AgentsGraph(props: AgentsGraphProps) {
                         type="button"
                         onClick={handleDownloadSvg}
                         disabled={!canDownloadSvg}
-                        className={getDownloadButtonClassName(canDownloadSvg)}
+                        className={`flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs font-medium transition-colors ${
+                            canDownloadSvg
+                                ? 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
+                                : 'border-slate-100 bg-slate-50 text-slate-300 cursor-not-allowed'
+                        }`}
                         title="Download graph as SVG"
                     >
                         <Code className="w-4 h-4" />
@@ -1514,7 +1584,11 @@ export function AgentsGraph(props: AgentsGraphProps) {
                         type="button"
                         onClick={handleDownloadAscii}
                         disabled={!canDownloadAscii}
-                        className={getDownloadButtonClassName(canDownloadAscii)}
+                        className={`flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs font-medium transition-colors ${
+                            canDownloadAscii
+                                ? 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
+                                : 'border-slate-100 bg-slate-50 text-slate-300 cursor-not-allowed'
+                        }`}
                         title="Download graph as ASCII"
                     >
                         <FileText className="w-4 h-4" />
@@ -1524,33 +1598,69 @@ export function AgentsGraph(props: AgentsGraphProps) {
             </div>
 
             <div
-                className="agents-graph-surface relative overflow-auto rounded-2xl border border-slate-200 shadow-inner"
+                className="agents-graph-surface relative overflow-hidden rounded-2xl border border-slate-200 shadow-inner"
                 style={{ height: graphHeight }}
             >
                 {graphData.nodes.length === 0 ? (
                     <div className="flex justify-center py-12 text-gray-500">No agents to show in graph.</div>
-                ) : renderError ? (
-                    <div className="flex flex-col items-center justify-center py-12 text-red-500">
-                        <span className="text-sm font-medium">Unable to render graph</span>
-                        <span className="text-xs text-red-400">{renderError}</span>
-                    </div>
                 ) : (
                     <div
-                        className="mermaid-container agents-graph-canvas w-full h-full"
-                        onClick={handleSvgClick}
+                        ref={graphWrapperRef}
+                        className="agents-graph-canvas h-full w-full"
                         role="presentation"
                     >
-                        {isRendering && !decoratedSvg ? (
-                            <div className="flex h-full items-center justify-center text-sm text-gray-500">
-                                Rendering graph...
-                            </div>
-                        ) : (
-                            <div className="w-full h-full" dangerouslySetInnerHTML={{ __html: decoratedSvg }} />
-                        )}
+                        <ReactFlow
+                            nodes={displayedNodes}
+                            edges={displayedEdges}
+                            nodeTypes={nodeTypes}
+                            onNodesChange={onNodesChange}
+                            onNodeClick={handleFlowNodeClick}
+                            onNodeMouseEnter={(_, node) => handleNodeHover(node)}
+                            onNodeMouseLeave={() => handleNodeHover(null)}
+                            onNodeDragStop={handleNodeDragStop}
+                            onInit={(instance) => {
+                                reactFlowInstanceRef.current = instance;
+                            }}
+                            fitView
+                            panOnScroll
+                            minZoom={0.2}
+                            maxZoom={2.5}
+                            snapToGrid
+                            snapGrid={[8, 8]}
+                            nodesConnectable={false}
+                            nodesDraggable
+                            className="agents-graph-flow"
+                        >
+                            <Background
+                                variant={BackgroundVariant.Dots}
+                                gap={28}
+                                size={1}
+                                color="rgba(148, 163, 184, 0.35)"
+                            />
+                            <MiniMap
+                                position="bottom-left"
+                                zoomable
+                                pannable
+                                nodeColor={(node) => {
+                                    if (node.type === 'agent') {
+                                        const nodeData = node.data as AgentNodeData;
+                                        return nodeData.style.fill;
+                                    }
+                                    if (node.type === 'serverGroup') {
+                                        return '#e2e8f0';
+                                    }
+                                    return '#f1f5f9';
+                                }}
+                            />
+                            <Controls position="bottom-right" />
+                        </ReactFlow>
                     </div>
                 )}
 
-                <div className="absolute bottom-4 right-4 z-10 flex flex-col gap-2 text-[10px] rounded-lg border border-slate-200 bg-white/80 p-2 shadow-sm">
+                <div
+                    data-export-exclude="true"
+                    className="absolute bottom-4 right-4 z-10 flex flex-col gap-2 text-[10px] rounded-lg border border-slate-200 bg-white/80 p-2 shadow-sm"
+                >
                     <div className="flex items-center gap-2">
                         <div className="w-6 border-t-2 border-dashed border-sky-400"></div>
                         <span>Parent</span>
@@ -1562,6 +1672,10 @@ export function AgentsGraph(props: AgentsGraphProps) {
                     <div className="flex items-center gap-2">
                         <div className="w-6 border-t-4 border-emerald-400"></div>
                         <span>Team</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <div className="w-6 border-t-2 border-dashed border-amber-400"></div>
+                        <span>Folder order</span>
                     </div>
                 </div>
             </div>
