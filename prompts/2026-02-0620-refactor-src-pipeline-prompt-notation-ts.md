@@ -1,4 +1,4 @@
-[ ]
+[.] _<- Too expensive in 2026-02_
 
 [✨🍒] Refactor [`prompt-notation.ts` file](src/pipeline/prompt-notation.ts)
 
