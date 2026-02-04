@@ -1,11 +1,11 @@
 'use client';
 
+import { BackToAgentButton } from '@/src/components/BackToAgentButton/BackToAgentButton';
 import Editor from '@monaco-editor/react';
 import { AgentBasicInformation, string_url } from '@promptbook-local/types';
-import { BackToAgentButton } from '@/src/components/BackToAgentButton/BackToAgentButton';
 import { ChevronDownIcon, CodeIcon } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
-import { resolveAgentAvatarImageUrl } from '../../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
+import { resolveAgentAvatarImageUrl } from '../../../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 
 type Transpiler = {
     name: string;
@@ -129,7 +129,9 @@ export function AgentCodePageClient({ agentName, publicUrl }: AgentCodePageClien
                     <img
                         src={
                             resolveAgentAvatarImageUrl({ agent: agentProfile, baseUrl: publicUrl }) ||
-                            `/agents/${encodeURIComponent(agentProfile.permanentId || agentName)}/images/default-avatar.png`
+                            `/agents/${encodeURIComponent(
+                                agentProfile.permanentId || agentName,
+                            )}/images/default-avatar.png`
                         }
                         alt={agentProfile.meta.fullname || agentName}
                         className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"

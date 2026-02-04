@@ -4,12 +4,12 @@ import { colorToDataUrl } from '@promptbook-local/color';
 import { AgentBasicInformation, string_agent_permanent_id, string_url } from '@promptbook-local/types';
 import { RepeatIcon } from 'lucide-react';
 import { useState } from 'react';
-import { AgentCapabilityChips, AGENT_PROFILE_CAPABILITY_CHIPS_LIMIT } from './AgentCapabilityChips';
+import { resolveAgentAvatarImageUrl } from '../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
+import { AGENT_PROFILE_CAPABILITY_CHIPS_LIMIT, AgentCapabilityChips } from './AgentCapabilityChips';
 import { AgentProfileImage } from './AgentProfileImage';
 import { AgentQrCode } from './AgentQrCode';
 import { QrCodeModal } from './QrCodeModal';
 import { useAgentBackground } from './useAgentBackground';
-import { resolveAgentAvatarImageUrl } from '../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 
 type AgentProfileProps = {
     /**
@@ -163,7 +163,7 @@ export function AgentProfile(props: AgentProfileProps) {
                                 }}
                             >
                                 <AgentProfileImage
-                                    src={imageUrl}
+                                    src={imageUrl! /* <- TODO: Do the real check */}
                                     alt={fullname}
                                     className="w-full h-full object-cover"
                                     style={{

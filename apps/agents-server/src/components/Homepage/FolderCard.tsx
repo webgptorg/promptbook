@@ -43,16 +43,20 @@ export type FolderCardProps = {
 /**
  * Renders a folder card with preview icons.
  */
-export function FolderCard({ folderName, previewAgents, publicUrl, onOpen, onRename, onDelete, onRestore }: FolderCardProps) {
+export function FolderCard({
+    folderName,
+    previewAgents,
+    publicUrl,
+    onOpen,
+    onRename,
+    onDelete,
+    onRestore,
+}: FolderCardProps) {
     const previewSlots = Array.from({ length: 3 }, (_, index) => previewAgents[index] ?? null);
 
     return (
         <div className="relative h-full group">
-            <button
-                type="button"
-                onClick={onOpen}
-                className="block h-full w-full text-left"
-            >
+            <button type="button" onClick={onOpen} className="block h-full w-full text-left">
                 <FileCard className="flex h-full items-center gap-3 border-yellow-200 bg-yellow-50/60 hover:border-yellow-300">
                     <div className="flex h-12 w-12 items-center justify-center rounded-md bg-yellow-100 border border-yellow-200 text-yellow-700">
                         <FolderIcon className="w-5 h-5" />
@@ -80,7 +84,11 @@ export function FolderCard({ folderName, previewAgents, publicUrl, onOpen, onRen
                                         className="h-5 w-5 rounded overflow-hidden border border-yellow-200 bg-white/70"
                                     >
                                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                                        <img src={imageUrl} alt={agent.agentName} className="w-full h-full object-cover" />
+                                        <img
+                                            src={imageUrl! /* <- TODO: Do the real check */}
+                                            alt={agent.agentName}
+                                            className="w-full h-full object-cover"
+                                        />
                                     </div>
                                 );
                             })}
