@@ -1,5 +1,4 @@
 
-import Image from 'next/image';
 import React from 'react';
 import { Handle, Position } from 'reactflow';
 
@@ -24,7 +23,8 @@ const CustomNode = ({ data }: { data: CustomNodeData }) => {
             }}
         >
             <Handle type="target" position={Position.Top} />
-            <Image src={data.image} alt={data.label} width={50} height={50} style={{ borderRadius: '50%' }} />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={data.image} alt={data.label} width={50} height={50} style={{ borderRadius: '50%' }} />
             <div>{data.label}</div>
             <Handle type="source" position={Position.Bottom} />
         </div>

@@ -34,7 +34,7 @@ type AgentsGraphV2Props = {
     readonly publicUrl: string_url;
 };
 
-const nodeTypes = {
+const NODE_TYPES = {
     custom: CustomNode,
 };
 
@@ -123,7 +123,7 @@ export function AgentsGraphV2(props: AgentsGraphV2Props) {
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
                 onConnect={onConnect}
-                nodeTypes={nodeTypes}
+                nodeTypes={NODE_TYPES}
                 fitView
             >
                 <Controls />

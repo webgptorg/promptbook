@@ -2,7 +2,6 @@
 
 import dynamic from 'next/dynamic';
 import { useState } from 'react';
-import { pdfjs } from 'react-pdf';
 import { classNames } from '../../_common/react-utils/classNames';
 import { CloseIcon } from '../../icons/CloseIcon';
 import { DownloadIcon } from '../../icons/DownloadIcon';
@@ -13,14 +12,16 @@ import { resolveCitationUrl } from '../utils/resolveCitationUrl';
 import styles from './Chat.module.css';
 import type { ChatSoundSystem } from './ChatProps';
 
-// TODO: [🎞] This is a bit of a hack. We should probably have a more robust way of handling this.
-//           The best way would be to NOT depend on external file but embed the worker in the bundle.
-//           @see https://github.com/wojtekmaj/react-pdf/tree/main/packages/react-pdf#pdfjs-worker
-if (typeof window !== 'undefined') {
-    pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
-}
-
-const Document = dynamic(() => import('react-pdf').then((mod) => mod.Document), {
+const Document = dynamic(
+    () =>
+        import('react-pdf').then((mod) => {
+            // [🎞] This is a bit of a hack. We should probably have a more robust way of handling this.
+            //           The best way would be to NOT depend on external file but embed the worker in the bundle.
+            //           @see https://github.com/wojtekmaj/react-pdf/tree/main/packages/react-pdf#pdfjs-worker
+            mod.pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
+            return mod.Document;
+        }),
+    {
     ssr: false,
     loading: () => <p>Loading PDF viewer...</p>,
 });
