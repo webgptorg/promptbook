@@ -1,5 +1,6 @@
 ### 📚 Book
 
+-   Added root nonce test files `nonce-foo-1.txt` and `nonce-bar-1.txt` for coding agent verification.
 -   Regenerated the Agents Server Supabase subset schema for `Agent` and `AgentHistory` to stay aligned with the canonical database schema.
 -   Regenerated the Agents Server Supabase schema types from migrations, aligning ChatHistory and File table fields.
 -   Added Agents Server folder organization with nested folders, drag-and-drop ordering, URL folder paths, and recycle bin support for folders.
@@ -392,3 +393,7 @@
 -   Enhanced codebase by using explicit types instead of type inference across multiple files in `src/`, `apps/`, and `scripts/` directories to improve readability and maintainability.
 -   Fix width of the message in the chat by adding a minimum width and improving layout for short messages.
 -   Use model `gemini-3-pro-image-preview` for the agent of Avatar Images
+
+
+
+
