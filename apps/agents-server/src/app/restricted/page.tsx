@@ -1,6 +1,8 @@
 import { ShieldAlert } from 'lucide-react';
 import Link from 'next/link';
 
+export const dynamic = 'force-dynamic';
+
 export default function RestrictedPage() {
     return (
         <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] p-4 text-center">

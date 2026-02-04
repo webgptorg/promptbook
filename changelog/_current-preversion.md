@@ -1,5 +1,6 @@
 ### 📚 Book
 
+-   Fixed deployment on Vercel by disabling Edge runtime in some files and forcing dynamic rendering on pages that depend on headers or other dynamic information.
 -   Fixed `react-pdf` initialization in `ChatCitationModal.tsx` to avoid SSR issues and `TypeError: Object.defineProperty called on non-object` error.
 -   Added a loading indicator to the Agents Server that appears when navigating between pages, providing visual feedback to the user that a new page is loading.
 -   Redesigned the agents graph on the home page using the React Flow library, featuring:
