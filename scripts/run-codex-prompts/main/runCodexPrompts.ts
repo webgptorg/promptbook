@@ -1,6 +1,7 @@
 import colors from 'colors';
 import { join } from 'path';
 import { just } from '../../../src/utils/organization/just';
+import type { RunOptions } from '../cli/RunOptions';
 import { parseRunOptions } from '../cli/parseRunOptions';
 import { printCommitMessage } from '../common/printCommitMessage';
 import { waitForEnter } from '../common/waitForEnter';
@@ -28,6 +29,42 @@ import { OpencodeRunner } from '../runners/opencode/OpencodeRunner';
 import type { PromptRunner } from '../runners/types/PromptRunner';
 
 const PROMPTS_DIR = join(process.cwd(), 'prompts');
+const CODEX_MODEL = 'gpt-5.2-codex';
+const CLINE_MODEL = 'gemini:gemini-3-flash-preview';
+
+const RUNNER_LABELS: Record<RunOptions['agentName'], string> = {
+    'openai-codex': 'OpenAI Codex',
+    cline: 'Cline',
+    'claude-code': 'Claude Code',
+    opencode: 'Opencode',
+    gemini: 'Gemini CLI',
+};
+
+/**
+ * Runner metadata used in prompt status lines.
+ */
+type RunnerMetadata = {
+    runnerName: string;
+    modelName?: string;
+};
+
+/**
+ * Resolves runner metadata for prompt status lines.
+ */
+function getRunnerMetadata(options: RunOptions): RunnerMetadata {
+    const runnerName = RUNNER_LABELS[options.agentName] ?? 'unknown';
+    let modelName: string | undefined;
+
+    if (options.agentName === 'openai-codex') {
+        modelName = CODEX_MODEL;
+    } else if (options.agentName === 'cline') {
+        modelName = CLINE_MODEL;
+    } else if (options.agentName === 'opencode') {
+        modelName = options.model;
+    }
+
+    return { runnerName, modelName };
+}
 
 /**
  * Main entry point for running prompts with the selected agent.
@@ -40,13 +77,13 @@ export async function runCodexPrompts(): Promise<void> {
     if (options.agentName === 'openai-codex') {
         runner = new OpenAiCodexRunner({
             codexCommand: 'codex',
-            model: 'gpt-5.2-codex',
+            model: CODEX_MODEL,
             sandbox: 'danger-full-access',
             askForApproval: 'never',
         });
     } else if (options.agentName === 'cline') {
         runner = new ClineRunner({
-            model: 'gemini:gemini-3-flash-preview',
+            model: CLINE_MODEL,
         });
     } else if (options.agentName === 'claude-code') {
         runner = new ClaudeCodeRunner();
@@ -61,6 +98,7 @@ export async function runCodexPrompts(): Promise<void> {
     }
 
     console.info(colors.green(`Running prompts with ${runner.name}`));
+    const runnerMetadata = getRunnerMetadata(options);
 
     let hasShownUpcomingTasks = false;
     let hasWaitedForStart = false;
@@ -112,7 +150,7 @@ export async function runCodexPrompts(): Promise<void> {
             projectPath: process.cwd(),
         });
 
-        markPromptDone(nextPrompt.file, nextPrompt.section, result.usage);
+        markPromptDone(nextPrompt.file, nextPrompt.section, result.usage, runnerMetadata.runnerName, runnerMetadata.modelName);
         await writePromptFile(nextPrompt.file);
 
         if (options.waitForUser) {

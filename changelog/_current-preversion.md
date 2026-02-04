@@ -81,6 +81,7 @@
 -   Added interactive waits between codex prompt tasks with a `--no-wait` override flag.
 -   Added per-prompt start summaries with a confirmation wait before each prompt runs (unless `--no-wait`).
 -   Estimated OpenAI Codex runner prices from Codex CLI token counts instead of reporting $0.00.
+-   Added coding runner and model signatures to coding agent prompt status lines.
 -   Implemented `USE IMAGE GENERATOR` commitment to allow agents to generate images using an image generation model.
 -   [✨⛪️] Allow to close dialogs by clicking outside of the dialog.
 -   Created a series of comprehensive comparison documents between Promptbook and other projects (ChatGPT, Claude, ChatGPT-Assistance, LangChain, N8N, NotebookLM, Wordware, Agno, Letta, Eliza, and Digital Twin platforms like Personal.ai/Delphi) in `/documents/comparison/*.md`. These comparisons highlight Promptbook's unique "Book" language, commitment system (Persona, Knowledge, Rule, Team), and its federated, open-source architecture.
