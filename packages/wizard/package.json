@@ -91,6 +91,9 @@
         "node": ">=18.18.0",
         "npm": ">=8.0.0"
     },
+    "overrides": {
+        "jsdom": "26.1.0"
+    },
     "main": "./umd/index.umd.js",
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/wizard.index.d.ts",
@@ -108,7 +111,6 @@
         "crypto": "1.0.1",
         "crypto-js": "4.2.0",
         "dotenv": "16.3.2",
-        "jsdom": "25.0.1",
         "jszip": "3.10.1",
         "markitdown-ts": "0.0.5",
         "moment": "2.30.1",

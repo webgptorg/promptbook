@@ -92,6 +92,9 @@
         "node": ">=18.18.0",
         "npm": ">=8.0.0"
     },
+    "overrides": {
+        "jsdom": "26.1.0"
+    },
     "dependencies": {
         "@ai-sdk/deepseek": "0.1.17",
         "@ai-sdk/google": "1.0.17",
@@ -107,7 +110,6 @@
         "express": "4.21.2",
         "express-openapi-validator": "5.4.9",
         "glob-promise": "6.0.7",
-        "jsdom": "25.0.1",
         "jszip": "3.10.1",
         "markitdown-ts": "0.0.5",
         "moment": "2.30.1",
