@@ -1,3 +1,4 @@
+import spaceTrim from 'spacetrim';
 import { isWorkingTreeClean } from '../../utils/autocommit/isWorkingTreeClean';
 
 /**
@@ -6,6 +7,16 @@ import { isWorkingTreeClean } from '../../utils/autocommit/isWorkingTreeClean';
 export async function ensureWorkingTreeClean(): Promise<void> {
     const isClean = await isWorkingTreeClean(process.cwd());
     if (!isClean) {
-        throw new Error('Git working tree is not clean. Aborting.');
+        throw new Error(
+            spaceTrim(`
+                Git working tree is not clean.
+
+                Please commit or stash your changes before running this script
+                OR run script with flag --ignore-git-changes
+            
+
+                Aborting
+            `),
+        );
     }
 }
