@@ -87,9 +87,14 @@ export class AssistantCacheManager {
              * The agent permanent ID for persistent caching in Agent table
              */
             agentId?: string_agent_permanent_id;
+
+            /**
+             * Optional callback invoked before creating a new assistant on cache miss.
+             */
+            onCacheMiss?: () => void | Promise<void>;
         } = {},
     ): Promise<AssistantCacheResult> {
-        const { includeDynamicContext = true, agentId } = options; // Default to true for backward compatibility
+        const { includeDynamicContext = true, agentId, onCacheMiss } = options; // Default to true for backward compatibility
 
         // Extract assistant configuration
         const configuration = extractAssistantConfiguration(agentSource, { includeDynamicContext });
@@ -122,6 +127,10 @@ export class AssistantCacheManager {
                 cacheKey,
                 configuration,
             };
+        }
+
+        if (onCacheMiss) {
+            await onCacheMiss();
         }
 
         // Cache miss - create new assistant

@@ -14,6 +14,16 @@ export type CreateAgentLlmExecutionToolsOptions = CommonToolsOptions & {
     llmTools: LlmExecutionTools | OpenAiAssistantExecutionTools;
 
     /**
+     * How to manage OpenAI assistant preparation when using OpenAiAssistantExecutionTools.
+     *
+     * Use `external` when an external cache manager already created the assistant and
+     * the agent should use it as-is.
+     *
+     * @default internal
+     */
+    assistantPreparationMode?: 'internal' | 'external';
+
+    /**
      * The agent source string that defines the agent's behavior
      */
     agentSource: string_book;

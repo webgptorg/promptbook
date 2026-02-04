@@ -16,6 +16,16 @@ export type AgentOptions = CommonToolsOptions & {
     executionTools: ExecutionTools;
 
     /**
+     * How to manage OpenAI assistant preparation when using OpenAiAssistantExecutionTools.
+     *
+     * Use `external` when an external cache manager already created the assistant and
+     * the agent should use it as-is.
+     *
+     * @default internal
+     */
+    assistantPreparationMode?: 'internal' | 'external';
+
+    /**
      * The source of the agent
      */
     agentSource: Updatable<string_book>;

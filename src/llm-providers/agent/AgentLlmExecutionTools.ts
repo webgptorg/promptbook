@@ -375,7 +375,21 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
             const cached = AgentLlmExecutionTools.assistantCache.get(this.title);
             let assistant: OpenAiAssistantExecutionTools;
 
-            if (cached) {
+            if (this.options.assistantPreparationMode === 'external') {
+                assistant = this.options.llmTools;
+
+                if (this.options.isVerbose) {
+                    console.info('[🤰]', 'Using externally managed OpenAI Assistant', {
+                        agent: this.title,
+                        assistantId: assistant.assistantId,
+                    });
+                }
+
+                AgentLlmExecutionTools.assistantCache.set(this.title, {
+                    assistantId: assistant.assistantId,
+                    requirementsHash,
+                });
+            } else if (cached) {
                 if (cached.requirementsHash === requirementsHash) {
                     if (this.options.isVerbose) {
                         console.info('[🤰]', 'Using cached OpenAI Assistant', {

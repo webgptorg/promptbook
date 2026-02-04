@@ -6,8 +6,9 @@ import { createChatStreamHandler } from '@/src/utils/createChatStreamHandler';
 import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
 import { ensureNonEmptyChatContent } from '@/src/utils/chat/ensureNonEmptyChatContent';
 import { Agent, computeAgentHash, PROMPTBOOK_ENGINE_VERSION, RemoteAgent } from '@promptbook-local/core';
-import { computeHash, serializeError } from '@promptbook-local/utils';
+import { computeHash, serializeError, $getCurrentDate } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
+import { ASSISTANT_PREPARATION_TOOL_CALL_NAME } from '../../../../../../../../src/types/ToolCall';
 import { keepUnused } from '../../../../../../../../src/utils/organization/keepUnused';
 import { isAgentDeleted } from '../../_utils';
 import { AssistantCacheManager } from '@/src/utils/cache/AssistantCacheManager';
@@ -16,6 +17,17 @@ import { AssistantCacheManager } from '@/src/utils/cache/AssistantCacheManager';
  * Allow long-running streams: set to platform maximum (seconds)
  */
 export const maxDuration = 300;
+
+/**
+ * Builds a preparation tool call payload for the chat stream.
+ */
+function createAssistantPreparationToolCall(phase: string) {
+    return {
+        name: ASSISTANT_PREPARATION_TOOL_CALL_NAME,
+        arguments: { phase },
+        createdAt: $getCurrentDate(),
+    };
+}
 
 export async function OPTIONS(request: Request) {
     keepUnused(request);
@@ -64,29 +76,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         const assistantCacheManager = new AssistantCacheManager({ isVerbose: true });
         const baseOpenAiTools = await $provideOpenAiAssistantExecutionToolsForServer();
 
-        // Get or create assistant with enhanced caching
-        const assistantResult = await assistantCacheManager.getOrCreateAssistant(
-            agentSource,
-            agentName,
-            baseOpenAiTools,
-            {
-                includeDynamicContext: true,
-                agentId,
-            },
-        );
-
-        const agent = new Agent({
-            isVerbose: true, // <- TODO: [🐱‍🚀] From environment variable
-            executionTools: {
-                // [▶️] ...executionTools,
-                llm: assistantResult.tools,
-            },
-            agentSource,
-            teacherAgent: await RemoteAgent.connect({
-                agentUrl: await getWellKnownAgentUrl('TEACHER'),
-            }), // <- [🦋]
-        });
-
         const agentHash = computeAgentHash(agentSource);
         const userAgent = request.headers.get('user-agent');
         const ip =
@@ -127,7 +116,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
 
         const encoder = new TextEncoder();
         const readableStream = new ReadableStream({
-            start(controller) {
+            async start(controller) {
                 let hasMeaningfulDelta = false;
 
                 const handleStreamChunk = createChatStreamHandler({
@@ -142,71 +131,100 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                     },
                 });
 
-                agent.callChatModelStream!(
-                    {
-                        title: `Chat with agent ${
-                            agentName /* <- TODO: [🕛] There should be `agentFullname` not `agentName` */
-                        }`,
-                        parameters: {},
-                        modelRequirements: {
-                            modelVariant: 'CHAT',
+                try {
+                    const assistantResult = await assistantCacheManager.getOrCreateAssistant(
+                        agentSource,
+                        agentName,
+                        baseOpenAiTools,
+                        {
+                            includeDynamicContext: true,
+                            agentId,
+                            onCacheMiss: async () => {
+                                const toolCall = createAssistantPreparationToolCall('Creating assistant');
+                                controller.enqueue(
+                                    encoder.encode('\n' + JSON.stringify({ toolCalls: [toolCall] }) + '\n'),
+                                );
+                            },
                         },
-                        content: message,
-                        thread,
-                    },
-                    handleStreamChunk,
-                )
-                    .then(async (response) => {
-                        const normalizedResponse = ensureNonEmptyChatContent({
-                            content: response.content,
-                            context: `Agent chat ${agentName}`,
-                        });
+                    );
 
-                        if (normalizedResponse.wasEmpty && !hasMeaningfulDelta) {
-                            controller.enqueue(encoder.encode(normalizedResponse.content));
-                        }
-
-                        // Note: Identify the agent message
-                        const agentMessageContent = {
-                            role: 'MODEL',
-                            content: normalizedResponse.content,
-                        };
-
-                        // Record the agent message
-                        await supabase.from(await $getTableName('ChatHistory')).insert({
-                            createdAt: new Date().toISOString(),
-                            messageHash: computeHash(agentMessageContent),
-                            previousMessageHash: computeHash(userMessageContent),
-                            agentName,
-                            agentHash,
-                            message: agentMessageContent,
-                            promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
-                            url: request.url,
-                            ip,
-                            userAgent,
-                            language,
-                            platform,
-                            source: 'AGENT_PAGE_CHAT',
-                            apiKey: null,
-                        });
-
-                        // Note: [🐱‍🚀] Save the learned data
-                        const newAgentSource = agent.agentSource.value;
-                        if (newAgentSource !== agentSource) {
-                            await collection.updateAgentSource(agentName, newAgentSource);
-                        }
-
-                        if (response.toolCalls && response.toolCalls.length > 0) {
-                            controller.enqueue(
-                                encoder.encode('\n' + JSON.stringify({ toolCalls: response.toolCalls }) + '\n'),
-                            );
-                        }
-
-                        controller.close();
-                    })
-                    .catch((error) => {
-                        controller.error(error);
+                    const agent = new Agent({
+                        isVerbose: true, // <- TODO: [🐱‍🚀] From environment variable
+                        assistantPreparationMode: 'external',
+                        executionTools: {
+                            // [▶️] ...executionTools,
+                            llm: assistantResult.tools,
+                        },
+                        agentSource,
+                        teacherAgent: await RemoteAgent.connect({
+                            agentUrl: await getWellKnownAgentUrl('TEACHER'),
+                        }), // <- [🦋]
                     });
+
+                    const response = await agent.callChatModelStream!(
+                        {
+                            title: `Chat with agent ${
+                                agentName /* <- TODO: [🕛] There should be `agentFullname` not `agentName` */
+                            }`,
+                            parameters: {},
+                            modelRequirements: {
+                                modelVariant: 'CHAT',
+                            },
+                            content: message,
+                            thread,
+                        },
+                        handleStreamChunk,
+                    );
+
+                    const normalizedResponse = ensureNonEmptyChatContent({
+                        content: response.content,
+                        context: `Agent chat ${agentName}`,
+                    });
+
+                    if (normalizedResponse.wasEmpty && !hasMeaningfulDelta) {
+                        controller.enqueue(encoder.encode(normalizedResponse.content));
+                    }
+
+                    // Note: Identify the agent message
+                    const agentMessageContent = {
+                        role: 'MODEL',
+                        content: normalizedResponse.content,
+                    };
+
+                    // Record the agent message
+                    await supabase.from(await $getTableName('ChatHistory')).insert({
+                        createdAt: new Date().toISOString(),
+                        messageHash: computeHash(agentMessageContent),
+                        previousMessageHash: computeHash(userMessageContent),
+                        agentName,
+                        agentHash,
+                        message: agentMessageContent,
+                        promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
+                        url: request.url,
+                        ip,
+                        userAgent,
+                        language,
+                        platform,
+                        source: 'AGENT_PAGE_CHAT',
+                        apiKey: null,
+                    });
+
+                    // Note: [🐱‍🚀] Save the learned data
+                    const newAgentSource = agent.agentSource.value;
+                    if (newAgentSource !== agentSource) {
+                        await collection.updateAgentSource(agentName, newAgentSource);
+                    }
+
+                    if (response.toolCalls && response.toolCalls.length > 0) {
+                        controller.enqueue(
+                            encoder.encode('\n' + JSON.stringify({ toolCalls: response.toolCalls }) + '\n'),
+                        );
+                    }
+
+                    controller.close();
+                } catch (error) {
+                    controller.error(error);
+                }
             },
         });
 

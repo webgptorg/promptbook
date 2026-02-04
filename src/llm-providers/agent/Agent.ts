@@ -217,6 +217,7 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
         super({
             isVerbose: options.isVerbose,
             llmTools: getSingleLlmExecutionTools(options.executionTools.llm),
+            assistantPreparationMode: options.assistantPreparationMode,
             agentSource: agentSource.value, // <- TODO: [🐱‍🚀] Allow to pass BehaviorSubject<string_book> OR refresh llmExecutionTools.callChat on agentSource change
         });
         // TODO: [🐱‍🚀] Add `Agent` simple "mocked" learning by appending to agent source
