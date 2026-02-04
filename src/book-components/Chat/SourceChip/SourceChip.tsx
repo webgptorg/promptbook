@@ -21,6 +21,10 @@ export type SourceChipProps = {
      * Additional CSS class name
      */
     className?: string;
+    /**
+     * Optional suffix text to display after the citation label.
+     */
+    suffix?: string;
 };
 
 /**
@@ -39,7 +43,7 @@ export type SourceChipProps = {
  *
  * @private utility of `ChatMessageItem` component
  */
-export function SourceChip({ citation, onClick, className }: SourceChipProps) {
+export function SourceChip({ citation, onClick, className, suffix }: SourceChipProps) {
     const handleClick = (event: React.MouseEvent) => {
         event.stopPropagation();
         if (onClick) {
@@ -61,6 +65,7 @@ export function SourceChip({ citation, onClick, className }: SourceChipProps) {
                 {displayName}
                 <span className={styles.citationId}> [{citation.id}]</span>
             </span>
+            {suffix && <span className={styles.suffix}>{suffix}</span>}
         </button>
     );
 }

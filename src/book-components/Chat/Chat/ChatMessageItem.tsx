@@ -2,7 +2,7 @@
 // <- Note: [👲] 'use client' is enforced by Next.js when building the https://book-components.ptbk.io/ but in ideal case,
 //          this would not be here because the `@promptbook/components` package should be React library independent of Next.js specifics
 
-import { memo, useEffect, useRef, useState } from 'react';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { colorToDataUrl } from '../../../_packages/color.index';
 import { PROMPTBOOK_CHAT_COLOR, USER_CHAT_COLOR } from '../../../config';
 import { isAssistantPreparationToolCall } from '../../../types/ToolCall';
@@ -19,10 +19,11 @@ import type { ChatParticipant } from '../types/ChatParticipant';
 import { isTeamToolName } from '../utils/createTeamToolNameFromUrl';
 import { getChatMessageTimingDisplay } from '../utils/getChatMessageTimingDisplay';
 import type { ToolCallChipletInfo } from '../utils/getToolCallChipletInfo';
-import { getToolCallChipletInfo, TOOL_TITLES } from '../utils/getToolCallChipletInfo';
+import { buildToolCallChipText, getToolCallChipletInfo, TOOL_TITLES } from '../utils/getToolCallChipletInfo';
 import { dedupeCitationsBySource, extractCitationsFromMessage, type ParsedCitation } from '../utils/parseCitationsFromContent';
 import { parseMessageButtons } from '../utils/parseMessageButtons';
 import { parseToolCallArguments } from '../utils/toolCallParsing';
+import { collectTeamToolCallSummary } from '../utils/collectTeamToolCallSummary';
 import styles from './Chat.module.css';
 import type { ChatProps } from './ChatProps';
 import { AVATAR_SIZE, LOADING_INTERACTIVE_IMAGE } from './constants';
@@ -258,6 +259,12 @@ export const ChatMessageItem = memo(
         const completedToolCalls = (message.toolCalls || message.completedToolCalls)?.filter(
             (toolCall) => !isAssistantPreparationToolCall(toolCall),
         );
+        const teamToolCallSummary = useMemo(
+            () => collectTeamToolCallSummary(completedToolCalls),
+            [completedToolCalls],
+        );
+        const transitiveToolCalls = teamToolCallSummary.toolCalls;
+        const transitiveCitations = teamToolCallSummary.citations;
         const shouldShowButtons = isLastMessage && buttons.length > 0 && onMessage;
 
         // Extract citations from message content
@@ -477,10 +484,7 @@ export const ChatMessageItem = memo(
                             <div className={styles.completedToolCalls}>
                                 {completedToolCalls.map((toolCall, index) => {
                                     const chipletInfo = getToolCallChipletInfo(toolCall);
-                                    const chipletText =
-                                        chipletInfo.wrapInBrackets === false
-                                            ? chipletInfo.text
-                                            : `[${chipletInfo.text}]`;
+                                    const chipletText = buildToolCallChipText(chipletInfo);
                                     const teamAgentData = resolveTeamAgentChipData(toolCall, teammates, chipletInfo);
 
                                     // If this is a team tool with agent data, use AgentChip
@@ -516,15 +520,45 @@ export const ChatMessageItem = memo(
                                         </button>
                                     );
                                 })}
+                                {transitiveToolCalls.map((toolCallEntry, index) => {
+                                    const chipletInfo = getToolCallChipletInfo(toolCallEntry.toolCall);
+                                    const chipletText = buildToolCallChipText(chipletInfo);
+
+                                    return (
+                                        <button
+                                            key={`team-tool-${index}`}
+                                            className={styles.completedToolCall}
+                                            onClick={(event) => {
+                                                event.stopPropagation();
+                                                if (onToolCallClick) {
+                                                    onToolCallClick(toolCallEntry.toolCall);
+                                                }
+                                            }}
+                                        >
+                                            <span>{chipletText}</span>
+                                            <span className={styles.toolCallOrigin}>
+                                                by {toolCallEntry.origin.label}
+                                            </span>
+                                        </button>
+                                    );
+                                })}
                             </div>
                         )}
 
-                        {displayCitations.length > 0 && (
+                        {(displayCitations.length > 0 || transitiveCitations.length > 0) && (
                             <div className={styles.sourceCitations}>
                                 {displayCitations.map((citation) => (
                                     <SourceChip
                                         key={`${citation.source}-${citation.url || 'no-url'}`}
                                         citation={citation}
+                                        onClick={onCitationClick}
+                                    />
+                                ))}
+                                {transitiveCitations.map((citation, index) => (
+                                    <SourceChip
+                                        key={`team-source-${citation.source}-${index}`}
+                                        citation={citation}
+                                        suffix={`by ${citation.origin.label}`}
                                         onClick={onCitationClick}
                                     />
                                 ))}
@@ -667,6 +701,18 @@ export const ChatMessageItem = memo(
         }
 
         if (prev.message.generationDurationMs !== next.message.generationDurationMs) {
+            return false;
+        }
+
+        if (prev.message.toolCalls !== next.message.toolCalls) {
+            return false;
+        }
+
+        if (prev.message.completedToolCalls !== next.message.completedToolCalls) {
+            return false;
+        }
+
+        if (prev.message.citations !== next.message.citations) {
             return false;
         }
 

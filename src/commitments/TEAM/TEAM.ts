@@ -4,6 +4,7 @@ import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentMo
 import { parseTeamCommitmentContent, type TeamTeammate } from '../../book-2.0/agent-source/parseTeamCommitment';
 import type { PromptResult } from '../../execution/PromptResult';
 import type { LlmToolDefinition } from '../../types/LlmToolDefinition';
+import type { ToolCall } from '../../types/ToolCall';
 import type { RemoteAgent } from '../../llm-providers/agent/RemoteAgent';
 import { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
 import type { ChatPrompt } from '../../types/Prompt';
@@ -35,6 +36,10 @@ type TeamToolResult = {
     };
     request: string;
     response: string;
+    /**
+     * Tool calls executed by the teammate while answering.
+     */
+    toolCalls?: ReadonlyArray<ToolCall>;
     error?: string | null;
     conversation: Array<{
         sender: 'AGENT' | 'TEAMMATE';
@@ -344,12 +349,17 @@ function createTeamToolFunction(entry: TeamToolEntry): ToolFunction {
         const request: string = buildTeammateRequest(message, args.context);
         let response: string = '';
         let error: string | null = null;
+        let toolCalls: ReadonlyArray<ToolCall> | undefined;
 
         try {
             const remoteAgent: RemoteAgent = await getRemoteTeammateAgent(entry.teammate.url);
             const prompt: ChatPrompt = buildTeammatePrompt(request);
             const teammateResult: PromptResult = await remoteAgent.callChatModel(prompt);
             response = teammateResult.content || '';
+            toolCalls =
+                'toolCalls' in teammateResult && Array.isArray(teammateResult.toolCalls)
+                    ? (teammateResult.toolCalls as ReadonlyArray<ToolCall>)
+                    : undefined;
         } catch (err: unknown) {
             error = err instanceof Error ? err.message : String(err);
         }
@@ -361,6 +371,7 @@ function createTeamToolFunction(entry: TeamToolEntry): ToolFunction {
             teammate: teammateMetadata,
             request,
             response: teammateReply,
+            toolCalls: toolCalls && toolCalls.length > 0 ? toolCalls : undefined,
             error,
             conversation: [
                 {

@@ -38,3 +38,10 @@
     opacity: 0.7;
     font-weight: 400;
 }
+
+.suffix {
+    font-size: 0.85em;
+    opacity: 0.75;
+    font-weight: 500;
+    white-space: nowrap;
+}

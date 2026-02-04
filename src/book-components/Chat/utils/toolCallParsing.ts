@@ -54,6 +54,10 @@ export type TeamToolResult = {
     };
     request?: string;
     response?: string;
+    /**
+     * Tool calls executed by the teammate while answering.
+     */
+    toolCalls?: ReadonlyArray<ToolCall>;
     error?: string | null;
     conversation?: Array<{
         sender?: string;

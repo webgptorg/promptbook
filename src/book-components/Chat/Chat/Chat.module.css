@@ -360,6 +360,13 @@
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
+.toolCallOrigin {
+    font-size: 0.85em;
+    opacity: 0.75;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
 .toolCallDetails {
     margin-bottom: 24px;
     text-align: left;
@@ -1659,6 +1666,71 @@
     overflow: hidden;
     background: #f8fafc;
     margin-bottom: 20px;
+}
+
+.teamToolCallSection {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.teamToolCallGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.teamToolCallHeading {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #64748b;
+}
+
+.teamToolCallChips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.teamToolCallDetails {
+    border: 1px solid rgba(148, 163, 184, 0.4);
+    border-radius: 12px;
+    padding: 16px;
+    background: #f8fafc;
+}
+
+.teamToolCallDetailsHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.teamToolCallDetailsTitle {
+    font-size: 14px;
+    font-weight: 600;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.teamToolCallDetailsClear {
+    background: rgba(148, 163, 184, 0.2);
+    border: 1px solid rgba(148, 163, 184, 0.4);
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: 12px;
+    cursor: pointer;
+    color: #475569;
+    transition: all 0.2s ease;
+}
+
+.teamToolCallDetailsClear:hover {
+    background: rgba(148, 163, 184, 0.35);
 }
 
 .searchResultsList {

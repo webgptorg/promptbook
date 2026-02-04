@@ -34,6 +34,19 @@ export type ToolCallChipletInfo = {
 };
 
 /**
+ * Builds display text for a tool call chiplet.
+ *
+ * @param chipletInfo - Chiplet metadata for the tool call.
+ */
+export function buildToolCallChipText(chipletInfo: ToolCallChipletInfo): string {
+    if (chipletInfo.wrapInBrackets === false) {
+        return chipletInfo.text;
+    }
+
+    return `[${chipletInfo.text}]`;
+}
+
+/**
  * Technical to user-friendly tool names and emojis
  *
  * @private [🧠] Maybe public?
