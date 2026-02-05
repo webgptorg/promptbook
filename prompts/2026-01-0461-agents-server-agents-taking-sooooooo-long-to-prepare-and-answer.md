@@ -4,7 +4,7 @@
 
 ---
 
-[x] by Cline
+[ ]
 
 [✨📰] Agent with large knowledgebase takes super long to prepare the underlying GPT assistant
 
