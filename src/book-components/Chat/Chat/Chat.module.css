@@ -1810,12 +1810,28 @@
     background: #f8f8f8;
 }
 
-.citationIframe {
+.citationPdfViewer {
     width: 100%;
     height: 60vh;
     min-height: 400px;
-    border: none;
-    display: block;
+    display: flex;
+    flex-direction: column;
+}
+
+.citationPdfViewer :global(.rpv-core__viewer),
+.citationPdfViewer :global(.rpv-default-layout__container) {
+    height: 100%;
+}
+
+.citationPdfViewer :global(.rpv-default-layout__body) {
+    flex: 1;
+}
+
+.citationLoading {
+    padding: 24px;
+    text-align: center;
+    color: #6b7280;
+    font-size: 0.95em;
 }
 
 .citationMetadata {

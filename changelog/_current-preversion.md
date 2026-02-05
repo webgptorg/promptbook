@@ -366,7 +366,7 @@
     -   Follows DRY principle by reusing existing modal styles and chip patterns
     -   Integrated seamlessly with existing chat UI and tool call chip system
 -   Enhanced document preview in Agents Server chat:
-    -   Clicking on a `KNOWLEDGE` source chip now opens a document preview in an iframe (e.g. for PDFs).
+    -   Clicking on a `KNOWLEDGE` source chip now opens a PDF preview using react-pdf-viewer.
     -   Added a "Download" button to the source preview modal.
     -   Automatically detects URLs in source names if explicit URL is missing.
     -   Improved fallback messaging when no preview is available.
@@ -404,7 +404,6 @@
 -   Enhanced codebase by using explicit types instead of type inference across multiple files in `src/`, `apps/`, and `scripts/` directories to improve readability and maintainability.
 -   Fix width of the message in the chat by adding a minimum width and improving layout for short messages.
 -   Use model `gemini-3-pro-image-preview` for the agent of Avatar Images
-
 
 
 
