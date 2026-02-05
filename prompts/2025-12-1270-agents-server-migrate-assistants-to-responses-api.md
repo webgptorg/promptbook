@@ -1,5 +1,5 @@
 [x] ~$1.71
-[ ]
+[.] _<- Instead of this, migrating to OpenAI AgentKit. _
 
 [✨🪰] Migrate [Agents](src/llm-providers/agent/Agent.ts) from assistants API to Responses API
 

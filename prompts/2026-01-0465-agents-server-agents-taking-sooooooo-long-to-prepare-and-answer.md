@@ -1,4 +1,4 @@
-[ ]
+[-]
 
 [✨📰] Agent with large knowledgebase takes sooooooo long to prepare and answer, and often just ends up stucked
 
