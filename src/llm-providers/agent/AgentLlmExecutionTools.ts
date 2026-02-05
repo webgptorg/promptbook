@@ -1,7 +1,6 @@
 import { SHA256 as sha256 } from 'crypto-js';
 import hexEncoder from 'crypto-js/enc-hex';
 import type { Promisable } from 'type-fest';
-import { TODO_any } from '../../_packages/types.index';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import { createAgentModelRequirements } from '../../book-2.0/agent-source/createAgentModelRequirements';
 import { parseAgentSource } from '../../book-2.0/agent-source/parseAgentSource';
@@ -24,7 +23,6 @@ import { humanizeAiText } from '../../utils/markdown/humanizeAiText';
 import { promptbookifyAiText } from '../../utils/markdown/promptbookifyAiText';
 import { $getCurrentDate } from '../../utils/misc/$getCurrentDate';
 import { normalizeToKebabCase } from '../../utils/normalization/normalize-to-kebab-case';
-import { OpenAiAgentExecutionTools } from '../openai/OpenAiAgentExecutionTools';
 import { OpenAiAssistantExecutionTools } from '../openai/OpenAiAssistantExecutionTools';
 import type { CreateAgentLlmExecutionToolsOptions } from './CreateAgentLlmExecutionToolsOptions';
 
@@ -299,77 +297,7 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
 
         console.log('!!!! promptWithAgentModelRequirements:', promptWithAgentModelRequirements);
 
-        if (OpenAiAgentExecutionTools.isOpenAiAgentExecutionTools(this.options.llmTools)) {
-            const requirementsHash = sha256(JSON.stringify(modelRequirements)).toString();
-            const cached = AgentLlmExecutionTools.vectorStoreCache.get(this.title);
-            let agentTools: OpenAiAgentExecutionTools;
-
-            if (cached && cached.requirementsHash === requirementsHash) {
-                if (this.options.isVerbose) {
-                    console.log(`1️⃣ Using cached OpenAI Agent Vector Store for agent ${this.title}...`);
-                }
-                // Create new instance with cached vectorStoreId
-                // We need to access options from the original tool.
-                // We assume isOpenAiAgentExecutionTools implies it has options we can clone.
-                // But protected options are not accessible.
-                // We can cast to access options if they were public, or use a method to clone.
-                // OpenAiAgentExecutionTools doesn't have a clone method.
-                // However, we can just assume the passed tool *might* not have the vector store yet, or we are replacing it.
-                // Actually, if the passed tool IS OpenAiAgentExecutionTools, we should use it as a base.
-
-                // TODO: [🧠] This is a bit hacky, accessing protected options or recreating tools.
-                // Ideally OpenAiAgentExecutionTools should have a method `withVectorStoreId`.
-
-                agentTools = new OpenAiAgentExecutionTools({
-                    ...(this.options.llmTools as TODO_any).options, // Accessing protected options via any cast
-                    vectorStoreId: cached.vectorStoreId,
-                });
-            } else {
-                if (this.options.isVerbose) {
-                    console.log(`1️⃣ Creating/Updating OpenAI Agent Vector Store for agent ${this.title}...`);
-                }
-
-                let vectorStoreId: string | undefined;
-
-                if (modelRequirements.knowledgeSources && modelRequirements.knowledgeSources.length > 0) {
-                    const client = await this.options.llmTools.getClient();
-                    vectorStoreId = await OpenAiAgentExecutionTools.createVectorStore(
-                        client,
-                        this.title,
-                        modelRequirements.knowledgeSources,
-                    );
-                }
-
-                if (vectorStoreId) {
-                    AgentLlmExecutionTools.vectorStoreCache.set(this.title, {
-                        vectorStoreId,
-                        requirementsHash,
-                    });
-                }
-
-                agentTools = new OpenAiAgentExecutionTools({
-                    ...(this.options.llmTools as TODO_any).options,
-                    vectorStoreId,
-                });
-            }
-
-            // Create modified chat prompt with agent system message specific to OpenAI Agent
-            // Note: Unlike Assistants API, Responses API expects instructions (system message) to be passed in the call.
-            // So we use promptWithAgentModelRequirements which has the system message prepended.
-            // But we need to make sure we pass knowledgeSources in modelRequirements so OpenAiAgentExecutionTools can fallback to warning if vectorStoreId is missing (though we just handled it).
-
-            const promptForAgent: ChatPrompt = {
-                ...promptWithAgentModelRequirements,
-                modelRequirements: {
-                    ...promptWithAgentModelRequirements.modelRequirements,
-                    knowledgeSources: modelRequirements.knowledgeSources
-                        ? [...modelRequirements.knowledgeSources]
-                        : undefined, // Pass knowledge sources explicitly
-                },
-            };
-
-            underlyingLlmResult = await agentTools.callChatModelStream(promptForAgent, onProgress);
-        } else if (OpenAiAssistantExecutionTools.isOpenAiAssistantExecutionTools(this.options.llmTools)) {
+        if (OpenAiAssistantExecutionTools.isOpenAiAssistantExecutionTools(this.options.llmTools)) {
             // ... deprecated path ...
             const requirementsHash = sha256(JSON.stringify(modelRequirements)).toString();
             const cached = AgentLlmExecutionTools.assistantCache.get(this.title);
