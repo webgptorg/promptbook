@@ -83,7 +83,7 @@ Make some look how the chips or tool chips are implemented. For example, how it 
 
 [✨📰] Agent with large knowledgebase takes sooooooo long to prepare and answer, and often just ends up stucked
 
-**This is the book**
+**This is the agent source:**
 
 ```book
 Praha 13 2026-02-05
