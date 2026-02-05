@@ -2,6 +2,12 @@
 
 [✨📰] Agent with large knowledgebase takes super long to prepare the underlying GPT assistant
 
+---
+
+[ ]
+
+[✨📰] Agent with large knowledgebase takes super long to prepare the underlying GPT assistant
+
 -   It stuckes up on uploading files to vector store and no file is uploaded there
 -   This ends up with the timeout and resulting GPT assistant has no knowledge from the uploaded files.
 -   OR in the Vercel deployment, it just ends on timeout
@@ -439,4 +445,3 @@ _<- The answer the chatbot is emiting has no attached knowledge sources_
 ![alt text](prompts/screenshots/2026-01-0461-agents-server-agents-taking-sooooooo-long-to-prepare-and-answer-1.png)
 ![alt text](prompts/screenshots/2026-01-0461-agents-server-agents-taking-sooooooo-long-to-prepare-and-answer-2.png)
 ![alt text](prompts/screenshots/2026-01-0461-agents-server-agents-taking-sooooooo-long-to-prepare-and-answer-3.png)
-
