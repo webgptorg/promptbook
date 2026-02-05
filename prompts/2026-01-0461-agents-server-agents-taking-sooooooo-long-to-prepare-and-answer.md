@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.55 by OpenAI Codex `gpt-5.2-codex`
 
 [✨📰] Agent with large knowledgebase takes super long to prepare the underlying GPT assistant
 
@@ -439,3 +439,4 @@ _<- The answer the chatbot is emiting has no attached knowledge sources_
 ![alt text](prompts/screenshots/2026-01-0461-agents-server-agents-taking-sooooooo-long-to-prepare-and-answer-1.png)
 ![alt text](prompts/screenshots/2026-01-0461-agents-server-agents-taking-sooooooo-long-to-prepare-and-answer-2.png)
 ![alt text](prompts/screenshots/2026-01-0461-agents-server-agents-taking-sooooooo-long-to-prepare-and-answer-3.png)
+

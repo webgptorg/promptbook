@@ -797,11 +797,12 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
         const batch = await client.beta.vectorStores.fileBatches.create(vectorStoreId, {
             file_ids: fileIds,
         });
+        const expectedBatchId = batch.id;
 
         if (this.options.isVerbose) {
             console.info('[🤰]', 'Created vector store file batch', {
                 vectorStoreId,
-                batchId: batch.id,
+                batchId: expectedBatchId,
                 fileCount: fileIds.length,
                 logLabel,
             });
@@ -813,22 +814,38 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
         let lastCountsKey = '';
         let lastLogAtMs = 0;
         let latestBatch = batch;
+        let loggedBatchIdMismatch = false;
 
         while (true) {
-            latestBatch = await client.beta.vectorStores.fileBatches.retrieve(vectorStoreId, batch.id);
+            latestBatch = await client.beta.vectorStores.fileBatches.retrieve(vectorStoreId, expectedBatchId);
             const counts = latestBatch.file_counts;
             const countsKey = `${counts.completed}/${counts.failed}/${counts.in_progress}/${counts.cancelled}/${counts.total}`;
             const nowMs = Date.now();
+            const returnedBatchId = latestBatch.id;
+            const batchIdMismatch = returnedBatchId !== expectedBatchId;
             const shouldLog =
                 this.options.isVerbose &&
                 (latestBatch.status !== lastStatus ||
                     countsKey !== lastCountsKey ||
                     nowMs - lastLogAtMs >= progressLogIntervalMs);
 
+            if (batchIdMismatch && !loggedBatchIdMismatch) {
+                console.error('[🤰]', 'Vector store file batch id mismatch', {
+                    vectorStoreId,
+                    expectedBatchId,
+                    returnedBatchId,
+                    status: latestBatch.status,
+                    fileCounts: counts,
+                    logLabel,
+                });
+                loggedBatchIdMismatch = true;
+            }
+
             if (shouldLog) {
                 console.info('[🤰]', 'Vector store file batch status', {
                     vectorStoreId,
-                    batchId: latestBatch.id,
+                    batchId: expectedBatchId,
+                    ...(batchIdMismatch ? { returnedBatchId } : {}),
                     status: latestBatch.status,
                     fileCounts: counts,
                     elapsedMs: nowMs - pollStartedAtMs,
@@ -843,7 +860,8 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                 if (this.options.isVerbose) {
                     console.info('[🤰]', 'Vector store file batch completed', {
                         vectorStoreId,
-                        batchId: latestBatch.id,
+                        batchId: expectedBatchId,
+                        ...(batchIdMismatch ? { returnedBatchId } : {}),
                         fileCounts: latestBatch.file_counts,
                         elapsedMs: Date.now() - uploadStartedAtMs,
                         logLabel,
@@ -853,7 +871,8 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                 if (latestBatch.file_counts.failed > 0) {
                     console.error('[🤰]', 'Vector store file batch completed with failures', {
                         vectorStoreId,
-                        batchId: latestBatch.id,
+                        batchId: expectedBatchId,
+                        ...(batchIdMismatch ? { returnedBatchId } : {}),
                         fileCounts: latestBatch.file_counts,
                         logLabel,
                     });
@@ -865,7 +884,8 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             if (latestBatch.status === 'failed' || latestBatch.status === 'cancelled') {
                 console.error('[🤰]', 'Vector store file batch did not complete', {
                     vectorStoreId,
-                    batchId: latestBatch.id,
+                    batchId: expectedBatchId,
+                    ...(batchIdMismatch ? { returnedBatchId } : {}),
                     status: latestBatch.status,
                     fileCounts: latestBatch.file_counts,
                     elapsedMs: Date.now() - uploadStartedAtMs,
@@ -877,7 +897,8 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             if (nowMs - pollStartedAtMs >= uploadTimeoutMs) {
                 console.error('[🤰]', 'Timed out waiting for vector store file batch', {
                     vectorStoreId,
-                    batchId: latestBatch.id,
+                    batchId: expectedBatchId,
+                    ...(batchIdMismatch ? { returnedBatchId } : {}),
                     fileCounts: latestBatch.file_counts,
                     elapsedMs: nowMs - pollStartedAtMs,
                     uploadTimeoutMs,
@@ -885,11 +906,12 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                 });
 
                 try {
-                    await client.beta.vectorStores.fileBatches.cancel(vectorStoreId, latestBatch.id);
+                    await client.beta.vectorStores.fileBatches.cancel(vectorStoreId, expectedBatchId);
                     if (this.options.isVerbose) {
                         console.info('[🤰]', 'Cancelled vector store file batch after timeout', {
                             vectorStoreId,
-                            batchId: latestBatch.id,
+                            batchId: expectedBatchId,
+                            ...(batchIdMismatch ? { returnedBatchId } : {}),
                             logLabel,
                         });
                     }
@@ -897,7 +919,8 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                     assertsError(error);
                     console.error('[🤰]', 'Failed to cancel vector store file batch after timeout', {
                         vectorStoreId,
-                        batchId: latestBatch.id,
+                        batchId: expectedBatchId,
+                        ...(batchIdMismatch ? { returnedBatchId } : {}),
                         logLabel,
                         error: serializeError(error),
                     });
