@@ -1,8 +1,5 @@
 'use client';
 
-import { useMemo } from 'react';
-import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout';
-import { Viewer, Worker } from '@react-pdf-viewer/core';
 import { classNames } from '../../_common/react-utils/classNames';
 import { CloseIcon } from '../../icons/CloseIcon';
 import { DownloadIcon } from '../../icons/DownloadIcon';
@@ -12,8 +9,6 @@ import type { ParsedCitation } from '../utils/parseCitationsFromContent';
 import { resolveCitationUrl } from '../utils/resolveCitationUrl';
 import styles from './Chat.module.css';
 import type { ChatSoundSystem } from './ChatProps';
-
-const PDF_WORKER_URL = 'https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
 
 /**
  * Props for the citation preview modal.
@@ -27,42 +22,6 @@ export type ChatCitationModalProps = {
     soundSystem?: ChatSoundSystem;
     onClose: () => void;
 };
-
-/**
- * Props for rendering a PDF citation preview.
- */
-type PdfCitationPreviewProps = {
-    /**
-     * URL to the PDF file.
-     */
-    fileUrl: string;
-};
-
-/**
- * Renders a PDF citation preview using react-pdf-viewer.
- */
-function PdfCitationPreview({ fileUrl }: PdfCitationPreviewProps) {
-    const layoutPluginInstance = useMemo(() => defaultLayoutPlugin(), []);
-
-    return (
-        <div className={styles.citationPreview}>
-            <div className={styles.citationPdfViewer}>
-                <Worker workerUrl={PDF_WORKER_URL}>
-                    <Viewer
-                        fileUrl={fileUrl}
-                        plugins={[layoutPluginInstance]}
-                        renderError={() => (
-                            <div className={styles.noResults}>
-                                <p>Document preview unavailable</p>
-                            </div>
-                        )}
-                        renderLoader={() => <div className={styles.citationLoading}>Loading document...</div>}
-                    />
-                </Worker>
-            </div>
-        </div>
-    );
-}
 
 /**
  * Modal that previews a citation source or excerpt.
@@ -80,7 +39,6 @@ export function ChatCitationModal(props: ChatCitationModalProps) {
     const isValidUrl = !!resolvedUrl;
     const extension = citation.source.split('.').pop()?.toLowerCase();
     const isImage = ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(extension || '');
-    const isPdf = extension === 'pdf';
 
     return (
         <div
@@ -103,8 +61,8 @@ export function ChatCitationModal(props: ChatCitationModalProps) {
                 <div className={styles.searchModalContent}>
                     <div className={styles.citationDetails}>
                         {isValidUrl ? (
-                            isImage ? (
-                                <div className={styles.citationPreview}>
+                            <div className={styles.citationPreview}>
+                                {isImage ? (
                                     <img
                                         src={resolvedUrl}
                                         className={styles.citationImage}
@@ -117,19 +75,14 @@ export function ChatCitationModal(props: ChatCitationModalProps) {
                                             margin: '0 auto',
                                         }}
                                     />
-                                </div>
-                            ) : isPdf ? (
-                                <PdfCitationPreview fileUrl={resolvedUrl} />
-                            ) : citation.excerpt ? (
-                                <div className={styles.citationExcerpt}>
-                                    <h4>Excerpt:</h4>
-                                    <MarkdownContent content={citation.excerpt} />
-                                </div>
-                            ) : (
-                                <div className={styles.noResults}>
-                                    <p>Document preview unavailable</p>
-                                </div>
-                            )
+                                ) : (
+                                    <iframe
+                                        src={resolvedUrl}
+                                        className={styles.citationIframe}
+                                        title={`Preview of ${citation.source}`}
+                                    />
+                                )}
+                            </div>
                         ) : citation.excerpt ? (
                             <div className={styles.citationExcerpt}>
                                 <h4>Excerpt:</h4>
