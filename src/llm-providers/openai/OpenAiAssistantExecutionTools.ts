@@ -710,7 +710,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
         const assistantConfig: OpenAI.Beta.AssistantCreateParams = {
             name,
             description: 'Assistant created via Promptbook',
-            model: 'gpt-4o-mini',
+            model: 'gpt-4o',
             instructions,
             tools: [
                 /* TODO: [🧠] Maybe add { type: 'code_interpreter' }, */
