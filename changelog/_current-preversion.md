@@ -32,6 +32,8 @@
 -   Added per-knowledge-source download timeouts plus richer logging during OpenAI assistant knowledge ingestion to pinpoint stalls.
 -   Added detailed OpenAI vector store upload progress logs (file uploads, batch polling, timeouts) to prevent assistant preparation from hanging silently.
 -   Fixed OpenAI vector store batch polling to log expected vs. returned batch IDs and cancel using the created batch ID when mismatches occur.
+-   Implemented chunking for OpenAI vector store file uploads (20 files per batch) to prevent processing bottlenecks and timeouts for large knowledge bases.
+-   Enhanced assistant preparation logging with `[🤰]` tags to provide better visibility into multi-chunk upload progress and status.
 -   Scoped the "Preparing agent: Creating assistant" chip in Agents Server to cache misses by emitting it only when a new assistant is created from cache lookup.
 -   Fixed Agents Server chat to always return a fallback message when the model produces an empty response, including streaming and OpenAI-compatible endpoints.
 -   Fixed Agents Server Book editor multi-file uploads by debouncing editor updates, tracking placeholders safely, and adding a floating upload panel with pause/resume controls and upload stats.
