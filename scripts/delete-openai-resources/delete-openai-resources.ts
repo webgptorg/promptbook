@@ -80,6 +80,8 @@ type DeletionTask<TSummary extends { id: string }> = {
     label: string;
     items: TSummary[];
     deleteItem: (item: TSummary) => Promise<void>;
+    startIndex?: number;
+    totalCount?: number;
 };
 
 /**
@@ -141,24 +143,41 @@ async function main(): Promise<void> {
         return;
     }
 
+    const totalCount = assistants.length + vectorStores.length + files.length;
+    let currentIndex = 0;
+
     const assistantResult = await deleteSequentially({
         label: 'assistant',
         items: assistants,
-        deleteItem: (assistant) => client.beta.assistants.del(assistant.id),
+        deleteItem: async (assistant) => {
+            await client.beta.assistants.del(assistant.id);
+        },
+        startIndex: currentIndex,
+        totalCount,
     });
+    currentIndex += assistants.length;
     logDeletionSummary('assistant', assistantResult);
 
     const vectorStoreResult = await deleteSequentially({
         label: 'vector store',
         items: vectorStores,
-        deleteItem: (vectorStore) => client.beta.vectorStores.del(vectorStore.id),
+        deleteItem: async (vectorStore) => {
+            await client.beta.vectorStores.del(vectorStore.id);
+        },
+        startIndex: currentIndex,
+        totalCount,
     });
+    currentIndex += vectorStores.length;
     logDeletionSummary('vector store', vectorStoreResult);
 
     const fileResult = await deleteSequentially({
         label: 'file',
         items: files,
-        deleteItem: (file) => client.files.del(file.id),
+        deleteItem: async (file) => {
+            await client.files.del(file.id);
+        },
+        startIndex: currentIndex,
+        totalCount,
     });
     logDeletionSummary('file', fileResult);
 }
@@ -268,11 +287,7 @@ function mapFileToSummary(file: OpenAiFileListItem): FileSummary {
 /**
  * Prints a summary list of resources scheduled for deletion.
  */
-function printSummary<TSummary>(
-    heading: string,
-    items: TSummary[],
-    formatLine: (item: TSummary) => string,
-): void {
+function printSummary<TSummary>(heading: string, items: TSummary[], formatLine: (item: TSummary) => string): void {
     console.info(colors.yellow(heading));
     for (const item of items) {
         console.info(`- ${formatLine(item)}`);
@@ -338,16 +353,22 @@ async function deleteSequentially<TSummary extends { id: string }>(
     const deleted: TSummary[] = [];
     const failed: DeletionFailure<TSummary>[] = [];
 
+    const showProgress = task.startIndex !== undefined && task.totalCount !== undefined;
+    let currentIndex = task.startIndex ?? 0;
+
     for (const item of task.items) {
+        currentIndex++;
         const id = item.id;
-        console.info(colors.gray(`Deleting ${task.label} ${id}...`));
+        const progressPrefix = showProgress ? `[${currentIndex}/${task.totalCount}] ` : '';
+
+        console.info(colors.gray(`${progressPrefix}Deleting ${task.label} ${id}...`));
         try {
             await task.deleteItem(item);
-            console.info(colors.green(`Deleted ${task.label} ${id}.`));
+            // console.info(colors.green(`${progressPrefix}Deleted ${task.label} ${id}.`));
             deleted.push(item);
         } catch (error) {
             const reason = formatError(error);
-            console.error(colors.red(`Failed to delete ${task.label} ${id}: ${reason}`));
+            console.error(colors.red(`${progressPrefix}Failed to delete ${task.label} ${id}: ${reason}`));
             failed.push({ item, reason });
         }
     }
