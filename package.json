@@ -303,7 +303,7 @@
         "@dnd-kit/sortable": "^10.0.0",
         "@dnd-kit/utilities": "^3.2.2",
         "@elevenlabs/react": "^0.12.3",
-        "@modelcontextprotocol/sdk": "^1.24.3",
+        "@modelcontextprotocol/sdk": "^1.26.0",
         "@monaco-editor/react": "4.7.0",
         "@mozilla/readability": "0.6.0",
         "@react-pdf-viewer/core": "^3.12.0",
