@@ -4,7 +4,7 @@ import type { string_url, string_url_image } from '../../types/typeAliases';
 
 /**
  * Options for resolving agent avatar URLs.
- * 
+ *
  * @private utility of `<Chat/>`
  */
 export type ResolveAgentAvatarImageUrlOptions = {
@@ -20,7 +20,7 @@ export type ResolveAgentAvatarImageUrlOptions = {
 
 /**
  * Resolve a base URL for relative images, preferring the provided base or browser location.
- * 
+ *
  * @private utility of `<Chat/>`
  */
 function resolveImageBaseUrl(baseUrl?: string_url): string | null {
@@ -41,7 +41,7 @@ function resolveImageBaseUrl(baseUrl?: string_url): string | null {
 
 /**
  * Resolve a base URL for placeholders, preferring server origin or browser origin.
- * 
+ *
  * @private utility of `<Chat/>`
  */
 function resolvePlaceholderBaseUrl(baseUrl?: string_url): string_url | null {
@@ -62,7 +62,7 @@ function resolvePlaceholderBaseUrl(baseUrl?: string_url): string_url | null {
 
 /**
  * Resolve a meta image URL to an absolute or usable path.
- * 
+ *
  * @private utility of `<Chat/>`
  */
 function resolveMetaImageUrl(metaImage: string_url_image, baseUrl: string | null): string_url_image {
@@ -88,12 +88,10 @@ function resolveMetaImageUrl(metaImage: string_url_image, baseUrl: string | null
 
 /**
  * Resolve the fallback avatar URL for an agent.
- * 
+ *
  * @private utility of `<Chat/>`
  */
-export function resolveAgentAvatarFallbackUrl(
-    options: ResolveAgentAvatarImageUrlOptions,
-): string_url_image | null {
+export function resolveAgentAvatarFallbackUrl(options: ResolveAgentAvatarImageUrlOptions): string_url_image | null {
     const { agent, baseUrl } = options;
     const agentId = agent.permanentId || agent.agentName;
 
@@ -111,7 +109,7 @@ export function resolveAgentAvatarFallbackUrl(
 
 /**
  * Resolve the best avatar URL for an agent, preferring META IMAGE and falling back to placeholders.
- * 
+ *
  * @private utility of `<Chat/>`
  */
 export function resolveAgentAvatarImageUrl(options: ResolveAgentAvatarImageUrlOptions): string_url_image | null {

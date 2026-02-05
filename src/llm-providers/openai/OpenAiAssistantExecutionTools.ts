@@ -854,7 +854,9 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
         const fileTypeSummary: Record<string, { count: number; totalBytes: number }> = {};
         for (const file of files) {
             const filename = file.name ?? '';
-            const extension = filename.includes('.') ? filename.split('.').pop()?.toLowerCase() ?? 'unknown' : 'unknown';
+            const extension = filename.includes('.')
+                ? filename.split('.').pop()?.toLowerCase() ?? 'unknown'
+                : 'unknown';
             const sizeBytes = typeof file.size === 'number' ? file.size : 0;
             const summary = fileTypeSummary[extension] ?? { count: 0, totalBytes: 0 };
             summary.count += 1;
@@ -883,7 +885,9 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             for (const { file, index } of iterator) {
                 const uploadIndex = index + 1;
                 const filename = file.name || `knowledge-source-${uploadIndex}`;
-                const extension = filename.includes('.') ? filename.split('.').pop()?.toLowerCase() ?? 'unknown' : 'unknown';
+                const extension = filename.includes('.')
+                    ? filename.split('.').pop()?.toLowerCase() ?? 'unknown'
+                    : 'unknown';
                 const sizeBytes = typeof file.size === 'number' ? file.size : undefined;
                 const fileUploadStartedAtMs = Date.now();
 
@@ -1064,7 +1068,10 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                 lastLogAtMs = nowMs;
             }
 
-            if (nowMs - lastProgressAtMs >= diagnosticsIntervalMs && nowMs - lastDiagnosticsAtMs >= diagnosticsIntervalMs) {
+            if (
+                nowMs - lastProgressAtMs >= diagnosticsIntervalMs &&
+                nowMs - lastDiagnosticsAtMs >= diagnosticsIntervalMs
+            ) {
                 lastDiagnosticsAtMs = nowMs;
                 await this.logVectorStoreFileBatchDiagnostics({
                     client,

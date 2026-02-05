@@ -7,11 +7,9 @@ import {
     parseToolCallResult,
 } from './toolCallParsing';
 
-
-
 /**
  * Tool call chiplet information including agent data for team tools
- * 
+ *
  * @private utility of `<Chat/>`
  */
 export type ToolCallChipletInfo = {

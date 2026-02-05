@@ -323,7 +323,10 @@ export class OpenAiAgentExecutionTools extends OpenAiExecutionTools implements L
                 const pollStartedAtMs = Date.now();
                 let latestBatch = batch;
 
-                while (latestBatch.status === ('in_progress' as TODO_any) || latestBatch.status === ('queued' as TODO_any)) {
+                while (
+                    latestBatch.status === ('in_progress' as TODO_any) ||
+                    latestBatch.status === ('queued' as TODO_any)
+                ) {
                     if (Date.now() - pollStartedAtMs >= uploadTimeoutMs) {
                         console.error('[🤰]', 'Timed out waiting for vector store file batch (Agentic API)', {
                             vectorStoreId,

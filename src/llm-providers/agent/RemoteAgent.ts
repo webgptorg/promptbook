@@ -99,10 +99,12 @@ function buildRemoteAgentSource(profile: RemoteAgentProfile, meta: RemoteAgentPr
         .filter((line): line is string => Boolean(line))
         .join('\n');
     const personaBlock = profile.personaDescription
-        ? spaceTrim((block) => `
+        ? spaceTrim(
+              (block) => `
             PERSONA
             ${block(profile.personaDescription || '')}
-        `)
+        `,
+          )
         : '';
 
     return book`

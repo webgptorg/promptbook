@@ -20,7 +20,11 @@ import { isTeamToolName } from '../utils/createTeamToolNameFromUrl';
 import { getChatMessageTimingDisplay } from '../utils/getChatMessageTimingDisplay';
 import type { ToolCallChipletInfo } from '../utils/getToolCallChipletInfo';
 import { buildToolCallChipText, getToolCallChipletInfo, TOOL_TITLES } from '../utils/getToolCallChipletInfo';
-import { dedupeCitationsBySource, extractCitationsFromMessage, type ParsedCitation } from '../utils/parseCitationsFromContent';
+import {
+    dedupeCitationsBySource,
+    extractCitationsFromMessage,
+    type ParsedCitation,
+} from '../utils/parseCitationsFromContent';
 import { parseMessageButtons } from '../utils/parseMessageButtons';
 import { parseToolCallArguments } from '../utils/toolCallParsing';
 import { collectTeamToolCallSummary } from '../utils/collectTeamToolCallSummary';
@@ -259,10 +263,7 @@ export const ChatMessageItem = memo(
         const completedToolCalls = (message.toolCalls || message.completedToolCalls)?.filter(
             (toolCall) => !isAssistantPreparationToolCall(toolCall),
         );
-        const teamToolCallSummary = useMemo(
-            () => collectTeamToolCallSummary(completedToolCalls),
-            [completedToolCalls],
-        );
+        const teamToolCallSummary = useMemo(() => collectTeamToolCallSummary(completedToolCalls), [completedToolCalls]);
         const transitiveToolCalls = teamToolCallSummary.toolCalls;
         const transitiveCitations = teamToolCallSummary.citations;
         const shouldShowButtons = isLastMessage && buttons.length > 0 && onMessage;
