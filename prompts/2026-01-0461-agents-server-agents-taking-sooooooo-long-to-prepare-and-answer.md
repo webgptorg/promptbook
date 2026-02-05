@@ -12,6 +12,7 @@
 -   This ends up with the timeout and resulting GPT assistant has no knowledge from the uploaded files.
 -   OR in the Vercel deployment, it just ends on timeout
 -   Problematic step seems to be "[🤰] Vector store file batch status"
+-   I have analyzed this problem deeper, and it looks like some problem with PDF files because Markdown files aren't doing this problem and are uploaded to vector store without any problem. It looks like the OpenAI vector store file processing is having some problems with PDF files, but I am not sure.
 -   Fix it or at least log more info about what is happening under the hood.
 -   Logs connected to this issue are marked with `[🤰]` tag
 -   You are working with the [Agents Server](apps/agents-server) with the agent chat _(for example, [here](https://my-agent-server.com/agents/FVLv8APAf2S1WV/chat))_
