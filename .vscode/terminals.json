@@ -211,6 +211,13 @@
             "focus": true
         },
         {
+            "name": "🗑️ Delete OpenAI resources (files + vector stores)",
+            "command": "npx ts-node ./scripts/delete-openai-resources/delete-openai-resources.ts",
+            "execute": false,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
             "name": "🏭💉 Import markdowns",
             "command": "npm run import-markdowns",
             "execute": true,

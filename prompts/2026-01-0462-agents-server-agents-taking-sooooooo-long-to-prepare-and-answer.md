@@ -20,7 +20,7 @@
 
 ---
 
-[ ]
+[x] ~$0.70 by OpenAI Codex `gpt-5.2-codex`
 
 [✨📰] Create script that will batch delete all the files and vector stores on OpenAI
 
@@ -31,4 +31,5 @@
 -   Handle pagination if there are many assistants, delete really all of them not just first page.
 -   Look at `scripts` folder and `scripts/delete-openai-assistants/delete-openai-assistants.ts` for reference and insporation.
 -   Add it into `.vscode/terminals.json`
+
 
