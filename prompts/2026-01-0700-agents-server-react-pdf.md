@@ -1,5 +1,5 @@
-[ ] !!
-[x] ~$1.03 by OpenAI Codex `gpt-5.2-codex` - implementing `react-pdf`
+[x] ~$1.02 by OpenAI Codex `gpt-5.2-codex` - implementing `react-pdf-viewer` - problem with dependencies `canvas`
+[x] ~$1.03 by OpenAI Codex `gpt-5.2-codex` - implementing `react-pdf` - problem with dependencies
 
 [✨📕] Use `react-pdf-viewer` to view the source documents in the Chat instead of iframe.
 
