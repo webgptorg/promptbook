@@ -73,7 +73,6 @@ export function AgentProfile(props: AgentProfileProps) {
         agentUrl = '',
         agentEmail = '',
         publicUrl,
-        permanentId,
         renderMenu,
         children,
         actions,
