@@ -34,18 +34,6 @@ export class OpenAiExecutionTools extends OpenAiCompatibleExecutionTools impleme
         return OPENAI_PROVIDER_PROFILE;
     }
 
-    /*
-    Note: Commenting this out to avoid circular dependency
-    /**
-     * Create (sub)tools for calling OpenAI API Assistants
-     *
-     * @param assistantId Which assistant to use
-     * @returns Tools for calling OpenAI API Assistants with same token
-     * /
-    public createAssistantSubtools(assistantId: string_token): OpenAiAssistantExecutionTools {
-        return new OpenAiAssistantExecutionTools({ ...this.options, assistantId });
-    }
-    */
 
     /**
      * List all available models (non dynamically)
