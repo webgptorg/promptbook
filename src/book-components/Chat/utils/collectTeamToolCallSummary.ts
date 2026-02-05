@@ -6,6 +6,8 @@ import { parseTeamToolResult, parseToolCallResult, type TeamToolResult } from '.
 
 /**
  * Origin metadata for a tool call or citation executed by a teammate.
+ * 
+ * @private utility of `<Chat/>`
  */
 export type ToolCallOrigin = {
     /**
@@ -24,6 +26,8 @@ export type ToolCallOrigin = {
 
 /**
  * Tool call data enriched with its teammate origin.
+ * 
+ * @private utility of `<Chat/>`
  */
 export type TransitiveToolCall = {
     /**
@@ -38,6 +42,8 @@ export type TransitiveToolCall = {
 
 /**
  * Citation data enriched with its teammate origin.
+ * 
+ * @private utility of `<Chat/>`
  */
 export type TransitiveCitation = ParsedCitation & {
     /**
@@ -48,6 +54,8 @@ export type TransitiveCitation = ParsedCitation & {
 
 /**
  * Aggregated teammate tool calls and citations derived from TEAM tool results.
+ * 
+ * @private utility of `<Chat/>`
  */
 export type TeamToolCallSummary = {
     /**
@@ -64,6 +72,7 @@ export type TeamToolCallSummary = {
  * Collects tool calls and citations from TEAM tool call results, resolving nested teammate chains.
  *
  * @param toolCalls - Tool calls from the top-level agent message.
+ * @private utility of `<Chat/>`
  */
 export function collectTeamToolCallSummary(toolCalls: ReadonlyArray<ToolCall> | undefined): TeamToolCallSummary {
     const summary: TeamToolCallSummary = { toolCalls: [], citations: [] };
@@ -91,6 +100,8 @@ export function collectTeamToolCallSummary(toolCalls: ReadonlyArray<ToolCall> | 
  * @param seenTeamToolCalls - De-duplication set for TEAM tool calls.
  * @param seenToolCalls - De-duplication set for tool call outputs.
  * @param seenCitations - De-duplication set for citations.
+ * 
+ * @private utility of `<Chat/>`
  */
 function collectFromTeamToolCall(
     toolCall: ToolCall,
@@ -137,6 +148,8 @@ function collectFromTeamToolCall(
  * Builds a display-ready origin object for a teammate tool call.
  *
  * @param teamResult - Parsed TEAM tool result.
+ * 
+ * @private utility of `<Chat/>`
  */
 function buildOrigin(teamResult: TeamToolResult): ToolCallOrigin {
     const label =
@@ -199,6 +212,8 @@ function collectTeamCitations(
  *
  * @param toolCall - Tool call to key.
  * @param origin - Optional origin metadata for the tool call.
+ * 
+ * @private utility of `<Chat/>`
  */
 function buildToolCallKey(toolCall: ToolCall, origin?: ToolCallOrigin): string {
     const rawId = (toolCall.rawToolCall as { id?: string } | undefined)?.id;
@@ -228,6 +243,8 @@ function buildToolCallKey(toolCall: ToolCall, origin?: ToolCallOrigin): string {
  *
  * @param citation - Citation to key.
  * @param origin - Origin metadata for the citation.
+ * 
+ * @private utility of `<Chat/>`
  */
 function buildCitationKey(citation: ParsedCitation, origin: ToolCallOrigin): string {
     return `${origin.label}:${citation.id}:${citation.source}`;

@@ -7,12 +7,12 @@ import {
     parseToolCallResult,
 } from './toolCallParsing';
 
-/**
- * Utility to format tool call information for user-friendly display.
- */
+
 
 /**
  * Tool call chiplet information including agent data for team tools
+ * 
+ * @private utility of `<Chat/>`
  */
 export type ToolCallChipletInfo = {
     /**
@@ -37,6 +37,8 @@ export type ToolCallChipletInfo = {
  * Builds display text for a tool call chiplet.
  *
  * @param chipletInfo - Chiplet metadata for the tool call.
+ *
+ * @private utility of `<Chat/>`
  */
 export function buildToolCallChipText(chipletInfo: ToolCallChipletInfo): string {
     if (chipletInfo.wrapInBrackets === false) {
@@ -49,7 +51,8 @@ export function buildToolCallChipText(chipletInfo: ToolCallChipletInfo): string 
 /**
  * Technical to user-friendly tool names and emojis
  *
- * @private [🧠] Maybe public?
+ * @private utility of `<Chat/>` [🧠] Maybe public?
+ *
  */
 export const TOOL_TITLES: Record<string, { title: string; emoji: string; wrapInBrackets?: boolean }> = {
     [ASSISTANT_PREPARATION_TOOL_CALL_NAME]: { title: 'Preparing agent', emoji: '...' },
