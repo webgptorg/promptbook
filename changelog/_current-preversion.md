@@ -2,6 +2,7 @@
 
 -   Reported word-based usage for OpenAI/OpenRouter compatibility chat completions in Agents Server, including native Promptbook usage details.
 -   Wired Agents Server chat to reuse cached OpenAI Assistants (external preparation), building assistants from full model requirements and bumping the cache key version to avoid stale knowledge bases.
+-   Added a script to batch delete OpenAI assistants with pagination and a confirmation prompt.
 
 -   Added root nonce test files `nonce-foo-1.txt` and `nonce-bar-1.txt` for coding agent verification.
 -   Regenerated the Agents Server Supabase subset schema for `Agent` and `AgentHistory` to stay aligned with the canonical database schema.

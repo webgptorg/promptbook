@@ -1,4 +1,4 @@
-[ ] !
+[x] ~$0.58 by OpenAI Codex `gpt-5.2-codex`
 
 [✨📰] Create script that will batch delete all the OpenAI GPT assistants
 
@@ -9,3 +9,4 @@
 -   Handle pagination if there are many assistants.
 -   Look at `scripts` folder
 -   Add it into `.vscode/terminals.json`
+
