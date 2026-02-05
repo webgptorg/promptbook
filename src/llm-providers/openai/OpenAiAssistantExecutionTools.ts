@@ -166,6 +166,35 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                 file_id: fileId,
                 tools: [{ type: 'file_search' }, { type: 'code_interpreter' }],
             }));
+
+            // [🐛] Also add files to the assistant's vector store if it exists
+            if (this.assistantId) {
+                try {
+                    const assistant = await client.beta.assistants.retrieve(this.assistantId);
+                    const vectorStoreIds = assistant.tool_resources?.file_search?.vector_store_ids;
+
+                    if (vectorStoreIds && vectorStoreIds.length > 0) {
+                        // Add files to the first vector store
+                        const vectorStoreId = vectorStoreIds[0];
+
+                        for (const fileId of fileIds) {
+                            try {
+                                await client.beta.vectorStores.files.create(vectorStoreId! /* <- !!!!!!!!!!!! */, {
+                                    file_id: fileId,
+                                });
+
+                                if (this.options.isVerbose) {
+                                    console.info(`📎 Added file ${fileId} to vector store ${vectorStoreId}`);
+                                }
+                            } catch (error) {
+                                console.error(`Failed to add file ${fileId} to vector store:`, error);
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error('Failed to retrieve assistant or add files to vector store:', error);
+                }
+            }
         }
 
         threadMessages.push(currentUserMessage as { role: 'user' | 'assistant'; content: string });
@@ -621,7 +650,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
         // If knowledge sources are provided, create a vector store with them
         if (knowledgeSources && knowledgeSources.length > 0) {
             if (this.options.isVerbose) {
-                console.info('[🤰]', 'Creating vector store with knowledge sources', {
+                console.info('[TRACE]', 'Creating vector store with knowledge sources', {
                     name,
                     knowledgeSourcesCount,
                 });
@@ -634,7 +663,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             vectorStoreId = vectorStore.id;
 
             if (this.options.isVerbose) {
-                console.info('[🤰]', 'Vector store created', {
+                console.info('[TRACE]', 'Vector store created', {
                     vectorStoreId,
                 });
             }
@@ -644,7 +673,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             for (const [index, source] of knowledgeSources.entries()) {
                 try {
                     if (this.options.isVerbose) {
-                        console.info('[🤰]', 'Processing knowledge source', {
+                        console.info('[TRACE]', 'Processing knowledge source', {
                             index: index + 1,
                             total: knowledgeSources.length,
                             source,
@@ -695,7 +724,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                     });
 
                     if (this.options.isVerbose) {
-                        console.info('[🤰]', 'Uploaded files to vector store', {
+                        console.info('[TRACE]', 'Uploaded files to vector store', {
                             vectorStoreId,
                             fileCount: fileStreams.length,
                         });
@@ -729,7 +758,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
         }
 
         if (this.options.isVerbose) {
-            console.info('[🤰]', 'Creating OpenAI assistant', {
+            console.info('[TRACE]', 'Creating OpenAI assistant', {
                 name,
                 model: assistantConfig.model,
                 toolCount: assistantConfig?.tools?.length,
@@ -740,7 +769,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
         const assistant = await client.beta.assistants.create(assistantConfig);
 
         if (this.options.isVerbose) {
-            console.info('[🤰]', 'OpenAI assistant created', {
+            console.info('[TRACE]', 'OpenAI assistant created', {
                 assistantId: assistant.id,
                 elapsedMs: Date.now() - preparationStartedAtMs,
             });
@@ -795,7 +824,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
         const toolsCount = tools?.length ?? 0;
 
         if (this.options.isVerbose) {
-            console.info('[🤰]', 'Starting OpenAI assistant update', {
+            console.info('[TRACE]', 'Starting OpenAI assistant update', {
                 assistantId,
                 name,
                 knowledgeSourcesCount,
@@ -811,7 +840,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
         // TODO: [🧠] Reuse vector store creation logic from createNewAssistant
         if (knowledgeSources && knowledgeSources.length > 0) {
             if (this.options.isVerbose) {
-                console.info('[🤰]', 'Creating vector store for assistant update', {
+                console.info('[TRACE]', 'Creating vector store for assistant update', {
                     assistantId,
                     name,
                     knowledgeSourcesCount,
@@ -825,7 +854,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             vectorStoreId = vectorStore.id;
 
             if (this.options.isVerbose) {
-                console.info('[🤰]', 'Vector store created for assistant update', {
+                console.info('[TRACE]', 'Vector store created for assistant update', {
                     vectorStoreId,
                 });
             }
@@ -835,7 +864,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             for (const [index, source] of knowledgeSources.entries()) {
                 try {
                     if (this.options.isVerbose) {
-                        console.info('[🤰]', 'Processing knowledge source for update', {
+                        console.info('[TRACE]', 'Processing knowledge source for update', {
                             index: index + 1,
                             total: knowledgeSources.length,
                             source,
@@ -886,7 +915,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                     });
 
                     if (this.options.isVerbose) {
-                        console.info('[🤰]', 'Uploaded files to vector store for update', {
+                        console.info('[TRACE]', 'Uploaded files to vector store for update', {
                             vectorStoreId,
                             fileCount: fileStreams.length,
                         });
@@ -916,7 +945,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
         }
 
         if (this.options.isVerbose) {
-            console.info('[🤰]', 'Updating OpenAI assistant', {
+            console.info('[TRACE]', 'Updating OpenAI assistant', {
                 assistantId,
                 name,
                 toolCount: assistantUpdate?.tools?.length,
@@ -927,7 +956,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
         const assistant = await client.beta.assistants.update(assistantId, assistantUpdate);
 
         if (this.options.isVerbose) {
-            console.info('[🤰]', 'OpenAI assistant updated', {
+            console.info('[TRACE]', 'OpenAI assistant updated', {
                 assistantId: assistant.id,
                 elapsedMs: Date.now() - preparationStartedAtMs,
             });
