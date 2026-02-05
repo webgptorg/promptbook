@@ -571,6 +571,255 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
         });
     }
 
+    /**
+     * Returns the per-knowledge-source download timeout in milliseconds.
+     */
+    private getKnowledgeSourceDownloadTimeoutMs(): number {
+        return this.options.knowledgeSourceDownloadTimeoutMs ?? 30000;
+    }
+
+    /**
+     * Downloads a knowledge source URL into a File for vector store upload.
+     */
+    private async downloadKnowledgeSourceFile(options: {
+        readonly source: string;
+        readonly timeoutMs: number;
+        readonly logLabel: string;
+    }): Promise<{
+        readonly file: File;
+        readonly sizeBytes: number;
+        readonly filename: string;
+        readonly elapsedMs: number;
+    } | null> {
+        const { source, timeoutMs, logLabel } = options;
+        const startedAtMs = Date.now();
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+        if (this.options.isVerbose) {
+            console.info('[🤰]', 'Downloading knowledge source', {
+                source,
+                timeoutMs,
+                logLabel,
+            });
+        }
+
+        try {
+            const response = await fetch(source, { signal: controller.signal });
+
+            if (!response.ok) {
+                console.error('[🤰]', 'Failed to download knowledge source', {
+                    source,
+                    status: response.status,
+                    statusText: response.statusText,
+                    elapsedMs: Date.now() - startedAtMs,
+                    logLabel,
+                });
+                return null;
+            }
+
+            const buffer = await response.arrayBuffer();
+            let filename = source.split('/').pop() || 'downloaded-file';
+            try {
+                const url = new URL(source);
+                filename = url.pathname.split('/').pop() || filename;
+            } catch (error) {
+                // Keep default filename
+            }
+
+            const file = new File([buffer], filename);
+            const elapsedMs = Date.now() - startedAtMs;
+            const sizeBytes = buffer.byteLength;
+
+            if (this.options.isVerbose) {
+                console.info('[🤰]', 'Downloaded knowledge source', {
+                    source,
+                    filename,
+                    sizeBytes,
+                    elapsedMs,
+                    logLabel,
+                });
+            }
+
+            return { file, sizeBytes, filename, elapsedMs };
+        } catch (error) {
+            assertsError(error);
+            console.error('[🤰]', 'Error downloading knowledge source', {
+                source,
+                elapsedMs: Date.now() - startedAtMs,
+                logLabel,
+                error: serializeError(error),
+            });
+            return null;
+        } finally {
+            clearTimeout(timeoutId);
+        }
+    }
+
+    /**
+     * Creates a vector store and uploads knowledge sources, returning its ID.
+     */
+    private async createVectorStoreWithKnowledgeSources(options: {
+        readonly client: OpenAI;
+        readonly name: string_title;
+        readonly knowledgeSources: ReadonlyArray<string>;
+        readonly logLabel: string;
+    }): Promise<{
+        readonly vectorStoreId: string;
+        readonly uploadedFileCount: number;
+        readonly skippedCount: number;
+        readonly totalBytes: number;
+    }> {
+        const { client, name, knowledgeSources, logLabel } = options;
+        const knowledgeSourcesCount = knowledgeSources.length;
+        const downloadTimeoutMs = this.getKnowledgeSourceDownloadTimeoutMs();
+
+        if (this.options.isVerbose) {
+            console.info('[🤰]', 'Creating vector store with knowledge sources', {
+                name,
+                knowledgeSourcesCount,
+                downloadTimeoutMs,
+                logLabel,
+            });
+        }
+
+        const vectorStore = await client.beta.vectorStores.create({
+            name: `${name} Knowledge Base`,
+        });
+        const vectorStoreId = vectorStore.id;
+
+        if (this.options.isVerbose) {
+            console.info('[🤰]', 'Vector store created', {
+                vectorStoreId,
+                logLabel,
+            });
+        }
+
+        const fileStreams: File[] = [];
+        const skippedSources: Array<{ source: string; reason: string }> = [];
+        let totalBytes = 0;
+        const processingStartedAtMs = Date.now();
+
+        for (const [index, source] of knowledgeSources.entries()) {
+            try {
+                const sourceType = source.startsWith('http') || source.startsWith('https') ? 'url' : 'file';
+
+                if (this.options.isVerbose) {
+                    console.info('[🤰]', 'Processing knowledge source', {
+                        index: index + 1,
+                        total: knowledgeSourcesCount,
+                        source,
+                        sourceType,
+                        logLabel,
+                    });
+                }
+
+                // Check if it's a URL
+                if (source.startsWith('http://') || source.startsWith('https://')) {
+                    const downloadResult = await this.downloadKnowledgeSourceFile({
+                        source,
+                        timeoutMs: downloadTimeoutMs,
+                        logLabel,
+                    });
+
+                    if (downloadResult) {
+                        fileStreams.push(downloadResult.file);
+                        totalBytes += downloadResult.sizeBytes;
+                    } else {
+                        skippedSources.push({ source, reason: 'download_failed' });
+                    }
+                } else {
+                    skippedSources.push({ source, reason: 'unsupported_source_type' });
+
+                    if (this.options.isVerbose) {
+                        console.info('[🤰]', 'Skipping knowledge source (unsupported type)', {
+                            source,
+                            sourceType,
+                            logLabel,
+                        });
+                    }
+                    /*
+                    TODO: [?????] Resolve problem with browser environment
+                    // Assume it's a local file path
+                    // Note: This will work in Node.js environment
+                    // For browser environments, this would need different handling
+                    const fs = await import('fs');
+                    const fileStream = fs.createReadStream(source);
+                    fileStreams.push(fileStream);
+                    */
+                }
+            } catch (error) {
+                assertsError(error);
+                skippedSources.push({ source, reason: 'processing_error' });
+                console.error('[🤰]', 'Error processing knowledge source', {
+                    source,
+                    logLabel,
+                    error: serializeError(error),
+                });
+            }
+        }
+
+        if (this.options.isVerbose) {
+            console.info('[🤰]', 'Finished processing knowledge sources', {
+                total: knowledgeSourcesCount,
+                downloadedCount: fileStreams.length,
+                skippedCount: skippedSources.length,
+                totalBytes,
+                elapsedMs: Date.now() - processingStartedAtMs,
+                skippedSamples: skippedSources.slice(0, 3),
+                logLabel,
+            });
+        }
+
+        if (fileStreams.length > 0) {
+            const uploadStartedAtMs = Date.now();
+
+            if (this.options.isVerbose) {
+                console.info('[🤰]', 'Uploading files to vector store', {
+                    vectorStoreId,
+                    fileCount: fileStreams.length,
+                    totalBytes,
+                    logLabel,
+                });
+            }
+
+            try {
+                await client.beta.vectorStores.fileBatches.uploadAndPoll(vectorStoreId, {
+                    files: fileStreams,
+                });
+
+                if (this.options.isVerbose) {
+                    console.info('[🤰]', 'Uploaded files to vector store', {
+                        vectorStoreId,
+                        fileCount: fileStreams.length,
+                        elapsedMs: Date.now() - uploadStartedAtMs,
+                        logLabel,
+                    });
+                }
+            } catch (error) {
+                assertsError(error);
+                console.error('[🤰]', 'Error uploading files to vector store', {
+                    vectorStoreId,
+                    logLabel,
+                    error: serializeError(error),
+                });
+            }
+        } else if (this.options.isVerbose) {
+            console.info('[🤰]', 'No knowledge source files to upload', {
+                vectorStoreId,
+                skippedCount: skippedSources.length,
+                logLabel,
+            });
+        }
+
+        return {
+            vectorStoreId,
+            uploadedFileCount: fileStreams.length,
+            skippedCount: skippedSources.length,
+            totalBytes,
+        };
+    }
+
     public async createNewAssistant(options: {
         /**
          * Name of the new assistant
@@ -620,90 +869,13 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
 
         // If knowledge sources are provided, create a vector store with them
         if (knowledgeSources && knowledgeSources.length > 0) {
-            if (this.options.isVerbose) {
-                console.info('[🤰]', 'Creating vector store with knowledge sources', {
-                    name,
-                    knowledgeSourcesCount,
-                });
-            }
-
-            // Create a vector store
-            const vectorStore = await client.beta.vectorStores.create({
-                name: `${name} Knowledge Base`,
+            const vectorStoreResult = await this.createVectorStoreWithKnowledgeSources({
+                client,
+                name,
+                knowledgeSources,
+                logLabel: 'assistant creation',
             });
-            vectorStoreId = vectorStore.id;
-
-            if (this.options.isVerbose) {
-                console.info('[🤰]', 'Vector store created', {
-                    vectorStoreId,
-                });
-            }
-
-            // Upload files from knowledge sources to the vector store
-            const fileStreams = [];
-            for (const [index, source] of knowledgeSources.entries()) {
-                try {
-                    if (this.options.isVerbose) {
-                        console.info('[🤰]', 'Processing knowledge source', {
-                            index: index + 1,
-                            total: knowledgeSources.length,
-                            source,
-                            sourceType: source.startsWith('http') || source.startsWith('https') ? 'url' : 'file',
-                        });
-                    }
-
-                    // Check if it's a URL
-                    if (source.startsWith('http://') || source.startsWith('https://')) {
-                        // Download the file
-                        const response = await fetch(source);
-                        if (!response.ok) {
-                            console.error(`Failed to download ${source}: ${response.statusText}`);
-                            continue;
-                        }
-                        const buffer = await response.arrayBuffer();
-                        let filename = source.split('/').pop() || 'downloaded-file';
-                        try {
-                            const url = new URL(source);
-                            filename = url.pathname.split('/').pop() || filename;
-                        } catch (error) {
-                            // Keep default filename
-                        }
-                        const blob = new Blob([buffer]);
-                        const file = new File([blob], filename);
-                        fileStreams.push(file);
-                    } else {
-                        /*
-                        TODO: [🐱‍🚀] Resolve problem with browser environment
-                        // Assume it's a local file path
-                        // Note: This will work in Node.js environment
-                        // For browser environments, this would need different handling
-                        const fs = await import('fs');
-                        const fileStream = fs.createReadStream(source);
-                        fileStreams.push(fileStream);
-                        */
-                    }
-                } catch (error) {
-                    console.error(`Error processing knowledge source ${source}:`, error);
-                }
-            }
-
-            // Batch upload files to the vector store
-            if (fileStreams.length > 0) {
-                try {
-                    await client.beta.vectorStores.fileBatches.uploadAndPoll(vectorStoreId, {
-                        files: fileStreams,
-                    });
-
-                    if (this.options.isVerbose) {
-                        console.info('[🤰]', 'Uploaded files to vector store', {
-                            vectorStoreId,
-                            fileCount: fileStreams.length,
-                        });
-                    }
-                } catch (error) {
-                    console.error('Error uploading files to vector store:', error);
-                }
-            }
+            vectorStoreId = vectorStoreResult.vectorStoreId;
         }
 
         // Create assistant with vector store attached
@@ -808,93 +980,14 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
         let vectorStoreId: string | undefined;
 
         // If knowledge sources are provided, create a vector store with them
-        // TODO: [🧠] Reuse vector store creation logic from createNewAssistant
         if (knowledgeSources && knowledgeSources.length > 0) {
-            if (this.options.isVerbose) {
-                console.info('[🤰]', 'Creating vector store for assistant update', {
-                    assistantId,
-                    name,
-                    knowledgeSourcesCount,
-                });
-            }
-
-            // Create a vector store
-            const vectorStore = await client.beta.vectorStores.create({
-                name: `${name} Knowledge Base`,
+            const vectorStoreResult = await this.createVectorStoreWithKnowledgeSources({
+                client,
+                name: name ?? assistantId,
+                knowledgeSources,
+                logLabel: 'assistant update',
             });
-            vectorStoreId = vectorStore.id;
-
-            if (this.options.isVerbose) {
-                console.info('[🤰]', 'Vector store created for assistant update', {
-                    vectorStoreId,
-                });
-            }
-
-            // Upload files from knowledge sources to the vector store
-            const fileStreams = [];
-            for (const [index, source] of knowledgeSources.entries()) {
-                try {
-                    if (this.options.isVerbose) {
-                        console.info('[🤰]', 'Processing knowledge source for update', {
-                            index: index + 1,
-                            total: knowledgeSources.length,
-                            source,
-                            sourceType: source.startsWith('http') || source.startsWith('https') ? 'url' : 'file',
-                        });
-                    }
-
-                    // Check if it's a URL
-                    if (source.startsWith('http://') || source.startsWith('https://')) {
-                        // Download the file
-                        const response = await fetch(source);
-                        if (!response.ok) {
-                            console.error(`Failed to download ${source}: ${response.statusText}`);
-                            continue;
-                        }
-                        const buffer = await response.arrayBuffer();
-                        let filename = source.split('/').pop() || 'downloaded-file';
-                        try {
-                            const url = new URL(source);
-                            filename = url.pathname.split('/').pop() || filename;
-                        } catch (error) {
-                            // Keep default filename
-                        }
-                        const blob = new Blob([buffer]);
-                        const file = new File([blob], filename);
-                        fileStreams.push(file);
-                    } else {
-                        /*
-                        TODO: [🐱‍🚀] Resolve problem with browser environment
-                        // Assume it's a local file path
-                        // Note: This will work in Node.js environment
-                        // For browser environments, this would need different handling
-                        const fs = await import('fs');
-                        const fileStream = fs.createReadStream(source);
-                        fileStreams.push(fileStream);
-                        */
-                    }
-                } catch (error) {
-                    console.error(`Error processing knowledge source ${source}:`, error);
-                }
-            }
-
-            // Batch upload files to the vector store
-            if (fileStreams.length > 0) {
-                try {
-                    await client.beta.vectorStores.fileBatches.uploadAndPoll(vectorStoreId, {
-                        files: fileStreams,
-                    });
-
-                    if (this.options.isVerbose) {
-                        console.info('[🤰]', 'Uploaded files to vector store for update', {
-                            vectorStoreId,
-                            fileCount: fileStreams.length,
-                        });
-                    }
-                } catch (error) {
-                    console.error('Error uploading files to vector store:', error);
-                }
-            }
+            vectorStoreId = vectorStoreResult.vectorStoreId;
         }
 
         const assistantUpdate: OpenAI.Beta.AssistantUpdateParams = {

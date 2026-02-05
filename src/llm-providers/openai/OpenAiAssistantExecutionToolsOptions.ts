@@ -21,4 +21,11 @@ export type OpenAiAssistantExecutionToolsOptions = OpenAiCompatibleExecutionTool
          */
         readonly assistantId: string_token;
         // <- TODO: [🧠] This should be maybe more like model for each prompt?
+
+        /**
+         * Per-knowledge-source download timeout in milliseconds when preparing assistants.
+         *
+         * @default 30000
+         */
+        readonly knowledgeSourceDownloadTimeoutMs?: number;
     };

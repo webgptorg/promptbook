@@ -28,6 +28,7 @@
 -   Added a shared Agents Server context menu with right-click support on agent cards, plus rename actions reused on agent profile pages.
 -   Added a chat preparation chip in Agents Server to signal when GPT assistants are being created before the first response.
 -   Added `[🤰]`-tagged assistant preparation logging (cache lookup, model requirement timing, assistant create/update, vector store progress) and surfaced preparation phases on the "Preparing agent" chip.
+-   Added per-knowledge-source download timeouts plus richer logging during OpenAI assistant knowledge ingestion to pinpoint stalls.
 -   Scoped the "Preparing agent: Creating assistant" chip in Agents Server to cache misses by emitting it only when a new assistant is created from cache lookup.
 -   Fixed Agents Server chat to always return a fallback message when the model produces an empty response, including streaming and OpenAI-compatible endpoints.
 -   Fixed Agents Server Book editor multi-file uploads by debouncing editor updates, tracking placeholders safely, and adding a floating upload panel with pause/resume controls and upload stats.
