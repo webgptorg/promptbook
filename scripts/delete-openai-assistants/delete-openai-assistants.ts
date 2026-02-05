@@ -8,7 +8,6 @@ import colors from 'colors';
 import OpenAI from 'openai';
 import { join } from 'path';
 import { createInterface } from 'readline';
-import { TODO_any } from '../../src/_packages/types.index';
 
 const ASSISTANTS_PAGE_LIMIT = 100;
 const ROOT_DIR = join(__dirname, '../..');
@@ -51,14 +50,9 @@ type AssistantDeletionFailure = {
 };
 
 /**
- * Minimal subset of the OpenAI assistant payload used by this script.
+ * OpenAI assistant payload used by this script.
  */
-type OpenAiAssistantListItem = {
-    id: string;
-    name: string | null;
-    model: string;
-    created_at: number;
-};
+type OpenAiAssistantListItem = OpenAI.Beta.Assistant;
 
 /**
  * Orchestrates listing, confirmation, and deletion of OpenAI assistants.
@@ -116,23 +110,10 @@ function getOpenAiApiKey(): string {
  */
 async function listAllAssistants(client: OpenAI): Promise<AssistantSummary[]> {
     const summaries: AssistantSummary[] = [];
-    let after: string | undefined = undefined;
-    let hasMore = true;
+    const assistantsPage = client.beta.assistants.list({ limit: ASSISTANTS_PAGE_LIMIT });
 
-    while (hasMore) {
-        const page: TODO_any = await client.beta.assistants.list({
-            limit: ASSISTANTS_PAGE_LIMIT,
-            after,
-        });
-        const pageSummaries = page.data.map(mapAssistantToSummary);
-        summaries.push(...pageSummaries);
-
-        hasMore = page.has_more ?? false;
-        after = page.last_id ?? undefined;
-
-        if (hasMore && !after) {
-            throw new Error('OpenAI pagination returned has_more without last_id.');
-        }
+    for await (const assistant of assistantsPage) {
+        summaries.push(mapAssistantToSummary(assistant));
     }
 
     return summaries;
