@@ -1,5 +1,6 @@
 ### 📚 Book
 
+-   Replaced OpenAI assistant knowledge ingestion timing magic numbers with named constants to satisfy lint rules.
 -   Reported word-based usage for OpenAI/OpenRouter compatibility chat completions in Agents Server, including native Promptbook usage details.
 -   Wired Agents Server chat to reuse cached OpenAI Assistants (external preparation), building assistants from full model requirements and bumping the cache key version to avoid stale knowledge bases.
 -   Added a script to batch delete OpenAI assistants with pagination and a confirmation prompt.

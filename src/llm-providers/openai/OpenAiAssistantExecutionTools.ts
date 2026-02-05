@@ -28,6 +28,11 @@ import { OpenAiExecutionTools } from './OpenAiExecutionTools';
 import { mapToolsToOpenAi } from './utils/mapToolsToOpenAi';
 import { uploadFilesToOpenAi } from './utils/uploadFilesToOpenAi';
 
+const DEFAULT_KNOWLEDGE_SOURCE_DOWNLOAD_TIMEOUT_MS = 30000;
+const DEFAULT_KNOWLEDGE_SOURCE_UPLOAD_TIMEOUT_MS = 900000;
+const VECTOR_STORE_PROGRESS_LOG_INTERVAL_MIN_MS = 15000;
+const VECTOR_STORE_STALL_LOG_THRESHOLD_MS = 30000;
+
 /**
  * Metadata for uploaded knowledge source files used for vector store diagnostics.
  */
@@ -584,7 +589,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
      * Returns the per-knowledge-source download timeout in milliseconds.
      */
     private getKnowledgeSourceDownloadTimeoutMs(): number {
-        return this.assistantOptions.knowledgeSourceDownloadTimeoutMs ?? 30000;
+        return this.assistantOptions.knowledgeSourceDownloadTimeoutMs ?? DEFAULT_KNOWLEDGE_SOURCE_DOWNLOAD_TIMEOUT_MS;
     }
 
     /**
@@ -605,7 +610,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
      * Returns the overall upload timeout in milliseconds for vector store uploads.
      */
     private getKnowledgeSourceUploadTimeoutMs(): number {
-        return this.assistantOptions.knowledgeSourceUploadTimeoutMs ?? 900000;
+        return this.assistantOptions.knowledgeSourceUploadTimeoutMs ?? DEFAULT_KNOWLEDGE_SOURCE_UPLOAD_TIMEOUT_MS;
     }
 
     /**
@@ -994,7 +999,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
         }
 
         const pollStartedAtMs = Date.now();
-        const progressLogIntervalMs = Math.max(15000, pollIntervalMs);
+        const progressLogIntervalMs = Math.max(VECTOR_STORE_PROGRESS_LOG_INTERVAL_MIN_MS, pollIntervalMs);
         const diagnosticsIntervalMs = Math.max(60000, pollIntervalMs * 5);
         let lastStatus: string | undefined;
         let lastCountsKey = '';
@@ -1004,8 +1009,9 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
         let lastDiagnosticsAtMs = pollStartedAtMs;
         let latestBatch = batch;
         let loggedBatchIdMismatch = false;
+        let shouldPoll = true;
 
-        while (true) {
+        while (shouldPoll) {
             latestBatch = await client.beta.vectorStores.fileBatches.retrieve(vectorStoreId, expectedBatchId);
             const counts = latestBatch.file_counts;
             const countsKey = `${counts.completed}/${counts.failed}/${counts.in_progress}/${counts.cancelled}/${counts.total}`;
@@ -1052,7 +1058,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                 });
 
                 // [🤰] If there are in-progress files for a long time, log their details
-                if (counts.in_progress > 0 && nowMs - lastProgressAtMs > 30000) {
+                if (counts.in_progress > 0 && nowMs - lastProgressAtMs > VECTOR_STORE_STALL_LOG_THRESHOLD_MS) {
                     await this.logVectorStoreFileBatchDiagnostics({
                         client,
                         vectorStoreId,
@@ -1113,7 +1119,8 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                     });
                 }
 
-                return latestBatch;
+                shouldPoll = false;
+                continue;
             }
 
             if (latestBatch.status === 'failed' || latestBatch.status === 'cancelled') {
@@ -1134,7 +1141,8 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                     logLabel,
                     reason: 'failed',
                 });
-                return latestBatch;
+                shouldPoll = false;
+                continue;
             }
 
             if (nowMs - pollStartedAtMs >= uploadTimeoutMs) {
@@ -1162,7 +1170,8 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                         vectorStoreId,
                         logLabel,
                     });
-                    return latestBatch;
+                    shouldPoll = false;
+                    continue;
                 }
 
                 try {
@@ -1199,11 +1208,14 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                     });
                 }
 
-                return latestBatch;
+                shouldPoll = false;
+                continue;
             }
 
             await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
         }
+
+        return latestBatch;
     }
 
     /**
