@@ -31,6 +31,7 @@
 -   Added `[🤰]`-tagged assistant preparation logging (cache lookup, model requirement timing, assistant create/update, vector store progress) and surfaced preparation phases on the "Preparing agent" chip.
 -   Added per-knowledge-source download timeouts plus richer logging during OpenAI assistant knowledge ingestion to pinpoint stalls.
 -   Added detailed OpenAI vector store upload progress logs (file uploads, batch polling, timeouts) to prevent assistant preparation from hanging silently.
+-   Added vector store batch diagnostics (file type summary, per-file status samples, vector store status) and guarded invalid batch IDs during assistant knowledge ingestion.
 -   Fixed OpenAI vector store batch polling to log expected vs. returned batch IDs and cancel using the created batch ID when mismatches occur.
 -   Scoped the "Preparing agent: Creating assistant" chip in Agents Server to cache misses by emitting it only when a new assistant is created from cache lookup.
 -   Fixed Agents Server chat to always return a fallback message when the model produces an empty response, including streaming and OpenAI-compatible endpoints.
@@ -409,6 +410,5 @@
 -   Enhanced codebase by using explicit types instead of type inference across multiple files in `src/`, `apps/`, and `scripts/` directories to improve readability and maintainability.
 -   Fix width of the message in the chat by adding a minimum width and improving layout for short messages.
 -   Use model `gemini-3-pro-image-preview` for the agent of Avatar Images
-
 
 

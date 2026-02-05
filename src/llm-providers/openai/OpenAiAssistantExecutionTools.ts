@@ -29,6 +29,15 @@ import { mapToolsToOpenAi } from './utils/mapToolsToOpenAi';
 import { uploadFilesToOpenAi } from './utils/uploadFilesToOpenAi';
 
 /**
+ * Metadata for uploaded knowledge source files used for vector store diagnostics.
+ */
+type KnowledgeSourceUploadMetadata = {
+    readonly fileId: string;
+    readonly filename: string;
+    readonly sizeBytes?: number;
+};
+
+/**
  * Execution Tools for calling OpenAI API Assistants
  *
  * This is useful for calling OpenAI API with a single assistant, for more wide usage use `OpenAiExecutionTools`.
@@ -634,12 +643,14 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
 
         try {
             const response = await fetch(source, { signal: controller.signal });
+            const contentType = response.headers.get('content-type') ?? undefined;
 
             if (!response.ok) {
                 console.error('[🤰]', 'Failed to download knowledge source', {
                     source,
                     status: response.status,
                     statusText: response.statusText,
+                    contentType,
                     elapsedMs: Date.now() - startedAtMs,
                     logLabel,
                 });
@@ -655,7 +666,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                 // Keep default filename
             }
 
-            const file = new File([buffer], filename);
+            const file = new File([buffer], filename, contentType ? { type: contentType } : undefined);
             const elapsedMs = Date.now() - startedAtMs;
             const sizeBytes = buffer.byteLength;
 
@@ -664,6 +675,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                     source,
                     filename,
                     sizeBytes,
+                    contentType,
                     elapsedMs,
                     logLabel,
                 });
@@ -681,6 +693,126 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             return null;
         } finally {
             clearTimeout(timeoutId);
+        }
+    }
+
+    /**
+     * Logs vector store file batch diagnostics to help trace ingestion stalls or failures.
+     */
+    private async logVectorStoreFileBatchDiagnostics(options: {
+        readonly client: OpenAI;
+        readonly vectorStoreId: string;
+        readonly batchId: string;
+        readonly uploadedFiles: ReadonlyArray<KnowledgeSourceUploadMetadata>;
+        readonly logLabel: string;
+        readonly reason: 'stalled' | 'timeout' | 'failed';
+    }): Promise<void> {
+        const { client, vectorStoreId, batchId, uploadedFiles, logLabel, reason } = options;
+
+        if (reason === 'stalled' && !this.options.isVerbose) {
+            return;
+        }
+
+        if (!batchId.startsWith('vsfb_')) {
+            console.error('[🤰]', 'Vector store file batch diagnostics skipped (invalid batch id)', {
+                vectorStoreId,
+                batchId,
+                reason,
+                logLabel,
+            });
+            return;
+        }
+
+        const fileIdToMetadata = new Map<string, KnowledgeSourceUploadMetadata>();
+        for (const file of uploadedFiles) {
+            fileIdToMetadata.set(file.fileId, file);
+        }
+
+        try {
+            const limit = Math.min(100, Math.max(10, uploadedFiles.length));
+            const batchFilesPage = await client.beta.vectorStores.fileBatches.listFiles(vectorStoreId, batchId, {
+                limit,
+            });
+            const batchFiles = batchFilesPage.data ?? [];
+            const statusCounts: Record<string, number> = {
+                in_progress: 0,
+                completed: 0,
+                failed: 0,
+                cancelled: 0,
+            };
+            const errorSamples: Array<{
+                readonly fileId: string;
+                readonly filename?: string;
+                readonly sizeBytes?: number;
+                readonly status: string;
+                readonly lastError: { code: string; message: string } | null;
+            }> = [];
+            const inProgressSamples: Array<{
+                readonly fileId: string;
+                readonly filename?: string;
+                readonly sizeBytes?: number;
+            }> = [];
+            const batchFileIds = new Set<string>();
+
+            for (const file of batchFiles) {
+                batchFileIds.add(file.id);
+                statusCounts[file.status] = (statusCounts[file.status] ?? 0) + 1;
+
+                const metadata = fileIdToMetadata.get(file.id);
+                if (file.last_error) {
+                    errorSamples.push({
+                        fileId: file.id,
+                        filename: metadata?.filename,
+                        sizeBytes: metadata?.sizeBytes,
+                        status: file.status,
+                        lastError: file.last_error,
+                    });
+                } else if (file.status === 'in_progress' && inProgressSamples.length < 5) {
+                    inProgressSamples.push({
+                        fileId: file.id,
+                        filename: metadata?.filename,
+                        sizeBytes: metadata?.sizeBytes,
+                    });
+                }
+            }
+
+            const missingSamples = uploadedFiles
+                .filter((file) => !batchFileIds.has(file.fileId))
+                .slice(0, 5)
+                .map((file) => ({
+                    fileId: file.fileId,
+                    filename: file.filename,
+                    sizeBytes: file.sizeBytes,
+                }));
+
+            const vectorStore = await client.beta.vectorStores.retrieve(vectorStoreId);
+            const logPayload = {
+                vectorStoreId,
+                batchId,
+                reason,
+                vectorStoreStatus: vectorStore.status,
+                vectorStoreFileCounts: vectorStore.file_counts,
+                vectorStoreUsageBytes: vectorStore.usage_bytes,
+                batchFileCount: batchFiles.length,
+                statusCounts,
+                errorSamples: errorSamples.slice(0, 5),
+                inProgressSamples,
+                missingFileCount: uploadedFiles.length - batchFileIds.size,
+                missingSamples,
+                logLabel,
+            };
+
+            const logFunction = reason === 'stalled' ? console.info : console.error;
+            logFunction('[🤰]', 'Vector store file batch diagnostics', logPayload);
+        } catch (error) {
+            assertsError(error);
+            console.error('[🤰]', 'Vector store file batch diagnostics failed', {
+                vectorStoreId,
+                batchId,
+                reason,
+                logLabel,
+                error: serializeError(error),
+            });
         }
     }
 
@@ -712,9 +844,31 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             });
         }
 
+        const fileTypeSummary: Record<string, { count: number; totalBytes: number }> = {};
+        for (const file of files) {
+            const filename = file.name ?? '';
+            const extension = filename.includes('.') ? filename.split('.').pop()?.toLowerCase() ?? 'unknown' : 'unknown';
+            const sizeBytes = typeof file.size === 'number' ? file.size : 0;
+            const summary = fileTypeSummary[extension] ?? { count: 0, totalBytes: 0 };
+            summary.count += 1;
+            summary.totalBytes += sizeBytes;
+            fileTypeSummary[extension] = summary;
+        }
+
+        if (this.options.isVerbose) {
+            console.info('[🤰]', 'Knowledge source file summary', {
+                vectorStoreId,
+                fileCount: files.length,
+                totalBytes,
+                fileTypeSummary,
+                logLabel,
+            });
+        }
+
         const fileEntries = files.map((file, index) => ({ file, index }));
         const fileIterator = fileEntries.values();
         const fileIds: string[] = [];
+        const uploadedFiles: KnowledgeSourceUploadMetadata[] = [];
         const failedUploads: Array<{ index: number; filename: string; error: ReturnType<typeof serializeError> }> = [];
         let uploadedCount = 0;
 
@@ -738,6 +892,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                 try {
                     const uploaded = await client.files.create({ file, purpose: 'assistants' });
                     fileIds.push(uploaded.id);
+                    uploadedFiles.push({ fileId: uploaded.id, filename, sizeBytes });
                     uploadedCount += 1;
 
                     if (this.options.isVerbose) {
@@ -798,6 +953,23 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             file_ids: fileIds,
         });
         const expectedBatchId = batch.id;
+        const expectedBatchIdValid = expectedBatchId.startsWith('vsfb_');
+
+        if (!expectedBatchIdValid) {
+            console.error('[🤰]', 'Vector store file batch id looks invalid', {
+                vectorStoreId,
+                batchId: expectedBatchId,
+                batchVectorStoreId: batch.vector_store_id,
+                logLabel,
+            });
+        } else if (batch.vector_store_id !== vectorStoreId) {
+            console.error('[🤰]', 'Vector store file batch vector store id mismatch', {
+                vectorStoreId,
+                batchId: expectedBatchId,
+                batchVectorStoreId: batch.vector_store_id,
+                logLabel,
+            });
+        }
 
         if (this.options.isVerbose) {
             console.info('[🤰]', 'Created vector store file batch', {
@@ -810,9 +982,13 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
 
         const pollStartedAtMs = Date.now();
         const progressLogIntervalMs = Math.max(15000, pollIntervalMs);
+        const diagnosticsIntervalMs = Math.max(60000, pollIntervalMs * 5);
         let lastStatus: string | undefined;
         let lastCountsKey = '';
+        let lastProgressKey = '';
         let lastLogAtMs = 0;
+        let lastProgressAtMs = pollStartedAtMs;
+        let lastDiagnosticsAtMs = pollStartedAtMs;
         let latestBatch = batch;
         let loggedBatchIdMismatch = false;
 
@@ -823,6 +999,8 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             const nowMs = Date.now();
             const returnedBatchId = latestBatch.id;
             const batchIdMismatch = returnedBatchId !== expectedBatchId;
+            const diagnosticsBatchId =
+                batchIdMismatch && returnedBatchId.startsWith('vsfb_') ? returnedBatchId : expectedBatchId;
             const shouldLog =
                 this.options.isVerbose &&
                 (latestBatch.status !== lastStatus ||
@@ -841,6 +1019,11 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                 loggedBatchIdMismatch = true;
             }
 
+            if (countsKey !== lastProgressKey) {
+                lastProgressKey = countsKey;
+                lastProgressAtMs = nowMs;
+            }
+
             if (shouldLog) {
                 console.info('[🤰]', 'Vector store file batch status', {
                     vectorStoreId,
@@ -854,6 +1037,18 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                 lastStatus = latestBatch.status;
                 lastCountsKey = countsKey;
                 lastLogAtMs = nowMs;
+            }
+
+            if (nowMs - lastProgressAtMs >= diagnosticsIntervalMs && nowMs - lastDiagnosticsAtMs >= diagnosticsIntervalMs) {
+                lastDiagnosticsAtMs = nowMs;
+                await this.logVectorStoreFileBatchDiagnostics({
+                    client,
+                    vectorStoreId,
+                    batchId: diagnosticsBatchId,
+                    uploadedFiles,
+                    logLabel,
+                    reason: 'stalled',
+                });
             }
 
             if (latestBatch.status === 'completed') {
@@ -876,6 +1071,14 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                         fileCounts: latestBatch.file_counts,
                         logLabel,
                     });
+                    await this.logVectorStoreFileBatchDiagnostics({
+                        client,
+                        vectorStoreId,
+                        batchId: diagnosticsBatchId,
+                        uploadedFiles,
+                        logLabel,
+                        reason: 'failed',
+                    });
                 }
 
                 return latestBatch;
@@ -891,6 +1094,14 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                     elapsedMs: Date.now() - uploadStartedAtMs,
                     logLabel,
                 });
+                await this.logVectorStoreFileBatchDiagnostics({
+                    client,
+                    vectorStoreId,
+                    batchId: diagnosticsBatchId,
+                    uploadedFiles,
+                    logLabel,
+                    reason: 'failed',
+                });
                 return latestBatch;
             }
 
@@ -905,12 +1116,34 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                     logLabel,
                 });
 
+                await this.logVectorStoreFileBatchDiagnostics({
+                    client,
+                    vectorStoreId,
+                    batchId: diagnosticsBatchId,
+                    uploadedFiles,
+                    logLabel,
+                    reason: 'timeout',
+                });
+
                 try {
-                    await client.beta.vectorStores.fileBatches.cancel(vectorStoreId, expectedBatchId);
+                    const cancelBatchId =
+                        batchIdMismatch && returnedBatchId.startsWith('vsfb_') ? returnedBatchId : expectedBatchId;
+                    if (!cancelBatchId.startsWith('vsfb_')) {
+                        console.error('[🤰]', 'Skipping vector store file batch cancel (invalid batch id)', {
+                            vectorStoreId,
+                            batchId: cancelBatchId,
+                            logLabel,
+                        });
+                    } else {
+                        await client.beta.vectorStores.fileBatches.cancel(vectorStoreId, cancelBatchId);
+                    }
                     if (this.options.isVerbose) {
                         console.info('[🤰]', 'Cancelled vector store file batch after timeout', {
                             vectorStoreId,
-                            batchId: expectedBatchId,
+                            batchId:
+                                batchIdMismatch && returnedBatchId.startsWith('vsfb_')
+                                    ? returnedBatchId
+                                    : expectedBatchId,
                             ...(batchIdMismatch ? { returnedBatchId } : {}),
                             logLabel,
                         });
