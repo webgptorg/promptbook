@@ -6,6 +6,7 @@ import { keepUnused } from '../../utils/organization/keepUnused';
 import type { chococake } from '../../utils/organization/really_any';
 import { $llmToolsMetadataRegister } from '../_common/register/$llmToolsMetadataRegister';
 import type { LlmToolsConfiguration } from '../_common/register/LlmToolsConfiguration';
+import type { OpenAiAgentKitExecutionToolsOptions } from './OpenAiAgentKitExecutionToolsOptions';
 import { createOpenAiCompatibleExecutionTools } from './createOpenAiCompatibleExecutionTools';
 import type { OpenAiAssistantExecutionToolsOptions } from './OpenAiAssistantExecutionToolsOptions';
 import type { OpenAiExecutionToolsOptions } from './OpenAiExecutionToolsOptions';
@@ -107,6 +108,44 @@ export const _OpenAiAssistantMetadataRegistration = $llmToolsMetadataRegister.re
 
         return null;
         */
+    },
+});
+
+/**
+ * Registration of the OpenAI AgentKit metadata
+ *
+ * Note: [??] Configurations registrations are done in the metadata registration section, but the constructor registration is handled separately.
+ *
+ * @public exported from `@promptbook/core`
+ * @public exported from `@promptbook/wizard`
+ * @public exported from `@promptbook/cli`
+ */
+export const _OpenAiAgentKitMetadataRegistration = $llmToolsMetadataRegister.register({
+    title: 'Open AI AgentKit',
+    packageName: '@promptbook/openai',
+    className: 'OpenAiAgentKitExecutionTools',
+    envVariables: null,
+    trustLevel: 'CLOSED',
+    order: MODEL_ORDERS.NORMAL,
+
+    getBoilerplateConfiguration(): LlmToolsConfiguration[number] {
+        return {
+            title: 'Open AI AgentKit',
+            packageName: '@promptbook/openai',
+            className: 'OpenAiAgentKitExecutionTools',
+            options: {
+                apiKey: 'sk-',
+                agentId: 'agentkit_',
+                maxRequestsPerMinute: DEFAULT_MAX_REQUESTS_PER_MINUTE,
+                isCreatingNewAgentsAllowed: false,
+            } satisfies OpenAiAgentKitExecutionToolsOptions,
+        };
+    },
+
+    createConfigurationFromEnv(env: Record<string_name, string>): LlmToolsConfiguration[number] | null {
+        // TODO: Maybe auto-configure (multiple) AgentKit agents from env variables
+        keepUnused(env);
+        return null;
     },
 });
 

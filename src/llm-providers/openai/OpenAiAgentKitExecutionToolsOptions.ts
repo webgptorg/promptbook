@@ -4,24 +4,22 @@ import type { OpenAiCompatibleExecutionToolsOptions } from './OpenAiCompatibleEx
 import type { OpenAiVectorStoreOptions } from './OpenAiVectorStoreOptions';
 
 /**
- * Options for `createOpenAiAssistantExecutionTools` and `OpenAiAssistantExecutionTools`
+ * Options for `createOpenAiAgentKitExecutionTools` and `OpenAiAgentKitExecutionTools`.
  *
  * @public exported from `@promptbook/openai`
  */
-export type OpenAiAssistantExecutionToolsOptions = OpenAiCompatibleExecutionToolsOptions &
+export type OpenAiAgentKitExecutionToolsOptions = OpenAiCompatibleExecutionToolsOptions &
     ClientOptions &
     OpenAiVectorStoreOptions & {
         /**
-         * Whether creating new assistants is allowed
+         * Whether creating new AgentKit agents is allowed.
          *
          * @default false
          */
-        readonly isCreatingNewAssistantsAllowed: boolean;
+        readonly isCreatingNewAgentsAllowed: boolean;
 
         /**
-         * Which assistant to use
+         * Identifier for the agent configuration to use.
          */
-        readonly assistantId: string_token;
-        // <- TODO: [🧠] This should be maybe more like model for each prompt?
-
+        readonly agentId: string_token;
     };

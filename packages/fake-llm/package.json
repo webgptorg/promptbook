@@ -97,11 +97,5 @@
     "typings": "./esm/typings/src/_packages/fake-llm.index.d.ts",
     "peerDependencies": {
         "@promptbook/core": "0.110.0-4"
-    },
-    "dependencies": {
-        "crypto": "1.0.1",
-        "lorem-ipsum": "2.0.8",
-        "spacetrim": "0.11.60",
-        "waitasecond": "1.11.160"
     }
 }

@@ -69,6 +69,11 @@ export type AgentModelRequirements = {
     readonly topK?: number;
 
     /**
+     * Maximum number of output tokens for the agent's responses
+     */
+    readonly maxTokens?: number;
+
+    /**
      * Tools available for the agent
      */
     readonly tools?: ReadonlyArray<LlmToolDefinition>;

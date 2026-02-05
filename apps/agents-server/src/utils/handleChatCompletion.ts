@@ -1,7 +1,7 @@
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
-import { $provideOpenAiAssistantExecutionToolsForServer } from '@/src/tools/$provideOpenAiAssistantExecutionToolsForServer';
+import { $provideOpenAiAgentKitExecutionToolsForServer } from '@/src/tools/$provideOpenAiAgentKitExecutionToolsForServer';
 import { ensureNonEmptyChatContent } from '@/src/utils/chat/ensureNonEmptyChatContent';
 import { createChatStreamHandler } from '@/src/utils/createChatStreamHandler';
 import { Agent, computeAgentHash, PROMPTBOOK_ENGINE_VERSION } from '@promptbook-local/core';
@@ -150,10 +150,10 @@ export async function handleChatCompletion(
         const agentHash = computeAgentHash(agentSource);
         const agentId = await collection.getAgentPermanentId(agentName);
 
-        // Use AssistantCacheManager for intelligent assistant caching
-        // This provides a centralized, DRY way to manage assistant lifecycle
+        // Use AssistantCacheManager for intelligent AgentKit caching
+        // This provides a centralized, DRY way to manage vector store lifecycle
         const assistantCacheManager = new AssistantCacheManager({ isVerbose: true });
-        const baseOpenAiTools = await $provideOpenAiAssistantExecutionToolsForServer();
+        const baseOpenAiTools = await $provideOpenAiAgentKitExecutionToolsForServer();
 
         // Get or create assistant with enhanced caching
         // By default, includes full configuration (PERSONA + CONTEXT) in cache key for strict matching
@@ -168,17 +168,21 @@ export async function handleChatCompletion(
             },
         );
 
+        const vectorStoreId = assistantResult.tools.vectorStoreId;
+
         if (assistantResult.fromCache) {
-            console.info('[🤰]', 'Assistant cache hit (OpenAI)', {
+            console.info('[🤰]', 'AgentKit cache hit (OpenAI)', {
                 agentName,
                 cacheKey: assistantResult.cacheKey,
-                assistantId: assistantResult.tools.assistantId,
+                agentId: assistantResult.tools.agentId,
+                vectorStoreId,
             });
         } else {
-            console.info('[🤰]', 'Assistant cache miss (OpenAI)', {
+            console.info('[🤰]', 'AgentKit cache miss (OpenAI)', {
                 agentName,
                 cacheKey: assistantResult.cacheKey,
-                assistantId: assistantResult.tools.assistantId,
+                agentId: assistantResult.tools.agentId,
+                vectorStoreId,
             });
         }
 
@@ -472,3 +476,6 @@ export async function handleChatCompletion(
 /**
  * TODO: [🈹] Maybe move chat thread handling here
  */
+
+
+

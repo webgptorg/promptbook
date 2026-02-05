@@ -1,8 +1,8 @@
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import { createAgentModelRequirements } from '@promptbook-local/core';
-import { OpenAiAssistantExecutionTools } from '@promptbook-local/openai';
-import { AgentModelRequirements, string_agent_permanent_id, string_book } from '@promptbook-local/types';
+import { OpenAiAgentKitExecutionTools } from '@promptbook-local/openai';
+import { AgentModelRequirements, string_agent_permanent_id, string_book, string_model_name } from '@promptbook-local/types';
 import {
     AssistantConfiguration,
     computeAssistantCacheKey,
@@ -11,16 +11,16 @@ import {
 } from './computeAssistantCacheKey';
 
 /**
- * Result of getting or creating an assistant
+ * Result of getting or creating an AgentKit configuration
  */
 export type AssistantCacheResult = {
     /**
-     * The OpenAI Assistant execution tools instance
+     * The OpenAI AgentKit execution tools instance
      */
-    readonly tools: OpenAiAssistantExecutionTools;
+    readonly tools: OpenAiAgentKitExecutionTools;
 
     /**
-     * Whether this assistant was retrieved from cache (true) or newly created (false)
+     * Whether this configuration was retrieved from cache (true) or newly created (false)
      */
     readonly fromCache: boolean;
 
@@ -36,16 +36,16 @@ export type AssistantCacheResult = {
 };
 
 /**
- * Manages the lifecycle of OpenAI Assistants with intelligent caching
+ * Manages the lifecycle of OpenAI AgentKit configurations with intelligent caching
  *
  * This class provides a centralized way to:
- * - Retrieve assistants from cache when possible
- * - Create new assistants when needed
- * - Store assistant metadata in the database
+ * - Retrieve vector stores from cache when possible
+ * - Create new AgentKit configurations when needed
+ * - Store AgentKit metadata in the database
  * - Track cache hits and misses for monitoring
  *
  * The caching strategy ensures that agents with the same base configuration
- * (model, system prompt, temperature, etc.) share the same underlying OpenAI Assistant,
+ * (model, system prompt, temperature, etc.) share the same underlying vector store,
  * improving resource efficiency and reducing API calls.
  */
 export class AssistantCacheManager {
@@ -56,13 +56,13 @@ export class AssistantCacheManager {
     }
 
     /**
-     * Gets an existing assistant from cache or creates a new one
+     * Gets an existing AgentKit configuration from cache or creates a new one
      *
      * This method implements the core caching logic:
      * 1. Extracts base configuration from agent source (removes dynamic context)
      * 2. Computes cache key from configuration
-     * 3. Checks database cache for existing assistant
-     * 4. Returns cached assistant or creates new one
+     * 3. Checks database cache for existing vector store
+     * 4. Returns cached configuration or creates new one
      *
      * Dynamic CONTEXT lines are NOT included in the cache key, allowing assistants
      * to be shared across requests with different context. The context should be
@@ -70,14 +70,14 @@ export class AssistantCacheManager {
      *
      * @param agentSource - The agent source (may include dynamic CONTEXT lines)
      * @param agentName - The agent name for logging and fallback
-     * @param baseTools - Base OpenAI Assistant execution tools instance
+     * @param baseTools - Base OpenAI AgentKit execution tools instance
      * @param options - Cache options
      * @returns Assistant cache result with tools and metadata
      */
     public async getOrCreateAssistant(
         agentSource: string_book,
         agentName: string,
-        baseTools: OpenAiAssistantExecutionTools,
+        baseTools: OpenAiAgentKitExecutionTools,
         options: {
             /**
              * Whether to include dynamic CONTEXT in assistant instructions (default: true for better caching)
@@ -103,7 +103,7 @@ export class AssistantCacheManager {
         // Compute cache key based on configuration
         const cacheKey = computeAssistantCacheKey(configuration);
 
-        console.info('[🤰]', 'Resolving assistant cache key', {
+        console.info('[??]', 'Resolving assistant cache key', {
             agentName,
             cacheKey,
             includeDynamicContext,
@@ -112,18 +112,39 @@ export class AssistantCacheManager {
             agentId,
         });
 
-        // Check cache
-        const cachedAssistant = await this.getCachedAssistant(cacheKey, baseTools, agentId);
+        const modelRequirements: AgentModelRequirements = await createAgentModelRequirements(
+            configuration.baseAgentSource,
+        );
+        const knowledgeSources = modelRequirements.knowledgeSources
+            ? [...modelRequirements.knowledgeSources]
+            : undefined;
+        const tools = modelRequirements.tools ? [...modelRequirements.tools] : undefined;
+        const agentModelName = (modelRequirements.modelName ?? 'gpt-5.2') as string_model_name;
 
-        if (cachedAssistant) {
-            console.info('[🤰]', 'Assistant cache hit', {
+        // Check cache
+        const cachedVectorStoreId = await this.getCachedAssistant(cacheKey, baseTools, agentId);
+
+        if (cachedVectorStoreId) {
+            console.info('[??]', 'AgentKit cache hit', {
                 agentName,
                 cacheKey,
-                assistantId: cachedAssistant,
+                vectorStoreId: cachedVectorStoreId,
+            });
+
+            const cachedAgentTools = await baseTools.createNewAgent({
+                name: formatAssistantNameWithHash(configuration.name || agentName, cacheKey),
+                instructions: modelRequirements.systemMessage,
+                knowledgeSources,
+                tools,
+                modelName: agentModelName,
+                temperature: modelRequirements.temperature,
+                maxTokens: modelRequirements.maxTokens,
+                agentId: cacheKey,
+                vectorStoreId: cachedVectorStoreId,
             });
 
             return {
-                tools: baseTools.getAssistant(cachedAssistant),
+                tools: cachedAgentTools,
                 fromCache: true,
                 cacheKey,
                 configuration,
@@ -136,7 +157,7 @@ export class AssistantCacheManager {
 
         // Cache miss - create new assistant
         if (this.isVerbose) {
-            console.info('[🤰]', 'Assistant cache miss, creating assistant', {
+            console.info('[??]', 'AgentKit cache miss, creating configuration', {
                 agentName,
                 cacheKey,
                 agentId,
@@ -154,22 +175,22 @@ export class AssistantCacheManager {
     }
 
     /**
-     * Retrieves an assistant ID from the cache
+     * Retrieves a vector store ID from the cache.
      *
      * @param cacheKey - The cache key to look up
-     * @param baseTools - Base OpenAI Assistant execution tools instance
+     * @param baseTools - Base OpenAI AgentKit execution tools instance
      * @param agentId - Optional agent permanent ID to check in Agent table
-     * @returns Assistant ID if found, null otherwise
+     * @returns Vector store ID if found, null otherwise
      * @private
      */
     private async getCachedAssistant(
         cacheKey: string,
-        baseTools: OpenAiAssistantExecutionTools,
+        baseTools: OpenAiAgentKitExecutionTools,
         agentId?: string_agent_permanent_id,
     ): Promise<string | null> {
         const supabase = $provideSupabaseForServer();
 
-        let assistantId: string | null = null;
+        let vectorStoreId: string | null = null;
 
         // 1. Check in Agent table first (preferred persistent cache)
         if (agentId) {
@@ -181,17 +202,17 @@ export class AssistantCacheManager {
 
             if (!agentError && agentData?.preparedExternals) {
                 const preparedExternals = agentData.preparedExternals as {
-                    openaiAssistantHash?: string;
-                    openaiAssistantId?: string;
+                    openaiAgentKitHash?: string;
+                    openaiAgentKitVectorStoreId?: string;
                 };
-                if (preparedExternals.openaiAssistantHash === cacheKey && preparedExternals.openaiAssistantId) {
-                    assistantId = preparedExternals.openaiAssistantId;
+                if (preparedExternals.openaiAgentKitHash === cacheKey && preparedExternals.openaiAgentKitVectorStoreId) {
+                    vectorStoreId = preparedExternals.openaiAgentKitVectorStoreId;
 
                     if (this.isVerbose) {
-                        console.info('[🤰]', 'Assistant cache hit (Agent table)', {
+                        console.info('[??]', 'AgentKit cache hit (Agent table)', {
                             agentId,
                             cacheKey,
-                            assistantId,
+                            vectorStoreId,
                         });
                     }
                 }
@@ -199,7 +220,7 @@ export class AssistantCacheManager {
         }
 
         // 2. Check in OpenAiAssistantCache table (fallback/shared cache)
-        if (!assistantId) {
+        if (!vectorStoreId) {
             const { data, error } = await supabase
                 .from(await $getTableName('OpenAiAssistantCache'))
                 .select('assistantId')
@@ -209,21 +230,21 @@ export class AssistantCacheManager {
             if (error) {
                 console.error('[AssistantCacheManager] Error querying cache:', error);
             } else {
-                assistantId = data?.assistantId || null;
+                vectorStoreId = data?.assistantId || null;
             }
         }
 
-        if (!assistantId) {
+        if (!vectorStoreId) {
             return null;
         }
 
         try {
             const client = await baseTools.getClient();
-            await client.beta.assistants.retrieve(assistantId);
-            return assistantId;
+            await client.beta.vectorStores.retrieve(vectorStoreId);
+            return vectorStoreId;
         } catch (error) {
             console.warn(
-                `[AssistantCacheManager] Cached assistant ${assistantId} not found on OpenAI, invalidating cache.`,
+                '[AssistantCacheManager] Cached vector store ' + vectorStoreId + ' not found on OpenAI, invalidating cache.',
             );
             await this.invalidateCache(cacheKey, agentId);
             return null;
@@ -231,23 +252,23 @@ export class AssistantCacheManager {
     }
 
     /**
-     * Creates a new OpenAI Assistant and stores it in the cache
+     * Creates a new OpenAI AgentKit configuration and stores it in the cache
      *
      * @param configuration - Assistant configuration (includes instructions with or without context)
      * @param agentName - Agent name for logging
      * @param cacheKey - Cache key for storage
-     * @param baseTools - Base OpenAI Assistant execution tools
+     * @param baseTools - Base OpenAI AgentKit execution tools
      * @param agentId - Optional agent permanent ID to update in Agent table
-     * @returns New assistant execution tools
+     * @returns New AgentKit execution tools
      * @private
      */
     private async createAndCacheAssistant(
         configuration: AssistantConfiguration,
         agentName: string,
         cacheKey: string,
-        baseTools: OpenAiAssistantExecutionTools,
+        baseTools: OpenAiAgentKitExecutionTools,
         agentId?: string_agent_permanent_id,
-    ): Promise<OpenAiAssistantExecutionTools> {
+    ): Promise<OpenAiAgentKitExecutionTools> {
         const modelRequirements: AgentModelRequirements = await createAgentModelRequirements(
             configuration.baseAgentSource,
         );
@@ -256,13 +277,13 @@ export class AssistantCacheManager {
             : undefined;
         const tools = modelRequirements.tools ? [...modelRequirements.tools] : undefined;
 
-        // Create the assistant with the configuration
-        // Instructions already include any dynamic context if includeDynamicContext was true
+        // Create the agent with the configuration
         const creationStartedAtMs = Date.now();
         const assistantName = formatAssistantNameWithHash(configuration.name || agentName, cacheKey);
+        const agentModelName = (modelRequirements.modelName ?? 'gpt-5.2') as string_model_name;
 
         if (this.isVerbose) {
-            console.info('[🤰]', 'Creating assistant via cache manager', {
+            console.info('[??]', 'Creating AgentKit configuration via cache manager', {
                 agentName,
                 assistantName,
                 instructionsLength: modelRequirements.systemMessage.length,
@@ -270,27 +291,35 @@ export class AssistantCacheManager {
                 toolsCount: tools?.length ?? 0,
             });
         }
-        const newTools = await baseTools.createNewAssistant({
+
+        const newTools = await baseTools.createNewAgent({
             name: assistantName,
             instructions: modelRequirements.systemMessage,
             knowledgeSources,
             tools,
+            modelName: agentModelName,
+            temperature: modelRequirements.temperature,
+            maxTokens: modelRequirements.maxTokens,
+            agentId: cacheKey,
         });
 
-        const newAssistantId = newTools.assistantId;
+        const vectorStoreId = newTools.vectorStoreId;
 
-        if (!newAssistantId) {
-            throw new Error('[AssistantCacheManager] Failed to create assistant - no ID returned');
+        if (!vectorStoreId && this.isVerbose) {
+            console.info('[??]', 'AgentKit created without vector store', {
+                agentName,
+                cacheKey,
+            });
         }
 
         // Store in cache
-        await this.cacheAssistant(cacheKey, newAssistantId, agentId);
+        await this.cacheAssistant(cacheKey, vectorStoreId, agentId);
 
         if (this.isVerbose) {
-            console.info('[🤰]', 'Assistant created and cached', {
+            console.info('[??]', 'AgentKit configuration created and cached', {
                 agentName,
                 cacheKey,
-                assistantId: newAssistantId,
+                vectorStoreId: vectorStoreId || null,
                 elapsedMs: Date.now() - creationStartedAtMs,
             });
         }
@@ -299,33 +328,35 @@ export class AssistantCacheManager {
     }
 
     /**
-     * Stores an assistant in the cache database
+     * Stores a vector store in the cache database
      *
      * @param cacheKey - Cache key
-     * @param assistantId - OpenAI Assistant ID
+     * @param vectorStoreId - OpenAI vector store ID
      * @param agentId - Optional agent permanent ID to update in Agent table
      * @private
      */
     private async cacheAssistant(
         cacheKey: string,
-        assistantId: string,
+        vectorStoreId: string | null | undefined,
         agentId?: string_agent_permanent_id,
     ): Promise<void> {
         const supabase = $provideSupabaseForServer();
 
         // 1. Store in shared cache
-        const { error: cacheError } = await supabase.from(await $getTableName('OpenAiAssistantCache')).insert({
-            agentHash: cacheKey,
-            assistantId,
-        });
+        if (vectorStoreId) {
+            const { error: cacheError } = await supabase.from(await $getTableName('OpenAiAssistantCache')).insert({
+                agentHash: cacheKey,
+                assistantId: vectorStoreId,
+            });
 
-        if (cacheError && cacheError.code !== '23505') {
-            // Ignore unique constraint violation (already cached)
-            console.error('[AssistantCacheManager] Error storing assistant in shared cache:', cacheError);
+            if (cacheError && cacheError.code !== '23505') {
+                // Ignore unique constraint violation (already cached)
+                console.error('[AssistantCacheManager] Error storing vector store in shared cache:', cacheError);
+            }
         }
 
         // 2. Store in Agent table (preferred persistent cache)
-        if (agentId) {
+        if (agentId && vectorStoreId) {
             const { data: agentData, error: fetchError } = await supabase
                 .from(await $getTableName('Agent'))
                 .select('preparedExternals')
@@ -337,11 +368,11 @@ export class AssistantCacheManager {
             } else {
                 const preparedExternals =
                     (agentData?.preparedExternals as {
-                        openaiAssistantId?: string;
-                        openaiAssistantHash?: string;
+                        openaiAgentKitVectorStoreId?: string;
+                        openaiAgentKitHash?: string;
                     }) || {};
-                preparedExternals.openaiAssistantId = assistantId;
-                preparedExternals.openaiAssistantHash = cacheKey;
+                preparedExternals.openaiAgentKitVectorStoreId = vectorStoreId;
+                preparedExternals.openaiAgentKitHash = cacheKey;
 
                 const { error: updateError } = await supabase
                     .from(await $getTableName('Agent'))
@@ -351,9 +382,9 @@ export class AssistantCacheManager {
                 if (updateError) {
                     console.error('[AssistantCacheManager] Error updating Agent preparedExternals:', updateError);
                 } else {
-                    console.info('[🤰]', 'Assistant cached in Agent table', {
+                    console.info('[??]', 'AgentKit vector store cached in Agent table', {
                         agentId,
-                        assistantId,
+                        vectorStoreId,
                         cacheKey,
                     });
                 }
@@ -394,13 +425,13 @@ export class AssistantCacheManager {
 
             if (!fetchError && agentData?.preparedExternals) {
                 const preparedExternals = agentData.preparedExternals as {
-                    openaiAssistantHash?: string;
-                    openaiAssistantId?: string;
+                    openaiAgentKitHash?: string;
+                    openaiAgentKitVectorStoreId?: string;
                 };
 
-                if (preparedExternals.openaiAssistantHash === cacheKey) {
-                    delete preparedExternals.openaiAssistantHash;
-                    delete preparedExternals.openaiAssistantId;
+                if (preparedExternals.openaiAgentKitHash === cacheKey) {
+                    delete preparedExternals.openaiAgentKitHash;
+                    delete preparedExternals.openaiAgentKitVectorStoreId;
 
                     const { error: updateError } = await supabase
                         .from(await $getTableName('Agent'))
@@ -414,7 +445,7 @@ export class AssistantCacheManager {
             }
         }
 
-        console.info('[🤰]', 'Invalidated assistant cache', { cacheKey, agentId });
+        console.info('[??]', 'Invalidated assistant cache', { cacheKey, agentId });
     }
 
     /**

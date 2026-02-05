@@ -18,6 +18,7 @@ import { $provideFilesystemForNode } from '../../../scrapers/_common/register/$p
 import { FileCacheStorage } from '../../../storage/file-cache-storage/FileCacheStorage';
 import { cacheLlmTools } from '../../_common/utils/cache/cacheLlmTools';
 import { countUsage } from '../../_common/utils/count-total-usage/countUsage';
+import { OpenAiAgentKitExecutionTools } from '../OpenAiAgentKitExecutionTools';
 import { OpenAiExecutionTools } from '../OpenAiExecutionTools';
 
 playground()
@@ -81,9 +82,39 @@ async function playground() {
 
     openAiExecutionToolsWithUsage.spending().subscribe((usage: Usage) => {
         const wordCount = (usage?.input?.wordsCount?.value || 0) + (usage?.output?.wordsCount?.value || 0);
+
         console.log(`[💸] Spending ${wordCount} words`);
     });
 
+    /*/
+    const openAiAgentKitBaseTools = new OpenAiAgentKitExecutionTools({
+        isVerbose: true,
+        userId: 'playground',
+        apiKey: process.env.OPENAI_API_KEY!,
+        agentId: 'abstract_agentkit',
+        isCreatingNewAgentsAllowed: true,
+    });
+
+    const openAiAgentKitTools = await openAiAgentKitBaseTools.createNewAgent({
+        name: 'Playground AgentKit',
+        instructions: 'You are a concise assistant.',
+    });
+
+    const agentKitPrompt = {
+        title: 'AgentKit Sample',
+        parameters: {},
+        content: 'Explain why Prague is famous in one sentence.',
+        modelRequirements: {
+            modelVariant: 'CHAT',
+        },
+    } as const satisfies ChatPrompt;
+
+    const agentKitResult = await openAiAgentKitTools.callChatModel(agentKitPrompt);
+    console.info({ agentKitResult });
+    console.info(colors.cyan(usageToHuman(agentKitResult.usage)));
+    console.info(colors.bgBlue(' User: ') + colors.blue(agentKitPrompt.content));
+    console.info(colors.bgGreen(' AgentKit: ') + colors.green(agentKitResult.content));
+    /**/
     /*/
     const openAiAssistantExecutionTools = new OpenAiAssistantExecutionTools(
         //            <- TODO: [🧱] Implement in a functional (not new Class) way
@@ -98,6 +129,7 @@ async function playground() {
     /**/
 
     keepUnused(openAiExecutionTools);
+    keepUnused(OpenAiAgentKitExecutionTools);
     // keepUnused(openAiAssistantExecutionTools);
     keepUnused(embeddingVectorToString);
     keepUnused(usageToHuman);
@@ -356,3 +388,7 @@ async function playground() {
  * TODO: [main] !!3 Test here that `systemMessage`, `temperature` and `seed` are working correctly
  * Note: [⚫] Code in this file should never be published in any package
  */
+
+
+
+
