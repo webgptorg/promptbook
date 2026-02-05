@@ -185,8 +185,9 @@ export async function handleChatCompletion(
         const agent = new Agent({
             agentSource,
             executionTools: {
-                llm: await $provideOpenAiAssistantExecutionToolsForServer(),
+                llm: assistantResult.tools,
             },
+            assistantPreparationMode: 'external',
             isVerbose: true, // or false
             teacherAgent: null, // <- TODO: [🦋] DRY place to provide the teacher
         });

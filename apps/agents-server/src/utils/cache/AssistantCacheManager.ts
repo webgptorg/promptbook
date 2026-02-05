@@ -1,7 +1,8 @@
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
+import { createAgentModelRequirements } from '@promptbook-local/core';
 import { OpenAiAssistantExecutionTools } from '@promptbook-local/openai';
-import { string_agent_permanent_id, string_book } from '@promptbook-local/types';
+import { AgentModelRequirements, string_agent_permanent_id, string_book } from '@promptbook-local/types';
 import {
     AssistantConfiguration,
     computeAssistantCacheKey,
@@ -247,6 +248,14 @@ export class AssistantCacheManager {
         baseTools: OpenAiAssistantExecutionTools,
         agentId?: string_agent_permanent_id,
     ): Promise<OpenAiAssistantExecutionTools> {
+        const modelRequirements: AgentModelRequirements = await createAgentModelRequirements(
+            configuration.baseAgentSource,
+        );
+        const knowledgeSources = modelRequirements.knowledgeSources
+            ? [...modelRequirements.knowledgeSources]
+            : undefined;
+        const tools = modelRequirements.tools ? [...modelRequirements.tools] : undefined;
+
         // Create the assistant with the configuration
         // Instructions already include any dynamic context if includeDynamicContext was true
         const creationStartedAtMs = Date.now();
@@ -256,13 +265,16 @@ export class AssistantCacheManager {
             console.info('[🤰]', 'Creating assistant via cache manager', {
                 agentName,
                 assistantName,
-                instructionsLength: configuration.instructions.length,
+                instructionsLength: modelRequirements.systemMessage.length,
+                knowledgeSourcesCount: knowledgeSources?.length ?? 0,
+                toolsCount: tools?.length ?? 0,
             });
         }
         const newTools = await baseTools.createNewAssistant({
             name: assistantName,
-            instructions: configuration.instructions,
-            // Future: Add knowledge sources, tools when supported
+            instructions: modelRequirements.systemMessage,
+            knowledgeSources,
+            tools,
         });
 
         const newAssistantId = newTools.assistantId;

@@ -79,7 +79,7 @@ Make some look how the chips or tool chips are implemented. For example, how it 
 
 ---
 
-[ ] !!!!!!!!!!!!!!!!!!!!!!!!!!
+[x] ~$1.04 by OpenAI Codex `gpt-5.2-codex`
 
 [✨📰] Agent with large knowledgebase takes sooooooo long to prepare and answer, and often just ends up stucked
 
@@ -1264,3 +1264,4 @@ Technically, it's not an error, but it's probably not what you want because it d
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server) with the agent chat _(for example, [here](https://my-agent-server.com/agents/FVLv8APAf2S1WV/chat))_
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

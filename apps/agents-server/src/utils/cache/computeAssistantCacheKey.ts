@@ -3,6 +3,7 @@ import { string_book } from '@promptbook-local/types';
 import { computeHash } from '@promptbook-local/utils';
 
 const ASSISTANT_NAME_HASH_LENGTH = 8;
+const ASSISTANT_CACHE_KEY_VERSION = 'assistant-cache-v2';
 
 /**
  * Configuration that uniquely identifies an OpenAI Assistant
@@ -101,6 +102,7 @@ export function extractAssistantConfiguration(
 export function computeAssistantCacheKey(configuration: AssistantConfiguration): string {
     // Create a deterministic object for hashing
     const cacheObject = {
+        cacheVersion: ASSISTANT_CACHE_KEY_VERSION,
         name: configuration.name,
         instructions: configuration.instructions,
         // Include base agent source to capture all commitments and rules
