@@ -1988,13 +1988,139 @@ _<- The log ends here and never continues, just stucked on this point forever_
 
 ---
 
-[-]
+[ ]
 
-[✨📰] bar
+[✨📰] Agent with large knowledgebase takes sooooooo long to prepare and answer, and often just ends up stucked
 
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   It stuckes up on uploading files to vector store
+-   Fix it or at least log more info about what is happening under the hood.
+-   Logs connected to this issue are marked with `[🤰]` tag
 -   You are working with the [Agents Server](apps/agents-server) with the agent chat _(for example, [here](https://my-agent-server.com/agents/FVLv8APAf2S1WV/chat))_
--   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+**This is the log:**
+
+```log
+...
+[🤰] Downloaded knowledge source {
+  source: 'https://ptbk.io/k/ss-2-2023-informace-106-syRjDruyxkspiYvNqDM2LYS0NS2aGM.pdf',
+  filename: 'ss-2-2023-informace-106-syRjDruyxkspiYvNqDM2LYS0NS2aGM.pdf',
+  sizeBytes: 584543,
+  elapsedMs: 284,
+  logLabel: 'assistant creation'
+}
+[🤰] Processing knowledge source {
+  index: 104,
+  total: 105,
+  source: 'https://ptbk.io/k/ss-3-2019-vnitrni-kontrolni-system-WYZcHnXWvOlCbGaY0R9dhtVmujeLf2.pdf',
+  sourceType: 'url',
+  logLabel: 'assistant creation'
+}
+[🤰] Downloading knowledge source {
+  source: 'https://ptbk.io/k/ss-3-2019-vnitrni-kontrolni-system-WYZcHnXWvOlCbGaY0R9dhtVmujeLf2.pdf',
+  timeoutMs: 30000,
+  logLabel: 'assistant creation'
+}
+[🤰] Downloaded knowledge source {
+  source: 'https://ptbk.io/k/ss-3-2019-vnitrni-kontrolni-system-WYZcHnXWvOlCbGaY0R9dhtVmujeLf2.pdf',
+  filename: 'ss-3-2019-vnitrni-kontrolni-system-WYZcHnXWvOlCbGaY0R9dhtVmujeLf2.pdf',
+  sizeBytes: 201743,
+  elapsedMs: 276,
+  logLabel: 'assistant creation'
+}
+[🤰] Processing knowledge source {
+  index: 105,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-084-2000-obsah-internetovych-stranek-dodatek-1-kzEv2vkRhFnIRfdm2lNWDVrpgbOIM7.pdf',
+  sourceType: 'url',
+  logLabel: 'assistant creation'
+}
+[🤰] Downloading knowledge source {
+  source: 'https://ptbk.io/k/nt-084-2000-obsah-internetovych-stranek-dodatek-1-kzEv2vkRhFnIRfdm2lNWDVrpgbOIM7.pdf',
+  timeoutMs: 30000,
+  logLabel: 'assistant creation'
+}
+[🤰] Downloaded knowledge source {
+  source: 'https://ptbk.io/k/nt-084-2000-obsah-internetovych-stranek-dodatek-1-kzEv2vkRhFnIRfdm2lNWDVrpgbOIM7.pdf',
+  filename: 'nt-084-2000-obsah-internetovych-stranek-dodatek-1-kzEv2vkRhFnIRfdm2lNWDVrpgbOIM7.pdf',
+  sizeBytes: 151374,
+  elapsedMs: 192,
+  logLabel: 'assistant creation'
+}
+[🤰] Finished processing knowledge sources {
+  total: 105,
+  downloadedCount: 105,
+  skippedCount: 0,
+  totalBytes: 32028295,
+  elapsedMs: 26493,
+  skippedSamples: [],
+  logLabel: 'assistant creation'
+}
+[🤰] Uploading files to vector store {
+  vectorStoreId: 'vs_698490e248688191859144d47e2faba0',
+  fileCount: 105,
+  totalBytes: 32028295,
+  logLabel: 'assistant creation'
+}
+```
+
+_<- The log ends here and never continues, just stucked on this point forever_
+
+---
+
+[.]
+
+[✨📰] Agent with large knowledgebase takes sooooooo long to prepare and answer, and often just ends up stucked
+
+-   It stuckes up on uploading files to vector store
+-   Fix it or at least log more info about what is happening under the hood.
+-   Logs connected to this issue are marked with `[🤰]` tag
+-   You are working with the [Agents Server](apps/agents-server) with the agent chat _(for example, [here](https://my-agent-server.com/agents/FVLv8APAf2S1WV/chat))_
+
+**This is the log:**
+
+```log
+...
+```
+
+_<- The log ends here and never continues, just stucked on this point forever_
+
+---
+
+[.]
+
+[✨📰] Agent with large knowledgebase takes sooooooo long to prepare and answer, and often just ends up stucked
+
+-   It stuckes up on uploading files to vector store
+-   Fix it or at least log more info about what is happening under the hood.
+-   Logs connected to this issue are marked with `[🤰]` tag
+-   You are working with the [Agents Server](apps/agents-server) with the agent chat _(for example, [here](https://my-agent-server.com/agents/FVLv8APAf2S1WV/chat))_
+
+**This is the log:**
+
+```log
+...
+```
+
+_<- The log ends here and never continues, just stucked on this point forever_
+
+---
+
+[.]
+
+[✨📰] Agent with large knowledgebase takes sooooooo long to prepare and answer, and often just ends up stucked
+
+-   It stuckes up on uploading files to vector store
+-   Fix it or at least log more info about what is happening under the hood.
+-   Logs connected to this issue are marked with `[🤰]` tag
+-   You are working with the [Agents Server](apps/agents-server) with the agent chat _(for example, [here](https://my-agent-server.com/agents/FVLv8APAf2S1WV/chat))_
+
+**This is the log:**
+
+```log
+...
+```
+
+_<- The log ends here and never continues, just stucked on this point forever_
 
 ---
 
@@ -2005,4 +2131,3 @@ _<- The log ends here and never continues, just stucked on this point forever_
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server) with the agent chat _(for example, [here](https://my-agent-server.com/agents/FVLv8APAf2S1WV/chat))_
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
