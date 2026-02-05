@@ -609,6 +609,13 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
     }
 
     /**
+     * Returns true if we should continue even if vector store ingestion stalls.
+     */
+    private shouldContinueOnVectorStoreStall(): boolean {
+        return this.assistantOptions.shouldContinueOnVectorStoreStall ?? true;
+    }
+
+    /**
      * Returns assistant-specific options with extended settings.
      */
     private get assistantOptions(): OpenAiAssistantExecutionToolsOptions {
@@ -876,6 +883,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             for (const { file, index } of iterator) {
                 const uploadIndex = index + 1;
                 const filename = file.name || `knowledge-source-${uploadIndex}`;
+                const extension = filename.includes('.') ? filename.split('.').pop()?.toLowerCase() ?? 'unknown' : 'unknown';
                 const sizeBytes = typeof file.size === 'number' ? file.size : undefined;
                 const fileUploadStartedAtMs = Date.now();
 
@@ -884,6 +892,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                         index: uploadIndex,
                         total: files.length,
                         filename,
+                        extension,
                         sizeBytes,
                         logLabel,
                     });
@@ -998,7 +1007,10 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             const countsKey = `${counts.completed}/${counts.failed}/${counts.in_progress}/${counts.cancelled}/${counts.total}`;
             const nowMs = Date.now();
             const returnedBatchId = latestBatch.id;
-            const batchIdMismatch = returnedBatchId !== expectedBatchId;
+
+            // [🤰] Note: Sometimes OpenAI returns Vector Store object instead of Batch object, or IDs get swapped.
+            // We only consider it a mismatch if the returned ID looks like a Batch ID.
+            const batchIdMismatch = returnedBatchId !== expectedBatchId && returnedBatchId.startsWith('vsfb_');
             const diagnosticsBatchId =
                 batchIdMismatch && returnedBatchId.startsWith('vsfb_') ? returnedBatchId : expectedBatchId;
             const shouldLog =
@@ -1034,6 +1046,19 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                     elapsedMs: nowMs - pollStartedAtMs,
                     logLabel,
                 });
+
+                // [🤰] If there are in-progress files for a long time, log their details
+                if (counts.in_progress > 0 && nowMs - lastProgressAtMs > 30000) {
+                    await this.logVectorStoreFileBatchDiagnostics({
+                        client,
+                        vectorStoreId,
+                        batchId: diagnosticsBatchId,
+                        uploadedFiles,
+                        logLabel,
+                        reason: 'stalled',
+                    });
+                }
+
                 lastStatus = latestBatch.status;
                 lastCountsKey = countsKey;
                 lastLogAtMs = nowMs;
@@ -1124,6 +1149,14 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                     logLabel,
                     reason: 'timeout',
                 });
+
+                if (this.shouldContinueOnVectorStoreStall()) {
+                    console.warn('[🤰]', 'Continuing despite vector store timeout as requested', {
+                        vectorStoreId,
+                        logLabel,
+                    });
+                    return latestBatch;
+                }
 
                 try {
                     const cancelBatchId =

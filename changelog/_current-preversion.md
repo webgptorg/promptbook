@@ -36,6 +36,13 @@
 -   Added vector store batch diagnostics (file type summary, per-file status samples, vector store status) and guarded invalid batch IDs during assistant knowledge ingestion.
 -   Fixed OpenAI vector store batch polling to log expected vs. returned batch IDs and cancel using the created batch ID when mismatches occur.
 -   Scoped the "Preparing agent: Creating assistant" chip in Agents Server to cache misses by emitting it only when a new assistant is created from cache lookup.
+-   Enhanced OpenAI vector store upload robustness and logging:
+    -   Added explicit file extension logging during knowledge ingestion to identify potential bottlenecks.
+    -   Implemented early "stalled" diagnostics if vector store batches remain in progress for more than 30 seconds without change.
+    -   Added specific warnings for PDF files which are known to cause ingestion delays.
+    -   Synced comprehensive polling and diagnostic logic between Assistants and Responses APIs.
+-   Added `shouldContinueOnVectorStoreStall` option to OpenAI assistant tools (default `true`) to prevent stuck PDF ingestion from blocking agent preparation.
+-   Fixed Vector Store ID vs. File Batch ID mismatch handling in OpenAI polling logic.
 -   Fixed Agents Server chat to always return a fallback message when the model produces an empty response, including streaming and OpenAI-compatible endpoints.
 -   Fixed Agents Server Book editor multi-file uploads by debouncing editor updates, tracking placeholders safely, and adding a floating upload panel with pause/resume controls and upload stats.
 -   Fixed federated agent item design on home page to match local agents.

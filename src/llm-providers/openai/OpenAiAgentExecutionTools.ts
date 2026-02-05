@@ -213,17 +213,42 @@ export class OpenAiAgentExecutionTools extends OpenAiExecutionTools implements L
 
     /**
      * Creates a vector store from knowledge sources
+     *
+     * Note: This is used by Responses API (Agentic)
      */
     public static async createVectorStore(
         client: OpenAI,
         name: string,
         knowledgeSources: ReadonlyArray<string>,
+        options?: {
+            readonly isVerbose?: boolean;
+            readonly uploadTimeoutMs?: number;
+            readonly shouldContinueOnVectorStoreStall?: boolean;
+        },
     ): Promise<string> {
+        const isVerbose = options?.isVerbose ?? true;
+        const defaultTimeoutMs = 900000; // 15 minutes
+        const uploadTimeoutMs = options?.uploadTimeoutMs ?? defaultTimeoutMs;
+        const shouldContinueOnVectorStoreStall = options?.shouldContinueOnVectorStoreStall ?? true;
+
+        if (isVerbose) {
+            console.info('[🤰]', 'Creating vector store with knowledge sources', {
+                name,
+                knowledgeSourcesCount: knowledgeSources.length,
+            });
+        }
+
         // Create a vector store
         const vectorStore = await client.beta.vectorStores.create({
             name: `${name} Knowledge Base`,
         });
         const vectorStoreId = vectorStore.id;
+
+        if (isVerbose) {
+            console.info('[🤰]', 'Vector store created', {
+                vectorStoreId,
+            });
+        }
 
         // Upload files from knowledge sources to the vector store
         const fileStreams = [];
@@ -231,33 +256,126 @@ export class OpenAiAgentExecutionTools extends OpenAiExecutionTools implements L
             try {
                 // Check if it's a URL
                 if (source.startsWith('http://') || source.startsWith('https://')) {
+                    if (isVerbose) {
+                        console.info('[🤰]', 'Downloading knowledge source', { source });
+                    }
                     // Download the file
                     const response = await fetch(source);
                     if (!response.ok) {
-                        console.error(`Failed to download ${source}: ${response.statusText}`);
+                        console.error('[🤰]', `Failed to download ${source}: ${response.statusText}`);
                         continue;
                     }
                     const buffer = await response.arrayBuffer();
                     const filename = source.split('/').pop() || 'downloaded-file';
+                    const extension = filename.includes('.')
+                        ? filename.split('.').pop()?.toLowerCase() ?? 'unknown'
+                        : 'unknown';
                     const blob = new Blob([buffer]);
                     const file = new File([blob], filename);
                     fileStreams.push(file);
+                    if (isVerbose) {
+                        console.info('[🤰]', 'Downloaded knowledge source', {
+                            filename,
+                            extension,
+                            size: buffer.byteLength,
+                        });
+                    }
                 } else {
                     // Local files not supported in browser env easily, same as before
                 }
             } catch (error) {
-                console.error(`Error processing knowledge source ${source}:`, error);
+                console.error('[🤰]', `Error processing knowledge source ${source}:`, error);
             }
         }
 
         // Batch upload files to the vector store
         if (fileStreams.length > 0) {
             try {
-                await client.beta.vectorStores.fileBatches.uploadAndPoll(vectorStoreId, {
-                    files: fileStreams,
+                if (isVerbose) {
+                    console.info('[🤰]', 'Uploading files to vector store and polling', {
+                        vectorStoreId,
+                        fileCount: fileStreams.length,
+                    });
+                }
+
+                // Check for PDF files and warn about potential slowness
+                const pdfCount = fileStreams.filter((f) => f.name.toLowerCase().endsWith('.pdf')).length;
+                if (pdfCount > 0) {
+                    console.warn(
+                        '[🤰]',
+                        `Warning: Found ${pdfCount} PDF files. PDF ingestion can be significantly slower and may cause timeouts in OpenAI vector stores.`,
+                        {
+                            vectorStoreId,
+                            pdfCount,
+                        },
+                    );
+                }
+
+                // Use manual polling with timeout instead of uploadAndPoll to prevent silent hangs
+                const batch = await client.beta.vectorStores.fileBatches.create(vectorStoreId, {
+                    file_ids: (
+                        await Promise.all(
+                            fileStreams.map((file) => client.files.create({ file, purpose: 'assistants' })),
+                        )
+                    ).map((f) => f.id),
                 });
+
+                const pollStartedAtMs = Date.now();
+                let latestBatch = batch;
+
+                while (latestBatch.status === ('in_progress' as TODO_any) || latestBatch.status === ('queued' as TODO_any)) {
+                    if (Date.now() - pollStartedAtMs >= uploadTimeoutMs) {
+                        console.error('[🤰]', 'Timed out waiting for vector store file batch (Agentic API)', {
+                            vectorStoreId,
+                            batchId: latestBatch.id,
+                            elapsedMs: Date.now() - pollStartedAtMs,
+                        });
+
+                        if (shouldContinueOnVectorStoreStall) {
+                            console.warn('[🤰]', 'Continuing despite vector store timeout as requested (Agentic API)', {
+                                vectorStoreId,
+                            });
+                            return vectorStoreId;
+                        }
+                        throw new Error('Vector store ingestion timed out');
+                    }
+
+                    await new Promise((resolve) => setTimeout(resolve, 5000));
+                    latestBatch = await client.beta.vectorStores.fileBatches.retrieve(vectorStoreId, batch.id);
+
+                    if (isVerbose) {
+                        console.info('[🤰]', 'Vector store file batch status (Agentic API)', {
+                            vectorStoreId,
+                            status: latestBatch.status,
+                            fileCounts: latestBatch.file_counts,
+                        });
+                    }
+                }
+
+                if (isVerbose) {
+                    console.info('[🤰]', 'Finished uploading and polling files to vector store', {
+                        vectorStoreId,
+                        status: latestBatch.status,
+                    });
+                }
             } catch (error) {
-                console.error('Error uploading files to vector store:', error);
+                console.error('[🤰]', 'Error uploading files to vector store:', error);
+
+                // Diagnostics on failure
+                try {
+                    const vs = await client.beta.vectorStores.retrieve(vectorStoreId);
+                    console.error('[🤰]', 'Vector store state after failure', {
+                        vectorStoreId,
+                        status: vs.status,
+                        file_counts: vs.file_counts,
+                    });
+                } catch (diagError) {
+                    // Ignore diagnostics failure
+                }
+
+                if (!shouldContinueOnVectorStoreStall) {
+                    throw error;
+                }
             }
         }
 

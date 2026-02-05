@@ -49,4 +49,11 @@ export type OpenAiAssistantExecutionToolsOptions = OpenAiCompatibleExecutionTool
          * @default 900000
          */
         readonly knowledgeSourceUploadTimeoutMs?: number;
+
+        /**
+         * Whether we should continue even if vector store ingestion stalls.
+         *
+         * @default true
+         */
+        readonly shouldContinueOnVectorStoreStall?: boolean;
     };
