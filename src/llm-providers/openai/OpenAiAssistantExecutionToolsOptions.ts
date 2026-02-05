@@ -28,4 +28,25 @@ export type OpenAiAssistantExecutionToolsOptions = OpenAiCompatibleExecutionTool
          * @default 30000
          */
         readonly knowledgeSourceDownloadTimeoutMs?: number;
+
+        /**
+         * Max concurrency for uploading knowledge source files to the vector store.
+         *
+         * @default 5
+         */
+        readonly knowledgeSourceUploadMaxConcurrency?: number;
+
+        /**
+         * Poll interval in milliseconds when waiting for vector store file batch processing.
+         *
+         * @default 5000
+         */
+        readonly knowledgeSourceUploadPollIntervalMs?: number;
+
+        /**
+         * Overall timeout in milliseconds for vector store file batch processing.
+         *
+         * @default 900000
+         */
+        readonly knowledgeSourceUploadTimeoutMs?: number;
     };
