@@ -83,6 +83,17 @@ Make some look how the chips or tool chips are implemented. For example, how it 
 
 [✨📰] Agent with large knowledgebase takes sooooooo long to prepare and answer, and often just ends up stucked
 
+---
+
+[ ]
+
+[✨📰] Agent with large knowledgebase takes sooooooo long to prepare and answer, and often just ends up stucked
+
+-   It ends up stucked right after working with the last knowledge source.
+-   Fix it or at least log more info about what is happening under the hood.
+-   Logs connected to this issue are marked with `[🤰]` tag
+-   You are working with the [Agents Server](apps/agents-server) with the agent chat _(for example, [here](https://my-agent-server.com/agents/FVLv8APAf2S1WV/chat))_
+
 **This is the agent source:**
 
 ```book
@@ -1243,7 +1254,737 @@ Technically, it's not an error, but it's probably not what you want because it d
 }
 ```
 
--   You are working with the [Agents Server](apps/agents-server) with the agent chat _(for example, [here](https://my-agent-server.com/agents/FVLv8APAf2S1WV/chat))_
+_<- The log ends here and never continues, just stucked on this point until the serverless function times out_
+
+**This is the equivalent log from local `next dev`:**
+
+```log
+
+me@DESKTOP-2QD9KQQ MINGW64 ~/work/ai/promptbook/apps/agents-server (main)
+$ npx next dev --port 4440
+ ⚠ Warning: Found multiple lockfiles. Selecting C:\Users\me\work\ai\promptbook\package-lock.json.
+   Consider removing the lockfiles at:
+   * C:\Users\me\work\ai\promptbook\apps\agents-server\package-lock.json
+
+   ▲ Next.js 15.4.9
+   - Local:        http://localhost:4440
+   - Network:      http://172.17.176.1:4440
+   - Environments: .env
+   - Experiments (use with caution):
+     ✓ externalDir
+
+ ✓ Starting...
+ ✓ Ready in 8.5s
+ ○ Compiling /middleware ...
+ ✓ Compiled /middleware in 577ms (407 modules)
+ ○ Compiling /agents/[agentName]/chat ...
+ ✓ Compiled /agents/[agentName]/chat in 12.9s (4743 modules)
+ ✓ Compiled in 1190ms (1103 modules)
+(node:61216) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[TypeError: Failed to parse URL from /agents/RLcP3snv2ifR3H/api/profile] {
+  [cause]: [TypeError: Invalid URL] {
+    code: 'ERR_INVALID_URL',
+    input: '/agents/RLcP3snv2ifR3H/api/profile'
+  }
+}
+ ⨯ unhandledRejection: [TypeError: Failed to parse URL from /agents/RLcP3snv2ifR3H/api/profile] {
+  [cause]: [TypeError: Invalid URL] {
+    code: 'ERR_INVALID_URL',
+    input: '/agents/RLcP3snv2ifR3H/api/profile'
+  }
+}
+ ⨯ unhandledRejection:  [TypeError: Failed to parse URL from /agents/RLcP3snv2ifR3H/api/profile] {
+  [cause]: [TypeError: Invalid URL] {
+    code: 'ERR_INVALID_URL',
+    input: '/agents/RLcP3snv2ifR3H/api/profile'
+  }
+}
+ GET /agents/RLcP3snv2ifR3H/chat 200 in 19133ms
+ ○ Compiling /agents/[agentName]/api/profile ...
+ ✓ Compiled /agents/[agentName]/images/icon-256.png in 3.3s (4757 modules)
+ GET /api/users 200 in 3881ms
+ GET /manifest.webmanifest 200 in 4415ms
+ GET /agents/RLcP3snv2ifR3H/api/profile 200 in 5349ms
+ GET /agents/RLcP3snv2ifR3H/api/profile 200 in 566ms
+ GET /agents/RLcP3snv2ifR3H/images/icon-256.png 200 in 6139ms
+ GET /agents/RLcP3snv2ifR3H/images/icon-256.png 200 in 817ms
+ GET /agents/RLcP3snv2ifR3H/images/icon-256.png 200 in 478ms
+ GET /agents/RLcP3snv2ifR3H/images/icon-256.png 200 in 791ms
+ ○ Compiling /agents/[agentName]/api/chat ...
+ ✓ Compiled /agents/[agentName]/api/chat in 2.8s (4927 modules)
+(node:57120) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[🐱‍🚀] Creating NEW OpenAiAssistantExecutionTools
+[🤰] Resolving assistant cache key {
+  agentName: 'RLcP3snv2ifR3H',
+  cacheKey: 'a9abf441bc065bf86db9ee15a981fd1fd9bb4251c263aa58e6397c303563df1f',
+  includeDynamicContext: true,
+  instructionsLength: 224,
+  baseSourceLength: 14252,
+  agentId: 'RLcP3snv2ifR3H'
+}
+[🤰] Assistant cache miss, creating assistant {
+  agentName: 'RLcP3snv2ifR3H',
+  cacheKey: 'a9abf441bc065bf86db9ee15a981fd1fd9bb4251c263aa58e6397c303563df1f',
+  agentId: 'RLcP3snv2ifR3H'
+}
+[🤰] Creating assistant via cache manager {
+  agentName: 'RLcP3snv2ifR3H',
+  assistantName: 'praha-13-monolit-2 - a9abf441',
+  instructionsLength: 20654,
+  knowledgeSourcesCount: 105,
+  toolsCount: 0
+}
+[🤰] Starting OpenAI assistant creation {
+  name: 'praha-13-monolit-2 - a9abf441',
+  knowledgeSourcesCount: 105,
+  toolsCount: 0,
+  instructionsLength: 20654
+}
+[🤰] Creating vector store with knowledge sources { name: 'praha-13-monolit-2 - a9abf441', knowledgeSourcesCount: 105 }
+[🤰] Vector store created { vectorStoreId: 'vs_698484ffd4fc819182469e51491a04dc' }
+[🤰] Processing knowledge source {
+  index: 1,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-084-2000-obsah-internetovych-stranek-r3eASWn0Kig20li4yEwhrbAnT6xEVo.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 2,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-117-2003-otevreny-ohen-i9DAgAJCzZ3aBl6PSHhGqoXBWJybJo.pdf',
+  sourceType: 'url'
+}
+(node:54476) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[🤰] Processing knowledge source {
+  index: 3,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-213-2011-inventarizace-NPQVRVY84VK8WPDuM1tUrDSTuuu7Uw.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 4,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-220-2012-aplikace-zakona-o-dph-pUqdRxC55uPUj1RxX079sQuhbBqgzL.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 5,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-242-2014-vystroj-ostrahy-radnice-P6eHXuc8VESvLJ8mRfVlpAOXyWm5IT.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 6,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-243-2014-odpovednost-za-kontrolu-a-revize-elektrickych-zarizeni-ftg6W2PGYDQlEmtGI6o2q30McYEzDD.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 7,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-255-2015-poskytovani-osobnich-ochrannych-pracovnich-prostredku-pgupxPh5986hkBb13cxC9YJm5l9rCo.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 8,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-256-2015-inovace-73WthpbpNA1LHp6LfnjwoPsm3nRqlH.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 9,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-257-2015-materialy-do-rmc-a-zmc-5pU3Wt90PEhgxf8kKDV1JeHPJxC5OH.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 10,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-289-2018-adaptacni-proces-novych-zamestnancu-2hmtUytz1XqUqO06I2eEBrpCEeoT81.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 11,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-290-2018-odpisovani-dlouhodobeho-majetku-OMOZI4p7bTQFpLtpfP6jMnTzVHvURF.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 12,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-291-2018-transfery-FmpUE6zmhNTRAiMkQIjXLNxzhV0Tys.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 13,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-299-2018-pr-pro-archiv-stav-YHUh6gVFZmIhtDUl8hcuZ31NrFHZJ4.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 14,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-300-2018-pr-pro-s-208-RbUMb2jrZk6PPdueZxFbIQXLyaF0Pj.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 15,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-301-2018-rad-ohlasovny-pozaru-YiAcUpOu1f95fUULf0j6aa3SwPREyw.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 16,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-302-2018-pr-pro-mistnost-nahradniho-zdroje-el-UcTOZ0hd1Jbohx366mgA7xXOjE9dO8.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 17,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-304-2018-mistni-rad-skladu-G3osILuBxmTEQECaFp4MxHrngV22WZ.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 18,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-305-2018-dokumentace-o-zacleneni-zvysene-pozarni-nebezpeci-lglHcHhvolrIFyBYbmXWO3FSVOpTe6.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 19,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-306-2018-pr-pro-budovu-radnice-Uk0krKCcKV6NUIycPixLQDaKd9Fpej.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 20,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-308-2018-pozarni-rad-pro-pg-jGXpFZyCMEiGnMK1RjHUSMo6wx4HIz.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 21,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-309-2018-pozarni-evakuacni-plan-x7GaYbYxJ0PxRRzbAtDr7UDCYZVX9b.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 22,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-310-2018-dokumentace-zdolavani-pozaru-dKCPM8c1se8YlxhHBqvcMB03Lx9mq8.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 23,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-311-2018-revizni-rad-GRsfZd6fT7TXLH2KVDcVtDJkiCYSQ3.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 24,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-312-2018-cestovni-nahrady-KNXnQUQWoKwiEgTCpLSJDM5v8dLCy9.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 25,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-312-2018-cestovni-nahrady-dodatek-6-dqedfZv6j077iBCVgr2hvBjgkVf9iw.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 26,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-314-2018-kategorizace-pro-hpp-lwUIAhjV75X5Tw3kP4mXwpszWWKsWy.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 27,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-315-2018-kategorizace-pro-dpp-a-dpc-gHOdjT167EYkpb4zTPMuyrwsacnsDL.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 28,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-316-2018-zajisteni-vychovy-a-vzdelavani-v-oblasti-bozp-2BXyX55szqhqjsx1cLoI7zVrvGSwX5.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 29,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-317-2018-prikazove-bloky-9pLPk4aFiAI54bJQNPa4r7h4QG2SjC.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 30,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-319-2018-mistni-provozne-bezpecnostni-predpis-N6U1xYYA7zr9nNhZA25ZANtGQi4FpI.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 31,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-320-2018-metodika-k-organizaci-kulturnich-akci-WhQshlsBHXXtPxK8DBl0Zy9bdjKXuN.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 32,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-321-2018-pracovni-volno-bez-nahrady-yzcJxPMRDocvw22XMvnlndOIHsEezo.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 33,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-324-2019-socialne-pravni-ochrana-deti-na-umc-p13-GXTnRdw3ZvzLpfq2Az0ZDq13Rkdmmf.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 34,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-326-2019-organizace-autoprovozu-wo0SgC2VQV8JO2vUxHNRljz6us4mwx.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 35,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-327-2019-telekomunikacni-zarizeni-cOKL6BGR011LJboijiP5W3EcGBg0yU.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 36,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-329-2019-provozni-rad-umc-p-13-cH0FsV0t3CrGszkfPTJliVdGZCmJNk.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 37,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-333-2020-oznaceni-uradu-pisemnosti-razitek-jUHogIhcNqYff43FqpXAUsIFBqbB7s.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 38,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-334-2020-tehotne-kojici-zamestnankyne-7gpkBvtOKUwJ7eStbVAGEdJv0U2zGr.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 39,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-335-2020-havarijni-plan-f5F929GO8c7ZTtOBmuRl0GWHCz0C7s.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 40,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-336-2020-pracovni-urazy-xbN5eXPDMaKkCgQ2Tc0iIUG2oPTrQj.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 41,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-337-2020-traumatologicky-plan-FR6KKI1gRfIBTqdyvOQwm7zl1QEPjn.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 42,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-338-2020-pokyny-pro-cinnost-preventivni-pozarni-hlidky-NJwGQHqsQ9CS4YkuwxJRbOtFfOqXYp.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 43,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-342-2020-tvorba-vnitrnich-predpisu-knCyryAju2onSAAh16KZpB17uATaIK.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 44,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-344-2020-realizace-dotacnich-projektu-xq3UtsAlddr7h8uYjyOnRDIRSKCuci.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 45,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-346-2020-pravidla-pro-komunikaci-g872TOometpnOrJEPVU4tmzJsD0FaL.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 46,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-348-2020-ochrana-ou-zamestnancu-pMRLMmgWQeySo9ieEBq8i2kH8D2bDy.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 47,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-353-2020-dan-z-pridane-hodnoty-vuLmWEmSywEf9tDrnJgpIf0ajP686i.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 48,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-354-2021-ochrana-osobnich-udaju-v-prostredi-umc-praha-13-pG4z7RiFZqhhS8eRhWprrO5BZDeoq0.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 49,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-357-2021-uplatnovani-sankci-u-mistnich-poplatku-umc-praha-13-K8ghlQ0FySsxRerjCllDG52IstblPY.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 50,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-359-2021-projednavani-skod-a-likvidace-majetku-F0yw85tTbKov8GDobFq6uEbAneIELI.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 51,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-360-2021-pracovni-rad-ApTKQElb229oD3b6UanHr8n8swnL6q.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 52,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-363-2021-majetek-zLKvdNuY7FYBgv9j9AM0W3hJEd6CrU.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 53,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-366-2022-eticky-kodex-dugA8qvhNRI61r8MPnfSBDeuYk9aNC.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 54,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-367-2022-komunikace-pri-mimoradne-udalosti-jxHPbEcPNyPfN24idZLSA3W6NziIJ9.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 55,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-368-2022-hodnoceni-zamestnancu-biFW7xLRU2cvOQea4Fo0qFHMwPX3lQ.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 56,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-370-2022-bezpecnostni-smernice-le78hNbD9zDhFDgdB9ZooRJe9f6MCA.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 57,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-371-2022-realna-hodnota-u-majetku-urceneho-k-prodeji-3zdR3oVuUdVRFCIIwC5CKAeTiPQiiQ.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 58,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-374-2022-casove-rozliseni-74fwwFaUSzuRqAXtHSZLes8Sx8oOJO.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 59,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-378-2023-postupy-pro-jednotne-cislovani-smluv-a-dohod-toKlFR5mDUSPw4I3aohEtADByZMc42.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 60,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-379-2023-zajisteni-pracovnelekarskych-sluzeb-pro-zamestnance-umc-praha-13-1lZvecGVdtJ7O2HaPcXaKciczLrYzA.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 61,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-386-2024-prirucka-isms-2024-OhaYcL2S5BVE02qGfesrjoShsYSNy0.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 62,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-387-2024-evidence-prestupku-l7XXH1vihScqye4AiOwTK8jVtHieul.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 63,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-388-2024-plan-inventur-na-rok-2024-xUyfWwruvAnchEsWR7TJzcf2MyEhmi.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 64,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-389-2024-spisovy-rad-lzO0PHLbbXtQLsWtJP7tzrZcE93iPE.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 65,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-390-2025-podpisovy-rad-BtFI2dxS7tNNRRs9N18NwECl2nfk4I.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 66,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-391-2025-evidence-a-vymahani-pohledavek-evidence-a-vraceni-preplatku-VlYBEpej1t60HVGPoNOyakLJ6vZKLb.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 67,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-392-2025-vzdelavani-KFATJoNIWCixfCDygBZ4py5HyylkAy.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 68,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-393-2025-antidiskriminacni-pravidla-915le6mDxHu6j3fuK6KclvZwzVp8gd.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 69,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-394-2025-pouziti-automatizovaneho-externiho-defibrilatoru-x1xJ7f7okupR7JVb2IKHVt8BDfk1Ug.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 70,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-396-2025-ostraha-objektu-lUhphwErwcf1gxLyWpwfBHix6Y1gId.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 71,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-397-2025-prijimani-novych-zamestnancu-ngxp3Wems2ICtECvihCBnUbvb3KtDH.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 72,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-398-2025-postup-pri-realizaci-vyberovych-rizeni-8VePoODgg8D7lYhXLFvOC0s0Gu4jaY.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 73,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-399-2025-jina-vydelecna-cinnost-uredniku-HtA0jcx8COhLbyqlKdMzx7uTiKhymW.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 74,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-400-2025-platova-politika-umc-p13-zJX9WqS1yGN8YCqL000fujpZ6vfVPF.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 75,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-400-2025-d-platova-politika-umc-p13-dodatek-1-j8Qbb0GrT0FYmXXVJAcRSSbj82Kh4M.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 76,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-401-2025-uhrada-stravneho-iSf0CZttVsq38rKY4pm0vN0Vgo0xTO.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 77,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-402-2025-kontroly-zamestnancu-na-neschopence-3APOCr2IOmeUGDYccXdkNr9gMgLp2g.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 78,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-404-2025-pokladni-sluzba-Nzm7l7k8aya7gTLpVUSkuIdLAL0e04.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 79,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-405-2025-zajisteni-evidence-dodrzovani-a-vyuzivani-pracovni-doby-JTgTyYfwUynr9T9qp8OI7p10RjT91u.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 80,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-406-2025-podrozvaha-a-rezervy-oYGi5ZbONRrGBgWfqpiDKKZC5QT32J.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 81,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-407-2025-pokladni-sluzba-ReNjhUkiO7tXKuLQUZN27Cwu1OfMrz.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 82,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-408-2025-obeh-rozpoctovych-a-ucetnich-dokladu-1ywNhpqlirreIhQTVa6Yu7lxPlroy9.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 83,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-409-2025-ekonomicka-smernice-JRo87v7JBwK2CziRWvADyfUsc9cm4K.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 84,
+  total: 105,
+  source: 'https://ptbk.io/k/ss-1-2016-dodatek-c-1-k-pravidla-pro-prijimani-petic-stiznosti-Xx0jFHTrSNxFbcluYbteAVJlTrbIB6.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 85,
+  total: 105,
+  source: 'https://ptbk.io/k/ss-1-2016-pravidla-pro-prijimani-petic-stiznosti-oznameni-podnetu-a-vyrizovani-podani-na-mozna-korupcni-jednani-podanych-organum-mc-p13-yLN5JxPfyQTTN6OZW3vYfj34X5vuim.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 86,
+  total: 105,
+  source: 'https://ptbk.io/k/ss-1-2017-dodatek-c-1-zadavani-vz-Po35Eg5q9Kfz6idD7Du0ERBm4sVXv5.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 87,
+  total: 105,
+  source: 'https://ptbk.io/k/ss-1-2017-dodatek-c-2-zadavani-vz-6iJ2oNtHBNTj7S8EzUIP29SaxjkJcp.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 88,
+  total: 105,
+  source: 'https://ptbk.io/k/ss-1-2017-dodatek-c-3-zadavani-vz-cJki0d4775xpxK8ePxBN4l662PvGL3.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 89,
+  total: 105,
+  source: 'https://ptbk.io/k/ss-1-2017-dodatek-c-4-zadavani-vz-I8KsZg4ulQ3M8vocsC5iFGqMmNOi4v.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 90,
+  total: 105,
+  source: 'https://ptbk.io/k/ss-1-2017-priloha-c-1-5-zadavani-vz-Ojl0jsNbQGXZiHpXEbeaBFaGXpIF7j.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 91,
+  total: 105,
+  source: 'https://ptbk.io/k/ss-1-2017-zadavani-vz-mc-praha-13-dle-zakona-c-134-2016-sb-o-zadavani-vz-qOk2nlHP3ae9F0zWx1nyzzrC04O7al.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 92,
+  total: 105,
+  source: 'https://ptbk.io/k/ss-1-2018-gdpr-sd7H6Ha0s6n6lkReI2tYMBkzQPirHj.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 93,
+  total: 105,
+  source: 'https://ptbk.io/k/ss-1-2020-statut-interniho-auditu-umc-praha-13-Y33H8y83edfjWjX7YvLc186uLdqI9S.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 94,
+  total: 105,
+  source: 'https://ptbk.io/k/ss-1-2022-uzavirani-smluv-a-dohod-mestskou-casti-praha-13-YmgaoOwnHERTPdPXEakCeNL45fQ3qa.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 95,
+  total: 105,
+  source: 'https://ptbk.io/k/ss-1-2023-o-aplikaci-zakona-c-34-2015-sb-zakon-o-registru-smluv-wJoCuRDZGkVEc2VFLG27FeVehmPPyE.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 96,
+  total: 105,
+  source: 'https://ptbk.io/k/ss-1-2024-ochrana-oznamovatelu-YygJqRvzN0EaP1nz7ozoKqXUcrbLtN.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 97,
+  total: 105,
+  source: 'https://ptbk.io/k/ss-2-2015-dodatek-c-1-postupy-pro-organizovani-a-provadeni-nasledne-verejnospravni-kontroly-po-ovnWPQRavbRbyMGgZa90xIqEk9lT5P.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 98,
+  total: 105,
+  source: 'https://ptbk.io/k/ss-2-2015-dodatek-c-2-postupy-pro-organizovani-a-provadeni-nasledne-verejnospravni-kontroly-po-vMtQbX4omeD84uPPCSZqPC9vqUagCw.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 99,
+  total: 105,
+  source: 'https://ptbk.io/k/ss-2-2015-postupy-pro-organizovani-a-prov-verejnospravni-kontroly-pris-org-jXT7QiQyIMOfQKTvDJcVPlWIojxVjO.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 100,
+  total: 105,
+  source: 'https://ptbk.io/k/ss-2-2019-rizeni-rizik-priloha-c-1-metodika-analyzy-rizik-VEBIMhC3D22MVBdK89OeqfC8N8CmgB.pdf',
+  sourceType: 'url'
+}
+  index: 100,
+  total: 105,
+  source: 'https://ptbk.io/k/ss-2-2019-rizeni-rizik-priloha-c-1-metodika-analyzy-rizik-VEBIMhC3D22MVBdK89OeqfC8N8CmgB.pdf',
+  sourceType: 'url'
+}
+}
+[🤰] Processing knowledge source {
+  index: 101,
+  total: 105,
+  source: 'https://ptbk.io/k/ss-2-2019-rizeni-rizik-priloha-c-2-vzor-karty-agendy-T5HJ1FvGll7UByska9ADpAEKEbEJfu.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 102,
+  total: 105,
+  source: 'https://ptbk.io/k/ss-2-2019-rizeni-rizik-QmTDXjDflGTmX2iKg9F7Qyo4QgS98q.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 103,
+  total: 105,
+  source: 'https://ptbk.io/k/ss-2-2023-informace-106-syRjDruyxkspiYvNqDM2LYS0NS2aGM.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 104,
+  total: 105,
+  source: 'https://ptbk.io/k/ss-3-2019-vnitrni-kontrolni-system-WYZcHnXWvOlCbGaY0R9dhtVmujeLf2.pdf',
+  sourceType: 'url'
+}
+[🤰] Processing knowledge source {
+  index: 105,
+  total: 105,
+  source: 'https://ptbk.io/k/nt-084-2000-obsah-internetovych-stranek-dodatek-1-kzEv2vkRhFnIRfdm2lNWDVrpgbOIM7.pdf',
+  sourceType: 'url'
+}
+```
+
+_<- The log ends here and never continues, just stucked on this point forever_
 
 ---
 
@@ -1264,4 +2005,3 @@ Technically, it's not an error, but it's probably not what you want because it d
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server) with the agent chat _(for example, [here](https://my-agent-server.com/agents/FVLv8APAf2S1WV/chat))_
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
