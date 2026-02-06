@@ -4,7 +4,8 @@
 import {
     DndContext,
     DragOverlay,
-    PointerSensor,
+    MouseSensor,
+    TouchSensor,
     closestCenter,
     useDroppable,
     useSensor,
@@ -102,6 +103,9 @@ type AgentContextMenuState = {
 const AGENT_DRAG_ID_PREFIX = 'agent:';
 const FOLDER_DRAG_ID_PREFIX = 'folder:';
 const BREADCRUMB_DRAG_ID_PREFIX = 'breadcrumb:';
+const DRAG_START_DISTANCE_PX = 8;
+const TOUCH_DRAG_DELAY_MS = 250;
+const TOUCH_DRAG_TOLERANCE_PX = 6;
 
 /**
  * Builds a unique drag identifier with a stable prefix.
@@ -641,8 +645,11 @@ export function AgentsList(props: AgentsListProps) {
 
     const agentCount = viewMode === 'LIST' ? visibleAgents.length : agents.length;
     const sensors = useSensors(
-        useSensor(PointerSensor, {
-            activationConstraint: { distance: 8 },
+        useSensor(MouseSensor, {
+            activationConstraint: { distance: DRAG_START_DISTANCE_PX },
+        }),
+        useSensor(TouchSensor, {
+            activationConstraint: { delay: TOUCH_DRAG_DELAY_MS, tolerance: TOUCH_DRAG_TOLERANCE_PX },
         }),
     );
     const visibleFolderDragIds = useMemo(

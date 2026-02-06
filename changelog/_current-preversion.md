@@ -27,6 +27,7 @@
 -   Made Agents Server home list cards more compact and file-like, including smaller capability chips.
 -   Enhanced Agents Server home agent cards with dynamic, color-based backgrounds and subtle noise effects for a more professional look.
 -   Improved Agents Server list drag-and-drop with live reordering, drag overlays, and clearer drop targets for agents and folders.
+-   Reduced accidental drag activations on touchscreens in the Agents Server home list by adding touch-specific activation delays.
 -   Added a parent folder card in Agents Server list view to quickly navigate up and drag agents or folders to the parent.
 -   Created new agents inside the active folder when adding from a subfolder view in the Agents Server home list.
 -   Added a configurable Markdown message (via metadata) shown above the agents list on the Agents Server homepage.
