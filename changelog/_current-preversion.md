@@ -420,3 +420,6 @@
 -   Enhanced codebase by using explicit types instead of type inference across multiple files in `src/`, `apps/`, and `scripts/` directories to improve readability and maintainability.
 -   Fix width of the message in the chat by adding a minimum width and improving layout for short messages.
 -   Use model `gemini-3-pro-image-preview` for the agent of Avatar Images
+-   Updated `openai` from `4.63.0` to `6.18.0` and fixed all resulting type errors.
+-   Resolved `zod` peer dependency conflicts between `@ai-sdk/deepseek` and `@openai/agents` by using `overrides` in `package.json`.
+-   Fixed `node-fetch` declaration issue in `LindatAutomaticTranslator.ts` by using native `URLSearchParams` and removing `node-fetch` import.

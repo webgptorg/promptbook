@@ -1,6 +1,7 @@
 import colors from 'colors'; // <- TODO: [🔶] Make system to put color and style to both node and browser
 import OpenAI from 'openai';
 import spaceTrim from 'spacetrim';
+import { TODO_any } from '../../_packages/types.index';
 import { serializeError } from '../../_packages/utils.index';
 import { assertsError } from '../../errors/assertsError';
 import { NotAllowed } from '../../errors/NotAllowed';
@@ -218,8 +219,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             }
 
             // Create thread and run
-            const threadAndRun = await client.beta.threads.createAndRun(rawRequest);
-            let run = threadAndRun;
+            let run = (await client.beta.threads.createAndRun(rawRequest)) as OpenAI.Beta.Threads.Run;
             const completedToolCalls: Array<NonNullable<ChatPromptResult['toolCalls']>[number]> = [];
             const toolCallStartedAt = new Map<string, string_date_iso8601>();
 
@@ -333,13 +333,16 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                     }
 
                     // Submit tool outputs
-                    run = await client.beta.threads.runs.submitToolOutputs(run.thread_id, run.id, {
+                    run = (await (client.beta.threads.runs as TODO_any).submitToolOutputs(run.thread_id, run.id, {
                         tool_outputs: toolOutputs,
-                    });
+                    })) as OpenAI.Beta.Threads.Run;
                 } else {
                     // Wait a bit before polling again
                     await new Promise((resolve) => setTimeout(resolve, 500));
-                    run = await client.beta.threads.runs.retrieve(run.thread_id, run.id);
+                    run = (await (client.beta.threads.runs as TODO_any).retrieve(
+                        run.thread_id,
+                        run.id,
+                    )) as OpenAI.Beta.Threads.Run;
                 }
             }
 
@@ -741,9 +744,13 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
 
         try {
             const limit = Math.min(100, Math.max(10, uploadedFiles.length));
-            const batchFilesPage = await client.beta.vectorStores.fileBatches.listFiles(vectorStoreId, batchId, {
-                limit,
-            });
+            const batchFilesPage = await (client.beta as TODO_any).vectorStores.fileBatches.listFiles(
+                vectorStoreId,
+                batchId,
+                {
+                    limit,
+                },
+            );
             const batchFiles = batchFilesPage.data ?? [];
             const statusCounts: Record<string, number> = {
                 in_progress: 0,
@@ -796,7 +803,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                     sizeBytes: file.sizeBytes,
                 }));
 
-            const vectorStore = await client.beta.vectorStores.retrieve(vectorStoreId);
+            const vectorStore = await (client.beta as TODO_any).vectorStores.retrieve(vectorStoreId);
             const logPayload = {
                 vectorStoreId,
                 batchId,
@@ -836,7 +843,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
         readonly files: ReadonlyArray<File>;
         readonly totalBytes: number;
         readonly logLabel: string;
-    }): Promise<OpenAI.Beta.VectorStores.FileBatches.VectorStoreFileBatch | null> {
+    }): Promise<TODO_any | null> {
         const { client, vectorStoreId, files, totalBytes, logLabel } = options;
         const uploadStartedAtMs = Date.now();
         const maxConcurrency = Math.max(1, this.getKnowledgeSourceUploadMaxConcurrency());
@@ -966,7 +973,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             return null;
         }
 
-        const batch = await client.beta.vectorStores.fileBatches.create(vectorStoreId, {
+        const batch = await (client.beta as TODO_any).vectorStores.fileBatches.create(vectorStoreId, {
             file_ids: fileIds,
         });
         const expectedBatchId = batch.id;
@@ -1011,7 +1018,10 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
         let shouldPoll = true;
 
         while (shouldPoll) {
-            latestBatch = await client.beta.vectorStores.fileBatches.retrieve(vectorStoreId, expectedBatchId);
+            latestBatch = await (client.beta as TODO_any).vectorStores.fileBatches.retrieve(
+                vectorStoreId,
+                expectedBatchId,
+            );
             const counts = latestBatch.file_counts;
             const countsKey = `${counts.completed}/${counts.failed}/${counts.in_progress}/${counts.cancelled}/${counts.total}`;
             const nowMs = Date.now();
@@ -1183,7 +1193,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
                             logLabel,
                         });
                     } else {
-                        await client.beta.vectorStores.fileBatches.cancel(vectorStoreId, cancelBatchId);
+                        await (client.beta as TODO_any).vectorStores.fileBatches.cancel(vectorStoreId, cancelBatchId);
                     }
                     if (this.options.isVerbose) {
                         console.info('[🤰]', 'Cancelled vector store file batch after timeout', {
@@ -1244,7 +1254,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiExecutionTools implemen
             });
         }
 
-        const vectorStore = await client.beta.vectorStores.create({
+        const vectorStore = await (client.beta as TODO_any).vectorStores.create({
             name: `${name} Knowledge Base`,
         });
         const vectorStoreId = vectorStore.id;

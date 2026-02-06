@@ -200,14 +200,14 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
         }
 
         const modelName: string_model_name = currentModelRequirements.modelName || this.getDefaultChatModel().modelName;
-        const modelSettings: OpenAI.Chat.Completions.CompletionCreateParamsNonStreaming = {
+        const modelSettings: OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming = {
             model: modelName,
             max_tokens: currentModelRequirements.maxTokens,
             temperature: currentModelRequirements.temperature,
 
             // <- TODO: [🈁] Use `seed` here AND/OR use is `isDeterministic` for entire execution tools
             // <- Note: [🧆]
-        } as OpenAI.Chat.Completions.CompletionCreateParamsNonStreaming; // <- TODO: [💩] Guard here types better
+        } as OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming; // <- TODO: [💩] Guard here types better
 
         if (format === 'JSON') {
             modelSettings.response_format = {
@@ -304,11 +304,11 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
 
         let isLooping = true;
         while (isLooping) {
-            const rawRequest: OpenAI.Chat.Completions.CompletionCreateParamsNonStreaming = {
+            const rawRequest: OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming = {
                 ...modelSettings,
                 messages,
                 user: this.options.userId?.toString(),
-                tools: tools === undefined ? undefined : mapToolsToOpenAi(tools),
+                tools: tools === undefined ? undefined : (mapToolsToOpenAi(tools) as TODO_any),
             };
 
             if (this.options.isVerbose) {
@@ -355,8 +355,8 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
                                 }
 
                                 return {
-                                    name: toolCall.function.name,
-                                    arguments: toolCall.function.arguments,
+                                    name: (toolCall as TODO_any).function.name,
+                                    arguments: (toolCall as TODO_any).function.arguments,
                                     result: '',
                                     rawToolCall: toolCall,
                                     createdAt: calledAt,
@@ -369,8 +369,8 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
                     }
 
                     await forEachAsync(responseMessage.tool_calls, {}, async (toolCall) => {
-                        const functionName = toolCall.function.name;
-                        const functionArgs = toolCall.function.arguments;
+                        const functionName = (toolCall as TODO_any).function.name;
+                        const functionArgs = (toolCall as TODO_any).function.arguments;
                         const calledAt = toolCall.id
                             ? toolCallStartedAt.get(toolCall.id) || $getCurrentDate()
                             : $getCurrentDate();
@@ -1032,15 +1032,15 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
             }
             const complete: string_date_iso8601 = $getCurrentDate();
 
-            if (!rawResponse.data[0]) {
+            if (!(rawResponse as TODO_any).data[0]) {
                 throw new PipelineExecutionError(`No choises from ${this.title}`);
             }
 
-            if (rawResponse.data.length > 1) {
+            if ((rawResponse as TODO_any).data.length > 1) {
                 throw new PipelineExecutionError(`More than one choise from ${this.title}`);
             }
 
-            const resultContent = rawResponse.data[0].url!;
+            const resultContent = (rawResponse as TODO_any).data[0].url!;
 
             const modelInfo = this.HARDCODED_MODELS.find((model) => model.modelName === modelName);
             const price = modelInfo?.pricing?.output ? uncertainNumber(modelInfo.pricing.output) : uncertainNumber();
