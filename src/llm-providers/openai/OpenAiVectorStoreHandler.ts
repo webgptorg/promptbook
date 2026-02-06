@@ -1,12 +1,11 @@
-
-import OpenAI from 'openai';
 import type { ClientOptions } from 'openai';
+import OpenAI from 'openai';
 import { TODO_any } from '../../_packages/types.index';
 import { serializeError } from '../../_packages/utils.index';
 import { assertsError } from '../../errors/assertsError';
 import type { string_title } from '../../types/typeAliases';
-import { OpenAiExecutionTools } from './OpenAiExecutionTools';
 import type { OpenAiCompatibleExecutionToolsOptions } from './OpenAiCompatibleExecutionToolsOptions';
+import { OpenAiExecutionTools } from './OpenAiExecutionTools';
 
 const DEFAULT_KNOWLEDGE_SOURCE_DOWNLOAD_TIMEOUT_MS = 30000;
 const DEFAULT_KNOWLEDGE_SOURCE_UPLOAD_TIMEOUT_MS = 900000;
@@ -775,7 +774,7 @@ export abstract class OpenAiVectorStoreHandler extends OpenAiExecutionTools {
                         });
                     }
                     /*
-                    TODO: [?????] Resolve problem with browser environment
+                    TODO: [🤰] Resolve problem with browser environment
                     // Assume it's a local file path
                     // Note: This will work in Node.js environment
                     // For browser environments, this would need different handling

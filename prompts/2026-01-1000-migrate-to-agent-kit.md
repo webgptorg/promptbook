@@ -91,12 +91,112 @@ console.log(result.finalOutput || '(No output)');
 
 ---
 
-[-]
+[ ] !!!!!!!!
 
-[✨🎩] foo
+[✨🎩] After migration from Assistants API to OpenAI AgentKit chatting with agent on Agents server not working
 
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the [changelog](./changelog/_current-preversion.md)
+**Here are the logs from local Vercel `next dev`:**
+
+```bash
+ ...
+ ○ Compiling /agents/[agentName]/api/chat ...
+ ✓ Compiled /agents/[agentName]/api/chat in 6.3s (5512 modules)
+[🤰] Creating NEW OpenAiAgentKitExecutionTools
+[🤰] Resolving AgentKit cache key {
+  agentName: 'p3P7vuGvNnbre8',
+  cacheKey: 'b59649c2fc44a42be342001acb4548cfa0f44574c1495c905734147b93894be6',
+  includeDynamicContext: true,
+  instructionsLength: 30,
+  baseSourceLength: 106,
+  agentId: 'p3P7vuGvNnbre8'
+}
+[🤰] Preparing AgentKit agent via cache manager {
+  agentName: 'p3P7vuGvNnbre8',
+  agentKitName: 'matthew-brown - b59649c2',
+  instructionsLength: 106,
+  knowledgeSourcesCount: 0,
+  toolsCount: 0
+}
+[🤰] Preparing OpenAI AgentKit agent {
+  name: 'matthew-brown - b59649c2',
+  instructionsLength: 106,
+  knowledgeSourcesCount: 0,
+  toolsCount: 0
+}
+[🤰] OpenAI AgentKit agent ready {
+  name: 'matthew-brown - b59649c2',
+  model: 'gpt-5.2',
+  toolCount: 0,
+  hasVectorStore: false
+}
+ GET /agents/p3P7vuGvNnbre8/chat 200 in 2119ms
+You have not provided any `LlmExecutionTools`
+This means that you won't be able to execute any prompts that require large language models like GPT-4 or Anthropic's Claude.
+
+Technically, it's not an error, but it's probably not what you want because it does not make sense to use Promptbook without language models.
+[🤰] Preparing agent model requirements { agent: 'Matthew Brown' }
+ ○ Compiling /manifest.webmanifest ...
+(node:76872) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ ✓ Compiled /manifest.webmanifest in 1765ms (5515 modules)
+ ✓ Compiled in 11ms (5531 modules)
+ ✓ Compiled in 1ms (5531 modules)
+ ✓ Compiled in 1ms (5531 modules)
+ ○ Compiling /agents/[agentName]/images/default-avatar.png ...
+[Error: failed to pipe response] {
+  [cause]: Error: Connection error.
+      at async OpenAiAgentKitExecutionTools.listModels (..\..\src\llm-providers\openai\OpenAiCompatibleExecutionTools.ts:117:41)
+      at async Agent.getModelRequirements (..\..\src\llm-providers\agent\AgentLlmExecutionTools.ts:181:36)
+      at async Agent.callChatModelStream (..\..\src\llm-providers\agent\Agent.ts:266:34)
+      at async Object.start (src\app\agents\[agentName]\api\chat\route.ts:164:37)
+    115 |     public async listModels(): Promise<ReadonlyArray<AvailableModel>> {
+    116 |         const client: OpenAI = await this.getClient();
+  > 117 |         const rawModelsList: chococake = await client.models.list();
+        |                                         ^
+    118 |
+    119 |         const availableModels: ReadonlyArray<AvailableModel> = (rawModelsList.data as Array<chococake>)
+    120 |             .sort((a: chococake, b: chococake) => (a.created > b.created ? 1 : -1)) {
+    status: undefined,
+    headers: undefined,
+    requestID: undefined,
+    error: undefined,
+    code: undefined,
+    param: undefined,
+    type: undefined,
+    [cause]: TypeError: fetch failed
+        at async OpenAiAgentKitExecutionTools.listModels (..\..\src\llm-providers\openai\OpenAiCompatibleExecutionTools.ts:117:41)
+        at async Agent.getModelRequirements (..\..\src\llm-providers\agent\AgentLlmExecutionTools.ts:181:36)
+        at async Agent.callChatModelStream (..\..\src\llm-providers\agent\Agent.ts:266:34)
+        at async Object.start (src\app\agents\[agentName]\api\chat\route.ts:164:37)
+      115 |     public async listModels(): Promise<ReadonlyArray<AvailableModel>> {
+      116 |         const client: OpenAI = await this.getClient();
+    > 117 |         const rawModelsList: chococake = await client.models.list();
+          |                                         ^
+      118 |
+      119 |         const availableModels: ReadonlyArray<AvailableModel> = (rawModelsList.data as Array<chococake>)
+      120 |             .sort((a: chococake, b: chococake) => (a.created > b.created ? 1 : -1)) {
+      [cause]: Error [InvalidArgumentError]: invalid keep-alive header
+          at new Promise (<anonymous>)
+          at async OpenAiAgentKitExecutionTools.listModels (..\..\src\llm-providers\openai\OpenAiCompatibleExecutionTools.ts:117:41)
+          at async Agent.getModelRequirements (..\..\src\llm-providers\agent\AgentLlmExecutionTools.ts:181:36)
+          at async Agent.callChatModelStream (..\..\src\llm-providers\agent\Agent.ts:266:34)
+          at async Object.start (src\app\agents\[agentName]\api\chat\route.ts:164:37)
+        115 |     public async listModels(): Promise<ReadonlyArray<AvailableModel>> {
+        116 |         const client: OpenAI = await this.getClient();
+      > 117 |         const rawModelsList: chococake = await client.models.list();
+            |                                         ^
+        118 |
+        119 |         const availableModels: ReadonlyArray<AvailableModel> = (rawModelsList.data as Array<chococake>)
+        120 |             .sort((a: chococake, b: chococake) => (a.created > b.created ? 1 : -1)) {
+        code: 'UND_ERR_INVALID_ARG'
+      }
+    }
+  }
+}
+ POST /agents/p3P7vuGvNnbre8/api/chat 500 in 27357ms
+ GET /manifest.webmanifest 200 in 16457ms
+ ...
+```
 
 ---
 
@@ -119,4 +219,3 @@ console.log(result.finalOutput || '(No output)');
 ```
 
 ```
-
