@@ -5,6 +5,7 @@ import { X } from 'lucide-react';
 import { useState } from 'react';
 import { BookEditor } from '../../../../../src/book-components/BookEditor/BookEditor';
 import { bookEditorUploadHandler } from '../../utils/upload/createBookEditorUploadHandler';
+import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 import { Dialog } from '../Portal/Dialog';
 
 /**
@@ -23,6 +24,7 @@ export function NewAgentDialog(props: NewAgentDialogProps) {
     const { onClose, initialAgentSource, onCreate } = props;
     const [agentSource, setAgentSource] = useState(initialAgentSource);
     const [isCreating, setIsCreating] = useState(false);
+    const { formatText } = useAgentNaming();
     // [✨🧬] const [isInteracted, setIsInteracted] = useState(false);
 
     /*
@@ -48,7 +50,7 @@ export function NewAgentDialog(props: NewAgentDialogProps) {
     return (
         <Dialog onClose={onClose} className="w-full max-w-4xl h-[80vh] flex flex-col">
             <div className="flex items-center justify-between p-4 border-b border-gray-200">
-                <h2 className="text-xl font-semibold text-gray-900">Create New Agent</h2>
+                <h2 className="text-xl font-semibold text-gray-900">{formatText('Create New Agent')}</h2>
                 <button onClick={onClose} className="text-gray-400 hover:text-gray-500 transition-colors">
                     <X className="w-5 h-5" />
                     <span className="sr-only">Close</span>
@@ -118,7 +120,7 @@ export function NewAgentDialog(props: NewAgentDialogProps) {
                             Creating...
                         </>
                     ) : (
-                        'Create Agent'
+                        formatText('Create Agent')
                     )}
                 </button>
             </div>

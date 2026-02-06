@@ -3,6 +3,7 @@
 import { Check, ChevronLeft, ChevronRight, Copy, Grid, Info, LayoutList, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useAgentNaming } from '../../../components/AgentNaming/AgentNamingContext';
 import { extractParametersFromFilename } from '../../../utils/normalization/extractParametersFromFilename';
 import { ImageWithAgent, listImages } from './actions';
 
@@ -17,6 +18,7 @@ export function ImagesGalleryClient() {
     const [limit] = useState(20);
     const [hasMore, setHasMore] = useState(true);
     const [copiedId, setCopiedId] = useState<number | null>(null);
+    const { formatText } = useAgentNaming();
 
     const copyToClipboard = async (text: string, id: number) => {
         try {
@@ -131,7 +133,7 @@ export function ImagesGalleryClient() {
                                 <tr>
                                     <th className="px-6 py-3 w-32">Image</th>
                                     <th className="px-6 py-3">Prompt</th>
-                                    <th className="px-6 py-3">Agent</th>
+                                    <th className="px-6 py-3">{formatText('Agent')}</th>
                                     <th className="px-6 py-3">Parameters</th>
                                     <th className="px-6 py-3">Purpose</th>
                                     <th className="px-6 py-3">Created At</th>
@@ -313,7 +315,7 @@ export function ImagesGalleryClient() {
                                                 {image.agent.agentName}
                                             </Link>
                                         ) : (
-                                            <span className="text-xs text-gray-400">No agent</span>
+                                            <span className="text-xs text-gray-400">{formatText('No agent')}</span>
                                         )}
                                         <span className="text-[10px] text-gray-400 whitespace-nowrap">
                                             {new Date(image.createdAt).toLocaleDateString(undefined, {

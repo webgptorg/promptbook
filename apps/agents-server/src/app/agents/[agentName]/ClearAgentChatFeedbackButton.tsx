@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { showConfirm } from '../../../components/AsyncDialogs/asyncDialogs';
+import { useAgentNaming } from '../../../components/AgentNaming/AgentNamingContext';
 import { $clearAgentChatFeedback } from '../../../utils/chatFeedbackAdmin';
 
 type ClearAgentChatFeedbackButtonProps = {
@@ -25,13 +26,16 @@ type ClearAgentChatFeedbackButtonProps = {
 export function ClearAgentChatFeedbackButton({ agentName, onCleared }: ClearAgentChatFeedbackButtonProps) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const { formatText } = useAgentNaming();
 
     const handleClick = async () => {
         if (!agentName) return;
 
         const confirmed = await showConfirm({
             title: 'Clear chat feedback',
-            message: `Are you sure you want to permanently delete all feedback for agent "${agentName}"?`,
+            message: `${formatText(
+                'Are you sure you want to permanently delete all feedback for agent',
+            )} "${agentName}"?`,
             confirmLabel: 'Delete feedback',
             cancelLabel: 'Cancel',
         }).catch(() => false);

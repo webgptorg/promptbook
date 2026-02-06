@@ -24,6 +24,7 @@ import { just } from '../../../../../src/utils/organization/just';
 import { getAgentLinks } from '../../app/agents/[agentName]/agentLinks';
 import { deleteAgent } from '../../app/recycle-bin/actions';
 import { showAlert, showConfirm, showPrompt } from '../AsyncDialogs/asyncDialogs';
+import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 
 type BeforeInstallPromptEvent = Event & {
     prompt: () => Promise<void>;
@@ -271,6 +272,7 @@ function AgentContextMenuContent(props: AgentContextMenuBaseProps & { onClose: (
 
     const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
     const copyTimeoutRef = useRef<number | null>(null);
+    const { formatText } = useAgentNaming();
 
     /**
      * Clears pending copy feedback timeout.
@@ -308,9 +310,12 @@ function AgentContextMenuContent(props: AgentContextMenuBaseProps & { onClose: (
         [clearCopyTimeout],
     );
 
-    const links = useMemo(() => getAgentLinks(permanentId || agentName), [agentName, permanentId]);
-    const editBookLink = links.find((link) => link.title === 'Edit Book')!;
-    const integrationLink = links.find((link) => link.title === 'Integration')!;
+    const links = useMemo(
+        () => getAgentLinks(permanentId || agentName, formatText),
+        [agentName, formatText, permanentId],
+    );
+    const editBookLink = links.find((link) => link.id === 'book')!;
+    const integrationLink = links.find((link) => link.id === 'integration')!;
 
     const showUpdateUrl = agentName !== derivedAgentName;
     const updateUrlHref = `/agents/${encodeURIComponent(derivedAgentName)}`;
@@ -319,17 +324,21 @@ function AgentContextMenuContent(props: AgentContextMenuBaseProps & { onClose: (
      * Confirms and performs the URL update redirect.
      */
     const handleUpdateUrl = useCallback(async () => {
+        const updateUrlTitle = formatText('Update agent URL');
+        const updateUrlMessage = `${formatText(
+            'Are you sure you want to change the agent URL from',
+        )} "/agents/${agentName}" to "/agents/${derivedAgentName}"?`;
         const confirmed = await showConfirm({
-            title: 'Update agent URL',
-            message: `Are you sure you want to change the agent URL from "/agents/${agentName}" to "/agents/${derivedAgentName}"?`,
-            confirmLabel: 'Update URL',
+            title: updateUrlTitle,
+            message: updateUrlMessage,
+            confirmLabel: formatText('Update URL'),
             cancelLabel: 'Cancel',
         }).catch(() => false);
 
         if (confirmed) {
             window.location.href = updateUrlHref;
         }
-    }, [agentName, derivedAgentName, updateUrlHref]);
+    }, [agentName, derivedAgentName, formatText, updateUrlHref]);
 
     /**
      * Deletes the agent after confirmation.
@@ -337,10 +346,14 @@ function AgentContextMenuContent(props: AgentContextMenuBaseProps & { onClose: (
     const handleDeleteAgent = useCallback(async () => {
         const agentIdentifier = permanentId || agentName;
         const displayName = derivedAgentName || agentName;
+        const deleteAgentTitle = formatText('Delete agent');
+        const deleteAgentMessage = `${formatText(
+            'Are you sure you want to delete the agent',
+        )} "${displayName}"? ${formatText('This action can be undone by restoring it from the recycle bin.')}`;
         const confirmed = await showConfirm({
-            title: 'Delete agent',
-            message: `Are you sure you want to delete the agent "${displayName}"? This action can be undone by restoring it from the recycle bin.`,
-            confirmLabel: 'Delete agent',
+            title: deleteAgentTitle,
+            message: deleteAgentMessage,
+            confirmLabel: formatText('Delete agent'),
             cancelLabel: 'Cancel',
         }).catch(() => false);
 
@@ -355,10 +368,10 @@ function AgentContextMenuContent(props: AgentContextMenuBaseProps & { onClose: (
             console.error('Failed to delete agent:', error);
             await showAlert({
                 title: 'Delete failed',
-                message: 'Failed to delete agent. Please try again.',
+                message: formatText('Failed to delete agent. Please try again.'),
             }).catch(() => undefined);
         }
-    }, [agentName, derivedAgentName, permanentId]);
+    }, [agentName, derivedAgentName, formatText, permanentId]);
 
     /**
      * Prompts for a new agent name and updates it via the API.
@@ -369,13 +382,13 @@ function AgentContextMenuContent(props: AgentContextMenuBaseProps & { onClose: (
         }
 
         const name = await showPrompt({
-            title: 'Rename agent',
-            message: 'Enter a new name for this agent.',
+            title: formatText('Rename agent'),
+            message: formatText('Enter a new name for this agent.'),
             defaultValue: derivedAgentName || agentName,
-            confirmLabel: 'Rename',
+            confirmLabel: formatText('Rename'),
             cancelLabel: 'Cancel',
-            placeholder: 'Agent name',
-            inputLabel: 'Agent name',
+            placeholder: formatText('Agent name'),
+            inputLabel: formatText('Agent name'),
         }).catch(() => null);
         if (!name) {
             return;
@@ -384,8 +397,8 @@ function AgentContextMenuContent(props: AgentContextMenuBaseProps & { onClose: (
         const trimmedName = name.trim();
         if (!trimmedName) {
             await showAlert({
-                title: 'Invalid name',
-                message: 'Agent name cannot be empty.',
+                title: formatText('Invalid name'),
+                message: formatText('Agent name cannot be empty.'),
             }).catch(() => undefined);
             return;
         }
@@ -399,17 +412,17 @@ function AgentContextMenuContent(props: AgentContextMenuBaseProps & { onClose: (
             });
             const data = (await response.json()) as { success: boolean; agent?: AgentBasicInformation; error?: string };
             if (!response.ok || !data.agent) {
-                throw new Error(data.error || 'Failed to rename agent.');
+                throw new Error(data.error || formatText('Failed to rename agent.'));
             }
             onAgentRenamed?.({ agent: data.agent, previousIdentifier: agentIdentifier });
             onRequestClose?.();
         } catch (error) {
             await showAlert({
                 title: 'Rename failed',
-                message: error instanceof Error ? error.message : 'Failed to rename agent.',
+                message: error instanceof Error ? error.message : formatText('Failed to rename agent.'),
             }).catch(() => undefined);
         }
-    }, [agentName, derivedAgentName, isAdmin, onAgentRenamed, onRequestClose, permanentId]);
+    }, [agentName, derivedAgentName, formatText, isAdmin, onAgentRenamed, onRequestClose, permanentId]);
 
     const menuItems = [
         ...(showUpdateUrl &&
@@ -433,7 +446,7 @@ function AgentContextMenuContent(props: AgentContextMenuBaseProps & { onClose: (
                   {
                       type: 'action' as const,
                       icon: SmartphoneIcon,
-                      label: 'Install Agent as App',
+                      label: formatText('Install Agent as App'),
                       onClick: onInstallApp,
                   },
               ]
@@ -441,13 +454,13 @@ function AgentContextMenuContent(props: AgentContextMenuBaseProps & { onClose: (
         {
             type: 'action' as const,
             icon: CopyIcon,
-            label: copyFeedback === 'URL' ? 'Copied!' : 'Copy Agent URL',
+            label: copyFeedback === 'URL' ? 'Copied!' : formatText('Copy Agent URL'),
             onClick: () => handleCopy(agentUrl, 'URL'),
         },
         {
             type: 'action' as const,
             icon: MailIcon,
-            label: copyFeedback === 'Email' ? 'Copied!' : 'Copy Agent Email',
+            label: copyFeedback === 'Email' ? 'Copied!' : formatText('Copy Agent Email'),
             onClick: () => handleCopy(agentEmail, 'Email'),
         },
         {
@@ -484,7 +497,7 @@ function AgentContextMenuContent(props: AgentContextMenuBaseProps & { onClose: (
                   {
                       type: 'action' as const,
                       icon: PencilIcon,
-                      label: 'Rename Agent',
+                      label: formatText('Rename Agent'),
                       onClick: handleRenameAgent,
                   },
                   {
@@ -516,20 +529,20 @@ function AgentContextMenuContent(props: AgentContextMenuBaseProps & { onClose: (
                       type: 'link' as const,
                       href: `/agents/${encodeURIComponent(agentName)}/export-as-transpiled-code`,
                       icon: DownloadIcon,
-                      label: 'Export Agent',
+                      label: formatText('Export Agent'),
                   },
                   { type: 'divider' as const },
                   {
                       type: 'link' as const,
                       href: `/agents/${encodeURIComponent(agentName)}/clone`,
                       icon: CopyPlusIcon,
-                      label: 'Clone Agent',
+                      label: formatText('Clone Agent'),
                   },
 
                   {
                       type: 'action' as const,
                       icon: TrashIcon,
-                      label: 'Delete Agent',
+                      label: formatText('Delete Agent'),
                       onClick: handleDeleteAgent,
                   },
               ]

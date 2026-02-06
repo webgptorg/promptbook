@@ -5,6 +5,8 @@ import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabase } from '@/src/database/$provideSupabase';
 import { $provideServer } from '@/src/tools/$provideServer';
 import { isUserAdmin } from '@/src/utils/isUserAdmin';
+import { formatAgentNamingText } from '@/src/utils/agentNaming';
+import { getAgentNaming } from '@/src/utils/getAgentNaming';
 import { PROMPTBOOK_COLOR } from '@promptbook-local/core';
 import { BoxIcon, CodeIcon, GlobeIcon } from 'lucide-react';
 import { headers } from 'next/headers';
@@ -40,6 +42,7 @@ export default async function AgentIntegrationPage({ params }: AgentIntegrationP
 
     const agentName = await getAgentName(params);
     const isAdmin = await isUserAdmin();
+    const agentNaming = await getAgentNaming();
 
     let agentProfile;
     try {
@@ -188,9 +191,11 @@ export default async function AgentIntegrationPage({ params }: AgentIntegrationP
         }
     `);
 
-    const agentLinks = getAgentLinks(agentProfile.permanentId || agentName);
-    // const chatLink = agentLinks.find((l) => l.title === 'Chat with Agent')!;
-    const websiteIntegrationLink = agentLinks.find((l) => l.title === 'Website Integration')!;
+    const agentLinks = getAgentLinks(agentProfile.permanentId || agentName, (text) =>
+        formatAgentNamingText(text, agentNaming),
+    );
+    // const chatLink = agentLinks.find((link) => link.id === 'chat')!;
+    const websiteIntegrationLink = agentLinks.find((link) => link.id === 'website')!;
 
     return (
         <div
@@ -232,7 +237,10 @@ export default async function AgentIntegrationPage({ params }: AgentIntegrationP
                             <div>
                                 <h2 className="text-xl font-bold text-gray-900">Website Integration</h2>
                                 <p className="text-gray-600">
-                                    Embed the agent chat widget directly into your React application.
+                                    {formatAgentNamingText(
+                                        'Embed the agent chat widget directly into your React application.',
+                                        agentNaming,
+                                    )}
                                 </p>
                                 <p className="text-sm text-gray-500 mt-1">
                                     <Link href={websiteIntegrationLink.href} className="text-blue-600 hover:underline">
@@ -256,7 +264,10 @@ export default async function AgentIntegrationPage({ params }: AgentIntegrationP
                             <div>
                                 <h2 className="text-xl font-bold text-gray-900">Promptbook SDK</h2>
                                 <p className="text-gray-600">
-                                    Connect to this agent using the Promptbook SDK with RemoteAgent.
+                                    {formatAgentNamingText(
+                                        'Connect to this agent using the Promptbook SDK with RemoteAgent.',
+                                        agentNaming,
+                                    )}
                                 </p>
                             </div>
                         </div>
@@ -283,8 +294,10 @@ export default async function AgentIntegrationPage({ params }: AgentIntegrationP
                             <div>
                                 <h2 className="text-xl font-bold text-gray-900">MCP Integration</h2>
                                 <p className="text-gray-600">
-                                    Use Model Context Protocol to connect this agent with compatible tools and IDEs
-                                    (like Claude Desktop, Cursor, etc.).
+                                    {formatAgentNamingText(
+                                        'Use Model Context Protocol to connect this agent with compatible tools and IDEs (like Claude Desktop, Cursor, etc.).',
+                                        agentNaming,
+                                    )}
                                 </p>
                             </div>
                         </div>

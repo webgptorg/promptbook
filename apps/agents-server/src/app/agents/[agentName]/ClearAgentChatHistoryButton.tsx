@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { showConfirm } from '../../../components/AsyncDialogs/asyncDialogs';
+import { useAgentNaming } from '../../../components/AgentNaming/AgentNamingContext';
 import { $clearAgentChatHistory } from '../../../utils/chatHistoryAdmin';
 
 type ClearAgentChatHistoryButtonProps = {
@@ -25,13 +26,16 @@ type ClearAgentChatHistoryButtonProps = {
 export function ClearAgentChatHistoryButton({ agentName, onCleared }: ClearAgentChatHistoryButtonProps) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const { formatText } = useAgentNaming();
 
     const handleClick = async () => {
         if (!agentName) return;
 
         const confirmed = await showConfirm({
             title: 'Clear chat history',
-            message: `Are you sure you want to permanently delete all chat history for agent "${agentName}"?`,
+            message: `${formatText(
+                'Are you sure you want to permanently delete all chat history for agent',
+            )} "${agentName}"?`,
             confirmLabel: 'Delete history',
             cancelLabel: 'Cancel',
         }).catch(() => false);

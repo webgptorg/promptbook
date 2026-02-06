@@ -30,6 +30,7 @@ import {
 import { showAlert } from '../AsyncDialogs/asyncDialogs';
 import type { AgentOrganizationFolder } from '../../utils/agentOrganization/types';
 import { buildFolderMaps, getFolderPathSegments, sortBySortOrder } from './agentOrganizationUtils';
+import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 
 const CONNECTION_TYPES = ['inheritance', 'import', 'team'] as const;
 const DEFAULT_CONNECTION_TYPES = [...CONNECTION_TYPES];
@@ -588,6 +589,7 @@ const buildServerGroups = (
     nodes: GraphNode[],
     folders: AgentOrganizationFolder[],
     publicUrl: string,
+    rootLabel: string,
 ): ServerGroup[] => {
     const normalizedPublicUrl = normalizeServerUrl(publicUrl);
     const nodesByServer = new Map<string, GraphNode[]>();
@@ -621,7 +623,7 @@ const buildServerGroups = (
                 folders: [
                     {
                         id: null,
-                        label: 'Agents',
+                        label: rootLabel,
                         agents: sortBySortOrder(serverNodes, (node) => node.name),
                     },
                 ],
@@ -662,7 +664,7 @@ const buildServerGroups = (
         if (folderGroups.length === 0) {
             folderGroups.push({
                 id: null,
-                label: 'Agents',
+                label: rootLabel,
                 agents: sortBySortOrder(serverNodes, (node) => node.name),
             });
         }
@@ -1029,13 +1031,15 @@ function AgentGraphNode({ data }: NodeProps<AgentNodeData>) {
  */
 function ServerGroupNode({ data }: NodeProps<ServerGroupNodeData>) {
     const ringClass = data.isLocal ? 'border-sky-200 bg-sky-50/40' : 'border-slate-200 bg-white/70';
+    const { formatText } = useAgentNaming();
+    const countLabel = formatText(`${data.agentCount} agents`);
 
     return (
         <div className={`relative h-full w-full rounded-[28px] border ${ringClass} shadow-sm`}>
             <div className="absolute left-4 top-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 {data.label}
             </div>
-            <div className="absolute right-4 top-3 text-[11px] text-slate-400">{data.agentCount} agents</div>
+            <div className="absolute right-4 top-3 text-[11px] text-slate-400">{countLabel}</div>
         </div>
     );
 }
@@ -1044,10 +1048,13 @@ function ServerGroupNode({ data }: NodeProps<ServerGroupNodeData>) {
  * Renders a folder group container.
  */
 function FolderGroupNode({ data }: NodeProps<FolderGroupNodeData>) {
+    const { formatText } = useAgentNaming();
+    const countLabel = formatText(`${data.agentCount} agents`);
+
     return (
         <div className="relative h-full w-full rounded-2xl border border-slate-200 bg-white/80 shadow-sm">
             <div className="absolute left-3 top-2 text-xs font-semibold text-slate-500">{data.label}</div>
-            <div className="absolute right-3 top-2 text-[10px] text-slate-400">{data.agentCount} agents</div>
+            <div className="absolute right-3 top-2 text-[10px] text-slate-400">{countLabel}</div>
         </div>
     );
 }
@@ -1108,6 +1115,7 @@ export function AgentsGraph(props: AgentsGraphProps) {
     const { agents, federatedAgents, federatedServersStatus, publicUrl, folders } = props;
     const router = useRouter();
     const searchParams = useSearchParams();
+    const { formatText } = useAgentNaming();
     const normalizedPublicUrl = useMemo(() => normalizeServerUrl(publicUrl), [publicUrl]);
     const [graphHeight, setGraphHeight] = useState(GRAPH_MIN_HEIGHT);
     const [layoutDirection, setLayoutDirection] = useState<LayoutDirection>('LR');
@@ -1180,10 +1188,10 @@ export function AgentsGraph(props: AgentsGraphProps) {
         [agents, federatedAgents, filterType, selectedServerUrl, selectedAgentName, normalizedPublicUrl],
     );
 
-    const serverGroups = useMemo(
-        () => buildServerGroups(graphData.nodes, folders, normalizedPublicUrl),
-        [graphData.nodes, folders, normalizedPublicUrl],
-    );
+    const serverGroups = useMemo(() => {
+        const rootLabel = formatText('Agents');
+        return buildServerGroups(graphData.nodes, folders, normalizedPublicUrl, rootLabel);
+    }, [graphData.nodes, folders, normalizedPublicUrl, formatText]);
 
     /**
      * Open the agent page or federated agent URL when a node is clicked.
@@ -1459,7 +1467,11 @@ export function AgentsGraph(props: AgentsGraphProps) {
     );
 
     if (agents.length === 0 && federatedAgents.length === 0) {
-        return <div className="flex justify-center py-12 text-gray-500">No agents to show in graph.</div>;
+        return (
+            <div className="flex justify-center py-12 text-gray-500">
+                {formatText('No agents to show in graph.')}
+            </div>
+        );
     }
 
     return (
@@ -1512,7 +1524,7 @@ export function AgentsGraph(props: AgentsGraphProps) {
                             onChange={(event) => selectServerAndAgent(event.target.value)}
                             className="text-sm border rounded-md p-1 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
-                            <option value="">All Agents</option>
+                            <option value="">{formatText('All Agents')}</option>
                             <optgroup label="This Server">
                                 <option value={`SERVER:${normalizedPublicUrl}`}>Entire This Server</option>
                                 {agents.map((agent) => (
@@ -1609,7 +1621,9 @@ export function AgentsGraph(props: AgentsGraphProps) {
                 style={{ height: graphHeight }}
             >
                 {graphData.nodes.length === 0 ? (
-                    <div className="flex justify-center py-12 text-gray-500">No agents to show in graph.</div>
+                    <div className="flex justify-center py-12 text-gray-500">
+                        {formatText('No agents to show in graph.')}
+                    </div>
                 ) : (
                     <div
                         ref={graphWrapperRef}

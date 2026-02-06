@@ -2,7 +2,21 @@ import { string_agent_name, string_agent_permanent_id } from '@promptbook-local/
 import { BookOpenIcon, CodeIcon, GlobeIcon, MessageSquareIcon, NotebookPenIcon } from 'lucide-react';
 import type { ComponentType } from 'react';
 
+/**
+ * Identifier for agent-specific navigation links.
+ */
+export type AgentLinkId = 'chat' | 'book' | 'integration' | 'website';
+
+/**
+ * Text formatter applied to agent-facing UI labels.
+ */
+export type AgentLinkFormatter = (text: string) => string;
+
+/**
+ * Link metadata for agent navigation items.
+ */
 type AgentLink = {
+    id?: AgentLinkId;
     title: string;
     href: string;
     icon: ComponentType<{ className?: string }>;
@@ -11,41 +25,66 @@ type AgentLink = {
     rel?: string;
 };
 
-export const getAgentLinks = (permanentId: string_agent_permanent_id | string_agent_name): AgentLink[] => {
+/**
+ * Default formatter that keeps text unchanged.
+ */
+const identityFormatter: AgentLinkFormatter = (text) => text;
+
+/**
+ * Builds navigation links for a single agent.
+ *
+ * @param permanentId - Agent identifier used for link routing.
+ * @param formatText - Optional formatter for user-facing copy.
+ * @returns Agent navigation links.
+ */
+export const getAgentLinks = (
+    permanentId: string_agent_permanent_id | string_agent_name,
+    formatText: AgentLinkFormatter = identityFormatter,
+): AgentLink[] => {
     return [
         {
-            title: 'Chat with Agent',
+            id: 'chat',
+            title: formatText('Chat with Agent'),
             href: `/agents/${permanentId}`,
             icon: MessageSquareIcon,
-            description: 'Direct interface to converse with the agent.',
+            description: formatText('Direct interface to converse with the agent.'),
         },
         {
-            title: 'Edit Book',
+            id: 'book',
+            title: formatText('Edit Book'),
             href: `/agents/${permanentId}/book`,
             icon: NotebookPenIcon,
-            description: "Edit the agent's knowledge book.",
+            description: formatText("Edit the agent's knowledge book."),
         },
         {
-            title: 'Integration',
+            id: 'integration',
+            title: formatText('Integration'),
             href: `/agents/${permanentId}/integration`,
             icon: CodeIcon,
-            description: 'Learn how to integrate this agent into your applications.',
+            description: formatText('Learn how to integrate this agent into your applications.'),
         },
         {
-            title: 'Website Integration',
+            id: 'website',
+            title: formatText('Website Integration'),
             href: `/agents/${permanentId}/website-integration`,
             icon: GlobeIcon,
-            description: 'Embed the agent chat widget directly into your React application.',
+            description: formatText('Embed the agent chat widget directly into your React application.'),
         },
     ];
 };
 
-export const getAgentExternalLinks = (): AgentLink[] => [
+/**
+ * Builds external links that are relevant to agent users.
+ *
+ * @param formatText - Optional formatter for user-facing copy.
+ * @returns External navigation links.
+ */
+export const getAgentExternalLinks = (formatText: AgentLinkFormatter = identityFormatter): AgentLink[] => [
     {
         title: 'Promptbook Studio',
         href: 'https://promptbook.studio',
         icon: BookOpenIcon,
-        description: 'Create and manage your own agents',
+        description: formatText('Create and manage your own agents'),
         target: '_blank',
         rel: 'noopener noreferrer',
     },

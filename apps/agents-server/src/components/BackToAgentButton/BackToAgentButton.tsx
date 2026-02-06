@@ -5,6 +5,7 @@ import { ArrowLeftIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { FC, useCallback, useEffect } from 'react';
+import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 
 /**
  * Properties for the BackToAgentButton component
@@ -26,6 +27,7 @@ export const BackToAgentButton: FC<BackToAgentButtonProps> = ({ agentName }) => 
     const router = useRouter();
     const menuHoisting = useMenuHoisting();
     const setHoistedMenu = menuHoisting?.setMenu;
+    const { formatText } = useAgentNaming();
 
     /**
      * Navigates back to the current agent page.
@@ -42,7 +44,7 @@ export const BackToAgentButton: FC<BackToAgentButtonProps> = ({ agentName }) => 
         setHoistedMenu([
             {
                 key: 'back-to-agent',
-                name: 'Back to Agent',
+                name: formatText('Back to Agent'),
                 icon: <ArrowLeftIcon />,
                 onClick: handleBackToAgent,
             },
@@ -61,7 +63,7 @@ export const BackToAgentButton: FC<BackToAgentButtonProps> = ({ agentName }) => 
         <Link
             href={`/agents/${encodeURIComponent(agentName)}`}
             className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
-            title="Back to Agent"
+            title={formatText('Back to Agent')}
         >
             <ArrowLeftIcon className="w-6 h-6" />
         </Link>

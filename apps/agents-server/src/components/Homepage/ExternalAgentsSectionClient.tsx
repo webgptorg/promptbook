@@ -5,6 +5,7 @@ import type { AgentsByServer } from '../../utils/AgentsByServer';
 import { AgentCard } from './AgentCard';
 import { Section } from './Section';
 import { string_url } from '@promptbook-local/types';
+import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 
 type FederatedServersResponse = {
     federatedServers: string[];
@@ -29,6 +30,7 @@ export function ExternalAgentsSectionClient(props: ExternalAgentsSectionClientPr
     const { publicUrl } = props;
     const [servers, setServers] = useState<Record<string, ServerState>>({});
     const [initialLoading, setInitialLoading] = useState(true);
+    const { formatText } = useAgentNaming();
 
     useEffect(() => {
         let isCancelled = false;
@@ -133,7 +135,7 @@ export function ExternalAgentsSectionClient(props: ExternalAgentsSectionClientPr
         return (
             <div className="mt-8 flex items-center justify-center py-8 text-sm text-gray-500">
                 <span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
-                Loading federated agents…
+                {formatText('Loading federated agents…')}
             </div>
         );
     }
@@ -158,7 +160,7 @@ export function ExternalAgentsSectionClient(props: ExternalAgentsSectionClientPr
 
                 if (state.status === 'loading') {
                     return (
-                        <Section key={serverUrl} title={`Agents from ${hostname} (...)`}>
+                        <Section key={serverUrl} title={`${formatText('Agents from')} ${hostname} (...)`}>
                             <div className="flex items-center justify-center py-8 text-sm text-gray-500">
                                 <span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
                                 Loading...
@@ -169,9 +171,9 @@ export function ExternalAgentsSectionClient(props: ExternalAgentsSectionClientPr
 
                 if (state.status === 'error') {
                     return (
-                        <Section key={serverUrl} title={`Agents from ${hostname} (Error)`}>
+                        <Section key={serverUrl} title={`${formatText('Agents from')} ${hostname} (Error)`}>
                             <div className="py-4 text-sm text-red-500 text-center">
-                                Failed to load agents from this server.
+                                {formatText('Failed to load agents from this server.')}
                             </div>
                         </Section>
                     );
@@ -179,7 +181,7 @@ export function ExternalAgentsSectionClient(props: ExternalAgentsSectionClientPr
 
                 if (state.status === 'success' && state.agents.length > 0) {
                     return (
-                        <Section key={serverUrl} title={`Agents from ${hostname} (${state.agents.length})`}>
+                        <Section key={serverUrl} title={`${formatText('Agents from')} ${hostname} (${state.agents.length})`}>
                             {state.agents.map((agent) => (
                                 <AgentCard
                                     key={agent.url}

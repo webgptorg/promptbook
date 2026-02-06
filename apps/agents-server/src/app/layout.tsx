@@ -5,6 +5,7 @@ import { Barlow_Condensed, Poppins } from 'next/font/google';
 import { getMetadata } from '../database/getMetadata';
 import { $provideAgentCollectionForServer } from '../tools/$provideAgentCollectionForServer';
 import { $provideServer } from '../tools/$provideServer';
+import { getAgentNaming } from '../utils/getAgentNaming';
 import { getCurrentUser } from '../utils/getCurrentUser';
 import { getFederatedServers } from '../utils/getFederatedServers';
 import { isUserAdmin } from '../utils/isUserAdmin';
@@ -74,6 +75,7 @@ export default async function RootLayout({
     const serverName = (await getMetadata('SERVER_NAME')) || 'Promptbook Agents Server';
     const serverLogoUrl = (await getMetadata('SERVER_LOGO_URL')) || null;
     const isFooterShown = ((await getMetadata('IS_FOOTER_SHOWN')) || 'true') === 'true';
+    const agentNaming = await getAgentNaming();
 
     let footerLinks = [];
     try {
@@ -131,6 +133,7 @@ export default async function RootLayout({
                     serverName={serverName}
                     serverLogoUrl={serverLogoUrl}
                     agents={JSON.parse(JSON.stringify(agents))}
+                    agentNaming={agentNaming}
                     isFooterShown={isFooterShown}
                     footerLinks={footerLinks}
                     federatedServers={federatedServers}

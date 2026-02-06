@@ -8,6 +8,8 @@ import { notFound } from 'next/navigation';
 import { Color } from '../../../../../../src/utils/color/Color';
 import { resolveAgentAvatarImageUrl } from '../../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 import { DeletedAgentBanner } from '../../../components/DeletedAgentBanner';
+import { formatAgentNamingText } from '../../../utils/agentNaming';
+import { getAgentNaming } from '../../../utils/getAgentNaming';
 import { getAgentName, getAgentProfile, isAgentDeleted } from './_utils';
 import { getAgentLinks } from './agentLinks';
 import { AgentProfileChat } from './AgentProfileChat';
@@ -17,6 +19,13 @@ import { ServiceWorkerRegister } from './ServiceWorkerRegister';
 
 export const generateMetadata = generateAgentMetadata;
 
+/**
+ * Renders the main agent profile page.
+ *
+ * @param params - Route params containing the agent name.
+ * @param searchParams - Query parameters for the page.
+ * @returns Agent profile UI.
+ */
 export default async function AgentPage({
     params,
     searchParams,
@@ -29,6 +38,7 @@ export default async function AgentPage({
     const { headless: headlessParam } = await searchParams;
     const isHeadless = headlessParam !== undefined;
     const { publicUrl } = await $provideServer();
+    const agentNaming = await getAgentNaming();
 
     let agentProfile;
     try {
@@ -55,7 +65,8 @@ export default async function AgentPage({
     const brandColor = Color.fromSafe(agentProfile.meta.color || PROMPTBOOK_COLOR);
     const brandColorHex = brandColor.then(saturate(-0.5)).toHex();
 
-    const fullname = (agentProfile.meta.fullname || agentProfile.agentName || 'Agent') as string;
+    const fallbackName = formatAgentNamingText('Agent', agentNaming);
+    const fullname = (agentProfile.meta.fullname || agentProfile.agentName || fallbackName) as string;
     const isDeleted = await isAgentDeleted(agentName);
 
     return (
@@ -71,8 +82,10 @@ export default async function AgentPage({
                 isHeadless={isHeadless}
                 actions={
                     <>
-                        {getAgentLinks(agentProfile.permanentId || agentName)
-                            .filter((link) => ['Edit Book', 'Integration', 'All Links'].includes(link.title))
+                        {getAgentLinks(agentProfile.permanentId || agentName, (text) =>
+                            formatAgentNamingText(text, agentNaming),
+                        )
+                            .filter((link) => link.id === 'book' || link.id === 'integration')
                             .map((link) => (
                                 <a
                                     key={link.href}
@@ -100,7 +113,6 @@ export default async function AgentPage({
                         `/agents/${encodeURIComponent(agentProfile.permanentId || agentName)}/images/default-avatar.png`
                     }
                     isDeleted={isDeleted}
-               
                 />
             </AgentProfileWrapper>
         </>

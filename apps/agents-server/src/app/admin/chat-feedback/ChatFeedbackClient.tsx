@@ -5,6 +5,7 @@ import type { ChatMessage, string_date_iso8601 } from '@promptbook-local/types';
 import { useEffect, useMemo, useState } from 'react';
 import { Card } from '../../../components/Homepage/Card';
 import { showAlert, showConfirm } from '../../../components/AsyncDialogs/asyncDialogs';
+import { useAgentNaming } from '../../../components/AgentNaming/AgentNamingContext';
 import {
     $clearAgentChatFeedback,
     $deleteChatFeedbackRow,
@@ -68,6 +69,7 @@ export function ChatFeedbackClient({ initialAgentName }: ChatFeedbackClientProps
     const [selectedThread, setSelectedThread] = useState<ChatMessage[] | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const { formatText } = useAgentNaming();
 
     const [agents, setAgents] = useState<AdminAgentInfo[]>([]);
     const [agentsLoading, setAgentsLoading] = useState(false);
@@ -267,7 +269,9 @@ export function ChatFeedbackClient({ initialAgentName }: ChatFeedbackClientProps
 
         const confirmed = await showConfirm({
             title: 'Clear feedback',
-            message: `Are you sure you want to permanently delete all feedback for agent "${agentName}"?`,
+            message: `${formatText(
+                'Are you sure you want to permanently delete all feedback for agent',
+            )} "${agentName}"?`,
             confirmLabel: 'Delete feedback',
             cancelLabel: 'Cancel',
         }).catch(() => false);
@@ -313,7 +317,7 @@ export function ChatFeedbackClient({ initialAgentName }: ChatFeedbackClientProps
                 <div>
                     <h1 className="text-3xl text-gray-900 font-light">Chat feedback</h1>
                     <p className="mt-1 text-sm text-gray-500">
-                        Review and triage user feedback collected from your agents.
+                        {formatText('Review and triage user feedback collected from your agents.')}
                     </p>
                 </div>
                 <div className="flex items-end gap-4 text-sm text-gray-500 md:text-right">
@@ -345,7 +349,7 @@ export function ChatFeedbackClient({ initialAgentName }: ChatFeedbackClientProps
                                 type="text"
                                 value={searchInput}
                                 onChange={(event) => setSearchInput(event.target.value)}
-                                placeholder="Search by agent, URL, IP, rating or note"
+                                placeholder={formatText('Search by agent, URL, IP, rating or note')}
                                 className="w-full md:w-72 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
                         </div>
@@ -360,7 +364,7 @@ export function ChatFeedbackClient({ initialAgentName }: ChatFeedbackClientProps
                     <div className="flex flex-col gap-2 md:flex-row md:items-end md:gap-4">
                         <div className="flex flex-col gap-1">
                             <label htmlFor="agentFilter" className="text-sm font-medium text-gray-700">
-                                Agent filter
+                                {formatText('Agent filter')}
                             </label>
                             <select
                                 id="agentFilter"
@@ -368,14 +372,16 @@ export function ChatFeedbackClient({ initialAgentName }: ChatFeedbackClientProps
                                 onChange={handleAgentChange}
                                 className="w-full md:w-64 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                             >
-                                <option value="">All agents</option>
+                                <option value="">{formatText('All agents')}</option>
                                 {agents.map((agent) => (
                                     <option key={agent.agentName} value={agent.agentName}>
                                         {agent.fullname || agent.agentName}
                                     </option>
                                 ))}
                             </select>
-                            {agentsLoading && <span className="text-xs text-gray-400">Loading agents…</span>}
+                            {agentsLoading && (
+                                <span className="text-xs text-gray-400">{formatText('Loading agents…')}</span>
+                            )}
                         </div>
 
                         <div className="flex flex-col gap-1">
@@ -400,14 +406,15 @@ export function ChatFeedbackClient({ initialAgentName }: ChatFeedbackClientProps
                 {agentName && (
                     <div className="mt-4 flex items-center justify-between gap-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-3">
                         <p className="text-sm text-amber-800">
-                            Showing feedback for agent <span className="font-semibold break-all">{agentName}</span>.
+                            {formatText('Showing feedback for agent')}{' '}
+                            <span className="font-semibold break-all">{agentName}</span>.
                         </p>
                         <button
                             type="button"
                             onClick={handleClearAgentFeedback}
                             className="inline-flex items-center justify-center rounded-md border border-red-300 bg-white px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50"
                         >
-                            Clear feedback for this agent
+                            {formatText('Clear feedback for this agent')}
                         </button>
                     </div>
                 )}
@@ -444,7 +451,7 @@ export function ChatFeedbackClient({ initialAgentName }: ChatFeedbackClientProps
                                             onClick={() => handleSortChange('agentName')}
                                             className="inline-flex items-center gap-1"
                                         >
-                                            Agent
+                                            {formatText('Agent')}
                                             {isSortedBy('agentName') && <span>{sortOrder === 'asc' ? '▲' : '▼'}</span>}
                                         </button>
                                     </th>

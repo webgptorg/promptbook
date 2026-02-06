@@ -1,17 +1,28 @@
 import { BackToAgentButton } from '@/src/components/BackToAgentButton/BackToAgentButton';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
+import { formatAgentNamingText } from '@/src/utils/agentNaming';
+import { getAgentNaming } from '@/src/utils/getAgentNaming';
 import { HistoryIcon } from 'lucide-react';
 import { RestoreVersionButton } from './RestoreVersionButton';
 
-export const metadata = {
-    title: 'Agent History',
-};
+/**
+ * Generates metadata for the agent history page.
+ *
+ * @returns Metadata for the page.
+ */
+export async function generateMetadata() {
+    const agentNaming = await getAgentNaming();
+    return {
+        title: formatAgentNamingText('Agent History', agentNaming),
+    };
+}
 
 export default async function AgentHistoryPage({ params }: { params: Promise<{ agentName: string }> }) {
     const { agentName } = await params;
     const collection = await $provideAgentCollectionForServer();
     const agentId = await collection.getAgentPermanentId(agentName);
     const history = await collection.listAgentHistory(agentId);
+    const agentNaming = await getAgentNaming();
 
     return (
         <div className="container mx-auto p-6 max-w-4xl">
@@ -21,7 +32,9 @@ export default async function AgentHistoryPage({ params }: { params: Promise<{ a
                 </div>
                 <div className="flex-1">
                     <h1 className="text-3xl font-bold text-gray-900">History: {agentName}</h1>
-                    <p className="text-gray-600">Previous versions of this agent.</p>
+                    <p className="text-gray-600">
+                        {formatAgentNamingText('Previous versions of this agent.', agentNaming)}
+                    </p>
                 </div>
                 <BackToAgentButton agentName={agentName} />
             </header>

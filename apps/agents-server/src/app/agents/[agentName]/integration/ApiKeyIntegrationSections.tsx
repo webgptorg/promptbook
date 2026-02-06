@@ -7,6 +7,7 @@ import spaceTrim from 'spacetrim';
 import { createApiToken } from '@/src/utils/apiTokensClient';
 import { CopyField } from '../CopyField';
 import { SdkCodeTabs } from './SdkCodeTabs';
+import { useAgentNaming } from '@/src/components/AgentNaming/AgentNamingContext';
 
 /**
  * Props for ApiKeyIntegrationSections.
@@ -33,6 +34,7 @@ export function ApiKeyIntegrationSections({
     const [apiKeyAvailable, setApiKeyAvailable] = useState(hasApiKey);
     const [isCreating, setIsCreating] = useState(false);
     const [createError, setCreateError] = useState<string | null>(null);
+    const { formatText } = useAgentNaming();
 
     const apiKeyPlaceholder = 'ptbk_...';
     const apiKeyValue = apiKeyAvailable ? apiKey : apiKeyPlaceholder;
@@ -49,7 +51,7 @@ export function ApiKeyIntegrationSections({
         setCreateError(null);
 
         try {
-            const note = `Created for Agent ${agentName}`;
+            const note = `${formatText('Created for Agent')} ${agentName}`;
             const token = await createApiToken(note);
             setApiKey(token.token);
             setApiKeyAvailable(true);
@@ -140,7 +142,7 @@ export function ApiKeyIntegrationSections({
                     <div className="flex-1">
                         <h2 className="text-xl font-bold text-gray-900">OpenAI Compatible API</h2>
                         <p className="text-gray-600">
-                            Use the agent as a drop-in replacement for OpenAI API in your existing applications.
+                            {formatText('Use the agent as a drop-in replacement for OpenAI API in your existing applications.')}
                         </p>
                         <div className="grid md:grid-cols-3 gap-4 mt-4 mb-2">
                             <CopyField label="Endpoint URL" value={`${agentApiBase}/api/openai/v1`} />
@@ -169,7 +171,7 @@ export function ApiKeyIntegrationSections({
                                         Manage keys
                                     </Link>
                                     <span className="text-xs text-amber-800">
-                                        Note: &quot;Created for Agent {agentName}&quot;
+                                        Note: &quot;{formatText('Created for Agent')} {agentName}&quot;
                                     </span>
                                 </div>
                                 {createError && <p className="text-sm text-red-600">{createError}</p>}

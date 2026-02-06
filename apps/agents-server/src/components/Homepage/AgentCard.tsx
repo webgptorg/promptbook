@@ -7,6 +7,7 @@ import { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/
 import { resolveAgentAvatarImageUrl } from '../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 import { AgentCapabilityChips, HOMEPAGE_CAPABILITY_CHIPS_LIMIT } from '../AgentProfile/AgentCapabilityChips';
 import { useAgentBackground } from '../AgentProfile/useAgentBackground';
+import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 import { FILE_ACTION_BUTTON_CLASSES, FileCard } from './FileCard';
 
 /**
@@ -81,8 +82,10 @@ export function AgentCard({
     visibility,
     serverUrl,
 }: AgentCardProps) {
+    const { formatText } = useAgentNaming();
     const { meta, agentName } = agent;
-    const fullname = (meta.fullname as string) || agentName || 'Agent';
+    const fallbackName = formatText('Agent');
+    const fullname = (meta.fullname as string) || agentName || fallbackName;
     const imageUrl = resolveAgentAvatarImageUrl({ agent, baseUrl: serverUrl || publicUrl });
     const personaDescription = agent.personaDescription || '';
 
@@ -143,7 +146,7 @@ export function AgentCard({
                             e.preventDefault();
                             onRestore(agent.permanentId || agent.agentName);
                         }}
-                        title="Restore agent"
+                        title={formatText('Restore agent')}
                     >
                         <RotateCcwIcon className="w-3 h-3" />
                     </button>
@@ -171,7 +174,7 @@ export function AgentCard({
                             e.preventDefault();
                             onClone?.(agent.permanentId || agent.agentName);
                         }}
-                        title="Clone agent"
+                        title={formatText('Clone agent')}
                     >
                         Clone
                     </button>
@@ -181,7 +184,7 @@ export function AgentCard({
                             e.preventDefault();
                             onDelete?.(agent.permanentId || agent.agentName);
                         }}
-                        title="Delete agent"
+                        title={formatText('Delete agent')}
                     >
                         Delete
                     </button>

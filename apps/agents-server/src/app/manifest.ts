@@ -4,6 +4,8 @@ import { headers } from 'next/headers';
 import { Color } from '../../../../src/utils/color/Color';
 import { getMetadata } from '../database/getMetadata';
 import { $provideServer } from '../tools/$provideServer';
+import { formatAgentNamingText } from '../utils/agentNaming';
+import { getAgentNaming } from '../utils/getAgentNaming';
 import { getAgentProfile } from './agents/[agentName]/_utils';
 
 /**
@@ -13,6 +15,7 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
     const { publicUrl } = await $provideServer();
     const serverName = (await getMetadata('SERVER_NAME')) || 'Promptbook Agents Server';
     const serverDescription = (await getMetadata('SERVER_DESCRIPTION')) || 'Agents server powered by Promptbook';
+    const agentNaming = await getAgentNaming();
 
     const referer = (await headers()).get('referer') || '';
     const isAgentManifest = referer.includes('/agents/');
@@ -41,7 +44,8 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
 
         const name = agentProfile.meta.fullname || agentProfile.agentName;
         const short_name = agentProfile.agentName;
-        const description = agentProfile.meta.description || agentProfile.personaDescription || `Agent ${name}`;
+        const descriptionFallback = `${formatAgentNamingText('Agent', agentNaming)} ${name}`;
+        const description = agentProfile.meta.description || agentProfile.personaDescription || descriptionFallback;
 
         // Extract brand color from meta
         const brandColor = Color.fromSafe(agentProfile.meta.color || PROMPTBOOK_COLOR);

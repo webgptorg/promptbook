@@ -14,6 +14,7 @@ import { keepUnused } from '../../../../../../src/utils/organization/keepUnused'
 import { $createAgentFromBookAction } from '../../../app/actions';
 import { showAlert } from '../../../components/AsyncDialogs/asyncDialogs';
 import { DeletedAgentBanner } from '../../../components/DeletedAgentBanner';
+import { useAgentNaming } from '../../../components/AgentNaming/AgentNamingContext';
 
 type AgentProfileChatProps = {
     agentUrl: string_agent_url;
@@ -34,6 +35,7 @@ export function AgentProfileChat({
 }: AgentProfileChatProps) {
     const router = useRouter();
     const [isCreatingAgent, setIsCreatingAgent] = useState(false);
+    const { formatText } = useAgentNaming();
 
     keepUnused(isCreatingAgent);
 
@@ -77,34 +79,35 @@ export function AgentProfileChat({
                 console.error('Failed to create agent:', error);
                 await showAlert({
                     title: 'Create failed',
-                    message: 'Failed to create agent. Please try again.',
+                    message: formatText('Failed to create agent. Please try again.'),
                 }).catch(() => undefined);
             } finally {
                 setIsCreatingAgent(false);
             }
         },
-        [router],
+        [formatText, router],
     );
 
     const initialMessage = useMemo(() => {
         if (!agent) {
             return 'Loading...';
         }
+        const fallbackName = formatText('an AI Agent');
         return (
             agent.initialMessage ||
             spaceTrim(`
-                Hello! I am ${fullname || agentName || 'an AI Agent'}.
+                Hello! I am ${fullname || agentName || fallbackName}.
                 
                 [Hello](?message=Hello, can you tell me about yourself?)
             `)
         );
-    }, [agent, fullname, agentName]);
+    }, [agent, fullname, agentName, formatText]);
 
     // If agent is deleted, show banner instead of chat
     if (isDeleted) {
         return (
             <div className="w-full min-h-[350px] md:min-h-[500px] flex items-center justify-center">
-                <DeletedAgentBanner message="This agent has been deleted. You can restore it from the Recycle Bin." />
+                <DeletedAgentBanner message={formatText('This agent has been deleted. You can restore it from the Recycle Bin.')} />
             </div>
         );
     }

@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import { showAlert, showConfirm } from '../AsyncDialogs/asyncDialogs';
 import { AgentCard } from './AgentCard';
+import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 
 import { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
 
@@ -27,14 +28,15 @@ type DeletedAgentsListProps = {
 export function DeletedAgentsList(props: DeletedAgentsListProps) {
     const { agents: initialAgents, isAdmin, publicUrl } = props;
     const [agents, setAgents] = useState(Array.from(initialAgents));
+    const { formatText } = useAgentNaming();
 
     const handleRestore = async (agentIdentifier: string) => {
         const agent = agents.find((a) => a.permanentId === agentIdentifier || a.agentName === agentIdentifier);
         if (!agent) return;
         const confirmed = await showConfirm({
-            title: 'Restore agent',
-            message: `Restore agent "${agent.agentName}"?`,
-            confirmLabel: 'Restore agent',
+            title: formatText('Restore agent'),
+            message: `${formatText('Restore agent')} "${agent.agentName}"?`,
+            confirmLabel: formatText('Restore agent'),
             cancelLabel: 'Cancel',
         }).catch(() => false);
         if (!confirmed) {
@@ -53,13 +55,13 @@ export function DeletedAgentsList(props: DeletedAgentsListProps) {
             } else {
                 await showAlert({
                     title: 'Restore failed',
-                    message: 'Failed to restore agent',
+                    message: formatText('Failed to restore agent'),
                 }).catch(() => undefined);
             }
         } catch (error) {
             await showAlert({
                 title: 'Restore failed',
-                message: 'Failed to restore agent',
+                message: formatText('Failed to restore agent'),
             }).catch(() => undefined);
         }
     };

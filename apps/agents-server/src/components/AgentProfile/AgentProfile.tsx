@@ -10,6 +10,7 @@ import { AgentProfileImage } from './AgentProfileImage';
 import { AgentQrCode } from './AgentQrCode';
 import { QrCodeModal } from './QrCodeModal';
 import { useAgentBackground } from './useAgentBackground';
+import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 
 type AgentProfileProps = {
     /**
@@ -68,6 +69,7 @@ type AgentProfileProps = {
 };
 
 export function AgentProfile(props: AgentProfileProps) {
+    const { formatText } = useAgentNaming();
     const {
         agent,
         agentUrl = '',
@@ -81,7 +83,8 @@ export function AgentProfile(props: AgentProfileProps) {
     } = props;
 
     const { meta, agentName } = agent;
-    const fullname = (meta.fullname as string) || agentName || 'Agent';
+    const fallbackName = formatText('Agent');
+    const fullname = (meta.fullname as string) || agentName || fallbackName;
     const personaDescription = meta.description || agent.personaDescription || '';
     const imageUrl = resolveAgentAvatarImageUrl({ agent, baseUrl: publicUrl });
 

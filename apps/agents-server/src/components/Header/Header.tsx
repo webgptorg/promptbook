@@ -13,6 +13,7 @@ import { just } from '../../../../../src/utils/organization/just';
 import type { UserInfo } from '../../utils/getCurrentUser';
 import { getVisibleCommitmentDefinitions } from '../../utils/getVisibleCommitmentDefinitions';
 import { HeadlessLink, pushWithHeadless, useIsHeadless } from '../_utils/headlessParam';
+import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 import { ChangePasswordDialog } from '../ChangePasswordDialog/ChangePasswordDialog';
 import { LoginDialog } from '../LoginDialog/LoginDialog';
 import { useUsersAdmin } from '../UsersList/useUsersAdmin';
@@ -94,6 +95,7 @@ export function Header(props: HeaderProps) {
     const router = useRouter();
     const isHeadless = useIsHeadless();
     const menuHoisting = useMenuHoisting();
+    const { formatText } = useAgentNaming();
 
     const { users: adminUsers } = useUsersAdmin();
 
@@ -207,7 +209,7 @@ export function Header(props: HeaderProps) {
             ? [
                   {
                       type: 'dropdown' as const,
-                      label: 'Agents',
+                      label: formatText('Agents'),
                       isOpen: isAgentsOpen,
                       setIsOpen: setIsAgentsOpen,
                       isMobileOpen: isMobileAgentsOpen,
@@ -221,7 +223,7 @@ export function Header(props: HeaderProps) {
                                   } as SubMenuItem),
                           ),
                           {
-                              label: 'View all agents',
+                              label: formatText('View all agents'),
                               href: '/',
                               isBold: true,
                               isBordered: true,
@@ -230,10 +232,10 @@ export function Header(props: HeaderProps) {
                               label: isCreatingAgent ? (
                                   <div className="flex items-center">
                                       <span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
-                                      Creating agent...
+                                      {formatText('Creating agent...')}
                                   </div>
                               ) : (
-                                  'Create new agent'
+                                  formatText('Create new agent')
                               ),
                               onClick: isCreatingAgent ? undefined : handleCreateAgent,
                               isBold: true,

@@ -3,6 +3,7 @@
 import { ChevronLeft, ChevronRight, File, Grid, LayoutList, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useAgentNaming } from '../../../components/AgentNaming/AgentNamingContext';
 import { FileWithAgent, listFiles } from './actions';
 
 type ViewMode = 'TABLE' | 'GRID';
@@ -15,6 +16,7 @@ export function FilesGalleryClient() {
     const [page, setPage] = useState(1);
     const [limit] = useState(20);
     const [hasMore, setHasMore] = useState(true);
+    const { formatText } = useAgentNaming();
 
     const loadFiles = useCallback(
         async (pageNum: number, isNewView: boolean) => {
@@ -120,7 +122,7 @@ export function FilesGalleryClient() {
                                     <th className="px-6 py-3">File Name</th>
                                     <th className="px-6 py-3">Type</th>
                                     <th className="px-6 py-3">Size</th>
-                                    <th className="px-6 py-3">Agent</th>
+                                    <th className="px-6 py-3">{formatText('Agent')}</th>
                                     <th className="px-6 py-3">Purpose</th>
                                     <th className="px-6 py-3">Status</th>
                                     <th className="px-6 py-3">Created At</th>
@@ -251,7 +253,7 @@ export function FilesGalleryClient() {
                                                 {file.agent.agentName}
                                             </Link>
                                         ) : (
-                                            <span className="text-xs text-gray-400">No agent</span>
+                                            <span className="text-xs text-gray-400">{formatText('No agent')}</span>
                                         )}
                                         <span className="text-[10px] text-gray-400 whitespace-nowrap">
                                             {new Date(file.createdAt).toLocaleDateString(undefined, {

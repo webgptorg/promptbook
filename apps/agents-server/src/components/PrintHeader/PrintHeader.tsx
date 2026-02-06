@@ -1,9 +1,21 @@
-export function PrintHeader({ title }: { title?: string }) {
+import { formatAgentNamingText } from '../../utils/agentNaming';
+import { getAgentNaming } from '../../utils/getAgentNaming';
+
+/**
+ * Renders a print-only header with server branding.
+ *
+ * @param props - Header props.
+ * @returns Print header markup.
+ */
+export async function PrintHeader({ title }: { title?: string }) {
+    const agentNaming = await getAgentNaming();
     return (
         <div className="hidden print:block mb-6 border-b-2 border-blue-600 pb-2">
             <div className="flex justify-between items-end">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900 font-poppins">Agents Server</h1>
+                    <h1 className="text-2xl font-bold text-gray-900 font-poppins">
+                        {formatAgentNamingText('Agents Server', agentNaming)}
+                    </h1>
                     <div className="text-sm text-gray-500 mt-1 flex items-center gap-1">
                         Powered by <span className="font-semibold text-blue-600">Promptbook</span>
                     </div>

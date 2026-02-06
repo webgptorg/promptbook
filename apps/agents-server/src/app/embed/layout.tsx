@@ -1,13 +1,25 @@
 import type { Metadata } from 'next';
-
-export const metadata: Metadata = {
-    title: 'Promptbook Agent Embed',
-    description: 'Embedded agent chat widget',
-};
+import { formatAgentNamingText } from '@/src/utils/agentNaming';
+import { getAgentNaming } from '@/src/utils/getAgentNaming';
 
 /**
- * Minimal layout for the embed page - no header, footer, or other UI elements
- * This layout is completely transparent and only renders the chat widget
+ * Generates metadata for the embed page using the configured agent naming.
+ *
+ * @returns Metadata for the embed layout.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+    const agentNaming = await getAgentNaming();
+    return {
+        title: formatAgentNamingText('Promptbook Agent Embed', agentNaming),
+        description: formatAgentNamingText('Embedded agent chat widget', agentNaming),
+    };
+}
+
+/**
+ * Minimal layout for the embed page.
+ *
+ * @param children - Embedded page content.
+ * @returns Embed layout markup.
  */
 export default function EmbedLayout({
     children,

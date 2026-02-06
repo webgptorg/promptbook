@@ -5,6 +5,8 @@ import { PROMPTBOOK_COLOR } from '@promptbook-local/core';
 import { BackToAgentButton } from '@/src/components/BackToAgentButton/BackToAgentButton';
 import Link from 'next/link';
 import { Color } from '../../../../../../../src/utils/color/Color';
+import { formatAgentNamingText } from '@/src/utils/agentNaming';
+import { getAgentNaming } from '@/src/utils/getAgentNaming';
 import { getAgentName, getAgentProfile } from '../_utils';
 
 /**
@@ -40,11 +42,13 @@ const AGENT_IMAGES = [
 export default async function AgentImagesPage({ params }: { params: Promise<{ agentName: string }> }) {
     const agentName = await getAgentName(params);
     const agentProfile = await getAgentProfile(agentName);
+    const agentNaming = await getAgentNaming();
 
     const brandColor = Color.fromSafe(agentProfile.meta.color || PROMPTBOOK_COLOR);
     const brandColorHex = brandColor.then(saturate(-0.5)).toHex();
 
-    const fullname = (agentProfile.meta.fullname || agentProfile.agentName || 'Agent') as string;
+    const fallbackName = formatAgentNamingText('Agent', agentNaming);
+    const fullname = (agentProfile.meta.fullname || agentProfile.agentName || fallbackName) as string;
 
     return (
         <div
@@ -76,21 +80,21 @@ export default async function AgentImagesPage({ params }: { params: Promise<{ ag
                         <h1 style={{ margin: 0, fontSize: '2rem' }}>
                             Images for <strong>{fullname}</strong>
                         </h1>
-                    <p style={{ margin: '0.5rem 0 0', opacity: 0.9 }}>
-                        All available image assets for agent{' '}
-                        <code
-                            style={{
-                                backgroundColor: 'rgba(255,255,255,0.2)',
-                                padding: '2px 6px',
-                                borderRadius: '4px',
-                            }}
-                        >
-                            {agentName}
-                        </code>
-                    </p>
-                </div>
-                <BackToAgentButton agentName={agentName} />
-            </header>
+                        <p style={{ margin: '0.5rem 0 0', opacity: 0.9 }}>
+                            {formatAgentNamingText('All available image assets for agent', agentNaming)}{' '}
+                            <code
+                                style={{
+                                    backgroundColor: 'rgba(255,255,255,0.2)',
+                                    padding: '2px 6px',
+                                    borderRadius: '4px',
+                                }}
+                            >
+                                {agentName}
+                            </code>
+                        </p>
+                    </div>
+                    <BackToAgentButton agentName={agentName} />
+                </header>
 
                 <div
                     style={{
@@ -135,7 +139,7 @@ export default async function AgentImagesPage({ params }: { params: Promise<{ ag
                                 <div style={{ padding: '1rem' }}>
                                     <h2 style={{ margin: '0 0 0.5rem', fontSize: '1.25rem' }}>{image.title}</h2>
                                     <p style={{ margin: '0 0 0.5rem', color: '#666', fontSize: '0.9rem' }}>
-                                        {image.description}
+                                        {formatAgentNamingText(image.description, agentNaming)}
                                     </p>
                                     <div
                                         style={{

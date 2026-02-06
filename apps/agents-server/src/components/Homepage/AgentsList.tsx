@@ -29,6 +29,7 @@ import type {
     AgentOrganizationUpdatePayload,
 } from '../../utils/agentOrganization/types';
 import { AgentContextMenuPopover, type AgentContextMenuRenamePayload } from '../AgentContextMenu/AgentContextMenu';
+import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 import { QrCodeModal } from '../AgentProfile/QrCodeModal';
 import { useAgentBackground } from '../AgentProfile/useAgentBackground';
 import { showAlert, showConfirm, showPrompt } from '../AsyncDialogs/asyncDialogs';
@@ -585,6 +586,7 @@ export function AgentsList(props: AgentsListProps) {
     const [dropIndicator, setDropIndicator] = useState<DropIndicator | null>(null);
     const [contextMenuState, setContextMenuState] = useState<AgentContextMenuState | null>(null);
     const [qrCodeAgent, setQrCodeAgent] = useState<AgentOrganizationAgent | null>(null);
+    const { formatText } = useAgentNaming();
 
     const normalizedPublicUrl = useMemo(() => (publicUrl.endsWith('/') ? publicUrl : `${publicUrl}/`), [publicUrl]);
     const publicUrlHost = useMemo(() => {
@@ -614,9 +616,11 @@ export function AgentsList(props: AgentsListProps) {
         const currentFolder = folderMaps.folderById.get(currentFolderId);
         const parentFolderId = currentFolder?.parentId ?? null;
         const parentFolderName =
-            parentFolderId === null ? 'All Agents' : folderMaps.folderById.get(parentFolderId)?.name || 'All Agents';
+            parentFolderId === null
+                ? formatText('All Agents')
+                : folderMaps.folderById.get(parentFolderId)?.name || formatText('All Agents');
         return { id: parentFolderId, label: parentFolderName };
-    }, [currentFolderId, folderMaps]);
+    }, [currentFolderId, folderMaps, formatText]);
 
     const visibleFolders = useMemo(
         () =>
@@ -1136,7 +1140,9 @@ export function AgentsList(props: AgentsListProps) {
 
         const confirmed = await showConfirm({
             title: 'Delete folder',
-            message: `Delete folder "${folder.name}"? It will move ${agentCount} agents and ${subfolderCount} subfolders to the Recycle Bin.`,
+            message: `${formatText('Delete folder')} "${folder.name}"? ${formatText('It will move')} ${agentCount} ${formatText(
+                'agents',
+            )} and ${subfolderCount} subfolders to the Recycle Bin.`,
             confirmLabel: 'Delete folder',
             cancelLabel: 'Cancel',
         }).catch(() => false);
@@ -1174,9 +1180,11 @@ export function AgentsList(props: AgentsListProps) {
         const agent = agents.find((a) => a.permanentId === agentIdentifier || a.agentName === agentIdentifier);
         if (!agent) return;
         const confirmed = await showConfirm({
-            title: 'Delete agent',
-            message: `Delete agent "${agent.agentName}"? It will be moved to Recycle Bin.`,
-            confirmLabel: 'Delete agent',
+            title: formatText('Delete agent'),
+            message: `${formatText('Delete agent')} "${agent.agentName}"? ${formatText(
+                'It will be moved to Recycle Bin.',
+            )}`,
+            confirmLabel: formatText('Delete agent'),
             cancelLabel: 'Cancel',
         }).catch(() => false);
         if (!confirmed) {
@@ -1190,13 +1198,13 @@ export function AgentsList(props: AgentsListProps) {
             } else {
                 await showAlert({
                     title: 'Delete failed',
-                    message: 'Failed to delete agent',
+                    message: formatText('Failed to delete agent'),
                 }).catch(() => undefined);
             }
         } catch (error) {
             await showAlert({
                 title: 'Delete failed',
-                message: 'Failed to delete agent',
+                message: formatText('Failed to delete agent'),
             }).catch(() => undefined);
         }
     };
@@ -1210,9 +1218,9 @@ export function AgentsList(props: AgentsListProps) {
         const agent = agents.find((a) => a.permanentId === agentIdentifier || a.agentName === agentIdentifier);
         if (!agent) return;
         const confirmed = await showConfirm({
-            title: 'Clone agent',
-            message: `Clone agent "${agent.agentName}"?`,
-            confirmLabel: 'Clone agent',
+            title: formatText('Clone agent'),
+            message: `${formatText('Clone agent')} "${agent.agentName}"?`,
+            confirmLabel: formatText('Clone agent'),
             cancelLabel: 'Cancel',
         }).catch(() => false);
         if (!confirmed) {
@@ -1245,13 +1253,13 @@ export function AgentsList(props: AgentsListProps) {
             } else {
                 await showAlert({
                     title: 'Clone failed',
-                    message: 'Failed to clone agent',
+                    message: formatText('Failed to clone agent'),
                 }).catch(() => undefined);
             }
         } catch (error) {
             await showAlert({
                 title: 'Clone failed',
-                message: 'Failed to clone agent',
+                message: formatText('Failed to clone agent'),
             }).catch(() => undefined);
         }
     };
@@ -1267,7 +1275,7 @@ export function AgentsList(props: AgentsListProps) {
         const newVisibility = agent.visibility === 'PUBLIC' ? 'PRIVATE' : 'PUBLIC';
         const confirmed = await showConfirm({
             title: 'Update visibility',
-            message: `Make agent "${agent.agentName}" ${newVisibility.toLowerCase()}?`,
+            message: `${formatText('Make agent')} "${agent.agentName}" ${newVisibility.toLowerCase()}?`,
             confirmLabel: 'Update visibility',
             cancelLabel: 'Cancel',
         }).catch(() => false);
@@ -1293,7 +1301,7 @@ export function AgentsList(props: AgentsListProps) {
         } else {
             await showAlert({
                 title: 'Update failed',
-                message: 'Failed to update agent visibility',
+                message: formatText('Failed to update agent visibility'),
             }).catch(() => undefined);
         }
     };
@@ -1474,8 +1482,8 @@ export function AgentsList(props: AgentsListProps) {
 
     const headingTitle =
         viewMode === 'LIST' && currentFolderId !== null
-            ? folderMaps.folderById.get(currentFolderId)?.name || 'Local Agents'
-            : 'Local Agents';
+            ? folderMaps.folderById.get(currentFolderId)?.name || formatText('Local Agents')
+            : formatText('Local Agents');
     const contextMenuAgent = contextMenuState?.agent ?? null;
     const contextMenuIdentifier = contextMenuAgent ? contextMenuAgent.permanentId || contextMenuAgent.agentName : '';
     const contextMenuAgentUrl = contextMenuAgent ? buildAgentUrl(contextMenuIdentifier) : '';
@@ -1495,7 +1503,7 @@ export function AgentsList(props: AgentsListProps) {
                         {viewMode === 'LIST' && (
                             <div className="mt-2 flex items-center gap-2 text-sm text-gray-600">
                                 <BreadcrumbDropTarget
-                                    label="All Agents"
+                                    label={formatText('All Agents')}
                                     folderId={null}
                                     onClick={() => navigateToFolder(null)}
                                     canOrganize={canOrganize}

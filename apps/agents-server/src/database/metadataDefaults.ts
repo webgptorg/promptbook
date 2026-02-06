@@ -17,6 +17,12 @@ export const metadataDefaults = [
         type: 'TEXT',
     },
     {
+        key: 'AGENT_NAMING',
+        value: 'Agent / Agents',
+        note: 'Override the singular/plural naming for agents in the UI. Format: singular/plural (e.g. chatbot/chatbots).',
+        type: 'TEXT_SINGLE_LINE',
+    },
+    {
         key: 'SERVER_LOGO_URL',
         value: '',
         note: 'The URL of the logo displayed in the heading bar',

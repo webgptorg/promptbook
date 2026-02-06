@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { forTime } from 'waitasecond';
 import { FileCard } from '../components/Homepage/FileCard';
+import { useAgentNaming } from '../components/AgentNaming/AgentNamingContext';
 import { NewAgentDialog } from '../components/NewAgentDialog/NewAgentDialog';
 import { $createAgentFromBookAction, $generateAgentBoilerplateAction } from './actions';
 
@@ -26,6 +27,7 @@ export function AddAgentButton({ currentFolderId }: AddAgentButtonProps) {
     const [isLoading, setIsLoading] = useState(false);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [agentSource, setAgentSource] = useState<string_book>('' as string_book);
+    const { formatText } = useAgentNaming();
 
     /**
      * Loads boilerplate content and opens the creation dialog.
@@ -76,7 +78,7 @@ export function AddAgentButton({ currentFolderId }: AddAgentButtonProps) {
                             Preparing...
                         </>
                     ) : (
-                        '+ Add New Agent'
+                        formatText('+ Add New Agent')
                     )}
                 </FileCard>
             </div>

@@ -29,7 +29,7 @@ export default async function AgentChatPage({
     if (isDeleted) {
         return (
             <main className="w-screen h-screen flex items-center justify-center p-8">
-                <DeletedAgentBanner message="This agent has been deleted. You can restore it from the Recycle Bin." />
+                <DeletedAgentBanner />
             </main>
         );
     }

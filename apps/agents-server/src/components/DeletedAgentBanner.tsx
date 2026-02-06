@@ -1,12 +1,17 @@
 'use client';
 
+import { useAgentNaming } from './AgentNaming/AgentNamingContext';
+
 type DeletedAgentBannerProps = {
     message?: string;
 };
 
 export function DeletedAgentBanner({
-    message = "This agent has been deleted. You can restore it from the Recycle Bin."
+    message,
 }: DeletedAgentBannerProps) {
+    const { formatText } = useAgentNaming();
+    const resolvedMessage =
+        message ?? formatText('This agent has been deleted. You can restore it from the Recycle Bin.');
     return (
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
             <div className="flex">
@@ -17,7 +22,7 @@ export function DeletedAgentBanner({
                 </div>
                 <div className="ml-3">
                     <p className="text-sm text-yellow-700">
-                        {message}
+                        {resolvedMessage}
                     </p>
                 </div>
             </div>

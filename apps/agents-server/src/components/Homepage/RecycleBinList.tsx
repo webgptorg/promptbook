@@ -9,6 +9,7 @@ import type { AgentOrganizationAgent, AgentOrganizationFolder } from '../../util
 import { AgentCard } from './AgentCard';
 import { FolderCard } from './FolderCard';
 import { showAlert } from '../AsyncDialogs/asyncDialogs';
+import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 import {
     buildFolderMaps,
     buildFolderPath,
@@ -49,6 +50,7 @@ export function RecycleBinList(props: RecycleBinListProps) {
     const { agents, folders, canRestore, publicUrl } = props;
     const router = useRouter();
     const searchParams = useSearchParams();
+    const { formatText } = useAgentNaming();
     const folderPathSegments = parseFolderPath(searchParams.get('folder'));
     const currentFolderId = useMemo(
         () => resolveFolderIdFromPath([...folders], folderPathSegments),
@@ -112,13 +114,13 @@ export function RecycleBinList(props: RecycleBinListProps) {
             });
             if (!response.ok) {
                 const data = await response.json().catch(() => ({}));
-                throw new Error(data.error || 'Failed to restore agent.');
+                throw new Error(data.error || formatText('Failed to restore agent.'));
             }
             router.refresh();
         } catch (error) {
             await showAlert({
                 title: 'Restore failed',
-                message: error instanceof Error ? error.message : 'Failed to restore agent.',
+                message: error instanceof Error ? error.message : formatText('Failed to restore agent.'),
             }).catch(() => undefined);
         }
     };

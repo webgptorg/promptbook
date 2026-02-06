@@ -3,6 +3,8 @@
 import { BackToAgentButton } from '@/src/components/BackToAgentButton/BackToAgentButton';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideServer } from '@/src/tools/$provideServer';
+import { formatAgentNamingText } from '@/src/utils/agentNaming';
+import { getAgentNaming } from '@/src/utils/getAgentNaming';
 import { PromptbookAgentIntegration } from '@promptbook-local/components';
 import { parseAgentSource } from '@promptbook-local/core';
 import { headers } from 'next/headers';
@@ -14,10 +16,17 @@ import { WebsiteIntegrationTabs } from '../integration/WebsiteIntegrationTabs';
 
 export const generateMetadata = generateAgentMetadata;
 
+/**
+ * Renders website integration guidance for a single agent.
+ *
+ * @param params - Route params containing the agent name.
+ * @returns Website integration page UI.
+ */
 export default async function WebsiteIntegrationAgentPage({ params }: { params: Promise<{ agentName: string }> }) {
     $sideEffect(headers());
     let { agentName } = await params;
     agentName = decodeURIComponent(agentName);
+    const agentNaming = await getAgentNaming();
 
     const collection = await $provideAgentCollectionForServer();
     const agentSource = await collection.getAgentSource(agentName);
@@ -61,8 +70,10 @@ export default async function WebsiteIntegrationAgentPage({ params }: { params: 
                 <BackToAgentButton agentName={agentName} />
             </div>
             <p className="mt-4 mb-8 text-gray-600">
-                Use the following code to integrate the <strong>{meta.fullname || agentName}</strong> agent into your
-                React application using the <code>{'<PromptbookAgent />'}</code> component.
+                {formatAgentNamingText('Use the following code to integrate the', agentNaming)}{' '}
+                <strong>{meta.fullname || agentName}</strong>{' '}
+                {formatAgentNamingText('agent into your React application using the', agentNaming)}{' '}
+                <code>{'<PromptbookAgent />'}</code> component.
             </p>
 
             <WebsiteIntegrationTabs reactCode={reactCode} htmlCode={htmlCode} />

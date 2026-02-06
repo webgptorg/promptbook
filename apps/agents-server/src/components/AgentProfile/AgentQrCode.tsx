@@ -4,6 +4,7 @@ import { PromptbookQrCode } from '@promptbook-local/components';
 import { AgentBasicInformation } from '@promptbook-local/types';
 import { useState } from 'react';
 import spaceTrim from 'spacetrim';
+import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 
 type AgentQrCodeProps = Pick<AgentBasicInformation, 'agentName' | 'personaDescription' | 'meta'> & {
     agentUrl: string;
@@ -15,6 +16,7 @@ type AgentQrCodeProps = Pick<AgentBasicInformation, 'agentName' | 'personaDescri
 export function AgentQrCode(props: AgentQrCodeProps) {
     const { agentName, agentUrl, agentEmail, personaDescription, meta, isJustVcardShown } = props;
     const [mode, setMode] = useState<'contact' | 'link'>('contact');
+    const { formatText } = useAgentNaming();
 
     // TODO: [🧠] Should we include more info in VCARD?
     const vcard = spaceTrim(`
@@ -28,7 +30,7 @@ export function AgentQrCode(props: AgentQrCodeProps) {
     `);
 
     const qrValue = mode === 'contact' ? vcard : agentUrl;
-    const label = mode === 'contact' ? 'Scan to add contact' : 'Scan to open agent';
+    const label = mode === 'contact' ? 'Scan to add contact' : formatText('Scan to open agent');
 
     if (isJustVcardShown) {
         return <PromptbookQrCode value={vcard} className="" size={250} />;
