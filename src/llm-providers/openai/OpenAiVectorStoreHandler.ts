@@ -718,6 +718,12 @@ export abstract class OpenAiVectorStoreHandler extends OpenAiExecutionTools {
             });
         }
 
+        if (!client.beta || !(client.beta as TODO_any).vectorStores) {
+            throw new Error(
+                'OpenAI client does not support vector stores. Please ensure you are using a compatible version of the OpenAI SDK with beta API support.',
+            );
+        }
+
         const vectorStore = await (client.beta as TODO_any).vectorStores.create({
             name: `${name} Knowledge Base`,
         });
