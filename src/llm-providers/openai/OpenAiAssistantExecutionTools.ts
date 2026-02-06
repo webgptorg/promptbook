@@ -29,7 +29,6 @@ import { OpenAiVectorStoreHandler } from './OpenAiVectorStoreHandler';
 import { mapToolsToOpenAi } from './utils/mapToolsToOpenAi';
 import { uploadFilesToOpenAi } from './utils/uploadFilesToOpenAi';
 
-
 /**
  * Execution Tools for calling OpenAI API Assistants
  *

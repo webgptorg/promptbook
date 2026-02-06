@@ -312,9 +312,7 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
 
         if (OpenAiAgentKitExecutionTools.isOpenAiAgentKitExecutionTools(this.options.llmTools)) {
             const requirementsHash = sha256(JSON.stringify(modelRequirements)).toString();
-            const vectorStoreHash = sha256(
-                JSON.stringify(modelRequirements.knowledgeSources ?? []),
-            ).toString();
+            const vectorStoreHash = sha256(JSON.stringify(modelRequirements.knowledgeSources ?? [])).toString();
             const cachedVectorStore = AgentLlmExecutionTools.vectorStoreCache.get(this.title);
             const cachedAgentKit = AgentLlmExecutionTools.agentKitAgentCache.get(this.title);
             let preparedAgentKit =
