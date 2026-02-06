@@ -44,7 +44,7 @@ type AgentNamingProviderProps = {
  * @param props - Provider props.
  * @returns Provider wrapper with naming context.
  */
-export function AgentNamingProvider({ naming, children }: AgentNamingProviderProps): JSX.Element {
+export function AgentNamingProvider({ naming, children }: AgentNamingProviderProps) {
     const value = useMemo<AgentNamingContextValue>(
         () => ({
             naming,
