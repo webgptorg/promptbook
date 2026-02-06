@@ -418,8 +418,9 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
                     const result = this.formatAgentKitToolOutput(rawItem.output);
 
                     if (index !== undefined) {
+                        const existingToolCall = toolCalls[index]!;
                         const completedToolCall: ToolCall = {
-                            ...toolCalls[index],
+                            ...existingToolCall,
                             result,
                             rawToolCall: rawItem,
                         };
