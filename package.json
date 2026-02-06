@@ -306,7 +306,6 @@
         "@modelcontextprotocol/sdk": "^1.24.3",
         "@monaco-editor/react": "4.7.0",
         "@mozilla/readability": "0.6.0",
-        "@openai/agents": "^0.3.9",
         "@sendgrid/mail": "^8.1.6",
         "@supabase/supabase-js": "2.81.1",
         "@types/formidable": "3.4.6",

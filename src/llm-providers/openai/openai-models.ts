@@ -17,17 +17,6 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
         /**/
         {
             modelVariant: 'CHAT',
-            modelTitle: 'gpt-5.2',
-            modelName: 'gpt-5.2',
-            modelDescription:
-                'Latest GPT-5 model optimized for agentic workflows and long-context reasoning with 200K context window. Recommended base model for Promptbook agents.',
-            pricing: {
-                prompt: pricing(`$1.25 / 1M tokens`),
-                output: pricing(`$10.00 / 1M tokens`),
-            },
-        },
-        {
-            modelVariant: 'CHAT',
             modelTitle: 'gpt-5.1',
             modelName: 'gpt-5.1',
             modelDescription: 'The best model for coding and agentic tasks with configurable reasoning effort.',

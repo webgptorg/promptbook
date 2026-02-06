@@ -23,7 +23,6 @@ import { humanizeAiText } from '../../utils/markdown/humanizeAiText';
 import { promptbookifyAiText } from '../../utils/markdown/promptbookifyAiText';
 import { $getCurrentDate } from '../../utils/misc/$getCurrentDate';
 import { normalizeToKebabCase } from '../../utils/normalization/normalize-to-kebab-case';
-import { OpenAiAgentKitExecutionTools } from '../openai/OpenAiAgentKitExecutionTools';
 import { OpenAiAssistantExecutionTools } from '../openai/OpenAiAssistantExecutionTools';
 import type { CreateAgentLlmExecutionToolsOptions } from './CreateAgentLlmExecutionToolsOptions';
 
@@ -81,27 +80,15 @@ function emitAssistantPreparationProgress(options: {
  * - `Agent` - which represents an AI Agent with its source, memories, actions, etc. Agent is a higher-level abstraction which is internally using:
  * - `LlmExecutionTools` - which wraps one or more LLM models and provides an interface to execute them
  * - `AgentLlmExecutionTools` - which is a specific implementation of `LlmExecutionTools` that wraps another LlmExecutionTools and applies agent-specific system prompts and requirements
- * - `OpenAiAgentKitExecutionTools` - which is a specific implementation of `LlmExecutionTools` for OpenAI AgentKit, recommended for usage in `Agent` or `AgentLlmExecutionTools`
- * - `OpenAiAssistantExecutionTools` - (Deprecated) which is a specific implementation of `LlmExecutionTools` for OpenAI Assistants
+ * - `OpenAiAgentExecutionTools` - which is a specific implementation of `LlmExecutionTools` for OpenAI models with agent capabilities (using Responses API), recommended for usage in `Agent` or `AgentLlmExecutionTools`
+ * - `OpenAiAssistantExecutionTools` - (Deprecated) which is a specific implementation of `LlmExecutionTools` for OpenAI models with assistant capabilities
  * - `RemoteAgent` - which is an `Agent` that connects to a Promptbook Agents Server
  *
  * @public exported from `@promptbook/core`
  */
 export class AgentLlmExecutionTools implements LlmExecutionTools {
     /**
-     * Cache of OpenAI AgentKit agents to avoid creating duplicates
-     */
-    private static agentKitCache = new Map<
-        string_title,
-        {
-            agentId: string;
-            requirementsHash: string;
-            tools: OpenAiAgentKitExecutionTools;
-        }
-    >();
-
-    /**
-     * Cache of OpenAI assistants to avoid creating duplicates (deprecated path)
+     * Cache of OpenAI assistants to avoid creating duplicates
      */
     private static assistantCache = new Map<
         string_title,
@@ -310,108 +297,7 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
 
         console.log('!!!! promptWithAgentModelRequirements:', promptWithAgentModelRequirements);
 
-        if (OpenAiAgentKitExecutionTools.isOpenAiAgentKitExecutionTools(this.options.llmTools)) {
-            const requirementsHash = sha256(JSON.stringify(modelRequirements)).toString();
-            const cached = AgentLlmExecutionTools.agentKitCache.get(this.title);
-            let agentTools: OpenAiAgentKitExecutionTools;
-
-            if (this.options.assistantPreparationMode === 'external') {
-                agentTools = this.options.llmTools;
-
-                if (this.options.isVerbose) {
-                    console.info('[??]', 'Using externally managed OpenAI AgentKit agent', {
-                        agent: this.title,
-                        agentId: agentTools.agentId,
-                    });
-                }
-
-                AgentLlmExecutionTools.agentKitCache.set(this.title, {
-                    agentId: agentTools.agentId,
-                    requirementsHash,
-                    tools: agentTools,
-                });
-            } else if (cached) {
-                if (cached.requirementsHash === requirementsHash) {
-                    if (this.options.isVerbose) {
-                        console.info('[??]', 'Using cached OpenAI AgentKit agent', {
-                            agent: this.title,
-                            agentId: cached.agentId,
-                        });
-                    }
-                    agentTools = cached.tools;
-                } else {
-                    if (this.options.isVerbose) {
-                        console.info('[??]', 'Updating OpenAI AgentKit agent', {
-                            agent: this.title,
-                            agentId: cached.agentId,
-                        });
-                    }
-                    emitAssistantPreparationProgress({
-                        onProgress,
-                        prompt,
-                        modelName: this.modelName,
-                        phase: 'Updating agent',
-                    });
-                    agentTools = await this.options.llmTools.updateAgent({
-                        agentId: cached.agentId,
-                        name: this.title,
-                        instructions: modelRequirements.systemMessage,
-                        knowledgeSources: modelRequirements.knowledgeSources,
-                        tools: modelRequirements.tools ? [...modelRequirements.tools] : undefined,
-                        modelName: modelRequirements.modelName ?? ('gpt-5.2' as string_model_name),
-                        temperature: modelRequirements.temperature,
-                        maxTokens: modelRequirements.maxTokens,
-                    });
-                    AgentLlmExecutionTools.agentKitCache.set(this.title, {
-                        agentId: agentTools.agentId,
-                        requirementsHash,
-                        tools: agentTools,
-                    });
-                }
-            } else {
-                if (this.options.isVerbose) {
-                    console.info('[??]', 'Creating new OpenAI AgentKit agent', {
-                        agent: this.title,
-                    });
-                }
-                emitAssistantPreparationProgress({
-                    onProgress,
-                    prompt,
-                    modelName: this.modelName,
-                    phase: 'Creating agent',
-                });
-                agentTools = await this.options.llmTools.createNewAgent({
-                    name: this.title,
-                    instructions: modelRequirements.systemMessage,
-                    knowledgeSources: modelRequirements.knowledgeSources,
-                    tools: modelRequirements.tools ? [...modelRequirements.tools] : undefined,
-                    modelName: modelRequirements.modelName ?? ('gpt-5.2' as string_model_name),
-                    temperature: modelRequirements.temperature,
-                    maxTokens: modelRequirements.maxTokens,
-                    agentId: requirementsHash,
-                });
-
-                AgentLlmExecutionTools.agentKitCache.set(this.title, {
-                    agentId: agentTools.agentId,
-                    requirementsHash,
-                    tools: agentTools,
-                });
-            }
-
-            const promptWithAgentModelRequirementsForOpenAiAgentKit: ChatPrompt = {
-                ...promptWithAgentModelRequirements,
-                modelRequirements: {
-                    ...promptWithAgentModelRequirements.modelRequirements,
-                    modelName: undefined,
-                    systemMessage: undefined,
-                },
-            };
-
-            underlyingLlmResult = await agentTools.callChatModelStream(
-                promptWithAgentModelRequirementsForOpenAiAgentKit,
-                onProgress,
-            );
-        } else if (OpenAiAssistantExecutionTools.isOpenAiAssistantExecutionTools(this.options.llmTools)) {
+        if (OpenAiAssistantExecutionTools.isOpenAiAssistantExecutionTools(this.options.llmTools)) {
             // ... deprecated path ...
             const requirementsHash = sha256(JSON.stringify(modelRequirements)).toString();
             const cached = AgentLlmExecutionTools.assistantCache.get(this.title);

@@ -1,7 +1,7 @@
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
-import { $provideOpenAiAgentKitExecutionToolsForServer } from '@/src/tools/$provideOpenAiAgentKitExecutionToolsForServer';
+import { $provideOpenAiAssistantExecutionToolsForServer } from '@/src/tools/$provideOpenAiAssistantExecutionToolsForServer';
 import { createChatStreamHandler } from '@/src/utils/createChatStreamHandler';
 import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
 import { ensureNonEmptyChatContent } from '@/src/utils/chat/ensureNonEmptyChatContent';
@@ -72,9 +72,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         const agentId = await collection.getAgentPermanentId(agentName);
         const agentSource = await collection.getAgentSource(agentName);
 
-        // Use AssistantCacheManager for intelligent AgentKit caching
+        // Use AssistantCacheManager for intelligent assistant caching
         const assistantCacheManager = new AssistantCacheManager({ isVerbose: true });
-        const baseOpenAiTools = await $provideOpenAiAgentKitExecutionToolsForServer();
+        const baseOpenAiTools = await $provideOpenAiAssistantExecutionToolsForServer();
 
         const agentHash = computeAgentHash(agentSource);
         const userAgent = request.headers.get('user-agent');

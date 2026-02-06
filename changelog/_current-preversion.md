@@ -393,7 +393,6 @@
 -   Enhanced the UI of the chips of `TEAM` commitment to show agent profile picture and name instead of ID in agent lists and profile pages.
 -   Rendered chat chip emojis (tool calls and source citations) with the OpenMoji color font in Agents Server.
 -   Migrate `Agent` class and all related classes from using OpenAI Assistants API to OpenAI Responses API.
--   Migrated Agent and Agents Server OpenAI integrations to AgentKit, including AgentKit execution tools, vector store caching reuse, and updated playground samples with `gpt-5.2` as the default model while keeping Assistant tools deprecated.
     -   `KNOWLEDGE` works as before.
     -   Tool calling works as before.
     -   Caching of the agents and underlying assistants works as before.
