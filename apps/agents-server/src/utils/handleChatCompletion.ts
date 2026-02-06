@@ -1,7 +1,7 @@
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
-import { $provideOpenAiAssistantExecutionToolsForServer } from '@/src/tools/$provideOpenAiAssistantExecutionToolsForServer';
+import { $provideOpenAiAgentKitExecutionToolsForServer } from '@/src/tools/$provideOpenAiAgentKitExecutionToolsForServer';
 import { ensureNonEmptyChatContent } from '@/src/utils/chat/ensureNonEmptyChatContent';
 import { createChatStreamHandler } from '@/src/utils/createChatStreamHandler';
 import { Agent, computeAgentHash, PROMPTBOOK_ENGINE_VERSION } from '@promptbook-local/core';
@@ -11,7 +11,7 @@ import { $getCurrentDate, computeHash, countWords } from '@promptbook-local/util
 import { NextRequest, NextResponse } from 'next/server';
 import { isAgentDeleted } from '../app/agents/[agentName]/_utils';
 import { HTTP_STATUS_CODES } from '../constants';
-import { AssistantCacheManager } from './cache/AssistantCacheManager';
+import { AgentKitCacheManager } from './cache/AgentKitCacheManager';
 import { validateApiKey } from './validateApiKey';
 
 /**
@@ -150,15 +150,14 @@ export async function handleChatCompletion(
         const agentHash = computeAgentHash(agentSource);
         const agentId = await collection.getAgentPermanentId(agentName);
 
-        // Use AssistantCacheManager for intelligent assistant caching
-        // This provides a centralized, DRY way to manage assistant lifecycle
-        const assistantCacheManager = new AssistantCacheManager({ isVerbose: true });
-        const baseOpenAiTools = await $provideOpenAiAssistantExecutionToolsForServer();
+        // Use AgentKitCacheManager for vector store caching
+        const agentKitCacheManager = new AgentKitCacheManager({ isVerbose: true });
+        const baseOpenAiTools = await $provideOpenAiAgentKitExecutionToolsForServer();
 
-        // Get or create assistant with enhanced caching
+        // Get or create AgentKit agent with enhanced caching
         // By default, includes full configuration (PERSONA + CONTEXT) in cache key for strict matching
         // Set includeDynamicContext: false to enable better caching by excluding CONTEXT from cache key
-        const assistantResult = await assistantCacheManager.getOrCreateAssistant(
+        const agentKitResult = await agentKitCacheManager.getOrCreateAgentKitAgent(
             agentSource,
             agentName,
             baseOpenAiTools,
@@ -168,24 +167,24 @@ export async function handleChatCompletion(
             },
         );
 
-        if (assistantResult.fromCache) {
-            console.info('[🤰]', 'Assistant cache hit (OpenAI)', {
+        if (agentKitResult.fromCache) {
+            console.info('[🤰]', 'AgentKit cache hit (OpenAI)', {
                 agentName,
-                cacheKey: assistantResult.cacheKey,
-                assistantId: assistantResult.tools.assistantId,
+                cacheKey: agentKitResult.cacheKey,
+                vectorStoreId: agentKitResult.vectorStoreId,
             });
         } else {
-            console.info('[🤰]', 'Assistant cache miss (OpenAI)', {
+            console.info('[🤰]', 'AgentKit cache miss (OpenAI)', {
                 agentName,
-                cacheKey: assistantResult.cacheKey,
-                assistantId: assistantResult.tools.assistantId,
+                cacheKey: agentKitResult.cacheKey,
+                vectorStoreId: agentKitResult.vectorStoreId,
             });
         }
 
         const agent = new Agent({
             agentSource,
             executionTools: {
-                llm: assistantResult.tools,
+                llm: agentKitResult.tools,
             },
             assistantPreparationMode: 'external',
             isVerbose: true, // or false

@@ -23,6 +23,7 @@ import { humanizeAiText } from '../../utils/markdown/humanizeAiText';
 import { promptbookifyAiText } from '../../utils/markdown/promptbookifyAiText';
 import { $getCurrentDate } from '../../utils/misc/$getCurrentDate';
 import { normalizeToKebabCase } from '../../utils/normalization/normalize-to-kebab-case';
+import { OpenAiAgentKitExecutionTools } from '../openai/OpenAiAgentKitExecutionTools';
 import { OpenAiAssistantExecutionTools } from '../openai/OpenAiAssistantExecutionTools';
 import type { CreateAgentLlmExecutionToolsOptions } from './CreateAgentLlmExecutionToolsOptions';
 
@@ -81,11 +82,24 @@ function emitAssistantPreparationProgress(options: {
  * - `LlmExecutionTools` - which wraps one or more LLM models and provides an interface to execute them
  * - `AgentLlmExecutionTools` - which is a specific implementation of `LlmExecutionTools` that wraps another LlmExecutionTools and applies agent-specific system prompts and requirements
  * - `OpenAiAssistantExecutionTools` - (Deprecated) which is a specific implementation of `LlmExecutionTools` for OpenAI models with assistant capabilities
+ * - `OpenAiAgentKitExecutionTools` - which is a specific implementation of `LlmExecutionTools` backed by OpenAI AgentKit
  * - `RemoteAgent` - which is an `Agent` that connects to a Promptbook Agents Server
  *
  * @public exported from `@promptbook/core`
  */
 export class AgentLlmExecutionTools implements LlmExecutionTools {
+    /**
+     * Cached AgentKit agents to avoid rebuilding identical instances.
+     */
+    private static agentKitAgentCache = new Map<
+        string_title,
+        {
+            agent: Awaited<ReturnType<OpenAiAgentKitExecutionTools['prepareAgentKitAgent']>>['agent'];
+            requirementsHash: string;
+            vectorStoreId?: string;
+        }
+    >();
+
     /**
      * Cache of OpenAI assistants to avoid creating duplicates
      */
@@ -296,7 +310,87 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
 
         console.log('!!!! promptWithAgentModelRequirements:', promptWithAgentModelRequirements);
 
-        if (OpenAiAssistantExecutionTools.isOpenAiAssistantExecutionTools(this.options.llmTools)) {
+        if (OpenAiAgentKitExecutionTools.isOpenAiAgentKitExecutionTools(this.options.llmTools)) {
+            const requirementsHash = sha256(JSON.stringify(modelRequirements)).toString();
+            const vectorStoreHash = sha256(
+                JSON.stringify(modelRequirements.knowledgeSources ?? []),
+            ).toString();
+            const cachedVectorStore = AgentLlmExecutionTools.vectorStoreCache.get(this.title);
+            const cachedAgentKit = AgentLlmExecutionTools.agentKitAgentCache.get(this.title);
+            let preparedAgentKit =
+                this.options.assistantPreparationMode === 'external'
+                    ? this.options.llmTools.getPreparedAgentKitAgent()
+                    : null;
+
+            let vectorStoreId =
+                preparedAgentKit?.vectorStoreId ||
+                (cachedVectorStore && cachedVectorStore.requirementsHash === vectorStoreHash
+                    ? cachedVectorStore.vectorStoreId
+                    : undefined);
+
+            if (!preparedAgentKit && cachedAgentKit && cachedAgentKit.requirementsHash === requirementsHash) {
+                if (this.options.isVerbose) {
+                    console.info('[🤰]', 'Using cached OpenAI AgentKit agent', {
+                        agent: this.title,
+                    });
+                }
+                preparedAgentKit = {
+                    agent: cachedAgentKit.agent,
+                    vectorStoreId: cachedAgentKit.vectorStoreId,
+                };
+            }
+
+            if (!preparedAgentKit) {
+                if (this.options.isVerbose) {
+                    console.info('[🤰]', 'Preparing OpenAI AgentKit agent', {
+                        agent: this.title,
+                    });
+                }
+
+                if (!vectorStoreId && modelRequirements.knowledgeSources?.length) {
+                    emitAssistantPreparationProgress({
+                        onProgress,
+                        prompt,
+                        modelName: this.modelName,
+                        phase: 'Creating knowledge base',
+                    });
+                }
+
+                emitAssistantPreparationProgress({
+                    onProgress,
+                    prompt,
+                    modelName: this.modelName,
+                    phase: 'Preparing AgentKit agent',
+                });
+
+                preparedAgentKit = await this.options.llmTools.prepareAgentKitAgent({
+                    name: this.title,
+                    instructions: modelRequirements.systemMessage || '',
+                    knowledgeSources: modelRequirements.knowledgeSources,
+                    tools: modelRequirements.tools ? [...modelRequirements.tools] : undefined,
+                    vectorStoreId,
+                });
+            }
+
+            if (preparedAgentKit.vectorStoreId) {
+                AgentLlmExecutionTools.vectorStoreCache.set(this.title, {
+                    vectorStoreId: preparedAgentKit.vectorStoreId,
+                    requirementsHash: vectorStoreHash,
+                });
+            }
+
+            AgentLlmExecutionTools.agentKitAgentCache.set(this.title, {
+                agent: preparedAgentKit.agent,
+                requirementsHash,
+                vectorStoreId: preparedAgentKit.vectorStoreId,
+            });
+
+            underlyingLlmResult = await this.options.llmTools.callChatModelStreamWithPreparedAgent({
+                openAiAgentKitAgent: preparedAgentKit.agent,
+                prompt: promptWithAgentModelRequirements,
+                onProgress,
+            });
+        } else if (OpenAiAssistantExecutionTools.isOpenAiAssistantExecutionTools(this.options.llmTools)) {
             // ... deprecated path ...
             const requirementsHash = sha256(JSON.stringify(modelRequirements)).toString();
             const cached = AgentLlmExecutionTools.assistantCache.get(this.title);

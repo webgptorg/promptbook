@@ -16,10 +16,11 @@ export type AgentOptions = CommonToolsOptions & {
     executionTools: ExecutionTools;
 
     /**
-     * How to manage OpenAI assistant preparation when using OpenAiAssistantExecutionTools.
+     * How to manage OpenAI assistant/AgentKit preparation when using OpenAiAssistantExecutionTools
+     * or OpenAiAgentKitExecutionTools.
      *
-     * Use `external` when an external cache manager already created the assistant and
-     * the agent should use it as-is.
+     * Use `external` when an external cache manager already created the assistant/AgentKit agent
+     * and the agent should use it as-is.
      *
      * @default internal
      */

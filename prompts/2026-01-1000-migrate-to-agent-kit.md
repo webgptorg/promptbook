@@ -2,7 +2,7 @@
 
 ---
 
-[ ] !!!!
+[x] ~$0.00 by OpenAI Codex `gpt-5.2-codex`
 
 [✨🎩] Migrate Promptbook Agents from Assistants API to OpenAI AgentKit
 
@@ -119,3 +119,4 @@ console.log(result.finalOutput || '(No output)');
 ```
 
 ```
+

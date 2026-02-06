@@ -1,7 +1,7 @@
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
-import { $provideOpenAiAssistantExecutionToolsForServer } from '@/src/tools/$provideOpenAiAssistantExecutionToolsForServer';
+import { $provideOpenAiAgentKitExecutionToolsForServer } from '@/src/tools/$provideOpenAiAgentKitExecutionToolsForServer';
 import { createChatStreamHandler } from '@/src/utils/createChatStreamHandler';
 import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
 import { ensureNonEmptyChatContent } from '@/src/utils/chat/ensureNonEmptyChatContent';
@@ -11,7 +11,7 @@ import { assertsError } from '../../../../../../../../src/errors/assertsError';
 import { ASSISTANT_PREPARATION_TOOL_CALL_NAME } from '../../../../../../../../src/types/ToolCall';
 import { keepUnused } from '../../../../../../../../src/utils/organization/keepUnused';
 import { isAgentDeleted } from '../../_utils';
-import { AssistantCacheManager } from '@/src/utils/cache/AssistantCacheManager';
+import { AgentKitCacheManager } from '@/src/utils/cache/AgentKitCacheManager';
 
 /**
  * Allow long-running streams: set to platform maximum (seconds)
@@ -72,9 +72,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         const agentId = await collection.getAgentPermanentId(agentName);
         const agentSource = await collection.getAgentSource(agentName);
 
-        // Use AssistantCacheManager for intelligent assistant caching
-        const assistantCacheManager = new AssistantCacheManager({ isVerbose: true });
-        const baseOpenAiTools = await $provideOpenAiAssistantExecutionToolsForServer();
+        // Use AgentKitCacheManager for vector store caching
+        const agentKitCacheManager = new AgentKitCacheManager({ isVerbose: true });
+        const baseOpenAiTools = await $provideOpenAiAgentKitExecutionToolsForServer();
 
         const agentHash = computeAgentHash(agentSource);
         const userAgent = request.headers.get('user-agent');
@@ -132,7 +132,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                 });
 
                 try {
-                    const assistantResult = await assistantCacheManager.getOrCreateAssistant(
+                    const agentKitResult = await agentKitCacheManager.getOrCreateAgentKitAgent(
                         agentSource,
                         agentName,
                         baseOpenAiTools,
@@ -140,7 +140,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                             includeDynamicContext: true,
                             agentId,
                             onCacheMiss: async () => {
-                                const toolCall = createAssistantPreparationToolCall('Creating assistant');
+                                const toolCall = createAssistantPreparationToolCall('Preparing AgentKit agent');
                                 controller.enqueue(
                                     encoder.encode('\n' + JSON.stringify({ toolCalls: [toolCall] }) + '\n'),
                                 );
@@ -153,7 +153,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                         assistantPreparationMode: 'external',
                         executionTools: {
                             // [▶️] ...executionTools,
-                            llm: assistantResult.tools,
+                            llm: agentKitResult.tools,
                         },
                         agentSource,
                         teacherAgent: await RemoteAgent.connect({

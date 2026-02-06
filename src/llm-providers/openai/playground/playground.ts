@@ -19,6 +19,7 @@ import { FileCacheStorage } from '../../../storage/file-cache-storage/FileCacheS
 import { cacheLlmTools } from '../../_common/utils/cache/cacheLlmTools';
 import { countUsage } from '../../_common/utils/count-total-usage/countUsage';
 import { OpenAiExecutionTools } from '../OpenAiExecutionTools';
+import { OpenAiAgentKitExecutionTools } from '../OpenAiAgentKitExecutionTools';
 
 playground()
     .catch((error) => {
@@ -97,7 +98,53 @@ async function playground() {
     );
     /**/
 
+    /*/
+    const openAiAgentKitExecutionTools = new OpenAiAgentKitExecutionTools({
+        isVerbose: true,
+        userId: 'playground',
+        apiKey: process.env.OPENAI_API_KEY!,
+        executionTools: { script },
+    });
+
+    const agentKitPrompt = {
+        title: 'AgentKit Coupon Demo',
+        parameters: {},
+        content: `Generate a coupon code for electronics with 15% off using the tool.`,
+        tools: [
+            {
+                name: 'get_coupon_code',
+                description: 'Generate a coupon code based on product category and discount percentage',
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        productCategory: {
+                            type: 'string',
+                            description: 'The category of the product (e.g., electronics, clothing)',
+                        },
+                        discountPercentage: {
+                            type: 'number',
+                            description: 'The discount percentage to apply',
+                        },
+                    },
+                    required: ['productCategory', 'discountPercentage'],
+                },
+            },
+        ],
+        modelRequirements: {
+            modelVariant: 'CHAT',
+            systemMessage:
+                'Use the get_coupon_code tool to generate the coupon. Do not invent coupon codes.',
+        },
+    } satisfies ChatPrompt;
+    const agentKitResult = await openAiAgentKitExecutionTools.callChatModel!(agentKitPrompt);
+    console.info({ agentKitResult });
+    console.info(colors.cyan(usageToHuman(agentKitResult.usage)));
+    console.info(colors.bgBlue(' User: ') + colors.blue(agentKitPrompt.content));
+    console.info(colors.bgGreen(' AgentKit: ') + colors.green(agentKitResult.content));
+    /**/
+
     keepUnused(openAiExecutionTools);
+    keepUnused(OpenAiAgentKitExecutionTools);
     // keepUnused(openAiAssistantExecutionTools);
     keepUnused(embeddingVectorToString);
     keepUnused(usageToHuman);

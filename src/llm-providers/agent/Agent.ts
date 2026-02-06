@@ -125,6 +125,7 @@ function buildTeacherSummary(commitments: string, used: boolean): SelfLearningTe
  * - `LlmExecutionTools` - which wraps one or more LLM models and provides an interface to execute them
  * - `AgentLlmExecutionTools` - which is a specific implementation of `LlmExecutionTools` that wraps another LlmExecutionTools and applies agent-specific system prompts and requirements
  * - `OpenAiAssistantExecutionTools` - (Deprecated) which is a specific implementation of `LlmExecutionTools` for OpenAI models with assistant capabilities
+ * - `OpenAiAgentKitExecutionTools` - which is a specific implementation of `LlmExecutionTools` backed by OpenAI AgentKit
  * - `RemoteAgent` - which is an `Agent` that connects to a Promptbook Agents Server
  *
  * @public exported from `@promptbook/core`

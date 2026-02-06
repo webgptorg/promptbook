@@ -1,7 +1,8 @@
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import type { CommonToolsOptions } from '../../execution/CommonToolsOptions';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
-import { OpenAiAssistantExecutionTools } from '../openai/OpenAiAssistantExecutionTools';
+import type { OpenAiAgentKitExecutionTools } from '../openai/OpenAiAgentKitExecutionTools';
+import type { OpenAiAssistantExecutionTools } from '../openai/OpenAiAssistantExecutionTools';
 // <- TODO: !!! Keep imported only the type of OpenAiAssistantExecutionTools
 
 /**
@@ -11,13 +12,14 @@ export type CreateAgentLlmExecutionToolsOptions = CommonToolsOptions & {
     /**
      * The underlying LLM execution tools to wrap
      */
-    llmTools: LlmExecutionTools | OpenAiAssistantExecutionTools;
+    llmTools: LlmExecutionTools | OpenAiAssistantExecutionTools | OpenAiAgentKitExecutionTools;
 
     /**
-     * How to manage OpenAI assistant preparation when using OpenAiAssistantExecutionTools.
+     * How to manage OpenAI assistant/AgentKit preparation when using OpenAiAssistantExecutionTools
+     * or OpenAiAgentKitExecutionTools.
      *
-     * Use `external` when an external cache manager already created the assistant and
-     * the agent should use it as-is.
+     * Use `external` when an external cache manager already created the assistant/AgentKit agent
+     * and the agent should use it as-is.
      *
      * @default internal
      */
