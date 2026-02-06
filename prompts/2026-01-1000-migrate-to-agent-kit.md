@@ -1,6 +1,4 @@
-[ ]
-
-[✨🎩] Migrate [Agents](src/llm-providers/agent/Agent.ts) from Assistants API to OpenAI AgentKit
+[x] ~$0.00 by OpenAI Codex `gpt-5.2-codex` _(failed attempt)_
 
 ---
 
