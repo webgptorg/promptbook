@@ -83,16 +83,11 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
             delete openAiOptions.isVerbose;
             delete openAiOptions.userId;
 
-            // Enhanced configuration for better ECONNRESET handling
+            // Enhanced configuration with retries and timeouts.
             const enhancedOptions: ClientOptions = {
                 ...openAiOptions,
                 timeout: API_REQUEST_TIMEOUT,
                 maxRetries: CONNECTION_RETRIES_LIMIT,
-                defaultHeaders: {
-                    Connection: 'keep-alive',
-                    'Keep-Alive': 'timeout=30, max=100',
-                    ...openAiOptions.defaultHeaders,
-                },
             } as ClientOptions;
 
             this.client = new OpenAI(enhancedOptions);

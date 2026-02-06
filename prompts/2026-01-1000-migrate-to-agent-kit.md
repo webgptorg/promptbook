@@ -91,7 +91,7 @@ console.log(result.finalOutput || '(No output)');
 
 ---
 
-[ ] !!!!!!!!
+[x] ~$0.44 by OpenAI Codex `gpt-5.2-codex`
 
 [✨🎩] After migration from Assistants API to OpenAI AgentKit chatting with agent on Agents server not working
 
@@ -219,3 +219,4 @@ Technically, it's not an error, but it's probably not what you want because it d
 ```
 
 ```
+
