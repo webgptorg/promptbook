@@ -320,7 +320,7 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
                     ? this.options.llmTools.getPreparedAgentKitAgent()
                     : null;
 
-            let vectorStoreId =
+            const vectorStoreId =
                 preparedAgentKit?.vectorStoreId ||
                 (cachedVectorStore && cachedVectorStore.requirementsHash === vectorStoreHash
                     ? cachedVectorStore.vectorStoreId

@@ -486,7 +486,7 @@ export abstract class OpenAiVectorStoreHandler extends OpenAiExecutionTools {
         const pollStartedAtMs = Date.now();
         const progressLogIntervalMs = Math.max(VECTOR_STORE_PROGRESS_LOG_INTERVAL_MIN_MS, pollIntervalMs);
         const diagnosticsIntervalMs = Math.max(60000, pollIntervalMs * 5);
-        let lastStatus: string | undefined;
+        // let lastStatus: string | undefined;
         let lastCountsKey = '';
         let lastProgressKey = '';
         let lastLogAtMs = 0;
