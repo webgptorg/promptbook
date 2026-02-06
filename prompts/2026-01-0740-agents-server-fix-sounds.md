@@ -1,39 +1,36 @@
-[-]
+[ ]
 
-[✨📉] foo
+[✨📐] Find the best sound files which are now missing in the agent server.
 
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
 
+![alt text](prompts/screenshots/2026-01-0740-agents-server-fix-sounds.png)
 
 ---
 
 [-]
 
-[✨📉] foo
+[✨📐] brr
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
-
 ---
 
 [-]
 
-[✨📉] foo
+[✨📐] brr
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
-
 ---
 
 [-]
 
-[✨📉] foo
+[✨📐] brr
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)

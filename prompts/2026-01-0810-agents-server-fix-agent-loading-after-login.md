@@ -1,11 +1,12 @@
-[-]
+[ ]
 
 [✨🪄] bar
+
+Agents are not loaded after login but after refresh
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
 
 ---
 
@@ -17,7 +18,6 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
-
 ---
 
 [-]
@@ -27,7 +27,6 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
 
 ---
 
