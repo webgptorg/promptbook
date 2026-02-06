@@ -90,6 +90,9 @@
         "node": ">=18.18.0",
         "npm": ">=8.0.0"
     },
+    "overrides": {
+        "zod": "$zod"
+    },
     "typings": "./esm/typings/src/_packages/types.index.d.ts",
     "peerDependencies": {
         "@promptbook/core": "0.110.0-5"

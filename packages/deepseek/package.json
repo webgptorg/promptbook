@@ -88,6 +88,9 @@
         "node": ">=18.18.0",
         "npm": ">=8.0.0"
     },
+    "overrides": {
+        "zod": "$zod"
+    },
     "main": "./umd/index.umd.js",
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/deepseek.index.d.ts",
