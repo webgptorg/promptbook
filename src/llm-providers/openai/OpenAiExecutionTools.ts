@@ -34,7 +34,6 @@ export class OpenAiExecutionTools extends OpenAiCompatibleExecutionTools impleme
         return OPENAI_PROVIDER_PROFILE;
     }
 
-
     /**
      * List all available models (non dynamically)
      *
