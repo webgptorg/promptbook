@@ -53,7 +53,7 @@ export const BackToAgentButton: FC<BackToAgentButtonProps> = ({ agentName }) => 
         return () => {
             setHoistedMenu([]);
         };
-    }, [handleBackToAgent, setHoistedMenu]);
+    }, [handleBackToAgent, setHoistedMenu, formatText]);
 
     if (menuHoisting) {
         return null;
