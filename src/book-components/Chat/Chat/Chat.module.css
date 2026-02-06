@@ -52,6 +52,7 @@
 
     --chat-message-min-width: 150px;
     --chat-message-max-width: min(70%, 600px);
+    --chat-message-avatar-gap: 12px;
     /* <- TODO: [🧠][🎱] Better, define other fonts */
 }
 
@@ -222,6 +223,7 @@
     margin-bottom: 20px;
     align-items: flex-end;
     flex-direction: row;
+    column-gap: var(--chat-message-avatar-gap);
     position: relative;
     animation: messageSlideIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     max-width: 100%;
@@ -523,7 +525,7 @@
 .chatMainFlow .chatMessage .avatar {
     width: 40px;
     aspect-ratio: 1 / 1;
-    margin: 0 12px 4px;
+    margin: 0 0 4px;
     flex-shrink: 0;
     position: relative;
 }
@@ -2369,6 +2371,7 @@
     .Chat {
         --chat-message-min-width: 100px;
         --chat-message-max-width: min(85%, 560px);
+        --chat-message-avatar-gap: 10px;
     }
 
     .actions {
@@ -2393,7 +2396,7 @@
     .chatMainFlow .chatMessage .avatar {
         width: 36px;
         height: 36px;
-        margin: 0 10px 4px;
+        margin: 0 0 4px;
     }
 
     /* [㊗️]
@@ -2514,6 +2517,7 @@
     .Chat {
         --chat-message-min-width: 80px;
         --chat-message-max-width: min(90%, 520px);
+        --chat-message-avatar-gap: 8px;
     }
 
     .actions {
@@ -2534,7 +2538,7 @@
     .chatMainFlow .chatMessage .avatar {
         width: 32px;
         height: 32px;
-        margin: 0 8px 4px;
+        margin: 0 0 4px;
     }
 
     /* [㊗️]

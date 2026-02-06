@@ -73,6 +73,7 @@
 -   Enhanced the Agents Server self-learning modal with a friendly summary and server-provided learning details.
 -   Updated the Agents Server self-learning modal to show agent + teacher avatars and render learned commitments in a read-only BookEditor.
 -   Added per-message timestamps in Agents Server chat with agent generation durations, and included timestamps in exported chat files.
+-   Fixed Agents Server chat avatar spacing while responses stream so in-progress bubbles align with completed messages.
 -   Added Promptbook SDK integration snippets in Agents Server, including RemoteAgent Node.js and React examples on the integration page.
 -   Added API key field to the OpenRouter integration section in Agents Server to match OpenAI compatible setup.
 -   Added a Create API Key action on the agent integration page so admins can generate tokens without leaving the integrations screen.
