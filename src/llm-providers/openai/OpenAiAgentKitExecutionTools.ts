@@ -1,13 +1,12 @@
-
+import type { Tool as AgentKitTool } from '@openai/agents';
 import {
     Agent as AgentFromKit,
+    tool as agentKitTool,
     fileSearchTool,
     run,
     setDefaultOpenAIClient,
     setDefaultOpenAIKey,
-    tool as agentKitTool,
 } from '@openai/agents';
-import type { Tool as AgentKitTool } from '@openai/agents';
 import spaceTrim from 'spacetrim';
 import { TODO_any } from '../../_packages/types.index';
 import { serializeError } from '../../_packages/utils.index';
@@ -16,6 +15,7 @@ import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
+import type { ScriptExecutionTools } from '../../execution/ScriptExecutionTools';
 import { UNCERTAIN_USAGE } from '../../execution/utils/usage-constants';
 import type { ModelRequirements } from '../../types/ModelRequirements';
 import type { Prompt } from '../../types/Prompt';
@@ -31,10 +31,9 @@ import type {
 import { $getCurrentDate } from '../../utils/misc/$getCurrentDate';
 import type { chococake } from '../../utils/organization/really_any';
 import { templateParameters } from '../../utils/parameters/templateParameters';
-import type { ScriptExecutionTools } from '../../execution/ScriptExecutionTools';
-import { OpenAiVectorStoreHandler } from './OpenAiVectorStoreHandler';
 import type { OpenAiAgentKitExecutionToolsOptions } from './OpenAiAgentKitExecutionToolsOptions';
 import type { OpenAiCompatibleExecutionToolsNonProxiedOptions } from './OpenAiCompatibleExecutionToolsOptions';
+import { OpenAiVectorStoreHandler } from './OpenAiVectorStoreHandler';
 
 const DEFAULT_AGENT_KIT_MODEL_NAME = 'gpt-5.2' as string_model_name;
 
@@ -67,7 +66,7 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
             throw new NotYetImplementedError(`Proxy mode is not yet implemented for OpenAI AgentKit`);
         }
 
-        super(options);
+        super(options as OpenAiCompatibleExecutionToolsNonProxiedOptions);
         this.agentKitModelName = options.agentKitModelName ?? DEFAULT_AGENT_KIT_MODEL_NAME;
     }
 
@@ -159,8 +158,14 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
         readonly vectorStoreId?: string;
         readonly storeAsPrepared?: boolean;
     }): Promise<OpenAiAgentKitPreparedAgent> {
-        const { name, instructions, knowledgeSources, tools, vectorStoreId: cachedVectorStoreId, storeAsPrepared } =
-            options;
+        const {
+            name,
+            instructions,
+            knowledgeSources,
+            tools,
+            vectorStoreId: cachedVectorStoreId,
+            storeAsPrepared,
+        } = options;
 
         await this.ensureAgentKitDefaults();
 
@@ -227,7 +232,7 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
         setDefaultOpenAIClient(client as TODO_any);
 
         const apiKey = this.agentKitOptions.apiKey;
-        if (apiKey) {
+        if (apiKey && typeof apiKey === 'string') {
             setDefaultOpenAIKey(apiKey);
         }
     }
@@ -254,7 +259,13 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
                     agentKitTool({
                         name: toolDefinition.name,
                         description: toolDefinition.description,
-                        parameters: toolDefinition.parameters,
+                        parameters: toolDefinition.parameters
+                            ? ({
+                                  ...toolDefinition.parameters,
+                                  additionalProperties: false,
+                                  required: toolDefinition.parameters.required ?? [],
+                              } as TODO_any)
+                            : undefined,
                         strict: false,
                         execute: async (input, runContext, details) => {
                             const scriptTool = scriptTools[0]!;
@@ -372,7 +383,7 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
                     usage: UNCERTAIN_USAGE,
                     rawPromptContent: rawPromptContent as string_prompt,
                     rawRequest: null,
-                    rawResponse: null,
+                    rawResponse: {},
                 });
                 continue;
             }
@@ -397,7 +408,7 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
                         usage: UNCERTAIN_USAGE,
                         rawPromptContent: rawPromptContent as string_prompt,
                         rawRequest: null,
-                        rawResponse: null,
+                        rawResponse: {},
                         toolCalls: [toolCall],
                     });
                 }
@@ -421,7 +432,7 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
                             usage: UNCERTAIN_USAGE,
                             rawPromptContent: rawPromptContent as string_prompt,
                             rawRequest: null,
-                            rawResponse: null,
+                            rawResponse: {},
                             toolCalls: [completedToolCall],
                         });
                     }
