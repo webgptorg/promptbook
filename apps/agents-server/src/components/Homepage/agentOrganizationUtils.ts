@@ -1,4 +1,5 @@
 import type { AgentOrganizationAgent, AgentOrganizationFolder } from '../../utils/agentOrganization/types';
+import { buildFolderPath, getFolderPathSegments } from '../../utils/agentOrganization/folderPath';
 
 /**
  * Folder tree indexes for client-side navigation.
@@ -80,45 +81,7 @@ export function resolveFolderIdFromPath(folders: AgentOrganizationFolder[], segm
     return resolvedId;
 }
 
-/**
- * Builds a folder path string from segments.
- *
- * @param segments - Folder name segments.
- * @returns Encoded folder path for URLs.
- */
-export function buildFolderPath(segments: string[]): string {
-    return segments.map((segment) => encodeURIComponent(segment)).join('/');
-}
-
-/**
- * Gets the folder path segments from root to the target folder.
- *
- * @param folderId - Folder identifier.
- * @param folderById - Folder lookup map.
- * @returns Ordered folder segments from root to the folder.
- */
-export function getFolderPathSegments(
-    folderId: number | null,
-    folderById: Map<number, AgentOrganizationFolder>,
-): AgentOrganizationFolder[] {
-    if (folderId === null) {
-        return [];
-    }
-
-    const segments: AgentOrganizationFolder[] = [];
-    let currentId: number | null = folderId;
-
-    while (currentId !== null) {
-        const currentFolder = folderById.get(currentId);
-        if (!currentFolder) {
-            break;
-        }
-        segments.unshift(currentFolder);
-        currentId = currentFolder.parentId ?? null;
-    }
-
-    return segments;
-}
+export { buildFolderPath, getFolderPathSegments };
 
 /**
  * Collects descendant folder ids including the starting folder.

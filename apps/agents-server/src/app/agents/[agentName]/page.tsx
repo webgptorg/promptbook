@@ -10,7 +10,7 @@ import { resolveAgentAvatarImageUrl } from '../../../../../../src/utils/agents/r
 import { DeletedAgentBanner } from '../../../components/DeletedAgentBanner';
 import { formatAgentNamingText } from '../../../utils/agentNaming';
 import { getAgentNaming } from '../../../utils/getAgentNaming';
-import { getAgentName, getAgentProfile, isAgentDeleted } from './_utils';
+import { getAgentFolderContext, getAgentName, getAgentProfile, isAgentDeleted } from './_utils';
 import { getAgentLinks } from './agentLinks';
 import { AgentProfileChat } from './AgentProfileChat';
 import { AgentProfileWrapper } from './AgentProfileWrapper';
@@ -38,6 +38,7 @@ export default async function AgentPage({
     const { headless: headlessParam } = await searchParams;
     const isHeadless = headlessParam !== undefined;
     const { publicUrl } = await $provideServer();
+    const folderContext = await getAgentFolderContext(agentName, isAdmin);
     const agentNaming = await getAgentNaming();
 
     let agentProfile;
@@ -80,6 +81,7 @@ export default async function AgentPage({
                 agentName={agentName}
                 isAdmin={isAdmin}
                 isHeadless={isHeadless}
+                folderContext={folderContext}
                 actions={
                     <>
                         {getAgentLinks(agentProfile.permanentId || agentName, (text) =>

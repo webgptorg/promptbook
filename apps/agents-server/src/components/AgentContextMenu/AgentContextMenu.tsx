@@ -6,6 +6,7 @@ import {
     CopyPlusIcon,
     DownloadIcon,
     FileTextIcon,
+    FolderOpenIcon,
     MailIcon,
     MessageCircleQuestionIcon,
     MessageSquareIcon,
@@ -23,6 +24,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { just } from '../../../../../src/utils/organization/just';
 import { getAgentLinks } from '../../app/agents/[agentName]/agentLinks';
 import { deleteAgent } from '../../app/recycle-bin/actions';
+import type { AgentFolderContext } from '../../utils/agentOrganization/agentFolderContext';
 import { showAlert, showConfirm, showPrompt } from '../AsyncDialogs/asyncDialogs';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 
@@ -69,6 +71,10 @@ type AgentContextMenuBaseProps = {
      * Agent email address used for share/copy actions.
      */
     readonly agentEmail: string;
+    /**
+     * Folder context for navigating to the agent's folder, when available.
+     */
+    readonly folderContext?: AgentFolderContext | null;
     /**
      * Whether the current user is an admin.
      */
@@ -260,6 +266,7 @@ function AgentContextMenuContent(props: AgentContextMenuBaseProps & { onClose: (
         permanentId,
         agentUrl,
         agentEmail,
+        folderContext,
         isAdmin = false,
         onShowQrCode,
         onAgentRenamed,
@@ -472,6 +479,16 @@ function AgentContextMenuContent(props: AgentContextMenuBaseProps & { onClose: (
 
         { type: 'divider' as const },
 
+        ...(folderContext
+            ? [
+                  {
+                      type: 'link' as const,
+                      href: folderContext.href,
+                      icon: FolderOpenIcon,
+                      label: `${formatText('Open Folder')}: ${folderContext.label}`,
+                  },
+              ]
+            : []),
         {
             type: 'link' as const,
             href: `/agents/${encodeURIComponent(agentName)}/chat`,

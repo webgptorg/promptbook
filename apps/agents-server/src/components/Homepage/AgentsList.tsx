@@ -24,6 +24,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState, type CSSProperties, type MouseEvent } from 'react';
 import type { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
 import { AddAgentButton } from '../../app/AddAgentButton';
+import { buildAgentFolderContext } from '../../utils/agentOrganization/agentFolderContext';
 import type {
     AgentOrganizationAgent,
     AgentOrganizationFolder,
@@ -1495,6 +1496,12 @@ export function AgentsList(props: AgentsListProps) {
     const contextMenuIdentifier = contextMenuAgent ? contextMenuAgent.permanentId || contextMenuAgent.agentName : '';
     const contextMenuAgentUrl = contextMenuAgent ? buildAgentUrl(contextMenuIdentifier) : '';
     const contextMenuAgentEmail = contextMenuAgent ? buildAgentEmail(contextMenuIdentifier) : '';
+    const contextMenuFolderContext = useMemo(() => {
+        if (!contextMenuAgent) {
+            return null;
+        }
+        return buildAgentFolderContext(contextMenuAgent.folderId ?? null, folderMaps.folderById);
+    }, [contextMenuAgent, folderMaps.folderById]);
     const qrCodeIdentifier = qrCodeAgent ? qrCodeAgent.permanentId || qrCodeAgent.agentName : '';
     const qrCodeAgentUrl = qrCodeAgent ? buildAgentUrl(qrCodeIdentifier) : '';
     const qrCodeAgentEmail = qrCodeAgent ? buildAgentEmail(qrCodeIdentifier) : '';
@@ -1676,6 +1683,7 @@ export function AgentsList(props: AgentsListProps) {
                 permanentId={contextMenuAgent?.permanentId}
                 agentUrl={contextMenuAgentUrl}
                 agentEmail={contextMenuAgentEmail}
+                folderContext={contextMenuFolderContext}
                 isAdmin={isAdmin}
                 onShowQrCode={handleShowQrCode}
                 onAgentRenamed={handleContextMenuAgentRenamed}

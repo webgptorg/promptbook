@@ -1,7 +1,19 @@
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { parseAgentSource } from '@promptbook-local/core';
+import type { AgentsServerDatabase } from '../../../database/schema';
 import { $provideSupabaseForServer } from '../../../database/$provideSupabaseForServer';
+import { buildAgentFolderContext, type AgentFolderContext } from '../../../utils/agentOrganization/agentFolderContext';
+
+/**
+ * Database agent row shape used for folder lookups.
+ */
+type AgentRow = AgentsServerDatabase['public']['Tables']['Agent']['Row'];
+
+/**
+ * Database folder row shape used for folder navigation.
+ */
+type AgentFolderRow = AgentsServerDatabase['public']['Tables']['AgentFolder']['Row'];
 
 export const AGENT_ACTIONS = ['Emails', 'Web chat', 'Read documents', 'Browser', 'WhatsApp', '<Coding/>'];
 
@@ -32,6 +44,58 @@ export async function isAgentDeleted(agentName: string): Promise<boolean> {
     }
 
     return result.data.deletedAt !== null;
+}
+
+/**
+ * Resolves the folder navigation context for the agent profile menu.
+ *
+ * @param agentName - Agent name or permanent id to look up.
+ * @param isAdmin - Whether the current user has admin access.
+ * @returns Folder context for the agent or null when unavailable.
+ */
+export async function getAgentFolderContext(
+    agentName: string,
+    isAdmin: boolean,
+): Promise<AgentFolderContext | null> {
+    const supabase = $provideSupabaseForServer();
+    const agentTable = await $getTableName('Agent');
+    const folderTable = await $getTableName('AgentFolder');
+
+    const agentResult = await supabase
+        .from(agentTable)
+        .select('folderId, visibility, deletedAt')
+        .or(`agentName.eq.${agentName},permanentId.eq.${agentName}`)
+        .limit(1);
+
+    if (agentResult.error || !agentResult.data || agentResult.data.length === 0) {
+        return null;
+    }
+
+    const agentRow = agentResult.data[0] as Pick<AgentRow, 'folderId' | 'visibility'>;
+    if (!isAdmin && agentRow.visibility !== 'PUBLIC') {
+        return null;
+    }
+
+    const folderId = agentRow.folderId ?? null;
+    if (folderId === null) {
+        return null;
+    }
+
+    const folderResult = await supabase
+        .from(folderTable)
+        .select('id, name, parentId, deletedAt')
+        .is('deletedAt', null);
+
+    if (folderResult.error || !folderResult.data) {
+        return null;
+    }
+
+    const folderById = new Map<number, AgentFolderRow>();
+    for (const folder of folderResult.data) {
+        folderById.set(folder.id, folder as AgentFolderRow);
+    }
+
+    return buildAgentFolderContext(folderId, folderById);
 }
 
 /**

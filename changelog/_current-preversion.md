@@ -34,6 +34,7 @@
 -   Added `AGENT_NAMING` metadata to customize agent terminology (singular/plural) across the Agents Server UI with casing-aware replacements.
 -   Scoped the Agents Server homepage message and federated agents to the root view, and updated folder headings to show the folder name with per-folder agent counts.
 -   Added a shared Agents Server context menu with right-click support on agent cards, plus rename actions reused on agent profile pages.
+-   Added an "Open Folder" action to the Agents Server agent context menu (profile menu and right click) to jump to the agent's folder for management.
 -   Added a chat preparation chip in Agents Server to signal when GPT assistants are being created before the first response.
 -   Added `[🤰]`-tagged assistant preparation logging (cache lookup, model requirement timing, assistant create/update, vector store progress) and surfaced preparation phases on the "Preparing agent" chip.
 -   Added per-knowledge-source download timeouts plus richer logging during OpenAI assistant knowledge ingestion to pinpoint stalls.

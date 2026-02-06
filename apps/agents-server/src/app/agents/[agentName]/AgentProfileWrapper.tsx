@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useCallback } from 'react';
 import { AgentContextMenuButton, type AgentContextMenuRenamePayload } from '../../../components/AgentContextMenu/AgentContextMenu';
 import { AgentProfile } from '../../../components/AgentProfile/AgentProfile';
+import type { AgentFolderContext } from '../../../utils/agentOrganization/agentFolderContext';
 
 /**
  * Props for the `AgentProfileWrapper` component
@@ -45,6 +46,11 @@ type AgentProfileWrapperProps = {
      */
     readonly isHeadless: boolean;
 
+    /**
+     * Folder context for navigating to the agent's folder.
+     */
+    readonly folderContext?: AgentFolderContext | null;
+
     /***
      * Actions to be rendered within the agent profile
      */
@@ -57,7 +63,8 @@ type AgentProfileWrapperProps = {
 };
 
 export function AgentProfileWrapper(props: AgentProfileWrapperProps) {
-    const { agent, agentUrl, publicUrl, agentEmail, agentName, isAdmin, isHeadless, actions, children } = props;
+    const { agent, agentUrl, publicUrl, agentEmail, agentName, isAdmin, isHeadless, folderContext, actions, children } =
+        props;
     const router = useRouter();
 
     // Derived agentName from agent data
@@ -108,6 +115,7 @@ export function AgentProfileWrapper(props: AgentProfileWrapperProps) {
                     permanentId={permanentId}
                     agentUrl={agentUrl}
                     agentEmail={agentEmail}
+                    folderContext={folderContext}
                     isAdmin={isAdmin}
                     onShowQrCode={onShowQrCode}
                     onAgentRenamed={handleAgentRenamed}

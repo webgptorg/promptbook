@@ -1,4 +1,4 @@
-[ ] !
+[x] ~$0.87 by OpenAI Codex `gpt-5.2-codex`
 
 [✨🖍] Allow to see and manage folder in which the agent is located from the context menu on the profile page / right click of the agent.
 
@@ -47,3 +47,4 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
