@@ -2,6 +2,7 @@
 
 import { PROMPTBOOK_COLOR } from '@promptbook-local/core';
 import { string_url } from '@promptbook-local/types';
+import { toPng, toSvg } from 'html-to-image';
 import { Code, FileImage, FileText } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -16,21 +17,20 @@ import ReactFlow, {
     type NodeProps,
     type ReactFlowInstance,
 } from 'reactflow';
-import { toPng, toSvg } from 'html-to-image';
 import 'reactflow/dist/style.css';
 import { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
-import { Color } from '../../../../../src/utils/color/Color';
-import { darken } from '../../../../../src/utils/color/operators/darken';
-import { textColor } from '../../../../../src/utils/color/operators/furthest';
-import { lighten } from '../../../../../src/utils/color/operators/lighten';
 import {
     resolveAgentAvatarFallbackUrl,
     resolveAgentAvatarImageUrl,
 } from '../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
-import { showAlert } from '../AsyncDialogs/asyncDialogs';
+import { Color } from '../../../../../src/utils/color/Color';
+import { darken } from '../../../../../src/utils/color/operators/darken';
+import { textColor } from '../../../../../src/utils/color/operators/furthest';
+import { lighten } from '../../../../../src/utils/color/operators/lighten';
 import type { AgentOrganizationFolder } from '../../utils/agentOrganization/types';
-import { buildFolderMaps, getFolderPathSegments, sortBySortOrder } from './agentOrganizationUtils';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
+import { showAlert } from '../AsyncDialogs/asyncDialogs';
+import { buildFolderMaps, getFolderPathSegments, sortBySortOrder } from './agentOrganizationUtils';
 
 const CONNECTION_TYPES = ['inheritance', 'import', 'team'] as const;
 const DEFAULT_CONNECTION_TYPES = [...CONNECTION_TYPES];
@@ -1445,9 +1445,7 @@ export function AgentsGraph(props: AgentsGraphProps) {
 
     if (agents.length === 0 && federatedAgents.length === 0) {
         return (
-            <div className="flex justify-center py-12 text-gray-500">
-                {formatText('No agents to show in graph.')}
-            </div>
+            <div className="flex justify-center py-12 text-gray-500">{formatText('No agents to show in graph.')}</div>
         );
     }
 
@@ -1602,11 +1600,7 @@ export function AgentsGraph(props: AgentsGraphProps) {
                         {formatText('No agents to show in graph.')}
                     </div>
                 ) : (
-                    <div
-                        ref={graphWrapperRef}
-                        className="agents-graph-canvas h-full w-full"
-                        role="presentation"
-                    >
+                    <div ref={graphWrapperRef} className="agents-graph-canvas h-full w-full" role="presentation">
                         <ReactFlow
                             nodes={displayedNodes}
                             edges={displayedEdges}
