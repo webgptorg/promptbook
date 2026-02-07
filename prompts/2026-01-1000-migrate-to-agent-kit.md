@@ -200,12 +200,135 @@ Technically, it's not an error, but it's probably not what you want because it d
 
 ---
 
+[ ]
+
+[✨🎩] After migration from Assistants API to OpenAI AgentKit chatting with agent on Agents server not working
+
+-   You can look at the [migration file](prompts/2026-01-1000-migrate-to-agent-kit.md)
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+**Here are the logs from local Vercel `next dev`:**
+
+```bash
+ ○ Compiling /agents/[agentName]/api/chat ...
+ ✓ Compiled /agents/[agentName]/api/chat in 2.5s (6584 modules)
+ GET /agents/9y7EKtuwxdVsaB/chat 200 in 1448ms
+ ○ Compiling /manifest.webmanifest ...
+ ✓ Compiled /manifest.webmanifest in 1269ms (5215 modules)
+(node:114164) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[🤰] Creating NEW OpenAiAgentKitExecutionTools
+ ✓ Compiled in 0ms (5231 modules)
+[🤰] Resolving AgentKit cache key {
+  agentName: '9y7EKtuwxdVsaB',
+  cacheKey: '8f78143e8b911420dc7b12dc93790047cebc48d407b22b958e199d920ed7d20f',
+  includeDynamicContext: true,
+  instructionsLength: 34,
+  baseSourceLength: 3189,
+  agentId: '9y7EKtuwxdVsaB'
+}
+[🤰] Preparing AgentKit agent via cache manager {
+  agentName: '9y7EKtuwxdVsaB',
+  agentKitName: 'xknowledge-pdf - 8f78143e',
+  instructionsLength: 399,
+  knowledgeSourcesCount: 1,
+  toolsCount: 0
+}
+[🤰] Preparing OpenAI AgentKit agent {
+  name: 'xknowledge-pdf - 8f78143e',
+  instructionsLength: 399,
+  knowledgeSourcesCount: 1,
+  toolsCount: 0
+}
+[🤰] Creating vector store with knowledge sources {
+  name: 'xknowledge-pdf - 8f78143e',
+  knowledgeSourcesCount: 1,
+  downloadTimeoutMs: 30000,
+  logLabel: 'agentkit preparation'
+}
+[Error: failed to pipe response] {
+  [cause]: Error: OpenAI client does not support vector stores. Please ensure you are  toolsCount: 0
+}
+[🤰] Creating vector store with knowledge sources {
+  name: 'xknowledge-pdf - 8f78143e',
+  knowledgeSourcesCount: 1,
+  downloadTimeoutMs: 30000,
+  logLabel: 'agentkit preparation'
+}
+[Error: failed to pipe response] {
+  [cause]: Error: OpenAI client does not support vector stores. Please ensure you are[🤰] Creating vector store with knowledge sources {
+  name: 'xknowledge-pdf - 8f78143e',
+  knowledgeSourcesCount: 1,
+  downloadTimeoutMs: 30000,
+  logLabel: 'agentkit preparation'
+}
+[Error: failed to pipe response] {
+  [cause]: Error: OpenAI client does not support vector stores. Please ensure you are  downloadTimeoutMs: 30000,
+  logLabel: 'agentkit preparation'
+}
+[Error: failed to pipe response] {
+  [cause]: Error: OpenAI client does not support vector stores. Please ensure you are}
+[Error: failed to pipe response] {
+  [cause]: Error: OpenAI client does not support vector stores. Please ensure you are  [cause]: Error: OpenAI client does not support vector stores. Please ensure you are using a compatible version of the OpenAI SDK with beta API support.
+      at OpenAiAgentKitExecutionTools.createVectorStoreWithKnowledgeSources (..\..\src\llm-providers\openai\OpenAiVectorStoreHandler.ts:722:18)
+      at OpenAiAgentKitExecutionTools.prepareAgentKitAgent (..\..\src\llm-providers\openai\OpenAiAgentKitExecutionTools.ts:184:49)
+      at async AgentKitCacheManager.getOrCreateAgentKitAgent (src\utils\cache\AgentKitCacheManager.ts:141:30)
+      at async Object.start (src\app\agents\[agentName]\api\chat\route.ts:135:43)
+    720 |
+    721 |         if (!client.beta || !(client.beta as TODO_any).vectorStores) {
+  > 722 |             throw new Error(
+        |                  ^
+    723 |                 'OpenAI client does not support vector stores. Please ensure you are using a compatible version of the OpenAI SDK with beta API support.',
+    724 |             );
+    725 |         }
+}
+ POST /agents/9y7EKtuwxdVsaB/api/chat 500 in 8072ms
+```
+
+---
+
 [-]
 
-[✨🎩] foo
+[✨🎩] After migration from Assistants API to OpenAI AgentKit chatting with agent on Agents server not working
 
+-   You can look at the [migration file](prompts/2026-01-1000-migrate-to-agent-kit.md)
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the [changelog](./changelog/_current-preversion.md)
+
+**Here are the logs from local Vercel `next dev`:**
+
+```bash
+
+```
+
+---
+
+[-]
+
+[✨🎩] After migration from Assistants API to OpenAI AgentKit chatting with agent on Agents server not working
+
+-   You can look at the [migration file](prompts/2026-01-1000-migrate-to-agent-kit.md)
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+**Here are the logs from local Vercel `next dev`:**
+
+```bash
+
+```
+
+---
+
+[-]
+
+[✨🎩] After migration from Assistants API to OpenAI AgentKit chatting with agent on Agents server not working
+
+-   You can look at the [migration file](prompts/2026-01-1000-migrate-to-agent-kit.md)
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+**Here are the logs from local Vercel `next dev`:**
+
+```bash
+
+```
 
 ---
 
@@ -219,4 +342,3 @@ Technically, it's not an error, but it's probably not what you want because it d
 ```
 
 ```
-
