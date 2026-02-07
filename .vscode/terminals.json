@@ -24,7 +24,7 @@
             "focus": false
         },
         {
-            "name": "🎭👨‍💻🟣⏩ Migrate agents server",
+            "name": "🎭👨‍💻🟣⏩ Migrate Agents server",
             "cwd": "./apps/agents-server/",
             "command": "npm run migrate-database",
             "execute": true,
@@ -35,7 +35,7 @@
             "--note": "Note: [☁] Add here new testing servers when created:"
         },
         {
-            "name": "🎭👨‍💻🟣⏩ Migrate agents server development (💤)",
+            "name": "🎭👨‍💻🟣⏩ Migrate Agents server development (💤)",
             "cwd": "./apps/agents-server/",
             "command": "npx tsx ./src/database/migrate.ts --only=local0_,server_CoreTest_,server_S6_,server_S7_,server_S8_,server_S9_,server_S10_,server_S11_,server_S12_,server_S13_,server_PavolHejny_,server_Praha13Test_,server_ChutooTest_,server_NeonMedia_",
             "execute": false,
@@ -43,7 +43,15 @@
             "focus": false
         },
         {
-            "name": "🎭👨‍💻🟣🏭 Generate reserved paths for agents server",
+            "name": "🎭👨‍💻🟣⏩ Migrate Agents server localhost (💤)",
+            "cwd": "./apps/agents-server/",
+            "command": "npx tsx ./src/database/migrate.ts --only=local0_",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "🎭👨‍💻🟣🏭 Generate reserved paths for Agents server",
             "cwd": "./apps/agents-server/",
             "command": "npm run generate-reserved-paths",
             "execute": true,

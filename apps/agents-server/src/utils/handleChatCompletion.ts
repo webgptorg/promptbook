@@ -170,13 +170,15 @@ export async function handleChatCompletion(
         if (agentKitResult.fromCache) {
             console.info('[🤰]', 'AgentKit cache hit (OpenAI)', {
                 agentName,
-                cacheKey: agentKitResult.cacheKey,
+                assistantCacheKey: agentKitResult.assistantCacheKey,
+                vectorStoreHash: agentKitResult.vectorStoreHash,
                 vectorStoreId: agentKitResult.vectorStoreId,
             });
         } else {
             console.info('[🤰]', 'AgentKit cache miss (OpenAI)', {
                 agentName,
-                cacheKey: agentKitResult.cacheKey,
+                assistantCacheKey: agentKitResult.assistantCacheKey,
+                vectorStoreHash: agentKitResult.vectorStoreHash,
                 vectorStoreId: agentKitResult.vectorStoreId,
             });
         }

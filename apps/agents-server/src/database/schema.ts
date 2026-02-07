@@ -58,7 +58,6 @@ export type AgentsServerDatabase = {
                     promptbookEngineVersion: string;
                     usage: Json | null;
                     preparedModelRequirements: Json | null;
-                    preparedExternals: Json | null;
                     folderId: number | null;
                     sortOrder: number;
                     deletedAt: string | null;
@@ -76,7 +75,6 @@ export type AgentsServerDatabase = {
                     promptbookEngineVersion: string;
                     usage?: Json | null;
                     preparedModelRequirements?: Json | null;
-                    preparedExternals?: Json | null;
                     folderId?: number | null;
                     sortOrder?: number;
                     deletedAt?: string | null;
@@ -94,7 +92,6 @@ export type AgentsServerDatabase = {
                     promptbookEngineVersion?: string;
                     usage?: Json | null;
                     preparedModelRequirements?: Json | null;
-                    preparedExternals?: Json | null;
                     folderId?: number | null;
                     sortOrder?: number;
                     deletedAt?: string | null;
@@ -108,6 +105,33 @@ export type AgentsServerDatabase = {
                         referencedColumns: ['id'];
                     },
                 ];
+            };
+            AgentExternals: {
+                Row: {
+                    id: number;
+                    createdAt: string;
+                    updatedAt: string;
+                    type: string;
+                    hash: string;
+                    externalId: string;
+                };
+                Insert: {
+                    id?: number;
+                    createdAt?: string;
+                    updatedAt?: string;
+                    type: string;
+                    hash: string;
+                    externalId: string;
+                };
+                Update: {
+                    id?: number;
+                    createdAt?: string;
+                    updatedAt?: string;
+                    type?: string;
+                    hash?: string;
+                    externalId?: string;
+                };
+                Relationships: [];
             };
             AgentFolder: {
                 Row: {

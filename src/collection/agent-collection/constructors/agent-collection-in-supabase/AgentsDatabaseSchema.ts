@@ -37,7 +37,6 @@ export type AgentsDatabaseSchema = {
                     promptbookEngineVersion: string; // <- `string_promptbook_version`
                     usage: Json | null; // <- `Usage`
                     preparedModelRequirements: Json | null; // <- `ModelRequirements` (prepared)
-                    preparedExternals: Json | null; // <- `PreparedExternals`
                     folderId: number | null;
                     sortOrder: number;
                     deletedAt: string | null;
@@ -55,7 +54,6 @@ export type AgentsDatabaseSchema = {
                     promptbookEngineVersion: string;
                     usage?: Json | null;
                     preparedModelRequirements?: Json | null;
-                    preparedExternals?: Json | null;
                     folderId?: number | null;
                     sortOrder?: number;
                     deletedAt?: string | null;
@@ -73,7 +71,6 @@ export type AgentsDatabaseSchema = {
                     promptbookEngineVersion?: string;
                     usage?: Json | null;
                     preparedModelRequirements?: Json | null;
-                    preparedExternals?: Json | null;
                     folderId?: number | null;
                     sortOrder?: number;
                     deletedAt?: string | null;
