@@ -390,10 +390,6 @@ function AgentContextMenuContent(props: AgentContextMenuBaseProps & { onClose: (
      * Prompts for a new agent name and updates it via the API.
      */
     const handleRenameAgent = useCallback(async () => {
-        if (!isAdmin) {
-            return;
-        }
-
         const name = await showPrompt({
             title: formatText('Rename agent'),
             message: formatText('Enter a new name for this agent.'),
@@ -435,7 +431,7 @@ function AgentContextMenuContent(props: AgentContextMenuBaseProps & { onClose: (
                 message: error instanceof Error ? error.message : formatText('Failed to rename agent.'),
             }).catch(() => undefined);
         }
-    }, [agentName, derivedAgentName, formatText, isAdmin, onAgentRenamed, onRequestClose, permanentId]);
+    }, [agentName, derivedAgentName, formatText, onAgentRenamed, onRequestClose, permanentId]);
 
     const menuItems = [
         ...(fromDirectoryListing
@@ -526,15 +522,30 @@ function AgentContextMenuContent(props: AgentContextMenuBaseProps & { onClose: (
             label: editBookLink.title,
         },
 
+        { type: 'divider' as const },
+
+        {
+            type: 'action' as const,
+            icon: PencilIcon,
+            label: formatText('Rename Agent'),
+            onClick: handleRenameAgent,
+        },
+        {
+            type: 'link' as const,
+            href: `/agents/${encodeURIComponent(agentName)}/clone`,
+            icon: CopyPlusIcon,
+            label: formatText('Clone Agent'),
+        },
+        {
+            type: 'action' as const,
+            icon: TrashIcon,
+            label: formatText('Delete Agent'),
+            onClick: handleDeleteAgent,
+        },
+
         ...(isAdmin
             ? [
                   { type: 'divider' as const },
-                  {
-                      type: 'action' as const,
-                      icon: PencilIcon,
-                      label: formatText('Rename Agent'),
-                      onClick: handleRenameAgent,
-                  },
                   {
                       type: 'link' as const,
                       href: `/admin/chat-history?agentName=${encodeURIComponent(agentName)}`,
@@ -567,19 +578,6 @@ function AgentContextMenuContent(props: AgentContextMenuBaseProps & { onClose: (
                       label: formatText('Export Agent'),
                   },
                   { type: 'divider' as const },
-                  {
-                      type: 'link' as const,
-                      href: `/agents/${encodeURIComponent(agentName)}/clone`,
-                      icon: CopyPlusIcon,
-                      label: formatText('Clone Agent'),
-                  },
-
-                  {
-                      type: 'action' as const,
-                      icon: TrashIcon,
-                      label: formatText('Delete Agent'),
-                      onClick: handleDeleteAgent,
-                  },
               ]
             : []),
     ];
