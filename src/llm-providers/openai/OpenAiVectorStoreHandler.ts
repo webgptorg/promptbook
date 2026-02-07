@@ -529,13 +529,17 @@ export abstract class OpenAiVectorStoreHandler extends OpenAiExecutionTools {
 
             if (!returnedBatchIdValid && expectedBatchIdValid) {
                 if (!loggedBatchIdFallback) {
-                    console.error('[🤰]', 'Vector store file batch id missing from response; falling back to expected', {
-                        vectorStoreId,
-                        expectedBatchId,
-                        returnedBatchId,
-                        rawVectorStoreId,
-                        logLabel,
-                    });
+                    console.error(
+                        '[🤰]',
+                        'Vector store file batch id missing from response; falling back to expected',
+                        {
+                            vectorStoreId,
+                            expectedBatchId,
+                            returnedBatchId,
+                            rawVectorStoreId,
+                            logLabel,
+                        },
+                    );
                     loggedBatchIdFallback = true;
                 }
                 returnedBatchId = expectedBatchId;
