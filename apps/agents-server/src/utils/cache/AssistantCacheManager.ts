@@ -106,7 +106,7 @@ export class AssistantCacheManager {
         // Compute cache key based on configuration
         const cacheKey = computeAssistantCacheKey(configuration);
 
-        console.info('[??]', 'Resolving assistant cache key', {
+        console.info('[🤰]', 'Resolving assistant cache key', {
             agentName,
             cacheKey,
             includeDynamicContext,
@@ -119,7 +119,7 @@ export class AssistantCacheManager {
         const cachedAssistant = await this.getCachedAssistant(cacheKey, baseTools);
 
         if (cachedAssistant) {
-            console.info('[??]', 'Assistant cache hit', {
+            console.info('[🤰]', 'Assistant cache hit', {
                 agentName,
                 cacheKey,
                 assistantId: cachedAssistant,
@@ -139,7 +139,7 @@ export class AssistantCacheManager {
 
         // Cache miss - create new assistant
         if (this.isVerbose) {
-            console.info('[??]', 'Assistant cache miss, creating assistant', {
+            console.info('[🤰]', 'Assistant cache miss, creating assistant', {
                 agentName,
                 cacheKey,
                 agentId,
@@ -230,7 +230,7 @@ export class AssistantCacheManager {
         const assistantName = formatAssistantNameWithHash(configuration.name || agentName, cacheKey);
 
         if (this.isVerbose) {
-            console.info('[??]', 'Creating assistant via cache manager', {
+            console.info('[🤰]', 'Creating assistant via cache manager', {
                 agentName,
                 assistantName,
                 instructionsLength: modelRequirements.systemMessage.length,
@@ -255,7 +255,7 @@ export class AssistantCacheManager {
         await this.cacheAssistant(cacheKey, newAssistantId);
 
         if (this.isVerbose) {
-            console.info('[??]', 'Assistant created and cached', {
+            console.info('[🤰]', 'Assistant created and cached', {
                 agentName,
                 cacheKey,
                 assistantId: newAssistantId,
@@ -308,7 +308,7 @@ export class AssistantCacheManager {
             throw cacheError;
         }
 
-        console.info('[??]', 'Invalidated assistant cache', { cacheKey });
+        console.info('[🤰]', 'Invalidated assistant cache', { cacheKey });
     }
 
     /**

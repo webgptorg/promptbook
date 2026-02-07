@@ -1,8 +1,8 @@
-import { createHash } from 'crypto';
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import { createAgentModelRequirements } from '@promptbook-local/core';
 import { AgentModelRequirements, string_agent_permanent_id, string_book, TODO_any } from '@promptbook-local/types';
+import { createHash } from 'crypto';
 import { OpenAiAgentKitExecutionTools } from '../../../../../src/llm-providers/openai/OpenAiAgentKitExecutionTools';
 import {
     AssistantConfiguration,
@@ -112,7 +112,7 @@ export class AgentKitCacheManager {
         const assistantCacheKey = computeAssistantCacheKey(configuration);
 
         if (this.isVerbose) {
-            console.info('[??]', 'Resolving AgentKit cache key', {
+            console.info('[🤰]', 'Resolving AgentKit cache key', {
                 agentName,
                 assistantCacheKey,
                 includeDynamicContext,
@@ -135,7 +135,7 @@ export class AgentKitCacheManager {
             : null;
 
         if (cachedVectorStoreId && this.isVerbose) {
-            console.info('[??]', 'AgentKit cache hit (vector store)', {
+            console.info('[🤰]', 'AgentKit cache hit (vector store)', {
                 agentName,
                 assistantCacheKey,
                 vectorStoreHash,
@@ -148,7 +148,7 @@ export class AgentKitCacheManager {
         }
 
         if (this.isVerbose) {
-            console.info('[??]', 'Preparing AgentKit agent via cache manager', {
+            console.info('[🤰]', 'Preparing AgentKit agent via cache manager', {
                 agentName,
                 agentKitName,
                 instructionsLength: modelRequirements.systemMessage.length,
@@ -202,7 +202,7 @@ export class AgentKitCacheManager {
         for (const source of knowledgeSources) {
             if (!this.isRemoteKnowledgeSource(source)) {
                 if (this.isVerbose) {
-                    console.info('[??]', 'Skipping knowledge source for hash (unsupported)', {
+                    console.info('[🤰]', 'Skipping knowledge source for hash (unsupported)', {
                         agentName,
                         source,
                     });
@@ -224,7 +224,7 @@ export class AgentKitCacheManager {
         const vectorStoreHash = this.buildVectorStoreHash(contentHashes);
 
         if (this.isVerbose) {
-            console.info('[??]', 'Computed vector store hash', {
+            console.info('[🤰]', 'Computed vector store hash', {
                 agentName,
                 vectorStoreHash,
                 fileCount: contentHashes.length,
@@ -261,7 +261,7 @@ export class AgentKitCacheManager {
         const startedAtMs = Date.now();
 
         if (this.isVerbose) {
-            console.info('[??]', 'Hashing knowledge source content', {
+            console.info('[🤰]', 'Hashing knowledge source content', {
                 agentName,
                 source,
                 timeoutMs,
@@ -272,7 +272,7 @@ export class AgentKitCacheManager {
             const response = await fetch(source, { signal: controller.signal });
 
             if (!response.ok) {
-                console.error('[??]', 'Failed to download knowledge source for hashing', {
+                console.error('[🤰]', 'Failed to download knowledge source for hashing', {
                     agentName,
                     source,
                     status: response.status,
@@ -286,7 +286,7 @@ export class AgentKitCacheManager {
             const hash = createHash('sha256').update(Buffer.from(buffer)).digest('hex');
 
             if (this.isVerbose) {
-                console.info('[??]', 'Hashed knowledge source content', {
+                console.info('[🤰]', 'Hashed knowledge source content', {
                     agentName,
                     source,
                     sizeBytes: buffer.byteLength,
@@ -297,7 +297,7 @@ export class AgentKitCacheManager {
             return hash;
         } catch (error) {
             if (this.isVerbose) {
-                console.error('[??]', 'Error hashing knowledge source content', {
+                console.error('[🤰]', 'Error hashing knowledge source content', {
                     agentName,
                     source,
                     elapsedMs: Date.now() - startedAtMs,
@@ -352,7 +352,7 @@ export class AgentKitCacheManager {
 
         if (cacheError || !cachedData?.externalId) {
             if (cacheError && this.isVerbose) {
-                console.error('[??]', 'AgentKit cache lookup failed', {
+                console.error('[🤰]', 'AgentKit cache lookup failed', {
                     vectorStoreHash,
                     error: cacheError,
                 });
@@ -369,7 +369,7 @@ export class AgentKitCacheManager {
             return vectorStoreId;
         } catch (error) {
             if (this.isVerbose) {
-                console.warn('[??]', 'Cached vector store not found, invalidating cache', {
+                console.warn('[🤰]', 'Cached vector store not found, invalidating cache', {
                     vectorStoreHash,
                     vectorStoreId,
                 });
@@ -391,13 +391,13 @@ export class AgentKitCacheManager {
         });
 
         if (insertError && insertError.code !== '23505') {
-            console.error('[??]', 'AgentKit cache update failed', {
+            console.error('[🤰]', 'AgentKit cache update failed', {
                 vectorStoreHash,
                 vectorStoreId,
                 error: insertError,
             });
         } else if (this.isVerbose) {
-            console.info('[??]', 'AgentKit vector store cached', {
+            console.info('[🤰]', 'AgentKit vector store cached', {
                 vectorStoreHash,
                 vectorStoreId,
             });
@@ -416,12 +416,12 @@ export class AgentKitCacheManager {
             .eq('hash', vectorStoreHash);
 
         if (deleteError) {
-            console.error('[??]', 'AgentKit cache invalidation failed', {
+            console.error('[🤰]', 'AgentKit cache invalidation failed', {
                 vectorStoreHash,
                 error: deleteError,
             });
         } else if (this.isVerbose) {
-            console.info('[??]', 'AgentKit cache invalidated', { vectorStoreHash });
+            console.info('[🤰]', 'AgentKit cache invalidated', { vectorStoreHash });
         }
     }
 }
