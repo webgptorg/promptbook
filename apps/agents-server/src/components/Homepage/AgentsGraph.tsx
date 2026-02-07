@@ -36,21 +36,19 @@ const CONNECTION_TYPES = ['inheritance', 'import', 'team'] as const;
 const DEFAULT_CONNECTION_TYPES = [...CONNECTION_TYPES];
 const GRAPH_MIN_HEIGHT = 480;
 const GRAPH_HEIGHT_OFFSET = 340;
-const GRAPH_LAYOUT_BREAKPOINT = 900;
 const GRAPH_DOWNLOAD_PREFIX = 'agents-graph';
 const GRAPH_POSITIONS_STORAGE_KEY = 'agents-graph-positions-v1';
 const GRAPH_EXPORT_BACKGROUND = '#f8fafc';
 const NODE_WIDTH = 220;
 const NODE_HEIGHT = 64;
-const NODE_GAP = 16;
 const FOLDER_HEADER_HEIGHT = 24;
-const FOLDER_PADDING_X = 20;
-const FOLDER_PADDING_Y = 16;
-const FOLDER_GAP = 20;
+const FOLDER_PADDING_X = 24;
+const FOLDER_PADDING_Y = 20;
+const FOLDER_GAP = 32;
 const SERVER_HEADER_HEIGHT = 28;
-const SERVER_PADDING_X = 24;
-const SERVER_PADDING_Y = 20;
-const SERVER_GAP = 48;
+const SERVER_PADDING_X = 32;
+const SERVER_PADDING_Y = 24;
+const SERVER_GAP = 64;
 
 /**
  * Agent metadata plus visibility, server, and folder details used by the graph UI.
@@ -71,11 +69,6 @@ type ConnectionType = (typeof CONNECTION_TYPES)[number];
  * Link types used in the graph view.
  */
 type GraphLinkKind = ConnectionType | 'order';
-
-/**
- * Layout directions supported for responsive graph rendering.
- */
-type LayoutDirection = 'LR' | 'TB';
 
 /**
  * Visual styling for a node chip.
@@ -719,9 +712,9 @@ const triggerBlobDownload = (blob: Blob, filename: string): void => {
 /**
  * Build the storage key for graph positions.
  */
-const buildPositionsStorageKey = (publicUrl: string, layout: LayoutDirection): string => {
+const buildPositionsStorageKey = (publicUrl: string): string => {
     const normalized = normalizeServerUrl(publicUrl);
-    return `${GRAPH_POSITIONS_STORAGE_KEY}:${normalized}:${layout}`;
+    return `${GRAPH_POSITIONS_STORAGE_KEY}:${normalized}`;
 };
 
 /**
@@ -822,33 +815,29 @@ const buildAsciiGraph = (graphData: GraphData, serverGroups: ServerGroup[]): str
 const buildGraphLayoutNodes = (params: {
     serverGroups: ServerGroup[];
     orderIndexByNodeId: Map<string, number>;
-    layoutDirection: LayoutDirection;
     publicUrl: string;
     storedPositions: StoredPositions;
     onNodeOpen: (node: GraphNode) => void;
 }): Node[] => {
-    const { serverGroups, orderIndexByNodeId, layoutDirection, publicUrl, storedPositions, onNodeOpen } = params;
+    const { serverGroups, orderIndexByNodeId, publicUrl, storedPositions, onNodeOpen } = params;
     const nodes: Node[] = [];
     let cursorX = 0;
-    let cursorY = 0;
+    const cursorY = 0;
 
     serverGroups.forEach((serverGroup) => {
         const folderLayouts = serverGroup.folders.map((folder) => {
-            const agentCount = Math.max(folder.agents.length, 1);
-            if (layoutDirection === 'LR') {
-                return {
-                    width: NODE_WIDTH + FOLDER_PADDING_X * 2,
-                    height:
-                        FOLDER_HEADER_HEIGHT +
-                        FOLDER_PADDING_Y * 2 +
-                        agentCount * NODE_HEIGHT +
-                        (agentCount - 1) * NODE_GAP,
-                };
+            const agentCount = folder.agents.length;
+            if (agentCount === 0) {
+                return { width: 0, height: 0 };
             }
 
+            const radius = Math.max(1, agentCount - 1) * 64;
+            const folderWidth = radius * 2 + NODE_WIDTH + FOLDER_PADDING_X * 2;
+            const folderHeight = radius * 2 + NODE_HEIGHT + FOLDER_PADDING_Y * 2 + FOLDER_HEADER_HEIGHT;
+
             return {
-                width: FOLDER_PADDING_X * 2 + agentCount * NODE_WIDTH + (agentCount - 1) * NODE_GAP,
-                height: FOLDER_HEADER_HEIGHT + FOLDER_PADDING_Y * 2 + NODE_HEIGHT,
+                width: folderWidth,
+                height: folderHeight,
             };
         });
 
@@ -880,6 +869,9 @@ const buildGraphLayoutNodes = (params: {
         let folderCursorY = SERVER_HEADER_HEIGHT + SERVER_PADDING_Y;
         serverGroup.folders.forEach((folder, folderIndex) => {
             const folderLayout = folderLayouts[folderIndex];
+            if (!folderLayout || folder.agents.length === 0) {
+                return;
+            }
             const folderNodeId = `folder:${serverGroup.serverUrl}:${folder.id ?? 'root'}`;
 
             nodes.push({
@@ -901,6 +893,11 @@ const buildGraphLayoutNodes = (params: {
                 draggable: false,
             });
 
+            const agentCount = folder.agents.length;
+            const centerX = folderLayout.width / 2;
+            const centerY = folderLayout.height / 2 + FOLDER_HEADER_HEIGHT / 2;
+            const radius = Math.max(1, agentCount - 1) * 64;
+
             folder.agents.forEach((agent, index) => {
                 const { imageUrl, placeholderUrl } = getAgentImageUrls(agent.agent, publicUrl);
                 const style = buildAgentChipStyle(agent.agent);
@@ -910,31 +907,33 @@ const buildGraphLayoutNodes = (params: {
                     tooltipParts.push(`Folder: ${folder.label}`);
                 }
                 const tooltip = tooltipParts.filter(Boolean).join('\n');
-                const defaultPosition =
-                    layoutDirection === 'LR'
-                        ? {
-                              x: FOLDER_PADDING_X,
-                              y:
-                                  FOLDER_HEADER_HEIGHT +
-                                  FOLDER_PADDING_Y +
-                                  index * (NODE_HEIGHT + NODE_GAP),
-                          }
-                        : {
-                              x: FOLDER_PADDING_X + index * (NODE_WIDTH + NODE_GAP),
-                              y: FOLDER_HEADER_HEIGHT + FOLDER_PADDING_Y,
-                          };
+
+                let position;
+                if (agentCount === 1) {
+                    position = {
+                        x: centerX - NODE_WIDTH / 2,
+                        y: centerY - NODE_HEIGHT / 2,
+                    };
+                } else {
+                    const angle = (index / agentCount) * 2 * Math.PI;
+                    position = {
+                        x: centerX + radius * Math.cos(angle) - NODE_WIDTH / 2,
+                        y: centerY + radius * Math.sin(angle) - NODE_HEIGHT / 2,
+                    };
+                }
+
                 const storedPosition = storedPositions[agent.id];
-                const position =
+                const finalPosition =
                     storedPosition && storedPosition.parentId === folderNodeId
                         ? { x: storedPosition.x, y: storedPosition.y }
-                        : defaultPosition;
+                        : position;
 
                 nodes.push({
                     id: agent.id,
                     type: 'agent',
                     parentId: folderNodeId,
                     extent: 'parent',
-                    position,
+                    position: finalPosition,
                     data: {
                         name: agent.name,
                         agent: agent.agent,
@@ -957,11 +956,7 @@ const buildGraphLayoutNodes = (params: {
             folderCursorY += folderLayout.height + FOLDER_GAP;
         });
 
-        if (layoutDirection === 'LR') {
-            cursorX += serverWidth + SERVER_GAP;
-        } else {
-            cursorY += serverHeight + SERVER_GAP;
-        }
+        cursorX += serverWidth + SERVER_GAP;
     });
 
     return nodes;
@@ -1118,7 +1113,6 @@ export function AgentsGraph(props: AgentsGraphProps) {
     const { formatText } = useAgentNaming();
     const normalizedPublicUrl = useMemo(() => normalizeServerUrl(publicUrl), [publicUrl]);
     const [graphHeight, setGraphHeight] = useState(GRAPH_MIN_HEIGHT);
-    const [layoutDirection, setLayoutDirection] = useState<LayoutDirection>('LR');
     const [filterType, setFilterType] = useState<ConnectionType[]>(
         parseConnectionTypes(searchParams.get('connectionTypes')),
     );
@@ -1153,23 +1147,7 @@ export function AgentsGraph(props: AgentsGraphProps) {
         };
     }, []);
 
-    useEffect(() => {
-        const updateDirection = () => {
-            setLayoutDirection(window.innerWidth < GRAPH_LAYOUT_BREAKPOINT ? 'TB' : 'LR');
-        };
-
-        updateDirection();
-        window.addEventListener('resize', updateDirection);
-
-        return () => {
-            window.removeEventListener('resize', updateDirection);
-        };
-    }, []);
-
-    const storageKey = useMemo(
-        () => buildPositionsStorageKey(normalizedPublicUrl, layoutDirection),
-        [normalizedPublicUrl, layoutDirection],
-    );
+    const storageKey = useMemo(() => buildPositionsStorageKey(normalizedPublicUrl), [normalizedPublicUrl]);
 
     useEffect(() => {
         storedPositionsRef.current = loadStoredPositions(storageKey);
@@ -1213,12 +1191,11 @@ export function AgentsGraph(props: AgentsGraphProps) {
             buildGraphLayoutNodes({
                 serverGroups,
                 orderIndexByNodeId: graphData.orderIndexByNodeId,
-                layoutDirection,
                 publicUrl: normalizedPublicUrl,
                 storedPositions: storedPositionsRef.current,
                 onNodeOpen: handleNodeClick,
             }),
-        [serverGroups, graphData.orderIndexByNodeId, layoutDirection, normalizedPublicUrl, handleNodeClick],
+        [serverGroups, graphData.orderIndexByNodeId, normalizedPublicUrl, handleNodeClick],
     );
 
     const [nodes, setNodes, onNodesChange] = useNodesState(layoutNodes);

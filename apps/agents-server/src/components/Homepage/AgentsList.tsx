@@ -24,6 +24,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState, type CSSProperties, type MouseEvent } from 'react';
 import type { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
 import { AddAgentButton } from '../../app/AddAgentButton';
+import type { AgentProfile } from '../../app/agents/[agentName]/AgentProfileWrapper';
 import { buildAgentFolderContext } from '../../utils/agentOrganization/agentFolderContext';
 import type {
     AgentOrganizationAgent,
@@ -1674,21 +1675,24 @@ export function AgentsList(props: AgentsListProps) {
                     />
                 </div>
             )}
-            <AgentContextMenuPopover
-                isOpen={Boolean(contextMenuState)}
-                anchorPoint={contextMenuState?.anchorPoint ?? null}
-                onClose={handleCloseContextMenu}
-                agentName={contextMenuIdentifier}
-                derivedAgentName={contextMenuAgent?.agentName ?? ''}
-                permanentId={contextMenuAgent?.permanentId}
-                agentUrl={contextMenuAgentUrl}
-                agentEmail={contextMenuAgentEmail}
-                folderContext={contextMenuFolderContext}
-                isAdmin={isAdmin}
-                onShowQrCode={handleShowQrCode}
-                onAgentRenamed={handleContextMenuAgentRenamed}
-                fromDirectoryListing
-            />
+            {contextMenuAgent && (
+                <AgentContextMenuPopover
+                    agent={contextMenuAgent as AgentProfile}
+                    isOpen={Boolean(contextMenuState)}
+                    anchorPoint={contextMenuState?.anchorPoint ?? null}
+                    onClose={handleCloseContextMenu}
+                    agentName={contextMenuIdentifier}
+                    derivedAgentName={contextMenuAgent?.agentName ?? ''}
+                    permanentId={contextMenuAgent?.permanentId}
+                    agentUrl={contextMenuAgentUrl}
+                    agentEmail={contextMenuAgentEmail}
+                    folderContext={contextMenuFolderContext}
+                    isAdmin={isAdmin}
+                    onShowQrCode={handleShowQrCode}
+                    onAgentRenamed={handleContextMenuAgentRenamed}
+                    fromDirectoryListing
+                />
+            )}
             {qrCodeAgent && (
                 <AgentQrCodeModal
                     agent={qrCodeAgent}
