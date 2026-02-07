@@ -1,4 +1,4 @@
-[ ]
+[x] _<- Done manually, not by AI_
 
 [✨📐] Find the best sound files which are now missing in the agent server.
 

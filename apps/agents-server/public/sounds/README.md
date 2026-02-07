@@ -15,32 +15,34 @@ The following MP3 files are needed:
 
 ## Sound Requirements
 
-- Format: MP3
-- Duration: 0.5-2 seconds (short and subtle)
-- Volume: Gentle, non-annoying
-- Quality: Medium (128kbps is sufficient for UI sounds)
+-   Format: MP3
+-   Duration: 0.5-2 seconds (short and subtle)
+-   Volume: Gentle, non-annoying
+-   Quality: Medium (128kbps is sufficient for UI sounds)
 
 ## Where to Get Free Sound Effects
 
 You can find free, gentle UI sound effects from:
 
-- **Freesound.org** - https://freesound.org/ (CC licensed sounds)
-- **Zapsplat** - https://www.zapsplat.com/ (Free for personal/commercial use)
-- **Mixkit** - https://mixkit.co/free-sound-effects/ (Royalty-free)
-- **BBC Sound Effects** - https://sound-effects.bbcrewind.co.uk/ (Creative Commons)
+-   https://elevenlabs.io/app/sound-effects
+-   **Freesound.org** - https://freesound.org/ (CC licensed sounds)
+-   **Zapsplat** - https://www.zapsplat.com/ (Free for personal/commercial use)
+-   **Mixkit** - https://mixkit.co/free-sound-effects/ (Royalty-free)
+-   **BBC Sound Effects** - https://sound-effects.bbcrewind.co.uk/ (Creative Commons)
 
 ## Recommended Search Terms
 
-- "gentle notification", "soft ding", "subtle beep"
-- "whoosh ui", "swipe sound", "soft swoosh"
-- "keyboard typing short", "typing click"
-- "button click", "soft tap", "ui click"
-- "celebration short", "success sound", "achievement"
-- "soft chime", "gentle bell", "positive notification"
+-   "gentle notification", "soft ding", "subtle beep"
+-   "whoosh ui", "swipe sound", "soft swoosh"
+-   "keyboard typing short", "typing click"
+-   "button click", "soft tap", "ui click"
+-   "celebration short", "success sound", "achievement"
+-   "soft chime", "gentle bell", "positive notification"
 
 ## File Placement
 
 Place all MP3 files directly in this directory:
+
 ```
 apps/agents-server/public/sounds/
 ├── whoosh.mp3
@@ -63,7 +65,8 @@ audio.play();
 ## Note
 
 Make sure all sounds are:
-- Short (< 2 seconds)
-- Gentle (not jarring or loud)
-- Appropriate for a professional chat interface
-- Properly licensed for commercial use if needed
+
+-   Short (< 2 seconds)
+-   Gentle (not jarring or loud)
+-   Appropriate for a professional chat interface
+-   Properly licensed for commercial use if needed

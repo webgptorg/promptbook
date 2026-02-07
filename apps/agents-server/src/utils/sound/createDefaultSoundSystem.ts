@@ -47,6 +47,6 @@ export function createDefaultSoundSystem(): SoundSystem {
                 allowOverlap: false,
             },
         },
-        'promptbook_chat_sounds_enabled'
+        'promptbook_chat_sounds_enabled',
     );
 }
