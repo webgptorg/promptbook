@@ -42,6 +42,7 @@
 -   Added detailed OpenAI vector store upload progress logs (file uploads, batch polling, timeouts) to prevent assistant preparation from hanging silently.
 -   Added vector store batch diagnostics (file type summary, per-file status samples, vector store status) and guarded invalid batch IDs during assistant knowledge ingestion.
 -   Fixed OpenAI vector store batch polling to log expected vs. returned batch IDs and cancel using the created batch ID when mismatches occur.
+-   Fixed vector store file batch polling to use real batch IDs (vsfb_*) and improved diagnostics to map uploaded file IDs to vector store file IDs.
 -   Scoped the "Preparing agent: Creating assistant" chip in Agents Server to cache misses by emitting it only when a new assistant is created from cache lookup.
 -   Enhanced OpenAI vector store upload robustness and logging:
     -   Added explicit file extension logging during knowledge ingestion to identify potential bottlenecks.

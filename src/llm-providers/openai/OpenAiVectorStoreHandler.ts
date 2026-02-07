@@ -259,29 +259,35 @@ export abstract class OpenAiVectorStoreHandler extends OpenAiExecutionTools {
                 status?: string;
                 error?: string;
                 filename?: string;
+                vectorStoreFileId?: string;
             }> = [];
-            const inProgressSamples: Array<{ fileId: string; filename?: string }> = [];
+            const inProgressSamples: Array<{ fileId: string; filename?: string; vectorStoreFileId?: string }> = [];
             const batchFileIds = new Set<string>();
 
             for (const file of batchFiles) {
                 const status = file.status ?? 'unknown';
                 statusCounts[status] = (statusCounts[status] ?? 0) + 1;
-                batchFileIds.add(file.id);
-                const metadata = fileIdToMetadata.get(file.id);
+                const vectorStoreFileId = file.id;
+                const uploadedFileId = (file as TODO_any).file_id ?? (file as TODO_any).fileId;
+                const fileId = uploadedFileId ?? vectorStoreFileId;
+                batchFileIds.add(fileId);
+                const metadata = fileIdToMetadata.get(fileId);
 
                 if (status === 'failed') {
                     errorSamples.push({
-                        fileId: file.id,
+                        fileId,
                         status,
                         error: (file as TODO_any).last_error?.message,
                         filename: metadata?.filename,
+                        vectorStoreFileId: uploadedFileId ? vectorStoreFileId : undefined,
                     });
                 }
 
                 if (status === 'in_progress') {
                     inProgressSamples.push({
-                        fileId: file.id,
+                        fileId,
                         filename: metadata?.filename,
+                        vectorStoreFileId: uploadedFileId ? vectorStoreFileId : undefined,
                     });
                 }
             }
@@ -508,15 +514,46 @@ export abstract class OpenAiVectorStoreHandler extends OpenAiExecutionTools {
         let lastDiagnosticsAtMs = pollStartedAtMs;
         let latestBatch = batch;
         let loggedBatchIdMismatch = false;
+        let loggedBatchIdFallback = false;
+        let loggedBatchIdInvalid = false;
         let shouldPoll = true;
 
         while (shouldPoll) {
             const nowMs = Date.now();
 
             // [🤰] Note: Sometimes OpenAI returns Vector Store object instead of Batch object, or IDs get swapped.
-            const returnedBatchId = (latestBatch as TODO_any).vector_store_id ?? latestBatch.id;
-            const returnedBatchIdValid = typeof returnedBatchId === 'string' && returnedBatchId.startsWith('vsfb_');
-            const batchIdMismatch = returnedBatchId !== expectedBatchId;
+            const rawBatchId = typeof latestBatch.id === 'string' ? latestBatch.id : '';
+            const rawVectorStoreId = (latestBatch as TODO_any).vector_store_id;
+            let returnedBatchId = rawBatchId;
+            let returnedBatchIdValid = typeof returnedBatchId === 'string' && returnedBatchId.startsWith('vsfb_');
+
+            if (!returnedBatchIdValid && expectedBatchIdValid) {
+                if (!loggedBatchIdFallback) {
+                    console.error('[🤰]', 'Vector store file batch id missing from response; falling back to expected', {
+                        vectorStoreId,
+                        expectedBatchId,
+                        returnedBatchId,
+                        rawVectorStoreId,
+                        logLabel,
+                    });
+                    loggedBatchIdFallback = true;
+                }
+                returnedBatchId = expectedBatchId;
+                returnedBatchIdValid = true;
+            }
+
+            if (!returnedBatchIdValid && !loggedBatchIdInvalid) {
+                console.error('[🤰]', 'Vector store file batch id is invalid; stopping polling', {
+                    vectorStoreId,
+                    expectedBatchId,
+                    returnedBatchId,
+                    rawVectorStoreId,
+                    logLabel,
+                });
+                loggedBatchIdInvalid = true;
+            }
+
+            const batchIdMismatch = expectedBatchIdValid && returnedBatchIdValid && returnedBatchId !== expectedBatchId;
 
             if (batchIdMismatch && !loggedBatchIdMismatch) {
                 console.error('[🤰]', 'Vector store file batch id mismatch', {
@@ -532,6 +569,9 @@ export abstract class OpenAiVectorStoreHandler extends OpenAiExecutionTools {
                 latestBatch = await vectorStores.fileBatches.retrieve(returnedBatchId, {
                     vector_store_id: vectorStoreId,
                 });
+            } else {
+                shouldPoll = false;
+                continue;
             }
 
             const status = latestBatch.status ?? 'unknown';
