@@ -1,4 +1,4 @@
-[ ] !
+[x] ~$0.00 by Gemini CLI
 
 [✨🗻] Fix the width of the Agents server app in the Samsung browser
 
@@ -36,3 +36,4 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
