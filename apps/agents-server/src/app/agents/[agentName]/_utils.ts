@@ -27,7 +27,21 @@ export async function getAgentProfile(agentName: string) {
     const agentId = await collection.getAgentPermanentId(agentName);
     const agentSource = await collection.getAgentSource(agentId);
     const agentProfile = parseAgentSource(agentSource);
-    return agentProfile;
+
+    const supabase = $provideSupabaseForServer();
+    const agentTable = await $getTableName('Agent');
+    const agentResult = await supabase
+        .from(agentTable)
+        .select('visibility')
+        .or(`agentName.eq.${agentName},permanentId.eq.${agentName}`)
+        .limit(1)
+        .single();
+
+    if (agentResult.error || !agentResult.data) {
+        throw new Error(`Agent not found: ${agentName}`);
+    }
+
+    return { ...agentProfile, visibility: agentResult.data.visibility };
 }
 
 export async function isAgentDeleted(agentName: string): Promise<boolean> {

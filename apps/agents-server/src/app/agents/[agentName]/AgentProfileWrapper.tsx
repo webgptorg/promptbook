@@ -8,13 +8,23 @@ import { AgentProfile } from '../../../components/AgentProfile/AgentProfile';
 import type { AgentFolderContext } from '../../../utils/agentOrganization/agentFolderContext';
 
 /**
+ * Extended agent profile information, including visibility status.
+ */
+export type AgentProfile = AgentBasicInformation & {
+    /**
+     * Visibility of the agent (PUBLIC or PRIVATE).
+     */
+    readonly visibility: 'PUBLIC' | 'PRIVATE';
+};
+
+/**
  * Props for the `AgentProfileWrapper` component
  */
 type AgentProfileWrapperProps = {
     /***
      * Basic information about the agent
      */
-    readonly agent: AgentBasicInformation;
+    readonly agent: AgentProfile;
 
     /***
      * URL where the agent can be accessed
@@ -110,6 +120,7 @@ export function AgentProfileWrapper(props: AgentProfileWrapperProps) {
             isHeadless={isHeadless}
             renderMenu={({ onShowQrCode }) => (
                 <AgentContextMenuButton
+                    agent={agent}
                     agentName={agentName}
                     derivedAgentName={derivedAgentName}
                     permanentId={permanentId}

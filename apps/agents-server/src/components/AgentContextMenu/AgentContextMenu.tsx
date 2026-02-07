@@ -8,6 +8,8 @@ import {
     ExternalLinkIcon,
     FileTextIcon,
     FolderOpenIcon,
+    GlobeIcon,
+    LockIcon,
     MailIcon,
     MessageCircleQuestionIcon,
     MessageSquareIcon,
@@ -23,6 +25,7 @@ import { Barlow_Condensed } from 'next/font/google';
 import type { CSSProperties, RefObject } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { just } from '../../../../../src/utils/organization/just';
+import type { AgentProfile } from '../../app/agents/[agentName]/AgentProfileWrapper';
 import { getAgentLinks } from '../../app/agents/[agentName]/agentLinks';
 import { deleteAgent } from '../../app/recycle-bin/actions';
 import type { AgentFolderContext } from '../../utils/agentOrganization/agentFolderContext';
@@ -52,6 +55,10 @@ export type AgentContextMenuRenamePayload = {
  * Base props shared by agent context menu variants.
  */
 type AgentContextMenuBaseProps = {
+    /**
+     * Agent profile with visibility status.
+     */
+    readonly agent: AgentProfile;
     /**
      * Agent name used in the current route or list context.
      */
@@ -266,6 +273,7 @@ function useClampedMenuPosition(
  */
 function AgentContextMenuContent(props: AgentContextMenuBaseProps & { onClose: () => void }) {
     const {
+        agent,
         agentName,
         derivedAgentName,
         permanentId,
@@ -433,6 +441,35 @@ function AgentContextMenuContent(props: AgentContextMenuBaseProps & { onClose: (
         }
     }, [agentName, derivedAgentName, formatText, onAgentRenamed, onRequestClose, permanentId]);
 
+    /**
+     * Updates agent visibility (public/private) via API.
+     *
+     * @param visibility - The new visibility state.
+     */
+    const handleSetVisibility = useCallback(
+        async (visibility: 'PUBLIC' | 'PRIVATE') => {
+            try {
+                const agentIdentifier = permanentId || agentName;
+                const response = await fetch(`/api/agents/${encodeURIComponent(agentIdentifier)}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ visibility }),
+                });
+                const data = (await response.json()) as { success: boolean; error?: string };
+                if (!response.ok || !data.success) {
+                    throw new Error(data.error || formatText('Failed to update agent visibility.'));
+                }
+                window.location.reload();
+            } catch (error) {
+                await showAlert({
+                    title: 'Update failed',
+                    message: error instanceof Error ? error.message : formatText('Failed to update agent visibility.'),
+                }).catch(() => undefined);
+            }
+        },
+        [agentName, formatText, permanentId],
+    );
+
     const menuItems = [
         ...(fromDirectoryListing
             ? [
@@ -545,6 +582,20 @@ function AgentContextMenuContent(props: AgentContextMenuBaseProps & { onClose: (
 
         ...(isAdmin
             ? [
+                  { type: 'divider' as const },
+                  agent.visibility === 'PRIVATE'
+                      ? {
+                            type: 'action' as const,
+                            icon: GlobeIcon,
+                            label: formatText('Make Public'),
+                            onClick: () => handleSetVisibility('PUBLIC'),
+                        }
+                      : {
+                            type: 'action' as const,
+                            icon: LockIcon,
+                            label: formatText('Make Private'),
+                            onClick: () => handleSetVisibility('PRIVATE'),
+                        },
                   { type: 'divider' as const },
                   {
                       type: 'link' as const,

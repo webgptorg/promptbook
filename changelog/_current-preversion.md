@@ -1,5 +1,7 @@
 ### 📚 Book
 
+-   Allow to make agent public / private agent from its context menu on the Agent profile page / right click of the agent.
+
 -   Migrated Promptbook Agents to OpenAI AgentKit: added AgentKit execution tools with shared vector store handling, updated Agents Server caching to store AgentKit vector stores in `preparedExternals`, and refreshed playground samples.
 -   Cached OpenAI vector stores in a new `AgentExternals` table keyed by knowledge source content hashes, removing `Agent.preparedExternals` from the Agents Server schema.
 -   Fixed OpenAI AgentKit knowledge ingestion by using the stable vector stores API and updated file batch calls for the current OpenAI SDK.
