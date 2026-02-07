@@ -5,6 +5,7 @@ import {
     CopyIcon,
     CopyPlusIcon,
     DownloadIcon,
+    ExternalLinkIcon,
     FileTextIcon,
     FolderOpenIcon,
     MailIcon,
@@ -103,6 +104,10 @@ type AgentContextMenuBaseProps = {
      * Callback to trigger the install prompt.
      */
     readonly onInstallApp?: () => void;
+    /**
+     * Whether the menu is opened from the directory listing.
+     */
+    readonly fromDirectoryListing?: boolean;
 };
 
 /**
@@ -274,6 +279,7 @@ function AgentContextMenuContent(props: AgentContextMenuBaseProps & { onClose: (
         installPromptEvent,
         isInstalled = false,
         onInstallApp,
+        fromDirectoryListing,
         onClose,
     } = props;
 
@@ -432,6 +438,18 @@ function AgentContextMenuContent(props: AgentContextMenuBaseProps & { onClose: (
     }, [agentName, derivedAgentName, formatText, isAdmin, onAgentRenamed, onRequestClose, permanentId]);
 
     const menuItems = [
+        ...(fromDirectoryListing
+            ? [
+                  {
+                      type: 'link' as const,
+                      href: `/agents/${encodeURIComponent(agentName)}`,
+                      icon: ExternalLinkIcon,
+                      label: 'Open in new tab',
+                      target: '_blank',
+                  },
+                  { type: 'divider' as const },
+              ]
+            : []),
         ...(showUpdateUrl &&
         just(
             false /* <- Note: We are now using links like `/agents/qRoRGSPiRwq8RN` not `/agents/john-show` so this is confusing option*/,
@@ -580,6 +598,7 @@ function AgentContextMenuContent(props: AgentContextMenuBaseProps & { onClose: (
                         <a
                             key={index}
                             href={item.href}
+                            target={(item as { target?: string }).target}
                             className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition-colors"
                             onClick={onClose}
                         >

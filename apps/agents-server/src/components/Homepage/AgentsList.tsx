@@ -1687,6 +1687,7 @@ export function AgentsList(props: AgentsListProps) {
                 isAdmin={isAdmin}
                 onShowQrCode={handleShowQrCode}
                 onAgentRenamed={handleContextMenuAgentRenamed}
+                fromDirectoryListing
             />
             {qrCodeAgent && (
                 <AgentQrCodeModal
