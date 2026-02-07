@@ -200,7 +200,7 @@ Technically, it's not an error, but it's probably not what you want because it d
 
 ---
 
-[ ] !!!!!!!!!!!
+[x] ~$0.44 by OpenAI Codex `gpt-5.2-codex`
 
 [✨🎩] After migration from Assistants API to OpenAI AgentKit chatting with agent on Agents server not working
 
@@ -287,17 +287,57 @@ Technically, it's not an error, but it's probably not what you want because it d
 
 ---
 
-[-] !!!!!!!!!!!
+[ ] !!!!!!!!!!!
 
 [✨🎩] After migration from Assistants API to OpenAI AgentKit chatting with agent on Agents server not working
 
+-   Vector store is being created, but it stalls at the file uploading. No file is being uploaded.
+-   Try to fix the issue or at do the better logging to understand why it is happening for the next attempt.
 -   You can look at the [migration file](prompts/2026-01-1000-migrate-to-agent-kit.md)
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
 **Here are the logs from local Vercel `next dev`:**
 
 ```bash
-
+[🤰] Vector store file batch status {
+  vectorStoreId: 'vs_69871131a4048191acccce9b46f909f0',
+  batchId: 'vs_69871131a4048191acccce9b46f909f0',
+  status: 'in_progress',
+  fileCounts: { in_progress: 1, completed: 0, failed: 0, cancelled: 0, total: 1 },
+  elapsedMs: 182962,
+  logLabel: 'agentkit preparation'
+}
+[🤰] Vector store file batch diagnostics skipped (invalid batch id) {
+  vectorStoreId: 'vs_69871131a4048191acccce9b46f909f0',
+  vectorStoreId: 'vs_69871131a4048191acccce9b46f909f0',
+  batchId: 'vs_69871131a4048191acccce9b46f909f0',
+  reason: 'stalled',
+  logLabel: 'agentkit preparation'
+}
+[🤰] Vector store file batch status {
+  vectorStoreId: 'vs_698711de31048191a0cf5bd1ae7c51f4',
+  batchId: 'vs_698711de31048191a0cf5bd1ae7c51f4',
+  status: 'in_progress',
+  fileCounts: { in_progress: 1, completed: 0, failed: 0, cancelled: 0, total: 1 },
+  elapsedMs: 15044,
+  logLabel: 'agentkit preparation'
+}
+[🤰] Vector store file batch status {
+  vectorStoreId: 'vs_69871131a4048191acccce9b46f909f0',
+  batchId: 'vs_69871131a4048191acccce9b46f909f0',
+  status: 'in_progress',
+  fileCounts: { in_progress: 1, completed: 0, failed: 0, cancelled: 0, total: 1 },
+  elapsedMs: 197986,
+  logLabel: 'agentkit preparation'
+}
+[🤰] Vector store file batch status {
+  vectorStoreId: 'vs_698711de31048191a0cf5bd1ae7c51f4',
+  batchId: 'vs_698711de31048191a0cf5bd1ae7c51f4',
+  status: 'in_progress',
+  fileCounts: { in_progress: 1, completed: 0, failed: 0, cancelled: 0, total: 1 },
+  elapsedMs: 30066,
+  logLabel: 'agentkit preparation'
+}
 ```
 
 ---

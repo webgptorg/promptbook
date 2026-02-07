@@ -113,6 +113,21 @@ export abstract class OpenAiVectorStoreHandler extends OpenAiExecutionTools {
     }
 
     /**
+     * Returns the OpenAI vector stores API surface, supporting stable and beta SDKs.
+     */
+    protected getVectorStoresApi(client: OpenAI): TODO_any {
+        const vectorStores = (client as TODO_any).vectorStores ?? (client.beta as TODO_any)?.vectorStores;
+
+        if (!vectorStores) {
+            throw new Error(
+                'OpenAI client does not support vector stores. Please ensure you are using a compatible version of the OpenAI SDK with vector store support.',
+            );
+        }
+
+        return vectorStores;
+    }
+
+    /**
      * Downloads a knowledge source URL into a File for vector store upload.
      */
     protected async downloadKnowledgeSourceFile(options: {
@@ -226,14 +241,12 @@ export abstract class OpenAiVectorStoreHandler extends OpenAiExecutionTools {
         }
 
         try {
+            const vectorStores = this.getVectorStoresApi(client);
             const limit = Math.min(100, Math.max(10, uploadedFiles.length));
-            const batchFilesPage = await (client.beta as TODO_any).vectorStores.fileBatches.listFiles(
-                vectorStoreId,
-                batchId,
-                {
-                    limit,
-                },
-            );
+            const batchFilesPage = await vectorStores.fileBatches.listFiles(batchId, {
+                vector_store_id: vectorStoreId,
+                limit,
+            });
             const batchFiles = batchFilesPage.data ?? [];
             const statusCounts: Record<string, number> = {
                 in_progress: 0,
@@ -282,7 +295,7 @@ export abstract class OpenAiVectorStoreHandler extends OpenAiExecutionTools {
                     sizeBytes: file.sizeBytes,
                 }));
 
-            const vectorStore = await (client.beta as TODO_any).vectorStores.retrieve(vectorStoreId);
+            const vectorStore = await vectorStores.retrieve(vectorStoreId);
             const logPayload = {
                 vectorStoreId,
                 batchId,
@@ -324,6 +337,7 @@ export abstract class OpenAiVectorStoreHandler extends OpenAiExecutionTools {
         readonly logLabel: string;
     }): Promise<TODO_any | null> {
         const { client, vectorStoreId, files, totalBytes, logLabel } = options;
+        const vectorStores = this.getVectorStoresApi(client);
         const uploadStartedAtMs = Date.now();
         const maxConcurrency = Math.max(1, this.getKnowledgeSourceUploadMaxConcurrency());
         const pollIntervalMs = Math.max(1000, this.getKnowledgeSourceUploadPollIntervalMs());
@@ -452,7 +466,7 @@ export abstract class OpenAiVectorStoreHandler extends OpenAiExecutionTools {
             return null;
         }
 
-        const batch = await (client.beta as TODO_any).vectorStores.fileBatches.create(vectorStoreId, {
+        const batch = await vectorStores.fileBatches.create(vectorStoreId, {
             file_ids: fileIds,
         });
         const expectedBatchId = batch.id;
@@ -515,10 +529,9 @@ export abstract class OpenAiVectorStoreHandler extends OpenAiExecutionTools {
             }
 
             if (returnedBatchIdValid) {
-                latestBatch = await (client.beta as TODO_any).vectorStores.fileBatches.retrieve(
-                    vectorStoreId,
-                    returnedBatchId,
-                );
+                latestBatch = await vectorStores.fileBatches.retrieve(returnedBatchId, {
+                    vector_store_id: vectorStoreId,
+                });
             }
 
             const status = latestBatch.status ?? 'unknown';
@@ -657,7 +670,9 @@ export abstract class OpenAiVectorStoreHandler extends OpenAiExecutionTools {
                             logLabel,
                         });
                     } else {
-                        await (client.beta as TODO_any).vectorStores.fileBatches.cancel(vectorStoreId, cancelBatchId);
+                        await vectorStores.fileBatches.cancel(cancelBatchId, {
+                            vector_store_id: vectorStoreId,
+                        });
                     }
                     if (this.options.isVerbose) {
                         console.info('[🤰]', 'Cancelled vector store file batch after timeout', {
@@ -706,6 +721,7 @@ export abstract class OpenAiVectorStoreHandler extends OpenAiExecutionTools {
         readonly totalBytes: number;
     }> {
         const { client, name, knowledgeSources, logLabel } = options;
+        const vectorStores = this.getVectorStoresApi(client);
         const knowledgeSourcesCount = knowledgeSources.length;
         const downloadTimeoutMs = this.getKnowledgeSourceDownloadTimeoutMs();
 
@@ -718,13 +734,7 @@ export abstract class OpenAiVectorStoreHandler extends OpenAiExecutionTools {
             });
         }
 
-        if (!client.beta || !(client.beta as TODO_any).vectorStores) {
-            throw new Error(
-                'OpenAI client does not support vector stores. Please ensure you are using a compatible version of the OpenAI SDK with beta API support.',
-            );
-        }
-
-        const vectorStore = await (client.beta as TODO_any).vectorStores.create({
+        const vectorStore = await vectorStores.create({
             name: `${name} Knowledge Base`,
         });
         const vectorStoreId = vectorStore.id;
