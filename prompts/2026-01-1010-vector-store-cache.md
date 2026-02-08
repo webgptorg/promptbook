@@ -35,7 +35,7 @@
 
 ---
 
-[ ]
+[x] ~$0.34 by OpenAI Codex `gpt-5.2-codex`
 
 [✨🦂] Add `note` column to table `AgentExternals`
 
@@ -1674,3 +1674,4 @@ POST /agents/RLcP3snv2ifR3H/api/chat 200 in 35932ms
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the [changelog](./changelog/_current-preversion.md)
+

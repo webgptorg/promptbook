@@ -11,6 +11,7 @@
 
 -   Migrated Promptbook Agents to OpenAI AgentKit: added AgentKit execution tools with shared vector store handling, updated Agents Server caching to store AgentKit vector stores in `preparedExternals`, and refreshed playground samples.
 -   Cached OpenAI vector stores in a new `AgentExternals` table keyed by knowledge source content hashes, removing `Agent.preparedExternals` from the Agents Server schema.
+-   Added `note` metadata to Agents Server `AgentExternals` entries so cached vector stores record the creating agent and stored files.
 -   Fixed OpenAI AgentKit knowledge ingestion by using the stable vector stores API and updated file batch calls for the current OpenAI SDK.
 -   Removed invalid Keep-Alive request headers for OpenAI-compatible clients to fix AgentKit chat failures in Agents Server.
 -   Replaced OpenAI assistant knowledge ingestion timing magic numbers with named constants to satisfy lint rules.

@@ -166,7 +166,8 @@ export class AgentKitCacheManager {
         });
 
         if (!cachedVectorStoreId && preparedAgent.vectorStoreId && vectorStoreHash) {
-            await this.cacheVectorStore(vectorStoreHash, preparedAgent.vectorStoreId);
+            const note = this.buildVectorStoreNote({ agentName, knowledgeSources });
+            await this.cacheVectorStore(vectorStoreHash, preparedAgent.vectorStoreId, note);
         }
 
         return {
@@ -323,6 +324,60 @@ export class AgentKitCacheManager {
     }
 
     /**
+     * Builds a human-friendly note for a cached vector store.
+     *
+     * @param options - Note details.
+     * @param options.agentName - Agent name that created the vector store.
+     * @param options.knowledgeSources - Knowledge sources stored in the vector store.
+     * @returns Note text to store alongside the cached vector store.
+     */
+    private buildVectorStoreNote(options: {
+        readonly agentName: string;
+        readonly knowledgeSources: ReadonlyArray<string>;
+    }): string {
+        const { agentName, knowledgeSources } = options;
+        const lines = [`Agent: ${agentName}`, 'Files:'];
+
+        for (const source of knowledgeSources) {
+            lines.push(`- ${this.formatKnowledgeSourceLabel(source)}`);
+        }
+
+        return lines.join('\n');
+    }
+
+    /**
+     * Formats a knowledge source label for vector store notes.
+     *
+     * @param source - Knowledge source identifier.
+     * @returns The formatted label to include in the note.
+     */
+    private formatKnowledgeSourceLabel(source: string): string {
+        const fileName = this.getKnowledgeSourceFileName(source);
+
+        if (!fileName || fileName === source) {
+            return source;
+        }
+
+        return `${fileName} (${source})`;
+    }
+
+    /**
+     * Extracts a file name from a knowledge source URL when possible.
+     *
+     * @param source - Knowledge source identifier.
+     * @returns The file name or null if it cannot be derived.
+     */
+    private getKnowledgeSourceFileName(source: string): string | null {
+        try {
+            const url = new URL(source);
+            const segments = url.pathname.split('/').filter(Boolean);
+            return segments.length > 0 ? segments[segments.length - 1] : null;
+        } catch {
+            return null;
+        }
+    }
+
+    /**
      * Resolves the OpenAI vector stores API surface.
      */
     private getVectorStoresApi(client: TODO_any): TODO_any {
@@ -381,14 +436,19 @@ export class AgentKitCacheManager {
 
     /**
      * Stores vector store metadata in AgentExternals.
+     *
+     * @param vectorStoreHash - Hash for the cached vector store.
+     * @param vectorStoreId - External vector store identifier.
+     * @param note - Human-friendly note for the cached vector store.
      */
-    private async cacheVectorStore(vectorStoreHash: string, vectorStoreId: string): Promise<void> {
+    private async cacheVectorStore(vectorStoreHash: string, vectorStoreId: string, note: string): Promise<void> {
         const supabase = $provideSupabaseForServer();
         const { error: insertError } = await supabase.from(await $getTableName('AgentExternals')).insert({
             type: VECTOR_STORE_EXTERNAL_TYPE,
             hash: vectorStoreHash,
             externalId: vectorStoreId,
             vendor: 'openai',
+            note,
         });
 
         if (insertError && insertError.code !== '23505') {
