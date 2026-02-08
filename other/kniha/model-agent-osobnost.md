@@ -12,43 +12,43 @@ Co nejspíš stále potřeba bude, je ten, kdo tyhle agentní týmy a nástroje 
 
 ## Model
 
-„Jak vlastně ChatGPT pracuje?“ Zkusím to popsat jednoduše a srozumitelně, bez videí a bez rovnic. Ale upřímně – nezaručuju, že se mi to podaří 🙂
+"Jak vlastně ChatGPT pracuje?" Zkusím to popsat jednoduše a srozumitelně, bez videí a bez rovnic. Ale upřímně - nezaručuju, že se mi to podaří 🙂
 
 Jedna důležitá věc hned na úvod: samotný algoritmus není tajemství. Skupina výzkumníků z Googlu ho zveřejnila už v roce 2017. A přesto dodnes nikdo přesně nerozumí tomu, co se uvnitř modelu děje. Třeba v Anthropicu (autoři Clauda) existují celé týmy, které zkoumají, proč to funguje tak dobře, a publikují o tom velmi zajímavé studie.
 
 ### Slova se převedou na souřadnice 📍
 
-Když model dostane text, nejdřív ho rozdělí na malé části – slova, interpunkci a další fragmenty (říká se jim tokeny). Každý token pak dostane svoje „souřadnice“ v matematickém prostoru. Trochu jako GPS poloha. (Tyhle souřadnice vznikají během trénování modelu, ale to je kapitola sama pro sebe.)
+Když model dostane text, nejdřív ho rozdělí na malé části - slova, interpunkci a další fragmenty (říká se jim tokeny). Každý token pak dostane svoje "souřadnice" v matematickém prostoru. Trochu jako GPS poloha. (Tyhle souřadnice vznikají během trénování modelu, ale to je kapitola sama pro sebe.)
 
-Podobně jako u mapy platí: věci, které spolu souvisejí, leží blízko sebe. Praha a Brno jsou si blízko – obě jsou to česká města. Tokio je od nich mnohem dál.
+Podobně jako u mapy platí: věci, které spolu souvisejí, leží blízko sebe. Praha a Brno jsou si blízko - obě jsou to česká města. Tokio je od nich mnohem dál.
 
-Se slovy je to stejné. „Pondělí“ leží blízko „úterý“ a „středy“, protože patří do stejné skupiny. „Banán“ bude někde úplně jinde. Rozdíl oproti GPS je v tom, že vzdálenost tady znamená _podobnost významu_. A místo dvou rozměrů tu máme tisíce.
+Se slovy je to stejné. "Pondělí" leží blízko "úterý" a "středy", protože patří do stejné skupiny. "Banán" bude někde úplně jinde. Rozdíl oproti GPS je v tom, že vzdálenost tady znamená _podobnost významu_. A místo dvou rozměrů tu máme tisíce.
 
 ### Kontext obarví význam 🎨
 
-Tady přichází klíčová myšlenka z roku 2017: článek _Attention is All You Need_. „Attention“ bychom mohli přeložit jako „pozornost ke kontextu“.
+Tady přichází klíčová myšlenka z roku 2017: článek _Attention is All You Need_. "Attention" bychom mohli přeložit jako "pozornost ke kontextu".
 
-Model propojí každé slovo s ostatními a odhadne, jak silně spolu souvisejí. Podle toho upraví jejich souřadnice – jemně je posune směrem k relevantnímu významu.
+Model propojí každé slovo s ostatními a odhadne, jak silně spolu souvisejí. Podle toho upraví jejich souřadnice - jemně je posune směrem k relevantnímu významu.
 
-Příklad: slovo „zámek“. Pokud se kolem něj objeví „dveře“ nebo „klíč“, význam se posune k _zámku jako mechanismu_. Když se objeví „věž“ a „hradby“, posune se k _hradu_. A s „mobilem“ a „displejem“ se přesune k _zámku obrazovky_.
+Příklad: slovo "zámek". Pokud se kolem něj objeví "dveře" nebo "klíč", význam se posune k _zámku jako mechanismu_. Když se objeví "věž" a "hradby", posune se k _hradu_. A s "mobilem" a "displejem" se přesune k _zámku obrazovky_.
 
-Stejné slovo, ale různé významy – podle kontextu. Model prostě bere v úvahu okolní slova.
+Stejné slovo, ale různé významy - podle kontextu. Model prostě bere v úvahu okolní slova.
 
 ### Zpracování v hlubších vrstvách 🔬
 
-Po úpravě kontextem projdou souřadnice ještě neuronovou sítí, která funguje jako filtr a interpret. Attention řekne „tohle spolu souvisí“ a síť z toho vyvodí další závěry.
+Po úpravě kontextem projdou souřadnice ještě neuronovou sítí, která funguje jako filtr a interpret. Attention řekne "tohle spolu souvisí" a síť z toho vyvodí další závěry.
 
-Tahle dvojice – attention plus neuronová síť – tvoří jednu vrstvu. Moderní modely jich mají klidně stovky nad sebou. Odtud název hluboké neuronové sítě. Každá vrstva zachytává jinou úroveň významu.
+Tahle dvojice - attention plus neuronová síť - tvoří jednu vrstvu. Moderní modely jich mají klidně stovky nad sebou. Odtud název hluboké neuronové sítě. Každá vrstva zachytává jinou úroveň významu.
 
-Povrchové vrstvy řeší jednoduché vztahy mezi slovy. Hlubší vrstvy dokážou zachytit složitější jevy, třeba ironii. Věta „To se ti ale povedlo!“ může znít jako pochvala, ale v kontextu může znamenat pravý opak. Jak přesně model tyto nuance rozpoznává, je stále předmětem výzkumu.
+Povrchové vrstvy řeší jednoduché vztahy mezi slovy. Hlubší vrstvy dokážou zachytit složitější jevy, třeba ironii. Věta "To se ti ale povedlo!" může znít jako pochvala, ale v kontextu může znamenat pravý opak. Jak přesně model tyto nuance rozpoznává, je stále předmětem výzkumu.
 
 ### Převod zpět na slova 🎯
 
-Na začátku jsme slova převedli na souřadnice. Ty pak prošly mnoha vrstvami úprav a výpočtů a teď nesou bohatou informaci o významu textu – o vztazích, tónu i očekávaném pokračování.
+Na začátku jsme slova převedli na souřadnice. Ty pak prošly mnoha vrstvami úprav a výpočtů a teď nesou bohatou informaci o významu textu - o vztazích, tónu i očekávaném pokračování.
 
 Model vezme souřadnice na konci věty a pro každé možné slovo spočítá pravděpodobnost, že by mělo následovat.
 
-„Šel jsem do obchodu a koupil jsem…“ – kontext naznačuje nákup jídla. Proto mají vysokou šanci slova jako „chleba“, „mléko“ nebo „rohlíky“. „Slona“ by model pravděpodobně vybral jen zřídka 🙂
+"Šel jsem do obchodu a koupil jsem..." - kontext naznačuje nákup jídla. Proto mají vysokou šanci slova jako "chleba", "mléko" nebo "rohlíky". "Slona" by model pravděpodobně vybral jen zřídka 🙂
 
 Mohlo by se zdát, že stačí vždy zvolit nejpravděpodobnější slovo. Jenže to vede k monotónním textům. Proto se do výběru přidává trochu náhody. Díky tomu model neodpovídá pokaždé úplně stejně.
 
@@ -60,14 +60,14 @@ Když to shrneme, zní to skoro jako kuchařský recept: rozdělit text, převé
 
 ## Agent
 
-„A co je nad tím vším? Jak fungují moderní AI systémy kolem modelu?“
-Zkusím popsat vrstvu _nad_ samotným jazykovým modelem – tedy věci jako RAG, tool calling, reasoning a orchestrace. Zase stručně, lidsky a bez rovnic. A zase neručím za to, že to bude úplně jednoduché 🙂
+"A co je nad tím vším? Jak fungují moderní AI systémy kolem modelu?"
+Zkusím popsat vrstvu _nad_ samotným jazykovým modelem - tedy věci jako RAG, tool calling, reasoning a orchestrace. Zase stručně, lidsky a bez rovnic. A zase neručím za to, že to bude úplně jednoduché 🙂
 
-Jedna důležitá věc na začátek: samotný jazykový model je jen jedna součást. Dnešní AI systémy jsou spíš _ekosystém_. Model je mozek – ale kolem něj je paměť, nástroje, plánování a dirigent, který to celé řídí.
+Jedna důležitá věc na začátek: samotný jazykový model je jen jedna součást. Dnešní AI systémy jsou spíš _ekosystém_. Model je mozek - ale kolem něj je paměť, nástroje, plánování a dirigent, který to celé řídí.
 
 ### Externí paměť 📚
 
-Základní model má znalosti „zapečené“ z tréninku. Ale svět se mění a žádný model si nemůže pamatovat všechno. Proto existuje RAG – retrieval-augmented generation.
+Základní model má znalosti "zapečené" z tréninku. Ale svět se mění a žádný model si nemůže pamatovat všechno. Proto existuje RAG - retrieval-augmented generation.
 
 Představte si to jako knihovnu vedle mozku. Když přijde otázka, systém nejdřív prohledá externí dokumenty: databáze, PDFka, wiki, interní firemní data. Najde relevantní úryvky a přiloží je k dotazu.
 
@@ -77,11 +77,11 @@ Model pak neodpovídá jen z paměti, ale z kombinace: _dotaz + nalezené inform
 
 Jazykový model umí přemýšlet o slovech. Ale neumí sám od sebe třeba zavolat API, spočítat přesnou trasu nebo poslat e-mail. K tomu slouží tool calling.
 
-Systém modelu nabídne sadu nástrojů: „tady máš kalkulačku“, „tady je vyhledávání“, „tady je databáze“. Model se může rozhodnout: _na tohle potřebuju nástroj_. Místo textu tedy vygeneruje strukturovaný požadavek na funkci.
+Systém modelu nabídne sadu nástrojů: "tady máš kalkulačku", "tady je vyhledávání", "tady je databáze". Model se může rozhodnout: _na tohle potřebuju nástroj_. Místo textu tedy vygeneruje strukturovaný požadavek na funkci.
 
 Externí systém funkci vykoná a výsledek vrátí zpět modelu. Ten ho zapracuje do odpovědi. Vzniká tak smyčka: model navrhne akci → svět ji provede → model zhodnotí výsledek.
 
-Je to první krok od „mluvící knihy“ k agentovi, který dokáže něco _udělat_.
+Je to první krok od "mluvící knihy" k agentovi, který dokáže něco _udělat_.
 
 ### Řetězení myšlenek (reasoning & chain of thought) 🧠
 
@@ -89,13 +89,13 @@ Když řešíte složitý problém, většinou si ho rozepíšete na kroky. Mode
 
 Model si může interně vytvářet mezikroky: hypotézy, plány, dílčí závěry. Tomu se říká reasoning nebo chain of thought. Nejde jen o jednu predikci dalšího slova, ale o sérii kroků, které postupně zpřesňují řešení.
 
-Prakticky to vypadá jako vnitřní dialog: „Nejdřív zjistím X. Z toho plyne Y. Teď zkontroluju Z.“ Některé systémy tyto kroky i explicitně ukládají, aby se k nim mohly vracet nebo je opravovat.
+Prakticky to vypadá jako vnitřní dialog: "Nejdřív zjistím X. Z toho plyne Y. Teď zkontroluju Z." Některé systémy tyto kroky i explicitně ukládají, aby se k nim mohly vracet nebo je opravovat.
 
 Díky tomu zvládají vícekrokové úlohy: plánování, logické hádanky nebo komplexní rozhodování.
 
 ### Směrování úloh (routing) 🚦
 
-Ne každý problém je stejný. Někdy stačí malý, rychlý model. Jindy je potřeba velký a „hluboce přemýšlející“.
+Ne každý problém je stejný. Někdy stačí malý, rychlý model. Jindy je potřeba velký a "hluboce přemýšlející".
 
 Routing je mechanismus, který rozhoduje, _kam_ dotaz poslat. Systém může analyzovat úlohu a vybrat specializovaný model nebo postup: jeden na kód, jiný na sumarizaci, další na právní texty.
 
@@ -117,38 +117,38 @@ Místo jednoho průchodu modelem vzniká pracovní postup: vyhledat → přemý�
 
 Když se na to podíváte jako celek, moderní AI systém už není jen prediktor slov. Je to kombinace mozku, paměti, nástrojů a řízení. Model generuje jazyk, RAG dodává fakta, nástroje umožňují akci, reasoning strukturuje myšlení a orchestrace to všechno spojuje.
 
-Je to krok od „chytrého autocomplete“ k systému, který se začíná podobat pracovnímu týmu: někdo hledá informace, někdo počítá, někdo plánuje – a dirigent zajišťuje, že to všechno hraje dohromady.
+Je to krok od "chytrého autocomplete" k systému, který se začíná podobat pracovnímu týmu: někdo hledá informace, někdo počítá, někdo plánuje - a dirigent zajišťuje, že to všechno hraje dohromady.
 
 ## Osobnost
 
-„A co když jdeme ještě o patro výš? Kapitola 3: AI jako osobnosti a týmy“
+"A co když jdeme ještě o patro výš? Kapitola 3: AI jako osobnosti a týmy"
 
-Doteď jsme se bavili o tom, jak funguje samotný model a jak kolem něj vzniká infrastruktura – paměť, nástroje, orchestrace. Teď zkusme udělat mentální skok: představit si svět, kde se model stává komoditou. Něčím jako procesor.
+Doteď jsme se bavili o tom, jak funguje samotný model a jak kolem něj vzniká infrastruktura - paměť, nástroje, orchestrace. Teď zkusme udělat mentální skok: představit si svět, kde se model stává komoditou. Něčím jako procesor.
 
 Procesor sám o sobě není aplikace. Je to univerzální stroj, na kterém můžou běžet libovolné programy. A podobně se začíná chovat i jazykový model: jako výpočetní platforma, na které běží **AI osobnosti**.
 
 ### Od modelu k osobnosti 👤
 
-Na samotném modelu není zajímavé jen to, _že generuje text_. Zajímavé je, že na něj můžeme „nahrát“ vysokou vrstvu abstrakce: personu, znalosti, pravidla a hodnoty.
+Na samotném modelu není zajímavé jen to, _že generuje text_. Zajímavé je, že na něj můžeme "nahrát" vysokou vrstvu abstrakce: personu, znalosti, pravidla a hodnoty.
 
 Vzniká něco jako digitální charakter:
 
--   **persona** – jak mluví, jaký má styl a roli,
--   **znalosti** – co ví o světě a v jaké oblasti je expert,
--   **pravidla** – co smí a nesmí dělat,
--   **morální rámec** – jaké cíle sleduje a jak vyvažuje konflikty.
+-   **persona** - jak mluví, jaký má styl a roli,
+-   **znalosti** - co ví o světě a v jaké oblasti je expert,
+-   **pravidla** - co smí a nesmí dělat,
+-   **morální rámec** - jaké cíle sleduje a jak vyvažuje konflikty.
 
 Dvě AI běžící na stejném modelu tak můžou být radikálně odlišné. Stejně jako dva programy běžící na stejném procesoru.
 
 ### AI biosféra 🌐
 
-Jakmile těchto osobností vznikne víc, nezačnou existovat izolovaně. Vytvoří **AI biosféru** – prostředí, kde spolu komunikují, spolupracují i soupeří.
+Jakmile těchto osobností vznikne víc, nezačnou existovat izolovaně. Vytvoří **AI biosféru** - prostředí, kde spolu komunikují, spolupracují i soupeří.
 
 Některé AI budou specializované: účetní, právní, kreativní, strategické. Jiné budou manažeři týmů AI. Budou si předávat úkoly, vyjednávat, hodnotit výsledky.
 
-A důležité je: komunikace nepoteče jen mezi AI a člověkem. Velká část interakcí proběhne **AI ↔ AI**. Pro člověka to bude podobné jako dnes internetové služby – spousta procesů běží na pozadí, aniž bychom je přímo viděli.
+A důležité je: komunikace nepoteče jen mezi AI a člověkem. Velká část interakcí proběhne **AI ↔ AI**. Pro člověka to bude podobné jako dnes internetové služby - spousta procesů běží na pozadí, aniž bychom je přímo viděli.
 
-### Dlouhodobě „žijící“ agenti ⏳
+### Dlouhodobě "žijící" agenti ⏳
 
 Dnes často vnímáme AI jako něco, co odpoví na dotaz a zase zmizí. Ale další krok je vznik agentů, kteří **dlouhodobě existují**.
 
