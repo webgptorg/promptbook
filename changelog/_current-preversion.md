@@ -1,3 +1,7 @@
+### ✨ Improvements
+
+-   Show error message when the agent returns an empty message.
+
 ### 📚 Book
 
 -   Leveraged Vibrations API in the chat to provide haptic feedback in sync with the sound system.

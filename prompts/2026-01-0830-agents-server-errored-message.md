@@ -1,4 +1,4 @@
-[ ] !!
+[x] $0.00 by Gemini CLI
 
 [✨☣️] When the returned message is empty, show the error dialog simmilar as if the server responded with some error code ("Connection Issue").
 
@@ -58,3 +58,4 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

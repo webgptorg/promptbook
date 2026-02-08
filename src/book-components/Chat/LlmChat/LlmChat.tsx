@@ -301,6 +301,10 @@ export function LlmChat(props: LlmChatProps) {
                 // Update task progress to complete
                 setTasksProgress([{ id: taskId, name: 'Response generated', progress: 100 }]);
 
+                if (!result.content.trim()) {
+                    throw new Error('The agent did not respond.');
+                }
+
                 // Replace loading message with actual response
                 const generationDurationMs = Date.now() - generationStartedAtMs;
                 const assistantMessage: ChatMessage = {
