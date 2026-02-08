@@ -1,23 +1,45 @@
 'use client';
 
 import { loginAction } from '@/src/app/actions';
+import { Loader2, Lock, User } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { ForgottenPasswordDialog } from '../ForgottenPasswordDialog/ForgottenPasswordDialog';
 import { RegisterUserDialog } from '../RegisterUserDialog/RegisterUserDialog';
-import { Loader2, Lock, User } from 'lucide-react';
-import { useEffect, useState } from 'react';
 
+/**
+ * Props for the LoginForm component.
+ */
 type LoginFormProps = {
-    onSuccess?: () => void;
+    /**
+     * Optional callback invoked after a successful login.
+     */
+    onSuccess?: () => void | Promise<void>;
+
+    /**
+     * Optional classes applied to the form root.
+     */
     className?: string;
+
+    /**
+     * When true, refreshes the current route after a successful login.
+     *
+     * @default true
+     */
+    refreshAfterSuccess?: boolean;
 };
 
+/**
+ * Renders the login form and handles authentication.
+ */
 export function LoginForm(props: LoginFormProps) {
-    const { onSuccess, className } = props;
+    const { onSuccess, className, refreshAfterSuccess = true } = props;
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [adminEmail, setAdminEmail] = useState<string>('support@ptbk.io');
     const [isForgottenPasswordOpen, setIsForgottenPasswordOpen] = useState(false);
     const [isRegisterUserOpen, setIsRegisterUserOpen] = useState(false);
+    const router = useRouter();
 
     useEffect(() => {
         // Fetch admin email on component mount
@@ -34,6 +56,11 @@ export function LoginForm(props: LoginFormProps) {
             });
     }, []);
 
+    /**
+     * Handles login form submissions and refreshes data on success.
+     *
+     * @param event - Form submission event.
+     */
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setIsLoading(true);
@@ -45,7 +72,10 @@ export function LoginForm(props: LoginFormProps) {
 
             if (result.success) {
                 if (onSuccess) {
-                    onSuccess();
+                    await onSuccess();
+                }
+                if (refreshAfterSuccess) {
+                    router.refresh();
                 }
             } else {
                 setError(result.message || 'An error occurred');

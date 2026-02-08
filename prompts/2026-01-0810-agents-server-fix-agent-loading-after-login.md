@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.37 by OpenAI Codex `gpt-5.2-codex`
 
 [✨🪄] Agents are not loaded after login but only after refreshing the page
 
@@ -35,3 +35,4 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

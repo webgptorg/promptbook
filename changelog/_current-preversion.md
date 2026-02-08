@@ -1,5 +1,6 @@
 ### ✨ Improvements
 
+-   Fixed Agents Server login so the agents list loads immediately after signing in without a manual refresh.
 -   The error dialog when the chat fails ("Connection Issue") now has an option to reset the chat with the same message sent to a fresh chat.
 -   Show error message when the agent returns an empty message.
 
