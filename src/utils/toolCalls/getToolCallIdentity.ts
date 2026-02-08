@@ -5,6 +5,8 @@ import type { ToolCall } from '../../types/ToolCall';
  *
  * @param toolCall - Tool call entry to identify.
  * @returns Stable identity string for deduplication.
+ *
+ * @private function of <Chat/>
  */
 export function getToolCallIdentity(toolCall: ToolCall): string {
     const rawToolCall = toolCall.rawToolCall as
