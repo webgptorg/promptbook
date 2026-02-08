@@ -15,6 +15,7 @@ import type {
     string_url_image,
 } from '../../types/typeAliases';
 import { isAssistantPreparationToolCall } from '../../types/ToolCall';
+import { getToolCallIdentity } from '../../utils/toolCalls/getToolCallIdentity';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import { Agent } from './Agent';
 import type { AgentOptions } from './AgentOptions';
@@ -336,28 +337,7 @@ export class RemoteAgent extends Agent {
         };
 
         const getToolCallKey = (toolCall: NonNullable<ChatPromptResult['toolCalls']>[number]): string => {
-            const rawId = (toolCall.rawToolCall as TODO_any)?.id;
-            if (rawId) {
-                return `id:${rawId}`;
-            }
-
-            const argsKey = (() => {
-                if (typeof toolCall.arguments === 'string') {
-                    return toolCall.arguments;
-                }
-
-                if (!toolCall.arguments) {
-                    return '';
-                }
-
-                try {
-                    return JSON.stringify(toolCall.arguments);
-                } catch {
-                    return '';
-                }
-            })();
-
-            return `${toolCall.name}:${toolCall.createdAt || ''}:${argsKey}`;
+            return getToolCallIdentity(toolCall);
         };
 
         const mergeToolCall = (

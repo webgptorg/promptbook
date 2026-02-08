@@ -1,4 +1,5 @@
 import { isAssistantPreparationToolCall, type ToolCall } from '../../../types/ToolCall';
+import { getToolCallIdentity } from '../../../utils/toolCalls/getToolCallIdentity';
 import { isTeamToolName } from './createTeamToolNameFromUrl';
 import type { ParsedCitation } from './parseCitationsFromContent';
 import { parseCitationsFromContent } from './parseCitationsFromContent';
@@ -212,26 +213,9 @@ function collectTeamCitations(
  * @private utility of `<Chat/>`
  */
 function buildToolCallKey(toolCall: ToolCall, origin?: ToolCallOrigin): string {
-    const rawId = (toolCall.rawToolCall as { id?: string } | undefined)?.id;
-    if (rawId) {
-        return `${origin?.label || 'origin'}:id:${rawId}`;
-    }
+    const identity = getToolCallIdentity(toolCall);
 
-    const argsKey = (() => {
-        if (typeof toolCall.arguments === 'string') {
-            return toolCall.arguments;
-        }
-        if (!toolCall.arguments) {
-            return '';
-        }
-        try {
-            return JSON.stringify(toolCall.arguments);
-        } catch {
-            return '';
-        }
-    })();
-
-    return `${origin?.label || 'origin'}:${toolCall.name}:${toolCall.createdAt || ''}:${argsKey}`;
+    return `${origin?.label || 'origin'}:${identity}`;
 }
 
 /**
