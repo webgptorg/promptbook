@@ -23,7 +23,7 @@ export function listenForPause(): void {
                 pauseState = 'PAUSING';
                 // Note: Using console.log here which adds a new line.
                 // This is intentional to prevent the message from being overwritten.
-                console.log(colors.bgGray('Pausing...'));
+                console.log(colors.bgWhite('Pausing...'));
             } else if (pauseState === 'PAUSED') {
                 pauseState = 'RUNNING';
                 // The checkPause loop will terminate.
