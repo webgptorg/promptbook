@@ -330,12 +330,75 @@ npm error A complete log of this run can be found in: C:\Users\me\AppData\Local\
 
 ---
 
-[-]
+[ ] !
 
-[✨🎒] brr
+[✨🎒] Fix errors after migration of `openai` from `4.63.0` to `6.18.0`
 
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the [changelog](./changelog/_current-preversion.md)
+**The log from playground:**
+
+```bash
+$ npx ts-node ./src/llm-providers/openai/playground/playground.ts
+🧸  OpenAI Playground
+[💸] Spending 137 words
+{
+  chatPromptResult: {
+    content: 'Quick clarification: do you want 20% off coupons for groceries, for electronics, or both? Most electronics stores don’t accept grocery coupons, but I can generate:\n' +
+      '- 20% off groceries\n' +
+      '- 20% off electronics\n' +
+      '\n' +
+      'Tell me which category (or both) and how many coupons you need (up to 5 total), and I’ll generate them.',
+    modelName: 'gpt-5-2025-08-07',
+    timing: {
+      start: '2026-01-02T16:40:15.726Z',
+      complete: '2026-01-02T16:41:04.248Z'
+    },
+    usage: { price: [Object], input: [Object], output: [Object] },
+    toolCalls: [ [Object], [Object], [Object], [Object], [Object], [Object] ],
+    rawPromptContent: 'Give me a coupons for grocery shopping in electronics store with a 20% discount.',
+    rawRequest: {
+      model: 'gpt-5',
+      messages: [Array],
+      user: 'playground',
+      tools: [Array]
+    },
+    rawResponse: {
+      id: 'chatcmpl-CtcUmog310DRIaSLJjV2lD5NGp005',
+      object: 'chat.completion',
+      created: 1767372052,
+      model: 'gpt-5-2025-08-07',
+      choices: [Array],
+      usage: [Object],
+      service_tier: 'default',
+      system_fingerprint: null
+    }
+  }
+}
+Usage:
+- Cost 0.05 USD
+- Saved 0.03 hours of human time
+- Written 310 characters
+ User: Give me a coupons for grocery shopping in electronics store with a 20% discount.
+ Chat: Quick clarification: do you want 20% off coupons for groceries, for electronics, or both? Most electronics stores don’t accept grocery coupons, but I can generate:
+- 20% off groceries
+- 20% off electronics
+
+Tell me which category (or both) and how many coupons you need (up to 5 total), and I’ll generate them.
+💬 OpenAI callChatModel call {
+  prompt: {
+    title: 'Chat with files',
+    parameters: {},
+    content: 'What is in these images?',
+    files: [ {} ],
+    modelRequirements: { modelVariant: 'CHAT', modelName: 'gpt-4o' }
+  },
+  currentModelRequirements: { modelVariant: 'CHAT', modelName: 'gpt-4o' }
+}
+TypeError
+TypeError: file.arrayBuffer is not a function
+    at C:\Users\me\work\ai\promptbook\src\llm-providers\openai\OpenAiCompatibleExecutionTools.ts:244:52
+    at Array.map (<anonymous>)
+    at OpenAiExecutionTools.callChatModelWithRetry (C:\Users\me\work\ai\promptbook\src\llm-providers\openai\OpenAiCompatibleExecutionTools.ts:243:30)
+```
 
 ---
 
