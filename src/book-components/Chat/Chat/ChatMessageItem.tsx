@@ -239,9 +239,7 @@ function groupOngoingToolCalls(
         const toolInfo = TOOL_TITLES[toolCall.name];
         const isTeamTool = isTeamToolName(toolCall.name);
         const toolTitle =
-            toolTitles?.[toolCall.name] ||
-            toolInfo?.title ||
-            (isTeamTool ? 'Consulting teammate' : undefined);
+            toolTitles?.[toolCall.name] || toolInfo?.title || (isTeamTool ? 'Consulting teammate' : undefined);
         const displayTitle = preparationPhase ? `${toolTitle || toolCall.name}: ${preparationPhase}` : toolTitle;
         const emoji = isTeamTool ? '??' : toolInfo?.emoji || '???';
         const teamAgentData = resolveTeamAgentChipData(toolCall, teammates);

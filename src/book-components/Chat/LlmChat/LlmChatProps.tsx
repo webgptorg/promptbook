@@ -85,5 +85,9 @@ export type LlmChatProps = Omit<ChatProps, 'messages' | 'onMessage' | 'onChange'
      * @param error - The error that occurred
      * @param retry - Function to retry the last failed message
      */
-    onError?(error: unknown, retry: () => void, failedMessage: { content: string; attachments: ChatMessage['attachments'] }): void;
+    onError?(
+        error: unknown,
+        retry: () => void,
+        failedMessage: { content: string; attachments: ChatMessage['attachments'] },
+    ): void;
 };
