@@ -1,6 +1,22 @@
+[ ] !
+
+[✨😭] Group same ongoing tool calls.
+
+-   For example, when the AI agent is doing two separate web searches. Currently, it shows two separate tool calling chips, but it should be grouped into one chip with the count of how many same tool calls are ongoing.
+-   For example, instead of showing:
+    -   "Searching the web"
+    -   "Searching the web (2x)"
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   You are working with the [Agents Server](apps/agents-server)
+
+![alt text](prompts/screenshots/2026-02-1000-agents-server-group-same-ongoing-toolcalls.png)
+![alt text](prompts/screenshots/2026-02-1000-agents-server-group-same-ongoing-toolcalls-1.png)
+
+---
+
 [-]
 
-[✨😓] foo
+[✨😭] bar
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
@@ -10,7 +26,7 @@
 
 [-]
 
-[✨😓] foo
+[✨😭] bar
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
@@ -20,17 +36,7 @@
 
 [-]
 
-[✨😓] foo
-
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   You are working with the [Agents Server](apps/agents-server)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
-
----
-
-[-]
-
-[✨😓] foo
+[✨😭] bar
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)

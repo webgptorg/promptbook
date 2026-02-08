@@ -13,13 +13,16 @@
 
 ---
 
-[-]
+[ ]
 
-[✨🤧] bar
+[✨🤧] When there is a link in the chat message, the link should be underlined. 
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+![alt text](prompts/screenshots/2026-02-0900-agents-server-better-design-of-headings-in-chat-message-1.png)
+![alt text](prompts/screenshots/2026-02-0900-agents-server-better-design-of-headings-in-chat-message-2.png)
 
 ---
 
