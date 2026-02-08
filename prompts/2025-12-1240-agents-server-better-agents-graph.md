@@ -135,6 +135,18 @@ Try to replicate this as close as possible in the beautiful Mermaid.
 
 [ ]
 
+[✨♿️] Agents graph on home page should be redesigned to be more visually appealing
+
+-   @@@
+-   It should look more like a social graph than a UML diagram.
+
+![alt text](prompts/screenshots/2025-12-1240-agents-server-better-agents-graph-2.png)
+![alt text](prompts/screenshots/2025-12-1240-agents-server-better-agents-graph-3.png)
+
+---
+
+[ ]
+
 [✨♿️] Agents graph on home page should be redesigned using vis.js / vis-network library
 
 -   @@@
@@ -179,4 +191,3 @@ Try to replicate this as close as possible in the beautiful Mermaid.
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
-
