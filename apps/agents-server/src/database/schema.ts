@@ -629,6 +629,40 @@ export type AgentsServerDatabase = {
                     },
                 ];
             };
+            UserData: {
+                Row: {
+                    id: number;
+                    createdAt: string;
+                    updatedAt: string;
+                    userId: number;
+                    key: string;
+                    value: Json;
+                };
+                Insert: {
+                    id?: number;
+                    createdAt?: string;
+                    updatedAt?: string;
+                    userId: number;
+                    key: string;
+                    value: Json;
+                };
+                Update: {
+                    id?: number;
+                    createdAt?: string;
+                    updatedAt?: string;
+                    userId?: number;
+                    key?: string;
+                    value?: Json;
+                };
+                Relationships: [
+                    {
+                        foreignKeyName: 'UserData_userId_fkey';
+                        columns: ['userId'];
+                        referencedRelation: 'User';
+                        referencedColumns: ['id'];
+                    },
+                ];
+            };
         };
         Views: Record<string, never>;
         Functions: Record<string, never>;

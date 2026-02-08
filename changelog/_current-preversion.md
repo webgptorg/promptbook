@@ -314,6 +314,12 @@
     -   Email tool leverages existing `sendMessage` utility and email providers (Sendgrid, Zeptomail)
     -   All emails are queued through the database-driven message system
     -   Follows the same pattern as `USE TIME` and `USE SEARCH ENGINE` commitments for consistency
+-   Implemented a new experimental app called **Story**, an interactive storytelling app where users orchestrate AI agents to collaboratively write a story.
+    -   Added a new top-level menu group: **Experiments**, visible only when the `IS_EXPERIMENTAL_APP` metadata flag is enabled.
+    -   The app supports two modes: **Beletrie Mode** (free narrative) and **Dramatic Mode** (dialogue).
+    -   Users can manage multiple stories with a bookmarks/chapters-style UI.
+    -   Stories are persisted per user across devices using a new extensible `UserData` table.
+    -   Stories can be exported to plain text and Markdown, with a clear **Experimental** label.
 -   Fixed `USE EMAIL` tool exposure to use commitment-provided functions with node/browser variants and updated the email tool modal to display sender metadata and status.
 -   Enhanced agent-to-agent interaction chips in chat UI:
     -   Created reusable `<AgentChip/>` component displaying agent avatar and name

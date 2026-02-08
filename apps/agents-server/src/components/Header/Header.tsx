@@ -48,6 +48,11 @@ type HeaderProps = {
      * List of federated servers for navigation dropdown
      */
     federatedServers: Array<{ url: string; title: string; logoUrl?: string | null }>;
+    
+    /**
+     * Is the experimental app enabled
+     */
+    isExperimental?: boolean;
 };
 
 /* TODO: [🐱‍🚀] Make this Agents server native  */
@@ -77,7 +82,7 @@ type MenuItem =
       };
 
 export function Header(props: HeaderProps) {
-    const { isAdmin = false, currentUser = null, serverName, serverLogoUrl, agents, federatedServers } = props;
+    const { isAdmin = false, currentUser = null, serverName, serverLogoUrl, agents, federatedServers, isExperimental = false } = props;
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isLoginOpen, setIsLoginOpen] = useState(false);
@@ -87,10 +92,12 @@ export function Header(props: HeaderProps) {
     const [isUsersOpen, setIsUsersOpen] = useState(false);
     const [isSystemOpen, setIsSystemOpen] = useState(false);
     const [isProfileOpen, setIsProfileOpen] = useState(false);
+    const [isExperimentsOpen, setIsExperimentsOpen] = useState(false);
     const [isMobileAgentsOpen, setIsMobileAgentsOpen] = useState(false);
     const [isMobileDocsOpen, setIsMobileDocsOpen] = useState(false);
     const [isMobileUsersOpen, setIsMobileUsersOpen] = useState(false);
     const [isMobileSystemOpen, setIsMobileSystemOpen] = useState(false);
+    const [isMobileExperimentsOpen, setIsMobileExperimentsOpen] = useState(false);
     const [isCreatingAgent, setIsCreatingAgent] = useState(false);
     const router = useRouter();
     const isHeadless = useIsHeadless();
@@ -343,6 +350,25 @@ export function Header(props: HeaderProps) {
                           },
                       ],
                   },
+                  ...(isExperimental
+                      ? [
+                            {
+                                type: 'dropdown' as const,
+                                label: 'Experiments',
+                                isOpen: isExperimentsOpen,
+                                setIsOpen: setIsExperimentsOpen,
+                                isMobileOpen: isMobileExperimentsOpen,
+                                setIsMobileOpen: setIsMobileExperimentsOpen,
+                                items: [
+                                    {
+                                        label: 'Story',
+                                        href: '/story',
+                                        isBold: true,
+                                    },
+                                ],
+                            },
+                        ]
+                      : []),
                   {
                       type: 'link' as const,
                       label: 'About',

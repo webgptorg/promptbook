@@ -21,6 +21,7 @@ type LayoutWrapperProps = {
     isFooterShown: boolean;
     footerLinks: Array<FooterLink>;
     federatedServers: Array<{ url: string; title: string }>;
+    isExperimental: boolean;
 };
 
 export function LayoutWrapper({
@@ -34,6 +35,7 @@ export function LayoutWrapper({
     isFooterShown,
     footerLinks,
     federatedServers,
+    isExperimental,
 }: LayoutWrapperProps) {
     const pathname = usePathname();
     const searchParams = useSearchParams();
@@ -56,7 +58,8 @@ export function LayoutWrapper({
                             serverName={serverName}
                             serverLogoUrl={serverLogoUrl}
                             agents={agents}
-                            federatedServers={federatedServers}
+                            federatatedServers={federatedServers}
+                            isExperimental={isExperimental}
                         />
                         <main className={isChatPage ? `h-[100dvh] pt-[60px] overflow-hidden` : `pt-[60px]`}>
                             {children}

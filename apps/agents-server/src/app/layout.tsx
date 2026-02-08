@@ -123,6 +123,8 @@ export default async function RootLayout({
     const collection = await $provideAgentCollectionForServer();
     const agents = await collection.listAgents();
 
+const isExperimental = ((await getMetadata('IS_EXPERIMENTAL_APP')) || 'false') === 'true';
+
     return (
         <html lang="en">
             {/* Note: Icon is set via metadata to allow agent-page specific icons to override it */}
@@ -137,6 +139,7 @@ export default async function RootLayout({
                     isFooterShown={isFooterShown}
                     footerLinks={footerLinks}
                     federatedServers={federatedServers}
+                    isExperimental={isExperimental}
                 >
                     {children}
                 </LayoutWrapper>
