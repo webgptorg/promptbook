@@ -1,4 +1,4 @@
-[ ] !!
+[x] ~$0.00 by Gemini CLI
 
 [✨🔗] When showing cetacean chips below the message, show the document name stripped of the internal ID suffix
 
@@ -41,3 +41,4 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
