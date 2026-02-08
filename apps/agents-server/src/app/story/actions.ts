@@ -48,7 +48,7 @@ export async function saveStories(stories: Array<Story>) {
     const { data, error } = await supabase
         .from('UserData')
         .upsert({
-            userId: user.id,
+            userId: user.username,
             key: 'stories',
             value: stories,
         })

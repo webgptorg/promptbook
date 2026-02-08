@@ -1,5 +1,6 @@
 ### ✨ Improvements
 
+-   The error dialog when the chat fails ("Connection Issue") now has an option to reset the chat with the same message sent to a fresh chat.
 -   Show error message when the agent returns an empty message.
 
 ### 📚 Book

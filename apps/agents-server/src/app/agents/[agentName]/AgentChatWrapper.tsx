@@ -44,6 +44,11 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
     // Error state management
     const [currentError, setCurrentError] = useState<FriendlyErrorMessage | null>(null);
     const [retryCallback, setRetryCallback] = useState<(() => void) | null>(null);
+    const [failedMessage, setFailedMessage] = useState<string | null>(null);
+
+    // Chat reset state
+    const [chatKey, setChatKey] = useState<number>(0);
+    const [resetMessage, setResetMessage] = useState<string | undefined>(undefined);
 
     const handleFeedback = useCallback(
         async (feedback: {
@@ -119,16 +124,18 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
     }, []);
 
     // Handle errors from chat
-    const handleError = useCallback((error: unknown, retry: () => void) => {
+    const handleError = useCallback((error: unknown, retry: () => void, failedMessage: { content: string }) => {
         const friendlyError = handleChatError(error, 'AgentChatWrapper');
         setCurrentError(friendlyError);
         setRetryCallback(() => retry);
+        setFailedMessage(failedMessage.content);
     }, []);
 
     // Handle error dialog dismiss
     const handleDismissError = useCallback(() => {
         setCurrentError(null);
         setRetryCallback(null);
+        setFailedMessage(null);
     }, []);
 
     // Handle retry from error dialog
@@ -138,6 +145,14 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
         }
     }, [retryCallback]);
 
+    // Handle reset from error dialog
+    const handleReset = useCallback(() => {
+        if (failedMessage) {
+            setResetMessage(failedMessage);
+            setChatKey((prevKey) => prevKey + 1); // Increment key to force re-mount
+        }
+    }, [failedMessage]);
+
     if (!agent) {
         return <>{/* <- TODO: [🐱‍🚀] <PromptbookLoading /> */}</>;
     }
@@ -145,6 +160,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
     return (
         <>
             <AgentChat
+                key={chatKey}
                 className={`w-full h-full`}
                 style={{
                     backgroundImage: `url("${backgroundImage}")`,
@@ -156,13 +172,18 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
                 onFileUpload={handleFileUpload}
                 onError={handleError}
                 defaultMessage={defaultMessage}
-                autoExecuteMessage={autoExecuteMessage}
+                autoExecuteMessage={resetMessage || autoExecuteMessage}
                 speechRecognition={speechRecognition}
                 visual="FULL_PAGE"
                 effectConfigs={effectConfigs}
                 soundSystem={soundSystem}
             />
-            <ChatErrorDialog error={currentError} onRetry={handleRetry} onDismiss={handleDismissError} />
+            <ChatErrorDialog
+                error={currentError}
+                onRetry={handleRetry}
+                onReset={handleReset}
+                onDismiss={handleDismissError}
+            />
         </>
     );
 }

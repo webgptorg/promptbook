@@ -5,6 +5,7 @@ import type { FriendlyErrorMessage } from '../utils/errorMessages';
 type ChatErrorDialogProps = {
     error: FriendlyErrorMessage | null;
     onRetry?: () => void;
+    onReset?: () => void;
     onDismiss: () => void;
 };
 
@@ -15,10 +16,12 @@ type ChatErrorDialogProps = {
  * This component follows the DRY principle by centralizing error UI logic
  * and can be reused across different chat contexts.
  */
-export function ChatErrorDialog({ error, onRetry, onDismiss }: ChatErrorDialogProps) {
+export function ChatErrorDialog({ error, onRetry, onReset, onDismiss }: ChatErrorDialogProps) {
     if (!error) {
         return null;
     }
+
+    const hasActions = error.canRetry && (onRetry || onReset);
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
@@ -58,13 +61,24 @@ export function ChatErrorDialog({ error, onRetry, onDismiss }: ChatErrorDialogPr
                             Retry
                         </button>
                     )}
+                    {error.canRetry && onReset && (
+                        <button
+                            onClick={() => {
+                                onDismiss();
+                                onReset();
+                            }}
+                            className="flex-1 px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2 transition-colors"
+                        >
+                            Reset
+                        </button>
+                    )}
                     <button
                         onClick={onDismiss}
                         className={`${
-                            error.canRetry && onRetry ? 'flex-1' : 'w-full'
+                            hasActions ? 'flex-1' : 'w-full'
                         } px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition-colors`}
                     >
-                        {error.canRetry && onRetry ? 'Cancel' : 'Close'}
+                        {hasActions ? 'Cancel' : 'Close'}
                     </button>
                 </div>
             </div>

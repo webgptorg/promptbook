@@ -335,7 +335,7 @@ export function LlmChat(props: LlmChatProps) {
 
                 // Call custom error handler if provided
                 if (onError) {
-                    onError(error, () => handleRetryRef.current());
+                    onError(error, () => handleRetryRef.current(), { content: messageContent, attachments });
                 }
 
                 // Replace loading message with error message in chat
