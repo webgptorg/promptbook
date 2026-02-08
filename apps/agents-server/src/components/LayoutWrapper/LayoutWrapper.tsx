@@ -3,12 +3,12 @@
 import { usePathname, useSearchParams } from 'next/navigation';
 import { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
 import { MenuHoistingProvider } from '../../../../../src/book-components/_common/MenuHoisting/MenuHoistingContext';
-import { AsyncDialogsProvider } from '../AsyncDialogs/AsyncDialogsProvider';
-import type { UserInfo } from '../../utils/getCurrentUser';
 import type { AgentNaming } from '../../utils/agentNaming';
+import type { UserInfo } from '../../utils/getCurrentUser';
+import { AgentNamingProvider } from '../AgentNaming/AgentNamingContext';
+import { AsyncDialogsProvider } from '../AsyncDialogs/AsyncDialogsProvider';
 import { Footer, type FooterLink } from '../Footer/Footer';
 import { Header } from '../Header/Header';
-import { AgentNamingProvider } from '../AgentNaming/AgentNamingContext';
 
 type LayoutWrapperProps = {
     children: React.ReactNode;
@@ -58,7 +58,7 @@ export function LayoutWrapper({
                             serverName={serverName}
                             serverLogoUrl={serverLogoUrl}
                             agents={agents}
-                            federatatedServers={federatedServers}
+                            federatedServers={federatedServers}
                             isExperimental={isExperimental}
                         />
                         <main className={isChatPage ? `h-[100dvh] pt-[60px] overflow-hidden` : `pt-[60px]`}>

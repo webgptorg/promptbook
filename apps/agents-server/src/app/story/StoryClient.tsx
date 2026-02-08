@@ -1,7 +1,8 @@
 import { BookEditor } from '@promptbook-local/components';
+import { validateBook } from '@promptbook-local/core';
 import { useEffect, useState } from 'react';
 import { ActorsPanel } from './ActorsPanel';
-import { getStories, saveStories, Story, Actor } from './actions';
+import { Actor, getStories, saveStories, Story } from './actions';
 
 export function StoryClient() {
     const [stories, setStories] = useState<Story[]>([]);
@@ -49,15 +50,11 @@ export function StoryClient() {
     };
 
     const handleRenameStory = (id: string, newTitle: string) => {
-        setStories(
-            stories.map((story) => (story.id === id ? { ...story, title: newTitle } : story)),
-        );
+        setStories(stories.map((story) => (story.id === id ? { ...story, title: newTitle } : story)));
     };
 
     const handleContentChange = (newContent: string) => {
-        setStories(
-            stories.map((story) => (story.id === activeStoryId ? { ...story, content: newContent } : story)),
-        );
+        setStories(stories.map((story) => (story.id === activeStoryId ? { ...story, content: newContent } : story)));
     };
 
     const handleAddActor = (actor: Actor) => {
@@ -75,10 +72,7 @@ export function StoryClient() {
                 : `${activeStory!.content}\n\n`;
 
         // TODO: Here we would call the agent
-        const continuation =
-            actor.name === 'Rabbit'
-                ? 'It was a sad day.'
-                : 'It was a happy day.';
+        const continuation = actor.name === 'Rabbit' ? 'It was a sad day.' : 'It was a happy day.';
 
         handleContentChange(newContent + continuation);
     };
@@ -174,14 +168,11 @@ export function StoryClient() {
                     </div>
                     <div className="flex-grow p-4">
                         <BookEditor
-                            agentSource={{
-                                title: activeStory.title,
-                                agentDefinition: activeStory.content,
+                            value={validateBook(activeStory.content)}
+                            onChange={(newSource) => {
+                                handleContentChange(newSource);
                             }}
-                            onAgentSourceChange={(newSource) => {
-                                handleContentChange(newSource.agentDefinition);
-                            }}
-                            isReadOnly={false}
+                            isReadonly={false}
                         />
                     </div>
                     <ActorsPanel

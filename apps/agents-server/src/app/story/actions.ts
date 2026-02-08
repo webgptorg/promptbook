@@ -1,5 +1,6 @@
 'use server';
 
+import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import { getCurrentUser } from '@/src/utils/getCurrentUser';
 
@@ -16,9 +17,25 @@ export type Story = {
     actors: Array<Actor>;
 };
 
+async function getUserId(username: string): Promise<number | null> {
+    const supabase = $provideSupabaseForServer();
+    const { data } = await supabase
+        .from(await $getTableName('User'))
+        .select('id')
+        .eq('username', username)
+        .single();
+
+    return data?.id || null;
+}
+
 export async function getStories(): Promise<Array<Story>> {
     const user = await getCurrentUser();
     if (!user) {
+        return [];
+    }
+
+    const userId = await getUserId(user.username);
+    if (!userId) {
         return [];
     }
 
@@ -26,7 +43,7 @@ export async function getStories(): Promise<Array<Story>> {
     const { data, error } = await supabase
         .from('UserData')
         .select('value')
-        .eq('userId', user.id)
+        .eq('userId', userId)
         .eq('key', 'stories')
         .single();
 
@@ -44,11 +61,16 @@ export async function saveStories(stories: Array<Story>) {
         throw new Error('You must be logged in to save stories.');
     }
 
+    const userId = await getUserId(user.username);
+    if (!userId) {
+        throw new Error('User not found in database.');
+    }
+
     const supabase = await $provideSupabaseForServer();
     const { data, error } = await supabase
         .from('UserData')
         .upsert({
-            userId: user.username,
+            userId,
             key: 'stories',
             value: stories,
         })

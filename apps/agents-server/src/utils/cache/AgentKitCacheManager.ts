@@ -388,6 +388,7 @@ export class AgentKitCacheManager {
             type: VECTOR_STORE_EXTERNAL_TYPE,
             hash: vectorStoreHash,
             externalId: vectorStoreId,
+            vendor: 'openai',
         });
 
         if (insertError && insertError.code !== '23505') {
