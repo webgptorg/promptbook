@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/remote-client",
-    "version": "0.110.0-7",
+    "version": "0.110.0-8",
     "description": "Promptbook: Turn your company's scattered knowledge into AI ready books",
     "private": false,
     "sideEffects": false,
@@ -103,6 +103,6 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/remote-client.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.110.0-7"
+        "@promptbook/core": "0.110.0-8"
     }
 }
