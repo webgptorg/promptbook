@@ -17,7 +17,7 @@ import type {
 import type { Usage } from '../../execution/Usage';
 import { computeUsageCounts } from '../../execution/utils/computeUsageCounts';
 import { uncertainNumber } from '../../execution/utils/uncertainNumber';
-import type { Prompt } from '../../types/Prompt';
+import type { ChatPrompt, Prompt } from '../../types/Prompt';
 import type {
     string_date_iso8601,
     string_markdown,
@@ -41,6 +41,41 @@ import {
 } from '../_common/utils/removeUnsupportedModelRequirements';
 import { computeOpenAiUsage } from './computeOpenAiUsage';
 import type { OpenAiCompatibleExecutionToolsNonProxiedOptions } from './OpenAiCompatibleExecutionToolsOptions';
+
+type StructuredCloneFunction = <T>(value: T) => T;
+
+/**
+ * Provides access to the structured clone implementation when available.
+ */
+function getStructuredCloneFunction(): StructuredCloneFunction | undefined {
+    return (globalThis as typeof globalThis & { structuredClone?: StructuredCloneFunction }).structuredClone;
+}
+
+/**
+ * Checks whether the prompt is a chat prompt that carries file attachments.
+ */
+function hasChatPromptFiles(prompt: Prompt): prompt is ChatPrompt & { files: Array<File> } {
+    return 'files' in prompt && Array.isArray((prompt as ChatPrompt).files);
+}
+
+/**
+ * Creates a deep copy of the prompt while keeping attached files intact when structured clone is not available.
+ */
+function clonePromptPreservingFiles(prompt: Prompt): Prompt {
+    const structuredCloneFn = getStructuredCloneFunction();
+
+    if (typeof structuredCloneFn === 'function') {
+        return structuredCloneFn(prompt);
+    }
+
+    const clonedPrompt: Prompt = JSON.parse(JSON.stringify(prompt));
+
+    if (hasChatPromptFiles(prompt)) {
+        (clonedPrompt as ChatPrompt).files = prompt.files;
+    }
+
+    return clonedPrompt;
+}
 
 /**
  * Execution Tools for calling OpenAI API or other OpenAI compatible provider
@@ -154,7 +189,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
         onProgress: (chunk: ChatPromptResult) => void,
     ): Promise<ChatPromptResult> {
         // Deep clone prompt and modelRequirements to avoid mutation across calls
-        const clonedPrompt: Prompt = JSON.parse(JSON.stringify(prompt));
+        const clonedPrompt: Prompt = clonePromptPreservingFiles(prompt);
         // Use local Set for retried parameters to ensure independence and thread safety
         const retriedUnsupportedParameters = new Set<string>();
         return this.callChatModelWithRetry(
