@@ -1,5 +1,6 @@
 ### 📚 Book
 
+-   Leveraged Vibrations API in the chat to provide haptic feedback in sync with the sound system.
 -   Allow to make agent public / private agent from its context menu on the Agent profile page / right click of the agent.
 
 -   Migrated Promptbook Agents to OpenAI AgentKit: added AgentKit execution tools with shared vector store handling, updated Agents Server caching to store AgentKit vector stores in `preparedExternals`, and refreshed playground samples.

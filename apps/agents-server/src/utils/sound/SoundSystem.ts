@@ -154,6 +154,8 @@ export class SoundSystem implements ChatSoundSystem {
             return;
         }
 
+        this.vibrate(event);
+
         const audioElements = this.sounds.get(event as SoundEvent);
         const config = this.soundConfigs.get(event as SoundEvent);
 
@@ -201,6 +203,35 @@ export class SoundSystem implements ChatSoundSystem {
             };
         } catch (error) {
             console.warn(`Failed to play sound for event "${event}":`, error);
+        }
+    }
+
+    /**
+     * Triggers a vibration pattern based on the event
+     *
+     * @param event - The sound event to vibrate for
+     */
+    public vibrate(event: string): void {
+        if (!this.enabled) {
+            return;
+        }
+
+        if (typeof window !== 'undefined' && 'vibrate' in navigator) {
+            // Note: Add more specific vibration patterns for different events
+            switch (event as SoundEvent) {
+                case 'message_send':
+                    navigator.vibrate(100);
+                    break;
+                case 'message_receive':
+                    navigator.vibrate([100, 50, 100]);
+                    break;
+                case 'button_click':
+                    navigator.vibrate(50);
+                    break;
+                default:
+                    // No vibration for other events
+                    break;
+            }
         }
     }
 
