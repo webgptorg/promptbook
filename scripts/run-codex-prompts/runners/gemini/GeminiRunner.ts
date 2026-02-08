@@ -29,7 +29,7 @@ export class GeminiRunner implements PromptRunner {
             scriptContent,
         });
 
-        const usage = parseGeminiUsageFromOutput(output);
+        const usage = parseGeminiUsageFromOutput(output, options.prompt);
 
         return { usage };
     }

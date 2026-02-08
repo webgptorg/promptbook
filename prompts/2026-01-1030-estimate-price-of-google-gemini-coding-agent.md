@@ -1,4 +1,4 @@
-[ ] !!!!!!!!!!!!!!!!!!!!!
+[x] ~$0.00 by Gemini CLI
 
 [✨🦔] Estimate the price of the Google Gemini coding runner.
 
@@ -36,3 +36,4 @@
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the [changelog](./changelog/_current-preversion.md)
+
