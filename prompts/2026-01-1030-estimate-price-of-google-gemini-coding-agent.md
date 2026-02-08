@@ -1,4 +1,8 @@
-[x] ~$0.00 by Gemini CLI
+[x] ~$0.00 by Gemini CLI - failed
+
+---
+
+[ ]
 
 [✨🦔] Estimate the price of the Google Gemini coding runner.
 
@@ -7,7 +11,6 @@
 -   For example from the logs and amount of text generated, you can estimate how many tokens were generated and then multiply it by the price per token for Gemini.
 -   Coding script shouldn't be changed in any other way. It should stay the same, only better reporting of the price in one coding runner.
 -   You are working with the [coding agent script](./scripts/run-codex-prompts/run-codex-prompts.ts)
--   For the inspiration look at `C:/Users/me/work/hejny/batch-project-editor/src/utils/forPlay.ts`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
 ---
@@ -36,4 +39,3 @@
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the [changelog](./changelog/_current-preversion.md)
-
