@@ -21,6 +21,20 @@
 
 ---
 
+[ ] !!!
+
+[✨🦂] Add `vendor` column to table `AgentExternals`
+
+-   There is a table `AgentExternals`
+-   This store external references to external systems.
+-   Add column `vendor` to this table to be able to distinguish which external system is used, for example `OPENAI`, `GOOGLE`, `AZURE`,...
+-   Now we are only using `OPENAI` for `VECTOR_STORE`, but in future we can use other vendors for vector stores or other types of externals, so it is good to have this column to be able to distinguish them.
+-   Create database migration for the change
+    -   Migrations are located in `/apps/agents-server/src/database/migrations`
+    -   Be aware that table names in migrations have prefix `prefix_` _(look at existing migrations for reference)_
+
+---
+
 [ ] !!!!!!!!!!!
 
 [✨🦂] Enhance the caching of Large Vector Stores created on OpenAI.

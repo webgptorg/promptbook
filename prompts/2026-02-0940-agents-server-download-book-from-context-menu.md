@@ -1,6 +1,20 @@
+[ ]
+
+[✨😆] foo
+
+-   @@@
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   You are working with the [Agents Server](apps/agents-server)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+![alt text](prompts/screenshots/2026-02-0940-agents-server-download-book-from-context-menu.png)
+![alt text](prompts/screenshots/2026-02-0940-agents-server-download-book-from-context-menu-1.png)
+
+---
+
 [-]
 
-[✨🏪] baz
+[✨😆] foo
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
@@ -10,7 +24,7 @@
 
 [-]
 
-[✨🏪] baz
+[✨😆] foo
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
@@ -20,17 +34,7 @@
 
 [-]
 
-[✨🏪] baz
-
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   You are working with the [Agents Server](apps/agents-server)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
-
----
-
-[-]
-
-[✨🏪] baz
+[✨😆] foo
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
