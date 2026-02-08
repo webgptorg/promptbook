@@ -114,6 +114,7 @@ export type AgentsServerDatabase = {
                     type: string;
                     hash: string;
                     externalId: string;
+                    vendor: string;
                 };
                 Insert: {
                     id?: number;
@@ -122,6 +123,7 @@ export type AgentsServerDatabase = {
                     type: string;
                     hash: string;
                     externalId: string;
+                    vendor: string;
                 };
                 Update: {
                     id?: number;
@@ -130,6 +132,7 @@ export type AgentsServerDatabase = {
                     type?: string;
                     hash?: string;
                     externalId?: string;
+                    vendor?: string;
                 };
                 Relationships: [];
             };
