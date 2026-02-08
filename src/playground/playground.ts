@@ -1,19 +1,11 @@
 #!/usr/bin/env ts-node
 
 import * as dotenv from 'dotenv';
+
 dotenv.config({ path: '.env' });
 
-import {
-    Agent as AgentFromKit,
-    fileSearchTool,
-    run,
-    setDefaultOpenAIClient,
-    setDefaultOpenAIKey,
-} from '@openai/agents';
 import colors from 'colors';
-import OpenAI from 'openai';
 import { join } from 'path';
-import { TODO_any } from '../_packages/types.index';
 
 if (process.cwd() !== join(__dirname, '../..')) {
     console.error(colors.red(`CWD must be root of the project`));
@@ -36,39 +28,11 @@ async function playground() {
     // Do here stuff you want to test
     //========================================>
 
-    const VECTOR_STORE_ID = 'vs_6985a2d7cc348191b145accb64de533f';
-    const USER_PROMPT = 'Jaké je číslo na Technika požární ochrany?';
-
-    if (!process.env.OPENAI_API_KEY) {
-        throw new Error('Missing OPENAI_API_KEY env var.');
-    }
-
-    // Official OpenAI SDK client
-    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
-    // Wire the official OpenAI client into the Agents SDK (AgentKit runtime)
-    setDefaultOpenAIKey(process.env.OPENAI_API_KEY);
-    setDefaultOpenAIClient(openai as TODO_any); // typings may differ across versions
-
-    // AgentKit agent (in-code) + attach Vector Store via hosted file_search tool
-    const agent = new AgentFromKit({
-        name: 'Praha13 Knowledge Agent',
-        model: 'gpt-5.2',
-        instructions:
-            'Odpovídej česky. Používej file_search k vyhledání odpovědi v knowledge base. Když to v datech není, řekni že to nevíš.',
-        tools: [fileSearchTool(VECTOR_STORE_ID)],
-    });
-
-    // Run the agent once (no server, just a script)
-    const result = await run(agent, USER_PROMPT);
-
-    console.log('\n=== AGENT RESPONSE ===\n');
-    console.log(result.finalOutput || '(No output)');
-
     //========================================/
 
     console.info(`[ Done 🧸  Playground ]`);
 }
+
 
 /**
  * Note: [⚫] Code in this file should never be published in any package
