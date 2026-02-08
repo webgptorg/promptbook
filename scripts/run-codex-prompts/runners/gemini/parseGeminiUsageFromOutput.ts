@@ -1,6 +1,7 @@
 import colors from 'colors';
 import type { Usage } from '../../../../src/execution/Usage';
-import { UNCERTAIN_USAGE } from '../../../../src/execution/utils/usage-constants';
+import { uncertainNumber } from '../../../../src/execution/utils/uncertainNumber';
+import { UNCERTAIN_USAGE, UNCERTAIN_ZERO_VALUE } from '../../../../src/execution/utils/usage-constants';
 import { CHARS_PER_TOKEN, GEMINI_MODEL_FOR_ESTIMATION, GEMINI_PRICING } from './gemini-pricing';
 
 /**
@@ -17,12 +18,20 @@ export function parseGeminiUsageFromOutput(output: string, prompt: string): Usag
         const inputTokens = Math.ceil(prompt.length / CHARS_PER_TOKEN);
         const outputTokens = Math.ceil(output.length / CHARS_PER_TOKEN);
 
-        const price = (inputTokens / 1_000_000) * pricing.input + (outputTokens / 1_000_000) * pricing.output;
+        const price = uncertainNumber(
+            (inputTokens / 1_000_000) * pricing.input + (outputTokens / 1_000_000) * pricing.output,
+        );
 
         return {
             price,
-            inputTokens,
-            outputTokens,
+            input: UNCERTAIN_ZERO_VALUE,
+            output: UNCERTAIN_ZERO_VALUE,
+            // input: {
+            //     tokensCount: uncertainNumber(inputTokens),
+            // },
+            // output: {
+            //     tokensCount: uncertainNumber(outputTokens),
+            // },
         };
     } catch (error) {
         console.error(colors.bgRed('Error parsing Gemini usage output:'), error);
