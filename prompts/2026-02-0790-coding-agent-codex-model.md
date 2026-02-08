@@ -1,4 +1,4 @@
-[ ]
+[x]
 
 [✨🎮] Allow to specify model in coding agent when using `--agent openai-codex`
 

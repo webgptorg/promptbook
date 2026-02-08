@@ -1,5 +1,7 @@
 import colors from 'colors';
+import moment from 'moment';
 import { join } from 'path';
+import { OPENAI_MODELS } from '../../../src/llm-providers/openai/openai-models';
 import { just } from '../../../src/utils/organization/just';
 import type { RunOptions } from '../cli/RunOptions';
 import { parseRunOptions } from '../cli/parseRunOptions';
@@ -27,11 +29,10 @@ import { ClineRunner } from '../runners/cline/ClineRunner';
 import { GeminiRunner } from '../runners/gemini/GeminiRunner';
 import { OpenAiCodexRunner } from '../runners/openai-codex/OpenAiCodexRunner';
 import { OpencodeRunner } from '../runners/opencode/OpencodeRunner';
-import moment from 'moment';
 import type { PromptRunner } from '../runners/types/PromptRunner';
 
 const PROMPTS_DIR = join(process.cwd(), 'prompts');
-const CODEX_MODEL = 'gpt-5.2-codex';
+const DEFAULT_CODEX_MODEL = 'gpt-5.2-codex';
 const CLINE_MODEL = 'gemini:gemini-3-flash-preview';
 
 const RUNNER_LABELS: Record<RunOptions['agentName'], string> = {
@@ -53,12 +54,12 @@ type RunnerMetadata = {
 /**
  * Resolves runner metadata for prompt status lines.
  */
-function getRunnerMetadata(options: RunOptions): RunnerMetadata {
+function getRunnerMetadata(options: RunOptions, actualModel?: string): RunnerMetadata {
     const runnerName = RUNNER_LABELS[options.agentName] ?? 'unknown';
     let modelName: string | undefined;
 
     if (options.agentName === 'openai-codex') {
-        modelName = CODEX_MODEL;
+        modelName = actualModel;
     } else if (options.agentName === 'cline') {
         modelName = CLINE_MODEL;
     } else if (options.agentName === 'opencode') {
@@ -76,11 +77,35 @@ export async function runCodexPrompts(): Promise<void> {
     listenForPause();
 
     let runner: PromptRunner;
+    let actualCodexModel: string | undefined;
 
     if (options.agentName === 'openai-codex') {
+        // Resolve the model to use
+        let modelToUse: string;
+        if (!options.model) {
+            // Show available models and exit
+            console.error(colors.red('Error: --model is required when using --agent openai-codex'));
+            console.error('');
+            console.error(colors.cyan('Available models:'));
+            const codexModels = OPENAI_MODELS.filter((m) => m.modelVariant === 'CHAT').map((m) => m.modelName);
+            codexModels.forEach((model) => {
+                console.error(colors.gray(`  - ${model}`));
+            });
+            console.error('');
+            console.error(colors.cyan('Example usage:'));
+            console.error(colors.gray(`  --agent openai-codex --model gpt-5.2-codex`));
+            console.error(colors.gray(`  --agent openai-codex --model default`));
+            process.exit(1);
+        } else if (options.model === 'default') {
+            modelToUse = DEFAULT_CODEX_MODEL;
+        } else {
+            modelToUse = options.model;
+        }
+
+        actualCodexModel = modelToUse;
         runner = new OpenAiCodexRunner({
             codexCommand: 'codex',
-            model: CODEX_MODEL,
+            model: modelToUse,
             sandbox: 'danger-full-access',
             askForApproval: 'never',
         });
@@ -101,7 +126,7 @@ export async function runCodexPrompts(): Promise<void> {
     }
 
     console.info(colors.green(`Running prompts with ${runner.name}`));
-    const runnerMetadata = getRunnerMetadata(options);
+    const runnerMetadata = getRunnerMetadata(options, actualCodexModel);
 
     let hasShownUpcomingTasks = false;
     let hasWaitedForStart = false;
@@ -157,7 +182,14 @@ export async function runCodexPrompts(): Promise<void> {
             projectPath: process.cwd(),
         });
 
-        markPromptDone(nextPrompt.file, nextPrompt.section, result.usage, runnerMetadata.runnerName, runnerMetadata.modelName, promptExecutionStartedDate);
+        markPromptDone(
+            nextPrompt.file,
+            nextPrompt.section,
+            result.usage,
+            runnerMetadata.runnerName,
+            runnerMetadata.modelName,
+            promptExecutionStartedDate,
+        );
         await writePromptFile(nextPrompt.file);
 
         if (options.waitForUser) {
