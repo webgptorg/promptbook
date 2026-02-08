@@ -67,6 +67,7 @@
 -   Fixed Agents Server chat markdown rendering for sublists by normalizing unordered list indentation under ordered items.
 -   Deduplicated Agents Server chat source chips so repeated document sources show only once per message.
 -   Deduplicated tool call chips in Agents Server chat by stabilizing tool call identities across partial updates.
+-   Grouped identical ongoing tool call chips in Agents Server chat so concurrent tool runs collapse into a single chip with a count.
 -   Fixed drag-and-drop uploads in the Agents Server create-agent dialog by reusing the shared BookEditor upload handler.
 -   Fixed document source citation in Agents Server chat:
     -   Resolved issue where clicking on KNOWLEDGE source chips showed "Document preview unavailable" instead of the actual document

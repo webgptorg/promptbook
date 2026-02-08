@@ -139,6 +139,130 @@ function resolveTeamAgentChipData(
 }
 
 /**
+ * Ongoing tool call entry used for grouping.
+ */
+type OngoingToolCall = NonNullable<ChatMessage['ongoingToolCalls']>[number];
+
+/**
+ * Grouped ongoing tool call metadata for rendering.
+ */
+type OngoingToolCallGroup = {
+    /**
+     * Stable key for the grouped tool call entry.
+     */
+    key: string;
+    /**
+     * Representative tool call for the group.
+     */
+    toolCall: OngoingToolCall;
+    /**
+     * Number of ongoing tool calls in this group.
+     */
+    count: number;
+    /**
+     * Optional display title for the tool call chip.
+     */
+    displayTitle?: string;
+    /**
+     * Emoji used for the tool call chip.
+     */
+    emoji: string;
+    /**
+     * Optional agent data for TEAM tool calls.
+     */
+    teamAgentData: AgentChipData | null;
+};
+
+/**
+ * Appends a count suffix when multiple ongoing tool calls share the same group.
+ */
+function appendOngoingToolCallCount(label: string, count: number): string {
+    if (count <= 1) {
+        return label;
+    }
+
+    return `${label} (${count}x)`;
+}
+
+/**
+ * Builds the label for an ongoing tool call group.
+ */
+function buildOngoingToolCallLabel(group: OngoingToolCallGroup): string {
+    const baseLabel = group.displayTitle || `Executing ${group.toolCall.name}`;
+    return appendOngoingToolCallCount(baseLabel, group.count);
+}
+
+/**
+ * Extracts the assistant preparation phase for grouping, when present.
+ */
+function getOngoingToolCallPreparationPhase(toolCall: OngoingToolCall): string | undefined {
+    if (!isAssistantPreparationToolCall(toolCall)) {
+        return undefined;
+    }
+
+    const toolArguments = parseToolCallArguments(toolCall);
+    return typeof toolArguments.phase === 'string' ? toolArguments.phase : undefined;
+}
+
+/**
+ * Builds a stable grouping key for ongoing tool calls.
+ */
+function getOngoingToolCallGroupKey(toolCall: OngoingToolCall, preparationPhase?: string): string {
+    return `${toolCall.name}::${preparationPhase || ''}`;
+}
+
+/**
+ * Groups ongoing tool calls by tool identity to avoid duplicate chips.
+ */
+function groupOngoingToolCalls(
+    toolCalls: ReadonlyArray<OngoingToolCall> | undefined,
+    toolTitles: Record<string, string> | undefined,
+    teammates: TeammatesMap | undefined,
+): Array<OngoingToolCallGroup> {
+    if (!toolCalls || toolCalls.length === 0) {
+        return [];
+    }
+
+    const grouped = new Map<string, OngoingToolCallGroup>();
+    const ordered: Array<OngoingToolCallGroup> = [];
+
+    for (const toolCall of toolCalls) {
+        const preparationPhase = getOngoingToolCallPreparationPhase(toolCall);
+        const groupKey = getOngoingToolCallGroupKey(toolCall, preparationPhase);
+        const existing = grouped.get(groupKey);
+
+        if (existing) {
+            existing.count += 1;
+            continue;
+        }
+
+        const toolInfo = TOOL_TITLES[toolCall.name];
+        const isTeamTool = isTeamToolName(toolCall.name);
+        const toolTitle =
+            toolTitles?.[toolCall.name] ||
+            toolInfo?.title ||
+            (isTeamTool ? 'Consulting teammate' : undefined);
+        const displayTitle = preparationPhase ? `${toolTitle || toolCall.name}: ${preparationPhase}` : toolTitle;
+        const emoji = isTeamTool ? '??' : toolInfo?.emoji || '???';
+        const teamAgentData = resolveTeamAgentChipData(toolCall, teammates);
+
+        const group: OngoingToolCallGroup = {
+            key: groupKey,
+            toolCall,
+            count: 1,
+            displayTitle,
+            emoji,
+            teamAgentData,
+        };
+
+        grouped.set(groupKey, group);
+        ordered.push(group);
+    }
+
+    return ordered;
+}
+
+/**
  * Renders a single chat message item with avatar, content, buttons, and rating.
  *
  * @private internal subcomponent of `<Chat>` component
@@ -266,6 +390,10 @@ export const ChatMessageItem = memo(
         const teamToolCallSummary = useMemo(() => collectTeamToolCallSummary(completedToolCalls), [completedToolCalls]);
         const transitiveToolCalls = teamToolCallSummary.toolCalls;
         const transitiveCitations = teamToolCallSummary.citations;
+        const ongoingToolCallGroups = useMemo(
+            () => groupOngoingToolCalls(message.ongoingToolCalls, toolTitles, teammates),
+            [message.ongoingToolCalls, toolTitles, teammates],
+        );
         const shouldShowButtons = isLastMessage && buttons.length > 0 && onMessage;
 
         // Extract citations from message content
@@ -566,41 +694,29 @@ export const ChatMessageItem = memo(
                             </div>
                         )}
 
-                        {!isComplete && message.ongoingToolCalls && message.ongoingToolCalls.length > 0 && (
+                        {!isComplete && ongoingToolCallGroups.length > 0 && (
                             <div className={styles.ongoingToolCalls}>
-                                {message.ongoingToolCalls.map((toolCall, index) => {
-                                    const toolInfo = TOOL_TITLES[toolCall.name];
-                                    const isTeamTool = isTeamToolName(toolCall.name);
-                                    const teamAgentData = resolveTeamAgentChipData(toolCall, teammates);
-                                    const toolArguments = parseToolCallArguments(toolCall);
-                                    const preparationPhase =
-                                        isAssistantPreparationToolCall(toolCall) &&
-                                        typeof toolArguments.phase === 'string'
-                                            ? toolArguments.phase
-                                            : undefined;
+                                {ongoingToolCallGroups.map((group) => {
+                                    if (group.teamAgentData) {
+                                        const labelSuffix = group.count > 1 ? ` (${group.count}x)` : '';
 
-                                    // If this is a team tool with teammate data, use AgentChip
-                                    if (teamAgentData) {
-                                        return <AgentChip key={index} agent={teamAgentData} isOngoing={true} />;
+                                        return (
+                                            <AgentChip
+                                                key={group.key}
+                                                agent={group.teamAgentData}
+                                                isOngoing={true}
+                                                labelSuffix={labelSuffix}
+                                            />
+                                        );
                                     }
 
-                                    // Otherwise, use the old style
-                                    const toolTitle =
-                                        toolTitles?.[toolCall.name] ||
-                                        toolInfo?.title ||
-                                        (isTeamTool ? 'Consulting teammate' : undefined);
-                                    const displayTitle = preparationPhase
-                                        ? `${toolTitle || toolCall.name}: ${preparationPhase}`
-                                        : toolTitle;
-                                    const emoji = isTeamTool ? '🤝' : toolInfo?.emoji || '🛠️';
+                                    const label = buildOngoingToolCallLabel(group);
 
                                     return (
-                                        <div key={index} className={styles.ongoingToolCall}>
+                                        <div key={group.key} className={styles.ongoingToolCall}>
                                             <div className={styles.ongoingToolCallSpinner} />
                                             <span className={styles.ongoingToolCallName}>
-                                                {displayTitle
-                                                    ? `${emoji} ${displayTitle}...`
-                                                    : `${emoji} Executing ${toolCall.name}...`}
+                                                {`${group.emoji} ${label}...`}
                                             </span>
                                         </div>
                                     );
@@ -710,6 +826,10 @@ export const ChatMessageItem = memo(
         }
 
         if (prev.message.completedToolCalls !== next.message.completedToolCalls) {
+            return false;
+        }
+
+        if (prev.message.ongoingToolCalls !== next.message.ongoingToolCalls) {
             return false;
         }
 

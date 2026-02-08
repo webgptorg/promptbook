@@ -58,6 +58,11 @@ export type AgentChipProps = {
      * Additional CSS class name
      */
     className?: string;
+
+    /**
+     * Optional suffix appended to the agent label (e.g., " (2x)").
+     */
+    labelSuffix?: string;
 };
 
 /**
@@ -78,7 +83,14 @@ export type AgentChipProps = {
  *
  * @private utility of `ChatMessageItem` component
  */
-export function AgentChip({ agent, isOngoing = false, isClickable = false, onClick, className }: AgentChipProps) {
+export function AgentChip({
+    agent,
+    isOngoing = false,
+    isClickable = false,
+    onClick,
+    className,
+    labelSuffix = '',
+}: AgentChipProps) {
     const [imageUrl, setImageUrl] = useState<string | null>(() => resolveAgentProfileFallback(agent).imageUrl);
     const [agentLabel, setAgentLabel] = useState<string>(() => resolveAgentProfileFallback(agent).label);
 
@@ -130,7 +142,10 @@ export function AgentChip({ agent, isOngoing = false, isClickable = false, onCli
                 </div>
             )}
 
-            <span className={styles.label}>{agentLabel}</span>
+            <span className={styles.label}>
+                {agentLabel}
+                {labelSuffix}
+            </span>
         </div>
     );
 }
