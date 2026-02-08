@@ -5,6 +5,7 @@ import type { RunOptions } from '../cli/RunOptions';
 import { parseRunOptions } from '../cli/parseRunOptions';
 import { printCommitMessage } from '../common/printCommitMessage';
 import { waitForEnter } from '../common/waitForEnter';
+import { checkPause, listenForPause } from '../common/waitForPause';
 import { commitChanges } from '../git/commitChanges';
 import { ensureWorkingTreeClean } from '../git/ensureWorkingTreeClean';
 import { buildCodexPrompt } from '../prompts/buildCodexPrompt';
@@ -71,6 +72,7 @@ function getRunnerMetadata(options: RunOptions): RunnerMetadata {
  */
 export async function runCodexPrompts(): Promise<void> {
     const options = parseRunOptions(process.argv.slice(2));
+    listenForPause();
 
     let runner: PromptRunner;
 
@@ -104,6 +106,7 @@ export async function runCodexPrompts(): Promise<void> {
     let hasWaitedForStart = false;
 
     while (just(true)) {
+        await checkPause();
         const promptFiles = await loadPromptFiles(PROMPTS_DIR);
         const stats = summarizePrompts(promptFiles);
         printStats(stats);
