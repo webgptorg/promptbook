@@ -35,6 +35,22 @@
 
 ---
 
+[ ]
+
+[✨🦂] Add `note` column to table `AgentExternals`
+
+-   There is a table `AgentExternals`
+-   This store external references to external systems.
+-   Add column `note` to this table to be able to store additional information about the external.
+-   Now we are only using `OPENAI` for `VECTOR_STORE`, in the note there should be agent name which created the vector store and listed files which are in this vector store, so we didn't need to manually look via the ID.
+-   This is only a note which isn't changing the behavior of the externals or caching in any way.
+-   When there are two agents with the same knowledgebase, the first one to create this vector store will have its signature in the note. The second one won't have its signature in the note because the vector store will be cached -This is the correct behavior.
+-   Create database migration for the change
+    -   Migrations are located in `/apps/agents-server/src/database/migrations`
+    -   Be aware that table names in migrations have prefix `prefix_` _(look at existing migrations for reference)_
+
+---
+
 [ ] !!!!!!!!!!!
 
 [✨🦂] Enhance the caching of Large Vector Stores created on OpenAI.
@@ -1658,4 +1674,3 @@ POST /agents/RLcP3snv2ifR3H/api/chat 200 in 35932ms
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the [changelog](./changelog/_current-preversion.md)
-
