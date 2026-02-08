@@ -2,7 +2,7 @@
 
 ---
 
-[ ]
+[ ] !!!!!!!!!!!!!!!
 
 [✨🦔] Estimate the price of the Google Gemini coding runner.
 
@@ -10,6 +10,7 @@
 -   Try to better estimate the price of the coding runner when using Gemini. It doesn't have to be 100% accurate, but it should be better than $0.00.
 -   For example from the logs and amount of text generated, you can estimate how many tokens were generated and then multiply it by the price per token for Gemini.
 -   Coding script shouldn't be changed in any other way. It should stay the same, only better reporting of the price in one coding runner.
+-   This was already attempted in the previous run but not working
 -   You are working with the [coding agent script](./scripts/run-codex-prompts/run-codex-prompts.ts)
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
