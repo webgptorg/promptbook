@@ -43,7 +43,7 @@ playground()
 async function playground() {
     // Create underlying OpenAI tools
 
-    const nonce = '(0)';
+    const nonce = '(1)';
     const isVerbose = true;
 
     /*/
