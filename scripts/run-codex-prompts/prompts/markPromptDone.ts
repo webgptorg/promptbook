@@ -1,3 +1,4 @@
+import moment from 'moment';
 import type { Usage } from '../../../src/execution/Usage';
 import { formatUsagePrice } from '../common/formatUsagePrice';
 import type { PromptFile } from './types/PromptFile';
@@ -12,6 +13,7 @@ export function markPromptDone(
     usage: Usage,
     runnerName: string | undefined,
     modelName: string | undefined,
+    promptExecutionStartedDate: moment.Moment,
 ): void {
     if (section.statusLineIndex === undefined) {
         throw new Error(`Prompt ${section.index + 1} in ${file.name} does not have a status line.`);
@@ -21,8 +23,11 @@ export function markPromptDone(
     const priceString = formatUsagePrice(usage);
     const runnerSignature = formatRunnerSignature(runnerName, modelName);
 
-    // Replace "[ ]" or "[ ] !!..." with "[x] $price by runner"
-    file.lines[section.statusLineIndex] = line.replace(/\[\s*\]\s*!*\s*$/, `[x] ${priceString} by ${runnerSignature}`);
+    const duration = moment().diff(promptExecutionStartedDate);
+    const durationString = moment.duration(duration).humanize();
+
+    // Replace "[ ]" or "[ ] !!..." with "[x] $price duration by runner"
+    file.lines[section.statusLineIndex] = line.replace(/\[\s*\]\s*!*\s*$/, `[x] ${priceString} ${durationString} by ${runnerSignature}`);
 }
 
 /**

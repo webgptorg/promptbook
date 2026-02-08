@@ -27,6 +27,7 @@ import { ClineRunner } from '../runners/cline/ClineRunner';
 import { GeminiRunner } from '../runners/gemini/GeminiRunner';
 import { OpenAiCodexRunner } from '../runners/openai-codex/OpenAiCodexRunner';
 import { OpencodeRunner } from '../runners/opencode/OpencodeRunner';
+import moment from 'moment';
 import type { PromptRunner } from '../runners/types/PromptRunner';
 
 const PROMPTS_DIR = join(process.cwd(), 'prompts');
@@ -149,13 +150,14 @@ export async function runCodexPrompts(): Promise<void> {
 
         console.info(colors.blue(`Processing ${promptLabel}`));
 
+        const promptExecutionStartedDate = moment();
         const result = await runner.runPrompt({
             prompt: codexPrompt,
             scriptPath,
             projectPath: process.cwd(),
         });
 
-        markPromptDone(nextPrompt.file, nextPrompt.section, result.usage, runnerMetadata.runnerName, runnerMetadata.modelName);
+        markPromptDone(nextPrompt.file, nextPrompt.section, result.usage, runnerMetadata.runnerName, runnerMetadata.modelName, promptExecutionStartedDate);
         await writePromptFile(nextPrompt.file);
 
         if (options.waitForUser) {
