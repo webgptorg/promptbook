@@ -12,6 +12,11 @@ mapa multivesmíru
 agi
 
 
+všimněte si že tohle není smyčka doplňování tokenu ale jaká jsi metasmyčka 
+
+tohle je velmi důležitý prvek fungování v počítačovém světě za balíme abstrakce do abstrakcí do abstrakcí
+
+
 
 ## Předmluva
 
