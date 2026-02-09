@@ -2,7 +2,7 @@
 
 ---
 
-[ ] !!!!!!!!!!
+[x] ~$0.32 12 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
 [✨🦮] OpenAI compatibility mode of the agent server should respect the `response_format`
 
@@ -70,4 +70,5 @@ $ curl https://chutoo-test.ptbk.io/agents/NybzgAFteBo2zz/api/openai/v1/chat/comp
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
 

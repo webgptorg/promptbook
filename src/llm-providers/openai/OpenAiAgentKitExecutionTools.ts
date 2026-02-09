@@ -33,9 +33,87 @@ import type { chococake } from '../../utils/organization/really_any';
 import { templateParameters } from '../../utils/parameters/templateParameters';
 import type { OpenAiAgentKitExecutionToolsOptions } from './OpenAiAgentKitExecutionToolsOptions';
 import type { OpenAiCompatibleExecutionToolsNonProxiedOptions } from './OpenAiCompatibleExecutionToolsOptions';
+import type { AgentOutputType, JsonSchemaDefinition, JsonSchemaDefinitionEntry } from '@openai/agents-core';
+import type { ChatCompletionCreateParamsNonStreaming } from 'openai';
 import { OpenAiVectorStoreHandler } from './OpenAiVectorStoreHandler';
 
 const DEFAULT_AGENT_KIT_MODEL_NAME = 'gpt-5.2' as string_model_name;
+
+type OpenAiChatResponseFormat =
+    ChatCompletionCreateParamsNonStreaming['response_format'];
+
+const DEFAULT_JSON_SCHEMA_NAME = 'StructuredOutput';
+
+const EMPTY_JSON_SCHEMA: JsonSchemaDefinition['schema'] = {
+    type: 'object',
+    properties: {},
+    required: [],
+    additionalProperties: true,
+};
+
+function buildJsonSchemaDefinition(
+    jsonSchema?: {
+        name?: string;
+        strict?: boolean | null;
+        schema?: {
+            description?: string;
+            additionalProperties?: boolean;
+            properties?: Record<string, JsonSchemaDefinitionEntry>;
+            required?: Array<string>;
+        };
+    },
+): JsonSchemaDefinition {
+    const schema = jsonSchema?.schema ?? {};
+
+    return {
+        type: 'json_schema',
+        name: jsonSchema?.name ?? DEFAULT_JSON_SCHEMA_NAME,
+        strict: Boolean(jsonSchema?.strict),
+        schema: {
+            type: 'object',
+            properties: (schema.properties ?? {}) as Record<string, JsonSchemaDefinitionEntry>,
+            required: Array.isArray(schema.required) ? schema.required : [],
+            additionalProperties:
+                schema.additionalProperties === undefined
+                    ? true
+                    : Boolean(schema.additionalProperties),
+            description: schema.description,
+        },
+    };
+}
+
+/**
+ * Maps OpenAI response_format payloads to Agent output types so the AgentKit runner
+ * can forward the user's structured-output preference to OpenAI.
+ */
+function mapResponseFormatToAgentOutputType(
+    responseFormat?: OpenAiChatResponseFormat,
+): AgentOutputType | undefined {
+    if (!responseFormat) {
+        return undefined;
+    }
+
+    if (typeof responseFormat === 'string') {
+        if (responseFormat === 'text') {
+            return 'text';
+        }
+        if (responseFormat === 'json_schema' || responseFormat === 'json_object') {
+            return buildJsonSchemaDefinition();
+        }
+        return 'text';
+    }
+
+    switch (responseFormat.type) {
+        case 'text':
+            return 'text';
+        case 'json_schema':
+            return buildJsonSchemaDefinition(responseFormat.json_schema);
+        case 'json_object':
+            return buildJsonSchemaDefinition();
+        default:
+            return undefined;
+    }
+}
 
 /**
  * Alias for OpenAI AgentKit agent to avoid naming confusion with Promptbook agents.
@@ -109,6 +187,10 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
             modelName: this.agentKitModelName,
         });
 
+        const responseFormatOutputType = mapResponseFormatToAgentOutputType(
+            modelRequirements.responseFormat,
+        );
+
         const preparedAgentKitAgent = await this.prepareAgentKitAgent({
             name: (prompt.title || 'Agent') as string_title,
             instructions: modelRequirements.systemMessage || '',
@@ -121,6 +203,7 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
             prompt,
             rawPromptContent,
             onProgress,
+            responseFormatOutputType,
         });
     }
 
@@ -349,6 +432,7 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
         readonly prompt: Prompt;
         readonly rawPromptContent?: string;
         readonly onProgress: (chunk: ChatPromptResult) => void;
+        readonly responseFormatOutputType?: AgentOutputType;
     }): Promise<ChatPromptResult> {
         const { openAiAgentKitAgent, prompt, onProgress } = options;
         const rawPromptContent =
@@ -357,6 +441,13 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
                 ...prompt.parameters,
                 modelName: this.agentKitModelName,
             });
+        const agentForRun =
+            options.responseFormatOutputType !== undefined
+                ? openAiAgentKitAgent.clone({
+                      outputType: options.responseFormatOutputType,
+                  })
+                : openAiAgentKitAgent;
+
         const start: string_date_iso8601 = $getCurrentDate();
         let latestContent = '';
         const toolCalls: ToolCall[] = [];
@@ -364,11 +455,11 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
 
         const inputItems = await this.buildAgentKitInputItems(prompt, rawPromptContent);
         const rawRequest: chococake = {
-            agentName: openAiAgentKitAgent.name,
+            agentName: agentForRun.name,
             input: inputItems,
         };
 
-        const streamResult = await run(openAiAgentKitAgent, inputItems, {
+        const streamResult = await run(agentForRun, inputItems, {
             stream: true,
             context: { parameters: prompt.parameters },
         });
