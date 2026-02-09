@@ -1,4 +1,4 @@
-[ ]
+[ ] !
 
 [✨📚] The agent uses some tool and show the tool calling chip. Play the sound and use the vibration.
 

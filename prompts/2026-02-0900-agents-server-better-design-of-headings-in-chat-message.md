@@ -28,7 +28,7 @@
 
 ---
 
-[ ]
+[ ] !
 
 [✨🤧] When there is a link in the chat message, the link should be underlined.
 
