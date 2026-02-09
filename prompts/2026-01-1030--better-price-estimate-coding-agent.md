@@ -23,6 +23,7 @@
 
 -   Better estimate price when using `--agent openai-codex --model gpt-5.1-codex-mini`
 -   For model `gpt-5.1-codex-mini` it reported ~$4.00 but was really $0.3 - multiple times 0.075x to get the real price.
+-   There was 711,043 tokens used
 -   The price for the OpenAI codecs should be per model.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the [changelog](./changelog/_current-preversion.md)
