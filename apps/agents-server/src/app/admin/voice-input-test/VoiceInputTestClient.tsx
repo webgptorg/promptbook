@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { BrowserSpeechRecognition } from '../../../../../../src/speech-recognition/BrowserSpeechRecognition';
 import { OpenAiSpeechRecognition } from '../../../../../../src/speech-recognition/OpenAiSpeechRecognition';
 import { SpeechRecognition, SpeechRecognitionEvent } from '../../../../../../src/types/SpeechRecognition';
+import { resolveSpeechRecognitionLanguage } from '../../../../../../src/utils/language/getPreferredSpeechRecognitionLanguage';
 
 export function VoiceInputTestClient() {
     const [transcribedText, setTranscribedText] = useState('');
@@ -36,7 +37,8 @@ export function VoiceInputTestClient() {
                 }
             });
 
-            speechRecognitionRef.current.$start({ language: 'en-US' });
+            const language = resolveSpeechRecognitionLanguage();
+            speechRecognitionRef.current.$start({ language });
             setIsRecording(true);
         }
     };

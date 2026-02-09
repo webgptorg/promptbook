@@ -11,11 +11,13 @@ import { generateAgentMetadata } from '../generateAgentMetadata';
 import { AgentBookAndChat } from './AgentBookAndChat';
 import { DeletedAgentBanner } from '../../../../components/DeletedAgentBanner';
 import { getThinkingMessages } from '@/src/utils/thinkingMessages';
+import { resolveSpeechRecognitionLanguage } from '../../../../../../../src/utils/language/getPreferredSpeechRecognitionLanguage';
 
 export const generateMetadata = generateAgentMetadata;
 
 export default async function AgentBookAndChatPage({ params }: { params: Promise<{ agentName: string }> }) {
-    $sideEffect(headers());
+    const requestHeaders = await headers();
+    $sideEffect(requestHeaders);
 
     let { agentName } = await params;
     agentName = decodeURIComponent(agentName);
@@ -39,6 +41,9 @@ export default async function AgentBookAndChatPage({ params }: { params: Promise
     const agentSource = await collection.getAgentSource(agentName);
     const agentUrl = `/agents/${agentName}`;
     const thinkingMessages = await getThinkingMessages();
+    const speechRecognitionLanguage = resolveSpeechRecognitionLanguage({
+        acceptLanguageHeader: requestHeaders.get('accept-language'),
+    });
 
     return (
         <div className={`w-screen h-[calc(100vh-60px)] relative`}>
@@ -48,6 +53,7 @@ export default async function AgentBookAndChatPage({ params }: { params: Promise
                 initialAgentSource={agentSource}
                 agentUrl={agentUrl}
                 thinkingMessages={thinkingMessages}
+                speechRecognitionLanguage={speechRecognitionLanguage}
             />
         </div>
     );

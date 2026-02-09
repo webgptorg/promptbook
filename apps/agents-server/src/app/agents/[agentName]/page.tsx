@@ -5,6 +5,7 @@ import { isUserAdmin } from '@/src/utils/isUserAdmin';
 import { saturate } from '@promptbook-local/color';
 import { NotFoundError, PROMPTBOOK_COLOR } from '@promptbook-local/core';
 import { notFound } from 'next/navigation';
+import { headers } from 'next/headers';
 import { Color } from '../../../../../../src/utils/color/Color';
 import { resolveAgentAvatarImageUrl } from '../../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 import { DeletedAgentBanner } from '../../../components/DeletedAgentBanner';
@@ -16,6 +17,7 @@ import { AgentProfileChat } from './AgentProfileChat';
 import { AgentProfileWrapper } from './AgentProfileWrapper';
 import { generateAgentMetadata } from './generateAgentMetadata';
 import { ServiceWorkerRegister } from './ServiceWorkerRegister';
+import { resolveSpeechRecognitionLanguage } from '../../../../../../src/utils/language/getPreferredSpeechRecognitionLanguage';
 
 export const generateMetadata = generateAgentMetadata;
 
@@ -34,6 +36,10 @@ export default async function AgentPage({
     searchParams: Promise<{ headless?: string }>;
 }) {
     const agentName = await getAgentName(params);
+    const requestHeaders = await headers();
+    const speechRecognitionLanguage = resolveSpeechRecognitionLanguage({
+        acceptLanguageHeader: requestHeaders.get('accept-language'),
+    });
     const isAdmin = await isUserAdmin();
     const { headless: headlessParam } = await searchParams;
     const isHeadless = headlessParam !== undefined;
@@ -111,11 +117,12 @@ export default async function AgentPage({
                     fullname={fullname}
                     brandColorHex={brandColorHex}
                     avatarSrc={
-                        resolveAgentAvatarImageUrl({ agent: agentProfile, baseUrl: publicUrl.href }) ||
-                        `/agents/${encodeURIComponent(agentProfile.permanentId || agentName)}/images/default-avatar.png`
-                    }
-                    isDeleted={isDeleted}
-                />
+                resolveAgentAvatarImageUrl({ agent: agentProfile, baseUrl: publicUrl.href }) ||
+                `/agents/${encodeURIComponent(agentProfile.permanentId || agentName)}/images/default-avatar.png`
+            }
+            isDeleted={isDeleted}
+            speechRecognitionLanguage={speechRecognitionLanguage}
+        />
             </AgentProfileWrapper>
         </>
     );

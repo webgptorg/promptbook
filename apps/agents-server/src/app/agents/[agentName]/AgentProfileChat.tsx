@@ -23,6 +23,7 @@ type AgentProfileChatProps = {
     brandColorHex: string_color;
     avatarSrc: string;
     isDeleted?: boolean;
+    speechRecognitionLanguage?: string;
 };
 
 export function AgentProfileChat({
@@ -32,6 +33,7 @@ export function AgentProfileChat({
     brandColorHex,
     avatarSrc,
     isDeleted = false,
+    speechRecognitionLanguage,
 }: AgentProfileChatProps) {
     const router = useRouter();
     const [isCreatingAgent, setIsCreatingAgent] = useState(false);
@@ -147,6 +149,7 @@ export function AgentProfileChat({
                 buttonColor={brandColorHex}
                 style={{ background: 'transparent' }}
                 speechRecognition={speechRecognition}
+                speechRecognitionLanguage={speechRecognitionLanguage}
                 visual={'STANDALONE'}
             />
         </div>

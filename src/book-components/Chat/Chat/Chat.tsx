@@ -14,6 +14,7 @@ import { useChatActionsOverlap } from '../hooks/useChatActionsOverlap';
 import { useChatAutoScroll } from '../hooks/useChatAutoScroll';
 import { useChatRatings } from '../hooks/useChatRatings';
 import type { ChatMessage } from '../types/ChatMessage';
+import type { id } from '../../../types/typeAliases';
 import type { ParsedCitation } from '../utils/parseCitationsFromContent';
 import { ChatActionsBar } from './ChatActionsBar';
 import { ChatCitationModal } from './ChatCitationModal';
@@ -69,6 +70,7 @@ export function Chat(props: ChatProps) {
         visual,
         effectConfigs,
         soundSystem,
+        speechRecognitionLanguage,
     } = props;
 
     const buttonColor = useMemo(() => Color.from(buttonColorRaw || '#0066cc'), [buttonColorRaw]);
@@ -167,7 +169,7 @@ export function Chat(props: ChatProps) {
         !!extraActions;
 
     const previousMessagesLengthRef = useRef(messages.length);
-    const streamingMessageIdRef = useRef<string | null>(null);
+    const streamingMessageIdRef = useRef<id | null>(null);
     const streamingMessageContentRef = useRef<string | null>(null);
 
     useEffect(() => {
@@ -217,8 +219,10 @@ export function Chat(props: ChatProps) {
             return;
         }
 
-        if (streamingMessageIdRef.current !== lastMessage.id) {
-            streamingMessageIdRef.current = lastMessage.id;
+        const lastMessageId = lastMessage.id ?? null;
+
+        if (streamingMessageIdRef.current !== lastMessageId) {
+            streamingMessageIdRef.current = lastMessageId;
             streamingMessageContentRef.current = lastMessage.content;
             return;
         }
@@ -331,6 +335,7 @@ export function Chat(props: ChatProps) {
                             onChange={onChange}
                             onFileUpload={onFileUpload}
                             speechRecognition={speechRecognition}
+                            speechRecognitionLanguage={speechRecognitionLanguage}
                             defaultMessage={defaultMessage}
                             placeholderMessageContent={placeholderMessageContent}
                             isFocusedOnLoad={isFocusedOnLoad}

@@ -86,6 +86,12 @@ export type ChatProps = {
     readonly speechRecognition?: SpeechRecognition;
 
     /**
+     * Optional language tag (BCP 47) to force speech recognition to use a specific language.
+     * When not provided, the browser preferences are used with a fallback to `en-US`.
+     */
+    readonly speechRecognitionLanguage?: string;
+
+    /**
      * Optional placeholder message for the textarea
      *
      * @default "Write a message"

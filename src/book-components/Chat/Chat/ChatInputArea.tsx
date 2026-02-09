@@ -3,6 +3,7 @@
 import {
     useCallback,
     useEffect,
+    useMemo,
     useRef,
     useState,
     type CSSProperties,
@@ -28,6 +29,7 @@ import { SendIcon } from '../../icons/SendIcon';
 import type { ChatParticipant } from '../types/ChatParticipant';
 import type { ChatProps, ChatSoundSystem } from './ChatProps';
 import styles from './Chat.module.css';
+import { resolveSpeechRecognitionLanguage } from '../../../utils/language/getPreferredSpeechRecognitionLanguage';
 
 /**
  * Wrapper for consistent button-click sound handling.
@@ -59,6 +61,7 @@ export type ChatInputAreaProps = {
     onChange?: ChatProps['onChange'];
     onFileUpload?: ChatProps['onFileUpload'];
     speechRecognition?: ChatProps['speechRecognition'];
+    speechRecognitionLanguage?: ChatProps['speechRecognitionLanguage'];
     defaultMessage?: string;
     placeholderMessageContent?: string;
     isFocusedOnLoad?: boolean;
@@ -82,6 +85,7 @@ export function ChatInputArea(props: ChatInputAreaProps) {
         onChange,
         onFileUpload,
         speechRecognition,
+        speechRecognitionLanguage,
         defaultMessage,
         placeholderMessageContent,
         isFocusedOnLoad,
@@ -99,6 +103,10 @@ export function ChatInputArea(props: ChatInputAreaProps) {
     const [isDragOver, setIsDragOver] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const [speechRecognitionState, setSpeechRecognitionState] = useState<SpeechRecognitionState>('IDLE');
+    const resolvedSpeechRecognitionLanguage = useMemo(
+        () => resolveSpeechRecognitionLanguage({ overrideLanguage: speechRecognitionLanguage }),
+        [speechRecognitionLanguage],
+    );
 
     useEffect(
         (/* Focus textarea on page load */) => {
@@ -154,11 +162,11 @@ export function ChatInputArea(props: ChatInputAreaProps) {
         }
 
         if (speechRecognition.state === 'IDLE' || speechRecognition.state === 'ERROR') {
-            speechRecognition.$start({ language: 'en' });
+            speechRecognition.$start({ language: resolvedSpeechRecognitionLanguage });
         } else {
             speechRecognition.$stop();
         }
-    }, [speechRecognition]);
+    }, [speechRecognition, resolvedSpeechRecognitionLanguage]);
 
     const handleFileUpload = useCallback(
         async (files: FileList | File[]) => {
