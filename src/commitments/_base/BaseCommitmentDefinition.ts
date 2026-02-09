@@ -110,6 +110,41 @@ export abstract class BaseCommitmentDefinition<TBookCommitment extends string> i
     }
 
     /**
+     * Helper method to create a new requirements object with updated prompt suffix
+     */
+    protected updatePromptSufix(
+        requirements: AgentModelRequirements,
+        contentUpdate: string | ((currentSufix: string) => string),
+    ): AgentModelRequirements {
+        const newSufix =
+            typeof contentUpdate === 'string'
+                ? contentUpdate
+                : contentUpdate(requirements.promptSufix);
+
+        return {
+            ...requirements,
+            promptSufix: newSufix,
+        };
+    }
+
+    /**
+     * Helper method to append content to the prompt suffix
+     * Default separator is a single newline for bullet lists.
+     */
+    protected appendToPromptSufix(
+        requirements: AgentModelRequirements,
+        content: string,
+        separator: string = '\n',
+    ): AgentModelRequirements {
+        return this.updatePromptSufix(requirements, (currentSufix) => {
+            if (!currentSufix.trim()) {
+                return content;
+            }
+            return `${currentSufix}${separator}${content}`;
+        });
+    }
+
+    /**
      * Helper method to add a comment section to the system message
      * Comments are lines starting with # that will be removed from the final system message
      * but can be useful for organizing and structuring the message during processing

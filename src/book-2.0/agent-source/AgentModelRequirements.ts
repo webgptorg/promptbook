@@ -14,6 +14,14 @@ export type AgentModelRequirements = {
     readonly systemMessage: string;
 
     /**
+     * Text appended to every user prompt after the user's input and before tools/messages.
+     *
+     * This allows commitments to emphasize important rules or reminders that should be
+     * visible in the prompt in addition to the system message.
+     */
+    readonly promptSufix: string;
+
+    /**
      * The model name to use for this agent
      */
     readonly modelName: string;

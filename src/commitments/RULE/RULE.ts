@@ -83,8 +83,19 @@ export class RuleCommitmentDefinition extends BaseCommitmentDefinition<'RULE' | 
 
         // Add rule to the system message
         const ruleSection = `Rule: ${trimmedContent}`;
+        const requirementsWithRule = this.appendToSystemMessage(requirements, ruleSection, '\n\n');
 
-        return this.appendToSystemMessage(requirements, ruleSection, '\n\n');
+        const ruleLines = trimmedContent
+            .split(/\r?\n/)
+            .map((line) => line.trim())
+            .filter(Boolean)
+            .map((line) => `- ${line}`);
+
+        if (ruleLines.length === 0) {
+            return requirementsWithRule;
+        }
+
+        return this.appendToPromptSufix(requirementsWithRule, ruleLines.join('\n'));
     }
 }
 

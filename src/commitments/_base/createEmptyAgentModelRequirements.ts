@@ -10,6 +10,7 @@ import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentMo
 export function createEmptyAgentModelRequirements(): AgentModelRequirements {
     return {
         systemMessage: '',
+        promptSufix: '',
         // modelName: 'gpt-5',
         modelName: 'gemini-2.5-flash-lite', // <- TODO: !!! Pick best model in agents NOT the default one
         temperature: 0.7,

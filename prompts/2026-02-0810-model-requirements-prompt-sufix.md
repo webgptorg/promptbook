@@ -1,4 +1,4 @@
-[ ] !!
+[x] ~$0.16 6 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
 [✨🍻] Add `promptSufix` to `AgentModelRequirements`
 
@@ -61,3 +61,4 @@
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the [changelog](./changelog/_current-preversion.md)
+
