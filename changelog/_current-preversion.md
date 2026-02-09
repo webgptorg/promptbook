@@ -61,6 +61,7 @@
 -   Added a configurable Markdown message (via metadata) shown above the agents list on the Agents Server homepage.
 -   Added `AGENT_NAMING` metadata to customize agent terminology (singular/plural) across the Agents Server UI with casing-aware replacements.
 -   Added `THINKING_MESSAGES` metadata so admins can set slash-delimited placeholder variants (default `Thinking... / Searching for information... / Sorting information...`) that rotate while an agent is composing a reply.
+-   Agents Server chat now samples a random `THINKING_MESSAGES` variant each time an agent starts thinking and then switches to another random variant every 1-5 seconds until the agent finish streaming its reply, giving the thinking placeholder a lively, ever-changing feel.
 -   Scoped the Agents Server homepage message and federated agents to the root view, and updated folder headings to show the folder name with per-folder agent counts.
 -   Added a shared Agents Server context menu with right-click support on agent cards, plus rename actions reused on agent profile pages.
 -   Added an "Open Folder" action to the Agents Server agent context menu (profile menu and right click) to jump to the agent's folder for management.

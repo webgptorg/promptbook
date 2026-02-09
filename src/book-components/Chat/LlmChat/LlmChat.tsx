@@ -72,6 +72,40 @@ function buildTeammatesMapFromCapabilities(capabilities: Array<AgentCapability> 
     return buildTeammatesMap(teamEntries);
 }
 
+const THINKING_MESSAGE_DELAY_MIN_MS = 1000;
+const THINKING_MESSAGE_DELAY_MAX_MS = 5000;
+
+/**
+ * Returns a random duration (in milliseconds) between the configured minimum and maximum
+ * thinking message display time.
+ */
+function getRandomThinkingDelayMs(): number {
+    const range = THINKING_MESSAGE_DELAY_MAX_MS - THINKING_MESSAGE_DELAY_MIN_MS;
+    return Math.floor(Math.random() * (range + 1)) + THINKING_MESSAGE_DELAY_MIN_MS;
+}
+
+/**
+ * Selects a random thinking message variant, preferring one that differs from the previously
+ * shown variant when possible.
+ *
+ * @param variants List of available thinking message variants.
+ * @param excludeVariant Message to avoid repeating immediately (optional).
+ */
+function getRandomThinkingVariant(variants: ReadonlyArray<string>, excludeVariant?: string): string {
+    if (variants.length === 0) {
+        return '';
+    }
+
+    const candidates =
+        excludeVariant && variants.length > 1 ? variants.filter((variant) => variant !== excludeVariant) : variants;
+
+    if (candidates.length === 0) {
+        return variants[0]!;
+    }
+
+    return candidates[Math.floor(Math.random() * candidates.length)]!;
+}
+
 /**
  * LlmChat component that provides chat functionality with LLM integration
  *
@@ -249,8 +283,7 @@ export function LlmChat(props: LlmChatProps) {
             };
 
             // Add loading message for assistant
-            const thinkingVariant =
-                thinkingVariants[Math.floor(Math.random() * thinkingVariants.length)];
+            const thinkingVariant = getRandomThinkingVariant(thinkingVariants);
             const loadingMessage: ChatMessage = {
                 // channel: 'PROMPTBOOK_CHAT',
                 id: `assistant_${Date.now()}`,
@@ -259,6 +292,47 @@ export function LlmChat(props: LlmChatProps) {
                 content: thinkingVariant as string_markdown,
                 isComplete: false,
             };
+
+            let thinkingRotationTimer: ReturnType<typeof setTimeout> | null = null;
+            let isThinkingRotationActive = thinkingVariants.length > 1;
+            let currentRotationVariant = thinkingVariant;
+
+            const stopThinkingRotation = () => {
+                isThinkingRotationActive = false;
+                if (thinkingRotationTimer !== null) {
+                    clearTimeout(thinkingRotationTimer);
+                    thinkingRotationTimer = null;
+                }
+            };
+
+            const scheduleNextThinkingVariant = () => {
+                if (!isThinkingRotationActive) {
+                    return;
+                }
+
+                thinkingRotationTimer = setTimeout(() => {
+                    if (!isThinkingRotationActive) {
+                        return;
+                    }
+
+                    const nextVariant = getRandomThinkingVariant(thinkingVariants, currentRotationVariant);
+                    currentRotationVariant = nextVariant;
+
+                    setMessages((prev) =>
+                        prev.map((msg) =>
+                            msg.id === loadingMessage.id && !msg.isComplete
+                                ? { ...msg, content: nextVariant as string_markdown }
+                                : msg,
+                        ),
+                    );
+
+                    scheduleNextThinkingVariant();
+                }, getRandomThinkingDelayMs());
+            };
+
+            if (isThinkingRotationActive) {
+                scheduleNextThinkingVariant();
+            }
 
             // Functional update: Append both messages at once
             setMessages((prev) => [...prev, userMessage, loadingMessage]);
@@ -293,6 +367,7 @@ export function LlmChat(props: LlmChatProps) {
 
                 if (llmTools.callChatModelStream) {
                     result = await llmTools.callChatModelStream(prompt, (chunk) => {
+                        stopThinkingRotation();
                         const assistantMessage: ChatMessage = {
                             // channel: 'PROMPTBOOK_CHAT',
                             id: loadingMessage.id,
@@ -321,6 +396,8 @@ export function LlmChat(props: LlmChatProps) {
                     throw new Error('The agent did not respond.');
                 }
 
+                stopThinkingRotation();
+
                 // Replace loading message with actual response
                 const generationDurationMs = Date.now() - generationStartedAtMs;
                 const assistantMessage: ChatMessage = {
@@ -345,6 +422,8 @@ export function LlmChat(props: LlmChatProps) {
             } catch (error) {
                 // Log raw error for debugging
                 console.error('Error calling LLM:', error);
+
+                stopThinkingRotation();
 
                 // Store the failed message for retry functionality
                 setLastFailedMessage({ content: messageContent, attachments });
