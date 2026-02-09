@@ -4,7 +4,20 @@
 
 ## Todos 
 
-kódování tokeny vektorový prostor attention 
+
+každá kapitola by měla mít nějaký vtipný a poutavý název 
+
+
+každá kapitola bude v rámci jedné kategorie 
+
+matematický nebo it princip
+konkrétní technologie 
+společenský dopad
+
+
+
+
+kódování hamming coding a komprese tokeny dimenze vektorový prostor attention 
 
 temperature a doplňovací smyčka
 
@@ -30,6 +43,10 @@ trénování se nebudu zabývat budu se zabývat pouze tím jak to funguje Ne ja
 
 
 vibecoding 
+
+šifrování 
+shamir
+bip
 
 
 
