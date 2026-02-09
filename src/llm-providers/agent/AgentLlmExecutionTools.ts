@@ -290,8 +290,14 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
         let underlyingLlmResult: CommonPromptResult;
 
         // Create modified chat prompt with agent system message
+        const promptSuffix = sanitizedRequirements.promptSufix?.trim();
+        const chatPromptContentWithSuffix: string_prompt = promptSuffix
+            ? `${chatPrompt.content}\n\n${promptSuffix}` as string_prompt
+            : (chatPrompt.content as string_prompt);
+
         const promptWithAgentModelRequirements: ChatPrompt = {
             ...chatPrompt,
+            content: chatPromptContentWithSuffix,
             modelRequirements: {
                 ...chatPrompt.modelRequirements,
                 ...sanitizedRequirements,
