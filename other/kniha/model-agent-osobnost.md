@@ -296,3 +296,6 @@ Je to posun od jednotlivého nástroje k prostředí. Od jedné inteligence k ce
 ### Jsi úžasný
 
 @@@
+
+
+### Enbodyment
