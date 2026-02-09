@@ -39,10 +39,26 @@ ces":[{"index":0,"message":{"role":"assistant","content":"Hello! How can I assis
 
 ---
 
-[-]
+[ ]
 
-[✨🎏] brr
+[✨🎏] Fix the `usage.details` in the Agents Server OpenAI Compatibility mode.
 
+```bash
+$ curl https://chutoo-test.ptbk.io/agents/NybzgAFteBo2zz/api/openai/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer ptbk_726c2caba55544c385ee389fa4294eb7" \
+  -d '{
+    "model": "agent:NybzgAFteBo2zz",
+    "messages": [
+      { "role": "user", "content": "Ahoj" }
+    ]
+  }'
+{"id":"chatcmpl-9kr4gx562yu","object":"chat.completion","created":1770635465,"model":"agent:NybzgAFteBo2zz","choices":[{"index":0,"message":{"role":"assistant","content":"Ahoj! Jak se dnes máš?\n\n[😟 Nic moc](?message=Nic%20moc.)\n[😐 Jde to](?message=Jde%20to.)\n[🙂 Skvěle](?message=Skv%C4%9Ble%2C%20poj%C4%8Fme%20na%20to)"},"finish_reason":"stop"}],"usage":{"prompt_tokens":1,"completion_tokens":29,"total_tokens":30,"details":{"price":{"value":0,"isUncertain":true},"input":{"tokensCount":{"value":0,"isUncertain":true},"charactersCount":{"value":0,"isUncertain":true},"wordsCount":{"value":0,"isUncertain":true},"linesCount":{"value":0,"isUncertain":true},"sentencesCount":{"value":0,"isUncertain":true},"paragraphsCount":{"value":0,"isUncertain":true},"pagesCount":{"value":0,"isUncertain":true}},"output":{"tokensCount":{"value":0,"isUncertain":true},"charactersCount":{"value":0,"isUncertain":true},"wordsCount":{"value":0,"isUncertain":true},"linesCount":{"value":0,"isUncertain":true},"sentencesCount":{"value":0,"isUncertain":true},"paragraphsCount":{"value":0,"isUncertain":true},"pagesCount":{"value":0,"isUncertain":true}}}}}
+```
+
+-   Now Everything is 0,0,0,0,...
+-   The `usage.details` should be filled with the correct values for both input and output.
+-   Use the available utility functions to aggregate the real usage and compute the words, lines, paragraphs, etc.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
@@ -66,4 +82,3 @@ ces":[{"index":0,"message":{"role":"assistant","content":"Hello! How can I assis
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-

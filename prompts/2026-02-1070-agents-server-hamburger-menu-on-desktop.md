@@ -1,31 +1,20 @@
-[x] ~$0.37 by OpenAI Codex `gpt-5.2-codex`
-
----
-
 [ ]
 
-[✨🪄] Agents are not loaded after login but only after refreshing the page
+[✨📪] Do not show the hamburger menu in the desktop where it isn't needed and isn't used.
 
--   When you log in to the agent server, the agents are not loaded until you refresh the page. Please fix this issue so that the agents are loaded immediately after login without needing to refresh.
--   You have implemented this in the past but it is not working correctly.
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   There is a hamburger menu which is working perfectly in the mobile layout.
+-   This hamburger menu is for some reason also in the desktop layout where it has no function.
+-   Remove the hamburger menu from the desktop layout and only show it in the mobile layout where it is needed.
 -   You are working with the [Agents Server](apps/agents-server)
+
+![alt text](prompts/screenshots/2026-02-1070-agents-server-hamburger-menu-on-desktop.png)
+![alt text](prompts/screenshots/2026-02-1070-agents-server-hamburger-menu-on-desktop-1.png)
 
 ---
 
 [-]
 
-[✨🪄] bar
-
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   You are working with the [Agents Server](apps/agents-server)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
-
----
-
-[-]
-
-[✨🪄] bar
+[✨📪] qux
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
@@ -35,7 +24,17 @@
 
 [-]
 
-[✨🪄] bar
+[✨📪] qux
+
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   You are working with the [Agents Server](apps/agents-server)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+---
+
+[-]
+
+[✨📪] qux
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)

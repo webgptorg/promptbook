@@ -51,11 +51,10 @@
 
 ---
 
-[ ] !!!!!!!!!!!
+[ ] !
 
-[✨🦂] Enhance the caching of Large Vector Stores created on OpenAI.
+[✨🦂] Enhance the caching of Vector Stores with lot of items or/and large files created on OpenAI.
 
--   (@@@ - Maybe not such a problem)
 -   Caching of the vector stores is working, but the computation of the vector store hash key takes sooooooo long _(see the logs below)_
 -   Create database migration for the change if needed
     -   Migrations are located in `/apps/agents-server/src/database/migrations`
@@ -1674,4 +1673,3 @@ POST /agents/RLcP3snv2ifR3H/api/chat 200 in 35932ms
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the [changelog](./changelog/_current-preversion.md)
-

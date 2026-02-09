@@ -13,13 +13,14 @@
 
 ---
 
-[-]
+[ ]
 
-[✨🏪] baz
+[✨🏪] Randomly vary the `THINKING_MESSAGES` message.
 
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Which is shown when the agent is thinking, it is taken from the metadata `THINKING_MESSAGES` which is a list of messages.
+-   Each time the agent receives a message and starts thinking, it should randomly select one of the messages from the `THINKING_MESSAGES` list and display it to the user.
+-   BUT vary this also on the fly, keep each message randomly from 1s to 5s and then switch to another message from the list, so the user can see different messages while the agent is thinking.
 -   You are working with the [Agents Server](apps/agents-server)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
 
@@ -40,4 +41,3 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-

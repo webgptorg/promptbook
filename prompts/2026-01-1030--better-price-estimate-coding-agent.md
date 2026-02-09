@@ -17,10 +17,13 @@
 
 ---
 
-[-]
+[ ] !!!
 
-[✨🦔] qux
+[✨🦔] Enhanced price estimation
 
+-   Better estimate price when using `--agent openai-codex --model gpt-5.1-codex-mini`
+-   For model `gpt-5.1-codex-mini` it reported ~@@@ but was really @@@ - divided by @@@
+-   The price for the OpenAI codecs should be per model.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the [changelog](./changelog/_current-preversion.md)
 
