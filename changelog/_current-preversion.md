@@ -6,6 +6,7 @@
 -   Added explicit drag handles to the Agents Server homepage cards so touchscreens can scroll freely while drag-and-drop remains pinned to a clearly marked handle that also works for folders.
 -   The error dialog when the chat fails ("Connection Issue") now has an option to reset the chat with the same message sent to a fresh chat.
 -   Show error message when the agent returns an empty message.
+-   Enabled `\\(...\\)` and `\\[...\\]` LaTeX delimiters in chat markdown so inline and block formulas render with the existing KaTeX pipeline, matching `$...$`/`$$...$$` behavior and keeping the shared renderer reusable across chat/agent components.
 -   Preserved file attachments when cloning prompts for OpenAI chat so playground uploads keep their `arrayBuffer` after the OpenAI 6.18.0 upgrade.
 -   Re-styled Markdown headings inside chat bubbles as card-like sections powered by new shared heading tokens, keeping the typography and spacing consistent with the rest of the Agents Server UI.
 -   Underlined inline links inside Agents Server chat bubbles so URLs stay recognizable now that the heading tiles use card-style backgrounds.

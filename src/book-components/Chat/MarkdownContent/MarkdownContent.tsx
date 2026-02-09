@@ -132,29 +132,51 @@ function createChatMarkdownConverter(): ShowdownConverter {
  */
 const chatMarkdownConverter = createChatMarkdownConverter();
 
+type MathDelimiterDefinition = {
+    regex: RegExp;
+    displayMode: boolean;
+};
+
+const mathDelimiterDefinitions: ReadonlyArray<MathDelimiterDefinition> = [
+    { regex: /(^|[^\\])\$\$([\s\S]+?)\$\$/g, displayMode: true },
+    { regex: /(^|[^\\])\\\[([\s\S]+?)\\\]/g, displayMode: true },
+    { regex: /(^|[^\\])\\\(([\s\S]+?)\\\)/g, displayMode: false },
+    { regex: /(^|[^\\])\$([^$\n]+?)\$/g, displayMode: false },
+];
+
+function replaceMathDelimiter(md: string, delimiter: MathDelimiterDefinition): string {
+    return md.replace(delimiter.regex, (...args) => {
+        const match = args[0] ?? '';
+        const prefix = args[1] ?? '';
+        const math = args[2] ?? '';
+
+        if (!math) {
+            return match;
+        }
+
+        try {
+            const rendered = katex.renderToString(math, {
+                displayMode: delimiter.displayMode,
+                throwOnError: false,
+            });
+            return `${prefix}${rendered}`;
+        } catch {
+            return match;
+        }
+    });
+}
+
 /**
- * Renders math expressions in markdown using KaTeX
+ * Renders math expressions in markdown using KaTeX for the supported delimiter pairs.
+ *
+ * Supported delimiters: `$$...$$`, `\[...\]`, `\(...\)`, and `$...$`.
  *
  * @private utility of `MarkdownContent` component
  */
 function renderMathInMarkdown(md: string): string {
-    md = md.replace(/(^|[^\\])\$\$([\s\S]+?)\$\$/g, (match, prefix, math) => {
-        try {
-            const rendered = katex.renderToString(math, { displayMode: true, throwOnError: false });
-            return prefix + rendered;
-        } catch {
-            return match;
-        }
-    });
-    md = md.replace(/(^|[^\\])\$([^$\n]+?)\$/g, (match, prefix, math) => {
-        if (/^\s*$/.test(math)) return match;
-        try {
-            const rendered = katex.renderToString(math, { displayMode: false, throwOnError: false });
-            return prefix + rendered;
-        } catch {
-            return match;
-        }
-    });
+    for (const delimiter of mathDelimiterDefinitions) {
+        md = replaceMathDelimiter(md, delimiter);
+    }
     md = md.replace(/\\$/g, '$');
     return md;
 }
