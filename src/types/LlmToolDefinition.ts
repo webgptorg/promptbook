@@ -23,5 +23,6 @@ export type LlmToolDefinition = {
         readonly type: 'object';
         readonly properties: Record<string, { type: string; description?: string }>;
         readonly required?: string[];
+        readonly additionalProperties?: boolean;
     };
 };

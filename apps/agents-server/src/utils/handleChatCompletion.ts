@@ -5,9 +5,11 @@ import { $provideOpenAiAgentKitExecutionToolsForServer } from '@/src/tools/$prov
 import { ensureNonEmptyChatContent } from '@/src/utils/chat/ensureNonEmptyChatContent';
 import { createChatStreamHandler } from '@/src/utils/createChatStreamHandler';
 import { Agent, computeAgentHash, PROMPTBOOK_ENGINE_VERSION } from '@promptbook-local/core';
+import type OpenAI from 'openai';
 import type {
     ChatMessage,
-    Prompt,
+    ChatPrompt,
+    LlmToolDefinition,
     string_book,
     TODO_any,
     UncertainNumber,
@@ -84,6 +86,85 @@ function createCompatibilityUsage(
     };
 }
 
+type OpenAIChatToolDefinition = OpenAI.Chat.Completions.ChatCompletionTool & OpenAI.Beta.AssistantTool;
+
+function convertOpenAiTools(rawTools: unknown): Array<LlmToolDefinition> | undefined {
+    if (!Array.isArray(rawTools)) {
+        return undefined;
+    }
+
+    const converted = rawTools
+        .map((tool) => convertOpenAiTool(tool))
+        .filter((tool): tool is LlmToolDefinition => tool !== null);
+
+    return converted.length > 0 ? converted : undefined;
+}
+
+function convertOpenAiTool(rawTool: unknown): LlmToolDefinition | null {
+    const tool = rawTool as OpenAIChatToolDefinition;
+    if (!tool || tool.type !== 'function') {
+        return null;
+    }
+
+    const functionDefinition = tool.function;
+    if (!functionDefinition) {
+        return null;
+    }
+
+    const { name, description, parameters } = functionDefinition;
+    if (typeof name !== 'string' || name.trim().length === 0) {
+        return null;
+    }
+
+    const parameterSchema = parameters ?? {};
+    if (parameterSchema.type !== 'object') {
+        return null;
+    }
+
+    const properties = parameterSchema.properties ?? {};
+    const normalizedProperties: Record<string, { type: string; description?: string }> = {};
+
+    for (const [key, value] of Object.entries(properties)) {
+        if (!value || typeof value !== 'object') {
+            continue;
+        }
+
+        normalizedProperties[key] = {
+            type: typeof value.type === 'string' ? value.type : 'string',
+            description: typeof value.description === 'string' ? value.description : undefined,
+        };
+    }
+
+    const required =
+        Array.isArray(parameterSchema.required) && parameterSchema.required.length > 0
+            ? parameterSchema.required.filter((item): item is string => typeof item === 'string')
+            : undefined;
+
+    return {
+        name,
+        description: typeof description === 'string' ? description : '',
+        parameters: {
+            type: 'object',
+            properties: normalizedProperties,
+            required,
+            additionalProperties:
+                typeof parameterSchema.additionalProperties === 'boolean'
+                    ? parameterSchema.additionalProperties
+                    : undefined,
+        },
+    };
+}
+
+function parseOpenAiToolChoice(
+    value: unknown,
+): OpenAI.Chat.Completions.ChatCompletionToolChoiceOption | undefined {
+    if (value === undefined || value === null) {
+        return undefined;
+    }
+
+    return value as OpenAI.Chat.Completions.ChatCompletionToolChoiceOption;
+}
+
 export async function handleChatCompletion(
     request: NextRequest,
     params: { agentName?: string },
@@ -108,7 +189,16 @@ export async function handleChatCompletion(
 
     try {
         const body = await request.json();
-        const { messages, stream, model, response_format: responseFormat } = body;
+        const {
+            messages,
+            stream,
+            model,
+            response_format: responseFormat,
+            tools: rawTools,
+            tool_choice: toolChoice,
+        } = body;
+        const runtimeTools = convertOpenAiTools(rawTools);
+        const runtimeToolChoice = parseOpenAiToolChoice(toolChoice);
 
         const agentName = agentNameFromParams || model;
 
@@ -234,6 +324,13 @@ export async function handleChatCompletion(
             teacherAgent: null, // <- TODO: [🦋] DRY place to provide the teacher
         });
 
+        if (runtimeToolChoice !== undefined) {
+            agent.modelSettings = {
+                ...(agent.modelSettings ?? {}),
+                toolChoice: runtimeToolChoice,
+            };
+        }
+
         const userAgent = request.headers.get('user-agent');
         const ip =
             request.headers.get('x-forwarded-for') ||
@@ -284,21 +381,21 @@ export async function handleChatCompletion(
                 apiKey,
             });
 
-        const prompt: Prompt = {
+        const prompt: ChatPrompt = {
             title,
             content: lastMessage.content,
             modelRequirements: {
                 modelVariant: 'CHAT',
                 responseFormat,
+                toolChoice: runtimeToolChoice,
                 // We could pass 'model' from body if we wanted to enforce it, but Agent usually has its own config
             },
             parameters: {
                 timezone,
             },
             thread,
-        } as Prompt;
-        // Note: Casting as Prompt because the type definition might require properties we don't strictly use or that are optional but TS complains
-
+            ...(runtimeTools ? { tools: runtimeTools } : {}),
+        };
         if (stream) {
             const encoder = new TextEncoder();
             const readableStream = new ReadableStream({

@@ -72,6 +72,11 @@ export type ChatModelRequirements = CommonModelRequirements & {
      * Optional OpenAI `response_format` override that should be forwarded to compatible APIs.
      */
     readonly responseFormat?: OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming['response_format'];
+
+    /**
+     * Optional OpenAI `tool_choice` override that should be forwarded to compatible APIs.
+     */
+    readonly toolChoice?: OpenAI.Chat.Completions.ChatCompletionToolChoiceOption;
 };
 
 /**
