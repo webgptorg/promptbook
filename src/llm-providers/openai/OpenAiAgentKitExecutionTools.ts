@@ -457,9 +457,9 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
                 modelName: this.agentKitModelName,
             });
         const agentForRun =
-            options.responseFormatOutputType !== undefined && options.responseFormatOutputType === 'text'
+            options.responseFormatOutputType !== undefined
                 ? openAiAgentKitAgent.clone({
-                      outputType: options.responseFormatOutputType,
+                      outputType: options.responseFormatOutputType as TODO_any,
                   })
                 : openAiAgentKitAgent;
 
