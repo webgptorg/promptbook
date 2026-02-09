@@ -11,10 +11,11 @@ type AgentBookAndChatProps = {
     agentName: string;
     initialAgentSource: string_book;
     agentUrl: string_agent_url;
+    thinkingMessages?: ReadonlyArray<string>;
 };
 
 export function AgentBookAndChat(props: AgentBookAndChatProps) {
-    const { agentName, initialAgentSource, agentUrl } = props;
+    const { agentName, initialAgentSource, agentUrl, thinkingMessages } = props;
     const [isMobile, setIsMobile] = useState(false);
     const [activeTab, setActiveTab] = useState<'book' | 'chat'>('chat');
     const [isMounted, setIsMounted] = useState(false);
@@ -39,7 +40,7 @@ export function AgentBookAndChat(props: AgentBookAndChatProps) {
                         <BookEditorWrapper agentName={agentName} initialAgentSource={initialAgentSource} />
                     </div>
                     <div className={`w-full h-full ${activeTab === 'chat' ? 'block' : 'hidden'}`}>
-                        <AgentChatWrapper agentUrl={agentUrl} />
+                        <AgentChatWrapper agentUrl={agentUrl} thinkingMessages={thinkingMessages} />
                     </div>
                 </div>
                 <div className="flex-shrink-0 h-16 bg-white border-t border-gray-200 flex shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-10">
@@ -69,7 +70,7 @@ export function AgentBookAndChat(props: AgentBookAndChatProps) {
     return (
         <ResizablePanelsAuto name={`agent-book-and-chat-${agentName}`} className="w-full h-full">
             <BookEditorWrapper agentName={agentName} initialAgentSource={initialAgentSource} />
-            <AgentChatWrapper agentUrl={agentUrl} />
+            <AgentChatWrapper agentUrl={agentUrl} thinkingMessages={thinkingMessages} />
         </ResizablePanelsAuto>
     );
 }

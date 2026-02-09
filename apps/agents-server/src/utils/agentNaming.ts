@@ -1,3 +1,5 @@
+import { parseSlashSeparatedMetadata } from './metadataVariants';
+
 /**
  * Normalized singular/plural naming configuration for agents.
  */
@@ -31,7 +33,7 @@ export function parseAgentNaming(raw: string | null | undefined): AgentNaming {
         return DEFAULT_AGENT_NAMING;
     }
 
-    const [singularRaw, pluralRaw] = raw.split('/');
+    const [singularRaw, pluralRaw] = parseSlashSeparatedMetadata(raw);
     const singular = singularRaw?.trim();
     const plural = pluralRaw?.trim();
 

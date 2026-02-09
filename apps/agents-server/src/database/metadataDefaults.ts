@@ -1,5 +1,6 @@
 import spaceTrim from 'spacetrim';
 import { CORE_AGENTS_SERVER } from '../../../../servers';
+import { DEFAULT_THINKING_MESSAGES } from '../../../../src/utils/thinkingMessages';
 
 export type MetadataType = 'TEXT_SINGLE_LINE' | 'TEXT' | 'NUMBER' | 'BOOLEAN' | 'IMAGE_URL' | 'IP_RANGE';
 
@@ -21,6 +22,12 @@ export const metadataDefaults = [
         value: 'Agent / Agents',
         note: 'Override the singular/plural naming for agents in the UI. Format: singular/plural (e.g. chatbot/chatbots).',
         type: 'TEXT_SINGLE_LINE',
+    },
+    {
+        key: 'THINKING_MESSAGES',
+        value: DEFAULT_THINKING_MESSAGES.join(' / '),
+        note: 'Slash-delimited variants used for the thinking placeholder message (e.g. Thinking...).',
+        type: 'TEXT',
     },
     {
         key: 'SERVER_LOGO_URL',

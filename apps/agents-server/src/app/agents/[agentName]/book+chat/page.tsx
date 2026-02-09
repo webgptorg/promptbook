@@ -10,6 +10,7 @@ import { BackToAgentButton } from '@/src/components/BackToAgentButton/BackToAgen
 import { generateAgentMetadata } from '../generateAgentMetadata';
 import { AgentBookAndChat } from './AgentBookAndChat';
 import { DeletedAgentBanner } from '../../../../components/DeletedAgentBanner';
+import { getThinkingMessages } from '@/src/utils/thinkingMessages';
 
 export const generateMetadata = generateAgentMetadata;
 
@@ -37,11 +38,17 @@ export default async function AgentBookAndChatPage({ params }: { params: Promise
     const collection = await $provideAgentCollectionForServer();
     const agentSource = await collection.getAgentSource(agentName);
     const agentUrl = `/agents/${agentName}`;
+    const thinkingMessages = await getThinkingMessages();
 
     return (
         <div className={`w-screen h-[calc(100vh-60px)] relative`}>
             <BackToAgentButton agentName={agentName} />
-            <AgentBookAndChat agentName={agentName} initialAgentSource={agentSource} agentUrl={agentUrl} />
+            <AgentBookAndChat
+                agentName={agentName}
+                initialAgentSource={agentSource}
+                agentUrl={agentUrl}
+                thinkingMessages={thinkingMessages}
+            />
         </div>
     );
 }

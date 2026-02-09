@@ -21,12 +21,13 @@ type AgentChatWrapperProps = {
     defaultMessage?: string;
     autoExecuteMessage?: string;
     brandColor?: string;
+    thinkingMessages?: ReadonlyArray<string>;
 };
 
 // TODO: [🐱‍🚀] Rename to AgentChatSomethingWrapper
 
 export function AgentChatWrapper(props: AgentChatWrapperProps) {
-    const { agentUrl, defaultMessage, autoExecuteMessage, brandColor } = props;
+    const { agentUrl, defaultMessage, autoExecuteMessage, brandColor, thinkingMessages } = props;
 
     const { backgroundImage } = useAgentBackground(brandColor);
 
@@ -177,6 +178,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
                 visual="FULL_PAGE"
                 effectConfigs={effectConfigs}
                 soundSystem={soundSystem}
+                thinkingMessages={thinkingMessages}
             />
             <ChatErrorDialog
                 error={currentError}

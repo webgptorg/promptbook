@@ -8,6 +8,7 @@ import { generateAgentMetadata } from '../generateAgentMetadata';
 import { AgentChatWrapper } from '../AgentChatWrapper';
 import { DeletedAgentBanner } from '../../../../components/DeletedAgentBanner';
 import { getAgentProfile } from '../_utils';
+import { getThinkingMessages } from '@/src/utils/thinkingMessages';
 
 export const generateMetadata = generateAgentMetadata;
 
@@ -35,6 +36,7 @@ export default async function AgentChatPage({
     }
 
     const agentUrl = `/agents/${agentName}`;
+    const thinkingMessages = await getThinkingMessages();
 
     return (
         <main className={`w-full h-full overflow-hidden relative`}>
@@ -43,6 +45,7 @@ export default async function AgentChatPage({
                 agentUrl={agentUrl}
                 autoExecuteMessage={message}
                 brandColor={agentProfile.meta.color}
+                thinkingMessages={thinkingMessages}
             />
         </main>
     );

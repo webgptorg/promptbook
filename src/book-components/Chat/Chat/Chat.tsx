@@ -182,12 +182,12 @@ export function Chat(props: ChatProps) {
             if (lastMessage.sender !== 'USER') {
                 if (lastMessage.isComplete) {
                     /* not await */ soundSystem.play('message_receive');
-                } else if (lastMessage.content.includes('Thinking...') || lastMessage.content.includes('typing')) {
+                } else {
                     /* not await */ soundSystem.play('message_typing');
                 }
             }
         } else if (messages.length === previousMessagesLengthRef.current && lastMessage.sender !== 'USER') {
-            if (lastMessage.isComplete && !lastMessage.content.includes('Thinking...')) {
+            if (lastMessage.isComplete) {
                 /* not await */ soundSystem.play('message_receive');
             }
         }

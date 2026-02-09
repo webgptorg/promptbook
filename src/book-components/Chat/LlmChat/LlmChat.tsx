@@ -15,6 +15,7 @@ import { ChatPersistence } from '../utils/ChatPersistence';
 import { createTeamToolNameFromUrl } from '../utils/createTeamToolNameFromUrl';
 import type { LlmChatProps } from './LlmChatProps';
 import type { FriendlyErrorMessage } from './FriendlyErrorMessage';
+import { DEFAULT_THINKING_MESSAGES } from '../../../utils/thinkingMessages';
 
 /**
  * Metadata for a teammate agent tool.
@@ -97,6 +98,7 @@ export function LlmChat(props: LlmChatProps) {
         autoExecuteMessage,
         buttonColor,
         toolTitles,
+        thinkingMessages,
         ...restProps
     } = props;
 
@@ -168,6 +170,18 @@ export function LlmChat(props: LlmChatProps) {
         [llmTools.profile, llmTools.title, props.participants, userParticipantName, llmParticipantName],
     );
 
+    const thinkingVariants = useMemo<ReadonlyArray<string>>(() => {
+        if (!thinkingMessages) {
+            return DEFAULT_THINKING_MESSAGES;
+        }
+
+        const normalized = thinkingMessages
+            .map((message) => message?.trim())
+            .filter((message): message is string => Boolean(message));
+
+        return normalized.length > 0 ? normalized : DEFAULT_THINKING_MESSAGES;
+    }, [thinkingMessages]);
+
     // Load teammates metadata from llmTools
     useEffect(() => {
         const loadTeammates = async () => {
@@ -235,12 +249,14 @@ export function LlmChat(props: LlmChatProps) {
             };
 
             // Add loading message for assistant
+            const thinkingVariant =
+                thinkingVariants[Math.floor(Math.random() * thinkingVariants.length)];
             const loadingMessage: ChatMessage = {
                 // channel: 'PROMPTBOOK_CHAT',
                 id: `assistant_${Date.now()}`,
                 createdAt: assistantMessageStartedAt,
                 sender: llmParticipantName,
-                content: 'Thinking...' as string_markdown,
+                content: thinkingVariant as string_markdown,
                 isComplete: false,
             };
 
@@ -358,7 +374,7 @@ export function LlmChat(props: LlmChatProps) {
                 setTasksProgress([]);
             }
         },
-        [messages, llmTools, props.thread, onError, llmParticipantName, userParticipantName],
+        [messages, llmTools, props.thread, onError, llmParticipantName, userParticipantName, thinkingVariants],
     );
 
     // Handle chat reset

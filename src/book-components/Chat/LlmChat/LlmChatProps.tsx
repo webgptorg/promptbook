@@ -79,6 +79,13 @@ export type LlmChatProps = Omit<ChatProps, 'messages' | 'onMessage' | 'onChange'
     readonly toolTitles?: Record<string, string>;
 
     /**
+     * Custom variants for the placeholder thinking message shown while the agent buffers its response.
+     *
+     * @default Shared thinking message variants
+     */
+    readonly thinkingMessages?: ReadonlyArray<string>;
+
+    /**
      * Optional custom error handler that will be called when an error occurs during chat.
      * If not provided, errors will be displayed as messages in the chat.
      *
