@@ -11,6 +11,8 @@ temperature a doplňovací smyčka
 kniha která se sama píše
 hra s lístečky 
 doplňování na telefonu
+
+od chytřejší statistiky k povídání s kamarádem
 divadelní hra která se sama píše 
 mapa multivesmíru 
 agi
