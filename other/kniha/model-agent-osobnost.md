@@ -4,6 +4,10 @@
 
 ## Todos 
 
+kódování tokeny vektorový prostor attention 
+
+temperature a doplňovací smyčka
+
 kniha která se sama píše
 hra s lístečky 
 doplňování na telefonu
