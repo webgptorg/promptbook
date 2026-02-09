@@ -30,6 +30,7 @@
 -   Removed invalid Keep-Alive request headers for OpenAI-compatible clients to fix AgentKit chat failures in Agents Server.
 -   Replaced OpenAI assistant knowledge ingestion timing magic numbers with named constants to satisfy lint rules.
 -   Reported word-based usage for OpenAI/OpenRouter compatibility chat completions in Agents Server, including native Promptbook usage details.
+-   Fixed the Agents Server OpenAI compatibility handler so `usage.details` now includes real word/character/line/paragraph/page counts for both input and output by merging native usage with computed text statistics.
 -   Wired Agents Server chat to reuse cached OpenAI Assistants (external preparation), building assistants from full model requirements and bumping the cache key version to avoid stale knowledge bases.
 -   Added a script to batch delete OpenAI assistants with pagination and a confirmation prompt.
 -   Fixed the OpenAI assistants cleanup script to auto-paginate through all pages before deletion.

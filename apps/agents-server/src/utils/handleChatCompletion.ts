@@ -5,17 +5,43 @@ import { $provideOpenAiAgentKitExecutionToolsForServer } from '@/src/tools/$prov
 import { ensureNonEmptyChatContent } from '@/src/utils/chat/ensureNonEmptyChatContent';
 import { createChatStreamHandler } from '@/src/utils/createChatStreamHandler';
 import { Agent, computeAgentHash, PROMPTBOOK_ENGINE_VERSION } from '@promptbook-local/core';
-import type { Usage } from '@promptbook-local/types';
-import { ChatMessage, Prompt, string_book, TODO_any } from '@promptbook-local/types';
-import { $getCurrentDate, computeHash, countWords } from '@promptbook-local/utils';
+import type {
+    ChatMessage,
+    Prompt,
+    string_book,
+    TODO_any,
+    UncertainNumber,
+    Usage,
+    UsageCounts,
+} from '@promptbook-local/types';
+import { $getCurrentDate, computeHash } from '@promptbook-local/utils';
 import { NextRequest, NextResponse } from 'next/server';
 import { isAgentDeleted } from '../app/agents/[agentName]/_utils';
 import { HTTP_STATUS_CODES } from '../constants';
 import { AgentKitCacheManager } from './cache/AgentKitCacheManager';
 import { validateApiKey } from './validateApiKey';
+import { computeUsageCounts } from '../../../../src/execution/utils/computeUsageCounts';
 
 /**
- * Creates OpenAI-compatible usage fields based on word counts.
+ * Falls back to the estimated value when the original token count is unknown.
+ *
+ * @param tokenCount - Token count reported by the execution tools.
+ * @param fallbackValue - Estimated token count based on text length.
+ * @returns Token count to report in the OpenAI-compatible response.
+ */
+function ensureTokenCount(tokenCount: UncertainNumber, fallbackValue: number): UncertainNumber {
+    if (tokenCount.value === 0 && tokenCount.isUncertain) {
+        return {
+            value: fallbackValue,
+            isUncertain: true,
+        };
+    }
+
+    return tokenCount;
+}
+
+/**
+ * Creates OpenAI-compatible usage fields based on the agent usage and computed text statistics.
  *
  * @param promptContent - Prompt content used for the request.
  * @param completionContent - Assistant response content.
@@ -32,14 +58,29 @@ function createCompatibilityUsage(
     total_tokens: number;
     details: Usage;
 } {
-    const promptWords = countWords(promptContent);
-    const completionWords = countWords(completionContent);
+    const promptCounts = computeUsageCounts(promptContent);
+    const completionCounts = computeUsageCounts(completionContent);
+    const inputUsage: UsageCounts = {
+        tokensCount: ensureTokenCount(usage.input.tokensCount, promptCounts.wordsCount.value),
+        ...promptCounts,
+    };
+    const outputUsage: UsageCounts = {
+        tokensCount: ensureTokenCount(usage.output.tokensCount, completionCounts.wordsCount.value),
+        ...completionCounts,
+    };
+
+    const promptTokens = inputUsage.tokensCount.value;
+    const completionTokens = outputUsage.tokensCount.value;
 
     return {
-        prompt_tokens: promptWords,
-        completion_tokens: completionWords,
-        total_tokens: promptWords + completionWords,
-        details: usage,
+        prompt_tokens: promptTokens,
+        completion_tokens: completionTokens,
+        total_tokens: promptTokens + completionTokens,
+        details: {
+            price: usage.price,
+            input: inputUsage,
+            output: outputUsage,
+        },
     };
 }
 

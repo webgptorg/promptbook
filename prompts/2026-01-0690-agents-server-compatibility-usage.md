@@ -39,7 +39,7 @@ ces":[{"index":0,"message":{"role":"assistant","content":"Hello! How can I assis
 
 ---
 
-[ ]
+[x] ~$0.32 10 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
 [✨🎏] Fix the `usage.details` in the Agents Server OpenAI Compatibility mode.
 
@@ -82,3 +82,4 @@ $ curl https://chutoo-test.ptbk.io/agents/NybzgAFteBo2zz/api/openai/v1/chat/comp
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
