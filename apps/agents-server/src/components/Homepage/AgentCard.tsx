@@ -42,11 +42,6 @@ type AgentCardProps = {
     readonly onDelete?: (agentIdentifier: string) => void;
 
     /**
-     * Callback function to clone the agent
-     */
-    readonly onClone?: (agentIdentifier: string) => void;
-
-    /**
      * Callback function to toggle the agent's visibility
      */
     readonly onToggleVisibility?: (agentIdentifier: string) => void;
@@ -76,7 +71,6 @@ export function AgentCard({
     isAdmin,
     publicUrl,
     onDelete,
-    onClone,
     onToggleVisibility,
     onRestore,
     visibility,
@@ -167,16 +161,6 @@ export function AgentCard({
                         title={`Make ${visibility === 'PUBLIC' ? 'private' : 'public'}`}
                     >
                         {visibility === 'PUBLIC' ? <EyeIcon className="w-3 h-3" /> : <EyeOffIcon className="w-3 h-3" />}
-                    </button>
-                    <button
-                        className={`bg-blue-500 hover:bg-blue-600 ${FILE_ACTION_BUTTON_CLASSES}`}
-                        onClick={(e) => {
-                            e.preventDefault();
-                            onClone?.(agent.permanentId || agent.agentName);
-                        }}
-                        title={formatText('Clone agent')}
-                    >
-                        Clone
                     </button>
                     <button
                         className={`bg-red-500 hover:bg-red-600 ${FILE_ACTION_BUTTON_CLASSES}`}
