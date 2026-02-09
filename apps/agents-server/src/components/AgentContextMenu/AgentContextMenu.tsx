@@ -53,6 +53,13 @@ export type AgentContextMenuRenamePayload = {
     readonly previousIdentifier: string;
 };
 
+const CONTEXT_MENU_VIEWPORT_PADDING = 12;
+
+const contextMenuViewportStyle: CSSProperties = {
+    maxHeight: `calc(100vh - ${CONTEXT_MENU_VIEWPORT_PADDING * 2}px)`,
+    maxWidth: `calc(100vw - ${CONTEXT_MENU_VIEWPORT_PADDING * 2}px)`,
+};
+
 /**
  * Base props shared by agent context menu variants.
  */
@@ -258,7 +265,7 @@ function useClampedMenuPosition(
         }
 
         const rect = menuRef.current.getBoundingClientRect();
-        const padding = 12;
+        const padding = CONTEXT_MENU_VIEWPORT_PADDING;
         const maxX = Math.max(padding, window.innerWidth - rect.width - padding);
         const maxY = Math.max(padding, window.innerHeight - rect.height - padding);
         const nextX = Math.min(anchorPoint.x, maxX);
@@ -656,9 +663,10 @@ function AgentContextMenuContent(props: AgentContextMenuBaseProps & { onClose: (
     ];
 
     return (
-        <div
-            className={`w-56 bg-white rounded-xl shadow-2xl border border-gray-100 py-2 z-[9999] animate-in fade-in slide-in-from-top-2 duration-200 ${barlowCondensed.className}`}
-        >
+            <div
+                className={`w-56 bg-white rounded-xl shadow-2xl border border-gray-100 py-2 overflow-y-auto z-[9999] animate-in fade-in slide-in-from-top-2 duration-200 ${barlowCondensed.className}`}
+                style={contextMenuViewportStyle}
+            >
             {menuItems.map((item, index) => {
                 if (item.type === 'divider') {
                     return <div key={index} className="h-px bg-gray-100 my-2" />;
