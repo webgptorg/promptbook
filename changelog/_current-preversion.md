@@ -1,6 +1,7 @@
 -### ✨ Improvements
 
 -   Removed the clone button from the Agents Server directory listing cards so cloning stays available only via the agent context menu, preventing duplicate actions in both views.
+-   Treated inline `KNOWLEDGE` blocks the same as referenced sources by emitting base64 data URLs named after the first non-empty inline line (hamburger/kebab case). The inline text now flows through `AgentModelRequirements.knowledgeSources`, so the OpenAI vector stores ingest it just like external files.
 -   Cached OpenAI vector store knowledge sources by storing per-URL hashes (including ETag/Last-Modified/size metadata) in the new `VectorStoreKnowledgeSourceHashes` table so the vector store hash can skip re-downloading hundreds of large PDFs.
 -   Cleaned up the serialized agent model requirements before handing them to external LLMs: metadata, notes, and `parentAgentUrl` stay internal, and `AgentLlmExecutionTools` now uses the new `sanitizeAgentModelRequirements` helper so third-party providers only see the low-level system message, sampling settings, and tool/knowledge lists that they actually need.
 -   Added a `promptSufix` field to `AgentModelRequirements`, surfaced it in the Agents Server model-requirements response, taught the RULE commitment to duplicate its guidance there as a dashed list, and made `AgentLlmExecutionTools` append that suffix to every outgoing chat prompt so system and prompt messages always reinforce the same rules.

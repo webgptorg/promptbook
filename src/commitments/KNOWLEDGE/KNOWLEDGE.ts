@@ -2,6 +2,7 @@ import { spaceTrim } from 'spacetrim';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import type { string_knowledge_source_link } from '../../types/typeAliases';
 import { isValidUrl } from '../../utils/validators/url/isValidUrl';
+import { createInlineKnowledgeSourceFile } from '../../utils/knowledge/inlineKnowledgeSource';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 
 /**
@@ -109,9 +110,16 @@ export class KnowledgeCommitmentDefinition extends BaseCommitmentDefinition<'KNO
 
             return this.appendToSystemMessage(updatedRequirements, knowledgeInfo, '\n\n');
         } else {
-            // Direct text knowledge - add to system message
-            const knowledgeSection = `Knowledge: ${trimmedContent}`;
-            return this.appendToSystemMessage(requirements, knowledgeSection, '\n\n');
+            const inlineSource = createInlineKnowledgeSourceFile(trimmedContent);
+            const updatedRequirements = {
+                ...requirements,
+                knowledgeSources: [
+                    ...(requirements.knowledgeSources || []),
+                    inlineSource.url,
+                ],
+            };
+            const knowledgeInfo = `Knowledge Source Inline: ${inlineSource.filename} (derived from inline content and processed for retrieval during chat)`;
+            return this.appendToSystemMessage(updatedRequirements, knowledgeInfo, '\n\n');
         }
     }
 }

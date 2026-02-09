@@ -6,6 +6,10 @@ import { assertsError } from '../../errors/assertsError';
 import type { string_title } from '../../types/typeAliases';
 import type { OpenAiCompatibleExecutionToolsOptions } from './OpenAiCompatibleExecutionToolsOptions';
 import { OpenAiExecutionTools } from './OpenAiExecutionTools';
+import {
+    isDataUrlKnowledgeSource,
+    parseDataUrlKnowledgeSource,
+} from '../../utils/knowledge/inlineKnowledgeSource';
 
 const DEFAULT_KNOWLEDGE_SOURCE_DOWNLOAD_TIMEOUT_MS = 30000;
 const DEFAULT_KNOWLEDGE_SOURCE_UPLOAD_TIMEOUT_MS = 900000;
@@ -797,7 +801,9 @@ export abstract class OpenAiVectorStoreHandler extends OpenAiExecutionTools {
 
         for (const [index, source] of knowledgeSources.entries()) {
             try {
-                const sourceType = source.startsWith('http') || source.startsWith('https') ? 'url' : 'file';
+                const isDataUrl = isDataUrlKnowledgeSource(source);
+                const isHttp = source.startsWith('http://') || source.startsWith('https://');
+                const sourceType = isDataUrl ? 'data_url' : isHttp ? 'url' : 'file';
 
                 if (this.options.isVerbose) {
                     console.info('[🤰]', 'Processing knowledge source', {
@@ -809,8 +815,33 @@ export abstract class OpenAiVectorStoreHandler extends OpenAiExecutionTools {
                     });
                 }
 
-                // Check if it's a URL
-                if (source.startsWith('http://') || source.startsWith('https://')) {
+                if (isDataUrl) {
+                    const parsed = parseDataUrlKnowledgeSource(source);
+
+                    if (!parsed) {
+                        skippedSources.push({ source, reason: 'invalid_data_url' });
+
+                        if (this.options.isVerbose) {
+                            console.info('[🤰]', 'Skipping knowledge source (invalid data URL)', {
+                                source,
+                                sourceType,
+                                logLabel,
+                            });
+                        }
+
+                        continue;
+                    }
+
+                    const dataUrlFile = new File([parsed.buffer], parsed.filename, {
+                        type: parsed.mimeType,
+                    });
+                    fileStreams.push(dataUrlFile);
+                    totalBytes += parsed.buffer.length;
+
+                    continue;
+                }
+
+                if (isHttp) {
                     const downloadResult = await this.downloadKnowledgeSourceFile({
                         source,
                         timeoutMs: downloadTimeoutMs,

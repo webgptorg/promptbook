@@ -1,6 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import { validateBook } from './string_book';
 import { createAgentModelRequirementsWithCommitments } from './createAgentModelRequirementsWithCommitments';
+import { parseDataUrlKnowledgeSource } from '../../utils/knowledge/inlineKnowledgeSource';
 
 describe('DELETE commitment invalidates prior tagged commitments', () => {
     it('example: DELETE @Example removes earlier @Example KNOWLEDGE', async () => {
@@ -29,9 +30,15 @@ KNOWLEDGE {X: second knowledge below}`);
 
         // Above knowledge removed
         expect(modelRequirements.systemMessage).not.toContain('First knowledge above');
-        // Below knowledge kept
-        expect(modelRequirements.systemMessage).toContain('second knowledge below');
-        // Ensure a Knowledge line exists for the remaining one
-        expect(modelRequirements.systemMessage).toMatch(/Knowledge:/);
+        // Below knowledge kept via data URL knowledge source; system message only includes the reference
+        expect(modelRequirements.systemMessage).toContain('Knowledge Source Inline');
+        expect(modelRequirements.knowledgeSources).toBeDefined();
+        const inlineSource = (modelRequirements.knowledgeSources ?? []).find((source) =>
+            source.startsWith('data:text/plain'),
+        );
+        expect(inlineSource).toBeDefined();
+        const parsedInline = inlineSource ? parseDataUrlKnowledgeSource(inlineSource) : null;
+        expect(parsedInline).not.toBeNull();
+        expect(parsedInline?.buffer.toString('utf-8')).toContain('second knowledge below');
     });
 });
