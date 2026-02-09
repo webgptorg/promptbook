@@ -41,6 +41,76 @@ export const OPENAI_MODELS: ReadonlyArray<AvailableModel> = exportJson({
         /**/
         {
             modelVariant: 'CHAT',
+            modelTitle: 'gpt-5.2-codex',
+            modelName: 'gpt-5.2-codex',
+            modelDescription:
+                'High-capability Codex variant tuned for agentic code generation with large contexts and reasoning effort controls. Ideal for long-horizon coding workflows and multi-step reasoning.',
+            pricing: {
+                prompt: pricing(`$1.75 / 1M tokens`),
+                output: pricing(`$14.00 / 1M tokens`),
+            },
+        },
+        /**/
+
+        /**/
+        {
+            modelVariant: 'CHAT',
+            modelTitle: 'gpt-5.1-codex-max',
+            modelName: 'gpt-5.1-codex-max',
+            modelDescription:
+                'Premium GPT-5.1 Codex flavor that mirrors gpt-5.1 in capability and pricing while adding Codex tooling optimizations.',
+            pricing: {
+                prompt: pricing(`$1.25 / 1M tokens`),
+                output: pricing(`$10.00 / 1M tokens`),
+            },
+        },
+        /**/
+
+        /**/
+        {
+            modelVariant: 'CHAT',
+            modelTitle: 'gpt-5.1-codex',
+            modelName: 'gpt-5.1-codex',
+            modelDescription:
+                'Core GPT-5.1 Codex model focused on agentic coding tasks with a balanced trade-off between reasoning and cost.',
+            pricing: {
+                prompt: pricing(`$1.25 / 1M tokens`),
+                output: pricing(`$10.00 / 1M tokens`),
+            },
+        },
+        /**/
+
+        /**/
+        {
+            modelVariant: 'CHAT',
+            modelTitle: 'gpt-5.1-codex-mini',
+            modelName: 'gpt-5.1-codex-mini',
+            modelDescription:
+                'Compact, cost-effective GPT-5.1 Codex variant with a smaller context window ideal for cheap assistant iterations that still require coding awareness.',
+            pricing: {
+                prompt: pricing(`$0.25 / 1M tokens`),
+                output: pricing(`$2.00 / 1M tokens`),
+            },
+        },
+        /**/
+
+        /**/
+        {
+            modelVariant: 'CHAT',
+            modelTitle: 'gpt-5-codex',
+            modelName: 'gpt-5-codex',
+            modelDescription:
+                'Legacy GPT-5 Codex model built for agentic coding workloads with the same pricing as GPT-5 and a focus on stability.',
+            pricing: {
+                prompt: pricing(`$1.25 / 1M tokens`),
+                output: pricing(`$10.00 / 1M tokens`),
+            },
+        },
+        /**/
+
+        /**/
+        {
+            modelVariant: 'CHAT',
             modelTitle: 'gpt-5-mini',
             modelName: 'gpt-5-mini',
             modelDescription:

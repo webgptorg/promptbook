@@ -142,6 +142,7 @@
 -   Added `--ignore-git-changes` flag to the coding agent runner to skip the clean working tree check.
 -   Added per-prompt start summaries with a confirmation wait before each prompt runs (unless `--no-wait`).
 -   Estimated OpenAI Codex runner prices from Codex CLI token counts instead of reporting $0.00.
+-   Improved Codex pricing for the coding agent by parsing the CLI token breakdown, calculating prompt/completion costs per model (including `gpt-5.1-codex-mini`), and marking fallback estimates as uncertain so the reported ~$0.30 matches real usage.
 -   Added coding runner and model signatures to coding agent prompt status lines.
 -   Implemented `USE IMAGE GENERATOR` commitment to allow agents to generate images using an image generation model.
 -   [✨⛪️] Allow to close dialogs by clicking outside of the dialog.
