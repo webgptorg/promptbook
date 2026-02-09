@@ -33,6 +33,7 @@ export type ChatMessageListProps = {
     teammates?: ChatProps['teammates'];
     onToolCallClick?: (toolCall: NonNullable<ChatMessage['toolCalls']>[number]) => void;
     onCitationClick?: (citation: ParsedCitation) => void;
+    soundSystem?: ChatProps['soundSystem'];
     setChatMessagesElement: (element: HTMLDivElement | null) => void;
     onScroll: (event: UIEvent<HTMLDivElement>) => void;
     chatMessagesClassName?: string;
@@ -62,6 +63,7 @@ export function ChatMessageList(props: ChatMessageListProps) {
         teammates,
         onToolCallClick,
         onCitationClick,
+        soundSystem,
         setChatMessagesElement,
         onScroll,
         chatMessagesClassName,
@@ -112,6 +114,7 @@ export function ChatMessageList(props: ChatMessageListProps) {
                         teammates={teammates}
                         onToolCallClick={onToolCallClick}
                         onCitationClick={onCitationClick}
+                        soundSystem={soundSystem}
                     />
                 );
             })}

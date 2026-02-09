@@ -167,6 +167,8 @@ export function Chat(props: ChatProps) {
         !!extraActions;
 
     const previousMessagesLengthRef = useRef(messages.length);
+    const streamingMessageIdRef = useRef<string | null>(null);
+    const streamingMessageContentRef = useRef<string | null>(null);
 
     useEffect(() => {
         if (!soundSystem || messages.length === 0) {
@@ -194,6 +196,38 @@ export function Chat(props: ChatProps) {
 
         previousMessagesLengthRef.current = messages.length;
     }, [messages, soundSystem]);
+
+    useEffect(() => {
+        if (!soundSystem) {
+            streamingMessageIdRef.current = null;
+            streamingMessageContentRef.current = null;
+            return;
+        }
+
+        if (postprocessedMessages.length === 0) {
+            streamingMessageIdRef.current = null;
+            streamingMessageContentRef.current = null;
+            return;
+        }
+
+        const lastMessage = postprocessedMessages[postprocessedMessages.length - 1];
+        if (!lastMessage || lastMessage.sender === 'USER' || lastMessage.isComplete) {
+            streamingMessageIdRef.current = null;
+            streamingMessageContentRef.current = null;
+            return;
+        }
+
+        if (streamingMessageIdRef.current !== lastMessage.id) {
+            streamingMessageIdRef.current = lastMessage.id;
+            streamingMessageContentRef.current = lastMessage.content;
+            return;
+        }
+
+        if (streamingMessageContentRef.current !== lastMessage.content) {
+            streamingMessageContentRef.current = lastMessage.content;
+            soundSystem.vibrate?.('message_stream_chunk');
+        }
+    }, [postprocessedMessages, soundSystem]);
 
     return (
         <>
@@ -276,6 +310,7 @@ export function Chat(props: ChatProps) {
                         onCreateAgent={onCreateAgent}
                         toolTitles={toolTitles}
                         teammates={teammates}
+                        soundSystem={soundSystem}
                         onToolCallClick={(toolCall) => {
                             setSelectedToolCall(toolCall);
                             setToolCallModalOpen(true);

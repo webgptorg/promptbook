@@ -7,7 +7,9 @@ export type SoundEvent =
     | 'message_send' // When user sends a message
     | 'message_receive' // When agent sends a message
     | 'message_typing' // When agent is typing/thinking
+    | 'message_stream_chunk' // When streaming tokens arrive
     | 'button_click' // When any button is clicked
+    | 'tool_call_chip' // When a tool call chip is rendered
     | 'effect_confetti' // When confetti effect is triggered
     | 'effect_hearts'; // When hearts effect is triggered
 
@@ -224,6 +226,12 @@ export class SoundSystem implements ChatSoundSystem {
                     break;
                 case 'message_receive':
                     navigator.vibrate([100, 50, 100]);
+                    break;
+                case 'tool_call_chip':
+                    navigator.vibrate([60, 30, 60]);
+                    break;
+                case 'message_stream_chunk':
+                    navigator.vibrate(20);
                     break;
                 case 'button_click':
                     navigator.vibrate(50);

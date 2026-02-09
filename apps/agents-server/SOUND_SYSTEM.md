@@ -69,10 +69,15 @@ The following sound events are supported:
 |-------|---------|-------------|
 | `message_send` | User sends a message | Subtle "whoosh" sound |
 | `message_receive` | Agent sends a complete message | Soft "ding" notification sound |
+| `tool_call_chip` | A tool call chip is shown next to an agent message | Subtle "ding" to highlight tool usage |
 | `message_typing` | Agent is thinking/typing | Light typing indicator sound |
 | `button_click` | Any button is clicked | Light "tap" sound |
 | `effect_confetti` | Confetti effect is triggered (🎉) | Celebratory sound |
 | `effect_hearts` | Hearts effect is triggered (❤️) | Gentle romantic sound |
+
+### Streaming vibration feedback
+
+- `message_stream_chunk` — Vibrates for each streaming token/chunk emitted by the agent so users can feel the finished response arriving even before the final text is rendered. This event does not play a sound file and is only triggered through `ChatSoundSystem.vibrate`.
 
 ## Sound Assets
 
@@ -98,6 +103,7 @@ The default sound system is created with these settings:
 {
   message_send: { path: '/sounds/whoosh.mp3', volume: 0.3, allowOverlap: false },
   message_receive: { path: '/sounds/ding.mp3', volume: 0.4, allowOverlap: false },
+  tool_call_chip: { path: '/sounds/ding.mp3', volume: 0.35, allowOverlap: true },
   message_typing: { path: '/sounds/typing.mp3', volume: 0.2, allowOverlap: false },
   button_click: { path: '/sounds/tap.mp3', volume: 0.25, allowOverlap: true },
   effect_confetti: { path: '/sounds/confetti.mp3', volume: 0.35, allowOverlap: false },

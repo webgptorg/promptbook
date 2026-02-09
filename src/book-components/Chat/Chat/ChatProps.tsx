@@ -25,6 +25,10 @@ export type ChatSoundSystem = {
     isEnabled(): boolean;
     setEnabled(enabled: boolean): void;
     toggle(): boolean;
+    /**
+     * Optional vibration helper to stay in sync with sound events.
+     */
+    vibrate?(event: string): void;
 };
 
 /**

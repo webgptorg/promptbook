@@ -81,6 +81,10 @@ type ChatMessageItemProps = Pick<ChatProps, 'onMessage' | 'participants'> & {
      * Called when a source citation chip is clicked.
      */
     onCitationClick?: (citation: ParsedCitation) => void;
+    /**
+     * Optional sound system for triggering tool chip events.
+     */
+    soundSystem?: ChatProps['soundSystem'];
 };
 
 /**
@@ -284,11 +288,12 @@ export const ChatMessageItem = memo(
             isFeedbackEnabled,
             onCopy,
             onCreateAgent,
-            toolTitles,
-            teammates,
-            onToolCallClick,
-            onCitationClick,
-        } = props;
+        toolTitles,
+        teammates,
+        onToolCallClick,
+        onCitationClick,
+        soundSystem,
+    } = props;
         const {
             isComplete = true,
             // <- TODO: Destruct all `messages` properties like `isComplete`
@@ -299,6 +304,7 @@ export const ChatMessageItem = memo(
         const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
         const avatarRef = useRef<HTMLDivElement>(null);
         const tooltipRef = useRef<HTMLDivElement>(null);
+        const toolCallChipCountRef = useRef(0);
 
         useEffect(() => {
             const closeTooltip = () => {
@@ -392,6 +398,10 @@ export const ChatMessageItem = memo(
             () => groupOngoingToolCalls(message.ongoingToolCalls, toolTitles, teammates),
             [message.ongoingToolCalls, toolTitles, teammates],
         );
+        const completedToolCallCount = completedToolCalls?.length ?? 0;
+        const transitiveToolCallCount = transitiveToolCalls.length;
+        const ongoingToolCallCount = ongoingToolCallGroups.length;
+        const toolCallChipCount = completedToolCallCount + transitiveToolCallCount + ongoingToolCallCount;
         const shouldShowButtons = isLastMessage && buttons.length > 0 && onMessage;
 
         // Extract citations from message content
@@ -410,6 +420,16 @@ export const ChatMessageItem = memo(
         }, [isExpanded]);
 
         const contentWithoutButtonsRef = useRef<HTMLDivElement>(null);
+
+        useEffect(() => {
+            if (toolCallChipCount > toolCallChipCountRef.current) {
+                if (soundSystem) {
+                    /* not await */ soundSystem.play('tool_call_chip');
+                }
+            }
+
+            toolCallChipCountRef.current = toolCallChipCount;
+        }, [soundSystem, toolCallChipCount]);
 
         return (
             <div

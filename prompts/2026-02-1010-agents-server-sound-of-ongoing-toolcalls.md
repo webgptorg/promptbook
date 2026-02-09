@@ -1,4 +1,4 @@
-[ ] !
+[x] ~$3.70 12 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
 [✨📚] The agent uses some tool and show the tool calling chip. Play the sound and use the vibration.
 
@@ -39,3 +39,4 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

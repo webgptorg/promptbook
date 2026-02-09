@@ -26,6 +26,11 @@ export function createDefaultSoundSystem(): SoundSystem {
                 volume: 0.4,
                 allowOverlap: false,
             },
+            tool_call_chip: {
+                path: '/sounds/ding.mp3',
+                volume: 0.35,
+                allowOverlap: true,
+            },
             message_typing: {
                 path: '/sounds/typing.mp3',
                 volume: 0.2,
