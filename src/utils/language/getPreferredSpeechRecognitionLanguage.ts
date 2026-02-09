@@ -23,7 +23,7 @@ function normalizeLanguageCandidate(candidate?: string | null): string | undefin
     }
 
     const [language] = trimmed.split(';');
-    const normalized = language.replace(/_/g, '-').trim();
+    const normalized = language!.replace(/_/g, '-').trim();
 
     return normalized || undefined;
 }
@@ -31,9 +31,7 @@ function normalizeLanguageCandidate(candidate?: string | null): string | undefin
 /**
  * Parses the primary language out of an Accept-Language header value.
  */
-export function parseSpeechRecognitionLanguageFromAcceptLanguageHeader(
-    header?: string | null,
-): string | undefined {
+export function parseSpeechRecognitionLanguageFromAcceptLanguageHeader(header?: string | null): string | undefined {
     if (!header) {
         return undefined;
     }
@@ -75,17 +73,13 @@ export function getBrowserPreferredSpeechRecognitionLanguage(): string | undefin
  * Resolves a speech recognition language tag by checking an optional override, then the Accept-Language header,
  * then the browser preferences, and finally falling back to a default of `en-US`.
  */
-export function resolveSpeechRecognitionLanguage(
-    options: ResolveSpeechRecognitionLanguageOptions = {},
-): string {
+export function resolveSpeechRecognitionLanguage(options: ResolveSpeechRecognitionLanguageOptions = {}): string {
     const normalizedOverride = normalizeLanguageCandidate(options.overrideLanguage);
     if (normalizedOverride) {
         return normalizedOverride;
     }
 
-    const headerLanguage = parseSpeechRecognitionLanguageFromAcceptLanguageHeader(
-        options.acceptLanguageHeader,
-    );
+    const headerLanguage = parseSpeechRecognitionLanguageFromAcceptLanguageHeader(options.acceptLanguageHeader);
     if (headerLanguage) {
         return headerLanguage;
     }
