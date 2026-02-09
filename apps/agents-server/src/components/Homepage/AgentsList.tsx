@@ -14,11 +14,13 @@ import {
     type DragOverEvent,
     type DragStartEvent,
     type UniqueIdentifier,
+    type DraggableAttributes,
+    type DraggableSyntheticListeners,
 } from '@dnd-kit/core';
 import { SortableContext, rectSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { TODO_any, string_url } from '@promptbook-local/types';
-import { ArrowUp, FolderPlusIcon, Grid, Network, TrashIcon } from 'lucide-react';
+import { ArrowUp, FolderPlusIcon, GripVertical, Grid, Network, TrashIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState, type CSSProperties, type MouseEvent } from 'react';
@@ -87,6 +89,46 @@ type DropIndicator = {
     id: UniqueIdentifier;
     intent: DropIntent;
 };
+
+/**
+ * Props for the shared drag handle button.
+ */
+type DragHandleProps = {
+    /**
+     * Attributes provided by the drag sensor to keep the handle accessible.
+     */
+    readonly attributes: DraggableAttributes;
+    /**
+     * Event listeners that trigger the dragging interaction.
+     */
+    readonly listeners: DraggableSyntheticListeners;
+    /**
+     * Accessible label shown as tooltip and announced by screen readers.
+     */
+    readonly label: string;
+    /**
+     * Optional additional classes to adjust the placement or styling.
+     */
+    readonly className?: string;
+};
+
+/**
+ * Renders a floating handle that attaches the draggable listeners.
+ */
+function DragHandle({ attributes, listeners, label, className = '' }: DragHandleProps) {
+    return (
+        <button
+            type="button"
+            {...listeners}
+            {...attributes}
+            aria-label={label}
+            title={label}
+            className={`absolute z-20 flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 bg-white/90 text-gray-600 shadow-sm transition hover:border-blue-300 hover:text-blue-700 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white bottom-3 right-3 touch-none ${className}`.trim()}
+        >
+            <GripVertical className="h-4 w-4" aria-hidden="true" />
+        </button>
+    );
+}
 
 /**
  * State for the agent context menu.
@@ -221,6 +263,10 @@ type SortableAgentCardProps = {
      * Context menu handler for the agent.
      */
     readonly onContextMenu?: (event: MouseEvent<HTMLDivElement>, agent: AgentOrganizationAgent) => void;
+    /**
+     * Accessible label displayed for the drag handle.
+     */
+    readonly dragHandleLabel: string;
 };
 
 /**
@@ -236,6 +282,7 @@ function SortableAgentCard({
     onClone,
     onToggleVisibility,
     onContextMenu,
+    dragHandleLabel,
 }: SortableAgentCardProps) {
     const agentIdentifier = agent.permanentId || agent.agentName;
     const dragId = getAgentDragId(agentIdentifier);
@@ -259,12 +306,10 @@ function SortableAgentCard({
         <div
             ref={setNodeRef}
             style={style}
-            className={`relative ${canOrganize ? 'cursor-grab active:cursor-grabbing select-none touch-none' : ''} ${
+            className={`relative ${canOrganize ? 'select-none' : ''} ${
                 isDragging ? 'opacity-0' : ''
             } ${isDropTarget ? 'ring-2 ring-blue-400 ring-offset-2 ring-offset-white' : ''}`}
             onContextMenu={(event) => onContextMenu?.(event, agent)}
-            {...attributes}
-            {...listeners}
         >
             <AgentCard
                 agent={agent}
@@ -276,6 +321,9 @@ function SortableAgentCard({
                 onToggleVisibility={onToggleVisibility}
                 visibility={agent.visibility}
             />
+            {canOrganize && (
+                <DragHandle attributes={attributes} listeners={listeners} label={dragHandleLabel} />
+            )}
         </div>
     );
 }
@@ -320,6 +368,10 @@ type SortableFolderCardProps = {
      * Delete handler for the folder.
      */
     readonly onDelete?: () => void;
+    /**
+     * Accessible label displayed for the drag handle.
+     */
+    readonly dragHandleLabel: string;
 };
 
 /**
@@ -335,6 +387,7 @@ function SortableFolderCard({
     onOpen,
     onRename,
     onDelete,
+    dragHandleLabel,
 }: SortableFolderCardProps) {
     const dragId = getFolderDragId(folder.id);
     const { attributes, listeners, setNodeRef, transform, transition, isDragging, isOver } = useSortable({
@@ -367,11 +420,9 @@ function SortableFolderCard({
         <div
             ref={setNodeRef}
             style={style}
-            className={`relative ${canOrganize ? 'cursor-grab active:cursor-grabbing select-none touch-none' : ''} ${
+            className={`relative ${canOrganize ? 'select-none' : ''} ${
                 isDragging ? 'opacity-0' : ''
             } ${dropClasses}`}
-            {...attributes}
-            {...listeners}
         >
             <FolderCard
                 folderName={folder.name}
@@ -381,6 +432,9 @@ function SortableFolderCard({
                 onRename={onRename}
                 onDelete={onDelete}
             />
+            {canOrganize && (
+                <DragHandle attributes={attributes} listeners={listeners} label={dragHandleLabel} />
+            )}
         </div>
     );
 }
@@ -1489,6 +1543,9 @@ export function AgentsList(props: AgentsListProps) {
         return pickPreviewAgents(orderedAgents, previewSet, 4);
     };
 
+    const dragAgentLabel = formatText('Drag agent');
+    const dragFolderLabel = formatText('Drag folder');
+
     const headingTitle =
         viewMode === 'LIST' && currentFolderId !== null
             ? folderMaps.folderById.get(currentFolderId)?.name || formatText('Local Agents')
@@ -1609,6 +1666,7 @@ export function AgentsList(props: AgentsListProps) {
                                     onOpen={() => navigateToFolder(folder.id)}
                                     onRename={canOrganize ? () => handleRenameFolder(folder.id) : undefined}
                                     onDelete={canOrganize ? () => handleDeleteFolder(folder.id) : undefined}
+                                    dragHandleLabel={dragFolderLabel}
                                 />
                             ))}
                         </SortableContext>
@@ -1625,6 +1683,7 @@ export function AgentsList(props: AgentsListProps) {
                                     onClone={handleClone}
                                     onToggleVisibility={handleToggleVisibility}
                                     onContextMenu={handleAgentContextMenu}
+                                    dragHandleLabel={dragAgentLabel}
                                 />
                             ))}
                         </SortableContext>
