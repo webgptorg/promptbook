@@ -139,6 +139,39 @@ export type AgentsServerDatabase = {
                 };
                 Relationships: [];
             };
+            VectorStoreKnowledgeSourceHashes: {
+                Row: {
+                    id: number;
+                    createdAt: string;
+                    updatedAt: string;
+                    source: string;
+                    hash: string;
+                    etag: string | null;
+                    lastModified: string | null;
+                    sizeBytes: number | null;
+                };
+                Insert: {
+                    id?: number;
+                    createdAt?: string;
+                    updatedAt?: string;
+                    source: string;
+                    hash: string;
+                    etag?: string | null;
+                    lastModified?: string | null;
+                    sizeBytes?: number | null;
+                };
+                Update: {
+                    id?: number;
+                    createdAt?: string;
+                    updatedAt?: string;
+                    source?: string;
+                    hash?: string;
+                    etag?: string | null;
+                    lastModified?: string | null;
+                    sizeBytes?: number | null;
+                };
+                Relationships: [];
+            };
             AgentFolder: {
                 Row: {
                     id: number;

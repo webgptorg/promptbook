@@ -21,6 +21,38 @@ type AgentExternalType = 'VECTOR_STORE';
 
 const VECTOR_STORE_EXTERNAL_TYPE: AgentExternalType = 'VECTOR_STORE';
 
+const VECTOR_STORE_SOURCE_HASH_TABLE = 'VectorStoreKnowledgeSourceHashes';
+
+/**
+ * Metadata returned by HEAD requests made against knowledge source URLs.
+ */
+type KnowledgeSourceMetadata = {
+    readonly etag?: string | null;
+    readonly lastModified?: string | null;
+    readonly sizeBytes?: number | null;
+};
+
+/**
+ * Cached information about a previously hashed knowledge source file.
+ */
+type KnowledgeSourceCacheRecord = {
+    readonly source: string;
+    readonly hash: string;
+    readonly etag: string | null;
+    readonly lastModified: string | null;
+    readonly sizeBytes: number | null;
+};
+
+/**
+ * Result of hashing a knowledge source content download.
+ */
+type KnowledgeSourceHashResult = {
+    readonly hash: string;
+    readonly sizeBytes: number;
+    readonly etag: string | null;
+    readonly lastModified: string | null;
+};
+
 /**
  * Result of getting or creating an AgentKit-backed agent.
  */
@@ -211,14 +243,46 @@ export class AgentKitCacheManager {
                 continue;
             }
 
-            const sourceHash = await this.hashKnowledgeSourceContent({
+            const cachedRecord = await this.getKnowledgeSourceCacheRecord(source);
+            let metadata: KnowledgeSourceMetadata | null = null;
+
+            if (cachedRecord) {
+                metadata = await this.fetchKnowledgeSourceMetadata({
+                    source,
+                    timeoutMs: KNOWLEDGE_SOURCE_HASH_TIMEOUT_MS,
+                    agentName,
+                });
+
+                if (metadata && this.isKnowledgeSourceCacheValid(cachedRecord, metadata)) {
+                    if (this.isVerbose) {
+                        console.info('[🤰]', 'Reusing cached knowledge source hash', {
+                            agentName,
+                            source,
+                            sourceHash: cachedRecord.hash,
+                        });
+                    }
+
+                    contentHashes.push(cachedRecord.hash);
+                    continue;
+                }
+            }
+
+            const hashResult = await this.hashKnowledgeSourceContent({
                 source,
                 timeoutMs: KNOWLEDGE_SOURCE_HASH_TIMEOUT_MS,
                 agentName,
             });
 
-            if (sourceHash) {
-                contentHashes.push(sourceHash);
+            if (hashResult) {
+                contentHashes.push(hashResult.hash);
+
+                await this.upsertKnowledgeSourceCacheRecord({
+                    source,
+                    hash: hashResult.hash,
+                    etag: metadata?.etag ?? hashResult.etag ?? null,
+                    lastModified: metadata?.lastModified ?? hashResult.lastModified ?? null,
+                    sizeBytes: hashResult.sizeBytes,
+                });
             }
         }
 
@@ -255,7 +319,7 @@ export class AgentKitCacheManager {
         readonly source: string;
         readonly timeoutMs: number;
         readonly agentName: string;
-    }): Promise<string | null> {
+    }): Promise<KnowledgeSourceHashResult | null> {
         const { source, timeoutMs, agentName } = options;
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
@@ -285,17 +349,26 @@ export class AgentKitCacheManager {
 
             const buffer = await response.arrayBuffer();
             const hash = createHash('sha256').update(Buffer.from(buffer)).digest('hex');
+            const etag = response.headers.get('etag');
+            const lastModified = response.headers.get('last-modified');
 
             if (this.isVerbose) {
                 console.info('[🤰]', 'Hashed knowledge source content', {
                     agentName,
                     source,
                     sizeBytes: buffer.byteLength,
+                    etag,
+                    lastModified,
                     elapsedMs: Date.now() - startedAtMs,
                 });
             }
 
-            return hash;
+            return {
+                hash,
+                sizeBytes: buffer.byteLength,
+                etag,
+                lastModified,
+            };
         } catch (error) {
             if (this.isVerbose) {
                 console.error('[🤰]', 'Error hashing knowledge source content', {
@@ -309,6 +382,181 @@ export class AgentKitCacheManager {
         } finally {
             clearTimeout(timeoutId);
         }
+    }
+
+    /**
+     * Fetches metadata for a knowledge source URL without streaming the full content.
+     */
+    private async fetchKnowledgeSourceMetadata(options: {
+        readonly source: string;
+        readonly timeoutMs: number;
+        readonly agentName: string;
+    }): Promise<KnowledgeSourceMetadata | null> {
+        const { source, timeoutMs, agentName } = options;
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+        const startedAtMs = Date.now();
+
+        if (this.isVerbose) {
+            console.info('[🤰]', 'Fetching knowledge source metadata', {
+                agentName,
+                source,
+                timeoutMs,
+            });
+        }
+
+        try {
+            const response = await fetch(source, { method: 'HEAD', signal: controller.signal });
+
+            if (!response.ok) {
+                if (this.isVerbose) {
+                    console.warn('[🤰]', 'Failed to fetch knowledge source metadata', {
+                        agentName,
+                        source,
+                        status: response.status,
+                        statusText: response.statusText,
+                        elapsedMs: Date.now() - startedAtMs,
+                    });
+                }
+
+                return null;
+            }
+
+            const etag = this.normalizeKnowledgeSourceHeaderValue(response.headers.get('etag'));
+            const lastModified = this.normalizeKnowledgeSourceHeaderValue(response.headers.get('last-modified'));
+            let sizeBytes: number | null = null;
+            const contentLength = response.headers.get('content-length');
+
+            if (contentLength) {
+                const parsed = Number.parseInt(contentLength, 10);
+
+                if (!Number.isNaN(parsed)) {
+                    sizeBytes = parsed;
+                }
+            }
+
+            if (this.isVerbose) {
+                console.info('[🤰]', 'Fetched knowledge source metadata', {
+                    agentName,
+                    source,
+                    etag,
+                    lastModified,
+                    sizeBytes,
+                    elapsedMs: Date.now() - startedAtMs,
+                });
+            }
+
+            return {
+                etag,
+                lastModified,
+                sizeBytes,
+            };
+        } catch (error) {
+            if (this.isVerbose) {
+                console.error('[🤰]', 'Error fetching knowledge source metadata', {
+                    agentName,
+                    source,
+                    elapsedMs: Date.now() - startedAtMs,
+                    error,
+                });
+            }
+
+            return null;
+        } finally {
+            clearTimeout(timeoutId);
+        }
+    }
+
+    /**
+     * Returns true when cached metadata matches the freshly fetched metadata.
+     */
+    private isKnowledgeSourceCacheValid(
+        record: KnowledgeSourceCacheRecord,
+        metadata: KnowledgeSourceMetadata,
+    ): boolean {
+        if (metadata.etag && record.etag && metadata.etag === record.etag) {
+            return true;
+        }
+
+        if (metadata.lastModified && record.lastModified && metadata.lastModified === record.lastModified) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Reads cached knowledge source hashes from the database.
+     */
+    private async getKnowledgeSourceCacheRecord(source: string): Promise<KnowledgeSourceCacheRecord | null> {
+        const supabase = $provideSupabaseForServer();
+        const { data, error } = await supabase
+            .from(await $getTableName(VECTOR_STORE_SOURCE_HASH_TABLE))
+            .select('source, hash, etag, lastModified, sizeBytes')
+            .eq('source', source)
+            .maybeSingle();
+
+        if (error) {
+            if (this.isVerbose) {
+                console.error('[🤰]', 'Failed to read cached knowledge source hash', {
+                    source,
+                    error,
+                });
+            }
+
+            return null;
+        }
+
+        if (!data) {
+            return null;
+        }
+
+        return {
+            source: data.source,
+            hash: data.hash,
+            etag: data.etag,
+            lastModified: data.lastModified,
+            sizeBytes: data.sizeBytes,
+        };
+    }
+
+    /**
+     * Stores or updates cached knowledge source metadata.
+     */
+    private async upsertKnowledgeSourceCacheRecord(record: KnowledgeSourceCacheRecord): Promise<void> {
+        const supabase = $provideSupabaseForServer();
+        const { error } = await supabase
+            .from(await $getTableName(VECTOR_STORE_SOURCE_HASH_TABLE))
+            .upsert(
+                {
+                    source: record.source,
+                    hash: record.hash,
+                    etag: record.etag,
+                    lastModified: record.lastModified,
+                    sizeBytes: record.sizeBytes,
+                    updatedAt: new Date().toISOString(),
+                },
+                { onConflict: 'source' },
+            );
+
+        if (error) {
+            console.error('[🤰]', 'Failed to upsert knowledge source hash', {
+                source: record.source,
+                error,
+            });
+        }
+    }
+
+    /**
+     * Normalizes header values returned by remote metadata requests.
+     */
+    private normalizeKnowledgeSourceHeaderValue(value: string | null): string | null {
+        if (!value) {
+            return null;
+        }
+
+        const trimmed = value.trim();
+        return trimmed.length > 0 ? trimmed : null;
     }
 
     /**
