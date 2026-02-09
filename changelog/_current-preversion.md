@@ -1,6 +1,7 @@
 -### ✨ Improvements
 
 -   Removed the clone button from the Agents Server directory listing cards so cloning stays available only via the agent context menu, preventing duplicate actions in both views.
+-   Ensured the OpenAI compatibility chat endpoints in the Agents Server forward any `response_format` payload to the underlying OpenAI/API provider so JSON schema responses are honored.
 -   Fixed the Agents Server clone flow so it now prompts with a prefilled "Copy of {agent name}" name, reuses a shared dialog helper, and redirects into the freshly cloned agent instead of a missing route.
 -   Fixed Agents Server login so the agents list loads immediately after signing in without a manual refresh.
 -   Added explicit drag handles to the Agents Server homepage cards so touchscreens can scroll freely while drag-and-drop remains pinned to a clearly marked handle that also works for folders.

@@ -239,7 +239,9 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
             // <- Note: [🧆]
         } as OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming; // <- TODO: [💩] Guard here types better
 
-        if (format === 'JSON') {
+        if (currentModelRequirements.responseFormat !== undefined) {
+            modelSettings.response_format = currentModelRequirements.responseFormat;
+        } else if (format === 'JSON') {
             modelSettings.response_format = {
                 type: 'json_object',
             };

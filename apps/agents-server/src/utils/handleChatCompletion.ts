@@ -67,7 +67,7 @@ export async function handleChatCompletion(
 
     try {
         const body = await request.json();
-        const { messages, stream, model } = body;
+        const { messages, stream, model, response_format: responseFormat } = body;
 
         const agentName = agentNameFromParams || model;
 
@@ -248,6 +248,7 @@ export async function handleChatCompletion(
             content: lastMessage.content,
             modelRequirements: {
                 modelVariant: 'CHAT',
+                responseFormat,
                 // We could pass 'model' from body if we wanted to enforce it, but Agent usually has its own config
             },
             parameters: {
