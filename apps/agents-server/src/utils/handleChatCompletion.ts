@@ -5,7 +5,6 @@ import { $provideOpenAiAgentKitExecutionToolsForServer } from '@/src/tools/$prov
 import { ensureNonEmptyChatContent } from '@/src/utils/chat/ensureNonEmptyChatContent';
 import { createChatStreamHandler } from '@/src/utils/createChatStreamHandler';
 import { Agent, computeAgentHash, PROMPTBOOK_ENGINE_VERSION } from '@promptbook-local/core';
-import type OpenAI from 'openai';
 import type {
     ChatMessage,
     ChatPrompt,
@@ -18,11 +17,12 @@ import type {
 } from '@promptbook-local/types';
 import { $getCurrentDate, computeHash } from '@promptbook-local/utils';
 import { NextRequest, NextResponse } from 'next/server';
+import type OpenAI from 'openai';
+import { computeUsageCounts } from '../../../../src/execution/utils/computeUsageCounts';
 import { isAgentDeleted } from '../app/agents/[agentName]/_utils';
 import { HTTP_STATUS_CODES } from '../constants';
 import { AgentKitCacheManager } from './cache/AgentKitCacheManager';
 import { validateApiKey } from './validateApiKey';
-import { computeUsageCounts } from '../../../../src/execution/utils/computeUsageCounts';
 
 /**
  * Falls back to the estimated value when the original token count is unknown.
@@ -155,9 +155,7 @@ function convertOpenAiTool(rawTool: unknown): LlmToolDefinition | null {
     };
 }
 
-function parseOpenAiToolChoice(
-    value: unknown,
-): OpenAI.Chat.Completions.ChatCompletionToolChoiceOption | undefined {
+function parseOpenAiToolChoice(value: unknown): OpenAI.Chat.Completions.ChatCompletionToolChoiceOption | undefined {
     if (value === undefined || value === null) {
         return undefined;
     }
@@ -324,13 +322,6 @@ export async function handleChatCompletion(
             teacherAgent: null, // <- TODO: [🦋] DRY place to provide the teacher
         });
 
-        if (runtimeToolChoice !== undefined) {
-            agent.modelSettings = {
-                ...(agent.modelSettings ?? {}),
-                toolChoice: runtimeToolChoice,
-            };
-        }
-
         const userAgent = request.headers.get('user-agent');
         const ip =
             request.headers.get('x-forwarded-for') ||
@@ -338,7 +329,7 @@ export async function handleChatCompletion(
             request.headers.get('x-client-ip');
 
         // Note: Capture timezone, language and platform information
-        const timezone = request.headers.get('x-timezone') || undefined;
+        const timezone = request.headers.get('x-timezone') || 'UTC';
         const language = request.headers.get('accept-language');
         // Simple platform extraction from userAgent parentheses content (e.g., Windows NT 10.0; Win64; x64)
         const platform = userAgent ? userAgent.match(/\(([^)]+)\)/)?.[1] : undefined; // <- TODO: [🧠] Improve platform parsing

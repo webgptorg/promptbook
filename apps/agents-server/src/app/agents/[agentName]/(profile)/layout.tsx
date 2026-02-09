@@ -1,31 +1,26 @@
 'use server';
 
-import { headers } from 'next/headers';
-import { notFound } from 'next/navigation';
-import { Color } from '@/src/utils/color/Color';
-import { resolveAgentAvatarImageUrl } from '@/src/utils/agents/resolveAgentAvatarImageUrl';
+import { DeletedAgentBanner } from '@/src/components/DeletedAgentBanner';
 import { $provideServer } from '@/src/tools/$provideServer';
-import {
-    getAgentFolderContext,
-    getAgentName,
-    getAgentProfile,
-    isAgentDeleted,
-} from '../_utils';
-import { isUserAdmin } from '@/src/utils/isUserAdmin';
 import { formatAgentNamingText } from '@/src/utils/agentNaming';
 import { getAgentNaming } from '@/src/utils/getAgentNaming';
+import { isUserAdmin } from '@/src/utils/isUserAdmin';
+import { getThinkingMessages } from '@/src/utils/thinkingMessages';
+import { saturate } from '@promptbook-local/color';
+import { NotFoundError, PROMPTBOOK_COLOR } from '@promptbook-local/core';
+import { headers } from 'next/headers';
+import { notFound } from 'next/navigation';
+import type { ReactNode } from 'react';
+import { resolveAgentAvatarImageUrl } from '../../../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
+import { Color } from '../../../../../../../src/utils/color/Color';
+import { resolveSpeechRecognitionLanguage } from '../../../../../../../src/utils/language/getPreferredSpeechRecognitionLanguage';
+import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
+import { getAgentFolderContext, getAgentName, getAgentProfile, isAgentDeleted } from '../_utils';
+import { getAgentLinks } from '../agentLinks';
+import { AgentPageContextProvider, type AgentPageContextValue } from '../AgentPageContext';
 import { AgentProfileWrapper } from '../AgentProfileWrapper';
 import { generateAgentMetadata } from '../generateAgentMetadata';
 import { ServiceWorkerRegister } from '../ServiceWorkerRegister';
-import { DeletedAgentBanner } from '../../../components/DeletedAgentBanner';
-import { getAgentLinks } from '../agentLinks';
-import { resolveSpeechRecognitionLanguage } from '@/src/utils/language/getPreferredSpeechRecognitionLanguage';
-import { getThinkingMessages } from '@/src/utils/thinkingMessages';
-import { AgentPageContextProvider, type AgentPageContextValue } from '../AgentPageContext';
-import { NotFoundError, PROMPTBOOK_COLOR } from '@promptbook-local/core';
-import { saturate } from '@promptbook-local/color';
-import { $sideEffect } from '@/src/utils/organization/$sideEffect';
-import type { ReactNode } from 'react';
 
 export const generateMetadata = generateAgentMetadata;
 
