@@ -1,32 +1,49 @@
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
+import { NotFoundError } from '@promptbook-local/core';
 import { TODO_any } from '@promptbook-local/types';
 import { NextResponse } from 'next/server';
 import { string_book } from '../../../../../../../../src/book-2.0/agent-source/string_book';
+import type { string_agent_name } from '../../../../../../../../src/types/typeAliases';
 
 export async function POST(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
     const { agentName } = await params;
     const collection = await $provideAgentCollectionForServer();
 
     try {
+        const requestBody = (await request.json().catch(() => ({}))) as { name?: unknown };
+        const providedName = typeof requestBody.name === 'string' ? requestBody.name.trim() : '';
+        const hasCustomName = Boolean(providedName);
+
         const agentId = await collection.getAgentPermanentId(agentName);
         const source = await collection.getAgentSource(agentId);
 
-        // Generate new name
-        // TODO: [🧠] Better naming strategy, maybe check for collisions
-        let newAgentName = `${agentName} (Copy)`;
-        let counter = 1;
-
-        // eslint-disable-next-line no-constant-condition
-        while (true) {
+        const doesAgentNameExist = async (candidate: string) => {
             try {
-                await collection.getAgentPermanentId(newAgentName);
-                // If success, it means it exists, so we try next one
+                await collection.getAgentPermanentId(candidate as string_agent_name);
+                return true;
+            } catch (error) {
+                if (error instanceof NotFoundError) {
+                    return false;
+                }
+                throw error;
+            }
+        };
+
+        let newAgentName: string;
+        if (hasCustomName) {
+            newAgentName = providedName;
+            if (await doesAgentNameExist(newAgentName)) {
+                return NextResponse.json(
+                    { success: false, error: `Agent name "${newAgentName}" already exists.` },
+                    { status: 409 },
+                );
+            }
+        } else {
+            let counter = 1;
+            newAgentName = `${agentName} (Copy)`;
+            while (await doesAgentNameExist(newAgentName)) {
                 counter++;
                 newAgentName = `${agentName} (Copy ${counter})`;
-            } catch (error) {
-                // If error, it likely means it does not exist (NotFoundError), so we can use it
-                // TODO: [🧠] Check if it is really NotFoundError
-                break;
             }
         }
 

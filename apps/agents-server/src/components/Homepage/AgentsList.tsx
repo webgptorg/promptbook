@@ -42,6 +42,7 @@ import { AgentCard } from './AgentCard';
 import { AgentsGraph } from './AgentsGraph';
 import { FileCard } from './FileCard';
 import { FolderCard } from './FolderCard';
+import { promptCloneAgent } from '../AgentCloning/cloneAgent';
 import {
     buildFolderMaps,
     buildFolderPath,
@@ -1273,52 +1274,44 @@ export function AgentsList(props: AgentsListProps) {
     };
 
     /**
-     * Clones an agent and adds it to the current folder ordering.
+     * Requests a clone name, clones the agent, and wires the new agent into the current folder.
      *
      * @param agentIdentifier - Agent identifier to clone.
      */
     const handleClone = async (agentIdentifier: string) => {
         const agent = agents.find((a) => a.permanentId === agentIdentifier || a.agentName === agentIdentifier);
-        if (!agent) return;
-        const confirmed = await showConfirm({
-            title: formatText('Clone agent'),
-            message: `${formatText('Clone agent')} "${agent.agentName}"?`,
-            confirmLabel: formatText('Clone agent'),
-            cancelLabel: 'Cancel',
-        }).catch(() => false);
-        if (!confirmed) {
+        if (!agent) {
             return;
         }
 
+        const clonedAgent = await promptCloneAgent({
+            agentIdentifier,
+            agentName: agent.agentName,
+            formatText,
+        });
+        if (!clonedAgent) {
+            return;
+        }
+
+        const identifier = clonedAgent.permanentId || clonedAgent.agentName;
+        const nextAgent: AgentOrganizationAgent = {
+            ...clonedAgent,
+            folderId: currentFolderId ?? null,
+            sortOrder: visibleAgents.length,
+        };
+
         try {
-            const response = await fetch(`/api/agents/${encodeURIComponent(agentIdentifier)}/clone`, {
-                method: 'POST',
+            setAgents((prev) => [...prev, nextAgent]);
+            await persistOrganizationUpdates({
+                agents: [
+                    {
+                        identifier,
+                        folderId: nextAgent.folderId ?? null,
+                        sortOrder: nextAgent.sortOrder,
+                    },
+                ],
             });
-            if (response.ok) {
-                const newAgent = (await response.json()) as AgentOrganizationAgent;
-                const identifier = newAgent.permanentId || newAgent.agentName;
-                const nextAgent: AgentOrganizationAgent = {
-                    ...newAgent,
-                    folderId: currentFolderId ?? null,
-                    sortOrder: visibleAgents.length,
-                };
-                setAgents((prev) => [...prev, nextAgent]);
-                await persistOrganizationUpdates({
-                    agents: [
-                        {
-                            identifier,
-                            folderId: nextAgent.folderId ?? null,
-                            sortOrder: nextAgent.sortOrder,
-                        },
-                    ],
-                });
-                router.refresh();
-            } else {
-                await showAlert({
-                    title: 'Clone failed',
-                    message: formatText('Failed to clone agent'),
-                }).catch(() => undefined);
-            }
+            router.refresh();
         } catch (error) {
             await showAlert({
                 title: 'Clone failed',

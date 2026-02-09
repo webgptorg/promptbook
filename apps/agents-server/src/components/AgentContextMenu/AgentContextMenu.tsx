@@ -22,6 +22,7 @@ import {
     TrashIcon,
 } from 'lucide-react';
 import { Barlow_Condensed } from 'next/font/google';
+import { useRouter } from 'next/navigation';
 import type { CSSProperties, RefObject } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { just } from '../../../../../src/utils/organization/just';
@@ -31,6 +32,7 @@ import { deleteAgent } from '../../app/recycle-bin/actions';
 import type { AgentFolderContext } from '../../utils/agentOrganization/agentFolderContext';
 import { showAlert, showConfirm, showPrompt } from '../AsyncDialogs/asyncDialogs';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
+import { promptCloneAgent } from '../AgentCloning/cloneAgent';
 
 type BeforeInstallPromptEvent = Event & {
     prompt: () => Promise<void>;
@@ -294,6 +296,7 @@ function AgentContextMenuContent(props: AgentContextMenuBaseProps & { onClose: (
     const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
     const copyTimeoutRef = useRef<number | null>(null);
     const { formatText } = useAgentNaming();
+    const router = useRouter();
 
     /**
      * Clears pending copy feedback timeout.
@@ -442,6 +445,25 @@ function AgentContextMenuContent(props: AgentContextMenuBaseProps & { onClose: (
     }, [agentName, derivedAgentName, formatText, onAgentRenamed, onRequestClose, permanentId]);
 
     /**
+     * Prompts for a clone name, clones the agent, and navigates to the cloned agent.
+     */
+    const handleCloneAgent = useCallback(async () => {
+        const agentIdentifier = permanentId || agentName;
+        const displayName = derivedAgentName || agentName;
+        const clonedAgent = await promptCloneAgent({
+            agentIdentifier,
+            agentName: displayName,
+            formatText,
+        });
+        if (!clonedAgent) {
+            return;
+        }
+
+        onRequestClose?.();
+        router.push(`/agents/${encodeURIComponent(clonedAgent.agentName)}`);
+    }, [agentName, derivedAgentName, formatText, onRequestClose, permanentId, router]);
+
+    /**
      * Updates agent visibility (public/private) via API.
      *
      * @param visibility - The new visibility state.
@@ -568,10 +590,10 @@ function AgentContextMenuContent(props: AgentContextMenuBaseProps & { onClose: (
             onClick: handleRenameAgent,
         },
         {
-            type: 'link' as const,
-            href: `/agents/${encodeURIComponent(agentName)}/clone`,
+            type: 'action' as const,
             icon: CopyPlusIcon,
-            label: formatText('Clone Agent'),
+            label: formatText('Clone agent'),
+            onClick: handleCloneAgent,
         },
         {
             type: 'action' as const,
