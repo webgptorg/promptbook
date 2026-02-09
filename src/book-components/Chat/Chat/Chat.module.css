@@ -567,12 +567,18 @@
     backdrop-filter: blur(10px);
     --chat-heading-surface: rgba(255, 255, 255, 0.12);
     --chat-heading-accent: rgba(56, 189, 248, 0.85);
+    --chat-heading-text-color: var(--message-text-color, #0f172a);
+    --chat-heading-border-color: rgba(15, 23, 42, 0.18);
+    --chat-heading-shadow-color: rgba(15, 23, 42, 0.65);
 }
 
 @supports (color: color-mix(in srgb, #000 50%, #fff 50%)) {
     .chatMainFlow .chatMessage .messageText {
         --chat-heading-surface: color-mix(in srgb, var(--message-bg-color, #ffffff) 70%, rgba(15, 23, 42, 0.08) 30%);
         --chat-heading-accent: color-mix(in srgb, var(--message-text-color, #0f172a) 65%, rgba(59, 130, 246, 0.9) 35%);
+        --chat-heading-border-color: color-mix(in srgb, var(--message-bg-color, #ffffff) 60%, rgba(15, 23, 42, 0.12) 40%);
+        --chat-heading-shadow-color: color-mix(in srgb, rgba(15, 23, 42, 0.65) 80%, rgba(96, 165, 250, 0.45) 20%);
+        --chat-heading-text-color: var(--message-text-color, #0f172a);
     }
 }
 

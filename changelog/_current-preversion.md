@@ -9,6 +9,7 @@
 -   Enabled `\\(...\\)` and `\\[...\\]` LaTeX delimiters in chat markdown so inline and block formulas render with the existing KaTeX pipeline, matching `$...$`/`$$...$$` behavior and keeping the shared renderer reusable across chat/agent components.
 -   Preserved file attachments when cloning prompts for OpenAI chat so playground uploads keep their `arrayBuffer` after the OpenAI 6.18.0 upgrade.
 -   Re-styled Markdown headings inside chat bubbles as card-like sections powered by new shared heading tokens, keeping the typography and spacing consistent with the rest of the Agents Server UI.
+-   Tuned the new heading tokens so every Markdown heading grabs its border, shadow, and text colors from the chat bubble palette, letting the card-like headers glow softly and stay in sync with the shared Agents Server design language.
 -   Underlined inline links inside Agents Server chat bubbles so URLs stay recognizable now that the heading tiles use card-style backgrounds.
 
 ### 📚 Book

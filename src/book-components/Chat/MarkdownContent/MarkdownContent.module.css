@@ -1,15 +1,19 @@
 .MarkdownContent :is(h1, h2, h3, h4, h5, h6) {
     position: relative;
-    margin: 1.4rem 0 0.6rem;
-    padding: 0.55rem 1rem;
+    margin: 1.35rem 0 0.75rem;
+    padding: 0.85rem 1.35rem;
+    border-radius: 16px;
+    border: 1px solid var(--chat-heading-border-color, rgba(15, 23, 42, 0.18));
     border-left: 4px solid var(--chat-heading-accent, #38bdf8);
-    border-radius: 12px;
-    background: var(--chat-heading-surface, rgba(255, 255, 255, 0.14));
-    box-shadow: 0 12px 24px -10px rgba(15, 23, 42, 0.5);
-    color: inherit;
+    background: var(--chat-heading-surface, rgba(255, 255, 255, 0.18));
+    box-shadow: 0 25px 45px -30px var(--chat-heading-shadow-color, rgba(15, 23, 42, 0.65));
+    color: var(--chat-heading-text-color, var(--message-text-color, #0f172a));
     font-family: var(--font-poppins, 'Poppins', system-ui, -apple-system, sans-serif);
-    line-height: 1.3;
+    font-weight: 600;
+    line-height: 1.35;
     letter-spacing: -0.01em;
+    overflow: hidden;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
 .MarkdownContent :is(h1, h2, h3, h4, h5, h6)::after {
@@ -17,12 +21,17 @@
     position: absolute;
     left: 1rem;
     right: 1rem;
-    bottom: 0.38rem;
-    height: 2px;
+    bottom: 0.45rem;
+    height: 3px;
     border-radius: 999px;
     background: linear-gradient(90deg, var(--chat-heading-accent, #38bdf8), transparent 80%);
-    opacity: 0.65;
+    opacity: 0.8;
     pointer-events: none;
+}
+
+.MarkdownContent :is(h1, h2, h3, h4, h5, h6):hover {
+    transform: translateY(-1px);
+    box-shadow: 0 30px 55px -35px var(--chat-heading-shadow-color, rgba(15, 23, 42, 0.65));
 }
 
 .MarkdownContent a {
@@ -41,33 +50,27 @@
 }
 
 .MarkdownContent h1 {
-    font-size: 1.9rem;
-    font-weight: 600;
+    font-size: clamp(1.9rem, 1.1rem + 1.6vw, 2.35rem);
 }
 
 .MarkdownContent h2 {
-    font-size: 1.6rem;
-    font-weight: 600;
+    font-size: clamp(1.55rem, 0.9rem + 1.2vw, 1.95rem);
 }
 
 .MarkdownContent h3 {
-    font-size: 1.4rem;
-    font-weight: 600;
+    font-size: clamp(1.35rem, 0.85rem + 0.85vw, 1.65rem);
 }
 
 .MarkdownContent h4 {
-    font-size: 1.2rem;
-    font-weight: 600;
+    font-size: clamp(1.15rem, 0.7rem + 0.65vw, 1.35rem);
 }
 
 .MarkdownContent h5 {
-    font-size: 1.05rem;
-    font-weight: 600;
+    font-size: clamp(1.05rem, 0.65rem + 0.45vw, 1.2rem);
 }
 
 .MarkdownContent h6 {
-    font-size: 0.95rem;
-    font-weight: 600;
+    font-size: clamp(0.95rem, 0.6rem + 0.35vw, 1.05rem);
 }
 
 .MarkdownContent p {
