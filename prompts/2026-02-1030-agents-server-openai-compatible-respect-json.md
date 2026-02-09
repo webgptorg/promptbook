@@ -1,5 +1,9 @@
 [x] ~$4.00 20 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
+---
+
+[ ] !!!!!!!!!!
+
 [✨🦮] OpenAI compatibility mode of the agent server should respect the `response_format`
 
 ```bash
