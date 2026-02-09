@@ -172,6 +172,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                             },
                             content: message,
                             thread,
+                            attachments,
                         },
                         handleStreamChunk,
                     );
