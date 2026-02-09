@@ -7,6 +7,7 @@ import {
     setDefaultOpenAIClient,
     setDefaultOpenAIKey,
 } from '@openai/agents';
+import OpenAI from 'openai';
 import spaceTrim from 'spacetrim';
 import { TODO_any } from '../../_packages/types.index';
 import { serializeError } from '../../_packages/utils.index';
@@ -33,14 +34,36 @@ import type { chococake } from '../../utils/organization/really_any';
 import { templateParameters } from '../../utils/parameters/templateParameters';
 import type { OpenAiAgentKitExecutionToolsOptions } from './OpenAiAgentKitExecutionToolsOptions';
 import type { OpenAiCompatibleExecutionToolsNonProxiedOptions } from './OpenAiCompatibleExecutionToolsOptions';
-import type { AgentOutputType, JsonSchemaDefinition, JsonSchemaDefinitionEntry } from '@openai/agents-core';
-import type { ChatCompletionCreateParamsNonStreaming } from 'openai';
 import { OpenAiVectorStoreHandler } from './OpenAiVectorStoreHandler';
 
 const DEFAULT_AGENT_KIT_MODEL_NAME = 'gpt-5.2' as string_model_name;
 
-type OpenAiChatResponseFormat =
-    ChatCompletionCreateParamsNonStreaming['response_format'];
+// Type definitions for AgentKit structured output
+type AgentOutputType = 'text' | JsonSchemaDefinition;
+
+type JsonSchemaDefinitionEntry = {
+    type?: string;
+    description?: string;
+    properties?: Record<string, JsonSchemaDefinitionEntry>;
+    required?: Array<string>;
+    items?: JsonSchemaDefinitionEntry;
+    [key: string]: TODO_any;
+};
+
+type JsonSchemaDefinition = {
+    type: 'json_schema';
+    name: string;
+    strict: boolean;
+    schema: {
+        type: 'object';
+        properties: Record<string, JsonSchemaDefinitionEntry>;
+        required: Array<string>;
+        additionalProperties: boolean;
+        description?: string;
+    };
+};
+
+type OpenAiChatResponseFormat = OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming['response_format'];
 
 const DEFAULT_JSON_SCHEMA_NAME = 'StructuredOutput';
 
@@ -51,18 +74,16 @@ const EMPTY_JSON_SCHEMA: JsonSchemaDefinition['schema'] = {
     additionalProperties: true,
 };
 
-function buildJsonSchemaDefinition(
-    jsonSchema?: {
-        name?: string;
-        strict?: boolean | null;
-        schema?: {
-            description?: string;
-            additionalProperties?: boolean;
-            properties?: Record<string, JsonSchemaDefinitionEntry>;
-            required?: Array<string>;
-        };
-    },
-): JsonSchemaDefinition {
+function buildJsonSchemaDefinition(jsonSchema?: {
+    name?: string;
+    strict?: boolean | null;
+    schema?: {
+        description?: string;
+        additionalProperties?: boolean;
+        properties?: Record<string, JsonSchemaDefinitionEntry>;
+        required?: Array<string>;
+    };
+}): JsonSchemaDefinition {
     const schema = jsonSchema?.schema ?? {};
 
     return {
@@ -74,9 +95,7 @@ function buildJsonSchemaDefinition(
             properties: (schema.properties ?? {}) as Record<string, JsonSchemaDefinitionEntry>,
             required: Array.isArray(schema.required) ? schema.required : [],
             additionalProperties:
-                schema.additionalProperties === undefined
-                    ? true
-                    : Boolean(schema.additionalProperties),
+                schema.additionalProperties === undefined ? true : Boolean(schema.additionalProperties),
             description: schema.description,
         },
     };
@@ -86,9 +105,7 @@ function buildJsonSchemaDefinition(
  * Maps OpenAI response_format payloads to Agent output types so the AgentKit runner
  * can forward the user's structured-output preference to OpenAI.
  */
-function mapResponseFormatToAgentOutputType(
-    responseFormat?: OpenAiChatResponseFormat,
-): AgentOutputType | undefined {
+function mapResponseFormatToAgentOutputType(responseFormat?: OpenAiChatResponseFormat): AgentOutputType | undefined {
     if (!responseFormat) {
         return undefined;
     }
@@ -187,9 +204,7 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
             modelName: this.agentKitModelName,
         });
 
-        const responseFormatOutputType = mapResponseFormatToAgentOutputType(
-            modelRequirements.responseFormat,
-        );
+        const responseFormatOutputType = mapResponseFormatToAgentOutputType(modelRequirements.responseFormat);
 
         const preparedAgentKitAgent = await this.prepareAgentKitAgent({
             name: (prompt.title || 'Agent') as string_title,
@@ -442,7 +457,7 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
                 modelName: this.agentKitModelName,
             });
         const agentForRun =
-            options.responseFormatOutputType !== undefined
+            options.responseFormatOutputType !== undefined && options.responseFormatOutputType === 'text'
                 ? openAiAgentKitAgent.clone({
                       outputType: options.responseFormatOutputType,
                   })
