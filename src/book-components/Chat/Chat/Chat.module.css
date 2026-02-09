@@ -565,6 +565,15 @@
     transition: all 0.2s ease;
     font-size: 15px;
     backdrop-filter: blur(10px);
+    --chat-heading-surface: rgba(255, 255, 255, 0.12);
+    --chat-heading-accent: rgba(56, 189, 248, 0.85);
+}
+
+@supports (color: color-mix(in srgb, #000 50%, #fff 50%)) {
+    .chatMainFlow .chatMessage .messageText {
+        --chat-heading-surface: color-mix(in srgb, var(--message-bg-color, #ffffff) 70%, rgba(15, 23, 42, 0.08) 30%);
+        --chat-heading-accent: color-mix(in srgb, var(--message-text-color, #0f172a) 65%, rgba(59, 130, 246, 0.9) 35%);
+    }
 }
 
 /* Copy button styles */
@@ -654,26 +663,6 @@
 
 .copyButton svg {
     display: block;
-}
-
-.messageText h1 {
-    font-size: 2em;
-}
-
-.messageText h2 {
-    font-size: 1.75em;
-}
-
-.messageText h3 {
-    font-size: 1.5em;
-}
-
-.messageText h4 {
-    font-size: 1.25em;
-}
-
-.messageText h5 {
-    font-size: 1.1em;
 }
 
 .messageText ul {

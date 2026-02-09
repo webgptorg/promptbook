@@ -5,6 +5,7 @@
 -   The error dialog when the chat fails ("Connection Issue") now has an option to reset the chat with the same message sent to a fresh chat.
 -   Show error message when the agent returns an empty message.
 -   Preserved file attachments when cloning prompts for OpenAI chat so playground uploads keep their `arrayBuffer` after the OpenAI 6.18.0 upgrade.
+-   Re-styled Markdown headings inside chat bubbles as card-like sections powered by new shared heading tokens, keeping the typography and spacing consistent with the rest of the Agents Server UI.
 
 ### 📚 Book
 
