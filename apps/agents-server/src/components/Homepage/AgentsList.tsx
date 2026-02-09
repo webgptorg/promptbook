@@ -684,6 +684,12 @@ export function AgentsList(props: AgentsListProps) {
             ),
         [folders, currentFolderId],
     );
+    // Keep the interactive agent/folder caches aligned with the latest server props (e.g., after logging in).
+    useEffect(() => {
+        setAgents(Array.from(initialAgents));
+        setFolders(Array.from(initialFolders));
+    }, [initialAgents, initialFolders]);
+
     const visibleAgents = useMemo(
         () =>
             sortBySortOrder(

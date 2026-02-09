@@ -6,7 +6,7 @@
 -   Added a `promptSufix` field to `AgentModelRequirements`, surfaced it in the Agents Server model-requirements response, taught the RULE commitment to duplicate its guidance there as a dashed list, and made `AgentLlmExecutionTools` append that suffix to every outgoing chat prompt so system and prompt messages always reinforce the same rules.
 -   Ensured the OpenAI compatibility chat endpoints in the Agents Server forward any `response_format` payload to the underlying OpenAI/API provider by mapping it to AgentKit output types before each run so JSON schema responses are honored.
 -   Fixed the Agents Server clone flow so it now prompts with a prefilled "Copy of {agent name}" name, reuses a shared dialog helper, and redirects into the freshly cloned agent instead of a missing route.
--   Fixed Agents Server login so the agents list loads immediately after signing in without a manual refresh.
+-   Fixed the Agents Server home list so the client cache re-syncs with the server-provided agent and folder data immediately after signing in, eliminating the need for a manual refresh.
 -   Added explicit drag handles to the Agents Server homepage cards so touchscreens can scroll freely while drag-and-drop remains pinned to a clearly marked handle that also works for folders.
 -   The error dialog when the chat fails ("Connection Issue") now has an option to reset the chat with the same message sent to a fresh chat.
 -   Voice dictation now honors the user's locale (Accept-Language -> speech recognition language) so Whisper stays in the speaker's language instead of forcing English, with the new language hint threaded through Agent chat, profile chat, and the voice test client.
