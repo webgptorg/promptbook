@@ -28,7 +28,7 @@
 
 ---
 
-[ ] !
+[x] ~$3.28 6 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
 [✨🤧] When there is a link in the chat message, the link should be underlined.
 
@@ -58,3 +58,4 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

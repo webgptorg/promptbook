@@ -25,6 +25,21 @@
     pointer-events: none;
 }
 
+.MarkdownContent a {
+    color: var(--chat-heading-accent, #38bdf8);
+    text-decoration: underline;
+    text-decoration-thickness: 1.3px;
+    text-underline-offset: 2px;
+    text-decoration-color: currentColor;
+    text-decoration-style: solid;
+    transition: color 0.2s ease, text-decoration-color 0.2s ease, opacity 0.2s ease;
+}
+
+.MarkdownContent a:hover,
+.MarkdownContent a:focus-visible {
+    opacity: 0.85;
+}
+
 .MarkdownContent h1 {
     font-size: 1.9rem;
     font-weight: 600;
