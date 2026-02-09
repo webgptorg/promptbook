@@ -60,6 +60,57 @@ A ta dynamika bude neúprosná: pokud můžu tu samou věc vyřešit buď za dv�
 Co nejspíš stále potřeba bude, je ten, kdo tyhle agentní týmy a nástroje úkoluje a dává jim kontext a pravidla.
 @@@
 
+musím někde začít a přemýšlím kde umělá inteligence není pojem který vznikl z něčeho nic v roce 2022, o umělé inteligenci se tady bavíme už dobrých 100 let už Karel Čapek měl pohledy na umělou inteligenci 
+
+zároveň jsem byl sám na mnoha hekatonech a akcích které se týkaly umělé inteligence dávno předtím než jsem vůbec poprvé použil jazykový model umělá inteligence se používá používala a používá k rozpoznávání obrazu zvuku a tak 
+
+přemýšlím co je teď nové Co je teď jinak a jakým způsobem rozdělit jakým způsobem jednoznačně pojmenovat tu revoluce 
+
+ChatGPT
+
+obvykle přelomové věci přinese jeden jediný produkt který však nemá žádnou jednu věc absolutně unikátní pouze kombinuje prvky tím správným způsobem ve správné době a tím změní způsob přemýšlení lidí 
+
+
+Apple nebyl první počítač, iPhone nebyl první chytrý telefon a Google nebyl první vyhledávač Bitcoin nebyl první pokus o internetové peníze stejně tak nebyl první chatbot ani první umělá inteligence ale přinesl několik tak klíčových prvků které spustili absolutní revoluce
+
+sám se snažím všechny věci analyzovat a rozebrat na dílčí kousky tohle je můj pohled na to proč si myslím že chat GPT způsobil proč právě GPT způsobil tu revoluci 
+
+
+kamarád na povídání nikoliv statistický model 
+pamatuju si přesně na ten den a hodinu kdy mi od opening přišel email že spustili chat GPT 
+
+byl jsem zklamaný hodně zklamaný 
+
+v té době jsem intenzivně pracoval na tom abych automatizoval vytváření produktových náhledů pomocí dalle-2 a gpt2
+
+čekal jsem že dostanu lepší obrázkový model nebo přístup do GPT 3, místo toho tady mají nějakou aplikaci která neumí nic víc než completion Playground, akorát je zabalená do stupidního hávu povídacího chatu 
+
+Co to je za nesmysl jazykový model přece není žádný chat jazykový model umí predikovat jaký text následuje za daným textem neumí si povídat nemá nic jako přemýšlení o kontextu tohle je jenom synta pro blbečky kteří se neumí naučit používat jazykový model a jeho parametry 
+
+ChatGPT jsem si vyzkoušel 
+
+po pár dnech však bylo jasné že tohle je něco víc než jen nějaký náhodný experiment 
+
+najednou kamarád pro kterého bylo generování přirozeného textu taková ta ajťácká blbost kterou mu z nějakého důvodu jeho kámoš vysvětluje půlnoční kávy něco pochopitelného 
+
+už to nebyl statistický model predikující text ale vševědoucí kamarád který vám umí poradit 
+
+tohle je prvek který programátoři vývojáře a lidi pohybující se v IT strašně podceňují – jakým způsobem přiblížit A připodobnit technologie k věcem které lidi už znají
+
+
+GPT 3(.5) nikoliv gpt2 
+
+(
+Svět po covidu 
+
+generování obrázků a závod s midjourney 
+)
+
+
+
+
+
+
 ## Model
 
 "Jak vlastně ChatGPT pracuje?" Zkusím to popsat jednoduše a srozumitelně, bez videí a bez rovnic. Ale upřímně - nezaručuju, že se mi to podaří 🙂
