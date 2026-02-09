@@ -1,5 +1,18 @@
 # AI: Modely, Agenti, Osobnosti
 
+
+
+## Todos 
+
+kniha která se sama píše
+hra s lístečky 
+doplňování na telefonu
+divadelní hra která se sama píše 
+mapa multivesmíru 
+agi
+
+
+
 ## Předmluva
 
 @@@
