@@ -8,10 +8,10 @@ import type {
     string_url_image,
 } from '../../types/typeAliases';
 import type { AgentModelRequirements } from './AgentModelRequirements';
+import type { CreateAgentModelRequirementsOptions } from './CreateAgentModelRequirementsOptions';
 import { createAgentModelRequirementsWithCommitments } from './createAgentModelRequirementsWithCommitments';
 import { parseAgentSource } from './parseAgentSource';
 import type { string_book } from './string_book';
-import type { CreateAgentModelRequirementsOptions } from './createAgentModelRequirementsOptions';
 
 /**
  * Creates model requirements for an agent based on its source.

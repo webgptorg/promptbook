@@ -1,4 +1,4 @@
-import type { AgentReferenceResolver } from './agentReferenceResolver';
+import type { AgentReferenceResolver } from './AgentReferenceResolver';
 
 /**
  * Options for `createAgentModelRequirements` and `createAgentModelRequirementsWithCommitments`.

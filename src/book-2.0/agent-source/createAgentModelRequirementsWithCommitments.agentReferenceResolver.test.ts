@@ -1,7 +1,7 @@
 import { describe, expect, it, jest } from '@jest/globals';
-import type { AgentReferenceResolver } from './agentReferenceResolver';
-import { validateBook } from './string_book';
+import type { AgentReferenceResolver } from './AgentReferenceResolver';
 import { createAgentModelRequirementsWithCommitments } from './createAgentModelRequirementsWithCommitments';
+import { validateBook } from './string_book';
 
 describe('createAgentModelRequirementsWithCommitments agent reference resolver', () => {
     it('resolves agent references before applying FROM', async () => {

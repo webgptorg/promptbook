@@ -1,6 +1,6 @@
+import type { BookCommitment } from '../../commitments/_base/BookCommitment';
 import { createBasicAgentModelRequirements } from '../../commitments/_base/createEmptyAgentModelRequirements';
 import type { ParsedCommitment } from '../../commitments/_base/ParsedCommitment';
-import type { BookCommitment } from '../../commitments/_base/BookCommitment';
 import { getCommitmentDefinition } from '../../commitments/_common/getCommitmentDefinition';
 import { $fileImportPlugins } from '../../import-plugins/$fileImportPlugins';
 import { promptbookFetch } from '../../scrapers/_common/utils/promptbookFetch';
@@ -8,11 +8,11 @@ import type { string_model_name } from '../../types/typeAliases';
 import { isValidUrl } from '../../utils/validators/url/isValidUrl';
 import type { AgentModelRequirements } from './AgentModelRequirements';
 import { extractMcpServers } from './createAgentModelRequirements';
+import type { CreateAgentModelRequirementsOptions } from './CreateAgentModelRequirementsOptions';
 import { parseAgentSourceWithCommitments } from './parseAgentSourceWithCommitments';
 import { parseParameters } from './parseParameters';
 import { removeCommentsFromSystemMessage } from './removeCommentsFromSystemMessage';
 import type { string_book } from './string_book';
-import type { CreateAgentModelRequirementsOptions } from './createAgentModelRequirementsOptions';
 
 /**
  * Creates agent model requirements using the new commitment system.
