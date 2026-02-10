@@ -24,6 +24,7 @@ import { promptbookifyAiText } from '../../utils/markdown/promptbookifyAiText';
 import { $getCurrentDate } from '../../utils/misc/$getCurrentDate';
 import { normalizeToKebabCase } from '../../utils/normalization/normalize-to-kebab-case';
 import { keepUnused } from '../../utils/organization/keepUnused';
+import { really_unknown } from '../../utils/organization/really_unknown';
 import {
     OpenAiAgentKitExecutionTools,
     mapResponseFormatToAgentOutputType,
@@ -536,17 +537,22 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
             }
         }
 
-        let content = underlyingLlmResult.content as string_markdown;
+        let content = underlyingLlmResult.content as string_markdown | really_unknown;
 
-        // Note: Cleanup the AI artifacts from the content
-        content = humanizeAiText(content);
+        if (typeof content === 'string') {
+            // Note: Cleanup the AI artifacts from the content
+            content = humanizeAiText(content);
 
-        // Note: Make sure the content is Promptbook-like
-        content = promptbookifyAiText(content);
+            // Note: Make sure the content is Promptbook-like
+            content = promptbookifyAiText(content as string_markdown);
+        } else {
+            // TODO: Maybe deep `humanizeAiText` + `promptbookifyAiText` inside of the object
+            content = JSON.stringify(content);
+        }
 
         const agentResult: ChatPromptResult = {
             ...underlyingLlmResult,
-            content,
+            content: content as string_markdown,
             modelName: this.modelName,
         };
 
