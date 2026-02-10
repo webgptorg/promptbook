@@ -14,8 +14,8 @@ export function createCodingContext(): string_prompt {
         - Write clear, maintainable, and well-documented code.
         - Write JSDoc comments for all entities - functions, classes, types, top-level constants, etc.
             - When this entity is exported from the file, it must be marked either as \`@public\` or \`@private\` at the end of the JSDoc comment.
-                - For example, this is [how public looks like](src/errors/PromptbookFetchError.ts)
-                - For example, this is [how private looks like](src/book-components/Chat/utils/createShortLinkForChat.ts)
+            - For example: "@private internal utility of <Chat/>" / "@public exported from \`@promptbook/browser\`"
+            - If you dont know, prefer to mark it as private, we can always change it to public later, but changing from public to private may cause breaking changes.
         - After code change, run the following tests to ensure everything works as expected:
             1) npm run test-name-discrepancies - tests that file names matches the exported names, for example if you export a class named "OpenAiAgent" from a file, the file should be named \`OpenAiAgent.ts\` *(not \`ClaudeAgent.ts\`)*. This helps to prevent typos and mismanagement of the project.
             2) npm run test-spellcheck - When using some new word, add it into the [dictionary](other/cspell-dictionaries)
