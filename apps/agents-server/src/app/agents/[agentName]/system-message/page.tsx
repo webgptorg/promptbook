@@ -13,6 +13,7 @@ import { FileTextIcon } from 'lucide-react';
 import { headers } from 'next/headers';
 import { resolveAgentAvatarImageUrl } from '../../../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
+import { keepUnused } from '../../../../../../../src/utils/organization/keepUnused';
 import { getAgentName } from '../_utils';
 import { generateAgentMetadata } from '../generateAgentMetadata';
 
@@ -37,6 +38,9 @@ export default async function AgentSystemMessagePage({ params }: { params: Promi
         promptSuffix,
         ...sanitizedModelRequirements
     } = modelRequirements;
+
+    keepUnused(_metadata, _notes, _parentAgentUrl, promptSuffix);
+
     const agentProfile = parseAgentSource(agentSource);
     const { systemMessage, ...modelRequirementsRest } = sanitizedModelRequirements;
 
