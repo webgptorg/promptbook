@@ -23,6 +23,7 @@ import { humanizeAiText } from '../../utils/markdown/humanizeAiText';
 import { promptbookifyAiText } from '../../utils/markdown/promptbookifyAiText';
 import { $getCurrentDate } from '../../utils/misc/$getCurrentDate';
 import { normalizeToKebabCase } from '../../utils/normalization/normalize-to-kebab-case';
+import { keepUnused } from '../../utils/organization/keepUnused';
 import {
     OpenAiAgentKitExecutionTools,
     mapResponseFormatToAgentOutputType,
@@ -294,11 +295,11 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
             ...sanitizedRequirements
         } = modelRequirements;
 
+        keepUnused(_metadata, _notes, _parentAgentUrl);
+
         const chatPrompt = prompt as ChatPrompt;
         let underlyingLlmResult: CommonPromptResult;
 
-        // Create modified chat prompt with agent system message
-        const promptSuffix = promptSuffix?.trim();
         const chatPromptContentWithSuffix: string_prompt = promptSuffix
             ? (`${chatPrompt.content}\n\n${promptSuffix}` as string_prompt)
             : (chatPrompt.content as string_prompt);
