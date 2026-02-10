@@ -4,18 +4,40 @@ import type { string_data_url, string_filename } from '../../types/typeAliases';
 /**
  * @@@
  * 
- * @private thing of
+ * @private thing of inline knowledge
  */
 const INLINE_KNOWLEDGE_BASE_NAME = 'inline-knowledge';
+
+/**
+ * @@@
+ * 
+ * @private thing of inline knowledge
+ */
 const INLINE_KNOWLEDGE_EXTENSION = '.txt';
+
+/**
+ * @@@
+ * 
+ * @private thing of inline knowledge
+ */
 const DATA_URL_PREFIX = 'data:';
 
+/**
+ * @@@
+ * 
+ * @private thing of inline knowledge
+ */
 export type InlineKnowledgeSourceFile = {
     readonly filename: string_filename;
     readonly mimeType: string;
     readonly url: string_data_url;
 };
 
+/**
+ * @@@
+ * 
+ * @private thing of inline knowledge
+ */
 function getFirstNonEmptyLine(content: string): string | null {
     const lines = content.split(/\r?\n/);
     for (const line of lines) {
@@ -27,6 +49,11 @@ function getFirstNonEmptyLine(content: string): string | null {
     return null;
 }
 
+/**
+ * @@@
+ * 
+ * @private thing of inline knowledge
+ */
 function deriveBaseFilename(content: string): string {
     const firstLine = getFirstNonEmptyLine(content);
     if (!firstLine) {
@@ -39,6 +66,8 @@ function deriveBaseFilename(content: string): string {
 
 /**
  * Creates a data URL that represents the inline knowledge content as a text file.
+ * 
+ * @private thing of inline knowledge
  */
 export function createInlineKnowledgeSourceFile(content: string): InlineKnowledgeSourceFile {
     const trimmedContent = content.trim();
@@ -58,6 +87,8 @@ export function createInlineKnowledgeSourceFile(content: string): InlineKnowledg
 
 /**
  * Checks whether the provided source string is a data URL that can be decoded.
+ * 
+ * @private thing of inline knowledge
  */
 export function isDataUrlKnowledgeSource(source: string): source is string_data_url {
     return typeof source === 'string' && source.startsWith(DATA_URL_PREFIX);
