@@ -22,8 +22,7 @@ import type { AgentChatProps } from '../book-components/Chat/AgentChat/AgentChat
 import { Chat } from '../book-components/Chat/Chat/Chat';
 import type { ChatSoundSystem } from '../book-components/Chat/Chat/ChatProps';
 import type { ChatProps } from '../book-components/Chat/Chat/ChatProps';
-import { ChatSoundToggle } from '../book-components/Chat/Chat/ChatSoundToggle';
-import { ChatVibrationToggle } from '../book-components/Chat/Chat/ChatSoundToggle';
+import { ChatSoundToggle, ChatSoundAndVibrationPanel, ChatVibrationToggle } from '../book-components/Chat/Chat/ChatSoundToggle';
 import { ChatEffectsSystem } from '../book-components/Chat/effects/ChatEffectsSystem';
 import { ConfettiEffect } from '../book-components/Chat/effects/components/ConfettiEffect';
 import { HeartsEffect } from '../book-components/Chat/effects/components/HeartsEffect';
@@ -100,6 +99,7 @@ export { Chat };
 export type { ChatSoundSystem };
 export type { ChatProps };
 export { ChatSoundToggle };
+export { ChatSoundAndVibrationPanel };
 export { ChatVibrationToggle };
 export { ChatEffectsSystem };
 export { ConfettiEffect };

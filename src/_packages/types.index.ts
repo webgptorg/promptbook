@@ -19,6 +19,7 @@ import type { AgentChipProps } from '../book-components/Chat/AgentChip/AgentChip
 import type { ChatSoundSystem } from '../book-components/Chat/Chat/ChatProps';
 import type { ChatProps } from '../book-components/Chat/Chat/ChatProps';
 import type { ChatSoundToggleProps } from '../book-components/Chat/Chat/ChatSoundToggle';
+import type { ChatSoundAndVibrationPanelProps } from '../book-components/Chat/Chat/ChatSoundToggle';
 import type { ChatVibrationToggleProps } from '../book-components/Chat/Chat/ChatSoundToggle';
 import type { ChatEffect } from '../book-components/Chat/effects/types/ChatEffect';
 import type { ChatEffectConfig } from '../book-components/Chat/effects/types/ChatEffectConfig';
@@ -426,6 +427,7 @@ export type { AgentChipProps };
 export type { ChatSoundSystem };
 export type { ChatProps };
 export type { ChatSoundToggleProps };
+export type { ChatSoundAndVibrationPanelProps };
 export type { ChatVibrationToggleProps };
 export type { ChatEffect };
 export type { ChatEffectConfig };

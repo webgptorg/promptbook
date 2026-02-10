@@ -60,6 +60,7 @@ The sound system follows a decoupled, scalable architecture with clear separatio
    - Provides menu controls for enabling/disabling sounds (🔊/🔇) and haptics (📳/📴)
    - Integrated into the save menu with consistent styling
    - Persists both states via the SoundSystem
+   - The two switches now live inside `ChatSoundAndVibrationPanel`, a compact control panel with lucide icons, descriptive labels, and tiny status badges so both controls remain obvious without crowding the menu
 
 ## Sound Events
 

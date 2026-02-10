@@ -14,7 +14,7 @@ import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
 import styles from './Chat.module.css';
 import type { ChatSoundSystem } from './ChatProps';
-import { ChatSoundToggle, ChatVibrationToggle } from './ChatSoundToggle';
+import { ChatSoundAndVibrationPanel } from './ChatSoundToggle';
 
 /**
  * Props for the Chat actions toolbar.
@@ -170,8 +170,7 @@ export function ChatActionsBar(props: ChatActionsBarProps) {
                             {soundSystem && (
                                 <>
                                     <div className={styles.saveMenuDivider} />
-                                    <ChatSoundToggle soundSystem={soundSystem} className={styles.saveMenuItem} />
-                                    <ChatVibrationToggle soundSystem={soundSystem} className={styles.saveMenuItem} />
+                                    <ChatSoundAndVibrationPanel soundSystem={soundSystem} />
                                 </>
                             )}
                         </div>
