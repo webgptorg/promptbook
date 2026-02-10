@@ -1,4 +1,5 @@
 import type { ChatSoundSystem } from '../../../../../src/book-components/Chat/Chat/ChatProps';
+import { getSoundPreferences, setSoundsEnabled, subscribeToSoundPreferences } from './preferences';
 
 /**
  * Sound event types that can be triggered in the chat
@@ -59,8 +60,9 @@ export type SoundConfig = {
 export class SoundSystem implements ChatSoundSystem {
     private sounds: Map<SoundEvent, HTMLAudioElement[]> = new Map();
     private soundConfigs: Map<SoundEvent, SoundConfig> = new Map();
-    private enabled: boolean = true;
-    private storageKey: string = 'promptbook_chat_sounds_enabled';
+    private soundsEnabled: boolean;
+    private vibrationEnabled: boolean;
+    private preferencesUnsubscribe: (() => void) | null = null;
     private currentlyPlaying: Map<SoundEvent, HTMLAudioElement | null> = new Map();
 
     /**
@@ -69,13 +71,10 @@ export class SoundSystem implements ChatSoundSystem {
      * @param soundMap - Map of sound events to their configurations
      * @param storageKey - Key for localStorage persistence (optional)
      */
-    constructor(soundMap: Partial<Record<SoundEvent, SoundConfig>>, storageKey?: string) {
-        if (storageKey) {
-            this.storageKey = storageKey;
-        }
-
-        // Load enabled state from localStorage
-        this.loadEnabledState();
+    constructor(soundMap: Partial<Record<SoundEvent, SoundConfig>>) {
+        const preferences = getSoundPreferences();
+        this.soundsEnabled = preferences.isSoundsEnabled;
+        this.vibrationEnabled = preferences.isVibrationEnabled;
 
         // Initialize sound configurations
         for (const [event, config] of Object.entries(soundMap) as Array<[SoundEvent, SoundConfig]>) {
@@ -90,6 +89,11 @@ export class SoundSystem implements ChatSoundSystem {
         if (typeof window !== 'undefined') {
             this.preloadSounds();
         }
+
+        this.preferencesUnsubscribe = subscribeToSoundPreferences(({ isSoundsEnabled, isVibrationEnabled }) => {
+            this.soundsEnabled = isSoundsEnabled;
+            this.vibrationEnabled = isVibrationEnabled;
+        });
     }
 
     /**
@@ -113,50 +117,16 @@ export class SoundSystem implements ChatSoundSystem {
     }
 
     /**
-     * Loads the enabled state from localStorage
-     */
-    private loadEnabledState(): void {
-        if (typeof window === 'undefined') {
-            return;
-        }
-
-        try {
-            const stored = localStorage.getItem(this.storageKey);
-            if (stored !== null) {
-                this.enabled = stored === 'true';
-            }
-        } catch (error) {
-            console.warn('Failed to load sound settings from localStorage:', error);
-        }
-    }
-
-    /**
-     * Saves the enabled state to localStorage
-     */
-    private saveEnabledState(): void {
-        if (typeof window === 'undefined') {
-            return;
-        }
-
-        try {
-            localStorage.setItem(this.storageKey, String(this.enabled));
-        } catch (error) {
-            console.warn('Failed to save sound settings to localStorage:', error);
-        }
-    }
-
-    /**
      * Plays a sound for the given event
      *
      * @param event - The sound event to play (as string to match ChatSoundSystem interface)
      * @returns Promise that resolves when the sound finishes playing
      */
     public async play(event: string): Promise<void> {
-        if (!this.enabled) {
+        this.vibrate(event);
+        if (!this.soundsEnabled) {
             return;
         }
-
-        this.vibrate(event);
 
         const audioElements = this.sounds.get(event as SoundEvent);
         const config = this.soundConfigs.get(event as SoundEvent);
@@ -214,7 +184,7 @@ export class SoundSystem implements ChatSoundSystem {
      * @param event - The sound event to vibrate for
      */
     public vibrate(event: string): void {
-        if (!this.enabled) {
+        if (!this.vibrationEnabled) {
             return;
         }
 
@@ -249,8 +219,7 @@ export class SoundSystem implements ChatSoundSystem {
      * @param enabled - Whether sounds should be enabled
      */
     public setEnabled(enabled: boolean): void {
-        this.enabled = enabled;
-        this.saveEnabledState();
+        setSoundsEnabled(enabled);
     }
 
     /**
@@ -259,7 +228,7 @@ export class SoundSystem implements ChatSoundSystem {
      * @returns True if sounds are enabled
      */
     public isEnabled(): boolean {
-        return this.enabled;
+        return this.soundsEnabled;
     }
 
     /**
@@ -268,8 +237,17 @@ export class SoundSystem implements ChatSoundSystem {
      * @returns The new enabled state
      */
     public toggle(): boolean {
-        this.setEnabled(!this.enabled);
-        return this.enabled;
+        const next = !this.soundsEnabled;
+        setSoundsEnabled(next);
+        return next;
+    }
+
+    /**
+     * Cleans up the preference listener to avoid leaks.
+     */
+    public dispose(): void {
+        this.preferencesUnsubscribe?.();
+        this.preferencesUnsubscribe = null;
     }
 
     /**

@@ -4,6 +4,7 @@ import { parseAgentSource } from '@promptbook-local/core';
 import type { AgentsServerDatabase } from '../../../database/schema';
 import { $provideSupabaseForServer } from '../../../database/$provideSupabaseForServer';
 import { buildAgentFolderContext, type AgentFolderContext } from '../../../utils/agentOrganization/agentFolderContext';
+import { getMetadata } from '@/database/getMetadata';
 
 /**
  * Database agent row shape used for folder lookups.
@@ -110,6 +111,23 @@ export async function getAgentFolderContext(
     }
 
     return buildAgentFolderContext(folderId, folderById);
+}
+
+/**
+ * Reads the global defaults for sounds and vibration from the metadata table.
+ *
+ * @returns Current default state for sounds and vibration.
+ */
+export async function getDefaultSoundSettings() {
+    const [soundsMeta, vibrationMeta] = await Promise.all([
+        getMetadata('DEFAULT_IS_SOUNDS_ON'),
+        getMetadata('DEFAULT_IS_VIBRATION_ON'),
+    ]);
+
+    return {
+        defaultIsSoundsOn: (soundsMeta || 'false') === 'true',
+        defaultIsVibrationOn: (vibrationMeta || 'true') === 'true',
+    };
 }
 
 /**

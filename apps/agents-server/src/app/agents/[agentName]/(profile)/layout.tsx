@@ -15,7 +15,7 @@ import { resolveAgentAvatarImageUrl } from '../../../../../../../src/utils/agent
 import { Color } from '../../../../../../../src/utils/color/Color';
 import { resolveSpeechRecognitionLanguage } from '../../../../../../../src/utils/language/getPreferredSpeechRecognitionLanguage';
 import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
-import { getAgentFolderContext, getAgentName, getAgentProfile, isAgentDeleted } from '../_utils';
+import { getAgentFolderContext, getAgentName, getAgentProfile, getDefaultSoundSettings, isAgentDeleted } from '../_utils';
 import { getAgentLinks } from '../agentLinks';
 import { AgentPageContextProvider, type AgentPageContextValue } from '../AgentPageContext';
 import { AgentProfileWrapper } from '../AgentProfileWrapper';
@@ -97,6 +97,8 @@ export default async function AgentProfileLayout({ children, params, searchParam
         resolveAgentAvatarImageUrl({ agent: agentProfile, baseUrl: publicUrl.href }) ||
         `/agents/${encodeURIComponent(agentProfile.permanentId || agentName)}/images/default-avatar.png`;
 
+    const soundDefaults = await getDefaultSoundSettings();
+
     const agentContextValue: AgentPageContextValue = {
         agentName,
         agentUrl,
@@ -125,6 +127,8 @@ export default async function AgentProfileLayout({ children, params, searchParam
                 isAdmin={isAdmin}
                 isHeadless={isHeadless}
                 folderContext={folderContext}
+                defaultIsSoundsOn={soundDefaults.defaultIsSoundsOn}
+                defaultIsVibrationOn={soundDefaults.defaultIsVibrationOn}
                 actions={actions}
             >
                 {isDeleted ? (

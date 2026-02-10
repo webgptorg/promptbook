@@ -5,13 +5,14 @@ import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentColle
 import { isUserAdmin } from '@/src/utils/isUserAdmin';
 import { headers } from 'next/headers';
 import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
-import { isAgentDeleted } from '../_utils';
+import { getDefaultSoundSettings, isAgentDeleted } from '../_utils';
 import { BackToAgentButton } from '@/src/components/BackToAgentButton/BackToAgentButton';
 import { generateAgentMetadata } from '../generateAgentMetadata';
 import { AgentBookAndChat } from './AgentBookAndChat';
 import { DeletedAgentBanner } from '../../../../components/DeletedAgentBanner';
 import { getThinkingMessages } from '@/src/utils/thinkingMessages';
 import { resolveSpeechRecognitionLanguage } from '../../../../../../../src/utils/language/getPreferredSpeechRecognitionLanguage';
+import { SoundPreferencesInitializer } from '@/components/SoundPreferences';
 
 export const generateMetadata = generateAgentMetadata;
 
@@ -41,12 +42,17 @@ export default async function AgentBookAndChatPage({ params }: { params: Promise
     const agentSource = await collection.getAgentSource(agentName);
     const agentUrl = `/agents/${agentName}`;
     const thinkingMessages = await getThinkingMessages();
+    const soundDefaults = await getDefaultSoundSettings();
     const speechRecognitionLanguage = resolveSpeechRecognitionLanguage({
         acceptLanguageHeader: requestHeaders.get('accept-language'),
     });
 
     return (
         <div className={`w-screen h-[calc(100vh-60px)] relative`}>
+            <SoundPreferencesInitializer
+                defaultIsSoundsOn={soundDefaults.defaultIsSoundsOn}
+                defaultIsVibrationOn={soundDefaults.defaultIsVibrationOn}
+            />
             <BackToAgentButton agentName={agentName} />
             <AgentBookAndChat
                 agentName={agentName}

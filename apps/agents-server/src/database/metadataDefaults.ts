@@ -87,6 +87,18 @@ export const metadataDefaults = [
         type: 'BOOLEAN',
     },
     {
+        key: 'DEFAULT_IS_SOUNDS_ON',
+        value: 'false',
+        note: 'Default preference for chat sounds when localStorage is empty. Set to true to start with sounds enabled for new clients.',
+        type: 'BOOLEAN',
+    },
+    {
+        key: 'DEFAULT_IS_VIBRATION_ON',
+        value: 'true',
+        note: 'Default preference for browser vibrations when supported and not overridden locally.',
+        type: 'BOOLEAN',
+    },
+    {
         key: 'IS_FOOTER_SHOWN',
         value: 'true',
         note: 'Show or hide the footer.',
