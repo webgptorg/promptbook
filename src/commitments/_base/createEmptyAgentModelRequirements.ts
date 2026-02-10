@@ -16,7 +16,8 @@ export function createEmptyAgentModelRequirements(): AgentModelRequirements {
         temperature: 0.7,
         topP: 0.9,
         topK: 50,
-        isClosed: false
+        parentAgentUrl: null, // <- TODO: But this should be maybe ADAM
+        isClosed: false,
     };
 }
 
