@@ -91,8 +91,8 @@ export function MetadataClient() {
     const [editingId, setEditingId] = useState<number | null>(null);
     const [isAddUploading, setIsAddUploading] = useState(false);
     const [isEditUploading, setIsEditUploading] = useState(false);
-    const addFileInputRef = useRef<HTMLInputElement>(null);
-    const editFileInputRef = useRef<HTMLInputElement>(null);
+    const addFileInputRef = useRef<HTMLInputElement | null>(null);
+    const editFileInputRef = useRef<HTMLInputElement | null>(null);
     const [addFormState, setAddFormState] = useState<MetadataFormState>(createEmptyFormState);
     const [editingFormState, setEditingFormState] = useState<MetadataFormState>(createEmptyFormState);
 
@@ -254,7 +254,7 @@ export function MetadataClient() {
         formState: MetadataFormState;
         setFormState: React.Dispatch<React.SetStateAction<MetadataFormState>>;
         setUploading: React.Dispatch<React.SetStateAction<boolean>>;
-        fileInputRef: React.RefObject<HTMLInputElement>;
+        fileInputRef: React.RefObject<HTMLInputElement | null>;
     };
 
     /**
@@ -338,7 +338,7 @@ export function MetadataClient() {
         value: string;
         onValueChange: (value: string) => void;
         isUploading: boolean;
-        fileInputRef: React.RefObject<HTMLInputElement>;
+        fileInputRef: React.RefObject<HTMLInputElement | null>;
         onFileUpload: (event: React.ChangeEvent<HTMLInputElement>) => Promise<void> | void;
         fieldId: string;
     };
@@ -644,7 +644,9 @@ export function MetadataClient() {
                                                             <p className="text-sm font-semibold text-gray-900">
                                                                 Editing {entry.key}
                                                             </p>
-                                                            <p className="text-xs text-gray-500">Key cannot be changed.</p>
+                                                            <p className="text-xs text-gray-500">
+                                                                Key cannot be changed.
+                                                            </p>
                                                         </div>
                                                         <div>
                                                             <label

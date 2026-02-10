@@ -1,10 +1,11 @@
 'use client';
 
+import { TODO_any } from '@promptbook-local/types';
 import { X } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, useId } from 'react';
-import { Dialog } from '../Portal/Dialog';
+import { createContext, useCallback, useContext, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { LoginDialog } from '../LoginDialog/LoginDialog';
+import { Dialog } from '../Portal/Dialog';
 import {
     ModalDismissedError,
     registerModalController,
@@ -302,17 +303,8 @@ type PromptDialogProps = {
  * Prompt dialog component for async prompts.
  */
 function PromptDialog(props: PromptDialogProps) {
-    const {
-        title,
-        message,
-        confirmLabel,
-        cancelLabel,
-        defaultValue,
-        placeholder,
-        inputLabel,
-        onConfirm,
-        onCancel,
-    } = props;
+    const { title, message, confirmLabel, cancelLabel, defaultValue, placeholder, inputLabel, onConfirm, onCancel } =
+        props;
     const [value, setValue] = useState(defaultValue ?? '');
     const inputId = useId();
     const inputRef = useRef<HTMLInputElement | null>(null);
@@ -451,7 +443,7 @@ function AsyncDialogRenderer(props: AsyncDialogRendererProps) {
         );
     }
 
-    throw new Error(`Unsupported modal kind: ${request.kind}`);
+    throw new Error(`Unsupported modal kind: ${(request as TODO_any).kind}`);
 }
 
 /**

@@ -1,3 +1,4 @@
+import { TODO_any } from '@promptbook-local/types';
 import { serializeError } from '@promptbook-local/utils';
 import { ImageResponse } from 'next/og';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
@@ -26,7 +27,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
         const context = await getAgentImageContext(params);
         const layout = createAgentScreenshotLayout(context, 'portrait');
 
-        return new ImageResponse(layout, {
+        return new ImageResponse(layout as TODO_any, {
             ...size,
             emoji: 'openmoji',
         });

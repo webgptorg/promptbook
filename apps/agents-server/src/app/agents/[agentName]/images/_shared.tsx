@@ -1,13 +1,13 @@
+import { $provideServer } from '@/src/tools/$provideServer';
 import { PROMPTBOOK_COLOR } from '@promptbook-local/core';
 import type { ReactNode } from 'react';
-import { $provideServer } from '@/src/tools/$provideServer';
-import { Color } from '../../../../../../../../src/utils/color/Color';
-import { darken } from '../../../../../../../../src/utils/color/operators/darken';
-import { grayscale } from '../../../../../../../../src/utils/color/operators/grayscale';
-import { lighten } from '../../../../../../../../src/utils/color/operators/lighten';
-import { textColor } from '../../../../../../../../src/utils/color/operators/furthest';
-import { resolveAgentAvatarImageUrl } from '../../../../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
-import type { WithTake } from '../../../../../../../../src/utils/take/interfaces/ITakeChain';
+import { resolveAgentAvatarImageUrl } from '../../../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
+import { Color } from '../../../../../../../src/utils/color/Color';
+import { darken } from '../../../../../../../src/utils/color/operators/darken';
+import { textColor } from '../../../../../../../src/utils/color/operators/furthest';
+import { grayscale } from '../../../../../../../src/utils/color/operators/grayscale';
+import { lighten } from '../../../../../../../src/utils/color/operators/lighten';
+import type { WithTake } from '../../../../../../../src/utils/take/interfaces/ITakeChain';
 import { AGENT_ACTIONS, getAgentName, getAgentProfile } from '../_utils';
 
 /**
@@ -50,9 +50,7 @@ export async function getAgentImageContext(params: Promise<{ agentName: string }
         baseUrl: publicUrl.href,
     });
 
-    const iconUrl =
-        resolvedIcon ||
-        `/agents/${encodeURIComponent(fallbackId)}/images/default-avatar.png` as const;
+    const iconUrl = resolvedIcon || (`/agents/${encodeURIComponent(fallbackId)}/images/default-avatar.png` as const);
 
     return {
         agentName,
@@ -280,8 +278,7 @@ export function createAgentScreenshotLayout(
                             style={{
                                 position: 'absolute',
                                 inset: 0,
-                                background:
-                                    'linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(0,0,0,0.65) 100%)',
+                                background: 'linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(0,0,0,0.65) 100%)',
                             }}
                         />
                         <div

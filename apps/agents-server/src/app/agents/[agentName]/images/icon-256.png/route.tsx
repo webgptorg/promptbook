@@ -3,6 +3,7 @@ import { ImageResponse } from 'next/og';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
 import { keepUnused } from '../../../../../../../../src/utils/organization/keepUnused';
 import { createAgentIconLayout, getAgentImageContext } from '../_shared';
+import { TODO_any } from '@promptbook-local/types';
 
 /**
  * Target size for the generated icon.
@@ -25,7 +26,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
     try {
         const context = await getAgentImageContext(params);
 
-        return new ImageResponse(createAgentIconLayout(context), {
+        return new ImageResponse(createAgentIconLayout(context) as TODO_any, {
             ...size,
             emoji: 'openmoji',
         });

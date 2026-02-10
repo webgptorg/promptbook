@@ -2,6 +2,7 @@ import { serializeError } from '@promptbook-local/utils';
 import { ImageResponse } from 'next/og';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
 import { keepUnused } from '../../../../../../../../src/utils/organization/keepUnused';
+import { TODO_any } from '../../../../../../../../src/utils/organization/TODO_any';
 import { createAgentScreenshotLayout, getAgentImageContext } from '../_shared';
 
 /**
@@ -26,7 +27,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
         const context = await getAgentImageContext(params);
         const layout = createAgentScreenshotLayout(context, 'landscape');
 
-        return new ImageResponse(layout, {
+        return new ImageResponse(layout as TODO_any, {
             ...size,
             emoji: 'openmoji',
         });
