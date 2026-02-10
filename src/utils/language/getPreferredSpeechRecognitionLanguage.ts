@@ -65,6 +65,8 @@ export function parseSpeechRecognitionLanguageFromAcceptLanguageHeader(header?: 
 
 /**
  * Reads the browser-reported preferred language list and returns the first valid tag.
+ *
+ * @private function of Agents Server speech recognition language resolution, not a general-purpose header parser
  */
 export function getBrowserPreferredSpeechRecognitionLanguage(): string | undefined {
     if (typeof navigator === 'undefined') {
@@ -89,6 +91,8 @@ export function getBrowserPreferredSpeechRecognitionLanguage(): string | undefin
 /**
  * Resolves a speech recognition language tag by checking an optional override, then the Accept-Language header,
  * then the browser preferences, and finally falling back to a default of `en-US`.
+ *
+ * @private function of Agents Server speech recognition language resolution, not a general-purpose header parser
  */
 export function resolveSpeechRecognitionLanguage(options: ResolveSpeechRecognitionLanguageOptions = {}): string {
     const normalizedOverride = normalizeLanguageCandidate(options.overrideLanguage);

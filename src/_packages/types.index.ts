@@ -403,6 +403,7 @@ import type { NamePool } from '../utils/random/NamePool';
 import type { CheckSerializableAsJsonOptions } from '../utils/serialization/checkSerializableAsJson';
 import type { ExportJsonOptions } from '../utils/serialization/exportJson';
 import type { ITakeChain } from '../utils/take/interfaces/ITakeChain';
+import type { ThinkingMessageVariant } from '../utils/thinkingMessages';
 import type { string_promptbook_version } from '../version';
 
 // Note: Entities of the `@promptbook/types`
@@ -808,4 +809,5 @@ export type { NamePool };
 export type { CheckSerializableAsJsonOptions };
 export type { ExportJsonOptions };
 export type { ITakeChain };
+export type { ThinkingMessageVariant };
 export type { string_promptbook_version };

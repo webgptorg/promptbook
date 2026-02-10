@@ -1,30 +1,30 @@
-import { normalizeToKebabCase } from '../normalization/normalize-to-kebab-case';
 import type { string_data_url, string_filename } from '../../types/typeAliases';
+import { normalizeToKebabCase } from '../normalization/normalize-to-kebab-case';
 
 /**
  * @@@
- * 
+ *
  * @private thing of inline knowledge
  */
 const INLINE_KNOWLEDGE_BASE_NAME = 'inline-knowledge';
 
 /**
  * @@@
- * 
+ *
  * @private thing of inline knowledge
  */
 const INLINE_KNOWLEDGE_EXTENSION = '.txt';
 
 /**
  * @@@
- * 
+ *
  * @private thing of inline knowledge
  */
 const DATA_URL_PREFIX = 'data:';
 
 /**
  * @@@
- * 
+ *
  * @private thing of inline knowledge
  */
 export type InlineKnowledgeSourceFile = {
@@ -35,7 +35,7 @@ export type InlineKnowledgeSourceFile = {
 
 /**
  * @@@
- * 
+ *
  * @private thing of inline knowledge
  */
 function getFirstNonEmptyLine(content: string): string | null {
@@ -51,7 +51,7 @@ function getFirstNonEmptyLine(content: string): string | null {
 
 /**
  * @@@
- * 
+ *
  * @private thing of inline knowledge
  */
 function deriveBaseFilename(content: string): string {
@@ -66,7 +66,7 @@ function deriveBaseFilename(content: string): string {
 
 /**
  * Creates a data URL that represents the inline knowledge content as a text file.
- * 
+ *
  * @private thing of inline knowledge
  */
 export function createInlineKnowledgeSourceFile(content: string): InlineKnowledgeSourceFile {
@@ -76,7 +76,8 @@ export function createInlineKnowledgeSourceFile(content: string): InlineKnowledg
     const mimeType = 'text/plain';
     const base64 = Buffer.from(trimmedContent, 'utf-8').toString('base64');
     const encodedFilename = encodeURIComponent(filename);
-    const url = `${DATA_URL_PREFIX}${mimeType};name=${encodedFilename};charset=utf-8;base64,${base64}` as string_data_url;
+    const url =
+        `${DATA_URL_PREFIX}${mimeType};name=${encodedFilename};charset=utf-8;base64,${base64}` as string_data_url;
 
     return {
         filename,
@@ -87,7 +88,7 @@ export function createInlineKnowledgeSourceFile(content: string): InlineKnowledg
 
 /**
  * Checks whether the provided source string is a data URL that can be decoded.
- * 
+ *
  * @private thing of inline knowledge
  */
 export function isDataUrlKnowledgeSource(source: string): source is string_data_url {
@@ -96,14 +97,14 @@ export function isDataUrlKnowledgeSource(source: string): source is string_data_
 
 /**
  * Parses a data URL-based knowledge source into its raw buffer, filename, and MIME type.
+ *
+ * @private thing of inline knowledge
  */
-export function parseDataUrlKnowledgeSource(source: string):
-    | {
-          readonly buffer: Buffer;
-          readonly filename: string_filename;
-          readonly mimeType: string;
-      }
-    | null {
+export function parseDataUrlKnowledgeSource(source: string): {
+    readonly buffer: Buffer;
+    readonly filename: string_filename;
+    readonly mimeType: string;
+} | null {
     if (!isDataUrlKnowledgeSource(source)) {
         return null;
     }
