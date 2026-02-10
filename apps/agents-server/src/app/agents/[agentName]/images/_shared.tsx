@@ -107,6 +107,7 @@ export function createAgentIconLayout(context: AgentImageContext): ReactNode {
                     boxShadow: '0 16px 40px rgba(0,0,0,0.45)',
                     position: 'relative',
                     overflow: 'hidden',
+                    display: 'flex',
                 }}
             >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -149,7 +150,7 @@ export function createAgentIconLayout(context: AgentImageContext): ReactNode {
                         position: 'absolute',
                         top: '12px',
                         right: '12px',
-                        display: 'inline-flex',
+                        display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         padding: '4px 10px',
@@ -261,6 +262,7 @@ export function createAgentScreenshotLayout(
                             boxShadow: '0 20px 50px rgba(0,0,0,0.45)',
                             position: 'relative',
                             overflow: 'hidden',
+                            display: 'flex',
                         }}
                     >
                         {/* eslint-disable-next-line @next/next/no-img-element */}
