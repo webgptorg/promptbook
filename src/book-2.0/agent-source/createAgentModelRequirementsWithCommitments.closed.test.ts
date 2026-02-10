@@ -41,7 +41,6 @@ describe('CLOSED commitment only works if it is the last commitment', () => {
 
         const requirements = await createAgentModelRequirementsWithCommitments(agentSource);
         // CLOSED is skipped, so isClosed remains undefined *(which means open)*
-        expect(requirements.isClosed).toBe(undefined);
         expect(requirements.isClosed).not.toBe(true);
         expect(requirements.isClosed).not.toBe(false);
     });

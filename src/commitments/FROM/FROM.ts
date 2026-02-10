@@ -1,6 +1,7 @@
 import { spaceTrim } from 'spacetrim';
 import { isValidAgentUrl } from '../../_packages/utils.index';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
+import type { string_agent_url } from '../../types/typeAliases';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 
 /**
@@ -59,9 +60,7 @@ export class FromCommitmentDefinition extends BaseCommitmentDefinition<'FROM'> {
         const trimmedContent = content.trim();
 
         if (!trimmedContent) {
-            return {
-                ...requirements,
-            };
+            return requirements;
         }
 
         if (
@@ -72,6 +71,7 @@ export class FromCommitmentDefinition extends BaseCommitmentDefinition<'FROM'> {
         ) {
             return {
                 ...requirements,
+                parentAgentUrl: null,
             };
         }
 
@@ -91,8 +91,11 @@ export class FromCommitmentDefinition extends BaseCommitmentDefinition<'FROM'> {
             );
         }
 
+        const parentAgentUrl: string_agent_url = trimmedContent;
+
         return {
             ...requirements,
+            parentAgentUrl,
         };
     }
 }

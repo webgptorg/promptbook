@@ -72,8 +72,12 @@ export type AgentModelRequirements = {
     readonly mcpServers?: ReadonlyArray<string>;
 
     /**
+     * The URL of the parent agent to inherit from, or null if there is no parent (i.e., do not inherit from any agent)
+     */
+    readonly parentAgentUrl: string_agent_url | null;
+
+    /**
      * Is the agent closed to modification by conversation (i.e., it will not learn from interactions and its source code will remain static during conversation)
-     *
      */
     readonly isClosed: boolean;
 
@@ -87,5 +91,5 @@ export type AgentModelRequirements = {
 
 /**
  * TODO: [🐤] DRY `AgentModelRequirements` and `ModelRequirements`
- * TODO: [🧠] `isClosed` doesn't truly belong to `AgentModelRequirements` nor agent profile but it is in the `AgentModelRequirements` because of some legacy - maybe figure out better place
+ * TODO: [🧠] `isClosed` and `parentAgentUrl` doesn't truly belong to `AgentModelRequirements` nor agent profile but it is in the `AgentModelRequirements` because of some legacy - maybe figure out better place
  */
