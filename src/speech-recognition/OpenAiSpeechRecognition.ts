@@ -136,8 +136,9 @@ export class OpenAiSpeechRecognition implements SpeechRecognition {
             const formData = new FormData();
             formData.append('file', audioBlob, 'audio.wav');
             formData.append('model', 'whisper-1');
-            if (language) {
-                formData.append('language', language);
+            const isoLanguage = resolveSpeechRecognitionLanguageTagForOpenAi(language);
+            if (isoLanguage) {
+                formData.append('language', isoLanguage);
             }
 
             const response = await fetch(`${this.options.baseUrl || '/api/openai/v1'}/audio/transcriptions`, {
@@ -180,4 +181,44 @@ export class OpenAiSpeechRecognition implements SpeechRecognition {
             callback(event);
         }
     }
+}
+
+/**
+ * Pattern describing an ISO-639-1 code (two alphabetic characters).
+ *
+ * @private
+ */
+const ISO_639_1_CODE_PATTERN = /^[a-z]{2}$/i;
+
+/**
+ * Normalizes browser-derived language tags to ISO-639-1 codes that OpenAI Whisper accepts.
+ *
+ * The function drops regional and script subtags, ignores quality values, and validates that the
+ * remaining portion matches the two-letter format demanded by the API.
+ *
+ * @param language Optional language tag reported by the browser or headers.
+ * @returns A normalized ISO-639-1 language code or `undefined` when the input cannot be simplified.
+ * @private
+ */
+function resolveSpeechRecognitionLanguageTagForOpenAi(language?: string): string | undefined {
+    if (!language) {
+        return undefined;
+    }
+
+    const [rawCandidate] = language.split(';');
+    const normalized = rawCandidate.trim();
+    if (!normalized) {
+        return undefined;
+    }
+
+    const primary = normalized.split(/[-_]/)[0];
+    if (!primary) {
+        return undefined;
+    }
+
+    if (!ISO_639_1_CODE_PATTERN.test(primary)) {
+        return undefined;
+    }
+
+    return primary.toLowerCase();
 }
