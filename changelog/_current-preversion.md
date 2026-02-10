@@ -21,10 +21,9 @@
 -   Tuned the new heading tokens so every Markdown heading grabs its border, shadow, and text colors from the chat bubble palette, letting the card-like headers glow softly and stay in sync with the shared Agents Server design language.
 -   Underlined inline links inside Agents Server chat bubbles so URLs stay recognizable now that the heading tiles use card-style backgrounds.
 
--### 📚 Book
+### 📚 Book
 
 -   Leveraged Vibrations API in the chat to provide haptic feedback in sync with the sound system.
--   Added metadata-driven defaults (`DEFAULT_IS_SOUNDS_ON`, `DEFAULT_IS_VIBRATION_ON`) plus separate menu toggles so admins can flip the initial chat sound/vibration state while users can adjust each preference independently (sounds default off, vibration default on).
 -   Allow to make agent public / private agent from its context menu on the Agent profile page / right click of the agent.
 
 -   Migrated Promptbook Agents to OpenAI AgentKit: added AgentKit execution tools with shared vector store handling, updated Agents Server caching to store AgentKit vector stores in `preparedExternals`, and refreshed playground samples.

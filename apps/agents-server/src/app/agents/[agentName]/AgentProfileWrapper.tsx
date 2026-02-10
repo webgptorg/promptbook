@@ -6,7 +6,6 @@ import { useCallback } from 'react';
 import { AgentContextMenuButton, type AgentContextMenuRenamePayload } from '../../../components/AgentContextMenu/AgentContextMenu';
 import { AgentProfile } from '../../../components/AgentProfile/AgentProfile';
 import type { AgentFolderContext } from '../../../utils/agentOrganization/agentFolderContext';
-import { SoundPreferencesInitializer } from '@/components/SoundPreferences';
 
 /**
  * Extended agent profile information, including visibility status.
@@ -71,33 +70,11 @@ type AgentProfileWrapperProps = {
      * Child components to render within the agent profile
      */
     readonly children: React.ReactNode;
-
-    /**
-     * Default sound preference loaded from metadata defaults.
-     */
-    readonly defaultIsSoundsOn?: boolean;
-
-    /**
-     * Default vibration preference loaded from metadata defaults.
-     */
-    readonly defaultIsVibrationOn?: boolean;
 };
 
 export function AgentProfileWrapper(props: AgentProfileWrapperProps) {
-    const {
-        agent,
-        agentUrl,
-        publicUrl,
-        agentEmail,
-        agentName,
-        isAdmin,
-        isHeadless,
-        folderContext,
-        actions,
-        children,
-        defaultIsSoundsOn,
-        defaultIsVibrationOn,
-    } = props;
+    const { agent, agentUrl, publicUrl, agentEmail, agentName, isAdmin, isHeadless, folderContext, actions, children } =
+        props;
     const router = useRouter();
 
     // Derived agentName from agent data
@@ -134,36 +111,30 @@ export function AgentProfileWrapper(props: AgentProfileWrapperProps) {
     );
 
     return (
-        <>
-            <SoundPreferencesInitializer
-                defaultIsSoundsOn={defaultIsSoundsOn}
-                defaultIsVibrationOn={defaultIsVibrationOn}
-            />
-            <AgentProfile
-                agent={agent}
-                agentUrl={agentUrl}
-                publicUrl={publicUrl}
-                permanentId={permanentId || agentName}
-                agentEmail={agentEmail}
-                isHeadless={isHeadless}
-                renderMenu={({ onShowQrCode }) => (
-                    <AgentContextMenuButton
-                        agent={agent}
-                        agentName={agentName}
-                        derivedAgentName={derivedAgentName}
-                        permanentId={permanentId}
-                        agentUrl={agentUrl}
-                        agentEmail={agentEmail}
-                        folderContext={folderContext}
-                        isAdmin={isAdmin}
-                        onShowQrCode={onShowQrCode}
-                        onAgentRenamed={handleAgentRenamed}
-                    />
-                )}
-                actions={actions}
-            >
-                {children}
-            </AgentProfile>
-        </>
+        <AgentProfile
+            agent={agent}
+            agentUrl={agentUrl}
+            publicUrl={publicUrl}
+            permanentId={permanentId || agentName}
+            agentEmail={agentEmail}
+            isHeadless={isHeadless}
+            renderMenu={({ onShowQrCode }) => (
+                <AgentContextMenuButton
+                    agent={agent}
+                    agentName={agentName}
+                    derivedAgentName={derivedAgentName}
+                    permanentId={permanentId}
+                    agentUrl={agentUrl}
+                    agentEmail={agentEmail}
+                    folderContext={folderContext}
+                    isAdmin={isAdmin}
+                    onShowQrCode={onShowQrCode}
+                    onAgentRenamed={handleAgentRenamed}
+                />
+            )}
+            actions={actions}
+        >
+            {children}
+        </AgentProfile>
     );
 }

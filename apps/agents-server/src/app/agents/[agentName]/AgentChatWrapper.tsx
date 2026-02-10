@@ -126,12 +126,6 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
         return createDefaultSoundSystem();
     }, []);
 
-    useEffect(() => {
-        return () => {
-            soundSystem?.dispose();
-        };
-    }, [soundSystem]);
-
     // Handle errors from chat
     const handleError = useCallback((error: unknown, retry: () => void, failedMessage: { content: string }) => {
         const friendlyError = handleChatError(error, 'AgentChatWrapper');

@@ -20,8 +20,6 @@ import {
     SmartphoneIcon,
     SquareSplitHorizontalIcon,
     TrashIcon,
-    Volume2Icon,
-    VibrateIcon,
 } from 'lucide-react';
 import { Barlow_Condensed } from 'next/font/google';
 import { useRouter } from 'next/navigation';
@@ -35,8 +33,6 @@ import type { AgentFolderContext } from '../../utils/agentOrganization/agentFold
 import { showAlert, showConfirm, showPrompt } from '../AsyncDialogs/asyncDialogs';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 import { promptCloneAgent } from '../AgentCloning/cloneAgent';
-import { useSoundPreferences } from '@/components/SoundPreferences';
-import { setSoundsEnabled, setVibrationEnabled } from '@/utils/sound/preferences';
 
 type BeforeInstallPromptEvent = Event & {
     prompt: () => Promise<void>;
@@ -307,7 +303,6 @@ function AgentContextMenuContent(props: AgentContextMenuBaseProps & { onClose: (
     const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
     const copyTimeoutRef = useRef<number | null>(null);
     const { formatText } = useAgentNaming();
-    const { isSoundsEnabled, isVibrationEnabled } = useSoundPreferences();
     const router = useRouter();
 
     /**
@@ -544,21 +539,6 @@ function AgentContextMenuContent(props: AgentContextMenuBaseProps & { onClose: (
               ]
             : []),
         {
-            type: 'toggle' as const,
-            icon: Volume2Icon,
-            label: formatText('Sounds'),
-            isActive: isSoundsEnabled,
-            onToggle: () => setSoundsEnabled(!isSoundsEnabled),
-        },
-        {
-            type: 'toggle' as const,
-            icon: VibrateIcon,
-            label: formatText('Vibration'),
-            isActive: isVibrationEnabled,
-            onToggle: () => setVibrationEnabled(!isVibrationEnabled),
-        },
-        { type: 'divider' as const },
-        {
             type: 'action' as const,
             icon: CopyIcon,
             label: copyFeedback === 'URL' ? 'Copied!' : formatText('Copy Agent URL'),
@@ -704,28 +684,6 @@ function AgentContextMenuContent(props: AgentContextMenuBaseProps & { onClose: (
                             <item.icon className="w-4 h-4 text-gray-500" />
                             <span className="text-sm font-medium">{item.label}</span>
                         </a>
-                    );
-                }
-
-                if (item.type === 'toggle') {
-                    return (
-                        <button
-                            key={index}
-                            onClick={() => {
-                                item.onToggle?.();
-                            }}
-                            className="flex items-center gap-3 px-4 py-2.5 w-full text-left text-gray-700 hover:bg-gray-50 transition-colors"
-                        >
-                            <item.icon className="w-4 h-4 text-gray-500" />
-                            <span className="flex-1 text-sm font-medium">{item.label}</span>
-                            <span
-                                className={`text-[10px] font-semibold uppercase tracking-widest ${
-                                    item.isActive ? 'text-green-600' : 'text-gray-400'
-                                }`}
-                            >
-                                {item.isActive ? 'On' : 'Off'}
-                            </span>
-                        </button>
                     );
                 }
 
