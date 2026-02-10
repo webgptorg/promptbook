@@ -1,4 +1,8 @@
-[x] ~$1.05
+[x] ~$1.05 - done but not 100%
+
+---
+
+[ ]
 
 [✨🏊] Remove any blocking ugly functions from the agent's server.
 
@@ -49,4 +53,3 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-

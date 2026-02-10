@@ -9,6 +9,7 @@
 -   Same problem is occurring with any other tool calls, for example `USE TIME` or `USE SEARCH ENGINE` - every tool call is shown twice.
 -   There is a secondary bug that the first chip has no content, but the second one is working perfectly.
 -   Show only one chip per tool call - the second one, which is working correctly. The first one should be removed.
+-   Same problem is with `TEAM` and asking other agents, every call is shown twice.
 -   Keep The feature that when there are multiple distinct tool calls (e.g., multiple web searches), for each of these web searches, it's shown its distinct chip under the message.
 -   You have already implemented this feature but its still showing duplicated chips, so you need to find the bug that is causing this issue.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
@@ -20,6 +21,7 @@
 ![alt text](prompts/screenshots/2026-02-0950-agents-server-duplicated-toolcalling-chip-3.png)
 ![alt text](prompts/screenshots/2026-02-0950-agents-server-duplicated-toolcalling-chip-4.png)
 ![alt text](prompts/screenshots/2026-02-0950-agents-server-duplicated-toolcalling-chip-5.png)
+![alt text](prompts/screenshots/2026-02-0950-agents-server-duplicated-toolcalling-chip-6.png)
 
 ---
 
