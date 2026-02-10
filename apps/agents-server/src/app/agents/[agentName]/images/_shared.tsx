@@ -15,14 +15,14 @@ import { AGENT_ACTIONS, getAgentName, getAgentProfile } from '../_utils';
  *
  * @public
  */
-export interface AgentImageContext {
+export type AgentImageContext = {
     readonly agentName: string;
     readonly agentProfile: Awaited<ReturnType<typeof getAgentProfile>>;
     readonly iconUrl: string;
     readonly agentColor: WithTake<Color>;
     readonly backgroundColor: WithTake<Color>;
     readonly publicUrl: URL;
-}
+};
 
 /**
  * Orientation options for agent screenshot previews.
