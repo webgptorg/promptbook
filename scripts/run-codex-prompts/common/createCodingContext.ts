@@ -12,15 +12,17 @@ export function createCodingContext(): string_prompt {
         - Always analyze the context and requirements before generating any code.
         - Keep in mind the DRY _(don't repeat yourself)_ principle.
         - Write clear, maintainable, and well-documented code.
-        - Write JSDoc comments for all functions, classes, types,...
+        - Write JSDoc comments for all entities - functions, classes, types, top-level constants, etc.
+            - When this entity is publicly exported, it must be marked either as \`@public\` or \`@private\` 
+                - For example, this is [how public looks like](src/errors/PromptbookFetchError.ts)
+                - For example, this is [how private looks like](src/book-components/Chat/utils/createShortLinkForChat.ts)
         - After code change, run the following tests to ensure everything works as expected: *(you don't need to run every test, run them only when you make changes that could affect them)*
-            1) npm run test-name-discrepancies - tests that file names matches the exported names
-            2) npm run test-spellcheck
-            3) npm run test-lint
+            1) npm run test-name-discrepancies - tests that file names matches the exported names, for example if you export a class named "OpenAiAgent" from a file, the file should be named \`OpenAiAgent.ts\` *(not \`ClaudeAgent.ts\`)*. This helps to prevent typos and mismanagement of the project.
+            2) npm run test-spellcheck - When using some new word, add it into the [dictionary](other/cspell-dictionaries)
+            3) npm run test-lint - Linting
             4) npm run test-types - checks TypeScript types
-            5) npm run test-package-generation - tests that build script is working correctly
-            6) npm run test-unit
-            7) npm run test-app-agents-server - tests that the Agents Server app is working correctly
+            6) npm run test-unit - Unit tests
+            7) npm run test-app-agents-server - Tests that the Agents Server app is working correctly
         
         **Additional context:**
 
