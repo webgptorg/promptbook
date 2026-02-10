@@ -6,6 +6,7 @@ import { formatAgentNamingText } from '@/src/utils/agentNaming';
 import { getAgentNaming } from '@/src/utils/getAgentNaming';
 import { isUserAdmin } from '@/src/utils/isUserAdmin';
 import { getThinkingMessages } from '@/src/utils/thinkingMessages';
+import { getDefaultChatPreferences } from '@/src/utils/chatPreferences';
 import { saturate } from '@promptbook-local/color';
 import { NotFoundError, PROMPTBOOK_COLOR } from '@promptbook-local/core';
 import { headers } from 'next/headers';
@@ -70,6 +71,7 @@ export default async function AgentProfileLayout({ children, params, searchParam
     const isDeleted = await isAgentDeleted(agentName);
 
     const thinkingMessages = await getThinkingMessages();
+    const chatPreferences = await getDefaultChatPreferences();
 
     const actionLinks = getAgentLinks(agentProfile.permanentId || agentName, (text) =>
         formatAgentNamingText(text, agentNaming),
@@ -106,6 +108,8 @@ export default async function AgentProfileLayout({ children, params, searchParam
         brandColor: agentProfile.meta.color ?? null,
         speechRecognitionLanguage,
         thinkingMessages,
+        defaultIsSoundsOn: chatPreferences.defaultIsSoundsOn,
+        defaultIsVibrationOn: chatPreferences.defaultIsVibrationOn,
     };
 
     const deletedMessage = formatAgentNamingText(

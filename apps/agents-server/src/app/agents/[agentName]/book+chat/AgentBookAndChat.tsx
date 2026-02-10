@@ -13,6 +13,8 @@ type AgentBookAndChatProps = {
     agentUrl: string_agent_url;
     thinkingMessages?: ReadonlyArray<string>;
     speechRecognitionLanguage?: string;
+    defaultIsSoundsOn: boolean;
+    defaultIsVibrationOn: boolean;
 };
 
 export function AgentBookAndChat(props: AgentBookAndChatProps) {
@@ -40,13 +42,15 @@ export function AgentBookAndChat(props: AgentBookAndChatProps) {
                     <div className={`w-full h-full ${activeTab === 'book' ? 'block' : 'hidden'}`}>
                         <BookEditorWrapper agentName={agentName} initialAgentSource={initialAgentSource} />
                     </div>
-                    <div className={`w-full h-full ${activeTab === 'chat' ? 'block' : 'hidden'}`}>
-                    <AgentChatWrapper
-                        agentUrl={agentUrl}
-                        thinkingMessages={thinkingMessages}
-                        speechRecognitionLanguage={speechRecognitionLanguage}
-                    />
-                    </div>
+            <div className={`w-full h-full ${activeTab === 'chat' ? 'block' : 'hidden'}`}>
+            <AgentChatWrapper
+                agentUrl={agentUrl}
+                thinkingMessages={thinkingMessages}
+                speechRecognitionLanguage={speechRecognitionLanguage}
+                defaultIsSoundsOn={defaultIsSoundsOn}
+                defaultIsVibrationOn={defaultIsVibrationOn}
+            />
+            </div>
                 </div>
                 <div className="flex-shrink-0 h-16 bg-white border-t border-gray-200 flex shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-10">
                     <button
@@ -79,6 +83,8 @@ export function AgentBookAndChat(props: AgentBookAndChatProps) {
                 agentUrl={agentUrl}
                 thinkingMessages={thinkingMessages}
                 speechRecognitionLanguage={speechRecognitionLanguage}
+                defaultIsSoundsOn={defaultIsSoundsOn}
+                defaultIsVibrationOn={defaultIsVibrationOn}
             />
         </ResizablePanelsAuto>
     );

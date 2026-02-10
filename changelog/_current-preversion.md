@@ -22,6 +22,7 @@
 ### 📚 Book
 
 -   Leveraged Vibrations API in the chat to provide haptic feedback in sync with the sound system.
+-   Added metadata keys `DEFAULT_IS_SOUNDS_ON` and `DEFAULT_IS_VIBRATION_ON` so admins can configure the default chat feedback state, and surfaced independent sound/haptic toggles in the save menu (`ChatSoundToggle` + `ChatVibrationToggle`) that respect those defaults while persisting the user's choice.
 -   Allow to make agent public / private agent from its context menu on the Agent profile page / right click of the agent.
 
 -   Migrated Promptbook Agents to OpenAI AgentKit: added AgentKit execution tools with shared vector store handling, updated Agents Server caching to store AgentKit vector stores in `preparedExternals`, and refreshed playground samples.

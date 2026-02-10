@@ -87,6 +87,18 @@ export const metadataDefaults = [
         type: 'BOOLEAN',
     },
     {
+        key: 'DEFAULT_IS_SOUNDS_ON',
+        value: 'false',
+        note: 'Default state for chat sounds when a user has no saved preference. When false, sounds start muted.',
+        type: 'BOOLEAN',
+    },
+    {
+        key: 'DEFAULT_IS_VIBRATION_ON',
+        value: 'true',
+        note: 'Default state for chat vibration feedback when no preference is saved. When true, haptics stay enabled even if sounds are muted.',
+        type: 'BOOLEAN',
+    },
+    {
         key: 'IS_FOOTER_SHOWN',
         value: 'true',
         note: 'Show or hide the footer.',

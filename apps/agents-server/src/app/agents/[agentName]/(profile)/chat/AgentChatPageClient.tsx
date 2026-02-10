@@ -9,7 +9,15 @@ type AgentChatPageClientProps = {
 };
 
 export function AgentChatPageClient({ autoExecuteMessage }: AgentChatPageClientProps) {
-    const { agentName, agentUrl, brandColor, thinkingMessages, speechRecognitionLanguage } = useAgentPageContext();
+    const {
+        agentName,
+        agentUrl,
+        brandColor,
+        thinkingMessages,
+        speechRecognitionLanguage,
+        defaultIsSoundsOn,
+        defaultIsVibrationOn,
+    } = useAgentPageContext();
 
     return (
         <main className="w-full h-full overflow-hidden relative">
@@ -20,6 +28,8 @@ export function AgentChatPageClient({ autoExecuteMessage }: AgentChatPageClientP
                 brandColor={brandColor ?? undefined}
                 thinkingMessages={thinkingMessages}
                 speechRecognitionLanguage={speechRecognitionLanguage}
+                defaultIsSoundsOn={defaultIsSoundsOn}
+                defaultIsVibrationOn={defaultIsVibrationOn}
             />
         </main>
     );

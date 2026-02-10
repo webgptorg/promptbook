@@ -1,5 +1,12 @@
 import { SoundSystem } from './SoundSystem';
 
+type CreateDefaultSoundSystemOptions = {
+    readonly initialIsSoundsOn?: boolean;
+    readonly initialIsVibrationOn?: boolean;
+    readonly soundStorageKey?: string;
+    readonly vibrationStorageKey?: string;
+};
+
 /**
  * Creates the default SoundSystem instance for the agents server
  *
@@ -13,7 +20,7 @@ import { SoundSystem } from './SoundSystem';
  *
  * @returns A configured SoundSystem instance
  */
-export function createDefaultSoundSystem(): SoundSystem {
+export function createDefaultSoundSystem(options?: CreateDefaultSoundSystemOptions): SoundSystem {
     return new SoundSystem(
         {
             message_send: {
@@ -52,6 +59,11 @@ export function createDefaultSoundSystem(): SoundSystem {
                 allowOverlap: false,
             },
         },
-        'promptbook_chat_sounds_enabled',
+        {
+            storageKey: options?.soundStorageKey ?? 'promptbook_chat_sounds_enabled',
+            vibrationStorageKey: options?.vibrationStorageKey ?? 'promptbook_chat_vibration_enabled',
+            initialSoundsEnabled: options?.initialIsSoundsOn,
+            initialVibrationEnabled: options?.initialIsVibrationOn,
+        },
     );
 }

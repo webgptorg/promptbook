@@ -56,10 +56,10 @@ The sound system follows a decoupled, scalable architecture with clear separatio
      - Confetti effect (🎉) → `effect_confetti`
      - Hearts effect (❤️) → `effect_hearts`
 
-5. **Sound Toggle UI** (`src/book-components/Chat/Chat/ChatSoundToggle.tsx`)
-   - Provides a user-friendly toggle button (🔊/🔇)
-   - Integrated into the save menu
-   - Persists state via the SoundSystem
+5. **Sound & Vibration Toggles UI** (`src/book-components/Chat/Chat/ChatSoundToggle.tsx` and `ChatVibrationToggle.tsx`)
+   - Provides menu controls for enabling/disabling sounds (🔊/🔇) and haptics (📳/📴)
+   - Integrated into the save menu with consistent styling
+   - Persists both states via the SoundSystem
 
 ## Sound Events
 
@@ -127,6 +127,10 @@ const customSoundSystem = new SoundSystem(
 );
 ```
 
+### Default preferences via metadata
+
+Admins can configure the initial sound and vibration state via the metadata keys `DEFAULT_IS_SOUNDS_ON` (default `false`) and `DEFAULT_IS_VIBRATION_ON` (default `true`). When a browser session does not yet have stored preferences, those defaults are passed into `createDefaultSoundSystem` so the first experience matches server settings. Update the metadata entry through the admin Metadata screen or `/api/metadata` to adjust the defaults without touching the client storage.
+
 ## Usage
 
 ### In Agents Server
@@ -147,6 +151,8 @@ return (
   />
 );
 ```
+
+The save menu now surfaces both `ChatSoundToggle` and `ChatVibrationToggle`, letting users mute audio while keeping haptics (or vice versa). Each toggle persists its state in localStorage and honors the metadata defaults that were described above.
 
 ### In Custom Chat Implementations
 
@@ -208,7 +214,7 @@ All sounds follow these principles:
 
 ### Persistence
 
-The enabled/disabled state is saved in localStorage with the key `promptbook_chat_sounds_enabled`. This means:
+The enabled/disabled state for sound and vibration is saved in localStorage with the keys `promptbook_chat_sounds_enabled` and `promptbook_chat_vibration_enabled`. This means:
 - User preferences persist across browser sessions
 - Each browser/device has its own setting
 - No server-side configuration needed

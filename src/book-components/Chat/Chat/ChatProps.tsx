@@ -26,6 +26,12 @@ export type ChatSoundSystem = {
     setEnabled(enabled: boolean): void;
     toggle(): boolean;
     /**
+     * Optional helpers for haptic vibration state.
+     */
+    isVibrationEnabled?(): boolean;
+    setVibrationEnabled?(enabled: boolean): void;
+    toggleVibration?(): boolean;
+    /**
      * Optional vibration helper to stay in sync with sound events.
      */
     vibrate?(event: string): void;

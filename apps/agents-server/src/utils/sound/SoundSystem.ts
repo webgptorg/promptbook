@@ -36,6 +36,28 @@ export type SoundConfig = {
 };
 
 /**
+ * Optional configuration for persistence and default states.
+ */
+export type SoundSystemOptions = {
+    /**
+     * LocalStorage key used for sound enabled state.
+     */
+    storageKey?: string;
+    /**
+     * LocalStorage key used for vibration enabled state.
+     */
+    vibrationStorageKey?: string;
+    /**
+     * Initial state for sounds before any stored preference exists.
+     */
+    initialSoundsEnabled?: boolean;
+    /**
+     * Initial state for vibration before any stored preference exists.
+     */
+    initialVibrationEnabled?: boolean;
+};
+
+/**
  * SoundSystem class for managing chat sounds
  *
  * This class provides:
@@ -59,23 +81,27 @@ export type SoundConfig = {
 export class SoundSystem implements ChatSoundSystem {
     private sounds: Map<SoundEvent, HTMLAudioElement[]> = new Map();
     private soundConfigs: Map<SoundEvent, SoundConfig> = new Map();
-    private enabled: boolean = true;
-    private storageKey: string = 'promptbook_chat_sounds_enabled';
+    private enabled: boolean;
+    private vibrationEnabled: boolean;
+    private storageKey: string;
+    private vibrationStorageKey: string;
     private currentlyPlaying: Map<SoundEvent, HTMLAudioElement | null> = new Map();
 
     /**
      * Creates a new SoundSystem instance
      *
      * @param soundMap - Map of sound events to their configurations
-     * @param storageKey - Key for localStorage persistence (optional)
+     * @param options - Optional persistence keys and default states
      */
-    constructor(soundMap: Partial<Record<SoundEvent, SoundConfig>>, storageKey?: string) {
-        if (storageKey) {
-            this.storageKey = storageKey;
-        }
+    constructor(soundMap: Partial<Record<SoundEvent, SoundConfig>>, options?: SoundSystemOptions) {
+        this.storageKey = options?.storageKey ?? 'promptbook_chat_sounds_enabled';
+        this.vibrationStorageKey = options?.vibrationStorageKey ?? 'promptbook_chat_vibration_enabled';
+        this.enabled = options?.initialSoundsEnabled ?? true;
+        this.vibrationEnabled = options?.initialVibrationEnabled ?? true;
 
-        // Load enabled state from localStorage
+        // Load saved states
         this.loadEnabledState();
+        this.loadVibrationState();
 
         // Initialize sound configurations
         for (const [event, config] of Object.entries(soundMap) as Array<[SoundEvent, SoundConfig]>) {
@@ -113,35 +139,68 @@ export class SoundSystem implements ChatSoundSystem {
     }
 
     /**
-     * Loads the enabled state from localStorage
+     * Loads the enabled state from localStorage.
      */
     private loadEnabledState(): void {
-        if (typeof window === 'undefined') {
-            return;
-        }
-
-        try {
-            const stored = localStorage.getItem(this.storageKey);
-            if (stored !== null) {
-                this.enabled = stored === 'true';
-            }
-        } catch (error) {
-            console.warn('Failed to load sound settings from localStorage:', error);
+        const stored = this.readBooleanFromStorage(this.storageKey);
+        if (stored !== null) {
+            this.enabled = stored;
         }
     }
 
     /**
-     * Saves the enabled state to localStorage
+     * Loads the vibration state from localStorage.
+     */
+    private loadVibrationState(): void {
+        const stored = this.readBooleanFromStorage(this.vibrationStorageKey);
+        if (stored !== null) {
+            this.vibrationEnabled = stored;
+        }
+    }
+
+    /**
+     * Saves the enabled state to localStorage.
      */
     private saveEnabledState(): void {
+        this.saveBooleanToStorage(this.storageKey, this.enabled, 'sound');
+    }
+
+    /**
+     * Saves the vibration state to localStorage.
+     */
+    private saveVibrationState(): void {
+        this.saveBooleanToStorage(this.vibrationStorageKey, this.vibrationEnabled, 'vibration');
+    }
+
+    private readBooleanFromStorage(key: string): boolean | null {
+        if (typeof window === 'undefined') {
+            return null;
+        }
+
+        try {
+            const stored = localStorage.getItem(key);
+            if (stored === 'true') {
+                return true;
+            }
+            if (stored === 'false') {
+                return false;
+            }
+        } catch (error) {
+            console.warn(`Failed to load settings from localStorage (${key}):`, error);
+        }
+
+        return null;
+    }
+
+    private saveBooleanToStorage(key: string, value: boolean, label: string): void {
         if (typeof window === 'undefined') {
             return;
         }
 
         try {
-            localStorage.setItem(this.storageKey, String(this.enabled));
+            localStorage.setItem(key, String(value));
         } catch (error) {
-            console.warn('Failed to save sound settings to localStorage:', error);
+            console.warn(`Failed to save ${label} settings to localStorage:`, error);
         }
     }
 
@@ -214,7 +273,7 @@ export class SoundSystem implements ChatSoundSystem {
      * @param event - The sound event to vibrate for
      */
     public vibrate(event: string): void {
-        if (!this.enabled) {
+        if (!this.vibrationEnabled) {
             return;
         }
 
@@ -270,6 +329,35 @@ export class SoundSystem implements ChatSoundSystem {
     public toggle(): boolean {
         this.setEnabled(!this.enabled);
         return this.enabled;
+    }
+
+    /**
+     * Checks if haptic vibration feedback is currently enabled.
+     *
+     * @returns True when vibration is on.
+     */
+    public isVibrationEnabled(): boolean {
+        return this.vibrationEnabled;
+    }
+
+    /**
+     * Enables or disables vibration haptics.
+     *
+     * @param enabled - Whether vibration should be enabled.
+     */
+    public setVibrationEnabled(enabled: boolean): void {
+        this.vibrationEnabled = enabled;
+        this.saveVibrationState();
+    }
+
+    /**
+     * Toggles the vibration state.
+     *
+     * @returns The new vibration state.
+     */
+    public toggleVibration(): boolean {
+        this.setVibrationEnabled(!this.vibrationEnabled);
+        return this.vibrationEnabled;
     }
 
     /**

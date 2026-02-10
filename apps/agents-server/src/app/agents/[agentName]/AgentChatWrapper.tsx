@@ -23,13 +23,23 @@ type AgentChatWrapperProps = {
     brandColor?: string;
     thinkingMessages?: ReadonlyArray<string>;
     speechRecognitionLanguage?: string;
+    defaultIsSoundsOn?: boolean;
+    defaultIsVibrationOn?: boolean;
 };
 
 // TODO: [🐱‍🚀] Rename to AgentChatSomethingWrapper
 
 export function AgentChatWrapper(props: AgentChatWrapperProps) {
-    const { agentUrl, defaultMessage, autoExecuteMessage, brandColor, thinkingMessages, speechRecognitionLanguage } =
-        props;
+    const {
+        agentUrl,
+        defaultMessage,
+        autoExecuteMessage,
+        brandColor,
+        thinkingMessages,
+        speechRecognitionLanguage,
+        defaultIsSoundsOn = false,
+        defaultIsVibrationOn = true,
+    } = props;
 
     const { backgroundImage } = useAgentBackground(brandColor);
 
@@ -123,8 +133,11 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
         if (typeof window === 'undefined') {
             return undefined;
         }
-        return createDefaultSoundSystem();
-    }, []);
+        return createDefaultSoundSystem({
+            initialIsSoundsOn: defaultIsSoundsOn,
+            initialIsVibrationOn: defaultIsVibrationOn,
+        });
+    }, [defaultIsSoundsOn, defaultIsVibrationOn]);
 
     // Handle errors from chat
     const handleError = useCallback((error: unknown, retry: () => void, failedMessage: { content: string }) => {

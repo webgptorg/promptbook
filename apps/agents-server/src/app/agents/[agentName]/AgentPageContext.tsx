@@ -14,6 +14,14 @@ export type AgentPageContextValue = {
     readonly brandColor: string | null;
     readonly speechRecognitionLanguage?: string;
     readonly thinkingMessages: ReadonlyArray<string>;
+    /**
+     * Default state for chat sounds when no preference exists.
+     */
+    readonly defaultIsSoundsOn: boolean;
+    /**
+     * Default state for chat vibration when no preference exists.
+     */
+    readonly defaultIsVibrationOn: boolean;
 };
 
 const AgentPageContext = createContext<AgentPageContextValue | null>(null);
