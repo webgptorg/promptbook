@@ -1,5 +1,6 @@
 import { createBasicAgentModelRequirements } from '../../commitments/_base/createEmptyAgentModelRequirements';
 import type { ParsedCommitment } from '../../commitments/_base/ParsedCommitment';
+import type { BookCommitment } from '../../commitments/_base/BookCommitment';
 import { getCommitmentDefinition } from '../../commitments/_common/getCommitmentDefinition';
 import { $fileImportPlugins } from '../../import-plugins/$fileImportPlugins';
 import { promptbookFetch } from '../../scrapers/_common/utils/promptbookFetch';
@@ -11,18 +12,27 @@ import { parseAgentSourceWithCommitments } from './parseAgentSourceWithCommitmen
 import { parseParameters } from './parseParameters';
 import { removeCommentsFromSystemMessage } from './removeCommentsFromSystemMessage';
 import type { string_book } from './string_book';
+import type { CreateAgentModelRequirementsOptions } from './createAgentModelRequirementsOptions';
 
 /**
- * Creates agent model requirements using the new commitment system
- * This function uses a reduce-like pattern where each commitment applies its changes
- * to build the final requirements starting from a basic empty model
+ * Creates agent model requirements using the new commitment system.
  *
+ * This function uses a reduce-like pattern where each commitment applies its changes
+ * to build the final requirements starting from a basic empty model.
+ *
+ * @param agentSource - Agent source book to parse.
+ * @param modelName - Optional override for the agent model name.
+ * @param options - Additional options such as the agent reference resolver.
  * @public exported from `@promptbook/core`
  */
+const COMMITMENTS_WITH_AGENT_REFERENCES = new Set<BookCommitment>(['FROM', 'IMPORT', 'IMPORTS', 'TEAM']);
+
 export async function createAgentModelRequirementsWithCommitments(
     agentSource: string_book,
     modelName?: string_model_name,
+    options?: CreateAgentModelRequirementsOptions,
 ): Promise<AgentModelRequirements> {
+    const agentReferenceResolver = options?.agentReferenceResolver;
     // Parse the agent source to extract commitments
     const parseResult = parseAgentSourceWithCommitments(agentSource);
 
@@ -87,6 +97,16 @@ export async function createAgentModelRequirementsWithCommitments(
     // Apply each commitment in order using reduce-like pattern
     for (let i = 0; i < filteredCommitments.length; i++) {
         const commitment = filteredCommitments[i]!;
+        const isReferenceCommitment = Boolean(
+            agentReferenceResolver && COMMITMENTS_WITH_AGENT_REFERENCES.has(commitment.type as BookCommitment),
+        );
+        let commitmentContent = commitment.content;
+        if (isReferenceCommitment && agentReferenceResolver) {
+            commitmentContent = await agentReferenceResolver.resolveCommitmentContent(
+                commitment.type as BookCommitment,
+                commitment.content,
+            );
+        }
 
         // CLOSED commitment should work only if its the last commitment in the book
         if (commitment.type === 'CLOSED' && i !== filteredCommitments.length - 1) {
@@ -96,7 +116,7 @@ export async function createAgentModelRequirementsWithCommitments(
         const definition = getCommitmentDefinition(commitment.type);
         if (definition) {
             try {
-                requirements = definition.applyToAgentModelRequirements(requirements, commitment.content);
+                requirements = definition.applyToAgentModelRequirements(requirements, commitmentContent);
             } catch (error) {
                 console.warn(`Failed to apply commitment ${commitment.type}:`, error);
                 // Continue with other commitments even if one fails

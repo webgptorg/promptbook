@@ -6,6 +6,7 @@ import { parseNumber, serializeError } from '@promptbook-local/utils';
 import spaceTrim from 'spacetrim';
 import { DEFAULT_MAX_RECURSION } from '../../../../../../../../src/config';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
+import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
 
 /**
  * @@@
@@ -37,9 +38,11 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
         const collection = await $provideAgentCollectionForServer();
         const agentId = await collection.getAgentPermanentId(agentName);
         const agentSource = await collection.getAgentSource(agentId);
+        const agentReferenceResolver = await $provideAgentReferenceResolver();
         const effectiveAgentSource = await resolveInheritedAgentSource(agentSource, {
             adamAgentUrl: await getWellKnownAgentUrl('ADAM'),
             recursionLevel,
+            agentReferenceResolver,
         });
 
         return new Response(effectiveAgentSource, {

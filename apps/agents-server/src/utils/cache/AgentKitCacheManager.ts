@@ -10,6 +10,7 @@ import {
     extractAssistantConfiguration,
     formatAssistantNameWithHash,
 } from './computeAssistantCacheKey';
+import { $provideAgentReferenceResolver } from '../agentReferenceResolver/$provideAgentReferenceResolver';
 
 const KNOWLEDGE_SOURCE_HASH_TIMEOUT_MS = 30000;
 const VECTOR_STORE_HASH_VERSION = 'vector-store-v1';
@@ -154,8 +155,13 @@ export class AgentKitCacheManager {
             });
         }
 
+        const agentReferenceResolver = await $provideAgentReferenceResolver();
         const modelRequirements: AgentModelRequirements = await createAgentModelRequirements(
             configuration.baseAgentSource,
+            undefined,
+            undefined,
+            undefined,
+            { agentReferenceResolver },
         );
         const knowledgeSources = modelRequirements.knowledgeSources ? [...modelRequirements.knowledgeSources] : [];
         const tools = modelRequirements.tools ? [...modelRequirements.tools] : undefined;

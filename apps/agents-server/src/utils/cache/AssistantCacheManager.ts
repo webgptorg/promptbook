@@ -9,6 +9,7 @@ import {
     extractAssistantConfiguration,
     formatAssistantNameWithHash,
 } from './computeAssistantCacheKey';
+import { $provideAgentReferenceResolver } from '../agentReferenceResolver/$provideAgentReferenceResolver';
 
 /**
  * Result of getting or creating an assistant
@@ -216,8 +217,13 @@ export class AssistantCacheManager {
         cacheKey: string,
         baseTools: OpenAiAssistantExecutionTools,
     ): Promise<OpenAiAssistantExecutionTools> {
+        const agentReferenceResolver = await $provideAgentReferenceResolver();
         const modelRequirements: AgentModelRequirements = await createAgentModelRequirements(
             configuration.baseAgentSource,
+            undefined,
+            undefined,
+            undefined,
+            { agentReferenceResolver },
         );
         const knowledgeSources = modelRequirements.knowledgeSources
             ? [...modelRequirements.knowledgeSources]

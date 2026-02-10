@@ -9,6 +9,7 @@ import { CodePreview } from '@common/components/CodePreview/CodePreview';
 import { BookEditor } from '@promptbook-local/components';
 import { createAgentModelRequirements, parseAgentSource } from '@promptbook-local/core';
 import { TODO_any } from '@promptbook-local/types';
+import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
 import { FileTextIcon } from 'lucide-react';
 import { headers } from 'next/headers';
 import { resolveAgentAvatarImageUrl } from '../../../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
@@ -27,10 +28,18 @@ export default async function AgentSystemMessagePage({ params }: { params: Promi
 
     const collection = await $provideAgentCollectionForServer();
     const agentSource = await collection.getAgentSource(agentName);
+    const agentReferenceResolver = await $provideAgentReferenceResolver();
     const effectiveAgentSource = await resolveInheritedAgentSource(agentSource, {
         adamAgentUrl: await getWellKnownAgentUrl('ADAM'),
+        agentReferenceResolver,
     });
-    const modelRequirements = await createAgentModelRequirements(effectiveAgentSource);
+    const modelRequirements = await createAgentModelRequirements(
+        effectiveAgentSource,
+        undefined,
+        undefined,
+        undefined,
+        { agentReferenceResolver },
+    );
     const { _metadata, ...sanitizedModelRequirements } = modelRequirements;
 
     keepUnused(_metadata);

@@ -5,6 +5,7 @@ import { createAgentModelRequirements } from '@promptbook-local/core';
 import { serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../../src/errors/assertsError';
 import { keepUnused } from '../../../../../../../../../src/utils/organization/keepUnused';
+import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
 
 export async function GET(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
     keepUnused(request /* <- Note: We dont need `request` parameter */);
@@ -14,10 +15,18 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
     try {
         const collection = await $provideAgentCollectionForServer();
         const agentSource = await collection.getAgentSource(agentName);
+        const agentReferenceResolver = await $provideAgentReferenceResolver();
         const effectiveAgentSource = await resolveInheritedAgentSource(agentSource, {
             adamAgentUrl: await getWellKnownAgentUrl('ADAM'),
+            agentReferenceResolver,
         });
-        const modelRequirements = await createAgentModelRequirements(effectiveAgentSource);
+        const modelRequirements = await createAgentModelRequirements(
+            effectiveAgentSource,
+            undefined,
+            undefined,
+            undefined,
+            { agentReferenceResolver },
+        );
         const { systemMessage } = modelRequirements;
 
         return new Response(systemMessage, {

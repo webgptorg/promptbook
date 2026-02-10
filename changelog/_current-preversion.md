@@ -1,4 +1,4 @@
--### ✨ Improvements
+### 📚 Book
 
 -   Added the shared useUnsavedChangesGuard hook so modal closing (starting with the Agents Server create-agent dialog) confirms before discarding agent book edits and blocks tab closes until the user confirms.
 -   Removed the clone button from the Agents Server directory listing cards so cloning stays available only via the agent context menu, preventing duplicate actions in both views.
@@ -25,6 +25,10 @@
 -   Fixed Agents Server chat tool call chips so only the actual tool invocation (e.g., the search or time lookup) renders while the TEAM wrapper is suppressed, preventing duplicate/empty chips and keeping one chip per tool call.
 
 ### 📚 Book
+
+-   Added flexible agent referencing for FROM, IMPORT, and TEAM so you can write {Activation code agent}, @Superagent, agentId, or even {https://foo} instead of raw URLs; the agents server now resolves these tokens by searching local and federated agents through a shared resolver.
+
+-   Added the shared `AgentReferenceResolver` option to the core engine (and the new `CreateAgentModelRequirementsOptions` type) so Sender, IMPORT, and TEAM references are rewritten before applying commitments, and wired the resolver through the Agents Server APIs and cache managers to keep assistant creation and metadata in sync while a regression test protects the hook.
 
 -   Leveraged Vibrations API in the chat to provide haptic feedback in sync with the sound system.
 -   Added metadata keys `DEFAULT_IS_SOUNDS_ON` and `DEFAULT_IS_VIBRATION_ON` so admins can configure the default chat feedback state, and surfaced independent sound/haptic toggles in the save menu (`ChatSoundToggle` + `ChatVibrationToggle`) that respect those defaults while persisting the user's choice.

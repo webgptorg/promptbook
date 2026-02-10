@@ -1,4 +1,4 @@
-[ ]
+[x] ~$1.59 an hour by OpenAI Codex `gpt-5.1-codex-mini`
 
 [✨🈳] Enhance the referencing of Agents
 
@@ -96,3 +96,4 @@ CLOSED
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
+

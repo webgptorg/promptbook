@@ -11,14 +11,20 @@ import type { AgentModelRequirements } from './AgentModelRequirements';
 import { createAgentModelRequirementsWithCommitments } from './createAgentModelRequirementsWithCommitments';
 import { parseAgentSource } from './parseAgentSource';
 import type { string_book } from './string_book';
+import type { CreateAgentModelRequirementsOptions } from './createAgentModelRequirementsOptions';
 
 /**
- * Creates model requirements for an agent based on its source
+ * Creates model requirements for an agent based on its source.
  *
  * There are 2 similar functions:
  * - `parseAgentSource` which is a lightweight parser for agent source, it parses basic information and its purpose is to be quick and synchronous. The commitments there are hardcoded.
  * - `createAgentModelRequirements` which is an asynchronous function that creates model requirements it applies each commitment one by one and works asynchronous.
  *
+ * @param agentSource - Book describing the agent.
+ * @param modelName - Optional override for the agent's model.
+ * @param availableModels - Models that could fulfill the agent.
+ * @param llmTools - Execution tools used when selecting a best model.
+ * @param options - Optional hooks such as the agent reference resolver.
  * @public exported from `@promptbook/core`
  */
 export async function createAgentModelRequirements(
@@ -26,16 +32,17 @@ export async function createAgentModelRequirements(
     modelName?: string_model_name,
     availableModels?: readonly AvailableModel[],
     llmTools?: LlmExecutionTools,
+    options?: CreateAgentModelRequirementsOptions,
 ): Promise<AgentModelRequirements> {
     // If availableModels are provided and no specific modelName is given,
     // use preparePersona to select the best model
     if (availableModels && !modelName && llmTools) {
         const selectedModelName = await selectBestModelUsingPersona(agentSource, llmTools);
-        return createAgentModelRequirementsWithCommitments(agentSource, selectedModelName);
+        return createAgentModelRequirementsWithCommitments(agentSource, selectedModelName, options);
     }
 
     // Use the new commitment-based system with provided or default model
-    return createAgentModelRequirementsWithCommitments(agentSource, modelName);
+    return createAgentModelRequirementsWithCommitments(agentSource, modelName, options);
 }
 
 /**

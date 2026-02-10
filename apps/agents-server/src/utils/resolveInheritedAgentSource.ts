@@ -1,4 +1,5 @@
 import {
+    AgentReferenceResolver,
     createAgentModelRequirements,
     padBook,
     ParseError,
@@ -38,6 +39,10 @@ type ResolveInheritedAgentSourceOptions = ImportAgentOptions & {
      * @default 'https://core.ptbk.io/agents/adam'
      */
     readonly adamAgentUrl: string_agent_url;
+    /**
+     * Custom resolver used to expand compact agent references.
+     */
+    readonly agentReferenceResolver?: AgentReferenceResolver;
 };
 
 /**
@@ -53,11 +58,14 @@ export async function resolveInheritedAgentSource(
     options?: ResolveInheritedAgentSourceOptions,
 ): Promise<string_book> {
     const { adamAgentUrl = 'https://core.ptbk.io/agents/adam', recursionLevel = 0 } = options || {};
+    const agentReferenceResolver = options?.agentReferenceResolver;
 
     // Check if the source has FROM commitment
     // We use createAgentModelRequirements to parse commitments
     // Note: We don't provide tools/models here as we only care about parsing commitments
-    const requirements = await createAgentModelRequirements(agentSource);
+    const requirements = await createAgentModelRequirements(agentSource, undefined, undefined, undefined, {
+        agentReferenceResolver,
+    });
 
     let parentAgentUrl: string_agent_url;
 
@@ -110,6 +118,7 @@ export async function resolveInheritedAgentSource(
                 const resolvedImportedAgentSource = await resolveInheritedAgentSource(importedAgentSource, {
                     ...options,
                     adamAgentUrl,
+                    agentReferenceResolver,
                     recursionLevel: recursionLevel + 1,
                 });
                 const importedAgentSourceCorpus = getAgentSourceCorpus(resolvedImportedAgentSource);
