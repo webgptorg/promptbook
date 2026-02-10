@@ -18,7 +18,15 @@ type AgentBookAndChatProps = {
 };
 
 export function AgentBookAndChat(props: AgentBookAndChatProps) {
-    const { agentName, initialAgentSource, agentUrl, thinkingMessages, speechRecognitionLanguage } = props;
+    const {
+        agentName,
+        initialAgentSource,
+        agentUrl,
+        thinkingMessages,
+        speechRecognitionLanguage,
+        defaultIsSoundsOn,
+        defaultIsVibrationOn,
+    } = props;
     const [isMobile, setIsMobile] = useState(false);
     const [activeTab, setActiveTab] = useState<'book' | 'chat'>('chat');
     const [isMounted, setIsMounted] = useState(false);
@@ -42,15 +50,15 @@ export function AgentBookAndChat(props: AgentBookAndChatProps) {
                     <div className={`w-full h-full ${activeTab === 'book' ? 'block' : 'hidden'}`}>
                         <BookEditorWrapper agentName={agentName} initialAgentSource={initialAgentSource} />
                     </div>
-            <div className={`w-full h-full ${activeTab === 'chat' ? 'block' : 'hidden'}`}>
-            <AgentChatWrapper
-                agentUrl={agentUrl}
-                thinkingMessages={thinkingMessages}
-                speechRecognitionLanguage={speechRecognitionLanguage}
-                defaultIsSoundsOn={defaultIsSoundsOn}
-                defaultIsVibrationOn={defaultIsVibrationOn}
-            />
-            </div>
+                    <div className={`w-full h-full ${activeTab === 'chat' ? 'block' : 'hidden'}`}>
+                        <AgentChatWrapper
+                            agentUrl={agentUrl}
+                            thinkingMessages={thinkingMessages}
+                            speechRecognitionLanguage={speechRecognitionLanguage}
+                            defaultIsSoundsOn={defaultIsSoundsOn}
+                            defaultIsVibrationOn={defaultIsVibrationOn}
+                        />
+                    </div>
                 </div>
                 <div className="flex-shrink-0 h-16 bg-white border-t border-gray-200 flex shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-10">
                     <button
