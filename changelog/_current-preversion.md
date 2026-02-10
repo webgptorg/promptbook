@@ -1,5 +1,6 @@
 -### ✨ Improvements
 
+-   Added the shared useUnsavedChangesGuard hook so modal closing (starting with the Agents Server create-agent dialog) confirms before discarding agent book edits and blocks tab closes until the user confirms.
 -   Removed the clone button from the Agents Server directory listing cards so cloning stays available only via the agent context menu, preventing duplicate actions in both views.
 -   Modernized the Agents Server default agent visuals: the default avatar prompt now asks for a cinematic, digital portrait, the icon and screenshot generators share a DRY helper for gradient-forward layouts, and the image gallery page renders in a polished card-based design that keeps the new assets front and center.
 -   Added inline metadata editing to the Agents Server admin screen so values and notes can be updated directly from each row without scrolling to the add form.

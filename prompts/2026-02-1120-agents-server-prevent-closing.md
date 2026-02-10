@@ -1,4 +1,4 @@
-[ ] !
+[x] ~$0.65 21 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
 [✨🎶] On the home page of the agent server, you can accidentaly click out of the modal or click on the closing button and loose the written agent book.
 
@@ -38,3 +38,4 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

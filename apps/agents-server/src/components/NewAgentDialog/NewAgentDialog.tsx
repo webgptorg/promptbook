@@ -2,11 +2,12 @@
 
 import { string_book } from '@promptbook-local/types';
 import { X } from 'lucide-react';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { BookEditor } from '../../../../../src/book-components/BookEditor/BookEditor';
 import { bookEditorUploadHandler } from '../../utils/upload/createBookEditorUploadHandler';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 import { Dialog } from '../Portal/Dialog';
+import { useUnsavedChangesGuard } from '../utils/useUnsavedChangesGuard';
 
 /**
  * Props for the NewAgentDialog component.
@@ -25,6 +26,9 @@ export function NewAgentDialog(props: NewAgentDialogProps) {
     const [agentSource, setAgentSource] = useState(initialAgentSource);
     const [isCreating, setIsCreating] = useState(false);
     const { formatText } = useAgentNaming();
+    const { confirmBeforeClose } = useUnsavedChangesGuard({
+        hasUnsavedChanges: agentSource !== initialAgentSource,
+    });
     // [✨🧬] const [isInteracted, setIsInteracted] = useState(false);
 
     /*
@@ -47,11 +51,19 @@ export function NewAgentDialog(props: NewAgentDialogProps) {
         }
     };
 
+    const handleClose = useCallback(() => {
+        if (!confirmBeforeClose()) {
+            return;
+        }
+
+        onClose();
+    }, [confirmBeforeClose, onClose]);
+
     return (
-        <Dialog onClose={onClose} className="w-full max-w-4xl h-[80vh] flex flex-col">
+        <Dialog onClose={handleClose} className="w-full max-w-4xl h-[80vh] flex flex-col">
             <div className="flex items-center justify-between p-4 border-b border-gray-200">
                 <h2 className="text-xl font-semibold text-gray-900">{formatText('Create New Agent')}</h2>
-                <button onClick={onClose} className="text-gray-400 hover:text-gray-500 transition-colors">
+                <button onClick={handleClose} className="text-gray-400 hover:text-gray-500 transition-colors">
                     <X className="w-5 h-5" />
                     <span className="sr-only">Close</span>
                 </button>
@@ -104,7 +116,7 @@ export function NewAgentDialog(props: NewAgentDialogProps) {
 
             <div className="flex items-center justify-end gap-3 p-4 border-t border-gray-200 bg-gray-50 rounded-b-lg">
                 <button
-                    onClick={onClose}
+                    onClick={handleClose}
                     className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
                 >
                     Cancel
