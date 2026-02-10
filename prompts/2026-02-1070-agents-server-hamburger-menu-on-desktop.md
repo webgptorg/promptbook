@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.08 3 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
 [✨📪] Do not show the hamburger menu in the desktop where it isn't needed and isn't used.
 
@@ -39,3 +39,4 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

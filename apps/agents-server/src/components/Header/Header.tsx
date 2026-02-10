@@ -624,11 +624,13 @@ export function Header(props: HeaderProps) {
                         )}
 
                         {/* Mobile Menu Toggle */}
-                        <HamburgerMenu
-                            isOpen={isMenuOpen}
-                            onClick={() => setIsMenuOpen(!isMenuOpen)}
-                            className="lg:hidden p-2 text-gray-600 hover:text-gray-900"
-                        />
+                        <div className="lg:hidden">
+                            <HamburgerMenu
+                                isOpen={isMenuOpen}
+                                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                                className="p-2 text-gray-600 hover:text-gray-900"
+                            />
+                        </div>
                     </div>
                 </div>
 
