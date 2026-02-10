@@ -290,7 +290,7 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
             metadata: _metadata,
             notes: _notes,
             parentAgentUrl: _parentAgentUrl,
-            promptSufix,
+            promptSuffix,
             ...sanitizedRequirements
         } = modelRequirements;
 
@@ -298,9 +298,9 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
         let underlyingLlmResult: CommonPromptResult;
 
         // Create modified chat prompt with agent system message
-        const promptSuffix = promptSufix?.trim();
+        const promptSuffix = promptSuffix?.trim();
         const chatPromptContentWithSuffix: string_prompt = promptSuffix
-            ? `${chatPrompt.content}\n\n${promptSuffix}` as string_prompt
+            ? (`${chatPrompt.content}\n\n${promptSuffix}` as string_prompt)
             : (chatPrompt.content as string_prompt);
 
         const promptWithAgentModelRequirements: ChatPrompt = {
@@ -310,7 +310,9 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
                 ...chatPrompt.modelRequirements,
                 ...sanitizedRequirements,
                 // Spread tools to convert readonly array to mutable
-                tools: sanitizedRequirements.tools ? [...sanitizedRequirements.tools] : chatPrompt.modelRequirements.tools,
+                tools: sanitizedRequirements.tools
+                    ? [...sanitizedRequirements.tools]
+                    : chatPrompt.modelRequirements.tools,
                 // Spread knowledgeSources to convert readonly array to mutable
                 knowledgeSources: sanitizedRequirements.knowledgeSources
                     ? [...sanitizedRequirements.knowledgeSources]
@@ -452,12 +454,12 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
                         phase: 'Updating assistant',
                     });
                     assistant = await this.options.llmTools.updateAssistant({
-                    assistantId: cached.assistantId,
-                    name: this.title,
-                    instructions: sanitizedRequirements.systemMessage,
-                    knowledgeSources: sanitizedRequirements.knowledgeSources,
-                    tools: sanitizedRequirements.tools ? [...sanitizedRequirements.tools] : undefined,
-                });
+                        assistantId: cached.assistantId,
+                        name: this.title,
+                        instructions: sanitizedRequirements.systemMessage,
+                        knowledgeSources: sanitizedRequirements.knowledgeSources,
+                        tools: sanitizedRequirements.tools ? [...sanitizedRequirements.tools] : undefined,
+                    });
                     AgentLlmExecutionTools.assistantCache.set(this.title, {
                         assistantId: assistant.assistantId,
                         requirementsHash,

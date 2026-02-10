@@ -16,7 +16,7 @@ import { keepUnused } from '../../utils/organization/keepUnused';
 import { AgentLlmExecutionTools } from './AgentLlmExecutionTools';
 
 describe('AgentLlmExecutionTools', () => {
-    it('appends promptSufix from RULE commitments to outgoing chat prompts', async () => {
+    it('appends promptSuffix from RULE commitments to outgoing chat prompts', async () => {
         const agentSource = `
             AI Agent
 

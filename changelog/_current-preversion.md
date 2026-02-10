@@ -1,7 +1,7 @@
 -### ✨ Improvements
 
 -   Removed the clone button from the Agents Server directory listing cards so cloning stays available only via the agent context menu, preventing duplicate actions in both views.
--   Ensured the agent model requirements that are sent to third-party LLMs (and the Agents Server `/api/model-requirements` response) only include low-level properties by stripping `metadata`, `notes`, `parentAgentUrl`, and `promptSufix`, keeping internal commitments data inside Promptbook.
+-   Ensured the agent model requirements that are sent to third-party LLMs (and the Agents Server `/api/model-requirements` response) only include low-level properties by stripping `metadata`, `notes`, `parentAgentUrl`, and `promptSuffix`, keeping internal commitments data inside Promptbook.
 -   Ensured the OpenAI compatibility chat endpoints in the Agents Server forward any `response_format` payload to the underlying OpenAI/API provider by mapping it to AgentKit output types before each run so JSON schema responses are honored.
 -   OpenAI compatibility mode of the agent server now respects the `response_format` parameter by correctly passing it to the AgentKit execution tools.
 -   Ensured `response_format` overrides still honor JSON schema output when cached AgentKit assistants are reused by mapping the format inside `AgentLlmExecutionTools` before running the prepared agent.
@@ -72,7 +72,7 @@
 -   Added detailed OpenAI vector store upload progress logs (file uploads, batch polling, timeouts) to prevent assistant preparation from hanging silently.
 -   Added vector store batch diagnostics (file type summary, per-file status samples, vector store status) and guarded invalid batch IDs during assistant knowledge ingestion.
 -   Fixed OpenAI vector store batch polling to log expected vs. returned batch IDs and cancel using the created batch ID when mismatches occur.
--   Fixed vector store file batch polling to use real batch IDs (vsfb_*) and improved diagnostics to map uploaded file IDs to vector store file IDs.
+-   Fixed vector store file batch polling to use real batch IDs (vsfb\_\*) and improved diagnostics to map uploaded file IDs to vector store file IDs.
 -   Scoped the "Preparing agent: Creating assistant" chip in Agents Server to cache misses by emitting it only when a new assistant is created from cache lookup.
 -   Enhanced OpenAI vector store upload robustness and logging:
     -   Added explicit file extension logging during knowledge ingestion to identify potential bottlenecks.

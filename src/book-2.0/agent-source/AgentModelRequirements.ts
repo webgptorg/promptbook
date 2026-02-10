@@ -19,7 +19,7 @@ export type AgentModelRequirements = {
      * This allows commitments to emphasize important rules or reminders that should be
      * visible in the prompt in addition to the system message.
      */
-    readonly promptSufix: string;
+    readonly promptSuffix: string;
 
     /**
      * The model name to use for this agent

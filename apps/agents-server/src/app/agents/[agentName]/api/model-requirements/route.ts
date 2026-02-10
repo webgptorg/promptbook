@@ -22,7 +22,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
             metadata: _metadata,
             notes: _notes,
             parentAgentUrl: _parentAgentUrl,
-            promptSufix,
+            promptSuffix,
             ...sanitizedModelRequirements
         } = modelRequirements;
 

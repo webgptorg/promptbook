@@ -112,18 +112,15 @@ export abstract class BaseCommitmentDefinition<TBookCommitment extends string> i
     /**
      * Helper method to create a new requirements object with updated prompt suffix
      */
-    protected updatePromptSufix(
+    protected updatePromptSuffix(
         requirements: AgentModelRequirements,
-        contentUpdate: string | ((currentSufix: string) => string),
+        contentUpdate: string | ((currentSuffix: string) => string),
     ): AgentModelRequirements {
-        const newSufix =
-            typeof contentUpdate === 'string'
-                ? contentUpdate
-                : contentUpdate(requirements.promptSufix);
+        const newSuffix = typeof contentUpdate === 'string' ? contentUpdate : contentUpdate(requirements.promptSuffix);
 
         return {
             ...requirements,
-            promptSufix: newSufix,
+            promptSuffix: newSuffix,
         };
     }
 
@@ -131,16 +128,16 @@ export abstract class BaseCommitmentDefinition<TBookCommitment extends string> i
      * Helper method to append content to the prompt suffix
      * Default separator is a single newline for bullet lists.
      */
-    protected appendToPromptSufix(
+    protected appendToPromptSuffix(
         requirements: AgentModelRequirements,
         content: string,
         separator: string = '\n',
     ): AgentModelRequirements {
-        return this.updatePromptSufix(requirements, (currentSufix) => {
-            if (!currentSufix.trim()) {
+        return this.updatePromptSuffix(requirements, (currentSuffix) => {
+            if (!currentSuffix.trim()) {
                 return content;
             }
-            return `${currentSufix}${separator}${content}`;
+            return `${currentSuffix}${separator}${content}`;
         });
     }
 

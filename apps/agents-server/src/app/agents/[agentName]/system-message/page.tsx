@@ -11,8 +11,8 @@ import { createAgentModelRequirements, parseAgentSource } from '@promptbook-loca
 import { TODO_any } from '@promptbook-local/types';
 import { FileTextIcon } from 'lucide-react';
 import { headers } from 'next/headers';
-import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
 import { resolveAgentAvatarImageUrl } from '../../../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
+import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
 import { getAgentName } from '../_utils';
 import { generateAgentMetadata } from '../generateAgentMetadata';
 
@@ -34,7 +34,7 @@ export default async function AgentSystemMessagePage({ params }: { params: Promi
         metadata: _metadata,
         notes: _notes,
         parentAgentUrl: _parentAgentUrl,
-        promptSufix,
+        promptSuffix,
         ...sanitizedModelRequirements
     } = modelRequirements;
     const agentProfile = parseAgentSource(agentSource);
@@ -49,7 +49,9 @@ export default async function AgentSystemMessagePage({ params }: { params: Promi
                     <img
                         src={
                             resolveAgentAvatarImageUrl({ agent: agentProfile, baseUrl: publicUrl.href }) ||
-                            `/agents/${encodeURIComponent(agentProfile.permanentId || agentName)}/images/default-avatar.png`
+                            `/agents/${encodeURIComponent(
+                                agentProfile.permanentId || agentName,
+                            )}/images/default-avatar.png`
                         }
                         alt={agentProfile.meta.fullname || agentName}
                         className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"

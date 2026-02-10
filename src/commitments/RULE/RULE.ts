@@ -95,7 +95,7 @@ export class RuleCommitmentDefinition extends BaseCommitmentDefinition<'RULE' | 
             return requirementsWithRule;
         }
 
-        return this.appendToPromptSufix(requirementsWithRule, ruleLines.join('\n'));
+        return this.appendToPromptSuffix(requirementsWithRule, ruleLines.join('\n'));
     }
 }
 

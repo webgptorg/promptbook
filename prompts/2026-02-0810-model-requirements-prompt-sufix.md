@@ -1,13 +1,13 @@
 [x] ~$0.16 6 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
-[✨🍻] Add `promptSufix` to `AgentModelRequirements`
+[✨🍻] Add `promptSuffix` to `AgentModelRequirements`
 
 **The model requirements will look like:**
 
 ```json
 {
     "systemMessage": "...",
-    "promptSufix": "",
+    "promptSuffix": "",
     "modelName": "gemini-2.5-flash-lite",
     "temperature": 0.7,
     "topP": 0.9,
@@ -24,9 +24,9 @@
 }
 ```
 
--   The `promptSufix` is a string that will be added to the end of the user prompt.
+-   The `promptSuffix` is a string that will be added to the end of the user prompt.
 -   It can contain some additional information or important rules passed by commitments.
--   Notice that `systemMessage` vs `promptSufix` are different things. The `systemMessage` is for the system instructions, while the `promptSufix` is appended to the every user prompt.
+-   Notice that `systemMessage` vs `promptSuffix` are different things. The `systemMessage` is for the system instructions, while the `promptSuffix` is appended to the every user prompt.
 -   They are both important and kept separate.
 -   Purpose of them is to allow to emphasize some important rules or information and place them both in the system message and the prompt.
 -   Agent model requirements are like a compiled version of the agent source containing the low-level things like system messages, temperature, model, etc.
@@ -61,4 +61,3 @@
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the [changelog](./changelog/_current-preversion.md)
-
