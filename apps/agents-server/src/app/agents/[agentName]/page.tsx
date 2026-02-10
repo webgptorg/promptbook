@@ -4,10 +4,11 @@ import { $provideServer } from '@/src/tools/$provideServer';
 import { isUserAdmin } from '@/src/utils/isUserAdmin';
 import { saturate } from '@promptbook-local/color';
 import { NotFoundError, PROMPTBOOK_COLOR } from '@promptbook-local/core';
-import { notFound } from 'next/navigation';
 import { headers } from 'next/headers';
-import { Color } from '../../../../../../src/utils/color/Color';
+import { notFound } from 'next/navigation';
 import { resolveAgentAvatarImageUrl } from '../../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
+import { Color } from '../../../../../../src/utils/color/Color';
+import { resolveSpeechRecognitionLanguage } from '../../../../../../src/utils/language/getBrowserPreferredSpeechRecognitionLanguage';
 import { DeletedAgentBanner } from '../../../components/DeletedAgentBanner';
 import { formatAgentNamingText } from '../../../utils/agentNaming';
 import { getAgentNaming } from '../../../utils/getAgentNaming';
@@ -17,7 +18,6 @@ import { AgentProfileChat } from './AgentProfileChat';
 import { AgentProfileWrapper } from './AgentProfileWrapper';
 import { generateAgentMetadata } from './generateAgentMetadata';
 import { ServiceWorkerRegister } from './ServiceWorkerRegister';
-import { resolveSpeechRecognitionLanguage } from '../../../../../../src/utils/language/getPreferredSpeechRecognitionLanguage';
 
 export const generateMetadata = generateAgentMetadata;
 
@@ -117,12 +117,12 @@ export default async function AgentPage({
                     fullname={fullname}
                     brandColorHex={brandColorHex}
                     avatarSrc={
-                resolveAgentAvatarImageUrl({ agent: agentProfile, baseUrl: publicUrl.href }) ||
-                `/agents/${encodeURIComponent(agentProfile.permanentId || agentName)}/images/default-avatar.png`
-            }
-            isDeleted={isDeleted}
-            speechRecognitionLanguage={speechRecognitionLanguage}
-        />
+                        resolveAgentAvatarImageUrl({ agent: agentProfile, baseUrl: publicUrl.href }) ||
+                        `/agents/${encodeURIComponent(agentProfile.permanentId || agentName)}/images/default-avatar.png`
+                    }
+                    isDeleted={isDeleted}
+                    speechRecognitionLanguage={speechRecognitionLanguage}
+                />
             </AgentProfileWrapper>
         </>
     );

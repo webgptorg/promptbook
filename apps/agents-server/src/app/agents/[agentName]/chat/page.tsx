@@ -1,15 +1,14 @@
 'use server';
 
-import { headers } from 'next/headers';
-import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
-import { isAgentDeleted } from '../_utils';
 import { BackToAgentButton } from '@/src/components/BackToAgentButton/BackToAgentButton';
-import { generateAgentMetadata } from '../generateAgentMetadata';
-import { AgentChatWrapper } from '../AgentChatWrapper';
-import { DeletedAgentBanner } from '../../../../components/DeletedAgentBanner';
-import { getAgentProfile } from '../_utils';
 import { getThinkingMessages } from '@/src/utils/thinkingMessages';
-import { resolveSpeechRecognitionLanguage } from '../../../../../../../src/utils/language/getPreferredSpeechRecognitionLanguage';
+import { headers } from 'next/headers';
+import { resolveSpeechRecognitionLanguage } from '../../../../../../../src/utils/language/getBrowserPreferredSpeechRecognitionLanguage';
+import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
+import { DeletedAgentBanner } from '../../../../components/DeletedAgentBanner';
+import { getAgentProfile, isAgentDeleted } from '../_utils';
+import { AgentChatWrapper } from '../AgentChatWrapper';
+import { generateAgentMetadata } from '../generateAgentMetadata';
 
 export const generateMetadata = generateAgentMetadata;
 
