@@ -1,4 +1,4 @@
-[ ]
+[ ] !
 
 [✨🎶] On the home page of the agent server, you can accidentaly click out of the modal or click on the closing button and loose the written agent book.
 

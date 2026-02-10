@@ -2,7 +2,7 @@
 
 ---
 
-[ ]
+[ ] !!
 
 [✨💻] When the agent makes a tool call, for example web search, every web search is shown twice.
 

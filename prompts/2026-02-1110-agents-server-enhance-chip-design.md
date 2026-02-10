@@ -1,11 +1,9 @@
-[ ]
+[ ] !!
 
-[✨⏏️] baz
+[✨⏏️] Remove the "[" and "]" from the tool-calling chips
 
--  @@@
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Remove it from all tool calling chips like `USE TIME`, `USE SEARCH ENGINE`, `TEAM`,...
 -   You are working with the [Agents Server](apps/agents-server)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ![alt text](prompts/screenshots/2026-02-1110-agents-server-enhance-chip-design.png)
 

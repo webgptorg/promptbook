@@ -1,8 +1,6 @@
-[ ]
+[.] _<- Already Done_
 
 [✨🚆] bar
-
--   @@@ Probably done
 
 ```bash
 me@DESKTOP-2QD9KQQ MINGW64 ~/work/ai/promptbook (main)

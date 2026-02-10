@@ -9,14 +9,15 @@
 
 ---
 
-[ ]
+[ ] !!
 
 [✨📀] Enhance control panel of sounds and vibration.
 
--   (@@@ May be not needed)
+-   Both of the sounds and vibration can be separately toggled in the menu.
+-   Use some nice-looking icons and great design.
+-   The control should be intuitive, inconspicuous, and easy to use.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
 
@@ -37,4 +38,3 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-

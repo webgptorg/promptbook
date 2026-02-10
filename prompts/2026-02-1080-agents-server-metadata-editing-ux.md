@@ -1,4 +1,4 @@
-[ ]
+[ ] !
 
 [✨📘] When editing the metadata, allow to edit the items in place without need to scroll up.
 
