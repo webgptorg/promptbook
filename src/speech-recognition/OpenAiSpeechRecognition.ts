@@ -206,7 +206,7 @@ function resolveSpeechRecognitionLanguageTagForOpenAi(language?: string): string
     }
 
     const [rawCandidate] = language.split(';');
-    const normalized = rawCandidate.trim();
+    const normalized = rawCandidate!.trim();
     if (!normalized) {
         return undefined;
     }
