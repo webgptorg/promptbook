@@ -18,7 +18,7 @@ const size = {
 /**
  * Renders the portrait screenshot preview for the agent.
  *
- * @public
+ * @private @@@
  */
 export async function GET(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
     keepUnused(request /* <- Note: We dont need `request` parameter */);

@@ -82,7 +82,7 @@ function mergeMetadataWithDefaults(data: MetadataEntry[]): MetadataEntry[] {
 /**
  * Renders the metadata management admin view with creation and inline editing helpers.
  *
- * @public
+ * @private @@@
  */
 export function MetadataClient() {
     const [metadata, setMetadata] = useState<MetadataEntry[]>([]);

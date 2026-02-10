@@ -1,6 +1,6 @@
 /**
  * Configuration for an async alert dialog.
- * @public
+ * @private @@@
  */
 export type AlertDialogOptions = {
     /**
@@ -19,7 +19,7 @@ export type AlertDialogOptions = {
 
 /**
  * Configuration for an async confirm dialog.
- * @public
+ * @private @@@
  */
 export type ConfirmDialogOptions = {
     /**
@@ -42,7 +42,7 @@ export type ConfirmDialogOptions = {
 
 /**
  * Configuration for an async prompt dialog.
- * @public
+ * @private @@@
  */
 export type PromptDialogOptions = {
     /**
@@ -77,7 +77,7 @@ export type PromptDialogOptions = {
 
 /**
  * Configuration for an async login dialog.
- * @public
+ * @private @@@
  */
 export type LoginDialogOptions = {
     /**
@@ -102,7 +102,7 @@ export type LoginDialogOptions = {
 
 /**
  * Internal modal request types used by the async dialogs system.
- * @public
+ * @private @@@
  */
 export type ModalRequest =
     | ({ readonly kind: 'alert' } & AlertDialogOptions)
@@ -112,7 +112,7 @@ export type ModalRequest =
 
 /**
  * Result map for each dialog kind.
- * @public
+ * @private @@@
  */
 export type ModalResultMap = {
     alert: void;
@@ -123,13 +123,13 @@ export type ModalResultMap = {
 
 /**
  * Modal request narrowed by dialog kind.
- * @public
+ * @private @@@
  */
 export type ModalRequestByKind<T extends ModalRequest['kind']> = Extract<ModalRequest, { kind: T }>;
 
 /**
  * Controller interface implemented by the async dialogs provider.
- * @public
+ * @private @@@
  */
 export type ModalController = {
     /**
@@ -143,7 +143,7 @@ export type ModalController = {
 
 /**
  * Error thrown when a dialog is dismissed without completing.
- * @public
+ * @private @@@
  */
 export class ModalDismissedError extends Error {
     /**
@@ -169,7 +169,7 @@ let modalController: ModalController | null = null;
  * Register the active modal controller from the provider.
  *
  * @param controller - Controller to register, or null to clear it.
- * @public
+ * @private @@@
  */
 export function registerModalController(controller: ModalController | null): void {
     modalController = controller;
@@ -193,7 +193,7 @@ function getModalController(): ModalController {
  *
  * @param options - Alert dialog options.
  * @returns Promise that resolves when the dialog is acknowledged.
- * @public
+ * @private @@@
  */
 export function showAlert(options: AlertDialogOptions): Promise<void> {
     return getModalController().enqueue({ kind: 'alert', ...options });
@@ -204,7 +204,7 @@ export function showAlert(options: AlertDialogOptions): Promise<void> {
  *
  * @param options - Confirm dialog options.
  * @returns Promise that resolves when the user confirms.
- * @public
+ * @private @@@
  */
 export function showConfirm(options: ConfirmDialogOptions): Promise<boolean> {
     return getModalController().enqueue({ kind: 'confirm', ...options });
@@ -215,7 +215,7 @@ export function showConfirm(options: ConfirmDialogOptions): Promise<boolean> {
  *
  * @param options - Prompt dialog options.
  * @returns Promise that resolves with the input value.
- * @public
+ * @private @@@
  */
 export function showPrompt(options: PromptDialogOptions): Promise<string> {
     return getModalController().enqueue({ kind: 'prompt', ...options });
@@ -226,7 +226,7 @@ export function showPrompt(options: PromptDialogOptions): Promise<string> {
  *
  * @param options - Login dialog options.
  * @returns Promise that resolves when the user successfully logs in.
- * @public
+ * @private @@@
  */
 export function showLoginDialog(options: LoginDialogOptions = {}): Promise<void> {
     return getModalController().enqueue({ kind: 'login', ...options });

@@ -6,7 +6,7 @@ const DEFAULT_UNSAVED_CHANGES_MESSAGE = 'You have unsaved changes. Closing will 
 
 /**
  * Options that control how the unsaved changes guard behaves.
- * @public
+ * @private @@@
  */
 export type UseUnsavedChangesGuardOptions = {
     /** Whether there are unsaved edits that need confirmation before closing. */
@@ -19,7 +19,7 @@ export type UseUnsavedChangesGuardOptions = {
 
 /**
  * Result returned by the useUnsavedChangesGuard hook.
- * @public
+ * @private @@@
  */
 export type UseUnsavedChangesGuardResult = {
     /**
@@ -30,7 +30,7 @@ export type UseUnsavedChangesGuardResult = {
 
 /**
  * React hook that blocks modal closing and browser unloads when unsaved changes exist.
- * @public
+ * @private @@@
  */
 export function useUnsavedChangesGuard(options: UseUnsavedChangesGuardOptions): UseUnsavedChangesGuardResult {
     const { hasUnsavedChanges, message } = options;

@@ -13,7 +13,7 @@ export const generateMetadata = generateAgentMetadata;
  * @param params - Route parameters provided by Next.js.
  * @param searchParams - Query parameters that may include the seed message or headless flag.
  * @returns The agent profile scene with chat overlay.
- * @public
+ * @private @@@
  */
 export default async function AgentChatPage({
     params,

@@ -11,7 +11,7 @@ export const generateMetadata = generateAgentMetadata;
  * @param params - Route parameters provided by Next.js.
  * @param searchParams - Query string values that may include headless mode.
  * @returns The agent profile scene.
- * @public
+ * @private @@@
  */
 export default async function AgentPage({
     params,

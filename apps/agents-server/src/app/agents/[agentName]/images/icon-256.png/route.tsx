@@ -18,7 +18,7 @@ const size = {
 /**
  * Renders the circular agent icon used across the agents server.
  *
- * @public
+ * @private @@@
  */
 export async function GET(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
     keepUnused(request /* <- Note: We dont need `request` parameter */);

@@ -13,7 +13,7 @@ import { AGENT_ACTIONS, getAgentName, getAgentProfile } from '../_utils';
 /**
  * Options returned by the shared agent image helpers.
  *
- * @public
+ * @private @@@
  */
 export type AgentImageContext = {
     readonly agentName: string;
@@ -27,7 +27,7 @@ export type AgentImageContext = {
 /**
  * Orientation options for agent screenshot previews.
  *
- * @public
+ * @private @@@
  */
 export type AgentScreenshotOrientation = 'landscape' | 'portrait';
 
@@ -36,7 +36,7 @@ export type AgentScreenshotOrientation = 'landscape' | 'portrait';
  *
  * @param params - Route parameters containing the agent name.
  * @returns Shared context describing the agent and color scheme.
- * @public
+ * @private @@@
  */
 export async function getAgentImageContext(params: Promise<{ agentName: string }>): Promise<AgentImageContext> {
     const agentName = await getAgentName(params);
@@ -67,7 +67,7 @@ export async function getAgentImageContext(params: Promise<{ agentName: string }
  *
  * @param context - Shared agent image context.
  * @returns A React node suitable for `next/og` responses.
- * @public
+ * @private @@@
  */
 export function createAgentIconLayout(context: AgentImageContext): ReactNode {
     const heroName = context.agentProfile.meta.fullname || context.agentName;
@@ -174,7 +174,7 @@ export function createAgentIconLayout(context: AgentImageContext): ReactNode {
  * @param context - Shared agent image context.
  * @param orientation - Layout orientation.
  * @returns A React node representing the screenshot.
- * @public
+ * @private @@@
  */
 export function createAgentScreenshotLayout(
     context: AgentImageContext,

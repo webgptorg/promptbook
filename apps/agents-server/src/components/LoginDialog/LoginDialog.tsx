@@ -31,7 +31,7 @@ type LoginDialogProps = {
  * Renders the login dialog inside the async modal shell.
  *
  * @param props - Dialog configuration.
- * @public
+ * @private @@@
  */
 export function LoginDialog(props: LoginDialogProps) {
     const { title, description, refreshAfterSuccess, onSuccess, onCancel } = props;

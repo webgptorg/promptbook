@@ -6,7 +6,7 @@ import { BackToAgentButton } from '../../../components/BackToAgentButton/BackToA
 /**
  * Props that control the chat overlay experience rendered on top of the profile scene.
  *
- * @public
+ * @private @@@
  */
 export type AgentChatOverlayProps = {
     /**
@@ -45,7 +45,7 @@ export type AgentChatOverlayProps = {
  *
  * @param props - Overlay configuration.
  * @returns A floating chat shell.
- * @public
+ * @private @@@
  */
 export function AgentChatOverlay(props: AgentChatOverlayProps) {
     const { agentName, agentUrl, autoExecuteMessage, brandColor, thinkingMessages, speechRecognitionLanguage } = props;

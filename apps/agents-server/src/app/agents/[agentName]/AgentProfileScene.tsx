@@ -23,7 +23,7 @@ import { ServiceWorkerRegister } from './ServiceWorkerRegister';
 /**
  * Attribution data passed to an optional chat overlay rendered on top of the profile scene.
  *
- * @public
+ * @private @@@
  */
 export type AgentProfileSceneOverlayParams = {
     /**
@@ -65,7 +65,7 @@ export type AgentProfileSceneOverlayParams = {
 /**
  * Props that control rendering of the shared agent profile scene.
  *
- * @public
+ * @private @@@
  */
 export type AgentProfileSceneProps = {
     /**
@@ -89,7 +89,7 @@ export type AgentProfileSceneProps = {
  *
  * @param props - Props describing the agent context and optional overlay renderer.
  * @returns The rendered profile scene.
- * @public
+ * @private @@@
  */
 export async function AgentProfileScene(props: AgentProfileSceneProps) {
     const { params, isHeadless, overlay } = props;

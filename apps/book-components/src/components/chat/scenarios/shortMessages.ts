@@ -2,7 +2,7 @@ import { $getCurrentDate } from '../../../../../../src/utils/misc/$getCurrentDat
 import type { ChatMessage } from '../../../../../../src/book-components/Chat/types/ChatMessage';
 
 /**
- * @public
+ * @private @@@
  */
 export const shortMessagesScenario = {
     name: 'Short Messages',

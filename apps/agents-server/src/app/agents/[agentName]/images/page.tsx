@@ -44,7 +44,7 @@ const AGENT_IMAGES = [
 /**
  * Renders the enhanced agent image gallery page in the Agents Server.
  *
- * @public
+ * @private @@@
  */
 export default async function AgentImagesPage({ params }: { params: Promise<{ agentName: string }> }) {
     const agentName = await getAgentName(params);
