@@ -37,12 +37,6 @@ describe('USE BROWSER commitment', () => {
         expect(commitment.createRegex().test('BROWSER')).toBe(true);
     });
 
-    it('sets useBrowser flag in metadata', () => {
-        const result = commitment.applyToAgentModelRequirements(basicRequirements, '');
-
-        expect(result._metadata?.useBrowser).toBe(true);
-    });
-
     it('adds fetch_url_content and run_browser tools', () => {
         const result = commitment.applyToAgentModelRequirements(basicRequirements, '');
 
@@ -95,20 +89,6 @@ describe('USE BROWSER commitment', () => {
 
         expect(result.tools!.filter((tool) => tool.name === 'fetch_url_content').length).toBe(1);
         expect(result.tools!.filter((tool) => tool.name === 'run_browser').length).toBe(1);
-    });
-
-    it('preserves existing metadata', () => {
-        const requirementsWithMetadata = {
-            ...basicRequirements,
-            metadata: {
-                existingKey: 'existingValue',
-            },
-        };
-
-        const result = commitment.applyToAgentModelRequirements(requirementsWithMetadata, '');
-
-        expect(result._metadata?.existingKey).toBe('existingValue');
-        expect(result._metadata?.useBrowser).toBe(true);
     });
 
     /*

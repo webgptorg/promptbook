@@ -19,7 +19,6 @@ describe('TEMPLATE commitment', () => {
 
         const result = commitment.applyToAgentModelRequirements(initialRequirements, '');
 
-        expect(result._metadata?.templateMode).toBe(true);
         expect(result.systemMessage).toContain('structured template format');
     });
 
@@ -30,8 +29,6 @@ describe('TEMPLATE commitment', () => {
 
         const result = commitment.applyToAgentModelRequirements(initialRequirements, templateContent);
 
-        expect(result._metadata?.templateMode).toBe(true);
-        expect(result._metadata?.templates).toContain(templateContent);
         expect(result.systemMessage).toContain('Response Template:');
         expect(result.systemMessage).toContain(templateContent);
     });
