@@ -113,10 +113,7 @@ export class KnowledgeCommitmentDefinition extends BaseCommitmentDefinition<'KNO
             const inlineSource = createInlineKnowledgeSourceFile(trimmedContent);
             const updatedRequirements = {
                 ...requirements,
-                knowledgeSources: [
-                    ...(requirements.knowledgeSources || []),
-                    inlineSource.url,
-                ],
+                knowledgeSources: [...(requirements.knowledgeSources || []), inlineSource.url],
             };
             const knowledgeInfo = `Knowledge Source Inline: ${inlineSource.filename} (derived from inline content and processed for retrieval during chat)`;
             return this.appendToSystemMessage(updatedRequirements, knowledgeInfo, '\n\n');

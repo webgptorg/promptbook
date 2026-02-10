@@ -99,7 +99,6 @@ export class NoteCommitmentDefinition extends BaseCommitmentDefinition<
             return requirements;
         }
 
-
         return requirements;
     }
 }

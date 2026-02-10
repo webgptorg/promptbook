@@ -288,12 +288,12 @@ export const ChatMessageItem = memo(
             isFeedbackEnabled,
             onCopy,
             onCreateAgent,
-        toolTitles,
-        teammates,
-        onToolCallClick,
-        onCitationClick,
-        soundSystem,
-    } = props;
+            toolTitles,
+            teammates,
+            onToolCallClick,
+            onCitationClick,
+            soundSystem,
+        } = props;
         const {
             isComplete = true,
             // <- TODO: Destruct all `messages` properties like `isComplete`

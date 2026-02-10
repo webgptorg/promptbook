@@ -6,10 +6,7 @@ import { assertsError } from '../../errors/assertsError';
 import type { string_title } from '../../types/typeAliases';
 import type { OpenAiCompatibleExecutionToolsOptions } from './OpenAiCompatibleExecutionToolsOptions';
 import { OpenAiExecutionTools } from './OpenAiExecutionTools';
-import {
-    isDataUrlKnowledgeSource,
-    parseDataUrlKnowledgeSource,
-} from '../../utils/knowledge/inlineKnowledgeSource';
+import { isDataUrlKnowledgeSource, parseDataUrlKnowledgeSource } from '../../utils/knowledge/inlineKnowledgeSource';
 
 const DEFAULT_KNOWLEDGE_SOURCE_DOWNLOAD_TIMEOUT_MS = 30000;
 const DEFAULT_KNOWLEDGE_SOURCE_UPLOAD_TIMEOUT_MS = 900000;
