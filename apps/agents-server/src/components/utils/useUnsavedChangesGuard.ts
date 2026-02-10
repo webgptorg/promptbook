@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useCallback, useEffect } from 'react';
 
@@ -32,9 +32,7 @@ export type UseUnsavedChangesGuardResult = {
  * React hook that blocks modal closing and browser unloads when unsaved changes exist.
  * @public
  */
-export function useUnsavedChangesGuard(
-    options: UseUnsavedChangesGuardOptions,
-): UseUnsavedChangesGuardResult {
+export function useUnsavedChangesGuard(options: UseUnsavedChangesGuardOptions): UseUnsavedChangesGuardResult {
     const { hasUnsavedChanges, message } = options;
     const promptMessage = message ?? DEFAULT_UNSAVED_CHANGES_MESSAGE;
 
