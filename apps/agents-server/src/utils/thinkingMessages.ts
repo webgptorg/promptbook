@@ -1,6 +1,6 @@
+import { DEFAULT_THINKING_MESSAGES } from '../../../../src/utils/DEFAULT_THINKING_MESSAGES';
 import { getMetadata } from '../database/getMetadata';
 import { parseSlashSeparatedMetadata } from './metadataVariants';
-import { DEFAULT_THINKING_MESSAGES } from '../../../../src/utils/thinkingMessages';
 
 export { DEFAULT_THINKING_MESSAGES };
 

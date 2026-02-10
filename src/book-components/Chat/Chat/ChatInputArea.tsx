@@ -20,6 +20,7 @@ import { textColor } from '../../../utils/color/operators/furthest';
 import { grayscale } from '../../../utils/color/operators/grayscale';
 import { lighten } from '../../../utils/color/operators/lighten';
 import { countLines } from '../../../utils/expectation-counters/countLines';
+import { resolveSpeechRecognitionLanguage } from '../../../utils/language/getBrowserPreferredSpeechRecognitionLanguage';
 import type { WithTake } from '../../../utils/take/interfaces/ITakeChain';
 import { classNames } from '../../_common/react-utils/classNames';
 import { AttachmentIcon } from '../../icons/AttachmentIcon';
@@ -27,9 +28,8 @@ import { CloseIcon } from '../../icons/CloseIcon';
 import { MicIcon } from '../../icons/MicIcon';
 import { SendIcon } from '../../icons/SendIcon';
 import type { ChatParticipant } from '../types/ChatParticipant';
-import type { ChatProps, ChatSoundSystem } from './ChatProps';
 import styles from './Chat.module.css';
-import { resolveSpeechRecognitionLanguage } from '../../../utils/language/getPreferredSpeechRecognitionLanguage';
+import type { ChatProps, ChatSoundSystem } from './ChatProps';
 
 /**
  * Wrapper for consistent button-click sound handling.

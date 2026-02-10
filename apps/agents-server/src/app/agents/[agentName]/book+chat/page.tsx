@@ -1,18 +1,18 @@
 'use server';
 
+import { BackToAgentButton } from '@/src/components/BackToAgentButton/BackToAgentButton';
 import { ForbiddenPage } from '@/src/components/ForbiddenPage/ForbiddenPage';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
+import { getDefaultChatPreferences } from '@/src/utils/chatPreferences';
 import { isUserAdmin } from '@/src/utils/isUserAdmin';
+import { getThinkingMessages } from '@/src/utils/thinkingMessages';
 import { headers } from 'next/headers';
+import { resolveSpeechRecognitionLanguage } from '../../../../../../../src/utils/language/getBrowserPreferredSpeechRecognitionLanguage';
 import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
+import { DeletedAgentBanner } from '../../../../components/DeletedAgentBanner';
 import { isAgentDeleted } from '../_utils';
-import { BackToAgentButton } from '@/src/components/BackToAgentButton/BackToAgentButton';
 import { generateAgentMetadata } from '../generateAgentMetadata';
 import { AgentBookAndChat } from './AgentBookAndChat';
-import { DeletedAgentBanner } from '../../../../components/DeletedAgentBanner';
-import { getThinkingMessages } from '@/src/utils/thinkingMessages';
-import { getDefaultChatPreferences } from '@/src/utils/chatPreferences';
-import { resolveSpeechRecognitionLanguage } from '../../../../../../../src/utils/language/getPreferredSpeechRecognitionLanguage';
 
 export const generateMetadata = generateAgentMetadata;
 

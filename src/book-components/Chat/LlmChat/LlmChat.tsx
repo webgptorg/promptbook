@@ -5,6 +5,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { AgentCapability } from '../../../book-2.0/agent-source/AgentBasicInformation';
 import type { string_markdown } from '../../../types/typeAliases';
+import { DEFAULT_THINKING_MESSAGES } from '../../../utils/DEFAULT_THINKING_MESSAGES';
 import { $getCurrentDate } from '../../../utils/misc/$getCurrentDate';
 import { TODO_USE } from '../../../utils/organization/TODO_USE';
 import type { TODO_any } from '../../../utils/organization/TODO_any';
@@ -13,9 +14,8 @@ import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
 import { ChatPersistence } from '../utils/ChatPersistence';
 import { createTeamToolNameFromUrl } from '../utils/createTeamToolNameFromUrl';
-import type { LlmChatProps } from './LlmChatProps';
 import type { FriendlyErrorMessage } from './FriendlyErrorMessage';
-import { DEFAULT_THINKING_MESSAGES } from '../../../utils/thinkingMessages';
+import type { LlmChatProps } from './LlmChatProps';
 
 /**
  * Metadata for a teammate agent tool.

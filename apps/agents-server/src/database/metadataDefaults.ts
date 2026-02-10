@@ -1,6 +1,6 @@
 import spaceTrim from 'spacetrim';
 import { CORE_AGENTS_SERVER } from '../../../../servers';
-import { DEFAULT_THINKING_MESSAGES } from '../../../../src/utils/thinkingMessages';
+import { DEFAULT_THINKING_MESSAGES } from '../../../../src/utils/DEFAULT_THINKING_MESSAGES';
 
 export type MetadataType = 'TEXT_SINGLE_LINE' | 'TEXT' | 'NUMBER' | 'BOOLEAN' | 'IMAGE_URL' | 'IP_RANGE';
 
