@@ -1,18 +1,19 @@
-[x] ~$4.00 20 minutes by OpenAI Codex `gpt-5.1-codex-mini`
-[x] ~$0.32 12 minutes by OpenAI Codex `gpt-5.1-codex-mini`
+[x] ~$4.00 20 minutes by OpenAI Codex `gpt-5.1-codex-mini` - failed
+[x] ~$0.32 12 minutes by OpenAI Codex `gpt-5.1-codex-mini` - failed
+[x] by Cline - failed
 
 ---
 
-[x] by Cline
+[ ] !!!!
 
 [✨🦮] OpenAI compatibility mode of the agent server should respect the `response_format`
 
+**The request including `response_format`...**
+
 ```bash
-$ curl https://chutoo-test.ptbk.io/agents/NybzgAFteBo2zz/api/openai/v1/chat/completions \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer ptbk_726c2caba55544c385ee389fa4294eb7" \
-  -d '{
+$ curl https://chutoo-test.ptbk.io/agents/NybzgAFteBo2zz/api/openai/v1/chat/completions   -H "Content-Type: application/json"   -H "Authorization: Bearer ptbk_726c2caba55544c385ee389fa4294eb7"   -d '{
     "model": "agent:NybzgAFteBo2zz",
+    "temperature": 0,
     "response_format": {
       "type": "json_schema",
       "json_schema": {
@@ -33,6 +34,54 @@ $ curl https://chutoo-test.ptbk.io/agents/NybzgAFteBo2zz/api/openai/v1/chat/comp
       { "role": "user", "content": "Ahoj" }
     ]
   }'
+```
+
+**...Doesn't respect it, the response is for example:**
+
+```json
+{
+    "id": "chatcmpl-ex244xhx4o5",
+    "object": "chat.completion",
+    "created": 1770715098,
+    "model": "agent:NybzgAFteBo2zz",
+    "choices": [
+        {
+            "index": 0,
+            "message": {
+                "role": "assistant",
+                "content": "Ahoj! Jak se dnes máš"
+            },
+            "finish_reason": "stop"
+        }
+    ],
+    "usage": {
+        // ...
+    }
+}
+```
+
+**But should be:**
+
+```json
+{
+    "id": "chatcmpl-ex244xhx4o5",
+    "object": "chat.completion",
+    "created": 1770715098,
+    "model": "agent:NybzgAFteBo2zz",
+    "choices": [
+        {
+            "index": 0,
+            "message": {
+                "role": "assistant",
+                "content": "{\"message\": \"Ahoj! Jak se dnes máš\", \"motivation\": 0.5}"
+            },
+            "finish_reason": "stop"
+        }
+    ],
+    "usage": {
+        // ...
+    }
+}
 ```
 
 -   The `response_format` parameter is part of the OpenAI API and allows users to specify the desired format of the response. In this case, we want to ensure that the agent server respects this parameter and returns the response in the specified JSON schema format.
