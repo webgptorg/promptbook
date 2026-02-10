@@ -3,7 +3,6 @@ import hexEncoder from 'crypto-js/enc-hex';
 import type { Promisable } from 'type-fest';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import { createAgentModelRequirements } from '../../book-2.0/agent-source/createAgentModelRequirements';
-import { sanitizeAgentModelRequirements } from '../../book-2.0/agent-source/sanitizeAgentModelRequirements';
 import { parseAgentSource } from '../../book-2.0/agent-source/parseAgentSource';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import type { ChatParticipant } from '../../book-components/Chat/types/ChatParticipant';
@@ -284,7 +283,6 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
         }
 
         const modelRequirements = await this.getModelRequirements();
-        const sanitizedRequirements = sanitizeAgentModelRequirements(modelRequirements);
 
         const chatPrompt = prompt as ChatPrompt;
         let underlyingLlmResult: CommonPromptResult;
@@ -300,16 +298,16 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
             content: chatPromptContentWithSuffix,
             modelRequirements: {
                 ...chatPrompt.modelRequirements,
-                ...sanitizedRequirements,
+                ...modelRequirements,
                 // Spread tools to convert readonly array to mutable
-                tools: sanitizedRequirements.tools ? [...sanitizedRequirements.tools] : chatPrompt.modelRequirements.tools,
+                tools: modelRequirements.tools ? [...modelRequirements.tools] : chatPrompt.modelRequirements.tools,
                 // Spread knowledgeSources to convert readonly array to mutable
-                knowledgeSources: sanitizedRequirements.knowledgeSources
-                    ? [...sanitizedRequirements.knowledgeSources]
+                knowledgeSources: modelRequirements.knowledgeSources
+                    ? [...modelRequirements.knowledgeSources]
                     : undefined,
                 // Prepend agent system message to existing system message
                 systemMessage:
-                    sanitizedRequirements.systemMessage +
+                    modelRequirements.systemMessage +
                     (chatPrompt.modelRequirements.systemMessage
                         ? `\n\n${chatPrompt.modelRequirements.systemMessage}`
                         : ''),
@@ -319,8 +317,8 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
         console.log('!!!! promptWithAgentModelRequirements:', promptWithAgentModelRequirements);
 
         if (OpenAiAgentKitExecutionTools.isOpenAiAgentKitExecutionTools(this.options.llmTools)) {
-            const requirementsHash = sha256(JSON.stringify(sanitizedRequirements)).toString();
-            const vectorStoreHash = sha256(JSON.stringify(sanitizedRequirements.knowledgeSources ?? [])).toString();
+            const requirementsHash = sha256(JSON.stringify(modelRequirements)).toString();
+            const vectorStoreHash = sha256(JSON.stringify(modelRequirements.knowledgeSources ?? [])).toString();
             const cachedVectorStore = AgentLlmExecutionTools.vectorStoreCache.get(this.title);
             const cachedAgentKit = AgentLlmExecutionTools.agentKitAgentCache.get(this.title);
             let preparedAgentKit =
@@ -353,7 +351,7 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
                     });
                 }
 
-                if (!vectorStoreId && sanitizedRequirements.knowledgeSources?.length) {
+                if (!vectorStoreId && modelRequirements.knowledgeSources?.length) {
                     emitAssistantPreparationProgress({
                         onProgress,
                         prompt,
@@ -371,9 +369,9 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
 
                 preparedAgentKit = await this.options.llmTools.prepareAgentKitAgent({
                     name: this.title,
-                    instructions: sanitizedRequirements.systemMessage || '',
-                    knowledgeSources: sanitizedRequirements.knowledgeSources,
-                    tools: sanitizedRequirements.tools ? [...sanitizedRequirements.tools] : undefined,
+                    instructions: modelRequirements.systemMessage || '',
+                    knowledgeSources: modelRequirements.knowledgeSources,
+                    tools: modelRequirements.tools ? [...modelRequirements.tools] : undefined,
                     vectorStoreId,
                 });
             }
@@ -398,7 +396,7 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
             });
         } else if (OpenAiAssistantExecutionTools.isOpenAiAssistantExecutionTools(this.options.llmTools)) {
             // ... deprecated path ...
-            const requirementsHash = sha256(JSON.stringify(sanitizedRequirements)).toString();
+            const requirementsHash = sha256(JSON.stringify(modelRequirements)).toString();
             const cached = AgentLlmExecutionTools.assistantCache.get(this.title);
             let assistant: OpenAiAssistantExecutionTools;
 
@@ -441,9 +439,9 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
                     assistant = await this.options.llmTools.updateAssistant({
                         assistantId: cached.assistantId,
                         name: this.title,
-                        instructions: sanitizedRequirements.systemMessage,
-                        knowledgeSources: sanitizedRequirements.knowledgeSources,
-                        tools: sanitizedRequirements.tools ? [...sanitizedRequirements.tools] : undefined,
+                        instructions: modelRequirements.systemMessage,
+                        knowledgeSources: modelRequirements.knowledgeSources,
+                        tools: modelRequirements.tools ? [...modelRequirements.tools] : undefined,
                     });
                     AgentLlmExecutionTools.assistantCache.set(this.title, {
                         assistantId: assistant.assistantId,
@@ -465,9 +463,9 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
                 });
                 assistant = await this.options.llmTools.createNewAssistant({
                     name: this.title,
-                    instructions: sanitizedRequirements.systemMessage,
-                    knowledgeSources: sanitizedRequirements.knowledgeSources,
-                    tools: sanitizedRequirements.tools ? [...sanitizedRequirements.tools] : undefined,
+                    instructions: modelRequirements.systemMessage,
+                    knowledgeSources: modelRequirements.knowledgeSources,
+                    tools: modelRequirements.tools ? [...modelRequirements.tools] : undefined,
                     /*
                     !!!
                     metadata: {

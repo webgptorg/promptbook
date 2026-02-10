@@ -1,5 +1,9 @@
 [x] ~$0.13 6 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
+---
+
+[ ] !!!
+
 [✨🏄] Clean up the model requirements:
 
 **How the model requirements look like:**
@@ -95,6 +99,7 @@
 ```
 
 -   The `metadata`, `notes` and `parentAgentUrl` should be removed - These parameters are interesting, but they are out of the scope of the low-level abstract things which Promptbook passes into the third-party engines. They are more important internally for the Promptbook
+-   DO NOT create any extra utilities like `sanitizeAgentModelRequirements`, theese extra `metadata`, `notes` and `parentAgentUrl` should not be passed into the agent requirements at all.
 -   Agent model requirements are like a compiled version of the agent source containing the low-level things like system messages, temperature, model, etc.
 -   Now there are two model requirement types you are working with [`AgentModelRequirements`](src/book-2.0/agent-source/AgentModelRequirements.ts), the second one is deprecated.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
@@ -129,4 +134,3 @@
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the [changelog](./changelog/_current-preversion.md)
-
