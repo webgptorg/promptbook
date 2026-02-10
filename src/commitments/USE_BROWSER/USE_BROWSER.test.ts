@@ -40,7 +40,7 @@ describe('USE BROWSER commitment', () => {
     it('sets useBrowser flag in metadata', () => {
         const result = commitment.applyToAgentModelRequirements(basicRequirements, '');
 
-        expect(result.metadata?.useBrowser).toBe(true);
+        expect(result._metadata?.useBrowser).toBe(true);
     });
 
     it('adds fetch_url_content and run_browser tools', () => {
@@ -84,8 +84,8 @@ describe('USE BROWSER commitment', () => {
         const resultWithoutContent = commitment.applyToAgentModelRequirements(basicRequirements, '');
 
         // Both should have the same metadata
-        expect(resultWithContent.metadata?.useBrowser).toBe(true);
-        expect(resultWithoutContent.metadata?.useBrowser).toBe(true);
+        expect(resultWithContent._metadata?.useBrowser).toBe(true);
+        expect(resultWithoutContent._metadata?.useBrowser).toBe(true);
     });
 
     it('does not duplicate browser tools when applied multiple times', () => {
@@ -107,8 +107,8 @@ describe('USE BROWSER commitment', () => {
 
         const result = commitment.applyToAgentModelRequirements(requirementsWithMetadata, '');
 
-        expect(result.metadata?.existingKey).toBe('existingValue');
-        expect(result.metadata?.useBrowser).toBe(true);
+        expect(result._metadata?.existingKey).toBe('existingValue');
+        expect(result._metadata?.useBrowser).toBe(true);
     });
 
     /*

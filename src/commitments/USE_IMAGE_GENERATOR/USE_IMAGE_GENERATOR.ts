@@ -117,8 +117,8 @@ export class UseImageGeneratorCommitmentDefinition extends BaseCommitmentDefinit
             {
                 ...requirements,
                 tools: updatedTools,
-                metadata: {
-                    ...requirements.metadata,
+                _metadata: {
+                    ...requirements._metadata,
                     useImageGenerator: content || true,
                 },
             },

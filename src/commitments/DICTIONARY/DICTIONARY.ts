@@ -92,14 +92,14 @@ export class DictionaryCommitmentDefinition extends BaseCommitmentDefinition<'DI
         }
 
         // Get existing dictionary entries from metadata
-        const existingDictionary = requirements.metadata?.DICTIONARY || '';
+        const existingDictionary = requirements._metadata?.DICTIONARY || '';
 
         // Merge the new dictionary entry with existing entries
         const mergedDictionary = existingDictionary ? `${existingDictionary}\n${trimmedContent}` : trimmedContent;
 
         // Store the merged dictionary in metadata for debugging and inspection
         const updatedMetadata = {
-            ...requirements.metadata,
+            ...requirements._metadata,
             DICTIONARY: mergedDictionary,
         };
 
@@ -109,7 +109,7 @@ export class DictionaryCommitmentDefinition extends BaseCommitmentDefinition<'DI
 
         return {
             ...this.appendToSystemMessage(requirements, dictionarySection),
-            metadata: updatedMetadata,
+            _metadata: updatedMetadata,
         };
     }
 }

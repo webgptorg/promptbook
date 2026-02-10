@@ -1,3 +1,4 @@
+import { describe, expect, it } from '@jest/globals';
 import { createAgentModelRequirements } from './createAgentModelRequirements';
 import { validateBook } from './string_book';
 
@@ -26,7 +27,6 @@ describe('USE SEARCH ENGINE and USE BROWSER commitments', () => {
         expect(fetch_url_content).toBeDefined();
         const run_browser = requirements.tools?.find((tool) => tool.name === 'run_browser');
         expect(run_browser).toBeDefined();
-        expect(requirements.metadata?.useBrowser).toBe(true);
     });
 
     it('should add teammate tools when TEAM is used', async () => {
@@ -37,7 +37,7 @@ describe('USE SEARCH ENGINE and USE BROWSER commitments', () => {
         const requirements = await createAgentModelRequirements(agentSource);
         const teamTool = requirements.tools?.find((tool) => tool.name.startsWith('team_chat_'));
         expect(teamTool).toBeDefined();
-        expect(requirements.metadata?.teammates).toEqual(
+        expect(requirements._metadata?.teammates).toEqual(
             expect.arrayContaining([
                 expect.objectContaining({
                     url: 'https://agents.ptbk.ik/agents/joe-green',

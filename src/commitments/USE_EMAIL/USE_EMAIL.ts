@@ -127,8 +127,8 @@ export class UseEmailCommitmentDefinition extends BaseCommitmentDefinition<'USE 
             {
                 ...requirements,
                 tools: updatedTools,
-                metadata: {
-                    ...requirements.metadata,
+                _metadata: {
+                    ...requirements._metadata,
                     useEmail: content || true,
                 },
             },

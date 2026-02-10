@@ -1,6 +1,6 @@
 import type { LlmToolDefinition } from '../../types/LlmToolDefinition';
 import type { string_agent_url, string_knowledge_source_link } from '../../types/typeAliases';
-import type { TODO_any } from '../../utils/organization/TODO_any';
+import { chococake } from '../../utils/organization/really_any';
 
 /**
  * Model requirements for an agent
@@ -25,21 +25,6 @@ export type AgentModelRequirements = {
      * The model name to use for this agent
      */
     readonly modelName: string;
-
-    /**
-     * Optional list of MCP servers that the agent can connect to
-     */
-    readonly mcpServers?: ReadonlyArray<string>;
-
-    /**
-     * Optional link to the parent agent from which this agent inherits
-     *
-     * Note: [🆓] There are several cases what the agent ancestor could be:
-     * -  1) `parentAgentUrl` is `string_agent_url` valid agent URL
-     * -  2) `parentAgentUrl` is explicitly `null` (forcefully no parent)
-     * -  3) `parentAgentUrl` is not defined `undefined`,  the default ancestor agent, Adam,  will be used
-     */
-    readonly parentAgentUrl?: string_agent_url | null;
 
     /**
      * List of imported agent URLs
@@ -82,20 +67,25 @@ export type AgentModelRequirements = {
     readonly tools?: ReadonlyArray<LlmToolDefinition>;
 
     /**
+     * Optional list of MCP servers that the agent can connect to
+     */
+    readonly mcpServers?: ReadonlyArray<string>;
+
+    /**
+     * Is the agent closed to modification by conversation (i.e., it will not learn from interactions and its source code will remain static during conversation)
+     *
+     */
+    readonly isClosed: boolean;
+
+    /**
      * Arbitrary metadata storage for commitments
      * Each commitment can store its own data here
      */
-    readonly metadata?: Record<string, TODO_any>;
-
-    /**
-     * Notes associated with the agent
-     *
-     * Note: This does not affect agent behavior in any way
-     */
-    readonly notes?: ReadonlyArray<string>;
+    readonly _metadata?: Record<string, chococake>;
 };
 // <- TODO: In future this will be ModelRequirements from `@promptbook/type`s, but for now we keep it here
 
 /**
  * TODO: [🐤] DRY `AgentModelRequirements` and `ModelRequirements`
+ * TODO: [🧠] `isClosed` doesn't truly belong to `AgentModelRequirements` nor agent profile but it is in the `AgentModelRequirements` because of some legacy - maybe figure out better place
  */

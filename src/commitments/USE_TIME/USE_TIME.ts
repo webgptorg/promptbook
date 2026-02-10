@@ -111,8 +111,8 @@ export class UseTimeCommitmentDefinition extends BaseCommitmentDefinition<'USE T
             {
                 ...requirements,
                 tools: updatedTools,
-                metadata: {
-                    ...requirements.metadata,
+                _metadata: {
+                    ...requirements._metadata,
                 },
             },
             spaceTrim(

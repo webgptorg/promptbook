@@ -143,8 +143,8 @@ export class UseSearchEngineCommitmentDefinition extends BaseCommitmentDefinitio
             {
                 ...requirements,
                 tools: updatedTools,
-                metadata: {
-                    ...requirements.metadata,
+                _metadata: {
+                    ...requirements._metadata,
                     useSearchEngine: content || true,
                 },
             },

@@ -16,6 +16,7 @@ export function createEmptyAgentModelRequirements(): AgentModelRequirements {
         temperature: 0.7,
         topP: 0.9,
         topK: 50,
+        isClosed: false
     };
 }
 

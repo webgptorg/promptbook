@@ -31,15 +31,9 @@ export default async function AgentSystemMessagePage({ params }: { params: Promi
         adamAgentUrl: await getWellKnownAgentUrl('ADAM'),
     });
     const modelRequirements = await createAgentModelRequirements(effectiveAgentSource);
-    const {
-        metadata: _metadata,
-        notes: _notes,
-        parentAgentUrl: _parentAgentUrl,
-        promptSuffix,
-        ...sanitizedModelRequirements
-    } = modelRequirements;
+    const { _metadata, ...sanitizedModelRequirements } = modelRequirements;
 
-    keepUnused(_metadata, _notes, _parentAgentUrl, promptSuffix);
+    keepUnused(_metadata);
 
     const agentProfile = parseAgentSource(agentSource);
     const { systemMessage, ...modelRequirementsRest } = sanitizedModelRequirements;

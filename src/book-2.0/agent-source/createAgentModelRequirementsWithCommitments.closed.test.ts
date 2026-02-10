@@ -13,9 +13,9 @@ describe('CLOSED commitment only works if it is the last commitment', () => {
 
         const requirements = await createAgentModelRequirementsWithCommitments(agentSource);
         // isClosed remains undefined *(which means open)*
-        expect(requirements.metadata?.isClosed).toBe(undefined);
-        expect(requirements.metadata?.isClosed).not.toBe(true);
-        expect(requirements.metadata?.isClosed).not.toBe(false);
+        expect(requirements.isClosed).toBe(undefined);
+        expect(requirements.isClosed).not.toBe(true);
+        expect(requirements.isClosed).not.toBe(false);
     });
 
     it('is closed when CLOSED is at the end', async () => {
@@ -27,7 +27,7 @@ describe('CLOSED commitment only works if it is the last commitment', () => {
         `;
 
         const requirements = await createAgentModelRequirementsWithCommitments(agentSource);
-        expect(requirements.metadata?.isClosed).toBe(true);
+        expect(requirements.isClosed).toBe(true);
     });
 
     it('is open when CLOSED is followed by KNOWLEDGE', async () => {
@@ -41,9 +41,9 @@ describe('CLOSED commitment only works if it is the last commitment', () => {
 
         const requirements = await createAgentModelRequirementsWithCommitments(agentSource);
         // CLOSED is skipped, so isClosed remains undefined *(which means open)*
-        expect(requirements.metadata?.isClosed).toBe(undefined);
-        expect(requirements.metadata?.isClosed).not.toBe(true);
-        expect(requirements.metadata?.isClosed).not.toBe(false);
+        expect(requirements.isClosed).toBe(undefined);
+        expect(requirements.isClosed).not.toBe(true);
+        expect(requirements.isClosed).not.toBe(false);
     });
 
     it('is open when CLOSED is followed by OPEN', async () => {
@@ -56,7 +56,7 @@ describe('CLOSED commitment only works if it is the last commitment', () => {
         `;
 
         const requirements = await createAgentModelRequirementsWithCommitments(agentSource);
-        expect(requirements.metadata?.isClosed).toBe(false);
+        expect(requirements.isClosed).toBe(false);
     });
 
     it('is closed when OPEN is followed by CLOSED', async () => {
@@ -69,6 +69,6 @@ describe('CLOSED commitment only works if it is the last commitment', () => {
         `;
 
         const requirements = await createAgentModelRequirementsWithCommitments(agentSource);
-        expect(requirements.metadata?.isClosed).toBe(true);
+        expect(requirements.isClosed).toBe(true);
     });
 });

@@ -72,8 +72,8 @@ export class UserMessageCommitmentDefinition extends BaseCommitmentDefinition<'U
 
         return {
             ...requirements,
-            metadata: {
-                ...requirements.metadata,
+            _metadata: {
+                ...requirements._metadata,
                 pendingUserMessage: content,
             },
         };

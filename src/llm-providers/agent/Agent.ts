@@ -17,13 +17,13 @@ import { validateBook } from '../../book-2.0/agent-source/string_book';
 import { getAllCommitmentsToolTitles } from '../../commitments/_common/getAllCommitmentsToolTitles';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
+import type { Prompt } from '../../types/Prompt';
 import type {
     SelfLearningCommitmentTypeCounts,
     SelfLearningTeacherSummary,
     SelfLearningToolCallResult,
     ToolCall,
 } from '../../types/ToolCall';
-import type { Prompt } from '../../types/Prompt';
 import type {
     string_agent_hash,
     string_agent_name,
@@ -315,7 +315,7 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
             return result;
         }
 
-        if (modelRequirements.metadata?.isClosed) {
+        if (modelRequirements.isClosed) {
             return result;
         }
 

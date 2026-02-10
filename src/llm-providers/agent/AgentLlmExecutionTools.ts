@@ -288,15 +288,9 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
         }
 
         const modelRequirements = await this.getModelRequirements();
-        const {
-            metadata: _metadata,
-            notes: _notes,
-            parentAgentUrl: _parentAgentUrl,
-            promptSuffix,
-            ...sanitizedRequirements
-        } = modelRequirements;
+        const { _metadata, promptSuffix, ...sanitizedRequirements } = modelRequirements;
 
-        keepUnused(_metadata, _notes, _parentAgentUrl);
+        keepUnused(_metadata);
 
         const chatPrompt = prompt as ChatPrompt;
         let underlyingLlmResult: CommonPromptResult;

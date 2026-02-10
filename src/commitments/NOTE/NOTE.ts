@@ -99,11 +99,8 @@ export class NoteCommitmentDefinition extends BaseCommitmentDefinition<
             return requirements;
         }
 
-        // Return requirements with updated notes but no changes to system message
-        return {
-            ...requirements,
-            notes: [...(requirements.notes || []), trimmedContent],
-        };
+
+        return requirements;
     }
 }
 

@@ -65,13 +65,13 @@ export class OpenCommitmentDefinition extends BaseCommitmentDefinition<'OPEN'> {
         // But to be explicit we can set it
 
         const updatedMetadata = {
-            ...requirements.metadata,
+            ...requirements._metadata,
             isClosed: false,
         };
 
         return {
             ...requirements,
-            metadata: updatedMetadata,
+            _metadata: updatedMetadata,
         };
     }
 }

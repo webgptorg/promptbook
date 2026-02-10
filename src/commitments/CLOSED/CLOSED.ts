@@ -68,14 +68,9 @@ export class ClosedCommitmentDefinition extends BaseCommitmentDefinition<'CLOSED
     applyToAgentModelRequirements(requirements: AgentModelRequirements, _content: string): AgentModelRequirements {
         keepUnused(_content);
 
-        const updatedMetadata = {
-            ...requirements.metadata,
-            isClosed: true,
-        };
-
         return {
             ...requirements,
-            metadata: updatedMetadata,
+            isClosed: true,
         };
     }
 }

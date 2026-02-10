@@ -18,13 +18,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
             adamAgentUrl: await getWellKnownAgentUrl('ADAM'),
         });
         const modelRequirements = await createAgentModelRequirements(effectiveAgentSource);
-        const {
-            metadata: _metadata,
-            notes: _notes,
-            parentAgentUrl: _parentAgentUrl,
-            promptSuffix,
-            ...sanitizedModelRequirements
-        } = modelRequirements;
+        const { _metadata, ...sanitizedModelRequirements } = modelRequirements;
+
+        keepUnused(_metadata);
 
         return new Response(
             JSON.stringify(

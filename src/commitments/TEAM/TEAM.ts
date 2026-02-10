@@ -3,11 +3,11 @@ import { string_javascript_name } from '../../_packages/types.index';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import { parseTeamCommitmentContent, type TeamTeammate } from '../../book-2.0/agent-source/parseTeamCommitment';
 import type { PromptResult } from '../../execution/PromptResult';
-import type { LlmToolDefinition } from '../../types/LlmToolDefinition';
-import type { ToolCall } from '../../types/ToolCall';
 import type { RemoteAgent } from '../../llm-providers/agent/RemoteAgent';
 import { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
+import type { LlmToolDefinition } from '../../types/LlmToolDefinition';
 import type { ChatPrompt } from '../../types/Prompt';
+import type { ToolCall } from '../../types/ToolCall';
 import { computeHash } from '../../utils/misc/computeHash';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 
@@ -128,7 +128,7 @@ export class TeamCommitmentDefinition extends BaseCommitmentDefinition<'TEAM'> {
             return requirements;
         }
 
-        const agentName: string = (requirements.metadata?.agentName as string) || 'Agent';
+        const agentName: string = (requirements._metadata?.agentName as string) || 'Agent';
 
         const teamEntries: TeamToolEntry[] = teammates.map((teammate) => ({
             toolName: createTeamToolName(teammate.url),
@@ -181,7 +181,7 @@ export class TeamCommitmentDefinition extends BaseCommitmentDefinition<'TEAM'> {
             label?: string;
             instructions?: string;
         }> =
-            (requirements.metadata?.teammates as
+            (requirements._metadata?.teammates as
                 | Array<{
                       url: string;
                       toolName: string;
@@ -234,8 +234,8 @@ export class TeamCommitmentDefinition extends BaseCommitmentDefinition<'TEAM'> {
             {
                 ...requirements,
                 tools: updatedTools,
-                metadata: {
-                    ...requirements.metadata,
+                _metadata: {
+                    ...requirements._metadata,
                     teammates: updatedTeammates,
                 },
             },

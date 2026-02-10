@@ -70,8 +70,8 @@ export async function createAgentModelRequirementsWithCommitments(
     // Store the agent name in metadata so commitments can access it
     requirements = {
         ...requirements,
-        metadata: {
-            ...requirements.metadata,
+        _metadata: {
+            ...requirements._metadata,
             agentName: parseResult.agentName,
         },
     };

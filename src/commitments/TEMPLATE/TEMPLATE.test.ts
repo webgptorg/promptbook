@@ -19,7 +19,7 @@ describe('TEMPLATE commitment', () => {
 
         const result = commitment.applyToAgentModelRequirements(initialRequirements, '');
 
-        expect(result.metadata?.templateMode).toBe(true);
+        expect(result._metadata?.templateMode).toBe(true);
         expect(result.systemMessage).toContain('structured template format');
     });
 
@@ -30,8 +30,8 @@ describe('TEMPLATE commitment', () => {
 
         const result = commitment.applyToAgentModelRequirements(initialRequirements, templateContent);
 
-        expect(result.metadata?.templateMode).toBe(true);
-        expect(result.metadata?.templates).toContain(templateContent);
+        expect(result._metadata?.templateMode).toBe(true);
+        expect(result._metadata?.templates).toContain(templateContent);
         expect(result.systemMessage).toContain('Response Template:');
         expect(result.systemMessage).toContain(templateContent);
     });
@@ -43,9 +43,9 @@ describe('TEMPLATE commitment', () => {
         requirements = commitment.applyToAgentModelRequirements(requirements, 'Template 1');
         requirements = commitment.applyToAgentModelRequirements(requirements, 'Template 2');
 
-        expect(requirements.metadata?.templates).toHaveLength(2);
-        expect(requirements.metadata?.templates).toContain('Template 1');
-        expect(requirements.metadata?.templates).toContain('Template 2');
+        expect(requirements._metadata?.templates).toHaveLength(2);
+        expect(requirements._metadata?.templates).toContain('Template 1');
+        expect(requirements._metadata?.templates).toContain('Template 2');
     });
 
     it('should support TEMPLATES alias', () => {

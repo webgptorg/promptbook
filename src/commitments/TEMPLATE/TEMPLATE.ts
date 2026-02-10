@@ -98,7 +98,7 @@ export class TemplateCommitmentDefinition extends BaseCommitmentDefinition<'TEMP
         if (!trimmedContent) {
             // Store template mode flag in metadata
             const updatedMetadata = {
-                ...requirements.metadata,
+                ...requirements._metadata,
                 templateMode: true,
             };
 
@@ -110,7 +110,7 @@ export class TemplateCommitmentDefinition extends BaseCommitmentDefinition<'TEMP
 
             return {
                 ...this.appendToSystemMessage(requirements, templateModeInstruction, '\n\n'),
-                metadata: updatedMetadata,
+                _metadata: updatedMetadata,
             };
         }
 
@@ -118,16 +118,16 @@ export class TemplateCommitmentDefinition extends BaseCommitmentDefinition<'TEMP
         const templateSection = `Response Template: ${trimmedContent}`;
 
         // Store the template in metadata for potential programmatic access
-        const existingTemplates = requirements.metadata?.templates || [];
+        const existingTemplates = requirements._metadata?.templates || [];
         const updatedMetadata = {
-            ...requirements.metadata,
+            ...requirements._metadata,
             templates: [...existingTemplates, trimmedContent],
             templateMode: true,
         };
 
         return {
             ...this.appendToSystemMessage(requirements, templateSection, '\n\n'),
-            metadata: updatedMetadata,
+            _metadata: updatedMetadata,
         };
     }
 }

@@ -70,19 +70,19 @@ export class AgentMessageCommitmentDefinition extends BaseCommitmentDefinition<'
 
         keepUnused(content);
 
-        const pendingUserMessage = requirements.metadata?.pendingUserMessage;
+        const pendingUserMessage = requirements._metadata?.pendingUserMessage;
 
         if (pendingUserMessage) {
             const newSample = { question: pendingUserMessage, answer: content };
             const newSamples = [...(requirements.samples || []), newSample];
 
-            const newMetadata = { ...requirements.metadata };
+            const newMetadata = { ...requirements._metadata };
             delete newMetadata.pendingUserMessage;
 
             return {
                 ...requirements,
                 samples: newSamples,
-                metadata: newMetadata,
+                _metadata: newMetadata,
             };
         }
 

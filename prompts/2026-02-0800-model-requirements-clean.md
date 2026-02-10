@@ -3,7 +3,7 @@
 
 ---
 
-[.] _<- Maybe do manually - Remove `metadata`, `notes` and `parentAgentUrl` from `src/book-2.0/agent-source/AgentModelRequirements.ts` _
+[x] _<- Maybe do manually - Remove `metadata`, `notes` and `parentAgentUrl` from `src/book-2.0/agent-source/AgentModelRequirements.ts` _
 
 [✨🏄] Clean up the model requirements:
 

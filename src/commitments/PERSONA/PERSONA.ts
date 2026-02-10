@@ -80,7 +80,7 @@ export class PersonaCommitmentDefinition extends BaseCommitmentDefinition<'PERSO
         }
 
         // Get existing persona content from metadata
-        const existingPersonaContent = requirements.metadata?.PERSONA || '';
+        const existingPersonaContent = requirements._metadata?.PERSONA || '';
 
         // Merge the new content with existing persona content
         // When multiple PERSONA commitments exist, they are merged into one
@@ -90,13 +90,13 @@ export class PersonaCommitmentDefinition extends BaseCommitmentDefinition<'PERSO
 
         // Store the merged persona content in metadata for debugging and inspection
         const updatedMetadata = {
-            ...requirements.metadata,
+            ...requirements._metadata,
             PERSONA: mergedPersonaContent,
         };
 
         // Get the agent name from metadata (which should contain the first line of agent source)
         // If not available, extract from current system message as fallback
-        let agentName = requirements.metadata?.agentName;
+        let agentName = requirements._metadata?.agentName;
 
         if (!agentName) {
             // Fallback: extract from current system message
@@ -149,7 +149,7 @@ export class PersonaCommitmentDefinition extends BaseCommitmentDefinition<'PERSO
         return {
             ...requirements,
             systemMessage: newSystemMessage,
-            metadata: updatedMetadata,
+            _metadata: updatedMetadata,
         };
     }
 }

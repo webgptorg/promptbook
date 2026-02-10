@@ -198,8 +198,8 @@ export class UseBrowserCommitmentDefinition extends BaseCommitmentDefinition<'US
             {
                 ...requirements,
                 tools: updatedTools,
-                metadata: {
-                    ...requirements.metadata,
+                _metadata: {
+                    ...requirements._metadata,
                     useBrowser: true,
                 },
             },
