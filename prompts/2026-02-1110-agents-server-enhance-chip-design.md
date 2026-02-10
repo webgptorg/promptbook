@@ -1,4 +1,4 @@
-[ ] !!
+[x] ~$0.12 9 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
 [✨⏏️] Remove the "[" and "]" from the tool-calling chips
 
@@ -36,3 +36,4 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

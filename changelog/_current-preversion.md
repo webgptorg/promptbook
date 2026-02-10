@@ -18,6 +18,7 @@
 -   Re-styled Markdown headings inside chat bubbles as card-like sections powered by new shared heading tokens, keeping the typography and spacing consistent with the rest of the Agents Server UI.
 -   Tuned the new heading tokens so every Markdown heading grabs its border, shadow, and text colors from the chat bubble palette, letting the card-like headers glow softly and stay in sync with the shared Agents Server design language.
 -   Underlined inline links inside Agents Server chat bubbles so URLs stay recognizable now that the heading tiles use card-style backgrounds.
+-   Removed the square brackets around tool calling chips (USE TIME, USE SEARCH ENGINE, TEAM, etc.) in the Agents Server chat so the labels read as plain text and match the refreshed chip design.
 -   Fixed Agents Server chat tool call chips so only the actual tool invocation (e.g., the search or time lookup) renders while the TEAM wrapper is suppressed, preventing duplicate/empty chips and keeping one chip per tool call.
 
 ### 📚 Book
@@ -473,3 +474,4 @@
 -   Updated `openai` from `4.63.0` to `6.18.0` and fixed all resulting type errors.
 -   Resolved `zod` peer dependency conflicts between `@ai-sdk/deepseek` and `@openai/agents` by using `overrides` in `package.json`.
 -   Fixed `node-fetch` declaration issue in `LindatAutomaticTranslator.ts` by using native `URLSearchParams` and removing `node-fetch` import.
+
