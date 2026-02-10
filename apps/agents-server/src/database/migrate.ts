@@ -1,3 +1,4 @@
+import colors from 'colors';
 import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -6,7 +7,7 @@ import { Client } from 'pg';
 dotenv.config();
 
 async function migrate() {
-    console.info('🚀 Starting database migration');
+    console.info(colors.bgBlue('🚀 Starting database migration'));
 
     // Parse CLI arguments for --only flag
     const args = process.argv.slice(2);
@@ -54,7 +55,7 @@ async function migrate() {
             process.exit(1);
         }
         prefixes = onlyPrefixes;
-        console.info(`🎯 Running migrations only for: ${prefixes.join(', ')}`);
+        console.info(colors.cyan(`🎯 Running migrations only for: ${prefixes.join(', ')}`));
     }
 
     const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL;
@@ -63,7 +64,7 @@ async function migrate() {
         process.exit(1);
     }
 
-    console.info(`📋 Found ${prefixes.length} prefixes to migrate: ${prefixes.join(', ')}`);
+    console.info(colors.cyan(`📋 Found ${prefixes.length} prefixes to migrate: ${prefixes.join(', ')}`));
 
     // 2. Connect to database
     const client = new Client({
@@ -73,7 +74,7 @@ async function migrate() {
 
     try {
         await client.connect();
-        console.info('🔌 Connected to database');
+        console.info(colors.bgGreen('🔌 Connected to database'));
 
         // 3. Read migration files
         const migrationsDir = path.join(__dirname, 'migrations');
@@ -87,11 +88,11 @@ async function migrate() {
             .filter((file) => file.endsWith('.sql'))
             .sort(); // Ensure files are processed in order
 
-        console.info(`📂 Found ${migrationFiles.length} migration files`);
+        console.info(colors.cyan(`📂 Found ${migrationFiles.length} migration files`));
 
         // 4. Iterate over prefixes and apply migrations
         for (const prefix of prefixes) {
-            console.info(`\n🏗️ Migrating prefix: "${prefix}"`);
+            console.info(colors.bgWhite(`\n🏗️ Migrating prefix: "${prefix}"`));
             const migrationsTableName = `${prefix}Migrations`;
 
             // 4.1 Create migrations table if not exists
@@ -123,16 +124,21 @@ async function migrate() {
                         continue;
                     }
 
-                    console.info(`  🚀 Applying ${path.join(migrationsDir, file).split('\\').join('/')}...`);
+                    console.info(`  🔼 Applying ${path.join(migrationsDir, file).split('\\').join('/')}...`);
                     const filePath = path.join(migrationsDir, file);
                     let sql = fs.readFileSync(filePath, 'utf-8');
 
                     // Replace prefix placeholder
                     sql = sql.replace(/prefix_/g, prefix);
 
+                    console.info(colors.blue(sql));
+
                     try {
+                        console.info(colors.cyan('About to execute SQL...'));
                         await client.query(sql);
+                        console.info(colors.green('...SQL executed successfully'));
                         await client.query(`INSERT INTO "${migrationsTableName}" ("filename") VALUES ($1)`, [file]);
+                        console.info(colors.green(`Migration "${file}" recorded in "${migrationsTableName}"`));
                         console.info(`  ✅ Applied ${file}`);
                     } catch (error) {
                         console.error(`  ❌ Failed to apply ${file}:`);
@@ -154,9 +160,10 @@ async function migrate() {
             }
         }
 
-        console.info('\n🎉 All migrations completed successfully');
+        console.info(colors.bgGreen('\n🎉 All migrations completed successfully'));
     } catch (error) {
-        console.error('\n❌ Migration failed:', error);
+        console.error(colors.bgRed('\n❌ Migration failed:'));
+        console.error(error);
         process.exit(1);
     } finally {
         await client.end();
