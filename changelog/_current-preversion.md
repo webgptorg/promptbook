@@ -1,6 +1,7 @@
 -### ✨ Improvements
 
 -   Removed the clone button from the Agents Server directory listing cards so cloning stays available only via the agent context menu, preventing duplicate actions in both views.
+-   Modernized the Agents Server default agent visuals: the default avatar prompt now asks for a cinematic, digital portrait, the icon and screenshot generators share a DRY helper for gradient-forward layouts, and the image gallery page renders in a polished card-based design that keeps the new assets front and center.
 -   Added inline metadata editing to the Agents Server admin screen so values and notes can be updated directly from each row without scrolling to the add form.
 -   Ensured the agent model requirements that are sent to third-party LLMs (and the Agents Server `/api/model-requirements` response) only include low-level properties by stripping `metadata`, `notes`, `parentAgentUrl`, and `promptSuffix`, keeping internal commitments data inside Promptbook.
 -   Ensured the OpenAI compatibility chat endpoints in the Agents Server forward any `response_format` payload to the underlying OpenAI/API provider by mapping it to AgentKit output types before each run so JSON schema responses are honored.

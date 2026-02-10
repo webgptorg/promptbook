@@ -2,60 +2,76 @@ import { AgentBasicInformation } from '@promptbook-local/types';
 import spaceTrim from 'spacetrim';
 import { string_prompt_image } from '../../../../../../../../src/types/typeAliases';
 
+/**
+ * Formats an array of strings into bullet list rows.
+ *
+ * @private
+ */
+const renderBullets = (items: readonly string[]) => items.map((item) => `-  ${item}`).join('\n');
+
+/**
+ * Builds the image prompt that generates the modern default avatar for the agent.
+ *
+ * @param agent - Basic agent information used to personalize the portrait.
+ * @returns A prompt string describing the high-end, cinematic, and symbolic avatar.
+ * @public
+ */
 export function getAgentDefaultAvatarPrompt(agent: AgentBasicInformation): string_prompt_image {
     const {
         agentName,
         personaDescription,
         meta: { fullname, color, font },
     } = agent;
+    const paletteHint = color || 'graphite with iridescent sapphire accents';
+    const typographyHint = font || 'a modern geometric sans serif';
+    const heroLabel = fullname || agentName || 'Promptbook Agent';
+    const personaBlock = (personaDescription || 'Friendly, future-ready partner.').trim();
+
+    const styleHighlights = [
+        `High-resolution portrait that combines digital illustration polish with photographic depth of field, as if shot for a premium innovation magazine.`,
+        `Soft volumetric rim light meets saturated highlights; the figure glows with subtle neon edges and gentle lens flares without looking cartoonish.`,
+        `Treat skin, fabric, or symbolic armor as tactile surfaces (soft ceramics, brushed metal, or woven fibers) that still read as human and welcoming.`,
+    ];
+
+    const motifHighlights = [
+        `Color palette anchored in ${paletteHint}, complemented by luminous accent streaks to suggest intelligence and energy.`,
+        `Typography hints tied to ${typographyHint} in any implied badges, borders, or soft UI fragments.`,
+        'Introduce symbolic cues (constellations, guiding hands, delicate circuitry gestures) that feel like metaphors for memory, guidance, or navigation.',
+    ];
+
+    const compositionHints = [
+        'Vertical composition with the figure centered and filling roughly two-thirds of the frame, leaving airy gradients behind.',
+        'Simple yet textured background (soft gradients, mist, or abstract planes) that keeps the focus on the figure and its mood.',
+        'Facial expression is calm, confident, and observant—balanced between empathy and quiet authority.',
+    ];
+
+    const lightingHints = [
+        'Soft, temperature-balanced lighting with a gentle highlight on one cheekbone and subtle fill on the opposite side.',
+        'Textures should carry a delicate sheen as if the subject is lit through frosted glass, supporting a timeless but modern feel.',
+    ];
 
     return spaceTrim(
-        // Note: [⚜] When changing the prompt here, mark commit with [⚜]
         (block) => `
 
-            Create a portrait or figure in the style of a Central European baroque or late renaissance relief sculpture.
+            Create a modern portrait interpreting the figure that symbolizes the AI agent named "${heroLabel}".
 
-            The figure symbolizes the AI agent named "${fullname || agentName}".
+            ${renderBullets(styleHighlights)}
 
+            Persona summary:
             \`\`\`
-            ${block(personaDescription || '')}
+            ${block(personaBlock)}
             \`\`\`
 
-            Visual style:
-            -  Focus only on the main subject (person, creature, or symbolic figure)
-            -  No frames, borders, or architectural elements
-            -  Use color scheme based on "${color || 'neutral tones'}"
-            -  Use font style based on "${font || 'classic serif'}"
-            -  hand-crafted stone or stucco relief appearance
-            -  slightly weathered surface, visible age and patina
-            -  muted historical colors (ochre, faded blue, warm terracotta, stone white)
-            -  painterly yet sculptural look, like a carved figure
-            -  shallow relief style, not flat illustration
-
-            Symbolism:
-            -  the central figure should be allegorical, readable without text
-            -  avoid modern objects, screens, cables, or explicit technology
-            -  express intelligence, vigilance, guidance, protection, memory, or mediation through classical symbols
-            -  inspiration from animals, mythological figures, tools, or natural elements
+            Motifs & palette:
+            ${renderBullets(motifHighlights)}
 
             Composition:
-            -  centered figure only
-            -  no decorative flourishes or surrounding ornaments
-            -  no frames or cartouches
-            -  clean background, neutral or simple
-            -  figure fills most of the composition
+            ${renderBullets(compositionHints)}
 
-            Lighting and texture:
-            -  soft daylight
-            -  realistic stone and plaster texture
-            -  subtle shadows enhancing relief depth
+            Lighting & texture:
+            ${renderBullets(lightingHints)}
 
-            Overall mood:
-            -  timeless
-            -  dignified
-            -  calm authority
-            -  classical sculptural portrait
-            
+            Atmosphere should feel timeless, curious, and deeply human while remaining unmistakably crafted by light and pixels.
         `,
     );
 }
