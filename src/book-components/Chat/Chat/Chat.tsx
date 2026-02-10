@@ -26,6 +26,47 @@ import { ChatToolCallModal } from './ChatToolCallModal';
 import styles from './Chat.module.css';
 
 /**
+ * Represents formatted text for the scroll-to-bottom indicator.
+ *
+ * @private
+ */
+type ScrollIndicatorText = {
+    /**
+     * Label that appears on the badge.
+     */
+    readonly badgeLabel: string;
+
+    /**
+     * Accessible text describing the action.
+     */
+    readonly ariaLabel: string;
+};
+
+/**
+ * Builds the copy used by the scroll indicator badge and the button's accessible labels.
+ *
+ * @param count - Number of unseen messages.
+ * @returns Labels tailored to the current unseen message count.
+ * @private
+ */
+function buildScrollIndicatorText(count: number): ScrollIndicatorText {
+    if (count <= 0) {
+        return {
+            badgeLabel: '',
+            ariaLabel: 'Scroll to the latest message',
+        };
+    }
+
+    const messageWord = count === 1 ? 'message' : 'messages';
+    const badgeLabel = `${count} new ${messageWord}`;
+
+    return {
+        badgeLabel,
+        ariaLabel: `${badgeLabel} below. Scroll to the latest message.`,
+    };
+}
+
+/**
  * Renders a chat with messages and input for new messages
  *
  * Note: 🔇 This component does NOT have speak functionality, it just allows to trigger voice recognition
@@ -98,6 +139,10 @@ export function Chat(props: ChatProps) {
         isMobile: isMobileFromHook,
     } = useChatAutoScroll();
 
+    const [unseenMessagesCount, setUnseenMessagesCount] = useState(0);
+    const lastSeenMessagesRef = useRef(messages.length);
+
+
     const chatMessageSelector = `.${styles.chatMessage}`;
     const { actionsRef, setChatMessagesElement, handleChatScroll, isActionsOverlapping, isActionsScrolling } =
         useChatActionsOverlap({
@@ -106,6 +151,33 @@ export function Chat(props: ChatProps) {
             messageSelector: chatMessageSelector,
             messages: postprocessedMessages,
         });
+
+    useEffect(() => {
+        if (messages.length < lastSeenMessagesRef.current) {
+            lastSeenMessagesRef.current = messages.length;
+            if (unseenMessagesCount !== 0) {
+                setUnseenMessagesCount(0);
+            }
+            return;
+        }
+
+        if (isAutoScrolling) {
+            lastSeenMessagesRef.current = messages.length;
+            if (unseenMessagesCount !== 0) {
+                setUnseenMessagesCount(0);
+            }
+            return;
+        }
+
+        if (messages.length > lastSeenMessagesRef.current) {
+            setUnseenMessagesCount(messages.length - lastSeenMessagesRef.current);
+        }
+    }, [messages.length, isAutoScrolling, unseenMessagesCount]);
+
+    const { badgeLabel, ariaLabel } = useMemo(
+        () => buildScrollIndicatorText(unseenMessagesCount),
+        [unseenMessagesCount],
+    );
 
     const {
         state: {
@@ -260,13 +332,22 @@ export function Chat(props: ChatProps) {
 
                     {!isAutoScrolling && (
                         <div className={styles.scrollToBottomContainer}>
-                            <button
-                                data-button-type="custom"
-                                className={classNames(styles.scrollToBottom, scrollToBottomCssClassName)}
-                                onClick={handleButtonClick(scrollToBottom)}
-                            >
-                                <ArrowIcon direction="DOWN" size={33} />
-                            </button>
+                            <div className={styles.scrollToBottomWrapper}>
+                                <button
+                                    data-button-type="custom"
+                                    className={classNames(styles.scrollToBottom, scrollToBottomCssClassName)}
+                                    onClick={handleButtonClick(scrollToBottom)}
+                                    aria-label={ariaLabel}
+                                    title={ariaLabel}
+                                >
+                                    <ArrowIcon direction="DOWN" size={33} />
+                                </button>
+                                {badgeLabel && (
+                                    <span className={styles.scrollToBottomBadge} aria-live="polite" role="status">
+                                        {badgeLabel}
+                                    </span>
+                                )}
+                            </div>
                         </div>
                     )}
 

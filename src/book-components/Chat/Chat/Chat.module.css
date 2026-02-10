@@ -1301,10 +1301,18 @@
     pointer-events: none;
 }
 
-.scrollToBottomContainer .scrollToBottom {
+.scrollToBottomContainer .scrollToBottomWrapper {
     pointer-events: all;
-
+    position: relative;
     transform: translate(-50%, -150%);
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    animation: scrollButtonSlideIn 0.3s ease-out;
+    transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.scrollToBottomContainer .scrollToBottom {
     width: 48px;
     height: 48px;
     display: flex;
@@ -1323,7 +1331,6 @@
     user-select: none;
     transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-    animation: scrollButtonSlideIn 0.3s ease-out;
 }
 
 @keyframes scrollButtonSlideIn {
@@ -1337,13 +1344,34 @@
     }
 }
 
-.scrollToBottom:hover {
+.scrollToBottomContainer .scrollToBottomWrapper:hover {
     transform: translate(-50%, -160%) scale(1.05);
 }
 
-.scrollToBottom:active {
+.scrollToBottomContainer .scrollToBottomWrapper:active {
     transform: translate(-50%, -160%) scale(0.95);
     transition: transform 0.1s ease;
+}
+
+.scrollToBottomBadge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    min-width: 32px;
+    padding: 2px 6px;
+    font-size: 10px;
+    font-weight: 600;
+    background: #2563eb;
+    color: #fff;
+    border-radius: 999px;
+    box-shadow: 0 2px 10px rgba(37, 99, 235, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    pointer-events: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 /* Rating modal */

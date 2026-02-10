@@ -1,5 +1,7 @@
 -### 📚 Book
 
+-   Added a scroll-to-bottom indicator to the Agents Server chat so the floating arrow now announces unseen replies, surfaces a new-messages badge, and keeps the action accessible even when the user scrolls away from the newest content.
+
 -   Removed the Agents Server desktop hamburger menu so the toggle only appears in mobile layouts where it is used.
 -   Added the shared useUnsavedChangesGuard hook so modal closing (starting with the Agents Server create-agent dialog) confirms before discarding agent book edits and blocks tab closes until the user confirms.
 -   Removed the clone button from the Agents Server directory listing cards so cloning stays available only via the agent context menu, preventing duplicate actions in both views.
