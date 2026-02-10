@@ -61,15 +61,6 @@ describe('USE BROWSER commitment', () => {
         expect(toolTitles.run_browser).toBe('Run browser');
     });
 
-    /*
-    TODO: [0] Re-enable
-    it('adds browser to tools array in metadata', () => {
-        const result = commitment.applyToAgentModelRequirements(basicRequirements, '');
-
-        expect(result.metadata?.tools).toContain('browser');
-    });
-    */
-
     it('ignores content after USE BROWSER', () => {
         const resultWithContent = commitment.applyToAgentModelRequirements(
             basicRequirements,
