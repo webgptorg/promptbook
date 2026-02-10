@@ -39,9 +39,11 @@ import { OpenAiVectorStoreHandler } from './OpenAiVectorStoreHandler';
 const DEFAULT_AGENT_KIT_MODEL_NAME = 'gpt-5.2' as string_model_name;
 
 // Type definitions for AgentKit structured output
+
 /**
- * @public
  * Represents the AgentKit output configuration used to match OpenAI `response_format` expectations.
+ *
+ * @private utility of Open AI
  */
 export type AgentOutputType = 'text' | JsonSchemaDefinition;
 
@@ -109,12 +111,12 @@ function buildJsonSchemaDefinition(jsonSchema?: {
 }
 
 /**
- * @public
  * Maps OpenAI `response_format` payloads to AgentKit output types so the runner can forward
  * structured-output preferences to OpenAI while still reusing the same AgentKit agent instance.
  *
  * @param responseFormat - The OpenAI `response_format` payload from the user request.
  * @returns An Agent output type compatible with the requested schema or `undefined` when no impact is required.
+ * @private utility of Open AI
  */
 export function mapResponseFormatToAgentOutputType(
     responseFormat?: OpenAiChatResponseFormat,
