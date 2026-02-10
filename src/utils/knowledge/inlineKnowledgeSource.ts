@@ -1,6 +1,11 @@
 import { normalizeToKebabCase } from '../normalization/normalize-to-kebab-case';
 import type { string_data_url, string_filename } from '../../types/typeAliases';
 
+/**
+ * @@@
+ * 
+ * @private thing of
+ */
 const INLINE_KNOWLEDGE_BASE_NAME = 'inline-knowledge';
 const INLINE_KNOWLEDGE_EXTENSION = '.txt';
 const DATA_URL_PREFIX = 'data:';

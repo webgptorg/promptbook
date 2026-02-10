@@ -1,5 +1,15 @@
+/**
+ * @@@
+ *
+ * @private function of Agents Server speech recognition language resolution, not a general-purpose header parser
+ */
 const DEFAULT_SPEECH_RECOGNITION_LANGUAGE = 'en-US';
 
+/**
+ * @@@
+ *
+ * @private function of Agents Server speech recognition language resolution, not a general-purpose header parser
+ */
 type ResolveSpeechRecognitionLanguageOptions = {
     /**
      * Overrides the default language resolution when provided.
@@ -12,6 +22,11 @@ type ResolveSpeechRecognitionLanguageOptions = {
     readonly acceptLanguageHeader?: string | null;
 };
 
+/**
+ * @@@
+ *
+ * @private function of Agents Server speech recognition language resolution, not a general-purpose header parser
+ */
 function normalizeLanguageCandidate(candidate?: string | null): string | undefined {
     if (!candidate) {
         return undefined;
@@ -30,6 +45,8 @@ function normalizeLanguageCandidate(candidate?: string | null): string | undefin
 
 /**
  * Parses the primary language out of an Accept-Language header value.
+ *
+ * @private function of Agents Server speech recognition language resolution, not a general-purpose header parser
  */
 export function parseSpeechRecognitionLanguageFromAcceptLanguageHeader(header?: string | null): string | undefined {
     if (!header) {

@@ -1,5 +1,7 @@
 /**
  * Default placeholder variants shown when an agent is still composing a response.
+ * 
+ * @private BUT maybe export via some package
  */
 export const DEFAULT_THINKING_MESSAGES = [
     'Thinking...',
