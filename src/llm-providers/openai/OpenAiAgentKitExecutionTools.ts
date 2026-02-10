@@ -67,12 +67,15 @@ type OpenAiChatResponseFormat = OpenAI.Chat.Completions.ChatCompletionCreatePara
 
 const DEFAULT_JSON_SCHEMA_NAME = 'StructuredOutput';
 
+/*
+TODO: Use or remove
 const EMPTY_JSON_SCHEMA: JsonSchemaDefinition['schema'] = {
     type: 'object',
     properties: {},
     required: [],
     additionalProperties: true,
 };
+*/
 
 function buildJsonSchemaDefinition(jsonSchema?: {
     name?: string;

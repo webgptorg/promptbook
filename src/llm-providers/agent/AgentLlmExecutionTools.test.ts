@@ -1,12 +1,19 @@
 import { describe, expect, it, jest } from '@jest/globals';
-import { UNCERTAIN_USAGE } from '../../execution/utils/usage-constants';
+import type { string_book } from '../../book-2.0/agent-source/string_book';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
-import { AgentLlmExecutionTools } from './AgentLlmExecutionTools';
+import { UNCERTAIN_USAGE } from '../../execution/utils/usage-constants';
 import type { Prompt } from '../../types/Prompt';
-import type { Parameters, string_date_iso8601, string_markdown_text, string_model_name, string_title } from '../../types/typeAliases';
-import type { string_book } from '../../book-2.0/agent-source/string_book';
+import type {
+    Parameters,
+    string_date_iso8601,
+    string_markdown_text,
+    string_model_name,
+    string_title,
+} from '../../types/typeAliases';
+import { keepUnused } from '../../utils/organization/keepUnused';
+import { AgentLlmExecutionTools } from './AgentLlmExecutionTools';
 
 describe('AgentLlmExecutionTools', () => {
     it('appends promptSufix from RULE commitments to outgoing chat prompts', async () => {
@@ -33,9 +40,10 @@ describe('AgentLlmExecutionTools', () => {
             rawResponse: {},
         };
 
-        const callChatModelMock = jest.fn(async (_prompt: Prompt) => chatPromptResult) as jest.MockedFunction<
-            (prompt: Prompt) => Promise<ChatPromptResult>
-        >;
+        const callChatModelMock = jest.fn(async (_prompt: Prompt) => {
+            keepUnused(_prompt);
+            return chatPromptResult;
+        }) as jest.MockedFunction<(prompt: Prompt) => Promise<ChatPromptResult>>;
 
         const availableModels: ReadonlyArray<AvailableModel> = [
             {
