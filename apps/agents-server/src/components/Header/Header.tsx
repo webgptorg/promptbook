@@ -15,7 +15,7 @@ import { getVisibleCommitmentDefinitions } from '../../utils/getVisibleCommitmen
 import { HeadlessLink, pushWithHeadless, useIsHeadless } from '../_utils/headlessParam';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 import { ChangePasswordDialog } from '../ChangePasswordDialog/ChangePasswordDialog';
-import { LoginDialog } from '../LoginDialog/LoginDialog';
+import { showLoginDialog } from '../AsyncDialogs/asyncDialogs';
 import { useUsersAdmin } from '../UsersList/useUsersAdmin';
 
 type HeaderProps = {
@@ -85,7 +85,6 @@ export function Header(props: HeaderProps) {
     const { isAdmin = false, currentUser = null, serverName, serverLogoUrl, agents, federatedServers, isExperimental = false } = props;
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [isLoginOpen, setIsLoginOpen] = useState(false);
     const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
     const [isAgentsOpen, setIsAgentsOpen] = useState(false);
     const [isDocsOpen, setIsDocsOpen] = useState(false);
@@ -380,7 +379,6 @@ export function Header(props: HeaderProps) {
 
     return (
         <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200 h-16">
-            {isLoginOpen && <LoginDialog onClose={() => setIsLoginOpen(false)} />}
             {isChangePasswordOpen && <ChangePasswordDialog onClose={() => setIsChangePasswordOpen(false)} />}
             <div className="container w-full mx-auto px-4 h-full">
                 <div className="flex items-center justify-between h-full">
@@ -560,7 +558,7 @@ export function Header(props: HeaderProps) {
                         {!currentUser && !isAdmin && (
                             <button
                                 onClick={() => {
-                                    setIsLoginOpen(true);
+                                    void showLoginDialog().catch(() => undefined);
                                     setIsMenuOpen(false);
                                 }}
                                 className="hidden lg:inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium h-10 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
@@ -671,7 +669,7 @@ export function Header(props: HeaderProps) {
                                 {!currentUser && !isAdmin && (
                                     <button
                                         onClick={() => {
-                                            setIsLoginOpen(true);
+                                            void showLoginDialog().catch(() => undefined);
                                             setIsMenuOpen(false);
                                         }}
                                         className="flex items-center gap-2 text-base font-medium text-gray-600 hover:text-gray-900 w-full"

@@ -4,6 +4,7 @@ import { X } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, useId } from 'react';
 import { Dialog } from '../Portal/Dialog';
+import { LoginDialog } from '../LoginDialog/LoginDialog';
 import {
     ModalDismissedError,
     registerModalController,
@@ -410,19 +411,47 @@ function AsyncDialogRenderer(props: AsyncDialogRendererProps) {
         );
     }
 
-    return (
-        <PromptDialog
-            title={request.title}
-            message={request.message}
-            confirmLabel={request.confirmLabel}
-            cancelLabel={request.cancelLabel}
-            defaultValue={request.defaultValue}
-            placeholder={request.placeholder}
-            inputLabel={request.inputLabel}
-            onConfirm={(value) => onResolve(value)}
-            onCancel={() => onReject(new ModalDismissedError('prompt'))}
-        />
-    );
+    if (request.kind === 'prompt') {
+        return (
+            <PromptDialog
+                title={request.title}
+                message={request.message}
+                confirmLabel={request.confirmLabel}
+                cancelLabel={request.cancelLabel}
+                defaultValue={request.defaultValue}
+                placeholder={request.placeholder}
+                inputLabel={request.inputLabel}
+                onConfirm={(value) => onResolve(value)}
+                onCancel={() => onReject(new ModalDismissedError('prompt'))}
+            />
+        );
+    }
+
+    if (request.kind === 'login') {
+        const { title, description, refreshAfterSuccess, onSuccess } = request;
+        const handleLoginSuccess = async () => {
+            try {
+                if (onSuccess) {
+                    await onSuccess();
+                }
+                onResolve(undefined);
+            } catch (error) {
+                onReject(error instanceof Error ? error : new Error('Login success handler failed'));
+            }
+        };
+
+        return (
+            <LoginDialog
+                title={title}
+                description={description}
+                refreshAfterSuccess={refreshAfterSuccess}
+                onSuccess={handleLoginSuccess}
+                onCancel={() => onReject(new ModalDismissedError('login'))}
+            />
+        );
+    }
+
+    throw new Error(`Unsupported modal kind: ${request.kind}`);
 }
 
 /**
