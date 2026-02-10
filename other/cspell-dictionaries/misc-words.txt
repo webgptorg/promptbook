@@ -451,3 +451,7 @@ chiplets
 statefulness
 vsfb
 agentkit
+affordance
+affordances
+subtag
+subtags
