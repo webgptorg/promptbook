@@ -13,7 +13,7 @@ export function createCodingContext(): string_prompt {
         - Keep in mind the DRY _(don't repeat yourself)_ principle.
         - Write clear, maintainable, and well-documented code.
         - Write JSDoc comments for all entities - functions, classes, types, top-level constants, etc.
-            - When this entity is exported from the file, it must be marked either as \`@public\` or \`@private\` 
+            - When this entity is exported from the file, it must be marked either as \`@public\` or \`@private\` at the end of the JSDoc comment.
                 - For example, this is [how public looks like](src/errors/PromptbookFetchError.ts)
                 - For example, this is [how private looks like](src/book-components/Chat/utils/createShortLinkForChat.ts)
         - After code change, run the following tests to ensure everything works as expected:
