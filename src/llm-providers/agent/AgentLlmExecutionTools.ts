@@ -23,7 +23,10 @@ import { humanizeAiText } from '../../utils/markdown/humanizeAiText';
 import { promptbookifyAiText } from '../../utils/markdown/promptbookifyAiText';
 import { $getCurrentDate } from '../../utils/misc/$getCurrentDate';
 import { normalizeToKebabCase } from '../../utils/normalization/normalize-to-kebab-case';
-import { OpenAiAgentKitExecutionTools } from '../openai/OpenAiAgentKitExecutionTools';
+import {
+    OpenAiAgentKitExecutionTools,
+    mapResponseFormatToAgentOutputType,
+} from '../openai/OpenAiAgentKitExecutionTools';
 import { OpenAiAssistantExecutionTools } from '../openai/OpenAiAssistantExecutionTools';
 import type { CreateAgentLlmExecutionToolsOptions } from './CreateAgentLlmExecutionToolsOptions';
 
@@ -389,10 +392,15 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
                 vectorStoreId: preparedAgentKit.vectorStoreId,
             });
 
+            const responseFormatOutputType = mapResponseFormatToAgentOutputType(
+                promptWithAgentModelRequirements.modelRequirements.responseFormat,
+            );
+
             underlyingLlmResult = await this.options.llmTools.callChatModelStreamWithPreparedAgent({
                 openAiAgentKitAgent: preparedAgentKit.agent,
                 prompt: promptWithAgentModelRequirements,
                 onProgress,
+                responseFormatOutputType,
             });
         } else if (OpenAiAssistantExecutionTools.isOpenAiAssistantExecutionTools(this.options.llmTools)) {
             // ... deprecated path ...

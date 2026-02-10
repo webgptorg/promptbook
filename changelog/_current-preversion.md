@@ -3,6 +3,7 @@
 -   Removed the clone button from the Agents Server directory listing cards so cloning stays available only via the agent context menu, preventing duplicate actions in both views.
 -   Ensured the OpenAI compatibility chat endpoints in the Agents Server forward any `response_format` payload to the underlying OpenAI/API provider by mapping it to AgentKit output types before each run so JSON schema responses are honored.
 -   OpenAI compatibility mode of the agent server now respects the `response_format` parameter by correctly passing it to the AgentKit execution tools.
+-   Ensured `response_format` overrides still honor JSON schema output when cached AgentKit assistants are reused by mapping the format inside `AgentLlmExecutionTools` before running the prepared agent.
 -   Supported the OpenAI `tools` and `tool_choice` parameters in the Agents Server compatibility proxy so requests that rely on function/tool calling are simply forwarded to OpenAI without needing Promptbook to implement the tooling itself.
 -   Fixed the Agents Server clone flow so it now prompts with a prefilled "Copy of {agent name}" name, reuses a shared dialog helper, and redirects into the freshly cloned agent instead of a missing route.
 -   Fixed the Agents Server home list so the client cache re-syncs with the server-provided agent and folder data immediately after signing in, eliminating the need for a manual refresh.
