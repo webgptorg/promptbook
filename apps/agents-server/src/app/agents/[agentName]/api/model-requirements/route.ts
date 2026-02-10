@@ -18,10 +18,17 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
             adamAgentUrl: await getWellKnownAgentUrl('ADAM'),
         });
         const modelRequirements = await createAgentModelRequirements(effectiveAgentSource);
+        const {
+            metadata: _metadata,
+            notes: _notes,
+            parentAgentUrl: _parentAgentUrl,
+            promptSufix,
+            ...sanitizedModelRequirements
+        } = modelRequirements;
 
         return new Response(
             JSON.stringify(
-                modelRequirements,
+                sanitizedModelRequirements,
                 // <- TODO: [🐱‍🚀] Rename `serializeError` to `errorToJson`
                 null,
                 4,
