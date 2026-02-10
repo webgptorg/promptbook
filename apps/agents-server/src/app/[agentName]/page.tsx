@@ -1,2 +1,2 @@
-export { generateMetadata } from '../agents/[agentName]/(profile)/layout';
-export { default } from '../agents/[agentName]/(profile)/page';
+export { generateMetadata } from '../agents/[agentName]/layout';
+export { default } from '../agents/[agentName]/page';
