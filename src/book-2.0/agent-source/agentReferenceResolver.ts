@@ -5,7 +5,8 @@ import type { BookCommitment } from '../../commitments/_base/BookCommitment';
  *
  * Implementations are expected to rewrite reference tokens such as `{Activation code agent}`
  * or `@Superagent` into concrete agent URLs before the commitment is applied.
- * @public
+ *
+ * @private @@@
  */
 export type AgentReferenceResolver = {
     /**
