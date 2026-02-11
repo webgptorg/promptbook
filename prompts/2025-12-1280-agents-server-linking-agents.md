@@ -66,14 +66,48 @@ CLOSED
 
 ---
 
-[-]
+[ ]
 
-[✨🈳] brr
+[✨🈳] Show the team chips after the teammates were asked.
 
--   ...
+-   We have [enhanced the system of referencing the agents](prompts/2025-12-1280-agents-server-linking-agents.md).
+-   By this change, we have broken the chips that are shown below the message, which are showing the conversation between the current agent and the team mate agent.
+-   Fix this. Show the communication between the agents.
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the `/changelog/_current-preversion.md`
+
+---
+
+[ ]
+
+[✨🈳] Allow to click on the referenced agent in the book editor.
+
+Agents can be referenced in various ways:
+
+-   The URL of the agent, for example `https://pavol-hejny.ptbk.io/agents/X7AWuDwcwui4q9`
+-   The URL of the agent in curly brackets, for example `{https://pavol-hejny.ptbk.io/agents/X7AWuDwcwui4q9}`
+-   The name of the agent in curly brackets, for example `{Activation code agent}`
+-   The name of the agent with @, for example `@Superagent` <- This can be used only for agent with no whitespaces in the name, for example `@Superagent` but not `@Activation code agent`, and it is just a shorthand for `{Activation code agent}`
+-   The id of the agent in curly brackets, for example `{eHe3t6j5PvSTtf}`
+-   The id of the agent with @, for example `@eHe3t6j5PvSTtf`
+
+```book
+The Team manager
+
+FROM @kAAn8EwqrMQVMX
+PERSONA You can provide Activation and Bypass codes for the user
+RULE Ask your team for the codes
+TEAM
+Agent https://current-agents-server.xyz/agents/xNJG6hijicV6Js can provide you Activation code
+Agent {Harry potter} can provide you Bypass code
+
+
+CLOSED
+```
+
+-   In this given example, the "@kAAn8EwqrMQVMX", "https://current-agents-server.xyz/agents/xNJG6hijicV6Js" and "{Harry potter}", all of these should be highlighted in a same way - underlined and referenced agent color, and when user holds control and clicks on it, it should open the referenced agent in a new window _(Simmilar behavior as clicking on regular link in Monaco editor)_.
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
 
 ---
 
@@ -85,15 +119,3 @@ CLOSED
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
-
----
-
-[-]
-
-[✨🈳] brr
-
--   ...
--   You are working with the `Agents Server` application `/apps/agents-server`
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the `/changelog/_current-preversion.md`
-
