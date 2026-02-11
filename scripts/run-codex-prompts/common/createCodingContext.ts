@@ -13,7 +13,7 @@ export function createCodingContext(): string_prompt {
         - Keep in mind the DRY _(don't repeat yourself)_ principle.
         - Write clear, maintainable, and well-documented code.
         - Write JSDoc comments for all entities - functions, classes, types, top-level constants, etc.
-            - When this entity is exported from the file, it must be marked either as \`@public\` or \`@private\` at the end of the JSDoc comment.
+            - When this entity is exported from the file and it is under \`src\` folder *(not for example in the \`apps\` folder)*, it must be marked either as \`@public\` or \`@private\` at the end of the JSDoc comment.
             - For example: "@private internal utility of <Chat/>" / "@public exported from \`@promptbook/browser\`"
             - If you dont know, prefer to mark it as private, we can always change it to public later, but changing from public to private may cause breaking changes.
         - After code change, run the following tests to ensure everything works as expected:
@@ -31,11 +31,11 @@ export function createCodingContext(): string_prompt {
 
         - Attached images (if any) are relative to the root of the project.
         -   **Promptbook Engine vs. Agent Server** sre two distinct parts you should know the difference:
-            -   **Promptbook Engine** is the core engine that powers AI agents, it is located in \`./src\` folder. It is framework-agnostic and can be used in different applications. It can run as standalone javascript/typescript library, CLI environment, or be integrated into different applications. It can be also runned in Agent Server:
-            -   **Agent Server** is a specific application that uses the Promptbook Engine to provide a web and API interface for creating and interacting with AI agents. It is located in \`./apps/agents-server\` folder.
+            -   **Promptbook Engine** is the core engine that powers AI agents, it is located in \`src\` folder. It is framework-agnostic and can be used in different applications. It can run as standalone javascript/typescript library, CLI environment, or be integrated into different applications. It can be also runned in Agent Server:
+            -   **Agent Server** is a specific application that uses the Promptbook Engine to provide a web and API interface for creating and interacting with AI agents. It is located in \`apps/agents-server\` folder.
         -   **Commitments** are basic syntax elements that add specific functionalities to AI agents
             -   They are used in \`agentSource\`, there are commitments like \`PERSONA\`, \`RULE\`, \`KNOWLEDGE\`, \`USE BROWSER\`, \`USE SEARCH ENGINE\`, \`META IMAGE\`, etc.
-            -   Commitments are in the folder \`./src/commitments\`
+            -   Commitments are in the folder \`src/commitments\`
             -   Each commitment starts with a keyword, e.g., \`KNOWLEDGE\`, \`USE BROWSER\`, etc. on a begining of the line and end by new co
             -   Agent source with commitments is parsed by two functions:
                 -   \`parseAgentSource\` which is a lightweight parser for agent source, it parses basic information and its purpose is to be quick and synchronous. The commitments there are hardcoded.
