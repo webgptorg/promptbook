@@ -115,10 +115,29 @@ CLOSED
 
 [✨🈳] Fix clicking on the referenced agent in the book editor.
 
--   @@@
+-   In the book editor, you can click on the referenced agent in the editor.
+-   This will open the agent in a new tab.
+-   Agents can be referenced in various ways:
+
+    1.  The URL of the agent, for example `https://pavol-hejny.ptbk.io/agents/X7AWuDwcwui4q9`
+    2.  The URL of the agent in curly brackets, for example `{https://pavol-hejny.ptbk.io/agents/X7AWuDwcwui4q9}`
+    3.  The name of the agent in curly brackets, for example `{Activation code agent}`
+    4.  The name of the agent with @, for example `@Superagent` <- This can be used only for agent with no whitespaces in the name, for example `@Superagent` but not `@Activation code agent`, and it is just a shorthand for `{Activation code agent}`
+    5.  The id of the agent in curly brackets, for example `{eHe3t6j5PvSTtf}`
+    6.  The id of the agent with @, for example `@eHe3t6j5PvSTtf`
+
+-   The 1, 2 is working perfectly
+-   The 3. and 4. are opening the `https://pavol-hejny.ptbk.io/agents/Activation code agent` which is not correct, it should search for the agent with name `Activation code agent` and open it by id
+-   The 5. and 6. are now working only on local server BUT for federated servers the local server URL is opened, redirect it to the correct federated server URL, for example `https://current-agents-server.xyz/agents/eHe3t6j5PvSTtf`
+-   Do not implement this fix on the level of the book editor. Implement it on the level of redirection from `/agents/:agentId` to the correct agent URL, so it works globally in the application and not only in the book editor.
+-   Any of the 1-6 opened at local server on `/agents/:agentId` should be redirected to the correct URL, for example `https://current-agents-server.xyz/agents/eHe3t6j5PvSTtf` or opened locally if it is local agent.
+-   The canonical URL of the agent is `/agents/eHe3t6j5PvSTtf` - The ID not the name.
+-   Names should be redirected to the canonical URL, for example `/agents/Activation code agent` should be redirected to `/agents/xNJG6hijicV6Js`
+-   Also normalized equivalent names should be redirected to the canonical URL, for example `/agents/activation-čode-agent-` should be redirected to `/agents/xNJG6hijicV6Js`
+-   If the agent is not found locally, it should search in the federated servers and if it finds it there, it should redirect to the correct URL, for example `https://current-agents-server.xyz/agents/xNJG6hijicV6Js`
+-   If the agent is not found at all, it should show the 404 page.
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the `/changelog/_current-preversion.md`
 
 ---
 
