@@ -301,6 +301,13 @@
             "focus": false
         },
         {
+            "name": "🔎✅ Verify prompts (coding agent)",
+            "command": "npx ts-node ./scripts/verify-prompts/verify-prompts.ts",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
             "name": "🏭🩹 Fix Lint",
             "command": "npx eslint src --fix",
             "execute": true,

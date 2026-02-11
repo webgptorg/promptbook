@@ -12,9 +12,9 @@ import { string_agent_url, string_color } from '../../../../../../src/types/type
 import { $getCurrentDate } from '../../../../../../src/utils/misc/$getCurrentDate';
 import { keepUnused } from '../../../../../../src/utils/organization/keepUnused';
 import { $createAgentFromBookAction } from '../../../app/actions';
+import { useAgentNaming } from '../../../components/AgentNaming/AgentNamingContext';
 import { showAlert } from '../../../components/AsyncDialogs/asyncDialogs';
 import { DeletedAgentBanner } from '../../../components/DeletedAgentBanner';
-import { useAgentNaming } from '../../../components/AgentNaming/AgentNamingContext';
 
 type AgentProfileChatProps = {
     agentUrl: string_agent_url;
@@ -75,9 +75,7 @@ export function AgentProfileChat({
 
     const navigateToChat = useCallback(
         async ({ message }: { message?: string }) => {
-            const nextState: ChatTransitionState = message
-                ? { mode: 'message', message }
-                : { mode: 'quick' };
+            const nextState: ChatTransitionState = message ? { mode: 'message', message } : { mode: 'quick' };
             setTransitionState(nextState);
             setTransitionKey((prev) => prev + 1);
 
@@ -152,7 +150,9 @@ export function AgentProfileChat({
     if (isDeleted) {
         return (
             <div className="w-full min-h-[350px] md:min-h-[500px] flex items-center justify-center">
-                <DeletedAgentBanner message={formatText('This agent has been deleted. You can restore it from the Recycle Bin.')} />
+                <DeletedAgentBanner
+                    message={formatText('This agent has been deleted. You can restore it from the Recycle Bin.')}
+                />
             </div>
         );
     }

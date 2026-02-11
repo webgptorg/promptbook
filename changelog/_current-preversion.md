@@ -25,6 +25,8 @@
 -   Tuned the new heading tokens so every Markdown heading grabs its border, shadow, and text colors from the chat bubble palette, letting the card-like headers glow softly and stay in sync with the shared Agents Server design language.
 -   Underlined inline links inside Agents Server chat bubbles so URLs stay recognizable now that the heading tiles use card-style backgrounds.
 
+-   Added `scripts/verify-prompts/verify-prompts.ts`, an interactive helper that lists top-level prompts, walks through every `[ ]` section, archives resolved files under `prompts/done`, and automatically appends the requested fix prompts when work is still pending; registered the helper as a new task in `.vscode/terminals.json`.
+
 ### 📚 Book
 
 -   Added flexible agent referencing for FROM, IMPORT, and TEAM so you can write {Activation code agent}, @Superagent, agentId, or even {https://foo} instead of raw URLs; the agents server now resolves these tokens by searching local and federated agents through a shared resolver.
