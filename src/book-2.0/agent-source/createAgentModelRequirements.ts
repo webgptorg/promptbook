@@ -8,7 +8,7 @@ import type {
     string_url_image,
 } from '../../types/typeAliases';
 import type { AgentModelRequirements } from './AgentModelRequirements';
-import type { CreateAgentModelRequirementsOptions } from './CreateAgentModelRequirementsOptions-x';
+import type { CreateAgentModelRequirementsOptions } from './CreateAgentModelRequirementsOptions';
 import { createAgentModelRequirementsWithCommitments } from './createAgentModelRequirementsWithCommitments';
 import { parseAgentSource } from './parseAgentSource';
 import type { string_book } from './string_book';

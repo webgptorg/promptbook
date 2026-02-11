@@ -7,7 +7,7 @@ import type {
     BookParameter,
 } from '../book-2.0/agent-source/AgentBasicInformation';
 import type { AgentModelRequirements } from '../book-2.0/agent-source/AgentModelRequirements';
-import type { CreateAgentModelRequirementsOptions } from '../book-2.0/agent-source/CreateAgentModelRequirementsOptions-x';
+import type { CreateAgentModelRequirementsOptions } from '../book-2.0/agent-source/CreateAgentModelRequirementsOptions';
 import type { string_book } from '../book-2.0/agent-source/string_book';
 import type { AvatarChipProps } from '../book-components/AvatarProfile/AvatarChip/AvatarChip';
 import type { AvatarChipFromSourceProps } from '../book-components/AvatarProfile/AvatarChip/AvatarChipFromSource';

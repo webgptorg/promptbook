@@ -4,7 +4,7 @@
 import { CORE_AGENTS_SERVER, CORE_AGENTS_SERVER_WELL_KNOWN_AGENT_NAMES, PUBLIC_AGENTS_SERVERS } from '../../servers';
 import { computeAgentHash } from '../book-2.0/agent-source/computeAgentHash';
 import { createAgentModelRequirements } from '../book-2.0/agent-source/createAgentModelRequirements';
-import type { CreateAgentModelRequirementsOptions } from '../book-2.0/agent-source/CreateAgentModelRequirementsOptions-x';
+import type { CreateAgentModelRequirementsOptions } from '../book-2.0/agent-source/CreateAgentModelRequirementsOptions';
 import { createDefaultAgentName } from '../book-2.0/agent-source/createDefaultAgentName';
 import { normalizeAgentName } from '../book-2.0/agent-source/normalizeAgentName';
 import { padBook, PADDING_LINES } from '../book-2.0/agent-source/padBook';
