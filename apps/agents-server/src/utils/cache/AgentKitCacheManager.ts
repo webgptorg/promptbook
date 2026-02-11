@@ -12,6 +12,7 @@ import {
     formatAssistantNameWithHash,
 } from './computeAssistantCacheKey';
 import { $provideAgentReferenceResolver } from '../agentReferenceResolver/$provideAgentReferenceResolver';
+import { consumeAgentReferenceResolutionIssues } from '../agentReferenceResolver/AgentReferenceResolutionIssue';
 
 const KNOWLEDGE_SOURCE_HASH_TIMEOUT_MS = 30000;
 const VECTOR_STORE_HASH_VERSION = 'vector-store-v1';
@@ -234,6 +235,10 @@ export class AgentKitCacheManager {
             undefined,
             { agentReferenceResolver },
         );
+        const unresolvedAgentReferences = consumeAgentReferenceResolutionIssues(agentReferenceResolver);
+        if (unresolvedAgentReferences.length > 0) {
+            console.warn('[AgentKitCacheManager] Unresolved agent references detected:', unresolvedAgentReferences);
+        }
         const knowledgeSources = modelRequirements.knowledgeSources ? [...modelRequirements.knowledgeSources] : [];
         const tools = modelRequirements.tools ? [...modelRequirements.tools] : undefined;
         const instructions = withSourceCitationPolicy(modelRequirements.systemMessage, { knowledgeSources, tools });

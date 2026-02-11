@@ -1,5 +1,6 @@
 import { $provideServer } from '@/src/tools/$provideServer';
 import { $provideAgentReferenceResolver } from '../agentReferenceResolver/$provideAgentReferenceResolver';
+import { consumeAgentReferenceResolutionIssues } from '../agentReferenceResolver/AgentReferenceResolutionIssue';
 
 /**
  * Prefix used by canonical agent URLs in the application.
@@ -58,6 +59,14 @@ export async function resolveAgentRouteTarget(rawReference: string): Promise<Age
     try {
         resolvedUrlValue = await resolver.resolveCommitmentContent('TEAM', `{${normalizedReference}}`);
     } catch {
+        consumeAgentReferenceResolutionIssues(resolver);
+        return null;
+    }
+
+    const resolutionIssues = consumeAgentReferenceResolutionIssues(resolver).filter(
+        (issue) => issue.commitmentType === 'TEAM',
+    );
+    if (resolutionIssues.length > 0) {
         return null;
     }
 

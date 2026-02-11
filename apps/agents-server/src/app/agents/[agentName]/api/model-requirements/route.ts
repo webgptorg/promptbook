@@ -6,6 +6,7 @@ import { serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
 import { keepUnused } from '../../../../../../../../src/utils/organization/keepUnused';
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
+import { consumeAgentReferenceResolutionIssues } from '@/src/utils/agentReferenceResolver/AgentReferenceResolutionIssue';
 
 export async function GET(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
     keepUnused(request /* <- Note: We dont need `request` parameter */);
@@ -27,6 +28,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
             undefined,
             { agentReferenceResolver },
         );
+        const unresolvedAgentReferences = consumeAgentReferenceResolutionIssues(agentReferenceResolver);
+        if (unresolvedAgentReferences.length > 0) {
+            console.warn('[model-requirements API] Unresolved agent references detected:', unresolvedAgentReferences);
+        }
         const { _metadata, ...sanitizedModelRequirements } = modelRequirements;
 
         keepUnused(_metadata);

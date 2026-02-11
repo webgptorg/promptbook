@@ -1,7 +1,12 @@
-import type { AgentCapability, string_book } from '@promptbook-local/types';
 import type { AgentReferenceResolver } from '../../../../../src/book-2.0/agent-source/AgentReferenceResolver';
+import type { AgentCapability } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
 import { parseAgentSourceWithCommitments } from '../../../../../src/book-2.0/agent-source/parseAgentSourceWithCommitments';
 import { parseTeamCommitmentContent, type TeamTeammate } from '../../../../../src/book-2.0/agent-source/parseTeamCommitment';
+import type { string_book } from '../../../../../src/book-2.0/agent-source/string_book';
+import {
+    consumeAgentReferenceResolutionIssues,
+    type AgentReferenceResolutionIssue,
+} from './AgentReferenceResolutionIssue';
 
 /**
  * Converts a TEAM teammate descriptor into an agent capability.
@@ -15,6 +20,20 @@ function createTeamCapability(teammate: TeamTeammate): AgentCapability {
         label: teammate.label,
         iconName: 'Users',
         agentUrl: teammate.url,
+    };
+}
+
+/**
+ * Converts unresolved TEAM references into visible warning capabilities.
+ *
+ * @param issue - Resolution issue captured by the shared resolver.
+ * @returns Capability chip descriptor representing a missing teammate.
+ */
+function createMissingTeamCapability(issue: AgentReferenceResolutionIssue): AgentCapability {
+    return {
+        type: 'team',
+        label: `${issue.reference} (not found)`,
+        iconName: 'ShieldAlert',
     };
 }
 
@@ -35,6 +54,7 @@ export async function resolveTeamCapabilitiesFromAgentSource(
     const parsedAgentSource = parseAgentSourceWithCommitments(agentSource);
     const resolvedCapabilities: Array<AgentCapability> = [];
     const seenUrls = new Set<string>();
+    const seenMissingReferences = new Set<string>();
 
     for (const commitment of parsedAgentSource.commitments) {
         if (commitment.type !== 'TEAM') {
@@ -47,6 +67,20 @@ export async function resolveTeamCapabilitiesFromAgentSource(
                 commitmentContent = await agentReferenceResolver.resolveCommitmentContent('TEAM', commitmentContent);
             } catch (error) {
                 console.warn('[AgentReferenceResolver] Failed to resolve TEAM commitment references:', error);
+            } finally {
+                const resolutionIssues = consumeAgentReferenceResolutionIssues(agentReferenceResolver).filter(
+                    (issue) => issue.commitmentType === 'TEAM',
+                );
+
+                for (const issue of resolutionIssues) {
+                    const normalizedReference = issue.reference.trim().toLowerCase();
+                    if (!normalizedReference || seenMissingReferences.has(normalizedReference)) {
+                        continue;
+                    }
+
+                    seenMissingReferences.add(normalizedReference);
+                    resolvedCapabilities.push(createMissingTeamCapability(issue));
+                }
             }
         }
 
@@ -63,4 +97,3 @@ export async function resolveTeamCapabilitiesFromAgentSource(
 
     return resolvedCapabilities;
 }
-

@@ -1,20 +1,43 @@
-import { normalizeAgentName } from '@promptbook-local/core';
-import type { AgentCollection } from '@promptbook-local/types';
-import { AgentReferenceResolver } from '../../../../../src/book-2.0/agent-source/AgentReferenceResolver';
+import { normalizeAgentName } from '../../../../../src/book-2.0/agent-source/normalizeAgentName';
+import type { AgentCollection } from '../../../../../src/collection/agent-collection/AgentCollection';
+import type { AgentReferenceResolver } from '../../../../../src/book-2.0/agent-source/AgentReferenceResolver';
+import type { BookCommitment } from '../../../../../src/commitments/_base/BookCommitment';
+import {
+    type AgentReferenceResolutionIssue,
+    type IssueTrackingAgentReferenceResolver,
+} from './AgentReferenceResolutionIssue';
 
+/**
+ * Dependencies required to resolve local/federated compact references.
+ */
 type ServerResolverOptions = {
     readonly agentCollection: AgentCollection;
     readonly localServerUrl: string;
     readonly federatedServers?: readonly string[];
 };
 
+/**
+ * Cached lookup maps fetched from a federated server.
+ */
 type RemoteAgentLookup = {
     readonly byName: Map<string, string>;
     readonly byId: Map<string, string>;
 };
 
+/**
+ * Matches supported compact reference token syntaxes in commitment content.
+ */
 const REFERENCE_TOKEN_REGEX = /(\{([^}]+)\}|@([A-Za-z0-9_-]+))/g;
+
+/**
+ * Lightweight heuristic for identifying base58-like permanent IDs.
+ */
 const BASE58_PATTERN = /^[1-9A-HJ-NP-Za-km-z]+$/;
+
+/**
+ * Upper bound for in-memory unresolved-reference issue tracking.
+ */
+const MAX_TRACKED_RESOLUTION_ISSUES = 200;
 
 /**
  * Creates a resolver backed by the Agents Server collection and configured federated servers.
@@ -31,7 +54,10 @@ export async function createServerAgentReferenceResolver(
     return resolver;
 }
 
-class ServerAgentReferenceResolver implements AgentReferenceResolver {
+/**
+ * Agents Server resolver that expands compact references and tracks unresolved tokens.
+ */
+class ServerAgentReferenceResolver implements IssueTrackingAgentReferenceResolver {
     private readonly agentCollection: AgentCollection;
     private readonly localServerUrl: string;
     private readonly federatedServers: string[];
@@ -39,6 +65,7 @@ class ServerAgentReferenceResolver implements AgentReferenceResolver {
     private readonly localIdToUrl = new Map<string, string>();
     private readonly remoteCaches = new Map<string, RemoteAgentLookup>();
     private readonly remoteRequests = new Map<string, Promise<RemoteAgentLookup>>();
+    private readonly resolutionIssues: Array<AgentReferenceResolutionIssue> = [];
 
     public constructor(options: ServerResolverOptions) {
         this.agentCollection = options.agentCollection;
@@ -65,7 +92,21 @@ class ServerAgentReferenceResolver implements AgentReferenceResolver {
         }
     }
 
-    public async resolveCommitmentContent(_commitmentType: string, content: string): Promise<string> {
+    /**
+     * Drains and returns unresolved-reference issues captured in previous resolutions.
+     */
+    public consumeResolutionIssues(): Array<AgentReferenceResolutionIssue> {
+        const issues = [...this.resolutionIssues];
+        this.resolutionIssues.length = 0;
+        return issues;
+    }
+
+    /**
+     * Rewrites compact references in commitment content into canonical URLs.
+     *
+     * Missing references are handled with commitment-specific safe fallbacks instead of throwing.
+     */
+    public async resolveCommitmentContent(commitmentType: BookCommitment, content: string): Promise<string> {
         if (!content) {
             return content;
         }
@@ -73,6 +114,7 @@ class ServerAgentReferenceResolver implements AgentReferenceResolver {
         const parts: string[] = [];
         let lastIndex = 0;
         let match: RegExpExecArray | null;
+        let hasMissingReference = false;
 
         REFERENCE_TOKEN_REGEX.lastIndex = 0;
         while ((match = REFERENCE_TOKEN_REGEX.exec(content)) !== null) {
@@ -88,14 +130,47 @@ class ServerAgentReferenceResolver implements AgentReferenceResolver {
             }
 
             const resolved = await this.resolveReferenceUrl(tokenValue);
-            parts.push(resolved);
+            if (resolved) {
+                parts.push(resolved);
+                continue;
+            }
+
+            hasMissingReference = true;
+            this.trackResolutionIssue({
+                commitmentType,
+                token,
+                reference: tokenValue,
+                message: `Agent reference "${tokenValue}" was not found`,
+            });
+            parts.push(this.getMissingReferenceReplacement(commitmentType));
         }
 
         parts.push(content.slice(lastIndex));
-        return parts.join('');
+        const resolvedContent = parts.join('');
+
+        if (!hasMissingReference) {
+            return resolvedContent;
+        }
+
+        if (commitmentType === 'FROM') {
+            return 'VOID';
+        }
+
+        if (commitmentType === 'IMPORT' || commitmentType === 'IMPORTS') {
+            return resolvedContent.trim();
+        }
+
+        if (commitmentType === 'TEAM') {
+            return resolvedContent;
+        }
+
+        return resolvedContent;
     }
 
-    private async resolveReferenceUrl(value: string): Promise<string> {
+    /**
+     * Resolves a single compact reference payload to an absolute agent URL.
+     */
+    private async resolveReferenceUrl(value: string): Promise<string | null> {
         if (this.isAbsoluteUrl(value)) {
             return value;
         }
@@ -132,7 +207,36 @@ class ServerAgentReferenceResolver implements AgentReferenceResolver {
             }
         }
 
-        throw new Error(`Unable to resolve agent reference "${value}"`);
+        return null;
+    }
+
+    /**
+     * Tracks resolution issues while bounding memory usage.
+     */
+    private trackResolutionIssue(issue: AgentReferenceResolutionIssue): void {
+        this.resolutionIssues.push(issue);
+
+        if (this.resolutionIssues.length <= MAX_TRACKED_RESOLUTION_ISSUES) {
+            return;
+        }
+
+        const overLimit = this.resolutionIssues.length - MAX_TRACKED_RESOLUTION_ISSUES;
+        this.resolutionIssues.splice(0, overLimit);
+    }
+
+    /**
+     * Returns a safe textual replacement when a compact reference cannot be resolved.
+     */
+    private getMissingReferenceReplacement(commitmentType: BookCommitment): string {
+        if (commitmentType === 'FROM') {
+            return 'VOID';
+        }
+
+        if (commitmentType === 'IMPORT' || commitmentType === 'IMPORTS' || commitmentType === 'TEAM') {
+            return '';
+        }
+
+        return '';
     }
 
     private async lookupFederatedAgentById(agentId: string): Promise<string | null> {

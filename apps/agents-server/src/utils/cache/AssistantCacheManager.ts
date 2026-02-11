@@ -10,6 +10,7 @@ import {
     formatAssistantNameWithHash,
 } from './computeAssistantCacheKey';
 import { $provideAgentReferenceResolver } from '../agentReferenceResolver/$provideAgentReferenceResolver';
+import { consumeAgentReferenceResolutionIssues } from '../agentReferenceResolver/AgentReferenceResolutionIssue';
 
 /**
  * Result of getting or creating an assistant
@@ -225,6 +226,10 @@ export class AssistantCacheManager {
             undefined,
             { agentReferenceResolver },
         );
+        const unresolvedAgentReferences = consumeAgentReferenceResolutionIssues(agentReferenceResolver);
+        if (unresolvedAgentReferences.length > 0) {
+            console.warn('[AssistantCacheManager] Unresolved agent references detected:', unresolvedAgentReferences);
+        }
         const knowledgeSources = modelRequirements.knowledgeSources
             ? [...modelRequirements.knowledgeSources]
             : undefined;

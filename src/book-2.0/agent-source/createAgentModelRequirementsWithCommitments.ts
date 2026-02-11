@@ -29,6 +29,25 @@ import type { string_book } from './string_book';
 const COMMITMENTS_WITH_AGENT_REFERENCES = new Set<BookCommitment>(['FROM', 'IMPORT', 'IMPORTS', 'TEAM']);
 
 /**
+ * Returns a safe fallback content when a resolver fails to transform a reference commitment.
+ *
+ * @param commitmentType - Commitment being resolved.
+ * @param originalContent - Original unresolved commitment content.
+ * @returns Fallback content that keeps requirement creation resilient.
+ */
+function getSafeReferenceCommitmentFallback(commitmentType: BookCommitment, originalContent: string): string {
+    if (commitmentType === 'FROM') {
+        return 'VOID';
+    }
+
+    if (commitmentType === 'IMPORT' || commitmentType === 'IMPORTS' || commitmentType === 'TEAM') {
+        return '';
+    }
+
+    return originalContent;
+}
+
+/**
  * @@@
  *
  * @private @@@
@@ -108,10 +127,21 @@ export async function createAgentModelRequirementsWithCommitments(
         );
         let commitmentContent = commitment.content;
         if (isReferenceCommitment && agentReferenceResolver) {
-            commitmentContent = await agentReferenceResolver.resolveCommitmentContent(
-                commitment.type as BookCommitment,
-                commitment.content,
-            );
+            try {
+                commitmentContent = await agentReferenceResolver.resolveCommitmentContent(
+                    commitment.type as BookCommitment,
+                    commitment.content,
+                );
+            } catch (error) {
+                console.warn(
+                    `Failed to resolve commitment references for ${commitment.type}, falling back to safe defaults:`,
+                    error,
+                );
+                commitmentContent = getSafeReferenceCommitmentFallback(
+                    commitment.type as BookCommitment,
+                    commitment.content,
+                );
+            }
         }
 
         // CLOSED commitment should work only if its the last commitment in the book

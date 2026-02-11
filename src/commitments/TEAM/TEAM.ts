@@ -123,7 +123,8 @@ export class TeamCommitmentDefinition extends BaseCommitmentDefinition<'TEAM'> {
             return requirements;
         }
 
-        const teammates: TeamTeammate[] = parseTeamCommitmentContent(trimmedContent, { strict: true });
+        // Keep TEAM resilient: unresolved/malformed teammate entries are skipped, valid ones are still registered.
+        const teammates: TeamTeammate[] = parseTeamCommitmentContent(trimmedContent, { strict: false });
         if (teammates.length === 0) {
             return requirements;
         }

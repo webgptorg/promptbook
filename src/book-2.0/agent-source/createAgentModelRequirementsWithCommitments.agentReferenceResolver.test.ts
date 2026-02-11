@@ -22,4 +22,24 @@ describe('createAgentModelRequirementsWithCommitments agent reference resolver',
         expect(modelRequirements.parentAgentUrl).toBe('https://example.com/agents/resolved');
         expect(resolver.resolveCommitmentContent).toHaveBeenCalledWith('FROM', '{foo}');
     });
+
+    it('falls back to safe defaults when reference resolution fails', async () => {
+        const resolver: AgentReferenceResolver = {
+            resolveCommitmentContent: jest.fn(async () => {
+                throw new Error('Unable to resolve agent reference "foo"');
+            }),
+        };
+
+        const book = validateBook(`
+            Sample Agent
+
+            FROM {foo}
+        `);
+
+        const modelRequirements = await createAgentModelRequirementsWithCommitments(book, undefined, {
+            agentReferenceResolver: resolver,
+        });
+
+        expect(modelRequirements.parentAgentUrl).toBeNull();
+    });
 });

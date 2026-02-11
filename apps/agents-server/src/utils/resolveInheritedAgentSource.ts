@@ -7,8 +7,12 @@ import {
 } from '../../../../src/_packages/core.index'; // <- [🚾]
 import { string_agent_url, string_book } from '../../../../src/_packages/types.index'; // <- [🚾]
 import { isValidAgentUrl } from '../../../../src/_packages/utils.index'; // <- [🚾]
-import { AgentReferenceResolver } from '../../../../src/book-2.0/agent-source/AgentReferenceResolver';
+import type { AgentReferenceResolver } from '../../../../src/book-2.0/agent-source/AgentReferenceResolver';
 import { spaceTrim } from '../../../../src/utils/organization/spaceTrim';
+import {
+    type AgentReferenceResolutionIssue,
+    consumeAgentReferenceResolutionIssues,
+} from './agentReferenceResolver/AgentReferenceResolutionIssue';
 import { importAgent, ImportAgentOptions } from './importAgent';
 
 /**
@@ -27,6 +31,87 @@ function getAgentSourceCorpus(agentSource: string_book): string {
     // <- TODO: [🈲] Simple and encapsulated way to get book corpus
 
     return agentSourceCorpus;
+}
+
+/**
+ * Formats a resolver issue into a visible NOTE line in resolved agent source.
+ *
+ * @param issue - Tracked missing-reference issue.
+ * @returns Single-line NOTE statement.
+ */
+function formatResolutionIssueAsNote(issue: AgentReferenceResolutionIssue): string {
+    const commitmentType = issue.commitmentType === 'IMPORTS' ? 'IMPORT' : issue.commitmentType;
+
+    if (commitmentType === 'FROM') {
+        return `NOTE Referenced agent "${issue.reference}" in FROM commitment was not found. Inheritance skipped.`;
+    }
+
+    if (commitmentType === 'IMPORT') {
+        return `NOTE Referenced agent "${issue.reference}" in IMPORT commitment was not found. Import skipped.`;
+    }
+
+    if (commitmentType === 'TEAM') {
+        return `NOTE Referenced agent "${issue.reference}" in TEAM commitment was not found. Teammate disabled.`;
+    }
+
+    return `NOTE Referenced agent "${issue.reference}" in ${commitmentType} commitment was not found.`;
+}
+
+/**
+ * Appends NOTE lines for unresolved references while avoiding duplicates.
+ *
+ * @param targetChunks - Output chunks being assembled for the resolved book.
+ * @param issues - Missing-reference issues to materialize into NOTE lines.
+ */
+function appendResolutionIssueNotes(
+    targetChunks: Array<string>,
+    issues: ReadonlyArray<AgentReferenceResolutionIssue>,
+): void {
+    const seenIssueKeys = new Set<string>();
+
+    for (const issue of issues) {
+        const key = `${issue.commitmentType}:${issue.reference}`.toLowerCase();
+        if (seenIssueKeys.has(key)) {
+            continue;
+        }
+
+        seenIssueKeys.add(key);
+        targetChunks.push(formatResolutionIssueAsNote(issue), '');
+    }
+}
+
+/**
+ * Creates a short human-readable error message for logging/notes.
+ *
+ * @param error - Unknown error value.
+ * @returns String message safe for display.
+ */
+function getErrorMessage(error: unknown): string {
+    if (error instanceof Error && error.message) {
+        return error.message;
+    }
+
+    return String(error);
+}
+
+/**
+ * Inserts NOTE lines right after the title line in a book.
+ *
+ * @param agentSource - Original agent source.
+ * @param notes - NOTE lines to insert.
+ * @returns Updated book with notes placed after the title.
+ */
+function insertNotesAfterTitle(agentSource: string_book, notes: ReadonlyArray<string>): string_book {
+    if (notes.length === 0) {
+        return agentSource;
+    }
+
+    const sourceLines = spaceTrim(agentSource).split(/\r?\n/);
+    const titleLine = sourceLines[0] || '';
+    const restLines = sourceLines.slice(1);
+    const nextLines = [titleLine, '', ...notes, '', ...restLines];
+
+    return padBook(validateBook(nextLines.join('\n')));
 }
 
 /**
@@ -66,8 +151,11 @@ export async function resolveInheritedAgentSource(
     const requirements = await createAgentModelRequirements(agentSource, undefined, undefined, undefined, {
         agentReferenceResolver,
     });
+    let fromResolutionIssues = consumeAgentReferenceResolutionIssues(agentReferenceResolver).filter(
+        (issue) => issue.commitmentType === 'FROM',
+    );
 
-    let parentAgentUrl: string_agent_url;
+    let parentAgentUrl: string_agent_url | null;
 
     // Note: [🆓] There are several cases what the agent ancestor could be:
     // 1️⃣ Parent URL is explicitly defined and valid
@@ -76,7 +164,7 @@ export async function resolveInheritedAgentSource(
     }
     // 2️⃣ Parent URL is explicitly defined as null (forcefully no parent)
     else if (requirements.parentAgentUrl === null) {
-        return agentSource;
+        parentAgentUrl = null;
     }
     // 3️⃣ Parent URL is not defined, use the default ancestor - Adam
     else if (requirements.parentAgentUrl === undefined) {
@@ -98,8 +186,18 @@ export async function resolveInheritedAgentSource(
         );
     }
 
-    const parentAgentSource = await importAgent(parentAgentUrl, { recursionLevel });
-    const parentAgentSourceCorpus = getAgentSourceCorpus(parentAgentSource as string_book);
+    let parentAgentSourceCorpus: string | null = null;
+    let parentAgentImportErrorMessage: string | null = null;
+
+    if (parentAgentUrl) {
+        try {
+            const parentAgentSource = await importAgent(parentAgentUrl, { recursionLevel });
+            parentAgentSourceCorpus = getAgentSourceCorpus(parentAgentSource as string_book);
+        } catch (error) {
+            parentAgentImportErrorMessage = getErrorMessage(error);
+            console.warn(`[resolveInheritedAgentSource] Failed to import parent agent "${parentAgentUrl}":`, error);
+        }
+    }
 
     let isFromResolved = false;
     const newAgentSourceChunks: Array<string> = [];
@@ -110,31 +208,64 @@ export async function resolveInheritedAgentSource(
         const line = agentSourceChunks[i]!;
 
         if (line.trim().startsWith('IMPORT ')) {
-            const importedUrlOrPath = line.trim().substring('IMPORT '.length).trim();
+            const rawImportedUrlOrPath = line.trim().substring('IMPORT '.length).trim();
+            let importedUrlOrPath = rawImportedUrlOrPath;
+            let importResolutionIssues: Array<AgentReferenceResolutionIssue> = [];
+
+            if (agentReferenceResolver && rawImportedUrlOrPath) {
+                try {
+                    importedUrlOrPath = await agentReferenceResolver.resolveCommitmentContent(
+                        'IMPORT',
+                        rawImportedUrlOrPath,
+                    );
+                } catch (error) {
+                    console.warn('[AgentReferenceResolver] Failed to resolve IMPORT commitment references:', error);
+                } finally {
+                    importResolutionIssues = consumeAgentReferenceResolutionIssues(agentReferenceResolver).filter(
+                        (issue) => issue.commitmentType === 'IMPORT' || issue.commitmentType === 'IMPORTS',
+                    );
+                }
+            }
+
+            appendResolutionIssueNotes(newAgentSourceChunks, importResolutionIssues);
+
+            if (!importedUrlOrPath) {
+                continue;
+            }
 
             if (isValidAgentUrl(importedUrlOrPath)) {
                 const importedAgentUrl = importedUrlOrPath as string_agent_url;
-                const importedAgentSource = await importAgent(importedAgentUrl, { recursionLevel });
-                const resolvedImportedAgentSource = await resolveInheritedAgentSource(importedAgentSource, {
-                    ...options,
-                    adamAgentUrl,
-                    agentReferenceResolver,
-                    recursionLevel: recursionLevel + 1,
-                });
-                const importedAgentSourceCorpus = getAgentSourceCorpus(resolvedImportedAgentSource);
 
-                newAgentSourceChunks.push(
-                    spaceTrim(
-                        (block) => `
+                try {
+                    const importedAgentSource = await importAgent(importedAgentUrl, { recursionLevel });
+                    const resolvedImportedAgentSource = await resolveInheritedAgentSource(importedAgentSource, {
+                        ...options,
+                        adamAgentUrl,
+                        agentReferenceResolver,
+                        recursionLevel: recursionLevel + 1,
+                    });
+                    const importedAgentSourceCorpus = getAgentSourceCorpus(resolvedImportedAgentSource);
 
-                            NOTE Imported from ${importedAgentUrl}
-                            ${block(importedAgentSourceCorpus)}
+                    newAgentSourceChunks.push(
+                        spaceTrim(
+                            (block) => `
 
-                            ---
-                    `,
-                    ),
-                    '', // <- Note: Add an extra newline for separation
-                );
+                                NOTE Imported from ${importedAgentUrl}
+                                ${block(importedAgentSourceCorpus)}
+
+                                ---
+                        `,
+                        ),
+                        '', // <- Note: Add an extra newline for separation
+                    );
+                } catch (error) {
+                    const errorMessage = getErrorMessage(error);
+                    newAgentSourceChunks.push(
+                        `NOTE Imported agent "${importedAgentUrl}" was not found or could not be loaded. Import skipped.`,
+                        `NOTE Import error: ${errorMessage}`,
+                        '',
+                    );
+                }
                 continue;
             }
 
@@ -159,18 +290,39 @@ export async function resolveInheritedAgentSource(
                 );
             }
 
-            newAgentSourceChunks.push(
-                spaceTrim(
-                    (block) => `
+            if (parentAgentUrl === null) {
+                newAgentSourceChunks.push(line);
 
-                        NOTE Inherited FROM ${parentAgentUrl}
-                        ${block(parentAgentSourceCorpus)}
+                if (fromResolutionIssues.length > 0) {
+                    appendResolutionIssueNotes(newAgentSourceChunks, fromResolutionIssues);
+                    fromResolutionIssues = [];
+                }
+            } else if (parentAgentSourceCorpus) {
+                const parentSourceCorpus = parentAgentSourceCorpus;
+                newAgentSourceChunks.push(
+                    spaceTrim(
+                        (block) => `
 
-                        ---
-                `,
-                ),
-                '', // <- Note: Add an extra newline for separation
-            );
+                            NOTE Inherited FROM ${parentAgentUrl}
+                            ${block(parentSourceCorpus)}
+
+                            ---
+                    `,
+                    ),
+                    '', // <- Note: Add an extra newline for separation
+                );
+            } else {
+                newAgentSourceChunks.push(
+                    `NOTE Parent agent "${parentAgentUrl}" was not found or could not be loaded. Inheritance skipped.`,
+                );
+
+                if (parentAgentImportErrorMessage) {
+                    newAgentSourceChunks.push(`NOTE Inheritance error: ${parentAgentImportErrorMessage}`);
+                }
+
+                newAgentSourceChunks.push('');
+            }
+
             isFromResolved = true;
             continue;
         }
@@ -185,19 +337,36 @@ export async function resolveInheritedAgentSource(
         const titleLine = newAgentSourceChunks[0] || '';
         const restLines = newAgentSourceChunks.slice(1);
         newAgentSourceChunks.length = 0;
-        newAgentSourceChunks.push(
-            titleLine,
-            '',
-            spaceTrim(
-                (block) => `
-                    NOTE Inherited Adam FROM ${parentAgentUrl}
-                    ${block(parentAgentSourceCorpus)}
+        if (parentAgentSourceCorpus) {
+            const parentSourceCorpus = parentAgentSourceCorpus;
+            newAgentSourceChunks.push(
+                titleLine,
+                '',
+                spaceTrim(
+                    (block) => `
+                        NOTE Inherited Adam FROM ${parentAgentUrl}
+                        ${block(parentSourceCorpus)}
 
-                    ---
-                `,
-            ),
-            ...restLines,
-        );
+                        ---
+                    `,
+                ),
+                ...restLines,
+            );
+        } else {
+            newAgentSourceChunks.push(
+                titleLine,
+                '',
+                `NOTE Default parent agent "${parentAgentUrl}" was not found or could not be loaded. Inheritance skipped.`,
+                ...(parentAgentImportErrorMessage ? [`NOTE Inheritance error: ${parentAgentImportErrorMessage}`] : []),
+                '',
+                ...restLines,
+            );
+        }
+    }
+
+    if (fromResolutionIssues.length > 0) {
+        const unresolvedFromNotes = fromResolutionIssues.map(formatResolutionIssueAsNote);
+        return insertNotesAfterTitle(padBook(validateBook(newAgentSourceChunks.join('\n'))), unresolvedFromNotes);
     }
 
     const newAgentSource = padBook(validateBook(newAgentSourceChunks.join('\n')));

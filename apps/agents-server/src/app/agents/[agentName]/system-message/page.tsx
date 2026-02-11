@@ -10,6 +10,7 @@ import { BookEditor } from '@promptbook-local/components';
 import { createAgentModelRequirements, parseAgentSource } from '@promptbook-local/core';
 import { TODO_any } from '@promptbook-local/types';
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
+import { consumeAgentReferenceResolutionIssues } from '@/src/utils/agentReferenceResolver/AgentReferenceResolutionIssue';
 import { FileTextIcon } from 'lucide-react';
 import { headers } from 'next/headers';
 import { resolveAgentAvatarImageUrl } from '../../../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
@@ -40,6 +41,10 @@ export default async function AgentSystemMessagePage({ params }: { params: Promi
         undefined,
         { agentReferenceResolver },
     );
+    const unresolvedAgentReferences = consumeAgentReferenceResolutionIssues(agentReferenceResolver);
+    if (unresolvedAgentReferences.length > 0) {
+        console.warn('[AgentSystemMessagePage] Unresolved agent references detected:', unresolvedAgentReferences);
+    }
     const { _metadata, ...sanitizedModelRequirements } = modelRequirements;
 
     keepUnused(_metadata);
