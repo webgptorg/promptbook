@@ -14,13 +14,12 @@
 
 ---
 
-[-]
+[ ]
 
-[✨😭] bar
+[✨😭] [You have grouped the same toolcalling together](prompts/2026-02-1000-agents-server-group-same-ongoing-toolcalls.md), but when asking two different teammates, show two different chips.
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
 
@@ -41,4 +40,3 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
