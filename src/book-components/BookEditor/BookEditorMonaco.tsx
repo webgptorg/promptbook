@@ -25,6 +25,33 @@ const VERTICAL_LINE_LEFT = 0; // <- TODO: This value is weird
 const UPLOAD_EDIT_DEBOUNCE_MS = 300;
 const UPLOAD_PROGRESS_DEBOUNCE_MS = 150;
 
+/**
+ * Matches absolute agent URLs (only `/agents/...` paths).
+ */
+const AGENT_URL_REFERENCE_REGEX = /https?:\/\/[^\s{}]+\/agents\/[^\s{}]+/i;
+
+/**
+ * Matches all clickable agent-reference token variants in Book text.
+ */
+const AGENT_REFERENCE_TOKEN_REGEX =
+    /\{https?:\/\/[^\s{}]+\/agents\/[^\s{}]+\}|\{[A-Za-z0-9_-]{6,}\}|\{[^{}\r\n]*\s+[^{}\r\n]*\}|@[A-Za-z0-9_-]+|https?:\/\/[^\s{}]+\/agents\/[^\s{}]+/g;
+
+/**
+ * Captures content of `{...}` agent-reference tokens.
+ */
+const AGENT_REFERENCE_BRACED_REGEX = /^\{([\s\S]+)\}$/;
+
+/**
+ * Regex rules reused by Monaco tokenization for agent-reference highlighting.
+ */
+const AGENT_REFERENCE_HIGHLIGHT_REGEXES = [
+    /\{https?:\/\/[^\s{}]+\/agents\/[^\s{}]+\}/,
+    /https?:\/\/[^\s{}]+\/agents\/[^\s{}]+/,
+    /\{[A-Za-z0-9_-]{6,}\}/,
+    /\{[^{}\r\n]*\s+[^{}\r\n]*\}/,
+    /@[A-Za-z0-9_-]+/,
+] as const;
+
 let uploadSequenceCounter = 0;
 
 /**
@@ -81,6 +108,16 @@ type UploadStats = {
     progress: number;
     elapsedMs: number;
     speedBytesPerSecond: number;
+};
+
+/**
+ * Parsed clickable agent-reference token in the editor source.
+ */
+type AgentReferenceMatch = {
+    value: string;
+    url: string;
+    index: number;
+    length: number;
 };
 
 const UPLOAD_STATUS_LABELS: Record<UploadStatus, string> = {
@@ -160,6 +197,87 @@ const isAbortError = (error: unknown) => {
 
     const message = error instanceof Error ? error.message : String(error);
     return message.toLowerCase().includes('abort');
+};
+
+/**
+ * Extracts the underlying reference value from a raw token.
+ */
+const extractAgentReferenceValue = (token: string): string => {
+    if (token.startsWith('@')) {
+        return token.slice(1).trim();
+    }
+
+    const bracedMatch = token.match(AGENT_REFERENCE_BRACED_REGEX);
+    if (bracedMatch?.[1] !== undefined) {
+        return bracedMatch[1].trim();
+    }
+
+    return token.trim();
+};
+
+/**
+ * Resolves a compact or absolute reference token into a clickable agent URL.
+ */
+const resolveAgentReferenceToUrl = (referenceValue: string): string | null => {
+    const normalizedReferenceValue = referenceValue.replace(/[),.;!?]+$/g, '').trim();
+
+    if (!normalizedReferenceValue) {
+        return null;
+    }
+
+    if (AGENT_URL_REFERENCE_REGEX.test(normalizedReferenceValue)) {
+        return normalizedReferenceValue;
+    }
+
+    if (normalizedReferenceValue.startsWith('http://') || normalizedReferenceValue.startsWith('https://')) {
+        return null;
+    }
+
+    const encoded = encodeURIComponent(normalizedReferenceValue);
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    return `${origin}/agents/${encoded}`;
+};
+
+/**
+ * Finds all agent references that should be highlighted and ctrl/cmd-clickable.
+ */
+const extractAgentReferenceMatches = (content: string): AgentReferenceMatch[] => {
+    const matches: AgentReferenceMatch[] = [];
+    let match: RegExpExecArray | null;
+
+    AGENT_REFERENCE_TOKEN_REGEX.lastIndex = 0;
+
+    while ((match = AGENT_REFERENCE_TOKEN_REGEX.exec(content)) !== null) {
+        const token = match[0];
+        const index = match.index;
+
+        if (!token || index === undefined) {
+            continue;
+        }
+
+        if (token.startsWith('@') && index > 0) {
+            const previousChar = content[index - 1] || '';
+            if (/[A-Za-z0-9_.-]/.test(previousChar)) {
+                continue;
+            }
+        }
+
+        const value = extractAgentReferenceValue(token);
+        const url = resolveAgentReferenceToUrl(value);
+
+        if (!url) {
+            continue;
+        }
+
+        matches.push({
+            value,
+            url,
+            index,
+            length: token.length,
+        });
+    }
+
+    return matches;
 };
 
 /**
@@ -700,6 +818,7 @@ export function BookEditorMonaco(props: BookEditorProps) {
         const bookRules: any = [
             [/^---[-]*$/, ''], // Horizontal lines get no highlighting
             [/^```.*$/, 'code-block', '@codeblock'],
+            ...AGENT_REFERENCE_HIGHLIGHT_REGEXES.map((regex) => [regex, 'agent-reference']),
             [parameterRegex, 'parameter'],
             [/\{[^}]+\}/, 'parameter'],
             [commitmentRegex, 'commitment'],
@@ -746,6 +865,29 @@ export function BookEditorMonaco(props: BookEditorProps) {
             },
         });
 
+        const linkProvider = monaco.languages.registerLinkProvider(BOOK_LANGUAGE_ID, {
+            provideLinks: (model) => {
+                const content = model.getValue();
+                const links = extractAgentReferenceMatches(content).map((reference) => {
+                    const startPos = model.getPositionAt(reference.index);
+                    const endPos = model.getPositionAt(reference.index + reference.length);
+
+                    return {
+                        range: new monaco.Range(
+                            startPos.lineNumber,
+                            startPos.column,
+                            endPos.lineNumber,
+                            endPos.column,
+                        ),
+                        url: reference.url,
+                        tooltip: `Open agent: ${reference.value}`,
+                    };
+                });
+
+                return { links };
+            },
+        });
+
         monaco.editor.defineTheme('book-theme', {
             base: 'vs',
             inherit: true,
@@ -767,6 +909,11 @@ export function BookEditorMonaco(props: BookEditorProps) {
                     fontStyle: `italic`,
                 },
                 {
+                    token: 'agent-reference',
+                    foreground: PROMPTBOOK_SYNTAX_COLORS.COMMITMENT.toHex(),
+                    fontStyle: 'underline',
+                },
+                {
                     token: 'code-block',
                     foreground: PROMPTBOOK_SYNTAX_COLORS.CODE_BLOCK.toHex(),
                 },
@@ -783,6 +930,7 @@ export function BookEditorMonaco(props: BookEditorProps) {
         return () => {
             tokenProvider.dispose();
             completionProvider.dispose();
+            linkProvider.dispose();
         };
     }, [monaco]);
 
@@ -1389,6 +1537,7 @@ export function BookEditorMonaco(props: BookEditorProps) {
                         glyphMargin: false,
                         folding: false,
                         lineNumbersMinChars: 0,
+                        links: true,
                         scrollbar: {
                             vertical: 'auto',
                             horizontal: 'hidden',
