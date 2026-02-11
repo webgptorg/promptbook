@@ -163,7 +163,6 @@ async function verifyDonePromptsInFile(file: PromptFile): Promise<void> {
         await archivePromptFile(file);
     } else {
         console.info(colors.yellow('\n⚠️  This prompt needs repair.'));
-        await changePromptStatusToTodo(file, lastVerifiableSection);
         await appendRepairPrompt(file, lastVerifiableSection);
     }
 }
