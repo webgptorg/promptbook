@@ -1,7 +1,7 @@
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideServer } from '@/src/tools/$provideServer';
+import { AgentReferenceResolver } from '../../../../../src/book-2.0/agent-source/AgentReferenceResolver';
 import { getFederatedServers } from '../getFederatedServers';
-import type { AgentReferenceResolver } from '@promptbook-local/core';
 import { createServerAgentReferenceResolver } from './createServerAgentReferenceResolver';
 
 const CACHE_TTL_MS = 5000;
@@ -16,7 +16,9 @@ let pendingResolver: Promise<AgentReferenceResolver> | null = null;
  * @returns Resolver that expands `{name}`/`@id` tokens into URLs
  * @private
  */
-export async function $provideAgentReferenceResolver(options?: { forceRefresh?: boolean }): Promise<AgentReferenceResolver> {
+export async function $provideAgentReferenceResolver(options?: {
+    forceRefresh?: boolean;
+}): Promise<AgentReferenceResolver> {
     const { forceRefresh = false } = options || {};
     const now = Date.now();
 
