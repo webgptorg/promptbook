@@ -36,7 +36,7 @@ import type { OpenAiAgentKitExecutionToolsOptions } from './OpenAiAgentKitExecut
 import type { OpenAiCompatibleExecutionToolsNonProxiedOptions } from './OpenAiCompatibleExecutionToolsOptions';
 import { OpenAiVectorStoreHandler } from './OpenAiVectorStoreHandler';
 
-const DEFAULT_AGENT_KIT_MODEL_NAME = 'gpt-5.2' as string_model_name;
+const DEFAULT_AGENT_KIT_MODEL_NAME = /* !!!!!!!!!!!!!!!!!!!!!!!!!!!'gpt-5.2' */ 'gpt-4o' as string_model_name;
 
 // Type definitions for AgentKit structured output
 
