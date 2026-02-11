@@ -119,15 +119,16 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             async start(controller) {
                 let hasMeaningfulDelta = false;
 
+                /**
+                 * Note: Tool calls are emitted once at the end from `response.toolCalls`.
+                 * Streaming intermediate tool call snapshots can duplicate chips in the client UI.
+                 */
                 const handleStreamChunk = createChatStreamHandler({
                     onDelta: (deltaContent) => {
                         if (deltaContent.trim().length > 0) {
                             hasMeaningfulDelta = true;
                         }
                         controller.enqueue(encoder.encode(deltaContent));
-                    },
-                    onToolCalls: (toolCalls) => {
-                        controller.enqueue(encoder.encode('\n' + JSON.stringify({ toolCalls }) + '\n'));
                     },
                 });
 

@@ -26,7 +26,7 @@
 
 ---
 
-[ ] !
+[x] ~$0.00 17 minutes by OpenAI Codex `gpt-5.3-codex`
 
 [✨💻] When the agent makes a tool call, for example web search, every web search is shown twice.
 
@@ -63,3 +63,4 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
