@@ -20,6 +20,13 @@ type MetadataEntry = {
 };
 
 /**
+ * Normalizes metadata keys so they are safe to use as HTML id suffixes.
+ *
+ * @private
+ */
+const toHtmlIdSuffix = (value: string): string => value.toLowerCase().replace(/[^a-z0-9_-]+/g, '-');
+
+/**
  * Tracks the form inputs shared between creating and editing metadata entries.
  *
  * @private
@@ -88,7 +95,7 @@ export function MetadataClient() {
     const [metadata, setMetadata] = useState<MetadataEntry[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [editingId, setEditingId] = useState<number | null>(null);
+    const [editingKey, setEditingKey] = useState<string | null>(null);
     const [isAddUploading, setIsAddUploading] = useState(false);
     const [isEditUploading, setIsEditUploading] = useState(false);
     const addFileInputRef = useRef<HTMLInputElement | null>(null);
@@ -152,11 +159,12 @@ export function MetadataClient() {
 
     const handleEditSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        if (editingId === null) return;
+        if (editingKey === null) return;
         setError(null);
 
         try {
-            const method = editingId !== -1 ? 'PUT' : 'POST';
+            const isPersistedEntry = metadata.some((entry) => entry.key === editingKey && !entry.isDefault);
+            const method = isPersistedEntry ? 'PUT' : 'POST';
             await saveMetadata(method, editingFormState);
             handleCancel();
             fetchMetadata();
@@ -166,7 +174,7 @@ export function MetadataClient() {
     };
 
     const handleEdit = (entry: MetadataEntry) => {
-        setEditingId(entry.id);
+        setEditingKey(entry.key);
         setEditingFormState({
             key: entry.key,
             value: entry.value,
@@ -201,7 +209,7 @@ export function MetadataClient() {
     };
 
     const handleCancel = () => {
-        setEditingId(null);
+        setEditingKey(null);
         setEditingFormState(createEmptyFormState());
     };
 
@@ -598,118 +606,124 @@ export function MetadataClient() {
                                 </td>
                             </tr>
                         ) : (
-                            metadata.map((entry) => (
-                                <Fragment key={`${entry.key}-${entry.id}`}>
-                                    <tr>
-                                        <td className="px-4 py-2 whitespace-nowrap text-gray-500 text-sm sm:px-6 sm:py-4">
-                                            <div className="flex items-center" title={entry.type || 'Unknown'}>
-                                                {getTypeIcon(entry.type)}
-                                            </div>
-                                        </td>
-                                        <td className="px-4 py-2 whitespace-normal break-all text-sm font-medium text-gray-900 sm:px-6 sm:py-4">
-                                            {entry.key}
-                                        </td>
-                                        <td className="px-4 py-2 text-sm text-gray-500 max-w-xs break-all whitespace-normal sm:px-6 sm:py-4">
-                                            {entry.value}
-                                        </td>
-                                        <td className="px-4 py-2 text-sm text-gray-500 break-all whitespace-normal sm:px-6 sm:py-4">
-                                            {entry.note || '-'}
-                                        </td>
-                                        <td className="px-4 py-2 whitespace-nowrap text-right text-sm font-medium sm:px-6 sm:py-4">
-                                            <button
-                                                onClick={() => handleEdit(entry)}
-                                                className="text-blue-600 hover:text-blue-900 mr-4"
-                                            >
-                                                Edit
-                                            </button>
-                                            {!entry.isDefault && (
-                                                <button
-                                                    onClick={() => handleDelete(entry.key)}
-                                                    className="text-red-600 hover:text-red-900"
-                                                >
-                                                    Delete
-                                                </button>
-                                            )}
-                                            {entry.isDefault && (
-                                                <span className="text-gray-400 text-xs italic ml-2">Default</span>
-                                            )}
-                                        </td>
-                                    </tr>
-                                    {editingId === entry.id && (
+                            metadata.map((entry) => {
+                                const htmlIdSuffix = toHtmlIdSuffix(entry.key);
+                                const editValueFieldId = `edit-metadata-value-${htmlIdSuffix}`;
+                                const editNoteFieldId = `edit-metadata-note-${htmlIdSuffix}`;
+
+                                return (
+                                    <Fragment key={`${entry.key}-${entry.id}`}>
                                         <tr>
-                                            <td colSpan={5} className="bg-gray-50 px-6 py-4">
-                                                <form onSubmit={handleEditSubmit} className="space-y-4">
-                                                    <div className="space-y-4">
-                                                        <div>
-                                                            <p className="text-sm font-semibold text-gray-900">
-                                                                Editing {entry.key}
-                                                            </p>
-                                                            <p className="text-xs text-gray-500">
-                                                                Key cannot be changed.
-                                                            </p>
-                                                        </div>
-                                                        <div>
-                                                            <label
-                                                                htmlFor="edit-metadata-value"
-                                                                className="block text-sm font-medium text-gray-700 mb-1"
-                                                            >
-                                                                Value
-                                                            </label>
-                                                            <MetadataValueField
-                                                                fieldId="edit-metadata-value"
-                                                                type={editingFormState.type}
-                                                                value={editingFormState.value}
-                                                                onValueChange={(value) =>
-                                                                    setEditingFormState((prev) => ({ ...prev, value }))
-                                                                }
-                                                                isUploading={isEditUploading}
-                                                                fileInputRef={editFileInputRef}
-                                                                onFileUpload={handleEditFileUpload}
-                                                            />
-                                                        </div>
-                                                        <div>
-                                                            <label
-                                                                htmlFor="edit-metadata-note"
-                                                                className="block text-sm font-medium text-gray-700 mb-1"
-                                                            >
-                                                                Note (Optional)
-                                                            </label>
-                                                            <input
-                                                                type="text"
-                                                                id="edit-metadata-note"
-                                                                value={editingFormState.note}
-                                                                onChange={(e) =>
-                                                                    setEditingFormState((prev) => ({
-                                                                        ...prev,
-                                                                        note: e.target.value,
-                                                                    }))
-                                                                }
-                                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                                placeholder="Description of this metadata"
-                                                            />
-                                                        </div>
-                                                        <div className="flex justify-end space-x-3">
-                                                            <button
-                                                                type="submit"
-                                                                className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
-                                                            >
-                                                                Update Metadata
-                                                            </button>
-                                                            <button
-                                                                type="button"
-                                                                onClick={handleCancel}
-                                                                className="bg-gray-200 text-gray-800 py-2 px-4 rounded-md hover:bg-gray-300 transition-colors"
-                                                            >
-                                                                Cancel
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </form>
+                                            <td className="px-4 py-2 whitespace-nowrap text-gray-500 text-sm sm:px-6 sm:py-4">
+                                                <div className="flex items-center" title={entry.type || 'Unknown'}>
+                                                    {getTypeIcon(entry.type)}
+                                                </div>
+                                            </td>
+                                            <td className="px-4 py-2 whitespace-normal break-all text-sm font-medium text-gray-900 sm:px-6 sm:py-4">
+                                                {entry.key}
+                                            </td>
+                                            <td className="px-4 py-2 text-sm text-gray-500 max-w-xs break-all whitespace-normal sm:px-6 sm:py-4">
+                                                {entry.value}
+                                            </td>
+                                            <td className="px-4 py-2 text-sm text-gray-500 break-all whitespace-normal sm:px-6 sm:py-4">
+                                                {entry.note || '-'}
+                                            </td>
+                                            <td className="px-4 py-2 whitespace-nowrap text-right text-sm font-medium sm:px-6 sm:py-4">
+                                                <button
+                                                    onClick={() => handleEdit(entry)}
+                                                    className="text-blue-600 hover:text-blue-900 mr-4"
+                                                >
+                                                    Edit
+                                                </button>
+                                                {!entry.isDefault && (
+                                                    <button
+                                                        onClick={() => handleDelete(entry.key)}
+                                                        className="text-red-600 hover:text-red-900"
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                )}
+                                                {entry.isDefault && (
+                                                    <span className="text-gray-400 text-xs italic ml-2">Default</span>
+                                                )}
                                             </td>
                                         </tr>
-                                    )}
-                                </Fragment>
-                            ))
+                                        {editingKey === entry.key && (
+                                            <tr>
+                                                <td colSpan={5} className="bg-gray-50 px-6 py-4">
+                                                    <form onSubmit={handleEditSubmit} className="space-y-4">
+                                                        <div className="space-y-4">
+                                                            <div>
+                                                                <p className="text-sm font-semibold text-gray-900">
+                                                                    Editing {entry.key}
+                                                                </p>
+                                                                <p className="text-xs text-gray-500">
+                                                                    Key cannot be changed.
+                                                                </p>
+                                                            </div>
+                                                            <div>
+                                                                <label
+                                                                    htmlFor={editValueFieldId}
+                                                                    className="block text-sm font-medium text-gray-700 mb-1"
+                                                                >
+                                                                    Value
+                                                                </label>
+                                                                <MetadataValueField
+                                                                    fieldId={editValueFieldId}
+                                                                    type={editingFormState.type}
+                                                                    value={editingFormState.value}
+                                                                    onValueChange={(value) =>
+                                                                        setEditingFormState((prev) => ({ ...prev, value }))
+                                                                    }
+                                                                    isUploading={isEditUploading}
+                                                                    fileInputRef={editFileInputRef}
+                                                                    onFileUpload={handleEditFileUpload}
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <label
+                                                                    htmlFor={editNoteFieldId}
+                                                                    className="block text-sm font-medium text-gray-700 mb-1"
+                                                                >
+                                                                    Note (Optional)
+                                                                </label>
+                                                                <input
+                                                                    type="text"
+                                                                    id={editNoteFieldId}
+                                                                    value={editingFormState.note}
+                                                                    onChange={(e) =>
+                                                                        setEditingFormState((prev) => ({
+                                                                            ...prev,
+                                                                            note: e.target.value,
+                                                                        }))
+                                                                    }
+                                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                                    placeholder="Description of this metadata"
+                                                                />
+                                                            </div>
+                                                            <div className="flex justify-end space-x-3">
+                                                                <button
+                                                                    type="submit"
+                                                                    className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
+                                                                >
+                                                                    Update Metadata
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={handleCancel}
+                                                                    className="bg-gray-200 text-gray-800 py-2 px-4 rounded-md hover:bg-gray-300 transition-colors"
+                                                                >
+                                                                    Cancel
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </Fragment>
+                                );
+                            })
                         )}
                     </tbody>
                 </table>
