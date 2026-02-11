@@ -19,7 +19,10 @@ type OpenMojiIconProps = DetailedHTMLProps<HTMLAttributes<HTMLSpanElement>, HTML
 export function OpenMojiIcon(props: OpenMojiIconProps) {
     const { icon, variant = 'black', className, style, ...rest } = props;
 
-    const fontFamily = variant === 'black' ? '"OpenMojiBlack", sans-serif' : '"OpenMojiColor", sans-serif';
+    const fontFamily =
+        variant === 'black'
+            ? '"OpenMojiBlack", "Noto Emoji", "Apple Color Emoji", "Segoe UI Emoji", sans-serif'
+            : '"OpenMojiColor", "OpenMojiBlack", "Noto Color Emoji", "Noto Emoji", "Apple Color Emoji", "Segoe UI Emoji", sans-serif';
 
     return (
         <span className={className} style={{ ...style, fontFamily }} {...rest}>

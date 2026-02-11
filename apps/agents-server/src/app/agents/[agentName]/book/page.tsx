@@ -23,7 +23,7 @@ export default async function AgentBookPage({ params }: { params: Promise<{ agen
 
     if (isDeleted) {
         return (
-            <div className="w-screen h-[calc(100vh-60px)] flex items-center justify-center p-8">
+            <div className="agents-server-viewport-width h-[calc(100dvh-60px)] flex items-center justify-center p-8">
                 <DeletedAgentBanner />
             </div>
         );
@@ -38,7 +38,7 @@ export default async function AgentBookPage({ params }: { params: Promise<{ agen
     const agentSource = await collection.getAgentSource(decodeURIComponent(agentName));
 
     return (
-        <div className={`w-screen h-[calc(100vh-60px)] relative`}>
+        <div className={`agents-server-viewport-width h-[calc(100dvh-60px)] relative`}>
             <BackToAgentButton agentName={agentName} />
             <BookEditorWrapper agentName={agentName} initialAgentSource={agentSource} />
         </div>

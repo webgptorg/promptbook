@@ -30,7 +30,7 @@ export default async function AgentChatPage({
 
     if (isDeleted) {
         return (
-            <main className="w-screen h-screen flex items-center justify-center p-8">
+            <main className="agents-server-viewport-width h-full flex items-center justify-center p-8">
                 <DeletedAgentBanner />
             </main>
         );

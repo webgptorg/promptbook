@@ -26,7 +26,7 @@ export default async function AgentBookAndChatPage({ params }: { params: Promise
 
     if (isDeleted) {
         return (
-            <div className="w-screen h-[calc(100vh-60px)] flex items-center justify-center p-8">
+            <div className="agents-server-viewport-width h-[calc(100dvh-60px)] flex items-center justify-center p-8">
                 <DeletedAgentBanner />
             </div>
         );
@@ -46,7 +46,7 @@ export default async function AgentBookAndChatPage({ params }: { params: Promise
     });
 
     return (
-        <div className={`w-screen h-[calc(100vh-60px)] relative`}>
+        <div className={`agents-server-viewport-width h-[calc(100dvh-60px)] relative`}>
             <BackToAgentButton agentName={agentName} />
             <AgentBookAndChat
                 agentName={agentName}

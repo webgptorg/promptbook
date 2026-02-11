@@ -64,7 +64,7 @@ export default async function WebsiteIntegrationAgentPage({ params }: { params: 
     );
 
     return (
-        <main className="w-screen h-screen p-4">
+        <main className="agents-server-viewport-width min-h-[calc(100dvh-60px)] p-4">
             <div className="flex items-center gap-4 p-4 border-b">
                 <h1 className="text-2xl font-bold flex-1">{meta.fullname || agentName} Integration Code</h1>
                 <BackToAgentButton agentName={agentName} />
