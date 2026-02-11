@@ -1,7 +1,14 @@
 [x] ~$0.00 by Gemini CLI
 
+---
+
+[ ]
+
 [✨🗻] Fix the width of the Agents server app in the Samsung browser
 
+-   The app overflows the screen width in the Samsung browser, fix it so it fits the screen properly.
+-   The Samsung browser also doesnt properly load the fonts
+-   This isnt a problem in other browsers, just the Samsung one
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 
@@ -36,4 +43,3 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
