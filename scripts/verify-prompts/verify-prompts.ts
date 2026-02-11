@@ -37,14 +37,18 @@ async function main(): Promise<void> {
     await prepareArchiveDirectory();
 
     let promptFiles = initialFiles;
+    const skippedFiles = new Set<string>();
 
     while (true) {
         displayPromptOverview(promptFiles);
 
         // First priority: verify files where all prompts are marked as done
-        const fileWithAllDone = findFileWithAllDonePrompts(promptFiles);
+        const fileWithAllDone = findFileWithAllDonePrompts(promptFiles, skippedFiles);
         if (fileWithAllDone) {
-            await verifyDonePromptsInFile(fileWithAllDone);
+            const wasSkipped = await verifyDonePromptsInFile(fileWithAllDone);
+            if (wasSkipped) {
+                skippedFiles.add(fileWithAllDone.path);
+            }
             promptFiles = await loadPromptFiles(PROMPTS_DIR);
             continue;
         }
@@ -112,10 +116,15 @@ function displayTopLevelFileList(promptFiles: PromptFile[]): void {
 /**
  * Finds the first file where at least one prompt is marked as done [x] and no prompts are todo [ ].
  * Completely ignores not-ready prompts like [-], [.], [?], etc.
+ * Also excludes files that have been skipped in this session.
  */
-function findFileWithAllDonePrompts(promptFiles: PromptFile[]): PromptFile | undefined {
+function findFileWithAllDonePrompts(promptFiles: PromptFile[], skippedFiles: Set<string>): PromptFile | undefined {
     return promptFiles.find((file) => {
         if (file.sections.length === 0) {
+            return false;
+        }
+        // Skip files that were already skipped in this session
+        if (skippedFiles.has(file.path)) {
             return false;
         }
         // File is ready for verification if it has at least one done prompt and no todo prompts
@@ -128,8 +137,9 @@ function findFileWithAllDonePrompts(promptFiles: PromptFile[]): PromptFile | und
 /**
  * Verifies the last done [x] prompt in a file and decides whether to archive it or add a repair prompt.
  * Ignores not-ready prompts like [-], [.], [?], etc.
+ * Returns true if the file was skipped, false otherwise.
  */
-async function verifyDonePromptsInFile(file: PromptFile): Promise<void> {
+async function verifyDonePromptsInFile(file: PromptFile): Promise<boolean> {
     const doneCount = file.sections.filter((s) => s.status === 'done').length;
 
     console.info(colors.cyan.bold(`\n🔍 Verifying file: ${file.name}`));
@@ -147,7 +157,7 @@ async function verifyDonePromptsInFile(file: PromptFile): Promise<void> {
 
     if (!lastDoneSection) {
         console.info(colors.gray('No done [x] prompts found in this file.'));
-        return;
+        return false;
     }
 
     console.info(colors.gray('Verifying the last [x] prompt in the file...\n'));
@@ -156,11 +166,14 @@ async function verifyDonePromptsInFile(file: PromptFile): Promise<void> {
 
     if (decision === 'done') {
         await archivePromptFile(file);
+        return false;
     } else if (decision === 'needs-work') {
         console.info(colors.yellow('\n⚠️  This prompt needs repair.'));
         await appendRepairPrompt(file, lastDoneSection);
+        return false;
     } else {
         console.info(colors.gray('\n⏩ Skipped, no changes made.'));
+        return true;
     }
 }
 
