@@ -1,8 +1,8 @@
 .MarkdownContent :is(h1, h2, h3, h4, h5, h6) {
     position: relative;
     z-index: 1;
-    margin-bottom: 1em;
-    margin-top: 1.5rem;
+    margin-bottom: 0.4em;
+    margin-top: 1.6rem;
     color: var(--chat-heading-text-color, var(--message-text-color, #0f172a));
     font-family: var(--font-poppins, 'Poppins', system-ui, -apple-system, sans-serif);
     font-weight: 600;
@@ -26,27 +26,27 @@
 }
 
 .MarkdownContent h1 {
-    font-size: clamp(1.9rem, 1.1rem + 1.6vw, 2.35rem);
+    font-size: 1.5rem;
 }
 
 .MarkdownContent h2 {
-    font-size: clamp(1.55rem, 0.9rem + 1.2vw, 1.95rem);
+    font-size: 1.4rem;
 }
 
 .MarkdownContent h3 {
-    font-size: clamp(1.35rem, 0.85rem + 0.85vw, 1.65rem);
+    font-size: 1.3rem;
 }
 
 .MarkdownContent h4 {
-    font-size: clamp(1.15rem, 0.7rem + 0.65vw, 1.35rem);
+    font-size: 1.2rem;
 }
 
 .MarkdownContent h5 {
-    font-size: clamp(1.05rem, 0.65rem + 0.45vw, 1.2rem);
+    font-size: 1.1rem;
 }
 
 .MarkdownContent h6 {
-    font-size: clamp(0.95rem, 0.6rem + 0.35vw, 1.05rem);
+    font-size: 1rem;
 }
 
 .MarkdownContent p {
