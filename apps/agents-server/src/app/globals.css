@@ -256,6 +256,69 @@ textarea:focus-visible {
 /* Agent profile -> full chat transition */
 .agent-chat-route-surface {
     view-transition-name: agent-chat-route-surface;
+    --agent-chat-scroll-button-size: 52px;
+    --agent-chat-scroll-icon-size: 24px;
+    --agent-chat-scroll-accent-rgb: 56 189 248;
+}
+
+.agent-chat-route-surface .chat-scrollToBottom.chat-scrollToBottom {
+    width: var(--agent-chat-scroll-button-size);
+    height: var(--agent-chat-scroll-button-size);
+    border: 1px solid rgba(148, 163, 184, 0.55);
+    background:
+        radial-gradient(circle at 28% 24%, rgba(148, 217, 255, 0.2), transparent 58%),
+        linear-gradient(155deg, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.72));
+    color: #e2e8f0;
+    box-shadow:
+        0 14px 32px rgba(2, 6, 23, 0.36),
+        0 0 0 3px rgba(var(--agent-chat-scroll-accent-rgb) / 0.16),
+        inset 0 1px 0 rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(12px) saturate(150%);
+}
+
+.agent-chat-route-surface .chat-scrollToBottom.chat-scrollToBottom:hover {
+    color: #f8fafc;
+    border-color: rgba(125, 211, 252, 0.78);
+    box-shadow:
+        0 16px 34px rgba(2, 6, 23, 0.42),
+        0 0 0 4px rgba(var(--agent-chat-scroll-accent-rgb) / 0.26),
+        inset 0 1px 0 rgba(255, 255, 255, 0.24);
+}
+
+.agent-chat-route-surface .chat-scrollToBottom.chat-scrollToBottom svg {
+    width: var(--agent-chat-scroll-icon-size);
+    height: var(--agent-chat-scroll-icon-size);
+    filter: drop-shadow(0 3px 8px rgba(var(--agent-chat-scroll-accent-rgb) / 0.5));
+    animation: agent-chat-scroll-arrow-float 1.8s ease-in-out infinite;
+}
+
+.agent-chat-route-surface .chat-scrollToBottom.chat-scrollToBottom + [role='status'] {
+    border: 1px solid rgba(56, 189, 248, 0.5);
+    background: linear-gradient(145deg, rgba(15, 23, 42, 0.92), rgba(30, 41, 59, 0.82));
+    box-shadow: 0 4px 14px rgba(2, 6, 23, 0.35);
+}
+
+@media (max-width: 640px) {
+    .agent-chat-route-surface {
+        --agent-chat-scroll-button-size: 46px;
+        --agent-chat-scroll-icon-size: 22px;
+    }
+}
+
+@keyframes agent-chat-scroll-arrow-float {
+    0%,
+    100% {
+        transform: translateY(-1px);
+    }
+    50% {
+        transform: translateY(2px);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .agent-chat-route-surface .chat-scrollToBottom.chat-scrollToBottom svg {
+        animation: none;
+    }
 }
 
 .agent-chat-profile-transitioning {

@@ -3,6 +3,7 @@
 -   Enabled clickable agent references in the Book editor: `@agent`, `{agent name}`, `{agentId}`, `https://.../agents/...`, and `{https://.../agents/...}` now share one highlight style and open the referenced agent via Ctrl/Cmd+Click.
 
 -   Added a scroll-to-bottom indicator to the Agents Server chat so the floating arrow now announces unseen replies, surfaces a new-messages badge, and keeps the action accessible even when the user scrolls away from the newest content.
+-   Refined the Agents Server chat scroll-to-bottom control with a cleaner directional arrow icon and richer frosted styling (hover/focus ring, subtle motion, and badge polish) while keeping sizing and color tokens DRY through shared CSS variables.
 
 -   Removed the Agents Server desktop hamburger menu so the toggle only appears in mobile layouts where it is used.
 -   Improved the Agents Server transition from agent profile chat to full chat by removing the blocking overlay, fixing promise-safe message handoff from the profile composer/quick buttons, and using a shared view-transition surface so opening `/chat` feels immediate and seamless.
