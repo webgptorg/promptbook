@@ -131,40 +131,40 @@ function findFileWithAllDonePrompts(promptFiles: PromptFile[]): PromptFile | und
 }
 
 /**
- * Verifies each done and not-ready prompt in a file and decides whether to archive it or add repair prompts.
+ * Verifies the last done/not-ready prompt in a file and decides whether to archive it or add a repair prompt.
  */
 async function verifyDonePromptsInFile(file: PromptFile): Promise<void> {
     const doneCount = file.sections.filter((s) => s.status === 'done').length;
     const notReadyCount = file.sections.filter((s) => s.status === 'not-ready').length;
 
     console.info(colors.cyan.bold(`\n🔍 Verifying file: ${file.name}`));
-    console.info(colors.gray(`${doneCount} done [x] and ${notReadyCount} not-ready [-] prompt(s) to verify.`));
-    console.info(colors.gray("Let's verify each one...\n"));
+    console.info(colors.gray(`${doneCount} done [x] and ${notReadyCount} not-ready [-] prompt(s) in this file.`));
 
-    const unverifiedSections: PromptSection[] = [];
-
-    for (const section of file.sections) {
-        // Only verify done and not-ready prompts (skip any other statuses)
-        if (section.status !== 'done' && section.status !== 'not-ready') {
-            continue;
-        }
-
-        displayPromptSnippet({ file, section });
-        const isVerified = await promptForDoneVerification(file, section);
-
-        if (!isVerified) {
-            unverifiedSections.push(section);
+    // Find the last done or not-ready prompt
+    let lastVerifiableSection: PromptSection | undefined;
+    for (let i = file.sections.length - 1; i >= 0; i--) {
+        const section = file.sections[i];
+        if (section.status === 'done' || section.status === 'not-ready') {
+            lastVerifiableSection = section;
+            break;
         }
     }
 
-    if (unverifiedSections.length === 0) {
+    if (!lastVerifiableSection) {
+        console.info(colors.gray('No verifiable prompts found in this file.'));
+        return;
+    }
+
+    console.info(colors.gray('Verifying the last prompt in the file...\n'));
+    displayPromptSnippet({ file, section: lastVerifiableSection });
+    const isVerified = await promptForDoneVerification(file, lastVerifiableSection);
+
+    if (isVerified) {
         await archivePromptFile(file);
     } else {
-        console.info(colors.yellow(`\n⚠️  ${unverifiedSections.length} prompt(s) need repair.`));
-        for (const section of unverifiedSections) {
-            await changePromptStatusToTodo(file, section);
-            await appendRepairPrompt(file, section);
-        }
+        console.info(colors.yellow('\n⚠️  This prompt needs repair.'));
+        await changePromptStatusToTodo(file, lastVerifiableSection);
+        await appendRepairPrompt(file, lastVerifiableSection);
     }
 }
 
@@ -366,7 +366,7 @@ async function appendRepairPrompt(file: PromptFile, section: PromptSection): Pro
     file.lines.push(
         '---',
         '',
-        '[ ]',
+        `[ ]`,
         '',
         `[${emojiTag}] ${fixTitle}`,
         '',
