@@ -30,12 +30,23 @@
 
 ---
 
-[-]
+[ ]
 
-[✨🦔] qux
+[✨🦔] Enhanced price estimation
+
+-   Better estimate price when using `--agent openai-codex` all possible models
+-   The price for the OpenAI codecs should be per model.
+-   List theese models:
+
+    -   `gpt-5.3-codex` — pricing not officially published yet; assumed similar to GPT-5.2-Codex (≈ $1.75 / $14 per M tokens) unless changed by OpenAI. No separate token pricing announced.
+    -   `gpt-5.2-codex` — ≈ **$1.75 input / $0.175 cached / $14.00 output per 1M tokens**. :contentReference[oaicite:1]{index=1}
+    -   `gpt-5.1-codex-max` — not yet officially priced separately; assumed similar to GPT-5.1-Codex (≈ $1.25 / $10 per 1M tokens) once API access is available. Proxy estimate. :contentReference[oaicite:2]{index=2}
+    -   `gpt-5.1-codex` — ≈ **$1.25 input / $0.125 cached / $10.00 output per 1M tokens**. :contentReference[oaicite:3]{index=3}
+    -   `gpt-5-codex` — ≈ **$1.25 input / $0.125 cached / $10.00 output per 1M tokens** (same as GPT-5-Codex). :contentReference[oaicite:4]{index=4}
+    -   `gpt-5.1-codex-mini` — smaller version; pricing roughly **$0.25 input / $2.00 output per 1M tokens**. :contentReference[oaicite:5]{index=5}
+    -   `codex-mini-latest` — approximate to `gpt-5.1-codex-mini` pricing (≈ **$0.25 input / $2.00 output per 1M tokens**) if exposed via API, similar to mini models. (No official table yet.)
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Add the changes into the [changelog](./changelog/_current-preversion.md)
 
 ---
 
