@@ -1,5 +1,5 @@
 import { describe, expect, it, jest } from '@jest/globals';
-import type { AgentReferenceResolver } from './AgentReferenceResolver';
+import type { AgentReferenceResolver } from './AgentReferenceResolver-x';
 import { createAgentModelRequirementsWithCommitments } from './createAgentModelRequirementsWithCommitments';
 import { validateBook } from './string_book';
 

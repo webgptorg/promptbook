@@ -1,6 +1,6 @@
 import { normalizeAgentName } from '@promptbook-local/core';
 import type { AgentCollection } from '@promptbook-local/types';
-import { AgentReferenceResolver } from '../../../../../src/book-2.0/agent-source/AgentReferenceResolver';
+import { AgentReferenceResolver } from '../../../../../src/book-2.0/agent-source/AgentReferenceResolver-x';
 
 type ServerResolverOptions = {
     readonly agentCollection: AgentCollection;

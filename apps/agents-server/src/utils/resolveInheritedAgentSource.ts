@@ -7,7 +7,7 @@ import {
 } from '../../../../src/_packages/core.index'; // <- [🚾]
 import { string_agent_url, string_book } from '../../../../src/_packages/types.index'; // <- [🚾]
 import { isValidAgentUrl } from '../../../../src/_packages/utils.index'; // <- [🚾]
-import { AgentReferenceResolver } from '../../../../src/book-2.0/agent-source/AgentReferenceResolver';
+import { AgentReferenceResolver } from '../../../../src/book-2.0/agent-source/AgentReferenceResolver-x';
 import { spaceTrim } from '../../../../src/utils/organization/spaceTrim';
 import { importAgent, ImportAgentOptions } from './importAgent';
 
