@@ -123,10 +123,6 @@ export function AgentProfileChat({
         [navigateToChat],
     );
 
-    const handleOpenChatPage = useCallback(() => {
-        void navigateToChat({});
-    }, [navigateToChat]);
-
     const speechRecognition = useMemo(() => {
         if (typeof window === 'undefined') {
             return undefined;
@@ -193,16 +189,6 @@ export function AgentProfileChat({
                 isNavigatingToChat ? 'agent-chat-profile-transitioning' : ''
             }`}
         >
-            <div className="absolute inset-x-4 top-3 z-10 flex justify-end md:top-4">
-                <button
-                    type="button"
-                    className="rounded-full border border-white/30 bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.3em] text-white shadow-lg shadow-black/30 transition hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/80 disabled:cursor-wait disabled:opacity-60 disabled:hover:bg-white/10"
-                    disabled={isNavigatingToChat}
-                    onClick={handleOpenChatPage}
-                >
-                    {isNavigatingToChat ? 'Opening chat...' : 'Open full chat'}
-                </button>
-            </div>
             <Chat
                 title={`Chat with ${fullname}`}
                 participants={[
