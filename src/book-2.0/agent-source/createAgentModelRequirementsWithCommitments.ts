@@ -8,7 +8,7 @@ import type { string_model_name } from '../../types/typeAliases';
 import { isValidUrl } from '../../utils/validators/url/isValidUrl';
 import type { AgentModelRequirements } from './AgentModelRequirements';
 import { extractMcpServers } from './createAgentModelRequirements';
-import type { CreateAgentModelRequirementsOptions } from './CreateAgentModelRequirementsOptions';
+import type { CreateAgentModelRequirementsOptions } from './CreateAgentModelRequirementsOptions-x';
 import { parseAgentSourceWithCommitments } from './parseAgentSourceWithCommitments';
 import { parseParameters } from './parseParameters';
 import { removeCommentsFromSystemMessage } from './removeCommentsFromSystemMessage';
