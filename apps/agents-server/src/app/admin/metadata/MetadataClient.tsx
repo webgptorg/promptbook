@@ -20,6 +20,21 @@ type MetadataEntry = {
 };
 
 /**
+ * Shared class names for single-line metadata inputs.
+ *
+ * @private
+ */
+const METADATA_INPUT_CLASS_NAME =
+    'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500';
+
+/**
+ * Shared class names for multiline metadata textareas.
+ *
+ * @private
+ */
+const METADATA_TEXTAREA_CLASS_NAME = `${METADATA_INPUT_CLASS_NAME} min-h-[100px]`;
+
+/**
  * Normalizes metadata keys so they are safe to use as HTML id suffixes.
  *
  * @private
@@ -48,6 +63,197 @@ const createEmptyFormState = (): MetadataFormState => ({
     value: '',
     note: '',
 });
+
+/**
+ * Validates whether the provided string is an IPv4, IPv6, or CIDR range.
+ *
+ * @private
+ */
+const validateIpOrCidr = (ip: string): boolean => {
+    const ipv4Regex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+    const cidrV4Regex =
+        /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\/(?:3[0-2]|[12]?[0-9])$/;
+    // Simple IPv6 check (allows :: abbreviation)
+    const ipv6Regex =
+        /^(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))$/;
+    const cidrV6Regex = /^([0-9a-fA-F:.]{2,})\/(12[0-8]|1[0-1][0-9]|[1-9][0-9]|[0-9])$/;
+
+    if (ip.includes('/')) {
+        return cidrV4Regex.test(ip) || cidrV6Regex.test(ip);
+    }
+    return ipv4Regex.test(ip) || ipv6Regex.test(ip);
+};
+
+/**
+ * Props required to render the metadata value input across both forms.
+ *
+ * @private
+ */
+type MetadataValueFieldProps = {
+    type?: MetadataType;
+    value: string;
+    onValueChange: (value: string) => void;
+    isUploading: boolean;
+    fileInputRef: React.RefObject<HTMLInputElement | null>;
+    onFileUpload: (event: React.ChangeEvent<HTMLInputElement>) => Promise<void> | void;
+    fieldId: string;
+};
+
+/**
+ * Renders the correct value input control depending on the metadata type.
+ *
+ * Keeping this component at module scope preserves input focus while typing by
+ * preventing remounts on each parent render.
+ *
+ * @private
+ */
+const MetadataValueField = ({
+    type,
+    value,
+    onValueChange,
+    isUploading,
+    fileInputRef,
+    onFileUpload,
+    fieldId,
+}: MetadataValueFieldProps) => {
+    if (type === 'TEXT_SINGLE_LINE') {
+        return (
+            <input
+                type="text"
+                id={fieldId}
+                value={value}
+                onChange={(e) => onValueChange(e.target.value)}
+                className={METADATA_INPUT_CLASS_NAME}
+                required
+                placeholder="Metadata value..."
+            />
+        );
+    }
+
+    if (type === 'IMAGE_URL') {
+        return (
+            <div className="space-y-2">
+                <div className="flex space-x-2">
+                    <input
+                        type="text"
+                        id={fieldId}
+                        value={value}
+                        onChange={(e) => onValueChange(e.target.value)}
+                        className={METADATA_INPUT_CLASS_NAME}
+                        placeholder="Image URL..."
+                    />
+                    <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={onFileUpload} />
+                    <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isUploading}
+                        className="bg-gray-100 text-gray-700 px-3 py-2 rounded-md border border-gray-300 hover:bg-gray-200 flex items-center space-x-2 min-w-max"
+                    >
+                        <Upload className="w-4 h-4" />
+                        <span>{isUploading ? 'Uploading...' : 'Upload Image'}</span>
+                    </button>
+                </div>
+                {value && (
+                    <div className="mt-2 p-2 border border-gray-200 rounded-md bg-gray-50 inline-block">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                            src={value}
+                            alt="Preview"
+                            className="max-w-full h-auto max-h-[200px] object-contain"
+                            onError={(e) => {
+                                (e.target as HTMLImageElement).style.display = 'none';
+                            }}
+                        />
+                    </div>
+                )}
+            </div>
+        );
+    }
+
+    if (type === 'BOOLEAN') {
+        return (
+            <select
+                id={fieldId}
+                value={value}
+                onChange={(e) => onValueChange(e.target.value)}
+                className={METADATA_INPUT_CLASS_NAME}
+            >
+                <option value="true">True</option>
+                <option value="false">False</option>
+            </select>
+        );
+    }
+
+    if (type === 'NUMBER') {
+        return (
+            <input
+                type="number"
+                id={fieldId}
+                value={value}
+                onChange={(e) => onValueChange(e.target.value)}
+                className={METADATA_INPUT_CLASS_NAME}
+                required
+                placeholder="Metadata value..."
+            />
+        );
+    }
+
+    if (type === 'IP_RANGE') {
+        const tokens = value
+            .split(',')
+            .map((ip) => ip.trim())
+            .filter((ip) => ip !== '');
+
+        return (
+            <div className="space-y-2">
+                <textarea
+                    id={fieldId}
+                    value={value.split(',').join('\n')}
+                    onChange={(e) => {
+                        const newValue = e.target.value
+                            .split(/\r?\n/)
+                            .map((line) => line.trim())
+                            .filter((line) => line !== '')
+                            .join(',');
+                        onValueChange(newValue);
+                    }}
+                    className={`${METADATA_TEXTAREA_CLASS_NAME} font-mono`}
+                    placeholder="e.g. 192.168.1.1&#10;10.0.0.0/24"
+                />
+                <div className="flex flex-wrap gap-2">
+                    {tokens.map((ip, i) => {
+                        const isValid = validateIpOrCidr(ip);
+                        return (
+                            <span
+                                key={`${ip}-${i}`}
+                                className={`px-2 py-1 rounded text-xs font-mono border ${
+                                    isValid
+                                        ? 'bg-green-100 text-green-800 border-green-200'
+                                        : 'bg-red-100 text-red-800 border-red-200'
+                                }`}
+                            >
+                                {ip}
+                                {!isValid && ' (Invalid)'}
+                            </span>
+                        );
+                    })}
+                </div>
+                <p className="text-xs text-gray-500">Enter each IP or CIDR range on a new line.</p>
+            </div>
+        );
+    }
+
+    return (
+        <textarea
+            id={fieldId}
+            value={value}
+            onChange={(e) => onValueChange(e.target.value)}
+            className={METADATA_TEXTAREA_CLASS_NAME}
+            required
+            placeholder="Metadata value..."
+        />
+    );
+};
 
 /**
  * Merges stored metadata values with the default keys so the admin UI always shows every supported entry.
@@ -232,25 +438,6 @@ export function MetadataClient() {
         }
     };
 
-    /**
-     * Validates whether the provided string is an IPv4, IPv6, or CIDR range.
-     *
-     * @private
-     */
-    const validateIpOrCidr = (ip: string) => {
-        const ipv4Regex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
-        const cidrV4Regex =
-            /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\/(?:3[0-2]|[12]?[0-9])$/;
-        // Simple IPv6 check (allows :: abbreviation)
-        const ipv6Regex =
-            /^(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))$/;
-        const cidrV6Regex = /^([0-9a-fA-F:.]{2,})\/(12[0-8]|1[0-1][0-9]|[1-9][0-9]|[0-9])$/;
-
-        if (ip.includes('/')) {
-            return cidrV4Regex.test(ip) || cidrV6Regex.test(ip);
-        }
-        return ipv4Regex.test(ip) || ipv6Regex.test(ip);
-    };
 
     /**
      * Parameters required to upload an image and store the resulting URL in a metadata form.
@@ -336,180 +523,6 @@ export function MetadataClient() {
             fileInputRef: editFileInputRef,
         });
 
-    /**
-     * Props required to render the metadata value input across both forms.
-     *
-     * @private
-     */
-    type MetadataValueFieldProps = {
-        type?: MetadataType;
-        value: string;
-        onValueChange: (value: string) => void;
-        isUploading: boolean;
-        fileInputRef: React.RefObject<HTMLInputElement | null>;
-        onFileUpload: (event: React.ChangeEvent<HTMLInputElement>) => Promise<void> | void;
-        fieldId: string;
-    };
-
-    /**
-     * Renders the correct value input control depending on the metadata type.
-     *
-     * @private
-     */
-    const MetadataValueField = ({
-        type,
-        value,
-        onValueChange,
-        isUploading,
-        fileInputRef,
-        onFileUpload,
-        fieldId,
-    }: MetadataValueFieldProps) => {
-        if (type === 'TEXT_SINGLE_LINE') {
-            return (
-                <input
-                    type="text"
-                    id={fieldId}
-                    value={value}
-                    onChange={(e) => onValueChange(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                    placeholder="Metadata value..."
-                />
-            );
-        }
-
-        if (type === 'IMAGE_URL') {
-            return (
-                <div className="space-y-2">
-                    <div className="flex space-x-2">
-                        <input
-                            type="text"
-                            id={fieldId}
-                            value={value}
-                            onChange={(e) => onValueChange(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="Image URL..."
-                        />
-                        <input
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            ref={fileInputRef}
-                            onChange={onFileUpload}
-                        />
-                        <button
-                            type="button"
-                            onClick={() => fileInputRef.current?.click()}
-                            disabled={isUploading}
-                            className="bg-gray-100 text-gray-700 px-3 py-2 rounded-md border border-gray-300 hover:bg-gray-200 flex items-center space-x-2 min-w-max"
-                        >
-                            <Upload className="w-4 h-4" />
-                            <span>{isUploading ? 'Uploading...' : 'Upload Image'}</span>
-                        </button>
-                    </div>
-                    {value && (
-                        <div className="mt-2 p-2 border border-gray-200 rounded-md bg-gray-50 inline-block">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                                src={value}
-                                alt="Preview"
-                                className="max-w-full h-auto max-h-[200px] object-contain"
-                                onError={(e) => {
-                                    (e.target as HTMLImageElement).style.display = 'none';
-                                }}
-                            />
-                        </div>
-                    )}
-                </div>
-            );
-        }
-
-        if (type === 'BOOLEAN') {
-            return (
-                <select
-                    id={fieldId}
-                    value={value}
-                    onChange={(e) => onValueChange(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                    <option value="true">True</option>
-                    <option value="false">False</option>
-                </select>
-            );
-        }
-
-        if (type === 'NUMBER') {
-            return (
-                <input
-                    type="number"
-                    id={fieldId}
-                    value={value}
-                    onChange={(e) => onValueChange(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                    placeholder="Metadata value..."
-                />
-            );
-        }
-
-        if (type === 'IP_RANGE') {
-            const tokens = value
-                .split(',')
-                .map((ip) => ip.trim())
-                .filter((ip) => ip !== '');
-
-            return (
-                <div className="space-y-2">
-                    <textarea
-                        id={fieldId}
-                        value={value.split(',').join('\n')}
-                        onChange={(e) => {
-                            const newValue = e.target.value
-                                .split(/\r?\n/)
-                                .map((line) => line.trim())
-                                .filter((line) => line !== '')
-                                .join(',');
-                            onValueChange(newValue);
-                        }}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[100px] font-mono"
-                        placeholder="e.g. 192.168.1.1&#10;10.0.0.0/24"
-                    />
-                    <div className="flex flex-wrap gap-2">
-                        {tokens.map((ip, i) => {
-                            const isValid = validateIpOrCidr(ip);
-                            return (
-                                <span
-                                    key={`${ip}-${i}`}
-                                    className={`px-2 py-1 rounded text-xs font-mono border ${
-                                        isValid
-                                            ? 'bg-green-100 text-green-800 border-green-200'
-                                            : 'bg-red-100 text-red-800 border-red-200'
-                                    }`}
-                                >
-                                    {ip}
-                                    {!isValid && ' (Invalid)'}
-                                </span>
-                            );
-                        })}
-                    </div>
-                    <p className="text-xs text-gray-500">Enter each IP or CIDR range on a new line.</p>
-                </div>
-            );
-        }
-
-        return (
-            <textarea
-                id={fieldId}
-                value={value}
-                onChange={(e) => onValueChange(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[100px]"
-                required
-                placeholder="Metadata value..."
-            />
-        );
-    };
-
     if (loading && metadata.length === 0) {
         return <div className="p-8 text-center">Loading metadata...</div>;
     }
@@ -534,7 +547,7 @@ export function MetadataClient() {
                             id="key"
                             value={addFormState.key}
                             onChange={(e) => setAddFormState((prev) => ({ ...prev, key: e.target.value }))}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className={METADATA_INPUT_CLASS_NAME}
                             required
                             placeholder="e.g., SERVER_NAME"
                         />
@@ -562,7 +575,7 @@ export function MetadataClient() {
                             id="add-metadata-note"
                             value={addFormState.note}
                             onChange={(e) => setAddFormState((prev) => ({ ...prev, note: e.target.value }))}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className={METADATA_INPUT_CLASS_NAME}
                             placeholder="Description of this metadata"
                         />
                     </div>
@@ -697,7 +710,7 @@ export function MetadataClient() {
                                                                             note: e.target.value,
                                                                         }))
                                                                     }
-                                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                                    className={METADATA_INPUT_CLASS_NAME}
                                                                     placeholder="Description of this metadata"
                                                                 />
                                                             </div>

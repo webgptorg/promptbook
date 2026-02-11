@@ -37,7 +37,7 @@
 
 ---
 
-[ ] !
+[x] ~$0.19 10 minutes by OpenAI Codex `gpt-5.3-codex`
 
 [✨📘] Fix editing the metadata in place
 
@@ -46,3 +46,4 @@
 -   You are working with the [Agents Server](apps/agents-server)
 
 ![alt text](prompts/screenshots/2026-02-1080-agents-server-metadata-editing-ux.png)
+
