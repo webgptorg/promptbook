@@ -21,13 +21,18 @@
 
 ---
 
-[-]
+[ ]
 
-[✨📀] baz
+[✨📀] Move sounds and vibration control panel
 
+-   Both of the sounds and vibration can be separately toggled in the menu.
+-   But this is under the save button in the chat - it doesn't feel right, it should be more global, not related to the specific chat.
+-   Move it to the top right corner of the page, next to the menu and the user profile, or to the left side of the menu button.
+-   This will be first items in the control panel, There will be added, for example, a toggle for the dark and light modes, languages, etc.
+-   Use some nice-looking icons and great design.
+-   The control should be intuitive, inconspicuous, and easy to use.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
 
@@ -38,4 +43,3 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
