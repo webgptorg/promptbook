@@ -33,6 +33,7 @@
 -   Added flexible agent referencing for FROM, IMPORT, and TEAM so you can write {Activation code agent}, @Superagent, agentId, or even {https://foo} instead of raw URLs; the agents server now resolves these tokens by searching local and federated agents through a shared resolver.
 
 -   Added the shared `AgentReferenceResolver` option to the core engine (and the new `CreateAgentModelRequirementsOptions` type) so Sender, IMPORT, and TEAM references are rewritten before applying commitments, and wired the resolver through the Agents Server APIs and cache managers to keep assistant creation and metadata in sync while a regression test protects the hook.
+-   Fixed Agents Server teammate chat chips for compact TEAM references (`{Agent}` / `@Agent`) by resolving TEAM capabilities through the shared agent reference resolver in the profile API, so teammate communication chips and modal conversations render again after the agent-referencing upgrade.
 
 -   Leveraged Vibrations API in the chat to provide haptic feedback in sync with the sound system.
 -   Added metadata keys `DEFAULT_IS_SOUNDS_ON` and `DEFAULT_IS_VIBRATION_ON` so admins can configure the default chat feedback state, and surfaced independent sound/haptic toggles in the save menu (`ChatSoundToggle` + `ChatVibrationToggle`) that respect those defaults while persisting the user's choice.

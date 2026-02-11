@@ -3,6 +3,8 @@ import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentColle
 import { computeAgentHash, parseAgentSource } from '@promptbook-local/core';
 import { AgentBasicInformation, AgentCapability } from '@promptbook-local/types';
 import { serializeError } from '@promptbook-local/utils';
+import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
+import { resolveTeamCapabilitiesFromAgentSource } from '@/src/utils/agentReferenceResolver/resolveTeamCapabilitiesFromAgentSource';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
 import { keepUnused } from '../../../../../../../../src/utils/organization/keepUnused';
 
@@ -71,6 +73,43 @@ async function inheritMeta(
     return agentProfile;
 }
 
+/**
+ * Replaces TEAM capabilities with resolver-backed entries while preserving capability order.
+ *
+ * @param capabilities - Original capability list parsed from agent source.
+ * @param resolvedTeamCapabilities - TEAM capabilities resolved with compact references expanded.
+ * @returns Capability list with TEAM entries replaced by resolved values.
+ */
+function mergeTeamCapabilities(
+    capabilities: ReadonlyArray<AgentCapability>,
+    resolvedTeamCapabilities: ReadonlyArray<AgentCapability>,
+): Array<AgentCapability> {
+    if (resolvedTeamCapabilities.length === 0) {
+        return [...capabilities];
+    }
+
+    const mergedCapabilities: Array<AgentCapability> = [];
+    let hasInsertedResolvedTeams = false;
+
+    for (const capability of capabilities) {
+        if (capability.type === 'team') {
+            if (!hasInsertedResolvedTeams) {
+                mergedCapabilities.push(...resolvedTeamCapabilities);
+                hasInsertedResolvedTeams = true;
+            }
+            continue;
+        }
+
+        mergedCapabilities.push(capability);
+    }
+
+    if (!hasInsertedResolvedTeams) {
+        mergedCapabilities.push(...resolvedTeamCapabilities);
+    }
+
+    return mergedCapabilities;
+}
+
 export async function OPTIONS(request: Request) {
     keepUnused(request);
     return new Response(null, {
@@ -92,8 +131,11 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
         const collection = await $provideAgentCollectionForServer();
         const agentSource = await collection.getAgentSource(agentName);
         let agentProfile = parseAgentSource(agentSource);
+        const agentReferenceResolver = await $provideAgentReferenceResolver();
+        const resolvedTeamCapabilities = await resolveTeamCapabilitiesFromAgentSource(agentSource, agentReferenceResolver);
 
         agentProfile = await inheritMeta(agentProfile, collection, new Set([agentName]));
+        agentProfile.capabilities = mergeTeamCapabilities(agentProfile.capabilities, resolvedTeamCapabilities);
 
         const agentHash = computeAgentHash(agentSource);
         const isVoiceCallingEnabled = (await getMetadata('IS_EXPERIMENTAL_VOICE_CALLING_ENABLED')) === 'true';
