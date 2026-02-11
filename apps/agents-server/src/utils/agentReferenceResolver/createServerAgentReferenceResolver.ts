@@ -1,6 +1,6 @@
 import { normalizeAgentName } from '@promptbook-local/core';
 import type { AgentCollection } from '@promptbook-local/types';
-import type { AgentReferenceResolver } from '@promptbook-local/core';
+import { AgentReferenceResolver } from '../../../../../src/book-2.0/agent-source/AgentReferenceResolver';
 
 type ServerResolverOptions = {
     readonly agentCollection: AgentCollection;
@@ -193,7 +193,9 @@ class ServerAgentReferenceResolver implements AgentReferenceResolver {
                 return lookup;
             }
 
-            const payload = (await response.json()) as { agents?: Array<{ agentName?: string; permanentId?: string; url?: string }> };
+            const payload = (await response.json()) as {
+                agents?: Array<{ agentName?: string; permanentId?: string; url?: string }>;
+            };
             const agents = Array.isArray(payload?.agents) ? payload.agents : [];
 
             for (const agent of agents) {
