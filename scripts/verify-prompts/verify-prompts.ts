@@ -40,9 +40,19 @@ async function main(): Promise<void> {
 
     while (true) {
         displayPromptOverview(promptFiles);
+
+        // First priority: verify files where all prompts are marked as done
+        const fileWithAllDone = findFileWithAllDonePrompts(promptFiles);
+        if (fileWithAllDone) {
+            await verifyDonePromptsInFile(fileWithAllDone);
+            promptFiles = await loadPromptFiles(PROMPTS_DIR);
+            continue;
+        }
+
+        // Second priority: process todo prompts
         const nextPrompt = findNextTodoPrompt(promptFiles);
         if (!nextPrompt) {
-            console.info(colors.green('\n✅ All top-level prompts are marked as done.'));
+            console.info(colors.green('\n✅ All prompts have been verified.'));
             break;
         }
 
@@ -72,16 +82,23 @@ function displayTopLevelFileList(promptFiles: PromptFile[]): void {
         const doneCount = file.sections.filter((section) => section.status === 'done').length;
         const todoCount = file.sections.filter((section) => section.status === 'todo').length;
         const notReadyCount = file.sections.filter((section) => section.status === 'not-ready').length;
+        const allDone = file.sections.length > 0 && todoCount === 0 && notReadyCount === 0 && doneCount > 0;
         const statusParts: string[] = [];
-        if (todoCount > 0) {
-            statusParts.push(colors.yellow(`${todoCount} todo [ ]`));
+
+        if (allDone) {
+            statusParts.push(colors.cyan.bold(`🔍 ${doneCount} done [x] - NEEDS VERIFICATION`));
+        } else {
+            if (todoCount > 0) {
+                statusParts.push(colors.yellow(`${todoCount} todo [ ]`));
+            }
+            if (doneCount > 0) {
+                statusParts.push(colors.green(`${doneCount} done [x]`));
+            }
+            if (notReadyCount > 0) {
+                statusParts.push(colors.gray(`${notReadyCount} not-ready`));
+            }
         }
-        if (doneCount > 0) {
-            statusParts.push(colors.green(`${doneCount} done [x]`));
-        }
-        if (notReadyCount > 0) {
-            statusParts.push(colors.gray(`${notReadyCount} not-ready`));
-        }
+
         if (!statusParts.length) {
             statusParts.push(colors.gray('no recognizable sections'));
         }
@@ -89,7 +106,98 @@ function displayTopLevelFileList(promptFiles: PromptFile[]): void {
         console.info(`  ${statusParts.join(' · ')}  ${file.name}`);
     }
 
-    console.info(colors.gray('Goal: keep this folder populated only with prompts that still need review ([ ]).'));
+    console.info(colors.gray('Goal: verify all done prompts, then process remaining todo prompts.'));
+}
+
+/**
+ * Finds the first file where all prompts are marked as done [x].
+ */
+function findFileWithAllDonePrompts(promptFiles: PromptFile[]): PromptFile | undefined {
+    return promptFiles.find((file) => {
+        if (file.sections.length === 0) {
+            return false;
+        }
+        return file.sections.every((section) => section.status === 'done');
+    });
+}
+
+/**
+ * Verifies each done prompt in a file and decides whether to archive it or add repair prompts.
+ */
+async function verifyDonePromptsInFile(file: PromptFile): Promise<void> {
+    console.info(colors.cyan.bold(`\n🔍 Verifying file: ${file.name}`));
+    console.info(colors.gray(`All ${file.sections.length} prompt(s) in this file are marked as done [x].`));
+    console.info(colors.gray("Let's verify each one...\n"));
+
+    const unverifiedSections: PromptSection[] = [];
+
+    for (const section of file.sections) {
+        displayPromptSnippet({ file, section });
+        const isVerified = await promptForDoneVerification(file, section);
+
+        if (!isVerified) {
+            unverifiedSections.push(section);
+        }
+    }
+
+    if (unverifiedSections.length === 0) {
+        await archivePromptFile(file);
+    } else {
+        console.info(colors.yellow(`\n⚠️  ${unverifiedSections.length} prompt(s) need repair.`));
+        for (const section of unverifiedSections) {
+            await changePromptStatusToTodo(file, section);
+            await appendRepairPrompt(file, section);
+        }
+    }
+}
+
+/**
+ * Asks the user to verify if a done prompt is actually completed.
+ */
+async function promptForDoneVerification(file: PromptFile, section: PromptSection): Promise<boolean> {
+    const promptLabel = buildPromptLabelForDisplay(file, section);
+    const response = await prompts<'verified'>(
+        {
+            type: 'select',
+            name: 'verified',
+            message: `Is ${colors.bold(promptLabel)} actually done?`,
+            choices: [
+                {
+                    title: "✅ Yes, it's done",
+                    value: true,
+                    description: 'This prompt has been successfully completed',
+                },
+                {
+                    title: '❌ No, needs work',
+                    value: false,
+                    description: 'Mark as todo and add a repair prompt',
+                },
+            ],
+            initial: 0,
+        },
+        {
+            onCancel: () => {
+                console.info(colors.yellow('Prompt verification interrupted.'));
+                process.exit(0);
+            },
+        },
+    );
+
+    return response.verified as boolean;
+}
+
+/**
+ * Changes a prompt's status from [x] to [ ].
+ */
+async function changePromptStatusToTodo(file: PromptFile, section: PromptSection): Promise<void> {
+    if (section.statusLineIndex === undefined) {
+        return;
+    }
+
+    const statusLine = file.lines[section.statusLineIndex];
+    const updatedLine = statusLine.replace(/\[x\]/i, '[ ]');
+    file.lines[section.statusLineIndex] = updatedLine;
+    await writePromptFile(file);
 }
 
 /**
@@ -114,12 +222,25 @@ function displayPromptOverview(promptFiles: PromptFile[]): void {
         )} (total ${totals.total})`,
     );
 
+    const filesNeedingVerification = promptFiles.filter(
+        (file) => file.sections.length > 0 && file.sections.every((section) => section.status === 'done'),
+    );
     const pendingFiles = promptFiles.filter((file) => file.sections.some((section) => section.status === 'todo'));
+
+    if (filesNeedingVerification.length) {
+        const formattedNames = formatPendingFileNames(filesNeedingVerification.map((file) => file.name));
+        console.info(
+            colors.cyan(`  🔍 Files needing verification (${filesNeedingVerification.length}): ${formattedNames}`),
+        );
+    }
+
     if (pendingFiles.length) {
         const formattedNames = formatPendingFileNames(pendingFiles.map((file) => file.name));
-        console.info(colors.gray(`  Pending files (${pendingFiles.length}): ${formattedNames}`));
-    } else {
-        console.info(colors.green('  No files currently contain `[ ]` prompts.'));
+        console.info(colors.gray(`  Todo files (${pendingFiles.length}): ${formattedNames}`));
+    }
+
+    if (!filesNeedingVerification.length && !pendingFiles.length) {
+        console.info(colors.green('  All files have been verified!'));
     }
 }
 

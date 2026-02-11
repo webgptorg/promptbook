@@ -14,7 +14,7 @@
 
 [✨♑️] Fix "foo"
 
--   \@\@\@
+-   @@@
 -   You have implemented the "foo" feature, but it is not working, fix it
 ```
 
@@ -24,7 +24,6 @@
 -   Use some nice terminal UI and UX
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Register it in the `.vscode/terminals.json`
--   Add the changes into the [changelog](./changelog/_current-preversion.md)
 
 ---
 
