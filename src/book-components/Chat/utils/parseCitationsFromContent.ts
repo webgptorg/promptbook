@@ -1,4 +1,5 @@
 import type { ChatMessage } from '../types/ChatMessage';
+import { parseCitationMarkersFromContent, replaceCitationMarkers } from './parseCitationMarker';
 
 /**
  * Type representing a parsed citation from RAG sources
@@ -27,7 +28,9 @@ export type ParsedCitation = {
 
 /**
  * Parses OpenAI Assistant-style citations from message content
- * Matches patterns like: 【5:13†document.pdf】
+ * Matches both:
+ * - Full notation: `【5:13†document.pdf】`
+ * - Simplified notation: `【document.pdf】`
  *
  * @param content - The markdown content that may contain citations
  * @returns Array of parsed citations
@@ -36,12 +39,10 @@ export type ParsedCitation = {
  */
 export function parseCitationsFromContent(content: string): ParsedCitation[] {
     const citations: ParsedCitation[] = [];
-    const citationRegex = /【(.*?)†(.*?)】/g;
-    let match;
+    const citationMarkers = parseCitationMarkersFromContent(content);
 
-    while ((match = citationRegex.exec(content)) !== null) {
-        const id = match[1]!; // e.g., "5:13"
-        const source = match[2]!; // e.g., "document.pdf"
+    for (const citationMarker of citationMarkers) {
+        const { id, source } = citationMarker;
 
         // Check if we already have this citation
         const existing = citations.find((c) => c.id === id && c.source === source);
@@ -65,7 +66,7 @@ export function parseCitationsFromContent(content: string): ParsedCitation[] {
  * @private utility for internal use
  */
 export function stripCitationsFromContent(content: string): string {
-    return content.replace(/【.*?†.*?】/g, '');
+    return replaceCitationMarkers(content, () => '');
 }
 
 /**

@@ -1,4 +1,4 @@
-[ ] !!!
+[x] ~$0.42 19 minutes by OpenAI Codex `gpt-5.3-codex`
 
 [✨❕] Allow to citate sources like "【document123.doc】"
 
@@ -42,3 +42,4 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

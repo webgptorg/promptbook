@@ -8,6 +8,7 @@ import type { string_html, string_markdown } from '../../../types/typeAliases';
 import { TODO_USE } from '../../../utils/organization/TODO_USE';
 import { classNames } from '../../_common/react-utils/classNames';
 import { CodeBlock } from '../CodeBlock/CodeBlock';
+import { createCitationMarkerRegex, parseCitationMarker } from '../utils/parseCitationMarker';
 import styles from './MarkdownContent.module.css';
 
 /**
@@ -112,13 +113,18 @@ function createChatMarkdownConverter(): ShowdownConverter {
         extensions: [
             () => ({
                 type: 'lang',
-                regex: /【(.*?)†(.*?)】/g,
-                replace: (match: string, id: string, source: string) => {
-                    TODO_USE(source);
+                regex: createCitationMarkerRegex(),
+                replace: (match: string) => {
+                    const citationMarker = parseCitationMarker(match);
+                    if (!citationMarker) {
+                        return match;
+                    }
+
+                    TODO_USE(citationMarker.source);
 
                     // Note: Citations are now rendered as chips in ChatMessageItem
                     // We replace them with numbered superscript references
-                    return `<sup class="${styles.citationRef}">[${id}]</sup>`;
+                    return `<sup class="${styles.citationRef}">[${citationMarker.id}]</sup>`;
                 },
             }),
         ],
