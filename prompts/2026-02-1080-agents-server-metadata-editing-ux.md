@@ -37,7 +37,7 @@
 
 ---
 
-[ ]
+[ ] !
 
 [✨📘] Fix editing the metadata in place
 
