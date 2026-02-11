@@ -4,16 +4,9 @@
     margin: 1.35rem 0 0.75rem;
     padding: 1rem 1.45rem 1.05rem;
     border-radius: 20px;
-    border: 1px solid var(--chat-heading-border-color, rgba(15, 23, 42, 0.18));
-    border-left: 5px solid var(--chat-heading-accent, #38bdf8);
     background-color: var(--chat-heading-surface, rgba(255, 255, 255, 0.18));
-    background-image: linear-gradient(
-        145deg,
-        rgba(255, 255, 255, 0.3),
-        rgba(255, 255, 255, 0.05)
-    );
-    box-shadow:
-        0 20px 50px -35px var(--chat-heading-shadow-color, rgba(15, 23, 42, 0.65)),
+    background-image: linear-gradient(145deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.05));
+    box-shadow: 0 20px 50px -35px var(--chat-heading-shadow-color, rgba(15, 23, 42, 0.65)),
         0 12px 30px -22px rgba(59, 130, 246, 0.28);
     color: var(--chat-heading-text-color, var(--message-text-color, #0f172a));
     font-family: var(--font-poppins, 'Poppins', system-ui, -apple-system, sans-serif);
@@ -21,8 +14,7 @@
     line-height: 1.35;
     letter-spacing: -0.01em;
     overflow: hidden;
-    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease,
-        background-color 0.25s ease;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease, background-color 0.25s ease;
     backdrop-filter: blur(18px);
 }
 
@@ -50,8 +42,7 @@
 
 .MarkdownContent :is(h1, h2, h3, h4, h5, h6):hover {
     transform: translateY(-1px);
-    box-shadow:
-        0 28px 70px -45px var(--chat-heading-shadow-color, rgba(15, 23, 42, 0.75)),
+    box-shadow: 0 28px 70px -45px var(--chat-heading-shadow-color, rgba(15, 23, 42, 0.75)),
         0 14px 34px -18px rgba(59, 130, 246, 0.45);
     border-color: var(--chat-heading-accent, #38bdf8);
 }
