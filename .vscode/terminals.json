@@ -280,32 +280,32 @@
             "focus": true
         },
         {
-            "name": "🏭✨ Generate prompt boilerplates",
+            "name": "⚡🏭 Generate prompt boilerplates for Coding Agent",
             "command": "npm run generate-prompt-boilerplates -- 5",
             "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
-            "name": "🏭⚡✨ Find refactor candidates for Coding Agent",
+            "name": "⚡🏭 Find refactor candidates for Coding Agent",
             "command": "npx ts-node ./scripts/find-refactor-candidates/find-refactor-candidates.ts",
             "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
-            "name": "⚡✨ Run Coding Agent (💤)(💸)(⏳)",
-            "command": "npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --agent openai-codex",
+            "name": "⚡🚀 Run Coding Agent (💤)(💸)(⏳)",
+            "command": "npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --agent openai-codex --model codex-mini-latest",
             "execute": false,
             "onlySingle": false,
             "focus": false
         },
         {
-            "name": "🔎✅ Verify prompts (coding agent)",
+            "name": "⚡✅ Verify prompts (coding agent)",
             "command": "npx ts-node ./scripts/verify-prompts/verify-prompts.ts",
-            "execute": true,
-            "onlySingle": true,
-            "focus": true
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
         },
         {
             "name": "🏭🩹 Fix Lint",
