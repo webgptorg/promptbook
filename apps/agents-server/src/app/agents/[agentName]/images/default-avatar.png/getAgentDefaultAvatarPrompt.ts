@@ -28,26 +28,26 @@ export function getAgentDefaultAvatarPrompt(agent: AgentBasicInformation): strin
     const personaBlock = (personaDescription || 'Friendly, future-ready partner.').trim();
 
     const styleHighlights = [
-        `High-resolution portrait that combines digital illustration polish with photographic depth of field, as if shot for a premium innovation magazine.`,
-        `Soft volumetric rim light meets saturated highlights; the figure glows with subtle neon edges and gentle lens flares without looking cartoonish.`,
-        `Treat skin, fabric, or symbolic armor as tactile surfaces (soft ceramics, brushed metal, or woven fibers) that still read as human and welcoming.`,
+        `Warm, high-resolution portrait that balances painterly softness with photographic clarity, like a trusted mentor featured in a business leadership profile.`,
+        `Ambient golden-hour tones wrap the figure while retaining crisp details; luminous accents read as steady insight rather than neon flash.`,
+        `Clothing or symbolic layers should feel polished yet tactile—soft wool, brushed metal, or woven fibers—that remain human and reassuring.`,
     ];
 
     const motifHighlights = [
-        `Color palette anchored in ${paletteHint}, complemented by luminous accent streaks to suggest intelligence and energy.`,
-        `Typography hints tied to ${typographyHint} in any implied badges, borders, or soft UI fragments.`,
-        'Introduce symbolic cues (constellations, guiding hands, delicate circuitry gestures) that feel like metaphors for memory, guidance, or navigation.',
+        `Color palette rooted in ${paletteHint}, with gentle amber, honeyed, or copper accents that convey warmth and calm intelligence.`,
+        `Typography echoes ${typographyHint} through refined badges, lapel insignias, or soft framing glyphs that underline professionalism.`,
+        'Introduce symbols such as steady horizons, guiding hands, open books, or constellations that speak to mentorship and reliable guidance.',
     ];
 
     const compositionHints = [
-        'Vertical composition with the figure centered and filling roughly two-thirds of the frame, leaving airy gradients behind.',
-        'Simple yet textured background (soft gradients, mist, or abstract planes) that keeps the focus on the figure and its mood.',
-        'Facial expression is calm, confident, and observant—balanced between empathy and quiet authority.',
+        'Vertical composition with the figure centered and occupying roughly two-thirds of the frame, leaving soft tonal gradients behind.',
+        'Simple yet rich background (warm gradients, brushed textures, or subtle auroras) that keeps focus on the figure while suggesting depth.',
+        'Facial expression is warm, calm, and observant—with a gentle smile or knowing gaze that blends empathy with quiet authority.',
     ];
 
     const lightingHints = [
-        'Soft, temperature-balanced lighting with a gentle highlight on one cheekbone and subtle fill on the opposite side.',
-        'Textures should carry a delicate sheen as if the subject is lit through frosted glass, supporting a timeless but modern feel.',
+        'Soft, warm lighting with a gentle highlight on one cheekbone and a balanced fill on the opposite side to model approachable depth.',
+        'Surfaces should glow with a subtle sheen, as if lit through layered diffusion, reinforcing a timeless but contemporary presence.',
     ];
 
     return spaceTrim(
@@ -71,7 +71,7 @@ export function getAgentDefaultAvatarPrompt(agent: AgentBasicInformation): strin
             Lighting & texture:
             ${renderBullets(lightingHints)}
 
-            Atmosphere should feel timeless, curious, and deeply human while remaining unmistakably crafted by light and pixels.
+            Atmosphere should feel like a welcoming, wise advisor—timeless, human, and unmistakably crafted by thoughtful light and pixels.
         `,
     );
 }
