@@ -301,8 +301,8 @@
             "focus": false
         },
         {
-            "name": "⚡✅ Verify prompts (coding agent)",
-            "command": "npx ts-node ./scripts/verify-prompts/verify-prompts.ts",
+            "name": "⚡✔ Verify prompts done by Coding Agent",
+            "command": "npx ts-node ./scripts/verify-prompts/verify-prompts.ts --reverse",
             "execute": false,
             "onlySingle": false,
             "focus": false
