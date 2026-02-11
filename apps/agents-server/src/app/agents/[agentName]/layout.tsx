@@ -38,9 +38,9 @@ export default async function AgentLayout({
     params,
 }: Readonly<{
     children: React.ReactNode;
-    params: { agentName: string };
+    params: Promise<{ agentName: string }>;
 }>) {
-    const agentName = await getAgentName(Promise.resolve(params));
+    const agentName = await getAgentName(params);
 
     return <AgentChatTransitionProvider agentName={agentName}>{children}</AgentChatTransitionProvider>;
 }
