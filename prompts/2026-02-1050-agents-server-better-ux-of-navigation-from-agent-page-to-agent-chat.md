@@ -20,6 +20,7 @@
 -   Espetially when the user writes a message or clicks on a quick button to send a message. There is no immediate response. The user can wait for 2-3 seconds without anything, and then it starts to render the second page. There should be an immediate and immersive response.
 -   Do not bring any extra UI elements. Try to make the experience with the existing UI elements more smooth.
 -   You don't need to do anything generally with the pages transitions. Just the transition between the chat on the agent profile page and the chat page either via writing a message or clicking a quick button.
+-   Cleanup the [component `AgentChatTransitionOverlay`](apps/agents-server/src/app/agents/[agentName]/AgentProfileChat.tsx) There should be no need for extra overlay for the transition, it should feel seamless and immersive without it.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 
