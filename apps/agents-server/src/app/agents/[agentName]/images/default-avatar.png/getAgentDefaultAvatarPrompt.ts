@@ -28,32 +28,32 @@ export function getAgentDefaultAvatarPrompt(agent: AgentBasicInformation): strin
     const personaBlock = (personaDescription || 'Friendly, future-ready partner.').trim();
 
     const styleHighlights = [
-        `Warm, high-resolution portrait that balances painterly softness with photographic clarity, like a trusted mentor featured in a business leadership profile.`,
-        `Ambient golden-hour tones wrap the figure while retaining crisp details; luminous accents read as steady insight rather than neon flash.`,
-        `Clothing or symbolic layers should feel polished yet tactile—soft wool, brushed metal, or woven fibers—that remain human and reassuring.`,
+        `Create a non-photorealistic animated illustration with rich, hand-crafted digital rendering and confident business polish.`,
+        `The character should feel like a friendly, wise mentor: warm, composed, approachable, and clearly competent without looking childish.`,
+        `Avoid cold technocratic aesthetics; favor tactile brushwork, gentle gradients, and elegant stylization that feels modern and human.`,
     ];
 
     const motifHighlights = [
-        `Color palette rooted in ${paletteHint}, with gentle amber, honeyed, or copper accents that convey warmth and calm intelligence.`,
-        `Typography echoes ${typographyHint} through refined badges, lapel insignias, or soft framing glyphs that underline professionalism.`,
-        'Introduce symbols such as steady horizons, guiding hands, open books, or constellations that speak to mentorship and reliable guidance.',
+        `Color palette rooted in ${paletteHint}, harmonized with warm ambers, terracotta, peach, or muted gold to create welcoming contrast.`,
+        `Reference ${typographyHint} only as abstract shape language (rhythm, geometry, spacing), never as readable letters or words.`,
+        'Use symbolic motifs of guidance and intelligence (constellations, pathways, lantern glow, layered maps, subtle geometric halos) in a mature business context.',
     ];
 
     const compositionHints = [
-        'Vertical composition with the figure centered and occupying roughly two-thirds of the frame, leaving soft tonal gradients behind.',
-        'Simple yet rich background (warm gradients, brushed textures, or subtle auroras) that keeps focus on the figure while suggesting depth.',
-        'Facial expression is warm, calm, and observant—with a gentle smile or knowing gaze that blends empathy with quiet authority.',
+        'Vertical composition with a clearly readable central character and clean silhouette, suitable for small avatar crops.',
+        'Each agent should feel visually distinct through unique accessories, framing motifs, mood, and scene geometry so users can quickly tell them apart.',
+        'Background should be rich but uncluttered, using layered animated-style textures and soft depth cues rather than realistic photography.',
     ];
 
     const lightingHints = [
-        'Soft, warm lighting with a gentle highlight on one cheekbone and a balanced fill on the opposite side to model approachable depth.',
-        'Surfaces should glow with a subtle sheen, as if lit through layered diffusion, reinforcing a timeless but contemporary presence.',
+        'Use warm cinematic lighting with soft bounce light and subtle rim accents to communicate safety, clarity, and helpful presence.',
+        'Keep material rendering stylized and illustrative (not photoreal), with smooth gradients and selective detail that reads cleanly at avatar size.',
     ];
 
     return spaceTrim(
         (block) => `
 
-            Create a modern portrait interpreting the figure that symbolizes the AI agent named "${heroLabel}".
+            Create an animated, non-photorealistic portrait of the AI agent persona "${heroLabel}".
 
             ${renderBullets(styleHighlights)}
 
@@ -71,7 +71,12 @@ export function getAgentDefaultAvatarPrompt(agent: AgentBasicInformation): strin
             Lighting & texture:
             ${renderBullets(lightingHints)}
 
-            Atmosphere should feel like a welcoming, wise advisor—timeless, human, and unmistakably crafted by thoughtful light and pixels.
+            Hard constraints:
+            -  No photorealism.
+            -  No text, letters, logos, or readable typography in the image.
+            -  Professional business-friendly tone: warm and welcoming, never childish or goofy.
+
+            Atmosphere should feel like a welcoming, wise advisor: a trustworthy assistant rendered in a distinctive animated visual language.
         `,
     );
 }
