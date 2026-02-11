@@ -105,7 +105,7 @@ export function AgentProfileChat({
         if (typeof window === 'undefined') {
             return undefined;
         }
-        // Note: [đź§ ] We could have a mechanism to check if OPENAI_API_KEY is set on the server
+        // Note: [🧠] We could have a mechanism to check if OPENAI_API_KEY is set on the server
         //       For now, we always provide OpenAiSpeechRecognition which uses proxy
         return new OpenAiSpeechRecognition();
     }, []);
