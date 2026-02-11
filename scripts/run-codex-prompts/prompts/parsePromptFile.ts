@@ -55,14 +55,24 @@ export function parsePromptFile(filePath: string, content: string): PromptFile {
 }
 
 /**
- * Parses a status line like "[ ] !!" into status and priority.
+ * Parses a status line like "[ ] !!" or "[-]" into status and priority.
  */
 function parseStatusLine(line: string): { status: PromptStatus; priority: number } | undefined {
-    const match = line.match(/^\[(?<status>[ xX])\]\s*(?<priority>!*)\s*$/);
+    const match = line.match(/^\[(?<status>[ xX-])\]\s*(?<priority>!*)\s*$/);
     if (!match) {
         return undefined;
     }
-    const status = match.groups?.status?.toLowerCase() === 'x' ? 'done' : 'todo';
+    const statusChar = match.groups?.status?.toLowerCase();
+    let status: PromptStatus;
+
+    if (statusChar === 'x') {
+        status = 'done';
+    } else if (statusChar === '-') {
+        status = 'not-ready';
+    } else {
+        status = 'todo';
+    }
+
     const priority = status === 'todo' ? match.groups?.priority?.length ?? 0 : 0;
     return { status, priority };
 }

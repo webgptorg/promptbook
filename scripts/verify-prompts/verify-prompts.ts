@@ -82,11 +82,14 @@ function displayTopLevelFileList(promptFiles: PromptFile[]): void {
         const doneCount = file.sections.filter((section) => section.status === 'done').length;
         const todoCount = file.sections.filter((section) => section.status === 'todo').length;
         const notReadyCount = file.sections.filter((section) => section.status === 'not-ready').length;
-        const allDone = file.sections.length > 0 && todoCount === 0 && notReadyCount === 0 && doneCount > 0;
+        const needsVerification = file.sections.length > 0 && todoCount === 0 && (doneCount > 0 || notReadyCount > 0);
         const statusParts: string[] = [];
 
-        if (allDone) {
-            statusParts.push(colors.cyan.bold(`🔍 ${doneCount} done [x] - NEEDS VERIFICATION`));
+        if (needsVerification) {
+            const parts: string[] = [];
+            if (doneCount > 0) parts.push(`${doneCount} done [x]`);
+            if (notReadyCount > 0) parts.push(`${notReadyCount} not-ready [-]`);
+            statusParts.push(colors.cyan.bold(`🔍 ${parts.join(' · ')} - NEEDS VERIFICATION`));
         } else {
             if (todoCount > 0) {
                 statusParts.push(colors.yellow(`${todoCount} todo [ ]`));
@@ -95,7 +98,7 @@ function displayTopLevelFileList(promptFiles: PromptFile[]): void {
                 statusParts.push(colors.green(`${doneCount} done [x]`));
             }
             if (notReadyCount > 0) {
-                statusParts.push(colors.gray(`${notReadyCount} not-ready`));
+                statusParts.push(colors.gray(`${notReadyCount} not-ready [-]`));
             }
         }
 
@@ -110,28 +113,42 @@ function displayTopLevelFileList(promptFiles: PromptFile[]): void {
 }
 
 /**
- * Finds the first file where all prompts are marked as done [x].
+ * Finds the first file where all prompts are marked as done [x] or not-ready [-].
+ * (i.e., no todo prompts remain)
  */
 function findFileWithAllDonePrompts(promptFiles: PromptFile[]): PromptFile | undefined {
     return promptFiles.find((file) => {
         if (file.sections.length === 0) {
             return false;
         }
-        return file.sections.every((section) => section.status === 'done');
+        // File is ready for verification if it has no todo prompts
+        const hasTodoPrompts = file.sections.some((section) => section.status === 'todo');
+        const hasVerifiablePrompts = file.sections.some(
+            (section) => section.status === 'done' || section.status === 'not-ready',
+        );
+        return !hasTodoPrompts && hasVerifiablePrompts;
     });
 }
 
 /**
- * Verifies each done prompt in a file and decides whether to archive it or add repair prompts.
+ * Verifies each done and not-ready prompt in a file and decides whether to archive it or add repair prompts.
  */
 async function verifyDonePromptsInFile(file: PromptFile): Promise<void> {
+    const doneCount = file.sections.filter((s) => s.status === 'done').length;
+    const notReadyCount = file.sections.filter((s) => s.status === 'not-ready').length;
+
     console.info(colors.cyan.bold(`\n🔍 Verifying file: ${file.name}`));
-    console.info(colors.gray(`All ${file.sections.length} prompt(s) in this file are marked as done [x].`));
+    console.info(colors.gray(`${doneCount} done [x] and ${notReadyCount} not-ready [-] prompt(s) to verify.`));
     console.info(colors.gray("Let's verify each one...\n"));
 
     const unverifiedSections: PromptSection[] = [];
 
     for (const section of file.sections) {
+        // Only verify done and not-ready prompts (skip any other statuses)
+        if (section.status !== 'done' && section.status !== 'not-ready') {
+            continue;
+        }
+
         displayPromptSnippet({ file, section });
         const isVerified = await promptForDoneVerification(file, section);
 
@@ -187,15 +204,18 @@ async function promptForDoneVerification(file: PromptFile, section: PromptSectio
 }
 
 /**
- * Changes a prompt's status from [x] to [ ].
+ * Changes a prompt's status from [x] or [-] to [ ].
  */
 async function changePromptStatusToTodo(file: PromptFile, section: PromptSection): Promise<void> {
     if (section.statusLineIndex === undefined) {
+        // If no status line exists, add one at the start of the section
+        file.lines.splice(section.startLine, 0, '[ ]', '');
+        await writePromptFile(file);
         return;
     }
 
     const statusLine = file.lines[section.statusLineIndex];
-    const updatedLine = statusLine.replace(/\[x\]/i, '[ ]');
+    const updatedLine = statusLine.replace(/\[(x|-)]\s*!*/i, '[ ]');
     file.lines[section.statusLineIndex] = updatedLine;
     await writePromptFile(file);
 }
@@ -222,9 +242,14 @@ function displayPromptOverview(promptFiles: PromptFile[]): void {
         )} (total ${totals.total})`,
     );
 
-    const filesNeedingVerification = promptFiles.filter(
-        (file) => file.sections.length > 0 && file.sections.every((section) => section.status === 'done'),
-    );
+    const filesNeedingVerification = promptFiles.filter((file) => {
+        if (file.sections.length === 0) return false;
+        const hasTodo = file.sections.some((section) => section.status === 'todo');
+        const hasVerifiable = file.sections.some(
+            (section) => section.status === 'done' || section.status === 'not-ready',
+        );
+        return !hasTodo && hasVerifiable;
+    });
     const pendingFiles = promptFiles.filter((file) => file.sections.some((section) => section.status === 'todo'));
 
     if (filesNeedingVerification.length) {
