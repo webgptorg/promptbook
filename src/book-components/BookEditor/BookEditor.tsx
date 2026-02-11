@@ -20,6 +20,50 @@ import styles from './BookEditor.module.css';
 import { BookEditorMonaco } from './BookEditorMonaco';
 
 /**
+ * Monaco diagnostic shown inside `BookEditor`.
+ *
+ * @private internal type of `BookEditor`
+ */
+type BookEditorDiagnostic = {
+    /**
+     * 1-based start line.
+     */
+    readonly startLineNumber: number;
+
+    /**
+     * 1-based start column.
+     */
+    readonly startColumn: number;
+
+    /**
+     * 1-based end line.
+     */
+    readonly endLineNumber: number;
+
+    /**
+     * 1-based end column.
+     */
+    readonly endColumn: number;
+
+    /**
+     * Diagnostic message shown by Monaco.
+     */
+    readonly message: string;
+
+    /**
+     * Marker severity used for color coding in Monaco.
+     *
+     * @default 'error'
+     */
+    readonly severity?: 'error' | 'warning' | 'info' | 'hint';
+
+    /**
+     * Optional source label shown in Monaco hover.
+     */
+    readonly source?: string;
+};
+
+/**
  * Default height of the book editor
  *
  * Note: This height is computed based on the number of lines in the default book + padding multiplied by an estimated line height.
@@ -106,6 +150,11 @@ export type BookEditorProps = {
      * Callback function to handle changes in the book content.
      */
     onChange?(value: string_book): void;
+
+    /**
+     * Optional Monaco diagnostics shown as squiggle markers in the editor.
+     */
+    readonly diagnostics?: ReadonlyArray<BookEditorDiagnostic>;
 
     /**
      * Returns the URL of the uploaded file on CDN or storage.
@@ -217,6 +266,7 @@ export function BookEditor(props: BookEditorProps) {
         zoom = 1,
         value,
         onChange,
+        diagnostics,
         onFileUpload,
         isVerbose = DEFAULT_IS_VERBOSE,
         isBorderRadiusDisabled = false,
@@ -269,6 +319,7 @@ export function BookEditor(props: BookEditorProps) {
             <BookEditorMonaco
                 value={agentSource || value}
                 onChange={onChange}
+                diagnostics={diagnostics}
                 onFileUpload={onFileUpload}
                 isVerbose={isVerbose}
                 isBorderRadiusDisabled={isBorderRadiusDisabled}

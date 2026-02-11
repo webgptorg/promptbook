@@ -2,7 +2,7 @@
 
 import { BookEditor } from '@promptbook-local/components';
 import { string_book } from '@promptbook-local/types';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { bookEditorUploadHandler } from '../../../../utils/upload/createBookEditorUploadHandler';
 
 /**
@@ -13,6 +13,25 @@ type BookEditorWrapperProps = {
     initialAgentSource: string_book;
 };
 
+/**
+ * Monaco marker payload accepted by `<BookEditor/>`.
+ */
+type BookEditorDiagnostic = {
+    startLineNumber: number;
+    startColumn: number;
+    endLineNumber: number;
+    endColumn: number;
+    message: string;
+    source?: string;
+};
+
+/**
+ * API response returned by `/reference-diagnostics`.
+ */
+type AgentReferenceDiagnosticsResponse = {
+    diagnostics?: Array<BookEditorDiagnostic>;
+};
+
 // TODO: [🐱‍🚀] Rename to BookEditorSavingWrapper
 
 /**
@@ -21,11 +40,15 @@ type BookEditorWrapperProps = {
 export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorWrapperProps) {
     const [agentSource, setAgentSource] = useState<string_book>(initialAgentSource);
     const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+    const [diagnostics, setDiagnostics] = useState<Array<BookEditorDiagnostic>>([]);
 
     // Debounce timer ref so we can clear previous pending save
     const debounceTimerRef = useRef<number | null>(null);
+    const diagnosticsDebounceTimerRef = useRef<number | null>(null);
+    const diagnosticsAbortControllerRef = useRef<AbortController | null>(null);
     // Configurable debounce delay (ms) - tweak if needed
     const DEBOUNCE_DELAY = 1000;
+    const DIAGNOSTICS_DEBOUNCE_DELAY = 350;
 
     /**
      * Persists the current agent source to the server.
@@ -66,12 +89,66 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
     };
 
     /**
+     * Requests unresolved compact-reference diagnostics from the server.
+     */
+    const requestDiagnostics = useCallback(async (sourceToInspect: string_book) => {
+        diagnosticsAbortControllerRef.current?.abort();
+        const abortController = new AbortController();
+        diagnosticsAbortControllerRef.current = abortController;
+
+        try {
+            const response = await fetch(`/agents/${encodeURIComponent(agentName)}/api/book/reference-diagnostics`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: sourceToInspect,
+                signal: abortController.signal,
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to load diagnostics: ${response.statusText}`);
+            }
+
+            const payload = (await response.json()) as AgentReferenceDiagnosticsResponse;
+            setDiagnostics(Array.isArray(payload.diagnostics) ? payload.diagnostics : []);
+        } catch (error) {
+            if (error instanceof Error && error.name === 'AbortError') {
+                return;
+            }
+
+            console.error('Error loading reference diagnostics:', error);
+            setDiagnostics([]);
+        } finally {
+            if (diagnosticsAbortControllerRef.current === abortController) {
+                diagnosticsAbortControllerRef.current = null;
+            }
+        }
+    }, [agentName]);
+
+    /**
+     * Debounces diagnostics updates while the user edits the source.
+     */
+    const scheduleDiagnostics = useCallback((nextSource: string_book) => {
+        if (diagnosticsDebounceTimerRef.current) {
+            clearTimeout(diagnosticsDebounceTimerRef.current);
+        }
+
+        diagnosticsDebounceTimerRef.current = window.setTimeout(() => {
+            void requestDiagnostics(nextSource);
+        }, DIAGNOSTICS_DEBOUNCE_DELAY);
+    }, [requestDiagnostics]);
+
+    /**
      * Updates local state and schedules a save for editor changes.
      */
     const handleChange = (newSource: string_book) => {
         setAgentSource(newSource);
         scheduleSave(newSource);
+        scheduleDiagnostics(newSource);
     };
+
+    useEffect(() => {
+        void requestDiagnostics(initialAgentSource);
+    }, [initialAgentSource, requestDiagnostics]);
 
     // Cleanup on unmount to avoid lingering timeouts
     useEffect(() => {
@@ -79,6 +156,10 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
             if (debounceTimerRef.current) {
                 clearTimeout(debounceTimerRef.current);
             }
+            if (diagnosticsDebounceTimerRef.current) {
+                clearTimeout(diagnosticsDebounceTimerRef.current);
+            }
+            diagnosticsAbortControllerRef.current?.abort();
         };
     }, []);
 
@@ -109,6 +190,7 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
                 value={agentSource}
                 onChange={handleChange}
                 onFileUpload={bookEditorUploadHandler}
+                diagnostics={diagnostics}
             />
         </div>
     );

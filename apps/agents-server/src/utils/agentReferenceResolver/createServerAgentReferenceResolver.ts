@@ -6,6 +6,7 @@ import {
     type AgentReferenceResolutionIssue,
     type IssueTrackingAgentReferenceResolver,
 } from './AgentReferenceResolutionIssue';
+import { extractAgentReferenceTokens } from './extractAgentReferenceTokens';
 
 /**
  * Dependencies required to resolve local/federated compact references.
@@ -23,11 +24,6 @@ type RemoteAgentLookup = {
     readonly byName: Map<string, string>;
     readonly byId: Map<string, string>;
 };
-
-/**
- * Matches supported compact reference token syntaxes in commitment content.
- */
-const REFERENCE_TOKEN_REGEX = /(\{([^}]+)\}|@([A-Za-z0-9_-]+))/g;
 
 /**
  * Lightweight heuristic for identifying base58-like permanent IDs.
@@ -113,16 +109,15 @@ class ServerAgentReferenceResolver implements IssueTrackingAgentReferenceResolve
 
         const parts: string[] = [];
         let lastIndex = 0;
-        let match: RegExpExecArray | null;
         let hasMissingReference = false;
 
-        REFERENCE_TOKEN_REGEX.lastIndex = 0;
-        while ((match = REFERENCE_TOKEN_REGEX.exec(content)) !== null) {
-            const [token] = match;
-            const tokenValue = (match[2] ?? match[3] ?? '').trim();
+        for (const tokenMatch of extractAgentReferenceTokens(content)) {
+            const token = tokenMatch.token;
+            const tokenValue = tokenMatch.reference;
+            const tokenIndex = tokenMatch.index;
 
-            parts.push(content.slice(lastIndex, match.index));
-            lastIndex = match.index + token.length;
+            parts.push(content.slice(lastIndex, tokenIndex));
+            lastIndex = tokenIndex + token.length;
 
             if (!tokenValue) {
                 parts.push(token);

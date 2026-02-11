@@ -3,7 +3,7 @@
 //          this would not be here because the `@promptbook/components` package should be React library independent of Next.js specifics
 
 import Editor, { useMonaco } from '@monaco-editor/react';
-import { editor } from 'monaco-editor';
+import { editor, MarkerSeverity } from 'monaco-editor';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 // [🚱]> import { MonacoBinding } from 'y-monaco';
 // [🚱]> import { WebsocketProvider } from 'y-websocket';
@@ -24,6 +24,10 @@ const CONTENT_PADDING_LEFT = 20;
 const VERTICAL_LINE_LEFT = 0; // <- TODO: This value is weird
 const UPLOAD_EDIT_DEBOUNCE_MS = 300;
 const UPLOAD_PROGRESS_DEBOUNCE_MS = 150;
+/**
+ * Monaco marker owner used for external diagnostics injected into the editor.
+ */
+const DIAGNOSTIC_MARKER_OWNER = 'book-editor-diagnostics';
 
 /**
  * Matches absolute agent URLs (only `/agents/...` paths).
@@ -120,12 +124,33 @@ type AgentReferenceMatch = {
     length: number;
 };
 
+/**
+ * Diagnostics accepted by `BookEditorMonaco`.
+ */
+type BookEditorDiagnostic = NonNullable<BookEditorProps['diagnostics']>[number];
+
 const UPLOAD_STATUS_LABELS: Record<UploadStatus, string> = {
     queued: 'Queued',
     uploading: 'Uploading',
     paused: 'Paused',
     completed: 'Completed',
     failed: 'Failed',
+};
+
+/**
+ * Converts editor diagnostic severity to Monaco marker severity.
+ */
+const toMonacoMarkerSeverity = (severity: BookEditorDiagnostic['severity']) => {
+    if (severity === 'warning') {
+        return MarkerSeverity.Warning;
+    }
+    if (severity === 'info') {
+        return MarkerSeverity.Info;
+    }
+    if (severity === 'hint') {
+        return MarkerSeverity.Hint;
+    }
+    return MarkerSeverity.Error;
 };
 
 /**
@@ -292,6 +317,7 @@ export function BookEditorMonaco(props: BookEditorProps) {
     const {
         value,
         onChange,
+        diagnostics,
         isReadonly,
         translations,
         onFileUpload,
@@ -1007,6 +1033,33 @@ export function BookEditorMonaco(props: BookEditorProps) {
 
     const decorationIdsRef = useRef<string[]>([]);
     const codeBlockDecorationIdsRef = useRef<string[]>([]);
+
+    useEffect(() => {
+        if (!editor || !monaco) {
+            return;
+        }
+
+        const model = editor.getModel();
+        if (!model) {
+            return;
+        }
+
+        const markers: editor.IMarkerData[] = (diagnostics || []).map((diagnostic) => ({
+            startLineNumber: diagnostic.startLineNumber,
+            startColumn: diagnostic.startColumn,
+            endLineNumber: diagnostic.endLineNumber,
+            endColumn: diagnostic.endColumn,
+            message: diagnostic.message,
+            source: diagnostic.source,
+            severity: toMonacoMarkerSeverity(diagnostic.severity),
+        }));
+
+        monaco.editor.setModelMarkers(model, DIAGNOSTIC_MARKER_OWNER, markers);
+
+        return () => {
+            monaco.editor.setModelMarkers(model, DIAGNOSTIC_MARKER_OWNER, []);
+        };
+    }, [diagnostics, editor, monaco]);
 
     useEffect(() => {
         if (!editor || !monaco) {
