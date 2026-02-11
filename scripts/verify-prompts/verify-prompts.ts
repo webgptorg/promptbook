@@ -176,12 +176,10 @@ async function promptForDoneVerification(file: PromptFile, section: PromptSectio
                 {
                     title: "✅ Yes, it's done",
                     value: true,
-                    description: 'This prompt has been successfully completed',
                 },
                 {
                     title: '❌ No, needs work',
                     value: false,
-                    description: 'Mark as todo and add a repair prompt',
                 },
             ],
             initial: 0,
