@@ -13,8 +13,6 @@ import type { string_chat_format_name } from '../save/_common/string_chat_format
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
 import styles from './Chat.module.css';
-import type { ChatSoundSystem } from './ChatProps';
-import { ChatSoundAndVibrationPanel } from './ChatSoundToggle';
 
 /**
  * Props for the Chat actions toolbar.
@@ -40,7 +38,6 @@ export type ChatActionsBarProps = {
     onButtonClick: (
         handler?: (event: MouseEvent<HTMLButtonElement>) => void,
     ) => (event: MouseEvent<HTMLButtonElement>) => void;
-    soundSystem?: ChatSoundSystem;
 };
 
 /**
@@ -63,7 +60,6 @@ export function ChatActionsBar(props: ChatActionsBarProps) {
         shouldFadeActions,
         shouldDisableActions,
         onButtonClick,
-        soundSystem,
     } = props;
     const [showSaveMenu, setShowSaveMenu] = useState(false);
 
@@ -167,12 +163,6 @@ export function ChatActionsBar(props: ChatActionsBarProps) {
                                     {formatDefinition.label}
                                 </button>
                             ))}
-                            {soundSystem && (
-                                <>
-                                    <div className={styles.saveMenuDivider} />
-                                    <ChatSoundAndVibrationPanel soundSystem={soundSystem} />
-                                </>
-                            )}
                         </div>
                     )}
                 </div>

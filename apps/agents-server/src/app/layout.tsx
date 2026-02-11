@@ -7,6 +7,7 @@ import { $provideAgentCollectionForServer } from '../tools/$provideAgentCollecti
 import { $provideServer } from '../tools/$provideServer';
 import { getAgentNaming } from '../utils/getAgentNaming';
 import { getCurrentUser } from '../utils/getCurrentUser';
+import { getDefaultChatPreferences } from '../utils/chatPreferences';
 import { getFederatedServers } from '../utils/getFederatedServers';
 import { isUserAdmin } from '../utils/isUserAdmin';
 import './globals.css';
@@ -122,8 +123,8 @@ export default async function RootLayout({
 
     const collection = await $provideAgentCollectionForServer();
     const agents = await collection.listAgents();
-
-const isExperimental = ((await getMetadata('IS_EXPERIMENTAL_APP')) || 'false') === 'true';
+    const chatPreferences = await getDefaultChatPreferences();
+    const isExperimental = ((await getMetadata('IS_EXPERIMENTAL_APP')) || 'false') === 'true';
 
     return (
         <html lang="en">
@@ -139,6 +140,8 @@ const isExperimental = ((await getMetadata('IS_EXPERIMENTAL_APP')) || 'false') =
                     isFooterShown={isFooterShown}
                     footerLinks={footerLinks}
                     federatedServers={federatedServers}
+                    defaultIsSoundsOn={chatPreferences.defaultIsSoundsOn}
+                    defaultIsVibrationOn={chatPreferences.defaultIsVibrationOn}
                     isExperimental={isExperimental}
                 >
                     {children}

@@ -14,6 +14,7 @@ import type { UserInfo } from '../../utils/getCurrentUser';
 import { getVisibleCommitmentDefinitions } from '../../utils/getVisibleCommitmentDefinitions';
 import { HeadlessLink, pushWithHeadless, useIsHeadless } from '../_utils/headlessParam';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
+import { HeaderControlPanelDropdown, HeaderControlPanelMobile } from './ControlPanel/ControlPanel';
 import { ChangePasswordDialog } from '../ChangePasswordDialog/ChangePasswordDialog';
 import { showLoginDialog } from '../AsyncDialogs/asyncDialogs';
 import { useUsersAdmin } from '../UsersList/useUsersAdmin';
@@ -546,6 +547,7 @@ export function Header(props: HeaderProps) {
 
                     {/* CTA Button & Mobile Menu Toggle */}
                     <div className="flex items-center gap-4">
+                        <HeaderControlPanelDropdown />
                         {just(false /* TODO: [🧠] Figure out what to do with call to action */) && (
                             <a href="https://ptbk.io/?modal=get-started" target="_blank" className="hidden md:block">
                                 <button className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 bg-promptbook-blue-dark text-white hover:bg-promptbook-blue-dark/90">
@@ -644,6 +646,9 @@ export function Header(props: HeaderProps) {
                         }}
                     >
                         <nav className="container mx-auto flex flex-col gap-4 px-6">
+                            <div className="py-2 border-b border-gray-100">
+                                <HeaderControlPanelMobile />
+                            </div>
                             {/* Hoisted Menu Items for Mobile */}
                             {menuHoisting && menuHoisting.menu.length > 0 && (
                                 <div className="py-2 border-b border-gray-100 mb-2 flex gap-2 overflow-x-auto">

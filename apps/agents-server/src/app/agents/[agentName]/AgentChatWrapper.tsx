@@ -9,12 +9,12 @@ import { OpenAiSpeechRecognition } from '../../../../../../src/speech-recognitio
 import { string_agent_url } from '../../../../../../src/types/typeAliases';
 import { ChatErrorDialog } from '../../../components/ChatErrorDialog';
 import { useAgentBackground } from '../../../components/AgentProfile/useAgentBackground';
+import { useSoundSystem } from '../../../components/SoundSystemProvider/SoundSystemProvider';
 import { createDefaultChatEffects } from '../../../utils/chat/createDefaultChatEffects';
 import { getSafeCdnPath } from '../../../utils/cdn/utils/getSafeCdnPath';
 import { handleChatError } from '../../../utils/errorMessages';
 import type { FriendlyErrorMessage } from '../../../utils/errorMessages';
 import { normalizeUploadFilename } from '../../../utils/normalization/normalizeUploadFilename';
-import { createDefaultSoundSystem } from '../../../utils/sound/createDefaultSoundSystem';
 
 type AgentChatWrapperProps = {
     agentUrl: string_agent_url;
@@ -23,8 +23,6 @@ type AgentChatWrapperProps = {
     brandColor?: string;
     thinkingMessages?: ReadonlyArray<string>;
     speechRecognitionLanguage?: string;
-    defaultIsSoundsOn?: boolean;
-    defaultIsVibrationOn?: boolean;
 };
 
 // TODO: [🐱‍🚀] Rename to AgentChatSomethingWrapper
@@ -37,8 +35,6 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
         brandColor,
         thinkingMessages,
         speechRecognitionLanguage,
-        defaultIsSoundsOn = false,
-        defaultIsVibrationOn = true,
     } = props;
 
     const { backgroundImage } = useAgentBackground(brandColor);
@@ -128,16 +124,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
     }, []);
 
     const effectConfigs = useMemo(() => createDefaultChatEffects(), []);
-
-    const soundSystem = useMemo(() => {
-        if (typeof window === 'undefined') {
-            return undefined;
-        }
-        return createDefaultSoundSystem({
-            initialIsSoundsOn: defaultIsSoundsOn,
-            initialIsVibrationOn: defaultIsVibrationOn,
-        });
-    }, [defaultIsSoundsOn, defaultIsVibrationOn]);
+    const { soundSystem } = useSoundSystem();
 
     // Handle errors from chat
     const handleError = useCallback((error: unknown, retry: () => void, failedMessage: { content: string }) => {

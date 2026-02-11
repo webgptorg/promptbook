@@ -13,8 +13,6 @@ type AgentBookAndChatProps = {
     agentUrl: string_agent_url;
     thinkingMessages?: ReadonlyArray<string>;
     speechRecognitionLanguage?: string;
-    defaultIsSoundsOn: boolean;
-    defaultIsVibrationOn: boolean;
 };
 
 export function AgentBookAndChat(props: AgentBookAndChatProps) {
@@ -24,8 +22,6 @@ export function AgentBookAndChat(props: AgentBookAndChatProps) {
         agentUrl,
         thinkingMessages,
         speechRecognitionLanguage,
-        defaultIsSoundsOn,
-        defaultIsVibrationOn,
     } = props;
     const [isMobile, setIsMobile] = useState(false);
     const [activeTab, setActiveTab] = useState<'book' | 'chat'>('chat');
@@ -55,8 +51,6 @@ export function AgentBookAndChat(props: AgentBookAndChatProps) {
                             agentUrl={agentUrl}
                             thinkingMessages={thinkingMessages}
                             speechRecognitionLanguage={speechRecognitionLanguage}
-                            defaultIsSoundsOn={defaultIsSoundsOn}
-                            defaultIsVibrationOn={defaultIsVibrationOn}
                         />
                     </div>
                 </div>
@@ -91,8 +85,6 @@ export function AgentBookAndChat(props: AgentBookAndChatProps) {
                 agentUrl={agentUrl}
                 thinkingMessages={thinkingMessages}
                 speechRecognitionLanguage={speechRecognitionLanguage}
-                defaultIsSoundsOn={defaultIsSoundsOn}
-                defaultIsVibrationOn={defaultIsVibrationOn}
             />
         </ResizablePanelsAuto>
     );

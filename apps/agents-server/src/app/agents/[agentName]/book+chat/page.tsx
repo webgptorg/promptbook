@@ -3,7 +3,6 @@
 import { BackToAgentButton } from '@/src/components/BackToAgentButton/BackToAgentButton';
 import { ForbiddenPage } from '@/src/components/ForbiddenPage/ForbiddenPage';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
-import { getDefaultChatPreferences } from '@/src/utils/chatPreferences';
 import { isUserAdmin } from '@/src/utils/isUserAdmin';
 import { getThinkingMessages } from '@/src/utils/thinkingMessages';
 import { headers } from 'next/headers';
@@ -42,7 +41,6 @@ export default async function AgentBookAndChatPage({ params }: { params: Promise
     const agentSource = await collection.getAgentSource(agentName);
     const agentUrl = `/agents/${agentName}`;
     const thinkingMessages = await getThinkingMessages();
-    const chatPreferences = await getDefaultChatPreferences();
     const speechRecognitionLanguage = resolveSpeechRecognitionLanguage({
         acceptLanguageHeader: requestHeaders.get('accept-language'),
     });
@@ -56,8 +54,6 @@ export default async function AgentBookAndChatPage({ params }: { params: Promise
                 agentUrl={agentUrl}
                 thinkingMessages={thinkingMessages}
                 speechRecognitionLanguage={speechRecognitionLanguage}
-                defaultIsSoundsOn={chatPreferences.defaultIsSoundsOn}
-                defaultIsVibrationOn={chatPreferences.defaultIsVibrationOn}
             />
         </div>
     );

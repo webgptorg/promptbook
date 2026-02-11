@@ -58,9 +58,9 @@ The sound system follows a decoupled, scalable architecture with clear separatio
 
 5. **Sound & Vibration Toggles UI** (`src/book-components/Chat/Chat/ChatSoundToggle.tsx` and `ChatVibrationToggle.tsx`)
    - Provides menu controls for enabling/disabling sounds (🔊/🔇) and haptics (📳/📴)
-   - Integrated into the save menu with consistent styling
+   - Surface the controls in the global header control panel (`HeaderControlPanelDropdown`/`HeaderControlPanelMobile`) so they feel available across every chat instead of being tucked behind a save menu
    - Persists both states via the SoundSystem
-   - The two switches now live inside `ChatSoundAndVibrationPanel`, a compact control panel with lucide icons, descriptive labels, and tiny status badges so both controls remain obvious without crowding the menu
+   - The two switches still live inside `ChatSoundAndVibrationPanel`, a compact control card with lucide icons, descriptive labels, and tiny status badges so both controls remain obvious yet unobtrusive
 
 ## Sound Events
 
@@ -130,7 +130,7 @@ const customSoundSystem = new SoundSystem(
 
 ### Default preferences via metadata
 
-Admins can configure the initial sound and vibration state via the metadata keys `DEFAULT_IS_SOUNDS_ON` (default `false`) and `DEFAULT_IS_VIBRATION_ON` (default `true`). When a browser session does not yet have stored preferences, those defaults are passed into `createDefaultSoundSystem` so the first experience matches server settings. Update the metadata entry through the admin Metadata screen or `/api/metadata` to adjust the defaults without touching the client storage.
+Admins can configure the initial sound and vibration state via the metadata keys `DEFAULT_IS_SOUNDS_ON` (default `false`) and `DEFAULT_IS_VIBRATION_ON` (default `true`). The layout fetches those defaults and feeds them into the shared `SoundSystemProvider`, which in turn builds the `createDefaultSoundSystem`, so the first experience matches the server settings before a user saves any preference. Update the metadata entry through the admin Metadata screen or `/api/metadata` to adjust the defaults without touching the client storage.
 
 ## Usage
 

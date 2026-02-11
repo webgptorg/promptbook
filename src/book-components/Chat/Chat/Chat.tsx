@@ -377,7 +377,6 @@ export function Chat(props: ChatProps) {
                         shouldFadeActions={shouldFadeActions}
                         shouldDisableActions={shouldDisableActions}
                         onButtonClick={handleButtonClick}
-                        soundSystem={soundSystem}
                     />
 
                     <ChatMessageList

@@ -9,6 +9,7 @@ import { AgentNamingProvider } from '../AgentNaming/AgentNamingContext';
 import { AsyncDialogsProvider } from '../AsyncDialogs/AsyncDialogsProvider';
 import { Footer, type FooterLink } from '../Footer/Footer';
 import { Header } from '../Header/Header';
+import { SoundSystemProvider } from '../SoundSystemProvider/SoundSystemProvider';
 
 type LayoutWrapperProps = {
     children: React.ReactNode;
@@ -22,6 +23,8 @@ type LayoutWrapperProps = {
     footerLinks: Array<FooterLink>;
     federatedServers: Array<{ url: string; title: string }>;
     isExperimental: boolean;
+    defaultIsSoundsOn: boolean;
+    defaultIsVibrationOn: boolean;
 };
 
 export function LayoutWrapper({
@@ -36,6 +39,8 @@ export function LayoutWrapper({
     footerLinks,
     federatedServers,
     isExperimental,
+    defaultIsSoundsOn,
+    defaultIsVibrationOn,
 }: LayoutWrapperProps) {
     const pathname = usePathname();
     const searchParams = useSearchParams();
@@ -51,21 +56,26 @@ export function LayoutWrapper({
                 {isHeaderHidden || isHeadless ? (
                     <main className="pt-0">{children}</main>
                 ) : (
-                    <MenuHoistingProvider>
-                        <Header
-                            isAdmin={isAdmin}
-                            currentUser={currentUser}
-                            serverName={serverName}
-                            serverLogoUrl={serverLogoUrl}
-                            agents={agents}
-                            federatedServers={federatedServers}
-                            isExperimental={isExperimental}
-                        />
-                        <main className={isChatPage ? `h-[100dvh] pt-[60px] overflow-hidden` : `pt-[60px]`}>
-                            {children}
-                        </main>
-                        {isFooterShown && !isFooterHiddenOnPage && <Footer extraLinks={footerLinks} />}
-                    </MenuHoistingProvider>
+                    <SoundSystemProvider
+                        initialIsSoundsOn={defaultIsSoundsOn}
+                        initialIsVibrationOn={defaultIsVibrationOn}
+                    >
+                        <MenuHoistingProvider>
+                            <Header
+                                isAdmin={isAdmin}
+                                currentUser={currentUser}
+                                serverName={serverName}
+                                serverLogoUrl={serverLogoUrl}
+                                agents={agents}
+                                federatedServers={federatedServers}
+                                isExperimental={isExperimental}
+                            />
+                            <main className={isChatPage ? `h-[100dvh] pt-[60px] overflow-hidden` : `pt-[60px]`}>
+                                {children}
+                            </main>
+                            {isFooterShown && !isFooterHiddenOnPage && <Footer extraLinks={footerLinks} />}
+                        </MenuHoistingProvider>
+                    </SoundSystemProvider>
                 )}
             </AgentNamingProvider>
         </AsyncDialogsProvider>
