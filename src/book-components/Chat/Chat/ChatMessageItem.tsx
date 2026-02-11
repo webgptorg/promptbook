@@ -388,23 +388,17 @@ export const ChatMessageItem = memo(
         );
         const colorOfText = color.then(textColor);
         const { contentWithoutButtons, buttons } = parseMessageButtons(message.content);
-        const rawToolCalls = message.toolCalls || message.completedToolCalls;
-        const nonPreparationToolCalls = useMemo(
-            () => (rawToolCalls ?? []).filter((toolCall) => !isAssistantPreparationToolCall(toolCall)),
-            [rawToolCalls],
+        const completedToolCalls = (message.toolCalls || message.completedToolCalls)?.filter(
+            (toolCall) => !isAssistantPreparationToolCall(toolCall),
         );
-        const teamToolCallSummary = useMemo(
-            () => collectTeamToolCallSummary(nonPreparationToolCalls),
-            [nonPreparationToolCalls],
-        );
+        const teamToolCallSummary = useMemo(() => collectTeamToolCallSummary(completedToolCalls), [completedToolCalls]);
         const transitiveToolCalls = teamToolCallSummary.toolCalls;
         const transitiveCitations = teamToolCallSummary.citations;
         const ongoingToolCallGroups = useMemo(
             () => groupOngoingToolCalls(message.ongoingToolCalls, toolTitles, teammates),
             [message.ongoingToolCalls, toolTitles, teammates],
         );
-        const displayToolCalls = nonPreparationToolCalls.filter((toolCall) => !isTeamToolName(toolCall.name));
-        const completedToolCallCount = displayToolCalls.length;
+        const completedToolCallCount = completedToolCalls?.length ?? 0;
         const transitiveToolCallCount = transitiveToolCalls.length;
         const ongoingToolCallCount = ongoingToolCallGroups.length;
         const toolCallChipCount = completedToolCallCount + transitiveToolCallCount + ongoingToolCallCount;
@@ -633,9 +627,9 @@ export const ChatMessageItem = memo(
                             </div>
                         )}
 
-                        {displayToolCalls.length > 0 && (
+                        {completedToolCalls && completedToolCalls.length > 0 && (
                             <div className={styles.completedToolCalls}>
-                                {displayToolCalls.map((toolCall, index) => {
+                                {completedToolCalls.map((toolCall, index) => {
                                     const chipletInfo = getToolCallChipletInfo(toolCall);
                                     const chipletText = buildToolCallChipText(chipletInfo);
                                     const teamAgentData = resolveTeamAgentChipData(toolCall, teammates, chipletInfo);

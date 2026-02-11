@@ -24,8 +24,6 @@
 -   Re-styled Markdown headings inside chat bubbles as card-like sections that lean on the same shared heading tokens but now add gradient glass texture, a thicker accent border, high-fidelity glow lines, and deeper drop shadows so the headings mirror the richer Agents Server card language.
 -   Tuned the new heading tokens so every Markdown heading grabs its border, shadow, and text colors from the chat bubble palette, letting the card-like headers glow softly and stay in sync with the shared Agents Server design language.
 -   Underlined inline links inside Agents Server chat bubbles so URLs stay recognizable now that the heading tiles use card-style backgrounds.
--   Removed the square brackets around tool calling chips (USE TIME, USE SEARCH ENGINE, TEAM, etc.) in the Agents Server chat so the labels read as plain text and match the refreshed chip design.
--   Fixed Agents Server chat tool call chips so only the actual tool invocation (e.g., the search or time lookup) renders while the TEAM wrapper is suppressed, preventing duplicate/empty chips and keeping one chip per tool call.
 
 ### 📚 Book
 
