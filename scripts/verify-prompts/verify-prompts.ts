@@ -1,16 +1,16 @@
 #!/usr/bin/env ts-node
 
 import colors from 'colors';
-import prompts from 'prompts';
-import { extname, join, relative } from 'path';
 import { mkdir, rename, stat } from 'fs/promises';
+import { extname, join, relative } from 'path';
+import prompts from 'prompts';
 import { buildPromptLabelForDisplay } from '../run-codex-prompts/prompts/buildPromptLabelForDisplay';
 import { findNextTodoPrompt } from '../run-codex-prompts/prompts/findNextTodoPrompt';
 import { loadPromptFiles } from '../run-codex-prompts/prompts/loadPromptFiles';
-import { writePromptFile } from '../run-codex-prompts/prompts/writePromptFile';
 import type { PromptFile } from '../run-codex-prompts/prompts/types/PromptFile';
 import type { PromptSection } from '../run-codex-prompts/prompts/types/PromptSection';
 import type { PromptSelection } from '../run-codex-prompts/prompts/types/PromptSelection';
+import { writePromptFile } from '../run-codex-prompts/prompts/writePromptFile';
 
 /** Path to the directory that holds the prompt markdown files. */
 const PROMPTS_DIR = join(process.cwd(), 'prompts');
@@ -142,7 +142,7 @@ async function resolvePrompt(selection: PromptSelection): Promise<void> {
  */
 async function promptForDecision(selection: PromptSelection): Promise<PromptDecision> {
     const promptLabel = buildPromptLabelForDisplay(selection.file, selection.section);
-    const response = await prompts<{ decision: PromptDecision }>(
+    const response = await prompts<'decision'>(
         {
             type: 'select',
             name: 'decision',
@@ -169,7 +169,7 @@ async function promptForDecision(selection: PromptSelection): Promise<PromptDeci
         },
     );
 
-    return response.decision;
+    return response.decision as PromptDecision;
 }
 
 /**
@@ -183,7 +183,9 @@ function displayPromptSnippet(selection: PromptSelection): void {
     const snippetLines = file.lines.slice(section.startLine, section.endLine + 1);
     const snippet = snippetLines.join(file.eol).trim();
     const preview =
-        snippet.length > SNIPPET_CHAR_LIMIT ? `${snippet.slice(0, SNIPPET_CHAR_LIMIT)}…` : snippet || '(no prompt text found)';
+        snippet.length > SNIPPET_CHAR_LIMIT
+            ? `${snippet.slice(0, SNIPPET_CHAR_LIMIT)}…`
+            : snippet || '(no prompt text found)';
 
     const relativePath = relative(process.cwd(), file.path);
     console.info(colors.gray(`File: ${relativePath} (lines ${section.startLine + 1}-${section.endLine + 1})`));
@@ -266,7 +268,8 @@ function extractPromptHeadline(file: PromptFile, section: PromptSection): { emoj
  */
 function formatPendingFileNames(fileNames: string[]): string {
     const namesToShow = fileNames.slice(0, MAX_PENDING_FILE_NAMES);
-    const suffix = fileNames.length > MAX_PENDING_FILE_NAMES ? ` +${fileNames.length - MAX_PENDING_FILE_NAMES} more` : '';
+    const suffix =
+        fileNames.length > MAX_PENDING_FILE_NAMES ? ` +${fileNames.length - MAX_PENDING_FILE_NAMES} more` : '';
     return `${namesToShow.map((name) => colors.yellow(name)).join(', ')}${suffix}`;
 }
 
