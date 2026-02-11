@@ -35,3 +35,14 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
+---
+
+[ ]
+
+[✨📘] Fix editing the metadata in place
+
+-   When editing metadata and typing into the value, the cursor is constantly unfocusing. After each key press, it unfocuses, fix it so the user can edit the metadata without interruption.
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   You are working with the [Agents Server](apps/agents-server)
+
+![alt text](prompts/screenshots/2026-02-1080-agents-server-metadata-editing-ux.png)
