@@ -23,10 +23,16 @@ import type { string_book } from './string_book';
  * @param agentSource - Agent source book to parse.
  * @param modelName - Optional override for the agent model name.
  * @param options - Additional options such as the agent reference resolver.
- * @public exported from `@promptbook/core`
+ *
+ * @private @@@
  */
 const COMMITMENTS_WITH_AGENT_REFERENCES = new Set<BookCommitment>(['FROM', 'IMPORT', 'IMPORTS', 'TEAM']);
 
+/**
+ * @@@
+ *
+ * @private @@@
+ */
 export async function createAgentModelRequirementsWithCommitments(
     agentSource: string_book,
     modelName?: string_model_name,
