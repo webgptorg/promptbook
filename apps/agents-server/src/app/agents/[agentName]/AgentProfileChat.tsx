@@ -15,7 +15,6 @@ import { $createAgentFromBookAction } from '../../../app/actions';
 import { useAgentNaming } from '../../../components/AgentNaming/AgentNamingContext';
 import { showAlert } from '../../../components/AsyncDialogs/asyncDialogs';
 import { DeletedAgentBanner } from '../../../components/DeletedAgentBanner';
-import { useAgentChatTransition } from './AgentChatTransitionProvider';
 
 type AgentProfileChatProps = {
     agentUrl: string_agent_url;
@@ -26,6 +25,15 @@ type AgentProfileChatProps = {
     isDeleted?: boolean;
     speechRecognitionLanguage?: string;
 };
+
+type ChatTransitionState =
+    | {
+          mode: 'message';
+          message: string;
+      }
+    | {
+          mode: 'quick';
+      };
 
 /**
  * Renders the compact chat preview on the agent profile and coordinates the full chat transition.
@@ -43,8 +51,9 @@ export function AgentProfileChat({
 }: AgentProfileChatProps) {
     const router = useRouter();
     const [isCreatingAgent, setIsCreatingAgent] = useState(false);
+    const [transitionState, setTransitionState] = useState<ChatTransitionState | null>(null);
+    const [transitionKey, setTransitionKey] = useState(0);
     const { formatText } = useAgentNaming();
-    const { startTransition, clearTransition, isTransitioning } = useAgentChatTransition();
 
     keepUnused(isCreatingAgent);
 
@@ -66,22 +75,19 @@ export function AgentProfileChat({
 
     const navigateToChat = useCallback(
         async ({ message }: { message?: string }) => {
-            startTransition({
-                mode: message ? 'message' : 'quick',
-                message,
-                fullname,
-                brandColorHex,
-            });
+            const nextState: ChatTransitionState = message ? { mode: 'message', message } : { mode: 'quick' };
+            setTransitionState(nextState);
+            setTransitionKey((prev) => prev + 1);
 
             const query = message ? `?message=${encodeURIComponent(message)}` : '';
             try {
                 await router.push(`${chatRoute}${query}`);
             } catch (error) {
                 console.error('Failed to open chat page', error);
-                clearTransition();
+                setTransitionState(null);
             }
         },
-        [brandColorHex, chatRoute, clearTransition, fullname, router, startTransition],
+        [chatRoute, router],
     );
 
     const handleMessage = useCallback(
@@ -162,7 +168,7 @@ export function AgentProfileChat({
                     <button
                         type="button"
                         className="rounded-full border border-white/30 bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.3em] text-white shadow-lg shadow-black/30 transition hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/80 disabled:cursor-wait disabled:opacity-60 disabled:hover:bg-white/10"
-                        disabled={isTransitioning}
+                        disabled={Boolean(transitionState)}
                         onClick={handleOpenChatPage}
                     >
                         Open full chat
@@ -201,6 +207,77 @@ export function AgentProfileChat({
                     visual={'STANDALONE'}
                 />
             </div>
+            {transitionState && (
+                <AgentChatTransitionOverlay
+                    key={transitionKey}
+                    brandColorHex={brandColorHex}
+                    fullname={fullname}
+                    message={transitionState.mode === 'message' ? transitionState.message : undefined}
+                    transitionMode={transitionState.mode}
+                />
+            )}
         </>
+    );
+}
+
+type AgentChatTransitionOverlayProps = {
+    brandColorHex: string_color;
+    fullname: string;
+    message?: string;
+    transitionMode: ChatTransitionState['mode'];
+};
+
+/**
+ * Visual overlay that bridges the profile preview and the dedicated chat page.
+ *
+ * @private Transition helper for the Agents Server.
+ */
+function AgentChatTransitionOverlay({
+    brandColorHex,
+    fullname,
+    message,
+    transitionMode,
+}: AgentChatTransitionOverlayProps) {
+    const previewMessage = message ? spaceTrim(message) : undefined;
+    const transitionLabel = transitionMode === 'message' ? 'Sending your message' : 'Opening full chat';
+
+    return (
+        <aside
+            aria-live="polite"
+            role="status"
+            className="pointer-events-auto fixed inset-0 z-[70] flex items-center justify-center px-4 py-6"
+        >
+            <div className="absolute inset-0 bg-gradient-to-br from-black/70 via-black/80 to-black/90 backdrop-blur-sm" />
+            <div className="relative w-full max-w-4xl overflow-hidden rounded-[32px] border border-white/20 bg-white/5 p-6 shadow-[0_25px_80px_-30px_rgba(0,0,0,0.9)] backdrop-blur-3xl text-white">
+                <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                        <span
+                            className="h-2.5 w-2.5 rounded-full animate-pulse"
+                            style={{ backgroundColor: brandColorHex }}
+                        />
+                        <div>
+                            <p className="text-lg font-semibold leading-tight">Opening full chat</p>
+                            <p className="text-[11px] uppercase tracking-[0.3em] text-white/70">{transitionLabel}</p>
+                        </div>
+                    </div>
+                    <div className="flex flex-col items-end text-[11px] uppercase tracking-[0.3em] text-white/60">
+                        <span className="h-1.5 w-1.5 rounded-full bg-white/70 animate-pulse" />
+                        <span>Profile -&gt; Chat</span>
+                    </div>
+                </div>
+                <p className="mt-4 text-sm text-white/70">
+                    {`We are taking ${fullname || 'your agent'} into the full-screen chat experience.`}
+                </p>
+                {previewMessage && (
+                    <div className="mt-6 space-y-2 rounded-2xl border border-white/10 bg-white/10 p-4 shadow-inner shadow-black/40">
+                        <p className="text-[11px] uppercase tracking-[0.3em] text-white/60">Message preview</p>
+                        <p className="text-base leading-relaxed text-white whitespace-pre-wrap">{previewMessage}</p>
+                    </div>
+                )}
+            </div>
+            <span className="sr-only">
+                {previewMessage ? `${transitionLabel} with message: ${previewMessage}` : transitionLabel}
+            </span>
+        </aside>
     );
 }

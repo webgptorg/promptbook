@@ -1,7 +1,6 @@
 'use server';
 
 import type { Metadata } from 'next';
-import { AgentChatTransitionProvider } from './AgentChatTransitionProvider';
 import { getAgentName, getAgentProfile } from './_utils';
 
 export async function generateMetadata({ params }: { params: Promise<{ agentName: string }> }): Promise<Metadata> {
@@ -35,12 +34,8 @@ export async function generateMetadata({ params }: { params: Promise<{ agentName
 
 export default async function AgentLayout({
     children,
-    params,
 }: Readonly<{
     children: React.ReactNode;
-    params: Promise<{ agentName: string }>;
 }>) {
-    const agentName = await getAgentName(params);
-
-    return <AgentChatTransitionProvider agentName={agentName}>{children}</AgentChatTransitionProvider>;
+    return <>{children}</>;
 }
