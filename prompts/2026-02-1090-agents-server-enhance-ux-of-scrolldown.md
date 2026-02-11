@@ -42,3 +42,13 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
+
+---
+
+[ ]
+
+[✨🗃] Fix "Enhance the UX of the scrolldown arrow in the chat in the agent server."
+
+-   @@@
+-   You have implemented the "Enhance the UX of the scrolldown arrow in the chat in the agent server." feature, but it is not working, fix it
+

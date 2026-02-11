@@ -111,6 +111,28 @@ CLOSED
 
 ---
 
+[ ]
+
+[✨🈳] Fix clicking on the referenced agent in the book editor.
+
+-   @@@
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Add the changes into the `/changelog/_current-preversion.md`
+
+---
+
+[ ]
+
+[✨🈳] Handle propperly not found referenced agent.
+
+-   @@@
+-   You are working with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Add the changes into the `/changelog/_current-preversion.md`
+
+---
+
 [-]
 
 [✨🈳] brr
@@ -119,5 +141,3 @@ CLOSED
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
-
-
