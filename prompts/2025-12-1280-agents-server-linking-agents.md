@@ -145,10 +145,25 @@ CLOSED
 
 [✨🈳] Handle propperly not found referenced agent.
 
--   @@@
--   You are working with the `Agents Server` application `/apps/agents-server`
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   There are some agent commitments such as `FROM`, `TEAM` and `IMPORT` where you can reference other agents.
+-   If the referenced agent is not found, it should be handled propperly.
+-   It should not break the whole agent, but it should show that the agent is not found and it should not try to communicate with it.
+-   It should work with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle, The mechanism for handling not found agent should be propperly abstracted and reusable across the application.
 -   Add the changes into the `/changelog/_current-preversion.md`
+
+---
+
+[ ]
+
+[✨🈳] Handle propperly not found referenced agent in the Book Editor
+
+-   There are some agent commitments such as `FROM`, `TEAM` and `IMPORT` where you can reference other agents.
+-   Theese referenced agents are also shown in the Book Editor as highlighted and clickable links
+-   BUT if the referenced agent is not found, it should show red underline in the editor
+-   It should behave similarly as if in the code editor you are importing from some file which isn't existing.
+-   It should work with the `Agents Server` application `/apps/agents-server`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle, The mechanism for handling not found agent should be propperly abstracted and reusable across the application.
 
 ---
 
