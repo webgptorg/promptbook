@@ -61,7 +61,7 @@ export function AgentProfileChat({
     const chatRoute = useMemo(() => `/agents/${encodeURIComponent(agentName)}/chat`, [agentName]);
 
     useEffect(() => {
-        void router.prefetch(chatRoute).catch(() => undefined);
+        void router.prefetch(chatRoute) /*.catch(() => undefined)*/;
     }, [chatRoute, router]);
 
     const navigateToChat = useCallback(
@@ -177,7 +177,7 @@ export function AgentProfileChat({
                             isMe: false,
                             color: brandColorHex,
                             avatarSrc,
-                            // <- TODO: [đź§ ] Maybe this shouldnt be there
+                            // <- TODO: [🧠] Maybe this shouldnt be there
                         },
                     ]}
                     messages={[

@@ -1,8 +1,8 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
 import { ChatSoundAndVibrationPanel } from '@promptbook-local/components';
-import { ChevronDown, Settings2, SpeakerWave } from 'lucide-react';
+import { ChevronDown, Settings2, SpeakerIcon } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
 import { useSoundSystem } from '../../SoundSystemProvider/SoundSystemProvider';
 
 /**
@@ -30,7 +30,7 @@ function ControlPanelContent({
         return (
             <div className="space-y-2">
                 <div className="flex items-center gap-1 text-sm font-semibold text-gray-900">
-                    <SpeakerWave className="w-4 h-4 text-blue-600" />
+                    <SpeakerIcon className="w-4 h-4 text-blue-600" />
                     <span>{title}</span>
                 </div>
                 <p className="text-xs text-gray-500">{subtitle}</p>
@@ -43,7 +43,7 @@ function ControlPanelContent({
         <div className={`space-y-3 ${isMobile ? 'pt-1' : ''}`}>
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1 text-sm font-semibold text-gray-900">
-                    <SpeakerWave className="w-4 h-4 text-blue-600" />
+                    <SpeakerIcon className="w-4 h-4 text-blue-600" />
                     <span>{title}</span>
                 </div>
                 <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">Audio</span>
@@ -62,8 +62,8 @@ function ControlPanelContent({
  * @private
  */
 function useHideOnClickOutside(
-    ref: RefObject<HTMLElement>,
-    toggleRef: RefObject<HTMLElement>,
+    ref: RefObject<HTMLElement | null>,
+    toggleRef: RefObject<HTMLElement | null>,
     onClose: () => void,
 ) {
     useEffect(() => {
