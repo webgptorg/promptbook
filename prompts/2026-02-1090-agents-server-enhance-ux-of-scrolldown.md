@@ -14,41 +14,33 @@
 
 ---
 
-[-]
-
-[✨🗃] foo
-
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   You are working with the [Agents Server](apps/agents-server)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
-
----
-
-[-]
-
-[✨🗃] foo
-
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   You are working with the [Agents Server](apps/agents-server)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
-
----
-
-[-]
-
-[✨🗃] foo
-
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   You are working with the [Agents Server](apps/agents-server)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
-
-
----
-
 [ ]
 
-[✨🗃] Fix "Enhance the UX of the scrolldown arrow in the chat in the agent server."
+[✨🗃] Enhance the UX of the scrolldown and number of new messages arrow in the chat in the agent server.
 
--   @@@
--   You have implemented the "Enhance the UX of the scrolldown arrow in the chat in the agent server." feature, but it is not working, fix it
+-   The entire scrolldown should appear only when you are scrolled inside the chat NOT when you see the last message. So if you are scrolled up and there are new messages, then the scrolldown with the number of new messages should appear, but if you are scrolled down and you see the last message, then the scrolldown should not appear even if there are new messages.
+-   Do the graphics and placement of the "X new messages" should be better
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   You are working with the [Agents Server](apps/agents-server)
 
+![alt text](prompts/screenshots/2026-02-1090-agents-server-enhance-ux-of-scrolldown-1.png)
+
+---
+
+[-]
+
+[✨🗃] foo
+
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   You are working with the [Agents Server](apps/agents-server)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+---
+
+[-]
+
+[✨🗃] foo
+
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   You are working with the [Agents Server](apps/agents-server)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
