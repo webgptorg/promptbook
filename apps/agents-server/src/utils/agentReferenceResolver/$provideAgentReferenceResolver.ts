@@ -1,6 +1,6 @@
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideServer } from '@/src/tools/$provideServer';
-import { AgentReferenceResolver } from '../../../../../src/book-2.0/agent-source/AgentReferenceResolver-x';
+import { AgentReferenceResolver } from '../../../../../src/book-2.0/agent-source/AgentReferenceResolver';
 import { getFederatedServers } from '../getFederatedServers';
 import { createServerAgentReferenceResolver } from './createServerAgentReferenceResolver';
 
