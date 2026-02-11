@@ -192,7 +192,7 @@ async function promptForDoneVerification(
                     value: 'skip',
                 },
             ],
-            initial: 0,
+            initial: 2,
         },
         {
             onCancel: () => {
