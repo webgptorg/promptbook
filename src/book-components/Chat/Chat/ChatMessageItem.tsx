@@ -211,10 +211,23 @@ function getOngoingToolCallPreparationPhase(toolCall: OngoingToolCall): string |
 }
 
 /**
+ * Builds a stable participant identity for ongoing tool call grouping.
+ */
+function getOngoingToolCallParticipantKey(teamAgentData: AgentChipData | null): string {
+    return teamAgentData?.url || '';
+}
+
+/**
  * Builds a stable grouping key for ongoing tool calls.
  */
-function getOngoingToolCallGroupKey(toolCall: OngoingToolCall, preparationPhase?: string): string {
-    return `${toolCall.name}::${preparationPhase || ''}`;
+function getOngoingToolCallGroupKey(
+    toolCall: OngoingToolCall,
+    options: {
+        preparationPhase?: string;
+        participantKey?: string;
+    },
+): string {
+    return `${toolCall.name}::${options.preparationPhase || ''}::${options.participantKey || ''}`;
 }
 
 /**
@@ -256,7 +269,12 @@ function groupOngoingToolCalls(
 
     for (const toolCall of toolCalls) {
         const preparationPhase = getOngoingToolCallPreparationPhase(toolCall);
-        const groupKey = getOngoingToolCallGroupKey(toolCall, preparationPhase);
+        const teamAgentData = resolveTeamAgentChipData(toolCall, teammates);
+        const participantKey = getOngoingToolCallParticipantKey(teamAgentData);
+        const groupKey = getOngoingToolCallGroupKey(toolCall, {
+            preparationPhase,
+            participantKey,
+        });
         const existing = grouped.get(groupKey);
 
         if (existing) {
@@ -270,7 +288,6 @@ function groupOngoingToolCalls(
             toolTitles?.[toolCall.name] || toolInfo?.title || (isTeamTool ? 'Consulting teammate' : undefined);
         const displayTitle = preparationPhase ? `${toolTitle || toolCall.name}: ${preparationPhase}` : toolTitle;
         const emoji = isTeamTool ? '??' : toolInfo?.emoji || '???';
-        const teamAgentData = resolveTeamAgentChipData(toolCall, teammates);
 
         const group: OngoingToolCallGroup = {
             key: groupKey,
