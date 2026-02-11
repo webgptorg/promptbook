@@ -297,12 +297,12 @@ async function promptForDecision(selection: PromptSelection): Promise<PromptDeci
                 {
                     title: '✅ Done — archive the prompt',
                     value: 'done',
-                    description: 'Move this file under prompts/done',
+                    // description: 'Move this file under prompts/done',
                 },
                 {
                     title: '🛠️ Not done — add follow-up prompt',
                     value: 'not-done',
-                    description: 'Append a Fix prompt referencing the previous section',
+                    // description: 'Append a Fix prompt referencing the previous section',
                 },
             ],
             initial: 0,
