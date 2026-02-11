@@ -148,7 +148,6 @@ export function Chat(props: ChatProps) {
     const [unseenMessagesCount, setUnseenMessagesCount] = useState(0);
     const lastSeenMessagesRef = useRef(messages.length);
 
-
     const chatMessageSelector = `.${styles.chatMessage}`;
     const { actionsRef, setChatMessagesElement, handleChatScroll, isActionsOverlapping, isActionsScrolling } =
         useChatActionsOverlap({

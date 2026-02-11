@@ -128,7 +128,10 @@ export function ChatVibrationToggle(props: ChatVibrationToggleProps) {
             return soundSystem.toggleVibration();
         }
 
-        if (typeof soundSystem.isVibrationEnabled === 'function' && typeof soundSystem.setVibrationEnabled === 'function') {
+        if (
+            typeof soundSystem.isVibrationEnabled === 'function' &&
+            typeof soundSystem.setVibrationEnabled === 'function'
+        ) {
             const nextState = !soundSystem.isVibrationEnabled();
             soundSystem.setVibrationEnabled(nextState);
             return nextState;
@@ -225,7 +228,10 @@ export function ChatSoundAndVibrationPanel(props: ChatSoundAndVibrationPanelProp
             return soundSystem.toggleVibration();
         }
 
-        if (typeof soundSystem.isVibrationEnabled === 'function' && typeof soundSystem.setVibrationEnabled === 'function') {
+        if (
+            typeof soundSystem.isVibrationEnabled === 'function' &&
+            typeof soundSystem.setVibrationEnabled === 'function'
+        ) {
             const nextState = !soundSystem.isVibrationEnabled();
             soundSystem.setVibrationEnabled(nextState);
             return nextState;
@@ -252,7 +258,9 @@ export function ChatSoundAndVibrationPanel(props: ChatSoundAndVibrationPanelProp
                 <FeedbackToggleButton
                     label="Vibration"
                     description={
-                        vibrationState.isEnabled ? 'Haptic feedback for tokens and interactions' : 'Haptics are silenced'
+                        vibrationState.isEnabled
+                            ? 'Haptic feedback for tokens and interactions'
+                            : 'Haptics are silenced'
                     }
                     stateLabel={vibrationState.isEnabled ? 'On' : 'Off'}
                     isEnabled={vibrationState.isEnabled}

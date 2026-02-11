@@ -873,12 +873,7 @@ export function BookEditorMonaco(props: BookEditorProps) {
                     const endPos = model.getPositionAt(reference.index + reference.length);
 
                     return {
-                        range: new monaco.Range(
-                            startPos.lineNumber,
-                            startPos.column,
-                            endPos.lineNumber,
-                            endPos.column,
-                        ),
+                        range: new monaco.Range(startPos.lineNumber, startPos.column, endPos.lineNumber, endPos.column),
                         url: reference.url,
                         tooltip: `Open agent: ${reference.value}`,
                     };
