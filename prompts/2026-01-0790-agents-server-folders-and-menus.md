@@ -38,7 +38,7 @@
 
 ---
 
-[ ]
+[x] ~$0.40 10 minutes by OpenAI Codex `gpt-5.3-codex`
 
 [✨🖍] See Agent organized by folders in the application menu.
 
@@ -66,3 +66,4 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

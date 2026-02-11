@@ -64,6 +64,7 @@ export async function loadAgentOrganizationState(
     options: AgentOrganizationLoadOptions,
 ): Promise<AgentOrganizationLoadResult> {
     const currentUser = await getCurrentUser();
+    const includePrivate = options.includePrivate === true;
 
     if (!currentUser && options.status === 'RECYCLE_BIN') {
         return { agents: [], folders: [], currentUser: null };
@@ -99,7 +100,7 @@ export async function loadAgentOrganizationState(
     const agents = (agentResult.data || []).map(mapAgentRowToOrganizationAgent);
     const folders = (folderResult.data || []).map(mapFolderRowToOrganizationFolder);
 
-    if (currentUser) {
+    if (currentUser || includePrivate) {
         return { agents, folders, currentUser };
     }
 

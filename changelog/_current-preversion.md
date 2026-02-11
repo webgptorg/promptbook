@@ -53,6 +53,7 @@
 -   Added metadata keys `DEFAULT_IS_SOUNDS_ON` and `DEFAULT_IS_VIBRATION_ON` so admins can configure the default chat feedback state, and surfaced independent sound/haptic toggles in the save menu (`ChatSoundToggle` + `ChatVibrationToggle`) that respect those defaults while persisting the user's choice.
 -   Reworked the save menu controls into the new `ChatSoundAndVibrationPanel`, keeping the two switches inside a single polished card with lucide icons and dense status badges so the sound and haptic toggles stay intuitive yet inconspicuous.
 -   Allow to make agent public / private agent from its context menu on the Agent profile page / right click of the agent.
+-   Organized the Agents dropdown menu in the Agents Server header by folders: folders now link to their scoped homepage view, agents are indented under their folder hierarchy, and ordering follows the saved folder/agent sort order.
 
 -   Migrated Promptbook Agents to OpenAI AgentKit: added AgentKit execution tools with shared vector store handling, updated Agents Server caching to store AgentKit vector stores in `preparedExternals`, and refreshed playground samples.
 -   Cached OpenAI vector stores in a new `AgentExternals` table keyed by knowledge source content hashes, removing `Agent.preparedExternals` from the Agents Server schema.

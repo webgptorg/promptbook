@@ -5,19 +5,23 @@ import { $createAgentAction, logoutAction } from '@/src/app/actions';
 import { ArrowRight, ChevronDown, Lock, LogIn, LogOut, User } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { ReactNode, useState } from 'react';
-import { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
+import { ReactNode, useMemo, useState } from 'react';
 import { HamburgerMenu } from '../../../../../src/book-components/_common/HamburgerMenu/HamburgerMenu';
 import { useMenuHoisting } from '../../../../../src/book-components/_common/MenuHoisting/MenuHoistingContext';
 import { just } from '../../../../../src/utils/organization/just';
+import { buildFolderPath, getFolderPathSegments } from '../../utils/agentOrganization/folderPath';
+import type {
+    AgentOrganizationAgent,
+    AgentOrganizationFolder,
+} from '../../utils/agentOrganization/types';
 import type { UserInfo } from '../../utils/getCurrentUser';
 import { getVisibleCommitmentDefinitions } from '../../utils/getVisibleCommitmentDefinitions';
 import { HeadlessLink, pushWithHeadless, useIsHeadless } from '../_utils/headlessParam';
-import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
-import { HeaderControlPanelDropdown, HeaderControlPanelMobile } from './ControlPanel/ControlPanel';
-import { ChangePasswordDialog } from '../ChangePasswordDialog/ChangePasswordDialog';
 import { showLoginDialog } from '../AsyncDialogs/asyncDialogs';
+import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
+import { ChangePasswordDialog } from '../ChangePasswordDialog/ChangePasswordDialog';
 import { useUsersAdmin } from '../UsersList/useUsersAdmin';
+import { HeaderControlPanelDropdown, HeaderControlPanelMobile } from './ControlPanel/ControlPanel';
 
 type HeaderProps = {
     /**
@@ -43,13 +47,18 @@ type HeaderProps = {
     /**
      * List of agents
      */
-    agents: Array<AgentBasicInformation>;
+    agents: Array<AgentOrganizationAgent>;
+
+    /**
+     * List of folders that organize local agents.
+     */
+    agentFolders: Array<AgentOrganizationFolder>;
 
     /**
      * List of federated servers for navigation dropdown
      */
     federatedServers: Array<{ url: string; title: string; logoUrl?: string | null }>;
-    
+
     /**
      * Is the experimental app enabled
      */
@@ -82,8 +91,190 @@ type MenuItem =
           items: Array<SubMenuItem>;
       };
 
+/**
+ * Agent data required for the folder-organized header menu.
+ */
+type HeaderAgentMenuAgent = Pick<AgentOrganizationAgent, 'agentName' | 'meta' | 'folderId' | 'sortOrder'>;
+
+/**
+ * Folder data required for the folder-organized header menu.
+ */
+type HeaderAgentMenuFolder = Pick<AgentOrganizationFolder, 'id' | 'name' | 'parentId' | 'sortOrder'>;
+
+/**
+ * Pixel offset used for each depth level in nested menu labels.
+ */
+const MENU_DEPTH_PADDING_PX = 14;
+
+/**
+ * Resolves the display label for an agent in the menu.
+ *
+ * @param agent - Agent shown in the header menu.
+ * @returns Human-friendly agent label.
+ */
+function getAgentMenuLabel(agent: HeaderAgentMenuAgent): string {
+    return agent.meta?.fullname || agent.agentName;
+}
+
+/**
+ * Sorts folder or agent items by sortOrder and then by a human-friendly label.
+ *
+ * @param items - Items to sort.
+ * @param getLabel - Label getter for stable fallback sorting.
+ * @returns Sorted copy of the provided list.
+ */
+function sortBySortOrderAndLabel<TItem extends { sortOrder: number }>(
+    items: ReadonlyArray<TItem>,
+    getLabel: (item: TItem) => string,
+): TItem[] {
+    return [...items].sort((left, right) => {
+        if (left.sortOrder !== right.sortOrder) {
+            return left.sortOrder - right.sortOrder;
+        }
+        return getLabel(left).localeCompare(getLabel(right));
+    });
+}
+
+/**
+ * Renders one label row with optional folder indicator and indentation.
+ *
+ * @param text - Text displayed in the menu row.
+ * @param depth - Nesting depth used for indentation.
+ * @param isFolder - Whether the row represents a folder.
+ * @returns Renderable menu label node.
+ */
+function createIndentedMenuLabel(text: string, depth: number, isFolder: boolean): ReactNode {
+    return (
+        <span className="flex min-w-0 items-center" style={{ paddingLeft: `${depth * MENU_DEPTH_PADDING_PX}px` }}>
+            {isFolder && <span className="mr-1 text-gray-400">/</span>}
+            <span className="truncate">{text}</span>
+        </span>
+    );
+}
+
+/**
+ * Builds a folder-organized list of submenu items for the Agents dropdown.
+ *
+ * @param agents - Agents available in the server.
+ * @param folders - Folders available in the server.
+ * @returns Flat submenu items rendered in folder-tree order.
+ */
+function buildAgentMenuItems(
+    agents: ReadonlyArray<HeaderAgentMenuAgent>,
+    folders: ReadonlyArray<HeaderAgentMenuFolder>,
+): Array<SubMenuItem> {
+    const folderById = new Map<number, HeaderAgentMenuFolder>();
+    const childFolderIdsByParentId = new Map<number | null, number[]>();
+    const agentsByFolderId = new Map<number | null, HeaderAgentMenuAgent[]>();
+
+    for (const folder of folders) {
+        folderById.set(folder.id, folder);
+    }
+
+    for (const folder of folders) {
+        const hasValidParent = folder.parentId !== null && folderById.has(folder.parentId);
+        const parentId = hasValidParent ? folder.parentId : null;
+        const siblingFolderIds = childFolderIdsByParentId.get(parentId) || [];
+        siblingFolderIds.push(folder.id);
+        childFolderIdsByParentId.set(parentId, siblingFolderIds);
+    }
+
+    for (const agent of agents) {
+        const normalizedFolderId = agent.folderId !== null && folderById.has(agent.folderId) ? agent.folderId : null;
+        const folderAgents = agentsByFolderId.get(normalizedFolderId) || [];
+        folderAgents.push(agent);
+        agentsByFolderId.set(normalizedFolderId, folderAgents);
+    }
+
+    const sortedFolderIdsByParentId = new Map<number | null, number[]>();
+    for (const [parentId, siblingFolderIds] of childFolderIdsByParentId.entries()) {
+        const sortedIds = sortBySortOrderAndLabel(
+            siblingFolderIds
+                .map((folderId) => folderById.get(folderId))
+                .filter((folder): folder is HeaderAgentMenuFolder => folder !== undefined),
+            (folder) => folder.name,
+        ).map((folder) => folder.id);
+        sortedFolderIdsByParentId.set(parentId, sortedIds);
+    }
+
+    for (const [folderId, folderAgents] of agentsByFolderId.entries()) {
+        const sortedAgents = sortBySortOrderAndLabel(folderAgents, getAgentMenuLabel);
+        agentsByFolderId.set(folderId, sortedAgents);
+    }
+
+    const items: Array<SubMenuItem> = [];
+    const visitedFolderIds = new Set<number>();
+
+    /**
+     * Appends one folder branch to the output items, including descendant folders and agents.
+     *
+     * @param folderId - Folder id to append.
+     * @param depth - Current folder depth from root.
+     */
+    const appendFolderBranch = (folderId: number, depth: number): void => {
+        if (visitedFolderIds.has(folderId)) {
+            return;
+        }
+        visitedFolderIds.add(folderId);
+
+        const folder = folderById.get(folderId);
+        if (!folder) {
+            return;
+        }
+
+        const folderPath = buildFolderPath(getFolderPathSegments(folderId, folderById).map((segment) => segment.name));
+        items.push({
+            label: createIndentedMenuLabel(folder.name, depth, true),
+            href: `/?folder=${folderPath}`,
+            isBold: true,
+        });
+
+        const folderAgents = agentsByFolderId.get(folderId) || [];
+        for (const agent of folderAgents) {
+            items.push({
+                label: createIndentedMenuLabel(getAgentMenuLabel(agent), depth + 1, false),
+                href: `/${agent.agentName}`,
+            });
+        }
+
+        const childFolderIds = sortedFolderIdsByParentId.get(folderId) || [];
+        for (const childFolderId of childFolderIds) {
+            appendFolderBranch(childFolderId, depth + 1);
+        }
+    };
+
+    const rootFolderIds = sortedFolderIdsByParentId.get(null) || [];
+    for (const rootFolderId of rootFolderIds) {
+        appendFolderBranch(rootFolderId, 0);
+    }
+    for (const folder of sortBySortOrderAndLabel(folders, (currentFolder) => currentFolder.name)) {
+        if (!visitedFolderIds.has(folder.id)) {
+            appendFolderBranch(folder.id, 0);
+        }
+    }
+
+    const rootAgents = agentsByFolderId.get(null) || [];
+    for (const agent of rootAgents) {
+        items.push({
+            label: createIndentedMenuLabel(getAgentMenuLabel(agent), 0, false),
+            href: `/${agent.agentName}`,
+        });
+    }
+
+    return items;
+}
+
 export function Header(props: HeaderProps) {
-    const { isAdmin = false, currentUser = null, serverName, serverLogoUrl, agents, federatedServers, isExperimental = false } = props;
+    const {
+        isAdmin = false,
+        currentUser = null,
+        serverName,
+        serverLogoUrl,
+        agents,
+        agentFolders,
+        federatedServers,
+        isExperimental = false,
+    } = props;
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
@@ -105,6 +296,7 @@ export function Header(props: HeaderProps) {
     const { formatText } = useAgentNaming();
 
     const { users: adminUsers } = useUsersAdmin();
+    const agentMenuItems = useMemo(() => buildAgentMenuItems(agents, agentFolders), [agents, agentFolders]);
 
     const handleLogout = async () => {
         await logoutAction();
@@ -222,13 +414,7 @@ export function Header(props: HeaderProps) {
                       isMobileOpen: isMobileAgentsOpen,
                       setIsMobileOpen: setIsMobileAgentsOpen,
                       items: [
-                          ...agents.map(
-                              (agent) =>
-                                  ({
-                                      label: agent.meta.fullname || agent.agentName,
-                                      href: `/${agent.agentName}`,
-                                  } as SubMenuItem),
-                          ),
+                          ...agentMenuItems,
                           {
                               label: formatText('View all agents'),
                               href: '/',

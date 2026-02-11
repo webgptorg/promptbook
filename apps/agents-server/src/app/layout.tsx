@@ -3,8 +3,9 @@ import { LayoutWrapper } from '@/src/components/LayoutWrapper/LayoutWrapper';
 import type { Metadata } from 'next';
 import { Barlow_Condensed, Poppins } from 'next/font/google';
 import { getMetadata } from '../database/getMetadata';
-import { $provideAgentCollectionForServer } from '../tools/$provideAgentCollectionForServer';
 import { $provideServer } from '../tools/$provideServer';
+import { loadAgentOrganizationState } from '../utils/agentOrganization/loadAgentOrganizationState';
+import type { AgentOrganizationAgent, AgentOrganizationFolder } from '../utils/agentOrganization/types';
 import { getAgentNaming } from '../utils/getAgentNaming';
 import { getCurrentUser } from '../utils/getCurrentUser';
 import { getDefaultChatPreferences } from '../utils/chatPreferences';
@@ -121,8 +122,14 @@ export default async function RootLayout({
         console.error('Failed to fetch federated servers for footer', error);
     }
 
-    const collection = await $provideAgentCollectionForServer();
-    const agents = await collection.listAgents();
+    let agents: AgentOrganizationAgent[] = [];
+    let agentFolders: AgentOrganizationFolder[] = [];
+    if (isAdmin) {
+        const organizationState = await loadAgentOrganizationState({ status: 'ACTIVE', includePrivate: true });
+        agents = organizationState.agents;
+        agentFolders = organizationState.folders;
+    }
+
     const chatPreferences = await getDefaultChatPreferences();
     const isExperimental = ((await getMetadata('IS_EXPERIMENTAL_APP')) || 'false') === 'true';
 
@@ -136,6 +143,7 @@ export default async function RootLayout({
                     serverName={serverName}
                     serverLogoUrl={serverLogoUrl}
                     agents={JSON.parse(JSON.stringify(agents))}
+                    agentFolders={JSON.parse(JSON.stringify(agentFolders))}
                     agentNaming={agentNaming}
                     isFooterShown={isFooterShown}
                     footerLinks={footerLinks}

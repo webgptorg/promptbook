@@ -1,8 +1,11 @@
 'use client';
 
 import { usePathname, useSearchParams } from 'next/navigation';
-import { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
 import { MenuHoistingProvider } from '../../../../../src/book-components/_common/MenuHoisting/MenuHoistingContext';
+import type {
+    AgentOrganizationAgent,
+    AgentOrganizationFolder,
+} from '../../utils/agentOrganization/types';
 import type { AgentNaming } from '../../utils/agentNaming';
 import type { UserInfo } from '../../utils/getCurrentUser';
 import { AgentNamingProvider } from '../AgentNaming/AgentNamingContext';
@@ -17,7 +20,8 @@ type LayoutWrapperProps = {
     currentUser: UserInfo | null;
     serverName: string;
     serverLogoUrl: string | null;
-    agents: Array<AgentBasicInformation>;
+    agents: Array<AgentOrganizationAgent>;
+    agentFolders: Array<AgentOrganizationFolder>;
     agentNaming: AgentNaming;
     isFooterShown: boolean;
     footerLinks: Array<FooterLink>;
@@ -34,6 +38,7 @@ export function LayoutWrapper({
     serverName,
     serverLogoUrl,
     agents,
+    agentFolders,
     agentNaming,
     isFooterShown,
     footerLinks,
@@ -67,6 +72,7 @@ export function LayoutWrapper({
                                 serverName={serverName}
                                 serverLogoUrl={serverLogoUrl}
                                 agents={agents}
+                                agentFolders={agentFolders}
                                 federatedServers={federatedServers}
                                 isExperimental={isExperimental}
                             />

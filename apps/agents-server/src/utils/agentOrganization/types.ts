@@ -99,6 +99,10 @@ export type AgentOrganizationLoadOptions = {
      * Which dataset to load from the database.
      */
     status: 'ACTIVE' | 'RECYCLE_BIN';
+    /**
+     * Whether private agents should be returned even when no user session is present.
+     */
+    includePrivate?: boolean;
 };
 
 /**
