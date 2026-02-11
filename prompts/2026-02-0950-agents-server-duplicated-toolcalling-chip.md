@@ -40,6 +40,7 @@
 -   You are working with the [Agents Server](apps/agents-server)
 
 ![duplicated chips](prompts/screenshots/2026-02-0950-agents-server-duplicated-toolcalling-chip-7.png)
+![duplicated chips](prompts/screenshots/2026-02-0950-agents-server-duplicated-toolcalling-chip-10.png)
 ![first broken chip](prompts/screenshots/2026-02-0950-agents-server-duplicated-toolcalling-chip-8.png)
 ![second working chip](prompts/screenshots/2026-02-0950-agents-server-duplicated-toolcalling-chip-9.png)
 
