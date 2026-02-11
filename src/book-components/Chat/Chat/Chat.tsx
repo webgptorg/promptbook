@@ -16,6 +16,7 @@ import { useChatRatings } from '../hooks/useChatRatings';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { id } from '../../../types/typeAliases';
 import type { ParsedCitation } from '../utils/parseCitationsFromContent';
+import { extractCitationsFromMessage } from '../utils/parseCitationsFromContent';
 import { ChatActionsBar } from './ChatActionsBar';
 import { ChatCitationModal } from './ChatCitationModal';
 import { ChatInputArea } from './ChatInputArea';
@@ -126,7 +127,12 @@ export function Chat(props: ChatProps) {
         }
 
         return messages.map((message) => {
-            return { ...message, content: promptbookifyAiText(humanizeAiText(message.content)) };
+            const messageWithCitations = extractCitationsFromMessage(message);
+
+            return {
+                ...messageWithCitations,
+                content: promptbookifyAiText(humanizeAiText(messageWithCitations.content)),
+            };
         });
     }, [messages, isAiTextHumanizedAndPromptbookified]);
 

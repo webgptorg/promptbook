@@ -3,6 +3,7 @@ import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForSer
 import { createAgentModelRequirements } from '@promptbook-local/core';
 import { AgentModelRequirements, string_agent_permanent_id, string_book, TODO_any } from '@promptbook-local/types';
 import { createHash } from 'crypto';
+import { spaceTrim } from 'spacetrim';
 import { OpenAiAgentKitExecutionTools } from '../../../../../src/llm-providers/openai/OpenAiAgentKitExecutionTools';
 import {
     AssistantConfiguration,
@@ -14,6 +15,76 @@ import { $provideAgentReferenceResolver } from '../agentReferenceResolver/$provi
 
 const KNOWLEDGE_SOURCE_HASH_TIMEOUT_MS = 30000;
 const VECTOR_STORE_HASH_VERSION = 'vector-store-v1';
+
+/**
+ * Marker used to avoid appending the same citation policy block multiple times.
+ */
+const SOURCE_CITATION_POLICY_SENTINEL = 'Source citation policy:';
+
+/**
+ * Tool names where source-backed responses should include citations.
+ */
+const SOURCE_CITATION_TOOL_NAMES = new Set(['web_search', 'fetch_url_content', 'run_browser']);
+
+/**
+ * Minimal shape needed to inspect tool names for citation policy decisions.
+ */
+type CitationAwareToolDefinition = {
+    readonly name: string;
+};
+
+/**
+ * Returns true when the tool list includes tools that usually produce source-backed answers.
+ *
+ * @param tools - Tool definitions configured for the agent.
+ * @returns True when citations should be explicitly enforced.
+ */
+function hasSourceCitationSensitiveTools(tools: ReadonlyArray<CitationAwareToolDefinition> | undefined): boolean {
+    if (!tools || tools.length === 0) {
+        return false;
+    }
+
+    return tools.some((tool) => SOURCE_CITATION_TOOL_NAMES.has(tool.name));
+}
+
+/**
+ * Appends an explicit source citation policy for agents that rely on knowledge sources or web tools.
+ *
+ * @param baseInstructions - Original system instructions produced from agent commitments.
+ * @param options - Inputs used to decide whether citation policy should be enforced.
+ * @returns Instructions with citation policy appended once when applicable.
+ */
+function withSourceCitationPolicy(
+    baseInstructions: string,
+    options: {
+        readonly knowledgeSources: ReadonlyArray<string>;
+        readonly tools: ReadonlyArray<CitationAwareToolDefinition> | undefined;
+    },
+): string {
+    const { knowledgeSources, tools } = options;
+    const shouldEnforceSourceCitations =
+        knowledgeSources.length > 0 || hasSourceCitationSensitiveTools(tools);
+
+    if (!shouldEnforceSourceCitations) {
+        return baseInstructions;
+    }
+
+    if (baseInstructions.includes(SOURCE_CITATION_POLICY_SENTINEL)) {
+        return baseInstructions;
+    }
+
+    const citationPolicy = spaceTrim(
+        `
+            ${SOURCE_CITATION_POLICY_SENTINEL}
+            - When an answer relies on knowledge sources or web/browser tool results, include source citations.
+            - Use OpenAI citation markers in the answer body (for example: 【4:0†source】).
+            - Do not present source-backed factual claims without citations.
+            - If no external source was used, state that clearly instead of inventing citations.
+        `,
+    );
+
+    return baseInstructions ? `${baseInstructions}\n\n${citationPolicy}` : citationPolicy;
+}
 
 /**
  * Supported external types stored in AgentExternals.
@@ -165,6 +236,7 @@ export class AgentKitCacheManager {
         );
         const knowledgeSources = modelRequirements.knowledgeSources ? [...modelRequirements.knowledgeSources] : [];
         const tools = modelRequirements.tools ? [...modelRequirements.tools] : undefined;
+        const instructions = withSourceCitationPolicy(modelRequirements.systemMessage, { knowledgeSources, tools });
         const agentKitName = formatAssistantNameWithHash(configuration.name || agentName, assistantCacheKey);
 
         const vectorStoreHash = await this.computeVectorStoreHash({ agentName, knowledgeSources });
@@ -189,7 +261,7 @@ export class AgentKitCacheManager {
             console.info('[🤰]', 'Preparing AgentKit agent via cache manager', {
                 agentName,
                 agentKitName,
-                instructionsLength: modelRequirements.systemMessage.length,
+                instructionsLength: instructions.length,
                 knowledgeSourcesCount: knowledgeSources.length,
                 toolsCount: tools?.length ?? 0,
             });
@@ -197,7 +269,7 @@ export class AgentKitCacheManager {
 
         const preparedAgent = await baseTools.prepareAgentKitAgent({
             name: agentKitName,
-            instructions: modelRequirements.systemMessage,
+            instructions,
             knowledgeSources,
             tools,
             vectorStoreId: cachedVectorStoreId ?? undefined,

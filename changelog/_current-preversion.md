@@ -1,6 +1,7 @@
 -### 📚 Book
 
 -   Enabled clickable agent references in the Book editor: `@agent`, `{agent name}`, `{agentId}`, `https://.../agents/...`, and `{https://.../agents/...}` now share one highlight style and open the referenced agent via Ctrl/Cmd+Click.
+-   Strengthened source citation behavior in Agents Server chat: AgentKit instructions now append a shared citation policy whenever knowledge/web tools are active, and chat post-processing now preserves parsed citations before humanization so source chips remain visible instead of being dropped.
 
 -   Added a scroll-to-bottom indicator to the Agents Server chat so the floating arrow now announces unseen replies, surfaces a new-messages badge, and keeps the action accessible even when the user scrolls away from the newest content.
 -   Refined the Agents Server chat scroll-to-bottom control with a cleaner directional arrow icon and richer frosted styling (hover/focus ring, subtle motion, and badge polish) while keeping sizing and color tokens DRY through shared CSS variables.
