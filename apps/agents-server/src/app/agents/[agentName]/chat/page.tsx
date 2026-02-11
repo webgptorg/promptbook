@@ -43,7 +43,7 @@ export default async function AgentChatPage({
     });
 
     return (
-        <main className={`w-full h-full overflow-hidden relative`}>
+        <main className={`w-full h-full overflow-hidden relative agent-chat-route-surface`}>
             <BackToAgentButton agentName={agentName} />
             <AgentChatWrapper
                 agentUrl={agentUrl}

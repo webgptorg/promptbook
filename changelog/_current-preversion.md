@@ -5,6 +5,7 @@
 -   Added a scroll-to-bottom indicator to the Agents Server chat so the floating arrow now announces unseen replies, surfaces a new-messages badge, and keeps the action accessible even when the user scrolls away from the newest content.
 
 -   Removed the Agents Server desktop hamburger menu so the toggle only appears in mobile layouts where it is used.
+-   Improved the Agents Server transition from agent profile chat to full chat by removing the blocking overlay, fixing promise-safe message handoff from the profile composer/quick buttons, and using a shared view-transition surface so opening `/chat` feels immediate and seamless.
 -   Added a shared `SoundSystemProvider` and moved the chat sound/vibration toggles into the new header Control Panel (desktop dropdown + mobile card), keeping the global controls near the profile menu instead of buried under the chat save menu.
 -   Added the shared useUnsavedChangesGuard hook so modal closing (starting with the Agents Server create-agent dialog) confirms before discarding agent book edits and blocks tab closes until the user confirms.
 -   Removed the clone button from the Agents Server directory listing cards so cloning stays available only via the agent context menu, preventing duplicate actions in both views.

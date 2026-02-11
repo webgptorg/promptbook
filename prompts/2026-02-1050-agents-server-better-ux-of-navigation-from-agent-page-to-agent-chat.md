@@ -5,7 +5,7 @@
 
 ---
 
-[ ]
+[x] ~$0.35 9 minutes by OpenAI Codex `gpt-5.3-codex`
 
 [✨🩰] The UX of navigation from the agent profile page to the agent chat page.
 
@@ -53,3 +53,4 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

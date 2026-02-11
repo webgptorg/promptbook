@@ -253,6 +253,31 @@ textarea:focus-visible {
     }
 }
 
+/* Agent profile -> full chat transition */
+.agent-chat-route-surface {
+    view-transition-name: agent-chat-route-surface;
+}
+
+.agent-chat-profile-transitioning {
+    opacity: 0.88;
+    transform: scale(1.01);
+    filter: saturate(0.9);
+    pointer-events: none;
+}
+
+::view-transition-old(agent-chat-route-surface),
+::view-transition-new(agent-chat-route-surface) {
+    animation-duration: 220ms;
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    ::view-transition-old(agent-chat-route-surface),
+    ::view-transition-new(agent-chat-route-surface) {
+        animation-duration: 1ms;
+    }
+}
+
 /* Tailwind CSS animation utilities */
 @keyframes fade-in {
     from {
