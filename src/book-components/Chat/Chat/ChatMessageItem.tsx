@@ -32,7 +32,7 @@ import { collectTeamToolCallSummary } from '../utils/collectTeamToolCallSummary'
 import { getToolCallIdentity } from '../../../utils/toolCalls/getToolCallIdentity';
 import styles from './Chat.module.css';
 import type { ChatProps } from './ChatProps';
-import { AVATAR_SIZE, LOADING_INTERACTIVE_IMAGE } from './constants';
+import { LOADING_INTERACTIVE_IMAGE } from './constants';
 
 /**
  * Props for the `ChatMessageItem` component
@@ -503,8 +503,8 @@ export const ChatMessageItem = memo(
                         <div
                             style={
                                 {
-                                    width: AVATAR_SIZE,
-                                    height: AVATAR_SIZE,
+                                    width: '100%',
+                                    height: '100%',
                                     aspectRatio: '1 / 1',
 
                                     backgroundImage: `url(${participant?.avatarSrc || colorToDataUrl(color)})`,

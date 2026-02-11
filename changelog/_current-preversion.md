@@ -38,6 +38,7 @@
 -   Re-styled Markdown headings inside chat bubbles as card-like sections that lean on the same shared heading tokens but now add gradient glass texture, a thicker accent border, high-fidelity glow lines, and deeper drop shadows so the headings mirror the richer Agents Server card language.
 -   Tuned the new heading tokens so every Markdown heading grabs its border, shadow, and text colors from the chat bubble palette, letting the card-like headers glow softly and stay in sync with the shared Agents Server design language.
 -   Underlined inline links inside Agents Server chat bubbles so URLs stay recognizable now that the heading tiles use card-style backgrounds.
+-   Fixed Agents Server chat avatar/bubble spacing while the agent is still thinking or streaming by making the avatar image size follow the responsive avatar container; incomplete and completed message rows now keep the same visual gap on mobile.
 
 -   Added `scripts/verify-prompts/verify-prompts.ts`, an interactive helper that lists top-level prompts, walks through every `[ ]` section, archives resolved files under `prompts/done`, and automatically appends the requested fix prompts when work is still pending; registered the helper as a new task in `.vscode/terminals.json`.
 
