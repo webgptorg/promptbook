@@ -36,11 +36,16 @@
 
 [x] ~$0.00 by Gemini CLI
 
+---
+
+[ ]
+
 [✨🖍] See Agent organized by folders in the application menu.
 
 -   You are working with the [Agents Server](apps/agents-server)
 
 ![alt text](prompts/screenshots/2026-01-0790-agents-server-folders-and-menus.png)
+![alt text](prompts/screenshots/2026-01-0790-agents-server-folders-and-menus-3.png)
 
 ---
 
@@ -61,7 +66,3 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
-
-
-
