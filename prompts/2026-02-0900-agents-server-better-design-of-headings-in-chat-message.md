@@ -41,13 +41,13 @@
 
 ---
 
-[-]
+[ ]
 
-[✨🤧] bar
+[✨🤧] Enhance the design of headings
 
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+![alt text](prompts/screenshots/2026-02-0900-agents-server-better-design-of-headings-in-chat-message-4.png)
 
 ---
 
@@ -58,5 +58,3 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
-
