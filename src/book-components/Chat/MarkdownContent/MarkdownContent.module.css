@@ -1,15 +1,13 @@
 .MarkdownContent :is(h1, h2, h3, h4, h5, h6) {
     position: relative;
     z-index: 1;
-    margin-top: 1rem;
+    margin-bottom: 1em;
+    margin-top: 1.5rem;
     color: var(--chat-heading-text-color, var(--message-text-color, #0f172a));
     font-family: var(--font-poppins, 'Poppins', system-ui, -apple-system, sans-serif);
     font-weight: 600;
     line-height: 1.35;
     letter-spacing: -0.01em;
-    overflow: hidden;
-    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease, background-color 0.25s ease;
-    backdrop-filter: blur(18px);
 }
 
 .MarkdownContent a {
