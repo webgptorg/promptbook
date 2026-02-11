@@ -100,6 +100,7 @@
 -   Fixed Agents Server chat markdown rendering for sublists by normalizing unordered list indentation under ordered items.
 -   Deduplicated Agents Server chat source chips so repeated document sources show only once per message.
 -   Deduplicated tool call chips in Agents Server chat by stabilizing tool call identities across partial updates.
+-   Fixed duplicated tool call chips (blank/filled pair) by deduplicating repeated tool call entries and rendering only the final, result-rich chip for each tool invocation.
 -   Grouped identical ongoing tool call chips in Agents Server chat so concurrent tool runs collapse into a single chip with a count.
 -   Added tactile feedback for Agents Server chat tool call chips and streaming responses by routing the chat sound system into chip rendering and vibrating on every streaming chunk, so tool usage and in-progress replies feel more immersive.
 -   Fixed drag-and-drop uploads in the Agents Server create-agent dialog by reusing the shared BookEditor upload handler.
@@ -483,4 +484,3 @@
 -   Updated `openai` from `4.63.0` to `6.18.0` and fixed all resulting type errors.
 -   Resolved `zod` peer dependency conflicts between `@ai-sdk/deepseek` and `@openai/agents` by using `overrides` in `package.json`.
 -   Fixed `node-fetch` declaration issue in `LindatAutomaticTranslator.ts` by using native `URLSearchParams` and removing `node-fetch` import.
-

@@ -5,6 +5,7 @@
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { colorToDataUrl } from '../../../_packages/color.index';
 import { PROMPTBOOK_CHAT_COLOR, USER_CHAT_COLOR } from '../../../config';
+import type { ToolCall } from '../../../types/ToolCall';
 import { isAssistantPreparationToolCall } from '../../../types/ToolCall';
 import type { id } from '../../../types/typeAliases';
 import { Color } from '../../../utils/color/Color';
@@ -28,6 +29,7 @@ import {
 import { parseMessageButtons } from '../utils/parseMessageButtons';
 import { parseToolCallArguments } from '../utils/toolCallParsing';
 import { collectTeamToolCallSummary } from '../utils/collectTeamToolCallSummary';
+import { getToolCallIdentity } from '../../../utils/toolCalls/getToolCallIdentity';
 import styles from './Chat.module.css';
 import type { ChatProps } from './ChatProps';
 import { AVATAR_SIZE, LOADING_INTERACTIVE_IMAGE } from './constants';
@@ -216,6 +218,28 @@ function getOngoingToolCallGroupKey(toolCall: OngoingToolCall, preparationPhase?
 }
 
 /**
+ * Deduplicates a list of tool calls by their stable identity, keeping the most recent entry.
+ *
+ * @private internal utility of `<ChatMessageItem/>`
+ */
+function dedupeToolCalls(toolCalls: ReadonlyArray<ToolCall> | undefined): Array<ToolCall> {
+    if (!toolCalls || toolCalls.length === 0) {
+        return [];
+    }
+
+    const seen = new Map<string, ToolCall>();
+    for (const toolCall of toolCalls) {
+        const identity = getToolCallIdentity(toolCall);
+        if (seen.has(identity)) {
+            seen.delete(identity);
+        }
+        seen.set(identity, toolCall);
+    }
+
+    return Array.from(seen.values());
+}
+
+/**
  * Groups ongoing tool calls by tool identity to avoid duplicate chips.
  */
 function groupOngoingToolCalls(
@@ -388,8 +412,10 @@ export const ChatMessageItem = memo(
         );
         const colorOfText = color.then(textColor);
         const { contentWithoutButtons, buttons } = parseMessageButtons(message.content);
-        const completedToolCalls = (message.toolCalls || message.completedToolCalls)?.filter(
-            (toolCall) => !isAssistantPreparationToolCall(toolCall),
+        const completedToolCalls = dedupeToolCalls(
+            (message.toolCalls || message.completedToolCalls)?.filter(
+                (toolCall) => !isAssistantPreparationToolCall(toolCall),
+            ),
         );
         const teamToolCallSummary = useMemo(() => collectTeamToolCallSummary(completedToolCalls), [completedToolCalls]);
         const transitiveToolCalls = teamToolCallSummary.toolCalls;
