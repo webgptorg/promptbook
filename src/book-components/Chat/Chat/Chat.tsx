@@ -2,7 +2,7 @@
 // <- Note: [??] 'use client' is enforced by Next.js when building the https://book-components.ptbk.io/ but in ideal case,
 //          this would not be here because the `@promptbook/components` package should be React library independent of Next.js specifics
 
-import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent, type UIEvent } from 'react';
 import { Color } from '../../../utils/color/Color';
 import { humanizeAiText } from '../../../utils/markdown/humanizeAiText';
 import { promptbookifyAiText } from '../../../utils/markdown/promptbookifyAiText';
@@ -65,6 +65,31 @@ function buildScrollIndicatorText(count: number): ScrollIndicatorText {
         badgeLabel,
         ariaLabel: `${badgeLabel} below. Scroll to the latest message.`,
     };
+}
+
+/**
+ * Checks whether the latest rendered chat message is visible inside the messages viewport.
+ *
+ * @param chatMessagesElement - Scrollable chat messages container.
+ * @param messageSelector - Selector that targets chat message nodes.
+ * @returns `true` when any part of the latest message is visible.
+ * @private
+ */
+function isLatestMessageVisible(chatMessagesElement: HTMLDivElement | null, messageSelector: string): boolean {
+    if (!chatMessagesElement) {
+        return true;
+    }
+
+    const messageElements = Array.from(chatMessagesElement.querySelectorAll<HTMLElement>(messageSelector));
+    const latestMessageElement = messageElements[messageElements.length - 1];
+    if (!latestMessageElement) {
+        return true;
+    }
+
+    const containerRect = chatMessagesElement.getBoundingClientRect();
+    const latestMessageRect = latestMessageElement.getBoundingClientRect();
+
+    return latestMessageRect.bottom > containerRect.top && latestMessageRect.top < containerRect.bottom;
 }
 
 /**
@@ -146,16 +171,56 @@ export function Chat(props: ChatProps) {
     } = useChatAutoScroll();
 
     const [unseenMessagesCount, setUnseenMessagesCount] = useState(0);
+    const [isLatestMessageInView, setIsLatestMessageInView] = useState(true);
     const lastSeenMessagesRef = useRef(messages.length);
+    const chatMessagesElementRef = useRef<HTMLDivElement | null>(null);
 
     const chatMessageSelector = `.${styles.chatMessage}`;
-    const { actionsRef, setChatMessagesElement, handleChatScroll, isActionsOverlapping, isActionsScrolling } =
-        useChatActionsOverlap({
-            chatMessagesRef,
-            handleScroll,
-            messageSelector: chatMessageSelector,
-            messages: postprocessedMessages,
-        });
+    const {
+        actionsRef,
+        setChatMessagesElement: setChatMessagesElementWithOverlap,
+        handleChatScroll: handleChatScrollWithOverlap,
+        isActionsOverlapping,
+        isActionsScrolling,
+    } = useChatActionsOverlap({
+        chatMessagesRef,
+        handleScroll,
+        messageSelector: chatMessageSelector,
+        messages: postprocessedMessages,
+    });
+
+    /**
+     * Recomputes whether the latest message is visible in the chat viewport.
+     *
+     * @param chatMessagesElement - Optional explicit container element.
+     */
+    const updateLatestMessageVisibility = useCallback(
+        (chatMessagesElement?: HTMLDivElement | null) => {
+            const targetElement = chatMessagesElement ?? chatMessagesElementRef.current;
+            const nextVisibility = isLatestMessageVisible(targetElement, chatMessageSelector);
+            setIsLatestMessageInView((currentVisibility) =>
+                currentVisibility === nextVisibility ? currentVisibility : nextVisibility,
+            );
+        },
+        [chatMessageSelector],
+    );
+
+    const setChatMessagesElement = useCallback(
+        (element: HTMLDivElement | null) => {
+            chatMessagesElementRef.current = element;
+            setChatMessagesElementWithOverlap(element);
+            updateLatestMessageVisibility(element);
+        },
+        [setChatMessagesElementWithOverlap, updateLatestMessageVisibility],
+    );
+
+    const handleChatScroll = useCallback(
+        (event: UIEvent<HTMLDivElement>) => {
+            handleChatScrollWithOverlap(event);
+            updateLatestMessageVisibility(event.currentTarget);
+        },
+        [handleChatScrollWithOverlap, updateLatestMessageVisibility],
+    );
 
     useEffect(() => {
         if (messages.length < lastSeenMessagesRef.current) {
@@ -183,6 +248,7 @@ export function Chat(props: ChatProps) {
         () => buildScrollIndicatorText(unseenMessagesCount),
         [unseenMessagesCount],
     );
+    const shouldShowScrollToBottom = !isAutoScrolling && !isLatestMessageInView;
 
     const {
         state: {
@@ -216,7 +282,22 @@ export function Chat(props: ChatProps) {
 
     useEffect(() => {
         handleMessagesChange();
-    }, [postprocessedMessages, handleMessagesChange]);
+
+        const animationFrame = requestAnimationFrame(() => {
+            updateLatestMessageVisibility();
+        });
+
+        return () => cancelAnimationFrame(animationFrame);
+    }, [postprocessedMessages, handleMessagesChange, updateLatestMessageVisibility]);
+
+    useEffect(() => {
+        const handleResize = () => {
+            updateLatestMessageVisibility();
+        };
+
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, [updateLatestMessageVisibility]);
 
     const useChatCssClassName = (suffix: string) => `chat-${suffix}`;
     const scrollToBottomCssClassName = useChatCssClassName('scrollToBottom');
@@ -335,7 +416,7 @@ export function Chat(props: ChatProps) {
                 <div className={classNames(className, styles.chatMainFlow, useChatCssClassName('chatMainFlow'))}>
                     {children && <div className={classNames(styles.chatChildren)}>{children}</div>}
 
-                    {!isAutoScrolling && (
+                    {shouldShowScrollToBottom && (
                         <div className={styles.scrollToBottomContainer}>
                             <div className={styles.scrollToBottomWrapper}>
                                 <button

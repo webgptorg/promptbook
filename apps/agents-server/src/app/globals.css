@@ -283,6 +283,10 @@ textarea:focus-visible {
     --agent-chat-scroll-button-size: 52px;
     --agent-chat-scroll-icon-size: 24px;
     --agent-chat-scroll-accent-rgb: 56 189 248;
+    --agent-chat-scroll-badge-border-color: rgba(125, 211, 252, 0.62);
+    --agent-chat-scroll-badge-text-color: #e0f2fe;
+    --agent-chat-scroll-badge-background:
+        linear-gradient(135deg, rgba(8, 47, 73, 0.94), rgba(15, 23, 42, 0.9));
 }
 
 .agent-chat-route-surface .chat-scrollToBottom.chat-scrollToBottom {
@@ -317,15 +321,50 @@ textarea:focus-visible {
 }
 
 .agent-chat-route-surface .chat-scrollToBottom.chat-scrollToBottom + [role='status'] {
-    border: 1px solid rgba(56, 189, 248, 0.5);
-    background: linear-gradient(145deg, rgba(15, 23, 42, 0.92), rgba(30, 41, 59, 0.82));
-    box-shadow: 0 4px 14px rgba(2, 6, 23, 0.35);
+    top: auto;
+    right: auto;
+    left: 50%;
+    bottom: calc(100% + 10px);
+    transform: translateX(-50%);
+    padding: 6px 12px;
+    border: 1px solid var(--agent-chat-scroll-badge-border-color);
+    border-radius: 999px;
+    background: var(--agent-chat-scroll-badge-background);
+    color: var(--agent-chat-scroll-badge-text-color);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: none;
+    line-height: 1;
+    box-shadow:
+        0 10px 24px rgba(2, 6, 23, 0.44),
+        inset 0 1px 0 rgba(224, 242, 254, 0.2);
+    backdrop-filter: blur(10px) saturate(130%);
+}
+
+.agent-chat-route-surface .chat-scrollToBottom.chat-scrollToBottom + [role='status']::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    width: 8px;
+    height: 8px;
+    border-right: 1px solid var(--agent-chat-scroll-badge-border-color);
+    border-bottom: 1px solid var(--agent-chat-scroll-badge-border-color);
+    background: rgba(8, 47, 73, 0.95);
+    transform: translate(-50%, -50%) rotate(45deg);
 }
 
 @media (max-width: 640px) {
     .agent-chat-route-surface {
         --agent-chat-scroll-button-size: 46px;
         --agent-chat-scroll-icon-size: 22px;
+    }
+
+    .agent-chat-route-surface .chat-scrollToBottom.chat-scrollToBottom + [role='status'] {
+        bottom: calc(100% + 8px);
+        padding: 5px 10px;
+        font-size: 10px;
     }
 }
 
