@@ -1,6 +1,7 @@
 -### 📚 Book
 
 -   Enabled clickable agent references in the Book editor: `@agent`, `{agent name}`, `{agentId}`, `https://.../agents/...`, and `{https://.../agents/...}` now share one highlight style and open the referenced agent via Ctrl/Cmd+Click.
+-   Fixed global agent route canonicalization in Agents Server: opening `/agents/:agentId` now resolves compact references through the shared local/federated resolver, redirects names and normalized-name variants to canonical `/agents/<permanentId>`, redirects federated hits to the correct remote server URL, and returns 404 when unresolved.
 -   Strengthened source citation behavior in Agents Server chat: AgentKit instructions now append a shared citation policy whenever knowledge/web tools are active, and chat post-processing now preserves parsed citations before humanization so source chips remain visible instead of being dropped.
 -   Expanded Agents Server chat citation parsing to support simplified source markers like `【document123.doc】` in addition to full OpenAI markers like `【7:15†document123.doc】`; both now reuse a shared DRY normalization utility, resolve to the same source-chip pipeline, and keep citation links working against agent knowledge documents.
 -   Fixed duplicated tool call chips (including empty first chips) in Agents Server chat by streaming only finalized tool call payloads to the client, so each invocation now renders a single correct chip while still showing distinct chips for distinct calls.

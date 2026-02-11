@@ -5,12 +5,13 @@ import { isUserAdmin } from '@/src/utils/isUserAdmin';
 import { saturate } from '@promptbook-local/color';
 import { NotFoundError, PROMPTBOOK_COLOR } from '@promptbook-local/core';
 import { headers } from 'next/headers';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { resolveAgentAvatarImageUrl } from '../../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 import { Color } from '../../../../../../src/utils/color/Color';
 import { resolveSpeechRecognitionLanguage } from '../../../../../../src/utils/language/getBrowserPreferredSpeechRecognitionLanguage';
 import { DeletedAgentBanner } from '../../../components/DeletedAgentBanner';
 import { formatAgentNamingText } from '../../../utils/agentNaming';
+import { resolveAgentRouteTarget } from '../../../utils/agentRouting/resolveAgentRouteTarget';
 import { getAgentNaming } from '../../../utils/getAgentNaming';
 import { getAgentFolderContext, getAgentName, getAgentProfile, isAgentDeleted } from './_utils';
 import { getAgentLinks } from './agentLinks';
@@ -20,6 +21,24 @@ import { generateAgentMetadata } from './generateAgentMetadata';
 import { ServiceWorkerRegister } from './ServiceWorkerRegister';
 
 export const generateMetadata = generateAgentMetadata;
+
+/**
+ * Builds a local canonical path for an agent while preserving supported query parameters.
+ *
+ * @param canonicalAgentId - Canonical permanent identifier of the local agent.
+ * @param search - Current page query parameters.
+ * @returns Canonical local path.
+ */
+function buildCanonicalAgentPath(canonicalAgentId: string, search: { headless?: string }): string {
+    const params = new URLSearchParams();
+    if (search.headless !== undefined) {
+        params.set('headless', search.headless);
+    }
+
+    const query = params.toString();
+    const pathname = `/agents/${encodeURIComponent(canonicalAgentId)}`;
+    return query ? `${pathname}?${query}` : pathname;
+}
 
 /**
  * Renders the main agent profile page.
@@ -36,20 +55,34 @@ export default async function AgentPage({
     searchParams: Promise<{ headless?: string }>;
 }) {
     const agentName = await getAgentName(params);
+    const currentSearchParams = await searchParams;
+    const routeTarget = await resolveAgentRouteTarget(agentName);
+    if (routeTarget === null) {
+        notFound();
+    }
+    if (routeTarget.kind === 'remote') {
+        redirect(routeTarget.url);
+    }
+
+    const canonicalAgentId = routeTarget.canonicalAgentId;
+    if (agentName !== canonicalAgentId) {
+        redirect(buildCanonicalAgentPath(canonicalAgentId, currentSearchParams));
+    }
+
     const requestHeaders = await headers();
     const speechRecognitionLanguage = resolveSpeechRecognitionLanguage({
         acceptLanguageHeader: requestHeaders.get('accept-language'),
     });
     const isAdmin = await isUserAdmin();
-    const { headless: headlessParam } = await searchParams;
+    const { headless: headlessParam } = currentSearchParams;
     const isHeadless = headlessParam !== undefined;
     const { publicUrl } = await $provideServer();
-    const folderContext = await getAgentFolderContext(agentName, isAdmin);
+    const folderContext = await getAgentFolderContext(canonicalAgentId, isAdmin);
     const agentNaming = await getAgentNaming();
 
     let agentProfile;
     try {
-        agentProfile = await getAgentProfile(agentName);
+        agentProfile = await getAgentProfile(canonicalAgentId);
     } catch (error) {
         if (
             error instanceof NotFoundError ||
@@ -64,33 +97,33 @@ export default async function AgentPage({
     }
 
     // Build agent page URL for QR and copy
-    const agentUrl = `${publicUrl.href}${encodeURIComponent(agentName)}`;
+    const agentUrl = routeTarget.canonicalUrl;
     // <- TODO: [🐱‍🚀] Better
 
-    const agentEmail = `${agentName}@${publicUrl.hostname}`;
+    const agentEmail = `${canonicalAgentId}@${publicUrl.hostname}`;
 
     const brandColor = Color.fromSafe(agentProfile.meta.color || PROMPTBOOK_COLOR);
     const brandColorHex = brandColor.then(saturate(-0.5)).toHex();
 
     const fallbackName = formatAgentNamingText('Agent', agentNaming);
     const fullname = (agentProfile.meta.fullname || agentProfile.agentName || fallbackName) as string;
-    const isDeleted = await isAgentDeleted(agentName);
+    const isDeleted = await isAgentDeleted(canonicalAgentId);
 
     return (
         <>
-            <ServiceWorkerRegister scope={`/agents/${encodeURIComponent(agentName)}/`} />
+            <ServiceWorkerRegister scope={`/agents/${encodeURIComponent(canonicalAgentId)}/`} />
             <AgentProfileWrapper
                 agent={agentProfile}
                 agentUrl={agentUrl}
                 publicUrl={publicUrl.href}
                 agentEmail={agentEmail}
-                agentName={agentName}
+                agentName={canonicalAgentId}
                 isAdmin={isAdmin}
                 isHeadless={isHeadless}
                 folderContext={folderContext}
                 actions={
                     <>
-                        {getAgentLinks(agentProfile.permanentId || agentName, (text) =>
+                        {getAgentLinks(agentProfile.permanentId || canonicalAgentId, (text) =>
                             formatAgentNamingText(text, agentNaming),
                         )
                             .filter((link) => link.id === 'book' || link.id === 'integration')
@@ -113,12 +146,12 @@ export default async function AgentPage({
                 {isDeleted && <DeletedAgentBanner />}
                 <AgentProfileChat
                     agentUrl={agentUrl}
-                    agentName={agentName}
+                    agentName={canonicalAgentId}
                     fullname={fullname}
                     brandColorHex={brandColorHex}
                     avatarSrc={
                         resolveAgentAvatarImageUrl({ agent: agentProfile, baseUrl: publicUrl.href }) ||
-                        `/agents/${encodeURIComponent(agentProfile.permanentId || agentName)}/images/default-avatar.png`
+                        `/agents/${encodeURIComponent(agentProfile.permanentId || canonicalAgentId)}/images/default-avatar.png`
                     }
                     isDeleted={isDeleted}
                     speechRecognitionLanguage={speechRecognitionLanguage}

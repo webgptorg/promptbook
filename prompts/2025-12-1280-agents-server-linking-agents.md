@@ -111,7 +111,7 @@ CLOSED
 
 ---
 
-[ ]
+[x] ~$0.48 11 minutes by OpenAI Codex `gpt-5.3-codex`
 
 [✨🈳] Fix clicking on the referenced agent in the book editor.
 
@@ -175,3 +175,4 @@ CLOSED
 -   You are working with the `Agents Server` application `/apps/agents-server`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the `/changelog/_current-preversion.md`
+
