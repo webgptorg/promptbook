@@ -27,6 +27,25 @@
 
 ---
 
+[ ]
+
+[✨✌️] Enhance the default images of agents in the agent server.
+
+-   The images look very cold and technocratic.
+-   The images should look more friendly, warm, and welcoming.
+-   But not childlike, but more like a friendly and wise mentor, or a helpful assistant.
+-   Should be suitable for the business. Not too playful, but still friendly and warm.
+-   **Do not do the photorealism, do some nice animated representation of the AI agents.**
+-   Avoid text in the images.
+-   Bring the colors of the agent into the images.
+-   Be creative and try to make the images look more unique and different from each other, so it is easier for the users to distinguish between different agents.
+-   Change only the [prompt of the image](apps/agents-server/src/app/agents/[agentName]/images/default-avatar.png/getAgentDefaultAvatarPrompt.ts). Do not change the generating logic.
+
+![alt text](prompts/screenshots/2026-02-1100-agents-server-enhance-default-images-of-agents-4.png)
+![alt text](prompts/screenshots/2026-02-1100-agents-server-enhance-default-images-of-agents-5.png)
+
+---
+
 [-]
 
 [✨✌️] bar
@@ -45,4 +64,3 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
