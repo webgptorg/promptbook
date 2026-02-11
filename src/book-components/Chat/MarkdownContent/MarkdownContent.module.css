@@ -18,6 +18,8 @@
     backdrop-filter: blur(18px);
 }
 
+/*
+TODO: Remove
 .MarkdownContent :is(h1, h2, h3, h4, h5, h6)::before {
     content: '';
     position: absolute;
@@ -26,7 +28,10 @@
     opacity: 0.55;
     pointer-events: none;
 }
+*/
 
+/*
+TODO: Remove
 .MarkdownContent :is(h1, h2, h3, h4, h5, h6)::after {
     content: '';
     position: absolute;
@@ -39,6 +44,7 @@
     filter: drop-shadow(0 0 12px rgba(56, 189, 248, 0.6));
     pointer-events: none;
 }
+*/
 
 .MarkdownContent :is(h1, h2, h3, h4, h5, h6):hover {
     transform: translateY(-1px);
