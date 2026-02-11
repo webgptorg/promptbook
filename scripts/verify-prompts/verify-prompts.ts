@@ -152,20 +152,26 @@ async function verifyDonePromptsInFile(file: PromptFile): Promise<void> {
 
     console.info(colors.gray('Verifying the last [x] prompt in the file...\n'));
     displayPromptSnippet({ file, section: lastDoneSection });
-    const isVerified = await promptForDoneVerification(file, lastDoneSection);
+    const decision = await promptForDoneVerification(file, lastDoneSection);
 
-    if (isVerified) {
+    if (decision === 'done') {
         await archivePromptFile(file);
-    } else {
+    } else if (decision === 'needs-work') {
         console.info(colors.yellow('\n⚠️  This prompt needs repair.'));
         await appendRepairPrompt(file, lastDoneSection);
+    } else {
+        console.info(colors.gray('\n⏩ Skipped, no changes made.'));
     }
 }
 
 /**
  * Asks the user to verify if a done prompt is actually completed.
+ * Returns 'done' if verified, 'needs-work' if not done, or 'skip' to skip this file.
  */
-async function promptForDoneVerification(file: PromptFile, section: PromptSection): Promise<boolean> {
+async function promptForDoneVerification(
+    file: PromptFile,
+    section: PromptSection,
+): Promise<'done' | 'needs-work' | 'skip'> {
     const promptLabel = buildPromptLabelForDisplay(file, section);
     const response = await prompts<'verified'>(
         {
@@ -175,11 +181,15 @@ async function promptForDoneVerification(file: PromptFile, section: PromptSectio
             choices: [
                 {
                     title: "✅ Yes, it's done",
-                    value: true,
+                    value: 'done',
                 },
                 {
                     title: '❌ No, needs work',
-                    value: false,
+                    value: 'needs-work',
+                },
+                {
+                    title: '⏩ Skip, do nothing',
+                    value: 'skip',
                 },
             ],
             initial: 0,
@@ -192,7 +202,7 @@ async function promptForDoneVerification(file: PromptFile, section: PromptSectio
         },
     );
 
-    return response.verified as boolean;
+    return response.verified as 'done' | 'needs-work' | 'skip';
 }
 
 /**
