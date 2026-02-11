@@ -27,12 +27,21 @@ const MAX_PENDING_FILE_NAMES = 8;
 /** Possible user decisions after reviewing a prompt section. */
 type PromptDecision = 'done' | 'not-done';
 
+/** Parse command-line arguments */
+const REVERSE_ORDER = process.argv.includes('--reverse');
+
 /**
  * Starts the verification loop and exits when no `[ ]` prompts remain.
  */
 async function main(): Promise<void> {
     console.info(colors.cyan.bold('📋 Prompt verification helper'));
+    if (REVERSE_ORDER) {
+        console.info(colors.gray('Processing files in reverse order'));
+    }
     const initialFiles = await loadPromptFiles(PROMPTS_DIR);
+    if (REVERSE_ORDER) {
+        initialFiles.reverse();
+    }
     displayTopLevelFileList(initialFiles);
     await prepareArchiveDirectory();
 
@@ -50,6 +59,9 @@ async function main(): Promise<void> {
                 skippedFiles.add(fileWithAllDone.path);
             }
             promptFiles = await loadPromptFiles(PROMPTS_DIR);
+            if (REVERSE_ORDER) {
+                promptFiles.reverse();
+            }
             continue;
         }
 
@@ -62,6 +74,9 @@ async function main(): Promise<void> {
 
         await resolvePrompt(nextPrompt);
         promptFiles = await loadPromptFiles(PROMPTS_DIR);
+        if (REVERSE_ORDER) {
+            promptFiles.reverse();
+        }
     }
 }
 
