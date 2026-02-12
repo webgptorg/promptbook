@@ -2465,7 +2465,7 @@
     padding: 14px 22px;
     border-radius: 14px;
     box-shadow: 0 18px 32px rgba(15, 23, 42, 0.35);
-    z-index: 4000;
+    z-index: 10000; /* [Fix z-index]: Ensure it's above the header (z-50) and other UI elements */
     animation: feedbackStatusSlideIn 0.28s ease-out;
     max-width: 340px;
     word-wrap: break-word;

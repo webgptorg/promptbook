@@ -1,4 +1,5 @@
 [x] ~$0.38 14 minutes by OpenAI Codex `gpt-5.1-codex-mini`
+[x]
 
 [✨➰] Fix the saving feedback in the Agents Server
 
@@ -43,4 +44,3 @@ When you send a feedback, it will fail with this 500 http error and the feedback
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-

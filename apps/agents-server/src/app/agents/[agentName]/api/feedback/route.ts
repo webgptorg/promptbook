@@ -23,10 +23,25 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         }
 
         const supabase = $provideSupabaseForServer();
+        const agentTable = await $getTableName('Agent');
+
+        const { data: agentData, error: agentError } = await supabase
+            .from(agentTable)
+            .select('agentName')
+            .or(`agentName.eq.${agentName},permanentId.eq.${agentName}`)
+            .limit(1)
+            .single();
+
+        if (agentError || !agentData) {
+            console.error('Error finding agent for feedback:', agentError);
+            return NextResponse.json({ message: 'Agent not found' }, { status: 404 });
+        }
+
+        const canonicalAgentName = agentData.agentName;
 
         const { error } = await supabase.from(await $getTableName('ChatFeedback')).insert({
             createdAt: new Date().toISOString(),
-            agentName,
+            agentName: canonicalAgentName,
             agentHash,
             rating,
             textRating,
@@ -38,7 +53,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
             // For now we leave them null or let Supabase handle default if any (though schema has them nullable)
             url: request.headers.get('referer') || undefined,
             userAgent: request.headers.get('user-agent') || undefined,
-            ip: request.headers.get('x-forwarded-for') || undefined,
+            ip:
+                request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+                request.headers.get('x-real-ip') ||
+                undefined,
         });
 
         if (error) {
