@@ -1,19 +1,19 @@
 'use client';
 
 import { usePromise } from '@common/hooks/usePromise';
-import { AgentChat } from '@promptbook-local/components';
+import { AgentChat, ChatMessage } from '@promptbook-local/components';
 import { RemoteAgent } from '@promptbook-local/core';
 import { upload } from '@vercel/blob/client';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { OpenAiSpeechRecognition } from '../../../../../../src/speech-recognition/OpenAiSpeechRecognition';
 import { string_agent_url } from '../../../../../../src/types/typeAliases';
-import { ChatErrorDialog } from '../../../components/ChatErrorDialog';
 import { useAgentBackground } from '../../../components/AgentProfile/useAgentBackground';
+import { ChatErrorDialog } from '../../../components/ChatErrorDialog';
 import { useSoundSystem } from '../../../components/SoundSystemProvider/SoundSystemProvider';
-import { createDefaultChatEffects } from '../../../utils/chat/createDefaultChatEffects';
 import { getSafeCdnPath } from '../../../utils/cdn/utils/getSafeCdnPath';
-import { handleChatError } from '../../../utils/errorMessages';
+import { createDefaultChatEffects } from '../../../utils/chat/createDefaultChatEffects';
 import type { FriendlyErrorMessage } from '../../../utils/errorMessages';
+import { handleChatError } from '../../../utils/errorMessages';
 import { normalizeUploadFilename } from '../../../utils/normalization/normalizeUploadFilename';
 
 type AgentChatWrapperProps = {
@@ -28,14 +28,8 @@ type AgentChatWrapperProps = {
 // TODO: [🐱‍🚀] Rename to AgentChatSomethingWrapper
 
 export function AgentChatWrapper(props: AgentChatWrapperProps) {
-    const {
-        agentUrl,
-        defaultMessage,
-        autoExecuteMessage,
-        brandColor,
-        thinkingMessages,
-        speechRecognitionLanguage,
-    } = props;
+    const { agentUrl, defaultMessage, autoExecuteMessage, brandColor, thinkingMessages, speechRecognitionLanguage } =
+        props;
 
     const { backgroundImage } = useAgentBackground(brandColor);
 
@@ -61,12 +55,13 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
 
     const handleFeedback = useCallback(
         async (feedback: {
+            message: ChatMessage;
             rating: number;
-            textRating?: string;
-            chatThread?: string;
-            userNote?: string;
-            expectedAnswer?: string | null;
-        }) => {
+            textRating: string;
+            chatThread: string;
+            expectedAnswer: string | null;
+            url: string;
+        }): Promise<void> => {
             if (!agent) {
                 throw new Error('Agent is not ready to receive feedback.');
             }
@@ -80,22 +75,17 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
                     rating: feedback.rating.toString(),
                     textRating: feedback.textRating,
                     chatThread: feedback.chatThread,
-                    userNote: feedback.userNote ?? feedback.textRating,
+                    userNote: feedback.textRating,
                     expectedAnswer: feedback.expectedAnswer,
                     agentHash: agent.agentHash,
                 }),
             });
 
-            const payload =
-                (await response.json().catch(() => null)) as { message?: string } | null;
+            const payload = (await response.json().catch(() => null)) as { message?: string } | null;
 
             if (!response.ok) {
                 throw new Error(payload?.message ?? 'Failed to save feedback.');
             }
-
-            return {
-                message: payload?.message ?? 'Feedback saved',
-            };
         },
         [agent, agentUrl],
     );
