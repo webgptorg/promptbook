@@ -294,8 +294,15 @@
             "focus": true
         },
         {
+            "name": "⚡🚀💪 Run Coding Agent (💤)(💸)(⏳)",
+            "command": "npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --agent openai-codex --model gpt-5.3-codex",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
             "name": "⚡🚀 Run Coding Agent (💤)(💸)(⏳)",
-            "command": "npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --agent openai-codex --model codex-mini-latest",
+            "command": "npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --agent openai-codex --model gpt-codex-5.1-mini --no-wait",
             "execute": false,
             "onlySingle": false,
             "focus": false
@@ -569,6 +576,13 @@
         {
             "name": "🏭🩹 Prettify all files (+commit)(⏳)",
             "command": "npx ts-node ./scripts/prettify-all/prettify-all.ts --commit",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "🏭🔼 Update the production Agents servers",
+            "command": "git branch --force production main && git push origin production --force-with-lease && (cd ./apps/agents-server/ && npm run migrate-database)",
             "execute": true,
             "onlySingle": true,
             "focus": true
