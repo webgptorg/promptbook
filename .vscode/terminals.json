@@ -302,7 +302,7 @@
         },
         {
             "name": "⚡🚀 Run Coding Agent (💤)(💸)(⏳)",
-            "command": "npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --agent openai-codex --model gpt-codex-5.1-mini --no-wait",
+            "command": "npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --agent openai-codex --model gpt-5.1-codex-mini --no-wait",
             "execute": false,
             "onlySingle": false,
             "focus": false
