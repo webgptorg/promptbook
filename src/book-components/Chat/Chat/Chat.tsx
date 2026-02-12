@@ -258,7 +258,7 @@ export function Chat(props: ChatProps) {
             textRating,
             hoveredRating,
             expandedMessageId,
-            ratingConfirmation,
+            feedbackStatus,
         },
         actions: {
             setRatingModalOpen,
@@ -393,7 +393,20 @@ export function Chat(props: ChatProps) {
 
     return (
         <>
-            {ratingConfirmation && <div className={styles.ratingConfirmation}>{ratingConfirmation}</div>}
+            {feedbackStatus && (
+                <div
+                    className={classNames(
+                        styles.feedbackStatus,
+                        feedbackStatus.variant === 'success'
+                            ? styles.feedbackStatusSuccess
+                            : styles.feedbackStatusError,
+                    )}
+                    aria-live="polite"
+                    role="status"
+                >
+                    {feedbackStatus.message}
+                </div>
+            )}
 
             {effectConfigs && effectConfigs.length > 0 && (
                 <ChatEffectsSystem

@@ -68,10 +68,10 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
             expectedAnswer?: string | null;
         }) => {
             if (!agent) {
-                return;
+                throw new Error('Agent is not ready to receive feedback.');
             }
 
-            await fetch(`${agentUrl}/api/feedback`, {
+            const response = await fetch(`${agentUrl}/api/feedback`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -80,11 +80,22 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
                     rating: feedback.rating.toString(),
                     textRating: feedback.textRating,
                     chatThread: feedback.chatThread,
-                    userNote: feedback.textRating, // Mapping textRating to userNote as well if needed, or just textRating
+                    userNote: feedback.userNote ?? feedback.textRating,
                     expectedAnswer: feedback.expectedAnswer,
                     agentHash: agent.agentHash,
                 }),
             });
+
+            const payload =
+                (await response.json().catch(() => null)) as { message?: string } | null;
+
+            if (!response.ok) {
+                throw new Error(payload?.message ?? 'Failed to save feedback.');
+            }
+
+            return {
+                message: payload?.message ?? 'Feedback saved',
+            };
         },
         [agent, agentUrl],
     );

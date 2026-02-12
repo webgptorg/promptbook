@@ -12,6 +12,18 @@ import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
 
 /**
+ * Response data returned by the optional `onFeedback` handler.
+ *
+ * @public exported from `@promptbook/components`
+ */
+export type ChatFeedbackResponse = {
+    /**
+     * Optional text that should be shown to the user after the feedback is saved.
+     */
+    readonly message?: string;
+};
+
+/**
  * Interface for sound system that can be passed to Chat component
  * This allows the chat to trigger sounds without tight coupling
  *

@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Promisable } from 'type-fest';
 import type { id } from '../../../types/typeAliases';
 import type { ChatMessage } from '../types/ChatMessage';
+import type { ChatFeedbackResponse } from '../Chat/ChatProps';
 
 /**
  * Input parameters for the chat rating hook.
@@ -23,12 +24,38 @@ export type UseChatRatingsOptions = {
         chatThread: string;
         expectedAnswer: string | null;
         url: string;
-    }) => Promisable<void>;
+    }) => Promisable<ChatFeedbackResponse | void>;
     /**
      * Whether the UI should apply mobile-specific behavior.
      */
     isMobile: boolean;
 };
+
+/**
+ * Indicates how the feedback status message should be rendered.
+ *
+ * @private component of `<Chat/>`
+ */
+export type FeedbackStatusVariant = 'success' | 'error';
+
+/**
+ * Data used to show the transient feedback status toast.
+ *
+ * @private component of `<Chat/>`
+ */
+export type FeedbackStatus = {
+    /**
+     * Message displayed to the user.
+     */
+    readonly message: string;
+    /**
+     * Whether the message indicates success or failure.
+     */
+    readonly variant: FeedbackStatusVariant;
+};
+
+const DEFAULT_FEEDBACK_SUCCESS_MESSAGE = 'Thank you for your feedback!';
+const DEFAULT_FEEDBACK_ERROR_MESSAGE = 'Failed to save feedback. Please try again.';
 
 /**
  * Rating state tracked for the chat UI.
@@ -42,7 +69,7 @@ export type ChatRatingsState = {
     textRating: string;
     hoveredRating: number;
     expandedMessageId: id | null;
-    ratingConfirmation: string | null;
+    feedbackStatus: FeedbackStatus | null;
 };
 
 /**
@@ -77,7 +104,8 @@ export function useChatRatings(options: UseChatRatingsOptions): {
     const [textRating, setTextRating] = useState('');
     const [hoveredRating, setHoveredRating] = useState(0);
     const [expandedMessageId, setExpandedMessageId] = useState<id | null>(null);
-    const [ratingConfirmation, setRatingConfirmation] = useState<string | null>(null);
+    const [feedbackStatus, setFeedbackStatus] = useState<FeedbackStatus | null>(null);
+    const feedbackStatusTimeoutRef = useRef<number | null>(null);
 
     const handleRating = useCallback((message: ChatMessage, newRating: number) => {
         setSelectedMessage(message);
@@ -90,6 +118,33 @@ export function useChatRatings(options: UseChatRatingsOptions): {
             return nextRatings;
         });
         setRatingModalOpen(true);
+    }, []);
+
+    const showFeedbackStatus = useCallback((status: FeedbackStatus | null) => {
+        if (feedbackStatusTimeoutRef.current !== null) {
+            clearTimeout(feedbackStatusTimeoutRef.current);
+            feedbackStatusTimeoutRef.current = null;
+        }
+
+        setFeedbackStatus(status);
+
+        if (!status || typeof window === 'undefined') {
+            return;
+        }
+
+        feedbackStatusTimeoutRef.current = window.setTimeout(() => {
+            setFeedbackStatus(null);
+            feedbackStatusTimeoutRef.current = null;
+        }, 3000);
+    }, []);
+
+    useEffect(() => {
+        return () => {
+            if (feedbackStatusTimeoutRef.current !== null) {
+                clearTimeout(feedbackStatusTimeoutRef.current);
+                feedbackStatusTimeoutRef.current = null;
+            }
+        };
     }, []);
 
     const submitRating = useCallback(async () => {
@@ -115,10 +170,15 @@ export function useChatRatings(options: UseChatRatingsOptions): {
 
         if (onFeedback) {
             try {
-                await onFeedback(feedbackData);
+                const feedbackResponse = await onFeedback(feedbackData);
+                showFeedbackStatus({
+                    message: feedbackResponse?.message ?? DEFAULT_FEEDBACK_SUCCESS_MESSAGE,
+                    variant: 'success',
+                });
             } catch (error) {
                 console.error('Error submitting feedback:', error);
-                alert('Failed to submit feedback. Please try again.');
+                const message = error instanceof Error ? error.message : DEFAULT_FEEDBACK_ERROR_MESSAGE;
+                showFeedbackStatus({ message, variant: 'error' });
                 return;
             }
         } else {
@@ -129,14 +189,16 @@ export function useChatRatings(options: UseChatRatingsOptions): {
                 expectedAnswer: selectedMessage.expectedAnswer || selectedMessage.content || null,
                 url: window.location.href,
             });
+            showFeedbackStatus({
+                message: DEFAULT_FEEDBACK_SUCCESS_MESSAGE,
+                variant: 'success',
+            });
         }
 
         setRatingModalOpen(false);
         setTextRating('');
         setSelectedMessage(null);
-        setRatingConfirmation('Thank you for your feedback!');
-        setTimeout(() => setRatingConfirmation(null), 3000);
-    }, [selectedMessage, messageRatings, textRating, messages, onFeedback]);
+    }, [messages, messageRatings, onFeedback, selectedMessage, showFeedbackStatus, textRating]);
 
     useEffect(() => {
         if (ratingModalOpen && isMobile) {
@@ -155,7 +217,7 @@ export function useChatRatings(options: UseChatRatingsOptions): {
             textRating,
             hoveredRating,
             expandedMessageId,
-            ratingConfirmation,
+            feedbackStatus,
         },
         actions: {
             setRatingModalOpen,

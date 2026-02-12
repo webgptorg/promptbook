@@ -2457,29 +2457,39 @@
     height: 14px;
 }
 
-/* Rating confirmation */
-.ratingConfirmation {
+/* Feedback status banner */
+.feedbackStatus {
     position: fixed;
     top: 20px;
     right: 20px;
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    color: white;
-    padding: 16px 20px;
-    border-radius: 12px;
-    box-shadow: 0 8px 32px rgba(16, 185, 129, 0.3);
-    z-index: 1001;
-    animation: confirmationSlideIn 0.3s ease-out;
-    max-width: 300px;
+    padding: 14px 22px;
+    border-radius: 14px;
+    box-shadow: 0 18px 32px rgba(15, 23, 42, 0.35);
+    z-index: 4000;
+    animation: feedbackStatusSlideIn 0.28s ease-out;
+    max-width: 340px;
     word-wrap: break-word;
     font-weight: 500;
     backdrop-filter: blur(20px);
+    pointer-events: none;
 }
 
-@keyframes confirmationSlideIn {
+.feedbackStatusSuccess {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #f8fafc;
+}
+
+.feedbackStatusError {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: #fef2f2;
+}
+
+@keyframes feedbackStatusSlideIn {
     from {
         transform: translateX(100%);
         opacity: 0;
     }
+
     to {
         transform: translateX(0);
         opacity: 1;
@@ -2751,7 +2761,7 @@
     .scrollToBottom,
     .ratingModal,
     .ratingModalContent,
-    .ratingConfirmation {
+    .feedbackStatus {
         animation: none;
     }
 
