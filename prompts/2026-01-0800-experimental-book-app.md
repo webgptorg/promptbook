@@ -200,6 +200,7 @@ Story is an experimental orchestration-based storytelling environment where user
 -   "Actors" should be just agents, not a separate concept. The app is about orchestrating agents already existing on a Agents server to write a story, not adding a new concept of "actor" on top of it
 -   "Export as:" should look more like saving the chat conversation, reuse the same design pattern.
 -   Create item in menu `System` -> `Experiments` -> `Story`
+    -   Use the system of sub-menus that are collapsible on hover
 -   Move it from `/story` -> `/experiments/story`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)

@@ -49,6 +49,19 @@
 
 ---
 
+[ ]
+
+[✨🖍] You can see Agent organized by folders in the application menu.
+
+-   Now, are all items shown at once, only with minor indentation
+-   This is not very scalable, as if you have many agents and many folders, it will be a mess
+-   Create proper item menus that are collapsible on hover
+-   You are working with the [Agents Server](apps/agents-server)
+
+![alt text](prompts/screenshots/2026-01-0790-agents-server-folders-and-menus-4.png)
+
+---
+
 [x] ~$0.00 by Gemini CLI
 
 [✨🖍] Allow to make agent public / private agent from its context menu on the Agent profile page / right click of the agent.
@@ -66,4 +79,3 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
