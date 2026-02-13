@@ -11,6 +11,7 @@
 -   Fixed duplicated tool call chips (including empty first chips) in Agents Server chat by streaming only finalized tool call payloads to the client, so each invocation now renders a single correct chip while still showing distinct chips for distinct calls.
 -   Fixed Agents Server chat feedback saving by resolving agent identifiers to canonical names (fixing foreign key violations) and correctly extracting the user's IP from the `x-forwarded-for` header, ensuring successful database insertion.
 -   Improved the Agents Server chat feedback toast to report the actual server response (green on 201, red with the returned message on errors), and fixed its positioning to sit above the sticky header and menus with an increased z-index.
+-   Refined the Agents Server Documentation dropdown so only PERSONA, KNOWLEDGE, GOAL, TEAM, CLOSED, INITIAL MESSAGE, and USE SEARCH ENGINE stay at the top level while the remaining commitments live inside a hoverable “All” submenu, keeping the menu compact on desktop and mobile.
 
 -   Added a scroll-to-bottom indicator to the Agents Server chat so the floating arrow now announces unseen replies, surfaces a new-messages badge, and keeps the action accessible even when the user scrolls away from the newest content.
 -   Refined the Agents Server chat scroll-to-bottom control with a cleaner directional arrow icon and richer frosted styling (hover/focus ring, subtle motion, and badge polish) while keeping sizing and color tokens DRY through shared CSS variables.

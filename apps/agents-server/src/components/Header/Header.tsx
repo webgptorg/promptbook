@@ -5,7 +5,7 @@ import { $createAgentAction, logoutAction } from '@/src/app/actions';
 import { ArrowRight, ChevronDown, ChevronRight, Lock, LogIn, LogOut, User } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { ReactNode, useMemo, useState } from 'react';
+import { ReactNode, useEffect, useMemo, useState } from 'react';
 import { HamburgerMenu } from '../../../../../src/book-components/_common/HamburgerMenu/HamburgerMenu';
 import { useMenuHoisting } from '../../../../../src/book-components/_common/MenuHoisting/MenuHoistingContext';
 import { just } from '../../../../../src/utils/organization/just';
@@ -73,6 +73,7 @@ type SubMenuItem = {
     onClick?: () => void | Promise<void>;
     isBold?: boolean;
     isBordered?: boolean;
+    items?: SubMenuItem[];
 };
 
 type MenuItem =
@@ -91,6 +92,109 @@ type MenuItem =
           items: Array<SubMenuItem>;
           renderMenu?: () => ReactNode;
       };
+
+/**
+ * Helper type describing grouped commitments after filtering out unimplemented ones.
+ */
+type DocumentationCommitmentGroup = ReturnType<typeof getVisibleCommitmentDefinitions>[number];
+
+/**
+ * Commitments that stay at the top level of the Documentation dropdown.
+ */
+const IMPORTANT_COMMITMENT_TYPES = [
+    'PERSONA',
+    'KNOWLEDGE',
+    'GOAL',
+    'TEAM',
+    'CLOSED',
+    'INITIAL MESSAGE',
+    'USE SEARCH ENGINE',
+] as const;
+
+/**
+ * Fast lookups for commits that must stay top-level.
+ */
+const IMPORTANT_COMMITMENT_TYPE_SET = new Set<string>(IMPORTANT_COMMITMENT_TYPES);
+
+/**
+ * Creates a label node that reuses the existing alias styling.
+ *
+ * @param primary - Primary commitment definition.
+ * @param aliases - Additional alias names for the commitment.
+ * @returns JSX node with the commitment type and aliases.
+ */
+function createDocumentationCommitmentLabel(primary: { type: string }, aliases: string[]): ReactNode {
+    return (
+        <>
+            {primary.type}
+            {aliases.length > 0 && (
+                <span className="text-gray-400 font-normal"> / {aliases.join(' / ')}</span>
+            )}
+        </>
+    );
+}
+
+/**
+ * Maps a commitment group to a documentation submenu item.
+ *
+ * @param group - Commitment metadata returned from the registry.
+ * @returns Configured submenu item linking to the commitment page.
+ */
+function createDocumentationCommitmentItem(group: DocumentationCommitmentGroup): SubMenuItem {
+    return {
+        label: createDocumentationCommitmentLabel(group.primary, group.aliases),
+        href: `/docs/${group.primary.type}`,
+    };
+}
+
+/**
+ * Builds the dropdown structure for the Documentation menu, highlighting important
+ * commitments and nesting the rest under an “All” submenu.
+ *
+ * @param groups - Visible commitment definitions.
+ * @returns Ordered list of submenu items for the Documentation dropdown.
+ */
+function buildDocumentationDropdownItems(
+    groups: ReadonlyArray<DocumentationCommitmentGroup>,
+): SubMenuItem[] {
+    const commitmentByType = new Map<string, DocumentationCommitmentGroup>();
+    groups.forEach((group) => {
+        commitmentByType.set(group.primary.type, group);
+    });
+
+    const highlightedCommitments = IMPORTANT_COMMITMENT_TYPES.map((type) => commitmentByType.get(type)).filter(
+        (group): group is DocumentationCommitmentGroup => Boolean(group),
+    );
+
+    const remainingCommitments = groups.filter(
+        (group) => !IMPORTANT_COMMITMENT_TYPE_SET.has(group.primary.type),
+    );
+
+    const items: SubMenuItem[] = [
+        {
+            label: 'Overview',
+            href: '/docs',
+            isBold: true,
+            isBordered: true,
+        },
+        {
+            label: 'API Reference',
+            href: '/swagger',
+            isBold: true,
+            isBordered: true,
+        },
+        ...highlightedCommitments.map(createDocumentationCommitmentItem),
+    ];
+
+    if (remainingCommitments.length > 0) {
+        items.push({
+            label: 'All',
+            items: remainingCommitments.map(createDocumentationCommitmentItem),
+        });
+    }
+
+    return items;
+}
 
 /**
  * Agent data required for the folder-organized header menu.
@@ -489,11 +593,31 @@ export function Header(props: HeaderProps) {
     const [isMobileUsersOpen, setIsMobileUsersOpen] = useState(false);
     const [isMobileSystemOpen, setIsMobileSystemOpen] = useState(false);
     const [isMobileExperimentsOpen, setIsMobileExperimentsOpen] = useState(false);
+    const [mobileOpenSubMenus, setMobileOpenSubMenus] = useState<Record<string, boolean>>({});
     const [isCreatingAgent, setIsCreatingAgent] = useState(false);
     const router = useRouter();
     const isHeadless = useIsHeadless();
     const menuHoisting = useMenuHoisting();
     const { formatText } = useAgentNaming();
+
+    useEffect(() => {
+        if (!isMenuOpen) {
+            setMobileOpenSubMenus({});
+        }
+    }, [isMenuOpen]);
+
+    const visibleDocumentationCommitments = useMemo(() => getVisibleCommitmentDefinitions(), []);
+    const documentationDropdownItems = useMemo(
+        () => buildDocumentationDropdownItems(visibleDocumentationCommitments),
+        [visibleDocumentationCommitments],
+    );
+
+    const toggleMobileSubMenu = (key: string) => {
+        setMobileOpenSubMenus((previous) => ({
+            ...previous,
+            [key]: !previous[key],
+        }));
+    };
 
     const { users: adminUsers } = useUsersAdmin();
     const agentMenuStructure = useMemo(() => buildAgentMenuStructure(agents, agentFolders), [
@@ -584,34 +708,7 @@ export function Header(props: HeaderProps) {
             setIsOpen: setIsDocsOpen,
             isMobileOpen: isMobileDocsOpen,
             setIsMobileOpen: setIsMobileDocsOpen,
-            items: [
-                {
-                    label: 'Overview',
-                    href: '/docs',
-                    isBold: true,
-                    isBordered: true,
-                } as SubMenuItem,
-                {
-                    label: 'API Reference',
-                    href: '/swagger',
-                    isBold: true,
-                    isBordered: true,
-                } as SubMenuItem,
-                ...getVisibleCommitmentDefinitions().map(
-                    ({ primary, aliases }) =>
-                        ({
-                            label: (
-                                <>
-                                    {primary.type}
-                                    {aliases.length > 0 && (
-                                        <span className="text-gray-400 font-normal"> / {aliases.join(' / ')}</span>
-                                    )}
-                                </>
-                            ),
-                            href: `/docs/${primary.type}`,
-                        } as SubMenuItem),
-                ),
-            ],
+            items: documentationDropdownItems,
         },
         ...(isAdmin
             ? [
@@ -865,6 +962,70 @@ export function Header(props: HeaderProps) {
 
                             if (item.type === 'dropdown') {
                                 const dropdownItems = item.items ?? [];
+                                const closeDropdown = () => item.setIsOpen(false);
+
+                                const renderDropdownLink = (linkItem: SubMenuItem, keySuffix: string, className: string) => {
+                                    if (linkItem.onClick) {
+                                        return (
+                                            <button key={keySuffix} onClick={linkItem.onClick} className={`${className} w-full text-left`}>
+                                                {linkItem.label}
+                                            </button>
+                                        );
+                                    }
+
+                                    if (linkItem.href) {
+                                        return (
+                                            <HeadlessLink key={keySuffix} href={linkItem.href} className={className} onClick={closeDropdown}>
+                                                {linkItem.label}
+                                            </HeadlessLink>
+                                        );
+                                    }
+
+                                    return (
+                                        <span key={keySuffix} className={className}>
+                                            {linkItem.label}
+                                        </span>
+                                    );
+                                };
+
+                                const renderDropdownItems = () =>
+                                    dropdownItems.map((subItem, subIndex) => {
+                                        const borderClass = subItem.isBordered ? 'border-b border-gray-100' : '';
+                                        const baseClassName = `block px-4 py-2 text-sm ${
+                                            subItem.isBold ? 'font-medium text-gray-900' : 'text-gray-600'
+                                        } hover:bg-gray-50 hover:text-gray-900 transition-colors ${borderClass}`;
+
+                                        if (subItem.items && subItem.items.length > 0) {
+                                            return (
+                                                <div key={`dropdown-${subIndex}`} className={`relative group ${borderClass}`}>
+                                                    <div
+                                                        className={`flex items-center justify-between px-4 py-2 text-sm ${
+                                                            subItem.isBold ? 'font-medium text-gray-900' : 'text-gray-600'
+                                                        } hover:bg-gray-50 hover:text-gray-900 transition-colors`}
+                                                    >
+                                                        <span>{subItem.label}</span>
+                                                        <ChevronRight className="w-3 h-3 text-gray-400" />
+                                                    </div>
+                                                    <div className="pointer-events-none absolute top-0 left-full ml-1 hidden min-w-[280px] max-w-[min(360px,calc(100vw-4rem))] group-hover:block group-hover:pointer-events-auto group-hover:visible">
+                                                        <div className="pointer-events-auto max-h-[70vh] w-full overflow-y-auto rounded-md border border-gray-100 bg-white p-2 shadow-lg">
+                                                            <div className="grid auto-rows-min gap-1 sm:grid-cols-2">
+                                                                {subItem.items.map((child, childIndex) =>
+                                                                    renderDropdownLink(
+                                                                        child,
+                                                                        `dropdown-${subIndex}-child-${childIndex}`,
+                                                                        'block rounded px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors',
+                                                                    ),
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        }
+
+                                        return renderDropdownLink(subItem, `dropdown-${subIndex}`, baseClassName);
+                                    });
+
                                 return (
                                     <div key={index} className="relative">
                                         <button
@@ -881,34 +1042,7 @@ export function Header(props: HeaderProps) {
                                                 {item.renderMenu ? (
                                                     <div className="relative">{item.renderMenu()}</div>
                                                 ) : (
-                                                    dropdownItems.map((subItem, subIndex) => {
-                                                        const className = `block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 ${
-                                                            subItem.isBold ? 'font-medium' : ''
-                                                        } ${subItem.isBordered ? 'border-b border-gray-100' : ''}`;
-
-                                                        if (subItem.onClick) {
-                                                            return (
-                                                                <button
-                                                                    key={subIndex}
-                                                                    onClick={subItem.onClick}
-                                                                    className={`${className} w-full text-left`}
-                                                                >
-                                                                    {subItem.label}
-                                                                </button>
-                                                            );
-                                                        }
-
-                                                        return (
-                                                            <HeadlessLink
-                                                                key={subIndex}
-                                                                href={subItem.href!}
-                                                                className={className}
-                                                                onClick={() => item.setIsOpen(false)}
-                                                            >
-                                                                {subItem.label}
-                                                            </HeadlessLink>
-                                                        );
-                                                    })
+                                                    renderDropdownItems()
                                                 )}
                                             </div>
                                         )}
@@ -1137,60 +1271,113 @@ export function Header(props: HeaderProps) {
                                     );
                                 }
 
-                                if (item.type === 'dropdown') {
-                                    return (
-                                        <div key={index} className="flex flex-col">
-                                            <button
-                                                className="w-full flex items-center justify-between text-base font-medium text-gray-600 hover:text-gray-900 py-2"
-                                                onClick={() => item.setIsMobileOpen(!item.isMobileOpen)}
-                                            >
-                                                {item.label}
-                                                <ChevronDown
-                                                    className={`w-4 h-4 transition-transform duration-200 ${
-                                                        item.isMobileOpen ? 'rotate-180' : ''
-                                                    }`}
-                                                />
-                                            </button>
-                                            {item.isMobileOpen && (
-                                                <div className="pl-4 flex flex-col gap-2 border-l-2 border-gray-100 ml-1 mt-1">
-                                                    {item.items.map((subItem, subIndex) => {
-                                                        const className = `block text-sm ${
-                                                            subItem.isBold
-                                                                ? 'font-medium text-gray-900 hover:text-gray-700'
-                                                                : 'text-gray-600 hover:text-gray-900'
-                                                        } py-2`;
-
-                                                        if (subItem.onClick) {
-                                                            return (
+                            if (item.type === 'dropdown') {
+                                return (
+                                    <div key={index} className="flex flex-col">
+                                        <button
+                                            className="w-full flex items-center justify-between text-base font-medium text-gray-600 hover:text-gray-900 py-2"
+                                            onClick={() => item.setIsMobileOpen(!item.isMobileOpen)}
+                                        >
+                                            {item.label}
+                                            <ChevronDown
+                                                className={`w-4 h-4 transition-transform duration-200 ${
+                                                    item.isMobileOpen ? 'rotate-180' : ''
+                                                }`}
+                                            />
+                                        </button>
+                                        {item.isMobileOpen && (
+                                            <div className="pl-4 flex flex-col gap-2 border-l-2 border-gray-100 ml-1 mt-1">
+                                                {item.items.map((subItem, subIndex) => {
+                                                    if (subItem.items && subItem.items.length > 0) {
+                                                        const submenuKey = `${index}-${subIndex}`;
+                                                        const isSubMenuOpen = Boolean(mobileOpenSubMenus[submenuKey]);
+                                                        return (
+                                                            <div key={submenuKey} className="flex flex-col">
                                                                 <button
-                                                                    key={subIndex}
-                                                                    className={`${className} w-full text-left`}
-                                                                    onClick={subItem.onClick}
+                                                                    className="w-full flex items-center justify-between text-sm font-medium text-gray-600 hover:text-gray-900 py-2"
+                                                                    onClick={() => toggleMobileSubMenu(submenuKey)}
                                                                 >
                                                                     {subItem.label}
+                                                                    <ChevronDown
+                                                                        className={`w-4 h-4 transition-transform duration-200 ${
+                                                                            isSubMenuOpen ? 'rotate-180' : ''
+                                                                        }`}
+                                                                    />
                                                                 </button>
-                                                            );
-                                                        }
+                                                                {isSubMenuOpen && (
+                                                                    <div className="pl-4 flex flex-col gap-2 border-l-2 border-gray-100 ml-1 mt-1">
+                                                                        {subItem.items.map((child, childIndex) => {
+                                                                            const childClassName = `block text-sm ${
+                                                                                child.isBold
+                                                                                    ? 'font-medium text-gray-900 hover:text-gray-700'
+                                                                                    : 'text-gray-600 hover:text-gray-900'
+                                                                            } py-2`;
+                                                                            if (child.onClick) {
+                                                                                return (
+                                                                                    <button
+                                                                                        key={`mobile-child-${submenuKey}-${childIndex}`}
+                                                                                        className={`${childClassName} w-full text-left`}
+                                                                                        onClick={child.onClick}
+                                                                                    >
+                                                                                        {child.label}
+                                                                                    </button>
+                                                                                );
+                                                                            }
 
+                                                                            return (
+                                                                                <HeadlessLink
+                                                                                    key={`mobile-child-${submenuKey}-${childIndex}`}
+                                                                                    href={child.href!}
+                                                                                    className={childClassName}
+                                                                                    onClick={() => setIsMenuOpen(false)}
+                                                                                >
+                                                                                    {child.label}
+                                                                                </HeadlessLink>
+                                                                            );
+                                                                        })}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        );
+                                                    }
+
+                                                    const className = `block text-sm ${
+                                                        subItem.isBold
+                                                            ? 'font-medium text-gray-900 hover:text-gray-700'
+                                                            : 'text-gray-600 hover:text-gray-900'
+                                                    } py-2`;
+
+                                                    if (subItem.onClick) {
                                                         return (
-                                                            <HeadlessLink
+                                                            <button
                                                                 key={subIndex}
-                                                                href={subItem.href!}
-                                                                className={className}
-                                                                onClick={() => setIsMenuOpen(false)}
+                                                                className={`${className} w-full text-left`}
+                                                                onClick={subItem.onClick}
                                                             >
                                                                 {subItem.label}
-                                                            </HeadlessLink>
+                                                            </button>
                                                         );
-                                                    })}
-                                                </div>
-                                            )}
-                                        </div>
-                                    );
-                                }
+                                                    }
 
-                                return null;
-                            })}
+                                                    return (
+                                                        <HeadlessLink
+                                                            key={subIndex}
+                                                            href={subItem.href!}
+                                                            className={className}
+                                                            onClick={() => setIsMenuOpen(false)}
+                                                        >
+                                                            {subItem.label}
+                                                        </HeadlessLink>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            }
+
+                            return null;
+                        })}
 
                             {just(false /* TODO: [🧠] Figure out what to do with these links */) && (
                                 <a
