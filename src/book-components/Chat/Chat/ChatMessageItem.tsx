@@ -2,7 +2,7 @@
 // <- Note: [👲] 'use client' is enforced by Next.js when building the https://book-components.ptbk.io/ but in ideal case,
 //          this would not be here because the `@promptbook/components` package should be React library independent of Next.js specifics
 
-import { memo, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
 import { colorToDataUrl } from '../../../_packages/color.index';
 import { PROMPTBOOK_CHAT_COLOR, USER_CHAT_COLOR } from '../../../config';
 import type { ToolCall } from '../../../types/ToolCall';
@@ -18,6 +18,7 @@ import { SourceChip } from '../SourceChip';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
 import { isTeamToolName } from '../utils/createTeamToolNameFromUrl';
+import { buildSpeechContent } from '../utils/buildSpeechContent';
 import { getChatMessageTimingDisplay } from '../utils/getChatMessageTimingDisplay';
 import type { ToolCallChipletInfo } from '../utils/getToolCallChipletInfo';
 import { buildToolCallChipText, getToolCallChipletInfo, TOOL_TITLES } from '../utils/getToolCallChipletInfo';
@@ -33,6 +34,7 @@ import { getToolCallIdentity } from '../../../utils/toolCalls/getToolCallIdentit
 import styles from './Chat.module.css';
 import type { ChatProps } from './ChatProps';
 import { LOADING_INTERACTIVE_IMAGE } from './constants';
+import { PlayIcon } from '../../icons/PlayIcon';
 
 /**
  * Props for the `ChatMessageItem` component
@@ -87,6 +89,10 @@ type ChatMessageItemProps = Pick<ChatProps, 'onMessage' | 'participants'> & {
      * Optional sound system for triggering tool chip events.
      */
     soundSystem?: ChatProps['soundSystem'];
+    /**
+     * Optional speech playback handler (ElevenLabs, etc.)
+     */
+    onPlayMessage?: ChatProps['onPlayMessage'];
 };
 
 /**
@@ -429,6 +435,10 @@ export const ChatMessageItem = memo(
         );
         const colorOfText = color.then(textColor);
         const { contentWithoutButtons, buttons } = parseMessageButtons(message.content);
+        const speechContent = useMemo(
+            () => (message.isComplete ? buildSpeechContent(contentWithoutButtons) : ''),
+            [contentWithoutButtons, message.isComplete],
+        );
         const completedToolCalls = dedupeToolCalls(
             (message.toolCalls || message.completedToolCalls)?.filter(
                 (toolCall) => !isAssistantPreparationToolCall(toolCall),
@@ -453,6 +463,7 @@ export const ChatMessageItem = memo(
         const displayCitations = dedupeCitationsBySource(citations);
         const [localHoveredRating, setLocalHoveredRating] = useState(0);
         const [copied, setCopied] = useState(false);
+        const [isPlayingSpeech, setIsPlayingSpeech] = useState(false);
         const [tooltipAlign, setTooltipAlign] = useState<'center' | 'left' | 'right'>('center');
         const copyTooltipRef = useRef<HTMLSpanElement>(null);
 
@@ -462,7 +473,36 @@ export const ChatMessageItem = memo(
             }
         }, [isExpanded]);
 
+        useEffect(() => {
+            setIsPlayingSpeech(false);
+        }, [message.id, message.content]);
+
         const contentWithoutButtonsRef = useRef<HTMLDivElement>(null);
+        const handlePlaySpeech = useCallback(
+            async (event: MouseEvent<HTMLButtonElement>) => {
+                event.stopPropagation();
+                if (!onPlayMessage || !speechContent) {
+                    return;
+                }
+
+                setIsPlayingSpeech(true);
+
+                try {
+                    const audio = await onPlayMessage({ message, speechContent });
+                    if (audio) {
+                        const cleanup = () => setIsPlayingSpeech(false);
+                        audio.addEventListener('ended', cleanup, { once: true });
+                        audio.addEventListener('pause', cleanup, { once: true });
+                        return;
+                    }
+                } catch (error) {
+                    console.error('Failed to play speech:', error);
+                }
+
+                setIsPlayingSpeech(false);
+            },
+            [message, onPlayMessage, speechContent],
+        );
 
         useEffect(() => {
             if (toolCallChipCount > toolCallChipCountRef.current) {
@@ -542,6 +582,19 @@ export const ChatMessageItem = memo(
                     >
                         {isCopyButtonEnabled && isComplete && (
                             <div className={styles.copyButtonContainer}>
+                                {onPlayMessage && speechContent && (
+                                    <button
+                                        type="button"
+                                        className={styles.playButton}
+                                        title="Play message"
+                                        aria-label="Play message via ElevenLabs speech"
+                                        aria-pressed={isPlayingSpeech}
+                                        disabled={isPlayingSpeech}
+                                        onClick={handlePlaySpeech}
+                                    >
+                                        <PlayIcon size={18} />
+                                    </button>
+                                )}
                                 <button
                                     className={styles.copyButton}
                                     title="Copy message"

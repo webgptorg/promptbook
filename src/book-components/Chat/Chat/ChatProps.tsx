@@ -50,6 +50,23 @@ export type ChatSoundSystem = {
 };
 
 /**
+ * Records the inputs required to play a speech rendition of a message.
+ *
+ * @public exported from `@promptbook/components`
+ */
+export type ChatMessageSpeechRequest = {
+    /**
+     * Original message (with markup/tool buttons intact).
+     */
+    readonly message: ChatMessage;
+
+    /**
+     * Sanitized text that is safe to feed to a text-to-speech engine.
+     */
+    readonly speechContent: string;
+};
+
+/**
  * @public exported from `@promptbook/components`
  */
 export type ChatProps = {
@@ -84,6 +101,11 @@ export type ChatProps = {
      * - When undefined, the chat has no input and is read-only showing only the messages
      */
     onMessage?(messageContent: string /* <- TODO: [🍗] Pass here the message object NOT just text */): Promisable<void>;
+
+    /**
+     * Invoked when a message speech playback is requested (e.g., via ElevenLabs).
+     */
+    readonly onPlayMessage?: (speech: ChatMessageSpeechRequest) => Promisable<HTMLAudioElement | void>;
 
     /**
      * Optional callback

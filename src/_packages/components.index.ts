@@ -102,6 +102,7 @@ export { Chat };
 export type { ChatFeedbackResponse };
 export type { ChatSoundSystem };
 export type { ChatProps };
+export type { ChatMessageSpeechRequest };
 export { ChatSoundToggle };
 export { ChatVibrationToggle };
 export { ChatSoundAndVibrationPanel };

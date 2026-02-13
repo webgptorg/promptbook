@@ -135,6 +135,7 @@
 -   Grouped identical ongoing tool call chips in Agents Server chat so concurrent tool runs collapse into a single chip with a count.
 -   Fixed grouped ongoing teammate chips so tool calls from different teammates no longer collapse into one chip, while repeated calls from the same teammate still aggregate with a count.
 -   Added tactile feedback for Agents Server chat tool call chips and streaming responses by routing the chat sound system into chip rendering and vibrating on every streaming chunk, so tool usage and in-progress replies feel more immersive.
+-   Added ElevenLabs-based speech playback for chat bubbles: each completed message now shows a Play button that sends sanitized text to the new `/api/elevenlabs/speech` route, the server forwards the request to ElevenLabs using the configured voice (`apps/agents-server/config/elevenlabs-voice.json`), and the frontend streams the resulting audio so users can hear messages aloud when `ELEVENLABS_API_KEY` is available.
 -   Fixed drag-and-drop uploads in the Agents Server create-agent dialog by reusing the shared BookEditor upload handler.
 -   Fixed document source citation in Agents Server chat:
     -   Resolved issue where clicking on KNOWLEDGE source chips showed "Document preview unavailable" instead of the actual document
