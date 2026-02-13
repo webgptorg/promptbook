@@ -1,16 +1,6 @@
 import { spaceTrim } from 'spacetrim';
-import { string_javascript_name, TODO_any } from '../../_packages/types.index';
-import type { LlmToolDefinition } from '../../types/LlmToolDefinition';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
-import { formatOptionalInstructionBlock } from '../_base/formatOptionalInstructionBlock';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
-import {
-    getMemoryToolHandler,
-    type MemoryToolHandlerResult,
-    type MemoryToolRetrieveArgs,
-    type MemoryToolStoreArgs,
-} from '../_common/memoryToolHandler';
-
 
 /**
  * MEMORY commitment definition

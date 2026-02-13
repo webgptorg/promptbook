@@ -699,58 +699,6 @@ export type AgentsServerDatabase = {
                     },
                 ];
             };
-            UserMemory: {
-                Row: {
-                    id: number;
-                    createdAt: string;
-                    updatedAt: string;
-                    userId: number;
-                    agentId: number | null;
-                    agentName: string | null;
-                    agentPermanentId: string | null;
-                    title: string;
-                    content: string;
-                    isGlobal: boolean;
-                };
-                Insert: {
-                    id?: number;
-                    createdAt?: string;
-                    updatedAt?: string;
-                    userId: number;
-                    agentId?: number | null;
-                    agentName?: string | null;
-                    agentPermanentId?: string | null;
-                    title: string;
-                    content: string;
-                    isGlobal?: boolean;
-                };
-                Update: {
-                    id?: number;
-                    createdAt?: string;
-                    updatedAt?: string;
-                    userId?: number;
-                    agentId?: number | null;
-                    agentName?: string | null;
-                    agentPermanentId?: string | null;
-                    title?: string;
-                    content?: string;
-                    isGlobal?: boolean;
-                };
-                Relationships: [
-                    {
-                        foreignKeyName: 'UserMemory_userId_fkey';
-                        columns: ['userId'];
-                        referencedRelation: 'User';
-                        referencedColumns: ['id'];
-                    },
-                    {
-                        foreignKeyName: 'UserMemory_agentId_fkey';
-                        columns: ['agentId'];
-                        referencedRelation: 'Agent';
-                        referencedColumns: ['id'];
-                    },
-                ];
-            };
         };
         Views: Record<string, never>;
         Functions: Record<string, never>;
