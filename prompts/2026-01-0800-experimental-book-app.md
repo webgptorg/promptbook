@@ -192,7 +192,7 @@ Story is an experimental orchestration-based storytelling environment where user
 
 ---
 
-[ ]
+[ ] !
 
 [✨📉] You have implemented [experimental book app](prompts/2026-01-0800-experimental-book-app.md), but it needs some changes and improvements
 
