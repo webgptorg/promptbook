@@ -1,6 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getStories } from '../../../story/actions';
+import { getStories } from '../../../experiments/story/actions';
+import {
+    getStoryBodyFromContent,
+    getStoryFilenameStemFromContent,
+    getStoryTitleFromContent,
+} from '../../../experiments/story/storyUtils';
 
+const EXPERIMENTAL_NOTICE = `
+---
+**EXPERIMENTAL**
+This story was generated using an experimental app. Features may change or be removed at any time.
+---
+`;
+
+/**
+ * Exports a story as text or markdown.
+ */
 export async function GET(request: NextRequest) {
     try {
         const searchParams = request.nextUrl.searchParams;
@@ -18,21 +33,15 @@ export async function GET(request: NextRequest) {
         let contentType = '';
         let filename = '';
 
-        const experimentalNotice = `
----
-**EXPERIMENTAL**
-This story was generated using an experimental app. Features may change or be removed at any time.
----
-`;
-
         if (format === 'txt') {
-            content = `${story.title}\n\n${story.content}\n\n${experimentalNotice}`;
+            content = `${story.content}\n\n${EXPERIMENTAL_NOTICE}`;
             contentType = 'text/plain';
-            filename = `${story.title}.txt`;
+            filename = `${getStoryFilenameStemFromContent(story.content)}.txt`;
         } else if (format === 'md') {
-            content = `# ${story.title}\n\n${story.content}\n\n${experimentalNotice}`;
+            const storyBody = getStoryBodyFromContent(story.content);
+            content = `# ${getStoryTitleFromContent(story.content)}\n\n${storyBody}\n\n${EXPERIMENTAL_NOTICE}`;
             contentType = 'text/markdown';
-            filename = `${story.title}.md`;
+            filename = `${getStoryFilenameStemFromContent(story.content)}.md`;
         } else {
             return NextResponse.json({ error: 'Invalid format' }, { status: 400 });
         }
@@ -40,7 +49,7 @@ This story was generated using an experimental app. Features may change or be re
         return new NextResponse(content, {
             headers: {
                 'Content-Type': contentType,
-                'Content-Disposition': `attachment; filename="${filename}"`, 
+                'Content-Disposition': `attachment; filename="${filename}"`,
             },
         });
     } catch (error) {

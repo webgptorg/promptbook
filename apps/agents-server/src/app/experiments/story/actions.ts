@@ -3,20 +3,13 @@
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import { getCurrentUser } from '@/src/utils/getCurrentUser';
+import { normalizeStories, type Story } from './storyUtils';
 
-export type Actor = {
-    name: string;
-    avatarUrl?: string;
-};
+const STORIES_USER_DATA_KEY = 'stories';
 
-export type Story = {
-    id: string;
-    title: string;
-    content: string;
-    mode: 'beletrie' | 'dramatic';
-    actors: Array<Actor>;
-};
-
+/**
+ * Resolves a username to its numeric database id.
+ */
 async function getUserId(username: string): Promise<number | null> {
     const supabase = $provideSupabaseForServer();
     const { data } = await supabase
@@ -28,6 +21,9 @@ async function getUserId(username: string): Promise<number | null> {
     return data?.id || null;
 }
 
+/**
+ * Loads all persisted stories for the currently authenticated user.
+ */
 export async function getStories(): Promise<Array<Story>> {
     const user = await getCurrentUser();
     if (!user) {
@@ -40,21 +36,27 @@ export async function getStories(): Promise<Array<Story>> {
     }
 
     const supabase = await $provideSupabaseForServer();
+    const userDataTableName = await $getTableName('UserData');
     const { data, error } = await supabase
-        .from('UserData')
+        .from(userDataTableName)
         .select('value')
         .eq('userId', userId)
-        .eq('key', 'stories')
+        .eq('key', STORIES_USER_DATA_KEY)
         .single();
 
     if (error || !data) {
-        console.error('Error fetching stories', error);
+        if (error?.code !== 'PGRST116') {
+            console.error('Error fetching stories', error);
+        }
         return [];
     }
 
-    return data.value as Array<Story>;
+    return normalizeStories(data.value);
 }
 
+/**
+ * Persists stories for the currently authenticated user.
+ */
 export async function saveStories(stories: Array<Story>) {
     const user = await getCurrentUser();
     if (!user) {
@@ -67,12 +69,14 @@ export async function saveStories(stories: Array<Story>) {
     }
 
     const supabase = await $provideSupabaseForServer();
+    const userDataTableName = await $getTableName('UserData');
+    const normalizedStories = normalizeStories(stories);
     const { data, error } = await supabase
-        .from('UserData')
+        .from(userDataTableName)
         .upsert({
             userId,
-            key: 'stories',
-            value: stories,
+            key: STORIES_USER_DATA_KEY,
+            value: normalizedStories,
         })
         .select();
 

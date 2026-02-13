@@ -587,12 +587,10 @@ export function Header(props: HeaderProps) {
     const [isUsersOpen, setIsUsersOpen] = useState(false);
     const [isSystemOpen, setIsSystemOpen] = useState(false);
     const [isProfileOpen, setIsProfileOpen] = useState(false);
-    const [isExperimentsOpen, setIsExperimentsOpen] = useState(false);
     const [isMobileAgentsOpen, setIsMobileAgentsOpen] = useState(false);
     const [isMobileDocsOpen, setIsMobileDocsOpen] = useState(false);
     const [isMobileUsersOpen, setIsMobileUsersOpen] = useState(false);
     const [isMobileSystemOpen, setIsMobileSystemOpen] = useState(false);
-    const [isMobileExperimentsOpen, setIsMobileExperimentsOpen] = useState(false);
     const [mobileOpenSubMenus, setMobileOpenSubMenus] = useState<Record<string, boolean>>({});
     const [isCreatingAgent, setIsCreatingAgent] = useState(false);
     const router = useRouter();
@@ -847,27 +845,23 @@ export function Header(props: HeaderProps) {
                               label: 'About',
                               href: '/admin/about',
                           },
+                          ...(isExperimental
+                              ? [
+                                    {
+                                        label: 'Experiments',
+                                        items: [
+                                            {
+                                                label: 'Story',
+                                                href: '/experiments/story',
+                                                isBold: true,
+                                            },
+                                        ],
+                                        isBordered: true,
+                                    } as SubMenuItem,
+                                ]
+                              : []),
                       ],
                   },
-                  ...(isExperimental
-                      ? [
-                            {
-                                type: 'dropdown' as const,
-                                label: 'Experiments',
-                                isOpen: isExperimentsOpen,
-                                setIsOpen: setIsExperimentsOpen,
-                                isMobileOpen: isMobileExperimentsOpen,
-                                setIsMobileOpen: setIsMobileExperimentsOpen,
-                                items: [
-                                    {
-                                        label: 'Story',
-                                        href: '/story',
-                                        isBold: true,
-                                    },
-                                ],
-                            },
-                        ]
-                      : []),
                   {
                       type: 'link' as const,
                       label: 'About',
