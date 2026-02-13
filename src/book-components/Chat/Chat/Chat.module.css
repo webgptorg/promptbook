@@ -69,6 +69,8 @@
     opacity: 0.97;
     pointer-events: none;
     z-index: 9999;
+}
+
 .Chat {
     width: 100%;
     height: 100%;
@@ -603,7 +605,11 @@
     .chatMainFlow .chatMessage .messageText {
         --chat-heading-surface: color-mix(in srgb, var(--message-bg-color, #ffffff) 70%, rgba(15, 23, 42, 0.08) 30%);
         --chat-heading-accent: color-mix(in srgb, var(--message-text-color, #0f172a) 65%, rgba(59, 130, 246, 0.9) 35%);
-        --chat-heading-border-color: color-mix(in srgb, var(--message-bg-color, #ffffff) 60%, rgba(15, 23, 42, 0.12) 40%);
+        --chat-heading-border-color: color-mix(
+            in srgb,
+            var(--message-bg-color, #ffffff) 60%,
+            rgba(15, 23, 42, 0.12) 40%
+        );
         --chat-heading-shadow-color: color-mix(in srgb, rgba(15, 23, 42, 0.65) 80%, rgba(96, 165, 250, 0.45) 20%);
         --chat-heading-text-color: var(--message-text-color, #0f172a);
     }
