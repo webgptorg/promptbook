@@ -85,7 +85,7 @@
 body {
     background: var(--background);
     color: var(--foreground);
-    font-family: var(--font-barlow-condensed), 'OpenMojiBlack', Arial, Helvetica, sans-serif;
+    font-family: var(--font-barlow-condensed), 'OpenMojiColor', 'OpenMojiBlack', Arial, Helvetica, sans-serif;
 }
 
 /*
