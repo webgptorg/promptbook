@@ -1,12 +1,13 @@
 'use server';
 
-import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import { getCurrentUser } from '@/src/utils/getCurrentUser';
 import { normalizeStory, Story } from './storyTypes';
+import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 
 async function getUserId(username: string): Promise<number | null> {
-    const { data } = await $provideSupabaseForServer()
-        .from(await 'User')
+    const supabase = ();
+    const { data } = await supabase
+        .from(await ('User'))
         .select('id')
         .eq('username', username)
         .single();
@@ -25,7 +26,8 @@ export async function getStories(): Promise<Array<Story>> {
         return [];
     }
 
-    const { data, error } = await $provideSupabaseForServer()
+ 
+    const { data, error } = await  $provideSupabaseForServer()
         .from('UserData')
         .select('value')
         .eq('userId', userId)
