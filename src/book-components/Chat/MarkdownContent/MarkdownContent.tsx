@@ -150,6 +150,50 @@ const mathDelimiterDefinitions: ReadonlyArray<MathDelimiterDefinition> = [
     { regex: /(^|[^\\])\$([^$\n]+?)\$/g, displayMode: false },
 ];
 
+const CODE_FENCE_REGEX = /(`{3,}|~{3,})(?:[^\n\r]*)\r?\n[\s\S]*?\r?\n\1[^\n\r]*/g;
+const INLINE_CODE_REGEX = /(`+)([\s\S]*?)(\1)/g;
+const CODE_PLACEHOLDER_PREFIX = '@@PROMPTBOOK_CODE_PLACEHOLDER__';
+const CODE_PLACEHOLDER_REGEX = new RegExp(`${CODE_PLACEHOLDER_PREFIX}(\\d+)__`, 'g');
+
+type MaskedCodeSegmentsResult = {
+    masked: string_markdown;
+    restore: (value: string_markdown) => string_markdown;
+};
+
+/**
+ * Masks inline and fenced code segments so math rendering never touches them.
+ *
+ * @param markdown - Markdown text to mask.
+ * @returns Masked markdown and a restore helper.
+ *
+ * @private utility of `MarkdownContent` component
+ */
+function maskMarkdownCodeSegments(markdown: string_markdown): MaskedCodeSegmentsResult {
+    const segments: string[] = [];
+    let masked = markdown;
+
+    const addPlaceholder = (segment: string) => {
+        const placeholder = `${CODE_PLACEHOLDER_PREFIX}${segments.length}__`;
+        segments.push(segment);
+        return placeholder;
+    };
+
+    const maskWith = (regex: RegExp) => {
+        regex.lastIndex = 0;
+        masked = masked.replace(regex, (match) => addPlaceholder(match));
+    };
+
+    maskWith(CODE_FENCE_REGEX);
+    maskWith(INLINE_CODE_REGEX);
+
+    return {
+        masked: masked as string_markdown,
+        restore(value: string_markdown): string_markdown {
+            return value.replace(CODE_PLACEHOLDER_REGEX, (_match, index) => segments[Number(index)] ?? '');
+        },
+    };
+}
+
 function replaceMathDelimiter(md: string, delimiter: MathDelimiterDefinition): string {
     return md.replace(delimiter.regex, (...args) => {
         const match = args[0] ?? '';
@@ -180,11 +224,14 @@ function replaceMathDelimiter(md: string, delimiter: MathDelimiterDefinition): s
  * @private utility of `MarkdownContent` component
  */
 function renderMathInMarkdown(md: string): string {
+    const { masked, restore } = maskMarkdownCodeSegments(md);
+    let processed = masked;
+
     for (const delimiter of mathDelimiterDefinitions) {
-        md = replaceMathDelimiter(md, delimiter);
+        processed = replaceMathDelimiter(processed, delimiter);
     }
-    md = md.replace(/\\$/g, '$');
-    return md;
+    processed = processed.replace(/\\$/g, '$');
+    return restore(processed);
 }
 
 /**

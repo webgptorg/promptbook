@@ -28,7 +28,7 @@ Chceš zajímavost spíš z oblasti **hashování (SHA-256)**, **Merkleových st
 
 ---
 
-[ ]
+[x] ~$0.06 3 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
 [✨🏞] You have added support to rendering the LaTeX notation.
 
@@ -63,3 +63,4 @@ Chceš zajímavost spíš z oblasti **hashování (SHA-256)**, **Merkleových st
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

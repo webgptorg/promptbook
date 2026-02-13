@@ -38,6 +38,7 @@
 -   Fixed Agents Server chat attachments so the uploaded file metadata is forwarded to the agent prompt, keeping uploads accessible to the agent after hitting the server.
 -   Show error message when the agent returns an empty message.
 -   Enabled `\\(...\\)` and `\\[...\\]` LaTeX delimiters in chat markdown so inline and block formulas render with the existing KaTeX pipeline, matching `$...$`/`$$...$$` behavior and keeping the shared renderer reusable across chat/agent components.
+-   Stopped KaTeX from running inside inline/fenced code in Agents Server chat so LaTeX notation remains raw when it is intentionally shown as code while still rendering normally in prose or blockquote contexts.
 -   Preserved file attachments when cloning prompts for OpenAI chat so playground uploads keep their `arrayBuffer` after the OpenAI 6.18.0 upgrade.
 -   Re-styled Markdown headings inside chat bubbles as card-like sections that lean on the same shared heading tokens but now add gradient glass texture, a thicker accent border, high-fidelity glow lines, and deeper drop shadows so the headings mirror the richer Agents Server card language.
 -   Tuned the new heading tokens so every Markdown heading grabs its border, shadow, and text colors from the chat bubble palette, letting the card-like headers glow softly and stay in sync with the shared Agents Server design language.
