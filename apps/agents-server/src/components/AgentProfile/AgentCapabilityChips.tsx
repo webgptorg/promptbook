@@ -14,6 +14,7 @@ import {
     Users,
 } from 'lucide-react';
 import NextLink from 'next/link';
+import { simplifyKnowledgeLabel } from '@/src/utils/knowledge/simplifyKnowledgeLabel';
 import { TeamCommitmentChip } from './TeamCommitmentChip';
 
 /**
@@ -116,6 +117,11 @@ export function AgentCapabilityChips({ agent, className, maxChips, size = 'defau
                     }
                 }
 
+                const displayLabel =
+                    capability.type === 'knowledge'
+                        ? simplifyKnowledgeLabel(capability.label)
+                        : capability.label;
+
                 if (capability.iconName === 'Users' && href) {
                     const content = <TeamCommitmentChip url={href} label={capability.label} size={size} />;
 
@@ -157,7 +163,7 @@ export function AgentCapabilityChips({ agent, className, maxChips, size = 'defau
                         title={capability.label}
                     >
                         <Icon className={`${iconSizeClass} opacity-70`} />
-                        <span className="truncate max-w-[150px]">{capability.label}</span>
+                        <span className="truncate max-w-[150px]">{displayLabel}</span>
                     </div>
                 );
 
