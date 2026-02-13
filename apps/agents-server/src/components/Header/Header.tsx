@@ -2,7 +2,7 @@
 
 import promptbookLogoBlueTransparent from '@/public/logo-blue-white-256.png';
 import { $createAgentAction, logoutAction } from '@/src/app/actions';
-import { ArrowRight, ChevronDown, Lock, LogIn, LogOut, User } from 'lucide-react';
+import { ArrowRight, ChevronDown, ChevronRight, Lock, LogIn, LogOut, User } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { ReactNode, useMemo, useState } from 'react';
@@ -89,6 +89,7 @@ type MenuItem =
           isMobileOpen: boolean;
           setIsMobileOpen: (isOpen: boolean) => void;
           items: Array<SubMenuItem>;
+          renderMenu?: () => ReactNode;
       };
 
 /**
@@ -153,16 +154,61 @@ function createIndentedMenuLabel(text: string, depth: number, isFolder: boolean)
 }
 
 /**
- * Builds a folder-organized list of submenu items for the Agents dropdown.
- *
- * @param agents - Agents available in the server.
- * @param folders - Folders available in the server.
- * @returns Flat submenu items rendered in folder-tree order.
+ * @private
+ * Node representing a folder inside the header menu hierarchy.
  */
-function buildAgentMenuItems(
+type AgentMenuFolderNode = {
+    type: 'folder';
+    id: number;
+    label: string;
+    href: string;
+    children: AgentMenuTreeNode[];
+};
+
+/**
+ * @private
+ * Node representing an agent inside the header menu hierarchy.
+ */
+type AgentMenuAgentNode = {
+    type: 'agent';
+    agentName: string;
+    label: string;
+    href: string;
+};
+
+/**
+ * @private
+ * Unified node type for the agent menu tree.
+ */
+type AgentMenuTreeNode = AgentMenuFolderNode | AgentMenuAgentNode;
+
+/**
+ * @private
+ * Structure describing the agent menu tree and flat submenu items.
+ */
+type AgentMenuStructure = {
+    tree: AgentMenuTreeNode[];
+    items: Array<SubMenuItem>;
+};
+
+/**
+ * @private
+ * Indexes used to build the agent menu structure.
+ */
+type AgentMenuData = {
+    folderById: Map<number, HeaderAgentMenuFolder>;
+    sortedFolderIdsByParentId: Map<number | null, number[]>;
+    agentsByFolderId: Map<number | null, HeaderAgentMenuAgent[]>;
+};
+
+/**
+ * @private
+ * Builds lookup tables that speed up folder and agent ordering.
+ */
+function prepareAgentMenuData(
     agents: ReadonlyArray<HeaderAgentMenuAgent>,
     folders: ReadonlyArray<HeaderAgentMenuFolder>,
-): Array<SubMenuItem> {
+): AgentMenuData {
     const folderById = new Map<number, HeaderAgentMenuFolder>();
     const childFolderIdsByParentId = new Map<number | null, number[]>();
     const agentsByFolderId = new Map<number | null, HeaderAgentMenuAgent[]>();
@@ -198,19 +244,25 @@ function buildAgentMenuItems(
     }
 
     for (const [folderId, folderAgents] of agentsByFolderId.entries()) {
-        const sortedAgents = sortBySortOrderAndLabel(folderAgents, getAgentMenuLabel);
-        agentsByFolderId.set(folderId, sortedAgents);
+        agentsByFolderId.set(folderId, sortBySortOrderAndLabel(folderAgents, getAgentMenuLabel));
     }
+
+    return { folderById, sortedFolderIdsByParentId, agentsByFolderId };
+}
+
+/**
+ * @private
+ * Builds the hierarchical and flat agent menu data for the header.
+ */
+function buildAgentMenuStructure(
+    agents: ReadonlyArray<HeaderAgentMenuAgent>,
+    folders: ReadonlyArray<HeaderAgentMenuFolder>,
+): AgentMenuStructure {
+    const { folderById, sortedFolderIdsByParentId, agentsByFolderId } = prepareAgentMenuData(agents, folders);
 
     const items: Array<SubMenuItem> = [];
     const visitedFolderIds = new Set<number>();
 
-    /**
-     * Appends one folder branch to the output items, including descendant folders and agents.
-     *
-     * @param folderId - Folder id to append.
-     * @param depth - Current folder depth from root.
-     */
     const appendFolderBranch = (folderId: number, depth: number): void => {
         if (visitedFolderIds.has(folderId)) {
             return;
@@ -222,7 +274,10 @@ function buildAgentMenuItems(
             return;
         }
 
-        const folderPath = buildFolderPath(getFolderPathSegments(folderId, folderById).map((segment) => segment.name));
+        const folderPath = buildFolderPath(
+            getFolderPathSegments(folderId, folderById).map((segment) => segment.name),
+        );
+
         items.push({
             label: createIndentedMenuLabel(folder.name, depth, true),
             href: `/?folder=${folderPath}`,
@@ -261,7 +316,152 @@ function buildAgentMenuItems(
         });
     }
 
-    return items;
+    const treeVisitedFolderIds = new Set<number>();
+    const createAgentNode = (agent: HeaderAgentMenuAgent): AgentMenuAgentNode => ({
+        type: 'agent',
+        agentName: agent.agentName,
+        label: getAgentMenuLabel(agent),
+        href: `/${agent.agentName}`,
+    });
+
+    const createFolderNode = (folderId: number): AgentMenuFolderNode | null => {
+        if (treeVisitedFolderIds.has(folderId)) {
+            return null;
+        }
+
+        const folder = folderById.get(folderId);
+        if (!folder) {
+            return null;
+        }
+
+        treeVisitedFolderIds.add(folderId);
+        const folderPath = buildFolderPath(
+            getFolderPathSegments(folderId, folderById).map((segment) => segment.name),
+        );
+
+        const childNodes: AgentMenuTreeNode[] = [];
+        const childFolderIds = sortedFolderIdsByParentId.get(folderId) || [];
+        for (const childFolderId of childFolderIds) {
+            const childNode = createFolderNode(childFolderId);
+            if (childNode) {
+                childNodes.push(childNode);
+            }
+        }
+
+        const folderAgents = agentsByFolderId.get(folderId) || [];
+        childNodes.push(...folderAgents.map(createAgentNode));
+
+        return {
+            type: 'folder',
+            id: folder.id,
+            label: folder.name,
+            href: `/?folder=${folderPath}`,
+            children: childNodes,
+        };
+    };
+
+    const treeRoots: AgentMenuTreeNode[] = [];
+    for (const rootFolderId of rootFolderIds) {
+        const node = createFolderNode(rootFolderId);
+        if (node) {
+            treeRoots.push(node);
+        }
+    }
+    for (const folder of sortBySortOrderAndLabel(folders, (currentFolder) => currentFolder.name)) {
+        if (!treeVisitedFolderIds.has(folder.id)) {
+            const node = createFolderNode(folder.id);
+            if (node) {
+                treeRoots.push(node);
+            }
+        }
+    }
+
+    treeRoots.push(...rootAgents.map(createAgentNode));
+
+    return {
+        tree: treeRoots,
+        items,
+    };
+}
+
+/**
+ * @private
+ * Props for the agent directory dropdown renderer.
+ */
+type AgentDirectoryDropdownProps = {
+    nodes: ReadonlyArray<AgentMenuTreeNode>;
+    onNavigate: () => void;
+};
+
+/**
+ * @private
+ * Renders the nested hover menu for the agents dropdown.
+ */
+function AgentDirectoryDropdown({ nodes, onNavigate }: AgentDirectoryDropdownProps) {
+    return (
+        <div className="pointer-events-auto">
+            <AgentMenuColumn nodes={nodes} onNavigate={onNavigate} depth={0} />
+        </div>
+    );
+}
+
+/**
+ * @private
+ * Props for a single column in the agent menu tree.
+ */
+type AgentMenuColumnProps = AgentDirectoryDropdownProps & {
+    depth: number;
+};
+
+/**
+ * @private
+ * Renders one column of the agent tree, showing folders and agents.
+ */
+function AgentMenuColumn({ nodes, onNavigate, depth }: AgentMenuColumnProps) {
+    return (
+        <div
+            className="relative flex flex-col gap-1 px-1 py-1 bg-white max-h-[75vh] overflow-y-auto"
+            style={{ minWidth: depth === 0 ? 260 : 240 }}
+        >
+            {nodes.map((node) => {
+                if (node.type === 'folder') {
+                    return (
+                        <div key={`folder-${node.id}`} className="relative group">
+                            <HeadlessLink
+                                href={node.href}
+                                onClick={onNavigate}
+                                className="flex w-full items-center justify-between gap-2 rounded-md px-3 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+                                title={node.label}
+                            >
+                                <span className="truncate">{node.label}</span>
+                                {node.children.length > 0 && (
+                                    <ChevronRight className="w-4 h-4 text-gray-400" />
+                                )}
+                            </HeadlessLink>
+
+                            {node.children.length > 0 && (
+                                <div className="hidden group-hover:block absolute top-0 left-full z-50 mt-0 w-[260px] rounded-md border border-gray-100 bg-white shadow-lg max-h-[80vh] overflow-y-auto">
+                                    <AgentMenuColumn nodes={node.children} onNavigate={onNavigate} depth={depth + 1} />
+                                </div>
+                            )}
+                        </div>
+                    );
+                }
+
+                return (
+                    <HeadlessLink
+                        key={`agent-${node.agentName}`}
+                        href={node.href}
+                        onClick={onNavigate}
+                        className="block rounded-md px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+                        title={node.label}
+                    >
+                        {node.label}
+                    </HeadlessLink>
+                );
+            })}
+        </div>
+    );
 }
 
 export function Header(props: HeaderProps) {
@@ -296,7 +496,16 @@ export function Header(props: HeaderProps) {
     const { formatText } = useAgentNaming();
 
     const { users: adminUsers } = useUsersAdmin();
-    const agentMenuItems = useMemo(() => buildAgentMenuItems(agents, agentFolders), [agents, agentFolders]);
+    const agentMenuStructure = useMemo(() => buildAgentMenuStructure(agents, agentFolders), [
+        agents,
+        agentFolders,
+    ]);
+    const agentMenuItems = agentMenuStructure.items;
+    const agentMenuTree = agentMenuStructure.tree;
+    const closeAgentsDropdown = () => {
+        setIsAgentsOpen(false);
+        setIsMenuOpen(false);
+    };
 
     const handleLogout = async () => {
         await logoutAction();
@@ -434,6 +643,9 @@ export function Header(props: HeaderProps) {
                               isBold: true,
                           } as SubMenuItem,
                       ],
+                      renderMenu: () => (
+                          <AgentDirectoryDropdown nodes={agentMenuTree} onNavigate={closeAgentsDropdown} />
+                      ),
                   },
                   {
                       type: 'link' as const,
@@ -652,6 +864,7 @@ export function Header(props: HeaderProps) {
                             }
 
                             if (item.type === 'dropdown') {
+                                const dropdownItems = item.items ?? [];
                                 return (
                                     <div key={index} className="relative">
                                         <button
@@ -664,35 +877,39 @@ export function Header(props: HeaderProps) {
                                         </button>
 
                                         {item.isOpen && (
-                                            <div className="absolute top-full left-0 mt-2 w-56 bg-white rounded-md shadow-lg border border-gray-100 py-1 z-50 animate-in fade-in zoom-in-95 duration-200 max-h-[80vh] overflow-y-auto">
-                                                {item.items.map((subItem, subIndex) => {
-                                                    const className = `block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 ${
-                                                        subItem.isBold ? 'font-medium' : ''
-                                                    } ${subItem.isBordered ? 'border-b border-gray-100' : ''}`;
+                                            <div className="absolute top-full left-0 mt-2 w-[min(420px,90vw)] bg-white rounded-md shadow-lg border border-gray-100 py-1 z-50 animate-in fade-in zoom-in-95 duration-200 max-h-[80vh] overflow-y-auto overflow-x-visible">
+                                                {item.renderMenu ? (
+                                                    <div className="relative">{item.renderMenu()}</div>
+                                                ) : (
+                                                    dropdownItems.map((subItem, subIndex) => {
+                                                        const className = `block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 ${
+                                                            subItem.isBold ? 'font-medium' : ''
+                                                        } ${subItem.isBordered ? 'border-b border-gray-100' : ''}`;
 
-                                                    if (subItem.onClick) {
+                                                        if (subItem.onClick) {
+                                                            return (
+                                                                <button
+                                                                    key={subIndex}
+                                                                    onClick={subItem.onClick}
+                                                                    className={`${className} w-full text-left`}
+                                                                >
+                                                                    {subItem.label}
+                                                                </button>
+                                                            );
+                                                        }
+
                                                         return (
-                                                            <button
+                                                            <HeadlessLink
                                                                 key={subIndex}
-                                                                onClick={subItem.onClick}
-                                                                className={`${className} w-full text-left`}
+                                                                href={subItem.href!}
+                                                                className={className}
+                                                                onClick={() => item.setIsOpen(false)}
                                                             >
                                                                 {subItem.label}
-                                                            </button>
+                                                            </HeadlessLink>
                                                         );
-                                                    }
-
-                                                    return (
-                                                        <HeadlessLink
-                                                            key={subIndex}
-                                                            href={subItem.href!}
-                                                            className={className}
-                                                            onClick={() => item.setIsOpen(false)}
-                                                        >
-                                                            {subItem.label}
-                                                        </HeadlessLink>
-                                                    );
-                                                })}
+                                                    })
+                                                )}
                                             </div>
                                         )}
                                     </div>
