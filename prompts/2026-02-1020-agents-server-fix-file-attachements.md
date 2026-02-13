@@ -1,5 +1,9 @@
 [x] ~$3.74 16 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
+---
+
+[ ]
+
 [✨👡] Fix Attachment of files to the chat message.
 
 -   User can attach a file to the message.
@@ -10,6 +14,7 @@
 -   You are working with the [Agents Server](apps/agents-server)
 
 ![alt text](prompts/screenshots/2026-02-1020-agents-server-fix-file-attachements.png)
+![alt text](prompts/screenshots/2026-02-1020-agents-server-fix-file-attachements-1.png)
 
 ---
 
@@ -40,4 +45,3 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
