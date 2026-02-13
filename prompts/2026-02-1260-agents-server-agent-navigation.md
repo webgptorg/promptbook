@@ -1,11 +1,11 @@
 [ ]
 
-[✨🌵] baz
+[✨🌵] There should be better navigation between [agent chat](https://praha13.ptbk.io/agents/qY7rrLbHFA1GCE/chat) and [agent source](https://praha13.ptbk.io/agents/qY7rrLbHFA1GCE/book)
 
-- @@@
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+![alt text](prompts/screenshots/2026-02-1260-agents-server-agent-navigation.png)
+![alt text](prompts/screenshots/2026-02-1260-agents-server-agent-navigation-1.png)
 
 ---
 

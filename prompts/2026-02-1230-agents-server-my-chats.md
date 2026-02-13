@@ -43,10 +43,11 @@
 
 ---
 
-[-]
+[ ]
 
-[✨⁉️] brr
+[✨⁉️] QR code to the shared chat link in the HTML / PDF exported chat.
 
+-   @@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)

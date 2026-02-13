@@ -1,11 +1,9 @@
 [ ]
 
-[✨☺️] baz
+[✨☺️] Allow to toggle password visibility and token visibility alongside the input fields.
 
--   @@@
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Keep in mind the DRY _(don't repeat yourself)_ principle, create a reusable component for the password and token input fields with visibility toggle.
 -   You are working with the [Agents Server](apps/agents-server)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
 
