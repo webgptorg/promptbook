@@ -23,10 +23,19 @@
             "onlySingle": false,
             "focus": false
         },
+
         {
-            "name": "🎭👨‍💻🟣⏩ Migrate Agents server",
+            "name": "🎭👨‍💻🟣⏩ Migrate Agents server localhost (💤)",
             "cwd": "./apps/agents-server/",
-            "command": "npm run migrate-database",
+            "command": "npx tsx ./src/database/migrate.ts --only=local0_",
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
+            "name": "🎭👨‍💻🟣🏭 Generate reserved paths for Agents server",
+            "cwd": "./apps/agents-server/",
+            "command": "npm run generate-reserved-paths",
             "execute": true,
             "onlySingle": true,
             "focus": true
@@ -43,17 +52,9 @@
             "focus": false
         },
         {
-            "name": "🎭👨‍💻🟣⏩ Migrate Agents server localhost (💤)",
+            "name": "🎭👨‍💻🟣⏩ Migrate Agents server",
             "cwd": "./apps/agents-server/",
-            "command": "npx tsx ./src/database/migrate.ts --only=local0_",
-            "execute": false,
-            "onlySingle": false,
-            "focus": false
-        },
-        {
-            "name": "🎭👨‍💻🟣🏭 Generate reserved paths for Agents server",
-            "cwd": "./apps/agents-server/",
-            "command": "npm run generate-reserved-paths",
+            "command": "npm run migrate-database",
             "execute": true,
             "onlySingle": true,
             "focus": true
