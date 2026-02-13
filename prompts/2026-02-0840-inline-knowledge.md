@@ -21,8 +21,7 @@ without any links or references to files.
 -   There should be no difference between the referenced form and inline form. When you are referencing the text file with the same content, it should have generally the same behavior as the inline content.
 -   The inline knowledge should be also placed into the vector store of the agent kit, just like the referenced knowledge.
 -   Place it there as a text file.
--   This should go through the model requirements [`AgentModelRequirements`](src/book-2.0/agent-source/AgentModelRequirements.ts) `knowledgeSources`.
-    -
+-   ## This should go through the model requirements [`AgentModelRequirements`](src/book-2.0/agent-source/AgentModelRequirements.ts) `knowledgeSources`.
 -   This file will have the name of the first non-empty line of the inline knowledge normalized to the hamburger case. Use the existing normalization function for this normalization.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Keep in mind the separation of concerns principle. There are multiple parts which are independent to each other:
@@ -35,11 +34,13 @@ without any links or references to files.
 
 ---
 
-[-]
+[ ]
 
-[✨⏰] foo
+[✨⏰] You have changed the [behavior of the inlined knowledge](prompts/2026-02-0840-inline-knowledge.md) but it is not working properly.
 
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Change the inlined knowledge in a way that the file isn't Base64 URL encoded, but it is uploaded into the CDN and created a temporary CDN URL.
+-   This will be placed into Agent model requirements `knowledgeSources`
+-   Keep in mind the DRY _(don't repeat yourself)_ principle, reuse the uploading logic from other places in the project. Do not implement it separately here.
 -   Add the changes into the [changelog](./changelog/_current-preversion.md)
 
 ---
@@ -59,4 +60,3 @@ without any links or references to files.
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the [changelog](./changelog/_current-preversion.md)
-
