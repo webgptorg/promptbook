@@ -28,14 +28,20 @@ Chceš zajímavost spíš z oblasti **hashování (SHA-256)**, **Merkleových st
 
 ---
 
-[.]
+[ ]
 
 [✨🏞] You have added support to rendering the LaTeX notation.
 
--   @@@
+-   but when the LaTeX is wrapped inside a code block, it is totally broken and not rendered as LaTeX at all
+-   Do not render the LaTeX notation when it is wrapped inside a code block, but render it as a normal code block without any LaTeX rendering.
+-   Keep rendering the LaTeX notation when it is not wrapped inside a code block, for example when it is in a normal markdown text or in a markdown blockquote.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+![alt text](prompts/screenshots/2026-02-0980-agents-server-chat-latex-notation-2.png)
+![alt text](prompts/screenshots/2026-02-0980-agents-server-chat-latex-notation-3.png)
+![alt text](prompts/screenshots/2026-02-0980-agents-server-chat-latex-notation-4.png)
 
 ---
 
