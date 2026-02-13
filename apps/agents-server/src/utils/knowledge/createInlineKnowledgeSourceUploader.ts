@@ -1,6 +1,6 @@
 import { $provideCdnForServer } from '@/src/tools/$provideCdnForServer';
-import type { InlineKnowledgeSourceFile, InlineKnowledgeSourceUploader } from '@promptbook-local/core';
 import type { string_knowledge_source_link } from '@promptbook-local/types';
+import { InlineKnowledgeSourceUploader } from '../../../../../src/utils/knowledge/inlineKnowledgeSource';
 import { getSafeCdnPath } from '../cdn/utils/getSafeCdnPath';
 import { getUserFileCdnKey } from '../cdn/utils/getUserFileCdnKey';
 
