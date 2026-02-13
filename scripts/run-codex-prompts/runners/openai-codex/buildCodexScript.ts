@@ -15,7 +15,7 @@ export function buildCodexScript(options: CodexScriptOptions): string {
             ${options.codexCommand} \\
               --ask-for-approval ${options.askForApproval} \\
               exec --model ${options.model} \\
-              --model-provider openai \\
+              --local-provider none \\
               --sandbox ${options.sandbox} \\
               -C ${projectPath} \\
               <<'${delimiter}'
