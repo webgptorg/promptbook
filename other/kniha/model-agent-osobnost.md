@@ -226,7 +226,7 @@ Je to krok od "chytrého autocomplete" k systému, který se začíná podobat p
 
 Doteď jsme se bavili o tom, jak funguje samotný model a jak kolem něj vzniká infrastruktura - paměť, nástroje, orchestrace. Teď zkusme udělat mentální skok: představit si svět, kde se model stává komoditou. Něčím jako procesor.
 
-Procesor sám o sobě není aplikace. Je to univerzální stroj, na kterém můžou běžet libovolné programy. A podobně se začíná chovat i jazykový model: jako výpočetní platforma, na které běží **AI osobnosti**.
+Procesor RAM grafická karta nebo základní deska sama o sobě není aplikace. Je to univerzální stroj, na kterém můžou běžet libovolné programy. A podobně se začíná chovat i jazykový model: jako výpočetní platforma, na které běží **AI osobnosti**.
 
 ### Od modelu k osobnosti 👤
 
@@ -297,5 +297,11 @@ Je to posun od jednotlivého nástroje k prostředí. Od jedné inteligence k ce
 
 @@@
 
+
+emergentní vlastnosti 
+
+vrstvení 
+
+hamming colding
 
 ### Enbodyment
