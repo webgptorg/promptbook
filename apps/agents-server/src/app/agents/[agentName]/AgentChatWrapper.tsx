@@ -3,18 +3,16 @@
 import { usePromise } from '@common/hooks/usePromise';
 import { AgentChat, ChatMessage } from '@promptbook-local/components';
 import { RemoteAgent } from '@promptbook-local/core';
-import { upload } from '@vercel/blob/client';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { OpenAiSpeechRecognition } from '../../../../../../src/speech-recognition/OpenAiSpeechRecognition';
 import { string_agent_url } from '../../../../../../src/types/typeAliases';
 import { useAgentBackground } from '../../../components/AgentProfile/useAgentBackground';
 import { ChatErrorDialog } from '../../../components/ChatErrorDialog';
 import { useSoundSystem } from '../../../components/SoundSystemProvider/SoundSystemProvider';
-import { getSafeCdnPath } from '../../../utils/cdn/utils/getSafeCdnPath';
 import { createDefaultChatEffects } from '../../../utils/chat/createDefaultChatEffects';
 import type { FriendlyErrorMessage } from '../../../utils/errorMessages';
 import { handleChatError } from '../../../utils/errorMessages';
-import { normalizeUploadFilename } from '../../../utils/normalization/normalizeUploadFilename';
+import { chatFileUploadHandler } from '../../../utils/upload/createBookEditorUploadHandler';
 
 type AgentChatWrapperProps = {
     agentUrl: string_agent_url;
@@ -104,14 +102,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
     }, [autoExecuteMessage]);
 
     const handleFileUpload = useCallback(async (file: File) => {
-        const normalizedFilename = normalizeUploadFilename(file.name);
-        const uploadPath = getSafeCdnPath({ pathname: normalizedFilename });
-        const blob = await upload(uploadPath, file, {
-            access: 'public',
-            handleUploadUrl: '/api/upload',
-        });
-
-        return blob.url;
+        return chatFileUploadHandler(file);
     }, []);
 
     const speechRecognition = useMemo(() => {

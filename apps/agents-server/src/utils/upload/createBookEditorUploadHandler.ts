@@ -6,17 +6,11 @@ import { getSafeCdnPath } from '../cdn/utils/getSafeCdnPath';
 import { normalizeUploadFilename } from '../normalization/normalizeUploadFilename';
 
 /**
- * Upload handler signature expected by the BookEditor component.
+ * Progress callback invoked during file uploads.
+ *
+ * @private used by chat and book editors.
  */
-export type BookEditorUploadHandler = (
-    file: File,
-    optionsOrOnProgress?: BookEditorUploadOptions | BookEditorUploadProgressCallback,
-) => Promise<string_knowledge_source_content>;
-
-/**
- * Upload progress callback for BookEditor uploads.
- */
-export type BookEditorUploadProgressCallback = (
+export type FileUploadProgressCallback = (
     progress: number_percent,
     stats?: {
         loadedBytes: number;
@@ -25,30 +19,25 @@ export type BookEditorUploadProgressCallback = (
 ) => void;
 
 /**
- * Options for BookEditor uploads.
+ * Optional upload configuration such as progress reporting or cancellation.
+ *
+ * @private used by chat and book editors.
  */
-export type BookEditorUploadOptions = {
-    /**
-     * Progress callback invoked during upload.
-     */
-    onProgress?: BookEditorUploadProgressCallback;
-
-    /**
-     * Optional abort signal for canceling an upload.
-     */
+export type FileUploadOptions = {
+    onProgress?: FileUploadProgressCallback;
     abortSignal?: AbortSignal;
 };
 
 /**
- * Normalizes the upload options input into a single shape.
+ * Normalizes the various overloads that allow passing just a progress callback.
  */
 const normalizeUploadOptions = (
-    optionsOrOnProgress?: BookEditorUploadOptions | BookEditorUploadProgressCallback,
-): BookEditorUploadOptions => {
+    optionsOrOnProgress?: FileUploadOptions | FileUploadProgressCallback,
+): FileUploadOptions => {
     if (typeof optionsOrOnProgress === 'function') {
         return {
             onProgress: optionsOrOnProgress,
-            abortSignal: (optionsOrOnProgress as BookEditorUploadProgressCallback & { abortSignal?: AbortSignal })
+            abortSignal: (optionsOrOnProgress as FileUploadProgressCallback & { abortSignal?: AbortSignal })
                 .abortSignal,
         };
     }
@@ -57,35 +46,49 @@ const normalizeUploadOptions = (
 };
 
 /**
- * Configuration options for creating a BookEditor upload handler.
+ * Preconditions for building upload paths.
+ *
+ * @private
  */
-export type BookEditorUploadHandlerOptions = {
-    /**
-     * Purpose metadata stored alongside uploaded files.
-     *
-     * @default 'KNOWLEDGE'
-     */
-    purpose?: string;
-};
+type UploadPathBuilder = (normalizedFilename: string, pathPrefix: string) => string;
+
+const buildDefaultUserFilePath: UploadPathBuilder = (normalizedFilename, pathPrefix) =>
+    pathPrefix ? `${pathPrefix}/user/files/${normalizedFilename}` : `user/files/${normalizedFilename}`;
 
 /**
- * Builds a BookEditor upload handler that stores files in the user files CDN area and
- * returns a shortened URL when possible.
+ * Configuration of the shared upload handler.
+ *
+ * @private
  */
-export function createBookEditorUploadHandler(
-    options: BookEditorUploadHandlerOptions = {},
-): BookEditorUploadHandler {
-    const { purpose = 'KNOWLEDGE' } = options;
+type SharedUploadHandlerConfig = {
+    purpose?: string;
+    pathBuilder?: UploadPathBuilder;
+    returnShortUrl?: boolean;
+    shortUrlPrefix?: string;
+};
+
+const DEFAULT_SHORT_URL_PREFIX = 'https://ptbk.io/k/';
+
+/**
+ * Upload handler that normalizes the filename, uploads via `/api/upload`, and optionally returns a short URL.
+ *
+ * @private
+ */
+export function createFileUploadHandler<ReturnType extends string = string>(
+    config: SharedUploadHandlerConfig = {},
+): (file: File, optionsOrOnProgress?: FileUploadOptions | FileUploadProgressCallback) => Promise<ReturnType> {
+    const {
+        purpose = 'GENERIC_UPLOAD',
+        pathBuilder = buildDefaultUserFilePath,
+        returnShortUrl = false,
+        shortUrlPrefix = DEFAULT_SHORT_URL_PREFIX,
+    } = config;
 
     return async (file, optionsOrOnProgress) => {
-        console.info('Uploading file', file);
-
         const { onProgress, abortSignal } = normalizeUploadOptions(optionsOrOnProgress);
         const pathPrefix = process.env.NEXT_PUBLIC_CDN_PATH_PREFIX || '';
         const normalizedFilename = normalizeUploadFilename(file.name);
-        const uploadPath = pathPrefix
-            ? `${pathPrefix}/user/files/${normalizedFilename}`
-            : `user/files/${normalizedFilename}`;
+        const uploadPath = pathBuilder(normalizedFilename, pathPrefix);
         const safeUploadPath = getSafeCdnPath({ pathname: uploadPath });
 
         const blob = await upload(safeUploadPath, file, {
@@ -93,7 +96,7 @@ export function createBookEditorUploadHandler(
             handleUploadUrl: '/api/upload',
             clientPayload: JSON.stringify({
                 purpose,
-                contentType: file.type,
+                contentType: file.type || 'application/octet-stream',
             }),
             abortSignal,
             onUploadProgress: (progressEvent) => {
@@ -104,26 +107,64 @@ export function createBookEditorUploadHandler(
             },
         });
 
-        const fileUrl = blob.url;
-        const longUrlPrefix = `${process.env.NEXT_PUBLIC_CDN_PUBLIC_URL!}/${process.env
-            .NEXT_PUBLIC_CDN_PATH_PREFIX!}/user/files/`;
-        const shortUrlPrefix = 'https://ptbk.io/k/';
-        const shortFileUrl = fileUrl.split(longUrlPrefix).join(shortUrlPrefix);
+        if (returnShortUrl && process.env.NEXT_PUBLIC_CDN_PUBLIC_URL) {
+            const slashIndex = uploadPath.lastIndexOf('/');
+            const directoryPath = slashIndex === -1 ? '' : `${uploadPath.slice(0, slashIndex + 1)}`;
+            const longUrlPrefix = `${process.env.NEXT_PUBLIC_CDN_PUBLIC_URL}/${directoryPath}`;
+            const shortUrl = blob.url.split(longUrlPrefix).join(shortUrlPrefix);
+            return shortUrl as ReturnType;
+        }
 
-        console.log('File uploaded', {
-            longUrlPrefix,
-            shortUrlPrefix,
-            fileUrl,
-            shortFileUrl,
-            file,
-            blob,
-        });
-
-        return shortFileUrl;
+        return blob.url as ReturnType;
     };
 }
 
 /**
- * Default upload handler for BookEditor knowledge uploads.
+ * Handler signature expected by the BookEditor component.
+ */
+export type BookEditorUploadHandler = (
+    file: File,
+    optionsOrOnProgress?: BookEditorUploadOptions | FileUploadProgressCallback,
+) => Promise<string_knowledge_source_content>;
+
+/**
+ * Progress callback for the BookEditor helper.
+ */
+export type BookEditorUploadProgressCallback = FileUploadProgressCallback;
+
+/**
+ * Options exposed by the BookEditor helper.
+ */
+export type BookEditorUploadOptions = {
+    onProgress?: BookEditorUploadProgressCallback;
+    abortSignal?: AbortSignal;
+    purpose?: string;
+};
+
+/**
+ * Builds `BookEditor` upload handler reusing the shared logic and returning short URLs.
+ */
+export function createBookEditorUploadHandler(
+    options: BookEditorUploadOptions = {},
+): BookEditorUploadHandler {
+    const { purpose = 'KNOWLEDGE' } = options;
+    const handler = createFileUploadHandler<string_knowledge_source_content>({
+        purpose,
+        returnShortUrl: true,
+        shortUrlPrefix: DEFAULT_SHORT_URL_PREFIX,
+    });
+
+    return async (file, optionsOrOnProgress) => handler(file, optionsOrOnProgress);
+}
+
+/**
+ * Default BookEditor handler.
  */
 export const bookEditorUploadHandler = createBookEditorUploadHandler();
+
+/**
+ * Handler used by chat attachments so agents can access uploaded files.
+ */
+export const chatFileUploadHandler = createFileUploadHandler({
+    purpose: 'CHAT_ATTACHMENT',
+});
