@@ -45,7 +45,7 @@ Chceš zajímavost spíš z oblasti **hashování (SHA-256)**, **Merkleových st
 
 ---
 
-[ ]
+[x] ~$0.00 a few seconds by OpenAI Codex `gpt-5.1-codex-mini`
 
 [✨🏞] Inlined block wrapping
 
@@ -63,4 +63,5 @@ Chceš zajímavost spíš z oblasti **hashování (SHA-256)**, **Merkleových st
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
 
