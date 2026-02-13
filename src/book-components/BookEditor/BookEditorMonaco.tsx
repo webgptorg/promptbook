@@ -10,6 +10,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 // [🚱]> import * as Y from 'yjs';
 // [🚱]> import { TODO_any } from '../../_packages/types.index';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
+import { BookEditable } from '../../book-2.0/agent-source/BookEditable';
 import { getAllCommitmentDefinitions } from '../../commitments/_common/getAllCommitmentDefinitions';
 import { DEFAULT_MAX_CONCURRENT_UPLOADS, PROMPTBOOK_SYNTAX_COLORS } from '../../config';
 import { classNames } from '../_common/react-utils/classNames';
@@ -1174,16 +1175,22 @@ export function BookEditorMonaco(props: BookEditorProps) {
                 placeholder: getUploadPlaceholderText(file.name),
             }));
 
-            const prefix = model.getValue() ? '\n' : '';
-            const textToAppend = prefix + placeholders.map((entry) => entry.placeholder).join('\n');
-            const lastLine = model.getLineCount();
-            const lastColumn = model.getLineMaxColumn(lastLine);
-            const insertStartOffset = model.getOffsetAt(new monaco.Position(lastLine, lastColumn));
+            const currentValue = (model.getValue() ?? '') as string_book;
+            const bookEditable = new BookEditable(currentValue);
+            const closedLineIndex = bookEditable.findLastCommitmentLineIndex('CLOSED');
+            const insertingBeforeClosed = closedLineIndex !== null;
+            const insertLine = insertingBeforeClosed ? closedLineIndex + 1 : model.getLineCount();
+            const insertColumn = insertingBeforeClosed ? 1 : model.getLineMaxColumn(insertLine);
+            const shouldAddLeadingLineBreak = !insertingBeforeClosed && Boolean(model.getValue());
+            const prefix = shouldAddLeadingLineBreak ? '\n' : '';
+            const placeholderBlock = placeholders.map((entry) => `${entry.placeholder}\n`).join('');
+            const textToInsert = `${prefix}${placeholderBlock}`;
+            const insertStartOffset = model.getOffsetAt(new monaco.Position(insertLine, insertColumn));
 
             editor.executeEdits('upload-placeholders', [
                 {
-                    range: new monaco.Range(lastLine, lastColumn, lastLine, lastColumn),
-                    text: textToAppend,
+                    range: new monaco.Range(insertLine, insertColumn, insertLine, insertColumn),
+                    text: textToInsert,
                     forceMoveMarkers: true,
                 },
             ]);

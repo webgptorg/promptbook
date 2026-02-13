@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.39 7 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
 [✨🍶] Do not drop `KNOWLEDGE` at the end of the book agent source, but before the `CLOSE` commitment.
 
@@ -59,3 +59,4 @@ CLOSED
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
