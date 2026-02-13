@@ -1,6 +1,6 @@
 {
     "name": "@promptbook/openai",
-    "version": "0.110.0-11",
+    "version": "0.110.0",
     "description": "Promptbook: Turn your company's scattered knowledge into AI ready books",
     "private": false,
     "sideEffects": false,
@@ -105,6 +105,6 @@
     "module": "./esm/index.es.js",
     "typings": "./esm/typings/src/_packages/openai.index.d.ts",
     "peerDependencies": {
-        "@promptbook/core": "0.110.0-11"
+        "@promptbook/core": "0.110.0"
     }
 }
