@@ -1,6 +1,6 @@
 [ ] !
 
-[✨👳] Wwhen the referenced team member is not found, Allow to instantly create it from the BookEditor
+[✨👳] When the referenced team member is not found, Allow to instantly create it from the BookEditor
 
 **For example:**
 

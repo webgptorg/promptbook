@@ -194,8 +194,9 @@ Story is an experimental orchestration-based storytelling environment where user
 
 [ ] !
 
-[✨📉] You have implemented [experimental book app](prompts/2026-01-0800-experimental-book-app.md), but it needs some changes and improvements
+[✨📉] Improve experimental book app in agents server
 
+-   You have implemented [experimental book app](prompts/2026-01-0800-experimental-book-app.md), but it needs some changes and improvements
 -   The name of the story shouldn't be a separate input; it should be just the first line of the editor.
 -   "Actors" should be just agents, not a separate concept. The app is about orchestrating agents already existing on a Agents server to write a story, not adding a new concept of "actor" on top of it
 -   "Export as:" should look more like saving the chat conversation, reuse the same design pattern.
