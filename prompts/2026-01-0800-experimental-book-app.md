@@ -192,7 +192,7 @@ Story is an experimental orchestration-based storytelling environment where user
 
 ---
 
-[x] ~$0.23 15 minutes by OpenAI Codex `gpt-5.1-codex-mini`
+[ ]
 
 [✨📉] You have implemented [experimental book app](prompts/2026-01-0800-experimental-book-app.md), but it needs some changes and improvements
 
@@ -226,4 +226,3 @@ Story is an experimental orchestration-based storytelling environment where user
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-

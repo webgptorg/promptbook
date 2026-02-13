@@ -1,14 +1,26 @@
 'use server';
 
-import {  } from '@/src/database/';
-import {  } from '@/src/database/';
+import { $getTableName } from '@/src/database/$getTableName';
+import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import { getCurrentUser } from '@/src/utils/getCurrentUser';
-import { normalizeStory, Story } from './storyTypes';
+
+export type Actor = {
+    name: string;
+    avatarUrl?: string;
+};
+
+export type Story = {
+    id: string;
+    title: string;
+    content: string;
+    mode: 'beletrie' | 'dramatic';
+    actors: Array<Actor>;
+};
 
 async function getUserId(username: string): Promise<number | null> {
-    const supabase = ();
+    const supabase = $provideSupabaseForServer();
     const { data } = await supabase
-        .from(await ('User'))
+        .from(await $getTableName('User'))
         .select('id')
         .eq('username', username)
         .single();
@@ -27,7 +39,7 @@ export async function getStories(): Promise<Array<Story>> {
         return [];
     }
 
-    const supabase = await ();
+    const supabase = await $provideSupabaseForServer();
     const { data, error } = await supabase
         .from('UserData')
         .select('value')
@@ -40,8 +52,7 @@ export async function getStories(): Promise<Array<Story>> {
         return [];
     }
 
-    const rawStories = (data.value as Array<Partial<Story> & { id: string }>) || [];
-    return rawStories.map((story) => normalizeStory(story));
+    return data.value as Array<Story>;
 }
 
 export async function saveStories(stories: Array<Story>) {
@@ -55,14 +66,13 @@ export async function saveStories(stories: Array<Story>) {
         throw new Error('User not found in database.');
     }
 
-    const supabase = await ();
-    const normalizedStories = stories.map((story) => normalizeStory(story));
+    const supabase = await $provideSupabaseForServer();
     const { data, error } = await supabase
         .from('UserData')
         .upsert({
             userId,
             key: 'stories',
-            value: normalizedStories,
+            value: stories,
         })
         .select();
 
