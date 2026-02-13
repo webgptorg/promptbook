@@ -1,8 +1,9 @@
 'use server';
 
+import {  } from '@/src/database/';
+import {  } from '@/src/database/';
 import { getCurrentUser } from '@/src/utils/getCurrentUser';
 import { normalizeStory, Story } from './storyTypes';
-import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 
 async function getUserId(username: string): Promise<number | null> {
     const supabase = ();
@@ -26,8 +27,8 @@ export async function getStories(): Promise<Array<Story>> {
         return [];
     }
 
- 
-    const { data, error } = await  $provideSupabaseForServer()
+    const supabase = await ();
+    const { data, error } = await supabase
         .from('UserData')
         .select('value')
         .eq('userId', userId)
@@ -54,7 +55,7 @@ export async function saveStories(stories: Array<Story>) {
         throw new Error('User not found in database.');
     }
 
-    const supabase = await $provideSupabaseForServer();
+    const supabase = await ();
     const normalizedStories = stories.map((story) => normalizeStory(story));
     const { data, error } = await supabase
         .from('UserData')
