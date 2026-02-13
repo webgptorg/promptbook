@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getStories } from '../../../story/actions';
+import { sanitizeStoryFilename } from '@/app/experiments/story/storyTypes';
 
 export async function GET(request: NextRequest) {
     try {
@@ -25,14 +26,16 @@ This story was generated using an experimental app. Features may change or be re
 ---
 `;
 
+        const safeFilename = sanitizeStoryFilename(story.title);
+
         if (format === 'txt') {
             content = `${story.title}\n\n${story.content}\n\n${experimentalNotice}`;
             contentType = 'text/plain';
-            filename = `${story.title}.txt`;
+            filename = `${safeFilename}.txt`;
         } else if (format === 'md') {
             content = `# ${story.title}\n\n${story.content}\n\n${experimentalNotice}`;
             contentType = 'text/markdown';
-            filename = `${story.title}.md`;
+            filename = `${safeFilename}.md`;
         } else {
             return NextResponse.json({ error: 'Invalid format' }, { status: 400 });
         }
