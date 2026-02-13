@@ -65,3 +65,13 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
+
+---
+
+[ ]
+
+[✨✌️] Fix "Enhance the default images of agents in the agent server."
+
+-   @@@
+-   You have implemented the "Enhance the default images of agents in the agent server." feature, but it is not working, fix it
+

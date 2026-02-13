@@ -27,13 +27,15 @@
 
 ---
 
-[-]
+[ ]
 
-[✨🗃] foo
+[✨🗃] Fix weird blurs shown when the scroll down is shown in the chat.
 
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   These blurs occur right-top on the write a message input.
+-   They occur together with the scroll down button.
 -   You are working with the [Agents Server](apps/agents-server)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+![alt text](prompts/screenshots/2026-02-1090-agents-server-enhance-ux-of-scrolldown-2.png)
 
 ---
 
@@ -44,4 +46,3 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
