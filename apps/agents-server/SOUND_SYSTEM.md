@@ -272,11 +272,6 @@ To add sounds to new visual effects:
 2. Update `ChatEffectsSystem` to map the effect to a sound event
 3. Add the sound configuration to `createDefaultSoundSystem()`
 
-## ElevenLabs speech playback
-
--   Each completed chat bubble now exposes a Play button that sanitizes the markdown, sends it to `/api/elevenlabs/speech`, and streams back the generated mp3 instead of letting the browser hold the API key.
--   Enable the feature by setting `ELEVENLABS_API_KEY` on the server and optionally editing `apps/agents-server/config/elevenlabs-voice.json` (or overriding `ELEVENLABS_VOICE_ID` when the file is absent) to tweak the voice choice.
-
 ## Testing
 
 ### Manual Testing

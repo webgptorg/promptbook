@@ -124,14 +124,13 @@ export function Chat(props: ChatProps) {
         isVoiceCalling = false,
         isFocusedOnLoad,
         participants = [],
-    extraActions,
-    actionsContainer,
-    saveFormats,
-    isSaveButtonEnabled = true,
-    isCopyButtonEnabled = true,
-    buttonColor: buttonColorRaw,
-    onUseTemplate,
-    onPlayMessage,
+        extraActions,
+        actionsContainer,
+        saveFormats,
+        isSaveButtonEnabled = true,
+        isCopyButtonEnabled = true,
+        buttonColor: buttonColorRaw,
+        onUseTemplate,
         onCreateAgent,
         toolTitles,
         teammates,
@@ -495,7 +494,6 @@ export function Chat(props: ChatProps) {
                         toolTitles={toolTitles}
                         teammates={teammates}
                         soundSystem={soundSystem}
-                        onPlayMessage={onPlayMessage}
                         onToolCallClick={(toolCall) => {
                             setSelectedToolCall(toolCall);
                             setToolCallModalOpen(true);

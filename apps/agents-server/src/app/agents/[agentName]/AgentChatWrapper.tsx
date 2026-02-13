@@ -1,7 +1,7 @@
 'use client';
 
 import { usePromise } from '@common/hooks/usePromise';
-import { AgentChat, ChatMessage, type ChatMessageSpeechRequest } from '@promptbook-local/components';
+import { AgentChat, ChatMessage } from '@promptbook-local/components';
 import { RemoteAgent } from '@promptbook-local/core';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { OpenAiSpeechRecognition } from '../../../../../../src/speech-recognition/OpenAiSpeechRecognition';
@@ -105,41 +105,6 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
         return chatFileUploadHandler(file);
     }, []);
 
-    /**
-     * Calls the Agents Server ElevenLabs proxy to play the sanitized message text.
-     *
-     * @private Chat UI helper used by the `Chat` component.
-     */
-    const handlePlayMessage = useCallback(async (speech: ChatMessageSpeechRequest) => {
-        if (!speech.speechContent) {
-            return;
-        }
-
-        try {
-            const response = await fetch('/api/elevenlabs/speech', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ text: speech.speechContent }),
-            });
-
-            if (!response.ok) {
-                const payload = await response.text().catch(() => 'Unknown error');
-                throw new Error(payload);
-            }
-
-            const blob = await response.blob();
-            const audioUrl = URL.createObjectURL(blob);
-            const audio = new Audio(audioUrl);
-            audio.addEventListener('ended', () => URL.revokeObjectURL(audioUrl), { once: true });
-            await audio.play();
-            return audio;
-        } catch (error) {
-            console.error('Unable to play ElevenLabs speech:', error);
-        }
-    }, []);
-
     const speechRecognition = useMemo(() => {
         if (typeof window === 'undefined') {
             return undefined;
@@ -206,7 +171,6 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
                 visual="FULL_PAGE"
                 effectConfigs={effectConfigs}
                 soundSystem={soundSystem}
-                onPlayMessage={handlePlayMessage}
                 thinkingMessages={thinkingMessages}
                 speechRecognitionLanguage={speechRecognitionLanguage}
             />

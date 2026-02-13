@@ -624,8 +624,6 @@
     align-items: center;
     justify-content: flex-end;
     pointer-events: none;
-    display: inline-flex;
-    gap: 6px;
 
     visibility: hidden;
 }
@@ -635,33 +633,18 @@
     pointer-events: auto;
 }
 
-.copyButton,
-.playButton {
+.copyButton {
     background: rgba(255, 255, 255, 0.2);
     border: 1px solid #ddd;
     border-radius: 6px;
-    padding: 2px 6px;
+    padding: 2px 5px;
     cursor: pointer;
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
     transition: all 0.15s, box-shadow 0.15s, border 0.15s;
     display: flex;
     align-items: center;
-    justify-content: center;
     opacity: 0.7;
     position: relative;
-    min-width: 34px;
-    min-height: 30px;
-    gap: 4px;
-}
-
-.playButton[aria-pressed='true'] {
-    background: rgba(59, 130, 246, 0.12);
-    border-color: rgba(59, 130, 246, 0.8);
-}
-
-.playButton:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
 }
 
 .copiedTooltip {
@@ -717,8 +700,7 @@
     box-shadow: 0 2px 8px rgba(0, 132, 255, 0.1);
 }
 
-.copyButton svg,
-.playButton svg {
+.copyButton svg {
     display: block;
 }
 
