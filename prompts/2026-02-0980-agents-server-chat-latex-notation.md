@@ -28,13 +28,25 @@ Chceš zajímavost spíš z oblasti **hashování (SHA-256)**, **Merkleových st
 
 ---
 
-[-]
+[.]
 
-[✨🏞] brr
+[✨🏞] You have added support to rendering the LaTeX notation.
 
+-   @@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+---
+
+[ ]
+
+[✨🏞] Inlined block wrapping
+
+-   When there is a long line of markdown block in the message, do not stretch the block and overflow the message container, but wrap the text and keep it inside the message container.
+-   You are working with the [Agents Server](apps/agents-server)
+
+![alt text](prompts/screenshots/2026-02-0980-agents-server-chat-latex-notation-1.png)
 
 ---
 
@@ -45,14 +57,3 @@ Chceš zajímavost spíš z oblasti **hashování (SHA-256)**, **Merkleových st
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
----
-
-[-]
-
-[✨🏞] brr
-
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   You are working with the [Agents Server](apps/agents-server)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
-
