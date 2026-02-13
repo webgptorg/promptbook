@@ -13,6 +13,7 @@ import {
 } from './computeAssistantCacheKey';
 import { $provideAgentReferenceResolver } from '../agentReferenceResolver/$provideAgentReferenceResolver';
 import { consumeAgentReferenceResolutionIssues } from '../agentReferenceResolver/AgentReferenceResolutionIssue';
+import { createInlineKnowledgeSourceUploader } from '@/src/utils/knowledge/createInlineKnowledgeSourceUploader';
 
 const KNOWLEDGE_SOURCE_HASH_TIMEOUT_MS = 30000;
 const VECTOR_STORE_HASH_VERSION = 'vector-store-v1';
@@ -233,7 +234,10 @@ export class AgentKitCacheManager {
             undefined,
             undefined,
             undefined,
-            { agentReferenceResolver },
+            {
+                agentReferenceResolver,
+                inlineKnowledgeSourceUploader: createInlineKnowledgeSourceUploader(),
+            },
         );
         const unresolvedAgentReferences = consumeAgentReferenceResolutionIssues(agentReferenceResolver);
         if (unresolvedAgentReferences.length > 0) {

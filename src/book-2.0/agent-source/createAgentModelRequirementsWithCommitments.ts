@@ -6,12 +6,18 @@ import { $fileImportPlugins } from '../../import-plugins/$fileImportPlugins';
 import { promptbookFetch } from '../../scrapers/_common/utils/promptbookFetch';
 import type { string_model_name } from '../../types/typeAliases';
 import { isValidUrl } from '../../utils/validators/url/isValidUrl';
+import { chococake } from '../../utils/organization/really_any';
 import type { AgentModelRequirements } from './AgentModelRequirements';
 import { extractMcpServers } from './createAgentModelRequirements';
 import type { CreateAgentModelRequirementsOptions } from './CreateAgentModelRequirementsOptions';
 import { parseAgentSourceWithCommitments } from './parseAgentSourceWithCommitments';
 import { parseParameters } from './parseParameters';
 import { removeCommentsFromSystemMessage } from './removeCommentsFromSystemMessage';
+import { inlineKnowledgeSourceToDataUrl } from '../../utils/knowledge/inlineKnowledgeSource';
+import type {
+    InlineKnowledgeSourceFile,
+    InlineKnowledgeSourceUploader,
+} from '../../utils/knowledge/inlineKnowledgeSource';
 import type { string_book } from './string_book';
 
 /**
@@ -275,6 +281,8 @@ export async function createAgentModelRequirementsWithCommitments(
         };
     }
 
+    requirements = await applyPendingInlineKnowledgeSources(requirements, options?.inlineKnowledgeSourceUploader);
+
     // Remove comment lines (lines starting with #) from the final system message
     // while preserving the original content with comments in metadata
     const cleanedSystemMessage = removeCommentsFromSystemMessage(requirements.systemMessage);
@@ -283,6 +291,67 @@ export async function createAgentModelRequirementsWithCommitments(
         ...requirements,
         systemMessage: cleanedSystemMessage,
     };
+}
+
+/**
+ * @private Attempts to upload inline knowledge entries, falling back to legacy data URLs when the upload fails or is not configured.
+ */
+async function applyPendingInlineKnowledgeSources(
+    requirements: AgentModelRequirements,
+    uploader?: InlineKnowledgeSourceUploader,
+): Promise<AgentModelRequirements> {
+    const inlineSources = extractInlineKnowledgeSources(requirements._metadata);
+    if (inlineSources.length === 0) {
+        return requirements;
+    }
+
+    const knowledgeSources = [...(requirements.knowledgeSources ?? [])];
+
+    for (const inlineSource of inlineSources) {
+        const url = uploader
+            ? await uploadInlineKnowledgeSourceWithFallback(inlineSource, uploader)
+            : inlineKnowledgeSourceToDataUrl(inlineSource);
+        knowledgeSources.push(url);
+    }
+
+    return {
+        ...requirements,
+        knowledgeSources,
+        _metadata: stripInlineKnowledgeMetadata(requirements._metadata),
+    };
+}
+
+async function uploadInlineKnowledgeSourceWithFallback(
+    inlineSource: InlineKnowledgeSourceFile,
+    uploader: InlineKnowledgeSourceUploader,
+): Promise<string> {
+    try {
+        return await uploader(inlineSource);
+    } catch (error) {
+        console.error('[inline-knowledge] Failed to upload inline source', {
+            filename: inlineSource.filename,
+            error,
+        });
+        return inlineKnowledgeSourceToDataUrl(inlineSource);
+    }
+}
+
+function extractInlineKnowledgeSources(metadata?: Record<string, chococake>): InlineKnowledgeSourceFile[] {
+    if (!metadata) {
+        return [];
+    }
+
+    const value = metadata.inlineKnowledgeSources;
+    return Array.isArray(value) ? (value as InlineKnowledgeSourceFile[]) : [];
+}
+
+function stripInlineKnowledgeMetadata(metadata?: Record<string, chococake>): Record<string, chococake> | undefined {
+    if (!metadata || !(metadata as Record<string, unknown>).hasOwnProperty('inlineKnowledgeSources')) {
+        return metadata;
+    }
+
+    const { inlineKnowledgeSources, ...rest } = metadata;
+    return Object.keys(rest).length > 0 ? (rest as Record<string, chococake>) : undefined;
 }
 
 /**

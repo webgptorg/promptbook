@@ -1,42 +1,33 @@
-import type { string_data_url, string_filename } from '../../types/typeAliases';
+import type { string_data_url, string_filename, string_knowledge_source_link } from '../../types/typeAliases';
 import { normalizeToKebabCase } from '../normalization/normalize-to-kebab-case';
 
-/**
- * @@@
- *
- * @private thing of inline knowledge
- */
+/** @private The default base name for inline knowledge files when the content lacks identifying text */
 const INLINE_KNOWLEDGE_BASE_NAME = 'inline-knowledge';
 
-/**
- * @@@
- *
- * @private thing of inline knowledge
- */
+/** @private The default file extension used for inline knowledge uploads */
 const INLINE_KNOWLEDGE_EXTENSION = '.txt';
 
-/**
- * @@@
- *
- * @private thing of inline knowledge
- */
+/** @private Prefix that identifies base64 data URLs */
 const DATA_URL_PREFIX = 'data:';
 
 /**
- * @@@
- *
- * @private thing of inline knowledge
+ * @private Internal representation of inline knowledge prepared for uploads.
  */
 export type InlineKnowledgeSourceFile = {
     readonly filename: string_filename;
     readonly mimeType: string;
-    readonly url: string_data_url;
+    readonly buffer: Buffer;
 };
 
 /**
- * @@@
- *
- * @private thing of inline knowledge
+ * @private Function signature used to upload inline knowledge files to external storage.
+ */
+export type InlineKnowledgeSourceUploader = (
+    file: InlineKnowledgeSourceFile,
+) => Promise<string_knowledge_source_link>;
+
+/**
+ * @private Retrieves the first meaningful line from the inline content.
  */
 function getFirstNonEmptyLine(content: string): string | null {
     const lines = content.split(/\r?\n/);
@@ -50,9 +41,7 @@ function getFirstNonEmptyLine(content: string): string | null {
 }
 
 /**
- * @@@
- *
- * @private thing of inline knowledge
+ * @private Determines the base file name by normalizing the first non-empty line.
  */
 function deriveBaseFilename(content: string): string {
     const firstLine = getFirstNonEmptyLine(content);
@@ -65,24 +54,19 @@ function deriveBaseFilename(content: string): string {
 }
 
 /**
- * Creates a data URL that represents the inline knowledge content as a text file.
- *
- * @private thing of inline knowledge
+ * @private Converts inline knowledge into the internal metadata form used for uploads.
  */
 export function createInlineKnowledgeSourceFile(content: string): InlineKnowledgeSourceFile {
     const trimmedContent = content.trim();
     const baseName = deriveBaseFilename(trimmedContent);
     const filename = `${baseName}${INLINE_KNOWLEDGE_EXTENSION}` as string_filename;
     const mimeType = 'text/plain';
-    const base64 = Buffer.from(trimmedContent, 'utf-8').toString('base64');
-    const encodedFilename = encodeURIComponent(filename);
-    const url =
-        `${DATA_URL_PREFIX}${mimeType};name=${encodedFilename};charset=utf-8;base64,${base64}` as string_data_url;
+    const buffer = Buffer.from(trimmedContent, 'utf-8');
 
     return {
         filename,
         mimeType,
-        url,
+        buffer,
     };
 }
 
@@ -96,9 +80,16 @@ export function isDataUrlKnowledgeSource(source: string): source is string_data_
 }
 
 /**
+ * @private Converts a stored inline knowledge file into a data URL for backwards compatibility.
+ */
+export function inlineKnowledgeSourceToDataUrl(source: InlineKnowledgeSourceFile): string_knowledge_source_link {
+    const base64 = source.buffer.toString('base64');
+    const encodedFilename = encodeURIComponent(source.filename);
+    return `${DATA_URL_PREFIX}${source.mimeType};name=${encodedFilename};charset=utf-8;base64,${base64}` as string_knowledge_source_link;
+}
+
+/**
  * Parses a data URL-based knowledge source into its raw buffer, filename, and MIME type.
- *
- * @private thing of inline knowledge
  */
 export function parseDataUrlKnowledgeSource(source: string): {
     readonly buffer: Buffer;

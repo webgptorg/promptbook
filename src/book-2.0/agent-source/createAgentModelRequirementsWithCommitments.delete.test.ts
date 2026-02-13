@@ -41,4 +41,19 @@ KNOWLEDGE {X: second knowledge below}`);
         expect(parsedInline).not.toBeNull();
         expect(parsedInline?.buffer.toString('utf-8')).toContain('second knowledge below');
     });
+
+    it('uses the provided inline knowledge uploader when available', async () => {
+        const book = validateBook(`AI agent
+
+KNOWLEDGE Inline knowledge content for CDN
+`);
+        const uploader = jest.fn(async () => 'https://cdn.example/inline-knowledge.txt');
+        const modelRequirements = await createAgentModelRequirementsWithCommitments(book, undefined, {
+            inlineKnowledgeSourceUploader: uploader,
+        });
+
+        expect(uploader).toHaveBeenCalledTimes(1);
+        expect(modelRequirements.knowledgeSources?.length).toBe(1);
+        expect(modelRequirements.knowledgeSources?.[0]).toBe('https://cdn.example/inline-knowledge.txt');
+    });
 });

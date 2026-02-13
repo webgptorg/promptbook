@@ -34,7 +34,7 @@ without any links or references to files.
 
 ---
 
-[ ]
+[x] ~$0.73 11 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
 [✨⏰] You have changed the [behavior of the inlined knowledge](prompts/2026-02-0840-inline-knowledge.md) but it is not working properly.
 
@@ -60,3 +60,4 @@ without any links or references to files.
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Add the changes into the [changelog](./changelog/_current-preversion.md)
+

@@ -11,6 +11,7 @@ import { createAgentModelRequirements, parseAgentSource } from '@promptbook-loca
 import { TODO_any } from '@promptbook-local/types';
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
 import { consumeAgentReferenceResolutionIssues } from '@/src/utils/agentReferenceResolver/AgentReferenceResolutionIssue';
+import { createInlineKnowledgeSourceUploader } from '@/src/utils/knowledge/createInlineKnowledgeSourceUploader';
 import { FileTextIcon } from 'lucide-react';
 import { headers } from 'next/headers';
 import { resolveAgentAvatarImageUrl } from '../../../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
@@ -39,7 +40,10 @@ export default async function AgentSystemMessagePage({ params }: { params: Promi
         undefined,
         undefined,
         undefined,
-        { agentReferenceResolver },
+        {
+            agentReferenceResolver,
+            inlineKnowledgeSourceUploader: createInlineKnowledgeSourceUploader(),
+        },
     );
     const unresolvedAgentReferences = consumeAgentReferenceResolutionIssues(agentReferenceResolver);
     if (unresolvedAgentReferences.length > 0) {

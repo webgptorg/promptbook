@@ -7,6 +7,7 @@ import { assertsError } from '../../../../../../../../../src/errors/assertsError
 import { keepUnused } from '../../../../../../../../../src/utils/organization/keepUnused';
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
 import { consumeAgentReferenceResolutionIssues } from '@/src/utils/agentReferenceResolver/AgentReferenceResolutionIssue';
+import { createInlineKnowledgeSourceUploader } from '@/src/utils/knowledge/createInlineKnowledgeSourceUploader';
 
 export async function GET(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
     keepUnused(request /* <- Note: We dont need `request` parameter */);
@@ -26,7 +27,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
             undefined,
             undefined,
             undefined,
-            { agentReferenceResolver },
+            {
+                agentReferenceResolver,
+                inlineKnowledgeSourceUploader: createInlineKnowledgeSourceUploader(),
+            },
         );
         const unresolvedAgentReferences = consumeAgentReferenceResolutionIssues(agentReferenceResolver);
         if (unresolvedAgentReferences.length > 0) {
