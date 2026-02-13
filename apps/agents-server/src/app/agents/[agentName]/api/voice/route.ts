@@ -7,6 +7,7 @@ import { Agent, computeAgentHash, PROMPTBOOK_ENGINE_VERSION } from '@promptbook-
 import { computeHash, serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
 import { keepUnused } from '../../../../../../../../src/utils/organization/keepUnused';
+import { respondIfClientVersionIsOutdated } from '../../../../../utils/clientVersionGuard';
 
 export const maxDuration = 300;
 
@@ -35,6 +36,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
 
     let { agentName } = await params;
     agentName = decodeURIComponent(agentName);
+
+    const versionMismatchResponse = respondIfClientVersionIsOutdated(request, 'json');
+    if (versionMismatchResponse) {
+        return versionMismatchResponse;
+    }
 
     // Note: Parse FormData for audio file
     const formData = await request.formData();

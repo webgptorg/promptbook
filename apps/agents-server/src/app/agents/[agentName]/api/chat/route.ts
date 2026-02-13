@@ -11,6 +11,7 @@ import { $getCurrentDate, computeHash, serializeError } from '@promptbook-local/
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
 import { ASSISTANT_PREPARATION_TOOL_CALL_NAME } from '../../../../../../../../src/types/ToolCall';
 import { keepUnused } from '../../../../../../../../src/utils/organization/keepUnused';
+import { respondIfClientVersionIsOutdated } from '../../../../../utils/clientVersionGuard';
 import { isAgentDeleted } from '../../_utils';
 
 /**
@@ -45,6 +46,11 @@ export async function OPTIONS(request: Request) {
 export async function POST(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
     let { agentName } = await params;
     agentName = decodeURIComponent(agentName);
+
+    const versionMismatchResponse = respondIfClientVersionIsOutdated(request, 'stream');
+    if (versionMismatchResponse) {
+        return versionMismatchResponse;
+    }
 
     // Check if agent is deleted
     if (await isAgentDeleted(agentName)) {

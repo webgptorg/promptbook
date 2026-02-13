@@ -22,6 +22,7 @@ import { computeUsageCounts } from '../../../../src/execution/utils/computeUsage
 import { isAgentDeleted } from '../app/agents/[agentName]/_utils';
 import { HTTP_STATUS_CODES } from '../constants';
 import { AgentKitCacheManager } from './cache/AgentKitCacheManager';
+import { respondIfClientVersionIsOutdated } from './clientVersionGuard';
 import { validateApiKey } from './validateApiKey';
 
 /**
@@ -169,6 +170,11 @@ export async function handleChatCompletion(
     title: string = 'API Chat Completion',
 ) {
     const { agentName: agentNameFromParams } = params;
+
+    const versionMismatchResponse = respondIfClientVersionIsOutdated(request, 'json');
+    if (versionMismatchResponse) {
+        return versionMismatchResponse;
+    }
 
     // Validate API key explicitly (in addition to middleware)
     const apiKeyValidation = await validateApiKey(request);

@@ -17,6 +17,7 @@ import type {
 import { isAssistantPreparationToolCall } from '../../types/ToolCall';
 import { getToolCallIdentity } from '../../utils/toolCalls/getToolCallIdentity';
 import type { TODO_any } from '../../utils/organization/TODO_any';
+import { attachClientVersionHeader } from '../../utils/clientVersion';
 import { Agent } from './Agent';
 import type { AgentOptions } from './AgentOptions';
 import type { RemoteAgentOptions } from './RemoteAgentOptions';
@@ -133,7 +134,9 @@ function buildRemoteAgentSource(profile: RemoteAgentProfile, meta: RemoteAgentPr
 export class RemoteAgent extends Agent {
     public static async connect(options: RemoteAgentOptions) {
         const agentProfileUrl = `${options.agentUrl}/api/profile`;
-        const profileResponse = await fetch(agentProfileUrl);
+        const profileResponse = await fetch(agentProfileUrl, {
+            headers: attachClientVersionHeader(),
+        });
         // <- TODO: [🐱‍🚀] What about closed-source agents?
         // <- TODO: [🐱‍🚀] Maybe use promptbookFetch
 
@@ -267,6 +270,7 @@ export class RemoteAgent extends Agent {
 
             const response = await fetch(`${this.agentUrl}/api/voice`, {
                 method: 'POST',
+                headers: attachClientVersionHeader(),
                 body: formData,
             });
 
@@ -306,9 +310,9 @@ export class RemoteAgent extends Agent {
 
         const bookResponse = await fetch(`${this.agentUrl}/api/chat`, {
             method: 'POST',
-            headers: {
+            headers: attachClientVersionHeader({
                 'Content-Type': 'application/json',
-            },
+            }),
             body: JSON.stringify({
                 message: prompt.content,
                 thread: chatPrompt.thread,
