@@ -1,6 +1,17 @@
+[ ]
+
+[✨👳] when the referenced team member is not found, Allow to instantly create it from the book Editor
+
+- @@@
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   You are working with the [Agents Server](apps/agents-server)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+---
+
 [-]
 
-[✨🗺] qux
+[✨👳] bar
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
@@ -10,7 +21,7 @@
 
 [-]
 
-[✨🗺] qux
+[✨👳] bar
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
@@ -20,17 +31,7 @@
 
 [-]
 
-[✨🗺] qux
-
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   You are working with the [Agents Server](apps/agents-server)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
-
----
-
-[-]
-
-[✨🗺] qux
+[✨👳] bar
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
