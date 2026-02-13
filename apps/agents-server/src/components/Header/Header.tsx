@@ -843,6 +843,10 @@ export function Header(props: HeaderProps) {
                               label: 'Files',
                               href: '/admin/files',
                           },
+                          {
+                              label: 'About',
+                              href: '/admin/about',
+                          },
                       ],
                   },
                   ...(isExperimental

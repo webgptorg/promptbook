@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.35 8 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
 [✨👊] In the menu add information about the Promptbook and version of the app.
 
@@ -40,3 +40,4 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

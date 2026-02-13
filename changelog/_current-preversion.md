@@ -1,5 +1,6 @@
 -### 📚 Book
 
+-   Added a System → About entry that opens the new `/admin/about` page so admins can view shared Promptbook, system, and deployment version cards without hunting through the menu.
 -   Enabled clickable agent references in the Book editor: `@agent`, `{agent name}`, `{agentId}`, `https://.../agents/...`, and `{https://.../agents/...}` now share one highlight style and open the referenced agent via Ctrl/Cmd+Click.
 -   Fixed Samsung Internet rendering issues in the Agents Server by replacing `w-screen` route shells with a shared viewport-width-safe class, switching affected full-height routes to `100dvh`-based sizing, and improving font fallbacks/loading (`font-display: swap`, emoji fallback stack, and text autosize normalization) to prevent horizontal overflow and inconsistent font rendering on mobile Samsung browsers.
 -   Added unresolved-reference diagnostics to the Agents Server Book editor: missing compact agent references in `FROM`, `TEAM`, and `IMPORT` commitments are now underlined red (Monaco error markers) while keeping links clickable, powered by a new shared DRY resolver-based diagnostics utility and API endpoint.
