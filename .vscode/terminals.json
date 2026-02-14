@@ -540,7 +540,7 @@
         },
         {
             "name": "🔪 Kill all Node.js processes",
-            "command": "taskkill /F /IM node.exe",
+            "command": "echo 🔪 && taskkill /F /IM node.exe",
             "shellPath": "C:\\Windows\\System32\\cmd.exe",
             "execute": true,
             "onlySingle": true,
