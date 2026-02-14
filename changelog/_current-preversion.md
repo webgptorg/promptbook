@@ -162,6 +162,7 @@
     -   Citations from KNOWLEDGE commitments now correctly resolve to their source URLs for preview and download
     -   Follows DRY principle - parsing logic is centralized in `parseAgentSource()`, data flows through API to `RemoteAgent`
 -   Fixed Agents Server image generation and uploads to safely shorten CDN paths for long filenames, preventing Vercel Blob path length errors.
+-   Added support for inline `![alt](?image-prompt=...)` markers coming from agents that use `USE IMAGE GENERATOR`: the chat now parses the notation, reuses the shared `constructImageFilename` helper, queues `/api/images` with the same lock/queue logic, displays a spinner-based placeholder, and swaps in the CDN-hosted image once it finishes rendering.
 -   Normalized file names before uploads in Agents Server (chat attachments, knowledge uploads, admin file uploads) to keep CDN URLs clean and consistent.
 -   Added actions to image gallery in Agent's Server:
     -   Copy image prompts to clipboard

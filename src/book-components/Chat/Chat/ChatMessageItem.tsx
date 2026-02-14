@@ -27,12 +27,14 @@ import {
     type ParsedCitation,
 } from '../utils/parseCitationsFromContent';
 import { parseMessageButtons } from '../utils/parseMessageButtons';
+import { splitMessageContentByImagePrompts } from '../utils/parseImagePrompts';
 import { parseToolCallArguments } from '../utils/toolCallParsing';
 import { collectTeamToolCallSummary } from '../utils/collectTeamToolCallSummary';
 import { getToolCallIdentity } from '../../../utils/toolCalls/getToolCallIdentity';
 import styles from './Chat.module.css';
 import type { ChatProps } from './ChatProps';
 import { LOADING_INTERACTIVE_IMAGE } from './constants';
+import { ImagePromptRenderer } from './ImagePromptRenderer';
 
 /**
  * Props for the `ChatMessageItem` component
@@ -429,6 +431,10 @@ export const ChatMessageItem = memo(
         );
         const colorOfText = color.then(textColor);
         const { contentWithoutButtons, buttons } = parseMessageButtons(message.content);
+        const contentSegments = useMemo(
+            () => splitMessageContentByImagePrompts(contentWithoutButtons),
+            [contentWithoutButtons],
+        );
         const completedToolCalls = dedupeToolCalls(
             (message.toolCalls || message.completedToolCalls)?.filter(
                 (toolCall) => !isAssistantPreparationToolCall(toolCall),
@@ -648,7 +654,25 @@ export const ChatMessageItem = memo(
                             </>
                         ) : (
                             <div ref={contentWithoutButtonsRef}>
-                                <MarkdownContent content={contentWithoutButtons} onCreateAgent={onCreateAgent} />
+                                {contentSegments.map((segment, segmentIndex) => {
+                                    if (segment.type === 'text') {
+                                        return (
+                                            <MarkdownContent
+                                                key={`text-${segmentIndex}`}
+                                                content={segment.content}
+                                                onCreateAgent={onCreateAgent}
+                                            />
+                                        );
+                                    }
+
+                                    return (
+                                        <ImagePromptRenderer
+                                            key={`image-${segmentIndex}`}
+                                            alt={segment.alt}
+                                            prompt={segment.prompt}
+                                        />
+                                    );
+                                })}
                             </div>
                         )}
 

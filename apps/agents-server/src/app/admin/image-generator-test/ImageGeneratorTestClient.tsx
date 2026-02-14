@@ -3,7 +3,7 @@
 import { upload } from '@vercel/blob/client';
 import { useCallback, useRef, useState } from 'react';
 import spaceTrim from 'spacetrim';
-import { constructImageFilename } from '../../../utils/normalization/constructImageFilename';
+import { constructImageFilename } from '../../../../../../src/utils/normalization/constructImageFilename';
 import { getSafeCdnPath } from '../../../utils/cdn/utils/getSafeCdnPath';
 import { normalizeUploadFilename } from '../../../utils/normalization/normalizeUploadFilename';
 import { Card } from '../../../components/Homepage/Card';
