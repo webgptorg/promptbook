@@ -5,7 +5,10 @@ import { messagesToText } from '../../utils/messagesToText';
 
 const PDF_PAGE_MARGIN_PT = 40;
 const PDF_FONT_SIZE_PT = 10;
-const PDF_LINE_HEIGHT_PT = PDF_FONT_SIZE_PT * 1.3;
+const PDF_LINE_HEIGHT_MULTIPLIER = 1.3;
+const PDF_PARAGRAPH_SPACING_MULTIPLIER = 0.25;
+
+const PDF_LINE_HEIGHT_PT = PDF_FONT_SIZE_PT * PDF_LINE_HEIGHT_MULTIPLIER;
 
 /**
  * Builds the share URL used inside exported files.
@@ -29,7 +32,10 @@ function resolveShareUrl(): string {
  * @returns Binary data for the generated PDF file.
  * @private Internal helper used by `pdfSaveFormatDefinition`.
  */
-export function buildChatPdf(messages: ReadonlyArray<ChatMessage>, participants?: ReadonlyArray<ChatParticipant>): Uint8Array {
+export function buildChatPdf(
+    messages: ReadonlyArray<ChatMessage>,
+    participants?: ReadonlyArray<ChatParticipant>,
+): Uint8Array {
     const shareUrl = resolveShareUrl();
     const textContent = messagesToText([...messages], shareUrl, undefined, participants);
 
@@ -65,7 +71,7 @@ export function buildChatPdf(messages: ReadonlyArray<ChatMessage>, participants?
         const paragraphHeight = wrappedLines.length * PDF_LINE_HEIGHT_PT;
         ensureSpace(paragraphHeight);
         pdf.text(wrappedLines, PDF_PAGE_MARGIN_PT, cursorY);
-        cursorY += paragraphHeight + PDF_LINE_HEIGHT_PT * 0.25;
+        cursorY += paragraphHeight + PDF_LINE_HEIGHT_PT * PDF_PARAGRAPH_SPACING_MULTIPLIER;
     }
 
     return new Uint8Array(pdf.output('arraybuffer'));
