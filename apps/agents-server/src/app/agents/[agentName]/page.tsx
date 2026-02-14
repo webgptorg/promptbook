@@ -13,6 +13,7 @@ import { DeletedAgentBanner } from '../../../components/DeletedAgentBanner';
 import { formatAgentNamingText } from '../../../utils/agentNaming';
 import { resolveAgentRouteTarget } from '../../../utils/agentRouting/resolveAgentRouteTarget';
 import { getAgentNaming } from '../../../utils/getAgentNaming';
+import { getCurrentUser } from '../../../utils/getCurrentUser';
 import { getAgentFolderContext, getAgentName, getAgentProfile, isAgentDeleted } from './_utils';
 import { getAgentLinks } from './agentLinks';
 import { AgentProfileChat } from './AgentProfileChat';
@@ -29,14 +30,44 @@ export const generateMetadata = generateAgentMetadata;
  * @param search - Current page query parameters.
  * @returns Canonical local path.
  */
-function buildCanonicalAgentPath(canonicalAgentId: string, search: { headless?: string }): string {
+function buildCanonicalAgentPath(
+    canonicalAgentId: string,
+    search: { headless?: string; chat?: string; message?: string },
+): string {
     const params = new URLSearchParams();
     if (search.headless !== undefined) {
         params.set('headless', search.headless);
     }
+    if (search.chat !== undefined) {
+        params.set('chat', search.chat);
+    }
+    if (search.message !== undefined) {
+        params.set('message', search.message);
+    }
 
     const query = params.toString();
     const pathname = `/agents/${encodeURIComponent(canonicalAgentId)}`;
+    return query ? `${pathname}?${query}` : pathname;
+}
+
+/**
+ * Builds canonical standalone chat path.
+ *
+ * @param canonicalAgentId - Canonical permanent identifier of the local agent.
+ * @param search - Current page query parameters.
+ * @returns Canonical standalone chat path.
+ */
+function buildCanonicalAgentChatPath(canonicalAgentId: string, search: { chat?: string; message?: string }): string {
+    const params = new URLSearchParams();
+    if (search.chat !== undefined) {
+        params.set('chat', search.chat);
+    }
+    if (search.message !== undefined) {
+        params.set('message', search.message);
+    }
+
+    const query = params.toString();
+    const pathname = `/agents/${encodeURIComponent(canonicalAgentId)}/chat`;
     return query ? `${pathname}?${query}` : pathname;
 }
 
@@ -52,7 +83,7 @@ export default async function AgentPage({
     searchParams,
 }: {
     params: Promise<{ agentName: string }>;
-    searchParams: Promise<{ headless?: string }>;
+    searchParams: Promise<{ headless?: string; chat?: string; message?: string }>;
 }) {
     const agentName = await getAgentName(params);
     const currentSearchParams = await searchParams;
@@ -68,12 +99,16 @@ export default async function AgentPage({
     if (agentName !== canonicalAgentId) {
         redirect(buildCanonicalAgentPath(canonicalAgentId, currentSearchParams));
     }
+    if (currentSearchParams.chat !== undefined || currentSearchParams.message !== undefined) {
+        redirect(buildCanonicalAgentChatPath(canonicalAgentId, currentSearchParams));
+    }
 
     const requestHeaders = await headers();
     const speechRecognitionLanguage = resolveSpeechRecognitionLanguage({
         acceptLanguageHeader: requestHeaders.get('accept-language'),
     });
     const isAdmin = await isUserAdmin();
+    const currentUser = await getCurrentUser();
     const { headless: headlessParam } = currentSearchParams;
     const isHeadless = headlessParam !== undefined;
     const { publicUrl } = await $provideServer();
@@ -155,6 +190,7 @@ export default async function AgentPage({
                     }
                     isDeleted={isDeleted}
                     speechRecognitionLanguage={speechRecognitionLanguage}
+                    isHistoryEnabled={Boolean(currentUser)}
                 />
             </AgentProfileWrapper>
         </>

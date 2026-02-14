@@ -21,13 +21,23 @@ type AgentChatWrapperProps = {
     brandColor?: string;
     thinkingMessages?: ReadonlyArray<string>;
     speechRecognitionLanguage?: string;
+    persistenceKey?: string;
+    onMessagesChange?: (messages: ReadonlyArray<ChatMessage>) => void;
 };
 
 // TODO: [🐱‍🚀] Rename to AgentChatSomethingWrapper
 
 export function AgentChatWrapper(props: AgentChatWrapperProps) {
-    const { agentUrl, defaultMessage, autoExecuteMessage, brandColor, thinkingMessages, speechRecognitionLanguage } =
-        props;
+    const {
+        agentUrl,
+        defaultMessage,
+        autoExecuteMessage,
+        brandColor,
+        thinkingMessages,
+        speechRecognitionLanguage,
+        persistenceKey,
+        onMessagesChange,
+    } = props;
 
     const { backgroundImage } = useAgentBackground(brandColor);
 
@@ -64,25 +74,25 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
                 throw new Error('Agent is not ready to receive feedback.');
             }
 
-        const response = await fetch(`${agentUrl}/api/feedback`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                rating: feedback.rating.toString(),
-                textRating: feedback.textRating,
-                chatThread: feedback.chatThread,
-                userNote: feedback.textRating,
-                expectedAnswer: feedback.expectedAnswer,
-                agentHash: agent.agentHash,
-            }),
-        });
+            const response = await fetch(`${agentUrl}/api/feedback`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    rating: feedback.rating.toString(),
+                    textRating: feedback.textRating,
+                    chatThread: feedback.chatThread,
+                    userNote: feedback.textRating,
+                    expectedAnswer: feedback.expectedAnswer,
+                    agentHash: agent.agentHash,
+                }),
+            });
 
-        if (!response.ok) {
-            const payload = (await response.json().catch(() => null)) as { message?: string } | null;
-            throw new Error(payload?.message ?? 'Failed to save feedback.');
-        }
+            if (!response.ok) {
+                const payload = (await response.json().catch(() => null)) as { message?: string } | null;
+                throw new Error(payload?.message ?? 'Failed to save feedback.');
+            }
         },
         [agent, agentUrl],
     );
@@ -147,6 +157,13 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
         }
     }, [failedMessage]);
 
+    const handleMessagesChange = useCallback(
+        (messages: ReadonlyArray<ChatMessage>) => {
+            onMessagesChange?.(messages);
+        },
+        [onMessagesChange],
+    );
+
     if (!agent) {
         return <>{/* <- TODO: [🐱‍🚀] <PromptbookLoading /> */}</>;
     }
@@ -167,6 +184,8 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
                 onError={handleError}
                 defaultMessage={defaultMessage}
                 autoExecuteMessage={resetMessage || autoExecuteMessage}
+                persistenceKey={persistenceKey}
+                onChange={handleMessagesChange}
                 speechRecognition={speechRecognition}
                 visual="FULL_PAGE"
                 effectConfigs={effectConfigs}

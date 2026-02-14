@@ -398,6 +398,49 @@ export type AgentsServerDatabase = {
                 };
                 Relationships: [];
             };
+            UserChat: {
+                Row: {
+                    id: string;
+                    createdAt: string;
+                    updatedAt: string;
+                    lastMessageAt: string | null;
+                    userId: number;
+                    agentPermanentId: string;
+                    messages: Json;
+                };
+                Insert: {
+                    id: string;
+                    createdAt?: string;
+                    updatedAt?: string;
+                    lastMessageAt?: string | null;
+                    userId: number;
+                    agentPermanentId: string;
+                    messages?: Json;
+                };
+                Update: {
+                    id?: string;
+                    createdAt?: string;
+                    updatedAt?: string;
+                    lastMessageAt?: string | null;
+                    userId?: number;
+                    agentPermanentId?: string;
+                    messages?: Json;
+                };
+                Relationships: [
+                    {
+                        foreignKeyName: 'UserChat_userId_fkey';
+                        columns: ['userId'];
+                        referencedRelation: 'User';
+                        referencedColumns: ['id'];
+                    },
+                    {
+                        foreignKeyName: 'UserChat_agentPermanentId_fkey';
+                        columns: ['agentPermanentId'];
+                        referencedRelation: 'Agent';
+                        referencedColumns: ['permanentId'];
+                    },
+                ];
+            };
             LlmCache: {
                 Row: {
                     id: number;

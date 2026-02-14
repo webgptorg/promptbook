@@ -1,4 +1,4 @@
-[ ] !
+[x] - Implemented by OpenAI Codex `gpt-5.3-codex` but the script ![committed suicide](prompts/screenshots/2026-02-1230-agents-server-my-chats-2.png).
 
 [✨⁉️] Implement user chat history
 

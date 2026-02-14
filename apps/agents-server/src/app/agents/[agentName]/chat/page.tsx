@@ -2,12 +2,13 @@
 
 import { BackToAgentButton } from '@/src/components/BackToAgentButton/BackToAgentButton';
 import { getThinkingMessages } from '@/src/utils/thinkingMessages';
+import { getCurrentUser } from '@/src/utils/getCurrentUser';
 import { headers } from 'next/headers';
 import { resolveSpeechRecognitionLanguage } from '../../../../../../../src/utils/language/getBrowserPreferredSpeechRecognitionLanguage';
 import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
 import { DeletedAgentBanner } from '../../../../components/DeletedAgentBanner';
 import { getAgentProfile, isAgentDeleted } from '../_utils';
-import { AgentChatWrapper } from '../AgentChatWrapper';
+import { AgentChatHistoryClient } from './AgentChatHistoryClient';
 import { generateAgentMetadata } from '../generateAgentMetadata';
 
 export const generateMetadata = generateAgentMetadata;
@@ -17,13 +18,13 @@ export default async function AgentChatPage({
     searchParams,
 }: {
     params: Promise<{ agentName: string }>;
-    searchParams: Promise<{ message?: string }>;
+    searchParams: Promise<{ message?: string; chat?: string }>;
 }) {
     const requestHeaders = await headers();
     $sideEffect(requestHeaders);
     let { agentName } = await params;
     agentName = decodeURIComponent(agentName);
-    const { message } = await searchParams;
+    const { message, chat } = await searchParams;
 
     const isDeleted = await isAgentDeleted(agentName);
     const agentProfile = await getAgentProfile(agentName);
@@ -41,16 +42,20 @@ export default async function AgentChatPage({
     const speechRecognitionLanguage = resolveSpeechRecognitionLanguage({
         acceptLanguageHeader: requestHeaders.get('accept-language'),
     });
+    const currentUser = await getCurrentUser();
 
     return (
         <main className={`w-full h-full overflow-hidden relative agent-chat-route-surface`}>
             <BackToAgentButton agentName={agentName} />
-            <AgentChatWrapper
+            <AgentChatHistoryClient
+                agentName={agentName}
                 agentUrl={agentUrl}
-                autoExecuteMessage={message}
+                initialAutoExecuteMessage={message}
+                initialChatId={chat}
                 brandColor={agentProfile.meta.color}
                 thinkingMessages={thinkingMessages}
                 speechRecognitionLanguage={speechRecognitionLanguage}
+                isHistoryEnabled={Boolean(currentUser)}
             />
         </main>
     );

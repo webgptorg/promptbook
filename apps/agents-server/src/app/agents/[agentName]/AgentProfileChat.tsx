@@ -27,6 +27,7 @@ type AgentProfileChatProps = {
     avatarSrc: string;
     isDeleted?: boolean;
     speechRecognitionLanguage?: string;
+    isHistoryEnabled?: boolean;
 };
 
 /**
@@ -74,6 +75,7 @@ export function AgentProfileChat({
     avatarSrc,
     isDeleted = false,
     speechRecognitionLanguage,
+    isHistoryEnabled = false,
 }: AgentProfileChatProps) {
     const router = useRouter();
     const [isCreatingAgent, setIsCreatingAgent] = useState(false);
@@ -99,10 +101,40 @@ export function AgentProfileChat({
     }, [chatRoute, router]);
 
     const navigateToChat = useCallback(
-        ({ message }: { message?: string }) => {
+        async ({ message }: { message?: string }) => {
             setIsNavigatingToChat(true);
-            const query = hasMessageContent(message) ? `?message=${encodeURIComponent(message)}` : '';
-            const destination = `${chatRoute}${query}`;
+
+            let createdChatId: string | undefined;
+            if (isHistoryEnabled) {
+                try {
+                    const response = await fetch(`${agentUrl}/api/user-chats`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({}),
+                    });
+
+                    if (response.ok) {
+                        const payload = (await response.json()) as { chat?: { id?: string } };
+                        if (payload.chat?.id) {
+                            createdChatId = payload.chat.id;
+                        }
+                    }
+                } catch (error) {
+                    console.warn('Failed to create new user chat before navigation:', error);
+                }
+            }
+
+            const queryParams = new URLSearchParams();
+            if (createdChatId) {
+                queryParams.set('chat', createdChatId);
+            }
+            if (hasMessageContent(message)) {
+                queryParams.set('message', message);
+            }
+            const query = queryParams.toString();
+            const destination = query ? `${chatRoute}?${query}` : chatRoute;
 
             return new Promise<void>((resolve) => {
                 requestAnimationFrame(() => {
@@ -113,7 +145,7 @@ export function AgentProfileChat({
                 });
             });
         },
-        [chatRoute, router],
+        [agentUrl, chatRoute, isHistoryEnabled, router],
     );
 
     const handleMessage = useCallback(
