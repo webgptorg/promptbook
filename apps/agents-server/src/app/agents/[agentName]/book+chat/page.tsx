@@ -3,6 +3,7 @@
 import { BackToAgentButton } from '@/src/components/BackToAgentButton/BackToAgentButton';
 import { ForbiddenPage } from '@/src/components/ForbiddenPage/ForbiddenPage';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
+import { getMetadata } from '@/database/getMetadata';
 import { isUserAdmin } from '@/src/utils/isUserAdmin';
 import { getThinkingMessages } from '@/src/utils/thinkingMessages';
 import { headers } from 'next/headers';
@@ -44,6 +45,7 @@ export default async function AgentBookAndChatPage({ params }: { params: Promise
     const speechRecognitionLanguage = resolveSpeechRecognitionLanguage({
         acceptLanguageHeader: requestHeaders.get('accept-language'),
     });
+    const chatFailMessage = await getMetadata('CHAT_FAIL_MESSAGE');
 
     return (
         <div className={`agents-server-viewport-width h-[calc(100dvh-60px)] relative`}>
@@ -54,6 +56,7 @@ export default async function AgentBookAndChatPage({ params }: { params: Promise
                 agentUrl={agentUrl}
                 thinkingMessages={thinkingMessages}
                 speechRecognitionLanguage={speechRecognitionLanguage}
+                chatFailMessage={chatFailMessage ?? undefined}
             />
         </div>
     );

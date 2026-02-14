@@ -1,4 +1,5 @@
 'use server';
+import { getMetadata } from '@/database/getMetadata';
 import { getThinkingMessages } from '@/src/utils/thinkingMessages';
 import { getCurrentUser } from '@/src/utils/getCurrentUser';
 import { headers } from 'next/headers';
@@ -41,6 +42,7 @@ export default async function AgentChatPage({
         acceptLanguageHeader: requestHeaders.get('accept-language'),
     });
     const currentUser = await getCurrentUser();
+    const chatFailMessage = await getMetadata('CHAT_FAIL_MESSAGE');
 
     return (
         <main className={`w-full h-full overflow-hidden relative agent-chat-route-surface`}>
@@ -53,6 +55,7 @@ export default async function AgentChatPage({
                 thinkingMessages={thinkingMessages}
                 speechRecognitionLanguage={speechRecognitionLanguage}
                 isHistoryEnabled={Boolean(currentUser)}
+                chatFailMessage={chatFailMessage ?? undefined}
             />
         </main>
     );

@@ -53,6 +53,7 @@
 -   Fixed the Agents Server home list so the client cache re-syncs with the server-provided agent and folder data immediately after signing in, eliminating the need for a manual refresh.
 -   Added explicit drag handles to the Agents Server homepage cards so touchscreens can scroll freely while drag-and-drop remains pinned to a clearly marked handle that also works for folders.
 -   The error dialog when the chat fails ("Connection Issue") now has an option to reset the chat with the same message sent to a fresh chat.
+-   Added the `CHAT_FAIL_MESSAGE` metadata so the Agents Server can replace the technical fallback string with a friendly failure copy, and wired the chat routes and AgentChat wrapper to read this value before passing it into `LlmChat`.
 -   Ensured country flag emoji render with the OpenMoji color font across the Agents Server UI (including the chat) so flags no longer fall back to regional-indicator letters and now appear as recognizable country icons.
 -   Voice dictation now honors the user's locale (Accept-Language -> speech recognition language) so Whisper stays in the speaker's language instead of forcing English, with the new language hint threaded through Agent chat, profile chat, and the voice test client.
 -   Fixed Agents Server chat attachments so the uploaded file metadata is forwarded to the agent prompt, keeping uploads accessible to the agent after hitting the server.

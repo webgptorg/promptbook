@@ -86,6 +86,12 @@ export type LlmChatProps = Omit<ChatProps, 'messages' | 'onMessage' | 'onChange'
     readonly thinkingMessages?: ReadonlyArray<string>;
 
     /**
+     * Human-friendly text shown when `LlmChat` fails to process a message.
+     * Use metadata overrides in apps (like Agents Server) instead of copying this string.
+     */
+    readonly chatFailMessage?: string;
+
+    /**
      * Optional custom error handler that will be called when an error occurs during chat.
      * If not provided, errors will be displayed as messages in the chat.
      *

@@ -23,6 +23,7 @@ type AgentChatWrapperProps = {
     speechRecognitionLanguage?: string;
     persistenceKey?: string;
     onMessagesChange?: (messages: ReadonlyArray<ChatMessage>) => void;
+    chatFailMessage?: string;
 };
 
 // TODO: [🐱‍🚀] Rename to AgentChatSomethingWrapper
@@ -37,6 +38,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
         speechRecognitionLanguage,
         persistenceKey,
         onMessagesChange,
+        chatFailMessage,
     } = props;
 
     const { backgroundImage } = useAgentBackground(brandColor);
@@ -192,6 +194,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
                 soundSystem={soundSystem}
                 thinkingMessages={thinkingMessages}
                 speechRecognitionLanguage={speechRecognitionLanguage}
+                chatFailMessage={chatFailMessage}
             />
             <ChatErrorDialog
                 error={currentError}

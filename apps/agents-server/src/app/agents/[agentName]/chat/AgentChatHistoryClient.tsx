@@ -37,6 +37,7 @@ type AgentChatHistoryClientProps = {
     initialChatId?: string;
     initialAutoExecuteMessage?: string;
     isHistoryEnabled: boolean;
+    chatFailMessage?: string;
 };
 
 /**
@@ -52,6 +53,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
         initialChatId,
         initialAutoExecuteMessage,
         isHistoryEnabled,
+        chatFailMessage,
     } = props;
     const router = useRouter();
     const { formatText } = useAgentNaming();
@@ -373,6 +375,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 thinkingMessages={thinkingMessages}
                 speechRecognitionLanguage={speechRecognitionLanguage}
                 persistenceKey={guestPersistenceKey}
+                chatFailMessage={chatFailMessage}
             />
         );
     }
@@ -435,6 +438,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                         speechRecognitionLanguage={speechRecognitionLanguage}
                         persistenceKey={buildUserChatPersistenceKey(activeChatId)}
                         onMessagesChange={handleMessagesChange}
+                        chatFailMessage={chatFailMessage}
                     />
                 </div>
 

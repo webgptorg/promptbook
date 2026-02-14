@@ -48,6 +48,12 @@ export const metadataDefaults = [
         type: 'TEXT',
     },
     {
+        key: 'CHAT_FAIL_MESSAGE',
+        value: 'Sorry, I encountered an error processing your message. Please, try again later.',
+        note: 'Friendly text shown inside chats when a reply fails to generate.',
+        type: 'TEXT',
+    },
+    {
         key: 'RESTRICT_IP',
         value: '',
         note: 'Comma separated list of allowed IPs or CIDR ranges. If set, only clients from these IPs are allowed to access the server.',

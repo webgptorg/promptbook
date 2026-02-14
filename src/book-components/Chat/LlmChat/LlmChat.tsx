@@ -14,6 +14,7 @@ import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
 import { ChatPersistence } from '../utils/ChatPersistence';
 import { createTeamToolNameFromUrl } from '../utils/createTeamToolNameFromUrl';
+import { DEFAULT_CHAT_FAIL_MESSAGE } from './defaults';
 import type { FriendlyErrorMessage } from './FriendlyErrorMessage';
 import type { LlmChatProps } from './LlmChatProps';
 
@@ -133,8 +134,11 @@ export function LlmChat(props: LlmChatProps) {
         buttonColor,
         toolTitles,
         thinkingMessages,
+        chatFailMessage,
         ...restProps
     } = props;
+
+    const resolvedChatFailMessage = chatFailMessage || DEFAULT_CHAT_FAIL_MESSAGE;
 
     // Internal state management
     // DRY: Single factory for seeding initial messages (used on mount and after reset)
@@ -439,9 +443,7 @@ export function LlmChat(props: LlmChatProps) {
                     id: loadingMessage.id,
                     createdAt: $getCurrentDate(),
                     sender: llmParticipantName,
-                    content: `Sorry, I encountered an error processing your message. ${
-                        error instanceof Error ? error.message : 'Please try again.'
-                    }` as string_markdown,
+                    content: resolvedChatFailMessage as string_markdown,
                     isComplete: true,
                     generationDurationMs: Date.now() - generationStartedAtMs,
                 };
