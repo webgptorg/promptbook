@@ -49,6 +49,21 @@
 
 ---
 
+[ ] !!
+
+[✨⁉️] Redesign the user chats into the proper app sidebar.
+
+-   The sidebar should be on the left side of the screen, both on the desktop and mobile.
+-   The sidebar should be collapsible, so the user can hide it when he doesn't need it.
+-   It should look and behave exactly as the well-designed sidebars of other applications, like ChatGPT, Notion, etc. It should be a proper sidebar with the list of chats, and when the user clicks on the chat, it opens this chat in the main area.
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   You are working with the [Agents Server](apps/agents-server)
+
+![current design](prompts/screenshots/2026-02-1230-agents-server-my-chats-6.png)
+![current design](prompts/screenshots/2026-02-1230-agents-server-my-chats-7.png)
+
+---
+
 [-]
 
 [✨⁉️] Share my chat with link

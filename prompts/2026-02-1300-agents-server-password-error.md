@@ -1,4 +1,4 @@
-[ ]
+[ ] !!
 
 [✨⚛️] Show better error when you try to set up a weak password.
 

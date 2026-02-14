@@ -35,25 +35,44 @@ CLOSED
 
 ---
 
-[-]
+[ ] !!
 
-[✨👸] qux
+[✨👸] Better memory toolcall chip
 
+save/load
+
+-   Memories are working perfectly, but the modal popup when the user clicks on the chip that memory was used (either saved or loaded) [looks awful](prompts/screenshots/2026-02-1220-agents-server-memory.png).
+-   Enhance the design of this modal popup and make it look better.
+-   It shouldn't be a technical model about the JSONs and the structure of the memory object. It should be useful for the general public and look very nice and intuitive.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+![alt text](prompts/screenshots/2026-02-1220-agents-server-memory.png)
 
 ---
 
-[-]
+[ ] !!
 
-[✨👸] qux
+[✨👸] Do a slight changes in user memories.
 
+prefer non global memories
+Editing memories
+
+-   Prefer non-global memories, the default should be that the memory is connected to the agent, the exception is to record the memory as global.
+-   Agent should have the capability to edit the memory. For example, if the agent retrieves some memory and sees that it is outdated, it should be able to update this memory with the new information.
+-   Agent should have option to delete the memory as well
+-   The deletion should be soft deletion, so the memory is not deleted from the database, but just marked as deleted, and it should not be retrieved by the agent anymore.
+-   Agent should be able to do full CRUD operations on the memories. Each agent can access either his memories or global memories. Memories of other agents are not accessible at all.
+-   If you need to make changes in the database for the soft deletions, create database migration for the change
+    -   Migrations are located in `/apps/agents-server/src/database/migrations`
+    -   Be aware that table names in migrations have prefix `prefix_` _(look at existing migrations for reference)_
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
+-   Do a proper analysis of the current functionality of user memories before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+![alt text](prompts/screenshots/2026-02-1220-agents-server-memory-1.png)
+![alt text](prompts/screenshots/2026-02-1220-agents-server-memory-2.png)
 
 ---
 

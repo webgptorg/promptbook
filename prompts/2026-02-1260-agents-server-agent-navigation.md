@@ -1,4 +1,4 @@
-[ ]
+[ ] !!
 
 [✨🌵] There should be better navigation between [agent chat](https://praha13.ptbk.io/agents/qY7rrLbHFA1GCE/chat) and [agent source](https://praha13.ptbk.io/agents/qY7rrLbHFA1GCE/book)
 
