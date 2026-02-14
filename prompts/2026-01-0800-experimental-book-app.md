@@ -211,14 +211,27 @@ Story is an experimental orchestration-based storytelling environment where user
 
 ---
 
-[-]
+[ ]
 
-[✨📉] foo
+[✨📉] Improve@@@ experimental book app in agents server @@@
 
+```
+Untitled story
+
+
+
+[BroGPT] continues the story...
+
+[agent-d0993d] continues the story...
+```
+
+-   @@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+![alt text](prompts/screenshots/2026-01-0800-experimental-book-app-1.png)
 
 ---
 
