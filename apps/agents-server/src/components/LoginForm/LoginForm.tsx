@@ -2,6 +2,7 @@
 
 import { loginAction } from '@/src/app/actions';
 import { Loader2, Lock, User } from 'lucide-react';
+import { SecretInput } from '@/src/components/SecretInput/SecretInput';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { ForgottenPasswordDialog } from '../ForgottenPasswordDialog/ForgottenPasswordDialog';
@@ -113,25 +114,14 @@ export function LoginForm(props: LoginFormProps) {
             </div>
 
             <div className="space-y-2">
-                <label
-                    htmlFor="password"
-                    className="text-sm font-medium text-gray-700 block"
-                >
-                    Password
-                </label>
-                <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                        <Lock className="w-4 h-4" />
-                    </div>
-                    <input
-                        id="password"
-                        name="password"
-                        type="password"
-                        required
-                        className="block w-full pl-10 h-10 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-promptbook-blue focus:border-transparent disabled:opacity-50"
-                        placeholder="Enter your password"
-                    />
-                </div>
+                <SecretInput
+                    id="password"
+                    name="password"
+                    label="Password"
+                    placeholder="Enter your password"
+                    required
+                    startIcon={<Lock className="w-4 h-4" />}
+                />
             </div>
 
             {error && (

@@ -1,12 +1,17 @@
 'use client';
 
 import { useState } from 'react';
+import { SecretInput } from '@/src/components/SecretInput/SecretInput';
 
 type CopyFieldProps = {
     label: string;
     value: string;
 };
 
+/**
+ * Renders a read-only secret value with copy and visibility toggle controls.
+ * @private Used inside the agent integration UI to guard API tokens.
+ */
 export function CopyField({ label, value }: CopyFieldProps) {
     const [copied, setCopied] = useState(false);
 
@@ -22,23 +27,22 @@ export function CopyField({ label, value }: CopyFieldProps) {
 
     return (
         <div className="w-full">
-            <label className="block text-xs text-gray-500 font-semibold mb-1">{label}</label>
-            <div className="flex gap-2 items-center">
-                <input
-                    type="text"
-                    value={value}
-                    readOnly
-                    className="flex-1 px-2 py-1 border rounded text-sm bg-gray-50 text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    onFocus={(e) => e.target.select()}
-                />
-                <button
-                    type="button"
-                    className="px-3 py-1 bg-gray-800 text-white rounded text-xs font-semibold transition hover:bg-gray-700 active:bg-gray-900"
-                    onClick={handleCopy}
-                >
-                    {copied ? '✓ Copied' : 'Copy'}
-                </button>
-            </div>
+            <SecretInput
+                label={label}
+                value={value}
+                readOnly
+                onFocus={(event) => event.currentTarget.select()}
+                endAdornment={
+                    <button
+                        type="button"
+                        title={`Copy ${label}`}
+                        onClick={handleCopy}
+                        className="rounded-md border border-gray-200 bg-white px-3 py-1 text-xs font-semibold text-gray-700 transition hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-promptbook-blue"
+                    >
+                        {copied ? '✓ Copied' : 'Copy'}
+                    </button>
+                }
+            />
         </div>
     );
 }

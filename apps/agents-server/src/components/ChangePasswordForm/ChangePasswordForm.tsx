@@ -2,6 +2,7 @@
 
 import { Loader2, Lock } from 'lucide-react';
 import { useState } from 'react';
+import { SecretInput } from '@/src/components/SecretInput/SecretInput';
 
 type ChangePasswordFormProps = {
     onSuccess?: () => void;
@@ -62,71 +63,32 @@ export function ChangePasswordForm(props: ChangePasswordFormProps) {
 
     return (
         <form onSubmit={handleSubmit} className={`space-y-4 ${className || ''}`}>
-            <div className="space-y-2">
-                <label
-                    htmlFor="currentPassword"
-                    className="text-sm font-medium text-gray-700 block"
-                >
-                    Current Password
-                </label>
-                <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                        <Lock className="w-4 h-4" />
-                    </div>
-                    <input
-                        id="currentPassword"
-                        name="currentPassword"
-                        type="password"
-                        required
-                        className="block w-full pl-10 h-10 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-promptbook-blue focus:border-transparent disabled:opacity-50"
-                        placeholder="Enter current password"
-                    />
-                </div>
-            </div>
+            <SecretInput
+                id="currentPassword"
+                name="currentPassword"
+                label="Current Password"
+                placeholder="Enter current password"
+                required
+                startIcon={<Lock className="w-4 h-4" />}
+            />
 
-            <div className="space-y-2">
-                <label
-                    htmlFor="newPassword"
-                    className="text-sm font-medium text-gray-700 block"
-                >
-                    New Password
-                </label>
-                <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                        <Lock className="w-4 h-4" />
-                    </div>
-                    <input
-                        id="newPassword"
-                        name="newPassword"
-                        type="password"
-                        required
-                        className="block w-full pl-10 h-10 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-promptbook-blue focus:border-transparent disabled:opacity-50"
-                        placeholder="Enter new password"
-                    />
-                </div>
-            </div>
+            <SecretInput
+                id="newPassword"
+                name="newPassword"
+                label="New Password"
+                placeholder="Enter new password"
+                required
+                startIcon={<Lock className="w-4 h-4" />}
+            />
 
-            <div className="space-y-2">
-                <label
-                    htmlFor="confirmNewPassword"
-                    className="text-sm font-medium text-gray-700 block"
-                >
-                    Confirm New Password
-                </label>
-                <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                        <Lock className="w-4 h-4" />
-                    </div>
-                    <input
-                        id="confirmNewPassword"
-                        name="confirmNewPassword"
-                        type="password"
-                        required
-                        className="block w-full pl-10 h-10 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-promptbook-blue focus:border-transparent disabled:opacity-50"
-                        placeholder="Confirm new password"
-                    />
-                </div>
-            </div>
+            <SecretInput
+                id="confirmNewPassword"
+                name="confirmNewPassword"
+                label="Confirm New Password"
+                placeholder="Confirm new password"
+                required
+                startIcon={<Lock className="w-4 h-4" />}
+            />
 
             {error && (
                 <div className="p-3 text-sm text-red-500 bg-red-50 border border-red-200 rounded-md">

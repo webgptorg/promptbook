@@ -1,3 +1,4 @@
+-   Added a shared secret input component to the Agents Server so login, change-password, admin auth, user creation, and token copy panels can reuse the same visibility toggle for passwords and API keys.
 -### 📚 Book
 
 -   Implemented persistent `MEMORY` commitment support in Agents Server end-to-end: `MEMORY` now registers hidden retrieve/store memory tools (with optional per-commitment instructions), stores data in the new `UserMemory` table (per user + per agent, with global-memory option), disables memory automatically for unauthenticated users and TEAM conversations, shows memory tool chips with stored/retrieved content, adds `System -> User Memory` CRUD UI for logged-in users, and wires admin (`ADMIN_PASSWORD`) memory identity with automatic DB-user linking.

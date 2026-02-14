@@ -3,6 +3,7 @@
 import { FormEvent, useState } from 'react';
 import { Card } from '../Homepage/Card';
 import { Section } from '../Homepage/Section';
+import { SecretInput } from '@/src/components/SecretInput/SecretInput';
 import { useUsersAdmin } from './useUsersAdmin';
 
 type UsersListProps = {
@@ -105,13 +106,12 @@ export function UsersList({ allowCreate = true }: UsersListProps) {
                                 />
                             </div>
                             <div>
-                                <input
-                                    type="password"
+                                <SecretInput
                                     placeholder="Password"
                                     value={newPassword}
                                     onChange={(e) => setNewPassword(e.target.value)}
-                                    className="w-full p-2 border border-gray-300 rounded"
                                     required
+                                    aria-label="Password"
                                 />
                             </div>
                             <div className="flex items-center">
