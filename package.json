@@ -331,6 +331,7 @@
         "highlight.js": "11.11.1",
         "html-to-image": "1.11.13",
         "jsdom": "25.0.1",
+        "jspdf": "^4.1.0",
         "jszip": "3.10.1",
         "katex": "0.16.25",
         "lorem-ipsum": "2.0.8",

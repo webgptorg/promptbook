@@ -32,7 +32,7 @@ export type ChatSaveFormatDefinition = {
     /**
      * The function that generates the content of the file to be saved
      */
-    getContent(chatExportData: ChatExportData): Promisable<string>;
+    getContent(chatExportData: ChatExportData): Promisable<ChatSaveFormatContent>;
 };
 
 /**
@@ -56,3 +56,10 @@ type ChatExportData = {
      */
     readonly participants: ReadonlyArray<ChatParticipant>;
 };
+
+/**
+ * Content data that can be wrapped into a browser blob.
+ *
+ * @private Internal helper type for chat save plugins.
+ */
+type ChatSaveFormatContent = string | Blob | ArrayBuffer | ArrayBufferView;
