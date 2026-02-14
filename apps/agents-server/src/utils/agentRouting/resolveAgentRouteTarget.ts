@@ -1,6 +1,8 @@
-import { $provideServer } from '@/src/tools/$provideServer';
+import { $provideServer } from '../../tools/$provideServer';
+import { $provideAgentCollectionForServer } from '../../tools/$provideAgentCollectionForServer';
 import { $provideAgentReferenceResolver } from '../agentReferenceResolver/$provideAgentReferenceResolver';
 import { consumeAgentReferenceResolutionIssues } from '../agentReferenceResolver/AgentReferenceResolutionIssue';
+import { normalizeAgentName } from '../../../../../src/_packages/core.index';
 
 /**
  * Prefix used by canonical agent URLs in the application.
@@ -54,6 +56,8 @@ export async function resolveAgentRouteTarget(rawReference: string): Promise<Age
     }
 
     const resolver = await $provideAgentReferenceResolver();
+    const { publicUrl } = await $provideServer();
+    const localServerUrl = normalizeServerUrl(publicUrl.href);
     let resolvedUrlValue: string;
 
     try {
@@ -67,7 +71,7 @@ export async function resolveAgentRouteTarget(rawReference: string): Promise<Age
         (issue) => issue.commitmentType === 'TEAM',
     );
     if (resolutionIssues.length > 0) {
-        return null;
+        return resolveLocalAgentRouteTarget(normalizedReference, localServerUrl);
     }
 
     const resolvedAgentUrl = parseAgentUrl(resolvedUrlValue);
@@ -80,8 +84,6 @@ export async function resolveAgentRouteTarget(rawReference: string): Promise<Age
         return null;
     }
 
-    const { publicUrl } = await $provideServer();
-    const localServerUrl = normalizeServerUrl(publicUrl.href);
     const resolvedServerUrl = normalizeServerUrl(resolvedAgentUrl.origin);
 
     if (resolvedServerUrl !== localServerUrl) {
@@ -183,4 +185,45 @@ function extractAgentIdentifier(url: URL): string | null {
  */
 function normalizeServerUrl(value: string): string {
     return value.replace(/\/+$/, '');
+}
+
+/**
+ * Attempts to resolve an explicit route target for a local agent reference when resolver lookup fails.
+ *
+ * @param reference - Normalized reference text parsed from the route parameter.
+ * @param localServerUrl - Normalized URL of the current Agents Server instance.
+ * @returns Local route target or `null` when the agent cannot be found.
+ */
+async function resolveLocalAgentRouteTarget(
+    reference: string,
+    localServerUrl: string,
+): Promise<AgentRouteTarget | null> {
+    const collection = await $provideAgentCollectionForServer();
+    const agents = await collection.listAgents();
+    const normalizedReference = normalizeAgentName(reference);
+
+    const agentMatch = agents.find((agent: { agentName: string; permanentId?: string }) => {
+        if (agent.agentName === reference || agent.permanentId === reference) {
+            return true;
+        }
+
+        const normalizedAgentName = normalizeAgentName(agent.agentName);
+        if (normalizedAgentName === normalizedReference) {
+            return true;
+        }
+
+        return false;
+    });
+
+    if (!agentMatch) {
+        return null;
+    }
+
+    const canonicalAgentId = agentMatch.permanentId || agentMatch.agentName;
+
+    return {
+        kind: 'local',
+        canonicalAgentId,
+        canonicalUrl: `${localServerUrl}${AGENT_PATH_PREFIX}${encodeURIComponent(canonicalAgentId)}`,
+    };
 }
