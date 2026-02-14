@@ -1,5 +1,9 @@
 [x] ~$0.88 13 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
+---
+
+[ ] !!!!
+
 [✨👳] When the referenced team member is not found, Allow to instantly create it from the BookEditor
 
 **For example:**
@@ -15,6 +19,7 @@ You can discuss things with a {Lawyer}, {Copywriter}, and {Developer}.
 -   When the user clicks the button, create this team member and add it into the team
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   This is a big change. Do a proper analysis of the project before you start implementing.
+-   You have already implemented this in commit `d6f4e275ed95cf6acd14f59a013c3dc7c507221e`, but it doesn't work. Make sure to fix it and make it work properly.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
@@ -50,4 +55,3 @@ You can discuss things with a {Lawyer}, {Copywriter}, and {Developer}.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-

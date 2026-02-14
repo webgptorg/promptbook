@@ -1,7 +1,7 @@
 import spaceTrim from 'spacetrim';
-import type { ChatSaveFormatDefinition } from '../_common/ChatSaveFormatDefinition';
 import type { ChatMessage } from '../../types/ChatMessage';
 import type { ChatParticipant } from '../../types/ChatParticipant';
+import type { ChatSaveFormatDefinition } from '../_common/ChatSaveFormatDefinition';
 
 /**
  * Creates an inline data URL for an SVG illustration so the export stays self-contained.
@@ -26,7 +26,8 @@ function getTextColor(bgColor: string): string {
     return luminance > 186 ? '#0f172a' : '#f8fafc';
 }
 
-const HERO_ILLUSTRATION_SVG = spaceTrim(() => `
+const HERO_ILLUSTRATION_SVG = spaceTrim(
+    () => `
     <svg width="320" height="220" viewBox="0 0 320 220" fill="none" xmlns="http://www.w3.org/2000/svg">
         <defs>
             <linearGradient id="heroGradient" x1="0" y1="0" x2="320" y2="220">
@@ -43,9 +44,11 @@ const HERO_ILLUSTRATION_SVG = spaceTrim(() => `
         <circle cx="222" cy="178" r="32" fill="#facc15" opacity="0.8" />
         <rect x="62" y="130" width="196" height="20" rx="10" fill="rgba(255,255,255,0.15)" />
     </svg>
-`);
+`,
+);
 
-const BRAND_MARK_SVG = spaceTrim(() => `
+const BRAND_MARK_SVG = spaceTrim(
+    () => `
     <svg width="92" height="92" viewBox="0 0 92 92" fill="none" xmlns="http://www.w3.org/2000/svg">
         <defs>
             <linearGradient id="badgeGradient" x1="0" y1="0" x2="92" y2="92">
@@ -64,7 +67,8 @@ const BRAND_MARK_SVG = spaceTrim(() => `
             fill-opacity="0.6"
         />
     </svg>
-`);
+`,
+);
 
 const HERO_ILLUSTRATION_URL = createSvgDataUrl(HERO_ILLUSTRATION_SVG);
 const BRAND_MARK_URL = createSvgDataUrl(BRAND_MARK_SVG);
@@ -186,10 +190,7 @@ function normalizeParticipantColor(color: ChatParticipant['color']): string | un
  *
  * @private Internal helper of the HTML export renderer.
  */
-function resolveParticipantVisuals(
-    participants: Map<string, ChatParticipant>,
-    sender: string,
-): ParticipantVisuals {
+function resolveParticipantVisuals(participants: Map<string, ChatParticipant>, sender: string): ParticipantVisuals {
     const normalized = String(sender || 'SYSTEM');
     const upper = normalized.toUpperCase();
     const participant = participants.get(normalized) ?? participants.get(upper);
@@ -249,7 +250,9 @@ function buildCitationsMarkup(message: ChatMessage): string {
     const chips = citations.map((citation) => {
         const excerpt = citation.excerpt ? `<p class="citation-excerpt">${escapeHtml(citation.excerpt)}</p>` : '';
         const urlLink = citation.url
-            ? `<a class="citation-link" href="${escapeHtml(citation.url)}" target="_blank" rel="noopener">Open source</a>`
+            ? `<a class="citation-link" href="${escapeHtml(
+                  citation.url,
+              )}" target="_blank" rel="noopener">Open source</a>`
             : '';
 
         return spaceTrim(`
@@ -279,9 +282,7 @@ function renderMessageBlock(message: ChatMessage, participants: Map<string, Chat
     const bubbleTextColor = getTextColor(visuals.accentColor);
     const timestamp = formatTimestamp(message.createdAt);
     const durationLabel =
-        typeof message.generationDurationMs === 'number'
-            ? `${(message.generationDurationMs / 1000).toFixed(1)}s`
-            : '';
+        typeof message.generationDurationMs === 'number' ? `${(message.generationDurationMs / 1000).toFixed(1)}s` : '';
     const attachments = buildAttachmentsMarkup(message);
     const citations = buildCitationsMarkup(message);
     const alignmentClass = upperSender === 'USER' ? 'message-user' : 'message-assistant';
@@ -290,9 +291,9 @@ function renderMessageBlock(message: ChatMessage, participants: Map<string, Chat
         ? `<img class="message-avatar-img" src="${escapeHtml(visuals.avatarSrc)}" alt="${escapeHtml(
               visuals.displayName,
           )}" />`
-        : `<span class="message-avatar-fallback" style="background:${visuals.accentColor};color:${bubbleTextColor};">${escapeHtml(
-              visuals.avatarLabel,
-          )}</span>`;
+        : `<span class="message-avatar-fallback" style="background:${
+              visuals.accentColor
+          };color:${bubbleTextColor};">${escapeHtml(visuals.avatarLabel)}</span>`;
 
     return spaceTrim(`
         <article class="message-block ${alignmentClass}">
@@ -307,7 +308,11 @@ function renderMessageBlock(message: ChatMessage, participants: Map<string, Chat
                         ${timestamp ? `<time class="message-time">${escapeHtml(timestamp)}</time>` : ''}
                     </header>
                     <div class="message-content">${formatMessageContent(message.content)}</div>
-                    ${durationLabel ? `<div class="message-duration">Responded in ${escapeHtml(durationLabel)}</div>` : ''}
+                    ${
+                        durationLabel
+                            ? `<div class="message-duration">Responded in ${escapeHtml(durationLabel)}</div>`
+                            : ''
+                    }
                     ${attachments}
                     ${citations}
                 </div>
@@ -338,7 +343,9 @@ export const htmlSaveFormatDefinition = {
         );
         const heroSubtitle =
             uniqueParticipants.length > 0
-                ? `Featuring ${uniqueParticipants.slice(0, 3).join(', ')}${uniqueParticipants.length > 3 ? ' and more' : ''}`
+                ? `Featuring ${uniqueParticipants.slice(0, 3).join(', ')}${
+                      uniqueParticipants.length > 3 ? ' and more' : ''
+                  }`
                 : 'Featuring your conversation';
         const participantCount = new Set(participants.map((participant) => String(participant.name).trim())).size;
         const statCards = [
@@ -756,8 +763,8 @@ export const htmlSaveFormatDefinition = {
                             <p class="hero-subtitle">${escapeHtml(heroSubtitle)}</p>
                             <div class="stat-grid">
                                 ${statCards
-                                    .map(
-                                        (stat) => spaceTrim(`
+                                    .map((stat) =>
+                                        spaceTrim(`
                                                 <div class="stat-card">
                                                     <span class="stat-value">${escapeHtml(stat.value)}</span>
                                                     <span class="stat-label">${escapeHtml(stat.label)}</span>
@@ -794,7 +801,7 @@ export const htmlSaveFormatDefinition = {
                         <div class="footer-brand">
                             <img src="${BRAND_MARK_URL}" alt="" aria-hidden="true" />
                             <div>
-                                <strong>promptbook.com</strong>
+                                <strong>ptbk.io</strong>
                                 <span>Share with your team</span>
                             </div>
                         </div>
@@ -807,3 +814,7 @@ export const htmlSaveFormatDefinition = {
     mimeType: 'text/html',
     fileExtension: 'html',
 } as const satisfies ChatSaveFormatDefinition;
+
+/**
+ * TODO: Enhance branding
+ */
