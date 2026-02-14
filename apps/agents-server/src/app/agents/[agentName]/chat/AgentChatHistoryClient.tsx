@@ -17,6 +17,7 @@ import {
 } from '../../../../utils/userChatClient';
 import { AgentChatSidebar } from './AgentChatSidebar';
 import { AgentChatWrapper } from '../AgentChatWrapper';
+import { AgentChatBookSwitcher } from '../../../../components/AgentChatBookSwitcher/AgentChatBookSwitcher';
 import { BackToAgentButton } from '../../../../components/BackToAgentButton/BackToAgentButton';
 
 /**
@@ -401,7 +402,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 onCloseMobileSidebar={closeMobileSidebar}
             />
             <section className="flex-1 min-w-0 min-h-0 flex flex-col">
-                <div className="flex items-center border-b border-slate-200 bg-white/90 px-3 py-2 shadow-sm">
+                <div className="flex items-center justify-between border-b border-slate-200 bg-white/90 px-3 py-2 shadow-sm">
                     <div className="flex items-center gap-2">
                         <button
                             type="button"
@@ -416,6 +417,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                             {formatText('Chat history')}
                         </span>
                     </div>
+                    <AgentChatBookSwitcher agentName={agentName} activeTab="chat" />
                 </div>
                 <div className="relative flex-1 min-h-0">
                     {isSwitchingChat && (

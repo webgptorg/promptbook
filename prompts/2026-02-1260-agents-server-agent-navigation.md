@@ -1,4 +1,4 @@
-[ ] !!
+[x] ~$0.16 6 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
 [✨🌵] There should be better navigation between [agent chat](https://praha13.ptbk.io/agents/qY7rrLbHFA1GCE/chat) and [agent source](https://praha13.ptbk.io/agents/qY7rrLbHFA1GCE/book)
 
@@ -39,3 +39,4 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

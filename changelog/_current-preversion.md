@@ -61,6 +61,8 @@
 
 -   Added `scripts/verify-prompts/verify-prompts.ts`, an interactive helper that lists top-level prompts, walks through every `[ ]` section, archives resolved files under `prompts/done`, and automatically appends the requested fix prompts when work is still pending; registered the helper as a new task in `.vscode/terminals.json`.
 
+-   Added quick chat/source pills to the Agents Server so the chat header and agent source (book) editor stay in sync; admins can now jump directly between the conversation and knowledge editor without returning to the profile page.
+
 ### 📚 Book
 
 -   Added flexible agent referencing for FROM, IMPORT, and TEAM so you can write {Activation code agent}, @Superagent, agentId, or even {https://foo} instead of raw URLs; the agents server now resolves these tokens by searching local and federated agents through a shared resolver.
