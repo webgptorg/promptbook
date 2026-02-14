@@ -98,3 +98,7 @@ export function splitMessageContentByImagePrompts(content: string): ReadonlyArra
 
     return segments;
 }
+
+/**
+ * Note: [💞] Ignore a discrepancy between file name and entity name
+ */

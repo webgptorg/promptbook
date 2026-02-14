@@ -3,4 +3,9 @@
  *
  * @private internal fallback for `LlmChat` so the same string can be reused across the stack without repetition.
  */
-export const DEFAULT_CHAT_FAIL_MESSAGE = 'Sorry, I encountered an error processing your message. Please, try again later.';
+export const DEFAULT_CHAT_FAIL_MESSAGE =
+    'Sorry, I encountered an error processing your message. Please, try again later.';
+
+/**
+ * Note: [💞] Ignore a discrepancy between file name and entity name
+ */

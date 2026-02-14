@@ -16,3 +16,7 @@ export const CHAT_STREAM_KEEP_ALIVE_TOKEN = 'STREAM_KEEP_ALIVE';
  * @private internal streaming helper for Promptbook chat connections
  */
 export const CHAT_STREAM_KEEP_ALIVE_INTERVAL_MS = 25_000;
+
+/**
+ * Note: [💞] Ignore a discrepancy between file name and entity name
+ */
