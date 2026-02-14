@@ -306,6 +306,7 @@
 -   Human-readable titles for showing tool calls in chiplets with better labels and emojis (e.g. `[🔎 Venezuela]`).
 -   Clicking on a tool call chiplet opens a modal with tool call details (arguments and results).
 -   Improved tool call details modal with better formatting for arguments and results (especially for search results).
+-   Reimagined the generic tool call modal (used by non-special chips) with a hero header, prose-rich request/result panels, friendly issue badges, and a collapsible raw payload view so it feels intuitive for everyone while retaining the raw JSON for explorers.
 -   Web Search: Show stored tool results in the source chiplet modal in Agents Server (parsed list or raw output).
 -   Store raw tool call data (arguments/results/errors/timestamps) in `ChatMessage.toolCalls` and render time/search chiplets from stored tool calls (no re-runs).
 -   Improved search results parsing in tool call modal to handle multiple nested result formats (stringified JSON, nested result objects, various field names like `data`, `items`, `results`)
