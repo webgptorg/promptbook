@@ -4,7 +4,7 @@ import type { ChatParticipant } from '../../types/ChatParticipant';
 import type { ChatSaveFormatDefinition } from '../_common/ChatSaveFormatDefinition';
 
 /**
- * Creates an inline data URL for an SVG illustration so the export stays self-contained.
+ * Creates an inline data URL for an SVG illustration so the ex-port stays self-contained.
  *
  * @private Internal helper used by `htmlSaveFormatDefinition`.
  */

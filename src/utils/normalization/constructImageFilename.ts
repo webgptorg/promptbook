@@ -5,6 +5,8 @@ import { spaceTrim } from 'spacetrim';
  *
  * @param params - The parameters for the image generation
  * @returns The constructed filename
+ *
+ * @private internal helper for image generation pipeline
  */
 export function constructImageFilename(params: {
     prompt: string;
