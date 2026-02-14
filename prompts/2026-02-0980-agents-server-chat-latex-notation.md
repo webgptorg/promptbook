@@ -36,6 +36,7 @@ Chceš zajímavost spíš z oblasti **hashování (SHA-256)**, **Merkleových st
 -   Do not render the LaTeX notation when it is wrapped inside a code block, but render it as a normal code block without any LaTeX rendering.
 -   Keep rendering the LaTeX notation when it is not wrapped inside a code block, for example when it is in a normal markdown text or in a markdown blockquote.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
@@ -61,7 +62,6 @@ Chceš zajímavost spíš z oblasti **hashování (SHA-256)**, **Merkleových st
 [✨🏞] brr
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
-

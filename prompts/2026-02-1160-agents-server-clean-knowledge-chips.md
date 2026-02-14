@@ -8,6 +8,7 @@
 -   Also crop the last part that is definitelly id "OMOZI4p7bTQFpLtpfP6jMnTzVHvURF" and is not useful for the user to see.
 -   Create an utility function `isHumanOrID(text: string): 'HUMAN' | 'ID' | 'UNKNOWN'` that will have some heuristic that can determine if the string is human or ID.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
@@ -21,6 +22,7 @@
 [✨🧹] baz
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
@@ -31,6 +33,7 @@
 [✨🧹] baz
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
@@ -41,6 +44,6 @@
 [✨🧹] baz
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-

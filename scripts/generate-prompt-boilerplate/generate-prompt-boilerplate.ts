@@ -48,8 +48,7 @@ async function generatePromptBoilerplate(): Promise<void> {
         step: 10,
         ignoreGlobs: ['**/node_modules/**'],
     });
-    const highestNumber =
-        promptNumbering.startNumber === 0 ? 0 : promptNumbering.startNumber - promptNumbering.step;
+    const highestNumber = promptNumbering.startNumber === 0 ? 0 : promptNumbering.startNumber - promptNumbering.step;
     console.info(
         colors.blue(
             `Highest existing number for ${promptNumbering.datePrefix} found: ${Math.max(0, highestNumber)}
@@ -87,6 +86,7 @@ async function generatePromptBoilerplate(): Promise<void> {
             ${emojiTag} ${title}
 
             -   Keep in mind the DRY _(don't repeat yourself)_ principle.
+            -   Do a proper analysis of the current functionality before you start implementing.
             -   Add the changes into the [changelog](./changelog/_current-preversion.md)
         `);
         const content = spaceTrim(
@@ -128,7 +128,3 @@ async function generatePromptBoilerplate(): Promise<void> {
 
     console.info(colors.bgGreen(` Successfully created ${filesToCreate.length} prompt boilerplate files! `));
 }
-
-
-
-

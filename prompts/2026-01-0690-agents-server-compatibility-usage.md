@@ -34,6 +34,7 @@ ces":[{"index":0,"message":{"role":"assistant","content":"Hello! How can I assis
 -   Count the words using `countWords` function
 -   In the details use the `Usage` object which is native for Promptbook
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
@@ -60,6 +61,7 @@ $ curl https://chutoo-test.ptbk.io/agents/NybzgAFteBo2zz/api/openai/v1/chat/comp
 -   The `usage.details` should be filled with the correct values for both input and output.
 -   Use the available utility functions to aggregate the real usage and compute the words, lines, paragraphs, etc.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
@@ -70,6 +72,7 @@ $ curl https://chutoo-test.ptbk.io/agents/NybzgAFteBo2zz/api/openai/v1/chat/comp
 [✨🎏] brr
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
@@ -80,6 +83,6 @@ $ curl https://chutoo-test.ptbk.io/agents/NybzgAFteBo2zz/api/openai/v1/chat/comp
 [✨🎏] brr
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-

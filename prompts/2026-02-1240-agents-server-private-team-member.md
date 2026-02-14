@@ -17,6 +17,7 @@ You can discuss things with a {Lawyer}, {Copywriter}, and {Developer}.
 -   Later, there will be introduced some proper token system to allow adding as a team member's private agents.
 -   But for now, if the agent is on the same server, just assume that it is accessible.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
@@ -27,6 +28,7 @@ You can discuss things with a {Lawyer}, {Copywriter}, and {Developer}.
 [✨🎙] foo
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
@@ -37,6 +39,7 @@ You can discuss things with a {Lawyer}, {Copywriter}, and {Developer}.
 [✨🎙] foo
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
@@ -47,5 +50,6 @@ You can discuss things with a {Lawyer}, {Copywriter}, and {Developer}.
 [✨🎙] foo
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)

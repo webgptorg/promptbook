@@ -187,6 +187,7 @@ The labeling should be clear but not intrusive.
 Story is an experimental orchestration-based storytelling environment where users compose narratives by triggering AI agents. It reuses existing editor infrastructure, supports modular agent selection, persists user stories across devices, and provides export capabilities while clearly remaining labeled as an prototype experiment.
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
@@ -215,6 +216,7 @@ Story is an experimental orchestration-based storytelling environment where user
 [✨📉] foo
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
@@ -225,6 +227,6 @@ Story is an experimental orchestration-based storytelling environment where user
 [✨📉] foo
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
