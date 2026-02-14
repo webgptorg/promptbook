@@ -701,6 +701,115 @@ export function Header(props: HeaderProps) {
           ]
         : [];
 
+    /**
+     * @private Shared dropdown props that keep every System menu item wired to the same open/close state.
+     */
+    const systemDropdownBase: Omit<Extract<MenuItem, { type: 'dropdown' }>, 'items'> = {
+        type: 'dropdown' as const,
+        label: 'System',
+        isOpen: isSystemOpen,
+        setIsOpen: setIsSystemOpen,
+        isMobileOpen: isMobileSystemOpen,
+        setIsMobileOpen: setIsMobileSystemOpen,
+    };
+
+    /**
+     * @private Build a System dropdown menu entry that reuses the shared toggle state.
+     */
+    const buildSystemMenuItem = (items: SubMenuItem[]): MenuItem => ({
+        ...systemDropdownBase,
+        items,
+    });
+
+    /**
+     * @private System menu entries exposed to admins.
+     */
+    const adminSystemMenuItems: SubMenuItem[] = [
+        ...userSystemItems,
+        /*
+        Note: [🙍] `/dashboard` page is disabled
+
+        {
+            label: 'Dashboard',
+            href: '/dashboard',
+            isBold: true,
+            isBordered: true,
+        } as SubMenuItem,
+        */
+        {
+            label: 'Models',
+            href: '/admin/models',
+        },
+        {
+            label: 'OpenAPI Documentation',
+            href: '/swagger',
+        },
+        {
+            label: 'API Tokens',
+            href: '/admin/api-tokens',
+        },
+        {
+            label: 'Metadata',
+            href: '/admin/metadata',
+        },
+        {
+            label: 'Chat history',
+            href: '/admin/chat-history',
+        },
+        {
+            label: 'Messages & Emails',
+            href: '/admin/messages',
+        },
+        {
+            label: 'Chat feedback',
+            href: '/admin/chat-feedback',
+        },
+        {
+            label: 'Browser',
+            href: '/admin/browser-test',
+        },
+        {
+            label: 'Voice Input Test',
+            href: '/admin/voice-input-test',
+        },
+        // Note: Commented out because image generator can became a paid feature later for the clients
+        // {
+        //     label: 'Image Generator Test',
+        //     href: '/admin/image-generator-test',
+        // },
+        {
+            label: 'Search Engine Test',
+            href: '/admin/search-engine-test',
+        },
+        {
+            label: 'Images gallery',
+            href: '/admin/images',
+        },
+        {
+            label: 'Files',
+            href: '/admin/files',
+        },
+        {
+            label: 'About',
+            href: '/admin/about',
+        },
+        ...(isExperimental
+            ? [
+                  {
+                      label: 'Experiments',
+                      items: [
+                          {
+                              label: 'Story',
+                              href: '/experiments/story',
+                              isBold: true,
+                          },
+                      ],
+                      isBordered: true,
+                  } as SubMenuItem,
+              ]
+            : []),
+    ];
+
     // Menu items configuration (DRY principle)
     const menuItems: MenuItem[] = [
         {
@@ -752,11 +861,6 @@ export function Header(props: HeaderProps) {
                       ),
                   },
                   {
-                      type: 'link' as const,
-                      label: 'Models',
-                      href: '/admin/models',
-                  },
-                  {
                       type: 'dropdown' as const,
                       label: 'Users',
                       isOpen: isUsersOpen,
@@ -784,94 +888,7 @@ export function Header(props: HeaderProps) {
                           } as SubMenuItem,
                       ],
                   },
-                  {
-                      type: 'dropdown' as const,
-                      label: 'System',
-                      isOpen: isSystemOpen,
-                      setIsOpen: setIsSystemOpen,
-                      isMobileOpen: isMobileSystemOpen,
-                      setIsMobileOpen: setIsMobileSystemOpen,
-                      items: [
-                          ...userSystemItems,
-                          /*
-                          Note: [🙍] `/dashboard` page is disabled
-                          {
-                              label: 'Dashboard',
-                              href: '/dashboard',
-                              isBold: true,
-                              isBordered: true,
-                          } as SubMenuItem,
-                          */
-                          {
-                              label: 'OpenAPI Documentation',
-                              href: '/swagger',
-                          },
-                          {
-                              label: 'API Tokens',
-                              href: '/admin/api-tokens',
-                          },
-                          {
-                              label: 'Metadata',
-                              href: '/admin/metadata',
-                          },
-                          {
-                              label: 'Chat history',
-                              href: '/admin/chat-history',
-                          },
-                          {
-                              label: 'Messages & Emails',
-                              href: '/admin/messages',
-                          },
-                          {
-                              label: 'Chat feedback',
-                              href: '/admin/chat-feedback',
-                          },
-                          {
-                              label: 'Browser',
-                              href: '/admin/browser-test',
-                          },
-                          {
-                              label: 'Voice Input Test',
-                              href: '/admin/voice-input-test',
-                          },
-                          // Note: Commented out because image generator can became a paid feature later for the clients
-                          // {
-                          //     label: 'Image Generator Test',
-                          //     href: '/admin/image-generator-test',
-                          // },
-                          {
-                              label: 'Search Engine Test',
-                              href: '/admin/search-engine-test',
-                          },
-                          {
-                              label: 'Images gallery',
-                              href: '/admin/images',
-                          },
-                          {
-                              label: 'Files',
-                              href: '/admin/files',
-                          },
-                          {
-                              label: 'About',
-                              href: '/admin/about',
-                          },
-                          ...(isExperimental
-                              ? [
-                                    {
-                                        label: 'Experiments',
-                                        items: [
-                                            {
-                                                label: 'Story',
-                                                href: '/experiments/story',
-                                                isBold: true,
-                                            },
-                                        ],
-                                        isBordered: true,
-                                    } as SubMenuItem,
-                                ]
-                              : []),
-                      ],
-                  },
+                  buildSystemMenuItem(adminSystemMenuItems),
                   {
                       type: 'link' as const,
                       label: 'About',
@@ -881,15 +898,7 @@ export function Header(props: HeaderProps) {
             : []),
         ...(!isAdmin && userSystemItems.length > 0
             ? [
-                  {
-                      type: 'dropdown' as const,
-                      label: 'System',
-                      isOpen: isSystemOpen,
-                      setIsOpen: setIsSystemOpen,
-                      isMobileOpen: isMobileSystemOpen,
-                      setIsMobileOpen: setIsMobileSystemOpen,
-                      items: userSystemItems,
-                  },
+                  buildSystemMenuItem(userSystemItems),
               ]
             : []),
     ];
