@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { $getTableName } from '../../../../database/$getTableName';
 import { $provideSupabaseForServer } from '../../../../database/$provideSupabaseForServer';
 import { AgentsServerDatabase } from '../../../../database/schema';
-import { hashPassword, verifyPassword } from '../../../../utils/auth';
+import { getPasswordValidationMessage, hashPassword, verifyPassword } from '../../../../utils/auth';
 import { getCurrentUser } from '../../../../utils/getCurrentUser';
 
 export async function POST(request: Request) {
@@ -70,6 +70,12 @@ export async function POST(request: Request) {
         return NextResponse.json({ success: true });
     } catch (error) {
         console.error('Change password error:', error);
+        const passwordValidationMessage = getPasswordValidationMessage(error);
+
+        if (passwordValidationMessage) {
+            return NextResponse.json({ error: passwordValidationMessage }, { status: 400 });
+        }
+
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }

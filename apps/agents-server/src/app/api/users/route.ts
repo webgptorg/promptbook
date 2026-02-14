@@ -1,6 +1,6 @@
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '../../../database/$provideSupabaseForServer';
-import { hashPassword } from '../../../utils/auth';
+import { getPasswordValidationMessage, hashPassword } from '../../../utils/auth';
 import { isUserAdmin } from '../../../utils/isUserAdmin';
 import { NextResponse } from 'next/server';
 
@@ -66,6 +66,12 @@ export async function POST(request: Request) {
 
     } catch (error) {
         console.error('Create user error:', error);
+        const passwordValidationMessage = getPasswordValidationMessage(error);
+
+        if (passwordValidationMessage) {
+            return NextResponse.json({ error: passwordValidationMessage }, { status: 400 });
+        }
+
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }

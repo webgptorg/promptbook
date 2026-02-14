@@ -1,7 +1,7 @@
 import { $getTableName } from '@/src/database/$getTableName';
 import { NextResponse } from 'next/server';
 import { $provideSupabaseForServer } from '../../../../database/$provideSupabaseForServer';
-import { hashPassword } from '../../../../utils/auth';
+import { getPasswordValidationMessage, hashPassword } from '../../../../utils/auth';
 import { isUserAdmin } from '../../../../utils/isUserAdmin';
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ username: string }> }) {
@@ -45,6 +45,12 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ us
         return NextResponse.json(updatedUser);
     } catch (error) {
         console.error('Update user error:', error);
+        const passwordValidationMessage = getPasswordValidationMessage(error);
+
+        if (passwordValidationMessage) {
+            return NextResponse.json({ error: passwordValidationMessage }, { status: 400 });
+        }
+
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }

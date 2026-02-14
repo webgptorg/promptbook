@@ -5,6 +5,39 @@ import { PASSWORD_SECURITY_CONFIG } from '../../../../security.config';
 const scryptAsync = promisify(scrypt);
 
 /**
+ * Error thrown when a password does not meet the security requirements.
+ *
+ * @private Signals to callers that the failure was caused by invalid password input.
+ */
+export class PasswordValidationError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = 'PasswordValidationError';
+    }
+}
+
+/**
+ * Type guard for password validation failures.
+ *
+ * @private Ensures callers can safely inspect validation error details.
+ */
+export function isPasswordValidationError(error: unknown): error is PasswordValidationError {
+    return error instanceof PasswordValidationError;
+}
+
+/**
+ * If the error represents a password validation failure, return its user-facing message.
+ *
+ * @private Used by API routes to decide whether a descriptive error should be returned to the client.
+ */
+export function getPasswordValidationMessage(error: unknown): string | null {
+    if (isPasswordValidationError(error)) {
+        return error.message;
+    }
+    return null;
+}
+
+/**
  * Validates password input to prevent edge cases and DoS attacks
  *
  * @param password The password to validate
@@ -12,13 +45,15 @@ const scryptAsync = promisify(scrypt);
  */
 function validatePasswordInput(password: string): void {
     if (typeof password !== 'string') {
-        throw new Error('Password must be a string');
+        throw new PasswordValidationError('Password must be a string');
     }
     if (password.length === 0) {
-        throw new Error('Password cannot be empty');
+        throw new PasswordValidationError('Password cannot be empty');
     }
     if (password.length < PASSWORD_SECURITY_CONFIG.MIN_PASSWORD_LENGTH) {
-        throw new Error(`Password must be at least ${PASSWORD_SECURITY_CONFIG.MIN_PASSWORD_LENGTH} characters`);
+        throw new PasswordValidationError(
+            `Password must be at least ${PASSWORD_SECURITY_CONFIG.MIN_PASSWORD_LENGTH} characters`,
+        );
     }
     // Note: No hard max limit - long passwords are compacted via compactPassword()
 }
