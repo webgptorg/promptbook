@@ -19,7 +19,7 @@ import { SourceChip } from '../SourceChip';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
 import { collectTeamToolCallSummary, type TransitiveToolCall } from '../utils/collectTeamToolCallSummary';
-import { TOOL_TITLES, buildToolCallChipText, getToolCallChipletInfo } from '../utils/getToolCallChipletInfo';
+import { buildToolCallChipText, getToolCallChipletInfo } from '../utils/getToolCallChipletInfo';
 import type { AgentProfileData } from '../utils/loadAgentProfile';
 import { loadAgentProfile, resolveAgentProfileFallback, resolvePreferredAgentLabel } from '../utils/loadAgentProfile';
 import {
@@ -1075,299 +1075,36 @@ function renderToolCallDetails(options: ToolCallDetailsOptions): ReactElement {
         );
     }
 
-    const heroIcon = TOOL_TITLES[toolCall.name]?.emoji || '🧰';
-    const heroTitle = getFriendlyToolCallTitle(toolCall, toolTitles);
-    const callTimeLabel = formatToolCallTimestamp(toolCallDate);
-    const summaryText = getToolCallSummary(resultRaw);
-    const argumentEntries = Object.entries(args || {});
-    const errorMessages = (toolCall.errors || []).map((value) => shortenToolCallText(formatToolCallValue(value)));
-    const warningMessages = (toolCall.warnings || []).map((value) =>
-        shortenToolCallText(formatToolCallValue(value)),
-    );
-    const resultTypeLabel = describeToolCallResultType(resultRaw);
-    const rawResultString = buildRawToolCallResultString(resultRaw);
-
     return (
         <>
-            <div className={styles.toolCallHero}>
-                <div className={styles.toolCallHeroIcon}>{heroIcon}</div>
-                <div className={styles.toolCallHeroText}>
-                    <p className={styles.toolCallHeroTitle}>{heroTitle}</p>
-                    <p className={styles.toolCallHeroSubtitle}>{toolCall.name}</p>
-                    <p className={styles.toolCallHeroMeta}>{callTimeLabel}</p>
-                </div>
-            </div>
-
-            <div className={styles.toolCallBody}>
-                <section className={styles.toolCallSummaryCard}>
-                    <div className={styles.toolCallCardHeading}>Result overview</div>
-                    <div className={styles.toolCallSummaryText}>
-                        {summaryText ? (
-                            <MarkdownContent
-                                className={styles.toolCallSummaryMarkdown}
-                                content={summaryText}
-                            />
-                        ) : (
-                            <p className={styles.toolCallSummaryEmpty}>
-                                The tool returned structured output. Expand the result details below to see the
-                                full payload.
-                            </p>
-                        )}
-                    </div>
-                </section>
-
-                {argumentEntries.length > 0 && (
-                    <section className={styles.toolCallArgCard}>
-                        <div className={styles.toolCallCardHeading}>Inputs</div>
-                        <div className={styles.toolCallArgList}>
-                            {argumentEntries.map(([key, value]) => (
-                                <div key={key} className={styles.toolCallArgItem}>
-                                    <span className={styles.toolCallArgKey}>{key}</span>
-                                    <span className={styles.toolCallArgValue}>{formatToolCallValue(value)}</span>
-                                </div>
+            <h3>Tool Call: {toolTitles?.[toolCall.name] || toolCall.name}</h3>
+            <div className={styles.toolCallDetails}>
+                <p>
+                    <strong>Arguments:</strong>
+                </p>
+                <div className={styles.toolCallDataContainer}>
+                    {args && typeof args === 'object' ? (
+                        <ul className={styles.toolCallArgsList}>
+                            {Object.entries(args).map(([key, value]) => (
+                                <li key={key}>
+                                    <strong>{key}:</strong>{' '}
+                                    {typeof value === 'object' ? JSON.stringify(value) : String(value)}
+                                </li>
                             ))}
-                        </div>
-                    </section>
-                )}
-
-                <section className={styles.toolCallMetaCard}>
-                    <div className={styles.toolCallCardHeading}>Metadata</div>
-                    <div className={styles.toolCallMetaGrid}>
-                        <div className={styles.toolCallMetaRow}>
-                            <span>Recorded</span>
-                            <span>{callTimeLabel}</span>
-                        </div>
-                        <div className={styles.toolCallMetaRow}>
-                            <span>Result type</span>
-                            <span>{resultTypeLabel}</span>
-                        </div>
-
-                        {warningMessages.length > 0 && (
-                            <div className={styles.toolCallMetaRow}>
-                                <span>Warnings</span>
-                                <div className={styles.toolCallStatusList}>
-                                    {warningMessages.map((message, index) => (
-                                        <span
-                                            key={`warning-${index}`}
-                                            className={`${styles.toolCallStatusBadge} ${styles.toolCallStatusWarning}`}
-                                        >
-                                            {message}
-                                        </span>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {errorMessages.length > 0 && (
-                            <div className={styles.toolCallMetaRow}>
-                                <span>Errors</span>
-                                <div className={styles.toolCallStatusList}>
-                                    {errorMessages.map((message, index) => (
-                                        <span
-                                            key={`error-${index}`}
-                                            className={`${styles.toolCallStatusBadge} ${styles.toolCallStatusError}`}
-                                        >
-                                            {message}
-                                        </span>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </section>
-
-                <section className={styles.toolCallDetailsCard}>
-                    <details className={styles.toolCallDetailsToggle}>
-                        <summary>View raw result</summary>
-                        <pre className={styles.toolCallRawPre}>{rawResultString}</pre>
-                    </details>
-                </section>
+                        </ul>
+                    ) : (
+                        <pre className={styles.toolCallData}>{String(args)}</pre>
+                    )}
+                </div>
+                <p>
+                    <strong>Result:</strong>
+                </p>
+                <div className={styles.toolCallDataContainer}>
+                    <pre className={styles.toolCallData}>
+                        {typeof resultRaw === 'object' ? JSON.stringify(resultRaw, null, 4) : String(resultRaw)}
+                    </pre>
+                </div>
             </div>
         </>
     );
-}
-
-/**
- * @private internal utility of `<ChatToolCallModal/>`
- */
-function getFriendlyToolCallTitle(
-    toolCall: NonNullable<ChatMessage['toolCalls']>[number],
-    toolTitles?: Record<string, string>,
-): string {
-    return (
-        toolTitles?.[toolCall.name] ??
-        TOOL_TITLES[toolCall.name]?.title ??
-        humanizeToolCallName(toolCall.name)
-    );
-}
-
-/**
- * @private internal utility of `<ChatToolCallModal/>`
- */
-function humanizeToolCallName(value: string): string {
-    return value
-        .replace(/[_-]+/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim()
-        .replace(/\b\w/g, (letter) => letter.toUpperCase());
-}
-
-/**
- * @private internal utility of `<ChatToolCallModal/>`
- */
-function getToolCallSummary(resultRaw: TODO_any): string | null {
-    if (resultRaw === null || resultRaw === undefined) {
-        return null;
-    }
-
-    if (typeof resultRaw === 'string') {
-        const trimmed = resultRaw.trim();
-        return trimmed || null;
-    }
-
-    if (typeof resultRaw === 'number' || typeof resultRaw === 'boolean') {
-        return String(resultRaw);
-    }
-
-    if (Array.isArray(resultRaw)) {
-        for (const entry of resultRaw) {
-            const nested = getToolCallSummary(entry);
-            if (nested) {
-                return nested;
-            }
-        }
-        return null;
-    }
-
-    if (typeof resultRaw === 'object') {
-        const prioritizedFields = [
-            'summary',
-            'message',
-            'text',
-            'description',
-            'content',
-            'response',
-            'result',
-            'body',
-            'answer',
-        ];
-        for (const field of prioritizedFields) {
-            const candidate = (resultRaw as Record<string, TODO_any>)[field];
-            if (typeof candidate === 'string' && candidate.trim()) {
-                return candidate.trim();
-            }
-        }
-
-        const stringField = Object.values(resultRaw).find(
-            (entry) => typeof entry === 'string' && entry.trim(),
-        );
-        if (typeof stringField === 'string') {
-            return stringField.trim();
-        }
-    }
-
-    return null;
-}
-
-/**
- * @private internal utility of `<ChatToolCallModal/>`
- */
-function describeToolCallResultType(resultRaw: TODO_any): string {
-    if (resultRaw === undefined) {
-        return 'No result';
-    }
-    if (resultRaw === null) {
-        return 'Null';
-    }
-
-    if (Array.isArray(resultRaw)) {
-        return `Array (${resultRaw.length} item${resultRaw.length === 1 ? '' : 's'})`;
-    }
-
-    if (typeof resultRaw === 'object') {
-        const keys = Object.keys(resultRaw as Record<string, TODO_any>).length;
-        return keys > 0 ? `Object (${keys} field${keys === 1 ? '' : 's'})` : 'Object';
-    }
-
-    if (typeof resultRaw === 'string') {
-        return 'Text';
-    }
-
-    return typeof resultRaw;
-}
-
-/**
- * @private internal utility of `<ChatToolCallModal/>`
- */
-function formatToolCallTimestamp(date: Date | null): string {
-    if (!date) {
-        return 'Time unavailable';
-    }
-    return date.toLocaleString(undefined, {
-        dateStyle: 'medium',
-        timeStyle: 'short',
-    });
-}
-
-/**
- * @private internal utility of `<ChatToolCallModal/>`
- */
-function formatToolCallValue(value: unknown): string {
-    if (value === null || value === undefined) {
-        return '—';
-    }
-
-    if (typeof value === 'string') {
-        return value;
-    }
-
-    if (typeof value === 'number' || typeof value === 'boolean') {
-        return String(value);
-    }
-
-    try {
-        return JSON.stringify(value, null, 2);
-    } catch {
-        return String(value);
-    }
-}
-
-/**
- * @private internal utility of `<ChatToolCallModal/>`
- */
-function shortenToolCallText(value: string, maxLength = 140): string {
-    const normalized = normalizeWhitespace(value);
-    if (!normalized) {
-        return value;
-    }
-    if (normalized.length <= maxLength) {
-        return normalized;
-    }
-    return `${normalized.slice(0, maxLength)}…`;
-}
-
-/**
- * @private internal utility of `<ChatToolCallModal/>`
- */
-function normalizeWhitespace(value: string): string {
-    return value.replace(/\s+/g, ' ').trim();
-}
-
-/**
- * @private internal utility of `<ChatToolCallModal/>`
- */
-function buildRawToolCallResultString(resultRaw: TODO_any): string {
-    if (resultRaw === undefined) {
-        return 'No raw result was provided.';
-    }
-
-    if (typeof resultRaw === 'string') {
-        return resultRaw;
-    }
-
-    try {
-        return JSON.stringify(resultRaw, null, 2);
-    } catch {
-        return String(resultRaw);
-    }
 }
