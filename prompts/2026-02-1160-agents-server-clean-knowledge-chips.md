@@ -1,4 +1,8 @@
-[x] ~$0.14 8 minutes by OpenAI Codex `gpt-5.1-codex-mini`
+[x] ~$0.14 8 minutes by OpenAI Codex `gpt-5.1-codex-mini` - not working
+
+---
+
+[ ] !!!!
 
 [✨🧹] Simplify the Knowledge Chips
 
@@ -9,6 +13,7 @@
 -   Create an utility function `isHumanOrID(text: string): 'HUMAN' | 'ID' | 'UNKNOWN'` that will have some heuristic that can determine if the string is human or ID.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
+-   You have already implemented this in commit `e6f63a4eeb5b69eecfe7dd141693133ffd274067`, but it doesn't work - no change on knowledge chips. Make sure to simplify the knowledge chips and make it work properly.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
