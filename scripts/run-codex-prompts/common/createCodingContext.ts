@@ -24,7 +24,8 @@ export function createCodingContext(): string_prompt {
             5) npm run test-package-generation - tests that build script is working correctly, also tests that all exported entities are correctly marked as public or private
             6) npm run test-unit - Unit tests
             7) npm run test-app-agents-server - Tests that the Agents Server app is working correctly
-        - you don't need to run every test, run them only when you make changes which may cause them to fail
+        - You don't need to run every test, run them only when you make changes which may cause them to fail
+        - You (The AI coding agent) are running inside a Node process, so you are forbidden to kill all the Node processes like \`taskkill /F /IM node.exe\`, if you want to kill some dev server you have spawned, kill only that process, for example by its PID or by using some package like "kill-port" to kill the process running on specific port.
         
         
         **Additional context:**
