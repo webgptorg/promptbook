@@ -32,7 +32,7 @@
 
 ---
 
-[ ] !!
+[x] ~$0.29 10 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
 [✨⁉️] When the user starts chat from the agent profile page (like https://praha13.ptbk.io/agents/qY7rrLbHFA1GCE/), it should always create a new chat with a written message
 
@@ -96,3 +96,4 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

@@ -64,6 +64,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     const hasInitialAutoMessageBeenConsumedRef = useRef(false);
     const saveTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
     const savedMessagesHashesRef = useRef<Map<string, string>>(new Map());
+    const autoExecuteTargetChatIdRef = useRef<string | undefined>(initialChatId);
 
     const guestPersistenceKey = useMemo(
         () => `guest-chat-${encodeURIComponent(agentName)}-${Math.random().toString(36).slice(2)}`,
@@ -135,6 +136,10 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 nextChats = [createdChat.chat, ...nextChats.filter((chat) => chat.id !== createdChat.chat.id)];
                 resolvedActiveChatId = createdChat.chat.id;
                 resolvedMessages = createdChat.messages;
+
+                if (initialAutoExecuteMessage) {
+                    autoExecuteTargetChatIdRef.current = createdChat.chat.id;
+                }
             }
 
             setChats(nextChats);
@@ -143,7 +148,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             const shouldKeepInitialAutoMessage =
                 !hasInitialAutoMessageBeenConsumedRef.current &&
                 Boolean(initialAutoExecuteMessage) &&
-                (!initialChatId || resolvedActiveChatId === initialChatId);
+                (!autoExecuteTargetChatIdRef.current || resolvedActiveChatId === autoExecuteTargetChatIdRef.current);
 
             router.replace(buildChatRoute(resolvedActiveChatId, shouldKeepInitialAutoMessage));
         },
@@ -180,6 +185,10 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             isDisposed = true;
         };
     }, [bootstrapChats, initialChatId, isHistoryEnabled]);
+
+    useEffect(() => {
+        autoExecuteTargetChatIdRef.current = initialChatId;
+    }, [initialChatId]);
 
     useEffect(() => {
         const activeSaveTimers = saveTimersRef.current;
@@ -317,11 +326,12 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
         [activeChatId, agentName, isHistoryEnabled],
     );
 
+    const autoMessageTargetId = autoExecuteTargetChatIdRef.current;
     const autoExecuteMessage =
         !hasInitialAutoMessageBeenConsumedRef.current &&
         Boolean(initialAutoExecuteMessage) &&
         Boolean(activeChatId) &&
-        (!initialChatId || initialChatId === activeChatId)
+        (!autoMessageTargetId || autoMessageTargetId === activeChatId)
             ? initialAutoExecuteMessage
             : undefined;
 
