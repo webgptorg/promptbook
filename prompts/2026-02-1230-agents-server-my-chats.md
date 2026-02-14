@@ -32,7 +32,11 @@
 
 ---
 
-[x] ~$0.29 10 minutes by OpenAI Codex `gpt-5.1-codex-mini`
+[x] ~$0.29 10 minutes by OpenAI Codex `gpt-5.1-codex-mini` - not working
+
+---
+
+[ ] !!!!
 
 [✨⁉️] When the user starts chat from the agent profile page (like https://praha13.ptbk.io/agents/qY7rrLbHFA1GCE/), it should always create a new chat with a written message
 
