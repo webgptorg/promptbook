@@ -49,7 +49,7 @@
 
 ---
 
-[ ] !!
+[x] - Implemented by OpenAI Codex `gpt-5.3-codex` but the script ![committed suicide again](prompts/screenshots/2026-02-1230-agents-server-my-chats-8.png).
 
 [✨⁉️] Redesign the user chats into the proper app sidebar.
 
@@ -96,4 +96,3 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-

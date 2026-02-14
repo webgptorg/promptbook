@@ -1,6 +1,4 @@
 'use server';
-
-import { BackToAgentButton } from '@/src/components/BackToAgentButton/BackToAgentButton';
 import { getThinkingMessages } from '@/src/utils/thinkingMessages';
 import { getCurrentUser } from '@/src/utils/getCurrentUser';
 import { headers } from 'next/headers';
@@ -46,7 +44,6 @@ export default async function AgentChatPage({
 
     return (
         <main className={`w-full h-full overflow-hidden relative agent-chat-route-surface`}>
-            <BackToAgentButton agentName={agentName} />
             <AgentChatHistoryClient
                 agentName={agentName}
                 agentUrl={agentUrl}

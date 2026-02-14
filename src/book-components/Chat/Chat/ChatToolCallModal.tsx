@@ -3,9 +3,9 @@
 import moment from 'moment';
 import { useEffect, useMemo, useState, type ReactElement } from 'react';
 import { validateBook } from '../../../book-2.0/agent-source/string_book';
-import type { TODO_any } from '../../../utils/organization/TODO_any';
 import type { string_date_iso8601 } from '../../../types/typeAliases';
 import { Color } from '../../../utils/color/Color';
+import type { TODO_any } from '../../../utils/organization/TODO_any';
 import type { WithTake } from '../../../utils/take/interfaces/ITakeChain';
 import { classNames } from '../../_common/react-utils/classNames';
 import { BookEditor } from '../../BookEditor/BookEditor';
@@ -18,10 +18,10 @@ import { MockedChat } from '../MockedChat/MockedChat';
 import { SourceChip } from '../SourceChip';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
-import type { AgentProfileData } from '../utils/loadAgentProfile';
-import { loadAgentProfile, resolveAgentProfileFallback, resolvePreferredAgentLabel } from '../utils/loadAgentProfile';
 import { collectTeamToolCallSummary, type TransitiveToolCall } from '../utils/collectTeamToolCallSummary';
 import { buildToolCallChipText, getToolCallChipletInfo } from '../utils/getToolCallChipletInfo';
+import type { AgentProfileData } from '../utils/loadAgentProfile';
+import { loadAgentProfile, resolveAgentProfileFallback, resolvePreferredAgentLabel } from '../utils/loadAgentProfile';
 import {
     extractSearchResults,
     getToolCallResultDate,
@@ -31,9 +31,9 @@ import {
     parseToolCallResult,
 } from '../utils/toolCallParsing';
 import styles from './Chat.module.css';
-import { ClockIcon } from './ClockIcon';
 import { buildSelfLearningSummary } from './ChatSelfLearningSummary';
 import { SelfLearningAvatar, TeamHeaderProfile } from './ChatToolCallModalComponents';
+import { ClockIcon } from './ClockIcon';
 
 /**
  * Props for the tool call details modal.
@@ -526,9 +526,7 @@ function renderMemoryToolCall(options: MemoryToolCallViewOptions): ReactElement 
             </div>
 
             <div className={styles.memoryModalContent}>
-                {memoryResult.message && (
-                    <p className={styles.memoryMessage}>{memoryResult.message}</p>
-                )}
+                {memoryResult.message && <p className={styles.memoryMessage}>{memoryResult.message}</p>}
 
                 {isStoreAction
                     ? renderMemoryStoreSection({ memoryResult, args })
@@ -549,17 +547,13 @@ function renderMemoryStoreSection(options: {
     args: Record<string, TODO_any>;
 }): ReactElement {
     const { memoryResult, args } = options;
-    const storedScope =
-        memoryResult.memory?.isGlobal ??
-        (typeof args.isGlobal === 'boolean' ? args.isGlobal : false);
+    const storedScope = memoryResult.memory?.isGlobal ?? (typeof args.isGlobal === 'boolean' ? args.isGlobal : false);
     const scopeLabel = storedScope ? 'Global memory' : 'Personal memory';
     const scopeBadge = storedScope ? 'Global' : 'Personal';
     const storedContent =
-        memoryResult.memory?.content?.trim() ||
-        (typeof args.content === 'string' ? args.content.trim() : '');
+        memoryResult.memory?.content?.trim() || (typeof args.content === 'string' ? args.content.trim() : '');
     const timestamp =
-        formatMemoryTimestamp(memoryResult.memory?.updatedAt) ??
-        formatMemoryTimestamp(memoryResult.memory?.createdAt);
+        formatMemoryTimestamp(memoryResult.memory?.updatedAt) ?? formatMemoryTimestamp(memoryResult.memory?.createdAt);
 
     return (
         <div className={styles.memoryStoreSection}>
@@ -592,8 +586,7 @@ function renderMemoryRetrieveSection(options: {
     args: Record<string, TODO_any>;
 }): ReactElement {
     const { memoryResult, args } = options;
-    const queryLabel =
-        memoryResult.query?.trim() || (typeof args.query === 'string' ? args.query.trim() : '');
+    const queryLabel = memoryResult.query?.trim() || (typeof args.query === 'string' ? args.query.trim() : '');
     const memories = (memoryResult.memories || [])
         .map((entry) => entry && normalizeMemoryRecord(entry))
         .filter((entry): entry is MemoryRecord => Boolean(entry && entry.content && entry.content.trim().length > 0));
@@ -625,14 +618,10 @@ function renderMemoryRetrieveSection(options: {
                     <div className={styles.memoryList}>
                         {displayedMemories.map((memory, index) => {
                             const timestamp =
-                                formatMemoryTimestamp(memory.updatedAt) ??
-                                formatMemoryTimestamp(memory.createdAt);
+                                formatMemoryTimestamp(memory.updatedAt) ?? formatMemoryTimestamp(memory.createdAt);
 
                             return (
-                                <div
-                                    key={memory.id || `${memory.content}-${index}`}
-                                    className={styles.memoryCard}
-                                >
+                                <div key={memory.id || `${memory.content}-${index}`} className={styles.memoryCard}>
                                     <div className={styles.memoryCardContent}>{memory.content}</div>
                                     <div className={styles.memoryCardMeta}>
                                         <span className={styles.memoryScopeBadge}>
@@ -665,14 +654,13 @@ function renderMemoryRetrieveSection(options: {
  */
 function buildMemoryToolResult(raw: TODO_any, fallbackAction: 'store' | 'retrieve'): MemoryToolResult | null {
     if (raw && typeof raw === 'object') {
-        const normalizedMemories =
-            Array.isArray(raw.memories)
-                ? raw.memories
-                      .map((entry) => entry && normalizeMemoryRecord(entry))
-                      .filter((entry): entry is MemoryRecord => Boolean(entry))
-                : [];
+        const normalizedMemories = Array.isArray(raw.memories)
+            ? raw.memories
+                  .map((entry: TODO_any) => entry && normalizeMemoryRecord(entry))
+                  .filter((entry: MemoryRecord | null): entry is MemoryRecord => Boolean(entry))
+            : [];
 
-        const normalizedMemory = raw.memory ? normalizeMemoryRecord(raw.memory) : undefined;
+        const normalizedMemory = raw.memory ? normalizeMemoryRecord(raw.memory) ?? undefined : undefined;
 
         return {
             action: raw.action === 'store' ? 'store' : fallbackAction,

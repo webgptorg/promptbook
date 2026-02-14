@@ -1,7 +1,7 @@
 'use client';
 
 import type { ChatMessage } from '@promptbook-local/types';
-import { MessageSquarePlusIcon, Trash2Icon } from 'lucide-react';
+import { MenuIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAgentNaming } from '../../../../components/AgentNaming/AgentNamingContext';
@@ -15,7 +15,9 @@ import {
     saveUserChatMessages,
     UserChatSummary,
 } from '../../../../utils/userChatClient';
+import { AgentChatSidebar } from './AgentChatSidebar';
 import { AgentChatWrapper } from '../AgentChatWrapper';
+import { BackToAgentButton } from '../../../../components/BackToAgentButton/BackToAgentButton';
 
 /**
  * Delay used before persisting chat messages to DB.
@@ -60,6 +62,17 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     const [isCreatingChat, setIsCreatingChat] = useState(false);
     const [isSwitchingChat, setIsSwitchingChat] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+    const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+    const toggleSidebarCollapsed = useCallback(() => {
+        setIsSidebarCollapsed((value) => !value);
+    }, []);
+    const openMobileSidebar = useCallback(() => {
+        setIsMobileSidebarOpen(true);
+    }, []);
+    const closeMobileSidebar = useCallback(() => {
+        setIsMobileSidebarOpen(false);
+    }, []);
 
     const hasInitialAutoMessageBeenConsumedRef = useRef(false);
     const saveTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
@@ -152,7 +165,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
 
             router.replace(buildChatRoute(resolvedActiveChatId, shouldKeepInitialAutoMessage));
         },
-        [agentName, buildChatRoute, initialAutoExecuteMessage, initialChatId, prepareChatInLocalStorage, router],
+        [agentName, buildChatRoute, initialAutoExecuteMessage, prepareChatInLocalStorage, router],
     );
 
     useEffect(() => {
@@ -224,6 +237,14 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             }
         },
         [activeChatId, agentName, buildChatRoute, isSwitchingChat, prepareChatInLocalStorage, router],
+    );
+
+    const handleSelectChatFromSidebar = useCallback(
+        (chatId: string) => {
+            void handleSelectChat(chatId);
+            closeMobileSidebar();
+        },
+        [handleSelectChat, closeMobileSidebar],
     );
 
     /**
@@ -365,93 +386,37 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
 
     return (
         <div className="w-full h-full flex min-h-0 bg-slate-50/80">
-            <aside className="hidden md:flex w-80 flex-col border-r border-slate-200 bg-white/90 backdrop-blur-sm">
-                <div className="p-3 border-b border-slate-200">
-                    <button
-                        type="button"
-                        onClick={handleCreateChat}
-                        disabled={isCreatingChat}
-                        className="w-full inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 disabled:opacity-60"
-                    >
-                        <MessageSquarePlusIcon className="w-4 h-4" />
-                        {isCreatingChat ? formatText('Creating...') : formatText('New chat')}
-                    </button>
-                </div>
-                <div className="flex-1 overflow-y-auto p-2 space-y-1">
-                    {chats.map((chat) => {
-                        const isActive = chat.id === activeChatId;
-                        return (
-                            <div
-                                key={chat.id}
-                                className={`group relative rounded-xl border ${
-                                    isActive
-                                        ? 'border-blue-300 bg-blue-50 shadow-sm'
-                                        : 'border-transparent hover:border-slate-200 hover:bg-slate-100/80'
-                                }`}
-                            >
-                                <button
-                                    type="button"
-                                    className="w-full text-left px-3 py-3 pr-10"
-                                    onClick={() => handleSelectChat(chat.id)}
-                                >
-                                    <div className="text-sm font-medium text-slate-800 truncate">
-                                        {chat.title || formatText('New chat')}
-                                    </div>
-                                    <div className="text-xs text-slate-500 truncate mt-1">
-                                        {chat.preview || formatText('No messages yet')}
-                                    </div>
-                                    <div className="text-[11px] text-slate-400 mt-2">
-                                        {formatChatTimestamp(chat.lastMessageAt || chat.updatedAt)}
-                                    </div>
-                                </button>
-                                <button
-                                    type="button"
-                                    className="absolute right-2 top-2 p-1.5 rounded-md text-slate-400 hover:text-red-600 hover:bg-white/90 opacity-0 group-hover:opacity-100"
-                                    onClick={(event) => {
-                                        event.preventDefault();
-                                        event.stopPropagation();
-                                        void handleDeleteChat(chat.id);
-                                    }}
-                                    title={formatText('Delete chat')}
-                                >
-                                    <Trash2Icon className="w-4 h-4" />
-                                </button>
-                            </div>
-                        );
-                    })}
-                </div>
-            </aside>
-
+            <AgentChatSidebar
+                chats={chats}
+                activeChatId={activeChatId}
+                isCreatingChat={isCreatingChat}
+                formatText={formatText}
+                formatChatTimestamp={formatChatTimestamp}
+                onSelectChat={handleSelectChatFromSidebar}
+                onCreateChat={handleCreateChat}
+                onDeleteChat={handleDeleteChat}
+                isCollapsed={isSidebarCollapsed}
+                onToggleCollapse={toggleSidebarCollapsed}
+                isMobileSidebarOpen={isMobileSidebarOpen}
+                onCloseMobileSidebar={closeMobileSidebar}
+            />
             <section className="flex-1 min-w-0 min-h-0 flex flex-col">
-                <div className="md:hidden border-b border-slate-200 bg-white/90 p-2 space-y-2">
-                    <button
-                        type="button"
-                        onClick={handleCreateChat}
-                        disabled={isCreatingChat}
-                        className="w-full inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700"
-                    >
-                        <MessageSquarePlusIcon className="w-4 h-4" />
-                        {isCreatingChat ? formatText('Creating...') : formatText('New chat')}
-                    </button>
-
-                    <div className="flex gap-2 overflow-x-auto pb-1">
-                        {chats.map((chat) => (
-                            <button
-                                key={chat.id}
-                                type="button"
-                                onClick={() => handleSelectChat(chat.id)}
-                                className={`shrink-0 rounded-full px-3 py-1.5 text-xs border ${
-                                    chat.id === activeChatId
-                                        ? 'border-blue-400 bg-blue-50 text-blue-700'
-                                        : 'border-slate-300 bg-white text-slate-700'
-                                }`}
-                            >
-                                {chat.title || formatText('New chat')}
-                            </button>
-                        ))}
+                <div className="flex items-center border-b border-slate-200 bg-white/90 px-3 py-2 shadow-sm">
+                    <div className="flex items-center gap-2">
+                        <button
+                            type="button"
+                            onClick={openMobileSidebar}
+                            className="md:hidden p-2 text-slate-600 transition hover:text-slate-900"
+                            aria-label={formatText('Open chats sidebar')}
+                        >
+                            <MenuIcon className="h-5 w-5" />
+                        </button>
+                        <BackToAgentButton agentName={agentName} />
+                        <span className="text-sm font-semibold text-slate-700">
+                            {formatText('Chat history')}
+                        </span>
                     </div>
                 </div>
-
                 <div className="relative flex-1 min-h-0">
                     {isSwitchingChat && (
                         <div className="absolute inset-0 z-20 bg-white/60 backdrop-blur-[1px] flex items-center justify-center text-sm text-slate-700">
