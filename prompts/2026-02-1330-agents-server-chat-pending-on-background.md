@@ -1,4 +1,4 @@
-[ ] !!
+[x] ~$0.38 14 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
 [✨📒] When the user asks the chat on the phone and puts the app on the background, the app fails with a connection error.
 
@@ -41,3 +41,4 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

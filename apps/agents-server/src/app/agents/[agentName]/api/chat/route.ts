@@ -15,6 +15,10 @@ import { ASSISTANT_PREPARATION_TOOL_CALL_NAME } from '../../../../../../../../sr
 import { keepUnused } from '../../../../../../../../src/utils/organization/keepUnused';
 import { respondIfClientVersionIsOutdated } from '../../../../../utils/clientVersionGuard';
 import { isAgentDeleted } from '../../_utils';
+import {
+    CHAT_STREAM_KEEP_ALIVE_INTERVAL_MS,
+    CHAT_STREAM_KEEP_ALIVE_TOKEN,
+} from '@/src/constants/streaming';
 
 /**
  * Allow long-running streams: set to platform maximum (seconds)
@@ -142,6 +146,14 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         const readableStream = new ReadableStream({
             async start(controller) {
                 let hasMeaningfulDelta = false;
+                let keepAliveInterval: ReturnType<typeof setInterval> | undefined;
+
+                const sendKeepAlivePing = () => {
+                    controller.enqueue(encoder.encode(`\n${CHAT_STREAM_KEEP_ALIVE_TOKEN}\n`));
+                };
+
+                sendKeepAlivePing();
+                keepAliveInterval = setInterval(sendKeepAlivePing, CHAT_STREAM_KEEP_ALIVE_INTERVAL_MS);
 
                 /**
                  * Note: Tool calls are emitted once at the end from `response.toolCalls`.
@@ -250,6 +262,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                     controller.close();
                 } catch (error) {
                     controller.error(error);
+                } finally {
+                    if (keepAliveInterval) {
+                        clearInterval(keepAliveInterval);
+                        keepAliveInterval = undefined;
+                    }
                 }
             },
         });

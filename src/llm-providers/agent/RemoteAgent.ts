@@ -21,6 +21,7 @@ import { attachClientVersionHeader } from '../../utils/clientVersion';
 import { Agent } from './Agent';
 import type { AgentOptions } from './AgentOptions';
 import type { RemoteAgentOptions } from './RemoteAgentOptions';
+import { CHAT_STREAM_KEEP_ALIVE_TOKEN } from '../../constants/streaming';
 
 /**
  * Payload returned by remote agent profile endpoint.
@@ -417,6 +418,9 @@ export class RemoteAgent extends Agent {
                         const lines = textChunk.split(/\r?\n/);
                         for (const line of lines) {
                             const trimmedLine = line.trim();
+                            if (trimmedLine === CHAT_STREAM_KEEP_ALIVE_TOKEN) {
+                                continue;
+                            }
                             let isToolCallLine = false;
                             if (trimmedLine.startsWith('{') && trimmedLine.endsWith('}')) {
                                 try {
