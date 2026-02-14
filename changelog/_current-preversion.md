@@ -69,6 +69,7 @@
 -   Added `scripts/verify-prompts/verify-prompts.ts`, an interactive helper that lists top-level prompts, walks through every `[ ]` section, archives resolved files under `prompts/done`, and automatically appends the requested fix prompts when work is still pending; registered the helper as a new task in `.vscode/terminals.json`.
 
 -   Added quick chat/source pills to the Agents Server so the chat header and agent source (book) editor stay in sync; admins can now jump directly between the conversation and knowledge editor without returning to the profile page.
+-   Added ElevenLabs speech playback to the chat so every bubble can be read aloud via the new `/api/elevenlabs/tts` route (guarded by the client-version handshake), complete with play/pause controls, cached audio blobs, and env-configurable voice/model defaults plus the shared `ELEVEN_LABS_API_KEY`, `ELEVEN_LABS_VOICE_ID`, and `ELEVEN_LABS_MODEL_ID` settings.
 
 ### 📚 Book
 

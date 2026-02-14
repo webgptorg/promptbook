@@ -621,8 +621,6 @@
     top: 8px;
     right: 10px;
     z-index: 2;
-    align-items: center;
-    justify-content: flex-end;
     pointer-events: none;
 
     visibility: hidden;
@@ -630,6 +628,13 @@
 .chatMainFlow .chatMessage .messageText:hover .copyButtonContainer,
 .copyButtonContainer:focus-within {
     visibility: visible;
+    pointer-events: auto;
+}
+
+.messageControlGroup {
+    display: flex;
+    align-items: center;
+    gap: 6px;
     pointer-events: auto;
 }
 
@@ -645,6 +650,56 @@
     align-items: center;
     opacity: 0.7;
     position: relative;
+}
+
+.playButton {
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.25);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    color: #111;
+    position: relative;
+    padding: 0;
+}
+
+.playButtonIcon {
+    width: 16px;
+    height: 16px;
+}
+
+.playButtonSpinner {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid rgba(0, 0, 0, 0.3);
+    border-top-color: #111;
+    animation: messagePlaySpinner 0.9s linear infinite;
+}
+
+.playButton:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.4);
+    border-color: rgba(255, 255, 255, 0.8);
+}
+
+.playButton:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+@keyframes messagePlaySpinner {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .copiedTooltip {

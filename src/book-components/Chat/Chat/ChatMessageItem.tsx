@@ -2,7 +2,8 @@
 // <- Note: [👲] 'use client' is enforced by Next.js when building the https://book-components.ptbk.io/ but in ideal case,
 //          this would not be here because the `@promptbook/components` package should be React library independent of Next.js specifics
 
-import { memo, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Play, Pause } from 'lucide-react';
 import { colorToDataUrl } from '../../../_packages/color.index';
 import { PROMPTBOOK_CHAT_COLOR, USER_CHAT_COLOR } from '../../../config';
 import type { ToolCall } from '../../../types/ToolCall';
@@ -31,6 +32,7 @@ import { splitMessageContentByImagePrompts } from '../utils/parseImagePrompts';
 import { parseToolCallArguments } from '../utils/toolCallParsing';
 import { collectTeamToolCallSummary } from '../utils/collectTeamToolCallSummary';
 import { getToolCallIdentity } from '../../../utils/toolCalls/getToolCallIdentity';
+import { attachClientVersionHeader } from '../../../utils/clientVersion';
 import styles from './Chat.module.css';
 import type { ChatProps } from './ChatProps';
 import { LOADING_INTERACTIVE_IMAGE } from './constants';
@@ -105,6 +107,13 @@ type TeammateMetadata = {
  * Lookup map of teammate metadata by tool name.
  */
 type TeammatesMap = Record<string, TeammateMetadata>;
+
+/**
+ * Maximum characters allowed in a single ElevenLabs speech request.
+ *
+ * @private
+ */
+const MAX_MESSAGE_SPEECH_LENGTH = 4500;
 
 /**
  * Finds teammate metadata by tool name, falling back to the toolName field when needed.
@@ -452,6 +461,7 @@ export const ChatMessageItem = memo(
         const ongoingToolCallCount = ongoingToolCallGroups.length;
         const toolCallChipCount = completedToolCallCount + transitiveToolCallCount + ongoingToolCallCount;
         const shouldShowButtons = isLastMessage && buttons.length > 0 && onMessage;
+        const playButtonTitle = audioError ?? (isAudioPlaying ? 'Pause message playback' : 'Read message aloud');
 
         // Extract citations from message content
         const messageWithCitations = extractCitationsFromMessage(message);
@@ -461,6 +471,147 @@ export const ChatMessageItem = memo(
         const [copied, setCopied] = useState(false);
         const [tooltipAlign, setTooltipAlign] = useState<'center' | 'left' | 'right'>('center');
         const copyTooltipRef = useRef<HTMLSpanElement>(null);
+        const contentWithoutButtonsRef = useRef<HTMLDivElement>(null);
+        const audioRef = useRef<HTMLAudioElement | null>(null);
+        const [audioUrl, setAudioUrl] = useState<string | null>(null);
+        const [isAudioLoading, setIsAudioLoading] = useState(false);
+        const [isAudioPlaying, setIsAudioPlaying] = useState(false);
+        const [audioError, setAudioError] = useState<string | null>(null);
+        const trimmedMessageContent = message.content.trim();
+        const shouldShowPlayButton = trimmedMessageContent.length > 0;
+
+        /**
+         * Attaches playback listeners to keep the UI in sync with the audio element.
+         *
+         * @private
+         */
+        const attachMessageAudioListeners = useCallback((element: HTMLAudioElement) => {
+            element.onplay = () => {
+                setIsAudioPlaying(true);
+            };
+            element.onpause = () => {
+                setIsAudioPlaying(false);
+            };
+            element.onended = () => {
+                setIsAudioPlaying(false);
+                element.currentTime = 0;
+            };
+        }, []);
+
+        /**
+         * Derives the plain text that should be spoken, preferring the rendered node over raw markdown.
+         *
+         * @private
+         */
+        const getMessageTextForSpeech = useCallback(() => {
+            const renderedText = contentWithoutButtonsRef.current?.innerText?.trim();
+            if (renderedText) {
+                return renderedText;
+            }
+
+            return trimmedMessageContent;
+        }, [trimmedMessageContent]);
+
+        /**
+         * Fetches ElevenLabs speech audio (or replays cached audio) when the play button is pressed.
+         *
+         * @private
+         */
+        const handlePlayMessage = useCallback(async () => {
+            if (isAudioLoading) {
+                return;
+            }
+
+            if (!shouldShowPlayButton) {
+                setAudioError('Nothing to read aloud.');
+                return;
+            }
+
+            const speechText = getMessageTextForSpeech();
+            if (!speechText) {
+                setAudioError('Nothing to read aloud.');
+                return;
+            }
+
+            const payloadText =
+                speechText.length > MAX_MESSAGE_SPEECH_LENGTH
+                    ? speechText.slice(0, MAX_MESSAGE_SPEECH_LENGTH).trim()
+                    : speechText;
+
+            if (!payloadText) {
+                setAudioError('Nothing to read aloud.');
+                return;
+            }
+
+            setAudioError(null);
+
+            const playAudio = async (element: HTMLAudioElement) => {
+                try {
+                    await element.play();
+                } catch (playError) {
+                    setAudioError(
+                        playError instanceof Error ? playError.message : 'Browser blocked audio playback.',
+                    );
+                }
+            };
+
+            if (audioUrl) {
+                const audio = audioRef.current ?? new Audio(audioUrl);
+                audioRef.current = audio;
+                attachMessageAudioListeners(audio);
+
+                if (audio.paused) {
+                    await playAudio(audio);
+                } else {
+                    audio.pause();
+                }
+
+                return;
+            }
+
+            setIsAudioLoading(true);
+            try {
+                const response = await fetch('/api/elevenlabs/tts', {
+                    method: 'POST',
+                    headers: attachClientVersionHeader({
+                        'Content-Type': 'application/json',
+                    }),
+                    body: JSON.stringify({ text: payloadText }),
+                });
+
+                if (!response.ok) {
+                    const body = await response.text();
+                    throw new Error(body || 'Unable to request speech audio.');
+                }
+
+                const buffer = await response.arrayBuffer();
+                const blob = new Blob([buffer], { type: 'audio/mpeg' });
+                const url = URL.createObjectURL(blob);
+                const audio = new Audio(url);
+                audioRef.current = audio;
+                attachMessageAudioListeners(audio);
+
+                setAudioUrl((previousUrl) => {
+                    if (previousUrl) {
+                        URL.revokeObjectURL(previousUrl);
+                    }
+
+                    return url;
+                });
+
+                await playAudio(audio);
+            } catch (error) {
+                setAudioError(error instanceof Error ? error.message : 'Failed to generate speech.');
+            } finally {
+                setIsAudioLoading(false);
+            }
+        }, [
+            attachMessageAudioListeners,
+            audioUrl,
+            getMessageTextForSpeech,
+            isAudioLoading,
+            shouldShowPlayButton,
+        ]);
 
         useEffect(() => {
             if (!isExpanded) {
@@ -468,7 +619,20 @@ export const ChatMessageItem = memo(
             }
         }, [isExpanded]);
 
-        const contentWithoutButtonsRef = useRef<HTMLDivElement>(null);
+        useEffect(() => {
+            return () => {
+                audioRef.current?.pause();
+                audioRef.current = null;
+            };
+        }, []);
+
+        useEffect(() => {
+            return () => {
+                if (audioUrl) {
+                    URL.revokeObjectURL(audioUrl);
+                }
+            };
+        }, [audioUrl]);
 
         useEffect(() => {
             if (toolCallChipCount > toolCallChipCountRef.current) {
@@ -548,95 +712,127 @@ export const ChatMessageItem = memo(
                     >
                         {isCopyButtonEnabled && isComplete && (
                             <div className={styles.copyButtonContainer}>
-                                <button
-                                    className={styles.copyButton}
-                                    title="Copy message"
-                                    onClick={async (e) => {
-                                        e.stopPropagation();
-
-                                        if (navigator.clipboard && window.ClipboardItem) {
-                                            const clipboardItems: Record<string, Blob> = {};
-
-                                            if (contentWithoutButtonsRef.current) {
-                                                const html = contentWithoutButtonsRef.current.innerHTML;
-                                                clipboardItems['text/html'] = new Blob([html], {
-                                                    type: 'text/html',
-                                                });
-                                            }
-
-                                            if (contentWithoutButtonsRef.current) {
-                                                const plain = contentWithoutButtonsRef.current.innerText;
-                                                clipboardItems['text/plain'] = new Blob([plain], {
-                                                    type: 'text/plain',
-                                                });
-                                            }
-
-                                            await navigator.clipboard.write([new window.ClipboardItem(clipboardItems)]);
-                                            setCopied(true);
-                                            setTimeout(() => setCopied(false), 2000);
-
-                                            // Tooltip positioning logic
-                                            setTimeout(() => {
-                                                const tooltip = copyTooltipRef.current;
-                                                if (tooltip) {
-                                                    const rect = tooltip.getBoundingClientRect();
-                                                    if (rect.left < 8) {
-                                                        setTooltipAlign('left');
-                                                    } else if (rect.right > window.innerWidth - 8) {
-                                                        setTooltipAlign('right');
-                                                    } else {
-                                                        setTooltipAlign('center');
-                                                    }
-                                                }
-                                            }, 10);
-                                            if (typeof onCopy === 'function') {
-                                                onCopy();
-                                            }
-                                        } else {
-                                            throw new Error(
-                                                `Your browser does not support copying to clipboard: navigator.clipboard && window.ClipboardItem.`,
-                                            );
-                                        }
-                                    }}
-                                >
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                                        <rect
-                                            x="7"
-                                            y="7"
-                                            width="10"
-                                            height="14"
-                                            rx="2"
-                                            fill="#fff"
-                                            stroke="#bbb"
-                                            strokeWidth="1.5"
-                                        />
-                                        <rect
-                                            x="3"
-                                            y="3"
-                                            width="10"
-                                            height="14"
-                                            rx="2"
-                                            fill="#fff"
-                                            stroke="#bbb"
-                                            strokeWidth="1.5"
-                                        />
-                                    </svg>
-                                    {copied && (
-                                        <span
-                                            ref={copyTooltipRef}
-                                            className={
-                                                styles.copiedTooltip +
-                                                (tooltipAlign === 'left'
-                                                    ? ' ' + styles.copiedTooltipLeft
-                                                    : tooltipAlign === 'right'
-                                                    ? ' ' + styles.copiedTooltipRight
-                                                    : '')
-                                            }
+                                <div className={styles.messageControlGroup}>
+                                    {shouldShowPlayButton && (
+                                        <button
+                                            type="button"
+                                            className={styles.playButton}
+                                            title={playButtonTitle}
+                                            aria-label={playButtonTitle}
+                                            onClick={(event) => {
+                                                event.stopPropagation();
+                                                void handlePlayMessage();
+                                            }}
+                                            disabled={isAudioLoading}
                                         >
-                                            Copied!
-                                        </span>
+                                            {isAudioLoading ? (
+                                                <span
+                                                    className={styles.playButtonSpinner}
+                                                    aria-hidden="true"
+                                                />
+                                            ) : isAudioPlaying ? (
+                                                <Pause
+                                                    className={styles.playButtonIcon}
+                                                    aria-hidden="true"
+                                                />
+                                            ) : (
+                                                <Play
+                                                    className={styles.playButtonIcon}
+                                                    aria-hidden="true"
+                                                />
+                                            )}
+                                        </button>
                                     )}
-                                </button>
+                                    <button
+                                        className={styles.copyButton}
+                                        title="Copy message"
+                                        onClick={async (e) => {
+                                            e.stopPropagation();
+
+                                            if (navigator.clipboard && window.ClipboardItem) {
+                                                const clipboardItems: Record<string, Blob> = {};
+
+                                                if (contentWithoutButtonsRef.current) {
+                                                    const html = contentWithoutButtonsRef.current.innerHTML;
+                                                    clipboardItems['text/html'] = new Blob([html], {
+                                                        type: 'text/html',
+                                                    });
+                                                }
+
+                                                if (contentWithoutButtonsRef.current) {
+                                                    const plain = contentWithoutButtonsRef.current.innerText;
+                                                    clipboardItems['text/plain'] = new Blob([plain], {
+                                                        type: 'text/plain',
+                                                    });
+                                                }
+
+                                                await navigator.clipboard.write([new window.ClipboardItem(clipboardItems)]);
+                                                setCopied(true);
+                                                setTimeout(() => setCopied(false), 2000);
+
+                                                // Tooltip positioning logic
+                                                setTimeout(() => {
+                                                    const tooltip = copyTooltipRef.current;
+                                                    if (tooltip) {
+                                                        const rect = tooltip.getBoundingClientRect();
+                                                        if (rect.left < 8) {
+                                                            setTooltipAlign('left');
+                                                        } else if (rect.right > window.innerWidth - 8) {
+                                                            setTooltipAlign('right');
+                                                        } else {
+                                                            setTooltipAlign('center');
+                                                        }
+                                                    }
+                                                }, 10);
+                                                if (typeof onCopy === 'function') {
+                                                    onCopy();
+                                                }
+                                            } else {
+                                                throw new Error(
+                                                    `Your browser does not support copying to clipboard: navigator.clipboard && window.ClipboardItem.`,
+                                                );
+                                            }
+                                        }}
+                                    >
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                                            <rect
+                                                x="7"
+                                                y="7"
+                                                width="10"
+                                                height="14"
+                                                rx="2"
+                                                fill="#fff"
+                                                stroke="#bbb"
+                                                strokeWidth="1.5"
+                                            />
+                                            <rect
+                                                x="3"
+                                                y="3"
+                                                width="10"
+                                                height="14"
+                                                rx="2"
+                                                fill="#fff"
+                                                stroke="#bbb"
+                                                strokeWidth="1.5"
+                                            />
+                                        </svg>
+                                        {copied && (
+                                            <span
+                                                ref={copyTooltipRef}
+                                                className={
+                                                    styles.copiedTooltip +
+                                                    (tooltipAlign === 'left'
+                                                        ? ' ' + styles.copiedTooltipLeft
+                                                        : tooltipAlign === 'right'
+                                                        ? ' ' + styles.copiedTooltipRight
+                                                        : '')
+                                                }
+                                            >
+                                                Copied!
+                                            </span>
+                                        )}
+                                    </button>
+                                </div>
                             </div>
                         )}
                         {message.isVoiceCall && (
