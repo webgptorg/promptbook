@@ -1,14 +1,14 @@
 'use server';
-import { getMetadata } from '@/database/getMetadata';
-import { getThinkingMessages } from '@/src/utils/thinkingMessages';
+import { getMetadata } from '@/src/database/getMetadata';
 import { getCurrentUser } from '@/src/utils/getCurrentUser';
+import { getThinkingMessages } from '@/src/utils/thinkingMessages';
 import { headers } from 'next/headers';
 import { resolveSpeechRecognitionLanguage } from '../../../../../../../src/utils/language/getBrowserPreferredSpeechRecognitionLanguage';
 import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
 import { DeletedAgentBanner } from '../../../../components/DeletedAgentBanner';
 import { getAgentProfile, isAgentDeleted } from '../_utils';
-import { AgentChatHistoryClient } from './AgentChatHistoryClient';
 import { generateAgentMetadata } from '../generateAgentMetadata';
+import { AgentChatHistoryClient } from './AgentChatHistoryClient';
 
 export const generateMetadata = generateAgentMetadata;
 

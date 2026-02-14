@@ -2,22 +2,25 @@
 // <- Note: [👲] 'use client' is enforced by Next.js when building the https://book-components.ptbk.io/ but in ideal case,
 //          this would not be here because the `@promptbook/components` package should be React library independent of Next.js specifics
 
+import { Pause, Play } from 'lucide-react';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Play, Pause } from 'lucide-react';
 import { colorToDataUrl } from '../../../_packages/color.index';
 import { PROMPTBOOK_CHAT_COLOR, USER_CHAT_COLOR } from '../../../config';
 import type { ToolCall } from '../../../types/ToolCall';
 import { isAssistantPreparationToolCall } from '../../../types/ToolCall';
 import type { id } from '../../../types/typeAliases';
+import { attachClientVersionHeader } from '../../../utils/clientVersion';
 import { Color } from '../../../utils/color/Color';
 import { textColor } from '../../../utils/color/operators/furthest';
-import { AvatarProfileTooltip } from '../../AvatarProfile/AvatarProfile/AvatarProfileTooltip';
+import { getToolCallIdentity } from '../../../utils/toolCalls/getToolCallIdentity';
 import { classNames } from '../../_common/react-utils/classNames';
+import { AvatarProfileTooltip } from '../../AvatarProfile/AvatarProfile/AvatarProfileTooltip';
 import { AgentChip, type AgentChipData } from '../AgentChip';
 import { MarkdownContent } from '../MarkdownContent/MarkdownContent';
 import { SourceChip } from '../SourceChip';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
+import { collectTeamToolCallSummary } from '../utils/collectTeamToolCallSummary';
 import { isTeamToolName } from '../utils/createTeamToolNameFromUrl';
 import { getChatMessageTimingDisplay } from '../utils/getChatMessageTimingDisplay';
 import type { ToolCallChipletInfo } from '../utils/getToolCallChipletInfo';
@@ -27,12 +30,9 @@ import {
     extractCitationsFromMessage,
     type ParsedCitation,
 } from '../utils/parseCitationsFromContent';
-import { parseMessageButtons } from '../utils/parseMessageButtons';
 import { splitMessageContentByImagePrompts } from '../utils/parseImagePrompts';
+import { parseMessageButtons } from '../utils/parseMessageButtons';
 import { parseToolCallArguments } from '../utils/toolCallParsing';
-import { collectTeamToolCallSummary } from '../utils/collectTeamToolCallSummary';
-import { getToolCallIdentity } from '../../../utils/toolCalls/getToolCallIdentity';
-import { attachClientVersionHeader } from '../../../utils/clientVersion';
 import styles from './Chat.module.css';
 import type { ChatProps } from './ChatProps';
 import { LOADING_INTERACTIVE_IMAGE } from './constants';
@@ -452,17 +452,6 @@ export const ChatMessageItem = memo(
         const teamToolCallSummary = useMemo(() => collectTeamToolCallSummary(completedToolCalls), [completedToolCalls]);
         const transitiveToolCalls = teamToolCallSummary.toolCalls;
         const transitiveCitations = teamToolCallSummary.citations;
-        const ongoingToolCallGroups = useMemo(
-            () => groupOngoingToolCalls(message.ongoingToolCalls, toolTitles, teammates),
-            [message.ongoingToolCalls, toolTitles, teammates],
-        );
-        const completedToolCallCount = completedToolCalls?.length ?? 0;
-        const transitiveToolCallCount = transitiveToolCalls.length;
-        const ongoingToolCallCount = ongoingToolCallGroups.length;
-        const toolCallChipCount = completedToolCallCount + transitiveToolCallCount + ongoingToolCallCount;
-        const shouldShowButtons = isLastMessage && buttons.length > 0 && onMessage;
-        const playButtonTitle = audioError ?? (isAudioPlaying ? 'Pause message playback' : 'Read message aloud');
-
         // Extract citations from message content
         const messageWithCitations = extractCitationsFromMessage(message);
         const citations = messageWithCitations.citations || [];
@@ -477,6 +466,17 @@ export const ChatMessageItem = memo(
         const [isAudioLoading, setIsAudioLoading] = useState(false);
         const [isAudioPlaying, setIsAudioPlaying] = useState(false);
         const [audioError, setAudioError] = useState<string | null>(null);
+
+        const ongoingToolCallGroups = useMemo(
+            () => groupOngoingToolCalls(message.ongoingToolCalls, toolTitles, teammates),
+            [message.ongoingToolCalls, toolTitles, teammates],
+        );
+        const completedToolCallCount = completedToolCalls?.length ?? 0;
+        const transitiveToolCallCount = transitiveToolCalls.length;
+        const ongoingToolCallCount = ongoingToolCallGroups.length;
+        const toolCallChipCount = completedToolCallCount + transitiveToolCallCount + ongoingToolCallCount;
+        const shouldShowButtons = isLastMessage && buttons.length > 0 && onMessage;
+        const playButtonTitle = audioError ?? (isAudioPlaying ? 'Pause message playback' : 'Read message aloud');
         const trimmedMessageContent = message.content.trim();
         const shouldShowPlayButton = trimmedMessageContent.length > 0;
 
@@ -549,9 +549,7 @@ export const ChatMessageItem = memo(
                 try {
                     await element.play();
                 } catch (playError) {
-                    setAudioError(
-                        playError instanceof Error ? playError.message : 'Browser blocked audio playback.',
-                    );
+                    setAudioError(playError instanceof Error ? playError.message : 'Browser blocked audio playback.');
                 }
             };
 
@@ -605,13 +603,7 @@ export const ChatMessageItem = memo(
             } finally {
                 setIsAudioLoading(false);
             }
-        }, [
-            attachMessageAudioListeners,
-            audioUrl,
-            getMessageTextForSpeech,
-            isAudioLoading,
-            shouldShowPlayButton,
-        ]);
+        }, [attachMessageAudioListeners, audioUrl, getMessageTextForSpeech, isAudioLoading, shouldShowPlayButton]);
 
         useEffect(() => {
             if (!isExpanded) {
@@ -726,20 +718,11 @@ export const ChatMessageItem = memo(
                                             disabled={isAudioLoading}
                                         >
                                             {isAudioLoading ? (
-                                                <span
-                                                    className={styles.playButtonSpinner}
-                                                    aria-hidden="true"
-                                                />
+                                                <span className={styles.playButtonSpinner} aria-hidden="true" />
                                             ) : isAudioPlaying ? (
-                                                <Pause
-                                                    className={styles.playButtonIcon}
-                                                    aria-hidden="true"
-                                                />
+                                                <Pause className={styles.playButtonIcon} aria-hidden="true" />
                                             ) : (
-                                                <Play
-                                                    className={styles.playButtonIcon}
-                                                    aria-hidden="true"
-                                                />
+                                                <Play className={styles.playButtonIcon} aria-hidden="true" />
                                             )}
                                         </button>
                                     )}
@@ -766,7 +749,9 @@ export const ChatMessageItem = memo(
                                                     });
                                                 }
 
-                                                await navigator.clipboard.write([new window.ClipboardItem(clipboardItems)]);
+                                                await navigator.clipboard.write([
+                                                    new window.ClipboardItem(clipboardItems),
+                                                ]);
                                                 setCopied(true);
                                                 setTimeout(() => setCopied(false), 2000);
 
