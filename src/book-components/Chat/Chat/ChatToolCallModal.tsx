@@ -1078,9 +1078,10 @@ function renderToolCallDetails(options: ToolCallDetailsOptions): ReactElement {
     const chipletInfo = getToolCallChipletInfo(toolCall);
     const toolMetadata = TOOL_TITLES[toolCall.name];
     const headerEmoji = toolMetadata?.emoji || extractLeadingEmoji(chipletInfo.text) || '🛠️';
-    const headerTitle =
-        toolTitles?.[toolCall.name] || toolMetadata?.title || chipletInfo.text || toolCall.name;
-    const callTimestamp = toolCallDate ? toolCallDate.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : 'Time unavailable';
+    const headerTitle = toolTitles?.[toolCall.name] || toolMetadata?.title || chipletInfo.text || toolCall.name;
+    const callTimestamp = toolCallDate
+        ? toolCallDate.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })
+        : 'Time unavailable';
     const relativeTimestamp = toolCallDate ? moment(toolCallDate).fromNow() : null;
     const argumentEntries = buildArgumentEntries(args);
     const resultSummary = buildToolCallResultSummary(resultRaw);
@@ -1184,7 +1185,9 @@ function renderToolCallDetails(options: ToolCallDetailsOptions): ReactElement {
                             <h4 className={styles.toolCallRawColumnTitle}>Result</h4>
                             <div className={styles.toolCallDataContainer}>
                                 <pre className={styles.toolCallData}>
-                                    {typeof resultRaw === 'object' ? JSON.stringify(resultRaw, null, 2) : String(resultRaw ?? 'No result')}
+                                    {typeof resultRaw === 'object'
+                                        ? JSON.stringify(resultRaw, null, 2)
+                                        : String(resultRaw ?? 'No result')}
                                 </pre>
                             </div>
                         </div>
@@ -1455,5 +1458,5 @@ function extractLeadingEmoji(text?: string): string | null {
     }
 
     const trimmed = text.trim();
-    return trimmed ? trimmed[0] : null;
+    return trimmed ? trimmed[0]! : null;
 }
