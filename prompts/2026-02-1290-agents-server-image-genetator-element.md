@@ -1,4 +1,8 @@
-[x] ~$0.56 11 minutes by OpenAI Codex `gpt-5.1-codex-mini`
+[x] ~$0.56 11 minutes by OpenAI Codex `gpt-5.1-codex-mini` - not working
+
+---
+
+[ ]
 
 [✨⛳️] Fix and make `USE IMAGE GENERATOR` work:
 
@@ -28,6 +32,7 @@ Sure, here is your image of the forest in the winter.
 -   For the inspiration, look how the quick buttons are parsed and shown `[Hello](?message=Hello, how are you?)`
 -   For the inspiration, look how agent profile images are generated
 -   Keep in mind the DRY _(don't repeat yourself)_ principle, The queue and lock of the image generation should work in the same way as it is working in other parts of the project.
+-   You have tried to implement this but failed - To be clear, **you are not generating the image via the model or agent kit or via some tool call. You are ONLY placing a notation** `![alt](?image-prompt=...)` into the message, and the user interface is responsible for parsing this notation and generating the image. So the agent is not directly calling the image generation at all, it is just putting a special notation into the message, and the user interface is doing the rest.
 -   This is a big change. Do a proper analysis of the project before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
@@ -69,4 +74,3 @@ Sure, here is your image of the forest in the winter.
 ```
 
 ```
-
