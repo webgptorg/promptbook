@@ -1503,6 +1503,219 @@
     position: relative;
 }
 
+.toolCallHero {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 24px 32px 16px;
+    background: #f8fbff;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.toolCallHeroIcon {
+    width: 54px;
+    height: 54px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    background: linear-gradient(135deg, #4338ca, #6366f1);
+    color: #fff;
+    box-shadow: 0 12px 20px rgba(76, 29, 149, 0.35);
+}
+
+.toolCallHeroText {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    overflow: hidden;
+}
+
+.toolCallHeroTitle {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.toolCallHeroSubtitle {
+    margin: 0;
+    font-size: 14px;
+    color: #475569;
+    text-transform: capitalize;
+}
+
+.toolCallHeroMeta {
+    margin: 0;
+    font-size: 13px;
+    color: #94a3b8;
+}
+
+.toolCallBody {
+    padding: 24px 32px;
+    background: #fff;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 20px;
+}
+
+.toolCallSummaryCard,
+.toolCallArgCard,
+.toolCallMetaCard,
+.toolCallDetailsCard {
+    border: 1px solid #e5e7eb;
+    border-radius: 18px;
+    padding: 20px;
+    background: #ffffff;
+    box-shadow: 0 15px 30px rgba(15, 23, 42, 0.08);
+}
+
+.toolCallSummaryCard {
+    grid-column: 1 / -1;
+}
+
+.toolCallDetailsCard {
+    grid-column: 1 / -1;
+}
+
+.toolCallCardHeading {
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #64748b;
+    margin: 0 0 16px 0;
+}
+
+.toolCallSummaryText {
+    color: #0f172a;
+    line-height: 1.6;
+    font-size: 15px;
+}
+
+.toolCallSummaryMarkdown {
+    margin: 0;
+}
+
+.toolCallSummaryEmpty {
+    margin: 0;
+    color: #475569;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.toolCallArgList {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.toolCallArgItem {
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: #f8fafc;
+    border: 1px solid #ecedef;
+}
+
+.toolCallArgKey {
+    display: block;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #94a3b8;
+    margin-bottom: 4px;
+}
+
+.toolCallArgValue {
+    font-size: 14px;
+    color: #0f172a;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.toolCallMetaGrid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.toolCallMetaRow {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    font-size: 14px;
+    color: #0f172a;
+}
+
+.toolCallStatusList {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: flex-end;
+    min-height: 32px;
+}
+
+.toolCallStatusBadge {
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 13px;
+    border: 1px solid transparent;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.toolCallStatusWarning {
+    background: rgba(250, 204, 21, 0.15);
+    color: #b45309;
+    border-color: rgba(242, 177, 49, 0.5);
+}
+
+.toolCallStatusError {
+    background: rgba(248, 113, 113, 0.2);
+    color: #b91c1c;
+    border-color: rgba(248, 113, 113, 0.6);
+}
+
+.toolCallDetailsToggle summary {
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 15px;
+    color: #0f172a;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.toolCallDetailsToggle[open] summary {
+    color: #4338ca;
+}
+
+.toolCallRawPre {
+    margin-top: 10px;
+    background: #111827;
+    color: #f8fafc;
+    border-radius: 12px;
+    padding: 16px;
+    font-size: 13px;
+    overflow-x: auto;
+    max-height: 280px;
+    line-height: 1.5;
+}
+
+@media (max-width: 640px) {
+    .toolCallHero {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .toolCallBody {
+        padding: 20px;
+    }
+}
+
 .memoryModalHeader {
     padding: 28px 32px 16px;
     display: flex;
