@@ -4,6 +4,7 @@ import { BookEditor } from '@promptbook-local/components';
 import { string_book } from '@promptbook-local/types';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { bookEditorUploadHandler } from '../../../../utils/upload/createBookEditorUploadHandler';
+import { showAlert } from '@/src/components/AsyncDialogs/asyncDialogs';
 
 /**
  * Props for the BookEditorWrapper component.
@@ -28,8 +29,24 @@ type BookEditorDiagnostic = {
 /**
  * API response returned by `/reference-diagnostics`.
  */
+/**
+ * Minimal metadata returned by the diagnostics API for each missing TEAM teammate.
+ */
+type MissingTeamReference = {
+    /**
+     * Display-friendly payload extracted from the compact reference token.
+     */
+    readonly reference: string;
+
+    /**
+     * Original compact token (e.g. `{Lawyer}` or `@lawyer`).
+     */
+    readonly token: string;
+};
+
 type AgentReferenceDiagnosticsResponse = {
     diagnostics?: Array<BookEditorDiagnostic>;
+    missingTeamReferences?: Array<MissingTeamReference>;
 };
 
 // TODO: [🐱‍🚀] Rename to BookEditorSavingWrapper
@@ -41,6 +58,8 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
     const [agentSource, setAgentSource] = useState<string_book>(initialAgentSource);
     const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
     const [diagnostics, setDiagnostics] = useState<Array<BookEditorDiagnostic>>([]);
+    const [missingTeamReferences, setMissingTeamReferences] = useState<Array<MissingTeamReference>>([]);
+    const [creatingTeamMember, setCreatingTeamMember] = useState<string | null>(null);
 
     // Debounce timer ref so we can clear previous pending save
     const debounceTimerRef = useRef<number | null>(null);
@@ -109,7 +128,13 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
             }
 
             const payload = (await response.json()) as AgentReferenceDiagnosticsResponse;
-            setDiagnostics(Array.isArray(payload.diagnostics) ? payload.diagnostics : []);
+            const diagnosticsPayload = Array.isArray(payload.diagnostics) ? payload.diagnostics : [];
+            const teamReferences = Array.isArray(payload.missingTeamReferences)
+                ? payload.missingTeamReferences
+                : [];
+
+            setDiagnostics(diagnosticsPayload);
+            setMissingTeamReferences(teamReferences);
         } catch (error) {
             if (error instanceof Error && error.name === 'AbortError') {
                 return;
@@ -117,6 +142,7 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
 
             console.error('Error loading reference diagnostics:', error);
             setDiagnostics([]);
+            setMissingTeamReferences([]);
         } finally {
             if (diagnosticsAbortControllerRef.current === abortController) {
                 diagnosticsAbortControllerRef.current = null;
@@ -146,6 +172,52 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
         scheduleDiagnostics(newSource);
     };
 
+    const handleCreateTeamMember = useCallback(
+        async (member: MissingTeamReference) => {
+            if (!member.reference) {
+                return;
+            }
+
+            setCreatingTeamMember(member.reference);
+
+            try {
+                const response = await fetch(`/agents/${encodeURIComponent(agentName)}/api/book/team-member`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: member.reference }),
+                });
+
+                if (!response.ok) {
+                    let message = response.statusText;
+                    try {
+                        const payload = await response.json();
+                        if (payload?.message) {
+                            message = payload.message;
+                        }
+                    } catch {
+                        // Ignore parse errors
+                    }
+
+                    throw new Error(message || 'Failed to create team member');
+                }
+
+                await requestDiagnostics(agentSource);
+            } catch (error) {
+                console.error('Failed to create team member:', error);
+                const errorMessage =
+                    error instanceof Error ? error.message : 'An unknown error occurred while creating the team member.';
+
+                await showAlert({
+                    title: 'Create team member failed',
+                    message: `Unable to create ${member.reference}. ${errorMessage}`,
+                });
+            } finally {
+                setCreatingTeamMember(null);
+            }
+        },
+        [agentName, agentSource, requestDiagnostics],
+    );
+
     useEffect(() => {
         void requestDiagnostics(initialAgentSource);
     }, [initialAgentSource, requestDiagnostics]);
@@ -163,8 +235,19 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
         };
     }, []);
 
+    const hasMissingTeamReferences = missingTeamReferences.length > 0;
+    const renderTeamMemberCards = () =>
+        missingTeamReferences.map((member) => (
+            <MissingTeamMemberCard
+                key={member.reference}
+                member={member}
+                isCreating={creatingTeamMember === member.reference}
+                onCreate={() => handleCreateTeamMember(member)}
+            />
+        ));
+
     return (
-        <div className="w-full h-full">
+        <div className="relative flex h-full min-h-0 flex-col">
             {saveStatus !== 'idle' && (
                 <div
                     role="status"
@@ -183,15 +266,67 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
                 </div>
             )}
 
-            <BookEditor
-                className="w-full h-full"
-                isBorderRadiusDisabled
-                height={null}
-                value={agentSource}
-                onChange={handleChange}
-                onFileUpload={bookEditorUploadHandler}
-                diagnostics={diagnostics}
-            />
+            <div className="flex h-full min-h-0 gap-6">
+                <div className="flex-1 min-h-0">
+                    <BookEditor
+                        className="w-full h-full"
+                        isBorderRadiusDisabled
+                        height={null}
+                        value={agentSource}
+                        onChange={handleChange}
+                        onFileUpload={bookEditorUploadHandler}
+                        diagnostics={diagnostics}
+                    />
+                </div>
+
+                {hasMissingTeamReferences && (
+                    <aside className="hidden w-80 shrink-0 flex-col gap-4 rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-lg shadow-slate-900/5 backdrop-blur-md md:flex">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                            Missing teammates
+                        </p>
+                        <div className="flex flex-col gap-4">{renderTeamMemberCards()}</div>
+                    </aside>
+                )}
+            </div>
+
+            {hasMissingTeamReferences && (
+                <div className="mt-4 flex flex-col gap-4 px-4 md:hidden">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        Missing teammates
+                    </p>
+                    <div className="flex flex-col gap-4">{renderTeamMemberCards()}</div>
+                </div>
+            )}
+        </div>
+    );
+}
+
+/**
+ * Props for an individual missing-team-member card.
+ */
+type MissingTeamMemberCardProps = {
+    readonly member: MissingTeamReference;
+    readonly isCreating: boolean;
+    readonly onCreate: () => void;
+};
+
+/**
+ * Renders a single card describing the unresolved teammate and its creation action.
+ */
+function MissingTeamMemberCard({ member, isCreating, onCreate }: MissingTeamMemberCardProps) {
+    return (
+        <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-4">
+            <p className="text-sm text-slate-700">
+                Team member <span className="font-semibold text-slate-900">{member.reference}</span> is not found. Do you want to create it?
+            </p>
+            <button
+                type="button"
+                className="mt-3 inline-flex w-full items-center justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:cursor-not-allowed disabled:bg-blue-400 disabled:opacity-70"
+                onClick={onCreate}
+                disabled={isCreating}
+            >
+                {isCreating ? `Creating ${member.reference}...` : `Create ${member.reference}`}
+            </button>
         </div>
     );
 }

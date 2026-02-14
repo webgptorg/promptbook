@@ -17,13 +17,14 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
     try {
         const agentSource = (await request.text()) as string_book;
         const agentReferenceResolver = await $provideAgentReferenceResolver();
-        const diagnostics = await createUnresolvedAgentReferenceDiagnostics(agentSource, agentReferenceResolver);
+        const diagnosticsResult = await createUnresolvedAgentReferenceDiagnostics(agentSource, agentReferenceResolver);
 
         return new Response(
             JSON.stringify({
                 isSuccessful: true,
                 agentName,
-                diagnostics,
+                diagnostics: diagnosticsResult.diagnostics,
+                missingTeamReferences: diagnosticsResult.missingTeamReferences,
             }),
             {
                 status: 200,

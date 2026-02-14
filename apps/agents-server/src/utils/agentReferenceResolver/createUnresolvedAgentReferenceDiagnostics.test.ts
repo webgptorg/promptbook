@@ -39,7 +39,9 @@ TEAM {Missing Teammate}
 IMPORT {Missing Import}
 TEAM {https://remote.example/agents/visible}` as string_book;
 
-        const diagnostics = await createUnresolvedAgentReferenceDiagnostics(agentSource, resolver);
+        const result = await createUnresolvedAgentReferenceDiagnostics(agentSource, resolver);
+        const diagnostics = result.diagnostics;
+        const missingTeamReferences = result.missingTeamReferences;
 
         expect(diagnostics).toEqual([
             expect.objectContaining({
@@ -58,6 +60,13 @@ TEAM {https://remote.example/agents/visible}` as string_book;
                 message: 'Referenced agent "Missing Import" in IMPORT commitment was not found.',
             }),
         ]);
+
+        expect(missingTeamReferences).toEqual([
+            {
+                reference: 'Missing Teammate',
+                token: '{Missing Teammate}',
+            },
+        ]);
     });
 
     it('returns empty diagnostics when no compact references are present', async () => {
@@ -66,8 +75,11 @@ TEAM {https://remote.example/agents/visible}` as string_book;
 RULE Everything is explicit
 KNOWLEDGE https://example.com/doc.txt` as string_book;
 
-        const diagnostics = await createUnresolvedAgentReferenceDiagnostics(agentSource, resolver);
+        const result = await createUnresolvedAgentReferenceDiagnostics(agentSource, resolver);
 
-        expect(diagnostics).toEqual([]);
+        expect(result).toEqual({
+            diagnostics: [],
+            missingTeamReferences: [],
+        });
     });
 });

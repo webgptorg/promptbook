@@ -41,6 +41,16 @@ export type AgentReferenceDiagnostic = {
     readonly source?: string;
 };
 
+export type MissingTeamReference = {
+    readonly reference: string;
+    readonly token: string;
+};
+
+export type AgentReferenceDiagnosticsResult = {
+    readonly diagnostics: Array<AgentReferenceDiagnostic>;
+    readonly missingTeamReferences: Array<MissingTeamReference>;
+};
+
 /**
  * Internal token location used to map unresolved references into source ranges.
  */
@@ -84,11 +94,14 @@ const AGENT_REFERENCE_DIAGNOSTIC_SOURCE = 'agent-reference';
 export async function createUnresolvedAgentReferenceDiagnostics(
     agentSource: string_book,
     agentReferenceResolver: AgentReferenceResolver,
-): Promise<Array<AgentReferenceDiagnostic>> {
+): Promise<AgentReferenceDiagnosticsResult> {
     const tokenLocations = collectAgentReferenceTokenLocations(agentSource);
     if (tokenLocations.length === 0) {
         consumeAgentReferenceResolutionIssues(agentReferenceResolver);
-        return [];
+        return {
+            diagnostics: [],
+            missingTeamReferences: [],
+        };
     }
 
     consumeAgentReferenceResolutionIssues(agentReferenceResolver);
@@ -112,10 +125,14 @@ export async function createUnresolvedAgentReferenceDiagnostics(
     consumeAgentReferenceResolutionIssues(agentReferenceResolver);
 
     if (unresolvedKeys.size === 0) {
-        return [];
+        return {
+            diagnostics: [],
+            missingTeamReferences: [],
+        };
     }
 
     const diagnostics: Array<AgentReferenceDiagnostic> = [];
+    const missingTeamReferenceByNormalized = new Map<string, MissingTeamReference>();
 
     for (const location of tokenLocations) {
         const locationKey = createLocationKey(location);
@@ -131,9 +148,25 @@ export async function createUnresolvedAgentReferenceDiagnostics(
             message: createUnresolvedReferenceMessage(location),
             source: AGENT_REFERENCE_DIAGNOSTIC_SOURCE,
         });
+
+        if (location.commitmentType === 'TEAM') {
+            const trimmedReference = location.reference.trim();
+            if (trimmedReference) {
+                const normalizedReference = trimmedReference.toLowerCase();
+                if (!missingTeamReferenceByNormalized.has(normalizedReference)) {
+                    missingTeamReferenceByNormalized.set(normalizedReference, {
+                        reference: trimmedReference,
+                        token: location.token,
+                    });
+                }
+            }
+        }
     }
 
-    return diagnostics;
+    return {
+        diagnostics,
+        missingTeamReferences: Array.from(missingTeamReferenceByNormalized.values()),
+    };
 }
 
 /**
