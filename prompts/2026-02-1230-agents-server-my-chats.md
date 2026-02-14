@@ -32,12 +32,30 @@
 
 ---
 
+[ ] !!
+
+[✨⁉️] When the user starts chat from the agent profile page (like https://praha13.ptbk.io/agents/qY7rrLbHFA1GCE/), it should always create a new chat with a written message
+
+-   When the user starts chat from the agent profile page, it should always create a new chat and start conversation
+-   Both writing message manually and pressing a quick message should work
+-   It is passed by GET parameter `?message=...`, for example http://localhost:4440/agents/c3GobjqbReBto8/chat?chat=u5CorA9d3tPvtd&message=Testing+message
+-   But it stopped working after the implementation of the chat history, so it should be fixed and work together with the chat history.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+
+![profile page](prompts/screenshots/2026-02-1230-agents-server-my-chats-3.png)
+![passing the message from profile page to chat page](prompts/screenshots/2026-02-1230-agents-server-my-chats-4.png)
+![new chat without the message](prompts/screenshots/2026-02-1230-agents-server-my-chats-5.png)
+
+---
+
 [-]
 
 [✨⁉️] Share my chat with link
 
 -   @@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
@@ -49,6 +67,7 @@
 
 -   @@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
@@ -59,5 +78,6 @@
 [✨⁉️] brr
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
