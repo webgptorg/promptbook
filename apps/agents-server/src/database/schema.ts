@@ -717,6 +717,7 @@ export type AgentsServerDatabase = {
                     agentPermanentId: string | null;
                     content: string;
                     isGlobal: boolean;
+                    deletedAt: string | null;
                 };
                 Insert: {
                     id?: number;
@@ -726,6 +727,7 @@ export type AgentsServerDatabase = {
                     agentPermanentId?: string | null;
                     content: string;
                     isGlobal?: boolean;
+                    deletedAt?: string | null;
                 };
                 Update: {
                     id?: number;
@@ -735,6 +737,7 @@ export type AgentsServerDatabase = {
                     agentPermanentId?: string | null;
                     content?: string;
                     isGlobal?: boolean;
+                    deletedAt?: string | null;
                 };
                 Relationships: [
                     {

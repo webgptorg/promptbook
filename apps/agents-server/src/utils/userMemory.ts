@@ -34,6 +34,7 @@ export type UserMemoryRecord = {
     agentPermanentId: string | null;
     content: string;
     isGlobal: boolean;
+    deletedAt: string | null;
 };
 
 /**
@@ -85,6 +86,14 @@ export type DeleteUserMemoryOptions = {
 };
 
 /**
+ * Options for retrieving a single memory record by id.
+ */
+export type FindUserMemoryByIdOptions = {
+    userId: number;
+    memoryId: number;
+};
+
+/**
  * Resolves current user and ensures there is a matching database row.
  */
 export async function resolveCurrentUserMemoryIdentity(): Promise<ResolvedCurrentUserMemoryIdentity | null> {
@@ -131,7 +140,11 @@ export async function listUserMemories(options: ListUserMemoriesOptions): Promis
     let rows: UserMemoryRow[] = [];
 
     if (!agentPermanentId) {
-        const { data, error } = await supabase.from(tableName).select('*').eq('userId', userId);
+        const { data, error } = await supabase
+            .from(tableName)
+            .select('*')
+            .eq('userId', userId)
+            .is('deletedAt', null);
         if (error) {
             throw new Error(`Failed to list user memories: ${error.message}`);
         }
@@ -144,7 +157,8 @@ export async function listUserMemories(options: ListUserMemoriesOptions): Promis
             .select('*')
             .eq('userId', userId)
             .eq('isGlobal', false)
-            .eq('agentPermanentId', agentPermanentId);
+            .eq('agentPermanentId', agentPermanentId)
+            .is('deletedAt', null);
 
         if (agentError) {
             throw new Error(`Failed to list scoped user memories: ${agentError.message}`);
@@ -157,7 +171,9 @@ export async function listUserMemories(options: ListUserMemoriesOptions): Promis
                 .from(tableName)
                 .select('*')
                 .eq('userId', userId)
-                .eq('isGlobal', true);
+                .eq('isGlobal', true)
+                .is('agentPermanentId', null)
+                .is('deletedAt', null);
 
             if (globalError) {
                 throw new Error(`Failed to list global user memories: ${globalError.message}`);
@@ -201,6 +217,7 @@ export async function createUserMemory(options: CreateUserMemoryOptions): Promis
             ...payload,
             createdAt: now,
             updatedAt: now,
+            deletedAt: null,
         })
         .select('*')
         .single();
@@ -233,6 +250,7 @@ export async function updateUserMemory(options: UpdateUserMemoryOptions): Promis
         })
         .eq('id', options.memoryId)
         .eq('userId', options.userId)
+        .is('deletedAt', null)
         .select('*')
         .single();
 
@@ -250,11 +268,16 @@ export async function deleteUserMemory(options: DeleteUserMemoryOptions): Promis
     const supabase = $provideSupabaseForServer();
     const tableName = await $getTableName('UserMemory');
 
+    const now = new Date().toISOString();
     const { data, error } = await supabase
         .from(tableName)
-        .delete()
+        .update({
+            deletedAt: now,
+            updatedAt: now,
+        })
         .eq('id', options.memoryId)
         .eq('userId', options.userId)
+        .is('deletedAt', null)
         .select('id')
         .maybeSingle();
 
@@ -263,6 +286,46 @@ export async function deleteUserMemory(options: DeleteUserMemoryOptions): Promis
     }
 
     return Boolean(data);
+}
+
+/**
+ * Finds one memory record by id for a specific user.
+ *
+ * @private Internal helper for user memory services.
+ */
+export async function findUserMemoryRecordById(
+    options: FindUserMemoryByIdOptions,
+): Promise<UserMemoryRecord | null> {
+    const row = await findUserMemoryRowById(options);
+    if (!row) {
+        return null;
+    }
+
+    return mapUserMemoryRow(row);
+}
+
+/**
+ * Finds the raw user memory row for the requested record.
+ *
+ * @private Internal helper for user memory services.
+ */
+async function findUserMemoryRowById(options: FindUserMemoryByIdOptions): Promise<UserMemoryRow | null> {
+    const supabase = $provideSupabaseForServer();
+    const tableName = await $getTableName('UserMemory');
+
+    const { data, error } = await supabase
+        .from(tableName)
+        .select('*')
+        .eq('id', options.memoryId)
+        .eq('userId', options.userId)
+        .is('deletedAt', null)
+        .maybeSingle();
+
+    if (error) {
+        throw new Error(`Failed to find memory ${options.memoryId}: ${error.message}`);
+    }
+
+    return (data as UserMemoryRow | null) || null;
 }
 
 /**
@@ -348,6 +411,7 @@ async function findDuplicateUserMemory(payload: UserMemoryInsert): Promise<UserM
         .eq('userId', payload.userId)
         .eq('content', payload.content)
         .eq('isGlobal', payload.isGlobal!);
+    query = query.is('deletedAt', null);
 
     if (payload.isGlobal) {
         query = query.is('agentPermanentId', null);
@@ -375,5 +439,6 @@ function mapUserMemoryRow(row: UserMemoryRow): UserMemoryRecord {
         agentPermanentId: row.agentPermanentId,
         content: row.content,
         isGlobal: row.isGlobal,
+        deletedAt: row.deletedAt,
     };
 }

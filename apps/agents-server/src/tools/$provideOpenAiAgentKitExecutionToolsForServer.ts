@@ -8,7 +8,14 @@ import {
 } from '../../../../src/commitments/MEMORY/MEMORY';
 import { OpenAiAgentKitExecutionTools } from '../../../../src/llm-providers/openai/OpenAiAgentKitExecutionTools';
 import { JavascriptExecutionTools } from '../../../../src/scripting/javascript/JavascriptExecutionTools';
-import { createUserMemory, listUserMemories, type UserMemoryRecord } from '../utils/userMemory';
+import {
+    createUserMemory,
+    deleteUserMemory,
+    findUserMemoryRecordById,
+    listUserMemories,
+    type UserMemoryRecord,
+    updateUserMemory,
+} from '../utils/userMemory';
 
 /**
  * Cache of provided OpenAiAgentKitExecutionTools.
@@ -34,6 +41,37 @@ function mapUserMemoryRecordToToolRecord(record: UserMemoryRecord): MemoryToolRe
  * Creates a memory runtime adapter backed by Agents Server database.
  */
 function createMemoryRuntimeAdapter() {
+    const parseMemoryId = (value: unknown): number => {
+        const parsed = Number.parseInt(String(value ?? ''), 10);
+        if (!Number.isFinite(parsed) || parsed <= 0) {
+            throw new Error('Memory id is required.');
+        }
+        return parsed;
+    };
+
+    const normalizeContent = (value: unknown): string => {
+        const content = typeof value === 'string' ? value.trim() : '';
+        if (!content) {
+            throw new Error('Memory content is required.');
+        }
+        return content;
+    };
+
+    const ensureAgentPermanentId = (
+        runtimeContext: MemoryToolRuntimeContext,
+        fallback?: string | null,
+    ): string => {
+        if (runtimeContext.agentId) {
+            return runtimeContext.agentId;
+        }
+
+        if (fallback) {
+            return fallback;
+        }
+
+        throw new Error('Memory is unavailable because agent context is missing.');
+    };
+
     return {
         async retrieveMemories(
             args: { query?: string; limit?: number },
@@ -61,14 +99,101 @@ function createMemoryRuntimeAdapter() {
                 throw new Error('Memory is unavailable because user is not authenticated.');
             }
 
+            const content = normalizeContent(args.content);
+            const isGlobal = args.isGlobal === true;
+            const agentPermanentId = isGlobal ? null : ensureAgentPermanentId(runtimeContext);
+
             const record = await createUserMemory({
                 userId: runtimeContext.userId,
-                content: args.content,
-                isGlobal: args.isGlobal,
-                agentPermanentId: runtimeContext.agentId,
+                content,
+                isGlobal,
+                agentPermanentId,
             });
 
             return mapUserMemoryRecordToToolRecord(record);
+        },
+        async updateMemory(
+            args: { memoryId: unknown; content: unknown; isGlobal?: unknown },
+            runtimeContext: MemoryToolRuntimeContext,
+        ): Promise<MemoryToolRecord> {
+            if (!runtimeContext.userId) {
+                throw new Error('Memory is unavailable because user is not authenticated.');
+            }
+
+            const memoryId = parseMemoryId(args.memoryId);
+            const content = normalizeContent(args.content);
+
+            const existingMemory = await findUserMemoryRecordById({
+                userId: runtimeContext.userId,
+                memoryId,
+            });
+
+            if (!existingMemory) {
+                throw new Error('Memory not found.');
+            }
+
+            if (
+                !existingMemory.isGlobal &&
+                existingMemory.agentPermanentId &&
+                runtimeContext.agentId !== existingMemory.agentPermanentId
+            ) {
+                throw new Error('Memory belongs to another agent.');
+            }
+
+            const requestedGlobal = typeof args.isGlobal === 'boolean' ? args.isGlobal : undefined;
+            const finalIsGlobal = requestedGlobal ?? existingMemory.isGlobal;
+
+            let agentPermanentId: string | null = null;
+            if (!finalIsGlobal) {
+                agentPermanentId = ensureAgentPermanentId(runtimeContext, existingMemory.agentPermanentId);
+            }
+
+            const record = await updateUserMemory({
+                userId: runtimeContext.userId,
+                memoryId,
+                content,
+                isGlobal: finalIsGlobal,
+                agentPermanentId,
+            });
+
+            return mapUserMemoryRecordToToolRecord(record);
+        },
+        async deleteMemory(
+            args: { memoryId: unknown },
+            runtimeContext: MemoryToolRuntimeContext,
+        ): Promise<{ id?: string }> {
+            if (!runtimeContext.userId) {
+                throw new Error('Memory is unavailable because user is not authenticated.');
+            }
+
+            const memoryId = parseMemoryId(args.memoryId);
+            const existingMemory = await findUserMemoryRecordById({
+                userId: runtimeContext.userId,
+                memoryId,
+            });
+
+            if (!existingMemory) {
+                throw new Error('Memory not found.');
+            }
+
+            if (
+                !existingMemory.isGlobal &&
+                existingMemory.agentPermanentId &&
+                runtimeContext.agentId !== existingMemory.agentPermanentId
+            ) {
+                throw new Error('Memory belongs to another agent.');
+            }
+
+            const deleted = await deleteUserMemory({
+                userId: runtimeContext.userId,
+                memoryId,
+            });
+
+            if (!deleted) {
+                throw new Error('Memory not found.');
+            }
+
+            return { id: memoryId.toString() };
         },
     };
 }

@@ -19,6 +19,8 @@ const RETRIEVE_USER_MEMORY_TOOL_NAME = 'retrieve_user_memory' as string_javascri
  * @private internal MEMORY commitment constant
  */
 const STORE_USER_MEMORY_TOOL_NAME = 'store_user_memory' as string_javascript_name;
+const UPDATE_USER_MEMORY_TOOL_NAME = 'update_user_memory' as string_javascript_name;
+const DELETE_USER_MEMORY_TOOL_NAME = 'delete_user_memory' as string_javascript_name;
 
 /**
  * Tool arguments for retrieving memory.
@@ -95,6 +97,58 @@ type StoreMemoryToolResult = {
 };
 
 /**
+ * Tool arguments for updating memory.
+ *
+ * @private internal MEMORY commitment types
+ */
+type UpdateMemoryToolArgs = {
+    memoryId?: string;
+    content?: string;
+    isGlobal?: boolean;
+    [key: string]: TODO_any;
+};
+
+/**
+ * Result payload returned by update memory tool.
+ *
+ * @private internal MEMORY commitment types
+ */
+type UpdateMemoryToolResult = {
+    action: 'update';
+    status: 'updated' | 'disabled' | 'error';
+    memory?: MemoryToolRecord;
+    message?: string;
+};
+
+/**
+ * Tool arguments for deleting memory.
+ *
+ * @private internal MEMORY commitment types
+ */
+type DeleteMemoryToolArgs = {
+    memoryId?: string;
+    [key: string]: TODO_any;
+};
+
+/**
+ * Result payload returned by delete memory tool.
+ *
+ * @private internal MEMORY commitment types
+ */
+type DeleteMemoryToolResult = {
+    action: 'delete';
+    status: 'deleted' | 'disabled' | 'error';
+    memoryId?: string;
+    message?: string;
+};
+
+type MemoryToolAction =
+    | RetrieveMemoryToolResult['action']
+    | StoreMemoryToolResult['action']
+    | UpdateMemoryToolResult['action']
+    | DeleteMemoryToolResult['action'];
+
+/**
  * Runtime adapter interface used by MEMORY tools.
  *
  * @private internal MEMORY commitment types
@@ -114,6 +168,20 @@ export type MemoryToolRuntimeAdapter = {
         },
         runtimeContext: MemoryToolRuntimeContext,
     ): Promise<MemoryToolRecord>;
+    updateMemory(
+        args: {
+            memoryId: string;
+            content: string;
+            isGlobal?: boolean;
+        },
+        runtimeContext: MemoryToolRuntimeContext,
+    ): Promise<MemoryToolRecord>;
+    deleteMemory(
+        args: {
+            memoryId: string;
+        },
+        runtimeContext: MemoryToolRuntimeContext,
+    ): Promise<{ id?: string }>;
 };
 
 /**
@@ -157,9 +225,9 @@ function resolveMemoryRuntimeContext(args: Record<string, TODO_any>): MemoryTool
  * @private utility of MEMORY commitment
  */
 function createDisabledMemoryResult(
-    action: RetrieveMemoryToolResult['action'] | StoreMemoryToolResult['action'],
+    action: MemoryToolAction,
     message: string,
-): RetrieveMemoryToolResult | StoreMemoryToolResult {
+): RetrieveMemoryToolResult | StoreMemoryToolResult | UpdateMemoryToolResult | DeleteMemoryToolResult {
     if (action === 'retrieve') {
         return {
             action,
@@ -169,11 +237,31 @@ function createDisabledMemoryResult(
         };
     }
 
-    return {
-        action,
-        status: 'disabled',
-        message,
-    };
+    if (action === 'store') {
+        return {
+            action,
+            status: 'disabled',
+            message,
+        };
+    }
+
+    if (action === 'update') {
+        return {
+            action,
+            status: 'disabled',
+            message,
+        };
+    }
+
+    if (action === 'delete') {
+        return {
+            action,
+            status: 'disabled',
+            message,
+        };
+    }
+
+    throw new Error(`Unsupported memory tool action: ${action}`);
 }
 
 /**
@@ -182,11 +270,16 @@ function createDisabledMemoryResult(
  * @private utility of MEMORY commitment
  */
 function getRuntimeAdapterOrDisabledResult(
-    action: 'retrieve' | 'store',
+    action: MemoryToolAction,
     runtimeContext: MemoryToolRuntimeContext,
 ): {
     adapter: MemoryToolRuntimeAdapter | null;
-    disabledResult: RetrieveMemoryToolResult | StoreMemoryToolResult | null;
+    disabledResult:
+        | RetrieveMemoryToolResult
+        | StoreMemoryToolResult
+        | UpdateMemoryToolResult
+        | DeleteMemoryToolResult
+        | null;
 } {
     if (!runtimeContext.enabled || runtimeContext.isTeamConversation) {
         return {
@@ -243,6 +336,57 @@ function parseStoreMemoryArgs(args: StoreMemoryToolArgs): { content: string; isG
     return {
         content,
         isGlobal: args.isGlobal === true,
+    };
+}
+
+/**
+ * Parses a memory identifier argument shared across MEMORY tools.
+ *
+ * @private utility of MEMORY commitment
+ */
+function parseMemoryIdArg(value: unknown): string {
+    const memoryId = typeof value === 'string' ? value.trim() : '';
+    if (!memoryId) {
+        throw new Error('Memory id is required.');
+    }
+
+    return memoryId;
+}
+
+/**
+ * Parses update memory arguments.
+ *
+ * @private utility of MEMORY commitment
+ */
+function parseUpdateMemoryArgs(args: UpdateMemoryToolArgs): {
+    memoryId: string;
+    content: string;
+    isGlobal?: boolean;
+} {
+    const memoryId = parseMemoryIdArg(args.memoryId);
+    const content = typeof args.content === 'string' ? args.content.trim() : '';
+
+    if (!content) {
+        throw new Error('Memory content is required.');
+    }
+
+    const isGlobal = typeof args.isGlobal === 'boolean' ? args.isGlobal : undefined;
+
+    return {
+        memoryId,
+        content,
+        isGlobal,
+    };
+}
+
+/**
+ * Parses delete memory arguments.
+ *
+ * @private utility of MEMORY commitment
+ */
+function parseDeleteMemoryArgs(args: DeleteMemoryToolArgs): { memoryId: string } {
+    return {
+        memoryId: parseMemoryIdArg(args.memoryId),
     };
 }
 
@@ -382,6 +526,53 @@ export class MemoryCommitmentDefinition extends BaseCommitmentDefinition<'MEMORY
             });
         }
 
+        if (!tools.some((tool) => tool.name === UPDATE_USER_MEMORY_TOOL_NAME)) {
+            tools.push({
+                name: UPDATE_USER_MEMORY_TOOL_NAME,
+                description: spaceTrim(`
+                    Update an existing user memory after retrieving it, so the stored fact stays accurate.
+                    Always pass the memory id you retrieved along with the new content.
+                `),
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        memoryId: {
+                            type: 'string',
+                            description: 'Unique identifier of the memory entry to update.',
+                        },
+                        content: {
+                            type: 'string',
+                            description: 'Updated memory text.',
+                        },
+                        isGlobal: {
+                            type: 'boolean',
+                            description: 'Set true to keep the fact global; omit or false to keep it agent-scoped.',
+                        },
+                    },
+                    required: ['memoryId', 'content'],
+                },
+            });
+        }
+
+        if (!tools.some((tool) => tool.name === DELETE_USER_MEMORY_TOOL_NAME)) {
+            tools.push({
+                name: DELETE_USER_MEMORY_TOOL_NAME,
+                description: spaceTrim(`
+                    Delete a user memory that is no longer relevant. Deletions are soft so the record is hidden from future queries.
+                `),
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        memoryId: {
+                            type: 'string',
+                            description: 'Unique identifier of the memory entry to delete.',
+                        },
+                    },
+                    required: ['memoryId'],
+                },
+            });
+        }
+
         return this.appendToSystemMessage(
             {
                 ...requirements,
@@ -394,9 +585,12 @@ export class MemoryCommitmentDefinition extends BaseCommitmentDefinition<'MEMORY
             spaceTrim(
                 (block) => `
                     Memory:
+                    - Prefer storing agent-scoped memories; only make them global when the fact should apply across all your agents.
                     - You can use persistent user memory tools.
                     - Use "${RETRIEVE_USER_MEMORY_TOOL_NAME}" to load relevant memory before answering.
                     - Use "${STORE_USER_MEMORY_TOOL_NAME}" to save stable user-specific facts that improve future help.
+                    - Use "${UPDATE_USER_MEMORY_TOOL_NAME}" to refresh an existing memory when the content changes.
+                    - Use "${DELETE_USER_MEMORY_TOOL_NAME}" to delete memories that are no longer accurate (deletions are soft and hidden from future queries).
                     - Store concise memory items and avoid duplicates.
                     - Never claim memory was saved or loaded unless the tool confirms it.
                     ${block(extraInstructions)}
@@ -412,6 +606,8 @@ export class MemoryCommitmentDefinition extends BaseCommitmentDefinition<'MEMORY
         return {
             [RETRIEVE_USER_MEMORY_TOOL_NAME]: 'User memory',
             [STORE_USER_MEMORY_TOOL_NAME]: 'Store user memory',
+            [UPDATE_USER_MEMORY_TOOL_NAME]: 'Update user memory',
+            [DELETE_USER_MEMORY_TOOL_NAME]: 'Delete user memory',
         };
     }
 
@@ -470,6 +666,58 @@ export class MemoryCommitmentDefinition extends BaseCommitmentDefinition<'MEMORY
                 } catch (error) {
                     const result: StoreMemoryToolResult = {
                         action: 'store',
+                        status: 'error',
+                        message: error instanceof Error ? error.message : String(error),
+                    };
+                    return JSON.stringify(result);
+                }
+            },
+            async [UPDATE_USER_MEMORY_TOOL_NAME](args: UpdateMemoryToolArgs): Promise<string> {
+                const runtimeContext = resolveMemoryRuntimeContext(args);
+                const { adapter, disabledResult } = getRuntimeAdapterOrDisabledResult('update', runtimeContext);
+
+                if (!adapter || disabledResult) {
+                    return JSON.stringify(disabledResult);
+                }
+
+                try {
+                    const parsedArgs = parseUpdateMemoryArgs(args);
+                    const memory = await adapter.updateMemory(parsedArgs, runtimeContext);
+                    const result: UpdateMemoryToolResult = {
+                        action: 'update',
+                        status: 'updated',
+                        memory,
+                    };
+                    return JSON.stringify(result);
+                } catch (error) {
+                    const result: UpdateMemoryToolResult = {
+                        action: 'update',
+                        status: 'error',
+                        message: error instanceof Error ? error.message : String(error),
+                    };
+                    return JSON.stringify(result);
+                }
+            },
+            async [DELETE_USER_MEMORY_TOOL_NAME](args: DeleteMemoryToolArgs): Promise<string> {
+                const runtimeContext = resolveMemoryRuntimeContext(args);
+                const { adapter, disabledResult } = getRuntimeAdapterOrDisabledResult('delete', runtimeContext);
+
+                if (!adapter || disabledResult) {
+                    return JSON.stringify(disabledResult);
+                }
+
+                try {
+                    const parsedArgs = parseDeleteMemoryArgs(args);
+                    const deleted = await adapter.deleteMemory(parsedArgs, runtimeContext);
+                    const result: DeleteMemoryToolResult = {
+                        action: 'delete',
+                        status: 'deleted',
+                        memoryId: deleted.id,
+                    };
+                    return JSON.stringify(result);
+                } catch (error) {
+                    const result: DeleteMemoryToolResult = {
+                        action: 'delete',
                         status: 'error',
                         message: error instanceof Error ? error.message : String(error),
                     };

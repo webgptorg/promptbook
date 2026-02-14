@@ -39,8 +39,20 @@ describe('MemoryCommitmentDefinition', () => {
                 name: 'store_user_memory',
             }),
         );
+        expect(requirements.tools).toContainEqual(
+            expect.objectContaining({
+                name: 'update_user_memory',
+            }),
+        );
+        expect(requirements.tools).toContainEqual(
+            expect.objectContaining({
+                name: 'delete_user_memory',
+            }),
+        );
         expect(requirements.systemMessage).toContain('retrieve_user_memory');
         expect(requirements.systemMessage).toContain('store_user_memory');
+        expect(requirements.systemMessage).toContain('update_user_memory');
+        expect(requirements.systemMessage).toContain('delete_user_memory');
     });
 
     it('adds optional MEMORY instructions into system message', async () => {
@@ -68,6 +80,19 @@ describe('MemoryCommitmentDefinition', () => {
 
         expect(result.status).toBe('disabled');
         expect(result.memories).toEqual([]);
+
+        const updateMemory = functions.update_user_memory!;
+        const deleteMemory = functions.delete_user_memory!;
+
+        const updateResultRaw = await updateMemory({});
+        const updateResult = parseJsonResult<{ status: string; action: string }>(updateResultRaw);
+        expect(updateResult.status).toBe('disabled');
+        expect(updateResult.action).toBe('update');
+
+        const deleteResultRaw = await deleteMemory({});
+        const deleteResult = parseJsonResult<{ status: string; action: string }>(deleteResultRaw);
+        expect(deleteResult.status).toBe('disabled');
+        expect(deleteResult.action).toBe('delete');
     });
 
     it('stores and retrieves memory through runtime adapter when enabled', async () => {
@@ -89,6 +114,16 @@ describe('MemoryCommitmentDefinition', () => {
                     isGlobal: args.isGlobal,
                 };
             },
+            async updateMemory(args) {
+                return {
+                    id: args.memoryId,
+                    content: args.content,
+                    isGlobal: args.isGlobal ?? false,
+                };
+            },
+            async deleteMemory() {
+                return { id: 'mem-1' };
+            },
         };
         setMemoryToolRuntimeAdapter(adapter);
 
@@ -96,6 +131,8 @@ describe('MemoryCommitmentDefinition', () => {
         const functions = commitment.getToolFunctions();
         const storeMemory = functions.store_user_memory!;
         const retrieveMemory = functions.retrieve_user_memory!;
+        const updateMemory = functions.update_user_memory!;
+        const deleteMemory = functions.delete_user_memory!;
         const runtimeContext = JSON.stringify({
             memory: {
                 enabled: true,
@@ -114,7 +151,7 @@ describe('MemoryCommitmentDefinition', () => {
         const storeResult = parseJsonResult<{
             action: string;
             status: string;
-            memory?: { content?: string };
+            memory?: { id?: string; content?: string };
         }>(storeResultRaw);
         expect(storeResult.action).toBe('store');
         expect(storeResult.status).toBe('stored');
@@ -132,5 +169,38 @@ describe('MemoryCommitmentDefinition', () => {
         expect(retrieveResult.action).toBe('retrieve');
         expect(retrieveResult.status).toBe('ok');
         expect(retrieveResult.memories[0]?.content).toBe(storedContent);
+
+        const memoryId = storeResult.memory?.id;
+        expect(memoryId).toBe('mem-1');
+
+        const updateResultRaw = await updateMemory({
+            memoryId,
+            content: 'User switched to an AI trademark filing.',
+            [TOOL_RUNTIME_CONTEXT_ARGUMENT]: runtimeContext,
+        });
+        const updateResult = parseJsonResult<{
+            action: string;
+            status: string;
+            memory?: {
+                id?: string;
+                content?: string;
+            };
+        }>(updateResultRaw);
+        expect(updateResult.action).toBe('update');
+        expect(updateResult.status).toBe('updated');
+        expect(updateResult.memory?.content).toBe('User switched to an AI trademark filing.');
+
+        const deleteResultRaw = await deleteMemory({
+            memoryId,
+            [TOOL_RUNTIME_CONTEXT_ARGUMENT]: runtimeContext,
+        });
+        const deleteResult = parseJsonResult<{
+            action: string;
+            status: string;
+            memoryId?: string;
+        }>(deleteResultRaw);
+        expect(deleteResult.action).toBe('delete');
+        expect(deleteResult.status).toBe('deleted');
+        expect(deleteResult.memoryId).toBe(memoryId);
     });
 });
