@@ -1503,6 +1503,187 @@
     position: relative;
 }
 
+.memoryModalHeader {
+    padding: 28px 32px 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    background: linear-gradient(180deg, #fdfdfd 0%, #f6f9ff 100%);
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.memoryModalIcon {
+    width: 52px;
+    height: 52px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #6366f1, #a855f7);
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    box-shadow: 0 18px 28px rgba(15, 23, 42, 0.18);
+}
+
+.memoryModalHeaderText {
+    flex: 1;
+}
+
+.memoryModalTitle {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.memoryModalSubtitle {
+    margin: 4px 0 0;
+    color: #475467;
+    font-size: 14px;
+}
+
+.memoryModalCallTime {
+    margin: 4px 0 0;
+    color: #94a3b8;
+    font-size: 13px;
+}
+
+.memoryModalStatus {
+    margin-left: auto;
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.memoryStatusDot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+    display: inline-block;
+}
+
+.memoryModalContent {
+    padding: 24px 32px 32px;
+    background: #ffffff;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.memoryMessage {
+    margin: 0;
+    color: #0f172a;
+    font-size: 15px;
+    font-weight: 500;
+}
+
+.memoryMetaRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    color: #475467;
+}
+
+.memoryMetaLabel {
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.memoryMetaValue {
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.memoryStoreSection,
+.memoryRetrieveSection {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.memoryCard {
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 18px;
+    background: #f8fafc;
+    box-shadow: 0 10px 18px rgba(15, 23, 42, 0.08);
+}
+
+.memoryCardContent {
+    color: #0f172a;
+    line-height: 1.6;
+    font-size: 14px;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+}
+
+.memoryCardMeta {
+    margin-top: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #94a3b8;
+    font-size: 12px;
+}
+
+.memoryScopeBadge {
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #0f172a;
+    background: rgba(124, 58, 237, 0.12);
+}
+
+.memoryList {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.memoryEmptyState {
+    padding: 16px;
+    background: #fef3c7;
+    border: 1px solid #fde68a;
+    border-radius: 12px;
+    color: #92400e;
+    font-weight: 500;
+}
+
+.memoryListFooter {
+    font-size: 13px;
+    color: #475467;
+    text-align: center;
+}
+
+.memoryStatusSuccess {
+    background: rgba(16, 185, 129, 0.16);
+    color: #047857;
+}
+
+.memoryStatusWarning {
+    background: rgba(234, 179, 8, 0.16);
+    color: #a16207;
+}
+
+.memoryStatusError {
+    background: rgba(239, 68, 68, 0.15);
+    color: #b91c1c;
+}
+
+.memoryStatusNeutral {
+    background: rgba(96, 165, 250, 0.15);
+    color: #1d4ed8;
+}
+
 .searchModalHeader {
     padding: 24px 32px;
     padding-right: 72px;

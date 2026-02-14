@@ -141,6 +141,7 @@
 -   Grouped identical ongoing tool call chips in Agents Server chat so concurrent tool runs collapse into a single chip with a count.
 -   Fixed grouped ongoing teammate chips so tool calls from different teammates no longer collapse into one chip, while repeated calls from the same teammate still aggregate with a count.
 -   Added tactile feedback for Agents Server chat tool call chips and streaming responses by routing the chat sound system into chip rendering and vibrating on every streaming chunk, so tool usage and in-progress replies feel more immersive.
+-   Redesigned the Agents Server memory tool call modal so memory chips now show a friendly hero header, status badge, and scoped memory cards (query, match count, global/personal scope) instead of raw JSON blobs, making saved/loaded memories easier to understand.
 -   Fixed drag-and-drop uploads in the Agents Server create-agent dialog by reusing the shared BookEditor upload handler.
 -   Fixed document source citation in Agents Server chat:
     -   Resolved issue where clicking on KNOWLEDGE source chips showed "Document preview unavailable" instead of the actual document
