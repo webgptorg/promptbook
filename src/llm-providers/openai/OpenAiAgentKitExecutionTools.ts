@@ -35,6 +35,7 @@ import { templateParameters } from '../../utils/parameters/templateParameters';
 import type { OpenAiAgentKitExecutionToolsOptions } from './OpenAiAgentKitExecutionToolsOptions';
 import type { OpenAiCompatibleExecutionToolsNonProxiedOptions } from './OpenAiCompatibleExecutionToolsOptions';
 import { OpenAiVectorStoreHandler } from './OpenAiVectorStoreHandler';
+import { buildToolInvocationScript } from './utils/buildToolInvocationScript';
 
 const DEFAULT_AGENT_KIT_MODEL_NAME = 'gpt-5.2' as string_model_name;
 
@@ -398,10 +399,10 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
                             try {
                                 return await scriptTool.execute({
                                     scriptLanguage: 'javascript',
-                                    script: `
-                                        const args = ${JSON.stringify(functionArgs)};
-                                        return await ${functionName}(args);
-                                    `,
+                                    script: buildToolInvocationScript({
+                                        functionName,
+                                        functionArgsExpression: JSON.stringify(functionArgs),
+                                    }),
                                     parameters:
                                         (runContext?.context as { parameters?: Prompt['parameters'] })?.parameters ??
                                         {},

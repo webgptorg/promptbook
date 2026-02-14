@@ -1,5 +1,6 @@
 -### 📚 Book
 
+-   Implemented persistent `MEMORY` commitment support in Agents Server end-to-end: `MEMORY` now registers hidden retrieve/store memory tools (with optional per-commitment instructions), stores data in the new `UserMemory` table (per user + per agent, with global-memory option), disables memory automatically for unauthenticated users and TEAM conversations, shows memory tool chips with stored/retrieved content, adds `System -> User Memory` CRUD UI for logged-in users, and wires admin (`ADMIN_PASSWORD`) memory identity with automatic DB-user linking.
 -   Added a System → About entry that opens the new `/admin/about` page so admins can view shared Promptbook, system, and deployment version cards without hunting through the menu.
 -   Added a `BookEditable` helper to keep `KNOWLEDGE` insertions (from uploads) positioned just before the `CLOSED` commitment instead of at the very end of the book.
 -   Enabled clickable agent references in the Book editor: `@agent`, `{agent name}`, `{agentId}`, `https://.../agents/...`, and `{https://.../agents/...}` now share one highlight style and open the referenced agent via Ctrl/Cmd+Click.

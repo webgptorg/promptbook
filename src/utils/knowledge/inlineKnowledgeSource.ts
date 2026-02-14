@@ -90,6 +90,8 @@ export function inlineKnowledgeSourceToDataUrl(source: InlineKnowledgeSourceFile
 
 /**
  * Parses a data URL-based knowledge source into its raw buffer, filename, and MIME type.
+ *
+ * @private utility of inline knowledge processing
  */
 export function parseDataUrlKnowledgeSource(source: string): {
     readonly buffer: Buffer;

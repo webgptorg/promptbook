@@ -4,6 +4,8 @@ import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentColle
 import { $provideOpenAiAgentKitExecutionToolsForServer } from '@/src/tools/$provideOpenAiAgentKitExecutionToolsForServer';
 import { ensureNonEmptyChatContent } from '@/src/utils/chat/ensureNonEmptyChatContent';
 import { createChatStreamHandler } from '@/src/utils/createChatStreamHandler';
+import { composePromptParametersWithMemoryContext } from '@/src/utils/memoryRuntimeContext';
+import { resolveCurrentUserMemoryIdentity } from '@/src/utils/userMemory';
 import { Agent, computeAgentHash, PROMPTBOOK_ENGINE_VERSION } from '@promptbook-local/core';
 import type {
     ChatMessage,
@@ -200,6 +202,7 @@ export async function handleChatCompletion(
             response_format: responseFormat,
             tools: rawTools,
             tool_choice: toolChoice,
+            parameters: rawParameters = {},
         } = body;
         const runtimeTools = convertOpenAiTools(rawTools);
         const runtimeToolChoice = parseOpenAiToolChoice(toolChoice);
@@ -284,6 +287,7 @@ export async function handleChatCompletion(
 
         const agentHash = computeAgentHash(agentSource);
         const agentId = await collection.getAgentPermanentId(agentName);
+        const currentUserIdentity = await resolveCurrentUserMemoryIdentity();
 
         // Use AgentKitCacheManager for vector store caching
         const agentKitCacheManager = new AgentKitCacheManager({ isVerbose: true });
@@ -378,6 +382,20 @@ export async function handleChatCompletion(
                 apiKey,
             });
 
+        const incomingParameters =
+            rawParameters && typeof rawParameters === 'object' && !Array.isArray(rawParameters)
+                ? (rawParameters as Record<string, unknown>)
+                : {};
+        const promptParameters = composePromptParametersWithMemoryContext({
+            baseParameters: {
+                ...incomingParameters,
+                timezone,
+            },
+            currentUserIdentity,
+            agentPermanentId: agentId,
+            agentName,
+        });
+
         const prompt: ChatPrompt = {
             title,
             content: lastMessage.content,
@@ -387,9 +405,7 @@ export async function handleChatCompletion(
                 toolChoice: runtimeToolChoice,
                 // We could pass 'model' from body if we wanted to enforce it, but Agent usually has its own config
             },
-            parameters: {
-                timezone,
-            },
+            parameters: promptParameters,
             thread,
             ...(runtimeTools ? { tools: runtimeTools } : {}),
         };

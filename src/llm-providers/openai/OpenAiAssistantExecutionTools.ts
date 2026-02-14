@@ -26,6 +26,7 @@ import { exportJson } from '../../utils/serialization/exportJson';
 import type { OpenAiAssistantExecutionToolsOptions } from './OpenAiAssistantExecutionToolsOptions';
 import type { OpenAiCompatibleExecutionToolsNonProxiedOptions } from './OpenAiCompatibleExecutionToolsOptions';
 import { OpenAiVectorStoreHandler } from './OpenAiVectorStoreHandler';
+import { buildToolInvocationScript } from './utils/buildToolInvocationScript';
 import { mapToolsToOpenAi } from './utils/mapToolsToOpenAi';
 import { uploadFilesToOpenAi } from './utils/uploadFilesToOpenAi';
 
@@ -273,10 +274,10 @@ export class OpenAiAssistantExecutionTools extends OpenAiVectorStoreHandler impl
 
                                 functionResponse = await scriptTool.execute({
                                     scriptLanguage: 'javascript', // <- TODO: [🧠] How to determine script language?
-                                    script: `
-                                        const args = ${JSON.stringify(functionArgs)};
-                                        return await ${functionName}(args);
-                                    `,
+                                    script: buildToolInvocationScript({
+                                        functionName,
+                                        functionArgsExpression: JSON.stringify(functionArgs),
+                                    }),
                                     parameters: prompt.parameters,
                                 });
 

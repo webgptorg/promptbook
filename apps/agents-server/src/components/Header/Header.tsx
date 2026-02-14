@@ -692,6 +692,15 @@ export function Header(props: HeaderProps) {
               };
     });
 
+    const userSystemItems: SubMenuItem[] = currentUser
+        ? [
+              {
+                  label: 'User Memory',
+                  href: '/system/user-memory',
+              },
+          ]
+        : [];
+
     // Menu items configuration (DRY principle)
     const menuItems: MenuItem[] = [
         {
@@ -783,6 +792,7 @@ export function Header(props: HeaderProps) {
                       isMobileOpen: isMobileSystemOpen,
                       setIsMobileOpen: setIsMobileSystemOpen,
                       items: [
+                          ...userSystemItems,
                           /*
                           Note: [🙍] `/dashboard` page is disabled
                           {
@@ -866,6 +876,19 @@ export function Header(props: HeaderProps) {
                       type: 'link' as const,
                       label: 'About',
                       href: 'https://ptbk.io/',
+                  },
+              ]
+            : []),
+        ...(!isAdmin && userSystemItems.length > 0
+            ? [
+                  {
+                      type: 'dropdown' as const,
+                      label: 'System',
+                      isOpen: isSystemOpen,
+                      setIsOpen: setIsSystemOpen,
+                      isMobileOpen: isMobileSystemOpen,
+                      setIsMobileOpen: setIsMobileSystemOpen,
+                      items: userSystemItems,
                   },
               ]
             : []),

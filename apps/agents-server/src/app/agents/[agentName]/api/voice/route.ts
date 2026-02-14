@@ -3,6 +3,8 @@ import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForSer
 import { getMetadata } from '@/src/database/getMetadata';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideOpenAiAgentKitExecutionToolsForServer } from '@/src/tools/$provideOpenAiAgentKitExecutionToolsForServer';
+import { composePromptParametersWithMemoryContext } from '@/src/utils/memoryRuntimeContext';
+import { resolveCurrentUserMemoryIdentity } from '@/src/utils/userMemory';
 import { Agent, computeAgentHash, PROMPTBOOK_ENGINE_VERSION } from '@promptbook-local/core';
 import { computeHash, serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
@@ -58,6 +60,14 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
 
     try {
         const collection = await $provideAgentCollectionForServer();
+        const agentPermanentId = await collection.getAgentPermanentId(agentName);
+        const currentUserIdentity = await resolveCurrentUserMemoryIdentity();
+        const promptParameters = composePromptParametersWithMemoryContext({
+            baseParameters: {},
+            currentUserIdentity,
+            agentPermanentId,
+            agentName,
+        });
         const openAiAgentKitExecutionTools = await $provideOpenAiAgentKitExecutionToolsForServer();
         const agentSource = await collection.getAgentSource(agentName);
         const agent = new Agent({
@@ -115,7 +125,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         // Call Agent
         const response = await agent.callChatModel({
             title: `Voice Chat with agent ${agentName}`,
-            parameters: {},
+            parameters: promptParameters,
             modelRequirements: {
                 modelVariant: 'CHAT',
             },

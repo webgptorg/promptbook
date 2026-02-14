@@ -7,6 +7,9 @@ import {
     parseToolCallResult,
 } from './toolCallParsing';
 
+const MEMORY_CHIP_MAX_LENGTH = 48;
+const MEMORY_CHIP_TRUNCATE_LENGTH = 45;
+
 /**
  * Tool call chiplet information including agent data for team tools
  *
@@ -43,6 +46,8 @@ export function buildToolCallChipText(chipletInfo: ToolCallChipletInfo): string 
 export const TOOL_TITLES: Record<string, { title: string; emoji: string }> = {
     [ASSISTANT_PREPARATION_TOOL_CALL_NAME]: { title: 'Preparing agent', emoji: '...' },
     'self-learning': { title: 'self-learning', emoji: '🧠' },
+    retrieve_user_memory: { title: 'Reading memory', emoji: '🧠' },
+    store_user_memory: { title: 'Storing memory', emoji: '🧠' },
     web_search: { title: 'Searching the web', emoji: '🔎' },
     useSearchEngine: { title: 'Searching the web', emoji: '🔎' },
     search: { title: 'Searching the web', emoji: '🔎' },
@@ -70,6 +75,7 @@ export function getToolCallChipletInfo(toolCall: ToolCall): ToolCallChipletInfo 
     const args = parseToolCallArguments(toolCall);
     const isTimeTool = toolCall.name === 'get_current_time' || toolCall.name === 'useTime';
     const isEmailTool = toolCall.name === 'send_email' || toolCall.name === 'useEmail';
+    const isMemoryTool = toolCall.name === 'retrieve_user_memory' || toolCall.name === 'store_user_memory';
     const resultRaw = parseToolCallResult(toolCall.result);
     const teamResult = parseTeamToolResult(resultRaw);
 
@@ -103,6 +109,16 @@ export function getToolCallChipletInfo(toolCall: ToolCall): ToolCallChipletInfo 
         }
     }
 
+    if (isMemoryTool) {
+        const memoryPreview = getMemoryPreviewText(args, resultRaw);
+
+        if (memoryPreview) {
+            return {
+                text: `${emoji} ${memoryPreview}`,
+            };
+        }
+    }
+
     if (args.query) {
         return {
             text: `${emoji} ${args.query}`,
@@ -125,4 +141,49 @@ export function getToolCallChipletInfo(toolCall: ToolCall): ToolCallChipletInfo 
     return {
         text: `${emoji} ${baseTitle}`,
     };
+}
+
+/**
+ * Builds memory preview text for MEMORY commitment tool calls.
+ */
+function getMemoryPreviewText(args: Record<string, unknown>, resultRaw: unknown): string | null {
+    if (!resultRaw || typeof resultRaw !== 'object') {
+        return typeof args.content === 'string' ? shortenMemoryPreview(args.content) : null;
+    }
+
+    const result = resultRaw as {
+        action?: string;
+        memory?: { content?: string };
+        memories?: Array<{ content?: string }>;
+        query?: string;
+    };
+
+    if (result.action === 'store') {
+        const content = result.memory?.content || (typeof args.content === 'string' ? args.content : '');
+        return content ? shortenMemoryPreview(content) : null;
+    }
+
+    const firstMemoryContent = result.memories?.find((memory) => typeof memory.content === 'string')?.content;
+    if (firstMemoryContent) {
+        return shortenMemoryPreview(firstMemoryContent);
+    }
+
+    if (typeof result.query === 'string' && result.query.trim()) {
+        return `No match for "${result.query.trim()}"`;
+    }
+
+    return null;
+}
+
+/**
+ * Shortens long memory content for compact chip display.
+ */
+function shortenMemoryPreview(content: string): string {
+    const trimmed = content.trim().replace(/\s+/g, ' ');
+
+    if (trimmed.length <= MEMORY_CHIP_MAX_LENGTH) {
+        return trimmed;
+    }
+
+    return `${trimmed.slice(0, MEMORY_CHIP_TRUNCATE_LENGTH)}...`;
 }

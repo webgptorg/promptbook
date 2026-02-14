@@ -34,6 +34,7 @@ import { exportJson } from '../../utils/serialization/exportJson';
 import { addUsage } from '../../execution/utils/addUsage';
 import { forEachAsync } from '../../execution/utils/forEachAsync';
 import { mapToolsToOpenAi } from './utils/mapToolsToOpenAi';
+import { buildToolInvocationScript } from './utils/buildToolInvocationScript';
 import {
     isUnsupportedParameterError,
     parseUnsupportedParameterError,
@@ -429,10 +430,10 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
 
                             functionResponse = await scriptTool.execute({
                                 scriptLanguage: 'javascript', // <- TODO: [🧠] How to determine script language?
-                                script: `
-                                    const args = ${functionArgs};
-                                    return await ${functionName}(args);
-                                `,
+                                script: buildToolInvocationScript({
+                                    functionName,
+                                    functionArgsExpression: functionArgs,
+                                }),
                                 parameters: prompt.parameters,
                             });
                         } catch (error) {

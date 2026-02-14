@@ -665,6 +665,49 @@ export type AgentsServerDatabase = {
                     },
                 ];
             };
+            UserMemory: {
+                Row: {
+                    id: number;
+                    createdAt: string;
+                    updatedAt: string;
+                    userId: number;
+                    agentPermanentId: string | null;
+                    content: string;
+                    isGlobal: boolean;
+                };
+                Insert: {
+                    id?: number;
+                    createdAt?: string;
+                    updatedAt?: string;
+                    userId: number;
+                    agentPermanentId?: string | null;
+                    content: string;
+                    isGlobal?: boolean;
+                };
+                Update: {
+                    id?: number;
+                    createdAt?: string;
+                    updatedAt?: string;
+                    userId?: number;
+                    agentPermanentId?: string | null;
+                    content?: string;
+                    isGlobal?: boolean;
+                };
+                Relationships: [
+                    {
+                        foreignKeyName: 'UserMemory_userId_fkey';
+                        columns: ['userId'];
+                        referencedRelation: 'User';
+                        referencedColumns: ['id'];
+                    },
+                    {
+                        foreignKeyName: 'UserMemory_agentPermanentId_fkey';
+                        columns: ['agentPermanentId'];
+                        referencedRelation: 'Agent';
+                        referencedColumns: ['permanentId'];
+                    },
+                ];
+            };
             UserData: {
                 Row: {
                     id: number;

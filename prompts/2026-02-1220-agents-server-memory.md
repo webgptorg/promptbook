@@ -1,4 +1,4 @@
-[ ] !
+[x] - Implemented by OpenAI Codex `gpt-5.3-codex` but KCD II killed just before the final commit, so I am doing the final commit manually. The code is already implemented, just not committed.
 
 [✨👸] Implement user memory
 

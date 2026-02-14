@@ -317,6 +317,7 @@ export class RemoteAgent extends Agent {
                 message: prompt.content,
                 thread: chatPrompt.thread,
                 attachments: chatPrompt.attachments,
+                parameters: chatPrompt.parameters,
             }),
         });
         // <- TODO: [🐱‍🚀] What about closed-source agents?

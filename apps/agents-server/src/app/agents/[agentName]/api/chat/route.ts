@@ -6,6 +6,8 @@ import { AgentKitCacheManager } from '@/src/utils/cache/AgentKitCacheManager';
 import { ensureNonEmptyChatContent } from '@/src/utils/chat/ensureNonEmptyChatContent';
 import { createChatStreamHandler } from '@/src/utils/createChatStreamHandler';
 import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
+import { composePromptParametersWithMemoryContext } from '@/src/utils/memoryRuntimeContext';
+import { resolveCurrentUserMemoryIdentity } from '@/src/utils/userMemory';
 import { Agent, computeAgentHash, PROMPTBOOK_ENGINE_VERSION, RemoteAgent } from '@promptbook-local/core';
 import { $getCurrentDate, computeHash, serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
@@ -69,7 +71,12 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
     }
 
     const body = await request.json();
-    const { message = 'Tell me more about yourself.', thread, attachments = [] } = body;
+    const {
+        message = 'Tell me more about yourself.',
+        thread,
+        attachments = [],
+        parameters: rawParameters = {},
+    } = body;
     //      <- TODO: [🐱‍🚀] To configuration DEFAULT_INITIAL_HIDDEN_MESSAGE
 
     try {
@@ -77,6 +84,17 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         // [▶️] const executionTools = await $provideExecutionToolsForServer();
         const agentId = await collection.getAgentPermanentId(agentName);
         const agentSource = await collection.getAgentSource(agentName);
+        const currentUserIdentity = await resolveCurrentUserMemoryIdentity();
+        const incomingParameters =
+            rawParameters && typeof rawParameters === 'object' && !Array.isArray(rawParameters)
+                ? (rawParameters as Record<string, unknown>)
+                : {};
+        const promptParameters = composePromptParametersWithMemoryContext({
+            baseParameters: incomingParameters,
+            currentUserIdentity,
+            agentPermanentId: agentId,
+            agentName,
+        });
 
         // Use AgentKitCacheManager for vector store caching
         const agentKitCacheManager = new AgentKitCacheManager({ isVerbose: true });
@@ -173,7 +191,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                             title: `Chat with agent ${
                                 agentName /* <- TODO: [🕛] There should be `agentFullname` not `agentName` */
                             }`,
-                            parameters: {},
+                            parameters: promptParameters,
                             modelRequirements: {
                                 modelVariant: 'CHAT',
                             },

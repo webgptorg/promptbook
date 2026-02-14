@@ -10,6 +10,13 @@ import type { ChatPrompt } from '../../types/Prompt';
 import type { ToolCall } from '../../types/ToolCall';
 import { computeHash } from '../../utils/misc/computeHash';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
+import {
+    parseToolRuntimeContext,
+    serializeToolRuntimeContext,
+    TOOL_RUNTIME_CONTEXT_ARGUMENT,
+    TOOL_RUNTIME_CONTEXT_PARAMETER,
+    type ToolRuntimeContext,
+} from '../_common/toolRuntimeContext';
 
 /**
  * Tool registration entry for a teammate.
@@ -57,6 +64,7 @@ type TeamToolArgs = {
     message?: string;
     context?: string;
     question?: string;
+    [TOOL_RUNTIME_CONTEXT_ARGUMENT]?: unknown;
 };
 
 const TEAM_TOOL_PREFIX = 'team_chat_';
@@ -297,14 +305,34 @@ function buildTeammateRequest(message: string, context?: string): string {
 /**
  * Builds a minimal chat prompt for teammate calls.
  */
-function buildTeammatePrompt(request: string): ChatPrompt {
+function buildTeammatePrompt(request: string, runtimeContext: ToolRuntimeContext): ChatPrompt {
     return {
         title: 'Teammate consultation',
         modelRequirements: {
             modelVariant: 'CHAT',
         },
         content: request,
-        parameters: {},
+        parameters: {
+            [TOOL_RUNTIME_CONTEXT_PARAMETER]: serializeToolRuntimeContext(runtimeContext),
+        },
+    };
+}
+
+/**
+ * Creates teammate runtime context and marks conversation as team-only memory-disabled.
+ */
+function createTeamConversationRuntimeContext(
+    value: unknown,
+): ToolRuntimeContext {
+    const runtimeContext = parseToolRuntimeContext(value) || {};
+
+    return {
+        ...runtimeContext,
+        memory: {
+            ...(runtimeContext.memory || {}),
+            enabled: false,
+            isTeamConversation: true,
+        },
     };
 }
 
@@ -354,7 +382,10 @@ function createTeamToolFunction(entry: TeamToolEntry): ToolFunction {
 
         try {
             const remoteAgent: RemoteAgent = await getRemoteTeammateAgent(entry.teammate.url);
-            const prompt: ChatPrompt = buildTeammatePrompt(request);
+            const prompt: ChatPrompt = buildTeammatePrompt(
+                request,
+                createTeamConversationRuntimeContext(args[TOOL_RUNTIME_CONTEXT_ARGUMENT]),
+            );
             const teammateResult: PromptResult = await remoteAgent.callChatModel(prompt);
             response = teammateResult.content || '';
             toolCalls =

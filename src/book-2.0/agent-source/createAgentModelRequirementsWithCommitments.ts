@@ -346,11 +346,12 @@ function extractInlineKnowledgeSources(metadata?: Record<string, chococake>): In
 }
 
 function stripInlineKnowledgeMetadata(metadata?: Record<string, chococake>): Record<string, chococake> | undefined {
-    if (!metadata || !(metadata as Record<string, unknown>).hasOwnProperty('inlineKnowledgeSources')) {
+    if (!metadata || !Object.prototype.hasOwnProperty.call(metadata, 'inlineKnowledgeSources')) {
         return metadata;
     }
 
-    const { inlineKnowledgeSources, ...rest } = metadata;
+    const { inlineKnowledgeSources: _unusedInlineKnowledgeSources, ...rest } = metadata;
+    void _unusedInlineKnowledgeSources;
     return Object.keys(rest).length > 0 ? (rest as Record<string, chococake>) : undefined;
 }
 

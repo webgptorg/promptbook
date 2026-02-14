@@ -77,3 +77,7 @@ export function getClientVersionFromHeaders(headers?: HeadersInit): string | nul
     const value = normalizedHeaders.get(CLIENT_VERSION_HEADER);
     return value ? value.trim() : null;
 }
+
+/**
+ * Note: [💞] Ignore a discrepancy between file name and entity name
+ */
