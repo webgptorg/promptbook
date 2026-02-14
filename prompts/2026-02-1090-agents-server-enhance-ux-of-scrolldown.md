@@ -29,9 +29,13 @@
 
 [x] ~$0.18 3 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
+---
+
+[ ] !!!!
+
 [✨🗃] Fix weird blurs shown when the scroll down is shown in the chat.
 
--   These blurs occur right-top on the write a message input.
+-   These blurs occur right-top on the write a message input on the bottom of the screen.
 -   They occur together with the scroll down button.
 -   You are working with the [Agents Server](apps/agents-server)
 
