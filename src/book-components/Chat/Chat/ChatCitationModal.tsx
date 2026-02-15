@@ -6,7 +6,7 @@ import { DownloadIcon } from '../../icons/DownloadIcon';
 import { MarkdownContent } from '../MarkdownContent/MarkdownContent';
 import type { ChatParticipant } from '../types/ChatParticipant';
 import type { ParsedCitation } from '../utils/parseCitationsFromContent';
-import { resolveCitationUrl } from '../utils/resolveCitationUrl';
+import { getCitationLabel, isPlainTextCitation, resolveCitationPreviewUrl } from '../utils/citationHelpers';
 import styles from './Chat.module.css';
 import type { ChatSoundSystem } from './ChatProps';
 
@@ -35,10 +35,18 @@ export function ChatCitationModal(props: ChatCitationModalProps) {
         return null;
     }
 
-    const resolvedUrl = citation.url || resolveCitationUrl(citation.source, participants);
-    const isValidUrl = !!resolvedUrl;
-    const extension = citation.source.split('.').pop()?.toLowerCase();
+    const previewUrl = resolveCitationPreviewUrl(citation, participants);
+    const isValidUrl = !!previewUrl;
+    const previewTarget = previewUrl ?? citation.source;
+    const previewBase = previewTarget.split(/[\?#]/)[0];
+    const previewSegment = previewBase.split('/').pop() || previewBase;
+    const extension = previewSegment.split('.').pop()?.toLowerCase();
     const isImage = ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(extension || '');
+    const label = getCitationLabel(citation);
+    const isTextCitation = isPlainTextCitation(citation);
+    const hasTextPreview = !isValidUrl && (citation.excerpt || isTextCitation);
+    const textPreviewContent = isTextCitation ? citation.source : citation.excerpt ?? '';
+    const textPreviewHeading = isTextCitation ? 'Text:' : 'Excerpt:';
 
     return (
         <div
@@ -55,7 +63,7 @@ export function ChatCitationModal(props: ChatCitationModalProps) {
                 </button>
                 <div className={styles.searchModalHeader}>
                     <span className={styles.searchModalIcon}>📄</span>
-                    <h3 className={styles.searchModalQuery}>{citation.source}</h3>
+                    <h3 className={styles.searchModalQuery}>{label}</h3>
                 </div>
 
                 <div className={styles.searchModalContent}>
@@ -64,7 +72,7 @@ export function ChatCitationModal(props: ChatCitationModalProps) {
                             <div className={styles.citationPreview}>
                                 {isImage ? (
                                     <img
-                                        src={resolvedUrl}
+                                        src={previewUrl ?? citation.source}
                                         className={styles.citationImage}
                                         alt={`Preview of ${citation.source}`}
                                         style={{
@@ -77,16 +85,16 @@ export function ChatCitationModal(props: ChatCitationModalProps) {
                                     />
                                 ) : (
                                     <iframe
-                                        src={resolvedUrl}
+                                        src={previewUrl ?? citation.source}
                                         className={styles.citationIframe}
-                                        title={`Preview of ${citation.source}`}
+                                        title={`Preview of ${label}`}
                                     />
                                 )}
                             </div>
-                        ) : citation.excerpt ? (
+                        ) : hasTextPreview ? (
                             <div className={styles.citationExcerpt}>
-                                <h4>Excerpt:</h4>
-                                <MarkdownContent content={citation.excerpt} />
+                                <h4>{textPreviewHeading}</h4>
+                                <MarkdownContent content={textPreviewContent} />
                             </div>
                         ) : (
                             <div
@@ -102,9 +110,9 @@ export function ChatCitationModal(props: ChatCitationModalProps) {
                 </div>
 
                 <div className={styles.ratingActions}>
-                    {resolvedUrl && (
+                    {previewUrl && (
                         <a
-                            href={resolvedUrl}
+                            href={previewUrl}
                             download={citation.source}
                             target="_blank"
                             rel="noopener noreferrer"

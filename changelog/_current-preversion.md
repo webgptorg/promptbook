@@ -181,6 +181,7 @@
     -   Added inheritance support for `knowledgeSources` so child agents inherit knowledge from parent agents
     -   Citations from KNOWLEDGE commitments now correctly resolve to their source URLs for preview and download
     -   Follows DRY principle - parsing logic is centralized in `parseAgentSource()`, data flows through API to `RemoteAgent`
+-   Allowed Agents Server chat source chips to cite non-document sources: simple URLs now render inside the citation modal iframe (with the friendly label derived from the URL) and inline text snippets show their first 30 characters in the chip while the modal renders the full Markdown excerpt, all without disrupting the existing knowledge-document preview flow.
 -   Fixed Agents Server image generation and uploads to safely shorten CDN paths for long filenames, preventing Vercel Blob path length errors.
 -   Added support for inline `![alt](?image-prompt=...)` markers coming from agents that use `USE IMAGE GENERATOR`: the chat now parses the notation, reuses the shared `constructImageFilename` helper, queues `/api/images` with the same lock/queue logic, displays a spinner-based placeholder, and swaps in the CDN-hosted image once it finishes rendering.
 -   Normalized file names before uploads in Agents Server (chat attachments, knowledge uploads, admin file uploads) to keep CDN URLs clean and consistent.

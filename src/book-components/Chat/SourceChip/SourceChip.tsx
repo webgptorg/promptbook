@@ -1,7 +1,7 @@
 'use client';
 
-import { simplifyKnowledgeLabel } from '../../../utils/knowledge/simplifyKnowledgeLabel';
 import type { ParsedCitation } from '../utils/parseCitationsFromContent';
+import { getCitationLabel, isCitationUrl, isPlainTextCitation } from '../utils/citationHelpers';
 import styles from './SourceChip.module.css';
 
 /**
@@ -53,11 +53,16 @@ export function SourceChip({ citation, onClick, className, suffix }: SourceChipP
     };
 
     // Keep source chips concise and human-readable for CDN-backed knowledge files.
-    const displayName = simplifyKnowledgeLabel(citation.source);
+    const normalizedSource = citation.source.trim();
+    const displayName = getCitationLabel(citation);
 
     // Get file extension for icon
-    const fileExtension = citation.source.split('.').pop()?.toLowerCase() || 'file';
-    const icon = getFileIcon(fileExtension);
+    const fileExtension = (normalizedSource || citation.source).split('.').pop()?.toLowerCase() || 'file';
+    const icon = isPlainTextCitation(citation)
+        ? '📝'
+        : isCitationUrl(normalizedSource)
+        ? '🌐'
+        : getFileIcon(fileExtension);
 
     return (
         <button className={`${styles.sourceChip} ${className || ''}`} onClick={handleClick} title={citation.source}>
