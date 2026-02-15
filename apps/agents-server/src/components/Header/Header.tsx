@@ -524,7 +524,7 @@ type AgentMenuColumnProps = AgentDirectoryDropdownProps & {
 function AgentMenuColumn({ nodes, onNavigate, depth }: AgentMenuColumnProps) {
     return (
         <div
-            className="relative flex flex-col gap-1 px-1 py-1 bg-white max-h-[75vh] overflow-y-auto"
+            className="relative flex flex-col gap-1 bg-white px-1 py-1"
             style={{ minWidth: depth === 0 ? 260 : 240 }}
         >
             {nodes.map((node) => {
@@ -544,7 +544,7 @@ function AgentMenuColumn({ nodes, onNavigate, depth }: AgentMenuColumnProps) {
                             </HeadlessLink>
 
                             {node.children.length > 0 && (
-                                <div className="hidden group-hover:block absolute top-0 left-full z-50 mt-0 w-[260px] rounded-md border border-gray-100 bg-white shadow-lg max-h-[80vh] overflow-y-auto">
+                                <div className="absolute left-full top-0 z-50 mt-0 hidden w-[260px] rounded-md border border-gray-100 bg-white shadow-lg group-hover:block">
                                     <AgentMenuColumn nodes={node.children} onNavigate={onNavigate} depth={depth + 1} />
                                 </div>
                             )}
@@ -1068,11 +1068,11 @@ export function Header(props: HeaderProps) {
                                         </button>
 
                                         {item.isOpen && (
-                                            <div className="absolute top-full left-0 mt-2 w-[min(420px,90vw)] bg-white rounded-md shadow-lg border border-gray-100 py-1 z-50 animate-in fade-in zoom-in-95 duration-200 max-h-[80vh] overflow-y-auto overflow-x-visible">
+                                            <div className="absolute left-0 top-full z-50 mt-2 w-[min(420px,90vw)] rounded-md border border-gray-100 bg-white py-1 shadow-lg animate-in fade-in zoom-in-95 duration-200">
                                                 {item.renderMenu ? (
                                                     <div className="relative">{item.renderMenu()}</div>
                                                 ) : (
-                                                    renderDropdownItems()
+                                                    <div className="max-h-[80vh] overflow-y-auto">{renderDropdownItems()}</div>
                                                 )}
                                             </div>
                                         )}
