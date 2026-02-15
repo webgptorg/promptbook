@@ -15,8 +15,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
     agentName = decodeURIComponent(agentName);
 
     try {
+        const forceRefresh = isTruthySearchParam(new URL(request.url).searchParams.get('forceRefresh'));
         const agentSource = (await request.text()) as string_book;
-        const agentReferenceResolver = await $provideAgentReferenceResolver();
+        const agentReferenceResolver = await $provideAgentReferenceResolver({ forceRefresh });
         const diagnosticsResult = await createUnresolvedAgentReferenceDiagnostics(agentSource, agentReferenceResolver);
 
         return new Response(
@@ -41,4 +42,19 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             headers: { 'Content-Type': 'application/json' },
         });
     }
+}
+
+/**
+ * Parses a query-string boolean flag in a permissive way used by internal endpoints.
+ *
+ * @param value - Raw search-param value.
+ * @returns True for common truthy forms (`1`, `true`, `yes`, `on`).
+ */
+function isTruthySearchParam(value: string | null): boolean {
+    if (!value) {
+        return false;
+    }
+
+    const normalizedValue = value.trim().toLowerCase();
+    return normalizedValue === '1' || normalizedValue === 'true' || normalizedValue === 'yes' || normalizedValue === 'on';
 }

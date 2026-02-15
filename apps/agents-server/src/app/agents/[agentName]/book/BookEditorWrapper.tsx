@@ -27,9 +27,6 @@ type BookEditorDiagnostic = {
 };
 
 /**
- * API response returned by `/reference-diagnostics`.
- */
-/**
  * Minimal metadata returned by the diagnostics API for each missing TEAM teammate.
  */
 type MissingTeamReference = {
@@ -44,10 +41,39 @@ type MissingTeamReference = {
     readonly token: string;
 };
 
+/**
+ * API response returned by `/reference-diagnostics`.
+ */
 type AgentReferenceDiagnosticsResponse = {
     diagnostics?: Array<BookEditorDiagnostic>;
     missingTeamReferences?: Array<MissingTeamReference>;
 };
+
+/**
+ * Optional flags accepted by `requestDiagnostics`.
+ */
+type RequestDiagnosticsOptions = {
+    /**
+     * Forces server-side resolver rebuild before running diagnostics.
+     */
+    readonly forceRefresh?: boolean;
+};
+
+/**
+ * Normalizes diagnostics payload shape returned by the diagnostics API.
+ *
+ * @param payload - Raw response payload.
+ * @returns Always-array diagnostics payload.
+ */
+function normalizeDiagnosticsPayload(payload: AgentReferenceDiagnosticsResponse): {
+    readonly diagnostics: Array<BookEditorDiagnostic>;
+    readonly missingTeamReferences: Array<MissingTeamReference>;
+} {
+    return {
+        diagnostics: Array.isArray(payload.diagnostics) ? payload.diagnostics : [],
+        missingTeamReferences: Array.isArray(payload.missingTeamReferences) ? payload.missingTeamReferences : [],
+    };
+}
 
 // TODO: [🐱‍🚀] Rename to BookEditorSavingWrapper
 
@@ -110,13 +136,25 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
     /**
      * Requests unresolved compact-reference diagnostics from the server.
      */
-    const requestDiagnostics = useCallback(async (sourceToInspect: string_book) => {
+    const requestDiagnostics = useCallback(async (
+        sourceToInspect: string_book,
+        options: RequestDiagnosticsOptions = {},
+    ) => {
         diagnosticsAbortControllerRef.current?.abort();
         const abortController = new AbortController();
         diagnosticsAbortControllerRef.current = abortController;
 
         try {
-            const response = await fetch(`/agents/${encodeURIComponent(agentName)}/api/book/reference-diagnostics`, {
+            const diagnosticsUrl = new URL(
+                `/agents/${encodeURIComponent(agentName)}/api/book/reference-diagnostics`,
+                window.location.origin,
+            );
+
+            if (options.forceRefresh) {
+                diagnosticsUrl.searchParams.set('forceRefresh', '1');
+            }
+
+            const response = await fetch(diagnosticsUrl.toString(), {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain' },
                 body: sourceToInspect,
@@ -128,13 +166,10 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
             }
 
             const payload = (await response.json()) as AgentReferenceDiagnosticsResponse;
-            const diagnosticsPayload = Array.isArray(payload.diagnostics) ? payload.diagnostics : [];
-            const teamReferences = Array.isArray(payload.missingTeamReferences)
-                ? payload.missingTeamReferences
-                : [];
+            const normalizedPayload = normalizeDiagnosticsPayload(payload);
 
-            setDiagnostics(diagnosticsPayload);
-            setMissingTeamReferences(teamReferences);
+            setDiagnostics(normalizedPayload.diagnostics);
+            setMissingTeamReferences(normalizedPayload.missingTeamReferences);
         } catch (error) {
             if (error instanceof Error && error.name === 'AbortError') {
                 return;
@@ -201,7 +236,7 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
                     throw new Error(message || 'Failed to create team member');
                 }
 
-                await requestDiagnostics(agentSource);
+                await requestDiagnostics(agentSource, { forceRefresh: true });
             } catch (error) {
                 console.error('Failed to create team member:', error);
                 const errorMessage =

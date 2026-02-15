@@ -4,10 +4,44 @@ import { AgentReferenceResolver } from '../../../../../src/book-2.0/agent-source
 import { getFederatedServers } from '../getFederatedServers';
 import { createServerAgentReferenceResolver } from './createServerAgentReferenceResolver';
 
+/**
+ * Lifetime for resolver cache entries.
+ */
 const CACHE_TTL_MS = 5000;
+
+/**
+ * Last successfully constructed resolver instance.
+ */
 let cachedResolver: AgentReferenceResolver | null = null;
+
+/**
+ * Expiration timestamp for `cachedResolver`.
+ */
 let cacheExpiresAt = 0;
+
+/**
+ * Resolver initialization currently running for `pendingResolverGeneration`.
+ */
 let pendingResolver: Promise<AgentReferenceResolver> | null = null;
+
+/**
+ * Cache generation associated with `pendingResolver`.
+ */
+let pendingResolverGeneration = 0;
+
+/**
+ * Monotonic cache generation incremented on each invalidation.
+ */
+let resolverCacheGeneration = 0;
+
+/**
+ * Invalidates the cached resolver so the next request rebuilds from current agent state.
+ */
+export function $invalidateProvidedAgentReferenceResolverCache(): void {
+    resolverCacheGeneration++;
+    cachedResolver = null;
+    cacheExpiresAt = 0;
+}
 
 /**
  * Provides cached agent reference resolver for the current server instance.
@@ -22,14 +56,21 @@ export async function $provideAgentReferenceResolver(options?: {
     const { forceRefresh = false } = options || {};
     const now = Date.now();
 
+    if (forceRefresh) {
+        $invalidateProvidedAgentReferenceResolverCache();
+    }
+
     if (!forceRefresh && cachedResolver && cacheExpiresAt > now) {
         return cachedResolver;
     }
 
-    if (pendingResolver) {
+    const currentGeneration = resolverCacheGeneration;
+
+    if (pendingResolver && pendingResolverGeneration === currentGeneration) {
         return pendingResolver;
     }
 
+    pendingResolverGeneration = currentGeneration;
     pendingResolver = (async (): Promise<AgentReferenceResolver> => {
         try {
             const [collection, server, federatedServers] = await Promise.all([
@@ -44,12 +85,16 @@ export async function $provideAgentReferenceResolver(options?: {
                 federatedServers,
             });
 
-            cachedResolver = resolver;
-            cacheExpiresAt = Date.now() + CACHE_TTL_MS;
+            if (resolverCacheGeneration === currentGeneration) {
+                cachedResolver = resolver;
+                cacheExpiresAt = Date.now() + CACHE_TTL_MS;
+            }
 
             return resolver;
         } finally {
-            pendingResolver = null;
+            if (pendingResolverGeneration === currentGeneration) {
+                pendingResolver = null;
+            }
         }
     })();
 
