@@ -2,7 +2,7 @@
 
 ---
 
-[ ] !!!!
+[x] ~$0.31 5 minutes by OpenAI Codex `gpt-5.3-codex`
 
 [✨🚞] Add progress to the coding agent.
 
@@ -45,3 +45,4 @@
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the coding agent script before you start implementing.
+
