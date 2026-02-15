@@ -296,14 +296,20 @@
         },
         {
             "name": "⚡🚀💪 Run Coding Agent (💤)(💸)(⏳)",
-            "command": "npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --agent openai-codex --model gpt-5.3-codex",
+            "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --agent openai-codex --model gpt-5.3-codex"
+            ],
             "execute": false,
             "onlySingle": false,
             "focus": false
         },
         {
             "name": "⚡🚀 Run Coding Agent (💤)(💸)(⏳)",
-            "command": "npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --agent openai-codex --model gpt-5.1-codex-mini --no-wait",
+            "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --agent openai-codex --model gpt-5.1-codex-mini --no-wait"
+            ],
             "execute": false,
             "onlySingle": false,
             "focus": false
