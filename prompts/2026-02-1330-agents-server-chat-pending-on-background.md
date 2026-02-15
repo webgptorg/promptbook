@@ -13,9 +13,10 @@
 
 [ ]
 
-[✨📒] `STREAM_KEEP_ALIVE`
+[✨📒] Do not show `STREAM_KEEP_ALIVE`
 
 -   @@@
+-   Do it before this information is passed into the chat component.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
@@ -25,9 +26,11 @@
 
 ---
 
-[-]
+[ ]
 
-[✨📒] brr
+[✨📒] @@@
+
+-   Not working despite of `STREAM_KEEP_ALIVE`
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.

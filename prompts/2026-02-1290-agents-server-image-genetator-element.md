@@ -41,6 +41,20 @@ Sure, here is your image of the forest in the winter.
 
 [ ]
 
+[✨⛳️] cropped image prompt @@@
+
+-   @@@
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+![alt text](prompts/screenshots/2026-02-1290-agents-server-image-genetator-element.png)
+
+---
+
+[ ]
+
 [✨⛳️] Extra instructions in the `USE IMAGE GENERATOR` commitment.
 
 -   @@@
@@ -74,4 +88,3 @@ Sure, here is your image of the forest in the winter.
 ```
 
 ```
-

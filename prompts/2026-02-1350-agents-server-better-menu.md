@@ -59,13 +59,29 @@
 
 [✨🍂] Make better Agent Server Application menu both on mobile and desktop
 
--   @@@
+-   Make the navigation hierarchy more prominent - This is the most important part of the menu.
+-   On desktop, move the menu items to the center of the menu. Navigation hierarchy is on the left corner, and the control panel is on the right corner.
+-   From the agent chat and book, remove the back button. You can already go back by switching the view Profile / Chat / Book of the agent
+-   On a mobile, make Enter menu centered in the center horizontally and vertically on top.
 -   Do a proper analysis of the current menu before you start implementing.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 
 ![Mobile menu changes](prompts/screenshots/2026-02-1350-agents-server-better-menu-4.png)
 ![Desktop menu changes](prompts/screenshots/2026-02-1350-agents-server-better-menu-5.png)
+
+**Structure of the menu:**
+
+1. The navigation hierarchy
+    - Icon and Server name _(for example Promptbook Agents Server)_
+    - arrow ">" and Agents or picked agent name (organized in folders)
+    - arrow ">" and the view Profile / Chat / Book of the agent or nothing if no agent is picked
+2. The menu items
+    - Documentation
+    - System
+3. Control panel and user menu
+    - Control panel
+    - User menu with the avatar and the name of the user
 
 ---
 
