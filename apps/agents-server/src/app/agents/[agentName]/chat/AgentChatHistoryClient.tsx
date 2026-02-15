@@ -17,7 +17,6 @@ import {
 } from '../../../../utils/userChatClient';
 import { AgentChatSidebar } from './AgentChatSidebar';
 import { AgentChatWrapper } from '../AgentChatWrapper';
-import { AgentChatBookSwitcher } from '../../../../components/AgentChatBookSwitcher/AgentChatBookSwitcher';
 import { BackToAgentButton } from '../../../../components/BackToAgentButton/BackToAgentButton';
 
 /**
@@ -425,7 +424,6 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                             {formatText('Chat history')}
                         </span>
                     </div>
-                    <AgentChatBookSwitcher agentName={agentName} activeTab="chat" />
                 </div>
                 <div className="relative flex-1 min-h-0">
                     {isSwitchingChat && (

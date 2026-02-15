@@ -2,13 +2,14 @@
 
 import promptbookLogoBlueTransparent from '@/public/logo-blue-white-256.png';
 import { $createAgentAction, logoutAction } from '@/src/app/actions';
-import { ArrowRight, ChevronDown, ChevronRight, Lock, LogIn, LogOut, User } from 'lucide-react';
+import { ArrowRight, ChevronDown, ChevronRight, Lock, LogIn, LogOut } from 'lucide-react';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { ReactNode, useEffect, useMemo, useState } from 'react';
 import { HamburgerMenu } from '../../../../../src/book-components/_common/HamburgerMenu/HamburgerMenu';
 import { useMenuHoisting } from '../../../../../src/book-components/_common/MenuHoisting/MenuHoistingContext';
 import { just } from '../../../../../src/utils/organization/just';
+import { RESERVED_PATHS } from '../../generated/reservedPaths';
 import { buildFolderPath, getFolderPathSegments } from '../../utils/agentOrganization/folderPath';
 import type {
     AgentOrganizationAgent,
@@ -199,7 +200,10 @@ function buildDocumentationDropdownItems(
 /**
  * Agent data required for the folder-organized header menu.
  */
-type HeaderAgentMenuAgent = Pick<AgentOrganizationAgent, 'agentName' | 'meta' | 'folderId' | 'sortOrder'>;
+type HeaderAgentMenuAgent = Pick<
+    AgentOrganizationAgent,
+    'agentName' | 'permanentId' | 'meta' | 'folderId' | 'sortOrder'
+>;
 
 /**
  * Folder data required for the folder-organized header menu.
@@ -210,6 +214,114 @@ type HeaderAgentMenuFolder = Pick<AgentOrganizationFolder, 'id' | 'name' | 'pare
  * Pixel offset used for each depth level in nested menu labels.
  */
 const MENU_DEPTH_PADDING_PX = 14;
+
+/**
+ * Views that can be selected for one active agent in the hierarchy.
+ */
+type AgentHierarchyView = 'Profile' | 'Chat' | 'Book';
+
+/**
+ * Resolved route context used to render hierarchy crumbs.
+ */
+type ActiveAgentNavigation = {
+    agentIdentifier: string | null;
+    view: AgentHierarchyView | null;
+};
+
+/**
+ * Reserved top-level routes that cannot be interpreted as an agent alias.
+ */
+const RESERVED_PATH_SET = new Set<string>(RESERVED_PATHS);
+
+/**
+ * Returns canonical identifier used in routes for one agent.
+ *
+ * @param agent - Agent used in the menu hierarchy.
+ * @returns Permanent id when available, otherwise agent name.
+ */
+function getAgentNavigationId(agent: HeaderAgentMenuAgent): string {
+    return agent.permanentId || agent.agentName;
+}
+
+/**
+ * Resolves the hierarchy view label from URL segment.
+ *
+ * @param segment - Route segment after the agent identifier.
+ * @returns Human-friendly view label, or null when unsupported.
+ */
+function resolveAgentHierarchyView(segment: string | undefined): AgentHierarchyView | null {
+    if (!segment) {
+        return 'Profile';
+    }
+
+    if (segment === 'chat') {
+        return 'Chat';
+    }
+
+    if (segment === 'book') {
+        return 'Book';
+    }
+
+    return null;
+}
+
+/**
+ * Parses current pathname and extracts active agent + hierarchy view context.
+ *
+ * @param pathname - Current browser pathname.
+ * @returns Navigation context for hierarchy crumbs.
+ */
+function resolveActiveAgentNavigation(pathname: string | null): ActiveAgentNavigation {
+    if (!pathname) {
+        return { agentIdentifier: null, view: null };
+    }
+
+    const pathSegments = pathname.split('/').filter(Boolean);
+    if (pathSegments.length === 0) {
+        return { agentIdentifier: null, view: null };
+    }
+
+    if (pathSegments[0] === 'agents') {
+        if (!pathSegments[1]) {
+            return { agentIdentifier: null, view: null };
+        }
+
+        return {
+            agentIdentifier: decodeURIComponent(pathSegments[1]),
+            view: resolveAgentHierarchyView(pathSegments[2]),
+        };
+    }
+
+    if (RESERVED_PATH_SET.has(pathSegments[0])) {
+        return { agentIdentifier: null, view: null };
+    }
+
+    return {
+        agentIdentifier: decodeURIComponent(pathSegments[0]),
+        view: resolveAgentHierarchyView(pathSegments[1]),
+    };
+}
+
+/**
+ * Builds hierarchy label for the active agent, including folder path when available.
+ *
+ * @param agent - Active agent metadata.
+ * @param folderById - Folder lookup table.
+ * @returns Display label for breadcrumb-like hierarchy.
+ */
+function createAgentHierarchyLabel(
+    agent: HeaderAgentMenuAgent,
+    folderById: Map<number, HeaderAgentMenuFolder>,
+): string {
+    const folderSegments = getFolderPathSegments(agent.folderId, folderById).map((folder) => folder.name);
+    const agentLabel = getAgentMenuLabel(agent);
+
+    if (folderSegments.length === 0) {
+        return agentLabel;
+    }
+
+    return `${folderSegments.join(' / ')} / ${agentLabel}`;
+}
 
 /**
  * Resolves the display label for an agent in the menu.
@@ -392,7 +504,7 @@ function buildAgentMenuStructure(
         for (const agent of folderAgents) {
             items.push({
                 label: createIndentedMenuLabel(getAgentMenuLabel(agent), depth + 1, false),
-                href: `/${agent.agentName}`,
+                href: `/agents/${encodeURIComponent(getAgentNavigationId(agent))}`,
             });
         }
 
@@ -416,7 +528,7 @@ function buildAgentMenuStructure(
     for (const agent of rootAgents) {
         items.push({
             label: createIndentedMenuLabel(getAgentMenuLabel(agent), 0, false),
-            href: `/${agent.agentName}`,
+            href: `/agents/${encodeURIComponent(getAgentNavigationId(agent))}`,
         });
     }
 
@@ -425,7 +537,7 @@ function buildAgentMenuStructure(
         type: 'agent',
         agentName: agent.agentName,
         label: getAgentMenuLabel(agent),
-        href: `/${agent.agentName}`,
+        href: `/agents/${encodeURIComponent(getAgentNavigationId(agent))}`,
     });
 
     const createFolderNode = (folderId: number): AgentMenuFolderNode | null => {
@@ -583,17 +695,18 @@ export function Header(props: HeaderProps) {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
     const [isAgentsOpen, setIsAgentsOpen] = useState(false);
+    const [isAgentViewOpen, setIsAgentViewOpen] = useState(false);
     const [isDocsOpen, setIsDocsOpen] = useState(false);
-    const [isUsersOpen, setIsUsersOpen] = useState(false);
     const [isSystemOpen, setIsSystemOpen] = useState(false);
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [isMobileAgentsOpen, setIsMobileAgentsOpen] = useState(false);
+    const [isMobileAgentViewOpen, setIsMobileAgentViewOpen] = useState(false);
     const [isMobileDocsOpen, setIsMobileDocsOpen] = useState(false);
-    const [isMobileUsersOpen, setIsMobileUsersOpen] = useState(false);
     const [isMobileSystemOpen, setIsMobileSystemOpen] = useState(false);
     const [mobileOpenSubMenus, setMobileOpenSubMenus] = useState<Record<string, boolean>>({});
     const [isCreatingAgent, setIsCreatingAgent] = useState(false);
     const router = useRouter();
+    const pathname = usePathname();
     const isHeadless = useIsHeadless();
     const menuHoisting = useMenuHoisting();
     const { formatText } = useAgentNaming();
@@ -601,6 +714,10 @@ export function Header(props: HeaderProps) {
     useEffect(() => {
         if (!isMenuOpen) {
             setMobileOpenSubMenus({});
+            setIsMobileAgentsOpen(false);
+            setIsMobileAgentViewOpen(false);
+            setIsMobileDocsOpen(false);
+            setIsMobileSystemOpen(false);
         }
     }, [isMenuOpen]);
 
@@ -624,8 +741,65 @@ export function Header(props: HeaderProps) {
     ]);
     const agentMenuItems = agentMenuStructure.items;
     const agentMenuTree = agentMenuStructure.tree;
+    const agentFolderById = useMemo(
+        () => new Map(agentFolders.map((folder) => [folder.id, folder as HeaderAgentMenuFolder])),
+        [agentFolders],
+    );
+    const agentByIdentifier = useMemo(() => {
+        const map = new Map<string, HeaderAgentMenuAgent>();
+        for (const agent of agents) {
+            map.set(agent.agentName, agent);
+            if (agent.permanentId) {
+                map.set(agent.permanentId, agent);
+            }
+        }
+        return map;
+    }, [agents]);
+    const activeAgentNavigation = useMemo(() => resolveActiveAgentNavigation(pathname), [pathname]);
+    const activeAgent = useMemo(() => {
+        if (!activeAgentNavigation.agentIdentifier) {
+            return null;
+        }
+        return agentByIdentifier.get(activeAgentNavigation.agentIdentifier) || null;
+    }, [activeAgentNavigation.agentIdentifier, agentByIdentifier]);
+    const activeAgentIdentifier = activeAgentNavigation.agentIdentifier;
+    const activeAgentNavigationId =
+        activeAgent ? getAgentNavigationId(activeAgent) : activeAgentIdentifier || null;
+    const activeAgentHref = activeAgentNavigationId
+        ? `/agents/${encodeURIComponent(activeAgentNavigationId)}`
+        : '/agents';
+    const activeAgentLabel = activeAgent
+        ? createAgentHierarchyLabel(activeAgent, agentFolderById)
+        : activeAgentIdentifier || formatText('Agents');
+    const activeAgentView = activeAgentNavigation.view;
+    const currentUserDisplayName = currentUser?.username || 'Admin';
+    const currentUserAvatarLabel = currentUserDisplayName.slice(0, 1).toUpperCase();
+    const activeAgentViewItems: SubMenuItem[] = activeAgentNavigationId
+        ? [
+              {
+                  label: 'Profile',
+                  href: `/agents/${encodeURIComponent(activeAgentNavigationId)}`,
+              },
+              {
+                  label: 'Chat',
+                  href: `/agents/${encodeURIComponent(activeAgentNavigationId)}/chat`,
+              },
+              ...(isAdmin
+                  ? [
+                        {
+                            label: 'Book',
+                            href: `/agents/${encodeURIComponent(activeAgentNavigationId)}/book`,
+                        } as SubMenuItem,
+                    ]
+                  : []),
+          ]
+        : [];
     const closeAgentsDropdown = () => {
         setIsAgentsOpen(false);
+        setIsMenuOpen(false);
+    };
+    const closeAgentViewDropdown = () => {
+        setIsAgentViewOpen(false);
         setIsMenuOpen(false);
     };
 
@@ -648,6 +822,27 @@ export function Header(props: HeaderProps) {
             setIsMenuOpen(false);
         }
     };
+    const hierarchyAgentDropdownItems: SubMenuItem[] = [
+        ...agentMenuItems,
+        {
+            label: formatText('View all agents'),
+            href: '/agents',
+            isBold: true,
+            isBordered: true,
+        },
+        {
+            label: isCreatingAgent ? (
+                <div className="flex items-center">
+                    <span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
+                    {formatText('Creating agent...')}
+                </div>
+            ) : (
+                formatText('Create new agent')
+            ),
+            onClick: isCreatingAgent ? undefined : handleCreateAgent,
+            isBold: true,
+        },
+    ];
 
     // Federated servers dropdown items (respect logo, only current is not clickable)
     const [isFederatedOpen, setIsFederatedOpen] = useState(false);
@@ -692,14 +887,20 @@ export function Header(props: HeaderProps) {
               };
     });
 
-    const userSystemItems: SubMenuItem[] = currentUser
-        ? [
-              {
-                  label: 'User Memory',
-                  href: '/system/user-memory',
-              },
-          ]
-        : [];
+    const userSystemItems: SubMenuItem[] = [
+        ...(currentUser
+            ? [
+                  {
+                      label: 'User Memory',
+                      href: '/system/user-memory',
+                  } as SubMenuItem,
+              ]
+            : []),
+        {
+            label: 'Landing page',
+            href: 'https://ptbk.io/',
+        },
+    ];
 
     /**
      * @private Shared dropdown props that keep every System menu item wired to the same open/close state.
@@ -720,6 +921,30 @@ export function Header(props: HeaderProps) {
         ...systemDropdownBase,
         items,
     });
+
+    /**
+     * @private System menu entries exposed to admins.
+     */
+    const adminUsersSystemItems: SubMenuItem[] = [
+        ...adminUsers.map(
+            (user) =>
+                ({
+                    label: user.username,
+                    href: `/admin/users/${encodeURIComponent(user.username)}`,
+                } as SubMenuItem),
+        ),
+        {
+            label: 'View all users',
+            href: '/admin/users',
+            isBold: true,
+            isBordered: true,
+        } as SubMenuItem,
+        {
+            label: 'Create new user',
+            href: '/admin/users#create-user',
+            isBold: true,
+        } as SubMenuItem,
+    ];
 
     /**
      * @private System menu entries exposed to admins.
@@ -790,7 +1015,12 @@ export function Header(props: HeaderProps) {
             href: '/admin/files',
         },
         {
-            label: 'About',
+            label: 'Users',
+            items: adminUsersSystemItems,
+            isBordered: true,
+        },
+        {
+            label: 'Version info',
             href: '/admin/about',
         },
         ...(isExperimental
@@ -813,11 +1043,6 @@ export function Header(props: HeaderProps) {
     // Menu items configuration (DRY principle)
     const menuItems: MenuItem[] = [
         {
-            type: 'link' as const,
-            label: 'Home',
-            href: '/',
-        },
-        {
             type: 'dropdown' as const,
             label: 'Documentation',
             isOpen: isDocsOpen,
@@ -826,79 +1051,9 @@ export function Header(props: HeaderProps) {
             setIsMobileOpen: setIsMobileDocsOpen,
             items: documentationDropdownItems,
         },
-        ...(isAdmin
+        ...(isAdmin || userSystemItems.length > 0
             ? [
-                  {
-                      type: 'dropdown' as const,
-                      label: formatText('Agents'),
-                      isOpen: isAgentsOpen,
-                      setIsOpen: setIsAgentsOpen,
-                      isMobileOpen: isMobileAgentsOpen,
-                      setIsMobileOpen: setIsMobileAgentsOpen,
-                      items: [
-                          ...agentMenuItems,
-                          {
-                              label: formatText('View all agents'),
-                              href: '/',
-                              isBold: true,
-                              isBordered: true,
-                          } as SubMenuItem,
-                          {
-                              label: isCreatingAgent ? (
-                                  <div className="flex items-center">
-                                      <span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
-                                      {formatText('Creating agent...')}
-                                  </div>
-                              ) : (
-                                  formatText('Create new agent')
-                              ),
-                              onClick: isCreatingAgent ? undefined : handleCreateAgent,
-                              isBold: true,
-                          } as SubMenuItem,
-                      ],
-                      renderMenu: () => (
-                          <AgentDirectoryDropdown nodes={agentMenuTree} onNavigate={closeAgentsDropdown} />
-                      ),
-                  },
-                  {
-                      type: 'dropdown' as const,
-                      label: 'Users',
-                      isOpen: isUsersOpen,
-                      setIsOpen: setIsUsersOpen,
-                      isMobileOpen: isMobileUsersOpen,
-                      setIsMobileOpen: setIsMobileUsersOpen,
-                      items: [
-                          ...adminUsers.map(
-                              (user) =>
-                                  ({
-                                      label: user.username,
-                                      href: `/admin/users/${encodeURIComponent(user.username)}`,
-                                  } as SubMenuItem),
-                          ),
-                          {
-                              label: 'View all users',
-                              href: '/admin/users',
-                              isBold: true,
-                              isBordered: true,
-                          } as SubMenuItem,
-                          {
-                              label: 'Create new user',
-                              href: '/admin/users#create-user',
-                              isBold: true,
-                          } as SubMenuItem,
-                      ],
-                  },
-                  buildSystemMenuItem(adminSystemMenuItems),
-                  {
-                      type: 'link' as const,
-                      label: 'About',
-                      href: 'https://ptbk.io/',
-                  },
-              ]
-            : []),
-        ...(!isAdmin && userSystemItems.length > 0
-            ? [
-                  buildSystemMenuItem(userSystemItems),
+                  buildSystemMenuItem(isAdmin ? adminSystemMenuItems : userSystemItems),
               ]
             : []),
     ];
@@ -906,193 +1061,265 @@ export function Header(props: HeaderProps) {
     return (
         <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200 h-16">
             {isChangePasswordOpen && <ChangePasswordDialog onClose={() => setIsChangePasswordOpen(false)} />}
-            <div className="container w-full mx-auto px-4 h-full">
+            <div className="w-full px-4 h-full">
                 <div className="flex items-center justify-between h-full">
-                    {/* Logo and heading */}
-                    <HeadlessLink
-                        href="/"
-                        className="flex items-center gap-3 hover:opacity-80 transition-opacity overflow-hidden min-w-0 flex-shrink-0 lg:flex-shrink-1"
-                    >
-                        {serverLogoUrl ? (
-                            // Note: `next/image` does not load external images well without extra config
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                                src={serverLogoUrl}
-                                alt={serverName}
-                                width={32}
-                                height={32}
-                                className="w-8 h-8 object-contain flex-shrink-0"
-                            />
-                        ) : (
-                            <Image
-                                src={promptbookLogoBlueTransparent}
-                                alt={serverName}
-                                width={32}
-                                height={32}
-                                className="w-8 h-8 object-contain flex-shrink-0"
-                            />
-                        )}
-                        <h1 className="text-xl font-bold tracking-tight text-gray-900 truncate">{serverName}</h1>
-                    </HeadlessLink>
-
-                    {/* Desktop Navigation */}
-                    <nav className="hidden lg:flex items-center gap-8">
-                        {/* Federated servers dropdown - only show if there are federated servers */}
-                        {federatedServers.length > 0 && (
-                            <div className="relative">
+                    <div className="flex min-w-0 items-center gap-3">
+                        <div className="relative flex min-w-0 items-center gap-1">
+                            <HeadlessLink
+                                href="/"
+                                className="flex min-w-0 items-center gap-3 hover:opacity-80 transition-opacity"
+                            >
+                                {serverLogoUrl ? (
+                                    // Note: `next/image` does not load external images well without extra config
+                                    // eslint-disable-next-line @next/next/no-img-element
+                                    <img
+                                        src={serverLogoUrl}
+                                        alt={serverName}
+                                        width={32}
+                                        height={32}
+                                        className="w-8 h-8 object-contain flex-shrink-0"
+                                    />
+                                ) : (
+                                    <Image
+                                        src={promptbookLogoBlueTransparent}
+                                        alt={serverName}
+                                        width={32}
+                                        height={32}
+                                        className="w-8 h-8 object-contain flex-shrink-0"
+                                    />
+                                )}
+                                <h1 className="text-xl font-bold tracking-tight text-gray-900 truncate">{serverName}</h1>
+                            </HeadlessLink>
+                            {federatedServers.length > 0 && (
                                 <button
-                                    className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
+                                    className="hidden lg:inline-flex p-1 text-gray-400 hover:text-gray-700 transition-colors"
                                     onClick={() => setIsFederatedOpen(!isFederatedOpen)}
                                     onBlur={() => setTimeout(() => setIsFederatedOpen(false), 200)}
+                                    title="Switch server"
+                                    aria-label="Switch server"
                                 >
                                     <ChevronDown className="w-4 h-4" />
-                                    <span>Switch server</span>
                                 </button>
-                                {isFederatedOpen && (
-                                    <div className="absolute top-full left-0 mt-2 w-56 bg-white rounded-md shadow-lg border border-gray-100 py-1 z-50 animate-in fade-in zoom-in-95 duration-200 max-h-[80vh] overflow-y-auto">
-                                        {federatedDropdownItems.map((subItem, subIndex) => {
-                                            const className = `block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 ${
-                                                subItem.isBold ? 'font-medium' : ''
-                                            } ${subItem.isBordered ? 'border-b border-gray-100' : ''}`;
+                            )}
+                            {isFederatedOpen && (
+                                <div className="absolute left-0 top-full z-50 mt-2 w-56 rounded-md border border-gray-100 bg-white py-1 shadow-lg animate-in fade-in zoom-in-95 duration-200 max-h-[80vh] overflow-y-auto">
+                                    {federatedDropdownItems.map((subItem, subIndex) => {
+                                        const className = `block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 ${
+                                            subItem.isBold ? 'font-medium' : ''
+                                        } ${subItem.isBordered ? 'border-b border-gray-100' : ''}`;
 
-                                            if (subItem.href) {
-                                                return (
-                                                    <HeadlessLink
-                                                        key={subIndex}
-                                                        href={subItem.href}
-                                                        className={className}
-                                                        onClick={() => setIsFederatedOpen(false)}
-                                                    >
-                                                        {subItem.label}
-                                                    </HeadlessLink>
-                                                );
-                                            }
+                                        if (subItem.href) {
                                             return (
-                                                <span key={subIndex} className={className}>
+                                                <HeadlessLink
+                                                    key={`federated-${subIndex}`}
+                                                    href={subItem.href}
+                                                    className={className}
+                                                    onClick={() => setIsFederatedOpen(false)}
+                                                >
                                                     {subItem.label}
-                                                </span>
-                                            );
-                                        })}
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                        {menuItems.map((item, index) => {
-                            if (item.type === 'link') {
-                                return (
-                                    <HeadlessLink
-                                        key={index}
-                                        href={item.href}
-                                        className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
-                                    >
-                                        {item.label}
-                                    </HeadlessLink>
-                                );
-                            }
-
-                            if (item.type === 'dropdown') {
-                                const dropdownItems = item.items ?? [];
-                                const closeDropdown = () => item.setIsOpen(false);
-
-                                const renderDropdownLink = (linkItem: SubMenuItem, keySuffix: string, className: string) => {
-                                    if (linkItem.onClick) {
-                                        return (
-                                            <button key={keySuffix} onClick={linkItem.onClick} className={`${className} w-full text-left`}>
-                                                {linkItem.label}
-                                            </button>
-                                        );
-                                    }
-
-                                    if (linkItem.href) {
-                                        return (
-                                            <HeadlessLink key={keySuffix} href={linkItem.href} className={className} onClick={closeDropdown}>
-                                                {linkItem.label}
-                                            </HeadlessLink>
-                                        );
-                                    }
-
-                                    return (
-                                        <span key={keySuffix} className={className}>
-                                            {linkItem.label}
-                                        </span>
-                                    );
-                                };
-
-                                const renderDropdownItems = () =>
-                                    dropdownItems.map((subItem, subIndex) => {
-                                        const borderClass = subItem.isBordered ? 'border-b border-gray-100' : '';
-                                        const baseClassName = `block px-4 py-2 text-sm ${
-                                            subItem.isBold ? 'font-medium text-gray-900' : 'text-gray-600'
-                                        } hover:bg-gray-50 hover:text-gray-900 transition-colors ${borderClass}`;
-
-                                        if (subItem.items && subItem.items.length > 0) {
-                                            return (
-                                                <div key={`dropdown-${subIndex}`} className={`relative group ${borderClass}`}>
-                                                    <div
-                                                        className={`flex items-center justify-between px-4 py-2 text-sm ${
-                                                            subItem.isBold ? 'font-medium text-gray-900' : 'text-gray-600'
-                                                        } hover:bg-gray-50 hover:text-gray-900 transition-colors`}
-                                                    >
-                                                        <span>{subItem.label}</span>
-                                                        <ChevronRight className="w-3 h-3 text-gray-400" />
-                                                    </div>
-                                                    <div className="pointer-events-none absolute top-0 left-full ml-1 hidden min-w-[280px] max-w-[min(360px,calc(100vw-4rem))] group-hover:block group-hover:pointer-events-auto group-hover:visible">
-                                                        <div className="pointer-events-auto max-h-[70vh] w-full overflow-y-auto rounded-md border border-gray-100 bg-white p-2 shadow-lg">
-                                                            <div className="grid auto-rows-min gap-1 sm:grid-cols-2">
-                                                                {subItem.items.map((child, childIndex) =>
-                                                                    renderDropdownLink(
-                                                                        child,
-                                                                        `dropdown-${subIndex}-child-${childIndex}`,
-                                                                        'block rounded px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors',
-                                                                    ),
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                                </HeadlessLink>
                                             );
                                         }
 
-                                        return renderDropdownLink(subItem, `dropdown-${subIndex}`, baseClassName);
-                                    });
+                                        return (
+                                            <span key={`federated-${subIndex}`} className={className}>
+                                                {subItem.label}
+                                            </span>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
 
-                                return (
-                                    <div key={index} className="relative">
+                        <nav className="hidden lg:flex items-center gap-3 min-w-0">
+                            <ChevronRight className="h-4 w-4 text-gray-300" />
+                            {isAdmin ? (
+                                <div className="relative min-w-0">
+                                    <button
+                                        className="inline-flex items-center gap-1 rounded-md px-2 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 min-w-0"
+                                        onClick={() => setIsAgentsOpen(!isAgentsOpen)}
+                                        onBlur={() => setTimeout(() => setIsAgentsOpen(false), 200)}
+                                    >
+                                        <span className="truncate max-w-[260px]">{activeAgentLabel}</span>
+                                        <ChevronDown className="h-4 w-4 text-gray-400" />
+                                    </button>
+                                    {isAgentsOpen && (
+                                        <div className="absolute left-0 top-full z-50 mt-2 w-[min(420px,90vw)] rounded-md border border-gray-100 bg-white py-1 shadow-lg animate-in fade-in zoom-in-95 duration-200">
+                                            <div className="max-h-[65vh] overflow-y-auto">
+                                                <AgentDirectoryDropdown nodes={agentMenuTree} onNavigate={closeAgentsDropdown} />
+                                            </div>
+                                            <div className="border-t border-gray-100 p-1">
+                                                <HeadlessLink
+                                                    href="/agents"
+                                                    className="block rounded px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-50"
+                                                    onClick={closeAgentsDropdown}
+                                                >
+                                                    {formatText('View all agents')}
+                                                </HeadlessLink>
+                                                <button
+                                                    onClick={isCreatingAgent ? undefined : handleCreateAgent}
+                                                    className="block w-full rounded px-3 py-2 text-left text-sm font-medium text-gray-900 hover:bg-gray-50"
+                                                >
+                                                    {isCreatingAgent ? (
+                                                        <span className="inline-flex items-center">
+                                                            <span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
+                                                            {formatText('Creating agent...')}
+                                                        </span>
+                                                    ) : (
+                                                        formatText('Create new agent')
+                                                    )}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <HeadlessLink
+                                    href={activeAgentHref}
+                                    className="inline-flex min-w-0 items-center rounded-md px-2 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                                >
+                                    <span className="truncate max-w-[260px]">{activeAgentLabel}</span>
+                                </HeadlessLink>
+                            )}
+
+                            {activeAgentView && activeAgentViewItems.length > 0 && (
+                                <>
+                                    <ChevronRight className="h-4 w-4 text-gray-300" />
+                                    <div className="relative">
                                         <button
-                                            className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
-                                            onClick={() => item.setIsOpen(!item.isOpen)}
-                                            onBlur={() => setTimeout(() => item.setIsOpen(false), 200)}
+                                            className="inline-flex items-center gap-1 rounded-md px-2 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                                            onClick={() => setIsAgentViewOpen(!isAgentViewOpen)}
+                                            onBlur={() => setTimeout(() => setIsAgentViewOpen(false), 200)}
                                         >
-                                            {item.label}
-                                            <ChevronDown className="w-4 h-4" />
+                                            <span>{activeAgentView}</span>
+                                            <ChevronDown className="h-4 w-4 text-gray-400" />
                                         </button>
-
-                                        {item.isOpen && (
-                                            <div className="absolute left-0 top-full z-50 mt-2 w-[min(420px,90vw)] rounded-md border border-gray-100 bg-white py-1 shadow-lg animate-in fade-in zoom-in-95 duration-200">
-                                                {item.renderMenu ? (
-                                                    <div className="relative">{item.renderMenu()}</div>
-                                                ) : (
-                                                    <div className="max-h-[80vh] overflow-y-auto">{renderDropdownItems()}</div>
-                                                )}
+                                        {isAgentViewOpen && (
+                                            <div className="absolute left-0 top-full z-50 mt-2 min-w-[180px] rounded-md border border-gray-100 bg-white py-1 shadow-lg animate-in fade-in zoom-in-95 duration-200">
+                                                {activeAgentViewItems.map((viewItem, index) => (
+                                                    <HeadlessLink
+                                                        key={`view-${index}`}
+                                                        href={viewItem.href!}
+                                                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                                                        onClick={closeAgentViewDropdown}
+                                                    >
+                                                        {viewItem.label}
+                                                    </HeadlessLink>
+                                                ))}
                                             </div>
                                         )}
                                     </div>
-                                );
-                            }
+                                </>
+                            )}
 
-                            return null;
-                        })}
+                            <div className="mx-1 h-5 w-px bg-gray-200" />
+                            {menuItems.map((item, index) => {
+                                if (item.type === 'link') {
+                                    return (
+                                        <HeadlessLink
+                                            key={index}
+                                            href={item.href}
+                                            className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
+                                        >
+                                            {item.label}
+                                        </HeadlessLink>
+                                    );
+                                }
 
-                        {just(false /* TODO: [🧠] Figure out what to do with these links */) && (
-                            <a
-                                href="https://ptbk.io/"
-                                target="_blank"
-                                className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
-                            >
-                                Create your server
-                            </a>
-                        )}
-                    </nav>
+                                if (item.type === 'dropdown') {
+                                    const dropdownItems = item.items ?? [];
+                                    const closeDropdown = () => item.setIsOpen(false);
+
+                                    const renderDropdownLink = (linkItem: SubMenuItem, keySuffix: string, className: string) => {
+                                        if (linkItem.onClick) {
+                                            return (
+                                                <button key={keySuffix} onClick={linkItem.onClick} className={`${className} w-full text-left`}>
+                                                    {linkItem.label}
+                                                </button>
+                                            );
+                                        }
+
+                                        if (linkItem.href) {
+                                            return (
+                                                <HeadlessLink key={keySuffix} href={linkItem.href} className={className} onClick={closeDropdown}>
+                                                    {linkItem.label}
+                                                </HeadlessLink>
+                                            );
+                                        }
+
+                                        return (
+                                            <span key={keySuffix} className={className}>
+                                                {linkItem.label}
+                                            </span>
+                                        );
+                                    };
+
+                                    const renderDropdownItems = () =>
+                                        dropdownItems.map((subItem, subIndex) => {
+                                            const borderClass = subItem.isBordered ? 'border-b border-gray-100' : '';
+                                            const baseClassName = `block px-4 py-2 text-sm ${
+                                                subItem.isBold ? 'font-medium text-gray-900' : 'text-gray-600'
+                                            } hover:bg-gray-50 hover:text-gray-900 transition-colors ${borderClass}`;
+
+                                            if (subItem.items && subItem.items.length > 0) {
+                                                return (
+                                                    <div key={`dropdown-${subIndex}`} className={`relative group ${borderClass}`}>
+                                                        <div
+                                                            className={`flex items-center justify-between px-4 py-2 text-sm ${
+                                                                subItem.isBold ? 'font-medium text-gray-900' : 'text-gray-600'
+                                                            } hover:bg-gray-50 hover:text-gray-900 transition-colors`}
+                                                        >
+                                                            <span>{subItem.label}</span>
+                                                            <ChevronRight className="w-3 h-3 text-gray-400" />
+                                                        </div>
+                                                        <div className="pointer-events-none absolute top-0 left-full ml-1 hidden min-w-[280px] max-w-[min(360px,calc(100vw-4rem))] group-hover:block group-hover:pointer-events-auto group-hover:visible">
+                                                            <div className="pointer-events-auto max-h-[70vh] w-full overflow-y-auto rounded-md border border-gray-100 bg-white p-2 shadow-lg">
+                                                                <div className="grid auto-rows-min gap-1 sm:grid-cols-2">
+                                                                    {subItem.items.map((child, childIndex) =>
+                                                                        renderDropdownLink(
+                                                                            child,
+                                                                            `dropdown-${subIndex}-child-${childIndex}`,
+                                                                            'block rounded px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors',
+                                                                        ),
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            }
+
+                                            return renderDropdownLink(subItem, `dropdown-${subIndex}`, baseClassName);
+                                        });
+
+                                    return (
+                                        <div key={index} className="relative">
+                                            <button
+                                                className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
+                                                onClick={() => item.setIsOpen(!item.isOpen)}
+                                                onBlur={() => setTimeout(() => item.setIsOpen(false), 200)}
+                                            >
+                                                {item.label}
+                                                <ChevronDown className="w-4 h-4" />
+                                            </button>
+
+                                            {item.isOpen && (
+                                                <div className="absolute left-0 top-full z-50 mt-2 w-[min(420px,90vw)] rounded-md border border-gray-100 bg-white py-1 shadow-lg animate-in fade-in zoom-in-95 duration-200">
+                                                    {item.renderMenu ? (
+                                                        <div className="relative">{item.renderMenu()}</div>
+                                                    ) : (
+                                                        <div className="max-h-[80vh] overflow-y-auto">{renderDropdownItems()}</div>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                }
+
+                                return null;
+                            })}
+                        </nav>
+                    </div>
 
                     {/* Hoisted Menu Items */}
                     {menuHoisting && menuHoisting.menu.length > 0 && (
@@ -1145,11 +1372,11 @@ export function Header(props: HeaderProps) {
                                         onBlur={() => setTimeout(() => setIsProfileOpen(false), 200)}
                                         className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors px-3 py-2 rounded-md hover:bg-gray-50"
                                     >
-                                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
-                                            <User className="w-4 h-4" />
+                                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 text-xs font-semibold">
+                                            {currentUserAvatarLabel}
                                         </div>
                                         <div className="flex flex-col items-start">
-                                            <span className="leading-none">{currentUser?.username || 'Admin'}</span>
+                                            <span className="leading-none">{currentUserDisplayName}</span>
                                             {(currentUser?.isAdmin || isAdmin) && (
                                                 <span className="text-xs text-blue-600">Admin</span>
                                             )}
@@ -1160,9 +1387,7 @@ export function Header(props: HeaderProps) {
                                     {isProfileOpen && (
                                         <div className="absolute top-full right-0 mt-2 w-56 bg-white rounded-md shadow-lg border border-gray-100 py-1 z-50 animate-in fade-in zoom-in-95 duration-200">
                                             <div className="px-4 py-3 border-b border-gray-100">
-                                                <p className="text-sm font-medium text-gray-900">
-                                                    {currentUser?.username || 'Admin'}
-                                                </p>
+                                                <p className="text-sm font-medium text-gray-900">{currentUserDisplayName}</p>
                                                 {(currentUser?.isAdmin || isAdmin) && (
                                                     <p className="text-xs text-blue-600 mt-1">Administrator</p>
                                                 )}
@@ -1212,7 +1437,138 @@ export function Header(props: HeaderProps) {
                             WebkitBackdropFilter: 'blur(20px)',
                         }}
                     >
-                        <nav className="container mx-auto flex flex-col gap-4 px-6">
+                        <nav className="mx-auto flex flex-col gap-4 px-6">
+                            <div className="py-2 border-b border-gray-100">
+                                <div className="flex items-center gap-2 text-sm font-semibold text-gray-900">
+                                    <span className="truncate">{serverName}</span>
+                                    {federatedServers.length > 0 && (
+                                        <button
+                                            className="inline-flex p-1 text-gray-500 hover:text-gray-800"
+                                            onClick={() => setIsFederatedOpen(!isFederatedOpen)}
+                                            aria-label="Switch server"
+                                        >
+                                            <ChevronDown
+                                                className={`h-4 w-4 transition-transform duration-200 ${isFederatedOpen ? 'rotate-180' : ''}`}
+                                            />
+                                        </button>
+                                    )}
+                                </div>
+                                {isFederatedOpen && federatedDropdownItems.length > 0 && (
+                                    <div className="mt-2 flex flex-col gap-1 rounded-md border border-gray-100 bg-gray-50 p-2">
+                                        {federatedDropdownItems.map((subItem, subIndex) => {
+                                            const className = `block rounded px-2 py-1.5 text-sm text-gray-700 hover:bg-white ${
+                                                subItem.isBold ? 'font-medium' : ''
+                                            }`;
+                                            if (subItem.href) {
+                                                return (
+                                                    <HeadlessLink
+                                                        key={`mobile-federated-${subIndex}`}
+                                                        href={subItem.href}
+                                                        className={className}
+                                                        onClick={() => setIsMenuOpen(false)}
+                                                    >
+                                                        {subItem.label}
+                                                    </HeadlessLink>
+                                                );
+                                            }
+                                            return (
+                                                <span key={`mobile-federated-${subIndex}`} className={className}>
+                                                    {subItem.label}
+                                                </span>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                                <div className="mt-2 flex items-center gap-2 text-sm text-gray-500">
+                                    <ChevronRight className="h-4 w-4 text-gray-300" />
+                                    {isAdmin ? (
+                                        <button
+                                            className="inline-flex items-center gap-1 text-sm font-medium text-gray-700 hover:text-gray-900"
+                                            onClick={() => setIsMobileAgentsOpen(!isMobileAgentsOpen)}
+                                        >
+                                            <span className="truncate max-w-[70vw]">{activeAgentLabel}</span>
+                                            <ChevronDown
+                                                className={`h-4 w-4 transition-transform duration-200 ${
+                                                    isMobileAgentsOpen ? 'rotate-180' : ''
+                                                }`}
+                                            />
+                                        </button>
+                                    ) : (
+                                        <HeadlessLink
+                                            href={activeAgentHref}
+                                            className="truncate max-w-[70vw] text-sm font-medium text-gray-700 hover:text-gray-900"
+                                            onClick={() => setIsMenuOpen(false)}
+                                        >
+                                            {activeAgentLabel}
+                                        </HeadlessLink>
+                                    )}
+                                </div>
+                                {isAdmin && isMobileAgentsOpen && (
+                                    <div className="mt-2 ml-6 flex flex-col gap-1 rounded-md border border-gray-100 bg-gray-50 p-2 max-h-[36vh] overflow-y-auto">
+                                        {hierarchyAgentDropdownItems.map((item, index) => {
+                                            const className = `block rounded px-2 py-1.5 text-sm ${
+                                                item.isBold ? 'font-medium text-gray-900 hover:text-gray-700' : 'text-gray-700 hover:text-gray-900'
+                                            }`;
+                                            if (item.onClick) {
+                                                return (
+                                                    <button
+                                                        key={`mobile-agent-item-${index}`}
+                                                        className={`${className} w-full text-left`}
+                                                        onClick={() => {
+                                                            void item.onClick?.();
+                                                            setIsMenuOpen(false);
+                                                        }}
+                                                    >
+                                                        {item.label}
+                                                    </button>
+                                                );
+                                            }
+                                            return (
+                                                <HeadlessLink
+                                                    key={`mobile-agent-item-${index}`}
+                                                    href={item.href || '/agents'}
+                                                    className={className}
+                                                    onClick={() => setIsMenuOpen(false)}
+                                                >
+                                                    {item.label}
+                                                </HeadlessLink>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                                {activeAgentView && activeAgentViewItems.length > 0 && (
+                                    <>
+                                        <div className="mt-2 flex items-center gap-2 text-sm text-gray-500">
+                                            <ChevronRight className="h-4 w-4 text-gray-300" />
+                                            <button
+                                                className="inline-flex items-center gap-1 text-sm font-medium text-gray-700 hover:text-gray-900"
+                                                onClick={() => setIsMobileAgentViewOpen(!isMobileAgentViewOpen)}
+                                            >
+                                                <span>{activeAgentView}</span>
+                                                <ChevronDown
+                                                    className={`h-4 w-4 transition-transform duration-200 ${
+                                                        isMobileAgentViewOpen ? 'rotate-180' : ''
+                                                    }`}
+                                                />
+                                            </button>
+                                        </div>
+                                        {isMobileAgentViewOpen && (
+                                            <div className="mt-2 ml-6 flex flex-col gap-1 rounded-md border border-gray-100 bg-gray-50 p-2">
+                                                {activeAgentViewItems.map((viewItem, index) => (
+                                                    <HeadlessLink
+                                                        key={`mobile-view-item-${index}`}
+                                                        href={viewItem.href || '/agents'}
+                                                        className="block rounded px-2 py-1.5 text-sm text-gray-700 hover:bg-white hover:text-gray-900"
+                                                        onClick={() => setIsMenuOpen(false)}
+                                                    >
+                                                        {viewItem.label}
+                                                    </HeadlessLink>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </>
+                                )}
+                            </div>
                             <div className="py-2 border-b border-gray-100">
                                 <HeaderControlPanelMobile />
                             </div>
@@ -1256,7 +1612,7 @@ export function Header(props: HeaderProps) {
                                 {(currentUser || isAdmin) && (
                                     <div className="flex flex-col gap-3">
                                         <div className="text-sm text-gray-600">
-                                            Logged in as <strong>{currentUser?.username || 'Admin'}</strong>
+                                            Logged in as <strong>{currentUserDisplayName}</strong>
                                             {(currentUser?.isAdmin || isAdmin) && (
                                                 <span className="ml-2 bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
                                                     Admin
