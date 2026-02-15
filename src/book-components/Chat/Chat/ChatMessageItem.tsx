@@ -30,13 +30,14 @@ import {
     extractCitationsFromMessage,
     type ParsedCitation,
 } from '../utils/parseCitationsFromContent';
-import { splitMessageContentByImagePrompts } from '../utils/parseImagePrompts';
 import { parseMessageButtons } from '../utils/parseMessageButtons';
 import { parseToolCallArguments } from '../utils/toolCallParsing';
 import styles from './Chat.module.css';
 import type { ChatProps } from './ChatProps';
 import { LOADING_INTERACTIVE_IMAGE } from './constants';
 import { ImagePromptRenderer } from './ImagePromptRenderer';
+import { ChatMessageMap } from './ChatMessageMap';
+import { splitMessageContentIntoSegments } from '../utils/splitMessageContentIntoSegments';
 
 /**
  * Props for the `ChatMessageItem` component
@@ -441,7 +442,7 @@ export const ChatMessageItem = memo(
         const colorOfText = color.then(textColor);
         const { contentWithoutButtons, buttons } = parseMessageButtons(message.content);
         const contentSegments = useMemo(
-            () => splitMessageContentByImagePrompts(contentWithoutButtons),
+            () => splitMessageContentIntoSegments(contentWithoutButtons),
             [contentWithoutButtons],
         );
         const completedToolCalls = dedupeToolCalls(
@@ -846,13 +847,21 @@ export const ChatMessageItem = memo(
                                         );
                                     }
 
-                                    return (
-                                        <ImagePromptRenderer
-                                            key={`image-${segmentIndex}`}
-                                            alt={segment.alt}
-                                            prompt={segment.prompt}
-                                        />
-                                    );
+                                    if (segment.type === 'image') {
+                                        return (
+                                            <ImagePromptRenderer
+                                                key={`image-${segmentIndex}`}
+                                                alt={segment.alt}
+                                                prompt={segment.prompt}
+                                            />
+                                        );
+                                    }
+
+                                    if (segment.type === 'map') {
+                                        return <ChatMessageMap key={`map-${segmentIndex}`} data={segment.data} />;
+                                    }
+
+                                    return null;
                                 })}
                             </div>
                         )}

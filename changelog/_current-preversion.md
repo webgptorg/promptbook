@@ -1,4 +1,5 @@
 -   Added a custom Agents Server application error page with a branded layout, digest tracking, and proactive troubleshooting guidance for failed navigations.
+-   Added in-chat map rendering for GeoJSON features so agent replies that include \`\`\`geojson\`\`\` blocks now render a Leaflet map inside the bubble that zooms to the provided feature/collection.
 -   Stopped `STREAM_KEEP_ALIVE` heartbeats from ever reaching `<Chat/>` by filtering them inside `RemoteAgent` so keep-alive pings stay hidden while preserving the underlying connection health signals.
 -   Ensured the Agents Server chat reset option now just opens a new chat instead of re-inserting the failed message, so the “Reset” button clears the conversation without duplicating the input.
 -   Updated Agents Server `/admin/api-tokens` token rows to use the shared `<SecretInput/>` control, so API tokens are masked by default and can be toggled visible/hidden with the eye icon while keeping copy-to-clipboard inline.
