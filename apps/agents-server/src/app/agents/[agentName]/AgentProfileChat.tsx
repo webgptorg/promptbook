@@ -38,6 +38,11 @@ type DocumentWithViewTransition = Document & {
 };
 
 /**
+ * Query flag used to force creating a fresh history chat on full chat page entry.
+ */
+const FORCE_NEW_CHAT_QUERY_PARAM = 'newChat';
+
+/**
  * Returns true when a message has non-whitespace content.
  */
 function hasMessageContent(message: string | undefined): message is string {
@@ -104,34 +109,12 @@ export function AgentProfileChat({
         async ({ message }: { message?: string }) => {
             setIsNavigatingToChat(true);
 
-            let createdChatId: string | undefined;
-            if (isHistoryEnabled) {
-                try {
-                    const response = await fetch(`${agentUrl}/api/user-chats`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({}),
-                    });
-
-                    if (response.ok) {
-                        const payload = (await response.json()) as { chat?: { id?: string } };
-                        if (payload.chat?.id) {
-                            createdChatId = payload.chat.id;
-                        }
-                    }
-                } catch (error) {
-                    console.warn('Failed to create new user chat before navigation:', error);
-                }
-            }
-
             const queryParams = new URLSearchParams();
-            if (createdChatId) {
-                queryParams.set('chat', createdChatId);
-            }
             if (hasMessageContent(message)) {
                 queryParams.set('message', message);
+                if (isHistoryEnabled) {
+                    queryParams.set(FORCE_NEW_CHAT_QUERY_PARAM, '1');
+                }
             }
             const query = queryParams.toString();
             const destination = query ? `${chatRoute}?${query}` : chatRoute;
@@ -145,7 +128,7 @@ export function AgentProfileChat({
                 });
             });
         },
-        [agentUrl, chatRoute, isHistoryEnabled, router],
+        [chatRoute, isHistoryEnabled, router],
     );
 
     const handleMessage = useCallback(

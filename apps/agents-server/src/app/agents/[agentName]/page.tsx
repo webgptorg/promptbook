@@ -32,7 +32,7 @@ export const generateMetadata = generateAgentMetadata;
  */
 function buildCanonicalAgentPath(
     canonicalAgentId: string,
-    search: { headless?: string; chat?: string; message?: string },
+    search: { headless?: string; chat?: string; message?: string; newChat?: string },
 ): string {
     const params = new URLSearchParams();
     if (search.headless !== undefined) {
@@ -43,6 +43,9 @@ function buildCanonicalAgentPath(
     }
     if (search.message !== undefined) {
         params.set('message', search.message);
+    }
+    if (search.newChat !== undefined) {
+        params.set('newChat', search.newChat);
     }
 
     const query = params.toString();
@@ -57,13 +60,22 @@ function buildCanonicalAgentPath(
  * @param search - Current page query parameters.
  * @returns Canonical standalone chat path.
  */
-function buildCanonicalAgentChatPath(canonicalAgentId: string, search: { chat?: string; message?: string }): string {
+function buildCanonicalAgentChatPath(
+    canonicalAgentId: string,
+    search: { chat?: string; message?: string; newChat?: string },
+): string {
     const params = new URLSearchParams();
     if (search.chat !== undefined) {
         params.set('chat', search.chat);
     }
     if (search.message !== undefined) {
         params.set('message', search.message);
+    }
+    if (search.newChat !== undefined) {
+        params.set('newChat', search.newChat);
+    } else if (search.message !== undefined) {
+        // Any `?message=...` handled on profile page should start as a fresh chat.
+        params.set('newChat', '1');
     }
 
     const query = params.toString();
@@ -83,7 +95,7 @@ export default async function AgentPage({
     searchParams,
 }: {
     params: Promise<{ agentName: string }>;
-    searchParams: Promise<{ headless?: string; chat?: string; message?: string }>;
+    searchParams: Promise<{ headless?: string; chat?: string; message?: string; newChat?: string }>;
 }) {
     const agentName = await getAgentName(params);
     const currentSearchParams = await searchParams;
@@ -99,7 +111,11 @@ export default async function AgentPage({
     if (agentName !== canonicalAgentId) {
         redirect(buildCanonicalAgentPath(canonicalAgentId, currentSearchParams));
     }
-    if (currentSearchParams.chat !== undefined || currentSearchParams.message !== undefined) {
+    if (
+        currentSearchParams.chat !== undefined ||
+        currentSearchParams.message !== undefined ||
+        currentSearchParams.newChat !== undefined
+    ) {
         redirect(buildCanonicalAgentChatPath(canonicalAgentId, currentSearchParams));
     }
 

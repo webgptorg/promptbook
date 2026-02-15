@@ -12,18 +12,30 @@ import { AgentChatHistoryClient } from './AgentChatHistoryClient';
 
 export const generateMetadata = generateAgentMetadata;
 
+/**
+ * Parses URL flag values used for boolean query params.
+ */
+function parseBooleanFlag(value: string | undefined): boolean {
+    if (!value) {
+        return false;
+    }
+
+    const normalized = value.trim().toLowerCase();
+    return normalized === '1' || normalized === 'true' || normalized === 'yes';
+}
+
 export default async function AgentChatPage({
     params,
     searchParams,
 }: {
     params: Promise<{ agentName: string }>;
-    searchParams: Promise<{ message?: string; chat?: string }>;
+    searchParams: Promise<{ message?: string; chat?: string; newChat?: string }>;
 }) {
     const requestHeaders = await headers();
     $sideEffect(requestHeaders);
     let { agentName } = await params;
     agentName = decodeURIComponent(agentName);
-    const { message, chat } = await searchParams;
+    const { message, chat, newChat } = await searchParams;
 
     const isDeleted = await isAgentDeleted(agentName);
     const agentProfile = await getAgentProfile(agentName);
@@ -51,6 +63,7 @@ export default async function AgentChatPage({
                 agentUrl={agentUrl}
                 initialAutoExecuteMessage={message}
                 initialChatId={chat}
+                initialForceNewChat={parseBooleanFlag(newChat)}
                 brandColor={agentProfile.meta.color}
                 thinkingMessages={thinkingMessages}
                 speechRecognitionLanguage={speechRecognitionLanguage}

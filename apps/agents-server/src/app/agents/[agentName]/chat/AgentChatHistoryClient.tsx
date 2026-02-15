@@ -36,6 +36,7 @@ type AgentChatHistoryClientProps = {
     speechRecognitionLanguage?: string;
     initialChatId?: string;
     initialAutoExecuteMessage?: string;
+    initialForceNewChat?: boolean;
     isHistoryEnabled: boolean;
     chatFailMessage?: string;
 };
@@ -52,6 +53,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
         speechRecognitionLanguage,
         initialChatId,
         initialAutoExecuteMessage,
+        initialForceNewChat = false,
         isHistoryEnabled,
         chatFailMessage,
     } = props;
@@ -80,7 +82,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     const hasInitialAutoMessageBeenConsumedRef = useRef(false);
     const saveTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
     const savedMessagesHashesRef = useRef<Map<string, string>>(new Map());
-    const autoExecuteTargetChatIdRef = useRef<string | undefined>(initialChatId);
+    const autoExecuteTargetChatIdRef = useRef<string | undefined>(initialForceNewChat ? undefined : initialChatId);
 
     const guestPersistenceKey = useMemo(
         () => `guest-chat-${encodeURIComponent(agentName)}-${Math.random().toString(36).slice(2)}`,
@@ -139,13 +141,16 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
      */
     const bootstrapChats = useCallback(
         async (preferredChatId?: string) => {
-            const snapshot = await fetchUserChats(agentName, preferredChatId);
+            const effectivePreferredChatId = initialForceNewChat ? undefined : preferredChatId;
+            const snapshot = await fetchUserChats(agentName, effectivePreferredChatId);
             let nextChats = snapshot.chats;
             let resolvedActiveChatId = snapshot.activeChatId;
             let resolvedMessages = snapshot.activeMessages;
 
             const shouldCreateFreshChatForInitialMessage =
-                !hasInitialAutoMessageBeenConsumedRef.current && Boolean(initialAutoExecuteMessage) && !preferredChatId;
+                !hasInitialAutoMessageBeenConsumedRef.current &&
+                Boolean(initialAutoExecuteMessage) &&
+                (initialForceNewChat || !effectivePreferredChatId);
 
             if (!resolvedActiveChatId || shouldCreateFreshChatForInitialMessage) {
                 const createdChat = await createUserChat(agentName);
@@ -168,7 +173,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
 
             router.replace(buildChatRoute(resolvedActiveChatId, shouldKeepInitialAutoMessage));
         },
-        [agentName, buildChatRoute, initialAutoExecuteMessage, prepareChatInLocalStorage, router],
+        [agentName, buildChatRoute, initialAutoExecuteMessage, initialForceNewChat, prepareChatInLocalStorage, router],
     );
 
     useEffect(() => {
@@ -203,8 +208,8 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     }, [bootstrapChats, initialChatId, isHistoryEnabled]);
 
     useEffect(() => {
-        autoExecuteTargetChatIdRef.current = initialChatId;
-    }, [initialChatId]);
+        autoExecuteTargetChatIdRef.current = initialForceNewChat ? undefined : initialChatId;
+    }, [initialChatId, initialForceNewChat]);
 
     useEffect(() => {
         const activeSaveTimers = saveTimersRef.current;
