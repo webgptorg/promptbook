@@ -2,8 +2,43 @@
 
 import { Copy, Plus, Trash } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { SecretInput } from '../../../components/SecretInput/SecretInput';
 import { showConfirm } from '../../../components/AsyncDialogs/asyncDialogs';
 import { ApiTokenEntry, createApiToken, deleteApiToken, fetchApiTokens } from '../../../utils/apiTokensClient';
+
+/**
+ * Props for rendering a single API token in a masked input.
+ */
+type TokenSecretFieldProps = {
+    token: string;
+    onCopy: (text: string) => void;
+};
+
+/**
+ * Renders one token value using the shared secret field with visibility toggle and copy action.
+ */
+function TokenSecretField({ token, onCopy }: TokenSecretFieldProps) {
+    return (
+        <SecretInput
+            value={token}
+            readOnly
+            aria-label="API token"
+            onFocus={(event) => event.currentTarget.select()}
+            inputClassName="font-mono text-xs sm:text-sm"
+            endAdornment={
+                <button
+                    type="button"
+                    onClick={() => onCopy(token)}
+                    className="rounded p-1.5 text-gray-400 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-promptbook-blue"
+                    title="Copy to clipboard"
+                    aria-label="Copy token to clipboard"
+                >
+                    <Copy className="w-4 h-4" />
+                </button>
+            }
+        />
+    );
+}
 
 /**
  * Renders the admin API token management UI.
@@ -143,16 +178,7 @@ export function ApiTokensClient() {
                             tokens.map((entry) => (
                                 <tr key={entry.id}>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 font-mono">
-                                        <div className="flex items-center gap-2">
-                                            <span>{entry.token}</span>
-                                            <button
-                                                onClick={() => copyToClipboard(entry.token)}
-                                                className="text-gray-400 hover:text-gray-600"
-                                                title="Copy to clipboard"
-                                            >
-                                                <Copy className="w-4 h-4" />
-                                            </button>
-                                        </div>
+                                        <TokenSecretField token={entry.token} onCopy={copyToClipboard} />
                                     </td>
                                     <td className="px-6 py-4 text-sm text-gray-500">{entry.note || '-'}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
