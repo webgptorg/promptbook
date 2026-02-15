@@ -73,6 +73,26 @@ function buildTeammatesMapFromCapabilities(capabilities: Array<AgentCapability> 
     return buildTeammatesMap(teamEntries);
 }
 
+/**
+ * Details required to schedule a background recovery retry.
+ *
+ * @private internal helper for LLM chat background resilience
+ */
+type BackgroundRecoveryPayload = {
+    content: string;
+    attachments: ChatMessage['attachments'];
+};
+
+/**
+ * Message handler signature exposed to background recovery helpers.
+ *
+ * @private internal helper for LLM chat background resilience
+ */
+type HandleMessageFn = (
+    messageContent: string,
+    attachments?: ChatMessage['attachments'],
+) => Promise<void>;
+
 const THINKING_MESSAGE_DELAY_MIN_MS = 1000;
 const THINKING_MESSAGE_DELAY_MAX_MS = 5000;
 
@@ -158,6 +178,13 @@ export function LlmChat(props: LlmChatProps) {
         content: string;
         attachments: ChatMessage['attachments'];
     } | null>(null);
+
+    // Background recovery tracking for long-running responses interrupted by visibility changes.
+    const requestInFlightRef = useRef(false);
+    const backgroundedDuringRequestRef = useRef(false);
+    const pendingBackgroundRecoveryRef = useRef<BackgroundRecoveryPayload | null>(null);
+    const isBackgroundRecoveryRunningRef = useRef(false);
+    const handleMessageRef = useRef<HandleMessageFn | null>(null);
 
     // Refs to keep latest state for long-lived handlers
     const messagesRef = useRef<ChatMessage[]>([]);
@@ -268,9 +295,12 @@ export function LlmChat(props: LlmChatProps) {
     }, [messages, participants, onChange]);
 
     // Handle user messages and LLM responses
-    const handleMessage = useCallback(
-        async (messageContent: string, attachments: ChatMessage['attachments'] = []) => {
+    const handleMessage = useCallback<HandleMessageFn>(
+        async (messageContent, attachments = []) => {
             hasUserInteractedRef.current = true;
+            requestInFlightRef.current = true;
+            backgroundedDuringRequestRef.current = false;
+            pendingBackgroundRecoveryRef.current = null;
 
             const userMessageCreatedAt = $getCurrentDate();
             const assistantMessageStartedAt = $getCurrentDate();
@@ -432,6 +462,11 @@ export function LlmChat(props: LlmChatProps) {
                 // Store the failed message for retry functionality
                 setLastFailedMessage({ content: messageContent, attachments });
 
+                if (backgroundedDuringRequestRef.current) {
+                    pendingBackgroundRecoveryRef.current = { content: messageContent, attachments };
+                    return;
+                }
+
                 // Call custom error handler if provided
                 if (onError) {
                     onError(error, () => handleRetryRef.current(), { content: messageContent, attachments });
@@ -453,6 +488,8 @@ export function LlmChat(props: LlmChatProps) {
 
                 // Clear task progress
                 setTasksProgress([]);
+            } finally {
+                requestInFlightRef.current = false;
             }
         },
         [messages, llmTools, props.thread, onError, llmParticipantName, userParticipantName, thinkingVariants],
@@ -494,6 +531,48 @@ export function LlmChat(props: LlmChatProps) {
     useEffect(() => {
         handleRetryRef.current = handleRetry;
     }, [handleRetry]);
+
+    // Keep handleMessage ref in sync so background recovery can re-trigger the latest handler.
+    useEffect(() => {
+        handleMessageRef.current = handleMessage;
+    }, [handleMessage]);
+
+    // Attempt to recover interrupted streams when the tab becomes visible again.
+    useEffect(() => {
+        if (typeof document === 'undefined') {
+            return;
+        }
+
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'hidden') {
+                if (requestInFlightRef.current) {
+                    backgroundedDuringRequestRef.current = true;
+                }
+                return;
+            }
+
+            if (
+                document.visibilityState === 'visible' &&
+                !requestInFlightRef.current &&
+                !isBackgroundRecoveryRunningRef.current &&
+                pendingBackgroundRecoveryRef.current &&
+                handleMessageRef.current
+            ) {
+                const pending = pendingBackgroundRecoveryRef.current;
+                pendingBackgroundRecoveryRef.current = null;
+                isBackgroundRecoveryRunningRef.current = true;
+                const nextRun = handleMessageRef.current(pending.content, pending.attachments);
+                nextRun.finally(() => {
+                    isBackgroundRecoveryRunningRef.current = false;
+                });
+            }
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+        };
+    }, []);
 
     // Handle dismissing error dialog
     const handleDismissError = useCallback(() => {

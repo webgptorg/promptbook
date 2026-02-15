@@ -26,7 +26,7 @@
 
 ---
 
-[ ]
+[x] ~$0.19 8 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
 [✨📒] When the user asks the chat on the phone and puts the app on the background, the app fails with a connection error despite of `STREAM_KEEP_ALIVE` logic
 
@@ -47,4 +47,5 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
 
