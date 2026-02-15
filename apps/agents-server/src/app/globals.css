@@ -301,7 +301,6 @@ textarea:focus-visible {
         0 14px 32px rgba(2, 6, 23, 0.36),
         0 0 0 3px rgba(var(--agent-chat-scroll-accent-rgb) / 0.16),
         inset 0 1px 0 rgba(255, 255, 255, 0.18);
-    backdrop-filter: blur(12px) saturate(150%);
 }
 
 .agent-chat-route-surface .chat-scrollToBottom.chat-scrollToBottom:hover {
@@ -339,7 +338,6 @@ textarea:focus-visible {
     box-shadow:
         0 10px 24px rgba(2, 6, 23, 0.44),
         inset 0 1px 0 rgba(224, 242, 254, 0.2);
-    backdrop-filter: blur(10px) saturate(130%);
 }
 
 .agent-chat-route-surface .chat-scrollToBottom.chat-scrollToBottom + [role='status']::after {
