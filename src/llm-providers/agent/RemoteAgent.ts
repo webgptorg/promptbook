@@ -412,7 +412,6 @@ export class RemoteAgent extends Agent {
                     if (value) {
                         const textChunk = decoder.decode(value, { stream: true });
 
-                        let sawToolCalls = false;
                         let hasNonEmptyText = false;
                         const textLines: string[] = [];
                         const lines = textChunk.split(/\r?\n/);
@@ -438,7 +437,6 @@ export class RemoteAgent extends Agent {
                                             rawResponse: {} as TODO_any,
                                             toolCalls: getActiveToolCalls(),
                                         });
-                                        sawToolCalls = true;
                                         isToolCallLine = true;
                                     }
                                 } catch (error) {
@@ -448,23 +446,18 @@ export class RemoteAgent extends Agent {
 
                             if (!isToolCallLine) {
                                 textLines.push(line);
-                                if (line.length > 0) {
+                                if (trimmedLine.length > 0) {
                                     hasNonEmptyText = true;
                                 }
                             }
                         }
 
-                        if (sawToolCalls) {
-                            if (!hasNonEmptyText) {
-                                continue;
-                            }
-
-                            const textChunkWithoutToolCalls = textLines.join('\n');
-                            content += textChunkWithoutToolCalls;
-                        } else {
-                            // console.debug('RemoteAgent chunk:', textChunk);
-                            content += textChunk;
+                        if (!hasNonEmptyText) {
+                            continue;
                         }
+
+                        const textChunkWithoutToolCalls = textLines.join('\n');
+                        content += textChunkWithoutToolCalls;
 
                         if (!hasReceivedModelOutput && content.trim().length > 0) {
                             hasReceivedModelOutput = true;

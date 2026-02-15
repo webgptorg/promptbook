@@ -11,7 +11,7 @@
 
 ---
 
-[ ]
+[x] ~$0.16 5 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
 [✨📒] Do not show `STREAM_KEEP_ALIVE` in the chatting with agent
 
@@ -47,3 +47,4 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
