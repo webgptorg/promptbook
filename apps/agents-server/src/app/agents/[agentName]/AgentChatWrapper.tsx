@@ -57,11 +57,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
     // Error state management
     const [currentError, setCurrentError] = useState<FriendlyErrorMessage | null>(null);
     const [retryCallback, setRetryCallback] = useState<(() => void) | null>(null);
-    const [failedMessage, setFailedMessage] = useState<string | null>(null);
-
-    // Chat reset state
     const [chatKey, setChatKey] = useState<number>(0);
-    const [resetMessage, setResetMessage] = useState<string | undefined>(undefined);
 
     const handleFeedback = useCallback(
         async (feedback: {
@@ -130,18 +126,16 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
     const { soundSystem } = useSoundSystem();
 
     // Handle errors from chat
-    const handleError = useCallback((error: unknown, retry: () => void, failedMessage: { content: string }) => {
+    const handleError = useCallback((error: unknown, retry: () => void) => {
         const friendlyError = handleChatError(error, 'AgentChatWrapper');
         setCurrentError(friendlyError);
         setRetryCallback(() => retry);
-        setFailedMessage(failedMessage.content);
     }, []);
 
     // Handle error dialog dismiss
     const handleDismissError = useCallback(() => {
         setCurrentError(null);
         setRetryCallback(null);
-        setFailedMessage(null);
     }, []);
 
     // Handle retry from error dialog
@@ -153,11 +147,8 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
 
     // Handle reset from error dialog
     const handleReset = useCallback(() => {
-        if (failedMessage) {
-            setResetMessage(failedMessage);
-            setChatKey((prevKey) => prevKey + 1); // Increment key to force re-mount
-        }
-    }, [failedMessage]);
+        setChatKey((prevKey) => prevKey + 1); // Increment key to force re-mount
+    }, []);
 
     const handleMessagesChange = useCallback(
         (messages: ReadonlyArray<ChatMessage>) => {
@@ -185,7 +176,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
                 onFileUpload={handleFileUpload}
                 onError={handleError}
                 defaultMessage={defaultMessage}
-                autoExecuteMessage={resetMessage || autoExecuteMessage}
+                autoExecuteMessage={autoExecuteMessage}
                 persistenceKey={persistenceKey}
                 onChange={handleMessagesChange}
                 speechRecognition={speechRecognition}
