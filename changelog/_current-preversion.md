@@ -1,3 +1,4 @@
+-   Added a custom Agents Server application error page with a branded layout, digest tracking, and proactive troubleshooting guidance for failed navigations.
 -   Updated Agents Server `/admin/api-tokens` token rows to use the shared `<SecretInput/>` control, so API tokens are masked by default and can be toggled visible/hidden with the eye icon while keeping copy-to-clipboard inline.
 -   Added `--priority <minimum-priority>` to `scripts/run-codex-prompts` so coding tasks can be filtered by priority threshold (default `0` keeps current behavior), and updated runner stats to show skipped runnable tasks as `Priority <N` while preserving `--agent`/`--model` behavior.
 -   Fixed `USE IMAGE GENERATOR` to follow notation-only behavior: agents are now instructed to output `![alt](?image-prompt=...)` placeholders (instead of calling a generation tool), while the UI keeps generating images from that notation.
