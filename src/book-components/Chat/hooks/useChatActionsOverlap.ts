@@ -19,6 +19,12 @@ export type ChatActionsOverlapConfig = {
      */
     messageSelector: string;
     /**
+     * Optional selector for the actual message content region used for overlap checks.
+     *
+     * When not provided or when no matching element is found, the full message element is used.
+     */
+    messageCollisionSelector?: string;
+    /**
      * Messages used to trigger overlap recalculation.
      */
     messages: ReadonlyArray<unknown>;
@@ -59,6 +65,7 @@ function isActionsOverlappingFirstVisibleMessage(
     actionsElement: HTMLElement | null,
     chatMessagesElement: HTMLElement | null,
     messageSelector: string,
+    messageCollisionSelector?: string,
 ): boolean {
     if (!actionsElement || !chatMessagesElement) {
         return false;
@@ -85,11 +92,18 @@ function isActionsOverlappingFirstVisibleMessage(
         return false;
     }
 
-    const messageRect = firstVisibleMessage.getBoundingClientRect();
-    const overlapsVertically = actionsRect.bottom > messageRect.top && actionsRect.top < messageRect.bottom;
-    const overlapsHorizontally = actionsRect.right > messageRect.left && actionsRect.left < messageRect.right;
+    const collisionElements = messageCollisionSelector
+        ? Array.from(firstVisibleMessage.querySelectorAll<HTMLElement>(messageCollisionSelector))
+        : [];
+    const overlapTargets = collisionElements.length > 0 ? collisionElements : [firstVisibleMessage];
 
-    return overlapsVertically && overlapsHorizontally;
+    return overlapTargets.some((targetElement) => {
+        const targetRect = targetElement.getBoundingClientRect();
+        const overlapsVertically = actionsRect.bottom > targetRect.top && actionsRect.top < targetRect.bottom;
+        const overlapsHorizontally = actionsRect.right > targetRect.left && actionsRect.left < targetRect.right;
+
+        return overlapsVertically && overlapsHorizontally;
+    });
 }
 
 /**
@@ -98,7 +112,7 @@ function isActionsOverlappingFirstVisibleMessage(
  * @private component of `<Chat/>`
  */
 export function useChatActionsOverlap(config: ChatActionsOverlapConfig): ChatActionsOverlapResult {
-    const { chatMessagesRef, handleScroll, messageSelector, messages } = config;
+    const { chatMessagesRef, handleScroll, messageSelector, messageCollisionSelector, messages } = config;
     const actionsFadeDelayMs = 150;
     const chatMessagesElementRef = useRef<HTMLDivElement | null>(null);
     const actionsRef = useRef<HTMLDivElement | null>(null);
@@ -118,10 +132,11 @@ export function useChatActionsOverlap(config: ChatActionsOverlapConfig): ChatAct
                 actionsRef.current,
                 chatMessagesElementRef.current,
                 messageSelector,
+                messageCollisionSelector,
             );
             setIsActionsOverlapping(isOverlapping);
         });
-    }, [messageSelector]);
+    }, [messageCollisionSelector, messageSelector]);
 
     const setChatMessagesElement = useCallback(
         (element: HTMLDivElement | null) => {

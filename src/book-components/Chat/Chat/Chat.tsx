@@ -176,6 +176,7 @@ export function Chat(props: ChatProps) {
     const chatMessagesElementRef = useRef<HTMLDivElement | null>(null);
 
     const chatMessageSelector = `.${styles.chatMessage}`;
+    const chatMessageCollisionTargetSelector = `.${styles.messageStack}`;
     const {
         actionsRef,
         setChatMessagesElement: setChatMessagesElementWithOverlap,
@@ -186,6 +187,7 @@ export function Chat(props: ChatProps) {
         chatMessagesRef,
         handleScroll,
         messageSelector: chatMessageSelector,
+        messageCollisionSelector: chatMessageCollisionTargetSelector,
         messages: postprocessedMessages,
     });
 
