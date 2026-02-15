@@ -16,13 +16,13 @@ jest.mock('./createServerAgentReferenceResolver', () => ({
     createServerAgentReferenceResolver: jest.fn(),
 }));
 
+import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
+import { $provideServer } from '@/src/tools/$provideServer';
+import { getFederatedServers } from '../getFederatedServers';
 import {
     $invalidateProvidedAgentReferenceResolverCache,
     $provideAgentReferenceResolver,
 } from './$provideAgentReferenceResolver';
-import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
-import { $provideServer } from '@/src/tools/$provideServer';
-import { getFederatedServers } from '../getFederatedServers';
 import { createServerAgentReferenceResolver } from './createServerAgentReferenceResolver';
 
 const mockProvideAgentCollectionForServer = jest.mocked($provideAgentCollectionForServer);
@@ -36,7 +36,9 @@ const mockCreateServerAgentReferenceResolver = jest.mocked(createServerAgentRefe
  * @param token - Unique token proving which resolver instance was returned.
  * @returns Minimal resolver implementation.
  */
-function createResolverStub(token: string): { resolveCommitmentContent: (_type: string, _content: string) => Promise<string> } {
+function createResolverStub(token: string): {
+    resolveCommitmentContent: (_type: string, _content: string) => Promise<string>;
+} {
     return {
         resolveCommitmentContent: async () => token,
     };
@@ -49,7 +51,7 @@ describe('$provideAgentReferenceResolver', () => {
 
         const collectionStub = {
             listAgents: async () => [],
-        } as Awaited<ReturnType<typeof $provideAgentCollectionForServer>>;
+        } as unknown as Awaited<ReturnType<typeof $provideAgentCollectionForServer>>;
         const serverStub = {
             publicUrl: new URL('https://local.example'),
         } as Awaited<ReturnType<typeof $provideServer>>;
@@ -65,9 +67,9 @@ describe('$provideAgentReferenceResolver', () => {
      * @param resolver - Stub resolver to cast.
      * @returns Typed resolver for mocked factory return values.
      */
-    function asFactoryResolver(
-        resolver: { resolveCommitmentContent: (_type: string, _content: string) => Promise<string> },
-    ): Awaited<ReturnType<typeof createServerAgentReferenceResolver>> {
+    function asFactoryResolver(resolver: {
+        resolveCommitmentContent: (_type: string, _content: string) => Promise<string>;
+    }): Awaited<ReturnType<typeof createServerAgentReferenceResolver>> {
         return resolver as Awaited<ReturnType<typeof createServerAgentReferenceResolver>>;
     }
 
