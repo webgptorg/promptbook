@@ -57,28 +57,14 @@
 
 [ ]
 
-[✨🍂] Make Agent Server Application menu on the mobile better.
+[✨🍂] Make better Agent Server Application menu both on mobile and desktop
 
 -   @@@
--   Keep in mind you are working only on the mobile version of the menu. The desktop menu should stay the same. It will be improved in another prompt.
 -   Do a proper analysis of the current menu before you start implementing.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 
 ![Mobile menu changes](prompts/screenshots/2026-02-1350-agents-server-better-menu-4.png)
-
----
-
-[ ]
-
-[✨🍂] Make Agent Server Application menu on the desktop better.
-
--   @@@
--   Keep in mind you are working only on the desktop version of the menu. The mobile menu should stay the same.
--   Do a proper analysis of the current menu before you start implementing.
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   You are working with the [Agents Server](apps/agents-server)
-
 ![Desktop menu changes](prompts/screenshots/2026-02-1350-agents-server-better-menu-5.png)
 
 ---
