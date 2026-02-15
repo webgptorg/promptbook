@@ -1,6 +1,9 @@
 @font-face {
     font-family: 'OpenMojiBlack';
-    src: url('https://s6.ptbk.io/fonts/OpenMoji-black-glyf.woff2') format('woff2'); /* <- TODO: [🐱‍🚀] Dynamically load from /servers.ts */
+    src:
+        url('/fonts/OpenMoji-black-glyf.woff2') format('woff2'),
+        url('https://s6.ptbk.io/fonts/OpenMoji-black-glyf.woff2') format('woff2'); /* <- TODO: [🐱‍🚀] Dynamically load from /servers.ts */
+    font-display: swap;
     unicode-range: U+23, U+2A, U+2D, U+30-39, U+A9, U+AE, U+200D, U+203C, U+2049, U+20E3, U+2117, U+2120, U+2122, U+2139,
         U+2194-2199, U+21A9, U+21AA, U+229C, U+231A, U+231B, U+2328, U+23CF, U+23E9-23F3, U+23F8-23FE, U+24C2, U+25A1,
         U+25AA-25AE, U+25B6, U+25C0, U+25C9, U+25D0, U+25D1, U+25E7-25EA, U+25ED, U+25EE, U+25FB-25FE, U+2600-2605,
@@ -28,7 +31,9 @@
 
 @font-face {
     font-family: 'OpenMojiColor';
-    src: url('https://s6.ptbk.io/fonts/OpenMoji-color-cbdt.woff2') format('woff2');
+    src:
+        url('/fonts/OpenMoji-color-cbdt.woff2') format('woff2'),
+        url('https://s6.ptbk.io/fonts/OpenMoji-color-cbdt.woff2') format('woff2');
     font-display: swap;
     unicode-range: U+23, U+2A, U+2D, U+30-39, U+A9, U+AE, U+200D, U+203C, U+2049, U+20E3, U+2117, U+2120, U+2122, U+2139,
         U+2194-2199, U+21A9, U+21AA, U+229C, U+231A, U+231B, U+2328, U+23CF, U+23E9-23F3, U+23F8-23FE, U+24C2, U+25A1,
@@ -80,15 +85,21 @@
     font-family: Arial, Helvetica, sans-serif, 'OpenMojiColor', 'OpenMojiBlack';
 
     --chat-message-min-width: 150px;
-    --chat-message-max-width: min(70%, 600px);
     --chat-message-avatar-gap: 12px;
+    --chat-message-avatar-size: 40px;
+    --chat-message-max-width: min(
+        70%,
+        600px,
+        calc(100% - var(--chat-message-avatar-size) - var(--chat-message-avatar-gap))
+    );
     /* <- TODO: [🧠][🎱] Better, define other fonts */
 }
 
 .chatMainFlow {
     width: 100%;
     height: 100%;
-    max-width: 100vw;
+    max-width: 100%;
+    min-width: 0;
     display: grid;
     grid-template:
         '🟦' min-content
@@ -215,6 +226,7 @@
 .chatMainFlow .chatMessages {
     grid-area: 💬;
     width: 100%;
+    min-width: 0;
     height: 100%;
     z-index: 10;
     padding: 24px 20px 16px;
@@ -256,6 +268,7 @@
     position: relative;
     animation: messageSlideIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     max-width: 100%;
+    min-width: 0;
 }
 
 .chatMainFlow .chatMessage .messageStack {
@@ -263,6 +276,7 @@
     flex-direction: column;
     align-items: flex-start;
     max-width: var(--chat-message-max-width);
+    min-width: 0;
 }
 
 .chatMainFlow .chatMessage.isMe .messageStack {
@@ -552,7 +566,8 @@
 
 /* Sender Avatar */
 .chatMainFlow .chatMessage .avatar {
-    width: 40px;
+    width: var(--chat-message-avatar-size);
+    height: var(--chat-message-avatar-size);
     aspect-ratio: 1 / 1;
     margin: 0 0 4px;
     flex-shrink: 0;
@@ -585,7 +600,7 @@
     padding: 14px 18px;
     border-radius: 20px;
     max-width: 100%;
-    min-width: var(--chat-message-min-width);
+    min-width: min(var(--chat-message-min-width), 100%);
     text-align: left;
     margin-bottom: 4px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -1133,6 +1148,7 @@
     display: flex;
     align-items: flex-end;
     gap: 8px;
+    min-width: 0;
     background: #ffffff;
     border: 1px solid rgba(0, 0, 0, 0.08);
     border-radius: 28px;
@@ -1300,7 +1316,7 @@
     outline: none;
     background: transparent;
     color: #0f172a;
-    min-width: 100px;
+    min-width: 0;
     max-height: 200px;
     font-size: 15px;
     line-height: 1.5;
@@ -2959,7 +2975,12 @@
 @media (max-width: 768px) {
     .Chat {
         --chat-message-min-width: 100px;
-        --chat-message-max-width: min(85%, 560px);
+        --chat-message-avatar-size: 36px;
+        --chat-message-max-width: min(
+            85%,
+            560px,
+            calc(100% - var(--chat-message-avatar-size) - var(--chat-message-avatar-gap))
+        );
         --chat-message-avatar-gap: 10px;
     }
 
@@ -2983,8 +3004,6 @@
     }
 
     .chatMainFlow .chatMessage .avatar {
-        width: 36px;
-        height: 36px;
         margin: 0 0 4px;
     }
 
@@ -3105,7 +3124,12 @@
 @media (max-width: 480px) {
     .Chat {
         --chat-message-min-width: 80px;
-        --chat-message-max-width: min(90%, 520px);
+        --chat-message-avatar-size: 32px;
+        --chat-message-max-width: min(
+            90%,
+            520px,
+            calc(100% - var(--chat-message-avatar-size) - var(--chat-message-avatar-gap))
+        );
         --chat-message-avatar-gap: 8px;
     }
 
@@ -3125,8 +3149,6 @@
     }
 
     .chatMainFlow .chatMessage .avatar {
-        width: 32px;
-        height: 32px;
         margin: 0 0 4px;
     }
 
