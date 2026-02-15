@@ -1,5 +1,6 @@
 'use client';
 
+import { simplifyKnowledgeLabel } from '../../../utils/knowledge/simplifyKnowledgeLabel';
 import type { ParsedCitation } from '../utils/parseCitationsFromContent';
 import styles from './SourceChip.module.css';
 
@@ -51,8 +52,8 @@ export function SourceChip({ citation, onClick, className, suffix }: SourceChipP
         }
     };
 
-    // Extract file name without extension for cleaner display
-    const displayName = citation.source.replace(/\.[^/.]+$/, '');
+    // Keep source chips concise and human-readable for CDN-backed knowledge files.
+    const displayName = simplifyKnowledgeLabel(citation.source);
 
     // Get file extension for icon
     const fileExtension = citation.source.split('.').pop()?.toLowerCase() || 'file';
