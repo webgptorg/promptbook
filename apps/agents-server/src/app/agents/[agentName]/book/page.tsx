@@ -6,7 +6,6 @@ import { isUserAdmin } from '@/src/utils/isUserAdmin';
 import { headers } from 'next/headers';
 import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
 import { isAgentDeleted } from '../_utils';
-import { BackToAgentButton } from '@/src/components/BackToAgentButton/BackToAgentButton';
 import { generateAgentMetadata } from '../generateAgentMetadata';
 import { BookEditorWrapper } from './BookEditorWrapper';
 import { DeletedAgentBanner } from '../../../../components/DeletedAgentBanner';
@@ -39,8 +38,7 @@ export default async function AgentBookPage({ params }: { params: Promise<{ agen
 
     return (
         <div className={`agents-server-viewport-width h-[calc(100dvh-60px)] relative`}>
-            <div className="flex items-center gap-2 border-b border-slate-200 bg-white/80 px-4 py-3 backdrop-blur">
-                <BackToAgentButton agentName={agentName} />
+            <div className="flex items-center border-b border-slate-200 bg-white/80 px-4 py-3 backdrop-blur">
                 <span className="text-sm font-semibold text-slate-700">Book</span>
             </div>
             <BookEditorWrapper agentName={agentName} initialAgentSource={agentSource} />

@@ -1,6 +1,5 @@
 'use server';
 
-import { BackToAgentButton } from '@/src/components/BackToAgentButton/BackToAgentButton';
 import { ForbiddenPage } from '@/src/components/ForbiddenPage/ForbiddenPage';
 import { getMetadata } from '@/src/database/getMetadata';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
@@ -49,7 +48,6 @@ export default async function AgentBookAndChatPage({ params }: { params: Promise
 
     return (
         <div className={`agents-server-viewport-width h-[calc(100dvh-60px)] relative`}>
-            <BackToAgentButton agentName={agentName} />
             <AgentBookAndChat
                 agentName={agentName}
                 initialAgentSource={agentSource}

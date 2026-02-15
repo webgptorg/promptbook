@@ -1038,87 +1038,88 @@ export function Header(props: HeaderProps) {
         <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200 h-16">
             {isChangePasswordOpen && <ChangePasswordDialog onClose={() => setIsChangePasswordOpen(false)} />}
             <div className="w-full px-4 h-full">
-                <div className="flex items-center justify-between h-full">
-                    <div className="flex min-w-0 items-center gap-3">
-                        <div className="relative flex min-w-0 items-center gap-1">
-                            <HeadlessLink
-                                href="/"
-                                className="flex min-w-0 items-center gap-3 hover:opacity-80 transition-opacity"
-                            >
-                                {serverLogoUrl ? (
-                                    // Note: `next/image` does not load external images well without extra config
-                                    // eslint-disable-next-line @next/next/no-img-element
-                                    <img
-                                        src={serverLogoUrl}
-                                        alt={serverName}
-                                        width={32}
-                                        height={32}
-                                        className="w-8 h-8 object-contain flex-shrink-0"
-                                    />
-                                ) : (
-                                    <Image
-                                        src={promptbookLogoBlueTransparent}
-                                        alt={serverName}
-                                        width={32}
-                                        height={32}
-                                        className="w-8 h-8 object-contain flex-shrink-0"
-                                    />
-                                )}
-                                <h1 className="text-xl font-bold tracking-tight text-gray-900 truncate">
-                                    {serverName}
-                                </h1>
-                            </HeadlessLink>
-                            {federatedServers.length > 0 && (
-                                <button
-                                    className="hidden lg:inline-flex p-1 text-gray-400 hover:text-gray-700 transition-colors"
-                                    onClick={() => setIsFederatedOpen(!isFederatedOpen)}
-                                    onBlur={() => setTimeout(() => setIsFederatedOpen(false), 200)}
-                                    title="Switch server"
-                                    aria-label="Switch server"
+                <div className="flex items-center justify-between h-full gap-6">
+                    <div className="flex-shrink-0">
+                        <div className="flex min-w-0 items-center gap-3 rounded-2xl border border-gray-200 bg-white/90 px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm shadow-slate-200/60 backdrop-blur">
+                            <div className="relative flex min-w-0 items-center gap-3">
+                                <HeadlessLink
+                                    href="/"
+                                    className="flex min-w-0 items-center gap-3 hover:opacity-80 transition-opacity"
                                 >
-                                    <ChevronDown className="w-4 h-4" />
-                                </button>
-                            )}
-                            {isFederatedOpen && (
-                                <div className="absolute left-0 top-full z-50 mt-2 w-56 rounded-md border border-gray-100 bg-white py-1 shadow-lg animate-in fade-in zoom-in-95 duration-200 max-h-[80vh] overflow-y-auto">
-                                    {federatedDropdownItems.map((subItem, subIndex) => {
-                                        const className = `block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 ${
-                                            subItem.isBold ? 'font-medium' : ''
-                                        } ${subItem.isBordered ? 'border-b border-gray-100' : ''}`;
+                                    {serverLogoUrl ? (
+                                        // Note: `next/image` does not load external images well without extra config
+                                        // eslint-disable-next-line @next/next/no-img-element
+                                        <img
+                                            src={serverLogoUrl}
+                                            alt={serverName}
+                                            width={32}
+                                            height={32}
+                                            className="w-8 h-8 object-contain flex-shrink-0"
+                                        />
+                                    ) : (
+                                        <Image
+                                            src={promptbookLogoBlueTransparent}
+                                            alt={serverName}
+                                            width={32}
+                                            height={32}
+                                            className="w-8 h-8 object-contain flex-shrink-0"
+                                        />
+                                    )}
+                                    <span className="text-base font-bold tracking-tight text-gray-900 truncate">
+                                        {serverName}
+                                    </span>
+                                </HeadlessLink>
+                                {federatedServers.length > 0 && (
+                                    <button
+                                        className="hidden lg:inline-flex p-1 text-gray-400 hover:text-gray-700 transition-colors"
+                                        onClick={() => setIsFederatedOpen(!isFederatedOpen)}
+                                        onBlur={() => setTimeout(() => setIsFederatedOpen(false), 200)}
+                                        title="Switch server"
+                                        aria-label="Switch server"
+                                    >
+                                        <ChevronDown className="w-4 h-4" />
+                                    </button>
+                                )}
+                                {isFederatedOpen && (
+                                    <div className="absolute left-0 top-full z-50 mt-2 w-56 rounded-md border border-gray-100 bg-white py-1 shadow-lg animate-in fade-in zoom-in-95 duration-200 max-h-[80vh] overflow-y-auto">
+                                        {federatedDropdownItems.map((subItem, subIndex) => {
+                                            const className = `block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 ${
+                                                subItem.isBold ? 'font-medium' : ''
+                                            } ${subItem.isBordered ? 'border-b border-gray-100' : ''}`;
 
-                                        if (subItem.href) {
+                                            if (subItem.href) {
+                                                return (
+                                                    <HeadlessLink
+                                                        key={`federated-${subIndex}`}
+                                                        href={subItem.href}
+                                                        className={className}
+                                                        onClick={() => setIsFederatedOpen(false)}
+                                                    >
+                                                        {subItem.label}
+                                                    </HeadlessLink>
+                                                );
+                                            }
+
                                             return (
-                                                <HeadlessLink
-                                                    key={`federated-${subIndex}`}
-                                                    href={subItem.href}
-                                                    className={className}
-                                                    onClick={() => setIsFederatedOpen(false)}
-                                                >
+                                                <span key={`federated-${subIndex}`} className={className}>
                                                     {subItem.label}
-                                                </HeadlessLink>
+                                                </span>
                                             );
-                                        }
+                                        })}
+                                    </div>
+                                )}
+                            </div>
 
-                                        return (
-                                            <span key={`federated-${subIndex}`} className={className}>
-                                                {subItem.label}
-                                            </span>
-                                        );
-                                    })}
-                                </div>
-                            )}
-                        </div>
-
-                        <nav className="hidden lg:flex items-center gap-3 min-w-0">
                             <ChevronRight className="h-4 w-4 text-gray-300" />
+
                             {isAdmin ? (
                                 <div className="relative min-w-0">
                                     <button
-                                        className="inline-flex items-center gap-1 rounded-md px-2 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 min-w-0"
+                                        className="flex min-w-0 items-center gap-1 rounded-full border border-transparent px-3 py-1 text-sm font-semibold text-gray-900 hover:border-gray-200 hover:bg-gray-100 transition"
                                         onClick={() => setIsAgentsOpen(!isAgentsOpen)}
                                         onBlur={() => setTimeout(() => setIsAgentsOpen(false), 200)}
                                     >
-                                        <span className="truncate max-w-[260px]">{activeAgentLabel}</span>
+                                        <span className="truncate max-w-[200px]">{activeAgentLabel}</span>
                                         <ChevronDown className="h-4 w-4 text-gray-400" />
                                     </button>
                                     {isAgentsOpen && (
@@ -1157,9 +1158,9 @@ export function Header(props: HeaderProps) {
                             ) : (
                                 <HeadlessLink
                                     href={activeAgentHref}
-                                    className="inline-flex min-w-0 items-center rounded-md px-2 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                                    className="inline-flex min-w-0 items-center rounded-full px-3 py-1 text-sm font-semibold text-gray-900 hover:bg-gray-100 transition"
                                 >
-                                    <span className="truncate max-w-[260px]">{activeAgentLabel}</span>
+                                    <span className="truncate max-w-[200px]">{activeAgentLabel}</span>
                                 </HeadlessLink>
                             )}
 
@@ -1168,7 +1169,7 @@ export function Header(props: HeaderProps) {
                                     <ChevronRight className="h-4 w-4 text-gray-300" />
                                     <div className="relative">
                                         <button
-                                            className="inline-flex items-center gap-1 rounded-md px-2 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                                            className="flex items-center gap-1 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 hover:bg-gray-100 transition"
                                             onClick={() => setIsAgentViewOpen(!isAgentViewOpen)}
                                             onBlur={() => setTimeout(() => setIsAgentViewOpen(false), 200)}
                                         >
@@ -1192,8 +1193,11 @@ export function Header(props: HeaderProps) {
                                     </div>
                                 </>
                             )}
+                        </div>
+                    </div>
 
-                            <div className="mx-1 h-5 w-px bg-gray-200" />
+                    <div className="hidden lg:flex flex-1 justify-center">
+                        <nav className="flex items-center gap-6">
                             {menuItems.map((item, index) => {
                                 if (item.type === 'link') {
                                     return (
@@ -1322,26 +1326,24 @@ export function Header(props: HeaderProps) {
                         </nav>
                     </div>
 
-                    {/* Hoisted Menu Items */}
-                    {menuHoisting && menuHoisting.menu.length > 0 && (
-                        <div className="hidden lg:flex items-center gap-2 border-r border-gray-200 pr-4 mr-2">
-                            {menuHoisting.menu.map((item, index) => (
-                                <button
-                                    key={index}
-                                    onClick={item.onClick}
-                                    className={`p-2 rounded-md hover:bg-gray-100 transition-colors text-gray-600 hover:text-gray-900 ${
-                                        item.isActive ? 'bg-gray-100 text-gray-900' : ''
-                                    }`}
-                                    title={item.name}
-                                >
-                                    {item.icon}
-                                </button>
-                            ))}
-                        </div>
-                    )}
-
                     {/* CTA Button & Mobile Menu Toggle */}
                     <div className="flex items-center gap-4">
+                        {menuHoisting && menuHoisting.menu.length > 0 && (
+                            <div className="hidden lg:flex items-center gap-2 border-r border-gray-200 pr-4 mr-2">
+                                {menuHoisting.menu.map((item, index) => (
+                                    <button
+                                        key={index}
+                                        onClick={item.onClick}
+                                        className={`p-2 rounded-md hover:bg-gray-100 transition-colors text-gray-600 hover:text-gray-900 ${
+                                            item.isActive ? 'bg-gray-100 text-gray-900' : ''
+                                        }`}
+                                        title={item.name}
+                                    >
+                                        {item.icon}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
                         <HeaderControlPanelDropdown />
                         {just(false /* TODO: [🧠] Figure out what to do with call to action */) && (
                             <a href="https://ptbk.io/?modal=get-started" target="_blank" className="hidden md:block">
@@ -1441,9 +1443,9 @@ export function Header(props: HeaderProps) {
                         }}
                     >
                         <nav className="mx-auto flex flex-col gap-4 px-6">
-                            <div className="py-2 border-b border-gray-100">
-                                <div className="flex items-center gap-2 text-sm font-semibold text-gray-900">
-                                    <span className="truncate">{serverName}</span>
+                            <div className="border-b border-gray-100 pb-6 text-center">
+                                <div className="flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-gray-500">
+                                    <span>Enter menu</span>
                                     {federatedServers.length > 0 && (
                                         <button
                                             className="inline-flex p-1 text-gray-500 hover:text-gray-800"
@@ -1458,8 +1460,9 @@ export function Header(props: HeaderProps) {
                                         </button>
                                     )}
                                 </div>
+                                <p className="mt-1 text-lg font-semibold text-gray-900 truncate">{serverName}</p>
                                 {isFederatedOpen && federatedDropdownItems.length > 0 && (
-                                    <div className="mt-2 flex flex-col gap-1 rounded-md border border-gray-100 bg-gray-50 p-2">
+                                    <div className="mt-3 mx-auto w-full max-w-[90vw] flex flex-col gap-1 rounded-md border border-gray-100 bg-gray-50 p-2">
                                         {federatedDropdownItems.map((subItem, subIndex) => {
                                             const className = `block rounded px-2 py-1.5 text-sm text-gray-700 hover:bg-white ${
                                                 subItem.isBold ? 'font-medium' : ''
@@ -1484,97 +1487,102 @@ export function Header(props: HeaderProps) {
                                         })}
                                     </div>
                                 )}
-                                <div className="mt-2 flex items-center gap-2 text-sm text-gray-500">
-                                    <ChevronRight className="h-4 w-4 text-gray-300" />
-                                    {isAdmin ? (
-                                        <button
-                                            className="inline-flex items-center gap-1 text-sm font-medium text-gray-700 hover:text-gray-900"
-                                            onClick={() => setIsMobileAgentsOpen(!isMobileAgentsOpen)}
-                                        >
-                                            <span className="truncate max-w-[70vw]">{activeAgentLabel}</span>
-                                            <ChevronDown
-                                                className={`h-4 w-4 transition-transform duration-200 ${
-                                                    isMobileAgentsOpen ? 'rotate-180' : ''
-                                                }`}
-                                            />
-                                        </button>
-                                    ) : (
-                                        <HeadlessLink
-                                            href={activeAgentHref}
-                                            className="truncate max-w-[70vw] text-sm font-medium text-gray-700 hover:text-gray-900"
-                                            onClick={() => setIsMenuOpen(false)}
-                                        >
-                                            {activeAgentLabel}
-                                        </HeadlessLink>
-                                    )}
-                                </div>
-                                {isAdmin && isMobileAgentsOpen && (
-                                    <div className="mt-2 ml-6 flex flex-col gap-1 rounded-md border border-gray-100 bg-gray-50 p-2 max-h-[36vh] overflow-y-auto">
-                                        {hierarchyAgentDropdownItems.map((item, index) => {
-                                            const className = `block rounded px-2 py-1.5 text-sm ${
-                                                item.isBold
-                                                    ? 'font-medium text-gray-900 hover:text-gray-700'
-                                                    : 'text-gray-700 hover:text-gray-900'
-                                            }`;
-                                            if (item.onClick) {
-                                                return (
-                                                    <button
-                                                        key={`mobile-agent-item-${index}`}
-                                                        className={`${className} w-full text-left`}
-                                                        onClick={() => {
-                                                            void item.onClick?.();
-                                                            setIsMenuOpen(false);
-                                                        }}
-                                                    >
-                                                        {item.label}
-                                                    </button>
-                                                );
-                                            }
-                                            return (
-                                                <HeadlessLink
-                                                    key={`mobile-agent-item-${index}`}
-                                                    href={item.href || '/agents'}
-                                                    className={className}
-                                                    onClick={() => setIsMenuOpen(false)}
-                                                >
-                                                    {item.label}
-                                                </HeadlessLink>
-                                            );
-                                        })}
-                                    </div>
-                                )}
-                                {activeAgentView && activeAgentViewItems.length > 0 && (
-                                    <>
-                                        <div className="mt-2 flex items-center gap-2 text-sm text-gray-500">
-                                            <ChevronRight className="h-4 w-4 text-gray-300" />
+
+                                <div className="mt-5 flex flex-col items-center gap-3">
+                                    <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                                        <ChevronRight className="h-4 w-4 text-gray-300" />
+                                        {isAdmin ? (
                                             <button
-                                                className="inline-flex items-center gap-1 text-sm font-medium text-gray-700 hover:text-gray-900"
-                                                onClick={() => setIsMobileAgentViewOpen(!isMobileAgentViewOpen)}
+                                                className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold text-gray-900 hover:bg-gray-100 transition"
+                                                onClick={() => setIsMobileAgentsOpen(!isMobileAgentsOpen)}
                                             >
-                                                <span>{activeAgentView}</span>
+                                                <span className="truncate max-w-[60vw]">{activeAgentLabel}</span>
                                                 <ChevronDown
                                                     className={`h-4 w-4 transition-transform duration-200 ${
-                                                        isMobileAgentViewOpen ? 'rotate-180' : ''
+                                                        isMobileAgentsOpen ? 'rotate-180' : ''
                                                     }`}
                                                 />
                                             </button>
-                                        </div>
-                                        {isMobileAgentViewOpen && (
-                                            <div className="mt-2 ml-6 flex flex-col gap-1 rounded-md border border-gray-100 bg-gray-50 p-2">
-                                                {activeAgentViewItems.map((viewItem, index) => (
+                                        ) : (
+                                            <HeadlessLink
+                                                href={activeAgentHref}
+                                                className="truncate max-w-[60vw] text-sm font-semibold text-gray-900"
+                                                onClick={() => setIsMenuOpen(false)}
+                                            >
+                                                {activeAgentLabel}
+                                            </HeadlessLink>
+                                        )}
+                                    </div>
+
+                                    {isAdmin && isMobileAgentsOpen && (
+                                        <div className="w-full max-w-[90vw] flex flex-col gap-1 rounded-md border border-gray-100 bg-gray-50 p-2 max-h-[36vh] overflow-y-auto">
+                                            {hierarchyAgentDropdownItems.map((item, index) => {
+                                                const className = `block rounded px-2 py-1.5 text-sm ${
+                                                    item.isBold
+                                                        ? 'font-medium text-gray-900 hover:text-gray-700'
+                                                        : 'text-gray-700 hover:text-gray-900'
+                                                }`;
+                                                if (item.onClick) {
+                                                    return (
+                                                        <button
+                                                            key={`mobile-agent-item-${index}`}
+                                                            className={`${className} w-full text-left`}
+                                                            onClick={() => {
+                                                                void item.onClick?.();
+                                                                setIsMenuOpen(false);
+                                                            }}
+                                                        >
+                                                            {item.label}
+                                                        </button>
+                                                    );
+                                                }
+                                                return (
                                                     <HeadlessLink
-                                                        key={`mobile-view-item-${index}`}
-                                                        href={viewItem.href || '/agents'}
-                                                        className="block rounded px-2 py-1.5 text-sm text-gray-700 hover:bg-white hover:text-gray-900"
+                                                        key={`mobile-agent-item-${index}`}
+                                                        href={item.href || '/agents'}
+                                                        className={className}
                                                         onClick={() => setIsMenuOpen(false)}
                                                     >
-                                                        {viewItem.label}
+                                                        {item.label}
                                                     </HeadlessLink>
-                                                ))}
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+
+                                    {activeAgentView && activeAgentViewItems.length > 0 && (
+                                        <div className="w-full max-w-[90vw] flex flex-col gap-1">
+                                            <div className="flex items-center justify-center gap-2 text-sm font-medium text-gray-700">
+                                                <ChevronRight className="h-4 w-4 text-gray-300" />
+                                                <button
+                                                    className="inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-semibold text-gray-900 hover:bg-gray-100 transition"
+                                                    onClick={() => setIsMobileAgentViewOpen(!isMobileAgentViewOpen)}
+                                                >
+                                                    <span>{activeAgentView}</span>
+                                                    <ChevronDown
+                                                        className={`h-4 w-4 transition-transform duration-200 ${
+                                                            isMobileAgentViewOpen ? 'rotate-180' : ''
+                                                        }`}
+                                                    />
+                                                </button>
                                             </div>
-                                        )}
-                                    </>
-                                )}
+                                            {isMobileAgentViewOpen && (
+                                                <div className="flex flex-col gap-1 rounded-md border border-gray-100 bg-gray-50 p-2">
+                                                    {activeAgentViewItems.map((viewItem, index) => (
+                                                        <HeadlessLink
+                                                            key={`mobile-view-item-${index}`}
+                                                            href={viewItem.href || '/agents'}
+                                                            className="block rounded px-2 py-1.5 text-sm text-gray-700 hover:bg-white hover:text-gray-900"
+                                                            onClick={() => setIsMenuOpen(false)}
+                                                        >
+                                                            {viewItem.label}
+                                                        </HeadlessLink>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
 
                             {/* Hoisted Menu Items for Mobile */}

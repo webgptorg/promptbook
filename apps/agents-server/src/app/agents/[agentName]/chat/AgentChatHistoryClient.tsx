@@ -17,7 +17,6 @@ import {
 } from '../../../../utils/userChatClient';
 import { AgentChatSidebar } from './AgentChatSidebar';
 import { AgentChatWrapper } from '../AgentChatWrapper';
-import { BackToAgentButton } from '../../../../components/BackToAgentButton/BackToAgentButton';
 
 /**
  * Delay used before persisting chat messages to DB.
@@ -419,7 +418,6 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                         >
                             <MenuIcon className="h-5 w-5" />
                         </button>
-                        <BackToAgentButton agentName={agentName} />
                         <span className="text-sm font-semibold text-slate-700">
                             {formatText('Chat history')}
                         </span>
