@@ -7,8 +7,10 @@ import { ensureNonEmptyChatContent } from '@/src/utils/chat/ensureNonEmptyChatCo
 import { createChatStreamHandler } from '@/src/utils/createChatStreamHandler';
 import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
 import { composePromptParametersWithMemoryContext } from '@/src/utils/memoryRuntimeContext';
+import { appendChatAttachmentContext, normalizeChatAttachments } from '@/src/utils/chat/chatAttachments';
 import { resolveCurrentUserMemoryIdentity } from '@/src/utils/userMemory';
 import { Agent, computeAgentHash, PROMPTBOOK_ENGINE_VERSION, RemoteAgent } from '@promptbook-local/core';
+import type { ChatMessage } from '@promptbook-local/components';
 import { $getCurrentDate, computeHash, serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
 import { ASSISTANT_PREPARATION_TOOL_CALL_NAME } from '../../../../../../../../src/types/ToolCall';
@@ -19,6 +21,29 @@ import {
     CHAT_STREAM_KEEP_ALIVE_INTERVAL_MS,
     CHAT_STREAM_KEEP_ALIVE_TOKEN,
 } from '@/src/constants/streaming';
+
+/**
+ * Shape of the incoming chat API payload.
+ *
+ * `attachments` and `parameters` are normalized later, so they stay unknown here.
+ */
+type ChatRequestBody = {
+    message?: unknown;
+    thread?: ReadonlyArray<ChatMessage>;
+    attachments?: unknown;
+    parameters?: unknown;
+};
+
+/**
+ * Extracts safe user message content from request payload.
+ */
+function resolveUserMessageContent(rawMessage: unknown): string {
+    if (typeof rawMessage === 'string' && rawMessage.trim() !== '') {
+        return rawMessage;
+    }
+
+    return 'Tell me more about yourself.';
+}
 
 /**
  * Allow long-running streams: set to platform maximum (seconds)
@@ -74,13 +99,12 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         );
     }
 
-    const body = await request.json();
-    const {
-        message = 'Tell me more about yourself.',
-        thread,
-        attachments = [],
-        parameters: rawParameters = {},
-    } = body;
+    const body = (await request.json()) as ChatRequestBody;
+    const message = resolveUserMessageContent(body.message);
+    const thread = body.thread ? [...body.thread] : undefined;
+    const attachments = normalizeChatAttachments(body.attachments);
+    const rawParameters = body.parameters ?? {};
+    const messageWithAttachmentContext = appendChatAttachmentContext(message, attachments);
     //      <- TODO: [🐱‍🚀] To configuration DEFAULT_INITIAL_HIDDEN_MESSAGE
 
     try {
@@ -207,7 +231,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                             modelRequirements: {
                                 modelVariant: 'CHAT',
                             },
-                            content: message,
+                            content: messageWithAttachmentContext,
                             thread,
                             attachments,
                         },

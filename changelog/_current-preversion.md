@@ -67,6 +67,7 @@
 -   Voice dictation now honors the user's locale (Accept-Language -> speech recognition language) so Whisper stays in the speaker's language instead of forcing English, with the new language hint threaded through Agent chat, profile chat, and the voice test client.
 -   Fixed Agents Server chat attachments so the uploaded file metadata is forwarded to the agent prompt, keeping uploads accessible to the agent after hitting the server.
 -   Fixed Agents Server chat uploads so attached files now use the shared CDN uploader and are stored on the server before the agent logs a message, preventing dropped attachments.
+-   Hardened Agents Server chat attachment delivery end-to-end: chat now normalizes attachment payloads, appends a model-visible attachment URL section to the user prompt, uses short upload links for chat attachments, and makes `/api/upload` payload parsing/MIME handling resilient so valid files are no longer rejected by brittle client metadata.
 -   Show error message when the agent returns an empty message.
 -   Enabled `\\(...\\)` and `\\[...\\]` LaTeX delimiters in chat markdown so inline and block formulas render with the existing KaTeX pipeline, matching `$...$`/`$$...$$` behavior and keeping the shared renderer reusable across chat/agent components.
 -   Stopped KaTeX from running inside inline/fenced code in Agents Server chat so LaTeX notation remains raw when it is intentionally shown as code while still rendering normally in prose or blockquote contexts.

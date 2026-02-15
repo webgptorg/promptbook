@@ -167,4 +167,6 @@ export const bookEditorUploadHandler = createBookEditorUploadHandler();
  */
 export const chatFileUploadHandler = createFileUploadHandler({
     purpose: 'CHAT_ATTACHMENT',
+    returnShortUrl: true,
+    shortUrlPrefix: DEFAULT_SHORT_URL_PREFIX,
 });
