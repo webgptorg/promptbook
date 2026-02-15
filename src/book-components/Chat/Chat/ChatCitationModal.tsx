@@ -5,8 +5,8 @@ import { CloseIcon } from '../../icons/CloseIcon';
 import { DownloadIcon } from '../../icons/DownloadIcon';
 import { MarkdownContent } from '../MarkdownContent/MarkdownContent';
 import type { ChatParticipant } from '../types/ChatParticipant';
-import type { ParsedCitation } from '../utils/parseCitationsFromContent';
 import { getCitationLabel, isPlainTextCitation, resolveCitationPreviewUrl } from '../utils/citationHelpers';
+import type { ParsedCitation } from '../utils/parseCitationsFromContent';
 import styles from './Chat.module.css';
 import type { ChatSoundSystem } from './ChatProps';
 
@@ -38,7 +38,7 @@ export function ChatCitationModal(props: ChatCitationModalProps) {
     const previewUrl = resolveCitationPreviewUrl(citation, participants);
     const isValidUrl = !!previewUrl;
     const previewTarget = previewUrl ?? citation.source;
-    const previewBase = previewTarget.split(/[\?#]/)[0];
+    const previewBase = previewTarget.split(/[?#]/)[0];
     const previewSegment = previewBase.split('/').pop() || previewBase;
     const extension = previewSegment.split('.').pop()?.toLowerCase();
     const isImage = ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(extension || '');
