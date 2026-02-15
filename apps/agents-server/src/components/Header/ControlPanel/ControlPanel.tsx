@@ -145,15 +145,3 @@ export function HeaderControlPanelDropdown() {
     );
 }
 
-/**
- * Mobile version of the control panel rendered inside the expanded menu.
- *
- * @private
- */
-export function HeaderControlPanelMobile() {
-    return (
-        <div className="rounded-2xl border border-gray-100 bg-white/80 p-3 shadow-sm shadow-black/5">
-            <ControlPanelContent isMobile />
-        </div>
-    );
-}
