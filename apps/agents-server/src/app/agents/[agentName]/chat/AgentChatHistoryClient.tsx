@@ -1,7 +1,6 @@
 'use client';
 
 import type { ChatMessage } from '@promptbook-local/types';
-import { MenuIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAgentNaming } from '../../../../components/AgentNaming/AgentNamingContext';
@@ -76,6 +75,9 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     const closeMobileSidebar = useCallback(() => {
         setIsMobileSidebarOpen(false);
     }, []);
+    const mobileHandleVisibility = isMobileSidebarOpen
+        ? 'opacity-0 pointer-events-none'
+        : 'opacity-100 pointer-events-auto';
 
     const hasInitialAutoMessageBeenConsumedRef = useRef(false);
     const saveTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
@@ -407,21 +409,21 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 isMobileSidebarOpen={isMobileSidebarOpen}
                 onCloseMobileSidebar={closeMobileSidebar}
             />
+            <button
+                type="button"
+                onClick={openMobileSidebar}
+                className={`fixed left-2 top-1/2 z-40 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200 bg-white/90 text-slate-700 shadow-md backdrop-blur transition-all duration-300 ease-in-out md:hidden ${mobileHandleVisibility}`}
+                aria-label={formatText('Open chats sidebar')}
+            >
+                <span className="text-lg font-semibold leading-none" aria-hidden="true">
+                    &gt;
+                </span>
+            </button>
             <section className="flex-1 min-w-0 min-h-0 flex flex-col">
-                <div className="flex items-center justify-between border-b border-slate-200 bg-white/90 px-3 py-2 shadow-sm">
-                    <div className="flex items-center gap-2">
-                        <button
-                            type="button"
-                            onClick={openMobileSidebar}
-                            className="md:hidden p-2 text-slate-600 transition hover:text-slate-900"
-                            aria-label={formatText('Open chats sidebar')}
-                        >
-                            <MenuIcon className="h-5 w-5" />
-                        </button>
-                        <span className="text-sm font-semibold text-slate-700">
-                            {formatText('Chat history')}
-                        </span>
-                    </div>
+                <div className="hidden items-center border-b border-slate-200 bg-white/90 px-3 py-2 shadow-sm md:flex">
+                    <span className="text-sm font-semibold text-slate-700">
+                        {formatText('Chat history')}
+                    </span>
                 </div>
                 <div className="relative flex-1 min-h-0">
                     {isSwitchingChat && (

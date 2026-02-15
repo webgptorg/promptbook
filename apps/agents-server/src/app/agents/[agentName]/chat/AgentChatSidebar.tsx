@@ -78,9 +78,14 @@ export function AgentChatSidebar({
 }: AgentChatSidebarProps) {
     const widthClasses = isCollapsed ? 'w-72 md:w-16' : 'w-72 md:w-72';
     const transformClasses = isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full';
-    const overlayClasses = isMobileSidebarOpen
+    const panelTransitionClasses = 'transition-all duration-300 ease-in-out will-change-transform';
+    const overlayTransitionClasses = 'transition-opacity duration-300 ease-in-out';
+    const mobileOverlayState = isMobileSidebarOpen
         ? 'opacity-100 pointer-events-auto'
         : 'opacity-0 pointer-events-none';
+    const desktopOverlayState = isCollapsed
+        ? 'opacity-0 pointer-events-none'
+        : 'opacity-100 pointer-events-auto';
 
     const handleChatChoose = (chatId: string) => {
         onSelectChat(chatId);
@@ -101,7 +106,7 @@ export function AgentChatSidebar({
     return (
         <>
             <aside
-                className={`fixed inset-y-0 left-0 z-20 flex flex-col border-r border-slate-200 bg-white/95 shadow-xl transition-transform duration-200 ease-out backdrop-blur md:static md:shadow-none md:bg-white/90 ${widthClasses} ${transformClasses} md:translate-x-0`}
+                className={`fixed inset-y-0 left-0 z-[60] flex flex-col border-r border-slate-200 bg-white/95 shadow-xl backdrop-blur ${panelTransitionClasses} md:static md:shadow-none md:bg-white/90 ${widthClasses} ${transformClasses} md:translate-x-0`}
             >
                 <div className="flex items-center justify-between border-b border-slate-200 px-3 py-2">
                     {!isCollapsed && (
@@ -243,7 +248,13 @@ export function AgentChatSidebar({
             </aside>
 
             <div
-                className={`fixed inset-0 z-10 bg-slate-900/40 transition-opacity duration-200 md:hidden ${overlayClasses}`}
+                className={`hidden md:block fixed inset-0 z-50 bg-slate-900/40 ${overlayTransitionClasses} ${desktopOverlayState}`}
+                onClick={onToggleCollapse}
+                aria-hidden="true"
+            />
+
+            <div
+                className={`fixed inset-0 z-50 bg-slate-900/40 ${overlayTransitionClasses} ${mobileOverlayState} md:hidden`}
                 onClick={onCloseMobileSidebar}
                 aria-hidden="true"
             />
