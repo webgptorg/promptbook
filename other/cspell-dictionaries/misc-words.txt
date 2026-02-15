@@ -456,3 +456,7 @@ affordance
 affordances
 subtag
 subtags
+backgrounded
+latlng
+lat
+lng
