@@ -38,7 +38,7 @@ export function ChatCitationModal(props: ChatCitationModalProps) {
     const previewUrl = resolveCitationPreviewUrl(citation, participants);
     const isValidUrl = !!previewUrl;
     const previewTarget = previewUrl ?? citation.source;
-    const previewBase = previewTarget.split(/[?#]/)[0];
+    const previewBase = previewTarget.split(/[?#]/)[0]!;
     const previewSegment = previewBase.split('/').pop() || previewBase;
     const extension = previewSegment.split('.').pop()?.toLowerCase();
     const isImage = ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(extension || '');
