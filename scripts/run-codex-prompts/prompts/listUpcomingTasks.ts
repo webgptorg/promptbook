@@ -7,8 +7,8 @@ import { listRunnablePrompts } from './listRunnablePrompts';
 /**
  * Lists upcoming tasks that are ready to run (no authoring placeholders).
  */
-export function listUpcomingTasks(files: PromptFile[]): UpcomingTask[] {
-    return listRunnablePrompts(files).map(({ file, section }) => ({
+export function listUpcomingTasks(files: PromptFile[], minimumPriority = 0): UpcomingTask[] {
+    return listRunnablePrompts(files, minimumPriority).map(({ file, section }) => ({
         label: buildPromptLabelForDisplay(file, section),
         summary: buildPromptSummary(file, section),
         priority: section.priority,

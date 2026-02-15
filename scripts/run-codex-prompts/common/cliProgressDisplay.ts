@@ -35,7 +35,7 @@ type ProgressSnapshot = {
  * Compact CLI progress display that stays pinned at the top of the terminal.
  */
 export class CliProgressDisplay {
-    private stats: PromptStats = { done: 0, forAgent: 0, toBeWritten: 0 };
+    private stats: PromptStats = { done: 0, forAgent: 0, belowMinimumPriority: 0, toBeWritten: 0 };
     private readonly isInteractive: boolean;
     private isHeaderReserved = false;
     private interval: NodeJS.Timeout | undefined;

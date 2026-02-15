@@ -6,8 +6,8 @@ import type { PromptFile } from './types/PromptFile';
 /**
  * Prints the list of prompts that still need to be written.
  */
-export function printPromptsToBeWritten(files: PromptFile[]): void {
-    const promptsToWrite = listPromptsToBeWritten(files);
+export function printPromptsToBeWritten(files: PromptFile[], minimumPriority = 0): void {
+    const promptsToWrite = listPromptsToBeWritten(files, minimumPriority);
 
     let i = 0;
     for (const { file, section } of promptsToWrite) {

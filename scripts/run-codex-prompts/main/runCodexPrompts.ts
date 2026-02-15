@@ -77,7 +77,7 @@ export async function runCodexPrompts(): Promise<void> {
     const options = parseRunOptions(process.argv.slice(2));
     const runStartDate = moment();
     const progressDisplay = new CliProgressDisplay(runStartDate);
-    progressDisplay.update({ done: 0, forAgent: 0, toBeWritten: 0 });
+    progressDisplay.update({ done: 0, forAgent: 0, belowMinimumPriority: 0, toBeWritten: 0 });
     listenForPause();
 
     try {
@@ -137,19 +137,19 @@ export async function runCodexPrompts(): Promise<void> {
         while (just(true)) {
             await checkPause();
             const promptFiles = await loadPromptFiles(PROMPTS_DIR);
-            const stats = summarizePrompts(promptFiles);
+            const stats = summarizePrompts(promptFiles, options.priority);
             progressDisplay.update(stats);
-            printStats(stats);
+            printStats(stats, options.priority);
 
-            const nextPrompt = findNextTodoPrompt(promptFiles);
+            const nextPrompt = findNextTodoPrompt(promptFiles, options.priority);
 
             if (!hasShownUpcomingTasks) {
                 if (stats.toBeWritten > 0) {
                     console.info(colors.yellow('Following prompts need to be written:'));
-                    printPromptsToBeWritten(promptFiles);
+                    printPromptsToBeWritten(promptFiles, options.priority);
                     console.info('');
                 }
-                printUpcomingTasks(listUpcomingTasks(promptFiles));
+                printUpcomingTasks(listUpcomingTasks(promptFiles, options.priority));
                 hasShownUpcomingTasks = true;
             }
 

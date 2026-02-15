@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.43 18 minutes by OpenAI Codex `gpt-5.3-codex`
 
 [✨💌] Add `--priority` flag to the coding agent script
 
@@ -40,3 +40,4 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

@@ -4,5 +4,6 @@
 export type PromptStats = {
     done: number;
     forAgent: number;
+    belowMinimumPriority: number;
     toBeWritten: number;
 };

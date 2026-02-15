@@ -16,7 +16,8 @@ export function parsePromptFile(filePath: string, content: string): PromptFile {
     let index = 0;
 
     for (let i = 0; i <= lines.length; i++) {
-        const isSeparator = i < lines.length && lines[i].trim() === '---';
+        const line = lines[i];
+        const isSeparator = i < lines.length && line !== undefined && line.trim() === '---';
         const isEnd = i === lines.length;
         if (!isSeparator && !isEnd) {
             continue;
@@ -25,7 +26,7 @@ export function parsePromptFile(filePath: string, content: string): PromptFile {
         const endLine = i - 1;
         const firstNonEmptyLine = findFirstNonEmptyLine(lines, startLine, endLine);
         if (firstNonEmptyLine !== undefined) {
-            const statusLine = lines[firstNonEmptyLine].trim();
+            const statusLine = (lines[firstNonEmptyLine] || '').trim();
             const parsedStatus = parseStatusLine(statusLine);
             const status = parsedStatus?.status ?? 'not-ready';
             const priority = parsedStatus?.priority ?? 0;
@@ -88,7 +89,8 @@ function parseStatusLine(line: string): { status: PromptStatus; priority: number
  */
 function findFirstNonEmptyLine(lines: string[], startLine: number, endLine: number): number | undefined {
     for (let i = startLine; i <= endLine; i++) {
-        if (lines[i] !== undefined && lines[i].trim() !== '') {
+        const line = lines[i];
+        if (line !== undefined && line.trim() !== '') {
             return i;
         }
     }

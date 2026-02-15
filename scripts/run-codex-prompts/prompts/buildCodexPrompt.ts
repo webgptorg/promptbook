@@ -9,10 +9,11 @@ export function buildCodexPrompt(file: PromptFile, section: PromptSection): stri
     const lines = buildPromptLinesWithoutStatus(file, section);
 
     for (let i = 0; i < lines.length; i++) {
-        if (lines[i].trim() === '') {
+        const line = lines[i];
+        if (line === undefined || line.trim() === '') {
             continue;
         }
-        lines[i] = lines[i].replace(/^\[[^\]]+\]\s*/, '');
+        lines[i] = line.replace(/^\[[^\]]+\]\s*/, '');
         break;
     }
 
