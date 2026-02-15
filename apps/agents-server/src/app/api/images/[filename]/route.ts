@@ -1,16 +1,22 @@
-import { $getTableName } from '@/src/database/$getTableName';
-import { serializeError } from '@promptbook-local/utils';
+import { serializeError, computeHash } from '@promptbook-local/utils';
 import { NextRequest, NextResponse } from 'next/server';
 import { assertsError } from '../../../../../../../src/errors/assertsError';
 import type { LlmExecutionTools } from '../../../../../../../src/execution/LlmExecutionTools';
 import { getSingleLlmExecutionTools } from '../../../../../../../src/llm-providers/_multiple/getSingleLlmExecutionTools';
 import type { ImageGenerationModelRequirements } from '../../../../../../../src/types/ModelRequirements';
 import { string_url } from '../../../../../../../src/types/typeAliases';
-import { $provideSupabaseForServer } from '../../../../database/$provideSupabaseForServer';
 import { $provideCdnForServer } from '../../../../tools/$provideCdnForServer';
 import { $provideExecutionToolsForServer } from '../../../../tools/$provideExecutionToolsForServer';
 import { getGeneratedImageCdnKey } from '../../../../utils/cdn/utils/getGeneratedImageCdnKey';
+import { ensureGeneratedImage } from '../../../../utils/imageGeneration/ensureGeneratedImage';
 import { filenameToPrompt } from '../../../../utils/normalization/filenameToPrompt';
+
+/**
+ * Chooses default image model from current provider metadata.
+ */
+function resolveDefaultImageModelName(llmTools: LlmExecutionTools): string {
+    return llmTools.title.includes('Google') ? 'gemini-3-pro-image-preview' : 'dall-e-3';
+}
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ filename: string }> }) {
     try {
@@ -27,35 +33,16 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             return NextResponse.json({ error: 'Filename is required' }, { status: 400 });
         }
 
-        const supabase = $provideSupabaseForServer();
-
-        // Check if image already exists in database
-        const { data: existingImage, error: selectError } = await supabase
-            .from(await $getTableName(`Image`))
-            .select('cdnUrl')
-            .eq('filename', filename)
-            .single();
-
-        if (selectError && selectError.code !== 'PGRST116') {
-            // PGRST116 is "not found"
-            throw selectError;
-        }
-
-        if (existingImage) {
-            if (isRaw) {
-                return NextResponse.json({
-                    source: 'cache',
-                    filename,
-                    cdnUrl: existingImage.cdnUrl,
-                });
+        let attachments: unknown[] | undefined;
+        if (attachmentsRaw) {
+            try {
+                attachments = JSON.parse(attachmentsRaw) as unknown[];
+            } catch {
+                return NextResponse.json({ error: 'Invalid attachments parameter' }, { status: 400 });
             }
-            // Image exists, redirect to CDN
-            return NextResponse.redirect(existingImage.cdnUrl as string_url);
         }
 
-        // Image doesn't exist, generate it
         const prompt = filenameToPrompt(filename);
-
         const executionTools = await $provideExecutionToolsForServer();
         const llmTools = getSingleLlmExecutionTools(executionTools.llm) as LlmExecutionTools;
 
@@ -63,76 +50,72 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             throw new Error('Image generation is not supported by the current LLM configuration');
         }
 
-        const imageResult = await llmTools.callImageGenerationModel({
-            title: `Generate image for ${filename}`,
-            content: prompt,
-            parameters: {},
-            attachments: attachmentsRaw ? JSON.parse(attachmentsRaw) : undefined,
-            modelRequirements: {
-                modelVariant: 'IMAGE_GENERATION',
-                modelName:
-                    modelName ||
-                    (llmTools.title.includes('Google')
-                        ? 'gemini-3-pro-image-preview'
-                        : 'dall-e-3'), // Use gemini-3-pro-image-preview (Nano Banana Pro) for Google, DALL-E 3 for high quality otherwise
-                        // {/* <- TODO: [🎞] Do this dynamically based on available models */}
-                size: (size as ImageGenerationModelRequirements['size']) || undefined,
-                quality: (quality as ImageGenerationModelRequirements['quality']) || undefined,
-                style: (style as ImageGenerationModelRequirements['style']) || undefined,
+        const resolvedModelName = modelName || resolveDefaultImageModelName(llmTools);
+        let generatedImageResult: Awaited<ReturnType<NonNullable<LlmExecutionTools['callImageGenerationModel']>>> | null =
+            null;
+        const imageRecord = await ensureGeneratedImage({
+            filename,
+            prompt,
+            lockKey: `image-${computeHash(filename)}`,
+            createImage: async () => {
+                const imageResult = await llmTools.callImageGenerationModel!({
+                    title: `Generate image for ${filename}`,
+                    content: prompt,
+                    parameters: {},
+                    attachments: attachments as never,
+                    modelRequirements: {
+                        modelVariant: 'IMAGE_GENERATION',
+                        modelName: resolvedModelName,
+                        size: (size as ImageGenerationModelRequirements['size']) || undefined,
+                        quality: (quality as ImageGenerationModelRequirements['quality']) || undefined,
+                        style: (style as ImageGenerationModelRequirements['style']) || undefined,
+                    },
+                });
+
+                if (!imageResult.content) {
+                    throw new Error('Failed to generate image: no content returned');
+                }
+
+                generatedImageResult = imageResult;
+
+                const imageResponse = await fetch(imageResult.content);
+                if (!imageResponse.ok) {
+                    throw new Error(`Failed to download generated image: ${imageResponse.status}`);
+                }
+
+                const imageBuffer = await imageResponse.arrayBuffer();
+                const buffer = Buffer.from(imageBuffer);
+
+                const cdn = $provideCdnForServer();
+                const cdnKey = getGeneratedImageCdnKey({ filename, pathPrefix: cdn.pathPrefix });
+                await cdn.setItem(cdnKey, {
+                    type: 'image/png',
+                    data: buffer,
+                });
+
+                const cdnUrl = cdn.getItemUrl(cdnKey);
+                return {
+                    cdnUrl: cdnUrl.href,
+                    cdnKey,
+                };
             },
         });
 
-        if (!imageResult.content) {
-            throw new Error('Failed to generate image: no content returned');
-        }
-
-        // Download the generated image
-        const imageResponse = await fetch(imageResult.content);
-        if (!imageResponse.ok) {
-            throw new Error(`Failed to download generated image: ${imageResponse.status}`);
-        }
-
-        const imageBuffer = await imageResponse.arrayBuffer();
-        const buffer = Buffer.from(imageBuffer);
-
-        // Upload to CDN
-        const cdn = $provideCdnForServer();
-        const cdnKey = getGeneratedImageCdnKey({ filename, pathPrefix: cdn.pathPrefix });
-        await cdn.setItem(cdnKey, {
-            type: 'image/png', // DALL-E generates PNG
-            data: buffer,
-        });
-
-        const cdnUrl = cdn.getItemUrl(cdnKey);
-
-        // Save to database
-        const { error: insertError } = await supabase.from(await $getTableName(`Image`)).insert({
-            filename,
-            prompt,
-            cdnUrl: cdnUrl.href,
-            cdnKey,
-        });
-
-        if (insertError) {
-            throw insertError;
-        }
-
         if (isRaw) {
             return NextResponse.json({
-                source: 'generated',
+                source: imageRecord.source,
                 filename,
-                prompt,
-                modelName: modelName || 'dall-e-3',
+                prompt: imageRecord.prompt,
+                modelName: resolvedModelName,
                 size,
                 quality,
                 style,
-                cdnUrl: cdnUrl.href,
-                imageResult,
+                cdnUrl: imageRecord.cdnUrl,
+                imageResult: generatedImageResult || undefined,
             });
         }
 
-        // Redirect to the newly created image
-        return NextResponse.redirect(cdnUrl.href as string_url);
+        return NextResponse.redirect(imageRecord.cdnUrl as string_url);
     } catch (error) {
         assertsError(error);
 
