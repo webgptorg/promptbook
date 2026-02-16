@@ -2,11 +2,11 @@
 
 import 'leaflet/dist/leaflet.css';
 
+import type { GeoJsonObject } from 'geojson';
+import type { Map as LeafletMap } from 'leaflet';
+import L from 'leaflet';
 import { Maximize2, X } from 'lucide-react';
 import { useEffect, useRef, useState, type MouseEvent, type RefObject } from 'react';
-import type { GeoJsonObject } from 'geojson';
-import L from 'leaflet';
-import type { Map as LeafletMap } from 'leaflet';
 import styles from './ChatMessageMap.module.css';
 
 /**
@@ -30,9 +30,9 @@ type ChatMessageMapProps = {
  *
  * @private internal helper of `<ChatMessageMap/>`
  */
-function useLeafletGeoJsonMap(containerRef: RefObject<HTMLDivElement>, data: GeoJsonObject, enabled: boolean) {
+function useLeafletGeoJsonMap(containerRef: RefObject<HTMLDivElement | null>, data: GeoJsonObject, enabled: boolean) {
     const leafletRef = useRef<LeafletMap | null>(null);
-    const mapInvalidationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const mapInvalidationTimeoutRef = useRef<number | null>(null);
 
     useEffect(() => {
         if (!enabled) {
