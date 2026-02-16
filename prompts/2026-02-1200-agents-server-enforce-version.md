@@ -28,11 +28,11 @@
 
 [✨👊] Add more information into `/admin/about`
 
--   @@@
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
+-   Try to add as many information about the build version, Git, etc.
+-   This is a technical page, so you don't need to be non-technical-friendly. Put there as many technical and debugging information as possible about the server, user, browser, environment, connection, the build, etc. etc.
 -   You are working with the [Agents Server](apps/agents-server)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+![alt text](prompts/screenshots/2026-02-1200-agents-server-enforce-version.png)
 
 ---
 

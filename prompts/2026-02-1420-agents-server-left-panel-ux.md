@@ -17,7 +17,26 @@
 
 ---
 
-[-]
+[ ]
+
+[✨🌥] Make some UX improvements of the left up panel with my chats.
+
+-   The animation of the panel opening and closing is fine, but it should move the contents of the main content, the chat, like in the other applications. The side panels are behaving.
+-   The left app panel with my chats should be completely below the app menu. The app menu shouldn't hide any part of it.
+-   When the app drawer is open, showing an equivalent arrow (to the closed state = There is an arrow pointing right to open the panel) which points left to close the panel.
+-   This arrow should replace the second horizontal bar on the desktop.
+-   The arrow which on mobile opens the left panel should look better. Take inspiration from the scrolldown arrow in the chat but simplify it more.
+-   Keep in mind the DRY _(don't repeat yourself)_ principle, For example, there should be only one component of the arrow Which should be just reused. There should be passed a prop of a direction.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+
+![alt text](prompts/screenshots/2026-02-1420-agents-server-left-panel-ux-3.png)
+![alt text](prompts/screenshots/2026-02-1420-agents-server-left-panel-ux-4.png)
+![second horizontal bar on the desktop](prompts/screenshots/2026-02-1420-agents-server-left-panel-ux-5.png)
+
+---
+
+[ ]
 
 [✨🌥] qux
 
@@ -36,15 +55,3 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
----
-
-[-]
-
-[✨🌥] qux
-
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
--   You are working with the [Agents Server](apps/agents-server)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
-
