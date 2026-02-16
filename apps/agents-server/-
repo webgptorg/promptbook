@@ -1,0 +1,81 @@
+            label: 'Version info',
+            href: '/admin/about',
+        },
+        ...(isExperimental
+            ? [
+                  {
+                      label: 'Experiments',
+                      items: [
+                          {
+                              label: 'Story',
+                              href: '/experiments/story',
+                              isBold: true,
+                          },
+                      ],
+                      isBordered: true,
+                  } as SubMenuItem,
+              ]
+            : []),
+    ];
+
+    // Menu items configuration (DRY principle)
+    const menuItems: MenuItem[] = [
+        {
+            type: 'dropdown' as const,
+            label: 'Documentation',
+            isOpen: isDocsOpen,
+            setIsOpen: setIsDocsOpen,
+            isMobileOpen: isMobileDocsOpen,
+            setIsMobileOpen: setIsMobileDocsOpen,
+            items: documentationDropdownItems,
+        },
+        ...(isAdmin || userSystemItems.length > 0
+            ? [buildSystemMenuItem(isAdmin ? adminSystemMenuItems : userSystemItems)]
+            : []),
+    ];
+
+    return (
+        <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200 h-16">
+            {isChangePasswordOpen && <ChangePasswordDialog onClose={() => setIsChangePasswordOpen(false)} />}
+            <div className="w-full px-4 h-full">
+                <div className="flex items-center justify-between h-full gap-2 sm:gap-4 lg:gap-6">
+                    <div className="flex-shrink min-w-0 flex-1 lg:flex-initial">
+                        <div className="flex min-w-0 items-center gap-2 sm:gap-3 rounded-2xl border border-gray-200 bg-white/90 px-2 sm:px-3 md:px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm shadow-slate-200/60 backdrop-blur">
+                            <div className="relative flex min-w-0 items-center gap-3">
+                                <HeadlessLink
+                                    href="/"
+                                    className="flex min-w-0 items-center gap-3 hover:opacity-80 transition-opacity"
+                                >
+                                    {serverLogoUrl ? (
+                                        // Note: `next/image` does not load external images well without extra config
+                                        // eslint-disable-next-line @next/next/no-img-element
+                                        <img
+                                            src={serverLogoUrl}
+                                            alt={serverName}
+                                            width={32}
+                                            height={32}
+                                            className="w-6 h-6 sm:w-8 sm:h-8 object-contain flex-shrink-0"
+                                        />
+                                    ) : (
+                                        <Image
+                                            src={promptbookLogoBlueTransparent}
+                                            alt={serverName}
+                                            width={32}
+                                            height={32}
+                                            className="w-6 h-6 sm:w-8 sm:h-8 object-contain flex-shrink-0"
+                                        />
+                                    )}
+                                    <span className="text-base font-bold tracking-tight text-gray-900 truncate max-w-[180px] sm:max-w-[200px] md:max-w-[250px] lg:max-w-none">
+                                        <span className="hidden sm:inline">{serverName}</span>
+                                        <span className="sm:hidden">{serverName.split(' ')[0]}</span>
+                                    </span>
+                                </HeadlessLink>
+                                {federatedServers.length > 0 && (
+                                    <button
+                                        className="hidden lg:inline-flex p-1 text-gray-400 hover:text-gray-700 transition-colors"
+                                        onClick={() => setIsFederatedOpen(!isFederatedOpen)}
+                                        onBlur={() => setTimeout(() => setIsFederatedOpen(false), 200)}
+                                        title="Switch server"
+                                        aria-label="Switch server"
+                                    >
+                                        <ChevronDown className="w-4 h-4" />

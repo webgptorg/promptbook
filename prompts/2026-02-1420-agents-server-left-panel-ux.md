@@ -17,7 +17,7 @@
 
 ---
 
-[ ]
+[x] ~$0.26 8 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
 [✨🌥] Make some UX improvements of the left up panel with my chats.
 
@@ -55,3 +55,4 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
