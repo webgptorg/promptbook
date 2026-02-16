@@ -1,5 +1,3 @@
-'use server';
-
 /**
  * Builds a Supabase `.or()` filter that matches an agent by name or permanent identifier.
  *
