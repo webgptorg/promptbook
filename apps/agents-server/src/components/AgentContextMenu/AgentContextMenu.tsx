@@ -30,9 +30,9 @@ import type { AgentProfile } from '../../app/agents/[agentName]/AgentProfileWrap
 import { getAgentLinks } from '../../app/agents/[agentName]/agentLinks';
 import { deleteAgent } from '../../app/recycle-bin/actions';
 import type { AgentFolderContext } from '../../utils/agentOrganization/agentFolderContext';
-import { showAlert, showConfirm, showPrompt } from '../AsyncDialogs/asyncDialogs';
-import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 import { promptCloneAgent } from '../AgentCloning/cloneAgent';
+import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
+import { showAlert, showConfirm, showPrompt } from '../AsyncDialogs/asyncDialogs';
 
 type BeforeInstallPromptEvent = Event & {
     prompt: () => Promise<void>;
@@ -663,10 +663,10 @@ function AgentContextMenuContent(props: AgentContextMenuBaseProps & { onClose: (
     ];
 
     return (
-            <div
-                className={`w-56 bg-white rounded-xl shadow-2xl border border-gray-100 py-2 overflow-y-auto z-[9999] animate-in fade-in slide-in-from-top-2 duration-200 ${barlowCondensed.className}`}
-                style={contextMenuViewportStyle}
-            >
+        <div
+            className={`w-56 bg-white rounded-xl shadow-2xl border border-gray-100 py-2 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-200 ${barlowCondensed.className}`}
+            style={contextMenuViewportStyle}
+        >
             {menuItems.map((item, index) => {
                 if (item.type === 'divider') {
                     return <div key={index} className="h-px bg-gray-100 my-2" />;
@@ -728,7 +728,7 @@ export function AgentContextMenuButton(props: AgentContextMenuButtonProps) {
     useCloseOnOutsideClick(menuRef, handleClose, isOpen);
 
     return (
-        <div ref={menuRef} className="relative z-[9999]">
+        <div ref={menuRef} className="relative">
             <button
                 onClick={() => setIsOpen((prev) => !prev)}
                 className="p-3 rounded-full hover:bg-white/30 transition-all duration-200"
@@ -773,7 +773,7 @@ export function AgentContextMenuPopover(props: AgentContextMenuPopoverProps) {
         : { left: anchorPoint.x, top: anchorPoint.y };
 
     return (
-        <div ref={menuRef} className="fixed z-[9999]" style={style}>
+        <div ref={menuRef} className="fixed" style={style}>
             <AgentContextMenuContent
                 {...menuProps}
                 installPromptEvent={installPromptEvent}

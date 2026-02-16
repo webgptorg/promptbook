@@ -1440,6 +1440,14 @@ export function Header(props: HeaderProps) {
                     </div>
                 </div>
 
+                {/* Mobile Navigation Backdrop */}
+                {isMenuOpen && (
+                    <div
+                        className="lg:hidden fixed inset-0 top-16 bg-black/20 backdrop-blur-sm z-40 animate-in fade-in duration-200"
+                        onClick={() => setIsMenuOpen(false)}
+                    />
+                )}
+
                 {/* Mobile Navigation */}
                 {isMenuOpen && (
                     <div
