@@ -30,14 +30,17 @@
 
 ---
 
-[-]
+[ ]
 
-[✨🗺] qux
+[✨🗺] The PDF which is exported from the chat should be richer and more visually appealing.
 
+-   Currently, the PDF looks like bare text minimum. It should look more like a nicely exported chat, with proper formatting, colors, and images. It should look as similar as the chat in the application.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
+-   Do a proper analysis of the current functionality of exporting chats before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+![the chat](prompts/screenshots/2026-02-1270-agents-server-better-chat-downloads-2.png)
+![Exported chat as PDF](prompts/screenshots/2026-02-1270-agents-server-better-chat-downloads-3.png)
 
 ---
 
@@ -49,5 +52,3 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
-
