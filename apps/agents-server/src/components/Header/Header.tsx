@@ -1443,16 +1443,16 @@ export function Header(props: HeaderProps) {
                 {/* Mobile Navigation */}
                 {isMenuOpen && (
                     <div
-                        className="lg:hidden absolute top-16 left-0 right-0 z-50 bg-white shadow-xl py-4 border-t border-gray-100 animate-in slide-in-from-top-2 h-[calc(100vh-4rem)] overflow-y-auto"
+                        className="lg:hidden absolute top-16 left-0 right-0 z-50 bg-white shadow-2xl py-6 border-t border-gray-200 animate-in slide-in-from-top-2 h-[calc(100vh-4rem)] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100"
                         style={{
                             backdropFilter: 'blur(20px)',
                             WebkitBackdropFilter: 'blur(20px)',
                         }}
                     >
-                        <nav className="mx-auto flex flex-col items-center gap-4 px-6 max-w-md">
-                            <div className="border-b border-gray-100 pb-6 text-center">
-                                <div className="flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-gray-500">
-                                    <span>Enter menu</span>
+                        <nav className="mx-auto flex flex-col items-center gap-6 px-6 max-w-md pb-8">
+                            <div className="w-full border-b border-gray-200 pb-6 text-center">
+                                <div className="flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-[0.3em] text-gray-400 mb-3">
+                                    <span>Menu</span>
                                     {federatedServers.length > 0 && (
                                         <button
                                             className="inline-flex p-1 text-gray-500 hover:text-gray-800"
@@ -1467,12 +1467,12 @@ export function Header(props: HeaderProps) {
                                         </button>
                                     )}
                                 </div>
-                                <p className="mt-1 text-lg font-semibold text-gray-900 truncate">{serverName}</p>
+                                <p className="text-xl font-bold text-gray-900 truncate px-4">{serverName}</p>
                                 {isFederatedOpen && federatedDropdownItems.length > 0 && (
-                                    <div className="mt-3 mx-auto w-full max-w-[90vw] flex flex-col gap-1 rounded-md border border-gray-100 bg-gray-50 p-2">
+                                    <div className="mt-4 mx-auto w-full max-w-[90vw] flex flex-col gap-1 rounded-lg border border-gray-200 bg-gradient-to-b from-gray-50 to-white p-3 shadow-sm animate-in fade-in-0 slide-in-from-top-2 duration-200">
                                         {federatedDropdownItems.map((subItem, subIndex) => {
-                                            const className = `block rounded px-2 py-1.5 text-sm text-gray-700 hover:bg-white ${
-                                                subItem.isBold ? 'font-medium' : ''
+                                            const className = `block rounded-md px-4 py-3 text-sm text-gray-700 hover:bg-white hover:shadow-sm active:scale-98 transition-all duration-150 ${
+                                                subItem.isBold ? 'font-semibold' : ''
                                             }`;
                                             if (subItem.href) {
                                                 return (
@@ -1495,12 +1495,12 @@ export function Header(props: HeaderProps) {
                                     </div>
                                 )}
 
-                                <div className="mt-5 flex flex-col items-center gap-3">
-                                    <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                                <div className="mt-6 flex flex-col items-center gap-4 w-full">
+                                    <div className="flex items-center gap-2 text-sm font-medium text-gray-600">
                                         <ChevronRight className="h-4 w-4 text-gray-300" />
                                         {isAdmin ? (
                                             <button
-                                                className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold text-gray-900 hover:bg-gray-100 transition"
+                                                className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-gray-900 hover:bg-gray-100 active:bg-gray-200 transition-all duration-150"
                                                 onClick={() => setIsMobileAgentsOpen(!isMobileAgentsOpen)}
                                             >
                                                 <span className="truncate max-w-[60vw]">{activeAgentLabel}</span>
@@ -1522,12 +1522,12 @@ export function Header(props: HeaderProps) {
                                     </div>
 
                                     {isAdmin && isMobileAgentsOpen && (
-                                        <div className="w-full max-w-[90vw] flex flex-col gap-1 rounded-md border border-gray-100 bg-gray-50 p-2 max-h-[36vh] overflow-y-auto">
+                                        <div className="w-full max-w-[90vw] flex flex-col gap-1 rounded-lg border border-gray-200 bg-gradient-to-b from-gray-50 to-white p-3 max-h-[40vh] overflow-y-auto shadow-sm animate-in fade-in-0 slide-in-from-top-2 duration-200 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
                                             {hierarchyAgentDropdownItems.map((item, index) => {
-                                                const className = `block rounded px-2 py-1.5 text-sm ${
+                                                const className = `block rounded-md px-4 py-3 text-sm transition-all duration-150 hover:shadow-sm active:scale-98 ${
                                                     item.isBold
-                                                        ? 'font-medium text-gray-900 hover:text-gray-700'
-                                                        : 'text-gray-700 hover:text-gray-900'
+                                                        ? 'font-semibold text-gray-900 hover:bg-white hover:text-blue-600'
+                                                        : 'text-gray-700 hover:bg-white hover:text-gray-900'
                                                 }`;
                                                 if (item.onClick) {
                                                     return (
@@ -1574,12 +1574,12 @@ export function Header(props: HeaderProps) {
                                                 </button>
                                             </div>
                                             {isMobileAgentViewOpen && (
-                                                <div className="flex flex-col gap-1 rounded-md border border-gray-100 bg-gray-50 p-2">
+                                                <div className="flex flex-col gap-1 rounded-lg border border-gray-200 bg-gradient-to-b from-gray-50 to-white p-3 shadow-sm animate-in fade-in-0 slide-in-from-top-2 duration-200">
                                                     {activeAgentViewItems.map((viewItem, index) => (
                                                         <HeadlessLink
                                                             key={`mobile-view-item-${index}`}
                                                             href={viewItem.href || '/agents'}
-                                                            className="block rounded px-2 py-1.5 text-sm text-gray-700 hover:bg-white hover:text-gray-900"
+                                                            className="block rounded-md px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-gray-900 hover:shadow-sm active:scale-98 transition-all duration-150"
                                                             onClick={() => setIsMenuOpen(false)}
                                                         >
                                                             {viewItem.label}
@@ -1594,7 +1594,7 @@ export function Header(props: HeaderProps) {
 
                             {/* Hoisted Menu Items for Mobile */}
                             {menuHoisting && menuHoisting.menu.length > 0 && (
-                                <div className="w-full py-2 border-b border-gray-100 mb-2 flex justify-center gap-2 overflow-x-auto">
+                                <div className="w-full py-3 border-b border-gray-200 flex justify-center gap-3 overflow-x-auto">
                                     {menuHoisting.menu.map((item, index) => (
                                         <button
                                             key={index}
@@ -1602,8 +1602,8 @@ export function Header(props: HeaderProps) {
                                                 item.onClick();
                                                 setIsMenuOpen(false);
                                             }}
-                                            className={`p-2 rounded-md hover:bg-gray-100 transition-colors text-gray-600 hover:text-gray-900 ${
-                                                item.isActive ? 'bg-gray-100 text-gray-900' : ''
+                                            className={`p-3 rounded-lg hover:bg-gray-100 active:bg-gray-200 transition-all duration-150 text-gray-600 hover:text-gray-900 shadow-sm hover:shadow active:scale-95 ${
+                                                item.isActive ? 'bg-blue-50 text-blue-600 shadow' : ''
                                             }`}
                                             title={item.name}
                                         >
@@ -1615,14 +1615,14 @@ export function Header(props: HeaderProps) {
                             )}
 
                             {/* Login Status for Mobile */}
-                            <div className="w-full py-2 border-b border-gray-100 mb-2 flex flex-col items-center">
+                            <div className="w-full py-4 border-b border-gray-200 flex flex-col items-center gap-3">
                                 {!currentUser && !isAdmin && (
                                     <button
                                         onClick={() => {
                                             void showLoginDialog().catch(() => undefined);
                                             setIsMenuOpen(false);
                                         }}
-                                        className="flex items-center gap-2 text-base font-medium text-gray-600 hover:text-gray-900"
+                                        className="flex items-center gap-3 px-6 py-3 text-base font-semibold text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 rounded-lg shadow-md hover:shadow-lg active:scale-98 transition-all duration-150"
                                     >
                                         <LogIn className="w-4 h-4" />
                                         Log in
@@ -1630,11 +1630,11 @@ export function Header(props: HeaderProps) {
                                 )}
 
                                 {(currentUser || isAdmin) && (
-                                    <div className="flex flex-col items-center gap-3">
-                                        <div className="text-sm text-gray-600 text-center">
+                                    <div className="w-full flex flex-col items-center gap-3 bg-gradient-to-b from-gray-50 to-white rounded-lg p-4 border border-gray-200 shadow-sm">
+                                        <div className="text-sm text-gray-700 text-center font-medium">
                                             Logged in as <strong>{currentUserDisplayName}</strong>
                                             {(currentUser?.isAdmin || isAdmin) && (
-                                                <span className="ml-2 bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                                                <span className="ml-2 bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full shadow-sm">
                                                     Admin
                                                 </span>
                                             )}
@@ -1644,7 +1644,7 @@ export function Header(props: HeaderProps) {
                                                 setIsChangePasswordOpen(true);
                                                 setIsMenuOpen(false);
                                             }}
-                                            className="flex items-center gap-2 text-base font-medium text-gray-600 hover:text-gray-900"
+                                            className="w-full flex items-center justify-center gap-2 px-4 py-3 text-base font-semibold text-gray-700 bg-white hover:bg-gray-50 active:bg-gray-100 border border-gray-300 rounded-lg shadow-sm hover:shadow active:scale-98 transition-all duration-150"
                                         >
                                             <Lock className="w-4 h-4" />
                                             Change Password
@@ -1654,7 +1654,7 @@ export function Header(props: HeaderProps) {
                                                 handleLogout();
                                                 setIsMenuOpen(false);
                                             }}
-                                            className="flex items-center gap-2 text-base font-medium text-red-600 hover:text-red-700"
+                                            className="w-full flex items-center justify-center gap-2 px-4 py-3 text-base font-semibold text-red-600 bg-red-50 hover:bg-red-100 active:bg-red-200 border border-red-200 rounded-lg shadow-sm hover:shadow active:scale-98 transition-all duration-150"
                                         >
                                             <LogOut className="w-4 h-4" />
                                             Log out
@@ -1669,7 +1669,7 @@ export function Header(props: HeaderProps) {
                                         <HeadlessLink
                                             key={index}
                                             href={item.href}
-                                            className="block text-base font-medium text-gray-600 hover:text-gray-900 py-2 text-center"
+                                            className="block w-full text-base font-semibold text-gray-700 hover:text-blue-600 py-3 px-4 text-center rounded-lg hover:bg-gray-50 active:bg-gray-100 active:scale-98 transition-all duration-150"
                                             onClick={() => setIsMenuOpen(false)}
                                         >
                                             {item.label}
@@ -1679,9 +1679,9 @@ export function Header(props: HeaderProps) {
 
                                 if (item.type === 'dropdown') {
                                     return (
-                                        <div key={index} className="w-full flex flex-col items-center">
+                                        <div key={index} className="w-full flex flex-col items-center gap-2">
                                             <button
-                                                className="flex items-center justify-center gap-2 text-base font-medium text-gray-600 hover:text-gray-900 py-2"
+                                                className="w-full flex items-center justify-center gap-2 text-base font-semibold text-gray-700 hover:text-blue-600 py-3 px-4 rounded-lg hover:bg-gray-50 active:bg-gray-100 active:scale-98 transition-all duration-150"
                                                 onClick={() => item.setIsMobileOpen(!item.isMobileOpen)}
                                             >
                                                 {item.label}
@@ -1692,7 +1692,7 @@ export function Header(props: HeaderProps) {
                                                 />
                                             </button>
                                             {item.isMobileOpen && (
-                                                <div className="w-full flex flex-col items-center gap-2 mt-1">
+                                                <div className="w-full flex flex-col items-center gap-2 bg-gray-50 rounded-lg p-3 border border-gray-200 shadow-sm animate-in fade-in-0 slide-in-from-top-2 duration-200">
                                                     {item.items.map((subItem, subIndex) => {
                                                         if (subItem.items && subItem.items.length > 0) {
                                                             const submenuKey = `${index}-${subIndex}`;
@@ -1705,7 +1705,7 @@ export function Header(props: HeaderProps) {
                                                                     className="w-full flex flex-col items-center"
                                                                 >
                                                                     <button
-                                                                        className="flex items-center justify-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 py-2"
+                                                                        className="w-full flex items-center justify-center gap-2 text-sm font-semibold text-gray-700 hover:text-blue-600 py-2.5 px-3 rounded-md hover:bg-white active:bg-gray-100 active:scale-98 transition-all duration-150"
                                                                         onClick={() => toggleMobileSubMenu(submenuKey)}
                                                                     >
                                                                         {subItem.label}
@@ -1716,13 +1716,13 @@ export function Header(props: HeaderProps) {
                                                                         />
                                                                     </button>
                                                                     {isSubMenuOpen && (
-                                                                        <div className="w-full flex flex-col items-center gap-2 mt-1">
+                                                                        <div className="w-full flex flex-col items-center gap-1.5 mt-2 bg-white rounded-md p-2 border border-gray-200 shadow-sm animate-in fade-in-0 slide-in-from-top-1 duration-150">
                                                                             {subItem.items.map((child, childIndex) => {
-                                                                                const childClassName = `block text-sm text-center ${
+                                                                                const childClassName = `block text-sm text-center py-2.5 px-3 rounded-md transition-all duration-150 hover:shadow-sm active:scale-98 ${
                                                                                     child.isBold
-                                                                                        ? 'font-medium text-gray-900 hover:text-gray-700'
-                                                                                        : 'text-gray-600 hover:text-gray-900'
-                                                                                } py-2`;
+                                                                                        ? 'font-semibold text-gray-900 hover:bg-blue-50 hover:text-blue-600'
+                                                                                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                                                                                }`;
                                                                                 if (child.onClick) {
                                                                                     return (
                                                                                         <button
@@ -1754,11 +1754,11 @@ export function Header(props: HeaderProps) {
                                                             );
                                                         }
 
-                                                        const className = `block text-sm text-center ${
+                                                        const className = `block text-sm text-center py-2.5 px-3 rounded-md transition-all duration-150 hover:shadow-sm active:scale-98 ${
                                                             subItem.isBold
-                                                                ? 'font-medium text-gray-900 hover:text-gray-700'
-                                                                : 'text-gray-600 hover:text-gray-900'
-                                                        } py-2`;
+                                                                ? 'font-semibold text-gray-900 hover:bg-blue-50 hover:text-blue-600'
+                                                                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                                                        }`;
 
                                                         if (subItem.onClick) {
                                                             return (
