@@ -41,12 +41,37 @@ Sure! Here is the location of the nearest cafe:
 
 [-]
 
-[✨📌] bar
+[✨📌] 
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+---
+
+[ ]
+
+[✨📌] You are rendering a map. Increase its width.
+
+-   It should look great on desktop and on mobile.
+-   Also add button to show the map on the bigger pop-up modal.
+-   You are working with the [Agents Server](apps/agents-server)
+
+![alt text](prompts/screenshots/2026-02-1400-agents-server-chat-map.png)
+
+---
+
+[ ]
+
+[✨📌] When the agent is creating some rich feature like a map, image, table,... and the message isn't complete (It's in the process of the streaming.), only the source of this feature is shown, and it looks extremely ugly.
+
+-   We definitely want to preserve the feature of streaming the text.
+-   Do a proper analysis of the current functionality before you start implementing. This is relevant for any rich feature embedded in the chat message, like LaTeX, Map. Images, Tables,... ... Do it universally, not only for the map.
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   You are working with the [Agents Server](apps/agents-server)
+
+![alt text](prompts/screenshots/2026-02-1400-agents-server-chat-map-1.png)
 
 ---
 
@@ -58,15 +83,3 @@ Sure! Here is the location of the nearest cafe:
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
----
-
-[-]
-
-[✨📌] bar
-
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
--   You are working with the [Agents Server](apps/agents-server)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
-
