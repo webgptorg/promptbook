@@ -51,7 +51,7 @@ Sure! Here is the location of the nearest cafe:
 
 ---
 
-[ ]
+[x] ~$0.15 13 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
 [✨📌] You are rendering a map. Increase its width.
 
@@ -86,4 +86,5 @@ Sure! Here is the location of the nearest cafe:
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
 

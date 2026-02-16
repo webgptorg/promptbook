@@ -445,6 +445,10 @@ export const ChatMessageItem = memo(
             () => splitMessageContentIntoSegments(contentWithoutButtons),
             [contentWithoutButtons],
         );
+        const hasMapSegment = useMemo(
+            () => contentSegments.some((segment) => segment.type === 'map'),
+            [contentSegments],
+        );
         const completedToolCalls = dedupeToolCalls(
             (message.toolCalls || message.completedToolCalls)?.filter(
                 (toolCall) => !isAssistantPreparationToolCall(toolCall),
@@ -643,6 +647,7 @@ export const ChatMessageItem = memo(
                     styles.chatMessage,
                     isMe && styles.isMe,
                     !isComplete && styles.isNotCompleteMessage,
+                    hasMapSegment && styles.messageWithMap,
                 )}
                 onClick={() => {
                     console.group('💬', message.content);

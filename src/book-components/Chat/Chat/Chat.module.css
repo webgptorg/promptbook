@@ -287,6 +287,24 @@
     max-width: 100%;
 }
 
+.messageWithMap {
+    /* marker class applied to map messages so they can stretch wider. */
+}
+
+.chatMainFlow .chatMessage.messageWithMap .messageStack {
+    max-width: min(
+        90vw,
+        920px,
+        calc(100% - var(--chat-message-avatar-size) - var(--chat-message-avatar-gap))
+    );
+}
+
+@media (max-width: 900px) {
+    .chatMainFlow .chatMessage.messageWithMap .messageStack {
+        max-width: min(92vw, 640px);
+    }
+}
+
 .messageMeta {
     display: flex;
     align-items: center;

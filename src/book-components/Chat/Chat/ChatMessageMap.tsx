@@ -2,7 +2,8 @@
 
 import 'leaflet/dist/leaflet.css';
 
-import { useEffect, useRef } from 'react';
+import { Maximize2, X } from 'lucide-react';
+import { useEffect, useRef, useState, type MouseEvent, type RefObject } from 'react';
 import type { GeoJsonObject } from 'geojson';
 import L from 'leaflet';
 import type { Map as LeafletMap } from 'leaflet';
@@ -25,17 +26,25 @@ type ChatMessageMapProps = {
 };
 
 /**
- * Renders a Leaflet map for GeoJSON data inside the chat bubble.
+ * Custom hook that renders a Leaflet map inside the provided container and keeps it synced with the geojson payload.
  *
- * @private internal helper of `<ChatMessageItem/>`
+ * @private internal helper of `<ChatMessageMap/>`
  */
-export function ChatMessageMap({ data }: ChatMessageMapProps) {
-    const mapRef = useRef<HTMLDivElement | null>(null);
+function useLeafletGeoJsonMap(containerRef: RefObject<HTMLDivElement>, data: GeoJsonObject, enabled: boolean) {
     const leafletRef = useRef<LeafletMap | null>(null);
     const mapInvalidationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
-        if (!mapRef.current) {
+        if (!enabled) {
+            return;
+        }
+
+        if (typeof window === 'undefined') {
+            return;
+        }
+
+        const container = containerRef.current;
+        if (!container) {
             return;
         }
 
@@ -44,7 +53,7 @@ export function ChatMessageMap({ data }: ChatMessageMapProps) {
             leafletRef.current = null;
         }
 
-        const map = L.map(mapRef.current, {
+        const map = L.map(container, {
             center: [0, 0],
             zoom: 2,
             zoomControl: false,
@@ -63,15 +72,14 @@ export function ChatMessageMap({ data }: ChatMessageMapProps) {
                 color: '#6EE7B7',
                 weight: 3,
             }),
-            pointToLayer: (feature, latlng) => {
-                return L.circleMarker(latlng, {
+            pointToLayer: (_feature, latlng) =>
+                L.circleMarker(latlng, {
                     radius: 6,
                     fillColor: '#f59e0b',
                     color: '#fbbf24',
                     weight: 2,
                     fillOpacity: 0.9,
-                });
-            },
+                }),
         });
 
         geoJsonLayer.addTo(map);
@@ -109,11 +117,107 @@ export function ChatMessageMap({ data }: ChatMessageMapProps) {
             map.remove();
             leafletRef.current = null;
         };
-    }, [data]);
+    }, [containerRef, data, enabled]);
+}
+
+/**
+ * Renders a Leaflet map for GeoJSON data inside the chat bubble and exposes a modal control for a larger view.
+ *
+ * @private internal helper of `<ChatMessageItem/>`
+ */
+export function ChatMessageMap({ data }: ChatMessageMapProps) {
+    const previewRef = useRef<HTMLDivElement | null>(null);
+    const modalRef = useRef<HTMLDivElement | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    useLeafletGeoJsonMap(previewRef, data, true);
+    useLeafletGeoJsonMap(modalRef, data, isModalOpen);
+
+    useEffect(() => {
+        if (!isModalOpen) {
+            return;
+        }
+
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                setIsModalOpen(false);
+            }
+        };
+
+        if (typeof window === 'undefined') {
+            return;
+        }
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [isModalOpen]);
+
+    const handleOpenModal = (event: MouseEvent<HTMLButtonElement>) => {
+        event.preventDefault();
+        event.stopPropagation();
+        setIsModalOpen(true);
+    };
+
+    const handleCloseModal = () => {
+        setIsModalOpen(false);
+    };
 
     return (
-        <div className={styles.mapContainer}>
-            <div ref={mapRef} className={styles.mapSurface} aria-label="Map preview" />
-        </div>
+        <>
+            <div className={styles.mapContainer}>
+                <div className={styles.mapControls}>
+                    <button
+                        type="button"
+                        className={styles.mapControlButton}
+                        title="Open map in modal"
+                        aria-label="Open map in modal"
+                        onClick={handleOpenModal}
+                    >
+                        <Maximize2 aria-hidden="true" />
+                    </button>
+                </div>
+                <div ref={previewRef} className={styles.mapSurface} aria-label="Map preview" />
+            </div>
+
+            {isModalOpen && (
+                <div
+                    className={styles.mapModalBackdrop}
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label="Expanded map view"
+                    onClick={(event) => {
+                        if (event.target === event.currentTarget) {
+                            handleCloseModal();
+                        }
+                    }}
+                >
+                    <div className={styles.mapModalContent}>
+                        <div className={styles.mapModalHeader}>
+                            <button
+                                type="button"
+                                className={styles.mapModalCloseButton}
+                                title="Close map"
+                                aria-label="Close map"
+                                onClick={(event) => {
+                                    event.stopPropagation();
+                                    handleCloseModal();
+                                }}
+                            >
+                                <X aria-hidden="true" />
+                            </button>
+                        </div>
+                        <div className={styles.mapModalBody}>
+                            <div
+                                ref={modalRef}
+                                className={`${styles.mapSurface} ${styles.mapModalSurface}`}
+                                aria-label="Expanded map preview"
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
+        </>
     );
 }
