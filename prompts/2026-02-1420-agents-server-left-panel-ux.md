@@ -36,7 +36,7 @@
 
 ---
 
-[ ]
+[x] ~$0.00 a few seconds by OpenAI Codex `gpt-5.1-codex-mini`
 
 [✨🌥] qux
 
@@ -55,4 +55,5 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
 
