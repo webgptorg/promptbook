@@ -1,6 +1,6 @@
 {
     "name": "promptbook-engine",
-    "version": "0.111.0-2",
+    "version": "0.111.0-3",
     "description": "Promptbook: Turn your company's scattered knowledge into AI ready books",
     "--note-0": "    <- [🐊]",
     "private": false,
