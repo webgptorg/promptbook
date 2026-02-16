@@ -11,6 +11,7 @@ import { OpenAiSpeechRecognition } from '../../../../../../src/speech-recognitio
 import { string_agent_url, string_color } from '../../../../../../src/types/typeAliases';
 import { $getCurrentDate } from '../../../../../../src/utils/misc/$getCurrentDate';
 import { keepUnused } from '../../../../../../src/utils/organization/keepUnused';
+import { fetchUserChats, type UserChatSummary } from '../../../utils/userChatClient';
 import { $createAgentFromBookAction } from '../../../app/actions';
 import { useAgentNaming } from '../../../components/AgentNaming/AgentNamingContext';
 import { showAlert } from '../../../components/AsyncDialogs/asyncDialogs';
@@ -41,6 +42,11 @@ type DocumentWithViewTransition = Document & {
  * Query flag used to force creating a fresh history chat on full chat page entry.
  */
 const FORCE_NEW_CHAT_QUERY_PARAM = 'newChat';
+
+/**
+ * Maximum number of existing chats surfaced as quick buttons on the profile view.
+ */
+const MAX_PROFILE_EXISTING_CHATS = 3;
 
 /**
  * Returns true when a message has non-whitespace content.
@@ -85,6 +91,7 @@ export function AgentProfileChat({
     const router = useRouter();
     const [isCreatingAgent, setIsCreatingAgent] = useState(false);
     const [isNavigatingToChat, setIsNavigatingToChat] = useState(false);
+    const [existingChats, setExistingChats] = useState<Array<UserChatSummary>>([]);
     const { formatText } = useAgentNaming();
 
     keepUnused(isCreatingAgent);
@@ -105,19 +112,45 @@ export function AgentProfileChat({
         void router.prefetch(chatRoute) /*.catch(() => undefined)*/;
     }, [chatRoute, router]);
 
-    const navigateToChat = useCallback(
-        async ({ message }: { message?: string }) => {
-            setIsNavigatingToChat(true);
+    useEffect(() => {
+        if (!isHistoryEnabled) {
+            setExistingChats([]);
+            return;
+        }
 
-            const queryParams = new URLSearchParams();
-            if (hasMessageContent(message)) {
-                queryParams.set('message', message);
-                if (isHistoryEnabled) {
-                    queryParams.set(FORCE_NEW_CHAT_QUERY_PARAM, '1');
+        let isActive = true;
+
+        async function loadExistingChats(): Promise<void> {
+            try {
+                const snapshot = await fetchUserChats(agentName);
+                if (!isActive) {
+                    return;
                 }
+                setExistingChats(snapshot.chats);
+            } catch (error) {
+                console.error('[AgentProfileChat] Failed to load existing chats', error);
             }
-            const query = queryParams.toString();
-            const destination = query ? `${chatRoute}?${query}` : chatRoute;
+        }
+
+        void loadExistingChats();
+
+        return () => {
+            isActive = false;
+        };
+    }, [agentName, isHistoryEnabled]);
+
+    const visibleExistingChats = useMemo(
+        () => existingChats.slice(0, MAX_PROFILE_EXISTING_CHATS),
+        [existingChats],
+    );
+    const hasVisibleExistingChats = visibleExistingChats.length > 0;
+
+    /**
+     * Navigates to the provided destination while coordinating the view transition state.
+     */
+    const navigateToDestination = useCallback(
+        (destination: string) => {
+            setIsNavigatingToChat(true);
 
             return new Promise<void>((resolve) => {
                 requestAnimationFrame(() => {
@@ -128,7 +161,24 @@ export function AgentProfileChat({
                 });
             });
         },
-        [chatRoute, isHistoryEnabled, router],
+        [router],
+    );
+
+    const navigateToChat = useCallback(
+        ({ message }: { message?: string }) => {
+            const queryParams = new URLSearchParams();
+            if (hasMessageContent(message)) {
+                queryParams.set('message', message);
+                if (isHistoryEnabled) {
+                    queryParams.set(FORCE_NEW_CHAT_QUERY_PARAM, '1');
+                }
+            }
+            const query = queryParams.toString();
+            const destination = query ? `${chatRoute}?${query}` : chatRoute;
+
+            return navigateToDestination(destination);
+        },
+        [chatRoute, isHistoryEnabled, navigateToDestination],
     );
 
     const handleMessage = useCallback(
@@ -136,6 +186,14 @@ export function AgentProfileChat({
             return navigateToChat({ message });
         },
         [navigateToChat],
+    );
+
+    const handleContinueChat = useCallback(
+        (chatId: string) => {
+            const destination = `${chatRoute}?chat=${encodeURIComponent(chatId)}`;
+            return navigateToDestination(destination);
+        },
+        [chatRoute, navigateToDestination],
     );
 
     const speechRecognition = useMemo(() => {
@@ -199,43 +257,96 @@ export function AgentProfileChat({
     // The fallback above matches AgentChat.tsx default.
 
     return (
-        <div
-            className={`relative w-full h-[calc(100dvh-300px)] min-h-[350px] md:h-[500px] agent-chat-route-surface ${
-                isNavigatingToChat ? 'agent-chat-profile-transitioning' : ''
-            }`}
-        >
-            <Chat
-                title={`Chat with ${fullname}`}
-                participants={[
-                    {
-                        name: 'AGENT',
-                        fullname,
-                        isMe: false,
-                        color: brandColorHex,
-                        avatarSrc,
-                        // <- TODO: [🧠] Maybe this shouldnt be there
-                    },
-                ]}
-                messages={[
-                    {
-                        sender: 'AGENT',
-                        content: initialMessage,
-                        createdAt: $getCurrentDate(),
-                        id: 'initial-message',
-                        isComplete: true,
-                    },
-                ]}
-                onMessage={handleMessage}
-                onCreateAgent={handleCreateAgent}
-                isSaveButtonEnabled={false}
-                isCopyButtonEnabled={false}
-                className="bg-transparent"
-                buttonColor={brandColorHex}
-                style={{ background: 'transparent' }}
-                speechRecognition={speechRecognition}
-                speechRecognitionLanguage={speechRecognitionLanguage}
-                visual={'STANDALONE'}
-            />
+        <div className="flex w-full flex-col gap-3">
+            {hasVisibleExistingChats && (
+                <ExistingChatsPanel
+                    chats={visibleExistingChats}
+                    formatText={formatText}
+                    onOpenChat={(chatId) => void handleContinueChat(chatId)}
+                />
+            )}
+            <div
+                className={`relative w-full h-[calc(100dvh-300px)] min-h-[350px] md:h-[500px] agent-chat-route-surface ${
+                    isNavigatingToChat ? 'agent-chat-profile-transitioning' : ''
+                }`}
+            >
+                <Chat
+                    title={`Chat with ${fullname}`}
+                    participants={[
+                        {
+                            name: 'AGENT',
+                            fullname,
+                            isMe: false,
+                            color: brandColorHex,
+                            avatarSrc,
+                            // <- TODO: [🧠] Maybe this shouldnt be there
+                        },
+                    ]}
+                    messages={[
+                        {
+                            sender: 'AGENT',
+                            content: initialMessage,
+                            createdAt: $getCurrentDate(),
+                            id: 'initial-message',
+                            isComplete: true,
+                        },
+                    ]}
+                    onMessage={handleMessage}
+                    onCreateAgent={handleCreateAgent}
+                    isSaveButtonEnabled={false}
+                    isCopyButtonEnabled={false}
+                    className="bg-transparent"
+                    buttonColor={brandColorHex}
+                    style={{ background: 'transparent' }}
+                    speechRecognition={speechRecognition}
+                    speechRecognitionLanguage={speechRecognitionLanguage}
+                    visual={'STANDALONE'}
+                />
+            </div>
         </div>
+    );
+}
+
+/**
+ * Props used by the profile quick-access chat panel.
+ */
+type ExistingChatsPanelProps = {
+    chats: ReadonlyArray<UserChatSummary>;
+    formatText: (text: string) => string;
+    onOpenChat: (chatId: string) => void;
+};
+
+/**
+ * Renders quick buttons for recent chats so users can continue a conversation from the profile preview.
+ *
+ * @private Profile chat helper.
+ */
+function ExistingChatsPanel({ chats, formatText, onOpenChat }: ExistingChatsPanelProps) {
+    return (
+        <section className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 shadow-sm shadow-slate-200/60 backdrop-blur">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
+                {formatText('Continue a previous chat')}
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+                {chats.map((chat) => (
+                    <button
+                        key={chat.id}
+                        type="button"
+                        onClick={() => onOpenChat(chat.id)}
+                        title={chat.preview ? `${chat.title} — ${chat.preview}` : chat.title}
+                        className="max-w-[16rem] flex-shrink-0 rounded-full border border-slate-200 bg-white/80 px-3 py-1.5 text-left transition hover:border-slate-400 hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500/80"
+                    >
+                        <span className="block max-w-full truncate text-sm font-semibold text-slate-900">
+                            {chat.title}
+                        </span>
+                        {chat.preview ? (
+                            <span className="mt-0.5 block max-w-full truncate text-[0.65rem] font-medium text-slate-500">
+                                {chat.preview}
+                            </span>
+                        ) : null}
+                    </button>
+                ))}
+            </div>
+        </section>
     );
 }
