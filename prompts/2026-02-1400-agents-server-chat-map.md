@@ -39,14 +39,14 @@ Sure! Here is the location of the nearest cafe:
 
 ---
 
-[-]
+[ ]
 
-[✨📌] 
+[✨📌] When the GeoJSON is present in a message, it correctly renders a map, but it doesn't render features in this GeoJson, Fix it.
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
+    -   This functionality was implemented by [this prompt](prompts/2026-02-1400-agents-server-chat-map.md).
 -   You are working with the [Agents Server](apps/agents-server)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
 
@@ -57,6 +57,7 @@ Sure! Here is the location of the nearest cafe:
 -   It should look great on desktop and on mobile.
 -   Also add button to show the map on the bigger pop-up modal.
 -   You are working with the [Agents Server](apps/agents-server)
+-   This functionality was implemented by [this prompt](prompts/2026-02-1400-agents-server-chat-map.md).
 
 ![alt text](prompts/screenshots/2026-02-1400-agents-server-chat-map.png)
 
@@ -68,6 +69,7 @@ Sure! Here is the location of the nearest cafe:
 
 -   We definitely want to preserve the feature of streaming the text.
 -   Do a proper analysis of the current functionality before you start implementing. This is relevant for any rich feature embedded in the chat message, like LaTeX, Map. Images, Tables,... ... Do it universally, not only for the map.
+    -   The functionality of map rendering was implemented by [this prompt](prompts/2026-02-1400-agents-server-chat-map.md).
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   You are working with the [Agents Server](apps/agents-server)
 
