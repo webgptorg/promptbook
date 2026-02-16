@@ -1449,7 +1449,7 @@ export function Header(props: HeaderProps) {
                             WebkitBackdropFilter: 'blur(20px)',
                         }}
                     >
-                        <nav className="mx-auto flex flex-col gap-4 px-6">
+                        <nav className="mx-auto flex flex-col items-center gap-4 px-6 max-w-md">
                             <div className="border-b border-gray-100 pb-6 text-center">
                                 <div className="flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-gray-500">
                                     <span>Enter menu</span>
@@ -1594,7 +1594,7 @@ export function Header(props: HeaderProps) {
 
                             {/* Hoisted Menu Items for Mobile */}
                             {menuHoisting && menuHoisting.menu.length > 0 && (
-                                <div className="py-2 border-b border-gray-100 mb-2 flex gap-2 overflow-x-auto">
+                                <div className="w-full py-2 border-b border-gray-100 mb-2 flex justify-center gap-2 overflow-x-auto">
                                     {menuHoisting.menu.map((item, index) => (
                                         <button
                                             key={index}
@@ -1615,14 +1615,14 @@ export function Header(props: HeaderProps) {
                             )}
 
                             {/* Login Status for Mobile */}
-                            <div className="py-2 border-b border-gray-100 mb-2">
+                            <div className="w-full py-2 border-b border-gray-100 mb-2 flex flex-col items-center">
                                 {!currentUser && !isAdmin && (
                                     <button
                                         onClick={() => {
                                             void showLoginDialog().catch(() => undefined);
                                             setIsMenuOpen(false);
                                         }}
-                                        className="flex items-center gap-2 text-base font-medium text-gray-600 hover:text-gray-900 w-full"
+                                        className="flex items-center gap-2 text-base font-medium text-gray-600 hover:text-gray-900"
                                     >
                                         <LogIn className="w-4 h-4" />
                                         Log in
@@ -1630,8 +1630,8 @@ export function Header(props: HeaderProps) {
                                 )}
 
                                 {(currentUser || isAdmin) && (
-                                    <div className="flex flex-col gap-3">
-                                        <div className="text-sm text-gray-600">
+                                    <div className="flex flex-col items-center gap-3">
+                                        <div className="text-sm text-gray-600 text-center">
                                             Logged in as <strong>{currentUserDisplayName}</strong>
                                             {(currentUser?.isAdmin || isAdmin) && (
                                                 <span className="ml-2 bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
@@ -1644,7 +1644,7 @@ export function Header(props: HeaderProps) {
                                                 setIsChangePasswordOpen(true);
                                                 setIsMenuOpen(false);
                                             }}
-                                            className="flex items-center gap-2 text-base font-medium text-gray-600 hover:text-gray-900 w-full"
+                                            className="flex items-center gap-2 text-base font-medium text-gray-600 hover:text-gray-900"
                                         >
                                             <Lock className="w-4 h-4" />
                                             Change Password
@@ -1654,7 +1654,7 @@ export function Header(props: HeaderProps) {
                                                 handleLogout();
                                                 setIsMenuOpen(false);
                                             }}
-                                            className="flex items-center gap-2 text-base font-medium text-red-600 hover:text-red-700 w-full"
+                                            className="flex items-center gap-2 text-base font-medium text-red-600 hover:text-red-700"
                                         >
                                             <LogOut className="w-4 h-4" />
                                             Log out
@@ -1669,7 +1669,7 @@ export function Header(props: HeaderProps) {
                                         <HeadlessLink
                                             key={index}
                                             href={item.href}
-                                            className="block text-base font-medium text-gray-600 hover:text-gray-900 py-2"
+                                            className="block text-base font-medium text-gray-600 hover:text-gray-900 py-2 text-center"
                                             onClick={() => setIsMenuOpen(false)}
                                         >
                                             {item.label}
@@ -1679,9 +1679,9 @@ export function Header(props: HeaderProps) {
 
                                 if (item.type === 'dropdown') {
                                     return (
-                                        <div key={index} className="flex flex-col">
+                                        <div key={index} className="w-full flex flex-col items-center">
                                             <button
-                                                className="w-full flex items-center justify-between text-base font-medium text-gray-600 hover:text-gray-900 py-2"
+                                                className="flex items-center justify-center gap-2 text-base font-medium text-gray-600 hover:text-gray-900 py-2"
                                                 onClick={() => item.setIsMobileOpen(!item.isMobileOpen)}
                                             >
                                                 {item.label}
@@ -1692,7 +1692,7 @@ export function Header(props: HeaderProps) {
                                                 />
                                             </button>
                                             {item.isMobileOpen && (
-                                                <div className="pl-4 flex flex-col gap-2 border-l-2 border-gray-100 ml-1 mt-1">
+                                                <div className="w-full flex flex-col items-center gap-2 border-l-2 border-gray-100 ml-1 mt-1 pl-4">
                                                     {item.items.map((subItem, subIndex) => {
                                                         if (subItem.items && subItem.items.length > 0) {
                                                             const submenuKey = `${index}-${subIndex}`;
@@ -1700,9 +1700,12 @@ export function Header(props: HeaderProps) {
                                                                 mobileOpenSubMenus[submenuKey],
                                                             );
                                                             return (
-                                                                <div key={submenuKey} className="flex flex-col">
+                                                                <div
+                                                                    key={submenuKey}
+                                                                    className="w-full flex flex-col items-center"
+                                                                >
                                                                     <button
-                                                                        className="w-full flex items-center justify-between text-sm font-medium text-gray-600 hover:text-gray-900 py-2"
+                                                                        className="flex items-center justify-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 py-2"
                                                                         onClick={() => toggleMobileSubMenu(submenuKey)}
                                                                     >
                                                                         {subItem.label}
@@ -1713,9 +1716,9 @@ export function Header(props: HeaderProps) {
                                                                         />
                                                                     </button>
                                                                     {isSubMenuOpen && (
-                                                                        <div className="pl-4 flex flex-col gap-2 border-l-2 border-gray-100 ml-1 mt-1">
+                                                                        <div className="w-full flex flex-col items-center gap-2 border-l-2 border-gray-100 ml-1 mt-1 pl-4">
                                                                             {subItem.items.map((child, childIndex) => {
-                                                                                const childClassName = `block text-sm ${
+                                                                                const childClassName = `block text-sm text-center ${
                                                                                     child.isBold
                                                                                         ? 'font-medium text-gray-900 hover:text-gray-700'
                                                                                         : 'text-gray-600 hover:text-gray-900'
@@ -1724,7 +1727,7 @@ export function Header(props: HeaderProps) {
                                                                                     return (
                                                                                         <button
                                                                                             key={`mobile-child-${submenuKey}-${childIndex}`}
-                                                                                            className={`${childClassName} w-full text-left`}
+                                                                                            className={childClassName}
                                                                                             onClick={child.onClick}
                                                                                         >
                                                                                             {child.label}
@@ -1751,7 +1754,7 @@ export function Header(props: HeaderProps) {
                                                             );
                                                         }
 
-                                                        const className = `block text-sm ${
+                                                        const className = `block text-sm text-center ${
                                                             subItem.isBold
                                                                 ? 'font-medium text-gray-900 hover:text-gray-700'
                                                                 : 'text-gray-600 hover:text-gray-900'
@@ -1761,7 +1764,7 @@ export function Header(props: HeaderProps) {
                                                             return (
                                                                 <button
                                                                     key={subIndex}
-                                                                    className={`${className} w-full text-left`}
+                                                                    className={className}
                                                                     onClick={subItem.onClick}
                                                                 >
                                                                     {subItem.label}
@@ -1793,7 +1796,7 @@ export function Header(props: HeaderProps) {
                                 <a
                                     href="https://ptbk.io/"
                                     target="_blank"
-                                    className="text-base font-medium text-gray-600 hover:text-gray-900 py-2"
+                                    className="text-base font-medium text-gray-600 hover:text-gray-900 py-2 text-center"
                                     onClick={() => setIsMenuOpen(false)}
                                 >
                                     Create your server
