@@ -1,40 +1,36 @@
-import os from 'node:os';
 import { cookies, headers } from 'next/headers';
+import os from 'node:os';
 import type { ReactNode } from 'react';
 
 import { MarkdownContent } from '@promptbook-local/components';
-import {
-    BOOK_LANGUAGE_VERSION,
-    PROMPTBOOK_ENGINE_VERSION,
-    aboutPromptbookInformation,
-} from '@promptbook-local/core';
+import { BOOK_LANGUAGE_VERSION, PROMPTBOOK_ENGINE_VERSION, aboutPromptbookInformation } from '@promptbook-local/core';
 
-import { Card } from '../../../components/Homepage/Card';
-import { Section } from '../../../components/Homepage/Section';
-import { ForbiddenPage } from '../../../components/ForbiddenPage/ForbiddenPage';
-import { isUserAdmin } from '../../../utils/isUserAdmin';
-import { getSession } from '../../../utils/session';
 import {
     NEXT_PUBLIC_SITE_URL,
+    NEXT_PUBLIC_VERCEL_BRANCH_URL,
     NEXT_PUBLIC_VERCEL_ENV,
-    NEXT_PUBLIC_VERCEL_TARGET_ENV,
-    NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA,
-    NEXT_PUBLIC_VERCEL_GIT_COMMIT_REF,
-    NEXT_PUBLIC_VERCEL_GIT_COMMIT_MESSAGE,
-    NEXT_PUBLIC_VERCEL_GIT_COMMIT_AUTHOR_NAME,
     NEXT_PUBLIC_VERCEL_GIT_COMMIT_AUTHOR_LOGIN,
+    NEXT_PUBLIC_VERCEL_GIT_COMMIT_AUTHOR_NAME,
+    NEXT_PUBLIC_VERCEL_GIT_COMMIT_MESSAGE,
+    NEXT_PUBLIC_VERCEL_GIT_COMMIT_REF,
+    NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA,
+    NEXT_PUBLIC_VERCEL_GIT_PREVIOUS_SHA,
     NEXT_PUBLIC_VERCEL_GIT_PROVIDER,
+    NEXT_PUBLIC_VERCEL_GIT_PULL_REQUEST_ID,
+    NEXT_PUBLIC_VERCEL_GIT_REPO_ID,
     NEXT_PUBLIC_VERCEL_GIT_REPO_OWNER,
     NEXT_PUBLIC_VERCEL_GIT_REPO_SLUG,
-    NEXT_PUBLIC_VERCEL_GIT_REPO_ID,
-    NEXT_PUBLIC_VERCEL_GIT_PREVIOUS_SHA,
-    NEXT_PUBLIC_VERCEL_GIT_PULL_REQUEST_ID,
-    NEXT_PUBLIC_VERCEL_URL,
-    NEXT_PUBLIC_VERCEL_BRANCH_URL,
     NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL,
+    NEXT_PUBLIC_VERCEL_TARGET_ENV,
+    NEXT_PUBLIC_VERCEL_URL,
     SERVERS,
     SUPABASE_TABLE_PREFIX,
 } from '../../../../config';
+import { ForbiddenPage } from '../../../components/ForbiddenPage/ForbiddenPage';
+import { Card } from '../../../components/Homepage/Card';
+import { Section } from '../../../components/Homepage/Section';
+import { isUserAdmin } from '../../../utils/isUserAdmin';
+import { getSession } from '../../../utils/session';
 
 const promptbookAboutText = aboutPromptbookInformation({
     isServersInfoIncluded: false,
@@ -80,6 +76,8 @@ const formatOptionalValue = (value?: string | URL | null): string => {
  * @returns Rendered gigabyte string.
  */
 const formatMemory = (bytes: number): string => `${(bytes / 1024 / 1024 / 1024).toFixed(1)} GB`;
+
+type RequestHeaders = Awaited<ReturnType<typeof headers>>;
 
 /**
  * Formats a duration (seconds) into a human-readable string.
@@ -132,11 +130,7 @@ function formatList(values?: string[] | null): string {
  * @returns ReactNode styled with monospace font.
  */
 function renderMonoValue(value: string): ReactNode {
-    return (
-        <span className="font-mono text-right break-words block">
-            {value}
-        </span>
-    );
+    return <span className="font-mono text-right break-words block">{value}</span>;
 }
 
 /**
@@ -160,7 +154,7 @@ function renderOptionalMonoValue(value?: string | null): ReactNode {
  * @param headerStore - Next.js request headers.
  * @returns IPv4/6 address or placeholder text.
  */
-function getClientIp(headerStore: Headers): string {
+function getClientIp(headerStore: RequestHeaders): string {
     const forwardedFor = headerStore.get('x-forwarded-for');
     if (forwardedFor) {
         const [ip] = forwardedFor.split(',');
@@ -179,7 +173,7 @@ function getClientIp(headerStore: Headers): string {
  * @param name - Header name to read.
  * @returns Header or placeholder.
  */
-function readHeaderValue(headerStore: Headers, name: string): string {
+function readHeaderValue(headerStore: RequestHeaders, name: string): string {
     return formatOptionalValue(headerStore.get(name));
 }
 
@@ -207,7 +201,7 @@ export default async function AdminAboutPage() {
         return <ForbiddenPage />;
     }
 
-    const requestHeaders = headers();
+    const requestHeaders = await headers();
     const cookieStore = await cookies();
     const session = await getSession();
     const adminTokenCookie = cookieStore.get('adminToken');
@@ -217,7 +211,10 @@ export default async function AdminAboutPage() {
     const nextPackageJson = await import('next/package.json');
     const nextVersion = nextPackageJson?.version || 'unknown';
     const memoryUsage = process.memoryUsage();
-    const formattedLoadAverage = os.loadavg().map((value) => value.toFixed(2)).join(' / ');
+    const formattedLoadAverage = os
+        .loadavg()
+        .map((value) => value.toFixed(2))
+        .join(' / ');
     const systemUptimeSeconds = os.uptime();
     const processUptimeSeconds = process.uptime();
     const systemStartTime = new Date(Date.now() - systemUptimeSeconds * 1000).toISOString();
@@ -233,9 +230,9 @@ export default async function AdminAboutPage() {
     const npmUserAgent = process.env.npm_config_user_agent;
     const adminPasswordConfigured = Boolean(process.env.ADMIN_PASSWORD);
     const legacyAdminTokenMatches =
-        Boolean(adminTokenCookie) &&
+        Boolean(adminTokenCookie?.value) &&
         Boolean(process.env.ADMIN_PASSWORD) &&
-        adminTokenCookie.value === process.env.ADMIN_PASSWORD;
+        adminTokenCookie?.value === process.env.ADMIN_PASSWORD;
     const headerValue = (name: string) => readHeaderValue(requestHeaders, name);
     const clientIp = getClientIp(requestHeaders);
     const hostHeader = headerValue('host');
@@ -411,8 +408,8 @@ export default async function AdminAboutPage() {
                     <div>
                         <h1 className="text-3xl font-semibold text-gray-900">About Promptbook</h1>
                         <p className="text-gray-600 mt-2">
-                            This admin page keeps Promptbook, system, and deployment metadata in one place.
-                            Use it to look up the current build, inspect the runtime, or spot networking oddities.
+                            This admin page keeps Promptbook, system, and deployment metadata in one place. Use it to
+                            look up the current build, inspect the runtime, or spot networking oddities.
                         </p>
                     </div>
                 </Card>
