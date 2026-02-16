@@ -1692,7 +1692,7 @@ export function Header(props: HeaderProps) {
                                                 />
                                             </button>
                                             {item.isMobileOpen && (
-                                                <div className="w-full flex flex-col items-center gap-2 border-l-2 border-gray-100 ml-1 mt-1 pl-4">
+                                                <div className="w-full flex flex-col items-center gap-2 mt-1">
                                                     {item.items.map((subItem, subIndex) => {
                                                         if (subItem.items && subItem.items.length > 0) {
                                                             const submenuKey = `${index}-${subIndex}`;
@@ -1716,7 +1716,7 @@ export function Header(props: HeaderProps) {
                                                                         />
                                                                     </button>
                                                                     {isSubMenuOpen && (
-                                                                        <div className="w-full flex flex-col items-center gap-2 border-l-2 border-gray-100 ml-1 mt-1 pl-4">
+                                                                        <div className="w-full flex flex-col items-center gap-2 mt-1">
                                                                             {subItem.items.map((child, childIndex) => {
                                                                                 const childClassName = `block text-sm text-center ${
                                                                                     child.isBold
