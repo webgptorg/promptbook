@@ -10,6 +10,7 @@ import { computeHash, serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
 import { keepUnused } from '../../../../../../../../src/utils/organization/keepUnused';
 import { respondIfClientVersionIsOutdated } from '../../../../../utils/clientVersionGuard';
+import { textToSpeechText } from '../../../../../utils/textToSpeechText';
 
 export const maxDuration = 300;
 
@@ -166,10 +167,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         // --- Common Chat Logic End ---
 
         // 2. Synthesize Audio (TTS)
+        const sanitizedSpeechText = textToSpeechText(response.content);
+        const fallbackSpeechText = typeof response.content === 'string' ? response.content.trim() : '';
+
         const mp3 = await client.audio.speech.create({
             model: 'tts-1',
             voice: 'alloy',
-            input: response.content,
+            input: sanitizedSpeechText || fallbackSpeechText,
         });
 
         const buffer = Buffer.from(await mp3.arrayBuffer());

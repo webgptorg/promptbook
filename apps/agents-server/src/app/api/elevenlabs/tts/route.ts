@@ -1,4 +1,5 @@
 import { respondIfClientVersionIsOutdated } from '../../../../utils/clientVersionGuard';
+import { textToSpeechText } from '../../../../utils/textToSpeechText';
 
 /**
  * Base URL of the ElevenLabs API.
@@ -78,9 +79,9 @@ export async function POST(request: Request) {
     }
 
     const payload = (await request.json().catch(() => null)) as { text?: string } | null;
-    const cleanedText = payload?.text?.toString().trim() ?? '';
+    const rawText = (payload?.text?.toString() ?? '').trim();
 
-    if (!cleanedText) {
+    if (!rawText) {
         return new Response(
             JSON.stringify({
                 error: 'Missing text to speak.',
@@ -94,6 +95,7 @@ export async function POST(request: Request) {
         );
     }
 
+    const cleanedText = textToSpeechText(rawText) || rawText;
     const limitedText =
         cleanedText.length > MAX_ELEVEN_LABS_TEXT_LENGTH
             ? cleanedText.slice(0, MAX_ELEVEN_LABS_TEXT_LENGTH).trim()
