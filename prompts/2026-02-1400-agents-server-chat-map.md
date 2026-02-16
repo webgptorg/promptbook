@@ -43,6 +43,7 @@ Sure! Here is the location of the nearest cafe:
 
 [✨📌] When the GeoJSON is present in a message, it correctly renders a map, but it doesn't render features in this GeoJson, Fix it.
 
+-   it eventually loads but it takes lot of time and it's confusing to see map without this features for a long time.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
     -   This functionality was implemented by [this prompt](prompts/2026-02-1400-agents-server-chat-map.md).
