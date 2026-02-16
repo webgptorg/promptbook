@@ -1038,9 +1038,9 @@ export function Header(props: HeaderProps) {
         <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200 h-16">
             {isChangePasswordOpen && <ChangePasswordDialog onClose={() => setIsChangePasswordOpen(false)} />}
             <div className="w-full px-4 h-full">
-                <div className="flex items-center justify-between h-full gap-6">
-                    <div className="flex-shrink-0">
-                        <div className="flex min-w-0 items-center gap-3 rounded-2xl border border-gray-200 bg-white/90 px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm shadow-slate-200/60 backdrop-blur">
+                <div className="flex items-center justify-between h-full gap-2 sm:gap-4 lg:gap-6">
+                    <div className="flex-shrink min-w-0 flex-1 lg:flex-initial">
+                        <div className="flex min-w-0 items-center gap-2 sm:gap-3 rounded-2xl border border-gray-200 bg-white/90 px-2 sm:px-3 md:px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm shadow-slate-200/60 backdrop-blur">
                             <div className="relative flex min-w-0 items-center gap-3">
                                 <HeadlessLink
                                     href="/"
@@ -1054,7 +1054,7 @@ export function Header(props: HeaderProps) {
                                             alt={serverName}
                                             width={32}
                                             height={32}
-                                            className="w-8 h-8 object-contain flex-shrink-0"
+                                            className="w-6 h-6 sm:w-8 sm:h-8 object-contain flex-shrink-0"
                                         />
                                     ) : (
                                         <Image
@@ -1062,11 +1062,12 @@ export function Header(props: HeaderProps) {
                                             alt={serverName}
                                             width={32}
                                             height={32}
-                                            className="w-8 h-8 object-contain flex-shrink-0"
+                                            className="w-6 h-6 sm:w-8 sm:h-8 object-contain flex-shrink-0"
                                         />
                                     )}
-                                    <span className="text-base font-bold tracking-tight text-gray-900 truncate">
-                                        {serverName}
+                                    <span className="text-base font-bold tracking-tight text-gray-900 truncate max-w-[180px] sm:max-w-[200px] md:max-w-[250px] lg:max-w-none">
+                                        <span className="hidden sm:inline">{serverName}</span>
+                                        <span className="sm:hidden">{serverName.split(' ')[0]}</span>
                                     </span>
                                 </HeadlessLink>
                                 {federatedServers.length > 0 && (
@@ -1110,17 +1111,19 @@ export function Header(props: HeaderProps) {
                                 )}
                             </div>
 
-                            <ChevronRight className="h-4 w-4 text-gray-300" />
+                            <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4 text-gray-300" />
 
                             {isAdmin ? (
                                 <div className="relative min-w-0">
                                     <button
-                                        className="flex min-w-0 items-center gap-1 rounded-full border border-transparent px-3 py-1 text-sm font-semibold text-gray-900 hover:border-gray-200 hover:bg-gray-100 transition"
+                                        className="flex min-w-0 items-center gap-1 rounded-full border border-transparent px-2 sm:px-3 py-1 text-xs sm:text-sm font-semibold text-gray-900 hover:border-gray-200 hover:bg-gray-100 transition"
                                         onClick={() => setIsAgentsOpen(!isAgentsOpen)}
                                         onBlur={() => setTimeout(() => setIsAgentsOpen(false), 200)}
                                     >
-                                        <span className="truncate max-w-[200px]">{activeAgentLabel}</span>
-                                        <ChevronDown className="h-4 w-4 text-gray-400" />
+                                        <span className="truncate max-w-[80px] sm:max-w-[120px] md:max-w-[180px] lg:max-w-[200px]">
+                                            {activeAgentLabel}
+                                        </span>
+                                        <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
                                     </button>
                                     {isAgentsOpen && (
                                         <div className="absolute left-0 top-full z-50 mt-2 w-[min(420px,90vw)] rounded-md border border-gray-100 bg-white py-1 shadow-lg animate-in fade-in zoom-in-95 duration-200">
@@ -1158,23 +1161,27 @@ export function Header(props: HeaderProps) {
                             ) : (
                                 <HeadlessLink
                                     href={activeAgentHref}
-                                    className="inline-flex min-w-0 items-center rounded-full px-3 py-1 text-sm font-semibold text-gray-900 hover:bg-gray-100 transition"
+                                    className="inline-flex min-w-0 items-center rounded-full px-2 sm:px-3 py-1 text-xs sm:text-sm font-semibold text-gray-900 hover:bg-gray-100 transition"
                                 >
-                                    <span className="truncate max-w-[200px]">{activeAgentLabel}</span>
+                                    <span className="truncate max-w-[80px] sm:max-w-[120px] md:max-w-[180px] lg:max-w-[200px]">
+                                        {activeAgentLabel}
+                                    </span>
                                 </HeadlessLink>
                             )}
 
                             {activeAgentView && activeAgentViewItems.length > 0 && (
                                 <>
-                                    <ChevronRight className="h-4 w-4 text-gray-300" />
-                                    <div className="relative">
+                                    <ChevronRight className="hidden sm:block h-4 w-4 text-gray-300" />
+                                    <div className="relative hidden sm:block">
                                         <button
-                                            className="flex items-center gap-1 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 hover:bg-gray-100 transition"
+                                            className="flex items-center gap-1 rounded-full px-2 sm:px-3 py-1 text-xs sm:text-sm font-semibold text-gray-700 hover:bg-gray-100 transition"
                                             onClick={() => setIsAgentViewOpen(!isAgentViewOpen)}
                                             onBlur={() => setTimeout(() => setIsAgentViewOpen(false), 200)}
                                         >
-                                            <span>{activeAgentView}</span>
-                                            <ChevronDown className="h-4 w-4 text-gray-400" />
+                                            <span className="truncate max-w-[60px] sm:max-w-none">
+                                                {activeAgentView}
+                                            </span>
+                                            <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
                                         </button>
                                         {isAgentViewOpen && (
                                             <div className="absolute left-0 top-full z-50 mt-2 min-w-[180px] rounded-md border border-gray-100 bg-white py-1 shadow-lg animate-in fade-in zoom-in-95 duration-200">
@@ -1327,7 +1334,7 @@ export function Header(props: HeaderProps) {
                     </div>
 
                     {/* CTA Button & Mobile Menu Toggle */}
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2 sm:gap-3 md:gap-4 flex-shrink-0">
                         {menuHoisting && menuHoisting.menu.length > 0 && (
                             <div className="hidden lg:flex items-center gap-2 border-r border-gray-200 pr-4 mr-2">
                                 {menuHoisting.menu.map((item, index) => (
