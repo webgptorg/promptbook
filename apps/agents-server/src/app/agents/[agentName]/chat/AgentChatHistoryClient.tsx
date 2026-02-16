@@ -64,7 +64,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     const [isCreatingChat, setIsCreatingChat] = useState(false);
     const [isSwitchingChat, setIsSwitchingChat] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
-    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
     const toggleSidebarCollapsed = useCallback(() => {
         setIsSidebarCollapsed((value) => !value);
