@@ -6,6 +6,7 @@ import { headers } from 'next/headers';
 import { resolveSpeechRecognitionLanguage } from '../../../../../../../src/utils/language/getBrowserPreferredSpeechRecognitionLanguage';
 import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
 import { DeletedAgentBanner } from '../../../../components/DeletedAgentBanner';
+import { PrintHeader } from '../../../../components/PrintHeader/PrintHeader';
 import { getAgentProfile, isAgentDeleted } from '../_utils';
 import { generateAgentMetadata } from '../generateAgentMetadata';
 import { AgentChatHistoryClient } from './AgentChatHistoryClient';
@@ -55,9 +56,11 @@ export default async function AgentChatPage({
     });
     const currentUser = await getCurrentUser();
     const chatFailMessage = await getMetadata('CHAT_FAIL_MESSAGE');
+    const agentDisplayName = agentProfile.meta.fullname || agentProfile.agentName || agentName;
 
     return (
-        <main className={`w-full h-full overflow-hidden relative agent-chat-route-surface`}>
+        <main className={`w-full h-full overflow-hidden relative agent-chat-route-surface print-export-chat-surface`}>
+            <PrintHeader title={`Chat with ${agentDisplayName}`} />
             <AgentChatHistoryClient
                 agentName={agentName}
                 agentUrl={agentUrl}

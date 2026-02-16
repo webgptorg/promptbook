@@ -610,4 +610,20 @@ textarea:focus-visible {
         white-space: pre-wrap !important;
         font-size: 0.9em !important;
     }
+
+    /* Agents Server chat export styling */
+    .print-export-chat-surface {
+        background:
+            radial-gradient(circle at 20% 15%, rgba(14, 165, 233, 0.35), transparent 35%),
+            radial-gradient(circle at 80% 5%, rgba(236, 72, 153, 0.25), transparent 38%),
+            linear-gradient(180deg, #020617 0%, #0f172a 55%, #020617 100%) !important;
+        color: #f8fafc !important;
+        min-height: 100vh;
+        box-sizing: border-box;
+        width: 100%;
+    }
+
+    .print-export-chat-surface * {
+        color: inherit !important;
+    }
 }

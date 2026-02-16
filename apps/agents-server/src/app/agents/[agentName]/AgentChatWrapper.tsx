@@ -3,7 +3,7 @@
 import { usePromise } from '@common/hooks/usePromise';
 import { AgentChat, ChatMessage } from '@promptbook-local/components';
 import { RemoteAgent } from '@promptbook-local/core';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { OpenAiSpeechRecognition } from '../../../../../../src/speech-recognition/OpenAiSpeechRecognition';
 import { string_agent_url } from '../../../../../../src/types/typeAliases';
 import { useAgentBackground } from '../../../components/AgentProfile/useAgentBackground';
@@ -41,7 +41,17 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
         chatFailMessage,
     } = props;
 
-    const { backgroundImage } = useAgentBackground(brandColor);
+    const { backgroundImage, brandColorHex, brandColorLightHex, brandColorDarkHex } =
+        useAgentBackground(brandColor);
+
+    const chatBackgroundStyle: CSSProperties & Record<string, string> = {
+        backgroundImage: `url("${backgroundImage}")`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        '--agent-chat-brand-color': brandColorHex,
+        '--agent-chat-brand-color-light': brandColorLightHex,
+        '--agent-chat-brand-color-dark': brandColorDarkHex,
+    };
 
     const agentPromise = useMemo(
         () =>
@@ -166,11 +176,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
             <AgentChat
                 key={chatKey}
                 className={`w-full h-full`}
-                style={{
-                    backgroundImage: `url("${backgroundImage}")`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                }}
+                style={chatBackgroundStyle}
                 agent={agent}
                 onFeedback={handleFeedback}
                 onFileUpload={handleFileUpload}
