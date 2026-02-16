@@ -164,9 +164,11 @@ export const bookEditorUploadHandler = createBookEditorUploadHandler();
 
 /**
  * Handler used by chat attachments so agents can access uploaded files.
+ *
+ * Returns the canonical CDN URL (not the short alias) so agents running outside
+ * the browser can download the file directly without relying on the short-link
+ * resolver.
  */
 export const chatFileUploadHandler = createFileUploadHandler({
     purpose: 'CHAT_ATTACHMENT',
-    returnShortUrl: true,
-    shortUrlPrefix: DEFAULT_SHORT_URL_PREFIX,
 });
