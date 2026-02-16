@@ -9,9 +9,9 @@ describe('simplifyKnowledgeLabel', () => {
     });
 
     it('removes trailing ID even when source has no extension', () => {
-        expect(
-            simplifyKnowledgeLabel('project-bid-specification-document-LongMixedCaseTokenWithDigits12345'),
-        ).toBe('project-bid-specific...');
+        expect(simplifyKnowledgeLabel('project-bid-specification-document-LongMixedCaseTokenWithDigits12345')).toBe(
+            'project-bid-specific...',
+        );
     });
 
     it('extracts filename from URL-like input before simplification', () => {

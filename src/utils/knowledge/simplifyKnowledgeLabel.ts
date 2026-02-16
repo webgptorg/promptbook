@@ -201,7 +201,6 @@ function removeTrailingIdSegment(value: string): string {
     let separatorIndex = Math.max(current.lastIndexOf('-'), current.lastIndexOf('_'));
 
     while (separatorIndex > 0) {
-
         const suffixCandidate = current.slice(separatorIndex + 1);
         if (isHumanOrID(suffixCandidate) !== 'ID') {
             return current;

@@ -22,9 +22,7 @@ export type InlineKnowledgeSourceFile = {
 /**
  * @private Function signature used to upload inline knowledge files to external storage.
  */
-export type InlineKnowledgeSourceUploader = (
-    file: InlineKnowledgeSourceFile,
-) => Promise<string_knowledge_source_link>;
+export type InlineKnowledgeSourceUploader = (file: InlineKnowledgeSourceFile) => Promise<string_knowledge_source_link>;
 
 /**
  * @private Retrieves the first meaningful line from the inline content.

@@ -127,9 +127,7 @@ export function ImagePromptRenderer({ alt, prompt }: ImagePromptRendererProps) {
                         <div className={styles.imagePromptSpinner} />
                     </div>
                 )}
-                {status === 'error' && error && (
-                    <div className={styles.imagePromptError}>{error}</div>
-                )}
+                {status === 'error' && error && <div className={styles.imagePromptError}>{error}</div>}
             </div>
             <div className={styles.imagePromptMeta}>
                 <span className={styles.imagePromptPrompt}>{trimmedPrompt || 'Generated image'}</span>

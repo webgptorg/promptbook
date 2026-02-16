@@ -2,11 +2,7 @@ import { afterEach, describe, expect, it } from '@jest/globals';
 import { spaceTrim } from 'spacetrim';
 import { createAgentModelRequirementsWithCommitments } from '../../book-2.0/agent-source/createAgentModelRequirementsWithCommitments';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
-import {
-    MemoryCommitmentDefinition,
-    setMemoryToolRuntimeAdapter,
-    type MemoryToolRuntimeAdapter,
-} from './MEMORY';
+import { MemoryCommitmentDefinition, setMemoryToolRuntimeAdapter, type MemoryToolRuntimeAdapter } from './MEMORY';
 import { TOOL_RUNTIME_CONTEXT_ARGUMENT } from '../_common/toolRuntimeContext';
 
 /**

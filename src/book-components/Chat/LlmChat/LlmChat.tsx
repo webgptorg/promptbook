@@ -88,10 +88,7 @@ type BackgroundRecoveryPayload = {
  *
  * @private internal helper for LLM chat background resilience
  */
-type HandleMessageFn = (
-    messageContent: string,
-    attachments?: ChatMessage['attachments'],
-) => Promise<void>;
+type HandleMessageFn = (messageContent: string, attachments?: ChatMessage['attachments']) => Promise<void>;
 
 const THINKING_MESSAGE_DELAY_MIN_MS = 1000;
 const THINKING_MESSAGE_DELAY_MAX_MS = 5000;

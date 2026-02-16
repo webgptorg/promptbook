@@ -28,4 +28,3 @@ export function buildToolInvocationScript(options: {
         return await ${functionName}(args);
     `;
 }
-

@@ -51,7 +51,11 @@ describe('dedupeCitationsBySource', () => {
     it('keeps one citation chip payload per source while preserving metadata', () => {
         const deduped = dedupeCitationsBySource([
             { id: '7:15', source: 'document123.doc' },
-            { id: DEFAULT_SIMPLIFIED_CITATION_ID, source: 'document123.doc', url: 'https://example.com/document123.doc' },
+            {
+                id: DEFAULT_SIMPLIFIED_CITATION_ID,
+                source: 'document123.doc',
+                url: 'https://example.com/document123.doc',
+            },
         ]);
 
         expect(deduped).toEqual([

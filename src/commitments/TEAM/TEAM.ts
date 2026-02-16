@@ -321,9 +321,7 @@ function buildTeammatePrompt(request: string, runtimeContext: ToolRuntimeContext
 /**
  * Creates teammate runtime context and marks conversation as team-only memory-disabled.
  */
-function createTeamConversationRuntimeContext(
-    value: unknown,
-): ToolRuntimeContext {
+function createTeamConversationRuntimeContext(value: unknown): ToolRuntimeContext {
     const runtimeContext = parseToolRuntimeContext(value) || {};
 
     return {

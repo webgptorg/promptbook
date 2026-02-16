@@ -71,8 +71,6 @@ describe('citation helper heuristics', () => {
             url: 'https://manual.example/doc.pdf',
         };
 
-        expect(resolveCitationPreviewUrl(explicitUrlCitation, participants)).toBe(
-            'https://manual.example/doc.pdf',
-        );
+        expect(resolveCitationPreviewUrl(explicitUrlCitation, participants)).toBe('https://manual.example/doc.pdf');
     });
 });

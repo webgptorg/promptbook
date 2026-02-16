@@ -149,10 +149,7 @@ export function parseCitationMarkersFromContent(content: string): CitationMarker
  *
  * @private utility of `<Chat/>`
  */
-export function replaceCitationMarkers(
-    content: string,
-    replacer: (marker: CitationMarker) => string,
-): string {
+export function replaceCitationMarkers(content: string, replacer: (marker: CitationMarker) => string): string {
     const citationMarkerRegex = createCitationMarkerRegex();
 
     return content.replace(citationMarkerRegex, (rawMarker: string) => {
