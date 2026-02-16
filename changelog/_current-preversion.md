@@ -2,6 +2,7 @@
 -   Ensured Agents Server chat uploads now hand the generated CDN URL back to the client instead of the experimental short-link alias so attached files are accessible to agents outside the browser.
 -   Improved the Agents Server chat history drawer: the left panel now slides with smoother animation, auto-closes when you tap outside, sits atop the header instead of being cropped, and exposes a mobile edge handle plus a minimal desktop strip so chats stay accessible without the extra top bar.
 -   Added in-chat map rendering for GeoJSON features so agent replies that include \`\`\`geojson\`\`\` blocks now render a Leaflet map inside the bubble that zooms to the provided feature/collection.
+-   Fixed the chat GeoJSON renderer so Leaflet overlays draw their features as soon as they're ready instead of showing a bare map for several seconds by invalidating the map size once the layer is initialized.
 -   Stopped `STREAM_KEEP_ALIVE` heartbeats from ever reaching `<Chat/>` by filtering them inside `RemoteAgent` so keep-alive pings stay hidden while preserving the underlying connection health signals.
 -   Ensured the Agents Server chat reset option now just opens a new chat instead of re-inserting the failed message, so the “Reset” button clears the conversation without duplicating the input.
 -   Updated Agents Server `/admin/api-tokens` token rows to use the shared `<SecretInput/>` control, so API tokens are masked by default and can be toggled visible/hidden with the eye icon while keeping copy-to-clipboard inline.

@@ -32,6 +32,7 @@ type ChatMessageMapProps = {
 export function ChatMessageMap({ data }: ChatMessageMapProps) {
     const mapRef = useRef<HTMLDivElement | null>(null);
     const leafletRef = useRef<LeafletMap | null>(null);
+    const mapInvalidationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
         if (!mapRef.current) {
@@ -85,7 +86,26 @@ export function ChatMessageMap({ data }: ChatMessageMapProps) {
 
         leafletRef.current = map;
 
+        const scheduleMapInvalidation = () => {
+            if (mapInvalidationTimeoutRef.current !== null) {
+                window.clearTimeout(mapInvalidationTimeoutRef.current);
+            }
+
+            mapInvalidationTimeoutRef.current = window.setTimeout(() => {
+                map.invalidateSize();
+                mapInvalidationTimeoutRef.current = null;
+            }, 0);
+        };
+
+        scheduleMapInvalidation();
+        map.whenReady(scheduleMapInvalidation);
+
         return () => {
+            if (mapInvalidationTimeoutRef.current !== null) {
+                window.clearTimeout(mapInvalidationTimeoutRef.current);
+                mapInvalidationTimeoutRef.current = null;
+            }
+
             map.remove();
             leafletRef.current = null;
         };

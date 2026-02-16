@@ -39,7 +39,7 @@ Sure! Here is the location of the nearest cafe:
 
 ---
 
-[ ]
+[x] ~$0.21 10 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
 [✨📌] When the GeoJSON is present in a message, it correctly renders a map, but it doesn't render features in this GeoJson, Fix it.
 
@@ -86,3 +86,4 @@ Sure! Here is the location of the nearest cafe:
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
