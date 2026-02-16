@@ -22,11 +22,7 @@ export class UseImageGeneratorCommitmentDefinition extends BaseCommitmentDefinit
     'USE IMAGE GENERATOR' | 'USE IMAGE GENERATION' | 'IMAGE GENERATOR' | 'USE IMAGE'
 > {
     public constructor(
-        type:
-            | 'USE IMAGE GENERATOR'
-            | 'USE IMAGE GENERATION'
-            | 'IMAGE GENERATOR'
-            | 'USE IMAGE' = 'USE IMAGE GENERATOR',
+        type: 'USE IMAGE GENERATOR' | 'USE IMAGE GENERATION' | 'IMAGE GENERATOR' | 'USE IMAGE' = 'USE IMAGE GENERATOR',
     ) {
         super(type, ['USE IMAGE GENERATION', 'IMAGE GENERATOR', 'USE IMAGE']);
     }
