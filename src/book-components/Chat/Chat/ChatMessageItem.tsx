@@ -38,6 +38,7 @@ import { LOADING_INTERACTIVE_IMAGE } from './constants';
 import { ImagePromptRenderer } from './ImagePromptRenderer';
 import { ChatMessageMap } from './ChatMessageMap';
 import { splitMessageContentIntoSegments } from '../utils/splitMessageContentIntoSegments';
+import { sanitizeStreamingMessageContent } from '../utils/sanitizeStreamingMessageContent';
 
 /**
  * Props for the `ChatMessageItem` component
@@ -441,9 +442,13 @@ export const ChatMessageItem = memo(
         );
         const colorOfText = color.then(textColor);
         const { contentWithoutButtons, buttons } = parseMessageButtons(message.content);
+        const sanitizedContentWithoutButtons = useMemo(
+            () => sanitizeStreamingMessageContent(contentWithoutButtons, { isComplete }),
+            [contentWithoutButtons, isComplete],
+        );
         const contentSegments = useMemo(
-            () => splitMessageContentIntoSegments(contentWithoutButtons),
-            [contentWithoutButtons],
+            () => splitMessageContentIntoSegments(sanitizedContentWithoutButtons),
+            [sanitizedContentWithoutButtons],
         );
         const hasMapSegment = useMemo(
             () => contentSegments.some((segment) => segment.type === 'map'),

@@ -4,6 +4,7 @@
 -   Added in-chat map rendering for GeoJSON features so agent replies that include \`\`\`geojson\`\`\` blocks now render a Leaflet map inside the bubble that zooms to the provided feature/collection.
 -   Fixed the chat GeoJSON renderer so Leaflet overlays draw their features as soon as they're ready instead of showing a bare map for several seconds by invalidating the map size once the layer is initialized.
 -   Expanded the chat GeoJSON map bubble so it stretches wider on desktop and mobile and added a control that opens the same Leaflet rendering in a responsive modal for a closer look.
+-   Hid streaming-only rich-feature markup (maps, inline image prompts, math/code fences, etc.) so the chat keeps streaming the human-readable text while the feature materializes instead of dumping raw GeoJSON or image prompt source, and the completed rendering appears once the assistant finishes.
 -   Stopped `STREAM_KEEP_ALIVE` heartbeats from ever reaching `<Chat/>` by filtering them inside `RemoteAgent` so keep-alive pings stay hidden while preserving the underlying connection health signals.
 -   Ensured the Agents Server chat reset option now just opens a new chat instead of re-inserting the failed message, so the “Reset” button clears the conversation without duplicating the input.
 -   Updated Agents Server `/admin/api-tokens` token rows to use the shared `<SecretInput/>` control, so API tokens are masked by default and can be toggled visible/hidden with the eye icon while keeping copy-to-clipboard inline.
@@ -564,4 +565,3 @@
 -   Updated `openai` from `4.63.0` to `6.18.0` and fixed all resulting type errors.
 -   Resolved `zod` peer dependency conflicts between `@ai-sdk/deepseek` and `@openai/agents` by using `overrides` in `package.json`.
 -   Fixed `node-fetch` declaration issue in `LindatAutomaticTranslator.ts` by using native `URLSearchParams` and removing `node-fetch` import.
-
