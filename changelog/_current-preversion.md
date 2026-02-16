@@ -1,4 +1,5 @@
 -   Snapped the Agents Server footer to the bottom of the viewport so the layout no longer leaves the footer floating mid-page when the content is short.
+-   Removed the unused `IMAGE GENERATION` commitment alias so only `USE IMAGE GENERATOR` controls image-placeholder behavior, reducing confusion for authors and developers.
 -   Added a Vercel route rule that prerenders `apps/agents-server`’s homepage (`/`) so the first visit after deploy no longer waits for Next.js to build the UI.
 -   Added a custom Agents Server application error page with a branded layout, digest tracking, and proactive troubleshooting guidance for failed navigations.
 -   Ensured Agents Server chat uploads now hand the generated CDN URL back to the client instead of the experimental short-link alias so attached files are accessible to agents outside the browser.

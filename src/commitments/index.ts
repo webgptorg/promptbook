@@ -110,7 +110,6 @@ export const COMMITMENT_REGISTRY = [
     new UseImageGeneratorCommitmentDefinition('USE IMAGE GENERATOR'),
     new UseImageGeneratorCommitmentDefinition('USE IMAGE GENERATION' as TODO_any /* <- TODO: Remove any */),
     new UseImageGeneratorCommitmentDefinition('IMAGE GENERATOR' as TODO_any /* <- TODO: Remove any */),
-    new UseImageGeneratorCommitmentDefinition('IMAGE GENERATION' as TODO_any /* <- TODO: Remove any */),
     new UseImageGeneratorCommitmentDefinition('USE IMAGE' as TODO_any /* <- TODO: Remove any */),
     // <- Note: [⛹️] How to deal with commitment aliases with defined functions
     new UseMcpCommitmentDefinition(),
