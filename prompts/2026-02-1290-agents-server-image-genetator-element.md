@@ -39,7 +39,7 @@ Sure, here is your image of the forest in the winter.
 
 ---
 
-[ ]
+[ ] _<- TODO: Maybe not problem_
 
 [✨⛳️] cropped image prompt @@@
 
@@ -53,7 +53,7 @@ Sure, here is your image of the forest in the winter.
 
 ---
 
-[ ]
+[.] _<- Note: Already implemented_
 
 [✨⛳️] Extra instructions in the `USE IMAGE GENERATOR` commitment.
 

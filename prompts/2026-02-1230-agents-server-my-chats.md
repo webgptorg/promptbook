@@ -70,14 +70,17 @@
 
 [ ]
 
-[✨⁉️] Allow to continue with the chat from the agent profile page. 
+[✨⁉️] Allow to continue with the chat from the agent profile page.
 
--   @@@
+-   When you start chat from the agent profile page, it creates a new chat by default.
+-   Allow to continue with existing chats. This can be only as some small buttons That allows opening the existing chats.
+-   Still, the default option will be to create a new chat.
+-   Do a proper analysis of the current functionality How saved chats work and How the agent profile page is working before you start implementing.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
 
+![alt text](prompts/screenshots/2026-02-1230-agents-server-my-chats-9.png)
+![alt text](prompts/screenshots/2026-02-1230-agents-server-my-chats-10.png)
 
 ---
 
@@ -113,4 +116,3 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
