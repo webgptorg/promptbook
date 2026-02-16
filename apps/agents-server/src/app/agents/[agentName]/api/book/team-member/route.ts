@@ -7,6 +7,7 @@ import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForSer
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $invalidateProvidedAgentReferenceResolverCache } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
 import { isUserAdmin } from '@/src/utils/isUserAdmin';
+import { buildAgentNameOrIdFilter } from '@/src/utils/agentIdentifier';
 
 /**
  * Request payload accepted by the team member creation endpoint.
@@ -83,10 +84,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
 
         const supabase = $provideSupabaseForServer();
         const agentTable = await $getTableName('Agent');
+        const agentFilter = buildAgentNameOrIdFilter(agentName);
         const folderResult = await supabase
             .from(agentTable)
             .select('folderId')
-            .or(`agentName.eq.${agentName},permanentId.eq.${agentName}`)
+            .or(agentFilter)
             .is('deletedAt', null)
             .limit(1);
 

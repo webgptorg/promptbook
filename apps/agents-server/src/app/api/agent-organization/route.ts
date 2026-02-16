@@ -3,6 +3,7 @@ import { $getTableName } from '../../../database/$getTableName';
 import { $provideSupabaseForServer } from '../../../database/$provideSupabaseForServer';
 import type { AgentOrganizationUpdatePayload } from '../../../utils/agentOrganization/types';
 import { getCurrentUser } from '../../../utils/getCurrentUser';
+import { buildAgentNameOrIdFilter } from '@/src/utils/agentIdentifier';
 
 /**
  * Applies batch updates for agent and folder organization ordering.
@@ -54,7 +55,7 @@ export async function POST(request: Request) {
             const result = await supabase
                 .from(agentTable)
                 .update({ folderId: agent.folderId, sortOrder: agent.sortOrder })
-                .or(`permanentId.eq.${agent.identifier},agentName.eq.${agent.identifier}`)
+                .or(buildAgentNameOrIdFilter(agent.identifier))
                 .is('deletedAt', null);
             return result.error;
         });

@@ -3,6 +3,7 @@
 import { $getTableName } from '../../database/$getTableName';
 import { $provideSupabaseForServer } from '../../database/$provideSupabaseForServer';
 import { $provideAgentCollectionForServer } from '../../tools/$provideAgentCollectionForServer';
+import { buildAgentNameOrIdFilter } from '@/src/utils/agentIdentifier';
 import { buildFolderTree, collectAncestorFolderIds } from './folderTree';
 
 /**
@@ -22,7 +23,7 @@ export async function restoreAgentAndFolders(agentIdentifier: string): Promise<v
     const agentResult = await supabase
         .from(agentTable)
         .select('folderId')
-        .or(`agentName.eq.${agentIdentifier},permanentId.eq.${agentIdentifier}`)
+        .or(buildAgentNameOrIdFilter(agentIdentifier))
         .single();
 
     if (agentResult.error || !agentResult.data?.folderId) {

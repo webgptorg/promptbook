@@ -2,6 +2,7 @@ import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForSer
 import { NextRequest, NextResponse } from 'next/server';
 import { PROMPTBOOK_ENGINE_VERSION } from '../../../../../../../../src/version';
 import { $getTableName } from '../../../../../database/$getTableName';
+import { buildAgentNameOrIdFilter } from '@/src/utils/agentIdentifier';
 
 type FeedbackRequest = {
     agentHash: string;
@@ -28,7 +29,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         const { data: agentData, error: agentError } = await supabase
             .from(agentTable)
             .select('agentName')
-            .or(`agentName.eq.${agentName},permanentId.eq.${agentName}`)
+            .or(buildAgentNameOrIdFilter(agentName))
             .limit(1)
             .single();
 

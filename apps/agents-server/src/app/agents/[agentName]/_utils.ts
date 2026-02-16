@@ -4,6 +4,7 @@ import { parseAgentSource } from '@promptbook-local/core';
 import type { AgentsServerDatabase } from '../../../database/schema';
 import { $provideSupabaseForServer } from '../../../database/$provideSupabaseForServer';
 import { buildAgentFolderContext, type AgentFolderContext } from '../../../utils/agentOrganization/agentFolderContext';
+import { buildAgentNameOrIdFilter } from '@/src/utils/agentIdentifier';
 
 /**
  * Database agent row shape used for folder lookups.
@@ -33,7 +34,7 @@ export async function getAgentProfile(agentName: string) {
     const agentResult = await supabase
         .from(agentTable)
         .select('visibility')
-        .or(`agentName.eq.${agentName},permanentId.eq.${agentName}`)
+        .or(buildAgentNameOrIdFilter(agentName))
         .limit(1)
         .single();
 
@@ -78,7 +79,7 @@ export async function getAgentFolderContext(
     const agentResult = await supabase
         .from(agentTable)
         .select('folderId, visibility, deletedAt')
-        .or(`agentName.eq.${agentName},permanentId.eq.${agentName}`)
+        .or(buildAgentNameOrIdFilter(agentName))
         .limit(1);
 
     if (agentResult.error || !agentResult.data || agentResult.data.length === 0) {

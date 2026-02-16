@@ -8,6 +8,7 @@ import { renameAgentSource } from '@/src/utils/renameAgentSource';
 import { parseAgentSource } from '@promptbook-local/core';
 import { TODO_any } from '@promptbook-local/types';
 import { NextResponse } from 'next/server';
+import { buildAgentNameOrIdFilter } from '@/src/utils/agentIdentifier';
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
     const { agentName } = await params;
@@ -50,7 +51,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ ag
             .from(await $getTableName(`Agent`))
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             .update({ visibility } as any)
-            .or(`agentName.eq.${agentName},permanentId.eq.${agentName}`)
+            .or(buildAgentNameOrIdFilter(agentName))
             .is('deletedAt', null);
 
         if (updateResult.error) {
