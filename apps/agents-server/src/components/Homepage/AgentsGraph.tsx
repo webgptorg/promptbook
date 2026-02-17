@@ -44,7 +44,11 @@ const NODE_HEIGHT = 64;
 const FOLDER_HEADER_HEIGHT = 24;
 const FOLDER_PADDING_X = 24;
 const FOLDER_PADDING_Y = 20;
-const FOLDER_GAP = 32;
+const FOLDER_GAP_X = 40;
+const FOLDER_GAP_Y = 32;
+const AGENT_MAX_COLUMNS = 4;
+const AGENT_HORIZONTAL_GAP = 16;
+const AGENT_VERTICAL_GAP = 16;
 const SERVER_HEADER_HEIGHT = 28;
 const SERVER_PADDING_X = 32;
 const SERVER_PADDING_Y = 24;
@@ -163,6 +167,26 @@ type ServerGroup = {
     label: string;
     isLocal: boolean;
     folders: FolderGroup[];
+};
+
+type FolderLayout = {
+    folder: FolderGroup;
+    width: number;
+    height: number;
+    agentColumns: number;
+    contentWidth: number;
+    contentHeight: number;
+    column?: number;
+    row?: number;
+    x?: number;
+    y?: number;
+};
+
+type ServerLayout = {
+    serverGroup: ServerGroup;
+    folderLayouts: FolderLayout[];
+    width: number;
+    height: number;
 };
 
 /**
@@ -942,7 +966,7 @@ const buildAsciiGraph = (graphData: GraphData, serverGroups: ServerGroup[]): str
 };
 
 /**
- * Create agent nodes, folder nodes, and server nodes for the graph layout.
+ * Build nodes for servers, folders, and agents using a hierarchical grid layout that keeps the current server centered.
  */
 const buildGraphLayoutNodes = (params: {
     serverGroups: ServerGroup[];
@@ -953,68 +977,157 @@ const buildGraphLayoutNodes = (params: {
 }): Node[] => {
     const { serverGroups, orderIndexByNodeId, publicUrl, storedPositions, onNodeOpen } = params;
     const nodes: Node[] = [];
-    let cursorX = 0;
-    const cursorY = 0;
 
-    serverGroups.forEach((serverGroup) => {
+    if (serverGroups.length === 0) {
+        return nodes;
+    }
+
+    const serverLayouts = serverGroups.map((serverGroup) => {
         const folderLayouts = serverGroup.folders.map((folder) => {
             const agentCount = folder.agents.length;
-            if (agentCount === 0) {
-                return { width: 0, height: 0 };
-            }
-
-            const radius = Math.max(1, agentCount - 1) * 64;
-            const folderWidth = radius * 2 + NODE_WIDTH + FOLDER_PADDING_X * 2;
-            const folderHeight = radius * 2 + NODE_HEIGHT + FOLDER_PADDING_Y * 2 + FOLDER_HEADER_HEIGHT;
+            const agentColumns = Math.max(
+                1,
+                Math.min(AGENT_MAX_COLUMNS, Math.ceil(Math.sqrt(agentCount || 1))),
+            );
+            const rows = Math.max(1, Math.ceil(agentCount / agentColumns));
+            const contentWidth = agentColumns * NODE_WIDTH + Math.max(0, agentColumns - 1) * AGENT_HORIZONTAL_GAP;
+            const contentHeight = rows * NODE_HEIGHT + Math.max(0, rows - 1) * AGENT_VERTICAL_GAP;
+            const width = Math.max(contentWidth + FOLDER_PADDING_X * 2, NODE_WIDTH + FOLDER_PADDING_X * 2);
+            const height = Math.max(
+                contentHeight + FOLDER_PADDING_Y * 2 + FOLDER_HEADER_HEIGHT,
+                NODE_HEIGHT + FOLDER_PADDING_Y * 2 + FOLDER_HEADER_HEIGHT,
+            );
 
             return {
-                width: folderWidth,
-                height: folderHeight,
-            };
+                folder,
+                width,
+                height,
+                agentColumns,
+                contentWidth,
+                contentHeight,
+            } satisfies FolderLayout;
         });
 
-        const maxFolderWidth = folderLayouts.reduce((max, layout) => Math.max(max, layout.width), 0);
-        const totalFolderHeight = folderLayouts.reduce((sum, layout) => sum + layout.height, 0);
-        const totalFolderGap = Math.max(folderLayouts.length - 1, 0) * FOLDER_GAP;
-        const serverWidth = maxFolderWidth + SERVER_PADDING_X * 2;
-        const serverHeight = SERVER_HEADER_HEIGHT + SERVER_PADDING_Y * 2 + totalFolderHeight + totalFolderGap;
-        const serverNodeId = `server:${serverGroup.serverUrl}`;
+        const folderColumnCount = Math.max(1, Math.ceil(Math.sqrt(folderLayouts.length)));
+        const folderRowCount = Math.max(1, Math.ceil(folderLayouts.length / folderColumnCount));
+        const columnWidths = Array(folderColumnCount).fill(0);
+        const rowHeights = Array(folderRowCount).fill(0);
+
+        folderLayouts.forEach((layout, index) => {
+            const column = index % folderColumnCount;
+            const row = Math.floor(index / folderColumnCount);
+            layout.column = column;
+            layout.row = row;
+            columnWidths[column] = Math.max(columnWidths[column], layout.width);
+            rowHeights[row] = Math.max(rowHeights[row], layout.height);
+        });
+
+        const columnOffsets: number[] = [];
+        for (let columnIndex = 0; columnIndex < folderColumnCount; columnIndex += 1) {
+            columnOffsets[columnIndex] =
+                columnIndex === 0
+                    ? SERVER_PADDING_X
+                    : columnOffsets[columnIndex - 1] + columnWidths[columnIndex - 1] + FOLDER_GAP_X;
+        }
+
+        const rowOffsets: number[] = [];
+        for (let rowIndex = 0; rowIndex < folderRowCount; rowIndex += 1) {
+            rowOffsets[rowIndex] =
+                rowIndex === 0
+                    ? SERVER_HEADER_HEIGHT + SERVER_PADDING_Y
+                    : rowOffsets[rowIndex - 1] + rowHeights[rowIndex - 1] + FOLDER_GAP_Y;
+        }
+
+        folderLayouts.forEach((layout) => {
+            layout.x = columnOffsets[layout.column ?? 0];
+            layout.y = rowOffsets[layout.row ?? 0];
+        });
+
+        const serverWidth =
+            columnWidths.reduce((sum, width) => sum + width, 0) +
+            Math.max(folderColumnCount - 1, 0) * FOLDER_GAP_X +
+            SERVER_PADDING_X * 2;
+        const serverHeight =
+            SERVER_HEADER_HEIGHT +
+            SERVER_PADDING_Y * 2 +
+            rowHeights.reduce((sum, height) => sum + height, 0) +
+            Math.max(folderRowCount - 1, 0) * FOLDER_GAP_Y;
+
+        return { serverGroup, folderLayouts, width: serverWidth, height: serverHeight } satisfies ServerLayout;
+    });
+
+    const maxServerWidth = Math.max(NODE_WIDTH, ...serverLayouts.map((layout) => layout.width));
+    const maxServerHeight = Math.max(NODE_HEIGHT, ...serverLayouts.map((layout) => layout.height));
+    const serverColumnCount = Math.max(1, Math.ceil(Math.sqrt(serverLayouts.length)));
+    const serverRowCount = Math.ceil(serverLayouts.length / serverColumnCount);
+    const centerColumn = (serverColumnCount - 1) / 2;
+    const centerRow = (serverRowCount - 1) / 2;
+    const serverSpacingX = maxServerWidth + SERVER_GAP;
+    const serverSpacingY = maxServerHeight + SERVER_GAP;
+
+    const serverCoords: { row: number; column: number }[] = [];
+    for (let row = 0; row < serverRowCount; row += 1) {
+        for (let column = 0; column < serverColumnCount; column += 1) {
+            serverCoords.push({ row, column });
+        }
+    }
+
+    serverCoords.sort((left, right) => {
+        const leftDistance = Math.abs(left.row - centerRow) + Math.abs(left.column - centerColumn);
+        const rightDistance = Math.abs(right.row - centerRow) + Math.abs(right.column - centerColumn);
+        if (leftDistance !== rightDistance) {
+            return leftDistance - rightDistance;
+        }
+        if (left.row !== right.row) {
+            return left.row - right.row;
+        }
+        return left.column - right.column;
+    });
+
+    const centerOffsetX = centerColumn * serverSpacingX;
+    const centerOffsetY = centerRow * serverSpacingY;
+
+    serverLayouts.forEach((layout, index) => {
+        const coord = serverCoords[index];
+        if (!coord) {
+            return;
+        }
+        const serverX = coord.column * serverSpacingX - centerOffsetX;
+        const serverY = coord.row * serverSpacingY - centerOffsetY;
+        const serverNodeId = `server:${layout.serverGroup.serverUrl}`;
 
         nodes.push({
             id: serverNodeId,
             type: 'serverGroup',
-            position: { x: cursorX, y: cursorY },
+            position: { x: serverX, y: serverY },
             data: {
-                label: serverGroup.label,
-                agentCount: serverGroup.folders.reduce((sum, folder) => sum + folder.agents.length, 0),
-                isLocal: serverGroup.isLocal,
+                label: layout.serverGroup.label,
+                agentCount: layout.serverGroup.folders.reduce((sum, folder) => sum + folder.agents.length, 0),
+                isLocal: layout.serverGroup.isLocal,
             } satisfies ServerGroupNodeData,
             style: {
-                width: serverWidth,
-                height: serverHeight,
+                width: layout.width,
+                height: layout.height,
                 zIndex: 0,
             },
             selectable: false,
             draggable: false,
         });
 
-        let folderCursorY = SERVER_HEADER_HEIGHT + SERVER_PADDING_Y;
-        serverGroup.folders.forEach((folder, folderIndex) => {
-            const folderLayout = folderLayouts[folderIndex];
-            if (!folderLayout || folder.agents.length === 0) {
-                return;
-            }
-            const folderNodeId = `folder:${serverGroup.serverUrl}:${folder.id ?? 'root'}`;
-
+        layout.folderLayouts.forEach((folderLayout) => {
+            const folderNodeId = `folder:${layout.serverGroup.serverUrl}:${folderLayout.folder.id ?? 'root'}`;
             nodes.push({
                 id: folderNodeId,
                 type: 'folderGroup',
                 parentId: serverNodeId,
                 extent: 'parent',
-                position: { x: SERVER_PADDING_X, y: folderCursorY },
+                position: {
+                    x: folderLayout.x ?? SERVER_PADDING_X,
+                    y: folderLayout.y ?? SERVER_HEADER_HEIGHT + SERVER_PADDING_Y,
+                },
                 data: {
-                    label: folder.label,
-                    agentCount: folder.agents.length,
+                    label: folderLayout.folder.label,
+                    agentCount: folderLayout.folder.agents.length,
                 } satisfies FolderGroupNodeData,
                 style: {
                     width: folderLayout.width,
@@ -1025,40 +1138,37 @@ const buildGraphLayoutNodes = (params: {
                 draggable: false,
             });
 
-            const agentCount = folder.agents.length;
-            const centerX = folderLayout.width / 2;
-            const centerY = folderLayout.height / 2 + FOLDER_HEADER_HEIGHT / 2;
-            const radius = Math.max(1, agentCount - 1) * 64;
-
-            folder.agents.forEach((agent, index) => {
+            folderLayout.folder.agents.forEach((agent, agentIndex) => {
                 const { imageUrl, placeholderUrl } = getAgentImageUrls(agent.agent, publicUrl);
                 const style = buildAgentChipStyle(agent.agent);
                 const orderIndex = orderIndexByNodeId.get(agent.id) ?? null;
                 const tooltipParts = [getAgentTooltip(agent.agent)];
-                if (folder.label) {
-                    tooltipParts.push(`Folder: ${folder.label}`);
+                if (folderLayout.folder.label) {
+                    tooltipParts.push(`Folder: ${folderLayout.folder.label}`);
                 }
                 const tooltip = tooltipParts.filter(Boolean).join('\n');
 
-                let position;
-                if (agentCount === 1) {
-                    position = {
-                        x: centerX - NODE_WIDTH / 2,
-                        y: centerY - NODE_HEIGHT / 2,
-                    };
-                } else {
-                    const angle = (index / agentCount) * 2 * Math.PI;
-                    position = {
-                        x: centerX + radius * Math.cos(angle) - NODE_WIDTH / 2,
-                        y: centerY + radius * Math.sin(angle) - NODE_HEIGHT / 2,
-                    };
-                }
+                const column = agentIndex % folderLayout.agentColumns;
+                const row = Math.floor(agentIndex / folderLayout.agentColumns);
+                const horizontalAvailable = folderLayout.width - FOLDER_PADDING_X * 2;
+                const horizontalOffset = Math.max(0, (horizontalAvailable - folderLayout.contentWidth) / 2);
+                const agentX =
+                    FOLDER_PADDING_X +
+                    horizontalOffset +
+                    column * (NODE_WIDTH + AGENT_HORIZONTAL_GAP);
+                const verticalAvailable = folderLayout.height - FOLDER_PADDING_Y * 2 - FOLDER_HEADER_HEIGHT;
+                const verticalOffset = Math.max(0, (verticalAvailable - folderLayout.contentHeight) / 2);
+                const agentY =
+                    FOLDER_HEADER_HEIGHT +
+                    FOLDER_PADDING_Y +
+                    verticalOffset +
+                    row * (NODE_HEIGHT + AGENT_VERTICAL_GAP);
 
                 const storedPosition = storedPositions[agent.id];
                 const finalPosition =
                     storedPosition && storedPosition.parentId === folderNodeId
                         ? { x: storedPosition.x, y: storedPosition.y }
-                        : position;
+                        : { x: agentX, y: agentY };
 
                 nodes.push({
                     id: agent.id,
@@ -1084,11 +1194,7 @@ const buildGraphLayoutNodes = (params: {
                     draggable: true,
                 });
             });
-
-            folderCursorY += folderLayout.height + FOLDER_GAP;
         });
-
-        cursorX += serverWidth + SERVER_GAP;
     });
 
     return nodes;
