@@ -291,7 +291,17 @@
     /* marker class applied to map messages so they can stretch wider. */
 }
 
+.chatMainFlow .chatMessage.messageWithMap {
+    align-items: stretch;
+}
+
 .chatMainFlow .chatMessage.messageWithMap .messageStack {
+    align-items: stretch;
+    width: min(
+        90vw,
+        920px,
+        calc(100% - var(--chat-message-avatar-size) - var(--chat-message-avatar-gap))
+    );
     max-width: min(
         90vw,
         920px,
@@ -301,6 +311,7 @@
 
 @media (max-width: 900px) {
     .chatMainFlow .chatMessage.messageWithMap .messageStack {
+        width: min(92vw, 640px);
         max-width: min(92vw, 640px);
     }
 }

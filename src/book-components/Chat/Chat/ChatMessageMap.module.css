@@ -4,8 +4,7 @@
     border: 1px solid rgba(255, 255, 255, 0.12);
     background: rgba(15, 23, 36, 0.94);
     overflow: hidden;
-    min-height: 220px;
-    height: clamp(220px, 26vw, 340px);
+    aspect-ratio: 1 / 1;
     margin: 16px 0;
     box-shadow: 0 14px 50px rgba(2, 6, 23, 0.45);
     position: relative;
@@ -119,7 +118,6 @@
 @media (max-width: 640px) {
     .mapContainer {
         border-radius: 12px;
-        height: clamp(200px, 35vw, 280px);
         margin: 12px 0;
     }
 
