@@ -1,6 +1,7 @@
 'use client';
 
-import { ChevronLeftIcon, ChevronRightIcon, MessageSquarePlusIcon, Trash2Icon, XIcon } from 'lucide-react';
+import { MessageSquarePlusIcon, Trash2Icon, XIcon } from 'lucide-react';
+import { SidebarToggleArrow } from '../../../../components/_utils/SidebarToggleArrow';
 import type { UserChatSummary } from '../../../../utils/userChatClient';
 
 /**
@@ -107,26 +108,25 @@ export function AgentChatSidebar({
     };
 
     const emptyStateText = formatText('No chats yet');
+    const sidebarToggleLabel = isCollapsed
+        ? formatText('Expand sidebar')
+        : formatText('Collapse sidebar');
 
     return (
         <>
             <aside
                 id={AGENT_CHAT_SIDEBAR_ID}
-                className={`fixed inset-y-0 left-0 z-[60] flex flex-col border-r border-slate-200 bg-white/95 shadow-xl backdrop-blur ${panelTransitionClasses} md:static md:shadow-none md:bg-white/90 ${widthClasses} ${transformClasses} md:translate-x-0`}
+                className={`fixed inset-y-0 left-0 z-[60] relative flex flex-col border-r border-slate-200 bg-white/95 shadow-xl backdrop-blur ${panelTransitionClasses} md:static md:shadow-none md:bg-white/90 ${widthClasses} ${transformClasses} md:translate-x-0`}
             >
                 <div className="flex items-center justify-between border-b border-slate-200 px-3 py-2">
                     <div className="flex items-center gap-1">
                         <button
                             type="button"
                             onClick={onToggleCollapse}
-                            className="p-1 text-slate-500 hover:text-slate-900 focus-visible:outline-offset-2 focus-visible:outline focus-visible:outline-blue-400"
-                            aria-label={isCollapsed ? formatText('Expand sidebar') : formatText('Collapse sidebar')}
+                            className="p-1 text-slate-500 hover:text-slate-900 focus-visible:outline-offset-2 focus-visible:outline focus-visible:outline-blue-400 md:hidden"
+                            aria-label={sidebarToggleLabel}
                         >
-                            {isCollapsed ? (
-                                <ChevronRightIcon className="h-4 w-4" />
-                            ) : (
-                                <ChevronLeftIcon className="h-4 w-4" />
-                            )}
+                            <SidebarToggleArrow direction={isCollapsed ? 'RIGHT' : 'LEFT'} className="h-4 w-4" />
                         </button>
                         <button
                             type="button"
@@ -138,6 +138,15 @@ export function AgentChatSidebar({
                         </button>
                     </div>
                 </div>
+
+                <button
+                    type="button"
+                    onClick={onToggleCollapse}
+                    className="hidden md:flex absolute top-1/2 -right-3 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200 bg-white/80 p-2 text-slate-500 shadow transition hover:bg-white focus-visible:outline-offset-2 focus-visible:outline focus-visible:outline-blue-400"
+                    aria-label={sidebarToggleLabel}
+                >
+                    <SidebarToggleArrow direction={isCollapsed ? 'RIGHT' : 'LEFT'} className="h-4 w-4" />
+                </button>
 
                 {isCollapsed ? (
                     <div className="flex flex-col items-center gap-3 overflow-hidden px-1 py-4">

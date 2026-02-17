@@ -1,4 +1,5 @@
 -   Reduced Agents Server homepage cold-start latency by introducing a `getMetadataMap` helper so the layout, federated-server lookup, and chat-preference helpers now read their metadata in a single Supabase round-trip instead of multiple sequential queries.
+-   Added a shared `SidebarToggleArrow` component for the Agents Server and anchored it to the middle of the desktop chat sidebar so the open/close affordance always reuses a single arrow implementation.
 -   Fixed the Agents Server header Documentation and System dropdown subitems so nested panels float outside the scrollable dropdown instead of getting clipped behind the first-level container.
 -   Centered the Agents Server desktop header navigation so the middle menu items stay locked in the visual center of the panel regardless of how wide the surrounding sections become.
 -   Added a build-time prerender step for the Agents Server homepage (`/`) so `npm run build`/`npm run test-build` spin up the production server, capture the rendered HTML, and save it under `.next/prerendered/home.html`.
