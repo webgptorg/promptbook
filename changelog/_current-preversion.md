@@ -1,4 +1,5 @@
 -   Centered the Agents Server desktop header navigation so the middle menu items stay locked in the visual center of the panel regardless of how wide the surrounding sections become.
+-   Added a build-time prerender step for the Agents Server homepage (`/`) so `npm run build`/`npm run test-build` spin up the production server, capture the rendered HTML, and save it under `.next/prerendered/home.html`.
 -   Improved the Agents Server desktop collapsed chat strip so each chat now shows a short title/preview/timestamp badge (and the strip slightly widens) while the mobile sidebar return path stays unchanged.
 -   Fixed the Agents Server mobile chat history edge handle so tapping the floating arrow reuses the same sidebar list as desktop, always renders the readable title/preview/timestamp layout, and keeps the vertical strip hidden until the mobile overlay is opened.
 -   Removed the redundant desktop chat history/book headers in Agents Server so the desktop view no longer shows the extra panel below the main menu while mobile layouts remain unchanged.

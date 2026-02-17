@@ -8,8 +8,8 @@
         "dev": "next dev -p 4440",
         "test": "npm run lint && npm run test-build",
         "pretest-build": "npx kill-port 4021",
-        "test-build": "next build",
-        "build": " next build",
+        "test-build": "next build && node ./scripts/prerender-homepage.js",
+        "build": "next build && node ./scripts/prerender-homepage.js",
         "start": "next start -p 4440",
         "lint": "next lint --max-warnings=0",
         "postinstall": "cd ../../ && npm ci"

@@ -551,6 +551,9 @@ const buildGraphSummaryInfo = (graphData: GraphData, serverGroups: ServerGroup[]
     }, {} as Record<ConnectionType, number>);
 
     graphData.links.forEach((link) => {
+        if (link.type === 'order') {
+            return;
+        }
         connectionCountByType[link.type] += 1;
     });
 
