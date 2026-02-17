@@ -149,7 +149,8 @@ export function Footer(props: FooterProps) {
                         <br />
                         All rights reserved.
                         <br />
-                        💜
+                        Made with ❤️ in the Czech Republic.
+                        {/* <- TODO: !!!!!!!! Put here Prague outline */}
                     </p>
                 </div>
                 {/*
