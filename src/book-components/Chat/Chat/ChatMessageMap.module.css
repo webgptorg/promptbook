@@ -16,6 +16,63 @@
     border-radius: inherit;
 }
 
+.poiMarkerIcon {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #fdf7c1, #fb923c 60%, #ea580c);
+    box-shadow: 0 6px 18px rgba(249, 115, 22, 0.5), inset 0 0 10px rgba(251, 191, 36, 0.6);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    font-weight: 600;
+    transform: translate3d(0, 0, 0);
+}
+
+.poiMarkerPulse {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: rgba(251, 146, 60, 0.35);
+    animation: poiPulse 1.6s ease-out infinite;
+    filter: blur(0.5px);
+}
+
+.poiMarkerInitial {
+    z-index: 1;
+    color: #0f172a;
+    font-size: 12px;
+    line-height: 1;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.mapTooltip {
+    background: rgba(15, 23, 42, 0.95) !important;
+    border: 1px solid rgba(56, 189, 248, 0.45) !important;
+    color: #f8fafc !important;
+    border-radius: 999px !important;
+    padding: 4px 12px !important;
+    font-size: 0.75rem;
+    box-shadow: 0 10px 25px rgba(2, 6, 23, 0.6) !important;
+    pointer-events: none;
+}
+
+@keyframes poiPulse {
+    0% {
+        transform: scale(0.6);
+        opacity: 0.6;
+    }
+    70% {
+        transform: scale(1.2);
+        opacity: 0;
+    }
+    100% {
+        opacity: 0;
+    }
+}
+
 .mapControls {
     position: absolute;
     top: 10px;

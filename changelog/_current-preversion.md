@@ -13,6 +13,7 @@
 -   Added in-chat map rendering for GeoJSON features so agent replies that include \`\`\`geojson\`\`\` blocks now render a Leaflet map inside the bubble that zooms to the provided feature/collection.
 -   Fixed the chat GeoJSON renderer so Leaflet overlays draw their features as soon as they're ready instead of showing a bare map for several seconds by invalidating the map size once the layer is initialized.
 -   Expanded the chat GeoJSON map bubble so it stretches wider on desktop and mobile and added a control that opens the same Leaflet rendering in a responsive modal for a closer look.
+-   Polished chat GeoJSON feature rendering so generated points of interest show glowing markers with tooltip initials, lines and polygons gain richer strokes/fills, and hover highlights keep each feature visually focused.
 -   Hid streaming-only rich-feature markup (maps, inline image prompts, math/code fences, etc.) so the chat keeps streaming the human-readable text while the feature materializes instead of dumping raw GeoJSON or image prompt source, and the completed rendering appears once the assistant finishes.
 -   Stopped `STREAM_KEEP_ALIVE` heartbeats from ever reaching `<Chat/>` by filtering them inside `RemoteAgent` so keep-alive pings stay hidden while preserving the underlying connection health signals.
 -   Ensured the Agents Server chat reset option now just opens a new chat instead of re-inserting the failed message, so the “Reset” button clears the conversation without duplicating the input.
