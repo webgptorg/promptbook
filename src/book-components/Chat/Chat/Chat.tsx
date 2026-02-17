@@ -138,6 +138,7 @@ export function Chat(props: ChatProps) {
         effectConfigs,
         soundSystem,
         speechRecognitionLanguage,
+        isSpeechPlaybackEnabled = true,
     } = props;
 
     const buttonColor = useMemo(() => Color.from(buttonColorRaw || '#0066cc'), [buttonColorRaw]);
@@ -506,6 +507,7 @@ export function Chat(props: ChatProps) {
                         }}
                         setChatMessagesElement={setChatMessagesElement}
                         onScroll={handleChatScroll}
+                        isSpeechPlaybackEnabled={isSpeechPlaybackEnabled}
                         chatMessagesClassName={useChatCssClassName('chatMessages')}
                         hasActions={hasActions}
                     />

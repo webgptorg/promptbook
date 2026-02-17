@@ -1,6 +1,6 @@
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
-import { getMetadata } from '@/src/database/getMetadata';
+import { getMetadataMap } from '@/src/database/getMetadata';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideOpenAiAgentKitExecutionToolsForServer } from '@/src/tools/$provideOpenAiAgentKitExecutionToolsForServer';
 import { composePromptParametersWithMemoryContext } from '@/src/utils/memoryRuntimeContext';
@@ -29,13 +29,28 @@ export async function OPTIONS(request: Request) {
 }
 
 export async function POST(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
-    // Check if voice calling is enabled
-    const isVoiceCallingEnabled = (await getMetadata('IS_EXPERIMENTAL_VOICE_CALLING_ENABLED')) === 'true';
+    const metadata = await getMetadataMap([
+        'IS_EXPERIMENTAL_VOICE_CALLING_ENABLED',
+        'IS_EXPERIMENTAL_VOICE_TTS_STT_ENABLED',
+    ]);
+    const isVoiceCallingEnabled = metadata.IS_EXPERIMENTAL_VOICE_CALLING_ENABLED === 'true';
+    const isVoiceTtsSttEnabled = metadata.IS_EXPERIMENTAL_VOICE_TTS_STT_ENABLED === 'true';
+
     if (!isVoiceCallingEnabled) {
         return new Response(JSON.stringify({ error: 'Voice calling is disabled on this server' }), {
             status: 403,
             headers: { 'Content-Type': 'application/json' },
         });
+    }
+
+    if (!isVoiceTtsSttEnabled) {
+        return new Response(
+            JSON.stringify({ error: 'Text-to-speech / speech-to-text is disabled on this server' }),
+            {
+                status: 403,
+                headers: { 'Content-Type': 'application/json' },
+            },
+        );
     }
 
     let { agentName } = await params;

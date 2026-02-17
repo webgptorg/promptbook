@@ -1,4 +1,5 @@
 import { respondIfClientVersionIsOutdated } from '../../../../utils/clientVersionGuard';
+import { getMetadata } from '@/src/database/getMetadata';
 import { textToSpeechText } from '../../../../utils/textToSpeechText';
 
 /**
@@ -62,6 +63,14 @@ export async function POST(request: Request) {
     const versionMismatchResponse = respondIfClientVersionIsOutdated(request, 'json');
     if (versionMismatchResponse) {
         return versionMismatchResponse;
+    }
+
+    const isSpeechEnabled = (await getMetadata('IS_EXPERIMENTAL_VOICE_TTS_STT_ENABLED')) === 'true';
+    if (!isSpeechEnabled) {
+        return new Response(JSON.stringify({ error: 'Text-to-speech is disabled on this server.' }), {
+            status: 403,
+            headers: { 'Content-Type': 'application/json' },
+        });
     }
 
     if (!ELEVEN_LABS_API_KEY) {

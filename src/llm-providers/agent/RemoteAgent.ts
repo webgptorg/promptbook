@@ -46,6 +46,7 @@ type RemoteAgentProfile = {
     samples?: Array<{ question: string | null; answer: string }>;
     toolTitles?: Record<string, string>;
     isVoiceCallingEnabled?: boolean;
+    isVoiceTtsSttEnabled?: boolean;
     knowledgeSources?: Array<{ url: string; filename: string }>;
 };
 
@@ -204,6 +205,7 @@ export class RemoteAgent extends Agent {
         remoteAgent.samples = profile.samples || [];
         remoteAgent.toolTitles = profile.toolTitles || {};
         remoteAgent._isVoiceCallingEnabled = profile.isVoiceCallingEnabled === true; // [✨✷] Store voice calling status
+        remoteAgent._isVoiceTtsSttEnabled = profile.isVoiceTtsSttEnabled !== false;
         remoteAgent.knowledgeSources = profile.knowledgeSources || [];
 
         return remoteAgent;
@@ -217,6 +219,16 @@ export class RemoteAgent extends Agent {
     private _remoteAgentHash: string_agent_hash | undefined;
     public toolTitles: Record<string, string> = {};
     private _isVoiceCallingEnabled: boolean = false; // [✨✷] Track voice calling status
+    private _isVoiceTtsSttEnabled: boolean = true;
+
+    /**
+     * Indicates whether the remote server allows text-to-speech and speech-to-text.
+     *
+     * @public exported from `@promptbook/core`
+     */
+    public get isVoiceTtsSttEnabled(): boolean {
+        return this._isVoiceTtsSttEnabled;
+    }
     public knowledgeSources: Array<{ url: string; filename: string }> = [];
 
     private constructor(options: AgentOptions & RemoteAgentOptions) {
@@ -250,7 +262,7 @@ export class RemoteAgent extends Agent {
               prompt: Prompt,
           ) => Promise<{ text: string; audio: Blob; userMessage?: string; agentMessage?: string }>)
         | undefined {
-        if (!this._isVoiceCallingEnabled) {
+        if (!this._isVoiceCallingEnabled || !this._isVoiceTtsSttEnabled) {
             return undefined;
         }
 

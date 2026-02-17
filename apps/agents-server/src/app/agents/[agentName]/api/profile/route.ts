@@ -1,4 +1,4 @@
-import { getMetadata } from '@/src/database/getMetadata';
+import { getMetadataMap } from '@/src/database/getMetadata';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { computeAgentHash, parseAgentSource } from '@promptbook-local/core';
 import { AgentBasicInformation, AgentCapability } from '@promptbook-local/types';
@@ -137,8 +137,13 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
         agentProfile = await inheritMeta(agentProfile, collection, new Set([agentName]));
         agentProfile.capabilities = mergeTeamCapabilities(agentProfile.capabilities, resolvedTeamCapabilities);
 
+        const metadata = await getMetadataMap([
+            'IS_EXPERIMENTAL_VOICE_CALLING_ENABLED',
+            'IS_EXPERIMENTAL_VOICE_TTS_STT_ENABLED',
+        ]);
         const agentHash = computeAgentHash(agentSource);
-        const isVoiceCallingEnabled = (await getMetadata('IS_EXPERIMENTAL_VOICE_CALLING_ENABLED')) === 'true';
+        const isVoiceCallingEnabled = metadata.IS_EXPERIMENTAL_VOICE_CALLING_ENABLED === 'true';
+        const isVoiceTtsSttEnabled = metadata.IS_EXPERIMENTAL_VOICE_TTS_STT_ENABLED === 'true';
 
         if (!agentProfile.meta.image) {
             agentProfile.meta.image = `/agents/${encodeURIComponent(agentName)}/images/default-avatar.png`;
@@ -151,6 +156,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
                     agentHash,
                     parameters: [], // <- TODO: [😰] Implement parameters
                     isVoiceCallingEnabled, // [✨✷] Add voice calling status
+                    isVoiceTtsSttEnabled, // [✨✷] Add TTS/STT availability
                     toolTitles: agentProfile.meta.toolTitles || {}, // <- [🧠] Should we have this in meta?
                     knowledgeSources: agentProfile.knowledgeSources || [], // <- [📚] Explicitly include knowledge sources for citation resolution
                 },

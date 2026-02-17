@@ -126,14 +126,16 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
         return chatFileUploadHandler(file);
     }, []);
 
+    const isSpeechFeaturesEnabled = agent?.isVoiceTtsSttEnabled ?? false;
     const speechRecognition = useMemo(() => {
-        if (typeof window === 'undefined') {
+        if (typeof window === 'undefined' || !isSpeechFeaturesEnabled) {
             return undefined;
         }
+
         // Note: [🧠] We could have a mechanism to check if OPENAI_API_KEY is set on the server
         //       For now, we always provide OpenAiSpeechRecognition which uses proxy
         return new OpenAiSpeechRecognition();
-    }, []);
+    }, [isSpeechFeaturesEnabled]);
 
     const effectConfigs = useMemo(() => createDefaultChatEffects(), []);
     const { soundSystem } = useSoundSystem();
@@ -206,6 +208,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
                 soundSystem={soundSystem}
                 thinkingMessages={thinkingMessages}
                 speechRecognitionLanguage={speechRecognitionLanguage}
+                isSpeechPlaybackEnabled={isSpeechFeaturesEnabled}
                 chatFailMessage={chatFailMessage}
                 promptParameters={{ selfLearningEnabled: effectiveSelfLearningEnabled }}
             />

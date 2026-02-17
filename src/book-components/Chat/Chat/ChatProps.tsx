@@ -110,6 +110,15 @@ export type ChatProps = {
     readonly speechRecognitionLanguage?: string;
 
     /**
+     * Controls whether message audio playback is available.
+     *
+     * When `false`, the ElevenLabs play/pause controls are hidden and no TTS requests are initiated.
+     *
+     * @default true
+     */
+    readonly isSpeechPlaybackEnabled?: boolean;
+
+    /**
      * Optional placeholder message for the textarea
      *
      * @default "Write a message"

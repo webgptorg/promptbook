@@ -34,6 +34,7 @@ export type ChatMessageListProps = {
     onToolCallClick?: (toolCall: NonNullable<ChatMessage['toolCalls']>[number]) => void;
     onCitationClick?: (citation: ParsedCitation) => void;
     soundSystem?: ChatProps['soundSystem'];
+    isSpeechPlaybackEnabled?: ChatProps['isSpeechPlaybackEnabled'];
     setChatMessagesElement: (element: HTMLDivElement | null) => void;
     onScroll: (event: UIEvent<HTMLDivElement>) => void;
     chatMessagesClassName?: string;
@@ -64,6 +65,7 @@ export function ChatMessageList(props: ChatMessageListProps) {
         onToolCallClick,
         onCitationClick,
         soundSystem,
+        isSpeechPlaybackEnabled,
         setChatMessagesElement,
         onScroll,
         chatMessagesClassName,
@@ -115,6 +117,7 @@ export function ChatMessageList(props: ChatMessageListProps) {
                         onToolCallClick={onToolCallClick}
                         onCitationClick={onCitationClick}
                         soundSystem={soundSystem}
+                        isSpeechPlaybackEnabled={isSpeechPlaybackEnabled}
                     />
                 );
             })}

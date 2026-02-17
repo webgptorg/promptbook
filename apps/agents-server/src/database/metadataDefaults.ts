@@ -93,6 +93,12 @@ export const metadataDefaults = [
         type: 'BOOLEAN',
     },
     {
+        key: 'IS_EXPERIMENTAL_VOICE_TTS_STT_ENABLED',
+        value: 'true',
+        note: 'Enable or disable text-to-speech and speak-to-text functionality. When disabled, the TTS/STT endpoints and UI controls are hidden.',
+        type: 'BOOLEAN',
+    },
+    {
         key: 'DEFAULT_IS_SOUNDS_ON',
         value: 'false',
         note: 'Default state for chat sounds when a user has no saved preference. When false, sounds start muted.',

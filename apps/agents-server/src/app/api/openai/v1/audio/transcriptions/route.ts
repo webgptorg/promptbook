@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
+import { getMetadata } from '@/src/database/getMetadata';
 
 /**
  * Proxy endpoint for OpenAI Whisper transcription
@@ -12,6 +13,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
         if (!openAiApiKey) {
             return NextResponse.json({ error: { message: 'OPENAI_API_KEY is not set on the server' } }, { status: 500 });
+        }
+
+        const isSpeechEnabled = (await getMetadata('IS_EXPERIMENTAL_VOICE_TTS_STT_ENABLED')) === 'true';
+        if (!isSpeechEnabled) {
+            return NextResponse.json(
+                { error: { message: 'Text-to-speech / speech-to-text is disabled on this server' } },
+                { status: 403 },
+            );
         }
 
         const formData = await request.formData();

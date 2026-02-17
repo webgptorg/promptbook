@@ -93,6 +93,10 @@ type ChatMessageItemProps = Pick<ChatProps, 'onMessage' | 'participants'> & {
      * Optional sound system for triggering tool chip events.
      */
     soundSystem?: ChatProps['soundSystem'];
+    /**
+     * Controls whether the play button below the message is shown.
+     */
+    isSpeechPlaybackEnabled?: ChatProps['isSpeechPlaybackEnabled'];
 };
 
 /**
@@ -347,6 +351,7 @@ export const ChatMessageItem = memo(
             onToolCallClick,
             onCitationClick,
             soundSystem,
+            isSpeechPlaybackEnabled,
         } = props;
         const {
             isComplete = true,
@@ -486,9 +491,10 @@ export const ChatMessageItem = memo(
         const ongoingToolCallCount = ongoingToolCallGroups.length;
         const toolCallChipCount = completedToolCallCount + transitiveToolCallCount + ongoingToolCallCount;
         const shouldShowButtons = isLastMessage && buttons.length > 0 && onMessage;
-        const playButtonTitle = audioError ?? (isAudioPlaying ? 'Pause message playback' : 'Read message aloud');
         const trimmedMessageContent = message.content.trim();
-        const shouldShowPlayButton = trimmedMessageContent.length > 0;
+        const speechPlaybackEnabled = isSpeechPlaybackEnabled ?? true;
+        const shouldShowPlayButton = speechPlaybackEnabled && trimmedMessageContent.length > 0;
+        const playButtonTitle = audioError ?? (isAudioPlaying ? 'Pause message playback' : 'Read message aloud');
 
         /**
          * Attaches playback listeners to keep the UI in sync with the audio element.

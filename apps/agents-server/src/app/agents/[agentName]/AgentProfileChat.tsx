@@ -255,14 +255,15 @@ export function AgentProfileChat({
         [chatRoute, navigateToDestination],
     );
 
+    const isSpeechFeaturesEnabled = agent?.isVoiceTtsSttEnabled ?? false;
     const speechRecognition = useMemo(() => {
-        if (typeof window === 'undefined') {
+        if (typeof window === 'undefined' || !isSpeechFeaturesEnabled) {
             return undefined;
         }
         // Note: [🧠] We could have a mechanism to check if OPENAI_API_KEY is set on the server
         //       For now, we always provide OpenAiSpeechRecognition which uses proxy
         return new OpenAiSpeechRecognition();
-    }, []);
+    }, [isSpeechFeaturesEnabled]);
 
     const handleCreateAgent = useCallback(
         async (bookContent: string) => {
@@ -366,6 +367,7 @@ export function AgentProfileChat({
                         style={{ background: 'transparent' }}
                         speechRecognition={speechRecognition}
                         speechRecognitionLanguage={speechRecognitionLanguage}
+                        isSpeechPlaybackEnabled={isSpeechFeaturesEnabled}
                         visual={'STANDALONE'}
                     />
                 </div>
