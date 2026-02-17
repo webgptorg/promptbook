@@ -3,6 +3,7 @@ import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForSer
 import { AgentsServerDatabase, Json } from '@/src/database/schema';
 import type { ChatMessage } from '@promptbook-local/types';
 import { $randomBase58 } from '../../../../src/utils/random/$randomBase58';
+import { textToPreviewText } from './textToPreviewText';
 
 /**
  * Stored row shape for `UserChat`.
@@ -252,9 +253,9 @@ export async function deleteUserChat(options: DeleteUserChatOptions): Promise<bo
  */
 export function createUserChatSummary(chat: UserChatRecord): UserChatSummary {
     const firstUserMessage = chat.messages.find((message) => isUserMessageSender(message.sender));
-    const lastMessage = [...chat.messages].reverse().find((message) => normalizeChatText(message.content).length > 0);
-    const titleSource = normalizeChatText(firstUserMessage?.content || '');
-    const previewSource = normalizeChatText(lastMessage?.content || '');
+    const lastMessage = [...chat.messages].reverse().find((message) => textToPreviewText(message.content).length > 0);
+    const titleSource = textToPreviewText(firstUserMessage?.content || '');
+    const previewSource = textToPreviewText(lastMessage?.content || '');
 
     return {
         id: chat.id,
@@ -319,17 +320,6 @@ function resolveLastMessageAt(messages: ReadonlyArray<ChatMessage>, fallbackTime
 /**
  * Converts markdown-ish message content to single-line text.
  */
-function normalizeChatText(value: unknown): string {
-    if (typeof value !== 'string') {
-        return '';
-    }
-
-    return value
-        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '$1')
-        .replace(/\s+/g, ' ')
-        .trim();
-}
-
 /**
  * Clips text to max length and appends ellipsis when needed.
  */

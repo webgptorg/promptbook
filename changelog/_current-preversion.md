@@ -1,4 +1,5 @@
 -   Enabled the Agents Server desktop chat area to stay interactive while the sidebar remains open by keeping the backdrop overlay visual-only (pointer-events disabled), eliminating the auto-close-on-click behavior that previously closed the panel, while leaving the mobile overlay dismiss flow unchanged.
+-   Added a shared `textToPreviewText` helper so chat previews (history cards, quick-access shortcuts, etc.) reuse the same Markdown sanitization pipeline as voice previews while keeping the JSON storage layer DRY.
 -   Reduced Agents Server homepage cold-start latency by introducing a `getMetadataMap` helper so the layout, federated-server lookup, and chat-preference helpers now read their metadata in a single Supabase round-trip instead of multiple sequential queries.
 -   Added a shared `SidebarToggleArrow` component for the Agents Server and anchored it to the middle of the desktop chat sidebar so the open/close affordance always reuses a single arrow implementation.
 -   Centered the desktop chat sidebar toggle over the chat’s left panel so the open/closing arrow now lives inline with the main chat surface while keeping the shared arrow component intact.
