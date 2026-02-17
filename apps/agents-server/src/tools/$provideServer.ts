@@ -22,6 +22,12 @@ export async function $provideServer() {
     if (!SERVERS.some((server) => server === host)) {
         if (xPromptbookServer && SERVERS.some((server) => server === xPromptbookServer)) {
             host = xPromptbookServer;
+        } else if (host.startsWith('127.0.0.1') || host.startsWith('localhost')) {
+            // Allow localhost for development/prerendering
+            return {
+                publicUrl: NEXT_PUBLIC_SITE_URL || new URL(`https://${host}`),
+                tablePrefix: SUPABASE_TABLE_PREFIX,
+            };
         } else {
             throw new Error(`Server with host "${host}" is not configured in SERVERS`);
         }
