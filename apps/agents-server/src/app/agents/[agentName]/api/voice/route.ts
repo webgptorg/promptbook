@@ -11,6 +11,7 @@ import { assertsError } from '../../../../../../../../src/errors/assertsError';
 import { keepUnused } from '../../../../../../../../src/utils/organization/keepUnused';
 import { respondIfClientVersionIsOutdated } from '../../../../../utils/clientVersionGuard';
 import { textToSpeechText } from '../../../../../utils/textToSpeechText';
+import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
 
 export const maxDuration = 300;
 
@@ -50,6 +51,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
     const audioFile = formData.get('audio') as File | null;
     const threadString = formData.get('thread') as string | null;
     const thread = threadString ? JSON.parse(threadString) : undefined;
+    const isPrivateModeEnabled = isPrivateModeEnabledFromRequest(request);
     // const messageContext = formData.get('message') as string | null; // Optional text context or previous message?
 
     if (!audioFile) {
@@ -68,6 +70,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             currentUserIdentity,
             agentPermanentId,
             agentName,
+            isPrivateModeEnabled,
         });
         const openAiAgentKitExecutionTools = await $provideOpenAiAgentKitExecutionToolsForServer();
         const agentSource = await collection.getAgentSource(agentName);
@@ -106,22 +109,24 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             isVoiceCall: true, // Mark as voice call
         };
         const supabase = $provideSupabaseForServer();
-        await supabase.from(await $getTableName('ChatHistory')).insert({
-            createdAt: new Date().toISOString(),
-            messageHash: computeHash(userMessageContent),
-            previousMessageHash: null,
-            agentName,
-            agentHash,
-            message: userMessageContent,
-            promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
-            url: request.url,
-            ip,
-            userAgent,
-            language,
-            platform,
-            source: 'AGENT_PAGE_CHAT',
-            apiKey: null,
-        });
+        if (!isPrivateModeEnabled) {
+            await supabase.from(await $getTableName('ChatHistory')).insert({
+                createdAt: new Date().toISOString(),
+                messageHash: computeHash(userMessageContent),
+                previousMessageHash: null,
+                agentName,
+                agentHash,
+                message: userMessageContent,
+                promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
+                url: request.url,
+                ip,
+                userAgent,
+                language,
+                platform,
+                source: 'AGENT_PAGE_CHAT',
+                apiKey: null,
+            });
+        }
 
         // Call Agent
         const response = await agent.callChatModel({
@@ -141,27 +146,31 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         };
 
         // Record Agent Message
-        await supabase.from(await $getTableName('ChatHistory')).insert({
-            createdAt: new Date().toISOString(),
-            messageHash: computeHash(agentMessageContent),
-            previousMessageHash: computeHash(userMessageContent),
-            agentName,
-            agentHash,
-            message: agentMessageContent,
-            promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
-            url: request.url,
-            ip,
-            userAgent,
-            language,
-            platform,
-            source: 'AGENT_PAGE_CHAT',
-            apiKey: null,
-        });
+        if (!isPrivateModeEnabled) {
+            await supabase.from(await $getTableName('ChatHistory')).insert({
+                createdAt: new Date().toISOString(),
+                messageHash: computeHash(agentMessageContent),
+                previousMessageHash: computeHash(userMessageContent),
+                agentName,
+                agentHash,
+                message: agentMessageContent,
+                promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
+                url: request.url,
+                ip,
+                userAgent,
+                language,
+                platform,
+                source: 'AGENT_PAGE_CHAT',
+                apiKey: null,
+            });
+        }
 
         // Learning
-        const newAgentSource = agent.agentSource.value;
-        if (newAgentSource !== agentSource) {
-            await collection.updateAgentSource(agentName, newAgentSource);
+        if (!isPrivateModeEnabled) {
+            const newAgentSource = agent.agentSource.value;
+            if (newAgentSource !== agentSource) {
+                await collection.updateAgentSource(agentName, newAgentSource);
+            }
         }
 
         // --- Common Chat Logic End ---

@@ -27,6 +27,7 @@ export type ToolRuntimeContext = {
         agentId?: string;
         agentName?: string;
         isTeamConversation?: boolean;
+        isPrivateMode?: boolean;
     };
 };
 

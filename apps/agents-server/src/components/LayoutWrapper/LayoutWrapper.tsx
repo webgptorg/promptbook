@@ -13,6 +13,7 @@ import { AgentNamingProvider } from '../AgentNaming/AgentNamingContext';
 import { AsyncDialogsProvider } from '../AsyncDialogs/AsyncDialogsProvider';
 import { Footer, type FooterLink } from '../Footer/Footer';
 import { Header } from '../Header/Header';
+import { PrivateModePreferencesProvider } from '../PrivateModePreferences/PrivateModePreferencesProvider';
 import { SelfLearningPreferencesProvider } from '../SelfLearningPreferences/SelfLearningPreferencesProvider';
 import { SoundSystemProvider } from '../SoundSystemProvider/SoundSystemProvider';
 
@@ -64,34 +65,36 @@ export function LayoutWrapper({
     return (
         <AsyncDialogsProvider>
             <AgentNamingProvider naming={agentNaming}>
-                {isHeaderHidden || isHeadless ? (
-                    <main className="pt-0">{children}</main>
-                ) : (
-                    <SelfLearningPreferencesProvider>
-                        <SoundSystemProvider
-                            initialIsSoundsOn={defaultIsSoundsOn}
-                            initialIsVibrationOn={defaultIsVibrationOn}
-                        >
-                            <ClientVersionMismatchListener />
-                            <MenuHoistingProvider>
-                                <div className="flex min-h-screen flex-col">
-                                    <Header
-                                        isAdmin={isAdmin}
-                                        currentUser={currentUser}
-                                        serverName={serverName}
-                                        serverLogoUrl={serverLogoUrl}
-                                        agents={agents}
-                                        agentFolders={agentFolders}
-                                        federatedServers={federatedServers}
-                                        isExperimental={isExperimental}
-                                    />
-                                    <main className={mainClassName}>{children}</main>
-                                    {isFooterShown && !isFooterHiddenOnPage && <Footer extraLinks={footerLinks} />}
-                                </div>
-                            </MenuHoistingProvider>
-                        </SoundSystemProvider>
-                    </SelfLearningPreferencesProvider>
-                )}
+                <PrivateModePreferencesProvider>
+                    {isHeaderHidden || isHeadless ? (
+                        <main className="pt-0">{children}</main>
+                    ) : (
+                        <SelfLearningPreferencesProvider>
+                            <SoundSystemProvider
+                                initialIsSoundsOn={defaultIsSoundsOn}
+                                initialIsVibrationOn={defaultIsVibrationOn}
+                            >
+                                <ClientVersionMismatchListener />
+                                <MenuHoistingProvider>
+                                    <div className="flex min-h-screen flex-col">
+                                        <Header
+                                            isAdmin={isAdmin}
+                                            currentUser={currentUser}
+                                            serverName={serverName}
+                                            serverLogoUrl={serverLogoUrl}
+                                            agents={agents}
+                                            agentFolders={agentFolders}
+                                            federatedServers={federatedServers}
+                                            isExperimental={isExperimental}
+                                        />
+                                        <main className={mainClassName}>{children}</main>
+                                        {isFooterShown && !isFooterHiddenOnPage && <Footer extraLinks={footerLinks} />}
+                                    </div>
+                                </MenuHoistingProvider>
+                            </SoundSystemProvider>
+                        </SelfLearningPreferencesProvider>
+                    )}
+                </PrivateModePreferencesProvider>
             </AgentNamingProvider>
         </AsyncDialogsProvider>
     );

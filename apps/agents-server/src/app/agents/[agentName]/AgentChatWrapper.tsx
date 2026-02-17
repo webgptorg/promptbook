@@ -9,6 +9,7 @@ import { OpenAiSpeechRecognition } from '../../../../../../src/speech-recognitio
 import { string_agent_url } from '../../../../../../src/types/typeAliases';
 import { useAgentBackground } from '../../../components/AgentProfile/useAgentBackground';
 import { ChatErrorDialog } from '../../../components/ChatErrorDialog';
+import { usePrivateModePreferences } from '../../../components/PrivateModePreferences/PrivateModePreferencesProvider';
 import { useSelfLearningPreferences } from '../../../components/SelfLearningPreferences/SelfLearningPreferencesProvider';
 import { useSoundSystem } from '../../../components/SoundSystemProvider/SoundSystemProvider';
 import { createDefaultChatEffects } from '../../../utils/chat/createDefaultChatEffects';
@@ -137,6 +138,8 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
     const effectConfigs = useMemo(() => createDefaultChatEffects(), []);
     const { soundSystem } = useSoundSystem();
     const { isSelfLearningEnabled } = useSelfLearningPreferences();
+    const { isPrivateModeEnabled } = usePrivateModePreferences();
+    const effectiveSelfLearningEnabled = isSelfLearningEnabled && !isPrivateModeEnabled;
 
     // Handle errors from chat
     const handleError = useCallback((error: unknown, retry: () => void) => {
@@ -204,7 +207,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
                 thinkingMessages={thinkingMessages}
                 speechRecognitionLanguage={speechRecognitionLanguage}
                 chatFailMessage={chatFailMessage}
-                promptParameters={{ selfLearningEnabled: isSelfLearningEnabled }}
+                promptParameters={{ selfLearningEnabled: effectiveSelfLearningEnabled }}
             />
             <ChatErrorDialog
                 error={currentError}

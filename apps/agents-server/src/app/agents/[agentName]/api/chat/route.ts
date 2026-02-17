@@ -21,6 +21,7 @@ import {
     CHAT_STREAM_KEEP_ALIVE_INTERVAL_MS,
     CHAT_STREAM_KEEP_ALIVE_TOKEN,
 } from '@/src/constants/streaming';
+import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
 
 /**
  * Shape of the incoming chat API payload.
@@ -105,6 +106,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
     const attachments = normalizeChatAttachments(body.attachments);
     const rawParameters = body.parameters ?? {};
     const messageWithAttachmentContext = appendChatAttachmentContext(message, attachments);
+    const isPrivateModeEnabled = isPrivateModeEnabledFromRequest(request);
     //      <- TODO: [🐱‍🚀] To configuration DEFAULT_INITIAL_HIDDEN_MESSAGE
 
     try {
@@ -122,6 +124,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             currentUserIdentity,
             agentPermanentId: agentId,
             agentName,
+            isPrivateModeEnabled,
         });
 
         // Use AgentKitCacheManager for vector store caching
@@ -149,22 +152,24 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
 
         // Record the user message
         const supabase = $provideSupabaseForServer();
-        await supabase.from(await $getTableName('ChatHistory')).insert({
-            createdAt: new Date().toISOString(),
-            messageHash: computeHash(userMessageContent),
-            previousMessageHash: null, // <- TODO: [🧠] How to handle previous message hash?
-            agentName,
-            agentHash,
-            message: userMessageContent,
-            promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
-            url: request.url,
-            ip,
-            userAgent,
-            language,
-            platform,
-            source: 'AGENT_PAGE_CHAT',
-            apiKey: null,
-        });
+        if (!isPrivateModeEnabled) {
+            await supabase.from(await $getTableName('ChatHistory')).insert({
+                createdAt: new Date().toISOString(),
+                messageHash: computeHash(userMessageContent),
+                previousMessageHash: null, // <- TODO: [🧠] How to handle previous message hash?
+                agentName,
+                agentHash,
+                message: userMessageContent,
+                promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
+                url: request.url,
+                ip,
+                userAgent,
+                language,
+                platform,
+                source: 'AGENT_PAGE_CHAT',
+                apiKey: null,
+            });
+        }
 
         const encoder = new TextEncoder();
         const readableStream = new ReadableStream({
@@ -254,27 +259,31 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                     };
 
                     // Record the agent message
-                    await supabase.from(await $getTableName('ChatHistory')).insert({
-                        createdAt: new Date().toISOString(),
-                        messageHash: computeHash(agentMessageContent),
-                        previousMessageHash: computeHash(userMessageContent),
-                        agentName,
-                        agentHash,
-                        message: agentMessageContent,
-                        promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
-                        url: request.url,
-                        ip,
-                        userAgent,
-                        language,
-                        platform,
-                        source: 'AGENT_PAGE_CHAT',
-                        apiKey: null,
-                    });
+                    if (!isPrivateModeEnabled) {
+                        await supabase.from(await $getTableName('ChatHistory')).insert({
+                            createdAt: new Date().toISOString(),
+                            messageHash: computeHash(agentMessageContent),
+                            previousMessageHash: computeHash(userMessageContent),
+                            agentName,
+                            agentHash,
+                            message: agentMessageContent,
+                            promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
+                            url: request.url,
+                            ip,
+                            userAgent,
+                            language,
+                            platform,
+                            source: 'AGENT_PAGE_CHAT',
+                            apiKey: null,
+                        });
+                    }
 
                     // Note: [🐱‍🚀] Save the learned data
-                    const newAgentSource = agent.agentSource.value;
-                    if (newAgentSource !== agentSource) {
-                        await collection.updateAgentSource(agentName, newAgentSource);
+                    if (!isPrivateModeEnabled) {
+                        const newAgentSource = agent.agentSource.value;
+                        if (newAgentSource !== agentSource) {
+                            await collection.updateAgentSource(agentName, newAgentSource);
+                        }
                     }
 
                     if (response.toolCalls && response.toolCalls.length > 0) {

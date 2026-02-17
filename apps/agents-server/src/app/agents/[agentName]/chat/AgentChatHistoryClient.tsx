@@ -16,6 +16,7 @@ import {
 } from '../../../../utils/userChatClient';
 import { AgentChatSidebar, AGENT_CHAT_SIDEBAR_ID } from './AgentChatSidebar';
 import { AgentChatWrapper } from '../AgentChatWrapper';
+import { usePrivateModePreferences } from '../../../../components/PrivateModePreferences/PrivateModePreferencesProvider';
 
 /**
  * Delay used before persisting chat messages to DB.
@@ -56,11 +57,13 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     } = props;
     const router = useRouter();
     const { formatText } = useAgentNaming();
+    const { isPrivateModeEnabled } = usePrivateModePreferences();
+    const shouldUseHistory = isHistoryEnabled && !isPrivateModeEnabled;
 
     const [chats, setChats] = useState<Array<UserChatSummary>>([]);
     const [activeChatId, setActiveChatId] = useState<string | null>(null);
     const [activeChatMountKey, setActiveChatMountKey] = useState(0);
-    const [isBootstrapping, setIsBootstrapping] = useState(isHistoryEnabled);
+    const [isBootstrapping, setIsBootstrapping] = useState(shouldUseHistory);
     const [isCreatingChat, setIsCreatingChat] = useState(false);
     const [isSwitchingChat, setIsSwitchingChat] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -178,7 +181,9 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     );
 
     useEffect(() => {
-        if (!isHistoryEnabled) {
+        if (!shouldUseHistory) {
+            setChats([]);
+            setIsBootstrapping(false);
             return;
         }
 
@@ -206,7 +211,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
         return () => {
             isDisposed = true;
         };
-    }, [bootstrapChats, initialChatId, isHistoryEnabled]);
+    }, [bootstrapChats, initialChatId, shouldUseHistory]);
 
     useEffect(() => {
         autoExecuteTargetChatIdRef.current = initialForceNewChat ? undefined : initialChatId;
@@ -316,7 +321,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
      */
     const handleMessagesChange = useCallback(
         (messages: ReadonlyArray<ChatMessage>) => {
-            if (!isHistoryEnabled || !activeChatId) {
+            if (!shouldUseHistory || !activeChatId) {
                 return;
             }
 
@@ -371,18 +376,23 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
         }
     }, [autoExecuteMessage]);
 
-    if (!isHistoryEnabled) {
+    if (!shouldUseHistory) {
         return (
-            <AgentChatWrapper
-                key={`guest-${guestPersistenceKey}`}
-                agentUrl={agentUrl}
-                autoExecuteMessage={initialAutoExecuteMessage}
-                brandColor={brandColor}
-                thinkingMessages={thinkingMessages}
-                speechRecognitionLanguage={speechRecognitionLanguage}
-                persistenceKey={guestPersistenceKey}
-                chatFailMessage={chatFailMessage}
-            />
+            <div className="w-full h-full flex flex-col">
+                <PrivateModeHistoryBanner formatText={formatText} />
+                <div className="flex-1">
+                    <AgentChatWrapper
+                        key={`guest-${guestPersistenceKey}`}
+                        agentUrl={agentUrl}
+                        autoExecuteMessage={initialAutoExecuteMessage}
+                        brandColor={brandColor}
+                        thinkingMessages={thinkingMessages}
+                        speechRecognitionLanguage={speechRecognitionLanguage}
+                        persistenceKey={guestPersistenceKey}
+                        chatFailMessage={chatFailMessage}
+                    />
+                </div>
+            </div>
         );
     }
 
@@ -477,4 +487,12 @@ function formatChatTimestamp(timestamp: string): string {
         hour: '2-digit',
         minute: '2-digit',
     });
+}
+
+function PrivateModeHistoryBanner({ formatText }: { formatText: (text: string) => string }) {
+    return (
+        <div className="border-b border-blue-100 bg-blue-50 px-4 py-2 text-center text-xs font-semibold uppercase tracking-[0.3em] text-blue-700">
+            {formatText('Private mode is on. Chat history, memories, and learning are disabled.')}
+        </div>
+    );
 }

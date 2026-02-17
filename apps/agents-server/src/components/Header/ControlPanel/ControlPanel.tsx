@@ -1,9 +1,10 @@
 'use client';
 
 import { ChatSoundAndVibrationPanel } from '@promptbook-local/components';
-import { ChevronDown, Settings2, SpeakerIcon, Sparkles } from 'lucide-react';
+import { ChevronDown, EyeOff, Settings2, SpeakerIcon, Sparkles } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
 import { useSoundSystem } from '../../SoundSystemProvider/SoundSystemProvider';
+import { usePrivateModePreferences } from '../../PrivateModePreferences/PrivateModePreferencesProvider';
 import { useSelfLearningPreferences } from '../../SelfLearningPreferences/SelfLearningPreferencesProvider';
 
 /**
@@ -27,9 +28,13 @@ function ControlPanelContent({
 }: ControlPanelContentProps) {
     const { soundSystem } = useSoundSystem();
     const { isSelfLearningEnabled, setIsSelfLearningEnabled } = useSelfLearningPreferences();
+    const { isPrivateModeEnabled, setIsPrivateModeEnabled } = usePrivateModePreferences();
     const toggleSelfLearning = useCallback(() => {
         setIsSelfLearningEnabled((value) => !value);
     }, [setIsSelfLearningEnabled]);
+    const togglePrivateMode = useCallback(() => {
+        setIsPrivateModeEnabled((value) => !value);
+    }, [setIsPrivateModeEnabled]);
 
     const audioSection = soundSystem ? (
         <div>
@@ -56,11 +61,30 @@ function ControlPanelContent({
         </div>
     );
 
-    const stateLabel = isSelfLearningEnabled ? 'Learning' : 'Paused';
-    const description = isSelfLearningEnabled
-        ? 'Agent appends new commitments to the book after each chat.'
-        : 'Agent respects the existing book until learning is enabled again.';
-    const detail = 'Chats and memories still persist even when learning is paused.';
+    useEffect(() => {
+        if (isPrivateModeEnabled && isSelfLearningEnabled) {
+            setIsSelfLearningEnabled(false);
+        }
+    }, [isPrivateModeEnabled, isSelfLearningEnabled, setIsSelfLearningEnabled]);
+
+    const stateLabel = isPrivateModeEnabled
+        ? 'Disabled (Private mode)'
+        : isSelfLearningEnabled
+            ? 'Learning'
+            : 'Paused';
+    const description = isPrivateModeEnabled
+        ? 'Private mode keeps the book unchanged and blocks any new learning.'
+        : isSelfLearningEnabled
+            ? 'Agent appends new commitments to the book after each chat.'
+            : 'Agent respects the existing book until learning is enabled again.';
+    const detail = isPrivateModeEnabled
+        ? 'No learning occurs until private mode is disabled.'
+        : 'Chats and memories still persist even when learning is paused.';
+    const privateStateLabel = isPrivateModeEnabled ? 'Private' : 'Standard';
+    const privateDescription = isPrivateModeEnabled
+        ? 'Chats, memories, and learning are disabled.'
+        : 'Data keeps flowing to the server when the session is standard.';
+    const privateDetail = 'Enabling private mode keeps the current chat local to your browser.';
 
     return (
         <div className={`space-y-3 ${isMobile ? 'pt-1' : ''}`}>
@@ -83,13 +107,42 @@ function ControlPanelContent({
                         type="button"
                         onClick={toggleSelfLearning}
                         aria-pressed={isSelfLearningEnabled}
+                        disabled={isPrivateModeEnabled}
                         className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold transition ${
                             isSelfLearningEnabled
                                 ? 'border-blue-500 bg-blue-500/10 text-blue-700 hover:bg-blue-500/20'
                                 : 'border-gray-200 bg-gray-50 text-gray-700 hover:border-gray-300 hover:bg-gray-100'
-                        }`}
+                        } ${isPrivateModeEnabled ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                         {isSelfLearningEnabled ? 'Pause learning' : 'Enable learning'}
+                    </button>
+                </div>
+            </div>
+            <div className="rounded-2xl border border-gray-100 bg-white/80 p-3 shadow-inner">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1 text-sm font-semibold text-gray-900">
+                        <EyeOff className="w-4 h-4 text-blue-600" />
+                        <span>Private mode</span>
+                    </div>
+                    <span className="text-xs font-semibold uppercase tracking-widest text-gray-400">Privacy</span>
+                </div>
+                <p className="text-xs text-gray-500 leading-snug">{privateDescription}</p>
+                <div className="mt-4 flex items-center justify-between gap-3">
+                    <div>
+                        <p className="text-sm font-semibold text-gray-900">{privateStateLabel}</p>
+                        <p className="text-xs text-gray-500">{privateDetail}</p>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={togglePrivateMode}
+                        aria-pressed={isPrivateModeEnabled}
+                        className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold transition ${
+                            isPrivateModeEnabled
+                                ? 'border-rose-500 bg-rose-500/10 text-rose-700 hover:bg-rose-500/20'
+                                : 'border-gray-200 bg-gray-50 text-gray-700 hover:border-gray-300 hover:bg-gray-100'
+                        }`}
+                    >
+                        {isPrivateModeEnabled ? 'Disable private mode' : 'Enable private mode'}
                     </button>
                 </div>
             </div>

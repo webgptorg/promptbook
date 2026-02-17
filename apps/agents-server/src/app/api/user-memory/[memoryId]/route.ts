@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { deleteUserMemory, resolveCurrentUserMemoryIdentity, updateUserMemory } from '@/src/utils/userMemory';
+import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
 
 /**
  * Parses numeric memory id from route params.
@@ -16,6 +17,9 @@ function parseMemoryId(rawValue: string): number | null {
  * Updates one memory record for the current authenticated user.
  */
 export async function PATCH(request: Request, { params }: { params: Promise<{ memoryId: string }> }) {
+    if (isPrivateModeEnabledFromRequest(request)) {
+        return NextResponse.json({ error: 'Private mode is enabled.' }, { status: 403 });
+    }
     const identity = await resolveCurrentUserMemoryIdentity();
     if (!identity) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -61,6 +65,10 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ me
 export async function DELETE(request: Request, { params }: { params: Promise<{ memoryId: string }> }) {
     void request;
 
+    if (isPrivateModeEnabledFromRequest(request)) {
+        return NextResponse.json({ error: 'Private mode is enabled.' }, { status: 403 });
+    }
+
     const identity = await resolveCurrentUserMemoryIdentity();
     if (!identity) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -90,4 +98,3 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ m
         );
     }
 }
-

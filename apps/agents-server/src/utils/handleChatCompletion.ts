@@ -26,6 +26,7 @@ import { HTTP_STATUS_CODES } from '../constants';
 import { AgentKitCacheManager } from './cache/AgentKitCacheManager';
 import { respondIfClientVersionIsOutdated } from './clientVersionGuard';
 import { validateApiKey } from './validateApiKey';
+import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
 
 /**
  * Falls back to the estimated value when the original token count is unknown.
@@ -208,6 +209,7 @@ export async function handleChatCompletion(
         const runtimeToolChoice = parseOpenAiToolChoice(toolChoice);
 
         const agentName = agentNameFromParams || model;
+        const isPrivateModeEnabled = isPrivateModeEnabledFromRequest(request);
 
         if (!agentName) {
             return NextResponse.json(
@@ -363,24 +365,26 @@ export async function handleChatCompletion(
             content: lastMessage.content,
         };
 
-        await $provideSupabaseForServer()
-            .from(await $getTableName('ChatHistory'))
-            .insert({
-                createdAt: new Date().toISOString(),
-                messageHash: computeHash(userMessageContent),
-                previousMessageHash: null,
-                agentName,
-                agentHash,
-                message: userMessageContent,
-                promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
-                url: request.url,
-                ip,
-                userAgent,
-                language,
-                platform,
-                source: 'OPENAI_API_COMPATIBILITY',
-                apiKey,
-            });
+        if (!isPrivateModeEnabled) {
+            await $provideSupabaseForServer()
+                .from(await $getTableName('ChatHistory'))
+                .insert({
+                    createdAt: new Date().toISOString(),
+                    messageHash: computeHash(userMessageContent),
+                    previousMessageHash: null,
+                    agentName,
+                    agentHash,
+                    message: userMessageContent,
+                    promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
+                    url: request.url,
+                    ip,
+                    userAgent,
+                    language,
+                    platform,
+                    source: 'OPENAI_API_COMPATIBILITY',
+                    apiKey,
+                });
+        }
 
         const incomingParameters =
             rawParameters && typeof rawParameters === 'object' && !Array.isArray(rawParameters)
@@ -394,6 +398,7 @@ export async function handleChatCompletion(
             currentUserIdentity,
             agentPermanentId: agentId,
             agentName,
+            isPrivateModeEnabled,
         });
 
         const prompt: ChatPrompt = {
@@ -498,24 +503,26 @@ export async function handleChatCompletion(
                         };
 
                         // Record the agent message
-                        await $provideSupabaseForServer()
-                            .from(await $getTableName('ChatHistory'))
-                            .insert({
-                                createdAt: new Date().toISOString(),
-                                messageHash: computeHash(agentMessageContent),
-                                previousMessageHash: computeHash(userMessageContent),
-                                agentName,
-                                agentHash,
-                                message: agentMessageContent,
-                                promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
-                                url: request.url,
-                                ip,
-                                userAgent,
-                                language,
-                                platform,
-                                source: 'OPENAI_API_COMPATIBILITY',
-                                apiKey,
-                            });
+                        if (!isPrivateModeEnabled) {
+                            await $provideSupabaseForServer()
+                                .from(await $getTableName('ChatHistory'))
+                                .insert({
+                                    createdAt: new Date().toISOString(),
+                                    messageHash: computeHash(agentMessageContent),
+                                    previousMessageHash: computeHash(userMessageContent),
+                                    agentName,
+                                    agentHash,
+                                    message: agentMessageContent,
+                                    promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
+                                    url: request.url,
+                                    ip,
+                                    userAgent,
+                                    language,
+                                    platform,
+                                    source: 'OPENAI_API_COMPATIBILITY',
+                                    apiKey,
+                                });
+                        }
 
                         // Note: [🐱‍🚀] Save the learned data
                         const newAgentSource = agent.agentSource.value;
@@ -570,29 +577,33 @@ export async function handleChatCompletion(
             };
 
             // Record the agent message
-            await $provideSupabaseForServer()
-                .from(await $getTableName('ChatHistory'))
-                .insert({
-                    createdAt: new Date().toISOString(),
-                    messageHash: computeHash(agentMessageContent),
-                    previousMessageHash: computeHash(userMessageContent),
-                    agentName,
-                    agentHash,
-                    message: agentMessageContent,
-                    promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
-                    url: request.url,
-                    ip,
-                    userAgent,
-                    language,
-                    platform,
-                    source: 'OPENAI_API_COMPATIBILITY',
-                    apiKey,
-                });
+            if (!isPrivateModeEnabled) {
+                await $provideSupabaseForServer()
+                    .from(await $getTableName('ChatHistory'))
+                    .insert({
+                        createdAt: new Date().toISOString(),
+                        messageHash: computeHash(agentMessageContent),
+                        previousMessageHash: computeHash(userMessageContent),
+                        agentName,
+                        agentHash,
+                        message: agentMessageContent,
+                        promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
+                        url: request.url,
+                        ip,
+                        userAgent,
+                        language,
+                        platform,
+                        source: 'OPENAI_API_COMPATIBILITY',
+                        apiKey,
+                    });
+            }
 
             // Note: [🐱‍🚀] Save the learned data
-            const newAgentSource = agent.agentSource.value;
-            if (newAgentSource !== agentSource) {
-                await collection.updateAgentSource(agentName, newAgentSource);
+            if (!isPrivateModeEnabled) {
+                const newAgentSource = agent.agentSource.value;
+                if (newAgentSource !== agentSource) {
+                    await collection.updateAgentSource(agentName, newAgentSource);
+                }
             }
 
             return NextResponse.json({

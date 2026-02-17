@@ -16,6 +16,7 @@ import { $createAgentFromBookAction } from '../../../app/actions';
 import { useAgentNaming } from '../../../components/AgentNaming/AgentNamingContext';
 import { showAlert } from '../../../components/AsyncDialogs/asyncDialogs';
 import { DeletedAgentBanner } from '../../../components/DeletedAgentBanner';
+import { usePrivateModePreferences } from '../../../components/PrivateModePreferences/PrivateModePreferencesProvider';
 
 /**
  * Props for rendering the profile-page chat preview for one agent.
@@ -150,6 +151,7 @@ export function AgentProfileChat({
     const [isNavigatingToChat, setIsNavigatingToChat] = useState(false);
     const [existingChats, setExistingChats] = useState<Array<UserChatSummary>>([]);
     const { formatText } = useAgentNaming();
+    const { isPrivateModeEnabled } = usePrivateModePreferences();
 
     keepUnused(isCreatingAgent);
 
@@ -170,7 +172,7 @@ export function AgentProfileChat({
     }, [chatRoute, router]);
 
     useEffect(() => {
-        if (!isHistoryEnabled) {
+        if (!isHistoryEnabled || isPrivateModeEnabled) {
             setExistingChats([]);
             return;
         }
@@ -194,13 +196,13 @@ export function AgentProfileChat({
         return () => {
             isActive = false;
         };
-    }, [agentName, isHistoryEnabled]);
+    }, [agentName, isHistoryEnabled, isPrivateModeEnabled]);
 
     const visibleExistingChats = useMemo(
         () => existingChats.slice(0, MAX_PROFILE_EXISTING_CHATS),
         [existingChats],
     );
-    const hasVisibleExistingChats = visibleExistingChats.length > 0;
+    const hasVisibleExistingChats = !isPrivateModeEnabled && visibleExistingChats.length > 0;
 
     /**
      * Navigates to the provided destination while coordinating the view transition state.
@@ -315,13 +317,17 @@ export function AgentProfileChat({
 
     return (
         <div className="flex w-full flex-col gap-4">
-            {hasVisibleExistingChats && (
-                <ExistingChatsPanel
-                    chats={visibleExistingChats}
-                    formatText={formatText}
-                    onOpenChat={(chatId) => void handleContinueChat(chatId)}
-                    brandColorHex={brandColorHex}
-                />
+            {isPrivateModeEnabled ? (
+                <PrivateModeChatPanel formatText={formatText} brandColorHex={brandColorHex} />
+            ) : (
+                hasVisibleExistingChats && (
+                    <ExistingChatsPanel
+                        chats={visibleExistingChats}
+                        formatText={formatText}
+                        onOpenChat={(chatId) => void handleContinueChat(chatId)}
+                        brandColorHex={brandColorHex}
+                    />
+                )
             )}
             <div
                 className={`relative w-full h-[calc(100dvh-300px)] min-h-[350px] md:min-h-[420px] md:h-[500px] agent-chat-route-surface ${
@@ -377,6 +383,43 @@ type ExistingChatsPanelProps = {
     onOpenChat: (chatId: string) => void;
     brandColorHex: string_color;
 };
+
+type PrivateModeChatPanelProps = {
+    formatText: (text: string) => string;
+    brandColorHex: string_color;
+};
+
+function PrivateModeChatPanel({ formatText, brandColorHex }: PrivateModeChatPanelProps) {
+    return (
+        <section className="relative w-full overflow-hidden rounded-[28px] border border-blue-200 bg-gradient-to-br from-blue-50 to-white/80 shadow-2xl shadow-blue-200/30">
+            <div
+                className="absolute left-4 right-4 top-3 h-1 rounded-full"
+                style={{
+                    background: `linear-gradient(120deg, ${brandColorHex}, ${brandColorHex}80, transparent)`,
+                }}
+            />
+            <div className="relative z-10 px-5 py-5">
+                <div className="flex items-center justify-between gap-2">
+                    <p className="text-[0.65rem] font-semibold uppercase tracking-[0.4em] text-slate-500">
+                        {formatText('My chats')}
+                    </p>
+                    <span className="rounded-full bg-blue-100 px-2 py-1 text-[0.55rem] font-semibold uppercase tracking-[0.3em] text-blue-600">
+                        {formatText('Private')}
+                    </span>
+                </div>
+                <p className="text-sm font-semibold text-slate-900">{formatText('This chat is private')}</p>
+                <p className="text-xs text-slate-500">
+                    {formatText('Messages are kept local, and nothing is stored or learned while private mode is active.')}
+                </p>
+                <div className="mt-4 rounded-2xl border border-blue-100 bg-white/90 p-3 text-xs font-medium text-slate-600">
+                    {formatText(
+                        'Use the chat area below to keep the same agent and settings, knowing no history, memories, or learning will be persisted.',
+                    )}
+                </div>
+            </div>
+        </section>
+    );
+}
 
 /**
  * Renders recent chat entries in a stylized card that matches the agent profile aesthetic.

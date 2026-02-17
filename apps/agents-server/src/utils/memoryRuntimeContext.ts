@@ -14,6 +14,7 @@ export type ComposePromptParametersWithMemoryContextOptions = {
     currentUserIdentity: ResolvedCurrentUserMemoryIdentity | null;
     agentPermanentId?: string;
     agentName: string;
+    isPrivateModeEnabled?: boolean;
 };
 
 /**
@@ -22,13 +23,14 @@ export type ComposePromptParametersWithMemoryContextOptions = {
 export function composePromptParametersWithMemoryContext(
     options: ComposePromptParametersWithMemoryContextOptions,
 ): Record<string, string> {
-    const { baseParameters, currentUserIdentity, agentPermanentId, agentName } = options;
+    const { baseParameters, currentUserIdentity, agentPermanentId, agentName, isPrivateModeEnabled } = options;
     const normalizedBaseParameters = normalizePromptParameters(baseParameters);
 
     const existingRuntimeContext =
         parseToolRuntimeContext(normalizedBaseParameters[TOOL_RUNTIME_CONTEXT_PARAMETER]) || {};
     const isTeamConversation = existingRuntimeContext.memory?.isTeamConversation === true;
-    const isMemoryEnabled = Boolean(currentUserIdentity && !isTeamConversation);
+    const isPrivateMode = isPrivateModeEnabled === true;
+    const isMemoryEnabled = Boolean(currentUserIdentity && !isTeamConversation && !isPrivateMode);
 
     const mergedRuntimeContext: ToolRuntimeContext = {
         ...existingRuntimeContext,
@@ -40,6 +42,7 @@ export function composePromptParametersWithMemoryContext(
             agentId: agentPermanentId,
             agentName,
             isTeamConversation,
+            isPrivateMode,
         },
     };
 

@@ -1,6 +1,7 @@
 import type { ChatMessage } from '@promptbook-local/types';
 import { NextResponse } from 'next/server';
 import { createUserChat, createUserChatSummary, listUserChats } from '@/src/utils/userChat';
+import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
 import { resolveUserChatScope } from './resolveUserChatScope';
 
 /**
@@ -9,6 +10,9 @@ import { resolveUserChatScope } from './resolveUserChatScope';
 export async function GET(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
     const { agentName: rawAgentName } = await params;
     const agentName = decodeURIComponent(rawAgentName);
+    if (isPrivateModeEnabledFromRequest(request)) {
+        return NextResponse.json({ error: 'Private mode is enabled.' }, { status: 403 });
+    }
     const scopeResult = await resolveUserChatScope(agentName);
 
     if (!scopeResult.ok) {
@@ -50,6 +54,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
 export async function POST(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
     const { agentName: rawAgentName } = await params;
     const agentName = decodeURIComponent(rawAgentName);
+    if (isPrivateModeEnabledFromRequest(request)) {
+        return NextResponse.json({ error: 'Private mode is enabled.' }, { status: 403 });
+    }
     const scopeResult = await resolveUserChatScope(agentName);
 
     if (!scopeResult.ok) {

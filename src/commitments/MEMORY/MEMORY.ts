@@ -69,6 +69,7 @@ export type MemoryToolRuntimeContext = {
     readonly agentId?: string;
     readonly agentName?: string;
     readonly isTeamConversation: boolean;
+    readonly isPrivateMode: boolean;
 };
 
 /**
@@ -216,6 +217,7 @@ function resolveMemoryRuntimeContext(args: Record<string, TODO_any>): MemoryTool
         agentId: memoryContext?.agentId,
         agentName: memoryContext?.agentName,
         isTeamConversation: memoryContext?.isTeamConversation === true,
+        isPrivateMode: memoryContext?.isPrivateMode === true,
     };
 }
 
@@ -281,15 +283,16 @@ function getRuntimeAdapterOrDisabledResult(
         | DeleteMemoryToolResult
         | null;
 } {
-    if (!runtimeContext.enabled || runtimeContext.isTeamConversation) {
+    if (!runtimeContext.enabled || runtimeContext.isTeamConversation || runtimeContext.isPrivateMode) {
+        const message = runtimeContext.isPrivateMode
+            ? 'Memory is disabled because private mode is active.'
+            : runtimeContext.isTeamConversation
+                ? 'Memory is disabled for TEAM conversations.'
+                : 'Memory is disabled for unauthenticated users.';
+
         return {
             adapter: null,
-            disabledResult: createDisabledMemoryResult(
-                action,
-                runtimeContext.isTeamConversation
-                    ? 'Memory is disabled for TEAM conversations.'
-                    : 'Memory is disabled for unauthenticated users.',
-            ),
+            disabledResult: createDisabledMemoryResult(action, message),
         };
     }
 

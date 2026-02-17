@@ -5,11 +5,16 @@ import {
     resolveCurrentUserMemoryIdentity,
     type CreateUserMemoryOptions,
 } from '@/src/utils/userMemory';
+import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
 
 /**
  * Lists user memories for current authenticated user.
  */
 export async function GET(request: Request) {
+    if (isPrivateModeEnabledFromRequest(request)) {
+        return NextResponse.json({ error: 'Private mode is enabled.' }, { status: 403 });
+    }
+
     const identity = await resolveCurrentUserMemoryIdentity();
     if (!identity) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -44,6 +49,10 @@ export async function GET(request: Request) {
  * Creates one memory record for current authenticated user.
  */
 export async function POST(request: Request) {
+    if (isPrivateModeEnabledFromRequest(request)) {
+        return NextResponse.json({ error: 'Private mode is enabled.' }, { status: 403 });
+    }
+
     const identity = await resolveCurrentUserMemoryIdentity();
     if (!identity) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -70,4 +79,3 @@ export async function POST(request: Request) {
         );
     }
 }
-

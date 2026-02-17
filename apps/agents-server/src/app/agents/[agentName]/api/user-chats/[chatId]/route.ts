@@ -7,6 +7,7 @@ import {
     updateUserChatMessages,
 } from '@/src/utils/userChat';
 import { resolveUserChatScope } from '../resolveUserChatScope';
+import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
 
 /**
  * Loads one chat for current user.
@@ -19,6 +20,9 @@ export async function GET(
 
     const { agentName: rawAgentName, chatId: rawChatId } = await params;
     const agentName = decodeURIComponent(rawAgentName);
+    if (isPrivateModeEnabledFromRequest(request)) {
+        return NextResponse.json({ error: 'Private mode is enabled.' }, { status: 403 });
+    }
     const chatId = decodeURIComponent(rawChatId);
     const scopeResult = await resolveUserChatScope(agentName);
 
@@ -59,6 +63,10 @@ export async function PATCH(
     request: Request,
     { params }: { params: Promise<{ agentName: string; chatId: string }> },
 ) {
+    if (isPrivateModeEnabledFromRequest(request)) {
+        return NextResponse.json({ error: 'Private mode is enabled.' }, { status: 403 });
+    }
+
     const { agentName: rawAgentName, chatId: rawChatId } = await params;
     const agentName = decodeURIComponent(rawAgentName);
     const chatId = decodeURIComponent(rawChatId);
@@ -104,6 +112,10 @@ export async function DELETE(
     { params }: { params: Promise<{ agentName: string; chatId: string }> },
 ) {
     void request;
+
+    if (isPrivateModeEnabledFromRequest(request)) {
+        return NextResponse.json({ error: 'Private mode is enabled.' }, { status: 403 });
+    }
 
     const { agentName: rawAgentName, chatId: rawChatId } = await params;
     const agentName = decodeURIComponent(rawAgentName);
