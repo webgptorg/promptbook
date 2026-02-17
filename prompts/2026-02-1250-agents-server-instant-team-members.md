@@ -1,9 +1,10 @@
 [x] ~$0.88 13 minutes by OpenAI Codex `gpt-5.1-codex-mini` - not working
 [x] ~$0.37 16 minutes by OpenAI Codex `gpt-5.3-codex` - not working
+[x] ~$0.42 24 minutes by OpenAI Codex `gpt-5.1-codex-mini` - not working
 
 ---
 
-[x] ~$0.42 24 minutes by OpenAI Codex `gpt-5.1-codex-mini`
+[ ]
 
 [✨👳] When the referenced team member is not found, Allow to instantly create it from the BookEditor
 
@@ -25,9 +26,7 @@ You can discuss things with a {Lawyer}, {Copywriter}, and {Developer}.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
-![alt text](prompts/screenshots/2026-02-1250-agents-server-instant-team-members.png)
-![alt text](prompts/screenshots/2026-02-1250-agents-server-instant-team-members-1.png)
-![alt text](prompts/screenshots/2026-02-1250-agents-server-instant-team-members-2.png)
+![alt text](prompts/screenshots/2026-02-1250-agents-server-instant-team-members-3.png)
 
 ---
 
@@ -61,4 +60,3 @@ You can discuss things with a {Lawyer}, {Copywriter}, and {Developer}.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
