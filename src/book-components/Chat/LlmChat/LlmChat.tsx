@@ -151,9 +151,12 @@ export function LlmChat(props: LlmChatProps) {
         buttonColor,
         toolTitles,
         thinkingMessages,
+        promptParameters,
         chatFailMessage,
         ...restProps
     } = props;
+
+    const resolvedPromptParameters = promptParameters ?? {};
 
     const resolvedChatFailMessage = chatFailMessage || DEFAULT_CHAT_FAIL_MESSAGE;
 
@@ -383,7 +386,7 @@ export function LlmChat(props: LlmChatProps) {
                 const prompt = {
                     title: 'User Message',
                     content: messageContent as string_markdown,
-                    parameters: {},
+                    parameters: resolvedPromptParameters,
                     modelRequirements: {
                         modelVariant: 'CHAT' as const,
                     },
@@ -489,7 +492,7 @@ export function LlmChat(props: LlmChatProps) {
                 requestInFlightRef.current = false;
             }
         },
-        [messages, llmTools, props.thread, onError, llmParticipantName, userParticipantName, thinkingVariants],
+        [messages, llmTools, props.thread, props.promptParameters, onError, llmParticipantName, userParticipantName, thinkingVariants],
     );
 
     // Handle chat reset

@@ -115,6 +115,13 @@ export const RESERVED_PARAMETER_NAMES = exportJson({
 });
 
 /**
+ * Prompt parameter that toggles whether the agent runs self-learning after each chat.
+ *
+ * @public exported from `@promptbook/core`
+ */
+export const PROMPT_PARAMETER_SELF_LEARNING_ENABLED = 'selfLearningEnabled';
+
+/**
  * Limits for IDs, names, and other strings
  *
  * @public exported from `@promptbook/core`

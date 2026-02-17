@@ -86,6 +86,11 @@ export type LlmChatProps = Omit<ChatProps, 'messages' | 'onMessage' | 'onChange'
     readonly thinkingMessages?: ReadonlyArray<string>;
 
     /**
+     * Extra prompt parameters to merge into every chat request.
+     */
+    readonly promptParameters?: Record<string, unknown>;
+
+    /**
      * Human-friendly text shown when `LlmChat` fails to process a message.
      * Use metadata overrides in apps (like Agents Server) instead of copying this string.
      */

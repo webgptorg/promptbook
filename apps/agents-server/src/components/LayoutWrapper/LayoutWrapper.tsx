@@ -13,6 +13,7 @@ import { AgentNamingProvider } from '../AgentNaming/AgentNamingContext';
 import { AsyncDialogsProvider } from '../AsyncDialogs/AsyncDialogsProvider';
 import { Footer, type FooterLink } from '../Footer/Footer';
 import { Header } from '../Header/Header';
+import { SelfLearningPreferencesProvider } from '../SelfLearningPreferences/SelfLearningPreferencesProvider';
 import { SoundSystemProvider } from '../SoundSystemProvider/SoundSystemProvider';
 
 type LayoutWrapperProps = {
@@ -62,10 +63,11 @@ export function LayoutWrapper({
 
     return (
         <AsyncDialogsProvider>
-                <AgentNamingProvider naming={agentNaming}>
-                    {isHeaderHidden || isHeadless ? (
-                        <main className="pt-0">{children}</main>
-                    ) : (
+            <AgentNamingProvider naming={agentNaming}>
+                {isHeaderHidden || isHeadless ? (
+                    <main className="pt-0">{children}</main>
+                ) : (
+                    <SelfLearningPreferencesProvider>
                         <SoundSystemProvider
                             initialIsSoundsOn={defaultIsSoundsOn}
                             initialIsVibrationOn={defaultIsVibrationOn}
@@ -73,21 +75,22 @@ export function LayoutWrapper({
                             <ClientVersionMismatchListener />
                             <MenuHoistingProvider>
                                 <div className="flex min-h-screen flex-col">
-                                <Header
-                                    isAdmin={isAdmin}
-                                    currentUser={currentUser}
-                                    serverName={serverName}
-                                    serverLogoUrl={serverLogoUrl}
-                                    agents={agents}
-                                    agentFolders={agentFolders}
-                                    federatedServers={federatedServers}
-                                    isExperimental={isExperimental}
-                                />
-                                <main className={mainClassName}>{children}</main>
-                                {isFooterShown && !isFooterHiddenOnPage && <Footer extraLinks={footerLinks} />}
-                            </div>
-                        </MenuHoistingProvider>
-                    </SoundSystemProvider>
+                                    <Header
+                                        isAdmin={isAdmin}
+                                        currentUser={currentUser}
+                                        serverName={serverName}
+                                        serverLogoUrl={serverLogoUrl}
+                                        agents={agents}
+                                        agentFolders={agentFolders}
+                                        federatedServers={federatedServers}
+                                        isExperimental={isExperimental}
+                                    />
+                                    <main className={mainClassName}>{children}</main>
+                                    {isFooterShown && !isFooterHiddenOnPage && <Footer extraLinks={footerLinks} />}
+                                </div>
+                            </MenuHoistingProvider>
+                        </SoundSystemProvider>
+                    </SelfLearningPreferencesProvider>
                 )}
             </AgentNamingProvider>
         </AsyncDialogsProvider>

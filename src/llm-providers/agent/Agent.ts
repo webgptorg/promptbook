@@ -41,6 +41,7 @@ import { just } from '../../utils/organization/just';
 import { getSingleLlmExecutionTools } from '../_multiple/getSingleLlmExecutionTools';
 import { AgentLlmExecutionTools } from './AgentLlmExecutionTools';
 import type { AgentOptions } from './AgentOptions';
+import { PROMPT_PARAMETER_SELF_LEARNING_ENABLED } from '../../constants';
 
 /**
  * Mutable commitment breakdown used while building self-learning summaries.
@@ -115,6 +116,38 @@ function buildTeacherSummary(commitments: string, used: boolean): SelfLearningTe
         commitmentTypes: summarizeTeacherCommitmentLines(commitmentLines),
         commitments: commitmentLines.length > 0 ? commitmentLines : undefined,
     };
+}
+
+/**
+ * Parses boolean prompt parameters, defaulting when the value is missing or invalid.
+ *
+ * @private
+ */
+function parseBooleanPromptParameter(value: string | undefined, fallback: boolean): boolean {
+    if (value === undefined) {
+        return fallback;
+    }
+
+    const normalized = value.trim().toLowerCase();
+
+    if (normalized === 'true') {
+        return true;
+    }
+
+    if (normalized === 'false') {
+        return false;
+    }
+
+    try {
+        const parsed = JSON.parse(value);
+        if (typeof parsed === 'boolean') {
+            return parsed;
+        }
+    } catch {
+        // If JSON parsing fails, fall back to the default.
+    }
+
+    return fallback;
 }
 
 /**
@@ -316,6 +349,15 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
         }
 
         if (modelRequirements.isClosed) {
+            return result;
+        }
+
+        const shouldSelfLearn = parseBooleanPromptParameter(
+            prompt.parameters?.[PROMPT_PARAMETER_SELF_LEARNING_ENABLED],
+            true,
+        );
+
+        if (!shouldSelfLearn) {
             return result;
         }
 

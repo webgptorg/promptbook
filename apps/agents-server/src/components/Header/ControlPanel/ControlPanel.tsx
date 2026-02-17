@@ -1,9 +1,10 @@
 'use client';
 
 import { ChatSoundAndVibrationPanel } from '@promptbook-local/components';
-import { ChevronDown, Settings2, SpeakerIcon } from 'lucide-react';
+import { ChevronDown, Settings2, SpeakerIcon, Sparkles } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
 import { useSoundSystem } from '../../SoundSystemProvider/SoundSystemProvider';
+import { useSelfLearningPreferences } from '../../SelfLearningPreferences/SelfLearningPreferencesProvider';
 
 /**
  * Shared props used by every control panel presentation.
@@ -25,22 +26,13 @@ function ControlPanelContent({
     isMobile = false,
 }: ControlPanelContentProps) {
     const { soundSystem } = useSoundSystem();
+    const { isSelfLearningEnabled, setIsSelfLearningEnabled } = useSelfLearningPreferences();
+    const toggleSelfLearning = useCallback(() => {
+        setIsSelfLearningEnabled((value) => !value);
+    }, [setIsSelfLearningEnabled]);
 
-    if (!soundSystem) {
-        return (
-            <div className="space-y-2">
-                <div className="flex items-center gap-1 text-sm font-semibold text-gray-900">
-                    <SpeakerIcon className="w-4 h-4 text-blue-600" />
-                    <span>{title}</span>
-                </div>
-                <p className="text-xs text-gray-500">{subtitle}</p>
-                <p className="text-xs text-gray-500">Loading audio settings…</p>
-            </div>
-        );
-    }
-
-    return (
-        <div className={`space-y-3 ${isMobile ? 'pt-1' : ''}`}>
+    const audioSection = soundSystem ? (
+        <div>
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1 text-sm font-semibold text-gray-900">
                     <SpeakerIcon className="w-4 h-4 text-blue-600" />
@@ -51,6 +43,55 @@ function ControlPanelContent({
             <p className="text-xs text-gray-500 leading-snug">{subtitle}</p>
             <div className="rounded-2xl border border-gray-100 bg-gray-50/50 p-3 shadow-inner">
                 <ChatSoundAndVibrationPanel soundSystem={soundSystem} />
+            </div>
+        </div>
+    ) : (
+        <div className="space-y-2">
+            <div className="flex items-center gap-1 text-sm font-semibold text-gray-900">
+                <SpeakerIcon className="w-4 h-4 text-blue-600" />
+                <span>{title}</span>
+            </div>
+            <p className="text-xs text-gray-500">{subtitle}</p>
+            <p className="text-xs text-gray-500">Loading audio settings…</p>
+        </div>
+    );
+
+    const stateLabel = isSelfLearningEnabled ? 'Learning' : 'Paused';
+    const description = isSelfLearningEnabled
+        ? 'Agent appends new commitments to the book after each chat.'
+        : 'Agent respects the existing book until learning is enabled again.';
+    const detail = 'Chats and memories still persist even when learning is paused.';
+
+    return (
+        <div className={`space-y-3 ${isMobile ? 'pt-1' : ''}`}>
+            {audioSection}
+            <div className="rounded-2xl border border-gray-100 bg-white/80 p-3 shadow-inner">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1 text-sm font-semibold text-gray-900">
+                        <Sparkles className="w-4 h-4 text-blue-600" />
+                        <span>Self-learning</span>
+                    </div>
+                    <span className="text-xs font-semibold uppercase tracking-widest text-gray-400">Book</span>
+                </div>
+                <p className="text-xs text-gray-500 leading-snug">{description}</p>
+                <div className="mt-4 flex items-center justify-between gap-3">
+                    <div>
+                        <p className="text-sm font-semibold text-gray-900">{stateLabel}</p>
+                        <p className="text-xs text-gray-500">{detail}</p>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={toggleSelfLearning}
+                        aria-pressed={isSelfLearningEnabled}
+                        className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold transition ${
+                            isSelfLearningEnabled
+                                ? 'border-blue-500 bg-blue-500/10 text-blue-700 hover:bg-blue-500/20'
+                                : 'border-gray-200 bg-gray-50 text-gray-700 hover:border-gray-300 hover:bg-gray-100'
+                        }`}
+                    >
+                        {isSelfLearningEnabled ? 'Pause learning' : 'Enable learning'}
+                    </button>
+                </div>
             </div>
         </div>
     );
@@ -144,4 +185,3 @@ export function HeaderControlPanelDropdown() {
         </div>
     );
 }
-
