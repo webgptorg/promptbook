@@ -394,6 +394,11 @@ type AgentNameWithAvatarProps = {
      * Tailwind classes that limit the label width.
      */
     readonly maxWidthClassName?: string;
+
+    /**
+     * Optional fallback content when no avatar URL is provided.
+     */
+    readonly fallbackIcon?: ReactNode;
 };
 
 /**
@@ -407,6 +412,7 @@ function AgentNameWithAvatar({
     avatarSizeClassName,
     textClassName,
     maxWidthClassName,
+    fallbackIcon,
 }: AgentNameWithAvatarProps) {
     const safeLabel = label || 'Agent';
     const fallbackLetter = safeLabel.split('/').pop()?.trim().charAt(0)?.toUpperCase() || 'A';
@@ -414,6 +420,7 @@ function AgentNameWithAvatar({
     const textClasses = `truncate ${textClassName ?? 'text-sm font-semibold text-gray-900'} ${
         maxWidthClassName ?? ''
     }`.trim();
+    const fallbackContent = fallbackIcon ?? fallbackLetter;
 
     return (
         <span className="flex min-w-0 items-center gap-2">
@@ -432,7 +439,7 @@ function AgentNameWithAvatar({
                         decoding="async"
                     />
                 ) : (
-                    fallbackLetter
+                    fallbackContent
                 )}
             </span>
             <span className={textClasses}>{safeLabel}</span>
@@ -1497,6 +1504,11 @@ export function Header(props: HeaderProps) {
                                             avatarSizeClassName="h-5 w-5"
                                             textClassName="text-xs sm:text-sm font-semibold text-gray-900"
                                             maxWidthClassName="max-w-[80px] sm:max-w-[120px] md:max-w-[180px] lg:max-w-[200px]"
+                                            fallbackIcon={
+                                                !activeAgent ? (
+                                                    <FolderIcon className="h-4 w-4 text-gray-500" aria-hidden />
+                                                ) : undefined
+                                            }
                                         />
                                         <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
                                     </button>
@@ -1544,6 +1556,11 @@ export function Header(props: HeaderProps) {
                                         avatarSizeClassName="h-7 w-7"
                                         textClassName="text-xs sm:text-sm font-semibold text-gray-900"
                                         maxWidthClassName="max-w-[80px] sm:max-w-[120px] md:max-w-[180px] lg:max-w-[200px]"
+                                        fallbackIcon={
+                                            !activeAgent ? (
+                                                <FolderIcon className="h-4 w-4 text-gray-500" aria-hidden />
+                                            ) : undefined
+                                        }
                                     />
                                 </HeadlessLink>
                             )}
@@ -1909,6 +1926,11 @@ export function Header(props: HeaderProps) {
                                                     avatarSizeClassName="h-6 w-6"
                                                     textClassName="text-sm font-semibold text-gray-900"
                                                     maxWidthClassName="max-w-[60vw]"
+                                                    fallbackIcon={
+                                                        !activeAgent ? (
+                                                            <FolderIcon className="h-4 w-4 text-gray-500" aria-hidden />
+                                                        ) : undefined
+                                                    }
                                                 />
                                                 <ChevronDown
                                                     className={`h-4 w-4 transition-transform duration-200 ${
@@ -1928,6 +1950,11 @@ export function Header(props: HeaderProps) {
                                                     avatarSizeClassName="h-6 w-6"
                                                     textClassName="text-sm font-semibold text-gray-900"
                                                     maxWidthClassName="max-w-[60vw]"
+                                                    fallbackIcon={
+                                                        !activeAgent ? (
+                                                            <FolderIcon className="h-4 w-4 text-gray-500" aria-hidden />
+                                                        ) : undefined
+                                                    }
                                                 />
                                             </HeadlessLink>
                                         )}

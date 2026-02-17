@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.14 5 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
 [✨🧘] Do not use single letters as an icon for a folder, but show the proper folder icon.
 
@@ -53,3 +53,4 @@ The menu of the agent server looks like this:
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
