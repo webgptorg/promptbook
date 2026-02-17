@@ -14,14 +14,17 @@
 
 ---
 
-[-]
+[ ]
 
-[✨👍] baz
+[✨👍] Menu items of the agent server should have icons of their agents.
 
+-   Now the agent images are shown perfectly for the selected agent, but not for other agents in the select menu items.
+-   For the folders, show the icon of the folder.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+![Missing icons in the menu items](prompts/screenshots/2026-02-1460-agents-server-menu-icons-1.png)
 
 ---
 
@@ -44,4 +47,3 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
