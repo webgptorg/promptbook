@@ -1320,7 +1320,7 @@ export function Header(props: HeaderProps) {
                                         <AgentNameWithAvatar
                                             label={activeAgentLabel}
                                             avatarUrl={activeAgentAvatarUrl}
-                                            avatarSizeClassName="h-8 w-8"
+                                            avatarSizeClassName="h-5 w-5"
                                             textClassName="text-xs sm:text-sm font-semibold text-gray-900"
                                             maxWidthClassName="max-w-[80px] sm:max-w-[120px] md:max-w-[180px] lg:max-w-[200px]"
                                         />
