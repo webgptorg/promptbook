@@ -7,6 +7,7 @@ import {
     ChevronDown,
     ChevronRight,
     FileTextIcon,
+    FolderIcon,
     Lock,
     LogIn,
     LogOut,
@@ -216,6 +217,27 @@ type HeaderAgentMenuFolder = Pick<AgentOrganizationFolder, 'id' | 'name' | 'pare
  * Pixel offset used for each depth level in nested menu labels.
  */
 const MENU_DEPTH_PADDING_PX = 14;
+
+/**
+ * Avatar size classes applied to agent labels inside the menu.
+ *
+ * @private
+ */
+const AGENT_MENU_AVATAR_SIZE_CLASS = 'h-6 w-6';
+
+/**
+ * Text styling applied to agent labels inside the menu.
+ *
+ * @private
+ */
+const AGENT_MENU_TEXT_CLASS = 'text-sm font-semibold text-gray-900';
+
+/**
+ * Maximum width applied to agent label text so it truncates gracefully.
+ *
+ * @private
+ */
+const AGENT_MENU_MAX_WIDTH_CLASS = 'max-w-[220px]';
 
 /**
  * Views that can be selected for one active agent in the hierarchy.
@@ -459,19 +481,61 @@ function sortBySortOrderAndLabel<TItem extends { sortOrder: number }>(
 }
 
 /**
- * Renders one label row with optional folder indicator and indentation.
+ * Wraps the provided content with indentation based on the menu depth.
  *
- * @param text - Text displayed in the menu row.
+ * @param content - Node rendered inside the label.
  * @param depth - Nesting depth used for indentation.
- * @param isFolder - Whether the row represents a folder.
  * @returns Renderable menu label node.
+ * @private
  */
-function createIndentedMenuLabel(text: string, depth: number, isFolder: boolean): ReactNode {
+function createIndentedMenuLabel(content: ReactNode, depth: number): ReactNode {
     return (
-        <span className="flex min-w-0 items-center" style={{ paddingLeft: `${depth * MENU_DEPTH_PADDING_PX}px` }}>
-            {isFolder && <span className="mr-1 text-gray-400">/</span>}
-            <span className="truncate">{text}</span>
+        <span
+            className="flex min-w-0 items-center gap-2"
+            style={{ paddingLeft: `${depth * MENU_DEPTH_PADDING_PX}px` }}
+        >
+            {content}
         </span>
+    );
+}
+
+/**
+ * Builds a folder label that includes an icon followed by the folder name.
+ *
+ * @param folderName - Display name of the folder.
+ * @param depth - Nesting depth used for indentation.
+ * @returns React node representing the folder label.
+ * @private
+ */
+function createFolderMenuEntryLabel(folderName: string, depth: number): ReactNode {
+    return createIndentedMenuLabel(
+        <span className="flex min-w-0 items-center gap-2 text-sm font-semibold text-gray-900">
+            <FolderIcon className="h-4 w-4 text-gray-400" aria-hidden />
+            <span className="truncate">{folderName}</span>
+        </span>,
+        depth,
+    );
+}
+
+/**
+ * Builds an agent label that combines the avatar and agent name.
+ *
+ * @param label - Human-friendly agent label.
+ * @param avatarUrl - Resolved avatar URL or null.
+ * @param depth - Nesting depth used for indentation.
+ * @returns React node representing the agent label.
+ * @private
+ */
+function createAgentMenuEntryLabel(label: string, avatarUrl: string | null, depth: number): ReactNode {
+    return createIndentedMenuLabel(
+        <AgentNameWithAvatar
+            label={label}
+            avatarUrl={avatarUrl}
+            avatarSizeClassName={AGENT_MENU_AVATAR_SIZE_CLASS}
+            textClassName={AGENT_MENU_TEXT_CLASS}
+            maxWidthClassName={AGENT_MENU_MAX_WIDTH_CLASS}
+        />,
+        depth,
     );
 }
 
@@ -483,6 +547,7 @@ type AgentMenuFolderNode = {
     type: 'folder';
     id: number;
     label: string;
+    renderLabel?: ReactNode;
     href: string;
     children: AgentMenuTreeNode[];
 };
@@ -495,6 +560,7 @@ type AgentMenuAgentNode = {
     type: 'agent';
     agentName: string;
     label: string;
+    renderLabel?: ReactNode;
     href: string;
 };
 
@@ -582,6 +648,15 @@ function buildAgentMenuStructure(
 ): AgentMenuStructure {
     const { folderById, sortedFolderIdsByParentId, agentsByFolderId } = prepareAgentMenuData(agents, folders);
 
+    const agentAvatarByIdentifier = new Map<string, string | null>();
+    for (const agent of agents) {
+        const identifier = getAgentNavigationId(agent);
+        agentAvatarByIdentifier.set(identifier, resolveAgentAvatarImageUrl({ agent }));
+    }
+
+    const getAgentAvatarUrl = (agent: HeaderAgentMenuAgent): string | null =>
+        agentAvatarByIdentifier.get(getAgentNavigationId(agent)) ?? null;
+
     const items: Array<SubMenuItem> = [];
     const visitedFolderIds = new Set<number>();
 
@@ -599,7 +674,7 @@ function buildAgentMenuStructure(
         const folderPath = buildFolderPath(getFolderPathSegments(folderId, folderById).map((segment) => segment.name));
 
         items.push({
-            label: createIndentedMenuLabel(folder.name, depth, true),
+            label: createFolderMenuEntryLabel(folder.name, depth),
             href: `/?folder=${folderPath}`,
             isBold: true,
         });
@@ -607,7 +682,11 @@ function buildAgentMenuStructure(
         const folderAgents = agentsByFolderId.get(folderId) || [];
         for (const agent of folderAgents) {
             items.push({
-                label: createIndentedMenuLabel(getAgentMenuLabel(agent), depth + 1, false),
+                label: createAgentMenuEntryLabel(
+                    getAgentMenuLabel(agent),
+                    getAgentAvatarUrl(agent),
+                    depth + 1,
+                ),
                 href: `/agents/${encodeURIComponent(getAgentNavigationId(agent))}`,
             });
         }
@@ -631,18 +710,22 @@ function buildAgentMenuStructure(
     const rootAgents = agentsByFolderId.get(null) || [];
     for (const agent of rootAgents) {
         items.push({
-            label: createIndentedMenuLabel(getAgentMenuLabel(agent), 0, false),
+            label: createAgentMenuEntryLabel(getAgentMenuLabel(agent), getAgentAvatarUrl(agent), 0),
             href: `/agents/${encodeURIComponent(getAgentNavigationId(agent))}`,
         });
     }
 
     const treeVisitedFolderIds = new Set<number>();
-    const createAgentNode = (agent: HeaderAgentMenuAgent): AgentMenuAgentNode => ({
-        type: 'agent',
-        agentName: agent.agentName,
-        label: getAgentMenuLabel(agent),
-        href: `/agents/${encodeURIComponent(getAgentNavigationId(agent))}`,
-    });
+    const createAgentNode = (agent: HeaderAgentMenuAgent): AgentMenuAgentNode => {
+        const label = getAgentMenuLabel(agent);
+        return {
+            type: 'agent',
+            agentName: agent.agentName,
+            label,
+            renderLabel: createAgentMenuEntryLabel(label, getAgentAvatarUrl(agent), 0),
+            href: `/agents/${encodeURIComponent(getAgentNavigationId(agent))}`,
+        };
+    };
 
     const createFolderNode = (folderId: number): AgentMenuFolderNode | null => {
         if (treeVisitedFolderIds.has(folderId)) {
@@ -673,6 +756,7 @@ function buildAgentMenuStructure(
             type: 'folder',
             id: folder.id,
             label: folder.name,
+            renderLabel: createFolderMenuEntryLabel(folder.name, 0),
             href: `/?folder=${folderPath}`,
             children: childNodes,
         };
@@ -748,7 +832,9 @@ function AgentMenuColumn({ nodes, onNavigate, depth }: AgentMenuColumnProps) {
                                 className="flex w-full items-center justify-between gap-2 rounded-md px-3 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-50 hover:text-gray-900 transition-colors"
                                 title={node.label}
                             >
-                                <span className="truncate">{node.label}</span>
+                                <span className="min-w-0">
+                                    {node.renderLabel ?? <span className="truncate">{node.label}</span>}
+                                </span>
                                 {node.children.length > 0 && <ChevronRight className="w-4 h-4 text-gray-400" />}
                             </HeadlessLink>
 
@@ -766,10 +852,12 @@ function AgentMenuColumn({ nodes, onNavigate, depth }: AgentMenuColumnProps) {
                         key={`agent-${node.agentName}`}
                         href={node.href}
                         onClick={onNavigate}
-                        className="block rounded-md px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+                        className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
                         title={node.label}
                     >
-                        {node.label}
+                        <span className="min-w-0">
+                            {node.renderLabel ?? <span className="truncate">{node.label}</span>}
+                        </span>
                     </HeadlessLink>
                 );
             })}
