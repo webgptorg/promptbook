@@ -91,7 +91,7 @@ export function AgentChatSidebar({
     const mobileOverlayState = isMobileSidebarOpen
         ? 'opacity-100 pointer-events-auto'
         : 'opacity-0 pointer-events-none';
-    const desktopOverlayState = isCollapsed ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto';
+    const desktopOverlayState = isCollapsed ? 'opacity-0' : 'opacity-100';
 
     const handleChatChoose = (chatId: string) => {
         onSelectChat(chatId);
@@ -275,8 +275,7 @@ export function AgentChatSidebar({
             </aside>
 
             <div
-                className={`hidden md:block fixed inset-0 z-50 bg-slate-900/40 ${overlayTransitionClasses} ${desktopOverlayState}`}
-                onClick={onToggleCollapse}
+                className={`hidden md:block fixed inset-0 z-50 pointer-events-none bg-slate-900/40 ${overlayTransitionClasses} ${desktopOverlayState}`}
                 aria-hidden="true"
             />
 
