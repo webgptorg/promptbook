@@ -36,7 +36,7 @@
 
 ---
 
-[ ]
+[x] ~$0.32 10 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
 [✨👊] When the version of the client is behind the version of the backend, show the popup message With the information and auto-refresh the page for the client.
 
@@ -78,3 +78,4 @@ Please update the app or reload the latest release before you continue using cha
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

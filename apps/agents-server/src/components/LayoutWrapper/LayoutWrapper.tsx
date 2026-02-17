@@ -1,6 +1,7 @@
 'use client';
 
 import { usePathname, useSearchParams } from 'next/navigation';
+import { ClientVersionMismatchListener } from '../ClientVersion/ClientVersionMismatchListener';
 import { MenuHoistingProvider } from '../../../../../src/book-components/_common/MenuHoisting/MenuHoistingContext';
 import type {
     AgentOrganizationAgent,
@@ -61,16 +62,17 @@ export function LayoutWrapper({
 
     return (
         <AsyncDialogsProvider>
-            <AgentNamingProvider naming={agentNaming}>
-                {isHeaderHidden || isHeadless ? (
-                    <main className="pt-0">{children}</main>
-                ) : (
-                    <SoundSystemProvider
-                        initialIsSoundsOn={defaultIsSoundsOn}
-                        initialIsVibrationOn={defaultIsVibrationOn}
-                    >
-                        <MenuHoistingProvider>
-                            <div className="flex min-h-screen flex-col">
+                <AgentNamingProvider naming={agentNaming}>
+                    {isHeaderHidden || isHeadless ? (
+                        <main className="pt-0">{children}</main>
+                    ) : (
+                        <SoundSystemProvider
+                            initialIsSoundsOn={defaultIsSoundsOn}
+                            initialIsVibrationOn={defaultIsVibrationOn}
+                        >
+                            <ClientVersionMismatchListener />
+                            <MenuHoistingProvider>
+                                <div className="flex min-h-screen flex-col">
                                 <Header
                                     isAdmin={isAdmin}
                                     currentUser={currentUser}

@@ -69,6 +69,7 @@ export function createVersionMismatchJsonResponse(clientVersion: string | null):
             status: 426,
             headers: {
                 'Content-Type': 'application/json',
+                'X-Promptbook-Required-Version': CLIENT_LATEST_VERSION,
             },
         },
     );

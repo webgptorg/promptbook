@@ -13,6 +13,8 @@ import { createDefaultChatEffects } from '../../../utils/chat/createDefaultChatE
 import type { FriendlyErrorMessage } from '../../../utils/errorMessages';
 import { handleChatError } from '../../../utils/errorMessages';
 import { chatFileUploadHandler } from '../../../utils/upload/createBookEditorUploadHandler';
+import { ClientVersionMismatchError } from '@/src/utils/clientVersion';
+import { reportClientVersionMismatch } from '@/src/utils/clientVersionClient';
 
 type AgentChatWrapperProps = {
     agentUrl: string_agent_url;
@@ -137,6 +139,15 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
 
     // Handle errors from chat
     const handleError = useCallback((error: unknown, retry: () => void) => {
+        if (error instanceof ClientVersionMismatchError) {
+            reportClientVersionMismatch({
+                requiredVersion: error.requiredVersion,
+                reportedVersion: error.reportedVersion,
+                message: error.message,
+            });
+            return;
+        }
+
         const friendlyError = handleChatError(error, 'AgentChatWrapper');
         setCurrentError(friendlyError);
         setRetryCallback(() => retry);

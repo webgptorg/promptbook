@@ -38,10 +38,30 @@ export function isClientVersionCompatible(version: unknown): version is string {
 export function formatClientVersionMismatchMessage(clientVersion?: string | null): string {
     const reportedVersion = clientVersion ?? 'unknown';
     return spaceTrim(`
-        Your Promptbook client (v${reportedVersion}) is out of date.
-        This server runs on Vercel and now requires v${CLIENT_LATEST_VERSION}.
-        Please update the app or reload the latest release before you continue using chat.
+        A new version of Promptbook is available.
+        Please refresh the page to keep using the latest experience (currently using v${reportedVersion}).
     `);
+}
+
+/**
+ * Error thrown when the client version does not match the server requirements.
+ *
+ * @param requiredVersion - Version enforced by the server.
+ * @param reportedVersion - Version reported by the client (optional).
+ * @param message - Optional human-readable message describing the mismatch.
+ *
+ * @public exported from `@promptbook/utils`
+ */
+export class ClientVersionMismatchError extends Error {
+    public readonly requiredVersion: string;
+    public readonly reportedVersion: string | null;
+
+    constructor(requiredVersion: string, reportedVersion: string | null, message?: string) {
+        super(message ?? `Promptbook client requires version ${requiredVersion}.`);
+        this.name = 'ClientVersionMismatchError';
+        this.requiredVersion = requiredVersion;
+        this.reportedVersion = reportedVersion;
+    }
 }
 
 /**
