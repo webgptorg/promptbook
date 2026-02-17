@@ -9,7 +9,7 @@
 
 ---
 
-[ ]
+[x] ~$0.06 3 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
 [✨🤓] Show the open/closing arrow in the middle of the chat's left panel.
 
@@ -41,4 +41,5 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
 

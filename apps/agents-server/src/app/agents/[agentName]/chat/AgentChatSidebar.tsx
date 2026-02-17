@@ -139,14 +139,16 @@ export function AgentChatSidebar({
                     </div>
                 </div>
 
-                <button
-                    type="button"
-                    onClick={onToggleCollapse}
-                    className="hidden md:flex absolute top-1/2 -right-3 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200 bg-white/80 p-2 text-slate-500 shadow transition hover:bg-white focus-visible:outline-offset-2 focus-visible:outline focus-visible:outline-blue-400"
-                    aria-label={sidebarToggleLabel}
-                >
-                    <SidebarToggleArrow direction={isCollapsed ? 'RIGHT' : 'LEFT'} className="h-4 w-4" />
-                </button>
+                <div className="hidden md:flex absolute inset-y-0 right-0 items-center justify-center pointer-events-none">
+                    <button
+                        type="button"
+                        onClick={onToggleCollapse}
+                        className="pointer-events-auto flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white/90 text-slate-500 shadow transition hover:bg-white focus-visible:outline-offset-2 focus-visible:outline focus-visible:outline-blue-400"
+                        aria-label={sidebarToggleLabel}
+                    >
+                        <SidebarToggleArrow direction={isCollapsed ? 'RIGHT' : 'LEFT'} className="h-4 w-4" />
+                    </button>
+                </div>
 
                 {isCollapsed ? (
                     <div className="flex flex-col items-center gap-3 overflow-hidden px-1 py-4">
