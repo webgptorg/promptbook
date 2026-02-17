@@ -12,10 +12,13 @@
 
 [✨🐫] Remove the unnecessary second "chat history" top horizontal bar below the main menu bar of the agent server application.
 
+-   This second horizontal bar is unnecessary and it just takes space and makes the UI more complicated and less user-friendly. It doesn't have any functionality.
+-   Do the same thing with the panel in the book view.
 -   This is relevant only for the desktop view not for the mobile view.
 -   You are working with the [Agents Server](apps/agents-server)
 
-![alt text](prompts/screenshots/2026-02-1480-agents-server-starting-chat-with-closed-left-panel-1.png)
+![unnecessary Chat History Panel ](prompts/screenshots/2026-02-1480-agents-server-starting-chat-with-closed-left-panel-1.png)
+![unnecessary Second panel in book view ](prompts/screenshots/2026-02-1480-agents-server-starting-chat-with-closed-left-panel-4.png)
 
 ---
 
