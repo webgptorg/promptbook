@@ -1247,7 +1247,7 @@ export function Header(props: HeaderProps) {
     return (
         <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200 h-16">
             {isChangePasswordOpen && <ChangePasswordDialog onClose={() => setIsChangePasswordOpen(false)} />}
-            <div className="w-full px-4 h-full">
+            <div className="relative w-full px-4 h-full">
                 <div className="flex items-center justify-between h-full gap-2 sm:gap-4 lg:gap-6">
                     <div className="flex-shrink min-w-0 flex-1 lg:flex-initial">
                         <div className="flex min-w-0 items-center gap-2 sm:gap-3 rounded-2xl border border-gray-200 bg-white/90 px-2 sm:px-3 md:px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm shadow-slate-200/60 backdrop-blur">
@@ -1419,8 +1419,8 @@ export function Header(props: HeaderProps) {
                         </div>
                     </div>
 
-                    <div className="hidden lg:flex flex-1 justify-center">
-                        <nav className="flex items-center gap-6">
+                    <div className="hidden lg:flex pointer-events-none absolute inset-y-0 left-1/2 z-20 -translate-x-1/2 items-center">
+                        <nav className="pointer-events-auto flex items-center gap-6">
                             {menuItems.map((item, index) => {
                                 if (item.type === 'link') {
                                     return (
