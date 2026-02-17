@@ -14,7 +14,7 @@ import {
     saveUserChatMessages,
     UserChatSummary,
 } from '../../../../utils/userChatClient';
-import { AgentChatSidebar } from './AgentChatSidebar';
+import { AgentChatSidebar, AGENT_CHAT_SIDEBAR_ID } from './AgentChatSidebar';
 import { AgentChatWrapper } from '../AgentChatWrapper';
 
 /**
@@ -78,6 +78,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     const mobileHandleVisibility = isMobileSidebarOpen
         ? 'opacity-0 pointer-events-none'
         : 'opacity-100 pointer-events-auto';
+    const effectiveIsSidebarCollapsed = isMobileSidebarOpen ? false : isSidebarCollapsed;
 
     const hasInitialAutoMessageBeenConsumedRef = useRef(false);
     const saveTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
@@ -404,7 +405,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 onSelectChat={handleSelectChatFromSidebar}
                 onCreateChat={handleCreateChat}
                 onDeleteChat={handleDeleteChat}
-                isCollapsed={isSidebarCollapsed}
+                isCollapsed={effectiveIsSidebarCollapsed}
                 onToggleCollapse={toggleSidebarCollapsed}
                 isMobileSidebarOpen={isMobileSidebarOpen}
                 onCloseMobileSidebar={closeMobileSidebar}
@@ -413,6 +414,9 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 type="button"
                 onClick={openMobileSidebar}
                 className={`fixed left-2 top-1/2 z-40 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200 bg-white/90 text-slate-700 shadow-md backdrop-blur transition-all duration-300 ease-in-out md:hidden ${mobileHandleVisibility}`}
+                aria-controls={AGENT_CHAT_SIDEBAR_ID}
+                aria-expanded={isMobileSidebarOpen}
+                aria-hidden={isMobileSidebarOpen}
                 aria-label={formatText('Open chats sidebar')}
             >
                 <span className="text-lg font-semibold leading-none" aria-hidden="true">

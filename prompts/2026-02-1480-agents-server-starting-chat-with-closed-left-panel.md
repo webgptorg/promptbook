@@ -35,7 +35,7 @@
 
 ---
 
-[ ]
+[x] ~$0.27 10 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
 [✨🐫] Mobile links of the recent chats are broken on the mobile, take functionality from desktop and use it on mobile
 
@@ -65,5 +65,6 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
 
 

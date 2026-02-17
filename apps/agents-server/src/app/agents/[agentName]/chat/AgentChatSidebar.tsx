@@ -4,6 +4,13 @@ import { ChevronLeftIcon, ChevronRightIcon, MessageSquarePlusIcon, Trash2Icon, X
 import type { UserChatSummary } from '../../../../utils/userChatClient';
 
 /**
+ * HTML ID assigned to the chat sidebar so controls can reference the panel without hardcoding strings.
+ *
+ * @public exported from `apps/agents-server`
+ */
+export const AGENT_CHAT_SIDEBAR_ID = 'agent-chat-sidebar';
+
+/**
  * Properties for the chat sidebar responsible for listing user conversations.
  */
 type AgentChatSidebarProps = {
@@ -106,6 +113,7 @@ export function AgentChatSidebar({
     return (
         <>
             <aside
+                id={AGENT_CHAT_SIDEBAR_ID}
                 className={`fixed inset-y-0 left-0 z-[60] flex flex-col border-r border-slate-200 bg-white/95 shadow-xl backdrop-blur ${panelTransitionClasses} md:static md:shadow-none md:bg-white/90 ${widthClasses} ${transformClasses} md:translate-x-0`}
             >
                 <div className="flex items-center justify-between border-b border-slate-200 px-3 py-2">
