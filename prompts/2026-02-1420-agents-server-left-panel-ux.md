@@ -36,14 +36,15 @@
 
 ---
 
-[x] ~$0.00 a few seconds by OpenAI Codex `gpt-5.1-codex-mini`
+[ ]
 
-[✨🌥] qux
+[✨🌥] Generated points of interest from GeoJSON should look much better.
 
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
+-   Rendered features in a map, like points, polygons, etc., should look much better than now.
+-   Do a proper analysis of the current functionality of map and rendering geojson before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+![alt text](prompts/screenshots/2026-02-1420-agents-server-left-panel-ux-6.png)
 
 ---
 
@@ -55,5 +56,3 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
-
