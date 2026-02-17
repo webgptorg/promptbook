@@ -79,6 +79,31 @@ function emitAssistantPreparationProgress(options: {
 }
 
 /**
+ * Merges the agent's predefined knowledge sources with user-provided attachment URLs.
+ *
+ * @private internal helper for `AgentLlmExecutionTools`
+ */
+function mergeKnowledgeSourcesWithAttachments(
+    baseSources: ReadonlyArray<string> | undefined,
+    attachmentUrls: ReadonlyArray<string>,
+): Array<string> {
+    const combined: Array<string> = [];
+
+    if (baseSources && baseSources.length > 0) {
+        combined.push(...baseSources.filter((value) => typeof value === 'string' && value.trim() !== ''));
+    }
+
+    for (const url of attachmentUrls) {
+        const trimmed = String(url ?? '').trim();
+        if (trimmed !== '') {
+            combined.push(trimmed);
+        }
+    }
+
+    return Array.from(new Set(combined));
+}
+
+/**
  * Execution Tools for calling LLM models with a predefined agent "soul"
  * This wraps underlying LLM execution tools and applies agent-specific system prompts and requirements
  *
@@ -293,6 +318,19 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
         keepUnused(_metadata);
 
         const chatPrompt = prompt as ChatPrompt;
+        const attachmentUrls =
+            Array.isArray(chatPrompt.attachments) && chatPrompt.attachments.length > 0
+                ? chatPrompt.attachments
+                      .map((attachment) => (typeof attachment?.url === 'string' ? attachment.url.trim() : ''))
+                      .filter((url): url is string => url !== '')
+                : [];
+        const knowledgeSourcesForAgentList = mergeKnowledgeSourcesWithAttachments(
+            sanitizedRequirements.knowledgeSources,
+            attachmentUrls,
+        );
+        const knowledgeSourcesForAgent =
+            knowledgeSourcesForAgentList.length > 0 ? knowledgeSourcesForAgentList : undefined;
+        const hasAttachmentSources = attachmentUrls.length > 0;
         let underlyingLlmResult: CommonPromptResult;
 
         const chatPromptContentWithSuffix: string_prompt = promptSuffix
@@ -310,9 +348,7 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
                     ? [...sanitizedRequirements.tools]
                     : chatPrompt.modelRequirements.tools,
                 // Spread knowledgeSources to convert readonly array to mutable
-                knowledgeSources: sanitizedRequirements.knowledgeSources
-                    ? [...sanitizedRequirements.knowledgeSources]
-                    : undefined,
+                knowledgeSources: knowledgeSourcesForAgent,
                 // Prepend agent system message to existing system message
                 systemMessage:
                     sanitizedRequirements.systemMessage +
@@ -325,31 +361,40 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
         console.log('!!!! promptWithAgentModelRequirements:', promptWithAgentModelRequirements);
 
         if (OpenAiAgentKitExecutionTools.isOpenAiAgentKitExecutionTools(this.options.llmTools)) {
-            const requirementsHash = sha256(JSON.stringify(sanitizedRequirements)).toString();
-            const vectorStoreHash = sha256(JSON.stringify(sanitizedRequirements.knowledgeSources ?? [])).toString();
-            const cachedVectorStore = AgentLlmExecutionTools.vectorStoreCache.get(this.title);
-            const cachedAgentKit = AgentLlmExecutionTools.agentKitAgentCache.get(this.title);
+            const shouldUseCache = !hasAttachmentSources;
             let preparedAgentKit =
-                this.options.assistantPreparationMode === 'external'
+                shouldUseCache && this.options.assistantPreparationMode === 'external'
                     ? this.options.llmTools.getPreparedAgentKitAgent()
                     : null;
 
-            const vectorStoreId =
-                preparedAgentKit?.vectorStoreId ||
-                (cachedVectorStore && cachedVectorStore.requirementsHash === vectorStoreHash
-                    ? cachedVectorStore.vectorStoreId
-                    : undefined);
+            let vectorStoreId: string | undefined;
+            let vectorStoreHash: string | undefined;
+            let requirementsHash: string | undefined;
 
-            if (!preparedAgentKit && cachedAgentKit && cachedAgentKit.requirementsHash === requirementsHash) {
-                if (this.options.isVerbose) {
-                    console.info('[🤰]', 'Using cached OpenAI AgentKit agent', {
-                        agent: this.title,
-                    });
+            if (shouldUseCache) {
+                requirementsHash = sha256(JSON.stringify(sanitizedRequirements)).toString();
+                vectorStoreHash = sha256(JSON.stringify(sanitizedRequirements.knowledgeSources ?? [])).toString();
+
+                const cachedVectorStore = AgentLlmExecutionTools.vectorStoreCache.get(this.title);
+                const cachedAgentKit = AgentLlmExecutionTools.agentKitAgentCache.get(this.title);
+
+                vectorStoreId =
+                    preparedAgentKit?.vectorStoreId ||
+                    (cachedVectorStore && cachedVectorStore.requirementsHash === vectorStoreHash
+                        ? cachedVectorStore.vectorStoreId
+                        : undefined);
+
+                if (!preparedAgentKit && cachedAgentKit && cachedAgentKit.requirementsHash === requirementsHash) {
+                    if (this.options.isVerbose) {
+                        console.info('[🤰]', 'Using cached OpenAI AgentKit agent', {
+                            agent: this.title,
+                        });
+                    }
+                    preparedAgentKit = {
+                        agent: cachedAgentKit.agent,
+                        vectorStoreId: cachedAgentKit.vectorStoreId,
+                    };
                 }
-                preparedAgentKit = {
-                    agent: cachedAgentKit.agent,
-                    vectorStoreId: cachedAgentKit.vectorStoreId,
-                };
             }
 
             if (!preparedAgentKit) {
@@ -359,7 +404,7 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
                     });
                 }
 
-                if (!vectorStoreId && sanitizedRequirements.knowledgeSources?.length) {
+                if (!vectorStoreId && knowledgeSourcesForAgent?.length) {
                     emitAssistantPreparationProgress({
                         onProgress,
                         prompt,
@@ -378,24 +423,26 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
                 preparedAgentKit = await this.options.llmTools.prepareAgentKitAgent({
                     name: this.title,
                     instructions: sanitizedRequirements.systemMessage || '',
-                    knowledgeSources: sanitizedRequirements.knowledgeSources,
+                    knowledgeSources: knowledgeSourcesForAgent,
                     tools: sanitizedRequirements.tools ? [...sanitizedRequirements.tools] : undefined,
-                    vectorStoreId,
+                    vectorStoreId: shouldUseCache ? vectorStoreId : undefined,
                 });
             }
 
-            if (preparedAgentKit.vectorStoreId) {
+            if (shouldUseCache && vectorStoreHash && preparedAgentKit.vectorStoreId) {
                 AgentLlmExecutionTools.vectorStoreCache.set(this.title, {
                     vectorStoreId: preparedAgentKit.vectorStoreId,
                     requirementsHash: vectorStoreHash,
                 });
             }
 
-            AgentLlmExecutionTools.agentKitAgentCache.set(this.title, {
-                agent: preparedAgentKit.agent,
-                requirementsHash,
-                vectorStoreId: preparedAgentKit.vectorStoreId,
-            });
+            if (shouldUseCache && requirementsHash) {
+                AgentLlmExecutionTools.agentKitAgentCache.set(this.title, {
+                    agent: preparedAgentKit.agent,
+                    requirementsHash,
+                    vectorStoreId: preparedAgentKit.vectorStoreId,
+                });
+            }
 
             const responseFormatOutputType = mapResponseFormatToAgentOutputType(
                 promptWithAgentModelRequirements.modelRequirements.responseFormat,
