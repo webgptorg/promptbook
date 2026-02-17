@@ -1,5 +1,5 @@
 'use server';
-import { getMetadata } from '@/src/database/getMetadata';
+import { loadChatConfiguration } from '@/src/utils/chatConfiguration';
 import { ensureChatHistoryIdentity } from '@/src/utils/currentUserIdentity';
 import { getThinkingMessages } from '@/src/utils/thinkingMessages';
 import { headers } from 'next/headers';
@@ -55,7 +55,7 @@ export default async function AgentChatPage({
         acceptLanguageHeader: requestHeaders.get('accept-language'),
     });
     const historyIdentityAvailable = await ensureChatHistoryIdentity();
-    const chatFailMessage = await getMetadata('CHAT_FAIL_MESSAGE');
+    const { chatFailMessage, isFileAttachmentsEnabled } = await loadChatConfiguration();
     const agentDisplayName = agentProfile.meta.fullname || agentProfile.agentName || agentName;
 
     return (
@@ -72,6 +72,7 @@ export default async function AgentChatPage({
                 speechRecognitionLanguage={speechRecognitionLanguage}
                 isHistoryEnabled={historyIdentityAvailable}
                 chatFailMessage={chatFailMessage ?? undefined}
+                areFileAttachmentsEnabled={isFileAttachmentsEnabled}
             />
         </main>
     );

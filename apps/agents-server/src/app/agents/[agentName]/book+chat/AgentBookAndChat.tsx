@@ -14,6 +14,7 @@ type AgentBookAndChatProps = {
     thinkingMessages?: ReadonlyArray<string>;
     speechRecognitionLanguage?: string;
     chatFailMessage?: string;
+    areFileAttachmentsEnabled: boolean;
 };
 
 export function AgentBookAndChat(props: AgentBookAndChatProps) {
@@ -24,6 +25,7 @@ export function AgentBookAndChat(props: AgentBookAndChatProps) {
         thinkingMessages,
         speechRecognitionLanguage,
         chatFailMessage,
+        areFileAttachmentsEnabled,
     } = props;
     const [isMobile, setIsMobile] = useState(false);
     const [activeTab, setActiveTab] = useState<'book' | 'chat'>('chat');
@@ -53,6 +55,7 @@ export function AgentBookAndChat(props: AgentBookAndChatProps) {
                             agentUrl={agentUrl}
                             thinkingMessages={thinkingMessages}
                             speechRecognitionLanguage={speechRecognitionLanguage}
+                            areFileAttachmentsEnabled={areFileAttachmentsEnabled}
                             chatFailMessage={chatFailMessage}
                         />
                     </div>
@@ -88,6 +91,7 @@ export function AgentBookAndChat(props: AgentBookAndChatProps) {
                 agentUrl={agentUrl}
                 thinkingMessages={thinkingMessages}
                 speechRecognitionLanguage={speechRecognitionLanguage}
+                areFileAttachmentsEnabled={areFileAttachmentsEnabled}
                 chatFailMessage={chatFailMessage}
             />
         </ResizablePanelsAuto>

@@ -1,7 +1,7 @@
 'use server';
 
 import { ForbiddenPage } from '@/src/components/ForbiddenPage/ForbiddenPage';
-import { getMetadata } from '@/src/database/getMetadata';
+import { loadChatConfiguration } from '@/src/utils/chatConfiguration';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { isUserAdmin } from '@/src/utils/isUserAdmin';
 import { getThinkingMessages } from '@/src/utils/thinkingMessages';
@@ -44,7 +44,7 @@ export default async function AgentBookAndChatPage({ params }: { params: Promise
     const speechRecognitionLanguage = resolveSpeechRecognitionLanguage({
         acceptLanguageHeader: requestHeaders.get('accept-language'),
     });
-    const chatFailMessage = await getMetadata('CHAT_FAIL_MESSAGE');
+    const { chatFailMessage, isFileAttachmentsEnabled } = await loadChatConfiguration();
 
     return (
         <div className={`agents-server-viewport-width h-[calc(100dvh-60px)] relative`}>
@@ -55,6 +55,7 @@ export default async function AgentBookAndChatPage({ params }: { params: Promise
                 thinkingMessages={thinkingMessages}
                 speechRecognitionLanguage={speechRecognitionLanguage}
                 chatFailMessage={chatFailMessage ?? undefined}
+                areFileAttachmentsEnabled={isFileAttachmentsEnabled}
             />
         </div>
     );

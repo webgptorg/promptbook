@@ -99,6 +99,12 @@ export const metadataDefaults = [
         type: 'BOOLEAN',
     },
     {
+        key: 'IS_FILE_ATTACHEMENTS_ENABLED',
+        value: 'true',
+        note: 'Enable or disable file attachments in the chat UI.',
+        type: 'BOOLEAN',
+    },
+    {
         key: 'DEFAULT_IS_SOUNDS_ON',
         value: 'false',
         note: 'Default state for chat sounds when a user has no saved preference. When false, sounds start muted.',

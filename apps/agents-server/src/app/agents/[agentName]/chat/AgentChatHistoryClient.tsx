@@ -37,6 +37,7 @@ type AgentChatHistoryClientProps = {
     initialForceNewChat?: boolean;
     isHistoryEnabled: boolean;
     chatFailMessage?: string;
+    areFileAttachmentsEnabled: boolean;
 };
 
 /**
@@ -54,6 +55,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
         initialForceNewChat = false,
         isHistoryEnabled,
         chatFailMessage,
+        areFileAttachmentsEnabled,
     } = props;
     const router = useRouter();
     const { formatText } = useAgentNaming();
@@ -389,6 +391,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                         thinkingMessages={thinkingMessages}
                         speechRecognitionLanguage={speechRecognitionLanguage}
                         persistenceKey={guestPersistenceKey}
+                        areFileAttachmentsEnabled={areFileAttachmentsEnabled}
                         chatFailMessage={chatFailMessage}
                     />
                 </div>
@@ -450,6 +453,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                         speechRecognitionLanguage={speechRecognitionLanguage}
                         persistenceKey={buildUserChatPersistenceKey(activeChatId)}
                         onMessagesChange={handleMessagesChange}
+                        areFileAttachmentsEnabled={areFileAttachmentsEnabled}
                         chatFailMessage={chatFailMessage}
                     />
                 </div>

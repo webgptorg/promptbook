@@ -27,6 +27,10 @@ type AgentChatWrapperProps = {
     speechRecognitionLanguage?: string;
     persistenceKey?: string;
     onMessagesChange?: (messages: ReadonlyArray<ChatMessage>) => void;
+    /**
+     * When `false`, disables the chat upload UI even if file uploads are otherwise configured.
+     */
+    areFileAttachmentsEnabled?: boolean;
     chatFailMessage?: string;
 };
 
@@ -42,10 +46,12 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
         speechRecognitionLanguage,
         persistenceKey,
         onMessagesChange,
+        areFileAttachmentsEnabled,
         chatFailMessage,
     } = props;
 
     const { backgroundImage, brandColorHex, brandColorLightHex, brandColorDarkHex } = useAgentBackground(brandColor);
+    const allowFileAttachments = areFileAttachmentsEnabled ?? true;
 
     const chatBackgroundStyle: CSSProperties & Record<string, string> = {
         backgroundImage: `url("${backgroundImage}")`,
@@ -196,7 +202,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
                 style={chatBackgroundStyle}
                 agent={agent}
                 onFeedback={handleFeedback}
-                onFileUpload={handleFileUpload}
+                onFileUpload={allowFileAttachments ? handleFileUpload : undefined}
                 onError={handleError}
                 defaultMessage={defaultMessage}
                 autoExecuteMessage={autoExecuteMessage}
