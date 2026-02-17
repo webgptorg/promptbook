@@ -49,6 +49,63 @@ const FORCE_NEW_CHAT_QUERY_PARAM = 'newChat';
 const MAX_PROFILE_EXISTING_CHATS = 3;
 
 /**
+ * Describes a relative time unit used when expressing chat timestamps.
+ */
+type RelativeTimeSegment = {
+    /**
+     * Threshold in seconds at which this unit becomes appropriate.
+     */
+    readonly seconds: number;
+    /**
+     * Relative time format unit consumed by `Intl.RelativeTimeFormat`.
+     */
+    readonly unit: Intl.RelativeTimeFormatUnit;
+};
+
+/**
+ * Shared formatter for rendering relative timestamps inside the My chats preview.
+ */
+const RELATIVE_TIME_FORMATTER = new Intl.RelativeTimeFormat(undefined, {
+    numeric: 'auto',
+    style: 'short',
+});
+
+/**
+ * Ordered list of relative time segments used to build friendly labels.
+ */
+const RELATIVE_TIME_SEGMENTS: ReadonlyArray<RelativeTimeSegment> = [
+    { seconds: 60 * 60 * 24 * 365, unit: 'year' },
+    { seconds: 60 * 60 * 24 * 30, unit: 'month' },
+    { seconds: 60 * 60 * 24, unit: 'day' },
+    { seconds: 60 * 60, unit: 'hour' },
+    { seconds: 60, unit: 'minute' },
+    { seconds: 1, unit: 'second' },
+];
+
+/**
+ * Builds a short relative label (\"2h ago\") for the supplied timestamp.
+ *
+ * @param timestamp - ISO string describing the last chat update.
+ * @returns Human-friendly label or empty string when the timestamp is invalid.
+ */
+function formatRelativeTimeLabel(timestamp: string): string {
+    const date = new Date(timestamp);
+    const diffInSeconds = Math.round((date.getTime() - Date.now()) / 1000);
+    if (!Number.isFinite(diffInSeconds)) {
+        return '';
+    }
+
+    for (const segment of RELATIVE_TIME_SEGMENTS) {
+        if (Math.abs(diffInSeconds) >= segment.seconds || segment.seconds === 1) {
+            const value = Math.round(diffInSeconds / segment.seconds);
+            return RELATIVE_TIME_FORMATTER.format(value, segment.unit);
+        }
+    }
+
+    return '';
+}
+
+/**
  * Returns true when a message has non-whitespace content.
  */
 function hasMessageContent(message: string | undefined): message is string {
@@ -257,51 +314,55 @@ export function AgentProfileChat({
     // The fallback above matches AgentChat.tsx default.
 
     return (
-        <div className="flex w-full flex-col gap-3">
+        <div className="flex w-full flex-col gap-4">
             {hasVisibleExistingChats && (
                 <ExistingChatsPanel
                     chats={visibleExistingChats}
                     formatText={formatText}
                     onOpenChat={(chatId) => void handleContinueChat(chatId)}
+                    brandColorHex={brandColorHex}
                 />
             )}
             <div
-                className={`relative w-full h-[calc(100dvh-300px)] min-h-[350px] md:h-[500px] agent-chat-route-surface ${
+                className={`relative w-full h-[calc(100dvh-300px)] min-h-[350px] md:min-h-[420px] md:h-[500px] agent-chat-route-surface ${
                     isNavigatingToChat ? 'agent-chat-profile-transitioning' : ''
                 }`}
             >
-                <Chat
-                    title={`Chat with ${fullname}`}
-                    participants={[
-                        {
-                            name: 'AGENT',
-                            fullname,
-                            isMe: false,
-                            color: brandColorHex,
-                            avatarSrc,
-                            // <- TODO: [🧠] Maybe this shouldnt be there
-                        },
-                    ]}
-                    messages={[
-                        {
-                            sender: 'AGENT',
-                            content: initialMessage,
-                            createdAt: $getCurrentDate(),
-                            id: 'initial-message',
-                            isComplete: true,
-                        },
-                    ]}
-                    onMessage={handleMessage}
-                    onCreateAgent={handleCreateAgent}
-                    isSaveButtonEnabled={false}
-                    isCopyButtonEnabled={false}
-                    className="bg-transparent"
-                    buttonColor={brandColorHex}
-                    style={{ background: 'transparent' }}
-                    speechRecognition={speechRecognition}
-                    speechRecognitionLanguage={speechRecognitionLanguage}
-                    visual={'STANDALONE'}
-                />
+                <div className="absolute inset-0 rounded-[32px] border border-white/30 bg-gradient-to-br from-white/80 via-white/70 to-slate-100/70 shadow-[0_25px_80px_rgba(15,23,42,0.25)]" />
+                <div className="relative z-10 h-full w-full rounded-[32px] border border-white/40 bg-white/80 p-4 shadow-2xl backdrop-blur-3xl">
+                    <Chat
+                        title={`Chat with ${fullname}`}
+                        participants={[
+                            {
+                                name: 'AGENT',
+                                fullname,
+                                isMe: false,
+                                color: brandColorHex,
+                                avatarSrc,
+                                // <- TODO: [🧠] Maybe this shouldnt be there
+                            },
+                        ]}
+                        messages={[
+                            {
+                                sender: 'AGENT',
+                                content: initialMessage,
+                                createdAt: $getCurrentDate(),
+                                id: 'initial-message',
+                                isComplete: true,
+                            },
+                        ]}
+                        onMessage={handleMessage}
+                        onCreateAgent={handleCreateAgent}
+                        isSaveButtonEnabled={false}
+                        isCopyButtonEnabled={false}
+                        className="h-full w-full rounded-[28px] bg-transparent"
+                        buttonColor={brandColorHex}
+                        style={{ background: 'transparent' }}
+                        speechRecognition={speechRecognition}
+                        speechRecognitionLanguage={speechRecognitionLanguage}
+                        visual={'STANDALONE'}
+                    />
+                </div>
             </div>
         </div>
     );
@@ -314,38 +375,74 @@ type ExistingChatsPanelProps = {
     chats: ReadonlyArray<UserChatSummary>;
     formatText: (text: string) => string;
     onOpenChat: (chatId: string) => void;
+    brandColorHex: string_color;
 };
 
 /**
- * Renders quick buttons for recent chats so users can continue a conversation from the profile preview.
+ * Renders recent chat entries in a stylized card that matches the agent profile aesthetic.
  *
  * @private Profile chat helper.
  */
-function ExistingChatsPanel({ chats, formatText, onOpenChat }: ExistingChatsPanelProps) {
+function ExistingChatsPanel({ chats, formatText, onOpenChat, brandColorHex }: ExistingChatsPanelProps) {
     return (
-        <section className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 shadow-sm shadow-slate-200/60 backdrop-blur">
-            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
-                {formatText('Continue a previous chat')}
-            </p>
-            <div className="mt-3 flex flex-wrap gap-2">
-                {chats.map((chat) => (
-                    <button
-                        key={chat.id}
-                        type="button"
-                        onClick={() => onOpenChat(chat.id)}
-                        title={chat.preview ? `${chat.title} — ${chat.preview}` : chat.title}
-                        className="max-w-[16rem] flex-shrink-0 rounded-full border border-slate-200 bg-white/80 px-3 py-1.5 text-left transition hover:border-slate-400 hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500/80"
-                    >
-                        <span className="block max-w-full truncate text-sm font-semibold text-slate-900">
-                            {chat.title}
-                        </span>
-                        {chat.preview ? (
-                            <span className="mt-0.5 block max-w-full truncate text-[0.65rem] font-medium text-slate-500">
-                                {chat.preview}
-                            </span>
-                        ) : null}
-                    </button>
-                ))}
+        <section className="relative w-full overflow-hidden rounded-[28px] border border-white/50 bg-white/80 shadow-2xl shadow-slate-900/20 backdrop-blur-3xl">
+            <div
+                className="absolute left-4 right-4 top-3 h-1 rounded-full"
+                style={{
+                    background: `linear-gradient(120deg, ${brandColorHex}, ${brandColorHex}80, transparent)`,
+                }}
+            />
+            <div className="relative z-10 px-5 py-5">
+                <div className="flex flex-col gap-1">
+                    <p className="text-[0.65rem] font-semibold uppercase tracking-[0.4em] text-slate-500">
+                        {formatText('My chats')}
+                    </p>
+                    <p className="text-sm font-semibold text-slate-900">{formatText('Pick up where you left off')}</p>
+                </div>
+                <div className="mt-4 space-y-3">
+                    {chats.map((chat) => {
+                        const updatedAtDate = new Date(chat.updatedAt);
+                        const isValidTimestamp = !Number.isNaN(updatedAtDate.getTime());
+                        const relativeLabel = isValidTimestamp ? formatRelativeTimeLabel(chat.updatedAt) : '';
+                        const timeLabel =
+                            relativeLabel || (isValidTimestamp ? updatedAtDate.toLocaleString() : chat.updatedAt);
+                        const title = chat.title || formatText('Untitled chat');
+                        const previewText = hasMessageContent(chat.preview)
+                            ? chat.preview
+                            : formatText('No messages yet - start the conversation.');
+                        const titleWithPreview = chat.preview ? `${title} — ${chat.preview}` : title;
+
+                        return (
+                            <button
+                                key={chat.id}
+                                type="button"
+                                onClick={() => onOpenChat(chat.id)}
+                                title={titleWithPreview}
+                                className="flex w-full flex-col gap-2 rounded-2xl border border-slate-200/70 bg-white/90 px-4 py-3 text-left shadow-sm shadow-slate-900/10 transition duration-150 hover:border-slate-400 hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500/80"
+                            >
+                                <div className="flex items-start justify-between gap-3">
+                                    <div className="flex min-w-0 items-center gap-2">
+                                        <span
+                                            className="h-2 w-2 flex-shrink-0 rounded-full"
+                                            style={{ backgroundColor: brandColorHex }}
+                                        />
+                                        <span className="text-sm font-semibold text-slate-900 line-clamp-1">
+                                            {title}
+                                        </span>
+                                    </div>
+                                    <time
+                                        dateTime={isValidTimestamp ? updatedAtDate.toISOString() : chat.updatedAt}
+                                        title={isValidTimestamp ? updatedAtDate.toLocaleString() : chat.updatedAt}
+                                        className="text-[0.65rem] font-semibold text-slate-400"
+                                    >
+                                        {timeLabel}
+                                    </time>
+                                </div>
+                                <p className="text-[0.74rem] font-medium text-slate-500 line-clamp-2">{previewText}</p>
+                            </button>
+                        );
+                    })}
+                </div>
             </div>
         </section>
     );
