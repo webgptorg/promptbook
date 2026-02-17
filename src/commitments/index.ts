@@ -1,7 +1,6 @@
 import type { CommitmentDefinition } from './_base/CommitmentDefinition';
 
 // Import all commitment definition classes
-import { TODO_any } from '../_packages/types.index';
 import { ActionCommitmentDefinition } from './ACTION/ACTION';
 import { ClosedCommitmentDefinition } from './CLOSED/CLOSED';
 import { ComponentCommitmentDefinition } from './COMPONENT/COMPONENT';
@@ -108,10 +107,6 @@ export const COMMITMENT_REGISTRY = [
     new UseTimeCommitmentDefinition(),
     new UseEmailCommitmentDefinition(),
     new UseImageGeneratorCommitmentDefinition('USE IMAGE GENERATOR'),
-    new UseImageGeneratorCommitmentDefinition('USE IMAGE GENERATION' as TODO_any /* <- TODO: Remove any */),
-    new UseImageGeneratorCommitmentDefinition('IMAGE GENERATOR' as TODO_any /* <- TODO: Remove any */),
-    new UseImageGeneratorCommitmentDefinition('USE IMAGE' as TODO_any /* <- TODO: Remove any */),
-    // <- Note: [⛹️] How to deal with commitment aliases with defined functions
     new UseMcpCommitmentDefinition(),
     new UseCommitmentDefinition(),
 

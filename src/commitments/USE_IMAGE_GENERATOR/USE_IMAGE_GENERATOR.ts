@@ -18,13 +18,9 @@ import { formatOptionalInstructionBlock } from '../_base/formatOptionalInstructi
  *
  * @private [🪔] Maybe export the commitments through some package
  */
-export class UseImageGeneratorCommitmentDefinition extends BaseCommitmentDefinition<
-    'USE IMAGE GENERATOR' | 'USE IMAGE GENERATION' | 'IMAGE GENERATOR' | 'USE IMAGE'
-> {
-    public constructor(
-        type: 'USE IMAGE GENERATOR' | 'USE IMAGE GENERATION' | 'IMAGE GENERATOR' | 'USE IMAGE' = 'USE IMAGE GENERATOR',
-    ) {
-        super(type, ['USE IMAGE GENERATION', 'IMAGE GENERATOR', 'USE IMAGE']);
+export class UseImageGeneratorCommitmentDefinition extends BaseCommitmentDefinition<'USE IMAGE GENERATOR'> {
+    public constructor(type: 'USE IMAGE GENERATOR' = 'USE IMAGE GENERATOR') {
+        super(type);
     }
 
     override get requiresContent(): boolean {

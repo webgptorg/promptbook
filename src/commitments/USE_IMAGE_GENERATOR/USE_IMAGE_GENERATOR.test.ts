@@ -13,26 +13,6 @@ describe('createAgentModelRequirementsWithCommitments with USE IMAGE GENERATOR',
         expect(requirements.systemMessage).toContain('![<alt text>](?image-prompt=<prompt>)');
     });
 
-    it('adds instructions when USE IMAGE GENERATION alias is used', async () => {
-        const agentSource = spaceTrim(`
-            Image Agent
-            USE IMAGE GENERATION
-        `) as string_book;
-        const requirements = await createAgentModelRequirementsWithCommitments(agentSource);
-        expect(requirements.tools?.some((tool) => tool.name === 'generate_image')).toBeFalsy();
-        expect(requirements.systemMessage).toContain('Image generation:');
-    });
-
-    it('adds instructions when USE IMAGE alias is used', async () => {
-        const agentSource = spaceTrim(`
-            Image Agent
-            USE IMAGE
-        `) as string_book;
-        const requirements = await createAgentModelRequirementsWithCommitments(agentSource);
-        expect(requirements.tools?.some((tool) => tool.name === 'generate_image')).toBeFalsy();
-        expect(requirements.systemMessage).toContain('![<alt text>](?image-prompt=<prompt>)');
-    });
-
     it('appends optional style guidance into system message', async () => {
         const agentSource = spaceTrim(`
             Image Agent
