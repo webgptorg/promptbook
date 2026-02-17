@@ -13,7 +13,7 @@ import { DeletedAgentBanner } from '../../../components/DeletedAgentBanner';
 import { formatAgentNamingText } from '../../../utils/agentNaming';
 import { resolveAgentRouteTarget } from '../../../utils/agentRouting/resolveAgentRouteTarget';
 import { getAgentNaming } from '../../../utils/getAgentNaming';
-import { getCurrentUser } from '../../../utils/getCurrentUser';
+import { ensureChatHistoryIdentity } from '@/src/utils/currentUserIdentity';
 import { getAgentFolderContext, getAgentName, getAgentProfile, isAgentDeleted } from './_utils';
 import { getAgentLinks } from './agentLinks';
 import { AgentProfileChat } from './AgentProfileChat';
@@ -124,7 +124,7 @@ export default async function AgentPage({
         acceptLanguageHeader: requestHeaders.get('accept-language'),
     });
     const isAdmin = await isUserAdmin();
-    const currentUser = await getCurrentUser();
+    const historyIdentityAvailable = await ensureChatHistoryIdentity();
     const { headless: headlessParam } = currentSearchParams;
     const isHeadless = headlessParam !== undefined;
     const { publicUrl } = await $provideServer();
@@ -206,7 +206,7 @@ export default async function AgentPage({
                     }
                     isDeleted={isDeleted}
                     speechRecognitionLanguage={speechRecognitionLanguage}
-                    isHistoryEnabled={Boolean(currentUser)}
+                    isHistoryEnabled={historyIdentityAvailable}
                 />
             </AgentProfileWrapper>
         </>

@@ -1,17 +1,8 @@
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import type { AgentsServerDatabase } from '@/src/database/schema';
-import { getCurrentUser, type UserInfo } from '@/src/utils/getCurrentUser';
-
-/**
- * Placeholder password hash used for environment-admin rows auto-created in database.
- */
-const ENV_ADMIN_PASSWORD_HASH_PLACEHOLDER = 'env-admin-managed';
-
-/**
- * Database row shape for `User` table.
- */
-type UserRow = AgentsServerDatabase['public']['Tables']['User']['Row'];
+import type { UserInfo } from '@/src/utils/getCurrentUser';
+import { resolveCurrentUserIdentity } from '@/src/utils/currentUserIdentity';
 
 /**
  * Database row shape for `UserMemory` table.
@@ -98,31 +89,20 @@ export type FindUserMemoryByIdOptions = {
  */
 export async function resolveCurrentUserMemoryIdentity(): Promise<ResolvedCurrentUserMemoryIdentity | null> {
     try {
-        const currentUser = await getCurrentUser();
-        if (!currentUser) {
+        const identity = await resolveCurrentUserIdentity();
+        if (!identity) {
             return null;
         }
 
-        const existingUser = await findUserByUsername(currentUser.username);
-        if (existingUser) {
-            return {
-                user: currentUser,
-                userId: existingUser.id,
-            };
-        }
+        const resolvedUser: UserInfo = identity.sessionUser ?? {
+            username: identity.username,
+            isAdmin: identity.isAdmin,
+        };
 
-        if (currentUser.username === 'admin' && currentUser.isAdmin) {
-            const ensuredAdminUser = await ensureEnvironmentAdminUser();
-
-            if (ensuredAdminUser) {
-                return {
-                    user: currentUser,
-                    userId: ensuredAdminUser.id,
-                };
-            }
-        }
-
-        return null;
+        return {
+            user: resolvedUser,
+            userId: identity.userId,
+        };
     } catch (error) {
         console.error('[user-memory] Failed to resolve current user identity:', error);
         return null;
@@ -331,49 +311,6 @@ async function findUserMemoryRowById(options: FindUserMemoryByIdOptions): Promis
 /**
  * Finds a database user by username.
  */
-async function findUserByUsername(username: string): Promise<UserRow | null> {
-    const supabase = $provideSupabaseForServer();
-    const tableName = await $getTableName('User');
-
-    const { data, error } = await supabase.from(tableName).select('*').eq('username', username).maybeSingle();
-
-    if (error) {
-        throw new Error(`Failed to resolve user "${username}": ${error.message}`);
-    }
-
-    return (data as UserRow | null) || null;
-}
-
-/**
- * Ensures that the environment-managed admin account has a database row.
- */
-async function ensureEnvironmentAdminUser(): Promise<UserRow | null> {
-    const supabase = $provideSupabaseForServer();
-    const tableName = await $getTableName('User');
-    const now = new Date().toISOString();
-
-    const { data: inserted, error: insertError } = await supabase
-        .from(tableName)
-        .insert({
-            username: 'admin',
-            passwordHash: ENV_ADMIN_PASSWORD_HASH_PLACEHOLDER,
-            isAdmin: true,
-            createdAt: now,
-            updatedAt: now,
-        })
-        .select('*')
-        .maybeSingle();
-
-    if (!insertError && inserted) {
-        return inserted as UserRow;
-    }
-
-    if (insertError && insertError.code !== '23505') {
-        throw new Error(`Failed to create environment admin user row: ${insertError.message}`);
-    }
-
-    return findUserByUsername('admin');
-}
 
 /**
  * Normalizes memory payload for create/update operations.

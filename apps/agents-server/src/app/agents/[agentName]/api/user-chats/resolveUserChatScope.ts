@@ -1,5 +1,5 @@
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
-import { resolveCurrentUserMemoryIdentity } from '@/src/utils/userMemory';
+import { resolveCurrentUserIdentity } from '@/src/utils/currentUserIdentity';
 
 /**
  * Successful scope resolution for user-chat API handlers.
@@ -20,7 +20,7 @@ export type UserChatScopeResolutionError = 'UNAUTHORIZED' | 'AGENT_NOT_FOUND';
 export async function resolveUserChatScope(
     agentIdentifier: string,
 ): Promise<{ ok: true; scope: ResolvedUserChatScope } | { ok: false; error: UserChatScopeResolutionError }> {
-    const currentUserIdentity = await resolveCurrentUserMemoryIdentity();
+    const currentUserIdentity = await resolveCurrentUserIdentity();
     if (!currentUserIdentity) {
         return { ok: false, error: 'UNAUTHORIZED' };
     }

@@ -1,6 +1,6 @@
 'use server';
 import { getMetadata } from '@/src/database/getMetadata';
-import { getCurrentUser } from '@/src/utils/getCurrentUser';
+import { ensureChatHistoryIdentity } from '@/src/utils/currentUserIdentity';
 import { getThinkingMessages } from '@/src/utils/thinkingMessages';
 import { headers } from 'next/headers';
 import { resolveSpeechRecognitionLanguage } from '../../../../../../../src/utils/language/getBrowserPreferredSpeechRecognitionLanguage';
@@ -54,7 +54,7 @@ export default async function AgentChatPage({
     const speechRecognitionLanguage = resolveSpeechRecognitionLanguage({
         acceptLanguageHeader: requestHeaders.get('accept-language'),
     });
-    const currentUser = await getCurrentUser();
+    const historyIdentityAvailable = await ensureChatHistoryIdentity();
     const chatFailMessage = await getMetadata('CHAT_FAIL_MESSAGE');
     const agentDisplayName = agentProfile.meta.fullname || agentProfile.agentName || agentName;
 
@@ -70,7 +70,7 @@ export default async function AgentChatPage({
                 brandColor={agentProfile.meta.color}
                 thinkingMessages={thinkingMessages}
                 speechRecognitionLanguage={speechRecognitionLanguage}
-                isHistoryEnabled={Boolean(currentUser)}
+                isHistoryEnabled={historyIdentityAvailable}
                 chatFailMessage={chatFailMessage ?? undefined}
             />
         </main>
