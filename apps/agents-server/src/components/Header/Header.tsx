@@ -1341,7 +1341,7 @@ export function Header(props: HeaderProps) {
                             </button>
                                     {isAgentsOpen && (
                                         <div className="absolute left-0 top-full z-50 mt-2 w-[min(420px,90vw)] rounded-md border border-gray-100 bg-white py-1 shadow-lg animate-in fade-in zoom-in-95 duration-200">
-                                            <div className="max-h-[65vh] overflow-y-auto">
+                                            <div className="max-h-[65vh] overflow-y-auto overflow-x-visible">
                                                 <AgentDirectoryDropdown
                                                     nodes={agentMenuTree}
                                                     onNavigate={closeAgentsDropdown}
@@ -1534,7 +1534,7 @@ export function Header(props: HeaderProps) {
                                                     {item.renderMenu ? (
                                                         <div className="relative">{item.renderMenu()}</div>
                                                     ) : (
-                                                        <div className="max-h-[80vh] overflow-y-auto">
+                                                        <div className="max-h-[80vh] overflow-y-auto overflow-x-visible">
                                                             {renderDropdownItems()}
                                                         </div>
                                                     )}
