@@ -1,3 +1,4 @@
+-   Added CDN-friendly caching headers on the Agents Server homepage (`/`) so Vercel can pre-render that route with `s-maxage`/`stale-while-revalidate` and the first visitor no longer hits a cold SSR run.
 -   Snapped the Agents Server footer to the bottom of the viewport so the layout no longer leaves the footer floating mid-page when the content is short.
 -   Added a global version-mismatch experience that surfaces a friendly refresh notice, prevents the old chat-only message, and automatically reloads the page whenever the server requires a newer client release.
 -   Added a custom Agents Server application error page with a branded layout, digest tracking, and proactive troubleshooting guidance for failed navigations.

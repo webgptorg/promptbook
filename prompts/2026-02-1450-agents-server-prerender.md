@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.34 9 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
 [✨👐] When the app is built, the first load of the homepage of the agent server takes so long. Please tell Vercel to pre-build it.
 
@@ -39,3 +39,4 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

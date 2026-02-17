@@ -42,6 +42,23 @@ const nextConfig: NextConfig = {
 
         return config;
     },
+    async headers() {
+        return [
+            {
+                source: '/',
+                headers: [
+                    {
+                        key: 'Cache-Control',
+                        value: 'max-age=0, s-maxage=1, stale-while-revalidate=59',
+                    },
+                    {
+                        key: 'Vary',
+                        value: 'Cookie',
+                    },
+                ],
+            },
+        ];
+    },
 };
 
 export default nextConfig;
