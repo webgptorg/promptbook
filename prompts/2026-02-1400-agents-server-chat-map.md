@@ -51,16 +51,20 @@ Sure! Here is the location of the nearest cafe:
 
 ---
 
-[x] ~$0.15 13 minutes by OpenAI Codex `gpt-5.1-codex-mini`
+[x] ~$0.15 13 minutes by OpenAI Codex `gpt-5.1-codex-mini` - not working well
+
+---
+
+[ ]
 
 [✨📌] You are rendering a map. Increase its width.
 
+-   The map should be square. Now it is very narrow and it looks bad, especially on the desktop.
 -   It should look great on desktop and on mobile.
--   Also add button to show the map on the bigger pop-up modal.
 -   You are working with the [Agents Server](apps/agents-server)
 -   This functionality was implemented by [this prompt](prompts/2026-02-1400-agents-server-chat-map.md).
 
-![alt text](prompts/screenshots/2026-02-1400-agents-server-chat-map.png)
+![alt text](prompts/screenshots/2026-02-1400-agents-server-chat-map-2.png)
 
 ---
 
@@ -86,6 +90,3 @@ Sure! Here is the location of the nearest cafe:
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
-
-
