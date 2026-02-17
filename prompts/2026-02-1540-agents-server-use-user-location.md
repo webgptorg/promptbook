@@ -1,7 +1,12 @@
+[x] ~$1.03 27 minutes by OpenAI Codex `gpt-5.1-codex-mini` - not working
+
+---
+
 [ ]
 
 [✨🧛] Create commitment `USE USER LOCATION`
 
+-   @@@ wait for STRONG agent
 -   This is a bit equivalent to `USE TIME` commitment, but for the user location.
 -   For the user, it should look trivial, but the implementation will be harder.
 -   The time can be determined on the server. On the other hand, user location needs to be requested from the user. The user needs to be requested by the browser, and this location should be transmitted back to the agent.
