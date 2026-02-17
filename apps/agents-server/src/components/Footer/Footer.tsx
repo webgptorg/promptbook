@@ -1,3 +1,4 @@
+import { CLAIM, NAME } from '@promptbook-local/core';
 import { HeadlessLink } from '../_utils/headlessParam';
 
 export type FooterLink = {
@@ -18,14 +19,8 @@ export function Footer(props: FooterProps) {
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
                     {/* Company Info */}
                     <div className="space-y-4">
-                        <h3 className="font-bold">
-                            Prompt<b>Book</b>
-                        </h3>
-                        <p className="text-sm text-muted-foreground text-gray-500">
-                            {`It's time for a paradigm shift!`}
-                            <br />
-                            {`The future of software is in plain English ✨`}
-                        </p>
+                        <h3 className="font-bold">{NAME}</h3>
+                        <p className="text-sm text-muted-foreground text-gray-500">{CLAIM}</p>
                     </div>
 
                     {/* Products */}
