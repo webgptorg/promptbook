@@ -19,6 +19,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { ReactNode, useEffect, useMemo, useState } from 'react';
 import { HamburgerMenu } from '../../../../../src/book-components/_common/HamburgerMenu/HamburgerMenu';
 import { useMenuHoisting } from '../../../../../src/book-components/_common/MenuHoisting/MenuHoistingContext';
+import { resolveAgentAvatarImageUrl } from '../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 import { just } from '../../../../../src/utils/organization/just';
 import { RESERVED_PATHS } from '../../generated/reservedPaths';
 import { buildFolderPath, getFolderPathSegments } from '../../utils/agentOrganization/folderPath';
@@ -27,7 +28,6 @@ import type { UserInfo } from '../../utils/getCurrentUser';
 import { getVisibleCommitmentDefinitions } from '../../utils/getVisibleCommitmentDefinitions';
 import { HeadlessLink, pushWithHeadless, useIsHeadless } from '../_utils/headlessParam';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
-import { resolveAgentAvatarImageUrl } from '../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 import { showLoginDialog } from '../AsyncDialogs/asyncDialogs';
 import { ChangePasswordDialog } from '../ChangePasswordDialog/ChangePasswordDialog';
 import { useUsersAdmin } from '../UsersList/useUsersAdmin';
@@ -296,14 +296,8 @@ function AgentNameWithAvatar({
     maxWidthClassName,
 }: AgentNameWithAvatarProps) {
     const safeLabel = label || 'Agent';
-    const fallbackLetter =
-        safeLabel
-            .split('/')
-            .pop()
-            ?.trim()
-            .charAt(0)
-            ?.toUpperCase() || 'A';
-    const avatarSize = avatarSizeClassName ?? 'h-7 w-7';
+    const fallbackLetter = safeLabel.split('/').pop()?.trim().charAt(0)?.toUpperCase() || 'A';
+    const avatarSize = avatarSizeClassName ?? 'h-5 w-5';
     const textClasses = `truncate ${textClassName ?? 'text-sm font-semibold text-gray-900'} ${
         maxWidthClassName ?? ''
     }`.trim();
@@ -490,10 +484,7 @@ function sortBySortOrderAndLabel<TItem extends { sortOrder: number }>(
  */
 function createIndentedMenuLabel(content: ReactNode, depth: number): ReactNode {
     return (
-        <span
-            className="flex min-w-0 items-center gap-2"
-            style={{ paddingLeft: `${depth * MENU_DEPTH_PADDING_PX}px` }}
-        >
+        <span className="flex min-w-0 items-center gap-2" style={{ paddingLeft: `${depth * MENU_DEPTH_PADDING_PX}px` }}>
             {content}
         </span>
     );
@@ -682,11 +673,7 @@ function buildAgentMenuStructure(
         const folderAgents = agentsByFolderId.get(folderId) || [];
         for (const agent of folderAgents) {
             items.push({
-                label: createAgentMenuEntryLabel(
-                    getAgentMenuLabel(agent),
-                    getAgentAvatarUrl(agent),
-                    depth + 1,
-                ),
+                label: createAgentMenuEntryLabel(getAgentMenuLabel(agent), getAgentAvatarUrl(agent), depth + 1),
                 href: `/agents/${encodeURIComponent(getAgentNavigationId(agent))}`,
             });
         }
@@ -1325,20 +1312,20 @@ export function Header(props: HeaderProps) {
 
                             {isAdmin ? (
                                 <div className="relative min-w-0">
-                            <button
-                                className="flex min-w-0 items-center gap-2 rounded-full border border-transparent px-2 sm:px-3 py-1 hover:border-gray-200 hover:bg-gray-100 transition"
-                                onClick={() => setIsAgentsOpen(!isAgentsOpen)}
-                                onBlur={() => setTimeout(() => setIsAgentsOpen(false), 200)}
-                            >
-                                <AgentNameWithAvatar
-                                    label={activeAgentLabel}
-                                    avatarUrl={activeAgentAvatarUrl}
-                                    avatarSizeClassName="h-8 w-8"
-                                    textClassName="text-xs sm:text-sm font-semibold text-gray-900"
-                                    maxWidthClassName="max-w-[80px] sm:max-w-[120px] md:max-w-[180px] lg:max-w-[200px]"
-                                />
-                                <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
-                            </button>
+                                    <button
+                                        className="flex min-w-0 items-center gap-2 rounded-full border border-transparent px-2 sm:px-3 py-1 hover:border-gray-200 hover:bg-gray-100 transition"
+                                        onClick={() => setIsAgentsOpen(!isAgentsOpen)}
+                                        onBlur={() => setTimeout(() => setIsAgentsOpen(false), 200)}
+                                    >
+                                        <AgentNameWithAvatar
+                                            label={activeAgentLabel}
+                                            avatarUrl={activeAgentAvatarUrl}
+                                            avatarSizeClassName="h-8 w-8"
+                                            textClassName="text-xs sm:text-sm font-semibold text-gray-900"
+                                            maxWidthClassName="max-w-[80px] sm:max-w-[120px] md:max-w-[180px] lg:max-w-[200px]"
+                                        />
+                                        <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
+                                    </button>
                                     {isAgentsOpen && (
                                         <div className="absolute left-0 top-full z-50 mt-2 w-[min(420px,90vw)] rounded-md border border-gray-100 bg-white py-1 shadow-lg animate-in fade-in zoom-in-95 duration-200">
                                             <div className="max-h-[65vh] overflow-y-auto overflow-x-visible">
@@ -1373,32 +1360,32 @@ export function Header(props: HeaderProps) {
                                     )}
                                 </div>
                             ) : (
-                        <HeadlessLink
-                            href={activeAgentHref}
-                            className="inline-flex min-w-0 items-center gap-2 rounded-full px-2 sm:px-3 py-1 hover:bg-gray-100 transition"
-                        >
-                            <AgentNameWithAvatar
-                                label={activeAgentLabel}
-                                avatarUrl={activeAgentAvatarUrl}
-                                avatarSizeClassName="h-7 w-7"
-                                textClassName="text-xs sm:text-sm font-semibold text-gray-900"
-                                maxWidthClassName="max-w-[80px] sm:max-w-[120px] md:max-w-[180px] lg:max-w-[200px]"
-                            />
-                        </HeadlessLink>
-                    )}
+                                <HeadlessLink
+                                    href={activeAgentHref}
+                                    className="inline-flex min-w-0 items-center gap-2 rounded-full px-2 sm:px-3 py-1 hover:bg-gray-100 transition"
+                                >
+                                    <AgentNameWithAvatar
+                                        label={activeAgentLabel}
+                                        avatarUrl={activeAgentAvatarUrl}
+                                        avatarSizeClassName="h-7 w-7"
+                                        textClassName="text-xs sm:text-sm font-semibold text-gray-900"
+                                        maxWidthClassName="max-w-[80px] sm:max-w-[120px] md:max-w-[180px] lg:max-w-[200px]"
+                                    />
+                                </HeadlessLink>
+                            )}
 
                             {activeAgentView && activeAgentViewItems.length > 0 && (
                                 <>
                                     <ChevronRight className="hidden sm:block h-4 w-4 text-gray-300" />
                                     <div className="relative hidden sm:block">
-                                    <button
-                                        className="flex items-center gap-2 rounded-full px-2 sm:px-3 py-1 text-xs sm:text-sm font-semibold text-gray-700 hover:bg-gray-100 transition"
-                                        onClick={() => setIsAgentViewOpen(!isAgentViewOpen)}
-                                        onBlur={() => setTimeout(() => setIsAgentViewOpen(false), 200)}
-                                    >
-                                        {createAgentViewLabel(activeAgentView, formatText)}
-                                        <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
-                                    </button>
+                                        <button
+                                            className="flex items-center gap-2 rounded-full px-2 sm:px-3 py-1 text-xs sm:text-sm font-semibold text-gray-700 hover:bg-gray-100 transition"
+                                            onClick={() => setIsAgentViewOpen(!isAgentViewOpen)}
+                                            onBlur={() => setTimeout(() => setIsAgentViewOpen(false), 200)}
+                                        >
+                                            {createAgentViewLabel(activeAgentView, formatText)}
+                                            <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
+                                        </button>
                                         {isAgentViewOpen && (
                                             <div className="absolute left-0 top-full z-50 mt-2 min-w-[180px] rounded-md border border-gray-100 bg-white py-1 shadow-lg animate-in fade-in zoom-in-95 duration-200">
                                                 {activeAgentViewItems.map((viewItem, index) => (
