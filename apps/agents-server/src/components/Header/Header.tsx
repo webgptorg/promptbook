@@ -1130,6 +1130,7 @@ export function Header(props: HeaderProps) {
     }, [activeAgent]);
     const currentUserDisplayName = currentUser?.username || 'Admin';
     const currentUserAvatarLabel = currentUserDisplayName.slice(0, 1).toUpperCase();
+    const currentUserProfileImageUrl = currentUser?.profileImageUrl?.trim() || null;
     const activeAgentViewItems: SubMenuItem[] = activeAgentNavigationId
         ? [
               {
@@ -1246,6 +1247,10 @@ export function Header(props: HeaderProps) {
     const userSystemItems: SubMenuItem[] = [
         ...(currentUser
             ? [
+                  {
+                      label: 'Profile',
+                      href: '/system/profile',
+                  } as SubMenuItem,
                   {
                       label: 'User Memory',
                       href: '/system/user-memory',
@@ -1791,8 +1796,19 @@ export function Header(props: HeaderProps) {
                                         onBlur={() => setTimeout(() => setIsProfileOpen(false), 200)}
                                         className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors px-3 py-2 rounded-md hover:bg-gray-50"
                                     >
-                                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 text-xs font-semibold">
-                                            {currentUserAvatarLabel}
+                                        <div className="relative flex h-8 w-8 items-center justify-center">
+                                            {currentUserProfileImageUrl ? (
+                                                // eslint-disable-next-line @next/next/no-img-element
+                                                <img
+                                                    src={currentUserProfileImageUrl}
+                                                    alt={`${currentUserDisplayName} avatar`}
+                                                    className="h-8 w-8 rounded-full border border-gray-100 object-cover"
+                                                />
+                                            ) : (
+                                                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-xs font-semibold text-blue-700">
+                                                    {currentUserAvatarLabel}
+                                                </div>
+                                            )}
                                         </div>
                                         <div className="flex flex-col items-start">
                                             <span className="leading-none">{currentUserDisplayName}</span>
@@ -2070,13 +2086,27 @@ export function Header(props: HeaderProps) {
 
                                 {(currentUser || isAdmin) && (
                                     <div className="w-full flex flex-col items-center gap-3 bg-gradient-to-b from-gray-50 to-white rounded-lg p-4 border border-gray-200 shadow-sm">
-                                        <div className="text-sm text-gray-700 text-center font-medium">
-                                            Logged in as <strong>{currentUserDisplayName}</strong>
-                                            {(currentUser?.isAdmin || isAdmin) && (
-                                                <span className="ml-2 bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full shadow-sm">
-                                                    Admin
-                                                </span>
-                                            )}
+                                        <div className="flex flex-col items-center gap-3 text-center">
+                                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-lg font-semibold text-blue-700">
+                                                {currentUserProfileImageUrl ? (
+                                                    // eslint-disable-next-line @next/next/no-img-element
+                                                    <img
+                                                        src={currentUserProfileImageUrl}
+                                                        alt={`${currentUserDisplayName} avatar`}
+                                                        className="h-12 w-12 rounded-full object-cover border border-gray-200"
+                                                    />
+                                                ) : (
+                                                    currentUserAvatarLabel
+                                                )}
+                                            </div>
+                                            <div className="text-sm text-gray-700 font-medium">
+                                                Logged in as <strong>{currentUserDisplayName}</strong>
+                                                {(currentUser?.isAdmin || isAdmin) && (
+                                                    <span className="ml-2 bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full shadow-sm">
+                                                        Admin
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
                                         <button
                                             onClick={() => {

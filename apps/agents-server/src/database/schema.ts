@@ -379,6 +379,7 @@ export type AgentsServerDatabase = {
                     username: string;
                     passwordHash: string;
                     isAdmin: boolean;
+                    profileImageUrl: string | null;
                 };
                 Insert: {
                     id?: number;
@@ -387,6 +388,7 @@ export type AgentsServerDatabase = {
                     username: string;
                     passwordHash: string;
                     isAdmin?: boolean;
+                    profileImageUrl?: string | null;
                 };
                 Update: {
                     id?: number;
@@ -395,6 +397,7 @@ export type AgentsServerDatabase = {
                     username?: string;
                     passwordHash?: string;
                     isAdmin?: boolean;
+                    profileImageUrl?: string | null;
                 };
                 Relationships: [];
             };
