@@ -10,7 +10,11 @@
 
 ---
 
-[x] ~$0.21 11 minutes by OpenAI Codex `gpt-5.1-codex-mini`
+[x] ~$0.21 11 minutes by OpenAI Codex `gpt-5.1-codex-mini` - not working
+
+---
+
+[ ]
 
 [✨🛷] Fix the subitems in the menu.
 
@@ -21,6 +25,7 @@
 -   You are working with the [Agents Server](apps/agents-server)
 
 ![alt text](prompts/screenshots/2026-02-1490-agents-server-menu-1.png)
+![alt text](prompts/screenshots/2026-02-1490-agents-server-menu-2.png)
 
 ---
 
@@ -43,5 +48,3 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
-
