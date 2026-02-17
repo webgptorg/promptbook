@@ -4,7 +4,7 @@
 
 ---
 
-[ ]
+[x] ~$0.00 20 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
 [✨👳] When the referenced team member is not found, Allow to instantly create it from the BookEditor
 
@@ -60,3 +60,4 @@ You can discuss things with a {Lawyer}, {Copywriter}, and {Developer}.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

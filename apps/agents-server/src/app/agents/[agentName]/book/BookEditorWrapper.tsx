@@ -349,10 +349,11 @@ type MissingTeamMemberCardProps = {
  * Renders a single card describing the unresolved teammate and its creation action.
  */
 function MissingTeamMemberCard({ member, isCreating, onCreate }: MissingTeamMemberCardProps) {
+    const displayToken = member.token || member.reference;
     return (
         <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-4">
             <p className="text-sm text-slate-700">
-                Team member <span className="font-semibold text-slate-900">{member.reference}</span> is not found. Do you want to create it?
+                Team member <span className="font-semibold text-slate-900">{displayToken}</span> is not found. Do you want to create it?
             </p>
             <button
                 type="button"
@@ -360,7 +361,7 @@ function MissingTeamMemberCard({ member, isCreating, onCreate }: MissingTeamMemb
                 onClick={onCreate}
                 disabled={isCreating}
             >
-                {isCreating ? `Creating ${member.reference}...` : `Create ${member.reference}`}
+                {isCreating ? `Creating ${displayToken}...` : `Create ${displayToken}`}
             </button>
         </div>
     );
