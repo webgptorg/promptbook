@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import type { AgentsByServer } from '../../utils/AgentsByServer';
 import { AgentCard } from './AgentCard';
 import { Section } from './Section';
+import { HOMEPAGE_AGENT_GRID_CLASS } from './gridLayout';
 import { string_url } from '@promptbook-local/types';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 
@@ -160,7 +161,11 @@ export function ExternalAgentsSectionClient(props: ExternalAgentsSectionClientPr
 
                 if (state.status === 'loading') {
                     return (
-                        <Section key={serverUrl} title={`${formatText('Agents from')} ${hostname} (...)`}>
+                        <Section
+                            key={serverUrl}
+                            title={`${formatText('Agents from')} ${hostname} (...)`}
+                            gridClassName={HOMEPAGE_AGENT_GRID_CLASS}
+                        >
                             <div className="flex items-center justify-center py-8 text-sm text-gray-500">
                                 <span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
                                 Loading...
@@ -171,7 +176,11 @@ export function ExternalAgentsSectionClient(props: ExternalAgentsSectionClientPr
 
                 if (state.status === 'error') {
                     return (
-                        <Section key={serverUrl} title={`${formatText('Agents from')} ${hostname} (Error)`}>
+                        <Section
+                            key={serverUrl}
+                            title={`${formatText('Agents from')} ${hostname} (Error)`}
+                            gridClassName={HOMEPAGE_AGENT_GRID_CLASS}
+                        >
                             <div className="py-4 text-sm text-red-500 text-center">
                                 {formatText('Failed to load agents from this server.')}
                             </div>
@@ -181,7 +190,11 @@ export function ExternalAgentsSectionClient(props: ExternalAgentsSectionClientPr
 
                 if (state.status === 'success' && state.agents.length > 0) {
                     return (
-                        <Section key={serverUrl} title={`${formatText('Agents from')} ${hostname} (${state.agents.length})`}>
+                        <Section
+                            key={serverUrl}
+                            title={`${formatText('Agents from')} ${hostname} (${state.agents.length})`}
+                            gridClassName={HOMEPAGE_AGENT_GRID_CLASS}
+                        >
                             {state.agents.map((agent) => (
                                 <AgentCard
                                     key={agent.url}

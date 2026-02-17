@@ -3,6 +3,7 @@ import { AgentCard } from './AgentCard';
 import { Section } from './Section';
 import { formatAgentNamingText } from '../../utils/agentNaming';
 import { getAgentNaming } from '../../utils/getAgentNaming';
+import { HOMEPAGE_AGENT_GRID_CLASS } from './gridLayout';
 
 type ExternalAgentsSectionProps = {
     /**
@@ -27,6 +28,7 @@ export async function ExternalAgentsSection(props: ExternalAgentsSectionProps) {
                     title={`${formatAgentNamingText('Agents from', agentNaming)} ${new URL(serverUrl).hostname} (${
                         agents.length
                     })`}
+                    gridClassName={HOMEPAGE_AGENT_GRID_CLASS}
                 >
                     {agents.map((agent) => (
                         <AgentCard key={agent.url} agent={agent} href={agent.url} publicUrl={publicUrl.href} />

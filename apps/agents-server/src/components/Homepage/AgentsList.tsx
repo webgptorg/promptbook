@@ -42,6 +42,7 @@ import { AgentCard } from './AgentCard';
 import { AgentsGraph } from './AgentsGraph';
 import { FileCard } from './FileCard';
 import { FolderCard } from './FolderCard';
+import { HOMEPAGE_AGENT_GRID_CLASS } from './gridLayout';
 import {
     buildFolderMaps,
     buildFolderPath,
@@ -1590,7 +1591,7 @@ export function AgentsList(props: AgentsListProps) {
                     onDragEnd={handleDragEnd}
                     onDragCancel={handleDragCancel}
                 >
-                    <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                    <div className={HOMEPAGE_AGENT_GRID_CLASS}>
                         {parentFolderInfo && (
                             <ParentFolderCard
                                 label={parentFolderInfo.label}
