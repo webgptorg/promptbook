@@ -367,6 +367,7 @@
     -   Remove particle animation from connection links
     -   Improve connection arrow visibility
     -   Enhanced visuals with smoother node hover effects, shadowed nodes, and oceanic cluster backgrounds
+-   Added a home page Agents Graph overview panel that shows the number of visible agents and servers, connection totals, folder-order links, and per-type counts so filtering feedback is immediate.
 -   Removed `isOpen` prop from dialogs in Agents Server and implemented conditional rendering to prevent unnecessary background rendering when closed.
 -   Added "Back to Agent" button to all agent-specific pages in Agents Server for better navigation.
 -   Allow to pass `files` as `Array<File>` into `ChatPrompt`.
