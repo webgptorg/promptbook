@@ -90,9 +90,7 @@ export function AgentChatSidebar({
     const mobileOverlayState = isMobileSidebarOpen
         ? 'opacity-100 pointer-events-auto'
         : 'opacity-0 pointer-events-none';
-    const desktopOverlayState = isCollapsed
-        ? 'opacity-0 pointer-events-none'
-        : 'opacity-100 pointer-events-auto';
+    const desktopOverlayState = isCollapsed ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto';
 
     const handleChatChoose = (chatId: string) => {
         onSelectChat(chatId);
@@ -117,23 +115,12 @@ export function AgentChatSidebar({
                 className={`fixed inset-y-0 left-0 z-[60] flex flex-col border-r border-slate-200 bg-white/95 shadow-xl backdrop-blur ${panelTransitionClasses} md:static md:shadow-none md:bg-white/90 ${widthClasses} ${transformClasses} md:translate-x-0`}
             >
                 <div className="flex items-center justify-between border-b border-slate-200 px-3 py-2">
-                    {!isCollapsed && (
-                        <div>
-                            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
-                                {formatText('Chats')}
-                            </p>
-                        </div>
-                    )}
                     <div className="flex items-center gap-1">
                         <button
                             type="button"
                             onClick={onToggleCollapse}
                             className="p-1 text-slate-500 hover:text-slate-900 focus-visible:outline-offset-2 focus-visible:outline focus-visible:outline-blue-400"
-                            aria-label={
-                                isCollapsed
-                                    ? formatText('Expand sidebar')
-                                    : formatText('Collapse sidebar')
-                            }
+                            aria-label={isCollapsed ? formatText('Expand sidebar') : formatText('Collapse sidebar')}
                         >
                             {isCollapsed ? (
                                 <ChevronRightIcon className="h-4 w-4" />
