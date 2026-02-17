@@ -2,7 +2,7 @@
 
 ---
 
-[ ]
+[x] ~$0.10 6 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
 [✨🧗] In the desktop, allow to drag agents (and folders) on a home page to reorder / put into the folders by their entire area, not only the drag handle.
 
@@ -46,3 +46,4 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

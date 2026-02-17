@@ -132,6 +132,78 @@ function DragHandle({ attributes, listeners, label, className = '' }: DragHandle
 }
 
 /**
+ * Media query that matches devices with coarse pointers and no hover capability.
+ */
+const TOUCH_INPUT_MEDIA_QUERY = '(hover: none) and (pointer: coarse)';
+
+/**
+ * Determines whether the current environment exposes a touch-first or coarse-pointer input surface.
+ *
+ * @returns True when touch points or the touch media query indicate a touch-centric experience.
+ */
+const detectTouchFirstInput = () => {
+    if (typeof window === 'undefined') {
+        return false;
+    }
+    const navigatorWithTouch = window.navigator as Navigator & { msMaxTouchPoints?: number };
+    const hasTouchPoint =
+        ('ontouchstart' in window && window.ontouchstart !== undefined) ||
+        (navigatorWithTouch.maxTouchPoints ?? 0) > 0 ||
+        (navigatorWithTouch.msMaxTouchPoints ?? 0) > 0;
+    const prefersTouchMedia =
+        typeof window.matchMedia === 'function' && window.matchMedia(TOUCH_INPUT_MEDIA_QUERY).matches;
+    return hasTouchPoint || prefersTouchMedia;
+};
+
+/**
+ * Tracks whether the current environment prefers touch-first input devices.
+ *
+ * @returns True when the viewport or device indicates a touch- or coarse-pointer input.
+ */
+function useIsTouchInput() {
+    const [isTouchInput, setIsTouchInput] = useState<boolean>(() => detectTouchFirstInput());
+
+    useEffect(() => {
+        const updateTouchInput = () => {
+            setIsTouchInput(detectTouchFirstInput());
+        };
+
+        updateTouchInput();
+
+        if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+            return;
+        }
+        const mediaQueryList = window.matchMedia(TOUCH_INPUT_MEDIA_QUERY);
+        const handleMediaChange = () => {
+            updateTouchInput();
+        };
+
+        if ('addEventListener' in mediaQueryList) {
+            mediaQueryList.addEventListener('change', handleMediaChange);
+            return () => void mediaQueryList.removeEventListener('change', handleMediaChange);
+        }
+        mediaQueryList.addListener(handleMediaChange);
+        return () => void mediaQueryList.removeListener(handleMediaChange);
+    }, []);
+
+    return isTouchInput;
+}
+
+/**
+ * Builds props for card wrappers when full-card drag interaction is enabled.
+ *
+ * @param shouldAttach - Whether listeners should be attached to the card container.
+ * @param attributes - Attributes supplied by the drag sensor.
+ * @param listeners - Event listeners supplied by the drag sensor.
+ * @returns Props that can be spread onto the card wrapper, or an empty object.
+ */
+const buildCardDragProps = (
+    shouldAttach: boolean,
+    attributes: DraggableAttributes,
+    listeners: DraggableSyntheticListeners,
+) => (shouldAttach ? { ...attributes, ...listeners } : {});
+
+/**
  * State for the agent context menu.
  */
 type AgentContextMenuState = {
@@ -264,6 +336,10 @@ type SortableAgentCardProps = {
      * Accessible label displayed for the drag handle.
      */
     readonly dragHandleLabel: string;
+    /**
+     * Whether the whole card surface should respond to drag interactions.
+     */
+    readonly allowFullCardDrag: boolean;
 };
 
 /**
@@ -279,6 +355,7 @@ function SortableAgentCard({
     onToggleVisibility,
     onContextMenu,
     dragHandleLabel,
+    allowFullCardDrag,
 }: SortableAgentCardProps) {
     const agentIdentifier = agent.permanentId || agent.agentName;
     const dragId = getAgentDragId(agentIdentifier);
@@ -297,6 +374,7 @@ function SortableAgentCard({
         transition,
     };
     const isDropTarget = isOver && activeDragType === 'AGENT';
+    const dragProps = buildCardDragProps(allowFullCardDrag, attributes, listeners);
 
     return (
         <div
@@ -305,6 +383,7 @@ function SortableAgentCard({
             className={`relative ${canOrganize ? 'select-none' : ''} ${
                 isDragging ? 'opacity-0' : ''
             } ${isDropTarget ? 'ring-2 ring-blue-400 ring-offset-2 ring-offset-white' : ''}`}
+            {...dragProps}
             onContextMenu={(event) => onContextMenu?.(event, agent)}
         >
             <AgentCard
@@ -316,7 +395,7 @@ function SortableAgentCard({
                 onToggleVisibility={onToggleVisibility}
                 visibility={agent.visibility}
             />
-            {canOrganize && (
+            {canOrganize && !allowFullCardDrag && (
                 <DragHandle attributes={attributes} listeners={listeners} label={dragHandleLabel} />
             )}
         </div>
@@ -367,6 +446,10 @@ type SortableFolderCardProps = {
      * Accessible label displayed for the drag handle.
      */
     readonly dragHandleLabel: string;
+    /**
+     * Whether the whole card surface should respond to drag interactions.
+     */
+    readonly allowFullCardDrag: boolean;
 };
 
 /**
@@ -383,6 +466,7 @@ function SortableFolderCard({
     onRename,
     onDelete,
     dragHandleLabel,
+    allowFullCardDrag,
 }: SortableFolderCardProps) {
     const dragId = getFolderDragId(folder.id);
     const { attributes, listeners, setNodeRef, transform, transition, isDragging, isOver } = useSortable({
@@ -410,6 +494,7 @@ function SortableFolderCard({
             : isReorderTarget
             ? 'ring-2 ring-blue-400 ring-offset-2 ring-offset-white'
             : '';
+    const dragProps = buildCardDragProps(allowFullCardDrag, attributes, listeners);
 
     return (
         <div
@@ -418,6 +503,7 @@ function SortableFolderCard({
             className={`relative ${canOrganize ? 'select-none' : ''} ${
                 isDragging ? 'opacity-0' : ''
             } ${dropClasses}`}
+            {...dragProps}
         >
             <FolderCard
                 folderName={folder.name}
@@ -427,7 +513,7 @@ function SortableFolderCard({
                 onRename={onRename}
                 onDelete={onDelete}
             />
-            {canOrganize && (
+            {canOrganize && !allowFullCardDrag && (
                 <DragHandle attributes={attributes} listeners={listeners} label={dragHandleLabel} />
             )}
         </div>
@@ -654,6 +740,8 @@ export function AgentsList(props: AgentsListProps) {
 
     const viewMode = searchParams.get('view') === 'graph' ? 'GRAPH' : 'LIST';
     const showFederatedAgentsInGraph = showFederatedAgents && viewMode === 'GRAPH';
+    const isTouchInput = useIsTouchInput();
+    const allowFullCardDrag = canOrganize && viewMode === 'LIST' && !isTouchInput;
     const folderPathSegments = parseFolderPath(searchParams.get('folder'));
     const currentFolderId = useMemo(
         () => resolveFolderIdFromPath(folders, folderPathSegments),
@@ -1614,6 +1702,7 @@ export function AgentsList(props: AgentsListProps) {
                                     onRename={canOrganize ? () => handleRenameFolder(folder.id) : undefined}
                                     onDelete={canOrganize ? () => handleDeleteFolder(folder.id) : undefined}
                                     dragHandleLabel={dragFolderLabel}
+                                    allowFullCardDrag={allowFullCardDrag}
                                 />
                             ))}
                         </SortableContext>
@@ -1630,6 +1719,7 @@ export function AgentsList(props: AgentsListProps) {
                                     onToggleVisibility={handleToggleVisibility}
                                     onContextMenu={handleAgentContextMenu}
                                     dragHandleLabel={dragAgentLabel}
+                                    allowFullCardDrag={allowFullCardDrag}
                                 />
                             ))}
                         </SortableContext>
