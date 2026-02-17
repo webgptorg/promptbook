@@ -16,7 +16,9 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { ReactNode, useEffect, useMemo, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import type { MouseEvent, ReactNode } from 'react';
 import { HamburgerMenu } from '../../../../../src/book-components/_common/HamburgerMenu/HamburgerMenu';
 import { useMenuHoisting } from '../../../../../src/book-components/_common/MenuHoisting/MenuHoistingContext';
 import { resolveAgentAvatarImageUrl } from '../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
@@ -102,6 +104,117 @@ type MenuItem =
           items: Array<SubMenuItem>;
           renderMenu?: () => ReactNode;
       };
+
+/**
+ * Tracks the currently open nested dropdown along with its anchor rectangle.
+ */
+type OpenSubMenuState = {
+    key: string;
+    rect: DOMRect;
+    items: SubMenuItem[];
+};
+
+const SUBMENU_CLOSE_DELAY_MS = 150;
+
+/**
+ * @private Provides a reusable DOM node for rendering header submenus via portals.
+ */
+function useDropdownPortalContainer() {
+    const [container, setContainer] = useState<HTMLDivElement | null>(null);
+
+    useEffect(() => {
+        if (typeof document === 'undefined') {
+            return;
+        }
+
+        const element = document.createElement('div');
+        element.setAttribute('data-header-dropdown-portal', 'true');
+        document.body.appendChild(element);
+        setContainer(element);
+
+        return () => {
+            document.body.removeChild(element);
+        };
+    }, []);
+
+    return container;
+}
+
+/**
+ * Props for a floating submenu portal used by the header dropdowns.
+ */
+type DropdownSubMenuPortalProps = {
+    anchorRect: DOMRect;
+    container: HTMLDivElement | null;
+    onMouseEnter: () => void;
+    onMouseLeave: () => void;
+    children: ReactNode;
+};
+
+/**
+ * @private Renders a floating sub-menu column that is detached from the scrollable dropdown content.
+ */
+function DropdownSubMenuPortal({
+    anchorRect,
+    container,
+    onMouseEnter,
+    onMouseLeave,
+    children,
+}: DropdownSubMenuPortalProps) {
+    const [position, setPosition] = useState(() => ({
+        top: anchorRect.top,
+        left: anchorRect.right + 8,
+    }));
+
+    useLayoutEffect(() => {
+        if (!container) {
+            return;
+        }
+
+        const updatePosition = () => {
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+            const panelWidth = Math.min(320, viewportWidth - 32);
+            const gap = 8;
+
+            const canOpenOnRight = anchorRect.right + gap + panelWidth <= viewportWidth - 16;
+            const left = canOpenOnRight
+                ? anchorRect.right + gap
+                : Math.max(
+                      16,
+                      Math.min(anchorRect.left - gap - panelWidth, viewportWidth - panelWidth - 16),
+                  );
+
+            const top = Math.min(Math.max(12, anchorRect.top), viewportHeight - 48);
+            setPosition({ left, top });
+        };
+
+        updatePosition();
+        window.addEventListener('resize', updatePosition);
+        window.addEventListener('scroll', updatePosition, true);
+
+        return () => {
+            window.removeEventListener('resize', updatePosition);
+            window.removeEventListener('scroll', updatePosition, true);
+        };
+    }, [anchorRect.top, anchorRect.left, anchorRect.right, container]);
+
+    if (!container) {
+        return null;
+    }
+
+    return createPortal(
+        <div
+            className="fixed z-50"
+            style={{ top: position.top, left: position.left }}
+            onMouseEnter={onMouseEnter}
+            onMouseLeave={onMouseLeave}
+        >
+            {children}
+        </div>,
+        container,
+    );
+}
 
 /**
  * Helper type describing grouped commitments after filtering out unimplemented ones.
@@ -877,6 +990,9 @@ export function Header(props: HeaderProps) {
     const [isMobileSystemOpen, setIsMobileSystemOpen] = useState(false);
     const [mobileOpenSubMenus, setMobileOpenSubMenus] = useState<Record<string, boolean>>({});
     const [isCreatingAgent, setIsCreatingAgent] = useState(false);
+    const dropdownPortalContainer = useDropdownPortalContainer();
+    const [openSubMenu, setOpenSubMenu] = useState<OpenSubMenuState | null>(null);
+    const subMenuCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const router = useRouter();
     const pathname = usePathname();
     const isHeadless = useIsHeadless();
@@ -892,6 +1008,64 @@ export function Header(props: HeaderProps) {
             setIsMobileSystemOpen(false);
         }
     }, [isMenuOpen]);
+
+    useEffect(() => {
+        if (!isDocsOpen && !isSystemOpen) {
+            setOpenSubMenu(null);
+        }
+    }, [isDocsOpen, isSystemOpen]);
+
+    useEffect(() => {
+        return () => {
+            if (subMenuCloseTimer.current) {
+                clearTimeout(subMenuCloseTimer.current);
+                subMenuCloseTimer.current = null;
+            }
+        };
+    }, []);
+
+    const cancelSubMenuClose = () => {
+        if (subMenuCloseTimer.current) {
+            clearTimeout(subMenuCloseTimer.current);
+            subMenuCloseTimer.current = null;
+        }
+    };
+
+    const scheduleSubMenuClose = (key: string) => {
+        cancelSubMenuClose();
+        subMenuCloseTimer.current = window.setTimeout(() => {
+            setOpenSubMenu((current) => (current?.key === key ? null : current));
+            subMenuCloseTimer.current = null;
+        }, SUBMENU_CLOSE_DELAY_MS);
+    };
+
+    const handleSubMenuMouseEnter = (
+        key: string,
+        items: SubMenuItem[],
+        event: MouseEvent<HTMLDivElement>,
+    ) => {
+        cancelSubMenuClose();
+        const rect = event.currentTarget.getBoundingClientRect();
+        setOpenSubMenu({
+            key,
+            rect,
+            items,
+        });
+    };
+
+    const handleSubMenuMouseLeave = (key: string) => {
+        scheduleSubMenuClose(key);
+    };
+
+    const keepSubMenuOpen = () => {
+        cancelSubMenuClose();
+    };
+
+    const handleSubMenuPortalLeave = () => {
+        if (openSubMenu) {
+            scheduleSubMenuClose(openSubMenu.key);
+        }
+    };
 
     const visibleDocumentationCommitments = useMemo(() => getVisibleCommitmentDefinitions(), []);
     const documentationDropdownItems = useMemo(
@@ -1470,10 +1644,17 @@ export function Header(props: HeaderProps) {
                                             } hover:bg-gray-50 hover:text-gray-900 transition-colors ${borderClass}`;
 
                                             if (subItem.items && subItem.items.length > 0) {
+                                                const submenuKey = `dropdown-${subIndex}`;
+                                                const isSubMenuOpen = openSubMenu?.key === submenuKey;
+                                                const childItems = subItem.items!;
                                                 return (
                                                     <div
-                                                        key={`dropdown-${subIndex}`}
-                                                        className={`relative group ${borderClass}`}
+                                                        key={submenuKey}
+                                                        className={`relative ${borderClass}`}
+                                                        onMouseEnter={(event) =>
+                                                            handleSubMenuMouseEnter(submenuKey, childItems, event)
+                                                        }
+                                                        onMouseLeave={() => handleSubMenuMouseLeave(submenuKey)}
                                                     >
                                                         <div
                                                             className={`flex items-center justify-between px-4 py-2 text-sm ${
@@ -1485,19 +1666,27 @@ export function Header(props: HeaderProps) {
                                                             <span>{subItem.label}</span>
                                                             <ChevronRight className="w-3 h-3 text-gray-400" />
                                                         </div>
-                                                        <div className="pointer-events-none absolute top-0 left-full ml-1 hidden min-w-[280px] max-w-[min(360px,calc(100vw-4rem))] group-hover:block group-hover:pointer-events-auto group-hover:visible">
-                                                            <div className="pointer-events-auto max-h-[70vh] w-full overflow-y-auto rounded-md border border-gray-100 bg-white p-2 shadow-lg">
-                                                                <div className="grid auto-rows-min gap-1 sm:grid-cols-2">
-                                                                    {subItem.items.map((child, childIndex) =>
-                                                                        renderDropdownLink(
-                                                                            child,
-                                                                            `dropdown-${subIndex}-child-${childIndex}`,
-                                                                            'block rounded px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors',
-                                                                        ),
-                                                                    )}
+
+                                                        {isSubMenuOpen && openSubMenu && (
+                                                            <DropdownSubMenuPortal
+                                                                anchorRect={openSubMenu.rect}
+                                                                container={dropdownPortalContainer}
+                                                                onMouseEnter={keepSubMenuOpen}
+                                                                onMouseLeave={handleSubMenuPortalLeave}
+                                                            >
+                                                                <div className="pointer-events-auto max-h-[70vh] w-[min(320px,calc(100vw-4rem))] overflow-y-auto rounded-md border border-gray-100 bg-white p-2 shadow-lg">
+                                                                    <div className="grid auto-rows-min gap-1 sm:grid-cols-2">
+                                                                        {childItems.map((child, childIndex) =>
+                                                                            renderDropdownLink(
+                                                                                child,
+                                                                                `dropdown-${subIndex}-child-${childIndex}`,
+                                                                                'block rounded px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors',
+                                                                            ),
+                                                                        )}
+                                                                    </div>
                                                                 </div>
-                                                            </div>
-                                                        </div>
+                                                            </DropdownSubMenuPortal>
+                                                        )}
                                                     </div>
                                                 );
                                             }
