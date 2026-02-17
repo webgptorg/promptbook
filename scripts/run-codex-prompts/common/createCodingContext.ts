@@ -7,7 +7,7 @@ import { string_prompt } from '../../../src/types/typeAliases';
 export function createCodingContext(): string_prompt {
     return prompt`
 
-        **Common rules**
+        ## Common rules
 
         - Always analyze the context and requirements before generating any code.
         - Keep in mind the DRY _(don't repeat yourself)_ principle.
@@ -28,7 +28,7 @@ export function createCodingContext(): string_prompt {
         - You (The AI coding agent) are running inside a Node process, so you are forbidden to kill all the Node processes like \`taskkill /F /IM node.exe\`, if you want to kill some dev server you have spawned, kill only that process, for example by its PID or by using some package like "kill-port" to kill the process running on specific port.
         
         
-        **Additional context:**
+        ## Additional context:
 
         - Attached images (if any) are relative to the root of the project.
         -   **Promptbook Engine vs. Agent Server** sre two distinct parts you should know the difference:
@@ -42,6 +42,33 @@ export function createCodingContext(): string_prompt {
                 -   \`parseAgentSource\` which is a lightweight parser for agent source, it parses basic information and its purpose is to be quick and synchronous. The commitments there are hardcoded.
                 -   \`createAgentModelRequirements\` which is an asynchronous function that creates model requirements it applies each commitment one by one and works asynchronously.
 
+
+        ### The Agents Server menu *(as additional context)*
+
+        The menu of the agent server looks like this:
+
+        1. The navigation hierarchy
+            - Icon and Server name _(for example Promptbook Agents Server)_
+            - arrow ">" and Agents or picked agent name (organized in folders)
+            - arrow ">" and the view Profile / Chat / Book of the agent or nothing if no agent is picked
+        2. The menu items
+            - Documentation
+            - System
+        3. Control panel and user menu
+            - Control panel
+            - User menu with the avatar and the name of the user
+
+        ### Database migrations for Agents server *(as additional context)*
+
+        -   Migrations are located in \`/apps/agents-server/src/database/migrations\`
+        -   Be aware that table names in migrations have prefix \`prefix_\` _(look at existing migrations for reference)_
+
+        ### Metadata of Agents server *(as additional context)*
+
+        -   There is a table called \`Metadata\`
+        -   It has \`key\` and \`value\` fields
+        -   It is a similar concept to configuration, but this configuration can be changed by the administrators in the Agents server website.
+         
         
     `.toString();
 

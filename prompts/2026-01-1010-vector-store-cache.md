@@ -1641,7 +1641,7 @@ POST /agents/RLcP3snv2ifR3H/api/chat 200 in 35932ms
 
 ---
 
-[ ] !!!!!!!!!!!
+[.] *<- TODO: Maybe not needed*
 
 [✨🦂] Use locking mechanism to avoid creating two same vector stores at once.
 

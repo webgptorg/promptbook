@@ -27,6 +27,21 @@
 ![alt text](prompts/screenshots/2026-02-1490-agents-server-menu-1.png)
 ![alt text](prompts/screenshots/2026-02-1490-agents-server-menu-2.png)
 
+### The Agents Server menu _(as it is working now)_
+
+The menu of the agent server looks like this:
+
+1. The navigation hierarchy
+    - Icon and Server name _(for example Promptbook Agents Server)_
+    - arrow ">" and Agents or picked agent name (organized in folders)
+    - arrow ">" and the view Profile / Chat / Book of the agent or nothing if no agent is picked
+2. The menu items (with the subitems)
+    - Documentation
+    - System
+3. Control panel and user menu
+    - Control panel
+    - User menu with the avatar and the name of the user
+
 ---
 
 [-]

@@ -106,6 +106,10 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
+### My chats panel in agent profile page
+
+-   The My chats panel in the agent chat page shows the list of chats with this agent, It is ordered by the last chat update time, and shows the name of the chat, the last message and the time of the last update.
+
 ---
 
 [-]
@@ -116,4 +120,3 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
