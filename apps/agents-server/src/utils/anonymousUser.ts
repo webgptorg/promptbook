@@ -1,4 +1,5 @@
 import { $randomBase58 } from '../../../../src/utils/random/$randomBase58';
+import type { Headers as NextHeaders } from 'next/dist/server/web/spec-extension/headers';
 import type { RequestCookies } from 'next/dist/server/web/spec-extension/cookies';
 
 /**
@@ -60,18 +61,31 @@ export function getAnonymousUsernameFromCookies(cookies: RequestCookies): string
 /**
  * Ensures the anonymous username cookie exists and returns its value.
  */
-export function ensureAnonymousUsernameCookie(cookies: RequestCookies): string {
+export function ensureAnonymousUsernameCookie(cookies: RequestCookies, preferredUsername?: string): string {
     const existing = getAnonymousUsernameFromCookies(cookies);
     if (existing) {
         return existing;
     }
 
-    const generated = generateAnonymousUsername();
-    cookies.set(ANONYMOUS_USER_COOKIE_NAME, generated, {
+    const candidate = preferredUsername && isAnonymousUsername(preferredUsername) ? preferredUsername : generateAnonymousUsername();
+    cookies.set(ANONYMOUS_USER_COOKIE_NAME, candidate, {
         httpOnly: true,
         path: '/',
         maxAge: ANONYMOUS_USERNAME_COOKIE_MAX_AGE_SECONDS,
     });
 
-    return generated;
+    return candidate;
+}
+
+/**
+ * Reads the anonymous username from incoming headers if provided.
+ */
+export function getAnonymousUsernameFromHeaders(headers: NextHeaders): string | null {
+    const value = headers.get('x-anonymous-username');
+    if (!value) {
+        return null;
+    }
+
+    const normalized = value.trim();
+    return isAnonymousUsername(normalized) ? normalized : null;
 }

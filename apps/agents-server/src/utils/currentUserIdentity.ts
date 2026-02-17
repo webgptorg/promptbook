@@ -1,9 +1,10 @@
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import type { AgentsServerDatabase } from '@/src/database/schema';
 import { getCurrentUser, type UserInfo } from './getCurrentUser';
 import { ensureAnonymousUsernameCookie } from './anonymousUser';
+import { getAnonymousUsernameFromHeaders } from './anonymousUser';
 
 /**
  * Placeholder password hash used when auto-creating database users.
@@ -57,6 +58,7 @@ export type ResolvedCurrentUserIdentity = {
  */
 export async function resolveCurrentUserIdentity(): Promise<ResolvedCurrentUserIdentity | null> {
     const cookieStore = cookies();
+    const headerStore = headers();
     const sessionUser = await getCurrentUser();
 
     if (sessionUser) {
@@ -75,7 +77,8 @@ export async function resolveCurrentUserIdentity(): Promise<ResolvedCurrentUserI
         };
     }
 
-    const anonymousUsername = ensureAnonymousUsernameCookie(cookieStore);
+    const preferredFromHeader = getAnonymousUsernameFromHeaders(headerStore);
+    const anonymousUsername = ensureAnonymousUsernameCookie(cookieStore, preferredFromHeader);
     const anonymousRow = await findOrCreateUserRow(
         anonymousUsername,
         false,
@@ -102,7 +105,8 @@ export async function ensureChatHistoryIdentity(): Promise<boolean> {
     }
 
     const cookieStore = cookies();
-    ensureAnonymousUsernameCookie(cookieStore);
+    const headerStore = headers();
+    ensureAnonymousUsernameCookie(cookieStore, getAnonymousUsernameFromHeaders(headerStore));
     return true;
 }
 
