@@ -1,12 +1,8 @@
 'use client';
 
-import spaceTrim from 'spacetrim';
+import { CLIENT_LATEST_VERSION, CLIENT_VERSION_HEADER, ClientVersionMismatchError } from '@promptbook-local/utils';
 import { useEffect, useRef, useState } from 'react';
-import {
-    ClientVersionMismatchError,
-    CLIENT_LATEST_VERSION,
-    CLIENT_VERSION_HEADER,
-} from '../../utils/clientVersion';
+import spaceTrim from 'spacetrim';
 import {
     ClientVersionMismatchInfo,
     onClientVersionMismatch,
@@ -121,18 +117,14 @@ export function ClientVersionMismatchListener() {
             className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/80 p-4"
         >
             <div className="w-full max-w-2xl rounded-3xl border border-slate-100 bg-white p-6 shadow-2xl">
-                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
-                    Action required
-                </p>
+                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Action required</p>
                 <h2 className="mt-3 text-2xl font-semibold text-slate-900">Update ready</h2>
                 <p className="mt-4 text-sm text-slate-600 whitespace-pre-line">{message}</p>
                 <div className="mt-4 flex flex-wrap gap-3 text-xs text-slate-500">
                     <span>Current version: v{reportedVersion}</span>
                     <span>Required version: v{requiredVersion}</span>
                 </div>
-                <p className="mt-4 text-sm font-medium text-slate-700">
-                    Refreshing in {countdown}s…
-                </p>
+                <p className="mt-4 text-sm font-medium text-slate-700">Refreshing in {countdown}s…</p>
             </div>
         </div>
     );

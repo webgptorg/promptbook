@@ -3,6 +3,7 @@
 import { usePromise } from '@common/hooks/usePromise';
 import { AgentChat, ChatMessage } from '@promptbook-local/components';
 import { RemoteAgent } from '@promptbook-local/core';
+import { ClientVersionMismatchError } from '@promptbook-local/utils';
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { OpenAiSpeechRecognition } from '../../../../../../src/speech-recognition/OpenAiSpeechRecognition';
 import { string_agent_url } from '../../../../../../src/types/typeAliases';
@@ -10,11 +11,10 @@ import { useAgentBackground } from '../../../components/AgentProfile/useAgentBac
 import { ChatErrorDialog } from '../../../components/ChatErrorDialog';
 import { useSoundSystem } from '../../../components/SoundSystemProvider/SoundSystemProvider';
 import { createDefaultChatEffects } from '../../../utils/chat/createDefaultChatEffects';
+import { reportClientVersionMismatch } from '../../../utils/clientVersionClient';
 import type { FriendlyErrorMessage } from '../../../utils/errorMessages';
 import { handleChatError } from '../../../utils/errorMessages';
 import { chatFileUploadHandler } from '../../../utils/upload/createBookEditorUploadHandler';
-import { ClientVersionMismatchError } from '@/src/utils/clientVersion';
-import { reportClientVersionMismatch } from '@/src/utils/clientVersionClient';
 
 type AgentChatWrapperProps = {
     agentUrl: string_agent_url;
@@ -43,8 +43,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
         chatFailMessage,
     } = props;
 
-    const { backgroundImage, brandColorHex, brandColorLightHex, brandColorDarkHex } =
-        useAgentBackground(brandColor);
+    const { backgroundImage, brandColorHex, brandColorLightHex, brandColorDarkHex } = useAgentBackground(brandColor);
 
     const chatBackgroundStyle: CSSProperties & Record<string, string> = {
         backgroundImage: `url("${backgroundImage}")`,
