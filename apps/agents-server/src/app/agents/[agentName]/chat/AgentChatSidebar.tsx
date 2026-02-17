@@ -76,7 +76,7 @@ export function AgentChatSidebar({
     isMobileSidebarOpen,
     onCloseMobileSidebar,
 }: AgentChatSidebarProps) {
-    const widthClasses = isCollapsed ? 'w-72 md:w-16' : 'w-72 md:w-72';
+    const widthClasses = isCollapsed ? 'w-72 md:w-24' : 'w-72 md:w-72';
     const transformClasses = isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full';
     const panelTransitionClasses = 'transition-all duration-300 ease-in-out will-change-transform';
     const overlayTransitionClasses = 'transition-opacity duration-300 ease-in-out';
@@ -158,20 +158,41 @@ export function AgentChatSidebar({
 
                         <div className="flex flex-1 w-full flex-col gap-2 overflow-y-auto px-1">
                             {chats.map((chat) => {
-                                const initial = (chat.title || formatText('New chat')).charAt(0).toUpperCase();
+                                const displayTitle = chat.title || formatText('New chat');
+                                const previewText = chat.preview || formatText('No messages yet');
+                                const lastActivity = formatChatTimestamp(chat.lastMessageAt || chat.updatedAt);
+                                const initial = displayTitle.charAt(0).toUpperCase();
+                                const isActive = chat.id === activeChatId;
                                 return (
                                     <button
                                         key={chat.id}
                                         type="button"
                                         onClick={() => handleChatChoose(chat.id)}
-                                        className={`mx-auto flex h-10 w-10 items-center justify-center rounded-full border ${
-                                            chat.id === activeChatId
-                                                ? 'border-blue-400 bg-blue-50 text-blue-700'
-                                                : 'border-transparent bg-slate-100 text-slate-500'
-                                        } transition focus-visible:outline-offset-2 focus-visible:outline focus-visible:outline-blue-400`}
-                                        aria-label={chat.title || formatText('New chat')}
+                                        className={`flex w-full items-start gap-2 rounded-xl border px-2 py-2 transition focus-visible:outline-offset-2 focus-visible:outline focus-visible:outline-blue-400 ${
+                                            isActive
+                                                ? 'border-blue-300 bg-blue-50 text-blue-700 shadow-sm'
+                                                : 'border-transparent bg-slate-100/80 text-slate-700 hover:border-slate-300 hover:bg-slate-100'
+                                        }`}
+                                        aria-label={displayTitle}
+                                        title={displayTitle}
                                     >
-                                        {initial}
+                                        <span
+                                            className={`flex h-8 w-8 items-center justify-center rounded-full border text-xs font-semibold ${
+                                                isActive
+                                                    ? 'border-blue-400 bg-blue-50 text-blue-700'
+                                                    : 'border-slate-200 bg-white text-slate-400'
+                                            }`}
+                                        >
+                                            {initial}
+                                        </span>
+
+                                        <div className="flex flex-1 flex-col gap-0.5 text-[10px] leading-tight">
+                                            <span className="font-semibold text-slate-900 truncate">
+                                                {displayTitle}
+                                            </span>
+                                            <span className="text-slate-500 truncate">{previewText}</span>
+                                            <span className="text-slate-400">{lastActivity}</span>
+                                        </div>
                                     </button>
                                 );
                             })}

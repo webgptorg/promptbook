@@ -1,3 +1,4 @@
+-   Improved the Agents Server desktop collapsed chat strip so each chat now shows a short title/preview/timestamp badge (and the strip slightly widens) while the mobile sidebar return path stays unchanged.
 -   Removed the redundant desktop chat history/book headers in Agents Server so the desktop view no longer shows the extra panel below the main menu while mobile layouts remain unchanged.
 -   Removed the redundant `USE IMAGE GENERATION`, `USE IMAGE`, and `IMAGE GENERATOR` commitment aliases so only the working `USE IMAGE GENERATOR` commitment remains, reducing confusion for users and contributors.
 -   Added CDN-friendly caching headers on the Agents Server homepage (`/`) so Vercel can pre-render that route with `s-maxage`/`stale-while-revalidate` and the first visitor no longer hits a cold SSR run.
