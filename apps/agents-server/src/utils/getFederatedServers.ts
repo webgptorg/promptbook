@@ -1,12 +1,19 @@
 import { string_promptbook_server_url } from '@promptbook-local/types';
-import { getMetadata } from '../database/getMetadata';
+import { getMetadataMap } from '../database/getMetadata';
 
 /**
  * Reads FEDERATED_SERVERS metadata and returns a normalized list of server URLs.
+ *
+ * @public exported from `apps/agents-server`
  */
 export async function getFederatedServers(): Promise<string[]> {
-    const federatedServersString = (await getMetadata('FEDERATED_SERVERS')) || '';
-    const coreServer = (await getMetadata('CORE_SERVER'))!;
+    const metadata = await getMetadataMap(['FEDERATED_SERVERS', 'CORE_SERVER']);
+    const federatedServersString = metadata['FEDERATED_SERVERS'] || '';
+    const coreServer = metadata['CORE_SERVER'];
+
+    if (!coreServer) {
+        throw new Error('Missing CORE_SERVER metadata value');
+    }
 
     const federatedServers = federatedServersString
         .split(',')

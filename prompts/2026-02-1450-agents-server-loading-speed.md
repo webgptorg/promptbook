@@ -9,7 +9,7 @@
 
 ---
 
-[ ]
+[x] ~$0.14 13 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
 [✨👐] Try to speed up the loading of the page
 
@@ -40,3 +40,4 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

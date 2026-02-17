@@ -2,7 +2,7 @@ import faviconLogoImage from '@/public/favicon.ico';
 import { LayoutWrapper } from '@/src/components/LayoutWrapper/LayoutWrapper';
 import type { Metadata } from 'next';
 import { Barlow_Condensed, Poppins } from 'next/font/google';
-import { getMetadata } from '../database/getMetadata';
+import { getMetadataMap } from '../database/getMetadata';
 import { $provideServer } from '../tools/$provideServer';
 import { loadAgentOrganizationState } from '../utils/agentOrganization/loadAgentOrganizationState';
 import type { AgentOrganizationAgent, AgentOrganizationFolder } from '../utils/agentOrganization/types';
@@ -31,9 +31,10 @@ const poppins = Poppins({
 
 export async function generateMetadata(): Promise<Metadata> {
     const { publicUrl } = await $provideServer();
-    const serverName = (await getMetadata('SERVER_NAME')) || 'Promptbook Agents Server';
-    const serverDescription = (await getMetadata('SERVER_DESCRIPTION')) || 'Agents server powered by Promptbook';
-    const serverFaviconUrl = (await getMetadata('SERVER_FAVICON_URL')) || faviconLogoImage.src;
+    const metadata = await getMetadataMap(['SERVER_NAME', 'SERVER_DESCRIPTION', 'SERVER_FAVICON_URL']);
+    const serverName = metadata.SERVER_NAME || 'Promptbook Agents Server';
+    const serverDescription = metadata.SERVER_DESCRIPTION || 'Agents server powered by Promptbook';
+    const serverFaviconUrl = metadata.SERVER_FAVICON_URL || faviconLogoImage.src;
 
     return {
         title: serverName,
@@ -78,14 +79,22 @@ export default async function RootLayout({
 }>) {
     const isAdmin = await isUserAdmin();
     const currentUser = await getCurrentUser();
-    const serverName = (await getMetadata('SERVER_NAME')) || 'Promptbook Agents Server';
-    const serverLogoUrl = (await getMetadata('SERVER_LOGO_URL')) || null;
-    const isFooterShown = ((await getMetadata('IS_FOOTER_SHOWN')) || 'true') === 'true';
+    const layoutMetadata = await getMetadataMap([
+        'SERVER_NAME',
+        'SERVER_LOGO_URL',
+        'IS_FOOTER_SHOWN',
+        'FOOTER_LINKS',
+        'SHOW_FEDERATED_SERVERS_PUBLICLY',
+        'IS_EXPERIMENTAL_APP',
+    ]);
+    const serverName = layoutMetadata.SERVER_NAME || 'Promptbook Agents Server';
+    const serverLogoUrl = layoutMetadata.SERVER_LOGO_URL || null;
+    const isFooterShown = (layoutMetadata.IS_FOOTER_SHOWN ?? 'true') === 'true';
     const agentNaming = await getAgentNaming();
 
     let footerLinks = [];
     try {
-        const footerLinksString = (await getMetadata('FOOTER_LINKS')) || '[]';
+        const footerLinksString = layoutMetadata.FOOTER_LINKS || '[]';
         footerLinks = JSON.parse(footerLinksString);
     } catch (error) {
         console.error('Failed to parse FOOTER_LINKS', error);
@@ -94,8 +103,7 @@ export default async function RootLayout({
     // Fetch federated servers and add to footerLinks (only if user is authenticated or SHOW_FEDERATED_SERVERS_PUBLICLY is true)
     let federatedServers: Array<{ url: string; title: string; logoUrl: string | null }> = [];
     try {
-        const showFederatedServersPublicly =
-            ((await getMetadata('SHOW_FEDERATED_SERVERS_PUBLICLY')) || 'false') === 'true';
+        const showFederatedServersPublicly = (layoutMetadata.SHOW_FEDERATED_SERVERS_PUBLICLY ?? 'false') === 'true';
 
         // Only show federated servers in footer if user is authenticated or if SHOW_FEDERATED_SERVERS_PUBLICLY is true
         if (currentUser || showFederatedServersPublicly) {
@@ -135,7 +143,7 @@ export default async function RootLayout({
     }
 
     const chatPreferences = await getDefaultChatPreferences();
-    const isExperimental = ((await getMetadata('IS_EXPERIMENTAL_APP')) || 'false') === 'true';
+    const isExperimental = (layoutMetadata.IS_EXPERIMENTAL_APP ?? 'false') === 'true';
 
     return (
         <html lang="en">

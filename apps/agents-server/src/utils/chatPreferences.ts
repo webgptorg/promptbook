@@ -1,4 +1,4 @@
-import { getMetadata } from '../database/getMetadata';
+import { getMetadataMap } from '../database/getMetadata';
 
 const DEFAULT_IS_SOUNDS_ON_KEY = 'DEFAULT_IS_SOUNDS_ON';
 const DEFAULT_IS_VIBRATION_ON_KEY = 'DEFAULT_IS_VIBRATION_ON';
@@ -33,10 +33,13 @@ function parseBooleanMetadata(raw: string | null, fallback: boolean): boolean {
  * These defaults are used when a browser session does not yet have saved settings.
  *
  * @returns Defaults for sounds and vibration.
+ *
+ * @public exported from `apps/agents-server`
  */
 export async function getDefaultChatPreferences(): Promise<ChatPreferenceDefaults> {
-    const rawSounds = await getMetadata(DEFAULT_IS_SOUNDS_ON_KEY);
-    const rawVibration = await getMetadata(DEFAULT_IS_VIBRATION_ON_KEY);
+    const config = await getMetadataMap([DEFAULT_IS_SOUNDS_ON_KEY, DEFAULT_IS_VIBRATION_ON_KEY]);
+    const rawSounds = config[DEFAULT_IS_SOUNDS_ON_KEY];
+    const rawVibration = config[DEFAULT_IS_VIBRATION_ON_KEY];
 
     return {
         defaultIsSoundsOn: parseBooleanMetadata(rawSounds, false),
