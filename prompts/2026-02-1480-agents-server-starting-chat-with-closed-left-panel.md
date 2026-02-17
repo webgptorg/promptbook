@@ -8,7 +8,7 @@
 
 ---
 
-[ ]
+[x] ~$0.09 2 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
 [✨🐫] Remove the unnecessary second "chat history" top horizontal bar below the main menu bar of the agent server application.
 
@@ -65,3 +65,4 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

@@ -420,11 +420,6 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 </span>
             </button>
             <section className="flex-1 min-w-0 min-h-0 flex flex-col">
-                <div className="hidden items-center border-b border-slate-200 bg-white/90 px-3 py-2 shadow-sm md:flex">
-                    <span className="text-sm font-semibold text-slate-700">
-                        {formatText('Chat history')}
-                    </span>
-                </div>
                 <div className="relative flex-1 min-h-0">
                     {isSwitchingChat && (
                         <div className="absolute inset-0 z-20 bg-white/60 backdrop-blur-[1px] flex items-center justify-center text-sm text-slate-700">
