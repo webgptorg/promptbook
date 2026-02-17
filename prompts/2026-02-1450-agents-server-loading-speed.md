@@ -9,12 +9,13 @@
 
 ---
 
-[-]
+[ ]
 
-[✨👐] bar
+[✨👐] Try to speed up the loading of the page
 
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
+-   First load of the homepage of the agent server takes so long. Please analyze the reasons and try to speed it up.
+-   We are deployed on Vercel
+-   Do a proper analysis of the current state of the art and the agent server before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
@@ -39,4 +40,3 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
