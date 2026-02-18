@@ -738,7 +738,7 @@ export function AgentContextMenuButton(props: AgentContextMenuButtonProps) {
             </button>
 
             {isOpen && (
-                <div className="absolute right-0 top-full mt-2">
+                <div className="absolute right-0 top-full mt-2 z-40">
                     <AgentContextMenuContent
                         {...props}
                         installPromptEvent={installPromptEvent}
@@ -773,7 +773,7 @@ export function AgentContextMenuPopover(props: AgentContextMenuPopoverProps) {
         : { left: anchorPoint.x, top: anchorPoint.y };
 
     return (
-        <div ref={menuRef} className="fixed" style={style}>
+        <div ref={menuRef} className="fixed z-40" style={style}>
             <AgentContextMenuContent
                 {...menuProps}
                 installPromptEvent={installPromptEvent}
