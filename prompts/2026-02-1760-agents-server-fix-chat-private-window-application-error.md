@@ -1,4 +1,4 @@
-[ ] !
+[x] ~$0.19 5 minutes by OpenAI Codex `gpt-5.3-codex`
 
 [✨😬] Fix the application error which occurs in the private window in the agent profile page
 
@@ -48,3 +48,4 @@ The above error occurred in the <AgentPage> component. It was handled by the <Er
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

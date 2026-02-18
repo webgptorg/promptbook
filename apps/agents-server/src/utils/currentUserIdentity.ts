@@ -99,9 +99,10 @@ export async function ensureChatHistoryIdentity(): Promise<boolean> {
         return true;
     }
 
-    const cookieStore = await cookies();
-    const headerStore = await headers();
-    ensureAnonymousUsernameCookie(cookieStore, getAnonymousUsernameFromHeaders(headerStore) ?? undefined);
+    /**
+     * Note: Server Components can only read cookies.
+     * Anonymous username cookies are created lazily in Route Handlers via `resolveCurrentUserIdentity`.
+     */
     return true;
 }
 
