@@ -108,9 +108,7 @@ export function AgentChatSidebar({
     };
 
     const emptyStateText = formatText('No chats yet');
-    const sidebarToggleLabel = isCollapsed
-        ? formatText('Expand sidebar')
-        : formatText('Collapse sidebar');
+    const sidebarToggleLabel = isCollapsed ? formatText('Expand sidebar') : formatText('Collapse sidebar');
 
     return (
         <>
@@ -139,7 +137,7 @@ export function AgentChatSidebar({
                     </div>
                 </div>
 
-                <div className="hidden md:flex absolute inset-y-0 right-0 items-center justify-center pointer-events-none">
+                <div className="hidden md:flex absolute inset-y-0 right-0 z-10 translate-x-1/2 items-center justify-center pointer-events-none">
                     <button
                         type="button"
                         onClick={onToggleCollapse}
