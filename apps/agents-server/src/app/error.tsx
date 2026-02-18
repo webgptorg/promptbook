@@ -1,9 +1,23 @@
 'use client';
 
 import Link from 'next/link';
+import { useEffect, useRef } from 'react';
+import { ErrorPage as BasicErrorPage } from '../components/ErrorPage/ErrorPage';
+import {
+    APPLICATION_ERROR_REPORT_ENDPOINT,
+    type ApplicationBoundaryError,
+    type ApplicationErrorReportPayload,
+    type ApplicationErrorVariant,
+    DEFAULT_APPLICATION_ERROR_SERVER_NAME,
+    createApplicationErrorDigest,
+    createApplicationErrorHeadline,
+    createApplicationErrorReportPayload,
+    describeApplicationError,
+    resolveApplicationErrorVariant,
+} from '../utils/errorReporting/applicationErrorHandling';
 
 /**
- * Describes a suggestion presented to the user on the failure surface.
+ * Suggestions shown in the advanced error variant to help users recover.
  *
  * @private
  */
@@ -23,54 +37,157 @@ const troubleshootingSteps = [
 ];
 
 /**
- * Creates a deterministic digest from the provided error so operators can correlate logs.
- *
- * @param error - The captured exception that triggered the boundary.
- * @returns A zero-padded unsigned 32-bit hash string.
+ * Props accepted by shared action controls used across error variants.
  *
  * @private
  */
-function createErrorDigest(error: Error | null): string {
-    const hashSource = error?.stack ?? error?.message ?? 'unknown error';
-    let hash = 0;
+type ApplicationErrorActionsProps = {
+    /**
+     * Callback that retries the failed route transition.
+     */
+    reset: () => void;
 
-    for (let i = 0; i < hashSource.length; i += 1) {
-        hash = Math.imul(31, hash) + hashSource.charCodeAt(i);
-    }
+    /**
+     * Digest value displayed for operator correlation.
+     */
+    digest: string;
 
-    return (hash >>> 0).toString().padStart(10, '0');
+    /**
+     * Styling classes for the outer action row.
+     */
+    containerClassName: string;
+
+    /**
+     * Styling classes for the primary retry button.
+     */
+    retryButtonClassName: string;
+
+    /**
+     * Styling classes for the secondary homepage link.
+     */
+    homeButtonClassName: string;
+
+    /**
+     * Styling classes for the digest text block.
+     */
+    digestClassName: string;
+};
+
+/**
+ * Shared primary/secondary actions rendered in both simple and advanced variants.
+ *
+ * @param props - Action rendering props.
+ *
+ * @private
+ */
+function ApplicationErrorActions({
+    reset,
+    digest,
+    containerClassName,
+    retryButtonClassName,
+    homeButtonClassName,
+    digestClassName,
+}: ApplicationErrorActionsProps) {
+    return (
+        <div className={containerClassName}>
+            <button type="button" onClick={() => reset()} className={retryButtonClassName}>
+                Try again
+            </button>
+            <Link href="/" className={homeButtonClassName}>
+                Go to homepage
+            </Link>
+            <div className={digestClassName}>
+                Digest: <span className="text-current">{digest}</span>
+            </div>
+        </div>
+    );
 }
 
 /**
- * Formats the hero paragraph that mirrors the default error copy while keeping it friendly.
- *
- * @param error - The active error instance.
- * @param serverName - Server name or hostname provided by the deployment.
- * @returns A text snippet that summarizes what happened.
+ * Props accepted by the simple error variant renderer.
  *
  * @private
  */
-function describeError(error: Error | null, serverName: string): string {
-    if (error?.message) {
-        return `${error.message.trim()} - the server for ${serverName} logged this failure.`;
-    }
+type SimpleApplicationErrorViewProps = {
+    /**
+     * Primary headline shared with advanced mode.
+     */
+    headline: string;
 
-    return `A server-side exception happened while loading ${serverName}. The logs captured more detail.`;
+    /**
+     * Friendly paragraph explaining what happened.
+     */
+    description: string;
+
+    /**
+     * Digest value displayed for support correlation.
+     */
+    digest: string;
+
+    /**
+     * Callback that retries the failed route transition.
+     */
+    reset: () => void;
+};
+
+/**
+ * Compact application error presentation for lightweight deployments.
+ *
+ * @param props - Display props for the simple variant.
+ *
+ * @private
+ */
+function SimpleApplicationErrorView({ headline, description, digest, reset }: SimpleApplicationErrorViewProps) {
+    return (
+        <BasicErrorPage title="Application error" message={headline}>
+            <p className="mb-5 text-center text-sm text-gray-600">{description}</p>
+            <ApplicationErrorActions
+                reset={reset}
+                digest={digest}
+                containerClassName="flex flex-col items-center gap-3"
+                retryButtonClassName="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
+                homeButtonClassName="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100"
+                digestClassName="text-xs font-mono text-gray-500"
+            />
+        </BasicErrorPage>
+    );
 }
 
 /**
- * Secondary call-to-action metadata displayed inside the error surface.
- *
- * @param error - The Next.js error boundary payload.
- * @param reset - Callback that retries the failed navigation.
+ * Props accepted by the advanced error variant renderer.
  *
  * @private
  */
-export default function ErrorPage({ error, reset }: { error: Error; reset: () => void }) {
-    const digest = createErrorDigest(error);
-    const serverName = process.env.NEXT_PUBLIC_SERVER_NAME ?? 'Promptbook Agents Server';
-    const heroDescription = describeError(error, serverName);
+type AdvancedApplicationErrorViewProps = {
+    /**
+     * Primary headline shared with simple mode.
+     */
+    headline: string;
 
+    /**
+     * Friendly paragraph explaining what happened.
+     */
+    description: string;
+
+    /**
+     * Digest value displayed for support correlation.
+     */
+    digest: string;
+
+    /**
+     * Callback that retries the failed route transition.
+     */
+    reset: () => void;
+};
+
+/**
+ * Full-screen detailed error presentation for troubleshooting-heavy environments.
+ *
+ * @param props - Display props for the advanced variant.
+ *
+ * @private
+ */
+function AdvancedApplicationErrorView({ headline, description, digest, reset }: AdvancedApplicationErrorViewProps) {
     return (
         <div className="min-h-screen w-full bg-slate-950 text-white flex items-center justify-center px-4 py-12">
             <div className="w-full max-w-5xl space-y-8 rounded-3xl border border-white/10 bg-gradient-to-br from-slate-900/80 via-slate-900/60 to-slate-950/90 p-8 shadow-[0_20px_80px_rgba(15,23,42,0.65)] backdrop-blur">
@@ -80,30 +197,18 @@ export default function ErrorPage({ error, reset }: { error: Error; reset: () =>
                         <span>Application error</span>
                     </div>
                     <div>
-                        <h1 className="text-3xl font-semibold leading-tight text-white sm:text-4xl">
-                            A server exception occurred while loading {serverName}.
-                        </h1>
-                        <p className="mt-3 text-lg text-slate-200 sm:text-xl">{heroDescription}</p>
+                        <h1 className="text-3xl font-semibold leading-tight text-white sm:text-4xl">{headline}</h1>
+                        <p className="mt-3 text-lg text-slate-200 sm:text-xl">{description}</p>
                     </div>
                 </div>
-                <div className="flex flex-wrap items-center gap-3">
-                    <button
-                        type="button"
-                        onClick={() => reset()}
-                        className="inline-flex items-center justify-center rounded-2xl bg-indigo-500 px-6 py-3 text-sm font-semibold uppercase tracking-wide text-white transition hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-300"
-                    >
-                        Try again
-                    </button>
-                    <Link
-                        href="/"
-                        className="inline-flex items-center justify-center rounded-2xl border border-white/30 px-6 py-3 text-sm font-semibold uppercase tracking-wide text-white transition hover:border-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-                    >
-                        Go to homepage
-                    </Link>
-                    <div className="ml-auto text-xs font-mono text-slate-300">
-                        Digest: <span className="text-white">{digest}</span>
-                    </div>
-                </div>
+                <ApplicationErrorActions
+                    reset={reset}
+                    digest={digest}
+                    containerClassName="flex flex-wrap items-center gap-3"
+                    retryButtonClassName="inline-flex items-center justify-center rounded-2xl bg-indigo-500 px-6 py-3 text-sm font-semibold uppercase tracking-wide text-white transition hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-300"
+                    homeButtonClassName="inline-flex items-center justify-center rounded-2xl border border-white/30 px-6 py-3 text-sm font-semibold uppercase tracking-wide text-white transition hover:border-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                    digestClassName="ml-auto text-xs font-mono text-slate-300"
+                />
                 <div className="grid gap-4 sm:grid-cols-3">
                     {troubleshootingSteps.map((step) => (
                         <article
@@ -116,9 +221,78 @@ export default function ErrorPage({ error, reset }: { error: Error; reset: () =>
                     ))}
                 </div>
                 <p className="text-xs text-slate-400">
-                    Our team already receives the digest, but feel free to include it when reporting the issue so the logs can be correlated quickly.
+                    Our team already receives this report in Sentry, but feel free to include the digest when reporting
+                    the issue so the logs can be correlated quickly.
                 </p>
             </div>
         </div>
     );
+}
+
+/**
+ * Sends an application error payload to the server-side Sentry forwarding endpoint.
+ *
+ * @param payload - Serialized browser-side application error details.
+ *
+ * @private
+ */
+async function reportApplicationError(payload: ApplicationErrorReportPayload): Promise<void> {
+    const response = await fetch(APPLICATION_ERROR_REPORT_ENDPOINT, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+        keepalive: true,
+    });
+
+    if (!response.ok) {
+        const responseBody = await response.text();
+        throw new Error(`Failed to report application error (${response.status}): ${responseBody}`);
+    }
+}
+
+/**
+ * Error page rendered by Next.js app-router boundary for unhandled route exceptions.
+ *
+ * @param error - The Next.js boundary payload.
+ * @param reset - Callback that retries the failed navigation.
+ *
+ * @private
+ */
+export default function ApplicationErrorPage({ error, reset }: { error: ApplicationBoundaryError; reset: () => void }) {
+    const variant: ApplicationErrorVariant = resolveApplicationErrorVariant(
+        process.env.NEXT_PUBLIC_APPLICATION_ERROR_VARIANT,
+    );
+    const digest = createApplicationErrorDigest(error);
+    const serverName = process.env.NEXT_PUBLIC_SERVER_NAME ?? DEFAULT_APPLICATION_ERROR_SERVER_NAME;
+    const headline = createApplicationErrorHeadline(serverName);
+    const description = describeApplicationError(error, serverName);
+    const lastReportedErrorRef = useRef<ApplicationBoundaryError | null>(null);
+
+    useEffect(() => {
+        if (lastReportedErrorRef.current === error) {
+            return;
+        }
+
+        lastReportedErrorRef.current = error;
+
+        const reportPayload = createApplicationErrorReportPayload(
+            error,
+            digest,
+            serverName,
+            variant,
+            window.location.href,
+        );
+
+        void reportApplicationError(reportPayload).catch((reportingError) => {
+            console.error('Failed to report application error to Sentry forwarding endpoint.', reportingError);
+        });
+    }, [digest, error, serverName, variant]);
+
+    if (variant === 'simple') {
+        return <SimpleApplicationErrorView headline={headline} description={description} digest={digest} reset={reset} />;
+    }
+
+    return <AdvancedApplicationErrorView headline={headline} description={description} digest={digest} reset={reset} />;
 }
