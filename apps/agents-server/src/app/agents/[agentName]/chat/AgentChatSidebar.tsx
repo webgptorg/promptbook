@@ -66,6 +66,62 @@ type AgentChatSidebarProps = {
 };
 
 /**
+ * Shared chat-item display fields consumed by both sidebar layouts.
+ */
+type SidebarChatItemContent = {
+    /**
+     * Primary title of the chat entry.
+     */
+    readonly title: string;
+    /**
+     * Secondary preview text from the latest message.
+     */
+    readonly preview: string;
+    /**
+     * Human-friendly timestamp shown next to the chat.
+     */
+    readonly lastActivity: string;
+    /**
+     * Compact initial rendered in avatar-like chips.
+     */
+    readonly initial: string;
+    /**
+     * Fully descriptive label exposed through title/ARIA attributes.
+     */
+    readonly accessibilityLabel: string;
+};
+
+/**
+ * Extracts the first visible character and normalizes it for avatar initials.
+ */
+function getChatInitial(title: string): string {
+    const firstVisibleCharacter = title.trim().charAt(0);
+    return firstVisibleCharacter ? firstVisibleCharacter.toUpperCase() : '#';
+}
+
+/**
+ * Resolves one chat summary into reusable display content for sidebar entries.
+ */
+function resolveSidebarChatItemContent(
+    chat: UserChatSummary,
+    formatText: (text: string) => string,
+    formatChatTimestamp: (timestamp: string) => string,
+): SidebarChatItemContent {
+    const title = chat.title || formatText('New chat');
+    const preview = chat.preview || formatText('No messages yet');
+    const lastActivity = formatChatTimestamp(chat.lastMessageAt || chat.updatedAt);
+    const titleWithPreview = chat.preview ? `${title} - ${preview}` : title;
+
+    return {
+        title,
+        preview,
+        lastActivity,
+        initial: getChatInitial(title),
+        accessibilityLabel: `${titleWithPreview} (${lastActivity})`,
+    };
+}
+
+/**
  * Responsive sidebar that lists user chats and provides creation/deletion controls.
  *
  * @private Agents Server presentation logic for the agent chat experience.
@@ -85,7 +141,7 @@ export function AgentChatSidebar({
     onCloseMobileSidebar,
 }: AgentChatSidebarProps) {
     const shouldRenderCollapsed = isCollapsed && !isMobileSidebarOpen;
-    const widthClasses = isCollapsed ? 'w-72 md:w-24' : 'w-72 md:w-72';
+    const widthClasses = isCollapsed ? 'w-72 md:w-20' : 'w-72 md:w-72';
     const transformClasses = isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full';
     const panelTransitionClasses = 'transition-all duration-300 ease-in-out will-change-transform';
     const overlayTransitionClasses = 'transition-opacity duration-300 ease-in-out';
@@ -141,57 +197,57 @@ export function AgentChatSidebar({
                 </div>
 
                 {shouldRenderCollapsed ? (
-                    <div className="flex flex-col items-center gap-3 overflow-hidden px-1 py-4">
+                    <div className="flex min-h-0 flex-1 flex-col items-center gap-3 px-2 py-4">
                         <button
                             type="button"
                             onClick={handleCreateAndClose}
                             disabled={isCreatingChat}
-                            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:border-slate-300 hover:text-slate-900 disabled:opacity-60"
+                            className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:border-slate-300 hover:text-slate-900 disabled:opacity-60"
                             title={formatText('New chat')}
                         >
                             <MessageSquarePlusIcon className="h-5 w-5" />
                         </button>
 
-                        <div className="flex flex-1 w-full flex-col gap-2 overflow-y-auto px-1">
-                            {chats.map((chat) => {
-                                const displayTitle = chat.title || formatText('New chat');
-                                const previewText = chat.preview || formatText('No messages yet');
-                                const lastActivity = formatChatTimestamp(chat.lastMessageAt || chat.updatedAt);
-                                const initial = displayTitle.charAt(0).toUpperCase();
-                                const isActive = chat.id === activeChatId;
-                                return (
-                                    <button
-                                        key={chat.id}
-                                        type="button"
-                                        onClick={() => handleChatChoose(chat.id)}
-                                        className={`flex w-full items-start gap-2 rounded-xl border px-2 py-2 transition focus-visible:outline-offset-2 focus-visible:outline focus-visible:outline-blue-400 ${
-                                            isActive
-                                                ? 'border-blue-300 bg-blue-50 text-blue-700 shadow-sm'
-                                                : 'border-transparent bg-slate-100/80 text-slate-700 hover:border-slate-300 hover:bg-slate-100'
-                                        }`}
-                                        aria-label={displayTitle}
-                                        title={displayTitle}
-                                    >
-                                        <span
-                                            className={`flex h-8 w-8 items-center justify-center rounded-full border text-xs font-semibold ${
+                        <div className="flex min-h-0 w-full flex-1 flex-col gap-2 overflow-y-auto">
+                            {chats.length === 0 ? (
+                                <p className="px-1 text-center text-[11px] text-slate-500">{emptyStateText}</p>
+                            ) : (
+                                chats.map((chat) => {
+                                    const content = resolveSidebarChatItemContent(chat, formatText, formatChatTimestamp);
+                                    const isActive = chat.id === activeChatId;
+                                    return (
+                                        <button
+                                            key={chat.id}
+                                            type="button"
+                                            onClick={() => handleChatChoose(chat.id)}
+                                            className={`group relative flex w-full min-w-0 flex-col items-center gap-1 rounded-2xl border px-1.5 py-2 transition focus-visible:outline focus-visible:outline-blue-400 focus-visible:outline-offset-2 ${
                                                 isActive
-                                                    ? 'border-blue-400 bg-blue-50 text-blue-700'
-                                                    : 'border-slate-200 bg-white text-slate-400'
+                                                    ? 'border-blue-300 bg-blue-50 text-blue-700 shadow-sm'
+                                                    : 'border-transparent bg-slate-100/80 text-slate-700 hover:border-slate-300 hover:bg-slate-100'
                                             }`}
+                                            aria-label={content.accessibilityLabel}
+                                            title={content.accessibilityLabel}
                                         >
-                                            {initial}
-                                        </span>
-
-                                        <div className="flex flex-1 flex-col gap-0.5 text-[10px] leading-tight">
-                                            <span className="font-semibold text-slate-900 truncate">
-                                                {displayTitle}
+                                            <span
+                                                className={`flex h-9 w-9 items-center justify-center rounded-xl border text-xs font-semibold ${
+                                                    isActive
+                                                        ? 'border-blue-400 bg-blue-50 text-blue-700'
+                                                        : 'border-slate-200 bg-white text-slate-500'
+                                                }`}
+                                            >
+                                                {content.initial}
                                             </span>
-                                            <span className="text-slate-500 truncate">{previewText}</span>
-                                            <span className="text-slate-400">{lastActivity}</span>
-                                        </div>
-                                    </button>
-                                );
-                            })}
+                                            <span
+                                                className={`max-w-full truncate text-[10px] font-semibold leading-none ${
+                                                    isActive ? 'text-blue-700' : 'text-slate-400'
+                                                }`}
+                                            >
+                                                {content.lastActivity}
+                                            </span>
+                                        </button>
+                                    );
+                                })
+                            )}
                         </div>
 
                         <p className="text-[11px] text-slate-400">{formatText('Chats')}</p>
@@ -215,6 +271,7 @@ export function AgentChatSidebar({
                                 <p className="px-2 text-xs text-slate-500">{emptyStateText}</p>
                             ) : (
                                 chats.map((chat) => {
+                                    const content = resolveSidebarChatItemContent(chat, formatText, formatChatTimestamp);
                                     const isActive = chat.id === activeChatId;
                                     return (
                                         <div
@@ -229,15 +286,17 @@ export function AgentChatSidebar({
                                                 type="button"
                                                 className="w-full text-left px-3 py-3 pr-10"
                                                 onClick={() => handleChatChoose(chat.id)}
+                                                aria-label={content.accessibilityLabel}
+                                                title={content.accessibilityLabel}
                                             >
                                                 <div className="text-sm font-medium text-slate-800 truncate">
-                                                    {chat.title || formatText('New chat')}
+                                                    {content.title}
                                                 </div>
                                                 <div className="text-xs text-slate-500 truncate mt-1">
-                                                    {chat.preview || formatText('No messages yet')}
+                                                    {content.preview}
                                                 </div>
                                                 <div className="text-[11px] text-slate-400 mt-2">
-                                                    {formatChatTimestamp(chat.lastMessageAt || chat.updatedAt)}
+                                                    {content.lastActivity}
                                                 </div>
                                             </button>
                                             <button
