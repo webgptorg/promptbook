@@ -55,7 +55,7 @@ export default async function AgentChatPage({
         acceptLanguageHeader: requestHeaders.get('accept-language'),
     });
     const historyIdentityAvailable = await ensureChatHistoryIdentity();
-    const { chatFailMessage, isFileAttachmentsEnabled } = await loadChatConfiguration();
+    const { chatFailMessage, isFileAttachmentsEnabled, isFeedbackEnabled } = await loadChatConfiguration();
     const agentDisplayName = agentProfile.meta.fullname || agentProfile.agentName || agentName;
 
     return (
@@ -73,6 +73,7 @@ export default async function AgentChatPage({
                 isHistoryEnabled={historyIdentityAvailable}
                 chatFailMessage={chatFailMessage ?? undefined}
                 areFileAttachmentsEnabled={isFileAttachmentsEnabled}
+                isFeedbackEnabled={isFeedbackEnabled}
             />
         </main>
     );

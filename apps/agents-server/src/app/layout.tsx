@@ -86,6 +86,7 @@ export default async function RootLayout({
         'FOOTER_LINKS',
         'SHOW_FEDERATED_SERVERS_PUBLICLY',
         'IS_EXPERIMENTAL_APP',
+        'IS_FEEDBACK_ENABLED',
     ]);
     const serverName = layoutMetadata.SERVER_NAME || 'Promptbook Agents Server';
     const serverLogoUrl = layoutMetadata.SERVER_LOGO_URL || null;
@@ -144,6 +145,7 @@ export default async function RootLayout({
 
     const chatPreferences = await getDefaultChatPreferences();
     const isExperimental = (layoutMetadata.IS_EXPERIMENTAL_APP ?? 'false') === 'true';
+    const isFeedbackEnabled = (layoutMetadata.IS_FEEDBACK_ENABLED ?? 'true') === 'true';
 
     return (
         <html lang="en">
@@ -163,6 +165,7 @@ export default async function RootLayout({
                     defaultIsSoundsOn={chatPreferences.defaultIsSoundsOn}
                     defaultIsVibrationOn={chatPreferences.defaultIsVibrationOn}
                     isExperimental={isExperimental}
+                    isFeedbackEnabled={isFeedbackEnabled}
                 >
                     {children}
                 </LayoutWrapper>

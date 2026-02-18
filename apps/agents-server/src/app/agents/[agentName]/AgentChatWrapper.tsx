@@ -37,6 +37,10 @@ type AgentChatWrapperProps = {
      * When `false`, disables the chat upload UI even if file uploads are otherwise configured.
      */
     areFileAttachmentsEnabled?: boolean;
+    /**
+     * When `false`, hides the feedback UI (star button) inside the chat.
+     */
+    isFeedbackEnabled?: boolean;
     chatFailMessage?: string;
 };
 
@@ -128,9 +132,11 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
         persistenceKey,
         onMessagesChange,
         areFileAttachmentsEnabled,
+        isFeedbackEnabled,
         chatFailMessage,
     } = props;
 
+    const shouldEnableFeedback = isFeedbackEnabled ?? true;
     const { backgroundImage, brandColorHex, brandColorLightHex, brandColorDarkHex } = useAgentBackground(brandColor);
     const allowFileAttachments = areFileAttachmentsEnabled ?? true;
 
@@ -387,7 +393,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
                 className={`w-full h-full`}
                 style={chatBackgroundStyle}
                 agent={agent}
-                onFeedback={handleFeedback}
+                onFeedback={shouldEnableFeedback ? handleFeedback : undefined}
                 onFileUpload={allowFileAttachments ? handleFileUpload : undefined}
                 onError={handleError}
                 defaultMessage={defaultMessage}

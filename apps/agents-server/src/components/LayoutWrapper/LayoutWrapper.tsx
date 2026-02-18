@@ -30,6 +30,7 @@ type LayoutWrapperProps = {
     footerLinks: Array<FooterLink>;
     federatedServers: Array<{ url: string; title: string }>;
     isExperimental: boolean;
+    isFeedbackEnabled: boolean;
     defaultIsSoundsOn: boolean;
     defaultIsVibrationOn: boolean;
 };
@@ -47,6 +48,7 @@ export function LayoutWrapper({
     footerLinks,
     federatedServers,
     isExperimental,
+    isFeedbackEnabled,
     defaultIsSoundsOn,
     defaultIsVibrationOn,
 }: LayoutWrapperProps) {
@@ -77,16 +79,17 @@ export function LayoutWrapper({
                                 <ClientVersionMismatchListener />
                                 <MenuHoistingProvider>
                                     <div className="flex min-h-screen flex-col">
-                                        <Header
-                                            isAdmin={isAdmin}
-                                            currentUser={currentUser}
-                                            serverName={serverName}
-                                            serverLogoUrl={serverLogoUrl}
-                                            agents={agents}
-                                            agentFolders={agentFolders}
-                                            federatedServers={federatedServers}
-                                            isExperimental={isExperimental}
-                                        />
+                                    <Header
+                                        isAdmin={isAdmin}
+                                        currentUser={currentUser}
+                                        serverName={serverName}
+                                        serverLogoUrl={serverLogoUrl}
+                                        agents={agents}
+                                        agentFolders={agentFolders}
+                                        federatedServers={federatedServers}
+                                        isExperimental={isExperimental}
+                                        isFeedbackEnabled={isFeedbackEnabled}
+                                    />
                                         <main className={mainClassName}>{children}</main>
                                         {isFooterShown && !isFooterHiddenOnPage && <Footer extraLinks={footerLinks} />}
                                     </div>

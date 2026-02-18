@@ -38,6 +38,7 @@ type AgentChatHistoryClientProps = {
     isHistoryEnabled: boolean;
     chatFailMessage?: string;
     areFileAttachmentsEnabled: boolean;
+    isFeedbackEnabled: boolean;
 };
 
 /**
@@ -54,9 +55,10 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
         initialAutoExecuteMessage,
         initialForceNewChat = false,
         isHistoryEnabled,
-        chatFailMessage,
-        areFileAttachmentsEnabled,
-    } = props;
+    chatFailMessage,
+    areFileAttachmentsEnabled,
+    isFeedbackEnabled,
+} = props;
     const router = useRouter();
     const { formatText } = useAgentNaming();
     const { isPrivateModeEnabled } = usePrivateModePreferences();
@@ -383,17 +385,18 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             <div className="w-full h-full flex flex-col">
                 <PrivateModeHistoryBanner formatText={formatText} />
                 <div className="flex-1">
-                    <AgentChatWrapper
-                        key={`guest-${guestPersistenceKey}`}
-                        agentUrl={agentUrl}
-                        autoExecuteMessage={initialAutoExecuteMessage}
-                        brandColor={brandColor}
-                        thinkingMessages={thinkingMessages}
-                        speechRecognitionLanguage={speechRecognitionLanguage}
-                        persistenceKey={guestPersistenceKey}
-                        areFileAttachmentsEnabled={areFileAttachmentsEnabled}
-                        chatFailMessage={chatFailMessage}
-                    />
+                <AgentChatWrapper
+                    key={`guest-${guestPersistenceKey}`}
+                    agentUrl={agentUrl}
+                    autoExecuteMessage={initialAutoExecuteMessage}
+                    brandColor={brandColor}
+                    thinkingMessages={thinkingMessages}
+                    speechRecognitionLanguage={speechRecognitionLanguage}
+                    persistenceKey={guestPersistenceKey}
+                    areFileAttachmentsEnabled={areFileAttachmentsEnabled}
+                    isFeedbackEnabled={isFeedbackEnabled}
+                    chatFailMessage={chatFailMessage}
+                />
                 </div>
             </div>
         );
@@ -454,6 +457,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                         persistenceKey={buildUserChatPersistenceKey(activeChatId)}
                         onMessagesChange={handleMessagesChange}
                         areFileAttachmentsEnabled={areFileAttachmentsEnabled}
+                        isFeedbackEnabled={isFeedbackEnabled}
                         chatFailMessage={chatFailMessage}
                     />
                 </div>

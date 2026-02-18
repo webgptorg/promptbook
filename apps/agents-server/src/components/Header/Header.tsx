@@ -75,6 +75,10 @@ type HeaderProps = {
      * Is the experimental app enabled
      */
     isExperimental?: boolean;
+    /**
+     * Determines whether chat feedback should be exposed inside the menu.
+     */
+    isFeedbackEnabled?: boolean;
 };
 
 /* TODO: [🐱‍🚀] Make this Agents server native  */
@@ -979,6 +983,7 @@ export function Header(props: HeaderProps) {
         agentFolders,
         federatedServers,
         isExperimental = false,
+        isFeedbackEnabled = true,
     } = props;
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -1339,10 +1344,14 @@ export function Header(props: HeaderProps) {
             label: 'Messages & Emails',
             href: '/admin/messages',
         },
-        {
-            label: 'Chat feedback',
-            href: '/admin/chat-feedback',
-        },
+        ...(isFeedbackEnabled
+            ? [
+                  {
+                      label: 'Chat feedback',
+                      href: '/admin/chat-feedback',
+                  },
+              ]
+            : []),
         {
             label: 'Browser',
             href: '/admin/browser-test',

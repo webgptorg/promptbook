@@ -2,6 +2,7 @@ import { getMetadataMap } from '../database/getMetadata';
 
 const CHAT_FAIL_MESSAGE_KEY = 'CHAT_FAIL_MESSAGE';
 const IS_FILE_ATTACHEMENTS_ENABLED_KEY = 'IS_FILE_ATTACHEMENTS_ENABLED';
+const IS_FEEDBACK_ENABLED_KEY = 'IS_FEEDBACK_ENABLED';
 
 /**
  * Normalizes boolean metadata values, accepting only explicit `true`/`false` strings.
@@ -33,6 +34,8 @@ export type ChatConfiguration = {
     readonly chatFailMessage: string | null;
     /** Whether file attachments are allowed inside chats. */
     readonly isFileAttachmentsEnabled: boolean;
+    /** Whether chat feedback via ratings should be available to users. */
+    readonly isFeedbackEnabled: boolean;
 };
 
 /**
@@ -42,12 +45,18 @@ export type ChatConfiguration = {
  * @private Internal helper for the `apps/agents-server` chat routes.
  */
 export async function loadChatConfiguration(): Promise<ChatConfiguration> {
-    const metadata = await getMetadataMap([CHAT_FAIL_MESSAGE_KEY, IS_FILE_ATTACHEMENTS_ENABLED_KEY]);
+    const metadata = await getMetadataMap([
+        CHAT_FAIL_MESSAGE_KEY,
+        IS_FILE_ATTACHEMENTS_ENABLED_KEY,
+        IS_FEEDBACK_ENABLED_KEY,
+    ]);
     const rawChatFail = metadata[CHAT_FAIL_MESSAGE_KEY];
     const rawAttachments = metadata[IS_FILE_ATTACHEMENTS_ENABLED_KEY];
+    const rawFeedback = metadata[IS_FEEDBACK_ENABLED_KEY];
 
     return {
         chatFailMessage: rawChatFail ?? null,
         isFileAttachmentsEnabled: parseBooleanMetadata(rawAttachments, true),
+        isFeedbackEnabled: parseBooleanMetadata(rawFeedback, true),
     };
 }
