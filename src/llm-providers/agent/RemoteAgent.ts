@@ -340,6 +340,7 @@ export class RemoteAgent extends Agent {
         const toolCalls: Array<NonNullable<ChatPromptResult['toolCalls']>[number]> = [];
         const preparationToolCalls: Array<NonNullable<ChatPromptResult['toolCalls']>[number]> = [];
         let hasReceivedModelOutput = false;
+        let pendingToolCallLineFragment = '';
 
         const normalizeToolCall = (
             toolCall: NonNullable<ChatPromptResult['toolCalls']>[number],
@@ -409,6 +410,130 @@ export class RemoteAgent extends Agent {
         const getActiveToolCalls = () =>
             preparationToolCalls.length > 0 ? [...preparationToolCalls, ...toolCalls] : toolCalls;
 
+        /**
+         * Emits one progress snapshot using current aggregated text and tool calls.
+         */
+        const emitProgress = () => {
+            onProgress({
+                content,
+                modelName: this.modelName,
+                timing: {} as TODO_any,
+                usage: {} as TODO_any,
+                rawPromptContent: {} as TODO_any,
+                rawRequest: {} as TODO_any,
+                rawResponse: {} as TODO_any,
+                toolCalls: getActiveToolCalls(),
+            });
+        };
+
+        /**
+         * Attempts to parse one completed NDJSON tool-call line.
+         */
+        const tryParseToolCallLine = (trimmedLine: string): boolean => {
+            if (!trimmedLine.startsWith('{') || !trimmedLine.endsWith('}')) {
+                return false;
+            }
+
+            try {
+                const chunk = JSON.parse(trimmedLine);
+                if (!chunk.toolCalls) {
+                    return false;
+                }
+
+                const normalizedToolCalls = chunk.toolCalls.map(normalizeToolCall);
+                upsertToolCalls(normalizedToolCalls);
+                emitProgress();
+                return true;
+            } catch {
+                return false;
+            }
+        };
+
+        /**
+         * Detects whether an incomplete trailing line might be a split tool-call payload.
+         */
+        const isPotentialToolCallLineFragment = (trimmedLine: string): boolean => {
+            if (trimmedLine.length === 0) {
+                return false;
+            }
+
+            const toolCallPrefix = '{"toolCalls":';
+            return toolCallPrefix.startsWith(trimmedLine) || trimmedLine.startsWith(toolCallPrefix);
+        };
+
+        /**
+         * Appends model text to accumulated content and emits progress.
+         */
+        const appendTextChunk = (textChunk: string) => {
+            if (!textChunk) {
+                return;
+            }
+
+            content += textChunk;
+
+            if (!hasReceivedModelOutput && content.trim().length > 0) {
+                hasReceivedModelOutput = true;
+                preparationToolCalls.length = 0;
+            }
+
+            emitProgress();
+        };
+
+        /**
+         * Consumes one decoded transport chunk, removing keep-alive pings and tool-call frames.
+         *
+         * Note: Tool-call JSON is line-delimited but may arrive split across transport chunks.
+         */
+        const processDecodedChunk = (decodedChunk: string) => {
+            if (!decodedChunk) {
+                return;
+            }
+
+            const combinedChunk = pendingToolCallLineFragment + decodedChunk;
+            pendingToolCallLineFragment = '';
+
+            const hasTrailingNewline = combinedChunk.endsWith('\n') || combinedChunk.endsWith('\r');
+            const lines = combinedChunk.split(/\r?\n/);
+            const trailingFragment = hasTrailingNewline ? '' : (lines.pop() ?? '');
+
+            let hasNonEmptyText = false;
+            const textLines: Array<string> = [];
+
+            for (const line of lines) {
+                const trimmedLine = line.trim();
+                if (trimmedLine === CHAT_STREAM_KEEP_ALIVE_TOKEN) {
+                    continue;
+                }
+
+                if (tryParseToolCallLine(trimmedLine)) {
+                    continue;
+                }
+
+                textLines.push(line);
+                if (trimmedLine.length > 0) {
+                    hasNonEmptyText = true;
+                }
+            }
+
+            if (trailingFragment !== '') {
+                const trimmedTrailingFragment = trailingFragment.trim();
+                if (isPotentialToolCallLineFragment(trimmedTrailingFragment)) {
+                    pendingToolCallLineFragment = trailingFragment;
+                } else {
+                    textLines.push(trailingFragment);
+                    if (trimmedTrailingFragment.length > 0) {
+                        hasNonEmptyText = true;
+                    }
+                }
+            }
+
+            if (!hasNonEmptyText) {
+                return;
+            }
+
+            appendTextChunk(textLines.join('\n'));
+        };
+
         if (!bookResponse.body) {
             content = await bookResponse.text();
         } else {
@@ -423,89 +548,25 @@ export class RemoteAgent extends Agent {
                     doneReading = !!done;
                     if (value) {
                         const textChunk = decoder.decode(value, { stream: true });
-
-                        let hasNonEmptyText = false;
-                        const textLines: string[] = [];
-                        const lines = textChunk.split(/\r?\n/);
-                        for (const line of lines) {
-                            const trimmedLine = line.trim();
-                            if (trimmedLine === CHAT_STREAM_KEEP_ALIVE_TOKEN) {
-                                continue;
-                            }
-                            let isToolCallLine = false;
-                            if (trimmedLine.startsWith('{') && trimmedLine.endsWith('}')) {
-                                try {
-                                    const chunk = JSON.parse(trimmedLine);
-                                    if (chunk.toolCalls) {
-                                        const normalizedToolCalls = chunk.toolCalls.map(normalizeToolCall);
-                                        upsertToolCalls(normalizedToolCalls);
-                                        onProgress({
-                                            content,
-                                            modelName: this.modelName,
-                                            timing: {} as TODO_any,
-                                            usage: {} as TODO_any,
-                                            rawPromptContent: {} as TODO_any,
-                                            rawRequest: {} as TODO_any,
-                                            rawResponse: {} as TODO_any,
-                                            toolCalls: getActiveToolCalls(),
-                                        });
-                                        isToolCallLine = true;
-                                    }
-                                } catch (error) {
-                                    // Ignore non-json lines
-                                }
-                            }
-
-                            if (!isToolCallLine) {
-                                textLines.push(line);
-                                if (trimmedLine.length > 0) {
-                                    hasNonEmptyText = true;
-                                }
-                            }
-                        }
-
-                        if (!hasNonEmptyText) {
-                            continue;
-                        }
-
-                        const textChunkWithoutToolCalls = textLines.join('\n');
-                        content += textChunkWithoutToolCalls;
-
-                        if (!hasReceivedModelOutput && content.trim().length > 0) {
-                            hasReceivedModelOutput = true;
-                            preparationToolCalls.length = 0;
-                        }
-
-                        onProgress({
-                            content,
-                            modelName: this.modelName,
-                            timing: {} as TODO_any,
-                            usage: {} as TODO_any,
-                            rawPromptContent: {} as TODO_any,
-                            rawRequest: {} as TODO_any,
-                            rawResponse: {} as TODO_any,
-                            toolCalls: getActiveToolCalls(),
-                        });
+                        processDecodedChunk(textChunk);
                     }
                 }
                 // Flush any remaining decoder internal state
                 const lastChunk = decoder.decode();
                 if (lastChunk) {
-                    content += lastChunk;
-                    if (!hasReceivedModelOutput && content.trim().length > 0) {
-                        hasReceivedModelOutput = true;
-                        preparationToolCalls.length = 0;
+                    processDecodedChunk(lastChunk);
+                }
+
+                if (pendingToolCallLineFragment) {
+                    const trimmedPending = pendingToolCallLineFragment.trim();
+                    if (trimmedPending === CHAT_STREAM_KEEP_ALIVE_TOKEN) {
+                        pendingToolCallLineFragment = '';
+                    } else if (tryParseToolCallLine(trimmedPending)) {
+                        pendingToolCallLineFragment = '';
+                    } else {
+                        appendTextChunk(pendingToolCallLineFragment);
+                        pendingToolCallLineFragment = '';
                     }
-                    onProgress({
-                        content: lastChunk,
-                        modelName: this.modelName,
-                        timing: {} as TODO_any,
-                        usage: {} as TODO_any,
-                        rawPromptContent: {} as TODO_any,
-                        rawRequest: {} as TODO_any,
-                        rawResponse: {} as TODO_any,
-                        toolCalls: getActiveToolCalls(),
-                    });
                 }
             } finally {
                 reader.releaseLock();
