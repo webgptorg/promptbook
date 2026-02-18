@@ -1,12 +1,12 @@
 'use client';
 
+import { CHAT_STREAM_KEEP_ALIVE_TOKEN } from '@/src/constants/streaming';
 import { BookEditor } from '@promptbook-local/components';
 import { validateBook } from '@promptbook-local/core';
 import { ChevronDown, Save } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { AgentsPanel } from './AgentsPanel';
 import { getStories, saveStories } from './actions';
-import { CHAT_STREAM_KEEP_ALIVE_TOKEN } from '@/constants/streaming';
 import {
     createStory,
     getStoryBodyFromContent,
@@ -127,10 +127,7 @@ export function StoryClient() {
         };
     }, []);
 
-    const activeStory = useMemo(
-        () => stories.find((story) => story.id === activeStoryId),
-        [stories, activeStoryId],
-    );
+    const activeStory = useMemo(() => stories.find((story) => story.id === activeStoryId), [stories, activeStoryId]);
 
     const availableAgentLabelMap = useMemo(
         () => new Map(availableAgents.map((agent) => [agent.agentName, agent.label])),
@@ -199,9 +196,7 @@ export function StoryClient() {
             });
 
             if (!response.ok) {
-                const payload = (await response
-                    .json()
-                    .catch(() => null)) as { error?: { message?: string } } | null;
+                const payload = (await response.json().catch(() => null)) as { error?: { message?: string } } | null;
                 const errorText = payload?.error?.message ?? 'The agent refused to continue the story.';
                 throw new Error(errorText);
             }
@@ -226,9 +221,7 @@ export function StoryClient() {
             );
         } catch (error) {
             const message =
-                error instanceof Error
-                    ? error.message
-                    : 'Unable to continue the story right now. Please try again.';
+                error instanceof Error ? error.message : 'Unable to continue the story right now. Please try again.';
             console.error('Failed to continue story with agent', agentName, error);
             setAgentErrorMessage(message);
         } finally {
@@ -355,9 +348,7 @@ export function StoryClient() {
                         onAddAgent={handleAddAgent}
                         loadingAgentName={generatingAgentName}
                     />
-                    {agentErrorMessage && (
-                        <div className="px-4 py-2 text-sm text-red-700">{agentErrorMessage}</div>
-                    )}
+                    {agentErrorMessage && <div className="px-4 py-2 text-sm text-red-700">{agentErrorMessage}</div>}
                 </div>
             </div>
         </div>
