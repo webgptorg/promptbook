@@ -1,4 +1,4 @@
-[.] _<- Too expensive in 2026-02_
+[ ]
 
 [✨🙊] Refactor [`Agent.ts` file](src/llm-providers/agent/Agent.ts)
 

@@ -1,4 +1,4 @@
-[.] _<- Too expensive in 2026-02_
+[ ]
 
 [✨👤] Refactor [`BookEditorMonaco.tsx` file](src/book-components/BookEditor/BookEditorMonaco.tsx)
 

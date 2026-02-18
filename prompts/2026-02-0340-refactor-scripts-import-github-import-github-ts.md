@@ -1,4 +1,4 @@
-[.] _<- Too expensive in 2026-02_
+[ ]
 
 [✨🥱] Refactor [`import-github.ts` file](scripts/import-github/import-github.ts)
 

@@ -1,4 +1,4 @@
-[.] _<- Too expensive in 2026-02_
+[ ]
 
 [✨🚲] Refactor [`extractAllBlocksFromMarkdown.test.ts` file](src/utils/markdown/extractAllBlocksFromMarkdown.test.ts)
 

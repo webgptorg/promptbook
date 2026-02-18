@@ -1,4 +1,4 @@
-[.] _<- Too expensive in 2026-02_
+[ ]
 
 [✨💅] Refactor [`Color.ts` file](src/utils/color/Color.ts)
 
