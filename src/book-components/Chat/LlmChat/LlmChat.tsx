@@ -7,8 +7,8 @@ import type { AgentCapability } from '../../../book-2.0/agent-source/AgentBasicI
 import type { string_markdown } from '../../../types/typeAliases';
 import { DEFAULT_THINKING_MESSAGES } from '../../../utils/DEFAULT_THINKING_MESSAGES';
 import { $getCurrentDate } from '../../../utils/misc/$getCurrentDate';
-import { TODO_USE } from '../../../utils/organization/TODO_USE';
 import type { TODO_any } from '../../../utils/organization/TODO_any';
+import { TODO_USE } from '../../../utils/organization/TODO_USE';
 import { Chat } from '../Chat/Chat';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
@@ -125,6 +125,28 @@ function getRandomThinkingVariant(variants: ReadonlyArray<string>, excludeVarian
 }
 
 /**
+ * Converts unknown prompt parameter values to string values required by prompt templates.
+ */
+function normalizePromptParameters(parameters: Record<string, unknown>): Record<string, string> {
+    const normalizedEntries: Array<[string, string]> = [];
+
+    for (const [key, value] of Object.entries(parameters)) {
+        if (value === undefined || value === null) {
+            continue;
+        }
+
+        if (typeof value === 'string') {
+            normalizedEntries.push([key, value]);
+            continue;
+        }
+
+        normalizedEntries.push([key, JSON.stringify(value)]);
+    }
+
+    return Object.fromEntries(normalizedEntries);
+}
+
+/**
  * LlmChat component that provides chat functionality with LLM integration
  *
  * This component internally manages messages, participants, and task progress,
@@ -156,7 +178,10 @@ export function LlmChat(props: LlmChatProps) {
         ...restProps
     } = props;
 
-    const resolvedPromptParameters = promptParameters ?? {};
+    const resolvedPromptParameters = useMemo(
+        () => normalizePromptParameters(promptParameters ?? {}),
+        [promptParameters],
+    );
 
     const resolvedChatFailMessage = chatFailMessage || DEFAULT_CHAT_FAIL_MESSAGE;
 
@@ -492,7 +517,16 @@ export function LlmChat(props: LlmChatProps) {
                 requestInFlightRef.current = false;
             }
         },
-        [messages, llmTools, props.thread, props.promptParameters, onError, llmParticipantName, userParticipantName, thinkingVariants],
+        [
+            messages,
+            llmTools,
+            props.thread,
+            resolvedPromptParameters,
+            onError,
+            llmParticipantName,
+            userParticipantName,
+            thinkingVariants,
+        ],
     );
 
     // Handle chat reset
