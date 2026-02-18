@@ -14,14 +14,19 @@
 
 ---
 
-[-]
+[ ] !
 
-[✨🛬] qux
+[✨🛬] Make two versions of Application Error: simple and advanced.
 
+> A server exception occurred while loading Promptbook Agents Server.
+
+-   Every time, send error to Sentry.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
+-   Do a proper analysis of the current functionality of application error handling before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+![alt text](prompts/screenshots/2026-02-1370-agents-server-application-error-1.png)
 
 ---
 
@@ -44,4 +49,3 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
