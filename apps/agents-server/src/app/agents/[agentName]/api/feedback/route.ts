@@ -1,8 +1,8 @@
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
+import { resolveCanonicalAgentName } from '@/src/utils/resolveCanonicalAgentName';
 import { NextRequest, NextResponse } from 'next/server';
 import { PROMPTBOOK_ENGINE_VERSION } from '../../../../../../../../src/version';
 import { $getTableName } from '../../../../../database/$getTableName';
-import { buildAgentNameOrIdFilter } from '@/src/utils/agentIdentifier';
 
 type FeedbackRequest = {
     agentHash: string;
@@ -24,21 +24,11 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         }
 
         const supabase = $provideSupabaseForServer();
-        const agentTable = await $getTableName('Agent');
-
-        const { data: agentData, error: agentError } = await supabase
-            .from(agentTable)
-            .select('agentName')
-            .or(buildAgentNameOrIdFilter(agentName))
-            .limit(1)
-            .single();
-
-        if (agentError || !agentData) {
-            console.error('Error finding agent for feedback:', agentError);
+        const canonicalAgentName = await resolveCanonicalAgentName(agentName);
+        if (!canonicalAgentName) {
+            console.error('Error finding agent for feedback:', { agentName });
             return NextResponse.json({ message: 'Agent not found' }, { status: 404 });
         }
-
-        const canonicalAgentName = agentData.agentName;
 
         const { error } = await supabase.from(await $getTableName('ChatFeedback')).insert({
             createdAt: new Date().toISOString(),

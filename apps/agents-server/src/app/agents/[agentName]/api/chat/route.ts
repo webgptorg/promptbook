@@ -140,7 +140,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         };
         const recordChatHistoryMessage = await createChatHistoryRecorder({
             request,
-            agentName,
+            agentIdentifier: agentName,
             agentHash,
             source: 'AGENT_PAGE_CHAT',
             apiKey: null,

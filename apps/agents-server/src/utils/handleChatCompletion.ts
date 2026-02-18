@@ -356,7 +356,7 @@ export async function handleChatCompletion(
         };
         const recordChatHistoryMessage = await createChatHistoryRecorder({
             request,
-            agentName,
+            agentIdentifier: agentName,
             agentHash,
             source: 'OPENAI_API_COMPATIBILITY',
             apiKey,

@@ -1,6 +1,7 @@
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import type { AgentsServerDatabase } from '@/src/database/schema';
+import { resolveCanonicalAgentName } from '@/src/utils/resolveCanonicalAgentName';
 import { PROMPTBOOK_ENGINE_VERSION } from '@promptbook-local/core';
 import { computeHash } from '@promptbook-local/utils';
 
@@ -33,9 +34,9 @@ export type CreateChatHistoryRecorderOptions = {
      */
     request: Request;
     /**
-     * Canonical agent name used by the FK to `Agent.agentName`.
+     * Agent route identifier (`agentName` or `permanentId`).
      */
-    agentName: string;
+    agentIdentifier: string;
     /**
      * Hash of the active agent source.
      */
@@ -84,13 +85,15 @@ const CHAT_HISTORY_OPTIONAL_COLUMNS = ['source', 'apiKey'] as const;
 export async function createChatHistoryRecorder(
     options: CreateChatHistoryRecorderOptions,
 ): Promise<RecordChatHistoryMessage> {
-    const { request, agentName, agentHash, source, apiKey = null, isEnabled = true } = options;
+    const { request, agentIdentifier, agentHash, source, apiKey = null, isEnabled = true } = options;
     const supabase = $provideSupabaseForServer();
     const tableName = await $getTableName('ChatHistory');
     const userAgent = request.headers.get('user-agent');
     const ip = resolveIpAddress(request);
     const language = request.headers.get('accept-language');
     const platform = resolvePlatform(userAgent);
+    const canonicalAgentName = isEnabled ? await resolveCanonicalAgentName(agentIdentifier) : null;
+    const agentNameForInsert = canonicalAgentName || agentIdentifier;
 
     return async ({ message, previousMessageHash = null }: RecordChatHistoryMessageOptions): Promise<string> => {
         const messageHash = computeHash(message);
@@ -102,7 +105,7 @@ export async function createChatHistoryRecorder(
             createdAt: new Date().toISOString(),
             messageHash,
             previousMessageHash,
-            agentName,
+            agentName: agentNameForInsert,
             agentHash,
             message,
             promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
@@ -139,7 +142,8 @@ export async function createChatHistoryRecorder(
             const retryResult = await supabase.from(tableName).insert(rowWithoutOptionalColumns);
             if (!retryResult.error) {
                 console.warn('[ChatHistory] Insert succeeded after fallback without optional columns.', {
-                    agentName,
+                    agentIdentifier,
+                    canonicalAgentName: agentNameForInsert,
                     missingColumns: CHAT_HISTORY_OPTIONAL_COLUMNS,
                 });
                 return messageHash;
@@ -147,7 +151,8 @@ export async function createChatHistoryRecorder(
         }
 
         console.error('[ChatHistory] Failed to record message.', {
-            agentName,
+            agentIdentifier,
+            canonicalAgentName: agentNameForInsert,
             source,
             error,
         });
