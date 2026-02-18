@@ -2,7 +2,7 @@
 
 [✨🐉] baz
 
--  @@@
+-   @@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
@@ -23,9 +23,9 @@ The menu of the agent server looks like this:
     - Control panel
     - User menu with the avatar and the name of the user
 
-### My chats panel in agent profile page
+### My chats sidebar in agent profile page
 
--   The My chats panel in the agent chat page shows the list of chats with this agent, It is ordered by the last chat update time, and shows the name of the chat, the last message and the time of the last update.
+-   The My chats sidebar in the agent chat page shows the list of chats with this agent, It is ordered by the last chat update time, and shows the name of the chat, the last message and the time of the last update.
 
 ### Database migrations for Agents server
 
@@ -51,7 +51,6 @@ There are two similar concepts you should know and shouldn't confuse you:
 
 -   **Knowledge** Is a capability of an agent to have some `KNOWLEDGE` section in the source book.
 -   **Attached files** Is a capability of an agent to read files which are attached by the user in the chat.
-
 
 ---
 

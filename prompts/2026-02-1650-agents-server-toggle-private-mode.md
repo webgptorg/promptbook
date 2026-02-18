@@ -5,7 +5,7 @@
 -   In private mode, the agent should not store any information about the user in the database, including chat history, memories, and self-learning.
 -   Allow to toggle private mode in the control panel
 -   In private mode, also current memories cannot be accessed.
--   You will see current chat in my chats panel in some visually different way to be distinct as it is private.
+-   You will see current chat in my chats sidebar in some visually different way to be distinct as it is private.
 -   This is kinda stronger than toggling of the server learning.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality, control panel, my chats, memories and self-learning before you start implementing.
@@ -66,4 +66,3 @@ There are two similar concepts you should know and shouldn't confuse you:
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
