@@ -2,21 +2,23 @@
 
 [✨🚻] Fix the recording of chat history
 
--  The chat history isn't recorded properly. 
+-   The chat history isn't recorded at all in the table `ChatHistory` in the database. Fix it.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
+-   Do a proper analysis of the current functionality of recording chat history before you start implementing.
+-   If you need to do the database migration, do it.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
 
-[ ]
+[ ] !
 
 [✨🚻] Feedback record
 
--   @@@
+-   The feedback is recorded in the table `ChatFeedback` in the database but only the last message from the chat thread that the feedback is given for is recorded. Fix it.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
+-   Do a proper analysis of the current functionality of feedback submission and storage before you start implementing.
+-   If you need to do the database migration, do it.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
@@ -26,8 +28,6 @@
 
 [✨🚻] Record other metadata like timing in both chat feedback and chat history
 
--   @@@
--   Feedback
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
