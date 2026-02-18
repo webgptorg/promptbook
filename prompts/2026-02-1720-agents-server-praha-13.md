@@ -1,6 +1,23 @@
 [x] ~$0.27 30 minutes by OpenAI Codex `gpt-5.3-codex`
 
+---
+
+[ ]
+
 [✨🚻] Fix the recording of chat history
+
+```log
+[ChatHistory] Failed to record message. {
+  agentName: 'c3GobjqbReBto8',
+  source: 'AGENT_PAGE_CHAT',
+  error: {
+    code: '23503',
+    details: 'Key (agentName)=(c3GobjqbReBto8) is not present in table "local0_Agent".',
+    hint: null,
+    message: 'insert or update on table "local0_ChatHistory" violates foreign key constraint "local0_ChatHistory_agentName_fkey"'
+  }
+}
+```
 
 -   The chat history isn't recorded at all in the table `ChatHistory` in the database. Fix it.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
@@ -43,6 +60,3 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
-
-
