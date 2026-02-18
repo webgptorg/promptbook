@@ -173,7 +173,7 @@ export async function handleChatCompletion(
 ) {
     const { agentName: agentNameFromParams } = params;
 
-    const versionMismatchResponse = respondIfClientVersionIsOutdated(request, 'json');
+    const versionMismatchResponse = respondIfClientVersionIsOutdated(request, 'json', { mode: 'api' });
     if (versionMismatchResponse) {
         return versionMismatchResponse;
     }

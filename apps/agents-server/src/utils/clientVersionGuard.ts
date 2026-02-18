@@ -8,6 +8,28 @@ import {
 const TEXT_ENCODER = new TextEncoder();
 
 /**
+ * Scope describing where client-version enforcement should apply.
+ *
+ * @private Internal helper for the Agents Server.
+ */
+type ClientVersionEnforcementMode = 'frontend' | 'api';
+
+/**
+ * Options for client-version mismatch handling.
+ *
+ * @private Internal helper for the Agents Server.
+ */
+type ClientVersionGuardOptions = {
+    /**
+     * Declares whether this request should be treated as frontend or API traffic.
+     *
+     * - `frontend`: enforce only for browser-originated frontend calls.
+     * - `api`: never enforce latest frontend client version.
+     */
+    mode?: ClientVersionEnforcementMode;
+};
+
+/**
  * Inspects the incoming request headers and returns the reported client version.
  *
  * @param request - Incoming HTTP request.
@@ -76,10 +98,48 @@ export function createVersionMismatchJsonResponse(clientVersion: string | null):
 }
 
 /**
+ * Detects browser-originated requests by checking Fetch Metadata headers.
+ *
+ * @param request - Incoming request.
+ * @returns True when request likely originates from a browser fetch/navigation context.
+ *
+ * @private Internal helper for the Agents Server.
+ */
+function isBrowserRequest(request: Request): boolean {
+    return (
+        request.headers.has('sec-fetch-mode') ||
+        request.headers.has('sec-fetch-site') ||
+        request.headers.has('sec-fetch-dest')
+    );
+}
+
+/**
+ * Resolves whether the latest-client check should run for this request.
+ *
+ * @param request - Incoming request.
+ * @param mode - Target traffic mode for the endpoint.
+ * @returns True when mismatch enforcement should be evaluated.
+ *
+ * @private Internal helper for the Agents Server.
+ */
+function shouldEnforceClientVersion(request: Request, mode: ClientVersionEnforcementMode): boolean {
+    if (mode === 'api') {
+        return false;
+    }
+
+    if (request.headers.has('authorization')) {
+        return false;
+    }
+
+    return isBrowserRequest(request);
+}
+
+/**
  * Short-circuits further handling when the requesting client is not up to date.
  *
  * @param request - Incoming request.
  * @param responseType - Preferred response format when the version is outdated.
+ * @param options - Optional enforcement settings for frontend/API contexts.
  * @returns A `Response` when the client is outdated, otherwise `null`.
  *
  * @private Internal helper for the Agents Server.
@@ -87,7 +147,13 @@ export function createVersionMismatchJsonResponse(clientVersion: string | null):
 export function respondIfClientVersionIsOutdated(
     request: Request,
     responseType: 'stream' | 'json',
+    options: ClientVersionGuardOptions = {},
 ): Response | null {
+    const mode = options.mode ?? 'frontend';
+    if (!shouldEnforceClientVersion(request, mode)) {
+        return null;
+    }
+
     const clientVersion = getClientVersionFromRequest(request);
     if (isClientVersionCompatible(clientVersion)) {
         return null;
