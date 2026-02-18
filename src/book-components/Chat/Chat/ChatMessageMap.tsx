@@ -295,10 +295,8 @@ function useLeafletGeoJsonMap(containerRef: RefObject<HTMLDivElement | null>, da
 
         const geoJsonLayer = L.geoJSON(data, {
             style: getGeoJsonFeatureStyle,
-            pointToLayer: (feature: ChatGeoJsonFeature, latlng: LatLng) =>
-                createPointOfInterestMarker(feature, latlng),
-            onEachFeature: (feature: ChatGeoJsonFeature, layer: Layer) =>
-                decorateGeoJsonLayer(feature, layer),
+            pointToLayer: (feature: ChatGeoJsonFeature, latlng: LatLng) => createPointOfInterestMarker(feature, latlng),
+            onEachFeature: (feature: ChatGeoJsonFeature, layer: Layer) => decorateGeoJsonLayer(feature, layer),
         });
 
         geoJsonLayer.addTo(map);

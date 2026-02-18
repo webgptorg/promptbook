@@ -287,8 +287,8 @@ function getRuntimeAdapterOrDisabledResult(
         const message = runtimeContext.isPrivateMode
             ? 'Memory is disabled because private mode is active.'
             : runtimeContext.isTeamConversation
-                ? 'Memory is disabled for TEAM conversations.'
-                : 'Memory is disabled for unauthenticated users.';
+            ? 'Memory is disabled for TEAM conversations.'
+            : 'Memory is disabled for unauthenticated users.';
 
         return {
             adapter: null,
