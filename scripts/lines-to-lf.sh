@@ -27,7 +27,6 @@ folders=(
     "jest.config.js"
     "jest.setup.js"
     "package.json"
-    "PROGRAMMING.md"
 )
 
 for fileOrFolder in "${folders[@]}"; do
