@@ -84,6 +84,7 @@ export function AgentChatSidebar({
     isMobileSidebarOpen,
     onCloseMobileSidebar,
 }: AgentChatSidebarProps) {
+    const shouldRenderCollapsed = isCollapsed && !isMobileSidebarOpen;
     const widthClasses = isCollapsed ? 'w-72 md:w-24' : 'w-72 md:w-72';
     const transformClasses = isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full';
     const panelTransitionClasses = 'transition-all duration-300 ease-in-out will-change-transform';
@@ -113,18 +114,10 @@ export function AgentChatSidebar({
         <>
             <aside
                 id={AGENT_CHAT_SIDEBAR_ID}
-                className={`fixed inset-y-0 left-0 z-[60] relative flex flex-col border-r border-slate-200 bg-white/95 shadow-xl backdrop-blur ${panelTransitionClasses} md:static md:shadow-none md:bg-white/90 ${widthClasses} ${transformClasses} md:translate-x-0`}
+                className={`fixed inset-y-0 left-0 z-[60] flex flex-col border-r border-slate-200 bg-white/95 shadow-xl backdrop-blur ${panelTransitionClasses} md:static md:shadow-none md:bg-white/90 ${widthClasses} ${transformClasses} md:translate-x-0`}
             >
                 <div className="flex items-center justify-between border-b border-slate-200 px-3 py-2">
                     <div className="flex items-center gap-1">
-                        <button
-                            type="button"
-                            onClick={onToggleCollapse}
-                            className="p-1 text-slate-500 hover:text-slate-900 focus-visible:outline-offset-2 focus-visible:outline focus-visible:outline-blue-400 md:hidden"
-                            aria-label={sidebarToggleLabel}
-                        >
-                            <SidebarToggleArrow direction={isCollapsed ? 'RIGHT' : 'LEFT'} className="h-4 w-4" />
-                        </button>
                         <button
                             type="button"
                             className="md:hidden p-1 text-slate-500 hover:text-slate-900 focus-visible:outline-offset-2 focus-visible:outline focus-visible:outline-blue-400"
@@ -147,7 +140,7 @@ export function AgentChatSidebar({
                     </button>
                 </div>
 
-                {isCollapsed ? (
+                {shouldRenderCollapsed ? (
                     <div className="flex flex-col items-center gap-3 overflow-hidden px-1 py-4">
                         <button
                             type="button"
