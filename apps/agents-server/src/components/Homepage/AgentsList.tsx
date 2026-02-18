@@ -13,14 +13,14 @@ import {
     type DragEndEvent,
     type DragOverEvent,
     type DragStartEvent,
-    type UniqueIdentifier,
     type DraggableAttributes,
     type DraggableSyntheticListeners,
+    type UniqueIdentifier,
 } from '@dnd-kit/core';
 import { SortableContext, rectSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { TODO_any, string_url } from '@promptbook-local/types';
-import { ArrowUp, FolderPlusIcon, GripVertical, Grid, Network, TrashIcon } from 'lucide-react';
+import { ArrowUp, FolderPlusIcon, Grid, GripVertical, Network, TrashIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState, type CSSProperties, type MouseEvent } from 'react';
@@ -39,10 +39,6 @@ import { QrCodeModal } from '../AgentProfile/QrCodeModal';
 import { useAgentBackground } from '../AgentProfile/useAgentBackground';
 import { showAlert, showConfirm, showPrompt } from '../AsyncDialogs/asyncDialogs';
 import { AgentCard } from './AgentCard';
-import { AgentsGraph } from './AgentsGraph';
-import { FileCard } from './FileCard';
-import { FolderCard } from './FolderCard';
-import { HOMEPAGE_AGENT_GRID_CLASS } from './gridLayout';
 import {
     buildFolderMaps,
     buildFolderPath,
@@ -53,6 +49,10 @@ import {
     resolveFolderIdFromPath,
     sortBySortOrder,
 } from './agentOrganizationUtils';
+import { AgentsGraph } from './AgentsGraph';
+import { FileCard } from './FileCard';
+import { FolderCard } from './FolderCard';
+import { HOMEPAGE_AGENT_GRID_CLASS } from './gridLayout';
 
 /**
  * Local agent payload with optional federation metadata.
@@ -174,6 +174,10 @@ function useIsTouchInput() {
             return;
         }
         const mediaQueryList = window.matchMedia(TOUCH_INPUT_MEDIA_QUERY);
+        const legacyMediaQueryList = mediaQueryList as MediaQueryList & {
+            addListener?: (listener: (event: MediaQueryListEvent) => void) => void;
+            removeListener?: (listener: (event: MediaQueryListEvent) => void) => void;
+        };
         const handleMediaChange = () => {
             updateTouchInput();
         };
@@ -182,8 +186,8 @@ function useIsTouchInput() {
             mediaQueryList.addEventListener('change', handleMediaChange);
             return () => void mediaQueryList.removeEventListener('change', handleMediaChange);
         }
-        mediaQueryList.addListener(handleMediaChange);
-        return () => void mediaQueryList.removeListener(handleMediaChange);
+        legacyMediaQueryList.addListener?.(handleMediaChange);
+        return () => void legacyMediaQueryList.removeListener?.(handleMediaChange);
     }, []);
 
     return isTouchInput;
@@ -380,9 +384,9 @@ function SortableAgentCard({
         <div
             ref={setNodeRef}
             style={style}
-            className={`relative ${canOrganize ? 'select-none' : ''} ${
-                isDragging ? 'opacity-0' : ''
-            } ${isDropTarget ? 'ring-2 ring-blue-400 ring-offset-2 ring-offset-white' : ''}`}
+            className={`relative ${canOrganize ? 'select-none' : ''} ${isDragging ? 'opacity-0' : ''} ${
+                isDropTarget ? 'ring-2 ring-blue-400 ring-offset-2 ring-offset-white' : ''
+            }`}
             {...dragProps}
             onContextMenu={(event) => onContextMenu?.(event, agent)}
         >
@@ -500,9 +504,7 @@ function SortableFolderCard({
         <div
             ref={setNodeRef}
             style={style}
-            className={`relative ${canOrganize ? 'select-none' : ''} ${
-                isDragging ? 'opacity-0' : ''
-            } ${dropClasses}`}
+            className={`relative ${canOrganize ? 'select-none' : ''} ${isDragging ? 'opacity-0' : ''} ${dropClasses}`}
             {...dragProps}
         >
             <FolderCard
@@ -1292,9 +1294,9 @@ export function AgentsList(props: AgentsListProps) {
 
         const confirmed = await showConfirm({
             title: 'Delete folder',
-            message: `${formatText('Delete folder')} "${folder.name}"? ${formatText('It will move')} ${agentCount} ${formatText(
-                'agents',
-            )} and ${subfolderCount} subfolders to the Recycle Bin.`,
+            message: `${formatText('Delete folder')} "${folder.name}"? ${formatText(
+                'It will move',
+            )} ${agentCount} ${formatText('agents')} and ${subfolderCount} subfolders to the Recycle Bin.`,
             confirmLabel: 'Delete folder',
             cancelLabel: 'Cancel',
         }).catch(() => false);

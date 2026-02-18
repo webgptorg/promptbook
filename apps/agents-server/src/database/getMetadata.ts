@@ -7,7 +7,7 @@ import { metadataDefaults } from './metadataDefaults';
  *
  * @private Internal helper for metadata lookups in `apps/agents-server`.
  */
-const metadataDefaultsMap = new Map(metadataDefaults.map((metadata) => [metadata.key, metadata.value]));
+const metadataDefaultsMap = new Map<string, string>(metadataDefaults.map((metadata) => [metadata.key, metadata.value]));
 
 /**
  * Get metadata value by key
@@ -43,10 +43,7 @@ export async function getMetadataMap(keys: readonly string[]): Promise<Record<st
     const supabase = $provideSupabase();
     const table = await $getTableName('Metadata');
 
-    const { data } = await supabase
-        .from(table)
-        .select('key, value')
-        .in('key', uniqueKeys);
+    const { data } = await supabase.from(table).select('key, value').in('key', uniqueKeys);
 
     const loadedMap = new Map<string, string | null>();
     for (const row of data ?? []) {

@@ -4,6 +4,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { AgentCapability } from '../../../book-2.0/agent-source/AgentBasicInformation';
+import type { Prompt } from '../../../types/Prompt';
 import type { string_markdown } from '../../../types/typeAliases';
 import { DEFAULT_THINKING_MESSAGES } from '../../../utils/DEFAULT_THINKING_MESSAGES';
 import { $getCurrentDate } from '../../../utils/misc/$getCurrentDate';
@@ -178,7 +179,7 @@ export function LlmChat(props: LlmChatProps) {
         ...restProps
     } = props;
 
-    const resolvedPromptParameters = useMemo(
+    const resolvedPromptParameters = useMemo<Record<string, string>>(
         () => normalizePromptParameters(promptParameters ?? {}),
         [promptParameters],
     );
@@ -408,7 +409,7 @@ export function LlmChat(props: LlmChatProps) {
                 const currentHistory = messages.filter((m) => m.isComplete);
                 const thread = props.thread ? [...props.thread] : [...currentHistory, userMessage];
 
-                const prompt = {
+                const prompt: Prompt = {
                     title: 'User Message',
                     content: messageContent as string_markdown,
                     parameters: resolvedPromptParameters,

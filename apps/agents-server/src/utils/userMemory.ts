@@ -1,8 +1,8 @@
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import type { AgentsServerDatabase } from '@/src/database/schema';
-import type { UserInfo } from '@/src/utils/getCurrentUser';
 import { resolveCurrentUserIdentity } from '@/src/utils/currentUserIdentity';
+import type { UserInfo } from '@/src/utils/getCurrentUser';
 
 /**
  * Database row shape for `UserMemory` table.
@@ -97,6 +97,7 @@ export async function resolveCurrentUserMemoryIdentity(): Promise<ResolvedCurren
         const resolvedUser: UserInfo = identity.sessionUser ?? {
             username: identity.username,
             isAdmin: identity.isAdmin,
+            profileImageUrl: null,
         };
 
         return {
@@ -120,11 +121,7 @@ export async function listUserMemories(options: ListUserMemoriesOptions): Promis
     let rows: UserMemoryRow[] = [];
 
     if (!agentPermanentId) {
-        const { data, error } = await supabase
-            .from(tableName)
-            .select('*')
-            .eq('userId', userId)
-            .is('deletedAt', null);
+        const { data, error } = await supabase.from(tableName).select('*').eq('userId', userId).is('deletedAt', null);
         if (error) {
             throw new Error(`Failed to list user memories: ${error.message}`);
         }
@@ -273,9 +270,7 @@ export async function deleteUserMemory(options: DeleteUserMemoryOptions): Promis
  *
  * @private Internal helper for user memory services.
  */
-export async function findUserMemoryRecordById(
-    options: FindUserMemoryByIdOptions,
-): Promise<UserMemoryRecord | null> {
+export async function findUserMemoryRecordById(options: FindUserMemoryByIdOptions): Promise<UserMemoryRecord | null> {
     const row = await findUserMemoryRowById(options);
     if (!row) {
         return null;

@@ -1,6 +1,14 @@
 import { $randomBase58 } from '../../../../src/utils/random/$randomBase58';
-import type { Headers as NextHeaders } from 'next/dist/server/web/spec-extension/headers';
-import type { RequestCookies } from 'next/dist/server/web/spec-extension/cookies';
+
+type CookieReader = {
+    get(name: string): { value: string } | undefined;
+};
+
+type CookieStore = CookieReader & {
+    set?: (cookie: { name: string; value: string; httpOnly?: boolean; path?: string; maxAge?: number }) => void;
+};
+
+type HeaderReader = Pick<Headers, 'get'>;
 
 /**
  * Cookie name that keeps the current anonymous username on the client.
@@ -49,7 +57,7 @@ export function isAnonymousUsername(value: unknown): value is string {
 /**
  * Reads the anonymous username from the provided cookies object.
  */
-export function getAnonymousUsernameFromCookies(cookies: RequestCookies): string | null {
+export function getAnonymousUsernameFromCookies(cookies: CookieReader): string | null {
     const stored = cookies.get(ANONYMOUS_USER_COOKIE_NAME);
     if (!stored?.value) {
         return null;
@@ -61,14 +69,17 @@ export function getAnonymousUsernameFromCookies(cookies: RequestCookies): string
 /**
  * Ensures the anonymous username cookie exists and returns its value.
  */
-export function ensureAnonymousUsernameCookie(cookies: RequestCookies, preferredUsername?: string): string {
+export function ensureAnonymousUsernameCookie(cookies: CookieStore, preferredUsername?: string): string {
     const existing = getAnonymousUsernameFromCookies(cookies);
     if (existing) {
         return existing;
     }
 
-    const candidate = preferredUsername && isAnonymousUsername(preferredUsername) ? preferredUsername : generateAnonymousUsername();
-    cookies.set(ANONYMOUS_USER_COOKIE_NAME, candidate, {
+    const candidate =
+        preferredUsername && isAnonymousUsername(preferredUsername) ? preferredUsername : generateAnonymousUsername();
+    cookies.set?.({
+        name: ANONYMOUS_USER_COOKIE_NAME,
+        value: candidate,
         httpOnly: true,
         path: '/',
         maxAge: ANONYMOUS_USERNAME_COOKIE_MAX_AGE_SECONDS,
@@ -80,7 +91,7 @@ export function ensureAnonymousUsernameCookie(cookies: RequestCookies, preferred
 /**
  * Reads the anonymous username from incoming headers if provided.
  */
-export function getAnonymousUsernameFromHeaders(headers: NextHeaders): string | null {
+export function getAnonymousUsernameFromHeaders(headers: HeaderReader): string | null {
     const value = headers.get('x-anonymous-username');
     if (!value) {
         return null;

@@ -607,9 +607,7 @@ function GraphSummaryCard({ label, value, helperText }: GraphSummaryCardProps) {
         <div className="flex flex-col justify-between rounded-2xl border border-slate-200 bg-slate-50/60 px-4 py-3 shadow-sm">
             <div className="text-3xl font-semibold leading-tight text-slate-900 tabular-nums">{value}</div>
             <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{label}</div>
-            {helperText ? (
-                <p className="mt-1 text-[10px] font-medium text-slate-400">{helperText}</p>
-            ) : null}
+            {helperText ? <p className="mt-1 text-[10px] font-medium text-slate-400">{helperText}</p> : null}
         </div>
     );
 }
@@ -983,12 +981,9 @@ const buildGraphLayoutNodes = (params: {
     }
 
     const serverLayouts = serverGroups.map((serverGroup) => {
-        const folderLayouts = serverGroup.folders.map((folder) => {
+        const folderLayouts: FolderLayout[] = serverGroup.folders.map((folder): FolderLayout => {
             const agentCount = folder.agents.length;
-            const agentColumns = Math.max(
-                1,
-                Math.min(AGENT_MAX_COLUMNS, Math.ceil(Math.sqrt(agentCount || 1))),
-            );
+            const agentColumns = Math.max(1, Math.min(AGENT_MAX_COLUMNS, Math.ceil(Math.sqrt(agentCount || 1))));
             const rows = Math.max(1, Math.ceil(agentCount / agentColumns));
             const contentWidth = agentColumns * NODE_WIDTH + Math.max(0, agentColumns - 1) * AGENT_HORIZONTAL_GAP;
             const contentHeight = rows * NODE_HEIGHT + Math.max(0, rows - 1) * AGENT_VERTICAL_GAP;
@@ -1005,7 +1000,7 @@ const buildGraphLayoutNodes = (params: {
                 agentColumns,
                 contentWidth,
                 contentHeight,
-            } satisfies FolderLayout;
+            };
         });
 
         const folderColumnCount = Math.max(1, Math.ceil(Math.sqrt(folderLayouts.length)));
@@ -1152,17 +1147,11 @@ const buildGraphLayoutNodes = (params: {
                 const row = Math.floor(agentIndex / folderLayout.agentColumns);
                 const horizontalAvailable = folderLayout.width - FOLDER_PADDING_X * 2;
                 const horizontalOffset = Math.max(0, (horizontalAvailable - folderLayout.contentWidth) / 2);
-                const agentX =
-                    FOLDER_PADDING_X +
-                    horizontalOffset +
-                    column * (NODE_WIDTH + AGENT_HORIZONTAL_GAP);
+                const agentX = FOLDER_PADDING_X + horizontalOffset + column * (NODE_WIDTH + AGENT_HORIZONTAL_GAP);
                 const verticalAvailable = folderLayout.height - FOLDER_PADDING_Y * 2 - FOLDER_HEADER_HEIGHT;
                 const verticalOffset = Math.max(0, (verticalAvailable - folderLayout.contentHeight) / 2);
                 const agentY =
-                    FOLDER_HEADER_HEIGHT +
-                    FOLDER_PADDING_Y +
-                    verticalOffset +
-                    row * (NODE_HEIGHT + AGENT_VERTICAL_GAP);
+                    FOLDER_HEADER_HEIGHT + FOLDER_PADDING_Y + verticalOffset + row * (NODE_HEIGHT + AGENT_VERTICAL_GAP);
 
                 const storedPosition = storedPositions[agent.id];
                 const finalPosition =
@@ -1408,10 +1397,7 @@ export function AgentsGraph(props: AgentsGraphProps) {
         const rootLabel = formatText('Agents');
         return buildServerGroups(graphData.nodes, folders, normalizedPublicUrl, rootLabel);
     }, [graphData.nodes, folders, normalizedPublicUrl, formatText]);
-    const graphSummary = useMemo(
-        () => buildGraphSummaryInfo(graphData, serverGroups),
-        [graphData, serverGroups],
-    );
+    const graphSummary = useMemo(() => buildGraphSummaryInfo(graphData, serverGroups), [graphData, serverGroups]);
 
     /**
      * Open the agent page or federated agent URL when a node is clicked.

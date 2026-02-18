@@ -16,9 +16,9 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
+import type { MouseEvent, ReactNode } from 'react';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import type { MouseEvent, ReactNode } from 'react';
 import { HamburgerMenu } from '../../../../../src/book-components/_common/HamburgerMenu/HamburgerMenu';
 import { useMenuHoisting } from '../../../../../src/book-components/_common/MenuHoisting/MenuHoistingContext';
 import { resolveAgentAvatarImageUrl } from '../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
@@ -180,10 +180,7 @@ function DropdownSubMenuPortal({
             const canOpenOnRight = anchorRect.right + gap + panelWidth <= viewportWidth - 16;
             const left = canOpenOnRight
                 ? anchorRect.right + gap
-                : Math.max(
-                      16,
-                      Math.min(anchorRect.left - gap - panelWidth, viewportWidth - panelWidth - 16),
-                  );
+                : Math.max(16, Math.min(anchorRect.left - gap - panelWidth, viewportWidth - panelWidth - 16));
 
             const top = Math.min(Math.max(12, anchorRect.top), viewportHeight - 48);
             setPosition({ left, top });
@@ -999,7 +996,7 @@ export function Header(props: HeaderProps) {
     const [isCreatingAgent, setIsCreatingAgent] = useState(false);
     const dropdownPortalContainer = useDropdownPortalContainer();
     const [openSubMenu, setOpenSubMenu] = useState<OpenSubMenuState | null>(null);
-    const subMenuCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const subMenuCloseTimer = useRef<ReturnType<typeof window.setTimeout> | null>(null);
     const router = useRouter();
     const pathname = usePathname();
     const isHeadless = useIsHeadless();
@@ -1040,17 +1037,13 @@ export function Header(props: HeaderProps) {
 
     const scheduleSubMenuClose = (key: string) => {
         cancelSubMenuClose();
-        subMenuCloseTimer.current = window.setTimeout(() => {
+        subMenuCloseTimer.current = setTimeout(() => {
             setOpenSubMenu((current) => (current?.key === key ? null : current));
             subMenuCloseTimer.current = null;
         }, SUBMENU_CLOSE_DELAY_MS);
     };
 
-    const handleSubMenuMouseEnter = (
-        key: string,
-        items: SubMenuItem[],
-        event: MouseEvent<HTMLDivElement>,
-    ) => {
+    const handleSubMenuMouseEnter = (key: string, items: SubMenuItem[], event: MouseEvent<HTMLDivElement>) => {
         cancelSubMenuClose();
         const rect = event.currentTarget.getBoundingClientRect();
         setOpenSubMenu({

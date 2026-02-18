@@ -1,10 +1,9 @@
-import { cookies, headers } from 'next/headers';
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import type { AgentsServerDatabase } from '@/src/database/schema';
+import { cookies, headers } from 'next/headers';
+import { ensureAnonymousUsernameCookie, getAnonymousUsernameFromHeaders } from './anonymousUser';
 import { getCurrentUser, type UserInfo } from './getCurrentUser';
-import { ensureAnonymousUsernameCookie } from './anonymousUser';
-import { getAnonymousUsernameFromHeaders } from './anonymousUser';
 
 /**
  * Placeholder password hash used when auto-creating database users.
@@ -57,8 +56,8 @@ export type ResolvedCurrentUserIdentity = {
  * or falling back to an anonymous username stored in cookies.
  */
 export async function resolveCurrentUserIdentity(): Promise<ResolvedCurrentUserIdentity | null> {
-    const cookieStore = cookies();
-    const headerStore = headers();
+    const cookieStore = await cookies();
+    const headerStore = await headers();
     const sessionUser = await getCurrentUser();
 
     if (sessionUser) {
@@ -78,12 +77,8 @@ export async function resolveCurrentUserIdentity(): Promise<ResolvedCurrentUserI
     }
 
     const preferredFromHeader = getAnonymousUsernameFromHeaders(headerStore);
-    const anonymousUsername = ensureAnonymousUsernameCookie(cookieStore, preferredFromHeader);
-    const anonymousRow = await findOrCreateUserRow(
-        anonymousUsername,
-        false,
-        GENERATED_USER_PASSWORD_HASH_PLACEHOLDER,
-    );
+    const anonymousUsername = ensureAnonymousUsernameCookie(cookieStore, preferredFromHeader ?? undefined);
+    const anonymousRow = await findOrCreateUserRow(anonymousUsername, false, GENERATED_USER_PASSWORD_HASH_PLACEHOLDER);
 
     return {
         userId: anonymousRow.id,
@@ -104,9 +99,9 @@ export async function ensureChatHistoryIdentity(): Promise<boolean> {
         return true;
     }
 
-    const cookieStore = cookies();
-    const headerStore = headers();
-    ensureAnonymousUsernameCookie(cookieStore, getAnonymousUsernameFromHeaders(headerStore));
+    const cookieStore = await cookies();
+    const headerStore = await headers();
+    ensureAnonymousUsernameCookie(cookieStore, getAnonymousUsernameFromHeaders(headerStore) ?? undefined);
     return true;
 }
 
