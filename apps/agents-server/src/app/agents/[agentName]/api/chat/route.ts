@@ -1,17 +1,16 @@
-import { $getTableName } from '@/src/database/$getTableName';
-import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideOpenAiAgentKitExecutionToolsForServer } from '@/src/tools/$provideOpenAiAgentKitExecutionToolsForServer';
 import { AgentKitCacheManager } from '@/src/utils/cache/AgentKitCacheManager';
 import { ensureNonEmptyChatContent } from '@/src/utils/chat/ensureNonEmptyChatContent';
+import { createChatHistoryRecorder } from '@/src/utils/chat/createChatHistoryRecorder';
 import { createChatStreamHandler } from '@/src/utils/createChatStreamHandler';
 import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
 import { composePromptParametersWithMemoryContext } from '@/src/utils/memoryRuntimeContext';
 import { appendChatAttachmentContext, normalizeChatAttachments } from '@/src/utils/chat/chatAttachments';
 import { resolveCurrentUserMemoryIdentity } from '@/src/utils/userMemory';
-import { Agent, computeAgentHash, PROMPTBOOK_ENGINE_VERSION, RemoteAgent } from '@promptbook-local/core';
+import { Agent, computeAgentHash, RemoteAgent } from '@promptbook-local/core';
 import type { ChatMessage } from '@promptbook-local/components';
-import { $getCurrentDate, computeHash, serializeError } from '@promptbook-local/utils';
+import { $getCurrentDate, serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
 import { ASSISTANT_PREPARATION_TOOL_CALL_NAME } from '../../../../../../../../src/types/ToolCall';
 import { keepUnused } from '../../../../../../../../src/utils/organization/keepUnused';
@@ -132,16 +131,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         const baseOpenAiTools = await $provideOpenAiAgentKitExecutionToolsForServer();
 
         const agentHash = computeAgentHash(agentSource);
-        const userAgent = request.headers.get('user-agent');
-        const ip =
-            request.headers.get('x-forwarded-for') ||
-            request.headers.get('x-real-ip') ||
-            request.headers.get('x-client-ip');
-
-        // Note: Capture language and platform information
-        const language = request.headers.get('accept-language');
-        // Simple platform extraction from userAgent parentheses content (e.g., Windows NT 10.0; Win64; x64)
-        const platform = userAgent ? userAgent.match(/\(([^)]+)\)/)?.[1] : undefined; // <- TODO: [🧠] Improve platform parsing
 
         // Note: Identify the user message
         const userMessageContent = {
@@ -149,27 +138,18 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             content: message,
             attachments,
         };
-
-        // Record the user message
-        const supabase = $provideSupabaseForServer();
-        if (!isPrivateModeEnabled) {
-            await supabase.from(await $getTableName('ChatHistory')).insert({
-                createdAt: new Date().toISOString(),
-                messageHash: computeHash(userMessageContent),
-                previousMessageHash: null, // <- TODO: [🧠] How to handle previous message hash?
-                agentName,
-                agentHash,
-                message: userMessageContent,
-                promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
-                url: request.url,
-                ip,
-                userAgent,
-                language,
-                platform,
-                source: 'AGENT_PAGE_CHAT',
-                apiKey: null,
-            });
-        }
+        const recordChatHistoryMessage = await createChatHistoryRecorder({
+            request,
+            agentName,
+            agentHash,
+            source: 'AGENT_PAGE_CHAT',
+            apiKey: null,
+            isEnabled: !isPrivateModeEnabled,
+        });
+        const userMessageHash = await recordChatHistoryMessage({
+            message: userMessageContent,
+            previousMessageHash: null, // <- TODO: [🧠] How to handle previous message hash?
+        });
 
         const encoder = new TextEncoder();
         const readableStream = new ReadableStream({
@@ -258,25 +238,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                         content: normalizedResponse.content,
                     };
 
-                    // Record the agent message
-                    if (!isPrivateModeEnabled) {
-                        await supabase.from(await $getTableName('ChatHistory')).insert({
-                            createdAt: new Date().toISOString(),
-                            messageHash: computeHash(agentMessageContent),
-                            previousMessageHash: computeHash(userMessageContent),
-                            agentName,
-                            agentHash,
-                            message: agentMessageContent,
-                            promptbookEngineVersion: PROMPTBOOK_ENGINE_VERSION,
-                            url: request.url,
-                            ip,
-                            userAgent,
-                            language,
-                            platform,
-                            source: 'AGENT_PAGE_CHAT',
-                            apiKey: null,
-                        });
-                    }
+                    await recordChatHistoryMessage({
+                        message: agentMessageContent,
+                        previousMessageHash: userMessageHash,
+                    });
 
                     // Note: [🐱‍🚀] Save the learned data
                     if (!isPrivateModeEnabled) {
