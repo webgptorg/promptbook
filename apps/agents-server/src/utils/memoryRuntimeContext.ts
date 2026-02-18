@@ -5,6 +5,10 @@ import {
     type ToolRuntimeContext,
 } from '../../../../src/commitments/_common/toolRuntimeContext';
 import type { ResolvedCurrentUserMemoryIdentity } from './userMemory';
+import {
+    parseUserLocationPromptParameter,
+    USER_LOCATION_PROMPT_PARAMETER,
+} from './userLocationPromptParameter';
 
 /**
  * Input for composing prompt parameters with memory runtime context.
@@ -25,9 +29,13 @@ export function composePromptParametersWithMemoryContext(
 ): Record<string, string> {
     const { baseParameters, currentUserIdentity, agentPermanentId, agentName, isPrivateModeEnabled } = options;
     const normalizedBaseParameters = normalizePromptParameters(baseParameters);
+    const runtimeLocationContext = parseUserLocationPromptParameter(
+        normalizedBaseParameters[USER_LOCATION_PROMPT_PARAMETER],
+    );
+    const filteredBaseParameters = excludeInternalRuntimeParameters(normalizedBaseParameters);
 
     const existingRuntimeContext =
-        parseToolRuntimeContext(normalizedBaseParameters[TOOL_RUNTIME_CONTEXT_PARAMETER]) || {};
+        parseToolRuntimeContext(filteredBaseParameters[TOOL_RUNTIME_CONTEXT_PARAMETER]) || {};
     const isTeamConversation = existingRuntimeContext.memory?.isTeamConversation === true;
     const isPrivateMode = isPrivateModeEnabled === true;
     const isMemoryEnabled = Boolean(currentUserIdentity && !isTeamConversation && !isPrivateMode);
@@ -44,10 +52,11 @@ export function composePromptParametersWithMemoryContext(
             isTeamConversation,
             isPrivateMode,
         },
+        userLocation: runtimeLocationContext ?? existingRuntimeContext.userLocation,
     };
 
     return {
-        ...normalizedBaseParameters,
+        ...filteredBaseParameters,
         [TOOL_RUNTIME_CONTEXT_PARAMETER]: serializeToolRuntimeContext(mergedRuntimeContext),
     };
 }
@@ -72,4 +81,12 @@ function normalizePromptParameters(parameters: Record<string, unknown>): Record<
     }
 
     return Object.fromEntries(normalizedEntries);
+}
+
+/**
+ * Removes internal prompt parameters that are meant only for runtime-context transport.
+ */
+function excludeInternalRuntimeParameters(parameters: Record<string, string>): Record<string, string> {
+    const filteredEntries = Object.entries(parameters).filter(([key]) => key !== USER_LOCATION_PROMPT_PARAMETER);
+    return Object.fromEntries(filteredEntries);
 }

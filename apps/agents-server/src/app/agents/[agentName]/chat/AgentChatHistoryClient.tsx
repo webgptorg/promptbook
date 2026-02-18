@@ -360,7 +360,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
 
             saveTimersRef.current.set(chatId, nextTimer);
         },
-        [activeChatId, agentName, isHistoryEnabled],
+        [activeChatId, agentName, shouldUseHistory],
     );
 
     const autoMessageTargetId = autoExecuteTargetChatIdRef.current;

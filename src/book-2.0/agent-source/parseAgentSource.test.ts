@@ -220,6 +220,22 @@ describe('parseAgentSource', () => {
         expect(result.samples).toContainEqual({ question: null, answer: 'Hello! I am ready to help you.' });
     });
 
+    it('parses USE USER LOCATION capability', () => {
+        const agentSource = validateBook(
+            spaceTrim(`
+                Agent Name
+                USE USER LOCATION
+            `),
+        );
+        const result = parseAgentSource(agentSource);
+
+        expect(result.capabilities).toContainEqual({
+            type: 'user-location',
+            label: 'User location',
+            iconName: 'MapPin',
+        });
+    });
+
     it('parses IMAGE and COLOR aliases', () => {
         const agentSource = validateBook(
             spaceTrim(`

@@ -3,8 +3,9 @@
 import { usePromise } from '@common/hooks/usePromise';
 import { AgentChat, ChatMessage } from '@promptbook-local/components';
 import { RemoteAgent } from '@promptbook-local/core';
+import type { ToolCall } from '@promptbook-local/types';
 import { ClientVersionMismatchError } from '@promptbook-local/utils';
-import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { OpenAiSpeechRecognition } from '../../../../../../src/speech-recognition/OpenAiSpeechRecognition';
 import { string_agent_url } from '../../../../../../src/types/typeAliases';
 import { useAgentBackground } from '../../../components/AgentProfile/useAgentBackground';
@@ -16,6 +17,11 @@ import { createDefaultChatEffects } from '../../../utils/chat/createDefaultChatE
 import { reportClientVersionMismatch } from '../../../utils/clientVersionClient';
 import type { FriendlyErrorMessage } from '../../../utils/errorMessages';
 import { handleChatError } from '../../../utils/errorMessages';
+import {
+    serializeUserLocationPromptParameter,
+    USER_LOCATION_PROMPT_PARAMETER,
+    type UserLocationPromptParameter,
+} from '../../../utils/userLocationPromptParameter';
 import { chatFileUploadHandler } from '../../../utils/upload/createBookEditorUploadHandler';
 
 type AgentChatWrapperProps = {
@@ -33,6 +39,81 @@ type AgentChatWrapperProps = {
     areFileAttachmentsEnabled?: boolean;
     chatFailMessage?: string;
 };
+
+/**
+ * Tool function name used by USE USER LOCATION.
+ */
+const USER_LOCATION_TOOL_NAME = 'get_user_location';
+
+/**
+ * Location-tool status that means browser should request geolocation.
+ */
+const USER_LOCATION_UNAVAILABLE_STATUS = 'unavailable';
+
+/**
+ * Geolocation error code for denied permissions.
+ */
+const GEOLOCATION_PERMISSION_DENIED_CODE = 1;
+
+/**
+ * Timeout used for browser geolocation lookup.
+ */
+const GEOLOCATION_REQUEST_TIMEOUT_MS = 15_000;
+
+/**
+ * Location tool result payload shape.
+ */
+type UserLocationToolResult = {
+    status?: string;
+};
+
+/**
+ * Parses location tool result into structured object.
+ */
+function parseUserLocationToolResult(result: unknown): UserLocationToolResult | null {
+    if (!result) {
+        return null;
+    }
+
+    if (typeof result === 'object') {
+        return result as UserLocationToolResult;
+    }
+
+    if (typeof result !== 'string') {
+        return null;
+    }
+
+    try {
+        const parsed = JSON.parse(result);
+        if (!parsed || typeof parsed !== 'object') {
+            return null;
+        }
+
+        return parsed as UserLocationToolResult;
+    } catch {
+        return null;
+    }
+}
+
+/**
+ * Builds a stable marker for one location tool call so it is handled at most once.
+ */
+function createLocationToolCallMarker(toolCall: ToolCall): string {
+    const resultMarker = typeof toolCall.result === 'string' ? toolCall.result : JSON.stringify(toolCall.result ?? null);
+    return `${toolCall.name}|${toolCall.createdAt || ''}|${resultMarker}`;
+}
+
+/**
+ * Returns true when this tool call should trigger browser geolocation request.
+ */
+function shouldRequestBrowserUserLocation(toolCall: ToolCall): boolean {
+    if (toolCall.name !== USER_LOCATION_TOOL_NAME) {
+        return false;
+    }
+
+    const parsedResult = parseUserLocationToolResult(toolCall.result);
+    return parsedResult?.status === USER_LOCATION_UNAVAILABLE_STATUS;
+}
 
 // TODO: [🐱‍🚀] Rename to AgentChatSomethingWrapper
 
@@ -77,6 +158,11 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
     const [currentError, setCurrentError] = useState<FriendlyErrorMessage | null>(null);
     const [retryCallback, setRetryCallback] = useState<(() => void) | null>(null);
     const [chatKey, setChatKey] = useState<number>(0);
+    const [userLocationPromptParameter, setUserLocationPromptParameter] = useState<UserLocationPromptParameter | null>(
+        null,
+    );
+    const isLocationRequestInFlightRef = useRef(false);
+    const handledLocationToolCallMarkersRef = useRef<Set<string>>(new Set());
 
     const handleFeedback = useCallback(
         async (feedback: {
@@ -183,12 +269,112 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
         setChatKey((prevKey) => prevKey + 1); // Increment key to force re-mount
     }, []);
 
+    /**
+     * Requests geolocation from browser and stores it for next prompt calls.
+     */
+    const requestBrowserUserLocation = useCallback(async () => {
+        if (isLocationRequestInFlightRef.current) {
+            return;
+        }
+
+        if (typeof window === 'undefined' || !navigator.geolocation) {
+            setUserLocationPromptParameter({
+                permission: 'unavailable',
+            });
+            return;
+        }
+
+        isLocationRequestInFlightRef.current = true;
+
+        try {
+            const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+                navigator.geolocation.getCurrentPosition(resolve, reject, {
+                    enableHighAccuracy: true,
+                    timeout: GEOLOCATION_REQUEST_TIMEOUT_MS,
+                    maximumAge: 0,
+                });
+            });
+
+            setUserLocationPromptParameter({
+                permission: 'granted',
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude,
+                accuracyMeters: position.coords.accuracy,
+                altitudeMeters: position.coords.altitude,
+                headingDegrees: position.coords.heading,
+                speedMetersPerSecond: position.coords.speed,
+                timestamp: new Date(position.timestamp).toISOString(),
+            });
+        } catch (error) {
+            const geolocationError = error as GeolocationPositionError;
+            const permission = geolocationError?.code === GEOLOCATION_PERMISSION_DENIED_CODE ? 'denied' : 'unavailable';
+            setUserLocationPromptParameter({ permission });
+        } finally {
+            isLocationRequestInFlightRef.current = false;
+        }
+    }, []);
+
+    /**
+     * Finds the newest location-tool call that asks for browser location.
+     */
+    const findPendingLocationToolCall = useCallback((messages: ReadonlyArray<ChatMessage>): ToolCall | null => {
+        for (let index = messages.length - 1; index >= 0; index--) {
+            const message = messages[index];
+            if (!message) {
+                continue;
+            }
+
+            const toolCalls = message.toolCalls || message.completedToolCalls;
+            if (!toolCalls || toolCalls.length === 0) {
+                continue;
+            }
+
+            for (const toolCall of toolCalls) {
+                if (shouldRequestBrowserUserLocation(toolCall)) {
+                    return toolCall;
+                }
+            }
+        }
+
+        return null;
+    }, []);
+
     const handleMessagesChange = useCallback(
         (messages: ReadonlyArray<ChatMessage>) => {
             onMessagesChange?.(messages);
+
+            const toolCall = findPendingLocationToolCall(messages);
+            if (!toolCall) {
+                return;
+            }
+
+            const marker = createLocationToolCallMarker(toolCall);
+            if (handledLocationToolCallMarkersRef.current.has(marker)) {
+                return;
+            }
+            handledLocationToolCallMarkersRef.current.add(marker);
+
+            if (userLocationPromptParameter?.permission) {
+                return;
+            }
+
+            void requestBrowserUserLocation();
         },
-        [onMessagesChange],
+        [findPendingLocationToolCall, onMessagesChange, requestBrowserUserLocation, userLocationPromptParameter],
     );
+
+    const promptParameters = useMemo(() => {
+        const parameters: Record<string, unknown> = {
+            selfLearningEnabled: effectiveSelfLearningEnabled,
+        };
+
+        if (userLocationPromptParameter) {
+            parameters[USER_LOCATION_PROMPT_PARAMETER] =
+                serializeUserLocationPromptParameter(userLocationPromptParameter);
+        }
+
+        return parameters;
+    }, [effectiveSelfLearningEnabled, userLocationPromptParameter]);
 
     if (!agent) {
         return <>{/* <- TODO: [🐱‍🚀] <PromptbookLoading /> */}</>;
@@ -216,7 +402,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
                 speechRecognitionLanguage={speechRecognitionLanguage}
                 isSpeechPlaybackEnabled={isSpeechFeaturesEnabled}
                 chatFailMessage={chatFailMessage}
-                promptParameters={{ selfLearningEnabled: effectiveSelfLearningEnabled }}
+                promptParameters={promptParameters}
             />
             <ChatErrorDialog
                 error={currentError}

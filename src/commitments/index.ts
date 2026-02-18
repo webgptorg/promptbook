@@ -39,6 +39,7 @@ import { UseImageGeneratorCommitmentDefinition } from './USE_IMAGE_GENERATOR/USE
 import { UseMcpCommitmentDefinition } from './USE_MCP/USE_MCP';
 import { UseSearchEngineCommitmentDefinition } from './USE_SEARCH_ENGINE/USE_SEARCH_ENGINE';
 import { UseTimeCommitmentDefinition } from './USE_TIME/USE_TIME';
+import { UseUserLocationCommitmentDefinition } from './USE_USER_LOCATION/USE_USER_LOCATION';
 import { NotYetImplementedCommitmentDefinition } from './_base/NotYetImplementedCommitmentDefinition';
 
 /**
@@ -105,6 +106,7 @@ export const COMMITMENT_REGISTRY = [
     new UseBrowserCommitmentDefinition(),
     new UseSearchEngineCommitmentDefinition(),
     new UseTimeCommitmentDefinition(),
+    new UseUserLocationCommitmentDefinition(),
     new UseEmailCommitmentDefinition(),
     new UseImageGeneratorCommitmentDefinition('USE IMAGE GENERATOR'),
     new UseMcpCommitmentDefinition(),

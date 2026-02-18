@@ -49,6 +49,7 @@ export type AgentCapability = {
         | 'search-engine'
         | 'knowledge'
         | 'time'
+        | 'user-location'
         | 'inheritance'
         | 'import'
         | 'image-generator'

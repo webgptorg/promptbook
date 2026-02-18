@@ -114,6 +114,15 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
             continue;
         }
 
+        if (commitment.type === 'USE USER LOCATION') {
+            capabilities.push({
+                type: 'user-location',
+                label: 'User location',
+                iconName: 'MapPin',
+            });
+            continue;
+        }
+
         if (commitment.type === 'USE EMAIL' /* || commitment.type === 'EMAIL' || commitment.type === 'MAIL' */) {
             capabilities.push({
                 type: 'email',

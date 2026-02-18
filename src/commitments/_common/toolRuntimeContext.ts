@@ -15,6 +15,22 @@ export const TOOL_RUNTIME_CONTEXT_PARAMETER = 'promptbookToolRuntimeContext';
 export const TOOL_RUNTIME_CONTEXT_ARGUMENT = '__promptbookToolRuntimeContext';
 
 /**
+ * User geolocation payload shared with tools through hidden runtime context.
+ *
+ * @private internal runtime wiring for commitment tools
+ */
+export type UserLocationRuntimeContext = {
+    permission?: 'granted' | 'denied' | 'unavailable';
+    latitude?: number;
+    longitude?: number;
+    accuracyMeters?: number;
+    altitudeMeters?: number | null;
+    headingDegrees?: number | null;
+    speedMetersPerSecond?: number | null;
+    timestamp?: string;
+};
+
+/**
  * Runtime context shape shared across commitment tools.
  *
  * @private internal runtime wiring for commitment tools
@@ -29,6 +45,7 @@ export type ToolRuntimeContext = {
         isTeamConversation?: boolean;
         isPrivateMode?: boolean;
     };
+    userLocation?: UserLocationRuntimeContext;
 };
 
 /**

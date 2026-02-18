@@ -57,6 +57,7 @@ export const TOOL_TITLES: Record<string, { title: string; emoji: string }> = {
     run_browser: { title: 'Running browser', emoji: '🌐' },
     get_current_time: { title: 'Checking time', emoji: '🕒' },
     useTime: { title: 'Checking time', emoji: '🕒' },
+    get_user_location: { title: 'Checking location', emoji: '📍' },
     send_email: { title: 'Sending email', emoji: '📧' },
     useEmail: { title: 'Sending email', emoji: '📧' },
     // Add more tools here as needed
