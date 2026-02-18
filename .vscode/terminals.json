@@ -298,7 +298,7 @@
             "name": "⚡🚀💪 Run Coding Agent (💤)(💸)(⏳)",
             "commands": [
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
-                "npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --agent openai-codex --model gpt-5.3-codex"
+                "npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --agent openai-codex --model gpt-5.3-codex --priority 1"
             ],
             "execute": false,
             "onlySingle": false,
