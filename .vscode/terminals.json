@@ -336,7 +336,7 @@
             "focus": true
         },
         {
-            "name": "🏭🩹 Fix end of lines to LF",
+            "name": "🏭🩹 Fix end of lines to CRLF -> LF",
             "command": "./scripts/lines-to-lf.sh",
             "execute": true,
             "onlySingle": true,
