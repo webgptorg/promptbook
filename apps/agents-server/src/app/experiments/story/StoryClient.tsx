@@ -6,11 +6,14 @@ import { ChevronDown, Save } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { AgentsPanel } from './AgentsPanel';
 import { getStories, saveStories } from './actions';
+import { CHAT_STREAM_KEEP_ALIVE_TOKEN } from '@/constants/streaming';
 import {
     createStory,
+    getStoryBodyFromContent,
     getStoryTitleFromContent,
     type Story,
     type StoryAvailableAgent,
+    type StoryMode,
 } from './storyUtils';
 
 const STORY_EXPORT_FORMATS = [
@@ -39,6 +42,8 @@ export function StoryClient() {
     const [isLoadingStories, setIsLoadingStories] = useState(true);
     const [availableAgents, setAvailableAgents] = useState<Array<StoryAvailableAgent>>([]);
     const [isSaveMenuOpen, setIsSaveMenuOpen] = useState(false);
+    const [generatingAgentName, setGeneratingAgentName] = useState<string | null>(null);
+    const [agentErrorMessage, setAgentErrorMessage] = useState<string | null>(null);
 
     useEffect(() => {
         getStories()
@@ -171,20 +176,64 @@ export function StoryClient() {
     };
 
     const handleAgentClick = async (agentName: string) => {
-        if (!activeStory) {
+        if (!activeStory || generatingAgentName) {
             return;
         }
 
         const agentLabel = availableAgentLabelMap.get(agentName) || agentName;
-        const continuationPrefix = activeStory.mode === 'dramatic' ? `\n\n${agentLabel}: ` : '\n\n';
+        const storyId = activeStory.id;
+        const requestMessage = buildStoryContinuationMessage(activeStory, agentLabel);
 
-        // TODO: Call `/agents/${agentName}/api/chat` and append generated continuation.
-        const continuation =
-            activeStory.mode === 'dramatic'
-                ? `(${agentLabel} continues the dialogue...)`
-                : `[${agentLabel}] continues the story...`;
+        setGeneratingAgentName(agentName);
+        setAgentErrorMessage(null);
 
-        handleContentChange(`${activeStory.content}${continuationPrefix}${continuation}`);
+        try {
+            const response = await fetch(`/agents/${encodeURIComponent(agentName)}/api/chat`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    message: requestMessage,
+                }),
+            });
+
+            if (!response.ok) {
+                const payload = (await response
+                    .json()
+                    .catch(() => null)) as { error?: { message?: string } } | null;
+                const errorText = payload?.error?.message ?? 'The agent refused to continue the story.';
+                throw new Error(errorText);
+            }
+
+            const rawText = await response.text();
+            const sanitized = sanitizeAgentResponse(rawText);
+            const formattedParagraph = formatParagraphForMode(sanitized, activeStory.mode, agentLabel);
+
+            if (formattedParagraph.length === 0) {
+                throw new Error('The agent returned an empty paragraph. Please try again.');
+            }
+
+            setStories((currentStories) =>
+                currentStories.map((story) =>
+                    story.id === storyId
+                        ? {
+                              ...story,
+                              content: appendParagraphToStoryContent(story.content, formattedParagraph),
+                          }
+                        : story,
+                ),
+            );
+        } catch (error) {
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : 'Unable to continue the story right now. Please try again.';
+            console.error('Failed to continue story with agent', agentName, error);
+            setAgentErrorMessage(message);
+        } finally {
+            setGeneratingAgentName(null);
+        }
     };
 
     if (isLoadingStories) {
@@ -304,9 +353,110 @@ export function StoryClient() {
                         selectedAgentNames={activeStory.agentNames}
                         onAgentClick={handleAgentClick}
                         onAddAgent={handleAddAgent}
+                        loadingAgentName={generatingAgentName}
                     />
+                    {agentErrorMessage && (
+                        <div className="px-4 py-2 text-sm text-red-700">{agentErrorMessage}</div>
+                    )}
                 </div>
             </div>
         </div>
     );
+}
+
+/**
+ * Builds the prompt message sent to an agent to continue the story.
+ *
+ * @param story - Story data driving the continuation.
+ * @param agentLabel - Display name of the agent that should continue the story.
+ * @returns The user message sent to `/api/chat`.
+ */
+function buildStoryContinuationMessage(story: Story, agentLabel: string): string {
+    const title = getStoryTitleFromContent(story.content);
+    const body = getStoryBodyFromContent(story.content).trim();
+    const storyContext = body.length > 0 ? body : 'The story is just beginning.';
+    const instructions =
+        story.mode === 'dramatic'
+            ? `You are ${agentLabel}. Continue the scene with one paragraph of dialogue that starts with "${agentLabel}:" and keeps the tone dramatic.`
+            : `You are ${agentLabel}. Continue the narrative with one paragraph that flows naturally from the existing story.`;
+
+    return [
+        `Story title: ${title}`,
+        `Story mode: ${story.mode}`,
+        '',
+        'Current story:',
+        storyContext,
+        '',
+        instructions,
+        'Return only the paragraph you write and do not mention you are AI.',
+    ].join('\n');
+}
+
+/**
+ * Removes keep-alive pings and tool call payloads from the raw text returned by the agent.
+ *
+ * @param rawText - Raw markdown stream returned by `/agents/[agentName]/api/chat`.
+ * @returns Cleaned paragraph that can be appended to the story.
+ */
+function sanitizeAgentResponse(rawText: string): string {
+    const normalized = rawText.replace(/\r\n/g, '\n');
+    const keepAliveSequence = `\n${CHAT_STREAM_KEEP_ALIVE_TOKEN}\n`;
+    let cleaned = '';
+    let index = 0;
+
+    while (index < normalized.length) {
+        if (normalized.startsWith(keepAliveSequence, index)) {
+            index += keepAliveSequence.length;
+            continue;
+        }
+
+        if (normalized.startsWith('\n{"toolCalls":', index)) {
+            const nextLineIndex = normalized.indexOf('\n', index + 1);
+            index = nextLineIndex === -1 ? normalized.length : nextLineIndex + 1;
+            continue;
+        }
+
+        cleaned += normalized[index];
+        index += 1;
+    }
+
+    return cleaned.trim();
+}
+
+/**
+ * Ensures the generated paragraph matches the selected story mode.
+ *
+ * @param paragraph - Sanitized paragraph returned by the agent.
+ * @param mode - Currently selected story mode.
+ * @param agentLabel - Display name of the agent that continues the story.
+ * @returns Paragraph adjusted for the story mode.
+ */
+function formatParagraphForMode(paragraph: string, mode: StoryMode, agentLabel: string): string {
+    const trimmedParagraph = paragraph.trim();
+    if (trimmedParagraph.length === 0) {
+        return '';
+    }
+
+    if (mode === 'dramatic' && !trimmedParagraph.startsWith(`${agentLabel}:`)) {
+        return `${agentLabel}: ${trimmedParagraph}`;
+    }
+
+    return trimmedParagraph;
+}
+
+/**
+ * Appends the generated paragraph as a new paragraph to the story content.
+ *
+ * @param content - Existing story content including title and body.
+ * @param paragraph - Paragraph to append.
+ * @returns Story content with the new paragraph appended as a separate section.
+ */
+function appendParagraphToStoryContent(content: string, paragraph: string): string {
+    const trimmedStory = content.trimEnd();
+    const trimmedParagraph = paragraph.trim();
+    if (trimmedParagraph.length === 0) {
+        return trimmedStory;
+    }
+
+    return `${trimmedStory}\n\n${trimmedParagraph}\n`;
 }

@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.09 8 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
 [✨🎗] Make the story application work.
 
@@ -46,3 +46,4 @@
 -   You are working with the [Agents Server](apps/agents-server) with the [Story experimental application](apps/agents-server/src/app/experiments/story) _(running on `/experiments/story`)_.
 
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

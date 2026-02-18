@@ -12,12 +12,19 @@ type AgentsPanelProps = {
     selectedAgentNames: ReadonlyArray<string>;
     onAgentClick: (agentName: string) => void;
     onAddAgent: (agentName: string) => void;
+    loadingAgentName?: string | null;
 };
 
 /**
  * Renders selected agents and lets the user trigger them to continue the story.
  */
-export function AgentsPanel({ availableAgents, selectedAgentNames, onAgentClick, onAddAgent }: AgentsPanelProps) {
+export function AgentsPanel({
+    availableAgents,
+    selectedAgentNames,
+    onAgentClick,
+    onAddAgent,
+    loadingAgentName = null,
+}: AgentsPanelProps) {
     const agentLabelMap = new Map(availableAgents.map((agent) => [agent.agentName, agent.label]));
 
     return (
@@ -41,7 +48,13 @@ export function AgentsPanel({ availableAgents, selectedAgentNames, onAgentClick,
                             <button
                                 key={agentName}
                                 onClick={() => onAgentClick(agentName)}
-                                className="flex min-w-20 flex-col items-center gap-2 rounded-lg px-3 py-2 hover:bg-gray-200"
+                                disabled={loadingAgentName === agentName}
+                                aria-busy={loadingAgentName === agentName}
+                                className={`flex min-w-20 flex-col items-center gap-2 rounded-lg px-3 py-2 ${
+                                    loadingAgentName === agentName
+                                        ? 'cursor-not-allowed opacity-70'
+                                        : 'hover:bg-gray-200'
+                                }`}
                             >
                                 <Image
                                     src={`/agents/${encodeURIComponent(agentName)}/images/default-avatar.png`}
@@ -50,7 +63,9 @@ export function AgentsPanel({ availableAgents, selectedAgentNames, onAgentClick,
                                     height={64}
                                     className="h-16 w-16 rounded-full"
                                 />
-                                <span className="max-w-24 truncate text-sm">{label}</span>
+                                <span className="max-w-24 truncate text-sm">
+                                    {loadingAgentName === agentName ? 'Writing...' : label}
+                                </span>
                             </button>
                         );
                     })
