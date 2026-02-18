@@ -1,7 +1,6 @@
 import { removeMarkdownFormatting } from '@promptbook-local/markdown-utils';
 import type { really_any } from '@promptbook-local/types';
 import { marked } from 'marked';
-// @ts-expect-error: Zeptomail types are not resolving correctly
 import { SendMailClient } from 'zeptomail';
 import { MessageProvider } from '../../interfaces/MessageProvider';
 import { OutboundEmail } from '../_common/Email';
