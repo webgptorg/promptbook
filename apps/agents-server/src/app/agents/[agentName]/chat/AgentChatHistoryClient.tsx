@@ -468,11 +468,9 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             ? initialAutoExecuteMessage
             : undefined;
 
-    useEffect(() => {
-        if (autoExecuteMessage) {
-            hasInitialAutoMessageBeenConsumedRef.current = true;
-        }
-    }, [autoExecuteMessage]);
+    const handleAutoExecuteMessageConsumed = useCallback(() => {
+        hasInitialAutoMessageBeenConsumedRef.current = true;
+    }, []);
 
     if (!shouldUseHistory) {
         return (
@@ -481,6 +479,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 <div className="flex-1">
                     <AgentChatWrapper
                         key={`guest-${guestPersistenceKey}`}
+                        agentName={agentName}
                         agentUrl={agentUrl}
                         autoExecuteMessage={initialAutoExecuteMessage}
                         brandColor={brandColor}
@@ -490,6 +489,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                         areFileAttachmentsEnabled={areFileAttachmentsEnabled}
                         isFeedbackEnabled={isFeedbackEnabled}
                         chatFailMessage={chatFailMessage}
+                        onAutoExecuteMessageConsumed={handleAutoExecuteMessageConsumed}
                     />
                 </div>
             </div>
@@ -543,6 +543,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
 
                     <AgentChatWrapper
                         key={`${activeChatId}:${activeChatMountKey}`}
+                        agentName={agentName}
                         agentUrl={agentUrl}
                         autoExecuteMessage={autoExecuteMessage}
                         brandColor={brandColor}
@@ -554,6 +555,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                         isFeedbackEnabled={isFeedbackEnabled}
                         chatFailMessage={chatFailMessage}
                         onStartNewChat={handleStartNewChatFromChatSurface}
+                        onAutoExecuteMessageConsumed={handleAutoExecuteMessageConsumed}
                     />
                 </div>
 

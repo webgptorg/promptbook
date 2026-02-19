@@ -6,6 +6,10 @@ import { createChatHistoryRecorder } from '@/src/utils/chat/createChatHistoryRec
 import { createChatStreamHandler } from '@/src/utils/createChatStreamHandler';
 import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
 import { composePromptParametersWithMemoryContext } from '@/src/utils/memoryRuntimeContext';
+import {
+    resolveMetaDisclaimerMarkdownFromAgentSource,
+    resolveMetaDisclaimerStatusForUser,
+} from '@/src/utils/metaDisclaimer';
 import { appendChatAttachmentContext, normalizeChatAttachments } from '@/src/utils/chat/chatAttachments';
 import { resolveCurrentUserMemoryIdentity } from '@/src/utils/userMemory';
 import { Agent, computeAgentHash, RemoteAgent } from '@promptbook-local/core';
@@ -114,6 +118,46 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         const agentId = await collection.getAgentPermanentId(agentName);
         const agentSource = await collection.getAgentSource(agentName);
         const currentUserIdentity = await resolveCurrentUserMemoryIdentity();
+        const disclaimerMarkdown = resolveMetaDisclaimerMarkdownFromAgentSource(agentSource);
+
+        if (disclaimerMarkdown) {
+            if (!currentUserIdentity) {
+                return new Response(
+                    JSON.stringify({
+                        error: {
+                            message: 'You must accept the disclaimer before chatting with this agent.',
+                            type: 'meta_disclaimer_required',
+                        },
+                    }),
+                    {
+                        status: 403,
+                        headers: { 'Content-Type': 'application/json' },
+                    },
+                );
+            }
+
+            const disclaimerStatus = await resolveMetaDisclaimerStatusForUser({
+                userId: currentUserIdentity.userId,
+                agentPermanentId: agentId,
+                agentSource,
+            });
+
+            if (!disclaimerStatus.accepted) {
+                return new Response(
+                    JSON.stringify({
+                        error: {
+                            message: 'You must accept the disclaimer before chatting with this agent.',
+                            type: 'meta_disclaimer_required',
+                        },
+                    }),
+                    {
+                        status: 403,
+                        headers: { 'Content-Type': 'application/json' },
+                    },
+                );
+            }
+        }
+
         const incomingParameters =
             rawParameters && typeof rawParameters === 'object' && !Array.isArray(rawParameters)
                 ? (rawParameters as Record<string, unknown>)

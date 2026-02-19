@@ -272,6 +272,11 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
             continue;
         }
 
+        if (commitment.type === 'META DISCLAIMER') {
+            meta.disclaimer = commitment.content;
+            continue;
+        }
+
         if (commitment.type === 'META COLOR') {
             meta.color = normalizeSeparator(commitment.content);
             continue;

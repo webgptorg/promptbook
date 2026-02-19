@@ -3,6 +3,10 @@ import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentColle
 import { $provideOpenAiAgentKitExecutionToolsForServer } from '@/src/tools/$provideOpenAiAgentKitExecutionToolsForServer';
 import { createChatHistoryRecorder } from '@/src/utils/chat/createChatHistoryRecorder';
 import { composePromptParametersWithMemoryContext } from '@/src/utils/memoryRuntimeContext';
+import {
+    resolveMetaDisclaimerMarkdownFromAgentSource,
+    resolveMetaDisclaimerStatusForUser,
+} from '@/src/utils/metaDisclaimer';
 import { resolveCurrentUserMemoryIdentity } from '@/src/utils/userMemory';
 import { Agent, computeAgentHash } from '@promptbook-local/core';
 import { serializeError } from '@promptbook-local/utils';
@@ -79,6 +83,41 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         const collection = await $provideAgentCollectionForServer();
         const agentPermanentId = await collection.getAgentPermanentId(agentName);
         const currentUserIdentity = await resolveCurrentUserMemoryIdentity();
+        const agentSource = await collection.getAgentSource(agentName);
+        const disclaimerMarkdown = resolveMetaDisclaimerMarkdownFromAgentSource(agentSource);
+
+        if (disclaimerMarkdown) {
+            if (!currentUserIdentity) {
+                return new Response(
+                    JSON.stringify({
+                        error: 'You must accept the disclaimer before chatting with this agent',
+                    }),
+                    {
+                        status: 403,
+                        headers: { 'Content-Type': 'application/json' },
+                    },
+                );
+            }
+
+            const disclaimerStatus = await resolveMetaDisclaimerStatusForUser({
+                userId: currentUserIdentity.userId,
+                agentPermanentId,
+                agentSource,
+            });
+
+            if (!disclaimerStatus.accepted) {
+                return new Response(
+                    JSON.stringify({
+                        error: 'You must accept the disclaimer before chatting with this agent',
+                    }),
+                    {
+                        status: 403,
+                        headers: { 'Content-Type': 'application/json' },
+                    },
+                );
+            }
+        }
+
         const promptParameters = composePromptParametersWithMemoryContext({
             baseParameters: {},
             currentUserIdentity,
@@ -87,7 +126,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             isPrivateModeEnabled,
         });
         const openAiAgentKitExecutionTools = await $provideOpenAiAgentKitExecutionToolsForServer();
-        const agentSource = await collection.getAgentSource(agentName);
         const agent = new Agent({
             isVerbose: true,
             executionTools: {

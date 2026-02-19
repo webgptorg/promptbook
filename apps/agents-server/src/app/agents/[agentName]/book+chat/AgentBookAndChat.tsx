@@ -54,6 +54,7 @@ export function AgentBookAndChat(props: AgentBookAndChatProps) {
                     </div>
                     <div className={`w-full h-full ${activeTab === 'chat' ? 'block' : 'hidden'}`}>
                         <AgentChatWrapper
+                            agentName={agentName}
                             agentUrl={agentUrl}
                             thinkingMessages={thinkingMessages}
                             speechRecognitionLanguage={speechRecognitionLanguage}
@@ -91,6 +92,7 @@ export function AgentBookAndChat(props: AgentBookAndChatProps) {
         <ResizablePanelsAuto name={`agent-book-and-chat-${agentName}`} className="w-full h-full">
             <BookEditorWrapper agentName={agentName} initialAgentSource={initialAgentSource} />
             <AgentChatWrapper
+                agentName={agentName}
                 agentUrl={agentUrl}
                 thinkingMessages={thinkingMessages}
                 speechRecognitionLanguage={speechRecognitionLanguage}

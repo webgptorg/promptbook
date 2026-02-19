@@ -1,4 +1,4 @@
-[ ] !
+[x] ~$0.00 22 minutes by OpenAI Codex `gpt-5.3-codex`
 
 [✨🕎] Create a commitment `META DISCLAIMER`
 
@@ -71,3 +71,4 @@ Commitments are basic syntax elements that add specific functionalities to AI ag
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

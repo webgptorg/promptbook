@@ -23,8 +23,15 @@ import {
     type UserLocationPromptParameter,
 } from '../../../utils/userLocationPromptParameter';
 import { chatFileUploadHandler } from '../../../utils/upload/createBookEditorUploadHandler';
+import {
+    acceptMetaDisclaimer,
+    fetchMetaDisclaimerStatus,
+    type MetaDisclaimerStatus,
+} from '../../../utils/metaDisclaimerClient';
+import { MetaDisclaimerDialog } from './MetaDisclaimerDialog';
 
 type AgentChatWrapperProps = {
+    agentName: string;
     agentUrl: string_agent_url;
     defaultMessage?: string;
     autoExecuteMessage?: string;
@@ -49,6 +56,10 @@ type AgentChatWrapperProps = {
      * current chat can stay immutable and a fresh chat can be created instead.
      */
     onStartNewChat?: () => Promise<void> | void;
+    /**
+     * Called once when an auto-execute message becomes eligible for dispatch.
+     */
+    onAutoExecuteMessageConsumed?: () => void;
 };
 
 /**
@@ -130,6 +141,7 @@ function shouldRequestBrowserUserLocation(toolCall: ToolCall): boolean {
 
 export function AgentChatWrapper(props: AgentChatWrapperProps) {
     const {
+        agentName,
         agentUrl,
         defaultMessage,
         autoExecuteMessage,
@@ -142,6 +154,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
         isFeedbackEnabled,
         chatFailMessage,
         onStartNewChat,
+        onAutoExecuteMessageConsumed,
     } = props;
 
     const shouldEnableFeedback = isFeedbackEnabled ?? true;
@@ -175,8 +188,81 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
     const [userLocationPromptParameter, setUserLocationPromptParameter] = useState<UserLocationPromptParameter | null>(
         null,
     );
+    const [metaDisclaimerStatus, setMetaDisclaimerStatus] = useState<MetaDisclaimerStatus | null>(null);
+    const [isMetaDisclaimerLoading, setIsMetaDisclaimerLoading] = useState(true);
+    const [isMetaDisclaimerAccepting, setIsMetaDisclaimerAccepting] = useState(false);
+    const [metaDisclaimerError, setMetaDisclaimerError] = useState<string | null>(null);
     const isLocationRequestInFlightRef = useRef(false);
     const handledLocationToolCallMarkersRef = useRef<Set<string>>(new Set());
+    const hasReportedAutoExecuteMessageRef = useRef(false);
+    const lastAutoExecuteMessageRef = useRef<string | undefined>(autoExecuteMessage);
+
+    /**
+     * Loads disclaimer status for the current user and agent.
+     */
+    const loadMetaDisclaimerStatus = useCallback(async () => {
+        setIsMetaDisclaimerLoading(true);
+        setMetaDisclaimerError(null);
+
+        try {
+            const status = await fetchMetaDisclaimerStatus(agentName);
+            setMetaDisclaimerStatus(status);
+        } catch (error) {
+            setMetaDisclaimerError(error instanceof Error ? error.message : 'Failed to load disclaimer.');
+        } finally {
+            setIsMetaDisclaimerLoading(false);
+        }
+    }, [agentName]);
+
+    useEffect(() => {
+        void loadMetaDisclaimerStatus();
+    }, [loadMetaDisclaimerStatus]);
+
+    /**
+     * Persists disclaimer agreement for the current user and agent.
+     */
+    const handleAcceptMetaDisclaimer = useCallback(async () => {
+        setIsMetaDisclaimerAccepting(true);
+        setMetaDisclaimerError(null);
+
+        try {
+            const acceptedStatus = await acceptMetaDisclaimer(agentName);
+            setMetaDisclaimerStatus(acceptedStatus);
+        } catch (error) {
+            setMetaDisclaimerError(error instanceof Error ? error.message : 'Failed to accept disclaimer.');
+        } finally {
+            setIsMetaDisclaimerAccepting(false);
+        }
+    }, [agentName]);
+
+    const isMetaDisclaimerEnabled = metaDisclaimerStatus?.enabled === true;
+    const hasAcceptedMetaDisclaimer = isMetaDisclaimerEnabled ? metaDisclaimerStatus?.accepted === true : true;
+    const isMetaDisclaimerBlockingChat =
+        isMetaDisclaimerLoading || metaDisclaimerError !== null || (isMetaDisclaimerEnabled && !hasAcceptedMetaDisclaimer);
+    const metaDisclaimerMarkdown = metaDisclaimerStatus?.markdown || null;
+    const effectiveAutoExecuteMessage = isMetaDisclaimerBlockingChat ? undefined : autoExecuteMessage;
+
+    useEffect(() => {
+        if (lastAutoExecuteMessageRef.current === autoExecuteMessage) {
+            return;
+        }
+
+        lastAutoExecuteMessageRef.current = autoExecuteMessage;
+        hasReportedAutoExecuteMessageRef.current = false;
+    }, [autoExecuteMessage]);
+
+    useEffect(() => {
+        if (!effectiveAutoExecuteMessage) {
+            return;
+        }
+
+        if (hasReportedAutoExecuteMessageRef.current) {
+            return;
+        }
+
+        hasReportedAutoExecuteMessageRef.current = true;
+        onAutoExecuteMessageConsumed?.();
+    }, [effectiveAutoExecuteMessage, onAutoExecuteMessageConsumed]);
 
     const handleFeedback = useCallback(
         async (feedback: {
@@ -216,7 +302,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
 
     // Remove the 'message' query parameter from URL after auto-executing a message
     useEffect(() => {
-        if (autoExecuteMessage && typeof window !== 'undefined') {
+        if (effectiveAutoExecuteMessage && typeof window !== 'undefined') {
             // Wait for the message to be processed, then remove the query parameter
             const timer = setTimeout(() => {
                 const url = new URL(window.location.href);
@@ -226,7 +312,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
 
             return () => clearTimeout(timer);
         }
-    }, [autoExecuteMessage]);
+    }, [effectiveAutoExecuteMessage]);
 
     const handleFileUpload = useCallback(async (file: File) => {
         return chatFileUploadHandler(file);
@@ -405,7 +491,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
                 onFileUpload={allowFileAttachments ? handleFileUpload : undefined}
                 onError={handleError}
                 defaultMessage={defaultMessage}
-                autoExecuteMessage={autoExecuteMessage}
+                autoExecuteMessage={effectiveAutoExecuteMessage}
                 persistenceKey={persistenceKey}
                 onChange={handleMessagesChange}
                 speechRecognition={speechRecognition}
@@ -426,6 +512,20 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
                 onReset={handleReset}
                 onDismiss={handleDismissError}
             />
+            {isMetaDisclaimerBlockingChat && (
+                <MetaDisclaimerDialog
+                    markdown={metaDisclaimerMarkdown}
+                    isLoading={isMetaDisclaimerLoading}
+                    isAccepting={isMetaDisclaimerAccepting}
+                    errorMessage={metaDisclaimerError}
+                    onAccept={() => {
+                        void handleAcceptMetaDisclaimer();
+                    }}
+                    onRetry={() => {
+                        void loadMetaDisclaimerStatus();
+                    }}
+                />
+            )}
         </>
     );
 }

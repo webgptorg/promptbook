@@ -186,6 +186,47 @@ describe('parseAgentSource', () => {
         });
     });
 
+    it('parses META DISCLAIMER with multiline markdown content', () => {
+        const agentSource = validateBook(
+            spaceTrim(`
+                Legal Assistant
+                META DISCLAIMER
+                ## Warning
+                This assistant provides information only.
+                Always verify important facts independently.
+            `),
+        );
+        const result = parseAgentSource(agentSource);
+
+        expect(result.meta.disclaimer).toBe(
+            spaceTrim(`
+                ## Warning
+                This assistant provides information only.
+                Always verify important facts independently.
+            `),
+        );
+    });
+
+    it('parses META DISCLAIMER with inline content and allows override', () => {
+        const agentSource = validateBook(
+            spaceTrim(`
+                Legal Assistant
+                META DISCLAIMER First disclaimer
+                META DISCLAIMER
+                Final disclaimer line 1.
+                Final disclaimer line 2.
+            `),
+        );
+        const result = parseAgentSource(agentSource);
+
+        expect(result.meta.disclaimer).toBe(
+            spaceTrim(`
+                Final disclaimer line 1.
+                Final disclaimer line 2.
+            `),
+        );
+    });
+
     it('parses INITIAL MESSAGE', () => {
         const agentSource = validateBook(
             spaceTrim(`
