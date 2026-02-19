@@ -9,14 +9,11 @@ import { createDefaultAgentName } from '../../book-2.0/agent-source/createDefaul
 import { parseAgentSource } from '../../book-2.0/agent-source/parseAgentSource';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import { getAllCommitmentsToolTitles } from '../../commitments/_common/getAllCommitmentsToolTitles';
+import { PROMPT_PARAMETER_SELF_LEARNING_ENABLED } from '../../constants';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
-import type {
-    SelfLearningTeacherSummary,
-    SelfLearningToolCallResult,
-    ToolCall,
-} from '../../types/ToolCall';
+import type { SelfLearningToolCallResult, ToolCall } from '../../types/ToolCall';
 import type {
     string_agent_hash,
     string_agent_name,
@@ -32,9 +29,8 @@ import { asUpdatableSubject } from '../../types/Updatable';
 import { normalizeMessageText } from '../../utils/normalization/normalizeMessageText';
 import { getSingleLlmExecutionTools } from '../_multiple/getSingleLlmExecutionTools';
 import { AgentLlmExecutionTools } from './AgentLlmExecutionTools';
-import { SelfLearningManager } from './self-learning/SelfLearningManager';
 import type { AgentOptions } from './AgentOptions';
-import { PROMPT_PARAMETER_SELF_LEARNING_ENABLED } from '../../constants';
+import { SelfLearningManager } from './self-learning/SelfLearningManager';
 
 /**
  * Parses boolean prompt parameters, defaulting when the value is missing or invalid.

@@ -75,6 +75,13 @@ type UseBookEditorMonacoUploadsProps = {
 };
 
 /**
+ * Delay before clearing completed uploads from UI.
+ *
+ * @private function of BookEditorMonaco
+ */
+const COMPLETED_UPLOADS_CLEAR_DELAY_MS = 1500;
+
+/**
  * Generates deterministic ids for uploads that support server preloading.
  *
  * @private function of BookEditorMonaco
@@ -449,7 +456,7 @@ export function useBookEditorMonacoUploads({ editor, monaco, onFileUpload }: Use
             uploadFilesRef.current.clear();
             uploadDecorationIdsRef.current.clear();
             setUploadItems(() => []);
-        }, 1500);
+        }, COMPLETED_UPLOADS_CLEAR_DELAY_MS);
 
         return () => {
             clearTimeout(timer);

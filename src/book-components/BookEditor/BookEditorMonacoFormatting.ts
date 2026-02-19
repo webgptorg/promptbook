@@ -1,4 +1,11 @@
 /**
+ * Number of seconds in one hour.
+ *
+ * @private function of BookEditorMonaco
+ */
+const SECONDS_IN_HOUR = 3600;
+
+/**
  * Formatting helpers for `BookEditorMonaco`.
  *
  * @private function of BookEditorMonaco
@@ -25,7 +32,7 @@ export const BookEditorMonacoFormatting = {
         const totalSeconds = Math.floor(durationMs / 1000);
         const seconds = totalSeconds % 60;
         const minutes = Math.floor(totalSeconds / 60) % 60;
-        const hours = Math.floor(totalSeconds / 3600);
+        const hours = Math.floor(totalSeconds / SECONDS_IN_HOUR);
         const paddedSeconds = `${seconds}`.padStart(2, '0');
 
         if (hours > 0) {
