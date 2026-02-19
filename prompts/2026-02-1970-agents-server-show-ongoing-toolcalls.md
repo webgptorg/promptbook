@@ -1,11 +1,10 @@
-[ ]
+[ ] !
 
-[✨📔] brr
+[✨📔] Show ongoing tool calls before the message is completed.
 
-Show ongoing toolcalls
-
--   @@@
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   There are two call chips shown below every message, but these chips are shown only when the message is 100% complete.
+-   Show these chips when the message is still being streamed, and update them in real time as the tool calls are being made.
+-   Keep in mind the DRY _(don't repeat yourself)_ principle, share the logic of non-complete and complete chips
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)

@@ -1,10 +1,11 @@
 [ ]
 
-[✨🔖] brr
+[✨🔖] Allow to add extra information to `OPEN` commitment.
 
--   @@@
+-   There is a general pattern within the commitments that, after the commitment, follows the additional information.
+-   Information in the `OPEN` commitment should be passed to the teacher as extra instructions on how to teach this agent.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
+-   Do a proper analysis of the current functionality, `OPEN` / `CLOSED` commitments and other commitments before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
@@ -14,6 +15,7 @@
 My AI Agent
 
 PERSONA Helpful assistant
+OPEN Learn the knowledge not rules, never restrict which language you are talking
 ```
 
 ## Commitments

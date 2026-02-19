@@ -1,10 +1,9 @@
 [ ]
 
-[✨👣] baz
+[✨👣] Create Commitment `META VOICE` Which will have an ID for the ElevenLabs voice ID which should be used for that agent
 
--   @@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
+-   Do a proper analysis of the current functionality, other `META` commitments, and TTS before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
@@ -14,6 +13,8 @@
 My AI Agent
 
 PERSONA Helpful assistant
+META VOICE 21m00Tcm4TlvDq8ikWAM
+META COLOR #FF0000
 ```
 
 ## Commitments
