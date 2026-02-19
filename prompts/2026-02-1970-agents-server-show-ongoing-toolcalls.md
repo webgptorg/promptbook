@@ -1,6 +1,23 @@
+[ ]
+
+[✨📔] brr
+
+Show ongoing toolcalls
+
+-   @@@
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+![alt text](prompts/screenshots/2026-02-1970-agents-server-show-ongoing-toolcalls.png)
+![alt text](prompts/screenshots/2026-02-1970-agents-server-show-ongoing-toolcalls-1.png)
+
+---
+
 [-]
 
-[✨🏑] baz
+[✨📔] brr
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
@@ -11,7 +28,7 @@
 
 [-]
 
-[✨🏑] baz
+[✨📔] brr
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
@@ -22,18 +39,7 @@
 
 [-]
 
-[✨🏑] baz
-
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
--   You are working with the [Agents Server](apps/agents-server)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
-
----
-
-[-]
-
-[✨🏑] baz
+[✨📔] brr
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
