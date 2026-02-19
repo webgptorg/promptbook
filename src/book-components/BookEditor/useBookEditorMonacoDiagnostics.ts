@@ -1,6 +1,8 @@
+import type { editor, MarkerSeverity } from 'monaco-editor';
 import { useEffect } from 'react';
-import type { editor, Monaco } from 'monaco-editor';
 import { BookEditorMonacoConstants } from './BookEditorMonacoConstants';
+
+type MonacoEditor = typeof import('monaco-editor');
 
 type BookEditorMonacoDiagnostic = {
     readonly startLineNumber: number;
@@ -13,22 +15,25 @@ type BookEditorMonacoDiagnostic = {
 };
 
 type UseBookEditorMonacoDiagnosticsProps = {
-    readonly monaco: Monaco | null;
+    readonly monaco: MonacoEditor | null;
     readonly editor: editor.IStandaloneCodeEditor | null;
     readonly diagnostics?: ReadonlyArray<BookEditorMonacoDiagnostic>;
 };
 
-const toMonacoMarkerSeverity = (severity: BookEditorMonacoDiagnostic['severity']) => {
+const toMonacoMarkerSeverity = (
+    monaco: MonacoEditor,
+    severity: BookEditorMonacoDiagnostic['severity'],
+): MarkerSeverity => {
     if (severity === 'warning') {
-        return editor.MarkerSeverity.Warning;
+        return monaco.MarkerSeverity.Warning;
     }
     if (severity === 'info') {
-        return editor.MarkerSeverity.Info;
+        return monaco.MarkerSeverity.Info;
     }
     if (severity === 'hint') {
-        return editor.MarkerSeverity.Hint;
+        return monaco.MarkerSeverity.Hint;
     }
-    return editor.MarkerSeverity.Error;
+    return monaco.MarkerSeverity.Error;
 };
 
 /**
@@ -54,7 +59,7 @@ export function useBookEditorMonacoDiagnostics({ editor, monaco, diagnostics }: 
             endColumn: diagnostic.endColumn,
             message: diagnostic.message,
             source: diagnostic.source,
-            severity: toMonacoMarkerSeverity(diagnostic.severity),
+            severity: toMonacoMarkerSeverity(monaco, diagnostic.severity),
         }));
 
         monaco.editor.setModelMarkers(model, BookEditorMonacoConstants.DIAGNOSTIC_MARKER_OWNER, markers);

@@ -1,12 +1,14 @@
+import type { editor, Position } from 'monaco-editor';
 import { useEffect } from 'react';
-import type { Monaco } from 'monaco-editor';
 import { getAllCommitmentDefinitions } from '../../commitments/_common/getAllCommitmentDefinitions';
 import { PROMPTBOOK_SYNTAX_COLORS } from '../../config';
 import { BookEditorMonacoConstants } from './BookEditorMonacoConstants';
 import { BookEditorMonacoTokenization } from './BookEditorMonacoTokenization';
 
+type MonacoEditor = typeof import('monaco-editor');
+
 type UseBookEditorMonacoLanguageProps = {
-    readonly monaco: Monaco | null;
+    readonly monaco: MonacoEditor | null;
 };
 
 /**
@@ -66,7 +68,7 @@ export function useBookEditorMonacoLanguage({ monaco }: UseBookEditorMonacoLangu
         const completionProvider = monaco.languages.registerCompletionItemProvider(
             BookEditorMonacoConstants.BOOK_LANGUAGE_ID,
             {
-                provideCompletionItems: (model, position) => {
+                provideCompletionItems: (model: editor.ITextModel, position: Position) => {
                     const word = model.getWordUntilPosition(position);
                     const range = {
                         startLineNumber: position.lineNumber,
@@ -88,7 +90,7 @@ export function useBookEditorMonacoLanguage({ monaco }: UseBookEditorMonacoLangu
         );
 
         const linkProvider = monaco.languages.registerLinkProvider(BookEditorMonacoConstants.BOOK_LANGUAGE_ID, {
-            provideLinks: (model) => {
+            provideLinks: (model: editor.ITextModel) => {
                 const content = model.getValue();
                 const links = BookEditorMonacoTokenization.extractAgentReferenceMatches(content).map((reference) => {
                     const startPos = model.getPositionAt(reference.index);

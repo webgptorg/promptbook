@@ -1,9 +1,11 @@
+import type { editor } from 'monaco-editor';
 import { useEffect, useRef } from 'react';
-import type { editor, Monaco } from 'monaco-editor';
+
+type MonacoEditor = typeof import('monaco-editor');
 
 type UseBookEditorMonacoDecorationsProps = {
     readonly editor: editor.IStandaloneCodeEditor | null;
-    readonly monaco: Monaco | null;
+    readonly monaco: MonacoEditor | null;
 };
 
 /**

@@ -1,11 +1,13 @@
+import type { editor } from 'monaco-editor';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { editor, Monaco } from 'monaco-editor';
 import type { Promisable } from 'type-fest';
-import type { string_book } from '../../book-2.0/agent-source/string_book';
 import { BookEditable } from '../../book-2.0/agent-source/BookEditable';
+import type { string_book } from '../../book-2.0/agent-source/string_book';
 import { DEFAULT_MAX_CONCURRENT_UPLOADS } from '../../config';
-import { BookEditorMonacoFormatting } from './BookEditorMonacoFormatting';
 import { BookEditorMonacoConstants } from './BookEditorMonacoConstants';
+import { BookEditorMonacoFormatting } from './BookEditorMonacoFormatting';
+
+type MonacoEditor = typeof import('monaco-editor');
 
 type UploadStatus = 'queued' | 'uploading' | 'paused' | 'completed' | 'failed';
 
@@ -68,7 +70,7 @@ type BookEditorMonacoOnFileUpload = (
 
 type UseBookEditorMonacoUploadsProps = {
     readonly editor: editor.IStandaloneCodeEditor | null;
-    readonly monaco: Monaco | null;
+    readonly monaco: MonacoEditor | null;
     readonly onFileUpload?: BookEditorMonacoOnFileUpload;
 };
 
@@ -112,11 +114,7 @@ const isAbortError = (error: unknown) => {
  *
  * @private function of BookEditorMonaco
  */
-export function useBookEditorMonacoUploads({
-    editor,
-    monaco,
-    onFileUpload,
-}: UseBookEditorMonacoUploadsProps) {
+export function useBookEditorMonacoUploads({ editor, monaco, onFileUpload }: UseBookEditorMonacoUploadsProps) {
     const [uploadItems, setUploadItemsState] = useState<UploadItem[]>([]);
     const uploadItemsRef = useRef<UploadItem[]>([]);
     const uploadFilesRef = useRef<Map<string, File>>(new Map());
