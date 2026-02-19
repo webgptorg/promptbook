@@ -21,9 +21,8 @@ import {
     SquareSplitHorizontalIcon,
     TrashIcon,
 } from 'lucide-react';
-import { Barlow_Condensed } from 'next/font/google';
 import { useRouter } from 'next/navigation';
-import type { CSSProperties, RefObject } from 'react';
+import type { CSSProperties } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { just } from '../../../../../src/utils/organization/just';
 import type { AgentProfile } from '../../app/agents/[agentName]/AgentProfileWrapper';
@@ -33,6 +32,12 @@ import type { AgentFolderContext } from '../../utils/agentOrganization/agentFold
 import { promptCloneAgent } from '../AgentCloning/cloneAgent';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 import { showAlert, showConfirm, showPrompt } from '../AsyncDialogs/asyncDialogs';
+import { ContextMenuPanel, type ContextMenuItem } from '../ContextMenu/ContextMenuPanel';
+import {
+    type ContextMenuAnchorPoint,
+    useClampedMenuPosition,
+    useCloseOnOutsideClick,
+} from '../ContextMenu/contextMenuUtils';
 
 type BeforeInstallPromptEvent = Event & {
     prompt: () => Promise<void>;
@@ -51,13 +56,6 @@ export type AgentContextMenuRenamePayload = {
      * Identifier used before the rename (permanent id or agent name).
      */
     readonly previousIdentifier: string;
-};
-
-const CONTEXT_MENU_VIEWPORT_PADDING = 12;
-
-const contextMenuViewportStyle: CSSProperties = {
-    maxHeight: `calc(100vh - ${CONTEXT_MENU_VIEWPORT_PADDING * 2}px)`,
-    maxWidth: `calc(100vw - ${CONTEXT_MENU_VIEWPORT_PADDING * 2}px)`,
 };
 
 /**
@@ -142,18 +140,12 @@ type AgentContextMenuPopoverProps = AgentContextMenuBaseProps & {
     /**
      * Cursor anchor point for positioning the menu.
      */
-    readonly anchorPoint: { x: number; y: number } | null;
+    readonly anchorPoint: ContextMenuAnchorPoint | null;
     /**
      * Callback to close the popover.
      */
     readonly onClose: () => void;
 };
-
-const barlowCondensed = Barlow_Condensed({
-    subsets: ['latin'],
-    weight: ['300', '400', '500', '600', '700'],
-    variable: '--font-barlow-condensed',
-});
 
 /**
  * Keeps track of PWA install prompt state for the menu.
@@ -213,68 +205,6 @@ function useInstallPromptState() {
     }, [installPromptEvent]);
 
     return { installPromptEvent, isInstalled, handleInstallApp };
-}
-
-/**
- * Registers an outside click listener that closes the menu.
- *
- * @param ref - Ref for the menu container.
- * @param onClose - Callback to close the menu.
- * @param isActive - Whether the listener should be active.
- */
-function useCloseOnOutsideClick(ref: RefObject<HTMLElement | null>, onClose: () => void, isActive: boolean) {
-    useEffect(() => {
-        if (!isActive) {
-            return;
-        }
-
-        /**
-         * Closes the menu when clicking outside the menu container.
-         *
-         * @param event - Mouse event from the document.
-         */
-        function handleClickOutside(event: MouseEvent) {
-            if (ref.current && !ref.current.contains(event.target as Node)) {
-                onClose();
-            }
-        }
-
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, [isActive, onClose, ref]);
-}
-
-/**
- * Computes a clamped menu position based on cursor coordinates.
- *
- * @param anchorPoint - Cursor position used as the anchor.
- * @param isOpen - Whether the menu is currently visible.
- * @param menuRef - Ref to the menu element for measurement.
- * @returns The adjusted menu position.
- */
-function useClampedMenuPosition(
-    anchorPoint: { x: number; y: number } | null,
-    isOpen: boolean,
-    menuRef: RefObject<HTMLDivElement | null>,
-) {
-    const [position, setPosition] = useState<{ x: number; y: number } | null>(null);
-
-    useEffect(() => {
-        if (!isOpen || !anchorPoint || !menuRef.current) {
-            return;
-        }
-
-        const rect = menuRef.current.getBoundingClientRect();
-        const padding = CONTEXT_MENU_VIEWPORT_PADDING;
-        const maxX = Math.max(padding, window.innerWidth - rect.width - padding);
-        const maxY = Math.max(padding, window.innerHeight - rect.height - padding);
-        const nextX = Math.min(anchorPoint.x, maxX);
-        const nextY = Math.min(anchorPoint.y, maxY);
-
-        setPosition({ x: Math.max(padding, nextX), y: Math.max(padding, nextY) });
-    }, [anchorPoint, isOpen, menuRef]);
-
-    return position;
 }
 
 /**
@@ -499,7 +429,7 @@ function AgentContextMenuContent(props: AgentContextMenuBaseProps & { onClose: (
         [agentName, formatText, permanentId],
     );
 
-    const menuItems = [
+    const menuItems: ContextMenuItem[] = [
         ...(fromDirectoryListing
             ? [
                   {
@@ -663,50 +593,7 @@ function AgentContextMenuContent(props: AgentContextMenuBaseProps & { onClose: (
     ];
 
     return (
-        <div
-            className={`w-56 bg-white rounded-xl shadow-2xl border border-gray-100 py-2 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-200 ${barlowCondensed.className}`}
-            style={contextMenuViewportStyle}
-        >
-            {menuItems.map((item, index) => {
-                if (item.type === 'divider') {
-                    return <div key={index} className="h-px bg-gray-100 my-2" />;
-                }
-
-                if (item.type === 'link') {
-                    return (
-                        <a
-                            key={index}
-                            href={item.href}
-                            target={(item as { target?: string }).target}
-                            className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition-colors"
-                            onClick={onClose}
-                        >
-                            <item.icon className="w-4 h-4 text-gray-500" />
-                            <span className="text-sm font-medium">{item.label}</span>
-                        </a>
-                    );
-                }
-
-                return (
-                    <button
-                        key={index}
-                        onClick={() => {
-                            item.onClick?.();
-                        }}
-                        className={`flex items-center gap-3 px-4 py-2.5 w-full text-left transition-colors
-                            ${
-                                item.highlight
-                                    ? 'bg-yellow-100 text-yellow-900 font-bold hover:bg-yellow-200'
-                                    : 'text-gray-700 hover:bg-gray-50'
-                            }
-                        `}
-                    >
-                        <item.icon className={`w-4 h-4 ${item.highlight ? 'text-yellow-700' : 'text-gray-500'}`} />
-                        <span className="text-sm font-medium">{item.label}</span>
-                    </button>
-                );
-            })}
-        </div>
+        <ContextMenuPanel menuItems={menuItems} onClose={onClose} />
     );
 }
 

@@ -38,6 +38,7 @@ import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 import { QrCodeModal } from '../AgentProfile/QrCodeModal';
 import { useAgentBackground } from '../AgentProfile/useAgentBackground';
 import { showAlert, showConfirm, showPrompt } from '../AsyncDialogs/asyncDialogs';
+import { FolderContextMenuPopover } from '../FolderContextMenu/FolderContextMenu';
 import { AgentCard } from './AgentCard';
 import {
     buildFolderMaps,
@@ -215,6 +216,20 @@ type AgentContextMenuState = {
      * Agent currently associated with the context menu.
      */
     readonly agent: AgentOrganizationAgent;
+    /**
+     * Cursor position for the menu anchor.
+     */
+    readonly anchorPoint: { x: number; y: number };
+};
+
+/**
+ * State for the folder context menu.
+ */
+type FolderContextMenuState = {
+    /**
+     * Folder id currently associated with the context menu.
+     */
+    readonly folderId: number;
     /**
      * Cursor position for the menu anchor.
      */
@@ -447,6 +462,10 @@ type SortableFolderCardProps = {
      */
     readonly onDelete?: () => void;
     /**
+     * Context menu handler for the folder.
+     */
+    readonly onContextMenu?: (event: MouseEvent<HTMLDivElement>, folder: AgentOrganizationFolder) => void;
+    /**
      * Accessible label displayed for the drag handle.
      */
     readonly dragHandleLabel: string;
@@ -469,6 +488,7 @@ function SortableFolderCard({
     onOpen,
     onRename,
     onDelete,
+    onContextMenu,
     dragHandleLabel,
     allowFullCardDrag,
 }: SortableFolderCardProps) {
@@ -506,6 +526,7 @@ function SortableFolderCard({
             style={style}
             className={`relative ${canOrganize ? 'select-none' : ''} ${isDragging ? 'opacity-0' : ''} ${dropClasses}`}
             {...dragProps}
+            onContextMenu={(event) => onContextMenu?.(event, folder)}
         >
             <FolderCard
                 folderName={folder.name}
@@ -728,6 +749,7 @@ export function AgentsList(props: AgentsListProps) {
     const [activeDragItem, setActiveDragItem] = useState<DragItem | null>(null);
     const [dropIndicator, setDropIndicator] = useState<DropIndicator | null>(null);
     const [contextMenuState, setContextMenuState] = useState<AgentContextMenuState | null>(null);
+    const [folderContextMenuState, setFolderContextMenuState] = useState<FolderContextMenuState | null>(null);
     const [qrCodeAgent, setQrCodeAgent] = useState<AgentOrganizationAgent | null>(null);
     const { formatText } = useAgentNaming();
 
@@ -1414,6 +1436,7 @@ export function AgentsList(props: AgentsListProps) {
      */
     const handleAgentContextMenu = useCallback((event: MouseEvent<HTMLDivElement>, agent: AgentOrganizationAgent) => {
         event.preventDefault();
+        setFolderContextMenuState(null);
         setContextMenuState({ agent, anchorPoint: { x: event.clientX, y: event.clientY } });
     }, []);
 
@@ -1422,6 +1445,25 @@ export function AgentsList(props: AgentsListProps) {
      */
     const handleCloseContextMenu = useCallback(() => {
         setContextMenuState(null);
+    }, []);
+
+    /**
+     * Opens the folder context menu at the cursor position.
+     *
+     * @param event - Mouse event that triggered the context menu.
+     * @param folder - Folder to show in the context menu.
+     */
+    const handleFolderContextMenu = useCallback((event: MouseEvent<HTMLDivElement>, folder: AgentOrganizationFolder) => {
+        event.preventDefault();
+        setContextMenuState(null);
+        setFolderContextMenuState({ folderId: folder.id, anchorPoint: { x: event.clientX, y: event.clientY } });
+    }, []);
+
+    /**
+     * Closes the folder context menu.
+     */
+    const handleCloseFolderContextMenu = useCallback(() => {
+        setFolderContextMenuState(null);
     }, []);
 
     /**
@@ -1588,6 +1630,8 @@ export function AgentsList(props: AgentsListProps) {
             ? folderMaps.folderById.get(currentFolderId)?.name || formatText('Local Agents')
             : formatText('Local Agents');
     const contextMenuAgent = contextMenuState?.agent ?? null;
+    const contextMenuFolder =
+        folderContextMenuState === null ? null : folders.find((folder) => folder.id === folderContextMenuState.folderId) || null;
     const contextMenuIdentifier = contextMenuAgent ? contextMenuAgent.permanentId || contextMenuAgent.agentName : '';
     const contextMenuAgentUrl = contextMenuAgent ? buildAgentUrl(contextMenuIdentifier) : '';
     const contextMenuAgentEmail = contextMenuAgent ? buildAgentEmail(contextMenuIdentifier) : '';
@@ -1703,6 +1747,7 @@ export function AgentsList(props: AgentsListProps) {
                                     onOpen={() => navigateToFolder(folder.id)}
                                     onRename={canOrganize ? () => handleRenameFolder(folder.id) : undefined}
                                     onDelete={canOrganize ? () => handleDeleteFolder(folder.id) : undefined}
+                                    onContextMenu={handleFolderContextMenu}
                                     dragHandleLabel={dragFolderLabel}
                                     allowFullCardDrag={allowFullCardDrag}
                                 />
@@ -1788,6 +1833,17 @@ export function AgentsList(props: AgentsListProps) {
                     onShowQrCode={handleShowQrCode}
                     onAgentRenamed={handleContextMenuAgentRenamed}
                     fromDirectoryListing
+                />
+            )}
+            {contextMenuFolder && (
+                <FolderContextMenuPopover
+                    folder={contextMenuFolder}
+                    isOpen={Boolean(folderContextMenuState)}
+                    anchorPoint={folderContextMenuState?.anchorPoint ?? null}
+                    onClose={handleCloseFolderContextMenu}
+                    onOpenFolder={() => navigateToFolder(contextMenuFolder.id)}
+                    onRenameFolder={canOrganize ? () => handleRenameFolder(contextMenuFolder.id) : undefined}
+                    onDeleteFolder={canOrganize ? () => handleDeleteFolder(contextMenuFolder.id) : undefined}
                 />
             )}
             {qrCodeAgent && (
