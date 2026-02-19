@@ -1,7 +1,7 @@
 'use client';
 
 import { CLIENT_LATEST_VERSION, CLIENT_VERSION_HEADER, ClientVersionMismatchError } from '@promptbook-local/utils';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import spaceTrim from 'spacetrim';
 import {
     ClientVersionMismatchInfo,
@@ -9,7 +9,7 @@ import {
     reportClientVersionMismatch,
 } from '../../utils/clientVersionClient';
 
-const DEFAULT_REFRESH_DELAY_MS = 5000;
+const AUTO_REFRESH_DELAY_MS = 7000;
 const COUNTDOWN_INTERVAL_MS = 1000;
 const REQUIRED_VERSION_HEADER = 'x-promptbook-required-version';
 const FALLBACK_MESSAGE =
@@ -22,11 +22,56 @@ const FALLBACK_MESSAGE =
  */
 export function ClientVersionMismatchListener() {
     const [mismatchInfo, setMismatchInfo] = useState<ClientVersionMismatchInfo | null>(null);
-    const [countdown, setCountdown] = useState<number>(Math.ceil(DEFAULT_REFRESH_DELAY_MS / 1000));
+    const [remainingAutoRefreshMs, setRemainingAutoRefreshMs] = useState(AUTO_REFRESH_DELAY_MS);
+    const [countdownActive, setCountdownActive] = useState(false);
+    const [autoRefreshStopped, setAutoRefreshStopped] = useState(false);
     const fetchInterceptorRef = useRef<{
         originalFetch: typeof window.fetch;
         patchedFetch: typeof window.fetch;
     } | null>(null);
+    const countdownIntervalRef = useRef<ReturnType<typeof window.setInterval> | null>(null);
+    const remainingAutoRefreshMsRef = useRef(AUTO_REFRESH_DELAY_MS);
+    const autoRefreshStoppedRef = useRef(false);
+
+    const stopCountdown = useCallback(() => {
+        if (countdownIntervalRef.current !== null) {
+            clearInterval(countdownIntervalRef.current);
+            countdownIntervalRef.current = null;
+        }
+        setCountdownActive(false);
+    }, []);
+
+    const startCountdown = useCallback(() => {
+        if (typeof window === 'undefined' || autoRefreshStoppedRef.current || countdownIntervalRef.current !== null) {
+            return;
+        }
+
+        setCountdownActive(true);
+        countdownIntervalRef.current = window.setInterval(() => {
+            setRemainingAutoRefreshMs((prev) => {
+                const next = Math.max(0, prev - COUNTDOWN_INTERVAL_MS);
+                remainingAutoRefreshMsRef.current = next;
+
+                if (next === 0) {
+                    stopCountdown();
+                    window.location.reload();
+                }
+
+                return next;
+            });
+        }, COUNTDOWN_INTERVAL_MS);
+    }, [stopCountdown]);
+
+    const handleManualRefresh = useCallback(() => {
+        if (typeof window !== 'undefined') {
+            window.location.reload();
+        }
+    }, []);
+
+    const handleStopCountdown = useCallback(() => {
+        stopCountdown();
+        setAutoRefreshStopped(true);
+    }, [stopCountdown]);
 
     useEffect(() => {
         const cleanup = onClientVersionMismatch((info) => {
@@ -79,36 +124,79 @@ export function ClientVersionMismatchListener() {
     }, []);
 
     useEffect(() => {
+        autoRefreshStoppedRef.current = autoRefreshStopped;
+        if (autoRefreshStopped) {
+            stopCountdown();
+        }
+    }, [autoRefreshStopped, stopCountdown]);
+
+    useEffect(() => {
         if (!mismatchInfo) {
+            stopCountdown();
+            return;
+        }
+
+        setAutoRefreshStopped(false);
+        autoRefreshStoppedRef.current = false;
+        setCountdownActive(false);
+        setRemainingAutoRefreshMs(AUTO_REFRESH_DELAY_MS);
+        remainingAutoRefreshMsRef.current = AUTO_REFRESH_DELAY_MS;
+    }, [mismatchInfo, stopCountdown]);
+
+    useEffect(() => {
+        if (typeof window === 'undefined' || typeof document === 'undefined') {
+            return undefined;
+        }
+        if (!mismatchInfo || autoRefreshStopped) {
+            stopCountdown();
             return undefined;
         }
 
-        setCountdown(Math.ceil(DEFAULT_REFRESH_DELAY_MS / COUNTDOWN_INTERVAL_MS));
-        let remaining = DEFAULT_REFRESH_DELAY_MS;
-
-        const tick = () => {
-            remaining -= COUNTDOWN_INTERVAL_MS;
-            setCountdown(Math.max(0, Math.ceil(remaining / COUNTDOWN_INTERVAL_MS)));
+        const handleFocus = () => {
+            if (autoRefreshStoppedRef.current) {
+                return;
+            }
+            startCountdown();
         };
 
-        const interval = setInterval(tick, COUNTDOWN_INTERVAL_MS);
-        const timeout = setTimeout(() => {
-            window.location.reload();
-        }, DEFAULT_REFRESH_DELAY_MS);
+        const handleBlur = () => {
+            stopCountdown();
+        };
+
+        window.addEventListener('focus', handleFocus);
+        window.addEventListener('blur', handleBlur);
+
+        if (document.hasFocus()) {
+            handleFocus();
+        }
 
         return () => {
-            clearInterval(interval);
-            clearTimeout(timeout);
+            window.removeEventListener('focus', handleFocus);
+            window.removeEventListener('blur', handleBlur);
+            stopCountdown();
         };
-    }, [mismatchInfo]);
+    }, [mismatchInfo, autoRefreshStopped, startCountdown, stopCountdown]);
 
     if (!mismatchInfo) {
         return null;
     }
 
     const message = mismatchInfo.message || FALLBACK_MESSAGE;
-    const reportedVersion = mismatchInfo.reportedVersion ?? 'unknown';
-    const requiredVersion = mismatchInfo.requiredVersion;
+    const countdownSeconds = Math.max(0, Math.ceil(remainingAutoRefreshMs / 1000));
+    const countdownStatus = autoRefreshStopped
+        ? 'Automatic refresh paused. Refresh manually when you are ready for the new version.'
+        : countdownActive
+        ? `Auto-refreshing in ${countdownSeconds}s…`
+        : 'Focus this tab to start the 7-second refresh countdown.';
+
+    const stopButtonClassName = [
+        'inline-flex items-center justify-center rounded-full border px-4 py-2 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2',
+        autoRefreshStopped
+            ? 'border-slate-200 text-slate-400 opacity-60 cursor-not-allowed'
+            : 'border-slate-900/10 text-slate-700 hover:border-slate-300',
+    ].join(' ');
+    const refreshButtonClassName =
+        'inline-flex items-center justify-center rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2';
 
     return (
         <div
@@ -116,15 +204,24 @@ export function ClientVersionMismatchListener() {
             aria-live="assertive"
             className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/80 p-4"
         >
-            <div className="w-full max-w-2xl rounded-3xl border border-slate-100 bg-white p-6 shadow-2xl">
-                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Action required</p>
-                <h2 className="mt-3 text-2xl font-semibold text-slate-900">Update ready</h2>
+            <div className="w-full max-w-md rounded-3xl border border-slate-100 bg-white p-6 shadow-2xl">
+                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Update ready</p>
+                <h2 className="mt-3 text-2xl font-semibold text-slate-900">New version available</h2>
                 <p className="mt-4 text-sm text-slate-600 whitespace-pre-line">{message}</p>
-                <div className="mt-4 flex flex-wrap gap-3 text-xs text-slate-500">
-                    <span>Current version: v{reportedVersion}</span>
-                    <span>Required version: v{requiredVersion}</span>
+                <p className="mt-5 text-sm font-medium text-slate-700">{countdownStatus}</p>
+                <div className="mt-6 flex flex-wrap gap-3">
+                    <button type="button" className={refreshButtonClassName} onClick={handleManualRefresh}>
+                        Refresh now
+                    </button>
+                    <button
+                        type="button"
+                        className={stopButtonClassName}
+                        onClick={handleStopCountdown}
+                        disabled={autoRefreshStopped}
+                    >
+                        Stop countdown
+                    </button>
                 </div>
-                <p className="mt-4 text-sm font-medium text-slate-700">Refreshing in {countdown}s…</p>
             </div>
         </div>
     );
