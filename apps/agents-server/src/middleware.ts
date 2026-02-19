@@ -159,6 +159,7 @@ export async function middleware(req: NextRequest) {
         // - /agents: Agent List
         // - /api/agents: Agent List API
         // - /api/federated-agents: Federated Agent List API
+        // - /api/search: Global search API
         // - /api/auth/*: Auth endpoints
         // - /restricted: Restricted Access Page
         // - /docs: Documentation
@@ -169,6 +170,7 @@ export async function middleware(req: NextRequest) {
             path === '/agents' ||
             path.startsWith('/api/agents') ||
             path.startsWith('/api/federated-agents') ||
+            path.startsWith('/api/search') ||
             path.startsWith('/api/auth') ||
             path === '/restricted' ||
             path.startsWith('/docs') ||

@@ -34,6 +34,7 @@ import { showLoginDialog } from '../AsyncDialogs/asyncDialogs';
 import { ChangePasswordDialog } from '../ChangePasswordDialog/ChangePasswordDialog';
 import { useUsersAdmin } from '../UsersList/useUsersAdmin';
 import { HeaderControlPanelDropdown } from './ControlPanel/ControlPanel';
+import { HeaderSearchBox } from './HeaderSearchBox';
 
 type HeaderProps = {
     /**
@@ -1737,6 +1738,10 @@ export function Header(props: HeaderProps) {
                                     </div>
                                 </>
                             )}
+
+                            <div className="hidden lg:block min-w-[280px] max-w-[360px] border-l border-gray-200 pl-2 sm:pl-3 md:pl-4">
+                                <HeaderSearchBox />
+                            </div>
                         </div>
                     </div>
 
@@ -2152,6 +2157,13 @@ export function Header(props: HeaderProps) {
                                             )}
                                         </div>
                                     )}
+
+                                    <div className="w-full max-w-[90vw] pt-1">
+                                        <HeaderSearchBox
+                                            placeholder="Search this server..."
+                                            onNavigate={() => setIsMenuOpen(false)}
+                                        />
+                                    </div>
                                 </div>
                             </div>
 
