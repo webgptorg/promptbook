@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import type { MouseEvent, ReactNode } from 'react';
+import type { CSSProperties, MouseEvent, ReactNode } from 'react';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { HamburgerMenu } from '../../../../../src/book-components/_common/HamburgerMenu/HamburgerMenu';
@@ -119,6 +119,10 @@ type OpenSubMenuState = {
 };
 
 const SUBMENU_CLOSE_DELAY_MS = 150;
+/**
+ * Horizontal indentation applied for each nested submenu level in mobile navigation.
+ */
+const MOBILE_SUBMENU_INDENT_PX = 14;
 
 /**
  * @private Provides a reusable DOM node for rendering header submenus via portals.
@@ -973,6 +977,29 @@ function AgentMenuColumn({ nodes, onNavigate, depth }: AgentMenuColumnProps) {
     );
 }
 
+/**
+ * @private
+ * Converts agent tree nodes into nested submenu items used by mobile rendering.
+ */
+function createAgentHierarchyMobileItems(nodes: ReadonlyArray<AgentMenuTreeNode>): SubMenuItem[] {
+    return nodes.map((node) => {
+        if (node.type === 'folder') {
+            const childItems = createAgentHierarchyMobileItems(node.children);
+            return {
+                label: node.renderLabel ?? node.label,
+                href: node.href,
+                isBold: true,
+                items: childItems.length > 0 ? childItems : undefined,
+            };
+        }
+
+        return {
+            label: node.renderLabel ?? node.label,
+            href: node.href,
+        };
+    });
+}
+
 export function Header(props: HeaderProps) {
     const {
         isAdmin = false,
@@ -1085,9 +1112,100 @@ export function Header(props: HeaderProps) {
         }));
     };
 
+    /**
+     * Returns consistent left padding for one mobile menu depth level.
+     */
+    const createMobileMenuItemPaddingStyle = (depth: number) => ({
+        paddingLeft: `${12 + depth * MOBILE_SUBMENU_INDENT_PX}px`,
+    });
+
+    /**
+     * Renders one leaf mobile menu item as link, action button, or plain label.
+     */
+    const renderMobileMenuLeafItem = (
+        item: SubMenuItem,
+        itemKey: string,
+        depth: number,
+        className: string,
+        style: CSSProperties,
+    ) => {
+        if (item.onClick) {
+            return (
+                <button
+                    key={itemKey}
+                    className={`${className} w-full text-left`}
+                    style={style}
+                    onClick={() => {
+                        void item.onClick?.();
+                        setIsMenuOpen(false);
+                    }}
+                >
+                    {item.label}
+                </button>
+            );
+        }
+
+        if (item.href) {
+            return (
+                <HeadlessLink key={itemKey} href={item.href} className={className} style={style} onClick={() => setIsMenuOpen(false)}>
+                    {item.label}
+                </HeadlessLink>
+            );
+        }
+
+        return (
+            <span key={itemKey} className={className} style={createMobileMenuItemPaddingStyle(depth)}>
+                {item.label}
+            </span>
+        );
+    };
+
+    /**
+     * Renders nested mobile submenu items with click-to-toggle behavior.
+     */
+    const renderMobileNestedMenuItems = (items: ReadonlyArray<SubMenuItem>, keyPrefix: string, depth = 0): ReactNode => {
+        return (
+            <div className={`w-full flex flex-col gap-1 ${depth > 0 ? 'mt-1 border-l border-gray-200 pl-1.5' : ''}`}>
+                {items.map((item, index) => {
+                    const itemKey = `${keyPrefix}-${index}`;
+                    const hasChildren = Boolean(item.items && item.items.length > 0);
+                    const isSubMenuOpen = Boolean(mobileOpenSubMenus[itemKey]);
+                    const borderClass = item.isBordered ? 'border-b border-gray-200' : '';
+                    const leafClassName = `block rounded-md py-2.5 pr-3 text-sm transition-all duration-150 hover:shadow-sm active:scale-98 ${
+                        item.isBold
+                            ? 'font-semibold text-gray-900 hover:bg-blue-50 hover:text-blue-600'
+                            : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                    } ${borderClass}`.trim();
+                    const indentationStyle = createMobileMenuItemPaddingStyle(depth);
+
+                    if (!hasChildren) {
+                        return renderMobileMenuLeafItem(item, itemKey, depth, leafClassName, indentationStyle);
+                    }
+
+                    return (
+                        <div key={itemKey} className={`w-full flex flex-col ${borderClass}`}>
+                            <button
+                                className="w-full flex items-center justify-between gap-2 rounded-md py-2.5 pr-3 text-left text-sm font-semibold text-gray-800 hover:bg-white hover:text-blue-600 active:bg-gray-100 active:scale-98 transition-all duration-150"
+                                style={indentationStyle}
+                                onClick={() => toggleMobileSubMenu(itemKey)}
+                            >
+                                <span className="min-w-0 flex-1">{item.label}</span>
+                                <ChevronDown
+                                    className={`w-4 h-4 flex-shrink-0 transition-transform duration-200 ${
+                                        isSubMenuOpen ? 'rotate-180' : ''
+                                    }`}
+                                />
+                            </button>
+                            {isSubMenuOpen && renderMobileNestedMenuItems(item.items || [], itemKey, depth + 1)}
+                        </div>
+                    );
+                })}
+            </div>
+        );
+    };
+
     const { users: adminUsers } = useUsersAdmin();
     const agentMenuStructure = useMemo(() => buildAgentMenuStructure(agents, agentFolders), [agents, agentFolders]);
-    const agentMenuItems = agentMenuStructure.items;
     const agentMenuTree = agentMenuStructure.tree;
     const agentFolderById = useMemo(
         () => new Map(agentFolders.map((folder) => [folder.id, folder as HeaderAgentMenuFolder])),
@@ -1177,8 +1295,10 @@ export function Header(props: HeaderProps) {
             setIsMenuOpen(false);
         }
     };
-    const hierarchyAgentDropdownItems: SubMenuItem[] = [
-        ...agentMenuItems,
+    /**
+     * Static entries appended below the dynamic hierarchy in the Agents menu.
+     */
+    const hierarchyAgentActionItems: SubMenuItem[] = [
         {
             label: formatText('View all agents'),
             href: '/agents',
@@ -1197,6 +1317,13 @@ export function Header(props: HeaderProps) {
             onClick: isCreatingAgent ? undefined : handleCreateAgent,
             isBold: true,
         },
+    ];
+    /**
+     * Hierarchical mobile Agents menu data with appended action items.
+     */
+    const hierarchyAgentMobileItems: SubMenuItem[] = [
+        ...createAgentHierarchyMobileItems(agentMenuTree),
+        ...hierarchyAgentActionItems,
     ];
 
     // Federated servers dropdown items (respect logo, only current is not clickable)
@@ -1499,10 +1626,15 @@ export function Header(props: HeaderProps) {
                             <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4 text-gray-300" />
 
                             {isAdmin ? (
-                                <div className="relative min-w-0">
+                                <div
+                                    className="relative min-w-0"
+                                    onMouseEnter={() => setIsAgentsOpen(true)}
+                                    onMouseLeave={() => setIsAgentsOpen(false)}
+                                >
                                     <button
                                         className="flex min-w-0 items-center gap-2 rounded-full border border-transparent px-2 sm:px-3 py-1 hover:border-gray-200 hover:bg-gray-100 transition"
                                         onClick={() => setIsAgentsOpen(!isAgentsOpen)}
+                                        onMouseEnter={() => setIsAgentsOpen(true)}
                                         onBlur={() => setTimeout(() => setIsAgentsOpen(false), 200)}
                                     >
                                         <AgentNameWithAvatar
@@ -1520,13 +1652,12 @@ export function Header(props: HeaderProps) {
                                         <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
                                     </button>
                                     {isAgentsOpen && (
-                                        <div className="absolute left-0 top-full z-50 mt-2 w-[min(420px,90vw)] rounded-md border border-gray-100 bg-white py-1 shadow-lg animate-in fade-in zoom-in-95 duration-200">
-                                            <div className="max-h-[65vh] overflow-y-auto overflow-x-visible">
-                                                <AgentDirectoryDropdown
-                                                    nodes={agentMenuTree}
-                                                    onNavigate={closeAgentsDropdown}
-                                                />
-                                            </div>
+                                        <div
+                                            className="absolute left-0 top-full z-50 mt-2 w-[min(420px,90vw)] rounded-md border border-gray-100 bg-white py-1 shadow-lg animate-in fade-in zoom-in-95 duration-200 overflow-visible"
+                                            onMouseEnter={() => setIsAgentsOpen(true)}
+                                            onMouseLeave={() => setIsAgentsOpen(false)}
+                                        >
+                                            <AgentDirectoryDropdown nodes={agentMenuTree} onNavigate={closeAgentsDropdown} />
                                             <div className="border-t border-gray-100 p-1">
                                                 <HeadlessLink
                                                     href="/agents"
@@ -1575,10 +1706,15 @@ export function Header(props: HeaderProps) {
                             {activeAgentView && activeAgentViewItems.length > 0 && (
                                 <>
                                     <ChevronRight className="hidden sm:block h-4 w-4 text-gray-300" />
-                                    <div className="relative hidden sm:block">
+                                    <div
+                                        className="relative hidden sm:block"
+                                        onMouseEnter={() => setIsAgentViewOpen(true)}
+                                        onMouseLeave={() => setIsAgentViewOpen(false)}
+                                    >
                                         <button
                                             className="flex items-center gap-2 rounded-full px-2 sm:px-3 py-1 text-xs sm:text-sm font-semibold text-gray-700 hover:bg-gray-100 transition"
                                             onClick={() => setIsAgentViewOpen(!isAgentViewOpen)}
+                                            onMouseEnter={() => setIsAgentViewOpen(true)}
                                             onBlur={() => setTimeout(() => setIsAgentViewOpen(false), 200)}
                                         >
                                             {createAgentViewLabel(activeAgentView, formatText)}
@@ -1980,37 +2116,7 @@ export function Header(props: HeaderProps) {
 
                                     {isAdmin && isMobileAgentsOpen && (
                                         <div className="w-full max-w-[90vw] flex flex-col gap-1 rounded-lg border border-gray-200 bg-gradient-to-b from-gray-50 to-white p-3 max-h-[40vh] overflow-y-auto shadow-sm animate-in fade-in-0 slide-in-from-top-2 duration-200 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-                                            {hierarchyAgentDropdownItems.map((item, index) => {
-                                                const className = `block rounded-md px-4 py-3 text-sm transition-all duration-150 hover:shadow-sm active:scale-98 ${
-                                                    item.isBold
-                                                        ? 'font-semibold text-gray-900 hover:bg-white hover:text-blue-600'
-                                                        : 'text-gray-700 hover:bg-white hover:text-gray-900'
-                                                }`;
-                                                if (item.onClick) {
-                                                    return (
-                                                        <button
-                                                            key={`mobile-agent-item-${index}`}
-                                                            className={`${className} w-full text-left`}
-                                                            onClick={() => {
-                                                                void item.onClick?.();
-                                                                setIsMenuOpen(false);
-                                                            }}
-                                                        >
-                                                            {item.label}
-                                                        </button>
-                                                    );
-                                                }
-                                                return (
-                                                    <HeadlessLink
-                                                        key={`mobile-agent-item-${index}`}
-                                                        href={item.href || '/agents'}
-                                                        className={className}
-                                                        onClick={() => setIsMenuOpen(false)}
-                                                    >
-                                                        {item.label}
-                                                    </HeadlessLink>
-                                                );
-                                            })}
+                                            {renderMobileNestedMenuItems(hierarchyAgentMobileItems, 'mobile-agents')}
                                         </div>
                                     )}
 
@@ -2164,96 +2270,10 @@ export function Header(props: HeaderProps) {
                                             </button>
                                             {item.isMobileOpen && (
                                                 <div className="w-full flex flex-col items-center gap-2 bg-gray-50 rounded-lg p-3 border border-gray-200 shadow-sm animate-in fade-in-0 slide-in-from-top-2 duration-200">
-                                                    {item.items.map((subItem, subIndex) => {
-                                                        if (subItem.items && subItem.items.length > 0) {
-                                                            const submenuKey = `${index}-${subIndex}`;
-                                                            const isSubMenuOpen = Boolean(
-                                                                mobileOpenSubMenus[submenuKey],
-                                                            );
-                                                            return (
-                                                                <div
-                                                                    key={submenuKey}
-                                                                    className="w-full flex flex-col items-center"
-                                                                >
-                                                                    <button
-                                                                        className="w-full flex items-center justify-center gap-2 text-sm font-semibold text-gray-700 hover:text-blue-600 py-2.5 px-3 rounded-md hover:bg-white active:bg-gray-100 active:scale-98 transition-all duration-150"
-                                                                        onClick={() => toggleMobileSubMenu(submenuKey)}
-                                                                    >
-                                                                        {subItem.label}
-                                                                        <ChevronDown
-                                                                            className={`w-4 h-4 transition-transform duration-200 ${
-                                                                                isSubMenuOpen ? 'rotate-180' : ''
-                                                                            }`}
-                                                                        />
-                                                                    </button>
-                                                                    {isSubMenuOpen && (
-                                                                        <div className="w-full flex flex-col items-center gap-1.5 mt-2 bg-white rounded-md p-2 border border-gray-200 shadow-sm animate-in fade-in-0 slide-in-from-top-1 duration-150">
-                                                                            {subItem.items.map((child, childIndex) => {
-                                                                                const childClassName = `block text-sm text-center py-2.5 px-3 rounded-md transition-all duration-150 hover:shadow-sm active:scale-98 ${
-                                                                                    child.isBold
-                                                                                        ? 'font-semibold text-gray-900 hover:bg-blue-50 hover:text-blue-600'
-                                                                                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                                                                                }`;
-                                                                                if (child.onClick) {
-                                                                                    return (
-                                                                                        <button
-                                                                                            key={`mobile-child-${submenuKey}-${childIndex}`}
-                                                                                            className={childClassName}
-                                                                                            onClick={child.onClick}
-                                                                                        >
-                                                                                            {child.label}
-                                                                                        </button>
-                                                                                    );
-                                                                                }
-
-                                                                                return (
-                                                                                    <HeadlessLink
-                                                                                        key={`mobile-child-${submenuKey}-${childIndex}`}
-                                                                                        href={child.href!}
-                                                                                        className={childClassName}
-                                                                                        onClick={() =>
-                                                                                            setIsMenuOpen(false)
-                                                                                        }
-                                                                                    >
-                                                                                        {child.label}
-                                                                                    </HeadlessLink>
-                                                                                );
-                                                                            })}
-                                                                        </div>
-                                                                    )}
-                                                                </div>
-                                                            );
-                                                        }
-
-                                                        const className = `block text-sm text-center py-2.5 px-3 rounded-md transition-all duration-150 hover:shadow-sm active:scale-98 ${
-                                                            subItem.isBold
-                                                                ? 'font-semibold text-gray-900 hover:bg-blue-50 hover:text-blue-600'
-                                                                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                                                        }`;
-
-                                                        if (subItem.onClick) {
-                                                            return (
-                                                                <button
-                                                                    key={subIndex}
-                                                                    className={className}
-                                                                    onClick={subItem.onClick}
-                                                                >
-                                                                    {subItem.label}
-                                                                </button>
-                                                            );
-                                                        }
-
-                                                        return (
-                                                            <HeadlessLink
-                                                                key={subIndex}
-                                                                href={subItem.href!}
-                                                                className={className}
-                                                                onClick={() => setIsMenuOpen(false)}
-                                                            >
-                                                                {subItem.label}
-                                                            </HeadlessLink>
-                                                        );
-                                                    })}
+                                                    {renderMobileNestedMenuItems(
+                                                        item.items,
+                                                        `mobile-menu-${index}`,
+                                                    )}
                                                 </div>
                                             )}
                                         </div>
