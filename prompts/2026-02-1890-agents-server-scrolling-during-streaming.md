@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.15 6 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
 [✨🚰] When the message is being streamed in the chat, the user scroll is locked. Free it.
 
@@ -38,3 +38,4 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

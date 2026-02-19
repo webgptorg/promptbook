@@ -169,6 +169,8 @@ export function Chat(props: ChatProps) {
         handleScroll,
         handleMessagesChange,
         scrollToBottom,
+        enableAutoScroll,
+        disableAutoScroll,
         isMobile: isMobileFromHook,
     } = useChatAutoScroll();
 
@@ -253,6 +255,10 @@ export function Chat(props: ChatProps) {
         [unseenMessagesCount],
     );
     const shouldShowScrollToBottom = !isAutoScrolling && !isLatestMessageInView;
+    const lastMessage = postprocessedMessages[postprocessedMessages.length - 1];
+    const isStreamingAgentMessage = Boolean(
+        lastMessage && lastMessage.sender !== 'USER' && !lastMessage.isComplete,
+    );
 
     const {
         state: {
@@ -285,6 +291,15 @@ export function Chat(props: ChatProps) {
     const [mode] = useState<'LIGHT' | 'DARK'>('LIGHT');
 
     useEffect(() => {
+        if (isStreamingAgentMessage) {
+            disableAutoScroll();
+            return;
+        }
+
+        if (!isAutoScrolling && isLatestMessageInView) {
+            enableAutoScroll();
+        }
+
         handleMessagesChange();
 
         const animationFrame = requestAnimationFrame(() => {
@@ -292,7 +307,16 @@ export function Chat(props: ChatProps) {
         });
 
         return () => cancelAnimationFrame(animationFrame);
-    }, [postprocessedMessages, handleMessagesChange, updateLatestMessageVisibility]);
+    }, [
+        postprocessedMessages,
+        handleMessagesChange,
+        updateLatestMessageVisibility,
+        isStreamingAgentMessage,
+        disableAutoScroll,
+        isAutoScrolling,
+        isLatestMessageInView,
+        enableAutoScroll,
+    ]);
 
     useEffect(() => {
         const handleResize = () => {
