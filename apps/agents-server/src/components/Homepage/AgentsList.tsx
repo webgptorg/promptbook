@@ -1676,7 +1676,7 @@ export function AgentsList(props: AgentsListProps) {
                         )}
                     </div>
                     <div className="flex items-center gap-2">
-                        {viewMode === 'LIST' && canOrganize && !isSubfolderView && (
+                        {viewMode === 'LIST' && canOrganize && (
                             <button
                                 type="button"
                                 onClick={handleCreateFolder}
