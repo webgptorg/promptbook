@@ -602,7 +602,10 @@ async function generatePackages({ isCommited, isBundlerSkipped }: { isCommited: 
             const bundleFileNames = await glob(`./packages/${packageBasename}/**/*`, { nodir: true });
 
             for (const bundleFileName of bundleFileNames) {
-                if (bundleFileName.includes('/typings/')) {
+                if (
+                    bundleFileName.includes('/typings/') ||
+                    bundleFileName.endsWith('.d.ts') /* <- TODO: !!!!!!!!! Is this working */
+                ) {
                     // <- TODO: Maybe exclude "typings" directly in glob
                     continue;
                 }
