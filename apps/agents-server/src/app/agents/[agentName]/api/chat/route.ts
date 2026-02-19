@@ -20,6 +20,7 @@ import { appendChatAttachmentContext, normalizeChatAttachments } from '@/src/uti
 import { resolveCurrentUserMemoryIdentity } from '@/src/utils/userMemory';
 import { Agent, computeAgentHash, RemoteAgent } from '@promptbook-local/core';
 import type { ChatMessage } from '@promptbook-local/components';
+import type { ToolCall } from '@promptbook-local/types';
 import { $getCurrentDate, serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
 import { ASSISTANT_PREPARATION_TOOL_CALL_NAME } from '../../../../../../../../src/types/ToolCall';
@@ -63,12 +64,19 @@ export const maxDuration = 300;
 /**
  * Builds a preparation tool call payload for the chat stream.
  */
-function createAssistantPreparationToolCall(phase: string) {
+function createAssistantPreparationToolCall(phase: string): ToolCall {
     return {
         name: ASSISTANT_PREPARATION_TOOL_CALL_NAME,
         arguments: { phase },
         createdAt: $getCurrentDate(),
     };
+}
+
+/**
+ * Wraps tool calls in the NDJSON transport envelope consumed by `RemoteAgent`.
+ */
+function createToolCallsStreamFrame(toolCalls: ReadonlyArray<ToolCall>): string {
+    return `\n${JSON.stringify({ toolCalls })}\n`;
 }
 
 export async function OPTIONS(request: Request) {
@@ -207,17 +215,35 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             async start(controller) {
                 let hasMeaningfulDelta = false;
                 let keepAliveInterval: ReturnType<typeof setInterval> | undefined;
+                let lastToolCallsFrame: string | null = null;
 
                 const sendKeepAlivePing = () => {
                     controller.enqueue(encoder.encode(`\n${CHAT_STREAM_KEEP_ALIVE_TOKEN}\n`));
+                };
+
+                /**
+                 * Streams tool calls to the client while deduplicating repeated snapshots.
+                 */
+                const emitToolCalls = (toolCalls: ReadonlyArray<ToolCall> | undefined): void => {
+                    if (!toolCalls || toolCalls.length === 0) {
+                        return;
+                    }
+
+                    const frame = createToolCallsStreamFrame(toolCalls);
+                    if (frame === lastToolCallsFrame) {
+                        return;
+                    }
+
+                    lastToolCallsFrame = frame;
+                    controller.enqueue(encoder.encode(frame));
                 };
 
                 sendKeepAlivePing();
                 keepAliveInterval = setInterval(sendKeepAlivePing, CHAT_STREAM_KEEP_ALIVE_INTERVAL_MS);
 
                 /**
-                 * Note: Tool calls are emitted once at the end from `response.toolCalls`.
-                 * Streaming intermediate tool call snapshots can duplicate chips in the client UI.
+                 * Note: Tool calls are emitted continuously while streaming and once more at the end.
+                 * The shared emitter deduplicates snapshots so ongoing and final chips stay consistent.
                  */
                 const handleStreamChunk = createChatStreamHandler({
                     onDelta: (deltaContent) => {
@@ -225,6 +251,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                             hasMeaningfulDelta = true;
                         }
                         controller.enqueue(encoder.encode(deltaContent));
+                    },
+                    onToolCalls: (toolCalls) => {
+                        emitToolCalls(toolCalls);
                     },
                 });
 
@@ -238,9 +267,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                             agentId,
                             onCacheMiss: async () => {
                                 const toolCall = createAssistantPreparationToolCall('Preparing AgentKit agent');
-                                controller.enqueue(
-                                    encoder.encode('\n' + JSON.stringify({ toolCalls: [toolCall] }) + '\n'),
-                                );
+                                emitToolCalls([toolCall]);
                             },
                         },
                     );
@@ -315,9 +342,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                     }
 
                     if (response.toolCalls && response.toolCalls.length > 0) {
-                        controller.enqueue(
-                            encoder.encode('\n' + JSON.stringify({ toolCalls: response.toolCalls }) + '\n'),
-                        );
+                        emitToolCalls(response.toolCalls);
                     }
 
                     controller.close();
