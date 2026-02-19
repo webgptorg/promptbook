@@ -2,6 +2,12 @@ import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentColle
 import { $provideOpenAiAgentKitExecutionToolsForServer } from '@/src/tools/$provideOpenAiAgentKitExecutionToolsForServer';
 import { createChatHistoryRecorder } from '@/src/utils/chat/createChatHistoryRecorder';
 import { ensureNonEmptyChatContent } from '@/src/utils/chat/ensureNonEmptyChatContent';
+import {
+    appendMessageSuffix,
+    createMessageSuffixAppendix,
+    emulateMessageSuffixStreaming,
+    resolveMessageSuffixFromAgentSource,
+} from '@/src/utils/chat/messageSuffix';
 import { createChatStreamHandler } from '@/src/utils/createChatStreamHandler';
 import { composePromptParametersWithMemoryContext } from '@/src/utils/memoryRuntimeContext';
 import { resolveCurrentUserMemoryIdentity } from '@/src/utils/userMemory';
@@ -265,6 +271,8 @@ export async function handleChatCompletion(
             );
         }
 
+        const messageSuffix = resolveMessageSuffixFromAgentSource(agentSource);
+
         // Note: Handle system messages as CONTEXT
         const systemMessages = messages.filter((msg: TODO_any) => msg.role === 'system');
         if (systemMessages.length > 0) {
@@ -424,27 +432,31 @@ export async function handleChatCompletion(
                     let hasMeaningfulDelta = false;
 
                     try {
+                        const emitDeltaChunk = (deltaContent: string) => {
+                            const chunkData = {
+                                id: runId,
+                                object: 'chat.completion.chunk',
+                                created,
+                                model: model || 'promptbook-agent',
+                                choices: [
+                                    {
+                                        index: 0,
+                                        delta: {
+                                            content: deltaContent,
+                                        },
+                                        finish_reason: null,
+                                    },
+                                ],
+                            };
+                            controller.enqueue(encoder.encode(`data: ${JSON.stringify(chunkData)}\n\n`));
+                        };
+
                         const handleStreamChunk = createChatStreamHandler({
                             onDelta: (deltaContent) => {
                                 if (deltaContent.trim().length > 0) {
                                     hasMeaningfulDelta = true;
                                 }
-                                const chunkData = {
-                                    id: runId,
-                                    object: 'chat.completion.chunk',
-                                    created,
-                                    model: model || 'promptbook-agent',
-                                    choices: [
-                                        {
-                                            index: 0,
-                                            delta: {
-                                                content: deltaContent,
-                                            },
-                                            finish_reason: null,
-                                        },
-                                    ],
-                                };
-                                controller.enqueue(encoder.encode(`data: ${JSON.stringify(chunkData)}\n\n`));
+                                emitDeltaChunk(deltaContent);
                             },
                             onToolCalls: (toolCalls) => {
                                 controller.enqueue(encoder.encode('\n' + JSON.stringify({ toolCalls }) + '\n'));
@@ -459,28 +471,25 @@ export async function handleChatCompletion(
                         });
 
                         if (normalizedResponse.wasEmpty && !hasMeaningfulDelta) {
-                            const fallbackChunkData = {
-                                id: runId,
-                                object: 'chat.completion.chunk',
-                                created,
-                                model: model || 'promptbook-agent',
-                                choices: [
-                                    {
-                                        index: 0,
-                                        delta: {
-                                            content: normalizedResponse.content,
-                                        },
-                                        finish_reason: null,
-                                    },
-                                ],
-                            };
-                            controller.enqueue(encoder.encode(`data: ${JSON.stringify(fallbackChunkData)}\n\n`));
+                            emitDeltaChunk(normalizedResponse.content);
                         }
+
+                        const messageSuffixAppendix = createMessageSuffixAppendix(
+                            normalizedResponse.content,
+                            messageSuffix,
+                        );
+                        if (messageSuffixAppendix) {
+                            await emulateMessageSuffixStreaming(messageSuffixAppendix, (delta) => {
+                                emitDeltaChunk(delta);
+                            });
+                        }
+
+                        const responseContentWithSuffix = appendMessageSuffix(normalizedResponse.content, messageSuffix);
 
                         // Note: Identify the agent message
                         const agentMessageContent = {
                             role: 'MODEL',
-                            content: normalizedResponse.content,
+                            content: responseContentWithSuffix,
                         };
 
                         await recordChatHistoryMessage({
@@ -533,11 +542,12 @@ export async function handleChatCompletion(
                 content: result.content,
                 context: title,
             });
+            const responseContentWithSuffix = appendMessageSuffix(normalizedResponse.content, messageSuffix);
 
             // Note: Identify the agent message
             const agentMessageContent = {
                 role: 'MODEL',
-                content: normalizedResponse.content,
+                content: responseContentWithSuffix,
             };
 
             await recordChatHistoryMessage({
@@ -563,12 +573,12 @@ export async function handleChatCompletion(
                         index: 0,
                         message: {
                             role: 'assistant',
-                            content: normalizedResponse.content,
+                            content: responseContentWithSuffix,
                         },
                         finish_reason: 'stop',
                     },
                 ],
-                usage: createCompatibilityUsage(prompt.content, normalizedResponse.content, result.usage),
+                usage: createCompatibilityUsage(prompt.content, responseContentWithSuffix, result.usage),
             });
         }
     } catch (error) {

@@ -7,6 +7,12 @@ import { createChatStreamHandler } from '@/src/utils/createChatStreamHandler';
 import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
 import { composePromptParametersWithMemoryContext } from '@/src/utils/memoryRuntimeContext';
 import {
+    appendMessageSuffix,
+    createMessageSuffixAppendix,
+    emulateMessageSuffixStreaming,
+    resolveMessageSuffixFromAgentSource,
+} from '@/src/utils/chat/messageSuffix';
+import {
     resolveMetaDisclaimerMarkdownFromAgentSource,
     resolveMetaDisclaimerStatusForUser,
 } from '@/src/utils/metaDisclaimer';
@@ -117,6 +123,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         // [▶️] const executionTools = await $provideExecutionToolsForServer();
         const agentId = await collection.getAgentPermanentId(agentName);
         const agentSource = await collection.getAgentSource(agentName);
+        const messageSuffix = resolveMessageSuffixFromAgentSource(agentSource);
         const currentUserIdentity = await resolveCurrentUserMemoryIdentity();
         const disclaimerMarkdown = resolveMetaDisclaimerMarkdownFromAgentSource(agentSource);
 
@@ -276,10 +283,22 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                         controller.enqueue(encoder.encode(normalizedResponse.content));
                     }
 
+                    const messageSuffixAppendix = createMessageSuffixAppendix(
+                        normalizedResponse.content,
+                        messageSuffix,
+                    );
+                    if (messageSuffixAppendix) {
+                        await emulateMessageSuffixStreaming(messageSuffixAppendix, (delta) => {
+                            controller.enqueue(encoder.encode(delta));
+                        });
+                    }
+
+                    const responseContentWithSuffix = appendMessageSuffix(normalizedResponse.content, messageSuffix);
+
                     // Note: Identify the agent message
                     const agentMessageContent = {
                         role: 'MODEL',
-                        content: normalizedResponse.content,
+                        content: responseContentWithSuffix,
                     };
 
                     await recordChatHistoryMessage({

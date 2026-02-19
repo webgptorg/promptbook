@@ -17,6 +17,7 @@ import { AgentMessageCommitmentDefinition } from './MESSAGE/AgentMessageCommitme
 import { InitialMessageCommitmentDefinition } from './MESSAGE/InitialMessageCommitmentDefinition';
 import { MessageCommitmentDefinition } from './MESSAGE/MESSAGE';
 import { UserMessageCommitmentDefinition } from './MESSAGE/UserMessageCommitmentDefinition';
+import { MessageSuffixCommitmentDefinition } from './MESSAGE_SUFFIX/MESSAGE_SUFFIX';
 import { MetaCommitmentDefinition } from './META/META';
 import { MetaColorCommitmentDefinition } from './META_COLOR/META_COLOR';
 import { MetaDisclaimerCommitmentDefinition } from './META_DISCLAIMER/META_DISCLAIMER';
@@ -93,6 +94,7 @@ export const COMMITMENT_REGISTRY = [
     new InitialMessageCommitmentDefinition(),
     new UserMessageCommitmentDefinition(),
     new AgentMessageCommitmentDefinition(),
+    new MessageSuffixCommitmentDefinition(),
     new MessageCommitmentDefinition('MESSAGE'),
     new MessageCommitmentDefinition('MESSAGES'),
     new ScenarioCommitmentDefinition('SCENARIO'),

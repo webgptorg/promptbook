@@ -277,6 +277,11 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
             continue;
         }
 
+        if (commitment.type === 'MESSAGE SUFFIX') {
+            meta.messageSuffix = commitment.content;
+            continue;
+        }
+
         if (commitment.type === 'META COLOR') {
             meta.color = normalizeSeparator(commitment.content);
             continue;
