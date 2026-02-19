@@ -5,6 +5,13 @@ import type { WithTake } from '../take/interfaces/ITakeChain';
 import { take } from '../take/take';
 import { CSS_COLORS } from './css-colors';
 import { checkChannelValue } from './internal-utils/checkChannelValue';
+import { parseHexColor } from './parsers/parseHexColor';
+import { parseHslColor } from './parsers/parseHslColor';
+import { parseRgbColor, parseRgbaColor } from './parsers/parseRgbColor';
+
+const HSL_REGEX_PATTERN = /^hsl\(\s*([0-9.]+)\s*,\s*([0-9.]+)%\s*,\s*([0-9.]+)%\s*\)$/;
+const RGB_REGEX_PATTERN = /^rgb\(\s*([0-9.%-]+)\s*,\s*([0-9.%-]+)\s*,\s*([0-9.%-]+)\s*\)$/;
+const RGBA_REGEX_PATTERN = /^rgba\(\s*([0-9.%-]+)\s*,\s*([0-9.%-]+)\s*,\s*([0-9.%-]+)\s*,\s*([0-9.%-]+)\s*\)$/;
 
 /**
  * Color object represents an RGB color with alpha channel
@@ -88,29 +95,22 @@ export class Color {
      * @returns Color object
      */
     public static fromString(color: string_color): WithTake<Color> {
-        if (CSS_COLORS[color as keyof typeof CSS_COLORS]) {
-            return Color.fromString(CSS_COLORS[color as keyof typeof CSS_COLORS]);
+        const trimmed = color.trim();
 
-            // -----
-        } else if (Color.isHexColorString(color)) {
-            return Color.fromHex(color);
+        if (CSS_COLORS[trimmed as keyof typeof CSS_COLORS]) {
+            return Color.fromString(CSS_COLORS[trimmed as keyof typeof CSS_COLORS]);
+        } else if (Color.isHexColorString(trimmed)) {
+            return Color.fromHex(trimmed);
+        }
 
-            // -----
-        } else if (/^hsl\(\s*(\d+)\s*,\s*(\d+(?:\.\d+)?%)\s*,\s*(\d+(?:\.\d+)?%)\)$/.test(color)) {
-            return Color.fromHsl(color);
-
-            // -----
-        } else if (/^rgb\((\s*[0-9-.%]+\s*,?){3}\)$/.test(color)) {
-            // TODO: [0] Should be fromRgbString and fromRgbaString one or two functions
-            return Color.fromRgbString(color);
-
-            // -----
-        } else if (/^rgba\((\s*[0-9-.%]+\s*,?){4}\)$/.test(color)) {
-            return Color.fromRgbaString(color);
-
-            // -----
+        if (HSL_REGEX_PATTERN.test(trimmed)) {
+            return Color.fromHsl(trimmed as string_color);
+        } else if (RGB_REGEX_PATTERN.test(trimmed)) {
+            return Color.fromRgbString(trimmed as string_color);
+        } else if (RGBA_REGEX_PATTERN.test(trimmed)) {
+            return Color.fromRgbaString(trimmed as string_color);
         } else {
-            throw new Error(`Can not create a new Color instance from string "${color}".`);
+            throw new Error(`Can not create a new Color instance from string "${trimmed}".`);
         }
     }
 
@@ -147,83 +147,8 @@ export class Color {
      * @returns Color object
      */
     public static fromHex(hex: string_color): WithTake<Color> {
-        const hexOriginal = hex;
-
-        if (hex.startsWith('#')) {
-            hex = hex.substring(1);
-        }
-
-        if (hex.length === 3) {
-            return Color.fromHex3(hex);
-        }
-
-        if (hex.length === 4) {
-            return Color.fromHex4(hex);
-        }
-
-        if (hex.length === 6) {
-            return Color.fromHex6(hex);
-        }
-
-        if (hex.length === 8) {
-            return Color.fromHex8(hex);
-        }
-
-        throw new Error(`Can not parse color from hex string "${hexOriginal}"`);
-    }
-
-    /**
-     * Creates a new Color instance from color in hex format with 3 color digits (without alpha channel)
-     *
-     * @param color in hex for example `09d`
-     * @returns Color object
-     */
-    private static fromHex3(hex: string_color): WithTake<Color> {
-        const r = parseInt(hex.substr(0, 1), 16) * 16;
-        const g = parseInt(hex.substr(1, 1), 16) * 16;
-        const b = parseInt(hex.substr(2, 1), 16) * 16;
-        return take(new Color(r, g, b));
-    }
-
-    /**
-     * Creates a new Color instance from color in hex format with 4 digits (with alpha channel)
-     *
-     * @param color in hex for example `09df`
-     * @returns Color object
-     */
-    private static fromHex4(hex: string_color): WithTake<Color> {
-        const r = parseInt(hex.substr(0, 1), 16) * 16;
-        const g = parseInt(hex.substr(1, 1), 16) * 16;
-        const b = parseInt(hex.substr(2, 1), 16) * 16;
-        const a = parseInt(hex.substr(3, 1), 16) * 16;
-        return take(new Color(r, g, b, a));
-    }
-
-    /**
-     * Creates a new Color instance from color in hex format with 6 color digits (without alpha channel)
-     *
-     * @param color in hex for example `009edd`
-     * @returns Color object
-     */
-    private static fromHex6(hex: string_color): WithTake<Color> {
-        const r = parseInt(hex.substr(0, 2), 16);
-        const g = parseInt(hex.substr(2, 2), 16);
-        const b = parseInt(hex.substr(4, 2), 16);
-        return take(new Color(r, g, b));
-    }
-
-    /**
-     * Creates a new Color instance from color in hex format with 8 color digits (with alpha channel)
-     *
-     * @param color in hex for example `009edd`
-     * @returns Color object
-     */
-    private static fromHex8(hex: string_color): WithTake<Color> {
-        const r = parseInt(hex.substr(0, 2), 16);
-        const g = parseInt(hex.substr(2, 2), 16);
-        const b = parseInt(hex.substr(4, 2), 16);
-        const a = parseInt(hex.substr(6, 2), 16);
-        return take(new Color(r, g, b, a));
+        const { red, green, blue, alpha } = parseHexColor(hex);
+        return take(new Color(red, green, blue, alpha));
     }
 
     /**
@@ -233,54 +158,8 @@ export class Color {
      * @returns Color object
      */
     public static fromHsl(hsl: string_color): WithTake<Color> {
-        const match = hsl.match(/^hsl\(\s*([0-9.]+)\s*,\s*([0-9.]+)%\s*,\s*([0-9.]+)%\s*\)$/);
-        if (!match) {
-            throw new Error(`Invalid hsl string format: "${hsl}"`);
-        }
-
-        const h = parseFloat(match[1]!);
-        const s = parseFloat(match[2]!) / 100;
-        const l = parseFloat(match[3]!) / 100;
-
-        // HSL to RGB conversion
-        const c = (1 - Math.abs(2 * l - 1)) * s;
-        const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
-        const m = l - c / 2;
-
-        let r1 = 0,
-            g1 = 0,
-            b1 = 0;
-        if (h >= 0 && h < 60) {
-            r1 = c;
-            g1 = x;
-            b1 = 0;
-        } else if (h >= 60 && h < 120) {
-            r1 = x;
-            g1 = c;
-            b1 = 0;
-        } else if (h >= 120 && h < 180) {
-            r1 = 0;
-            g1 = c;
-            b1 = x;
-        } else if (h >= 180 && h < 240) {
-            r1 = 0;
-            g1 = x;
-            b1 = c;
-        } else if (h >= 240 && h < 300) {
-            r1 = x;
-            g1 = 0;
-            b1 = c;
-        } else if (h >= 300 && h < 360) {
-            r1 = c;
-            g1 = 0;
-            b1 = x;
-        }
-
-        const r = Math.round((r1 + m) * 255);
-        const g = Math.round((g1 + m) * 255);
-        const b = Math.round((b1 + m) * 255);
-
-        return take(new Color(r, g, b));
+        const { red, green, blue, alpha } = parseHslColor(hsl);
+        return take(new Color(red, green, blue, alpha));
     }
 
     /**
@@ -290,27 +169,8 @@ export class Color {
      * @returns Color object
      */
     public static fromRgbString(rgb: string_color): WithTake<Color> {
-        const match = rgb.match(/^rgb\(\s*([0-9.%-]+)\s*,\s*([0-9.%-]+)\s*,\s*([0-9.%-]+)\s*\)$/);
-        if (!match) {
-            throw new Error(`Invalid rgb string format: "${rgb}"`);
-        }
-
-        const parseChannel = (value: string): number => {
-            if (value.endsWith('%')) {
-                // Percentage value
-                const percent = parseFloat(value);
-                return Math.round((percent / 100) * 255);
-            } else {
-                // Numeric value
-                return Math.round(parseFloat(value));
-            }
-        };
-
-        const r = parseChannel(match[1]!);
-        const g = parseChannel(match[2]!);
-        const b = parseChannel(match[3]!);
-
-        return take(new Color(r, g, b));
+        const { red, green, blue, alpha } = parseRgbColor(rgb);
+        return take(new Color(red, green, blue, alpha));
     }
 
     /**
@@ -320,41 +180,8 @@ export class Color {
      * @returns Color object
      */
     public static fromRgbaString(rgba: string_color): WithTake<Color> {
-        const match = rgba.match(/^rgba\(\s*([0-9.%-]+)\s*,\s*([0-9.%-]+)\s*,\s*([0-9.%-]+)\s*,\s*([0-9.%-]+)\s*\)$/);
-        if (!match) {
-            throw new Error(`Invalid rgba string format: "${rgba}"`);
-        }
-
-        const parseChannel = (value: string): number => {
-            if (value.endsWith('%')) {
-                const percent = parseFloat(value);
-                return Math.round((percent / 100) * 255);
-            } else {
-                return Math.round(parseFloat(value));
-            }
-        };
-
-        const parseAlpha = (value: string): number => {
-            if (value.endsWith('%')) {
-                const percent = parseFloat(value);
-                return Math.round((percent / 100) * 255);
-            } else {
-                const alphaFloat = parseFloat(value);
-                // If alpha is between 0 and 1, treat as float
-                if (alphaFloat <= 1) {
-                    return Math.round(alphaFloat * 255);
-                }
-                // Otherwise, treat as 0-255
-                return Math.round(alphaFloat);
-            }
-        };
-
-        const r = parseChannel(match[1]!);
-        const g = parseChannel(match[2]!);
-        const b = parseChannel(match[3]!);
-        const a = parseAlpha(match[4]!);
-
-        return take(new Color(r, g, b, a));
+        const { red, green, blue, alpha } = parseRgbaColor(rgba);
+        return take(new Color(red, green, blue, alpha));
     }
 
     /**
@@ -498,13 +325,15 @@ export class Color {
 
     public toHex(): string_color {
         if (this.alpha === 255) {
-            return `#${this.red.toString(16).padStart(2, '0')}${this.green.toString(16).padStart(2, '0')}${this.blue
+            return `#${this.red.toString(16).padStart(2, '0')}${this.green
+                .toString(16)
+                .padStart(2, '0')}${this.blue.toString(16).padStart(2, '0')}`;
+        } else {
+            return `#${this.red.toString(16).padStart(2, '0')}${this.green
+                .toString(16)
+                .padStart(2, '0')}${this.blue.toString(16).padStart(2, '0')}${this.alpha
                 .toString(16)
                 .padStart(2, '0')}`;
-        } else {
-            return `#${this.red.toString(16).padStart(2, '0')}${this.green.toString(16).padStart(2, '0')}${this.blue
-                .toString(16)
-                .padStart(2, '0')}${this.alpha.toString(16).padStart(2, '0')}`;
         }
     }
 
@@ -520,20 +349,3 @@ export class Color {
         throw new Error(`Getting HSL is not implemented`);
     }
 }
-
-/**
- * TODO: [🥻] Split Color class and color type
- * TODO: For each method a corresponding static method should be created
- *       Like clone can be done by color.clone() OR Color.clone(color)
- * TODO: Probably as an independent LIB OR add to LIB xyzt (ask @roseckyj)
- * TODO: !! Transfer back to Collboard (whole directory)
- * TODO: Maybe [🏌️‍♂️] change ACRY toString => (toHex) toRgb when there will be toRgb and toRgba united
- * TODO: Convert getters to methods - getters only for values
- * TODO: Write tests
- * TODO: Getters for alpha, opacity, transparency, r, b, g, h, s, l, a,...
- * TODO: [0] Should be fromRgbString and fromRgbaString one or two functions + one or two regex
- * TODO: Use rgb, rgba, hsl for testing and parsing with the same regex
- * TODO: Regex for rgb, rgba, hsl does not support all options like deg, rad, turn,...
- * TODO: Convolution matrix
- * TODO: Maybe connect with textures
- */

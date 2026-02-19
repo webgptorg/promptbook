@@ -14,6 +14,8 @@ import type { AvatarProfileFromSourceProps } from '../book-components/AvatarProf
 import type { BookEditorUploadProgressCallback } from '../book-components/BookEditor/BookEditor';
 import type { BookEditorUploadOptions } from '../book-components/BookEditor/BookEditor';
 import type { BookEditorProps } from '../book-components/BookEditor/BookEditor';
+import type { UploadItem } from '../book-components/BookEditor/useBookEditorMonacoUploads';
+import type { UploadStats } from '../book-components/BookEditor/useBookEditorMonacoUploads';
 import type { AgentChatProps } from '../book-components/Chat/AgentChat/AgentChatProps';
 import type { AgentChipData } from '../book-components/Chat/AgentChip/AgentChip';
 import type { AgentChipProps } from '../book-components/Chat/AgentChip/AgentChip';
@@ -424,6 +426,8 @@ export type { AvatarProfileFromSourceProps };
 export type { BookEditorUploadProgressCallback };
 export type { BookEditorUploadOptions };
 export type { BookEditorProps };
+export type { UploadItem };
+export type { UploadStats };
 export type { AgentChatProps };
 export type { AgentChipData };
 export type { AgentChipProps };
