@@ -16,6 +16,7 @@ import { Header } from '../Header/Header';
 import { PrivateModePreferencesProvider } from '../PrivateModePreferences/PrivateModePreferencesProvider';
 import { SelfLearningPreferencesProvider } from '../SelfLearningPreferences/SelfLearningPreferencesProvider';
 import { SoundSystemProvider } from '../SoundSystemProvider/SoundSystemProvider';
+import { MetadataFlagsProvider } from '../MetadataFlags/MetadataFlagsContext';
 
 type LayoutWrapperProps = {
     children: React.ReactNode;
@@ -31,6 +32,10 @@ type LayoutWrapperProps = {
     federatedServers: Array<{ url: string; title: string }>;
     isExperimental: boolean;
     isFeedbackEnabled: boolean;
+    /**
+     * Indicates if the install-as-app option should be shown in agent menus.
+     */
+    readonly isExperimentalPwaAppEnabled: boolean;
     defaultIsSoundsOn: boolean;
     defaultIsVibrationOn: boolean;
 };
@@ -78,21 +83,23 @@ export function LayoutWrapper({
                             >
                                 <ClientVersionMismatchListener />
                                 <MenuHoistingProvider>
-                                    <div className="flex min-h-screen flex-col">
-                                    <Header
-                                        isAdmin={isAdmin}
-                                        currentUser={currentUser}
-                                        serverName={serverName}
-                                        serverLogoUrl={serverLogoUrl}
-                                        agents={agents}
-                                        agentFolders={agentFolders}
-                                        federatedServers={federatedServers}
-                                        isExperimental={isExperimental}
-                                        isFeedbackEnabled={isFeedbackEnabled}
-                                    />
-                                        <main className={mainClassName}>{children}</main>
-                                        {isFooterShown && !isFooterHiddenOnPage && <Footer extraLinks={footerLinks} />}
-                                    </div>
+                                    <MetadataFlagsProvider value={{ isExperimentalPwaAppEnabled }}>
+                                        <div className="flex min-h-screen flex-col">
+                                            <Header
+                                                isAdmin={isAdmin}
+                                                currentUser={currentUser}
+                                                serverName={serverName}
+                                                serverLogoUrl={serverLogoUrl}
+                                                agents={agents}
+                                                agentFolders={agentFolders}
+                                                federatedServers={federatedServers}
+                                                isExperimental={isExperimental}
+                                                isFeedbackEnabled={isFeedbackEnabled}
+                                            />
+                                            <main className={mainClassName}>{children}</main>
+                                            {isFooterShown && !isFooterHiddenOnPage && <Footer extraLinks={footerLinks} />}
+                                        </div>
+                                    </MetadataFlagsProvider>
                                 </MenuHoistingProvider>
                             </SoundSystemProvider>
                         </SelfLearningPreferencesProvider>

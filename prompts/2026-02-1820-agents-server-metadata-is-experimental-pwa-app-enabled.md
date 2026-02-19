@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.14 7 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
 [✨🧩] Add metadata `IS_EXPERIMENTAL_PWA_APP_ENABLED` (by default `true`)
 
@@ -45,3 +45,4 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

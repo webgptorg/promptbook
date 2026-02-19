@@ -38,6 +38,7 @@ import {
     useClampedMenuPosition,
     useCloseOnOutsideClick,
 } from '../ContextMenu/contextMenuUtils';
+import { useMetadataFlags } from '../MetadataFlags/MetadataFlagsContext';
 
 type BeforeInstallPromptEvent = Event & {
     prompt: () => Promise<void>;
@@ -229,6 +230,8 @@ function AgentContextMenuContent(props: AgentContextMenuBaseProps & { onClose: (
         fromDirectoryListing,
         onClose,
     } = props;
+
+    const { isExperimentalPwaAppEnabled } = useMetadataFlags();
 
     const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
     const copyTimeoutRef = useRef<number | null>(null);
@@ -458,7 +461,7 @@ function AgentContextMenuContent(props: AgentContextMenuBaseProps & { onClose: (
               ]
             : []),
 
-        ...(!isInstalled && installPromptEvent && onInstallApp
+        ...(!isInstalled && installPromptEvent && onInstallApp && isExperimentalPwaAppEnabled
             ? [
                   {
                       type: 'action' as const,

@@ -111,6 +111,12 @@ export const metadataDefaults = [
         type: 'BOOLEAN',
     },
     {
+        key: 'IS_EXPERIMENTAL_PWA_APP_ENABLED',
+        value: 'true',
+        note: 'Show or hide the experimental install-app option inside agent menus.',
+        type: 'BOOLEAN',
+    },
+    {
         key: 'DEFAULT_IS_SOUNDS_ON',
         value: 'false',
         note: 'Default state for chat sounds when a user has no saved preference. When false, sounds start muted.',
