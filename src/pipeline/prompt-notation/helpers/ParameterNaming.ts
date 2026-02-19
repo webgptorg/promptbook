@@ -123,7 +123,7 @@ function collectBracketedParameterTokens(values: string[]): Set<string> {
     const tokens = new Set<string>();
 
     for (const value of values) {
-        const pattern = /{(\\w+)}/g;
+        const pattern = /{(\w+)}/g;
         let match: RegExpExecArray | null;
 
         while ((match = pattern.exec(value)) !== null) {
