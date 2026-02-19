@@ -98,5 +98,9 @@
     "typings": "./esm/typings/src/_packages/javascript.index.d.ts",
     "peerDependencies": {
         "@promptbook/core": "0.111.0-6"
+    },
+    "dependencies": {
+        "crypto": "1.0.1",
+        "spacetrim": "0.11.60"
     }
 }
