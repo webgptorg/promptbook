@@ -20,10 +20,10 @@ export function parseHexColor(hex: string_color): ColorChannelSet {
 
     if (SHORT_HEX_LENGTHS.has(sanitized.length)) {
         return {
-            red: parseShortHexChannel(sanitized[0], throwInvalidHex),
-            green: parseShortHexChannel(sanitized[1], throwInvalidHex),
-            blue: parseShortHexChannel(sanitized[2], throwInvalidHex),
-            alpha: sanitized.length === 4 ? parseShortHexChannel(sanitized[3], throwInvalidHex) : 255,
+            red: parseShortHexChannel(sanitized.charAt(0), throwInvalidHex),
+            green: parseShortHexChannel(sanitized.charAt(1), throwInvalidHex),
+            blue: parseShortHexChannel(sanitized.charAt(2), throwInvalidHex),
+            alpha: sanitized.length === 4 ? parseShortHexChannel(sanitized.charAt(3), throwInvalidHex) : 255,
         };
     }
 
