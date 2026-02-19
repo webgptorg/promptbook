@@ -1,4 +1,4 @@
-[ ] !
+[x] ~$0.38 12 minutes by OpenAI Codex `gpt-5.3-codex`
 
 [✨🎫] When the user is switching between his chats, the user experience isn't great.
 
@@ -43,3 +43,4 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

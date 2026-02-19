@@ -42,6 +42,13 @@ type AgentChatWrapperProps = {
      */
     isFeedbackEnabled?: boolean;
     chatFailMessage?: string;
+    /**
+     * Optional handler for "New chat" action emitted from chat action bar.
+     *
+     * When provided, wrapper delegates reset behavior to the caller so the
+     * current chat can stay immutable and a fresh chat can be created instead.
+     */
+    onStartNewChat?: () => Promise<void> | void;
 };
 
 /**
@@ -134,6 +141,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
         areFileAttachmentsEnabled,
         isFeedbackEnabled,
         chatFailMessage,
+        onStartNewChat,
     } = props;
 
     const shouldEnableFeedback = isFeedbackEnabled ?? true;
@@ -409,6 +417,8 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
                 isSpeechPlaybackEnabled={isSpeechFeaturesEnabled}
                 chatFailMessage={chatFailMessage}
                 promptParameters={promptParameters}
+                onReset={onStartNewChat}
+                resetMode={onStartNewChat ? 'delegate' : undefined}
             />
             <ChatErrorDialog
                 error={currentError}

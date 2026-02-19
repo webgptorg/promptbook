@@ -176,6 +176,7 @@ export function LlmChat(props: LlmChatProps) {
         thinkingMessages,
         promptParameters,
         chatFailMessage,
+        resetMode = 'reset-current',
         ...restProps
     } = props;
 
@@ -532,6 +533,11 @@ export function LlmChat(props: LlmChatProps) {
 
     // Handle chat reset
     const handleReset = useCallback(async () => {
+        if (resetMode === 'delegate' && onReset) {
+            await onReset();
+            return;
+        }
+
         // Re-seed with initialMessages instead of empty array
         setMessages(buildInitialMessages());
         setTasksProgress([]);
@@ -549,7 +555,7 @@ export function LlmChat(props: LlmChatProps) {
         if (onReset) {
             await onReset();
         }
-    }, [persistenceKey, onReset, buildInitialMessages]);
+    }, [buildInitialMessages, onReset, persistenceKey, resetMode]);
 
     // Handle retry of last failed message
     const handleRetry = useCallback(() => {

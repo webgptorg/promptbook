@@ -10,6 +10,11 @@ import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
 
 /**
+ * Determines how the chat reset action should behave when user clicks "New chat".
+ */
+type LlmChatResetMode = 'reset-current' | 'delegate';
+
+/**
  * Props for LlmChat component, derived from ChatProps but with LLM-specific modifications
  *
  * @public exported from `@promptbook/components`
@@ -95,6 +100,17 @@ export type LlmChatProps = Omit<ChatProps, 'messages' | 'onMessage' | 'onChange'
      * Use metadata overrides in apps (like Agents Server) instead of copying this string.
      */
     readonly chatFailMessage?: string;
+
+    /**
+     * Controls reset behavior for the action-bar "New chat" button.
+     *
+     * - `'reset-current'`: clears current message state and persistence key (default behavior).
+     * - `'delegate'`: skips internal clearing and only calls `onReset`, letting the host app
+     *   switch/create another immutable chat session.
+     *
+     * @default 'reset-current'
+     */
+    readonly resetMode?: LlmChatResetMode;
 
     /**
      * Optional custom error handler that will be called when an error occurs during chat.
