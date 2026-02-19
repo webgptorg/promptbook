@@ -1,7 +1,6 @@
 'use client';
 
 import type { ChatMessage } from '@promptbook-local/types';
-import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAgentNaming } from '../../../../components/AgentNaming/AgentNamingContext';
 import { showConfirm } from '../../../../components/AsyncDialogs/asyncDialogs';
@@ -55,18 +54,16 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
         initialAutoExecuteMessage,
         initialForceNewChat = false,
         isHistoryEnabled,
-    chatFailMessage,
-    areFileAttachmentsEnabled,
-    isFeedbackEnabled,
-} = props;
-    const router = useRouter();
+        chatFailMessage,
+        areFileAttachmentsEnabled,
+        isFeedbackEnabled,
+    } = props;
     const { formatText } = useAgentNaming();
     const { isPrivateModeEnabled } = usePrivateModePreferences();
     const shouldUseHistory = isHistoryEnabled && !isPrivateModeEnabled;
 
     const [chats, setChats] = useState<Array<UserChatSummary>>([]);
     const [activeChatId, setActiveChatId] = useState<string | null>(null);
-    const [activeChatMountKey, setActiveChatMountKey] = useState(0);
     const [isBootstrapping, setIsBootstrapping] = useState(shouldUseHistory);
     const [isCreatingChat, setIsCreatingChat] = useState(false);
     const [isSwitchingChat, setIsSwitchingChat] = useState(false);
@@ -88,6 +85,8 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     const effectiveIsSidebarCollapsed = isMobileSidebarOpen ? false : isSidebarCollapsed;
 
     const hasInitialAutoMessageBeenConsumedRef = useRef(false);
+    const isCreatingChatRef = useRef(false);
+    const isSwitchingChatRef = useRef(false);
     const saveTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
     const savedMessagesHashesRef = useRef<Map<string, string>>(new Map());
     const autoExecuteTargetChatIdRef = useRef<string | undefined>(initialForceNewChat ? undefined : initialChatId);
@@ -123,7 +122,21 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     );
 
     /**
-     * Seeds local storage for selected chat and forces chat remount.
+     * Replaces browser URL to keep selected chat in sync without triggering route refresh.
+     */
+    const replaceBrowserChatRoute = useCallback(
+        (chatId: string, includeInitialMessage: boolean = false) => {
+            if (typeof window === 'undefined') {
+                return;
+            }
+
+            window.history.replaceState(window.history.state, '', buildChatRoute(chatId, includeInitialMessage));
+        },
+        [buildChatRoute],
+    );
+
+    /**
+     * Seeds local storage for selected chat.
      */
     const prepareChatInLocalStorage = useCallback(
         (chatId: string, messages: ReadonlyArray<ChatMessage>) => {
@@ -139,7 +152,6 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
 
             savedMessagesHashesRef.current.set(chatId, JSON.stringify(messages));
             setActiveChatId(chatId);
-            setActiveChatMountKey((value) => value + 1);
         },
         [buildUserChatPersistenceKey],
     );
@@ -179,9 +191,15 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 Boolean(initialAutoExecuteMessage) &&
                 (!autoExecuteTargetChatIdRef.current || resolvedActiveChatId === autoExecuteTargetChatIdRef.current);
 
-            router.replace(buildChatRoute(resolvedActiveChatId, shouldKeepInitialAutoMessage));
+            replaceBrowserChatRoute(resolvedActiveChatId, shouldKeepInitialAutoMessage);
         },
-        [agentName, buildChatRoute, initialAutoExecuteMessage, initialForceNewChat, prepareChatInLocalStorage, router],
+        [
+            agentName,
+            initialAutoExecuteMessage,
+            initialForceNewChat,
+            prepareChatInLocalStorage,
+            replaceBrowserChatRoute,
+        ],
     );
 
     useEffect(() => {
@@ -237,24 +255,26 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
      */
     const handleSelectChat = useCallback(
         async (chatId: string) => {
-            if (chatId === activeChatId || isSwitchingChat) {
+            if (chatId === activeChatId || isSwitchingChatRef.current) {
                 return;
             }
 
+            isSwitchingChatRef.current = true;
             setIsSwitchingChat(true);
             setErrorMessage(null);
 
             try {
                 const chatDetail = await fetchUserChat(agentName, chatId);
                 prepareChatInLocalStorage(chatId, chatDetail.messages);
-                router.replace(buildChatRoute(chatId));
+                replaceBrowserChatRoute(chatId);
             } catch (error) {
                 setErrorMessage(error instanceof Error ? error.message : 'Failed to load chat.');
             } finally {
+                isSwitchingChatRef.current = false;
                 setIsSwitchingChat(false);
             }
         },
-        [activeChatId, agentName, buildChatRoute, isSwitchingChat, prepareChatInLocalStorage, router],
+        [activeChatId, agentName, prepareChatInLocalStorage, replaceBrowserChatRoute],
     );
 
     const handleSelectChatFromSidebar = useCallback(
@@ -269,10 +289,11 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
      * Creates a fresh chat and makes it active.
      */
     const handleCreateChat = useCallback(async () => {
-        if (isCreatingChat) {
+        if (isCreatingChatRef.current) {
             return;
         }
 
+        isCreatingChatRef.current = true;
         setIsCreatingChat(true);
         setErrorMessage(null);
 
@@ -284,13 +305,14 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 ...previousChats.filter((existingChat) => existingChat.id !== createdChat.chat.id),
             ]);
             prepareChatInLocalStorage(createdChat.chat.id, createdChat.messages);
-            router.replace(buildChatRoute(createdChat.chat.id));
+            replaceBrowserChatRoute(createdChat.chat.id);
         } catch (error) {
             setErrorMessage(error instanceof Error ? error.message : 'Failed to create chat.');
         } finally {
+            isCreatingChatRef.current = false;
             setIsCreatingChat(false);
         }
-    }, [agentName, buildChatRoute, isCreatingChat, prepareChatInLocalStorage, router]);
+    }, [agentName, prepareChatInLocalStorage, replaceBrowserChatRoute]);
 
     /**
      * Deletes one chat and resolves next active chat.
@@ -385,18 +407,18 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             <div className="w-full h-full flex flex-col">
                 <PrivateModeHistoryBanner formatText={formatText} />
                 <div className="flex-1">
-                <AgentChatWrapper
-                    key={`guest-${guestPersistenceKey}`}
-                    agentUrl={agentUrl}
-                    autoExecuteMessage={initialAutoExecuteMessage}
-                    brandColor={brandColor}
-                    thinkingMessages={thinkingMessages}
-                    speechRecognitionLanguage={speechRecognitionLanguage}
-                    persistenceKey={guestPersistenceKey}
-                    areFileAttachmentsEnabled={areFileAttachmentsEnabled}
-                    isFeedbackEnabled={isFeedbackEnabled}
-                    chatFailMessage={chatFailMessage}
-                />
+                    <AgentChatWrapper
+                        key={`guest-${guestPersistenceKey}`}
+                        agentUrl={agentUrl}
+                        autoExecuteMessage={initialAutoExecuteMessage}
+                        brandColor={brandColor}
+                        thinkingMessages={thinkingMessages}
+                        speechRecognitionLanguage={speechRecognitionLanguage}
+                        persistenceKey={guestPersistenceKey}
+                        areFileAttachmentsEnabled={areFileAttachmentsEnabled}
+                        isFeedbackEnabled={isFeedbackEnabled}
+                        chatFailMessage={chatFailMessage}
+                    />
                 </div>
             </div>
         );
@@ -448,7 +470,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                     )}
 
                     <AgentChatWrapper
-                        key={`${activeChatId}:${activeChatMountKey}`}
+                        key={activeChatId}
                         agentUrl={agentUrl}
                         autoExecuteMessage={autoExecuteMessage}
                         brandColor={brandColor}
@@ -497,6 +519,9 @@ function formatChatTimestamp(timestamp: string): string {
     });
 }
 
+/**
+ * Banner shown when private mode disables persistent chat history.
+ */
 function PrivateModeHistoryBanner({ formatText }: { formatText: (text: string) => string }) {
     return (
         <div className="border-b border-blue-100 bg-blue-50 px-4 py-2 text-center text-xs font-semibold uppercase tracking-[0.3em] text-blue-700">
