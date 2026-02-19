@@ -1106,6 +1106,10 @@ export function Header(props: HeaderProps) {
         [visibleDocumentationCommitments],
     );
 
+    const hasMenuAccess = Boolean(currentUser || isAdmin);
+    const systemMenuEntries = isAdmin ? adminSystemMenuItems : userSystemItems;
+    const shouldShowSystemMenu = hasMenuAccess && systemMenuEntries.length > 0;
+
     const toggleMobileSubMenu = (key: string) => {
         setMobileOpenSubMenus((previous) => ({
             ...previous,
@@ -1543,18 +1547,20 @@ export function Header(props: HeaderProps) {
 
     // Menu items configuration (DRY principle)
     const menuItems: MenuItem[] = [
-        {
-            type: 'dropdown' as const,
-            label: 'Documentation',
-            isOpen: isDocsOpen,
-            setIsOpen: setIsDocsOpen,
-            isMobileOpen: isMobileDocsOpen,
-            setIsMobileOpen: setIsMobileDocsOpen,
-            items: documentationDropdownItems,
-        },
-        ...(isAdmin || userSystemItems.length > 0
-            ? [buildSystemMenuItem(isAdmin ? adminSystemMenuItems : userSystemItems)]
+        ...(hasMenuAccess
+            ? [
+                  {
+                      type: 'dropdown' as const,
+                      label: 'Documentation',
+                      isOpen: isDocsOpen,
+                      setIsOpen: setIsDocsOpen,
+                      isMobileOpen: isMobileDocsOpen,
+                      setIsMobileOpen: setIsMobileDocsOpen,
+                      items: documentationDropdownItems,
+                  },
+              ]
             : []),
+        ...(shouldShowSystemMenu ? [buildSystemMenuItem(systemMenuEntries)] : []),
     ];
 
     return (
