@@ -87,8 +87,10 @@ export async function POST(request: Request) {
         );
     }
 
-    const payload = (await request.json().catch(() => null)) as { text?: string } | null;
+    const payload = (await request.json().catch(() => null)) as { text?: string; voiceId?: string } | null;
     const rawText = (payload?.text?.toString() ?? '').trim();
+    const requestedVoiceId = payload?.voiceId?.toString().trim();
+    const voiceIdToUse = requestedVoiceId || ELEVEN_LABS_VOICE_ID;
 
     if (!rawText) {
         return new Response(
@@ -110,7 +112,7 @@ export async function POST(request: Request) {
             ? cleanedText.slice(0, MAX_ELEVEN_LABS_TEXT_LENGTH).trim()
             : cleanedText;
 
-    const elevenLabsResponse = await fetch(`${ELEVEN_LABS_BASE_URL}/v1/text-to-speech/${ELEVEN_LABS_VOICE_ID}`, {
+    const elevenLabsResponse = await fetch(`${ELEVEN_LABS_BASE_URL}/v1/text-to-speech/${voiceIdToUse}`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

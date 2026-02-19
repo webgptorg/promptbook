@@ -97,6 +97,7 @@ type ChatMessageItemProps = Pick<ChatProps, 'onMessage' | 'participants'> & {
      * Controls whether the play button below the message is shown.
      */
     isSpeechPlaybackEnabled?: ChatProps['isSpeechPlaybackEnabled'];
+    readonly elevenLabsVoiceId?: ChatProps['elevenLabsVoiceId'];
 };
 
 /**
@@ -362,6 +363,7 @@ export const ChatMessageItem = memo(
             onCitationClick,
             soundSystem,
             isSpeechPlaybackEnabled,
+            elevenLabsVoiceId,
         } = props;
         const {
             isComplete = true,
@@ -600,7 +602,7 @@ export const ChatMessageItem = memo(
                     headers: attachClientVersionHeader({
                         'Content-Type': 'application/json',
                     }),
-                    body: JSON.stringify({ text: payloadText }),
+                    body: JSON.stringify({ text: payloadText, voiceId: elevenLabsVoiceId }),
                 });
 
                 if (!response.ok) {
@@ -629,7 +631,14 @@ export const ChatMessageItem = memo(
             } finally {
                 setIsAudioLoading(false);
             }
-        }, [attachMessageAudioListeners, audioUrl, getMessageTextForSpeech, isAudioLoading, shouldShowPlayButton]);
+        }, [
+            attachMessageAudioListeners,
+            audioUrl,
+            elevenLabsVoiceId,
+            getMessageTextForSpeech,
+            isAudioLoading,
+            shouldShowPlayButton,
+        ]);
 
         useEffect(() => {
             if (!isExpanded) {

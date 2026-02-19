@@ -30,6 +30,7 @@ export function AgentChat(props: AgentChatProps) {
 
     const brandColor = Color.fromSafe(agent.meta.color || PROMPTBOOK_COLOR).then(saturate(-0.2));
     const agentAvatarUrl = resolveAgentAvatarImageUrl({ agent });
+    const elevenLabsVoiceId = agent.meta.voice;
 
     return (
         <>
@@ -72,6 +73,7 @@ export function AgentChat(props: AgentChatProps) {
                 ]}
                 buttonColor={brandColor}
                 {...{ llmTools: agent, onChange, sendMessage, toolTitles }}
+                elevenLabsVoiceId={elevenLabsVoiceId}
                 {...restProps}
             />
         </>

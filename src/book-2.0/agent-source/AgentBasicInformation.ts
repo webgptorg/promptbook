@@ -119,6 +119,7 @@ export type AgentBasicInformation = {
         image?: string_url_image;
         font?: string_fonts;
         color?: string_color;
+        voice?: string;
         [key: string]: string | undefined;
     };
 

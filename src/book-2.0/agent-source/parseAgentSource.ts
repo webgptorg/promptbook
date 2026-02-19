@@ -292,6 +292,11 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
             continue;
         }
 
+        if (commitment.type === 'META VOICE') {
+            meta.voice = spaceTrim(commitment.content);
+            continue;
+        }
+
         if (commitment.type !== 'META') {
             continue;
         }

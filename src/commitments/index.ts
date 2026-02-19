@@ -24,6 +24,7 @@ import { MetaDisclaimerCommitmentDefinition } from './META_DISCLAIMER/META_DISCL
 import { MetaFontCommitmentDefinition } from './META_FONT/META_FONT';
 import { MetaImageCommitmentDefinition } from './META_IMAGE/META_IMAGE';
 import { MetaLinkCommitmentDefinition } from './META_LINK/META_LINK';
+import { MetaVoiceCommitmentDefinition } from './META_VOICE/META_VOICE';
 import { ModelCommitmentDefinition } from './MODEL/MODEL';
 import { NoteCommitmentDefinition } from './NOTE/NOTE';
 import { OpenCommitmentDefinition } from './OPEN/OPEN';
@@ -84,6 +85,7 @@ export const COMMITMENT_REGISTRY = [
     new MetaLinkCommitmentDefinition(),
     new MetaDisclaimerCommitmentDefinition(),
     new MetaCommitmentDefinition(),
+    new MetaVoiceCommitmentDefinition(),
     new NoteCommitmentDefinition('NOTE'),
     new NoteCommitmentDefinition('NOTES'),
     new NoteCommitmentDefinition('COMMENT'),

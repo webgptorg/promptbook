@@ -119,6 +119,12 @@ export type ChatProps = {
     readonly isSpeechPlaybackEnabled?: boolean;
 
     /**
+     * Optional ElevenLabs voice ID that should be used when reading messages aloud.
+     * When not provided, the server uses the default configured voice.
+     */
+    readonly elevenLabsVoiceId?: string;
+
+    /**
      * Optional placeholder message for the textarea
      *
      * @default "Write a message"

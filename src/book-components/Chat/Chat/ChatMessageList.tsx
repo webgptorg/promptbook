@@ -35,6 +35,7 @@ export type ChatMessageListProps = {
     onCitationClick?: (citation: ParsedCitation) => void;
     soundSystem?: ChatProps['soundSystem'];
     isSpeechPlaybackEnabled?: ChatProps['isSpeechPlaybackEnabled'];
+    elevenLabsVoiceId?: ChatProps['elevenLabsVoiceId'];
     setChatMessagesElement: (element: HTMLDivElement | null) => void;
     onScroll: (event: UIEvent<HTMLDivElement>) => void;
     chatMessagesClassName?: string;
@@ -66,6 +67,7 @@ export function ChatMessageList(props: ChatMessageListProps) {
         onCitationClick,
         soundSystem,
         isSpeechPlaybackEnabled,
+        elevenLabsVoiceId,
         setChatMessagesElement,
         onScroll,
         chatMessagesClassName,
@@ -118,6 +120,7 @@ export function ChatMessageList(props: ChatMessageListProps) {
                         onCitationClick={onCitationClick}
                         soundSystem={soundSystem}
                         isSpeechPlaybackEnabled={isSpeechPlaybackEnabled}
+                        elevenLabsVoiceId={elevenLabsVoiceId}
                     />
                 );
             })}

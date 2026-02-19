@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.41 12 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
 [✨👣] Create Commitment `META VOICE` Which will have an ID for the ElevenLabs voice ID which should be used for that agent
 
@@ -60,3 +60,4 @@ Commitments are basic syntax elements that add specific functionalities to AI ag
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
