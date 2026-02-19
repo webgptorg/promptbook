@@ -6,6 +6,7 @@ import { padBook } from '../../../book-2.0/agent-source/padBook';
 import type { string_book } from '../../../book-2.0/agent-source/string_book';
 import { validateBook } from '../../../book-2.0/agent-source/string_book';
 import type { ChatPromptResult } from '../../../execution/PromptResult';
+import { extractOpenTeacherInstructions } from '../../../book-2.0/agent-source/extractOpenTeacherInstructions';
 import type { Prompt } from '../../../types/Prompt';
 import type {
     SelfLearningCommitmentTypeCounts,
@@ -134,6 +135,16 @@ export class SelfLearningManager {
     private async callTeacher(prompt: Prompt, result: ChatPromptResult): Promise<SelfLearningTeacherSummary> {
         console.info(colors.bgCyan('[Self-learning]') + colors.cyan(' Teacher'));
 
+        const teacherInstructions = extractOpenTeacherInstructions(this.options.getAgentSource());
+        const teacherInstructionsSection = teacherInstructions
+            ? spaceTrim(
+                  (block) => `
+                      **Teacher instructions:**
+                      ${block(teacherInstructions)}
+                  `,
+              )
+            : '';
+
         const teacherPromptContent = spaceTrim(
             (block) => `
 
@@ -153,6 +164,7 @@ export class SelfLearningManager {
                 **Agent:**
                 ${block(result.content)}
 
+                ${teacherInstructionsSection ? `\n${teacherInstructionsSection}` : ''}
 
                 **Rules:**
 

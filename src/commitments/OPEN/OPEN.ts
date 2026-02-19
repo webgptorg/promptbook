@@ -26,7 +26,7 @@ export class OpenCommitmentDefinition extends BaseCommitmentDefinition<'OPEN'> {
      * Short one-line description of OPEN.
      */
     get description(): string {
-        return 'Allow the agent to be modified by conversation (default).';
+        return 'Allow the agent to be modified by conversation (default) and optionally guide the teacher.';
     }
 
     /**
