@@ -30,7 +30,7 @@ import type { UserInfo } from '../../utils/getCurrentUser';
 import { getVisibleCommitmentDefinitions } from '../../utils/getVisibleCommitmentDefinitions';
 import { HeadlessLink, pushWithHeadless, useIsHeadless } from '../_utils/headlessParam';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
-import { showLoginDialog } from '../AsyncDialogs/asyncDialogs';
+import { showAlert, showLoginDialog } from '../AsyncDialogs/asyncDialogs';
 import { ChangePasswordDialog } from '../ChangePasswordDialog/ChangePasswordDialog';
 import { useUsersAdmin } from '../UsersList/useUsersAdmin';
 import { HeaderControlPanelDropdown } from './ControlPanel/ControlPanel';
@@ -1283,14 +1283,24 @@ export function Header(props: HeaderProps) {
 
     const handleCreateAgent = async () => {
         setIsCreatingAgent(true);
-        const agentName = await $createAgentAction();
+        try {
+            const agentName = await $createAgentAction();
 
-        if (agentName) {
-            pushWithHeadless(router, `/agents/${agentName}`, isHeadless);
-            setIsAgentsOpen(false);
-            setIsMenuOpen(false);
-        } else {
-            router.refresh();
+            if (agentName) {
+                pushWithHeadless(router, `/agents/${agentName}`, isHeadless);
+            } else {
+                router.refresh();
+            }
+        } catch (error) {
+            console.error('Failed to create agent:', error);
+            await showAlert({
+                title: formatText('Create failed'),
+                message:
+                    error instanceof Error
+                        ? error.message
+                        : formatText('Failed to create agent. Please try again.'),
+            }).catch(() => undefined);
+        } finally {
             setIsCreatingAgent(false);
             setIsAgentsOpen(false);
             setIsMenuOpen(false);

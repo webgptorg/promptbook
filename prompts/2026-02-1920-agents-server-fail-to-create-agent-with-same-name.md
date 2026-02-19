@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.21 13 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
 [✨♾] When you try to create an agent or folder with the already existing name, it fails and the user doesn't get any message. It just doesn't create the agent, and the UI looks stucked
 
@@ -42,3 +42,4 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

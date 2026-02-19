@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server';
+import { ConflictError } from '@promptbook-local/core';
 import { $getTableName } from '../../../database/$getTableName';
 import { $provideSupabaseForServer } from '../../../database/$provideSupabaseForServer';
 import { getCurrentUser } from '../../../utils/getCurrentUser';
+import { translateSupabaseUniqueConstraintError } from '../../../../../../src/utils/database/uniqueConstraint';
 
 /**
  * Creates a new agent folder under the provided parent.
@@ -70,6 +72,20 @@ export async function POST(request: Request) {
         .single();
 
     if (insertResult.error || !insertResult.data) {
+        const conflictError = translateSupabaseUniqueConstraintError(insertResult.error, [
+            {
+                suffix: 'AgentFolder_parent_name_key',
+                buildError: () =>
+                    new ConflictError(
+                        `Folder name "${name}" already exists at this level. Pick another name and try again.`,
+                    ),
+            },
+        ]);
+
+        if (conflictError) {
+            return NextResponse.json({ success: false, error: conflictError.message }, { status: 409 });
+        }
+
         return NextResponse.json(
             { success: false, error: insertResult.error?.message || 'Failed to create folder.' },
             { status: 500 },

@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
+import { ConflictError } from '@promptbook-local/core';
 import { $getTableName } from '../../../../database/$getTableName';
 import { $provideSupabaseForServer } from '../../../../database/$provideSupabaseForServer';
 import { buildFolderTree, collectDescendantFolderIds } from '../../../../utils/agentOrganization/folderTree';
 import { getCurrentUser } from '../../../../utils/getCurrentUser';
+import { translateSupabaseUniqueConstraintError } from '../../../../../../src/utils/database/uniqueConstraint';
 
 /**
  * Renames an existing folder.
@@ -51,6 +53,20 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ fo
         .single();
 
     if (updateResult.error || !updateResult.data) {
+        const conflictError = translateSupabaseUniqueConstraintError(updateResult.error, [
+            {
+                suffix: 'AgentFolder_parent_name_key',
+                buildError: () =>
+                    new ConflictError(
+                        `Folder name "${name}" already exists at this level. Pick another name and try again.`,
+                    ),
+            },
+        ]);
+
+        if (conflictError) {
+            return NextResponse.json({ success: false, error: conflictError.message }, { status: 409 });
+        }
+
         return NextResponse.json(
             { success: false, error: updateResult.error?.message || 'Failed to rename folder.' },
             { status: 500 },

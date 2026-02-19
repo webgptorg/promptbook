@@ -7,6 +7,7 @@ import { forTime } from 'waitasecond';
 import { FileCard } from '../components/Homepage/FileCard';
 import { useAgentNaming } from '../components/AgentNaming/AgentNamingContext';
 import { NewAgentDialog } from '../components/NewAgentDialog/NewAgentDialog';
+import { showAlert } from '../components/AsyncDialogs/asyncDialogs';
 import { $createAgentFromBookAction, $generateAgentBoilerplateAction } from './actions';
 
 /**
@@ -55,13 +56,23 @@ export function AddAgentButton({ currentFolderId }: AddAgentButtonProps) {
      * @param source - Agent source to create.
      */
     const handleCreate = async (source: string_book) => {
-        // Note: [🧠] Logic for creation is now handled inside the dialog (waiting for promise), here we just handle navigation
-        const { permanentId } = await $createAgentFromBookAction(source, currentFolderId ?? undefined);
+        try {
+            const { permanentId } = await $createAgentFromBookAction(source, currentFolderId ?? undefined);
 
-        if (permanentId) {
-            router.push(`/agents/${permanentId}`);
-        } else {
-            router.refresh();
+            if (permanentId) {
+                router.push(`/agents/${permanentId}`);
+            } else {
+                router.refresh();
+            }
+        } catch (error) {
+            console.error('Failed to create agent:', error);
+            await showAlert({
+                title: 'Create failed',
+                message:
+                    error instanceof Error
+                        ? error.message
+                        : 'Failed to create agent. Please try again.',
+            }).catch(() => undefined);
         }
     };
 
