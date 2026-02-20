@@ -1135,7 +1135,7 @@ export function Header(props: HeaderProps) {
      */
     const scheduleMenuClose = (menuId: string, close: () => void) => {
         cancelMenuClose(menuId);
-        menuCloseTimers.current[menuId] = window.setTimeout(() => {
+        menuCloseTimers.current[menuId] = setTimeout(() => {
             close();
             menuCloseTimers.current[menuId] = null;
         }, HEADER_DROPDOWN_CLOSE_DELAY_MS);
@@ -1942,17 +1942,13 @@ export function Header(props: HeaderProps) {
                                             key={index}
                                             className="relative"
                                             onMouseEnter={() => cancelMenuClose(item.id)}
-                                            onMouseLeave={() =>
-                                                scheduleMenuClose(item.id, () => item.setIsOpen(false))
-                                            }
+                                            onMouseLeave={() => scheduleMenuClose(item.id, () => item.setIsOpen(false))}
                                         >
                                             <button
                                                 className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
                                                 onClick={toggleDropdown}
                                                 onMouseEnter={() => cancelMenuClose(item.id)}
-                                                onBlur={() =>
-                                                    scheduleMenuClose(item.id, () => item.setIsOpen(false))
-                                                }
+                                                onBlur={() => scheduleMenuClose(item.id, () => item.setIsOpen(false))}
                                             >
                                                 {item.label}
                                                 <ChevronDown className="w-4 h-4" />
@@ -1963,9 +1959,7 @@ export function Header(props: HeaderProps) {
                                                     className="absolute left-0 top-full z-50 mt-2 w-[min(420px,90vw)] rounded-md border border-gray-100 bg-white py-1 shadow-lg animate-in fade-in zoom-in-95 duration-200"
                                                     onMouseEnter={() => cancelMenuClose(item.id)}
                                                     onMouseLeave={() =>
-                                                        scheduleMenuClose(item.id, () =>
-                                                            item.setIsOpen(false),
-                                                        )
+                                                        scheduleMenuClose(item.id, () => item.setIsOpen(false))
                                                     }
                                                 >
                                                     {item.renderMenu ? (
