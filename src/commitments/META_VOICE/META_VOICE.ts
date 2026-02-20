@@ -48,7 +48,7 @@ export class MetaVoiceCommitmentDefinition extends BaseCommitmentDefinition<'MET
             ## Key aspects
 
             - Only affects ElevenLabs TTS playback, not agent behavior or system prompts
-            - If multiple `META VOICE` lines are provided, the last one wins
+            - If multiple \`META VOICE\` lines are provided, the last one wins
             - The value should match one of the voice IDs listed in the ElevenLabs console
 
             ## Example
