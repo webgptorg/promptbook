@@ -4,7 +4,7 @@ import { assertsError } from '../../errors/assertsError';
 /**
  * Pattern used to extract the violated unique constraint name from a Supabase error message.
  */
-const UNIQUE_CONSTRAINT_PATTERN = /unique constraint "([^\"]+)"/i;
+const UNIQUE_CONSTRAINT_PATTERN = /unique constraint "([^"]+)"/i;
 
 /**
  * Holds the data necessary to translate a Postgres constraint name into a user-facing error.
