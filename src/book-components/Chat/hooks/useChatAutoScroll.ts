@@ -42,6 +42,8 @@ export function useChatAutoScroll(config: ChatAutoScrollConfig = {}) {
     const chatMessagesRef = useRef<HTMLDivElement | null>(null);
     const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const lastScrollHeightRef = useRef<number>(0);
+    // Tracks whether the user moved away from the bottom so we can suspend auto-scroll.
+    const hasManualScrollRef = useRef(false);
 
     // Detect mobile device
     useEffect(() => {
@@ -89,6 +91,7 @@ export function useChatAutoScroll(config: ChatAutoScrollConfig = {}) {
                     chatMessagesElement.scrollTop = chatMessagesElement.scrollHeight;
                 }
             }
+            hasManualScrollRef.current = false;
         },
         [isMobile, smoothScroll],
     );
@@ -98,6 +101,9 @@ export function useChatAutoScroll(config: ChatAutoScrollConfig = {}) {
         (event: React.UIEvent<HTMLDivElement>) => {
             const element = event.target as HTMLDivElement;
             if (!element) return;
+
+            const atBottom = checkIfAtBottom(element);
+            hasManualScrollRef.current = !atBottom;
 
             // Clear any pending scroll timeout
             if (scrollTimeoutRef.current) {
@@ -140,7 +146,7 @@ export function useChatAutoScroll(config: ChatAutoScrollConfig = {}) {
             }
         }
 
-        if (isAutoScrolling && !hasSelectionInChat) {
+        if (isAutoScrolling && !hasSelectionInChat && !hasManualScrollRef.current) {
             // Delay scroll slightly to ensure DOM has updated
             setTimeout(() => {
                 scrollToBottom('smooth');
