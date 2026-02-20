@@ -1,4 +1,5 @@
 import type { PostgrestError } from '@supabase/postgrest-js';
+import { assertsError } from '../../errors/assertsError';
 
 /**
  * Pattern used to extract the violated unique constraint name from a Supabase error message.
@@ -61,6 +62,8 @@ export function translateSupabaseUniqueConstraintError(
     if (!isUniqueConstraintViolation(error)) {
         return null;
     }
+
+    assertsError(error);
 
     const constraintName = extractConstraintName(error.message);
     if (!constraintName) {
