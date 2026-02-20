@@ -75,3 +75,7 @@ export function translateSupabaseUniqueConstraintError(
 
     return null;
 }
+
+/**
+ * Note: [💞] Ignore a discrepancy between file name and entity name
+ */
