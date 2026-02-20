@@ -82,6 +82,19 @@ Sure! Here is the location of the nearest cafe:
 
 ---
 
+[ ]
+
+[✨📌] When the agent is creating some rich feature like a map, image, table,... and the message isn't complete (It's in the process of the streaming.), The message streaming looks like it's stalled.
+
+-   Nothing is shown up until the entire feature is ready to be rendered.
+-   Create some placeholder rich feature to be shown during the loading.
+-   Do a proper analysis of the current functionality before you start implementing. This is relevant for any rich feature embedded in the chat message, like LaTeX, Map. Images, Tables,... ... Do it universally, not only for the map.
+    -   The functionality rendering rich features in chat was implemented by [this prompt](prompts/2026-02-1400-agents-server-chat-map.md).
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   You are working with the [Agents Server](apps/agents-server)
+
+---
+
 [-]
 
 [✨📌] bar
@@ -90,4 +103,3 @@ Sure! Here is the location of the nearest cafe:
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
