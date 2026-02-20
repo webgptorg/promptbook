@@ -21,6 +21,7 @@ import { attachClientVersionHeader } from '../../utils/clientVersion';
 import { Agent } from './Agent';
 import type { AgentOptions } from './AgentOptions';
 import type { RemoteAgentOptions } from './RemoteAgentOptions';
+import type { CallChatModelStreamOptions } from '../../execution/LlmExecutionTools';
 import { CHAT_STREAM_KEEP_ALIVE_TOKEN } from '../../constants/streaming';
 
 /**
@@ -313,6 +314,7 @@ export class RemoteAgent extends Agent {
     public async callChatModelStream(
         prompt: Prompt,
         onProgress: (chunk: ChatPromptResult) => void,
+        options?: CallChatModelStreamOptions,
     ): Promise<ChatPromptResult> {
         // Ensure we're working with a chat prompt
         if (prompt.modelRequirements.modelVariant !== 'CHAT') {
@@ -332,6 +334,7 @@ export class RemoteAgent extends Agent {
                 attachments: chatPrompt.attachments,
                 parameters: chatPrompt.parameters,
             }),
+            signal: options?.signal,
         });
         // <- TODO: [🐱‍🚀] What about closed-source agents?
         // <- TODO: [🐱‍🚀] Maybe use promptbookFetch

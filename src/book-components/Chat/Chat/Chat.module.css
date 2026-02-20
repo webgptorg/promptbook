@@ -2869,6 +2869,29 @@
     opacity: 0.8;
 }
 
+.stopButton {
+    background: linear-gradient(135deg, #dc2626 0%, #991b1c 100%) !important;
+    color: #fefefe !important;
+}
+
+.stopButton:hover:not(:disabled) {
+    background: linear-gradient(135deg, #f87171 0%, #dc2626 100%) !important;
+}
+
+.stopButton:disabled {
+    opacity: 0.6 !important;
+    cursor: not-allowed !important;
+}
+
+.stopButton svg {
+    transition: transform 0.3s ease;
+}
+
+.stopButton:focus-visible {
+    outline: 2px solid rgba(248, 113, 113, 0.8);
+    outline-offset: 2px;
+}
+
 /* Voice call indicator bar */
 .voiceCallIndicatorBar {
     grid-area: 🟦;

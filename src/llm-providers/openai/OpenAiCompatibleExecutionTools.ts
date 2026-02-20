@@ -7,7 +7,7 @@ import { API_REQUEST_TIMEOUT, CONNECTION_RETRIES_LIMIT, DEFAULT_MAX_REQUESTS_PER
 import { assertsError } from '../../errors/assertsError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import type { AvailableModel } from '../../execution/AvailableModel';
-import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type { CallChatModelStreamOptions, LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type {
     ChatPromptResult,
     CompletionPromptResult,
@@ -188,6 +188,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
     public async callChatModelStream(
         prompt: Prompt,
         onProgress: (chunk: ChatPromptResult) => void,
+        options?: CallChatModelStreamOptions,
     ): Promise<ChatPromptResult> {
         // Deep clone prompt and modelRequirements to avoid mutation across calls
         const clonedPrompt: Prompt = clonePromptPreservingFiles(prompt);
@@ -199,6 +200,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
             [],
             retriedUnsupportedParameters,
             onProgress,
+            options,
         );
     }
 
@@ -216,6 +218,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
         }> = [],
         retriedUnsupportedParameters: Set<string> = new Set(),
         onProgress?: (chunk: ChatPromptResult) => void,
+        options?: CallChatModelStreamOptions,
     ): Promise<ChatPromptResult> {
         if (this.options.isVerbose) {
             console.info(`💬 ${this.title} callChatModel call`, { prompt, currentModelRequirements });
@@ -577,13 +580,14 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
                     unsupportedParameter,
                 );
 
-                return this.callChatModelWithRetry(
-                    prompt,
-                    modifiedModelRequirements,
-                    attemptStack,
-                    retriedUnsupportedParameters,
-                    onProgress,
-                );
+                    return this.callChatModelWithRetry(
+                        prompt,
+                        modifiedModelRequirements,
+                        attemptStack,
+                        retriedUnsupportedParameters,
+                        onProgress,
+                        options,
+                    );
             }
         }
 

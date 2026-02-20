@@ -14,7 +14,7 @@ import { serializeError } from '../../_packages/utils.index';
 import { assertsError } from '../../errors/assertsError';
 import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
-import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type { CallChatModelStreamOptions, LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
 import type { ScriptExecutionTools } from '../../execution/ScriptExecutionTools';
 import { UNCERTAIN_USAGE } from '../../execution/utils/usage-constants';
@@ -202,6 +202,7 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
     public async callChatModelStream(
         prompt: Prompt,
         onProgress: (chunk: ChatPromptResult) => void,
+        options?: CallChatModelStreamOptions,
     ): Promise<ChatPromptResult> {
         const { content, parameters, modelRequirements } = prompt;
 

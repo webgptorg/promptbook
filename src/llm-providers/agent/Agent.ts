@@ -10,7 +10,7 @@ import { parseAgentSource } from '../../book-2.0/agent-source/parseAgentSource';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import { getAllCommitmentsToolTitles } from '../../commitments/_common/getAllCommitmentsToolTitles';
 import { PROMPT_PARAMETER_SELF_LEARNING_ENABLED } from '../../constants';
-import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type { CallChatModelStreamOptions, LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
 import type { Prompt } from '../../types/Prompt';
 import type { SelfLearningToolCallResult, ToolCall } from '../../types/ToolCall';
@@ -212,6 +212,7 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
     public async callChatModelStream(
         prompt: Prompt,
         onProgress: (chunk: ChatPromptResult) => void,
+        options?: CallChatModelStreamOptions,
     ): Promise<ChatPromptResult> {
         // [1] Check if the user is asking the same thing as in the samples
         const modelRequirements = await this.getModelRequirements();
@@ -260,7 +261,7 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
             }
         }
 
-        const result = await super.callChatModelStream(prompt, onProgress);
+        const result = await super.callChatModelStream(prompt, onProgress, options);
 
         if (result.rawResponse && 'sample' in result.rawResponse) {
             return result;

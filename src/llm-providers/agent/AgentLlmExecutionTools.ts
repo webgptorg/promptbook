@@ -7,7 +7,7 @@ import { parseAgentSource } from '../../book-2.0/agent-source/parseAgentSource';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import type { ChatParticipant } from '../../book-components/Chat/types/ChatParticipant';
 import type { AvailableModel } from '../../execution/AvailableModel';
-import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type { CallChatModelStreamOptions, LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult, CommonPromptResult } from '../../execution/PromptResult';
 import { UNCERTAIN_USAGE } from '../../execution/utils/usage-constants';
 import type { ChatPrompt, Prompt } from '../../types/Prompt';
@@ -306,6 +306,7 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
     public async callChatModelStream(
         prompt: Prompt,
         onProgress: (chunk: ChatPromptResult) => void,
+        options?: CallChatModelStreamOptions,
     ): Promise<ChatPromptResult> {
         // Ensure we're working with a chat prompt
         if (prompt.modelRequirements.modelVariant !== 'CHAT') {
@@ -559,6 +560,7 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
             underlyingLlmResult = await assistant.callChatModelStream(
                 promptWithAgentModelRequirementsForOpenAiAssistantExecutionTools,
                 onProgress,
+                options,
             );
         } else {
             if (this.options.isVerbose) {
@@ -567,9 +569,10 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
 
             if (this.options.llmTools.callChatModelStream) {
                 underlyingLlmResult = await this.options.llmTools.callChatModelStream(
-                    promptWithAgentModelRequirements,
-                    onProgress,
-                );
+                promptWithAgentModelRequirements,
+                onProgress,
+                options,
+            );
             } else if (this.options.llmTools.callChatModel) {
                 underlyingLlmResult = await this.options.llmTools.callChatModel(promptWithAgentModelRequirements);
                 onProgress(underlyingLlmResult as ChatPromptResult);

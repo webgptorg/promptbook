@@ -25,6 +25,18 @@ import type {
  *
  * @see https://github.com/webgptorg/promptbook#llm-execution-tools
  */
+/**
+ * Options that fine-tune streaming execution.
+ *
+ * @private internal helper for streaming helpers
+ */
+export type CallChatModelStreamOptions = {
+    /**
+     * Optional signal that can cancel the streaming request.
+     */
+    readonly signal?: AbortSignal;
+};
+
 export type LlmExecutionTools = {
     /**
      * Title of the model provider
@@ -72,6 +84,7 @@ export type LlmExecutionTools = {
     callChatModelStream?(
         prompt: Prompt /* <- TODO: [🩱] ChatPrompt */,
         onProgress: (chunk: ChatPromptResult & { isFinished?: boolean }) => void,
+        options?: CallChatModelStreamOptions,
     ): Promise<ChatPromptResult>;
 
     /**

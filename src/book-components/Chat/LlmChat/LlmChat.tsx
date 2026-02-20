@@ -18,6 +18,8 @@ import { createTeamToolNameFromUrl } from '../utils/createTeamToolNameFromUrl';
 import { DEFAULT_CHAT_FAIL_MESSAGE } from './defaults';
 import type { FriendlyErrorMessage } from './FriendlyErrorMessage';
 import type { LlmChatProps } from './LlmChatProps';
+import chatStyles from '../Chat/Chat.module.css';
+import { StopIcon } from '../../icons/StopIcon';
 
 /**
  * Metadata for a teammate agent tool.
@@ -205,6 +207,9 @@ export function LlmChat(props: LlmChatProps) {
         content: string;
         attachments: ChatMessage['attachments'];
     } | null>(null);
+
+    const streamingAbortControllerRef = useRef<AbortController | null>(null);
+    const [isStreaming, setIsStreaming] = useState(false);
 
     // Background recovery tracking for long-running responses interrupted by visibility changes.
     const requestInFlightRef = useRef(false);
@@ -403,6 +408,7 @@ export function LlmChat(props: LlmChatProps) {
             setTasksProgress([{ id: taskId, name: 'Generating response...', progress: 0 }]);
 
             const generationStartedAtMs = Date.now();
+            let streamingAbortController: AbortController | null = null;
 
             try {
                 // Build thread: use props.thread if provided, otherwise use current messages + new user message
@@ -427,23 +433,30 @@ export function LlmChat(props: LlmChatProps) {
                 let result;
 
                 if (llmTools.callChatModelStream) {
-                    result = await llmTools.callChatModelStream(prompt, (chunk) => {
-                        stopThinkingRotation();
-                        const assistantMessage: ChatMessage = {
-                            // channel: 'PROMPTBOOK_CHAT',
-                            id: loadingMessage.id,
-                            createdAt: assistantMessageStartedAt,
-                            sender: llmParticipantName,
-                            content: chunk.content as string_markdown,
-                            isComplete: false,
-                            ongoingToolCalls: chunk.toolCalls,
-                        };
+                    streamingAbortController = new AbortController();
+                    streamingAbortControllerRef.current = streamingAbortController;
+                    setIsStreaming(true);
+                    result = await llmTools.callChatModelStream(
+                        prompt,
+                        (chunk) => {
+                            stopThinkingRotation();
+                            const assistantMessage: ChatMessage = {
+                                // channel: 'PROMPTBOOK_CHAT',
+                                id: loadingMessage.id,
+                                createdAt: assistantMessageStartedAt,
+                                sender: llmParticipantName,
+                                content: chunk.content as string_markdown,
+                                isComplete: false,
+                                ongoingToolCalls: chunk.toolCalls,
+                            };
 
-                        // Functional update: Replace loading message with streaming update
-                        setMessages((prev) =>
-                            prev.map((msg) => (msg.id === loadingMessage.id ? assistantMessage : msg)),
-                        );
-                    });
+                            // Functional update: Replace loading message with streaming update
+                            setMessages((prev) =>
+                                prev.map((msg) => (msg.id === loadingMessage.id ? assistantMessage : msg)),
+                            );
+                        },
+                        { signal: streamingAbortController.signal },
+                    );
                 } else if (llmTools.callChatModel) {
                     result = await llmTools.callChatModel(prompt);
                 } else {
@@ -486,6 +499,16 @@ export function LlmChat(props: LlmChatProps) {
 
                 stopThinkingRotation();
 
+                if (streamingAbortController?.signal.aborted) {
+                    setTasksProgress([]);
+                    setMessages((prev) =>
+                        prev.map((msg) =>
+                            msg.id === loadingMessage.id ? { ...msg, isComplete: true } : msg,
+                        ),
+                    );
+                    return;
+                }
+
                 // Store the failed message for retry functionality
                 setLastFailedMessage({ content: messageContent, attachments });
 
@@ -516,6 +539,10 @@ export function LlmChat(props: LlmChatProps) {
                 // Clear task progress
                 setTasksProgress([]);
             } finally {
+                if (streamingAbortControllerRef.current === streamingAbortController) {
+                    streamingAbortControllerRef.current = null;
+                }
+                setIsStreaming(false);
                 requestInFlightRef.current = false;
             }
         },
@@ -567,6 +594,16 @@ export function LlmChat(props: LlmChatProps) {
             handleMessage(lastFailedMessage.content, lastFailedMessage.attachments);
         }
     }, [lastFailedMessage, handleMessage]);
+
+    const handleStopStreaming = useCallback(() => {
+        const controller = streamingAbortControllerRef.current;
+        if (!controller) {
+            return;
+        }
+
+        controller.abort();
+        setIsStreaming(false);
+    }, []);
 
     // Keep handleRetry ref in sync
     useEffect(() => {
@@ -638,6 +675,19 @@ export function LlmChat(props: LlmChatProps) {
         }
     }, [autoExecuteMessage, handleMessage]);
 
+    const streamingStopAction = isStreaming ? (
+        <button
+            type="button"
+            className={`${chatStyles.chatButton} ${chatStyles.stopButton}`}
+            onClick={handleStopStreaming}
+            aria-label="Stop streaming response"
+            title="Stop streaming response"
+        >
+            <StopIcon size={16} />
+            <span className={chatStyles.chatButtonText}>Stop</span>
+        </button>
+    ) : undefined;
+
     return (
         <>
             <Chat
@@ -645,6 +695,7 @@ export function LlmChat(props: LlmChatProps) {
                 {...{ messages, onReset, tasksProgress, participants, buttonColor, toolTitles, teammates }}
                 onMessage={handleMessage}
                 onReset={handleReset}
+                extraActions={streamingStopAction}
                 isVoiceCalling={isVoiceCalling}
             />
         </>
