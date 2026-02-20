@@ -92,16 +92,5 @@
     },
     "overrides": {
         "zod": "$zod"
-    },
-    "main": "./umd/index.umd.js",
-    "module": "./esm/index.es.js",
-    "typings": "./esm/typings/src/_packages/vercel.index.d.ts",
-    "peerDependencies": {
-        "@promptbook/core": "0.111.0-7"
-    },
-    "dependencies": {
-        "colors": "1.4.0",
-        "crypto": "1.0.1",
-        "spacetrim": "0.11.60"
     }
 }

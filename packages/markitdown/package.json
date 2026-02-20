@@ -89,20 +89,5 @@
     },
     "overrides": {
         "zod": "$zod"
-    },
-    "main": "./umd/index.umd.js",
-    "module": "./esm/index.es.js",
-    "typings": "./esm/typings/src/_packages/markitdown.index.d.ts",
-    "peerDependencies": {
-        "@promptbook/core": "0.111.0-7"
-    },
-    "dependencies": {
-        "crypto": "1.0.1",
-        "crypto-js": "4.2.0",
-        "markitdown-ts": "0.0.10",
-        "papaparse": "5.4.1",
-        "rxjs": "7.8.2",
-        "spacetrim": "0.11.60",
-        "waitasecond": "1.11.164"
     }
 }
