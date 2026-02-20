@@ -42,6 +42,60 @@ The menu of the agent server looks like this:
 
 ---
 
+[ ]
+
+[✨🤜] You have added search bar, but it needs some minor improvements.
+
+-   The search box is sometimes colliding with menu items on desktop.
+-   The supposed spinning wheel does not spin, but Bubbles vertically. Make this proper loading spinner.
+-   Allow to open the searched items in a separate page `/search?q=...` and make the search results page with pagination and filters by type of the entity _(agent, folder, conversation, etc.)_
+-   You can access this page by just pressing Enter onto the search bar, search box, or the first item of the search box will be opening this search page with the same query.
+-   Do not show empty panel with the searches. This panel should be rendered only when there is at least some item. But keep "No results found for ..."
+-   Do a proper analysis of the current functionality wow do search bars work before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+
+![alt text](prompts/screenshots/2026-02-1840-agents-server-search.png)
+
+### The Agents Server menu
+
+The menu of the agent server looks like this:
+
+1. The navigation hierarchy
+    - Icon and Server name _(for example Promptbook Agents Server)_
+    - arrow ">" and Agents or picked agent name (organized in folders)
+    - arrow ">" and the view Profile / Chat / Book of the agent or nothing if no agent is picked
+    - **The search box is located here**
+2. The menu items
+    - Documentation
+    - System
+3. Control panel and user menu
+    - Control panel
+    - User menu with the avatar and the name of the user
+
+---
+
+[-]
+
+[✨🤜] bar
+
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+---
+
+[-]
+
+[✨🤜] bar
+
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+---
+
 [-]
 
 [✨🤜] search agent
@@ -73,4 +127,3 @@ The menu of the agent server looks like this:
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
