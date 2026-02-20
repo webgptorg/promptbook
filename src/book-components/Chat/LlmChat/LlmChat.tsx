@@ -11,6 +11,7 @@ import { $getCurrentDate } from '../../../utils/misc/$getCurrentDate';
 import type { TODO_any } from '../../../utils/organization/TODO_any';
 import { TODO_USE } from '../../../utils/organization/TODO_USE';
 import { Chat } from '../Chat/Chat';
+import chatStyles from '../Chat/Chat.module.css';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
 import { ChatPersistence } from '../utils/ChatPersistence';
@@ -177,6 +178,7 @@ export function LlmChat(props: LlmChatProps) {
         promptParameters,
         chatFailMessage,
         resetMode = 'reset-current',
+        extraActions,
         ...restProps
     } = props;
 
@@ -212,6 +214,14 @@ export function LlmChat(props: LlmChatProps) {
     const pendingBackgroundRecoveryRef = useRef<BackgroundRecoveryPayload | null>(null);
     const isBackgroundRecoveryRunningRef = useRef(false);
     const handleMessageRef = useRef<HandleMessageFn | null>(null);
+
+    const lastMessage = messages[messages.length - 1];
+    const shouldShowStopStreamingAction =
+        Boolean(lastMessage) &&
+        lastMessage.sender === llmParticipantName &&
+        !lastMessage.isComplete &&
+        requestInFlightRef.current &&
+        Boolean(llmTools.stopCurrentChatStream);
 
     // Refs to keep latest state for long-lived handlers
     const messagesRef = useRef<ChatMessage[]>([]);
@@ -322,6 +332,10 @@ export function LlmChat(props: LlmChatProps) {
     }, [messages, participants, onChange]);
 
     // Handle user messages and LLM responses
+    const handleStopStreaming = useCallback(() => {
+        llmTools.stopCurrentChatStream?.();
+    }, [llmTools]);
+
     const handleMessage = useCallback<HandleMessageFn>(
         async (messageContent, attachments = []) => {
             hasUserInteractedRef.current = true;
@@ -638,11 +652,34 @@ export function LlmChat(props: LlmChatProps) {
         }
     }, [autoExecuteMessage, handleMessage]);
 
+    const stopStreamingAction = shouldShowStopStreamingAction ? (
+        <button
+            type="button"
+            className={chatStyles.chatButton}
+            title="Stop streaming"
+            onClick={(event) => {
+                event.preventDefault();
+                handleStopStreaming();
+            }}
+        >
+            <span className={chatStyles.chatButtonText}>Stop streaming</span>
+        </button>
+    ) : null;
+
+    const combinedExtraActions =
+        extraActions || stopStreamingAction ? (
+            <>
+                {extraActions}
+                {stopStreamingAction}
+            </>
+        ) : undefined;
+
     return (
         <>
             <Chat
                 {...restProps}
                 {...{ messages, onReset, tasksProgress, participants, buttonColor, toolTitles, teammates }}
+                extraActions={combinedExtraActions}
                 onMessage={handleMessage}
                 onReset={handleReset}
                 isVoiceCalling={isVoiceCalling}

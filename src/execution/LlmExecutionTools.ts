@@ -75,6 +75,13 @@ export type LlmExecutionTools = {
     ): Promise<ChatPromptResult>;
 
     /**
+     * Stops the currently streaming chat response, if the implementation allows it.
+     *
+     * @public exported from `@promptbook/core`
+     */
+    stopCurrentChatStream?(): void;
+
+    /**
      * Calls a voice chat model
      */
     callVoiceChatModel?(
