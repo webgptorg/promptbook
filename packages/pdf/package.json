@@ -92,5 +92,11 @@
     },
     "overrides": {
         "zod": "$zod"
+    },
+    "main": "./umd/index.umd.js",
+    "module": "./esm/index.es.js",
+    "typings": "./esm/typings/src/_packages/pdf.index.d.ts",
+    "peerDependencies": {
+        "@promptbook/core": "0.111.0-7"
     }
 }

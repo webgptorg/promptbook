@@ -94,5 +94,11 @@
     },
     "overrides": {
         "zod": "$zod"
+    },
+    "bin": {
+        "promptbook": "bin/promptbook-cli.js",
+        "ptbk": "bin/promptbook-cli.js",
+        "book": "bin/promptbook-cli.js",
+        "bk": "bin/promptbook-cli.js"
     }
 }
