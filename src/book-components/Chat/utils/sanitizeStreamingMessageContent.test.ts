@@ -1,4 +1,7 @@
-import { sanitizeStreamingMessageContent } from './sanitizeStreamingMessageContent';
+import {
+    getLatestStreamingFeatureBoundary,
+    sanitizeStreamingMessageContent,
+} from './sanitizeStreamingMessageContent';
 
 describe('sanitizeStreamingMessageContent', () => {
     it('keeps the original content when streaming has finished', () => {
@@ -24,5 +27,32 @@ describe('sanitizeStreamingMessageContent', () => {
     it('removes trailing unmatched double dollars', () => {
         const message = 'Equation: $$E=mc^2';
         expect(sanitizeStreamingMessageContent(message, { isComplete: false })).toBe('Equation:');
+    });
+});
+
+describe('getLatestStreamingFeatureBoundary', () => {
+    it('identifies an open geojson code fence', () => {
+        const message = 'Here is a map:\n```geojson\n';
+        const boundary = getLatestStreamingFeatureBoundary(message);
+        expect(boundary).not.toBeNull();
+        expect(boundary?.kind).toBe('codeFence');
+        expect(boundary && 'delimiter' in boundary ? boundary.delimiter : null).toBe('```');
+    });
+
+    it('identifies an open inline image prompt', () => {
+        const message = 'Generating image: ![Preview](?image-prompt=scenery';
+        const boundary = getLatestStreamingFeatureBoundary(message);
+        expect(boundary?.kind).toBe('imagePrompt');
+    });
+
+    it('identifies an open math delimiter', () => {
+        const message = 'Equation: $$E=mc';
+        const boundary = getLatestStreamingFeatureBoundary(message);
+        expect(boundary?.kind).toBe('math');
+    });
+
+    it('returns null when nothing is streaming', () => {
+        const message = 'Complete message with code fences closed:\n```\nfinished\n```\n';
+        expect(getLatestStreamingFeatureBoundary(message)).toBeNull();
     });
 });

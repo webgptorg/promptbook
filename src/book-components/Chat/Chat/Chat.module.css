@@ -3556,3 +3556,46 @@
     color: #dc2626;
     background: rgba(220, 38, 38, 0.08);
 }
+
+.richFeaturePlaceholder {
+    margin-top: 16px;
+    margin-bottom: 16px;
+    border-radius: 18px;
+    padding: 12px 14px;
+    border: 1px solid rgba(59, 130, 246, 0.25);
+    background: rgba(56, 189, 248, 0.12);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.richFeaturePlaceholderSpinner {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 3px solid rgba(59, 130, 246, 0.3);
+    border-top-color: #22d3ee;
+    animation: richFeatureSpinner 0.8s linear infinite;
+}
+
+.richFeaturePlaceholderCopy {
+    display: flex;
+    flex-direction: column;
+}
+
+.richFeaturePlaceholderTitle {
+    font-size: 13px;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.richFeaturePlaceholderStatus {
+    font-size: 11px;
+    color: #475569;
+}
+
+@keyframes richFeatureSpinner {
+    to {
+        transform: rotate(360deg);
+    }
+}

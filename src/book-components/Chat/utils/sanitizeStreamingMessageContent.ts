@@ -8,10 +8,38 @@ type SanitizeStreamingMessageContentOptions = {
     isComplete?: boolean;
 };
 
+type FenceDelimiter = '```' | '~~~';
+
+type CodeFenceStreamingBoundary = {
+    readonly kind: 'codeFence';
+    readonly index: number;
+    readonly delimiter: FenceDelimiter;
+};
+
+type MathStreamingBoundary = {
+    readonly kind: 'math';
+    readonly index: number;
+};
+
+type ImagePromptStreamingBoundary = {
+    readonly kind: 'imagePrompt';
+    readonly index: number;
+};
+
+/**
+ * Metadata describing the most-recently introduced rich feature that is still streaming.
+ *
+ * @private internal helper of <ChatMessageItem/>
+ */
+export type StreamingFeatureBoundary =
+    | CodeFenceStreamingBoundary
+    | MathStreamingBoundary
+    | ImagePromptStreamingBoundary;
+
 /**
  * Searches for the last unclosed code fence using the provided delimiter.
  */
-function findLastUnclosedFence(content: string, delimiter: string): number | null {
+function findLastUnclosedFence(content: string, delimiter: FenceDelimiter): CodeFenceStreamingBoundary | null {
     const regex = new RegExp(delimiter, 'g');
     let match: RegExpExecArray | null;
     let isOpen = false;
@@ -26,14 +54,21 @@ function findLastUnclosedFence(content: string, delimiter: string): number | nul
         }
     }
 
-    return isOpen ? lastOpenIndex : null;
+    if (isOpen && lastOpenIndex !== null) {
+        return {
+            kind: 'codeFence',
+            index: lastOpenIndex,
+            delimiter,
+        };
+    }
+
+    return null;
 }
 
 /**
  * Detects an incomplete inline image prompt markup that references `?image-prompt`.
- * Matches the last occurrence of `![alt](?image-prompt=...)` that still misses the closing `)`.
  */
-function findLastIncompleteImagePrompt(content: string): number | null {
+function findLastIncompleteImagePrompt(content: string): ImagePromptStreamingBoundary | null {
     const marker = '(?image-prompt=';
     const markerIndex = content.lastIndexOf(marker);
     if (markerIndex === -1) {
@@ -50,13 +85,16 @@ function findLastIncompleteImagePrompt(content: string): number | null {
         return null;
     }
 
-    return startIndex;
+    return {
+        kind: 'imagePrompt',
+        index: startIndex,
+    };
 }
 
 /**
  * Locates an unmatched double-dollar math delimiter (`$$`) that is still open.
  */
-function findLastUnclosedDoubleDollar(content: string): number | null {
+function findLastUnclosedDoubleDollar(content: string): MathStreamingBoundary | null {
     const regex = /\$\$/g;
     let match: RegExpExecArray | null;
     let isOpen = false;
@@ -71,29 +109,41 @@ function findLastUnclosedDoubleDollar(content: string): number | null {
         }
     }
 
-    return isOpen ? lastOpenIndex : null;
+    if (isOpen && lastOpenIndex !== null) {
+        return {
+            kind: 'math',
+            index: lastOpenIndex,
+        };
+    }
+
+    return null;
 }
 
 /**
- * Determines the furthest streaming feature marker that should be hidden until the message completes.
+ * Examines the latest streaming feature boundary so rich placeholders can be rendered while content is still being produced.
+ *
+ * @param content - Message text that may still be streaming.
+ * @returns Metadata describing the richest streaming feature or `null` when nothing is being hidden.
+ * @private internal helper of <ChatMessageItem/>
  */
-function findLatestStreamingFeatureBoundary(content: string): number | null {
-    const candidates = [
+export function getLatestStreamingFeatureBoundary(content: string): StreamingFeatureBoundary | null {
+    const candidates: Array<StreamingFeatureBoundary | null> = [
         findLastUnclosedFence(content, '```'),
         findLastUnclosedFence(content, '~~~'),
         findLastIncompleteImagePrompt(content),
         findLastUnclosedDoubleDollar(content),
-    ].filter((index): index is number => index !== null);
+    ];
 
-    if (candidates.length === 0) {
+    const validCandidates = candidates.filter((candidate): candidate is StreamingFeatureBoundary => candidate !== null);
+    if (validCandidates.length === 0) {
         return null;
     }
 
-    return Math.max(...candidates);
+    return validCandidates.reduce((latest, candidate) => (candidate.index > latest.index ? candidate : latest));
 }
 
 /**
- * Trims trailing rich-feature markup from streaming messages so users do not see raw source while the feature is being generated.
+ * Trims trailing rich-feature markup from streaming messages so users do not see the raw source while the feature loads.
  *
  * @param content - Full markdown text produced by the assistant.
  * @param options - Sanitization options (streaming state).
@@ -109,10 +159,10 @@ export function sanitizeStreamingMessageContent(
         return content;
     }
 
-    const boundaryIndex = findLatestStreamingFeatureBoundary(content);
-    if (boundaryIndex === null) {
+    const boundary = getLatestStreamingFeatureBoundary(content);
+    if (boundary === null) {
         return content;
     }
 
-    return content.slice(0, boundaryIndex).replace(/\s+$/, '');
+    return content.slice(0, boundary.index).replace(/\s+$/, '');
 }

@@ -82,7 +82,7 @@ Sure! Here is the location of the nearest cafe:
 
 ---
 
-[ ]
+[x] ~$0.35 20 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
 [✨📌] When the agent is creating some rich feature like a map, image, table,... and the message isn't complete (It's in the process of the streaming.), The message streaming looks like it's stalled.
 
@@ -103,3 +103,4 @@ Sure! Here is the location of the nearest cafe:
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

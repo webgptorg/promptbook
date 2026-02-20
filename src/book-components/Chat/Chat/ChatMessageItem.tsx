@@ -38,7 +38,11 @@ import { LOADING_INTERACTIVE_IMAGE } from './constants';
 import { ImagePromptRenderer } from './ImagePromptRenderer';
 import { ChatMessageMap } from './ChatMessageMap';
 import { splitMessageContentIntoSegments } from '../utils/splitMessageContentIntoSegments';
-import { sanitizeStreamingMessageContent } from '../utils/sanitizeStreamingMessageContent';
+import {
+    getLatestStreamingFeatureBoundary,
+    sanitizeStreamingMessageContent,
+    type StreamingFeatureBoundary,
+} from '../utils/sanitizeStreamingMessageContent';
 
 /**
  * Props for the `ChatMessageItem` component
@@ -121,6 +125,86 @@ type TeammatesMap = Record<string, TeammateMetadata>;
  * @private
  */
 const MAX_MESSAGE_SPEECH_LENGTH = 4500;
+
+/**
+ * Placeholder types that describe which rich feature is still streaming.
+ *
+ * @private internal helper of <ChatMessageItem/>
+ */
+type StreamingFeaturePlaceholderKind = 'map' | 'image' | 'math' | 'feature';
+
+/**
+ * Human-friendly labels associated with each streaming rich feature kind.
+ *
+ * @private internal helper of <ChatMessageItem/>
+ */
+const STREAMING_FEATURE_PLACEHOLDER_LABELS: Record<StreamingFeaturePlaceholderKind, string> = {
+    map: 'Map preview',
+    image: 'Image generation',
+    math: 'Math formula',
+    feature: 'Rich content',
+};
+
+/**
+ * Resolves which rich feature is still streaming so the UI can render the matching placeholder.
+ *
+ * @param boundary - Streaming metadata returned by the sanitizer.
+ * @param source - Original message content that contains the pending markup.
+ * @returns Friendly placeholder kind to render inside the chat bubble.
+ * @private internal helper of <ChatMessageItem/>
+ */
+function resolveStreamingFeaturePlaceholderKind(
+    boundary: StreamingFeatureBoundary,
+    source: string,
+): StreamingFeaturePlaceholderKind {
+    if (boundary.kind === 'imagePrompt') {
+        return 'image';
+    }
+
+    if (boundary.kind === 'math') {
+        return 'math';
+    }
+
+    if (boundary.kind === 'codeFence') {
+        const snippet = source.slice(boundary.index, boundary.index + 20).toLowerCase();
+        if (snippet.includes('geojson')) {
+            return 'map';
+        }
+    }
+
+    return 'feature';
+}
+
+/**
+ * Props for `<StreamingFeaturePlaceholder/>`.
+ *
+ * @private internal helper of <ChatMessageItem/>
+ */
+type StreamingFeaturePlaceholderProps = {
+    /**
+     * Kind of the placeholder to render.
+     */
+    readonly kind: StreamingFeaturePlaceholderKind;
+};
+
+/**
+ * Renders the placeholder UI for streaming rich features.
+ *
+ * @private internal helper of <ChatMessageItem/>
+ */
+function StreamingFeaturePlaceholder({ kind }: StreamingFeaturePlaceholderProps) {
+    return (
+        <div className={styles.richFeaturePlaceholder} aria-live="polite">
+            <span className={styles.richFeaturePlaceholderSpinner} aria-hidden="true" />
+            <div className={styles.richFeaturePlaceholderCopy}>
+                <span className={styles.richFeaturePlaceholderTitle}>
+                    {STREAMING_FEATURE_PLACEHOLDER_LABELS[kind]}
+                </span>
+                <span className={styles.richFeaturePlaceholderStatus}>Waiting for the agent…</span>
+            </div>
+        </div>
+    );
+}
 
 /**
  * Finds teammate metadata by tool name, falling back to the toolName field when needed.
@@ -463,6 +547,20 @@ export const ChatMessageItem = memo(
             () => sanitizeStreamingMessageContent(contentWithoutButtons, { isComplete }),
             [contentWithoutButtons, isComplete],
         );
+        const streamingFeatureBoundary = useMemo(() => {
+            if (isComplete) {
+                return null;
+            }
+
+            return getLatestStreamingFeatureBoundary(contentWithoutButtons);
+        }, [contentWithoutButtons, isComplete]);
+        const streamingFeaturePlaceholderKind = useMemo(() => {
+            if (!streamingFeatureBoundary) {
+                return null;
+            }
+
+            return resolveStreamingFeaturePlaceholderKind(streamingFeatureBoundary, contentWithoutButtons);
+        }, [contentWithoutButtons, streamingFeatureBoundary]);
         const contentSegments = useMemo(
             () => splitMessageContentIntoSegments(sanitizedContentWithoutButtons),
             [sanitizedContentWithoutButtons],
@@ -870,35 +968,40 @@ export const ChatMessageItem = memo(
                                 {/* <LoadingInteractiveImage width={50} height={50} isLoading /> */}
                             </>
                         ) : (
-                            <div ref={contentWithoutButtonsRef}>
-                                {contentSegments.map((segment, segmentIndex) => {
-                                    if (segment.type === 'text') {
-                                        return (
-                                            <MarkdownContent
-                                                key={`text-${segmentIndex}`}
-                                                content={segment.content}
-                                                onCreateAgent={onCreateAgent}
-                                            />
-                                        );
-                                    }
+                            <>
+                                <div ref={contentWithoutButtonsRef}>
+                                    {contentSegments.map((segment, segmentIndex) => {
+                                        if (segment.type === 'text') {
+                                            return (
+                                                <MarkdownContent
+                                                    key={`text-${segmentIndex}`}
+                                                    content={segment.content}
+                                                    onCreateAgent={onCreateAgent}
+                                                />
+                                            );
+                                        }
 
-                                    if (segment.type === 'image') {
-                                        return (
-                                            <ImagePromptRenderer
-                                                key={`image-${segmentIndex}`}
-                                                alt={segment.alt}
-                                                prompt={segment.prompt}
-                                            />
-                                        );
-                                    }
+                                        if (segment.type === 'image') {
+                                            return (
+                                                <ImagePromptRenderer
+                                                    key={`image-${segmentIndex}`}
+                                                    alt={segment.alt}
+                                                    prompt={segment.prompt}
+                                                />
+                                            );
+                                        }
 
-                                    if (segment.type === 'map') {
-                                        return <ChatMessageMap key={`map-${segmentIndex}`} data={segment.data} />;
-                                    }
+                                        if (segment.type === 'map') {
+                                            return <ChatMessageMap key={`map-${segmentIndex}`} data={segment.data} />;
+                                        }
 
-                                    return null;
-                                })}
-                            </div>
+                                        return null;
+                                    })}
+                                </div>
+                                {streamingFeaturePlaceholderKind && (
+                                    <StreamingFeaturePlaceholder kind={streamingFeaturePlaceholderKind} />
+                                )}
+                            </>
                         )}
 
                         {message.attachments && message.attachments.length > 0 && (
