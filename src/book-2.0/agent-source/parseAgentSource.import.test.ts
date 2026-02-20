@@ -43,4 +43,22 @@ describe('parseAgentSource with IMPORT', () => {
             iconName: 'Book',
         });
     });
+
+    it('parses KNOWLEDGE with mixed text and multiple URLs', () => {
+        const agentSource = validateBook(`
+            My Agent
+            KNOWLEDGE Please review https://example.com/docs/alpha.pdf and then https://example.org/beta.txt before answering.
+        `);
+        const result = parseAgentSource(agentSource);
+
+        expect(result.capabilities).toContainEqual({
+            type: 'knowledge',
+            label: 'alpha.pdf (+1)',
+            iconName: 'FileText',
+        });
+        expect(result.knowledgeSources).toEqual([
+            { url: 'https://example.com/docs/alpha.pdf', filename: 'alpha.pdf' },
+            { url: 'https://example.org/beta.txt', filename: 'beta.txt' },
+        ]);
+    });
 });

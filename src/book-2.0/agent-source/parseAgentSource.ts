@@ -1,6 +1,7 @@
 import spaceTrim from 'spacetrim';
 import { TODO_any } from '../../_packages/types.index';
 import { normalizeTo_camelCase } from '../../utils/normalization/normalizeTo_camelCase';
+import { extractUrlsFromText } from '../../utils/validators/url/extractUrlsFromText';
 import type { AgentBasicInformation, AgentCapability } from './AgentBasicInformation';
 import { computeAgentHash } from './computeAgentHash';
 import { createDefaultAgentName } from './createDefaultAgentName';
@@ -57,6 +58,7 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
     const capabilities: AgentCapability[] = [];
     const samples: Array<{ question: string | null; answer: string }> = [];
     const knowledgeSources: Array<{ url: string; filename: string }> = [];
+    const knownKnowledgeSourceUrls = new Set<string>();
     let pendingUserMessage: string | null = null;
 
     for (const commitment of parseResult.commitments) {
@@ -211,23 +213,37 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
         }
 
         if (commitment.type === 'KNOWLEDGE') {
-            const content = spaceTrim(commitment.content).split(/\r?\n/)[0] || '';
+            const content = spaceTrim(commitment.content);
+            const extractedUrls = extractUrlsFromText(content);
             let label = content;
             let iconName = 'Book';
 
-            // Check if this is a URL (for knowledge sources resolution)
-            if (content.startsWith('http://') || content.startsWith('https://')) {
-                try {
-                    const url = new URL(content);
-                    const filename = url.pathname.split('/').pop() || '';
+            // Store URL references for citation resolution.
+            for (const extractedUrl of extractedUrls) {
+                if (knownKnowledgeSourceUrls.has(extractedUrl)) {
+                    continue;
+                }
 
-                    // Store the URL and filename for citation resolution
-                    if (filename) {
-                        knowledgeSources.push({
-                            url: content,
-                            filename,
-                        });
-                    }
+                try {
+                    const urlObject = new URL(extractedUrl);
+                    const pathSegment = decodeURIComponent(urlObject.pathname.split('/').pop() || '');
+                    const filename = pathSegment || urlObject.hostname;
+
+                    knowledgeSources.push({
+                        url: extractedUrl,
+                        filename,
+                    });
+                    knownKnowledgeSourceUrls.add(extractedUrl);
+                } catch (error) {
+                    // Invalid URL, ignore in profile metadata
+                }
+            }
+
+            if (extractedUrls.length > 0) {
+                try {
+                    const primaryUrl = extractedUrls[0]!;
+                    const url = new URL(primaryUrl);
+                    const filename = decodeURIComponent(url.pathname.split('/').pop() || '');
 
                     // Determine display label and icon
                     if (url.pathname.endsWith('.pdf')) {
@@ -235,6 +251,10 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
                         iconName = 'FileText';
                     } else {
                         label = url.hostname.replace(/^www\./, '');
+                    }
+
+                    if (extractedUrls.length > 1) {
+                        label = `${label} (+${extractedUrls.length - 1})`;
                     }
                 } catch (e) {
                     // Invalid URL, treat as text

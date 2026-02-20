@@ -1,7 +1,7 @@
 import { spaceTrim } from 'spacetrim';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import type { string_knowledge_source_link } from '../../types/typeAliases';
-import { isValidUrl } from '../../utils/validators/url/isValidUrl';
+import { extractUrlsFromText } from '../../utils/validators/url/extractUrlsFromText';
 import {
     InlineKnowledgeSourceFile,
     createInlineKnowledgeSourceFile,
@@ -97,39 +97,66 @@ export class KnowledgeCommitmentDefinition extends BaseCommitmentDefinition<'KNO
             return requirements;
         }
 
-        // Check if content is a URL (external knowledge source)
-        if (isValidUrl(trimmedContent)) {
-            // Store the URL for later async processing
-            const updatedRequirements = {
-                ...requirements,
-                knowledgeSources: [
-                    ...(requirements.knowledgeSources || []),
-                    trimmedContent as string_knowledge_source_link,
-                ],
-            };
+        const extractedUrls = extractUrlsFromText(trimmedContent);
+        const knowledgeSources = [...(requirements.knowledgeSources ?? [])];
+        const existingKnowledgeSources = new Set(knowledgeSources);
+        const knowledgeInfoEntries: string[] = [];
 
-            // Add placeholder information about knowledge sources to system message
-            const knowledgeInfo = `Knowledge Source URL: ${trimmedContent} (will be processed for retrieval during chat)`;
+        for (const url of extractedUrls) {
+            if (existingKnowledgeSources.has(url)) {
+                continue;
+            }
 
-            return this.appendToSystemMessage(updatedRequirements, knowledgeInfo, '\n\n');
-        } else {
+            knowledgeSources.push(url as string_knowledge_source_link);
+            existingKnowledgeSources.add(url);
+            knowledgeInfoEntries.push(`Knowledge Source URL: ${url} (will be processed for retrieval during chat)`);
+        }
+
+        let nextRequirements: AgentModelRequirements =
+            knowledgeInfoEntries.length > 0
+                ? {
+                      ...requirements,
+                      knowledgeSources,
+                  }
+                : requirements;
+
+        if (extractedUrls.length === 0 || hasMeaningfulNonUrlText(trimmedContent, extractedUrls)) {
             const inlineSource = createInlineKnowledgeSourceFile(trimmedContent);
             const existingInlineSources = (
-                (requirements._metadata?.inlineKnowledgeSources as InlineKnowledgeSourceFile[]) || []
+                (nextRequirements._metadata?.inlineKnowledgeSources as InlineKnowledgeSourceFile[]) || []
             ).slice();
-            const updatedRequirements = {
-                ...requirements,
+
+            nextRequirements = {
+                ...nextRequirements,
                 _metadata: {
-                    ...requirements._metadata,
+                    ...nextRequirements._metadata,
                     inlineKnowledgeSources: [...existingInlineSources, inlineSource],
                 },
             };
-            const knowledgeInfo = `Knowledge Source Inline: ${inlineSource.filename} (derived from inline content and processed for retrieval during chat)`;
-            return this.appendToSystemMessage(updatedRequirements, knowledgeInfo, '\n\n');
+
+            knowledgeInfoEntries.push(
+                `Knowledge Source Inline: ${inlineSource.filename} (derived from inline content and processed for retrieval during chat)`,
+            );
         }
+
+        if (knowledgeInfoEntries.length === 0) {
+            return nextRequirements;
+        }
+
+        return this.appendToSystemMessage(nextRequirements, knowledgeInfoEntries.join('\n'), '\n\n');
     }
 }
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name
  */
+
+/**
+ * Returns true when the commitment text contains meaningful non-URL content.
+ */
+function hasMeaningfulNonUrlText(content: string, urls: ReadonlyArray<string>): boolean {
+    const contentWithoutUrls = urls.reduce((result, url) => result.split(url).join(' '), content);
+    const significantText = contentWithoutUrls.replace(/[\s.,!?;:'"`()[\]{}<>/-]+/g, '');
+
+    return significantText.length > 0;
+}

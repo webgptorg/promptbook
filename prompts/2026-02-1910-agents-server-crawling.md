@@ -1,4 +1,4 @@
-[ ] !
+[x] ~$0.74 an hour by OpenAI Codex `gpt-5.3-codex`
 
 [✨🔳] Allow to specify knowledge freely in the text of the `KNOWLEDGE` commitment.
 
@@ -156,3 +156,4 @@ Projekty na úrovni Evropské unie (centrálně řízené EU),EU Funding & Tende
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
