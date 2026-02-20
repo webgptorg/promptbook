@@ -5,6 +5,7 @@ import { string_book } from '@promptbook-local/types';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { bookEditorUploadHandler } from '../../../../utils/upload/createBookEditorUploadHandler';
 import { showAlert } from '@/src/components/AsyncDialogs/asyncDialogs';
+import { useUnsavedChangesGuard } from '../../../../components/utils/useUnsavedChangesGuard';
 
 /**
  * Props for the BookEditorWrapper component.
@@ -60,6 +61,42 @@ type RequestDiagnosticsOptions = {
 };
 
 /**
+ * Save status shown by the floating Book editor indicator.
+ */
+type SaveStatus = 'idle' | 'pending' | 'saving' | 'saved' | 'error';
+
+/**
+ * Queued save request payload tracked by the autosave worker.
+ */
+type PendingSave = {
+    readonly source: string_book;
+    readonly version: number;
+};
+
+/**
+ * Minimal server error payload used for save failure messages.
+ */
+type SaveErrorPayload = {
+    message?: string;
+    error?: string;
+};
+
+/**
+ * Delay used before autosave sends a new request after typing.
+ */
+const SAVE_DEBOUNCE_DELAY_MS = 1000;
+
+/**
+ * Delay used before refreshing reference diagnostics after typing.
+ */
+const DIAGNOSTICS_DEBOUNCE_DELAY_MS = 350;
+
+/**
+ * Visibility duration of the temporary "saved" status.
+ */
+const SAVE_SUCCESS_STATUS_VISIBLE_MS = 2000;
+
+/**
  * Normalizes diagnostics payload shape returned by the diagnostics API.
  *
  * @param payload - Raw response payload.
@@ -75,6 +112,28 @@ function normalizeDiagnosticsPayload(payload: AgentReferenceDiagnosticsResponse)
     };
 }
 
+/**
+ * Extracts a human-readable save error from a failed HTTP response.
+ *
+ * @param response - Failed save response.
+ * @returns Friendly error message for UI.
+ */
+async function resolveSaveErrorMessage(response: Response): Promise<string> {
+    const fallbackMessage = `Failed to save: ${response.status} ${response.statusText}`.trim();
+
+    try {
+        const payload = (await response.json()) as SaveErrorPayload;
+        const payloadMessage = payload?.message || payload?.error;
+        if (payloadMessage && payloadMessage.trim().length > 0) {
+            return payloadMessage.trim();
+        }
+    } catch {
+        // Ignore JSON parsing failures and fall back to status-based message.
+    }
+
+    return fallbackMessage;
+}
+
 // TODO: [🐱‍🚀] Rename to BookEditorSavingWrapper
 
 /**
@@ -82,56 +141,117 @@ function normalizeDiagnosticsPayload(payload: AgentReferenceDiagnosticsResponse)
  */
 export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorWrapperProps) {
     const [agentSource, setAgentSource] = useState<string_book>(initialAgentSource);
-    const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+    const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
+    const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null);
+    const [currentSourceVersion, setCurrentSourceVersion] = useState(0);
+    const [lastConfirmedSourceVersion, setLastConfirmedSourceVersion] = useState(0);
+    const [isSaveInFlight, setIsSaveInFlight] = useState(false);
+    const [isSaveDebounced, setIsSaveDebounced] = useState(false);
     const [diagnostics, setDiagnostics] = useState<Array<BookEditorDiagnostic>>([]);
     const [missingTeamReferences, setMissingTeamReferences] = useState<Array<MissingTeamReference>>([]);
     const [creatingTeamMember, setCreatingTeamMember] = useState<string | null>(null);
 
-    // Debounce timer ref so we can clear previous pending save
+    // Debounce timer refs so pending jobs can be canceled before scheduling a newer one.
     const debounceTimerRef = useRef<number | null>(null);
     const diagnosticsDebounceTimerRef = useRef<number | null>(null);
     const diagnosticsAbortControllerRef = useRef<AbortController | null>(null);
-    // Configurable debounce delay (ms) - tweak if needed
-    const DEBOUNCE_DELAY = 1000;
-    const DIAGNOSTICS_DEBOUNCE_DELAY = 350;
+    const pendingSaveRef = useRef<PendingSave | null>(null);
+    const isSaveWorkerRunningRef = useRef(false);
+    const sourceVersionRef = useRef(0);
 
     /**
-     * Persists the current agent source to the server.
+     * Flushes queued autosave requests in-order and confirms server-saved versions.
      */
-    const performSave = async (sourceToSave: string_book) => {
-        setSaveStatus('saving');
-        try {
-            const response = await fetch(`/agents/${encodeURIComponent(agentName)}/api/book`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'text/plain' },
-                body: sourceToSave,
-            });
-            if (!response.ok) {
-                throw new Error(`Failed to save: ${response.statusText}`);
-            }
-            setSaveStatus('saved');
-            setTimeout(() => setSaveStatus('idle'), 2000); // Reset status after 2 seconds
-        } catch (error) {
-            console.error('Error saving agent source:', error);
-            setSaveStatus('error');
-            setTimeout(() => setSaveStatus('idle'), 3000);
+    const flushSaveQueue = useCallback(async () => {
+        if (isSaveWorkerRunningRef.current || !pendingSaveRef.current) {
+            return;
         }
-    };
+
+        isSaveWorkerRunningRef.current = true;
+        setIsSaveInFlight(true);
+
+        try {
+            while (pendingSaveRef.current) {
+                const pendingSave = pendingSaveRef.current;
+                pendingSaveRef.current = null;
+
+                setSaveStatus('saving');
+                setSaveErrorMessage(null);
+
+                try {
+                    const response = await fetch(`/agents/${encodeURIComponent(agentName)}/api/book`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'text/plain' },
+                        body: pendingSave.source,
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(await resolveSaveErrorMessage(response));
+                    }
+
+                    setLastConfirmedSourceVersion((previousVersion) =>
+                        pendingSave.version > previousVersion ? pendingSave.version : previousVersion,
+                    );
+                    setSaveStatus('saved');
+                } catch (error) {
+                    console.error('Error saving agent source:', error);
+                    const errorMessage =
+                        error instanceof Error ? error.message : 'Failed to save the current book on the server.';
+                    setSaveErrorMessage(errorMessage);
+                    setSaveStatus('error');
+                }
+            }
+        } finally {
+            isSaveWorkerRunningRef.current = false;
+            setIsSaveInFlight(false);
+        }
+    }, [agentName]);
 
     /**
-     * Debounces saves while the user edits the agent source.
+     * Queues the newest source revision for persistence and starts save worker.
      */
-    const scheduleSave = (nextSource: string_book) => {
-        // Clear existing pending save
+    const enqueueSave = useCallback(
+        (source: string_book, version: number) => {
+            pendingSaveRef.current = { source, version };
+            setIsSaveDebounced(false);
+            void flushSaveQueue();
+        },
+        [flushSaveQueue],
+    );
+
+    /**
+     * Debounces autosave while the user edits.
+     */
+    const scheduleSave = useCallback(
+        (nextSource: string_book, version: number) => {
+            if (debounceTimerRef.current) {
+                clearTimeout(debounceTimerRef.current);
+            }
+
+            setIsSaveDebounced(true);
+            setSaveStatus('pending');
+
+            debounceTimerRef.current = window.setTimeout(() => {
+                debounceTimerRef.current = null;
+                enqueueSave(nextSource, version);
+            }, SAVE_DEBOUNCE_DELAY_MS);
+        },
+        [enqueueSave],
+    );
+
+    /**
+     * Retries saving the current editor content immediately.
+     */
+    const retrySaveNow = useCallback(() => {
         if (debounceTimerRef.current) {
             clearTimeout(debounceTimerRef.current);
+            debounceTimerRef.current = null;
         }
-        // We stay 'idle' while typing; could add a 'pending' status in future if desired
-        // Schedule new save
-        debounceTimerRef.current = window.setTimeout(() => {
-            performSave(nextSource);
-        }, DEBOUNCE_DELAY);
-    };
+
+        setIsSaveDebounced(false);
+        pendingSaveRef.current = { source: agentSource, version: sourceVersionRef.current };
+        void flushSaveQueue();
+    }, [agentSource, flushSaveQueue]);
 
     /**
      * Requests unresolved compact-reference diagnostics from the server.
@@ -195,15 +315,17 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
 
         diagnosticsDebounceTimerRef.current = window.setTimeout(() => {
             void requestDiagnostics(nextSource);
-        }, DIAGNOSTICS_DEBOUNCE_DELAY);
+        }, DIAGNOSTICS_DEBOUNCE_DELAY_MS);
     }, [requestDiagnostics]);
 
     /**
      * Updates local state and schedules a save for editor changes.
      */
     const handleChange = (newSource: string_book) => {
+        sourceVersionRef.current += 1;
+        setCurrentSourceVersion(sourceVersionRef.current);
         setAgentSource(newSource);
-        scheduleSave(newSource);
+        scheduleSave(newSource, sourceVersionRef.current);
         scheduleDiagnostics(newSource);
     };
 
@@ -257,6 +379,31 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
         void requestDiagnostics(initialAgentSource);
     }, [initialAgentSource, requestDiagnostics]);
 
+    /**
+     * Hides the short-lived success status once the editor is safely in sync.
+     */
+    useEffect(() => {
+        if (saveStatus !== 'saved') {
+            return;
+        }
+
+        const resetTimer = window.setTimeout(() => {
+            setSaveStatus((currentStatus) => {
+                if (currentStatus !== 'saved') {
+                    return currentStatus;
+                }
+
+                if (!isSaveDebounced && !isSaveInFlight && currentSourceVersion === lastConfirmedSourceVersion) {
+                    return 'idle';
+                }
+
+                return currentStatus;
+            });
+        }, SAVE_SUCCESS_STATUS_VISIBLE_MS);
+
+        return () => clearTimeout(resetTimer);
+    }, [currentSourceVersion, isSaveDebounced, isSaveInFlight, lastConfirmedSourceVersion, saveStatus]);
+
     // Cleanup on unmount to avoid lingering timeouts
     useEffect(() => {
         return () => {
@@ -270,7 +417,35 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
         };
     }, []);
 
+    const isBookSavedOnServer =
+        !isSaveDebounced && !isSaveInFlight && currentSourceVersion === lastConfirmedSourceVersion;
+    const shouldPreventLeavingPage = !isBookSavedOnServer;
+    const leaveGuardMessage =
+        saveStatus === 'error'
+            ? 'Book save failed. Stay on this page until the source is saved on the server.'
+            : 'Book changes are still being saved. Stay on this page until the save completes.';
+
+    useUnsavedChangesGuard({
+        hasUnsavedChanges: shouldPreventLeavingPage,
+        preventInAppNavigation: true,
+        message: leaveGuardMessage,
+    });
+
     const hasMissingTeamReferences = missingTeamReferences.length > 0;
+    const saveStatusToneClassName =
+        saveStatus === 'saved'
+            ? 'bg-green-100 text-green-800'
+            : saveStatus === 'error'
+            ? 'bg-red-100 text-red-800'
+            : 'bg-blue-100 text-blue-800';
+    const saveStatusLabel =
+        saveStatus === 'pending'
+            ? 'Changes queued for save...'
+            : saveStatus === 'saving'
+            ? 'Saving to server...'
+            : saveStatus === 'saved'
+            ? 'Saved on server'
+            : 'Failed to save on server';
     const renderTeamMemberCards = () =>
         missingTeamReferences.map((member) => (
             <MissingTeamMemberCard
@@ -287,17 +462,22 @@ export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorW
                 <div
                     role="status"
                     aria-live="polite"
-                    className={`fixed top-5 right-28 z-50 px-4 py-2 text-sm rounded shadow-md ${
-                        saveStatus === 'saving'
-                            ? 'bg-blue-100 text-blue-800'
-                            : saveStatus === 'saved'
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-red-100 text-red-800'
-                    }`}
+                    className={`fixed top-5 right-28 z-50 max-w-md rounded px-4 py-2 text-sm shadow-md ${saveStatusToneClassName}`}
                 >
-                    {saveStatus === 'saving' && '💾 Saving...'}
-                    {saveStatus === 'saved' && '✅ Saved'}
-                    {saveStatus === 'error' && '❌ Failed to save'}
+                    <p className="font-semibold">{saveStatusLabel}</p>
+                    {saveStatus === 'error' && (
+                        <div className="mt-1 flex flex-col gap-2 text-xs">
+                            {saveErrorMessage && <p>{saveErrorMessage}</p>}
+                            <p>Navigation is blocked until this source is saved.</p>
+                            <button
+                                type="button"
+                                onClick={retrySaveNow}
+                                className="inline-flex w-fit items-center rounded border border-current px-2 py-1 font-semibold transition-opacity hover:opacity-80"
+                            >
+                                Retry save now
+                            </button>
+                        </div>
+                    )}
                 </div>
             )}
 
@@ -370,6 +550,4 @@ function MissingTeamMemberCard({ member, isCreating, onCreate }: MissingTeamMemb
 /**
  * TODO: Prompt: Use `import { debounce } from '@promptbook-local/utils';` instead of custom debounce implementation
  * TODO: [🚗] Transfer the saving logic to `<BookEditor/>` be aware of CRDT / yjs approach to be implementable in future
- * TODO: [🐱‍🚀] Add error handling and retry logic
- * TODO: [🐱‍🚀] Show save status indicator
  */
