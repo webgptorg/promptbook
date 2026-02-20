@@ -1,16 +1,15 @@
 'use server';
 
 import { BackToAgentButton } from '@/src/components/BackToAgentButton/BackToAgentButton';
-import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideServer } from '@/src/tools/$provideServer';
 import { formatAgentNamingText } from '@/src/utils/agentNaming';
 import { getAgentNaming } from '@/src/utils/getAgentNaming';
 import { PromptbookAgentIntegration } from '@promptbook-local/components';
-import { parseAgentSource } from '@promptbook-local/core';
 import { headers } from 'next/headers';
 import spaceTrim from 'spacetrim';
 import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
 import { just } from '../../../../../../../src/utils/organization/just';
+import { getAgentProfile } from '../_utils';
 import { generateAgentMetadata } from '../generateAgentMetadata';
 import { WebsiteIntegrationTabs } from '../integration/WebsiteIntegrationTabs';
 
@@ -27,10 +26,7 @@ export default async function WebsiteIntegrationAgentPage({ params }: { params: 
     let { agentName } = await params;
     agentName = decodeURIComponent(agentName);
     const agentNaming = await getAgentNaming();
-
-    const collection = await $provideAgentCollectionForServer();
-    const agentSource = await collection.getAgentSource(agentName);
-    const { meta } = parseAgentSource(agentSource);
+    const { meta } = await getAgentProfile(agentName);
     const { fullname, color, image, ...restMeta } = meta;
     const { publicUrl } = await $provideServer();
     const agentUrl = `${publicUrl.href}agents/${encodeURIComponent(agentName)}`;

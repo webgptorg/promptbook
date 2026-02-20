@@ -1,6 +1,8 @@
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
-import { parseAgentSource } from '@promptbook-local/core';
+import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
+import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
+import { resolveAgentProfileWithInheritance } from '@/src/utils/resolveAgentProfileWithInheritance';
 import type { AgentsServerDatabase } from '../../../database/schema';
 import { $provideSupabaseForServer } from '../../../database/$provideSupabaseForServer';
 import { buildAgentFolderContext, type AgentFolderContext } from '../../../utils/agentOrganization/agentFolderContext';
@@ -27,7 +29,11 @@ export async function getAgentProfile(agentName: string) {
     const collection = await $provideAgentCollectionForServer();
     const agentId = await collection.getAgentPermanentId(agentName);
     const agentSource = await collection.getAgentSource(agentId);
-    const agentProfile = parseAgentSource(agentSource);
+    const agentReferenceResolver = await $provideAgentReferenceResolver();
+    const agentProfile = await resolveAgentProfileWithInheritance(agentSource, {
+        adamAgentUrl: await getWellKnownAgentUrl('ADAM'),
+        agentReferenceResolver,
+    });
 
     const supabase = $provideSupabaseForServer();
     const agentTable = await $getTableName('Agent');

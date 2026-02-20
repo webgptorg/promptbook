@@ -7,7 +7,7 @@ import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
 import { resolveInheritedAgentSource } from '@/src/utils/resolveInheritedAgentSource';
 import { CodePreview } from '@common/components/CodePreview/CodePreview';
 import { BookEditor } from '@promptbook-local/components';
-import { createAgentModelRequirements, parseAgentSource } from '@promptbook-local/core';
+import { createAgentModelRequirements } from '@promptbook-local/core';
 import { TODO_any } from '@promptbook-local/types';
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
 import { consumeAgentReferenceResolutionIssues } from '@/src/utils/agentReferenceResolver/AgentReferenceResolutionIssue';
@@ -17,7 +17,7 @@ import { headers } from 'next/headers';
 import { resolveAgentAvatarImageUrl } from '../../../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
 import { keepUnused } from '../../../../../../../src/utils/organization/keepUnused';
-import { getAgentName } from '../_utils';
+import { getAgentName, getAgentProfile } from '../_utils';
 import { generateAgentMetadata } from '../generateAgentMetadata';
 
 export const generateMetadata = generateAgentMetadata;
@@ -53,7 +53,7 @@ export default async function AgentSystemMessagePage({ params }: { params: Promi
 
     keepUnused(_metadata);
 
-    const agentProfile = parseAgentSource(agentSource);
+    const agentProfile = await getAgentProfile(agentName);
     const { systemMessage, ...modelRequirementsRest } = sanitizedModelRequirements;
 
     return (

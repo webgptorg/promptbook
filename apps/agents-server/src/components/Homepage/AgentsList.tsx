@@ -736,7 +736,6 @@ export function AgentsList(props: AgentsListProps) {
         publicUrl,
         showFederatedAgents,
         externalAgents: initialExternalAgents,
-        isSubfolderView,
     } = props;
     const router = useRouter();
     const searchParams = useSearchParams();

@@ -1,77 +1,14 @@
 import { getMetadataMap } from '@/src/database/getMetadata';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
-import { computeAgentHash, parseAgentSource } from '@promptbook-local/core';
-import { AgentBasicInformation, AgentCapability } from '@promptbook-local/types';
-import { serializeError } from '@promptbook-local/utils';
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
 import { resolveTeamCapabilitiesFromAgentSource } from '@/src/utils/agentReferenceResolver/resolveTeamCapabilitiesFromAgentSource';
+import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
+import { resolveAgentProfileWithInheritance } from '@/src/utils/resolveAgentProfileWithInheritance';
+import { computeAgentHash } from '@promptbook-local/core';
+import { AgentCapability } from '@promptbook-local/types';
+import { serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
 import { keepUnused } from '../../../../../../../../src/utils/organization/keepUnused';
-
-/**
- * Inherits meta properties from parent agents recursively
- *
- * @param agentProfile - The current agent profile
- * @param collection - The agent collection to fetch parent agents from
- * @param visitedAgentNames - Set of already visited agent names to prevent infinite loops
- * @returns The agent profile with inherited meta properties
- */
-async function inheritMeta(
-    agentProfile: AgentBasicInformation,
-    collection: Awaited<ReturnType<typeof $provideAgentCollectionForServer>>,
-    visitedAgentNames: Set<string> = new Set(),
-): Promise<AgentBasicInformation> {
-    const inheritanceCapability = agentProfile.capabilities.find(
-        (capability: AgentCapability) => capability.type === 'inheritance',
-    );
-
-    if (!inheritanceCapability || !inheritanceCapability.agentUrl) {
-        return agentProfile;
-    }
-
-    const parentAgentName = inheritanceCapability.agentUrl;
-
-    if (visitedAgentNames.has(parentAgentName)) {
-        console.warn(`Circular inheritance detected for agent "${parentAgentName}"`);
-        return agentProfile;
-    }
-
-    visitedAgentNames.add(parentAgentName);
-
-    try {
-        const parentAgentSource = await collection.getAgentSource(parentAgentName);
-        let parentAgentProfile = parseAgentSource(parentAgentSource);
-
-        // Recursively inherit from parent's parent
-        parentAgentProfile = await inheritMeta(parentAgentProfile, collection, visitedAgentNames);
-
-        // Inherit missing meta properties
-        for (const [key, value] of Object.entries(parentAgentProfile.meta)) {
-            if (agentProfile.meta[key] === undefined) {
-                agentProfile.meta[key] = value;
-            }
-        }
-
-        // Inherit persona description if missing
-        if (!agentProfile.personaDescription) {
-            agentProfile.personaDescription = parentAgentProfile.personaDescription;
-        }
-
-        // Inherit initial message if missing
-        if (!agentProfile.initialMessage) {
-            agentProfile.initialMessage = parentAgentProfile.initialMessage;
-        }
-
-        // Inherit knowledge sources if missing (for citation resolution)
-        if (!agentProfile.knowledgeSources || agentProfile.knowledgeSources.length === 0) {
-            agentProfile.knowledgeSources = parentAgentProfile.knowledgeSources || [];
-        }
-    } catch (error) {
-        console.error(`Failed to inherit from parent agent "${parentAgentName}":`, error);
-    }
-
-    return agentProfile;
-}
 
 /**
  * Replaces TEAM capabilities with resolver-backed entries while preserving capability order.
@@ -130,11 +67,14 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
     try {
         const collection = await $provideAgentCollectionForServer();
         const agentSource = await collection.getAgentSource(agentName);
-        let agentProfile = parseAgentSource(agentSource);
         const agentReferenceResolver = await $provideAgentReferenceResolver();
+        const adamAgentUrl = await getWellKnownAgentUrl('ADAM');
+        const agentProfile = await resolveAgentProfileWithInheritance(agentSource, {
+            adamAgentUrl,
+            agentReferenceResolver,
+        });
         const resolvedTeamCapabilities = await resolveTeamCapabilitiesFromAgentSource(agentSource, agentReferenceResolver);
 
-        agentProfile = await inheritMeta(agentProfile, collection, new Set([agentName]));
         agentProfile.capabilities = mergeTeamCapabilities(agentProfile.capabilities, resolvedTeamCapabilities);
 
         const metadata = await getMetadataMap([
@@ -196,5 +136,4 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
 
 /**
  * TODO: [🍞] DRY - Make some common utility for API on one agent
- * TODO: !!!! maybe use standard resolve inheritance
  */
