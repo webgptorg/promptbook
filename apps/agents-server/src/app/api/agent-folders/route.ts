@@ -3,6 +3,7 @@ import { ConflictError } from '@promptbook-local/core';
 import { $getTableName } from '../../../database/$getTableName';
 import { $provideSupabaseForServer } from '../../../database/$provideSupabaseForServer';
 import { getCurrentUser } from '../../../utils/getCurrentUser';
+import { parseFolderColor, parseFolderIcon } from '../../../utils/agentOrganization/folderAppearance';
 import { translateSupabaseUniqueConstraintError } from '../../../../../../src/utils/database/uniqueConstraint';
 
 /**
@@ -17,7 +18,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ success: false, error: 'Authentication required.' }, { status: 401 });
     }
 
-    let payload: { name?: string; parentId?: number | null };
+    let payload: { name?: string; parentId?: number | null; icon?: unknown; color?: unknown };
     try {
         payload = await request.json();
     } catch (error) {
@@ -38,6 +39,14 @@ export async function POST(request: Request) {
         return NextResponse.json({ success: false, error: 'Invalid parent folder id.' }, { status: 400 });
     }
     const normalizedParentId = parentId === null ? null : Number(parentId);
+    const parsedIcon = parseFolderIcon(payload.icon);
+    if (payload.icon !== undefined && parsedIcon === undefined) {
+        return NextResponse.json({ success: false, error: 'Invalid folder icon.' }, { status: 400 });
+    }
+    const parsedColor = parseFolderColor(payload.color);
+    if (payload.color !== undefined && parsedColor === undefined) {
+        return NextResponse.json({ success: false, error: 'Invalid folder color.' }, { status: 400 });
+    }
 
     const supabase = $provideSupabaseForServer();
     const folderTable = await $getTableName('AgentFolder');
@@ -65,10 +74,12 @@ export async function POST(request: Request) {
             name,
             parentId: normalizedParentId,
             sortOrder: nextSortOrder,
+            icon: parsedIcon ?? null,
+            color: parsedColor ?? null,
             createdAt: new Date().toISOString(),
             updatedAt: null,
         })
-        .select('id, name, parentId, sortOrder')
+        .select('id, name, parentId, sortOrder, icon, color')
         .single();
 
     if (insertResult.error || !insertResult.data) {

@@ -31,6 +31,7 @@ import { getVisibleCommitmentDefinitions } from '../../utils/getVisibleCommitmen
 import { HeadlessLink, pushWithHeadless, useIsHeadless } from '../_utils/headlessParam';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 import { showAlert, showLoginDialog } from '../AsyncDialogs/asyncDialogs';
+import { FolderAppearanceIcon } from '../FolderAppearance/FolderAppearanceIcon';
 import { ChangePasswordDialog } from '../ChangePasswordDialog/ChangePasswordDialog';
 import { useUsersAdmin } from '../UsersList/useUsersAdmin';
 import { HeaderControlPanelDropdown } from './ControlPanel/ControlPanel';
@@ -342,7 +343,7 @@ type HeaderAgentMenuAgent = Pick<
 /**
  * Folder data required for the folder-organized header menu.
  */
-type HeaderAgentMenuFolder = Pick<AgentOrganizationFolder, 'id' | 'name' | 'parentId' | 'sortOrder'>;
+type HeaderAgentMenuFolder = Pick<AgentOrganizationFolder, 'id' | 'name' | 'parentId' | 'sortOrder' | 'icon' | 'color'>;
 
 /**
  * Pixel offset used for each depth level in nested menu labels.
@@ -631,16 +632,21 @@ function createIndentedMenuLabel(content: ReactNode, depth: number): ReactNode {
 /**
  * Builds a folder label that includes an icon followed by the folder name.
  *
- * @param folderName - Display name of the folder.
+ * @param folder - Folder metadata used to render label and icon styling.
  * @param depth - Nesting depth used for indentation.
  * @returns React node representing the folder label.
  * @private
  */
-function createFolderMenuEntryLabel(folderName: string, depth: number): ReactNode {
+function createFolderMenuEntryLabel(folder: HeaderAgentMenuFolder, depth: number): ReactNode {
     return createIndentedMenuLabel(
         <span className="flex min-w-0 items-center gap-2 text-sm font-semibold text-gray-900">
-            <FolderIcon className="h-4 w-4 text-gray-400" aria-hidden />
-            <span className="truncate">{folderName}</span>
+            <FolderAppearanceIcon
+                icon={folder.icon}
+                color={folder.color}
+                containerClassName="flex h-5 w-5 items-center justify-center rounded-md border"
+                iconClassName="h-3.5 w-3.5"
+            />
+            <span className="truncate">{folder.name}</span>
         </span>,
         depth,
     );
@@ -803,7 +809,7 @@ function buildAgentMenuStructure(
         const folderPath = buildFolderPath(getFolderPathSegments(folderId, folderById).map((segment) => segment.name));
 
         items.push({
-            label: createFolderMenuEntryLabel(folder.name, depth),
+            label: createFolderMenuEntryLabel(folder, depth),
             href: `/?folder=${folderPath}`,
             isBold: true,
         });
@@ -881,7 +887,7 @@ function buildAgentMenuStructure(
             type: 'folder',
             id: folder.id,
             label: folder.name,
-            renderLabel: createFolderMenuEntryLabel(folder.name, 0),
+            renderLabel: createFolderMenuEntryLabel(folder, 0),
             href: `/?folder=${folderPath}`,
             children: childNodes,
         };

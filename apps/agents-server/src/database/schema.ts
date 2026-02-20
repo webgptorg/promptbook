@@ -181,6 +181,8 @@ export type AgentsServerDatabase = {
                     updatedAt: string | null;
                     deletedAt: string | null;
                     sortOrder: number;
+                    icon: string | null;
+                    color: string | null;
                 };
                 Insert: {
                     id?: number;
@@ -190,6 +192,8 @@ export type AgentsServerDatabase = {
                     updatedAt?: string | null;
                     deletedAt?: string | null;
                     sortOrder?: number;
+                    icon?: string | null;
+                    color?: string | null;
                 };
                 Update: {
                     id?: number;
@@ -199,6 +203,8 @@ export type AgentsServerDatabase = {
                     updatedAt?: string | null;
                     deletedAt?: string | null;
                     sortOrder?: number;
+                    icon?: string | null;
+                    color?: string | null;
                 };
                 Relationships: [
                     {

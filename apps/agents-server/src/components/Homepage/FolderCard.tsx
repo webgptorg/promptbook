@@ -1,9 +1,11 @@
 'use client';
 
 import { string_url } from '@promptbook-local/types';
-import { Edit3Icon, FolderIcon, RotateCcwIcon, Trash2Icon } from 'lucide-react';
+import { Edit3Icon, RotateCcwIcon, Trash2Icon } from 'lucide-react';
 import type { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
 import { resolveAgentAvatarImageUrl } from '../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
+import { resolveFolderColor } from '../../utils/agentOrganization/folderAppearance';
+import { FolderAppearanceIcon } from '../FolderAppearance/FolderAppearanceIcon';
 import { FILE_ACTION_BUTTON_CLASSES, FileCard } from './FileCard';
 
 /**
@@ -14,6 +16,14 @@ export type FolderCardProps = {
      * Display name of the folder.
      */
     readonly folderName: string;
+    /**
+     * Optional icon identifier for the folder.
+     */
+    readonly folderIcon?: string | null;
+    /**
+     * Optional color value for the folder.
+     */
+    readonly folderColor?: string | null;
     /**
      * Agents to preview inside the folder.
      */
@@ -45,6 +55,8 @@ export type FolderCardProps = {
  */
 export function FolderCard({
     folderName,
+    folderIcon = null,
+    folderColor = null,
     previewAgents,
     publicUrl,
     onOpen,
@@ -53,14 +65,14 @@ export function FolderCard({
     onRestore,
 }: FolderCardProps) {
     const previewSlots = Array.from({ length: 3 }, (_, index) => previewAgents[index] ?? null);
+    const resolvedFolderColor = resolveFolderColor(folderColor);
 
     return (
         <div className="relative h-full group">
             <button type="button" onClick={onOpen} className="block h-full w-full text-left">
                 <FileCard className="flex h-full items-center gap-3 border-yellow-200 bg-yellow-50/60 hover:border-yellow-300">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-md bg-yellow-100 border border-yellow-200 text-yellow-700">
-                        <FolderIcon className="w-5 h-5" />
-                    </div>
+                    <div className="h-12 w-1 rounded-sm" style={{ backgroundColor: resolvedFolderColor }} />
+                    <FolderAppearanceIcon icon={folderIcon} color={folderColor} />
                     <div className="min-w-0 flex-1">
                         <h3 className="text-sm font-semibold text-gray-900 truncate" title={folderName}>
                             {folderName}

@@ -39,6 +39,14 @@ export type AgentOrganizationFolder = {
      * Sort order of the folder within its parent.
      */
     sortOrder: number;
+    /**
+     * Optional icon identifier used to render the folder.
+     */
+    icon: string | null;
+    /**
+     * Optional HEX color used to render the folder.
+     */
+    color: string | null;
 };
 
 /**

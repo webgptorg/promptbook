@@ -44,13 +44,15 @@ function mapAgentRowToOrganizationAgent(
  * @returns Folder payload with organization metadata.
  */
 function mapFolderRowToOrganizationFolder(
-    row: Pick<AgentFolderRow, 'id' | 'name' | 'parentId' | 'sortOrder'>,
+    row: Pick<AgentFolderRow, 'id' | 'name' | 'parentId' | 'sortOrder'> & { icon: string | null; color: string | null },
 ): AgentOrganizationFolder {
     return {
         id: row.id,
         name: row.name,
         parentId: row.parentId ?? null,
         sortOrder: row.sortOrder ?? 0,
+        icon: row.icon ?? null,
+        color: row.color ?? null,
     };
 }
 
@@ -77,7 +79,7 @@ export async function loadAgentOrganizationState(
     const agentQuery = supabase
         .from(agentTable)
         .select('agentName, agentProfile, permanentId, visibility, folderId, sortOrder, deletedAt');
-    const folderQuery = supabase.from(folderTable).select('id, name, parentId, sortOrder, deletedAt');
+    const folderQuery = supabase.from(folderTable).select('id, name, parentId, sortOrder, icon, color, deletedAt');
 
     if (options.status === 'RECYCLE_BIN') {
         agentQuery.not('deletedAt', 'is', null);

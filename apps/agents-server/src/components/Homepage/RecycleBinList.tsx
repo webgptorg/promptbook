@@ -191,6 +191,8 @@ export function RecycleBinList(props: RecycleBinListProps) {
                     <FolderCard
                         key={folder.id}
                         folderName={folder.name}
+                        folderIcon={folder.icon}
+                        folderColor={folder.color}
                         previewAgents={getFolderPreviewAgents(folder.id)}
                         publicUrl={publicUrl}
                         onOpen={() => navigateToFolder(folder.id)}

@@ -3,13 +3,14 @@ import { NextResponse } from 'next/server';
 import { translateSupabaseUniqueConstraintError } from '../../../../../../../src/utils/database/uniqueConstraint';
 import { $getTableName } from '../../../../database/$getTableName';
 import { $provideSupabaseForServer } from '../../../../database/$provideSupabaseForServer';
+import { parseFolderColor, parseFolderIcon } from '../../../../utils/agentOrganization/folderAppearance';
 import { buildFolderTree, collectDescendantFolderIds } from '../../../../utils/agentOrganization/folderTree';
 import { getCurrentUser } from '../../../../utils/getCurrentUser';
 
 /**
- * Renames an existing folder.
+ * Updates an existing folder.
  *
- * @param request - Incoming request with updated folder name.
+ * @param request - Incoming request with folder updates.
  * @param params - Route params containing the folder id.
  * @returns JSON response with the updated folder.
  */
@@ -25,20 +26,50 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ fo
         return NextResponse.json({ success: false, error: 'Invalid folder id.' }, { status: 400 });
     }
 
-    let payload: { name?: string };
+    let payload: { name?: string; icon?: unknown; color?: unknown };
     try {
         payload = await request.json();
     } catch (error) {
         return NextResponse.json({ success: false, error: 'Invalid JSON payload.' }, { status: 400 });
     }
 
-    const name = (payload.name || '').trim();
-    if (!name) {
-        return NextResponse.json({ success: false, error: 'Folder name is required.' }, { status: 400 });
+    const hasName = Object.prototype.hasOwnProperty.call(payload, 'name');
+    const hasIcon = Object.prototype.hasOwnProperty.call(payload, 'icon');
+    const hasColor = Object.prototype.hasOwnProperty.call(payload, 'color');
+
+    if (!hasName && !hasIcon && !hasColor) {
+        return NextResponse.json({ success: false, error: 'No folder fields provided to update.' }, { status: 400 });
     }
 
-    if (name.includes('/')) {
-        return NextResponse.json({ success: false, error: 'Folder name cannot include "/".' }, { status: 400 });
+    const nextValues: { updatedAt: string; name?: string; icon?: string | null; color?: string | null } = {
+        updatedAt: new Date().toISOString(),
+    };
+
+    if (hasName) {
+        const name = (payload.name || '').trim();
+        if (!name) {
+            return NextResponse.json({ success: false, error: 'Folder name is required.' }, { status: 400 });
+        }
+        if (name.includes('/')) {
+            return NextResponse.json({ success: false, error: 'Folder name cannot include "/".' }, { status: 400 });
+        }
+        nextValues.name = name;
+    }
+
+    if (hasIcon) {
+        const parsedIcon = parseFolderIcon(payload.icon);
+        if (parsedIcon === undefined) {
+            return NextResponse.json({ success: false, error: 'Invalid folder icon.' }, { status: 400 });
+        }
+        nextValues.icon = parsedIcon;
+    }
+
+    if (hasColor) {
+        const parsedColor = parseFolderColor(payload.color);
+        if (parsedColor === undefined) {
+            return NextResponse.json({ success: false, error: 'Invalid folder color.' }, { status: 400 });
+        }
+        nextValues.color = parsedColor;
     }
 
     const supabase = $provideSupabaseForServer();
@@ -46,19 +77,20 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ fo
 
     const updateResult = await supabase
         .from(folderTable)
-        .update({ name, updatedAt: new Date().toISOString() })
+        .update(nextValues)
         .eq('id', numericFolderId)
         .is('deletedAt', null)
-        .select('id, name, parentId, sortOrder')
+        .select('id, name, parentId, sortOrder, icon, color')
         .single();
 
     if (updateResult.error || !updateResult.data) {
+        const conflictName = nextValues.name || 'This folder name';
         const conflictError = translateSupabaseUniqueConstraintError(updateResult.error, [
             {
                 suffix: 'AgentFolder_parent_name_key',
                 buildError: () =>
                     new ConflictError(
-                        `Folder name "${name}" already exists at this level. Pick another name and try again.`,
+                        `${conflictName} already exists at this level. Pick another name and try again.`,
                     ),
             },
         ]);
@@ -68,7 +100,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ fo
         }
 
         return NextResponse.json(
-            { success: false, error: updateResult.error?.message || 'Failed to rename folder.' },
+            { success: false, error: updateResult.error?.message || 'Failed to update folder.' },
             { status: 500 },
         );
     }

@@ -70,7 +70,7 @@ export function FolderContextMenuPopover(props: FolderContextMenuPopoverProps) {
                       {
                           type: 'action' as const,
                           icon: PencilIcon,
-                          label: 'Rename Folder',
+                          label: 'Edit Folder',
                           onClick: onRenameFolder,
                           closeOnClick: true,
                       },

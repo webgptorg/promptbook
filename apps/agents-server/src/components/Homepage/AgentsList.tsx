@@ -28,6 +28,7 @@ import type { AgentBasicInformation } from '../../../../../src/book-2.0/agent-so
 import { AddAgentButton } from '../../app/AddAgentButton';
 import type { AgentProfile } from '../../app/agents/[agentName]/AgentProfileWrapper';
 import { buildAgentFolderContext } from '../../utils/agentOrganization/agentFolderContext';
+import { DEFAULT_FOLDER_COLOR, DEFAULT_FOLDER_ICON } from '../../utils/agentOrganization/folderAppearance';
 import type {
     AgentOrganizationAgent,
     AgentOrganizationFolder,
@@ -37,7 +38,7 @@ import { AgentContextMenuPopover, type AgentContextMenuRenamePayload } from '../
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 import { QrCodeModal } from '../AgentProfile/QrCodeModal';
 import { useAgentBackground } from '../AgentProfile/useAgentBackground';
-import { showAlert, showConfirm, showPrompt } from '../AsyncDialogs/asyncDialogs';
+import { showAlert, showConfirm } from '../AsyncDialogs/asyncDialogs';
 import { FolderContextMenuPopover } from '../FolderContextMenu/FolderContextMenu';
 import { AgentCard } from './AgentCard';
 import {
@@ -53,6 +54,7 @@ import {
 import { AgentsGraph } from './AgentsGraph';
 import { FileCard } from './FileCard';
 import { FolderCard } from './FolderCard';
+import { FolderEditDialog, type FolderEditValues } from './FolderEditDialog';
 import { HOMEPAGE_AGENT_GRID_CLASS } from './gridLayout';
 
 /**
@@ -234,6 +236,24 @@ type FolderContextMenuState = {
      * Cursor position for the menu anchor.
      */
     readonly anchorPoint: { x: number; y: number };
+};
+
+/**
+ * State for create/edit folder dialog interactions.
+ */
+type FolderEditDialogState = {
+    /**
+     * Dialog mode determining create vs edit behavior.
+     */
+    readonly mode: 'CREATE' | 'EDIT';
+    /**
+     * Edited folder id in edit mode, null in create mode.
+     */
+    readonly folderId: number | null;
+    /**
+     * Initial values shown in the editor.
+     */
+    readonly initialValues: FolderEditValues;
 };
 
 const AGENT_DRAG_ID_PREFIX = 'agent:';
@@ -530,6 +550,8 @@ function SortableFolderCard({
         >
             <FolderCard
                 folderName={folder.name}
+                folderIcon={folder.icon}
+                folderColor={folder.color}
                 previewAgents={previewAgents}
                 publicUrl={publicUrl}
                 onOpen={onOpen}
@@ -749,6 +771,8 @@ export function AgentsList(props: AgentsListProps) {
     const [dropIndicator, setDropIndicator] = useState<DropIndicator | null>(null);
     const [contextMenuState, setContextMenuState] = useState<AgentContextMenuState | null>(null);
     const [folderContextMenuState, setFolderContextMenuState] = useState<FolderContextMenuState | null>(null);
+    const [folderEditDialogState, setFolderEditDialogState] = useState<FolderEditDialogState | null>(null);
+    const [isFolderEditSubmitting, setIsFolderEditSubmitting] = useState<boolean>(false);
     const [qrCodeAgent, setQrCodeAgent] = useState<AgentOrganizationAgent | null>(null);
     const { formatText } = useAgentNaming();
 
@@ -1180,120 +1204,144 @@ export function AgentsList(props: AgentsListProps) {
     };
 
     /**
-     * Creates a new folder under the current folder.
+     * Validates a folder name before create/edit actions.
+     *
+     * @param name - Folder name to validate.
+     * @returns Error message for invalid names, otherwise null.
      */
-    const handleCreateFolder = async () => {
-        const name = await showPrompt({
-            title: 'Create folder',
-            message: 'Choose a name for the new folder.',
-            confirmLabel: 'Create folder',
-            cancelLabel: 'Cancel',
-            placeholder: 'Folder name',
-            inputLabel: 'Folder name',
-        }).catch(() => null);
+    const validateFolderName = (name: string): string | null => {
         if (!name) {
-            return;
+            return 'Folder name cannot be empty.';
         }
-
-        const trimmedName = name.trim();
-        if (!trimmedName) {
-            await showAlert({
-                title: 'Invalid name',
-                message: 'Folder name cannot be empty.',
-            }).catch(() => undefined);
-            return;
+        if (name.includes('/')) {
+            return 'Folder name cannot include "/".';
         }
-
-        if (trimmedName.includes('/')) {
-            await showAlert({
-                title: 'Invalid name',
-                message: 'Folder name cannot include "/".',
-            }).catch(() => undefined);
-            return;
-        }
-
-        try {
-            const response = await fetch('/api/agent-folders', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: trimmedName, parentId: currentFolderId ?? null }),
-            });
-            const data = await response.json();
-            if (!response.ok) {
-                throw new Error(data.error || 'Failed to create folder.');
-            }
-            setFolders((prev) => [...prev, data.folder]);
-        } catch (error) {
-            await showAlert({
-                title: 'Create failed',
-                message: error instanceof Error ? error.message : 'Failed to create folder.',
-            }).catch(() => undefined);
-        }
+        return null;
     };
 
     /**
-     * Renames an existing folder.
-     *
-     * @param folderId - Folder id to rename.
+     * Opens the create-folder dialog with defaults.
      */
-    const handleRenameFolder = async (folderId: number) => {
+    const handleCreateFolder = () => {
+        setFolderEditDialogState({
+            mode: 'CREATE',
+            folderId: null,
+            initialValues: {
+                name: '',
+                icon: DEFAULT_FOLDER_ICON,
+                color: DEFAULT_FOLDER_COLOR,
+            },
+        });
+    };
+
+    /**
+     * Opens the edit-folder dialog for one folder.
+     *
+     * @param folderId - Folder id to edit.
+     */
+    const handleRenameFolder = (folderId: number) => {
         const folder = folders.find((item) => item.id === folderId);
         if (!folder) {
             return;
         }
+        setFolderEditDialogState({
+            mode: 'EDIT',
+            folderId,
+            initialValues: {
+                name: folder.name,
+                icon: folder.icon ?? DEFAULT_FOLDER_ICON,
+                color: folder.color ?? DEFAULT_FOLDER_COLOR,
+            },
+        });
+    };
 
-        const name = await showPrompt({
-            title: 'Rename folder',
-            message: 'Enter the new folder name.',
-            defaultValue: folder.name,
-            confirmLabel: 'Rename',
-            cancelLabel: 'Cancel',
-            placeholder: 'Folder name',
-            inputLabel: 'Folder name',
-        }).catch(() => null);
-        if (!name) {
+    /**
+     * Applies folder create/edit changes submitted from the dialog.
+     *
+     * @param values - Folder values submitted by the dialog.
+     */
+    const handleSubmitFolderEdit = async (values: FolderEditValues) => {
+        if (!folderEditDialogState) {
             return;
         }
 
-        const trimmedName = name.trim();
-        if (!trimmedName) {
+        const trimmedName = values.name.trim();
+        const nameError = validateFolderName(trimmedName);
+        if (nameError) {
             await showAlert({
                 title: 'Invalid name',
-                message: 'Folder name cannot be empty.',
+                message: nameError,
             }).catch(() => undefined);
             return;
         }
 
-        if (trimmedName.includes('/')) {
-            await showAlert({
-                title: 'Invalid name',
-                message: 'Folder name cannot include "/".',
-            }).catch(() => undefined);
-            return;
-        }
-
+        setIsFolderEditSubmitting(true);
         try {
+            if (folderEditDialogState.mode === 'CREATE') {
+                const response = await fetch('/api/agent-folders', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: trimmedName,
+                        parentId: currentFolderId ?? null,
+                        icon: values.icon,
+                        color: values.color,
+                    }),
+                });
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to create folder.');
+                }
+                setFolders((prev) => [...prev, data.folder as AgentOrganizationFolder]);
+                setFolderEditDialogState(null);
+                return;
+            }
+
+            const folderId = folderEditDialogState.folderId;
+            if (folderId === null) {
+                return;
+            }
+
             const response = await fetch(`/api/agent-folders/${folderId}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: trimmedName }),
+                body: JSON.stringify({
+                    name: trimmedName,
+                    icon: values.icon,
+                    color: values.color,
+                }),
             });
             const data = await response.json();
             if (!response.ok) {
-                throw new Error(data.error || 'Failed to rename folder.');
+                throw new Error(data.error || 'Failed to update folder.');
             }
-            const nextFolders = folders.map((item) => (item.id === folderId ? { ...item, name: trimmedName } : item));
+
+            const updatedFolder = data.folder as AgentOrganizationFolder;
+            const nextFolders = folders.map((item) => (item.id === folderId ? { ...item, ...updatedFolder } : item));
             setFolders(nextFolders);
             if (breadcrumbFolders.some((item) => item.id === folderId)) {
                 navigateToFolder(currentFolderId ?? null, nextFolders);
             }
+            setFolderEditDialogState(null);
         } catch (error) {
             await showAlert({
-                title: 'Rename failed',
-                message: error instanceof Error ? error.message : 'Failed to rename folder.',
+                title: folderEditDialogState.mode === 'CREATE' ? 'Create failed' : 'Update failed',
+                message: error instanceof Error ? error.message : 'Failed to update folder.',
             }).catch(() => undefined);
+        } finally {
+            setIsFolderEditSubmitting(false);
         }
     };
+
+    /**
+     * Closes the folder editor dialog when no submit is in progress.
+     */
+    const handleCloseFolderEditDialog = useCallback(() => {
+        if (isFolderEditSubmitting) {
+            return;
+        }
+        setFolderEditDialogState(null);
+    }, [isFolderEditSubmitting]);
 
     /**
      * Deletes a folder and moves its contents to the recycle bin.
@@ -1798,6 +1846,8 @@ export function AgentsList(props: AgentsListProps) {
                             <div className="pointer-events-none scale-105 drop-shadow-2xl">
                                 <FolderCard
                                     folderName={activeFolder.name}
+                                    folderIcon={activeFolder.icon}
+                                    folderColor={activeFolder.color}
                                     previewAgents={getFolderPreviewAgents(activeFolder.id)}
                                     publicUrl={publicUrl}
                                 />
@@ -1815,6 +1865,16 @@ export function AgentsList(props: AgentsListProps) {
                         folders={folders}
                     />
                 </div>
+            )}
+            {folderEditDialogState && (
+                <FolderEditDialog
+                    isOpen={Boolean(folderEditDialogState)}
+                    mode={folderEditDialogState.mode}
+                    initialValues={folderEditDialogState.initialValues}
+                    isSubmitting={isFolderEditSubmitting}
+                    onClose={handleCloseFolderEditDialog}
+                    onSubmit={handleSubmitFolderEdit}
+                />
             )}
             {contextMenuAgent && (
                 <AgentContextMenuPopover
