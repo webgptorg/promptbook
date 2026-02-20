@@ -89,4 +89,19 @@ export type ServerSearchResponse = {
      * Flattened, ranked result list.
      */
     readonly items: ReadonlyArray<ServerSearchResultItem>;
+
+    /**
+     * Total number of deduplicated items that match the query before pagination.
+     */
+    readonly totalCount: number;
+
+    /**
+     * Pagination offset (zero-based) applied to the current response.
+     */
+    readonly offset: number;
+
+    /**
+     * Limit used to slice the results that were returned.
+     */
+    readonly limit: number;
 };

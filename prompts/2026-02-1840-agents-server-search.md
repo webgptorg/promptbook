@@ -42,7 +42,7 @@ The menu of the agent server looks like this:
 
 ---
 
-[ ]
+[x] ~$0.00 17 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
 [✨🤜] You have added search bar, but it needs some minor improvements.
 
@@ -127,3 +127,4 @@ The menu of the agent server looks like this:
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

@@ -1,21 +1,10 @@
 'use client';
 
-import {
-    BookOpenText,
-    FileIcon,
-    FolderOpen,
-    Globe2,
-    ImageIcon,
-    Loader2,
-    MessageSquareText,
-    Search,
-    Settings2,
-    UserRound,
-    type LucideIcon,
-} from 'lucide-react';
+import { Search } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { pushWithHeadless, useIsHeadless } from '../_utils/headlessParam';
+import { SEARCH_RESULT_ICON_BY_TYPE } from '../../search/searchIcons';
 import type { ServerSearchResponse, ServerSearchResultItem } from '../../search/ServerSearchResultItem';
 
 /**
@@ -32,24 +21,6 @@ const MIN_QUERY_LENGTH = 2;
  * Total number of results requested from the search API.
  */
 const SEARCH_RESULT_LIMIT = 36;
-
-/**
- * Icon mapping for global search results.
- */
-const RESULT_ICON_BY_TYPE: Record<ServerSearchResultItem['icon'], LucideIcon> = {
-    agent: UserRound,
-    book: BookOpenText,
-    'federated-agent': Globe2,
-    folder: FolderOpen,
-    conversation: MessageSquareText,
-    documentation: BookOpenText,
-    metadata: Settings2,
-    user: UserRound,
-    message: MessageSquareText,
-    file: FileIcon,
-    image: ImageIcon,
-    system: Settings2,
-};
 
 /**
  * Props for the shared global-search box component.
@@ -90,12 +61,20 @@ export function HeaderSearchBox({
     const [debouncedQuery, setDebouncedQuery] = useState('');
     const [activeIndex, setActiveIndex] = useState<number>(-1);
 
+    const trimmedQuery = query.trim();
+    const hasMinimumQuery = trimmedQuery.length >= MIN_QUERY_LENGTH;
+    const searchEntryCount = hasMinimumQuery ? 1 : 0;
+    const showNoResultsMessage =
+        hasMinimumQuery && !isLoading && !errorMessage && results.length === 0;
+    const shouldRenderDropdown =
+        isOpen && hasMinimumQuery && (results.length > 0 || showNoResultsMessage || Boolean(errorMessage));
+
     /**
      * Groups results while preserving original order and adds stable option indexes.
      */
     const groupedResults = useMemo(() => {
         const groupMap = new Map<string, Array<ServerSearchResultItem & { optionIndex: number }>>();
-        let optionIndex = 0;
+        let optionIndex = searchEntryCount;
         for (const item of results) {
             const existing = groupMap.get(item.group) || [];
             existing.push({ ...item, optionIndex });
@@ -103,7 +82,7 @@ export function HeaderSearchBox({
             optionIndex += 1;
         }
         return Array.from(groupMap.entries()).map(([group, items]) => ({ group, items }));
-    }, [results]);
+    }, [results, searchEntryCount]);
 
     /**
      * Debounces typing so the client does not flood the API endpoint.
@@ -163,18 +142,25 @@ export function HeaderSearchBox({
     }, [debouncedQuery, isOpen]);
 
     /**
-     * Keeps active option index aligned with result length.
+     * Keeps active option index aligned with the current dropdown entries.
      */
     useEffect(() => {
-        if (results.length === 0) {
+        const entryCount = searchEntryCount + results.length;
+        if (entryCount === 0) {
             setActiveIndex(-1);
             return;
         }
 
-        if (activeIndex >= results.length) {
-            setActiveIndex(0);
-        }
-    }, [activeIndex, results]);
+        setActiveIndex((previous) => {
+            if (previous < 0) {
+                return searchEntryCount > 0 ? 0 : 0;
+            }
+            if (previous >= entryCount) {
+                return entryCount - 1;
+            }
+            return previous;
+        });
+    }, [results.length, searchEntryCount]);
 
     /**
      * Closes dropdown when user clicks outside the search box.
@@ -218,6 +204,18 @@ export function HeaderSearchBox({
     };
 
     /**
+     * Opens the dedicated search page for the current query.
+     */
+    const openSearchPage = () => {
+        if (!hasMinimumQuery) {
+            return;
+        }
+        setIsOpen(false);
+        pushWithHeadless(router, `/search?q=${encodeURIComponent(trimmedQuery)}`, isHeadless);
+        onNavigate?.();
+    };
+
+    /**
      * Handles keyboard interactions for listbox navigation.
      */
     const onInputKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
@@ -225,6 +223,11 @@ export function HeaderSearchBox({
             if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
                 setIsOpen(true);
                 event.preventDefault();
+                return;
+            }
+            if (event.key === 'Enter' && hasMinimumQuery) {
+                event.preventDefault();
+                openSearchPage();
             }
             return;
         }
@@ -234,28 +237,52 @@ export function HeaderSearchBox({
             return;
         }
 
+        const entryCount = searchEntryCount + results.length;
+
         if (event.key === 'ArrowDown') {
             event.preventDefault();
-            if (results.length === 0) {
+            if (entryCount === 0) {
                 return;
             }
-            setActiveIndex((previous) => (previous + 1 + results.length) % results.length);
+            setActiveIndex((previous) => {
+                const normalized = previous < 0 ? -1 : previous;
+                const next = normalized + 1;
+                return next >= entryCount ? 0 : next;
+            });
             return;
         }
 
         if (event.key === 'ArrowUp') {
             event.preventDefault();
-            if (results.length === 0) {
+            if (entryCount === 0) {
                 return;
             }
-            setActiveIndex((previous) => (previous - 1 + results.length) % results.length);
+            setActiveIndex((previous) => {
+                const normalized = previous < 0 ? entryCount : previous;
+                const next = normalized - 1;
+                return next < 0 ? entryCount - 1 : next;
+            });
             return;
         }
 
         if (event.key === 'Enter') {
-            if (activeIndex >= 0 && activeIndex < results.length) {
-                event.preventDefault();
-                selectResult(results[activeIndex]);
+            event.preventDefault();
+            if (!hasMinimumQuery) {
+                return;
+            }
+            if (entryCount === 0) {
+                openSearchPage();
+                return;
+            }
+            if (searchEntryCount > 0 && activeIndex === 0) {
+                openSearchPage();
+                return;
+            }
+            const resultIndex = activeIndex - searchEntryCount;
+            if (resultIndex >= 0 && resultIndex < results.length) {
+                selectResult(results[resultIndex]);
+            } else {
+                openSearchPage();
             }
         }
     };
@@ -285,40 +312,57 @@ export function HeaderSearchBox({
                     autoComplete="off"
                 />
                 {isLoading && (
-                    <Loader2
-                        className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-slate-400"
-                        aria-hidden
-                    />
+                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
+                        <span className="inline-flex h-3 w-3 animate-spin rounded-full border-2 border-slate-200 border-t-blue-500" />
+                    </span>
                 )}
             </div>
 
-            {isOpen && (
+            {shouldRenderDropdown && (
                 <div
                     id="global-server-search-results"
                     className="absolute left-0 right-0 z-50 mt-2 max-h-[70vh] overflow-y-auto rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl shadow-slate-300/40"
                     role="listbox"
                 >
-                    {query.trim().length < MIN_QUERY_LENGTH && (
-                        <div className="rounded-xl bg-slate-50 px-3 py-3 text-sm text-slate-500">
-                            Type at least {MIN_QUERY_LENGTH} characters to search the server.
+                    {hasMinimumQuery && (
+                        <div className="mb-2 rounded-xl bg-slate-50/60 p-2">
+                            <button
+                                type="button"
+                                role="option"
+                                aria-selected={hasMinimumQuery && activeIndex === 0}
+                                onMouseDown={(event) => {
+                                    event.preventDefault();
+                                    openSearchPage();
+                                }}
+                                onMouseEnter={() => setActiveIndex(0)}
+                                className={`flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2 text-left text-sm font-semibold transition ${
+                                    activeIndex === 0
+                                        ? 'bg-blue-50 ring-1 ring-blue-200'
+                                        : 'hover:bg-slate-100'
+                                }`}
+                            >
+                                <span className="flex flex-col text-left">
+                                    <span className="text-slate-700">
+                                        View all results for
+                                    </span>
+                                    <span className="text-slate-500">&quot;{trimmedQuery}&quot;</span>
+                                </span>
+                                <Search className="h-4 w-4 text-slate-500" aria-hidden />
+                            </button>
                         </div>
                     )}
 
-                    {query.trim().length >= MIN_QUERY_LENGTH && errorMessage && (
+                    {errorMessage && (
                         <div className="rounded-xl bg-red-50 px-3 py-3 text-sm text-red-700">{errorMessage}</div>
                     )}
 
-                    {query.trim().length >= MIN_QUERY_LENGTH &&
-                        !errorMessage &&
-                        !isLoading &&
-                        results.length === 0 && (
-                            <div className="rounded-xl bg-slate-50 px-3 py-3 text-sm text-slate-500">
-                                No results found for &quot;{query.trim()}&quot;.
-                            </div>
-                        )}
+                    {showNoResultsMessage && (
+                        <div className="rounded-xl bg-slate-50 px-3 py-3 text-sm text-slate-500">
+                            No results found for &quot;{trimmedQuery}&quot;.
+                        </div>
+                    )}
 
-                    {query.trim().length >= MIN_QUERY_LENGTH &&
-                        !errorMessage &&
+                    {results.length > 0 &&
                         groupedResults.map(({ group, items }) => (
                             <div key={group} className="mb-2 last:mb-0">
                                 <div className="px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
@@ -326,7 +370,7 @@ export function HeaderSearchBox({
                                 </div>
                                 <div className="space-y-1">
                                     {items.map((item) => {
-                                        const Icon = RESULT_ICON_BY_TYPE[item.icon] || Search;
+                                        const Icon = SEARCH_RESULT_ICON_BY_TYPE[item.icon] || Search;
                                         const isActive = item.optionIndex === activeIndex;
 
                                         return (
