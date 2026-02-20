@@ -121,17 +121,6 @@ function buildRemoteAgentSource(profile: RemoteAgentProfile, meta: RemoteAgentPr
 }
 
 /**
- * Detects whether the provided error represents an aborted fetch/stream.
- */
-function isAbortError(error: unknown): error is { name: 'AbortError' } {
-    if (!error || typeof error !== 'object') {
-        return false;
-    }
-
-    return (error as { name?: unknown }).name === 'AbortError';
-}
-
-/**
  * Represents one AI Agent
  *
  * Note: [🦖] There are several different things in Promptbook:
@@ -226,16 +215,9 @@ export class RemoteAgent extends Agent {
      * The source of the agent
      */
     private agentUrl: string_agent_url;
-    private currentChatAbortController: AbortController | null = null;
     private _remoteAgentName: string_agent_name | undefined;
     private _remoteAgentHash: string_agent_hash | undefined;
     public toolTitles: Record<string, string> = {};
-    /**
-     * Stops the currently streaming chat request.
-     */
-    public stopCurrentChatStream(): void {
-        this.currentChatAbortController?.abort();
-    }
     private _isVoiceCallingEnabled: boolean = false; // [✨✷] Track voice calling status
     private _isVoiceTtsSttEnabled: boolean = true;
 
@@ -338,33 +320,21 @@ export class RemoteAgent extends Agent {
         }
 
         const chatPrompt = prompt as ChatPrompt;
-        const abortController = new AbortController();
-        this.currentChatAbortController = abortController;
 
-        try {
-
-        let bookResponse: Response;
-        try {
-            bookResponse = await fetch(`${this.agentUrl}/api/chat`, {
-                method: 'POST',
-                headers: attachClientVersionHeader({
-                    'Content-Type': 'application/json',
-                }),
-                body: JSON.stringify({
-                    message: prompt.content,
-                    thread: chatPrompt.thread,
-                    attachments: chatPrompt.attachments,
-                    parameters: chatPrompt.parameters,
-                }),
-                signal: abortController.signal,
-            });
-        } catch (error) {
-            if (abortController.signal.aborted && isAbortError(error)) {
-                return buildResult();
-            }
-
-            throw error;
-        }
+        const bookResponse = await fetch(`${this.agentUrl}/api/chat`, {
+            method: 'POST',
+            headers: attachClientVersionHeader({
+                'Content-Type': 'application/json',
+            }),
+            body: JSON.stringify({
+                message: prompt.content,
+                thread: chatPrompt.thread,
+                attachments: chatPrompt.attachments,
+                parameters: chatPrompt.parameters,
+            }),
+        });
+        // <- TODO: [🐱‍🚀] What about closed-source agents?
+        // <- TODO: [🐱‍🚀] Maybe use promptbookFetch
 
         let content = '';
         const toolCalls: Array<NonNullable<ChatPromptResult['toolCalls']>[number]> = [];
@@ -564,21 +534,12 @@ export class RemoteAgent extends Agent {
             appendTextChunk(textLines.join('\n'));
         };
 
-        const buildResult = (): ChatPromptResult => ({
-            content,
-            modelName: this.modelName,
-            timing: {} as TODO_any,
-            usage: {} as TODO_any,
-            rawPromptContent: {} as TODO_any,
-            rawRequest: {} as TODO_any,
-            rawResponse: {} as TODO_any,
-            toolCalls: getActiveToolCalls(),
-        });
-
         if (!bookResponse.body) {
             content = await bookResponse.text();
         } else {
+            // Note: [🐚] Problem with streaming is not here but it is not implemented on server
             const decoder = new TextDecoder();
+            // Web ReadableStream is not async-iterable in many runtimes; use a reader.
             const reader = bookResponse.body.getReader();
             try {
                 let doneReading = false;
@@ -590,19 +551,22 @@ export class RemoteAgent extends Agent {
                         processDecodedChunk(textChunk);
                     }
                 }
-
+                // Flush any remaining decoder internal state
                 const lastChunk = decoder.decode();
                 if (lastChunk) {
                     processDecodedChunk(lastChunk);
                 }
-            } catch (error) {
-                if (abortController.signal.aborted && isAbortError(error)) {
-                    const lastChunk = decoder.decode();
-                    if (lastChunk) {
-                        processDecodedChunk(lastChunk);
+
+                if (pendingToolCallLineFragment) {
+                    const trimmedPending = pendingToolCallLineFragment.trim();
+                    if (trimmedPending === CHAT_STREAM_KEEP_ALIVE_TOKEN) {
+                        pendingToolCallLineFragment = '';
+                    } else if (tryParseToolCallLine(trimmedPending)) {
+                        pendingToolCallLineFragment = '';
+                    } else {
+                        appendTextChunk(pendingToolCallLineFragment);
+                        pendingToolCallLineFragment = '';
                     }
-                } else {
-                    throw error;
                 }
             } finally {
                 reader.releaseLock();
@@ -611,9 +575,19 @@ export class RemoteAgent extends Agent {
 
         // <- TODO: [🐱‍🚀] Transfer metadata
 
-        return buildResult();
-    } finally {
-        this.currentChatAbortController = null;
+        const agentResult: ChatPromptResult = {
+            content,
+            modelName: this.modelName,
+            timing: {} as TODO_any,
+            usage: {} as TODO_any,
+            rawPromptContent: {} as TODO_any,
+            rawRequest: {} as TODO_any,
+            rawResponse: {} as TODO_any,
+            toolCalls,
+            // <- TODO: [🐱‍🚀] Transfer and proxy the metadata
+        };
+
+        return agentResult;
     }
 }
 
