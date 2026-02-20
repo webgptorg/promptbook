@@ -3,6 +3,7 @@ import OpenAI from 'openai';
 import { TODO_any } from '../../_packages/types.index';
 import { serializeError } from '../../_packages/utils.index';
 import { assertsError } from '../../errors/assertsError';
+import { scrapeWebsiteContentToMarkdown } from '../../scrapers/website/utils/scrapeWebsiteContentToMarkdown';
 import type { string_title } from '../../types/typeAliases';
 import type { OpenAiCompatibleExecutionToolsOptions } from './OpenAiCompatibleExecutionToolsOptions';
 import { OpenAiExecutionTools } from './OpenAiExecutionTools';
@@ -12,6 +13,7 @@ const DEFAULT_KNOWLEDGE_SOURCE_DOWNLOAD_TIMEOUT_MS = 30000;
 const DEFAULT_KNOWLEDGE_SOURCE_UPLOAD_TIMEOUT_MS = 900000;
 const VECTOR_STORE_PROGRESS_LOG_INTERVAL_MIN_MS = 15000;
 const VECTOR_STORE_STALL_LOG_THRESHOLD_MS = 30000;
+const WEBSITE_CONTENT_TYPES = new Set(['text/html', 'application/xhtml+xml']);
 
 /**
  * Metadata for uploaded knowledge source files used for vector store diagnostics.
@@ -157,6 +159,7 @@ export abstract class OpenAiVectorStoreHandler extends OpenAiExecutionTools {
         try {
             const response = await fetch(source, { signal: controller.signal });
             const contentType = response.headers.get('content-type') ?? undefined;
+            const mimeType = normalizeMimeType(contentType);
 
             if (!response.ok) {
                 console.error('[🤰]', 'Failed to download knowledge source', {
@@ -170,18 +173,31 @@ export abstract class OpenAiVectorStoreHandler extends OpenAiExecutionTools {
                 return null;
             }
 
-            const buffer = await response.arrayBuffer();
-            let filename = source.split('/').pop() || 'downloaded-file';
-            try {
-                const url = new URL(source);
-                filename = url.pathname.split('/').pop() || filename;
-            } catch (error) {
-                // Keep default filename
+            const shouldScrapeWebsite = isWebsiteKnowledgeSourceMimeType(mimeType);
+            let file: File;
+            let filename: string;
+            let sizeBytes: number;
+
+            if (shouldScrapeWebsite) {
+                const html = await response.text();
+                const markdown = await scrapeWebsiteContentToMarkdown({
+                    url: source,
+                    html,
+                    isVerbose: false,
+                });
+
+                filename = deriveKnowledgeSourceFilename(source, 'website-source') + '.md';
+                file = new File([markdown], filename, { type: 'text/markdown' });
+                sizeBytes = new TextEncoder().encode(markdown).byteLength;
+            } else {
+                const buffer = await response.arrayBuffer();
+
+                filename = deriveKnowledgeSourceFilename(source, 'downloaded-file');
+                file = new File([buffer], filename, contentType ? { type: contentType } : undefined);
+                sizeBytes = buffer.byteLength;
             }
 
-            const file = new File([buffer], filename, contentType ? { type: contentType } : undefined);
             const elapsedMs = Date.now() - startedAtMs;
-            const sizeBytes = buffer.byteLength;
 
             if (this.options.isVerbose) {
                 console.info('[🤰]', 'Downloaded knowledge source', {
@@ -189,6 +205,8 @@ export abstract class OpenAiVectorStoreHandler extends OpenAiExecutionTools {
                     filename,
                     sizeBytes,
                     contentType,
+                    mimeType,
+                    scrapedAsWebsite: shouldScrapeWebsite,
                     elapsedMs,
                     logLabel,
                 });
@@ -938,4 +956,50 @@ export abstract class OpenAiVectorStoreHandler extends OpenAiExecutionTools {
             totalBytes,
         };
     }
+}
+
+/**
+ * Normalizes a content type header to a lowercase MIME type without parameters.
+ *
+ * @private utility for vector store ingestion
+ */
+function normalizeMimeType(contentType: string | undefined): string | null {
+    if (!contentType) {
+        return null;
+    }
+
+    const mimeType = contentType.split(';')[0]?.trim().toLowerCase() || '';
+    return mimeType || null;
+}
+
+/**
+ * Returns true when the source should be treated as a single webpage and scraped to markdown.
+ *
+ * @private utility for vector store ingestion
+ */
+function isWebsiteKnowledgeSourceMimeType(mimeType: string | null): boolean {
+    if (!mimeType) {
+        return false;
+    }
+
+    return WEBSITE_CONTENT_TYPES.has(mimeType);
+}
+
+/**
+ * Derives a stable filename for downloaded knowledge sources.
+ *
+ * @private utility for vector store ingestion
+ */
+function deriveKnowledgeSourceFilename(source: string, fallbackName: string): string {
+    let filename = source.split('/').pop() || fallbackName;
+
+    try {
+        const url = new URL(source);
+        filename = decodeURIComponent(url.pathname.split('/').pop() || filename);
+    } catch (error) {
+        void error;
+    }
+
+    const trimmedFilename = filename.trim();
+    return trimmedFilename || fallbackName;
 }
