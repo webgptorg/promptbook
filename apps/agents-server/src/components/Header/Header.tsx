@@ -93,13 +93,20 @@ type SubMenuItem = {
     items?: SubMenuItem[];
 };
 
+type MenuItemBase = {
+    /**
+     * @private Unique identifier used for hover timers and shared actions.
+     */
+    readonly id: string;
+};
+
 type MenuItem =
-    | {
+    | (MenuItemBase & {
           type: 'link';
           label: ReactNode;
           href: string;
-      }
-    | {
+      })
+    | (MenuItemBase & {
           type: 'dropdown';
           label: ReactNode;
           isOpen: boolean;
@@ -108,7 +115,7 @@ type MenuItem =
           setIsMobileOpen: (isOpen: boolean) => void;
           items: Array<SubMenuItem>;
           renderMenu?: () => ReactNode;
-      };
+      });
 
 /**
  * Tracks the currently open nested dropdown along with its anchor rectangle.
@@ -120,6 +127,11 @@ type OpenSubMenuState = {
 };
 
 const SUBMENU_CLOSE_DELAY_MS = 150;
+
+/**
+ * @private Delay used when the user leaves a header dropdown so it stays open long enough to reach the panel.
+ */
+const HEADER_DROPDOWN_CLOSE_DELAY_MS = 200;
 /**
  * Horizontal indentation applied for each nested submenu level in mobile navigation.
  */
@@ -1030,6 +1042,7 @@ export function Header(props: HeaderProps) {
     const dropdownPortalContainer = useDropdownPortalContainer();
     const [openSubMenu, setOpenSubMenu] = useState<OpenSubMenuState | null>(null);
     const subMenuCloseTimer = useRef<ReturnType<typeof window.setTimeout> | null>(null);
+    const menuCloseTimers = useRef<Record<string, ReturnType<typeof window.setTimeout> | null>>({});
     const router = useRouter();
     const pathname = usePathname();
     const isHeadless = useIsHeadless();
@@ -1058,6 +1071,12 @@ export function Header(props: HeaderProps) {
                 clearTimeout(subMenuCloseTimer.current);
                 subMenuCloseTimer.current = null;
             }
+            Object.values(menuCloseTimers.current).forEach((timer) => {
+                if (timer) {
+                    clearTimeout(timer);
+                }
+            });
+            menuCloseTimers.current = {};
         };
     }, []);
 
@@ -1098,6 +1117,28 @@ export function Header(props: HeaderProps) {
         if (openSubMenu) {
             scheduleSubMenuClose(openSubMenu.key);
         }
+    };
+
+    /**
+     * @private Cancels the pending close timer of a header dropdown.
+     */
+    const cancelMenuClose = (menuId: string) => {
+        const pendingTimer = menuCloseTimers.current[menuId];
+        if (pendingTimer) {
+            clearTimeout(pendingTimer);
+            menuCloseTimers.current[menuId] = null;
+        }
+    };
+
+    /**
+     * @private Schedules a delayed close for a header dropdown.
+     */
+    const scheduleMenuClose = (menuId: string, close: () => void) => {
+        cancelMenuClose(menuId);
+        menuCloseTimers.current[menuId] = window.setTimeout(() => {
+            close();
+            menuCloseTimers.current[menuId] = null;
+        }, HEADER_DROPDOWN_CLOSE_DELAY_MS);
     };
 
     const visibleDocumentationCommitments = useMemo(() => getVisibleCommitmentDefinitions(), []);
@@ -1413,6 +1454,7 @@ export function Header(props: HeaderProps) {
      */
     const systemDropdownBase: Omit<Extract<MenuItem, { type: 'dropdown' }>, 'items'> = {
         type: 'dropdown' as const,
+        id: 'system',
         label: 'System',
         isOpen: isSystemOpen,
         setIsOpen: setIsSystemOpen,
@@ -1559,6 +1601,7 @@ export function Header(props: HeaderProps) {
         ...(hasMenuAccess
             ? [
                   {
+                      id: 'documentation',
                       type: 'dropdown' as const,
                       label: 'Documentation',
                       isOpen: isDocsOpen,
@@ -1790,7 +1833,14 @@ export function Header(props: HeaderProps) {
 
                                 if (item.type === 'dropdown') {
                                     const dropdownItems = item.items ?? [];
-                                    const closeDropdown = () => item.setIsOpen(false);
+                                    const closeDropdown = () => {
+                                        cancelMenuClose(item.id);
+                                        item.setIsOpen(false);
+                                    };
+                                    const toggleDropdown = () => {
+                                        cancelMenuClose(item.id);
+                                        item.setIsOpen(!item.isOpen);
+                                    };
 
                                     const renderDropdownLink = (
                                         linkItem: SubMenuItem,
@@ -1888,18 +1938,36 @@ export function Header(props: HeaderProps) {
                                         });
 
                                     return (
-                                        <div key={index} className="relative">
+                                        <div
+                                            key={index}
+                                            className="relative"
+                                            onMouseEnter={() => cancelMenuClose(item.id)}
+                                            onMouseLeave={() =>
+                                                scheduleMenuClose(item.id, () => item.setIsOpen(false))
+                                            }
+                                        >
                                             <button
                                                 className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
-                                                onClick={() => item.setIsOpen(!item.isOpen)}
-                                                onBlur={() => setTimeout(() => item.setIsOpen(false), 200)}
+                                                onClick={toggleDropdown}
+                                                onMouseEnter={() => cancelMenuClose(item.id)}
+                                                onBlur={() =>
+                                                    scheduleMenuClose(item.id, () => item.setIsOpen(false))
+                                                }
                                             >
                                                 {item.label}
                                                 <ChevronDown className="w-4 h-4" />
                                             </button>
 
                                             {item.isOpen && (
-                                                <div className="absolute left-0 top-full z-50 mt-2 w-[min(420px,90vw)] rounded-md border border-gray-100 bg-white py-1 shadow-lg animate-in fade-in zoom-in-95 duration-200">
+                                                <div
+                                                    className="absolute left-0 top-full z-50 mt-2 w-[min(420px,90vw)] rounded-md border border-gray-100 bg-white py-1 shadow-lg animate-in fade-in zoom-in-95 duration-200"
+                                                    onMouseEnter={() => cancelMenuClose(item.id)}
+                                                    onMouseLeave={() =>
+                                                        scheduleMenuClose(item.id, () =>
+                                                            item.setIsOpen(false),
+                                                        )
+                                                    }
+                                                >
                                                     {item.renderMenu ? (
                                                         <div className="relative">{item.renderMenu()}</div>
                                                     ) : (

@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.07 7 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
 [✨🗼] When hovering on menu, the menu is immediately closed after mouse moves and user cannot pick any of the items in the opened panel, fix it
 
@@ -38,3 +38,4 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
