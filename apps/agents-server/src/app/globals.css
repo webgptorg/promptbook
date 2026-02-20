@@ -144,6 +144,22 @@ body {
     overflow: hidden;
 }
 
+.line-clamp-4 {
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.line-clamp-5 {
+    display: -webkit-box;
+    -webkit-line-clamp: 5;
+    line-clamp: 5;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
 /* Agents graph styling */
 .agents-graph-surface {
     background: radial-gradient(circle at 15% 15%, rgba(186, 230, 253, 0.45), transparent 55%),

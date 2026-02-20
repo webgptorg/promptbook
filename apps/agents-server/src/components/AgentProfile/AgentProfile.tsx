@@ -6,6 +6,7 @@ import { RepeatIcon } from 'lucide-react';
 import { useState } from 'react';
 import { resolveAgentAvatarImageUrl } from '../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 import { AGENT_PROFILE_CAPABILITY_CHIPS_LIMIT, AgentCapabilityChips } from './AgentCapabilityChips';
+import { AgentProfileDescription } from './AgentProfileDescription';
 import { AgentProfileImage } from './AgentProfileImage';
 import { AgentQrCode } from './AgentQrCode';
 import { QrCodeModal } from './QrCodeModal';
@@ -86,6 +87,8 @@ export function AgentProfile(props: AgentProfileProps) {
     const fallbackName = formatText('Agent');
     const fullname = (meta.fullname as string) || agentName || fallbackName;
     const personaDescription = meta.description || agent.personaDescription || '';
+    const showMoreLabel = formatText('Show more');
+    const showLessLabel = formatText('Show less');
     const imageUrl = resolveAgentAvatarImageUrl({ agent, baseUrl: publicUrl });
 
     const [isQrModalOpen, setIsQrModalOpen] = useState(false);
@@ -222,9 +225,12 @@ export function AgentProfile(props: AgentProfileProps) {
                         </h1>
 
                         {/* Short description */}
-                        <p className="text-sm md:text-xl text-gray-700 max-w-lg leading-relaxed font-medium line-clamp-3 md:line-clamp-none">
-                            {personaDescription}
-                        </p>
+                        <AgentProfileDescription
+                            text={personaDescription}
+                            className="text-sm md:text-xl text-gray-700 max-w-lg"
+                            collapsedLabel={showMoreLabel}
+                            expandedLabel={showLessLabel}
+                        />
 
                         <AgentCapabilityChips agent={agent} maxChips={AGENT_PROFILE_CAPABILITY_CHIPS_LIMIT} />
                     </div>

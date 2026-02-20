@@ -3,6 +3,7 @@ import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForSer
 import { AgentsServerDatabase, Json } from '@/src/database/schema';
 import type { ChatMessage } from '@promptbook-local/types';
 import { $randomBase58 } from '../../../../src/utils/random/$randomBase58';
+import { shortenText } from './shortenText';
 import { textToPreviewText } from './textToPreviewText';
 
 /**
@@ -263,8 +264,8 @@ export function createUserChatSummary(chat: UserChatRecord): UserChatSummary {
         updatedAt: chat.updatedAt,
         lastMessageAt: chat.lastMessageAt,
         messagesCount: chat.messages.length,
-        title: truncateText(titleSource || DEFAULT_CHAT_TITLE, CHAT_TITLE_MAX_LENGTH),
-        preview: truncateText(previewSource, CHAT_PREVIEW_MAX_LENGTH),
+        title: shortenText(titleSource || DEFAULT_CHAT_TITLE, CHAT_TITLE_MAX_LENGTH),
+        preview: shortenText(previewSource, CHAT_PREVIEW_MAX_LENGTH),
     };
 }
 
@@ -315,20 +316,6 @@ function resolveLastMessageAt(messages: ReadonlyArray<ChatMessage>, fallbackTime
         .find((createdAt) => Boolean(createdAt));
 
     return (typeof lastCreatedAt === 'string' ? lastCreatedAt : null) || fallbackTimestamp;
-}
-
-/**
- * Converts markdown-ish message content to single-line text.
- */
-/**
- * Clips text to max length and appends ellipsis when needed.
- */
-function truncateText(value: string, maxLength: number): string {
-    if (value.length <= maxLength) {
-        return value;
-    }
-
-    return `${value.slice(0, Math.max(0, maxLength - 1)).trimEnd()}…`;
 }
 
 /**

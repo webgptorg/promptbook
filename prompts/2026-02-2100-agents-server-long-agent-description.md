@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.12 10 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
 [✨🪧] Handle long agent descriptions in the agent profile.
 
@@ -40,3 +40,4 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
