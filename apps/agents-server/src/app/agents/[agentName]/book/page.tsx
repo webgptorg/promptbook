@@ -8,6 +8,7 @@ import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEf
 import { isAgentDeleted } from '../_utils';
 import { generateAgentMetadata } from '../generateAgentMetadata';
 import { BookEditorWrapper } from './BookEditorWrapper';
+import { loadBookConfiguration } from '@/src/utils/bookConfiguration';
 import { DeletedAgentBanner } from '../../../../components/DeletedAgentBanner';
 
 export const generateMetadata = generateAgentMetadata;
@@ -35,10 +36,16 @@ export default async function AgentBookPage({ params }: { params: Promise<{ agen
 
     const collection = await $provideAgentCollectionForServer();
     const agentSource = await collection.getAgentSource(decodeURIComponent(agentName));
+    const bookConfig = await loadBookConfiguration();
 
     return (
         <div className={`agents-server-viewport-width h-[calc(100dvh-60px)] relative`}>
-            <BookEditorWrapper agentName={agentName} initialAgentSource={agentSource} />
+            <BookEditorWrapper
+                agentName={agentName}
+                initialAgentSource={agentSource}
+                allowDocumentUploads={bookConfig.allowDocumentUploads}
+                allowCameraUploads={bookConfig.allowCameraUploads}
+            />
         </div>
     );
 }
