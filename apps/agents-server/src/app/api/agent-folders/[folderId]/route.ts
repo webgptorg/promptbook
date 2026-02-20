@@ -1,10 +1,10 @@
-import { NextResponse } from 'next/server';
 import { ConflictError } from '@promptbook-local/core';
+import { NextResponse } from 'next/server';
+import { translateSupabaseUniqueConstraintError } from '../../../../../../../src/utils/database/uniqueConstraint';
 import { $getTableName } from '../../../../database/$getTableName';
 import { $provideSupabaseForServer } from '../../../../database/$provideSupabaseForServer';
 import { buildFolderTree, collectDescendantFolderIds } from '../../../../utils/agentOrganization/folderTree';
 import { getCurrentUser } from '../../../../utils/getCurrentUser';
-import { translateSupabaseUniqueConstraintError } from '../../../../../../src/utils/database/uniqueConstraint';
 
 /**
  * Renames an existing folder.

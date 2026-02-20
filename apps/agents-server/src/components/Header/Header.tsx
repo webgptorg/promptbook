@@ -1106,10 +1106,6 @@ export function Header(props: HeaderProps) {
         [visibleDocumentationCommitments],
     );
 
-    const hasMenuAccess = Boolean(currentUser || isAdmin);
-    const systemMenuEntries = isAdmin ? adminSystemMenuItems : userSystemItems;
-    const shouldShowSystemMenu = hasMenuAccess && systemMenuEntries.length > 0;
-
     const toggleMobileSubMenu = (key: string) => {
         setMobileOpenSubMenus((previous) => ({
             ...previous,
@@ -1152,7 +1148,13 @@ export function Header(props: HeaderProps) {
 
         if (item.href) {
             return (
-                <HeadlessLink key={itemKey} href={item.href} className={className} style={style} onClick={() => setIsMenuOpen(false)}>
+                <HeadlessLink
+                    key={itemKey}
+                    href={item.href}
+                    className={className}
+                    style={style}
+                    onClick={() => setIsMenuOpen(false)}
+                >
                     {item.label}
                 </HeadlessLink>
             );
@@ -1168,7 +1170,11 @@ export function Header(props: HeaderProps) {
     /**
      * Renders nested mobile submenu items with click-to-toggle behavior.
      */
-    const renderMobileNestedMenuItems = (items: ReadonlyArray<SubMenuItem>, keyPrefix: string, depth = 0): ReactNode => {
+    const renderMobileNestedMenuItems = (
+        items: ReadonlyArray<SubMenuItem>,
+        keyPrefix: string,
+        depth = 0,
+    ): ReactNode => {
         return (
             <div className={`w-full flex flex-col gap-1 ${depth > 0 ? 'mt-1 border-l border-gray-200 pl-1.5' : ''}`}>
                 {items.map((item, index) => {
@@ -1176,11 +1182,12 @@ export function Header(props: HeaderProps) {
                     const hasChildren = Boolean(item.items && item.items.length > 0);
                     const isSubMenuOpen = Boolean(mobileOpenSubMenus[itemKey]);
                     const borderClass = item.isBordered ? 'border-b border-gray-200' : '';
-                    const leafClassName = `block rounded-md py-2.5 pr-3 text-sm transition-all duration-150 hover:shadow-sm active:scale-98 ${
-                        item.isBold
-                            ? 'font-semibold text-gray-900 hover:bg-blue-50 hover:text-blue-600'
-                            : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
-                    } ${borderClass}`.trim();
+                    const leafClassName =
+                        `block rounded-md py-2.5 pr-3 text-sm transition-all duration-150 hover:shadow-sm active:scale-98 ${
+                            item.isBold
+                                ? 'font-semibold text-gray-900 hover:bg-blue-50 hover:text-blue-600'
+                                : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                        } ${borderClass}`.trim();
                     const indentationStyle = createMobileMenuItemPaddingStyle(depth);
 
                     if (!hasChildren) {
@@ -1300,9 +1307,7 @@ export function Header(props: HeaderProps) {
             await showAlert({
                 title: formatText('Create failed'),
                 message:
-                    error instanceof Error
-                        ? error.message
-                        : formatText('Failed to create agent. Please try again.'),
+                    error instanceof Error ? error.message : formatText('Failed to create agent. Please try again.'),
             }).catch(() => undefined);
         } finally {
             setIsCreatingAgent(false);
@@ -1545,6 +1550,10 @@ export function Header(props: HeaderProps) {
             : []),
     ];
 
+    const hasMenuAccess = Boolean(currentUser || isAdmin);
+    const systemMenuEntries = isAdmin ? adminSystemMenuItems : userSystemItems;
+    const shouldShowSystemMenu = hasMenuAccess && systemMenuEntries.length > 0;
+
     // Menu items configuration (DRY principle)
     const menuItems: MenuItem[] = [
         ...(hasMenuAccess
@@ -1674,7 +1683,10 @@ export function Header(props: HeaderProps) {
                                             onMouseEnter={() => setIsAgentsOpen(true)}
                                             onMouseLeave={() => setIsAgentsOpen(false)}
                                         >
-                                            <AgentDirectoryDropdown nodes={agentMenuTree} onNavigate={closeAgentsDropdown} />
+                                            <AgentDirectoryDropdown
+                                                nodes={agentMenuTree}
+                                                onNavigate={closeAgentsDropdown}
+                                            />
                                             <div className="border-t border-gray-100 p-1">
                                                 <HeadlessLink
                                                     href="/agents"
@@ -2298,10 +2310,7 @@ export function Header(props: HeaderProps) {
                                             </button>
                                             {item.isMobileOpen && (
                                                 <div className="w-full flex flex-col items-center gap-2 bg-gray-50 rounded-lg p-3 border border-gray-200 shadow-sm animate-in fade-in-0 slide-in-from-top-2 duration-200">
-                                                    {renderMobileNestedMenuItems(
-                                                        item.items,
-                                                        `mobile-menu-${index}`,
-                                                    )}
+                                                    {renderMobileNestedMenuItems(item.items, `mobile-menu-${index}`)}
                                                 </div>
                                             )}
                                         </div>

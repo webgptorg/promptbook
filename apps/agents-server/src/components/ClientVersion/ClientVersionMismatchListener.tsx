@@ -29,7 +29,7 @@ export function ClientVersionMismatchListener() {
         originalFetch: typeof window.fetch;
         patchedFetch: typeof window.fetch;
     } | null>(null);
-    const countdownIntervalRef = useRef<ReturnType<typeof window.setInterval> | null>(null);
+    const countdownIntervalRef = useRef<number | null>(null);
     const remainingAutoRefreshMsRef = useRef(AUTO_REFRESH_DELAY_MS);
     const autoRefreshStoppedRef = useRef(false);
 

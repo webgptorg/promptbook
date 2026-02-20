@@ -1,22 +1,19 @@
 'use client';
 
 import { usePathname, useSearchParams } from 'next/navigation';
-import { ClientVersionMismatchListener } from '../ClientVersion/ClientVersionMismatchListener';
 import { MenuHoistingProvider } from '../../../../../src/book-components/_common/MenuHoisting/MenuHoistingContext';
-import type {
-    AgentOrganizationAgent,
-    AgentOrganizationFolder,
-} from '../../utils/agentOrganization/types';
 import type { AgentNaming } from '../../utils/agentNaming';
+import type { AgentOrganizationAgent, AgentOrganizationFolder } from '../../utils/agentOrganization/types';
 import type { UserInfo } from '../../utils/getCurrentUser';
 import { AgentNamingProvider } from '../AgentNaming/AgentNamingContext';
 import { AsyncDialogsProvider } from '../AsyncDialogs/AsyncDialogsProvider';
+import { ClientVersionMismatchListener } from '../ClientVersion/ClientVersionMismatchListener';
 import { Footer, type FooterLink } from '../Footer/Footer';
 import { Header } from '../Header/Header';
+import { MetadataFlagsProvider } from '../MetadataFlags/MetadataFlagsContext';
 import { PrivateModePreferencesProvider } from '../PrivateModePreferences/PrivateModePreferencesProvider';
 import { SelfLearningPreferencesProvider } from '../SelfLearningPreferences/SelfLearningPreferencesProvider';
 import { SoundSystemProvider } from '../SoundSystemProvider/SoundSystemProvider';
-import { MetadataFlagsProvider } from '../MetadataFlags/MetadataFlagsContext';
 
 type LayoutWrapperProps = {
     children: React.ReactNode;
@@ -54,6 +51,7 @@ export function LayoutWrapper({
     federatedServers,
     isExperimental,
     isFeedbackEnabled,
+    isExperimentalPwaAppEnabled,
     defaultIsSoundsOn,
     defaultIsVibrationOn,
 }: LayoutWrapperProps) {
@@ -65,9 +63,7 @@ export function LayoutWrapper({
     const isHeaderHidden = false; // pathname?.includes('/chat') && !isAdminChatPage;
     const isFooterHiddenOnPage = pathname ? /^\/agents\/[^/]+\/(book|chat|book\+chat)$/.test(pathname) : false;
 
-    const mainClassName = isChatPage
-        ? 'h-[100dvh] pt-[60px] overflow-hidden'
-        : 'flex-1 pt-[60px]';
+    const mainClassName = isChatPage ? 'h-[100dvh] pt-[60px] overflow-hidden' : 'flex-1 pt-[60px]';
 
     return (
         <AsyncDialogsProvider>
@@ -97,7 +93,9 @@ export function LayoutWrapper({
                                                 isFeedbackEnabled={isFeedbackEnabled}
                                             />
                                             <main className={mainClassName}>{children}</main>
-                                            {isFooterShown && !isFooterHiddenOnPage && <Footer extraLinks={footerLinks} />}
+                                            {isFooterShown && !isFooterHiddenOnPage && (
+                                                <Footer extraLinks={footerLinks} />
+                                            )}
                                         </div>
                                     </MetadataFlagsProvider>
                                 </MenuHoistingProvider>
