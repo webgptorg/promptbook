@@ -31,6 +31,7 @@ import type {
 } from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/misc/$getCurrentDate';
 import type { chococake } from '../../utils/organization/really_any';
+import { TODO_USE } from '../../utils/organization/TODO_USE';
 import { templateParameters } from '../../utils/parameters/templateParameters';
 import type { OpenAiAgentKitExecutionToolsOptions } from './OpenAiAgentKitExecutionToolsOptions';
 import type { OpenAiCompatibleExecutionToolsNonProxiedOptions } from './OpenAiCompatibleExecutionToolsOptions';
@@ -205,6 +206,8 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
         options?: CallChatModelStreamOptions,
     ): Promise<ChatPromptResult> {
         const { content, parameters, modelRequirements } = prompt;
+
+        TODO_USE(options);
 
         if (modelRequirements.modelVariant !== 'CHAT') {
             throw new PipelineExecutionError('Use callChatModel only for CHAT variant');

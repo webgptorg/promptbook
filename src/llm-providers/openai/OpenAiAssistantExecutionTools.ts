@@ -21,6 +21,7 @@ import type {
 } from '../../types/typeAliases';
 import { $getCurrentDate } from '../../utils/misc/$getCurrentDate';
 import type { chococake } from '../../utils/organization/really_any';
+import { TODO_USE } from '../../utils/organization/TODO_USE';
 import { templateParameters } from '../../utils/parameters/templateParameters';
 import { exportJson } from '../../utils/serialization/exportJson';
 import type { OpenAiAssistantExecutionToolsOptions } from './OpenAiAssistantExecutionToolsOptions';
@@ -97,6 +98,8 @@ export class OpenAiAssistantExecutionTools extends OpenAiVectorStoreHandler impl
         onProgress: (chunk: ChatPromptResult) => void,
         options?: CallChatModelStreamOptions,
     ): Promise<ChatPromptResult> {
+        TODO_USE(options);
+
         if (this.options.isVerbose) {
             console.info('💬 OpenAI callChatModel call', { prompt });
         }
