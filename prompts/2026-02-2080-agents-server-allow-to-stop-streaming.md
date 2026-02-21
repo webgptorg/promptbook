@@ -1,5 +1,9 @@
 [x] ~$0.60 24 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
+---
+
+[ ] !
+
 [✨➕] Allowing the user to stop streaming manually
 
 -   Do a proper analysis of the current functionality of chat and streaming before you start implementing.
@@ -37,4 +41,3 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
