@@ -11,6 +11,7 @@ import {
     type TouchEvent,
     useCallback,
     useEffect,
+    useId,
     useRef,
     useState,
 } from 'react';
@@ -28,7 +29,12 @@ import { useBookEditorMonacoStyles } from './useBookEditorMonacoStyles';
 import { useBookEditorMonacoUploads } from './useBookEditorMonacoUploads';
 import { BookEditorMonacoUploadPanel } from './BookEditorMonacoUploadPanel';
 
-let notebookStyleCounter = 0;
+/**
+ * Matches characters that are unsafe in CSS identifiers and HTML IDs.
+ *
+ * @private Internal utility of `BookEditorMonaco`.
+ */
+const INVALID_CSS_IDENTIFIER_CHARACTER_PATTERN = /[^a-zA-Z0-9_-]/g;
 
 /**
  * Clipboard MIME types treated as rich text documents for upload.
@@ -176,6 +182,15 @@ function getClipboardRichContentFilename(mimeType: string): string {
 }
 
 /**
+ * Creates a hydration-stable CSS class name from React's `useId()` value.
+ *
+ * @private Internal utility of `BookEditorMonaco`.
+ */
+function createStableBookEditorInstanceClassName(reactId: string): string {
+    return `book-editor-instance-${reactId.replace(INVALID_CSS_IDENTIFIER_CHARACTER_PATTERN, '-')}`;
+}
+
+/**
  * Converts clipboard payload into upload-ready files.
  *
  * @private Internal utility of `BookEditorMonaco`.
@@ -240,8 +255,8 @@ export function BookEditorMonaco(props: BookEditorProps) {
 
     const monaco = useMonaco();
 
-    const instanceIdRef = useRef(++notebookStyleCounter);
-    const instanceClass = `book-editor-instance-${instanceIdRef.current}`;
+    const reactId = useId();
+    const instanceClass = createStableBookEditorInstanceClassName(reactId);
 
     const touchStartRef = useRef<{ x: number; y: number } | null>(null);
     const fileUploadInputRef = useRef<HTMLInputElement>(null);
