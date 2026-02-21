@@ -90,5 +90,17 @@
     },
     "overrides": {
         "zod": "$zod"
+    },
+    "main": "./umd/index.umd.js",
+    "module": "./esm/index.es.js",
+    "typings": "./esm/typings/src/_packages/deepseek.index.d.ts",
+    "peerDependencies": {
+        "@promptbook/core": "0.111.0-8"
+    },
+    "dependencies": {
+        "@ai-sdk/deepseek": "0.1.17",
+        "colors": "1.4.0",
+        "crypto": "1.0.1",
+        "spacetrim": "0.11.60"
     }
 }

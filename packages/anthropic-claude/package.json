@@ -95,5 +95,19 @@
     },
     "overrides": {
         "zod": "$zod"
+    },
+    "main": "./umd/index.umd.js",
+    "module": "./esm/index.es.js",
+    "typings": "./esm/typings/src/_packages/anthropic-claude.index.d.ts",
+    "peerDependencies": {
+        "@promptbook/core": "0.111.0-8"
+    },
+    "dependencies": {
+        "@anthropic-ai/sdk": "0.68.0",
+        "bottleneck": "2.19.5",
+        "colors": "1.4.0",
+        "crypto": "1.0.1",
+        "socket.io-client": "4.7.5",
+        "spacetrim": "0.11.60"
     }
 }
