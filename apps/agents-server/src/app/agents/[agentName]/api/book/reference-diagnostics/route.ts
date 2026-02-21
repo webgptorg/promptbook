@@ -25,7 +25,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                 isSuccessful: true,
                 agentName,
                 diagnostics: diagnosticsResult.diagnostics,
-                missingTeamReferences: diagnosticsResult.missingTeamReferences,
+                missingAgentReferences: diagnosticsResult.missingAgentReferences,
             }),
             {
                 status: 200,

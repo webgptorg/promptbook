@@ -41,14 +41,15 @@ export type AgentReferenceDiagnostic = {
     readonly source?: string;
 };
 
-export type MissingTeamReference = {
+export type MissingAgentReference = {
     readonly reference: string;
     readonly token: string;
+    readonly commitmentType: BookCommitment;
 };
 
 export type AgentReferenceDiagnosticsResult = {
     readonly diagnostics: Array<AgentReferenceDiagnostic>;
-    readonly missingTeamReferences: Array<MissingTeamReference>;
+    readonly missingAgentReferences: Array<MissingAgentReference>;
 };
 
 /**
@@ -100,7 +101,7 @@ export async function createUnresolvedAgentReferenceDiagnostics(
         consumeAgentReferenceResolutionIssues(agentReferenceResolver);
         return {
             diagnostics: [],
-            missingTeamReferences: [],
+            missingAgentReferences: [],
         };
     }
 
@@ -127,12 +128,12 @@ export async function createUnresolvedAgentReferenceDiagnostics(
     if (unresolvedKeys.size === 0) {
         return {
             diagnostics: [],
-            missingTeamReferences: [],
+            missingAgentReferences: [],
         };
     }
 
     const diagnostics: Array<AgentReferenceDiagnostic> = [];
-    const missingTeamReferenceByNormalized = new Map<string, MissingTeamReference>();
+    const missingAgentReferenceByNormalized = new Map<string, MissingAgentReference>();
 
     for (const location of tokenLocations) {
         const locationKey = createLocationKey(location);
@@ -149,23 +150,24 @@ export async function createUnresolvedAgentReferenceDiagnostics(
             source: AGENT_REFERENCE_DIAGNOSTIC_SOURCE,
         });
 
-        if (location.commitmentType === 'TEAM') {
-            const trimmedReference = location.reference.trim();
-            if (trimmedReference) {
-                const normalizedReference = trimmedReference.toLowerCase();
-                if (!missingTeamReferenceByNormalized.has(normalizedReference)) {
-                    missingTeamReferenceByNormalized.set(normalizedReference, {
-                        reference: trimmedReference,
-                        token: location.token,
-                    });
-                }
-            }
+        const trimmedReference = location.reference.trim();
+        if (!trimmedReference) {
+            continue;
+        }
+
+        const normalizedReference = trimmedReference.toLowerCase();
+        if (!missingAgentReferenceByNormalized.has(normalizedReference)) {
+            missingAgentReferenceByNormalized.set(normalizedReference, {
+                reference: trimmedReference,
+                token: location.token,
+                commitmentType: location.commitmentType,
+            });
         }
     }
 
     return {
         diagnostics,
-        missingTeamReferences: Array.from(missingTeamReferenceByNormalized.values()),
+        missingAgentReferences: Array.from(missingAgentReferenceByNormalized.values()),
     };
 }
 

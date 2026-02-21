@@ -5,6 +5,7 @@ import { string_book } from '@promptbook-local/types';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { bookEditorUploadHandler } from '../../../../utils/upload/createBookEditorUploadHandler';
 import { showAlert } from '@/src/components/AsyncDialogs/asyncDialogs';
+import type { MissingAgentReference } from '../../../../utils/agentReferenceResolver/createUnresolvedAgentReferenceDiagnostics';
 import { useUnsavedChangesGuard } from '../../../../components/utils/useUnsavedChangesGuard';
 
 /**
@@ -30,26 +31,11 @@ type BookEditorDiagnostic = {
 };
 
 /**
- * Minimal metadata returned by the diagnostics API for each missing TEAM teammate.
- */
-type MissingTeamReference = {
-    /**
-     * Display-friendly payload extracted from the compact reference token.
-     */
-    readonly reference: string;
-
-    /**
-     * Original compact token (e.g. `{Lawyer}` or `@lawyer`).
-     */
-    readonly token: string;
-};
-
-/**
  * API response returned by `/reference-diagnostics`.
  */
 type AgentReferenceDiagnosticsResponse = {
     diagnostics?: Array<BookEditorDiagnostic>;
-    missingTeamReferences?: Array<MissingTeamReference>;
+    missingAgentReferences?: Array<MissingAgentReference>;
 };
 
 /**
@@ -106,11 +92,11 @@ const SAVE_SUCCESS_STATUS_VISIBLE_MS = 2000;
  */
 function normalizeDiagnosticsPayload(payload: AgentReferenceDiagnosticsResponse): {
     readonly diagnostics: Array<BookEditorDiagnostic>;
-    readonly missingTeamReferences: Array<MissingTeamReference>;
+    readonly missingAgentReferences: Array<MissingAgentReference>;
 } {
     return {
         diagnostics: Array.isArray(payload.diagnostics) ? payload.diagnostics : [],
-        missingTeamReferences: Array.isArray(payload.missingTeamReferences) ? payload.missingTeamReferences : [],
+        missingAgentReferences: Array.isArray(payload.missingAgentReferences) ? payload.missingAgentReferences : [],
     };
 }
 
@@ -155,8 +141,8 @@ export function BookEditorWrapper({
     const [isSaveInFlight, setIsSaveInFlight] = useState(false);
     const [isSaveDebounced, setIsSaveDebounced] = useState(false);
     const [diagnostics, setDiagnostics] = useState<Array<BookEditorDiagnostic>>([]);
-    const [missingTeamReferences, setMissingTeamReferences] = useState<Array<MissingTeamReference>>([]);
-    const [creatingTeamMember, setCreatingTeamMember] = useState<string | null>(null);
+    const [missingAgentReferences, setMissingAgentReferences] = useState<Array<MissingAgentReference>>([]);
+    const [creatingReference, setCreatingReference] = useState<string | null>(null);
 
     // Debounce timer refs so pending jobs can be canceled before scheduling a newer one.
     const debounceTimerRef = useRef<number | null>(null);
@@ -296,7 +282,7 @@ export function BookEditorWrapper({
             const normalizedPayload = normalizeDiagnosticsPayload(payload);
 
             setDiagnostics(normalizedPayload.diagnostics);
-            setMissingTeamReferences(normalizedPayload.missingTeamReferences);
+            setMissingAgentReferences(normalizedPayload.missingAgentReferences);
         } catch (error) {
             if (error instanceof Error && error.name === 'AbortError') {
                 return;
@@ -304,7 +290,7 @@ export function BookEditorWrapper({
 
             console.error('Error loading reference diagnostics:', error);
             setDiagnostics([]);
-            setMissingTeamReferences([]);
+            setMissingAgentReferences([]);
         } finally {
             if (diagnosticsAbortControllerRef.current === abortController) {
                 diagnosticsAbortControllerRef.current = null;
@@ -336,19 +322,19 @@ export function BookEditorWrapper({
         scheduleDiagnostics(newSource);
     };
 
-    const handleCreateTeamMember = useCallback(
-        async (member: MissingTeamReference) => {
-            if (!member.reference) {
+    const handleCreateReferencedAgent = useCallback(
+        async (reference: MissingAgentReference) => {
+            if (!reference.reference) {
                 return;
             }
 
-            setCreatingTeamMember(member.reference);
+            setCreatingReference(reference.reference);
 
             try {
-                const response = await fetch(`/agents/${encodeURIComponent(agentName)}/api/book/team-member`, {
+                const response = await fetch(`/agents/${encodeURIComponent(agentName)}/api/book/missing-agent`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name: member.reference }),
+                    body: JSON.stringify({ name: reference.reference }),
                 });
 
                 if (!response.ok) {
@@ -362,21 +348,21 @@ export function BookEditorWrapper({
                         // Ignore parse errors
                     }
 
-                    throw new Error(message || 'Failed to create team member');
+                    throw new Error(message || 'Failed to create referenced agent');
                 }
 
                 await requestDiagnostics(agentSource, { forceRefresh: true });
             } catch (error) {
-                console.error('Failed to create team member:', error);
+                console.error('Failed to create referenced agent:', error);
                 const errorMessage =
-                    error instanceof Error ? error.message : 'An unknown error occurred while creating the team member.';
+                    error instanceof Error ? error.message : 'An unknown error occurred while creating the agent.';
 
                 await showAlert({
-                    title: 'Create team member failed',
-                    message: `Unable to create ${member.reference}. ${errorMessage}`,
+                    title: 'Create agent failed',
+                    message: `Unable to create ${reference.reference}. ${errorMessage}`,
                 });
             } finally {
-                setCreatingTeamMember(null);
+                setCreatingReference(null);
             }
         },
         [agentName, agentSource, requestDiagnostics],
@@ -438,7 +424,7 @@ export function BookEditorWrapper({
         message: leaveGuardMessage,
     });
 
-    const hasMissingTeamReferences = missingTeamReferences.length > 0;
+    const hasMissingReferences = missingAgentReferences.length > 0;
     const saveStatusToneClassName =
         saveStatus === 'saved'
             ? 'bg-green-100 text-green-800'
@@ -453,13 +439,13 @@ export function BookEditorWrapper({
             : saveStatus === 'saved'
             ? 'Saved on server'
             : 'Failed to save on server';
-    const renderTeamMemberCards = () =>
-        missingTeamReferences.map((member) => (
-            <MissingTeamMemberCard
-                key={member.reference}
-                member={member}
-                isCreating={creatingTeamMember === member.reference}
-                onCreate={() => handleCreateTeamMember(member)}
+    const renderMissingReferenceCards = () =>
+        missingAgentReferences.map((reference) => (
+            <MissingAgentReferenceCard
+                key={reference.reference}
+                member={reference}
+                isCreating={creatingReference === reference.reference}
+                onCreate={() => handleCreateReferencedAgent(reference)}
             />
         ));
 
@@ -503,22 +489,22 @@ export function BookEditorWrapper({
                     />
                 </div>
 
-                {hasMissingTeamReferences && (
+                {hasMissingReferences && (
                     <aside className="hidden w-80 shrink-0 flex-col gap-4 rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-lg shadow-slate-900/5 backdrop-blur-md md:flex">
                         <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                            Missing teammates
+                            Missing referenced agents
                         </p>
-                        <div className="flex flex-col gap-4">{renderTeamMemberCards()}</div>
+                        <div className="flex flex-col gap-4">{renderMissingReferenceCards()}</div>
                     </aside>
                 )}
             </div>
 
-            {hasMissingTeamReferences && (
+            {hasMissingReferences && (
                 <div className="mt-4 flex flex-col gap-4 px-4 md:hidden">
                     <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                        Missing teammates
+                        Missing referenced agents
                     </p>
-                    <div className="flex flex-col gap-4">{renderTeamMemberCards()}</div>
+                    <div className="flex flex-col gap-4">{renderMissingReferenceCards()}</div>
                 </div>
             )}
         </div>
@@ -526,23 +512,27 @@ export function BookEditorWrapper({
 }
 
 /**
- * Props for an individual missing-team-member card.
+ * Props for an individual missing agent reference card.
  */
-type MissingTeamMemberCardProps = {
-    readonly member: MissingTeamReference;
+type MissingAgentReferenceCardProps = {
+    readonly member: MissingAgentReference;
     readonly isCreating: boolean;
     readonly onCreate: () => void;
 };
 
 /**
- * Renders a single card describing the unresolved teammate and its creation action.
+ * Renders a single card describing the unresolved agent reference and its creation action.
  */
-function MissingTeamMemberCard({ member, isCreating, onCreate }: MissingTeamMemberCardProps) {
+function MissingAgentReferenceCard({ member, isCreating, onCreate }: MissingAgentReferenceCardProps) {
     const displayToken = member.token || member.reference;
+    const commitmentLabel = formatCommitmentLabel(member.commitmentType);
     return (
         <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-4">
             <p className="text-sm text-slate-700">
-                Team member <span className="font-semibold text-slate-900">{displayToken}</span> is not found. Do you want to create it?
+                Referenced agent <span className="font-semibold text-slate-900">{displayToken}</span> is not found. Do you want to create it?
+            </p>
+            <p className="mt-1 text-xs uppercase tracking-wide text-slate-500">
+                Missing in the {commitmentLabel} commitment
             </p>
             <button
                 type="button"
@@ -554,6 +544,13 @@ function MissingTeamMemberCard({ member, isCreating, onCreate }: MissingTeamMemb
             </button>
         </div>
     );
+}
+
+/**
+ * Formats the commitment label for display.
+ */
+function formatCommitmentLabel(commitmentType: MissingAgentReference['commitmentType']): string {
+    return commitmentType === 'IMPORTS' ? 'IMPORT' : commitmentType;
 }
 
 /**

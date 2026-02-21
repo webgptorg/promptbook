@@ -10,9 +10,9 @@ import { isUserAdmin } from '@/src/utils/isUserAdmin';
 import { buildAgentNameOrIdFilter } from '@/src/utils/agentIdentifier';
 
 /**
- * Request payload accepted by the team member creation endpoint.
+ * Request payload accepted by the referenced agent creation endpoint.
  */
-type TeamMemberCreationRequest = {
+type ReferencedAgentCreationRequest = {
     readonly name?: string;
 };
 
@@ -25,7 +25,7 @@ type ExistingAgentIdentity = {
 };
 
 /**
- * Creates a missing TEAM teammate so admins can instantly onboard unresolved teammates from the Book editor.
+ * Creates a missing referenced agent so admins can instantly onboard unresolved references from the Book editor.
  */
 export async function POST(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
     let { agentName } = await params;
@@ -36,10 +36,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             throw new Error('You are not authorized to create agents');
         }
 
-        const payload = (await request.json()) as TeamMemberCreationRequest;
+        const payload = (await request.json()) as ReferencedAgentCreationRequest;
         const candidate = (payload?.name ?? '').trim();
         if (!candidate) {
-            throw new Error('Team member name is required');
+            throw new Error('Referenced agent name is required');
         }
 
         const normalizedCandidate = normalizeAgentName(candidate);
@@ -118,7 +118,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
     } catch (error) {
         assertsError(error);
 
-        console.error('Error creating team member:', error);
+        console.error('Error creating referenced agent:', error);
 
         return new Response(
             JSON.stringify(
@@ -135,12 +135,12 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
 }
 
 /**
- * Finds an existing active teammate candidate while ignoring soft-deleted agents.
+ * Finds an existing active referenced agent while ignoring soft-deleted entries.
  *
  * `getAgentPermanentId()` includes soft-deleted rows, which causes false positives for this endpoint.
  *
  * @param collection - Server agent collection.
- * @param candidate - Raw teammate name entered by the user.
+ * @param candidate - Raw referenced agent name entered by the user.
  * @param normalizedCandidate - Normalized candidate name used by resolver matching.
  * @returns Existing active identity or `null` when no active match exists.
  */
@@ -154,10 +154,10 @@ async function findExistingActiveAgentIdentity(
 }
 
 /**
- * Finds an existing soft-deleted teammate candidate.
+ * Finds an existing soft-deleted referenced agent candidate.
  *
  * @param collection - Server agent collection.
- * @param candidate - Raw teammate name entered by the user.
+ * @param candidate - Raw referenced agent name entered by the user.
  * @param normalizedCandidate - Normalized candidate name used by resolver matching.
  * @returns Matching soft-deleted identity or `null`.
  */
@@ -171,10 +171,10 @@ async function findExistingDeletedAgentIdentity(
 }
 
 /**
- * Matches a teammate candidate against listed agents by normalized name, exact name, or permanent ID.
+ * Matches a referenced agent candidate against listed agents by normalized name, exact name, or permanent ID.
  *
  * @param listedAgents - Candidate agents to search in.
- * @param candidate - Raw teammate name entered by the user.
+ * @param candidate - Raw referenced agent name entered by the user.
  * @param normalizedCandidate - Normalized candidate name used by resolver matching.
  * @returns Matching identity or `null`.
  */

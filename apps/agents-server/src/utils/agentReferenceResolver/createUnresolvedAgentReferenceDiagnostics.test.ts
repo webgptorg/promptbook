@@ -41,7 +41,7 @@ TEAM {https://remote.example/agents/visible}` as string_book;
 
         const result = await createUnresolvedAgentReferenceDiagnostics(agentSource, resolver);
         const diagnostics = result.diagnostics;
-        const missingTeamReferences = result.missingTeamReferences;
+        const missingAgentReferences = result.missingAgentReferences;
 
         expect(diagnostics).toEqual([
             expect.objectContaining({
@@ -61,10 +61,11 @@ TEAM {https://remote.example/agents/visible}` as string_book;
             }),
         ]);
 
-        expect(missingTeamReferences).toEqual([
+        expect(missingAgentReferences).toEqual([
             {
                 reference: 'Missing Teammate',
                 token: '{Missing Teammate}',
+                commitmentType: 'TEAM',
             },
         ]);
     });
@@ -79,7 +80,7 @@ KNOWLEDGE https://example.com/doc.txt` as string_book;
 
         expect(result).toEqual({
             diagnostics: [],
-            missingTeamReferences: [],
+            missingAgentReferences: [],
         });
     });
 });
