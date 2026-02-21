@@ -31,6 +31,176 @@ import { BookEditorMonacoUploadPanel } from './BookEditorMonacoUploadPanel';
 let notebookStyleCounter = 0;
 
 /**
+ * Clipboard MIME types treated as rich text documents for upload.
+ *
+ * @private Internal utility of `BookEditorMonaco`.
+ */
+const RICH_CLIPBOARD_TEXT_MIME_TYPES = new Set(['text/html', 'text/rtf']);
+
+/**
+ * Uploaded filename mapping for known rich clipboard MIME types.
+ *
+ * @private Internal utility of `BookEditorMonaco`.
+ */
+const CLIPBOARD_RICH_CONTENT_FILENAMES: Record<string, string> = {
+    'text/html': 'clipboard-content.html',
+    'text/rtf': 'clipboard-content.rtf',
+    'application/rtf': 'clipboard-content.rtf',
+};
+
+/**
+ * Fallback filename used when clipboard MIME type is unknown.
+ *
+ * @private Internal utility of `BookEditorMonaco`.
+ */
+const DEFAULT_CLIPBOARD_RICH_CONTENT_FILENAME = 'clipboard-content.txt';
+
+/**
+ * Lists transferable items from a browser `DataTransfer` object.
+ *
+ * @private Internal utility of `BookEditorMonaco`.
+ */
+function listDataTransferItems(dataTransfer: DataTransfer): DataTransferItem[] {
+    const items: DataTransferItem[] = [];
+
+    for (let index = 0; index < dataTransfer.items.length; index++) {
+        const item = dataTransfer.items[index];
+        if (item) {
+            items.push(item);
+        }
+    }
+
+    return items;
+}
+
+/**
+ * Removes duplicate files by using stable file metadata signature.
+ *
+ * @private Internal utility of `BookEditorMonaco`.
+ */
+function deduplicateFiles(files: ReadonlyArray<File>): File[] {
+    const uniqueFiles = new Map<string, File>();
+
+    for (const file of files) {
+        uniqueFiles.set(`${file.name}:${file.type}:${file.size}`, file);
+    }
+
+    return Array.from(uniqueFiles.values());
+}
+
+/**
+ * Extracts all file-like clipboard/drop payloads from a `DataTransfer`.
+ *
+ * @private Internal utility of `BookEditorMonaco`.
+ */
+function getDataTransferFiles(dataTransfer: DataTransfer): File[] {
+    const directFiles = Array.from(dataTransfer.files || []);
+    const itemFiles = listDataTransferItems(dataTransfer)
+        .filter((item) => item.kind === 'file')
+        .map((item) => item.getAsFile())
+        .filter((file): file is File => file !== null);
+
+    return deduplicateFiles([...directFiles, ...itemFiles]);
+}
+
+/**
+ * Picks the richest textual clipboard item that should be uploaded as a document.
+ *
+ * @private Internal utility of `BookEditorMonaco`.
+ */
+function getRichClipboardTextItem(dataTransfer: DataTransfer): DataTransferItem | null {
+    const items = listDataTransferItems(dataTransfer);
+    const hasPlainTextItem = items.some((item) => item.kind === 'string' && item.type.toLowerCase() === 'text/plain');
+
+    const applicationItem = items.find(
+        (item) => item.kind === 'string' && item.type.toLowerCase().startsWith('application/'),
+    );
+    if (applicationItem) {
+        return applicationItem;
+    }
+
+    if (hasPlainTextItem) {
+        return null;
+    }
+
+    const richTextItem = items.find((item) => {
+        if (item.kind !== 'string') {
+            return false;
+        }
+
+        return RICH_CLIPBOARD_TEXT_MIME_TYPES.has(item.type.toLowerCase());
+    });
+
+    if (richTextItem) {
+        return richTextItem;
+    }
+
+    return null;
+}
+
+/**
+ * Resolves whether paste should route into upload workflow instead of text insert.
+ *
+ * @private Internal utility of `BookEditorMonaco`.
+ */
+function hasUploadableClipboardContent(dataTransfer: DataTransfer): boolean {
+    if (getDataTransferFiles(dataTransfer).length > 0) {
+        return true;
+    }
+
+    return getRichClipboardTextItem(dataTransfer) !== null;
+}
+
+/**
+ * Reads string payload from clipboard item.
+ *
+ * @private Internal utility of `BookEditorMonaco`.
+ */
+function getClipboardItemString(item: DataTransferItem): Promise<string> {
+    return new Promise((resolve) => {
+        try {
+            item.getAsString((value) => resolve(value || ''));
+        } catch {
+            resolve('');
+        }
+    });
+}
+
+/**
+ * Determines filename for generated clipboard rich-content uploads.
+ *
+ * @private Internal utility of `BookEditorMonaco`.
+ */
+function getClipboardRichContentFilename(mimeType: string): string {
+    return CLIPBOARD_RICH_CONTENT_FILENAMES[mimeType.toLowerCase()] || DEFAULT_CLIPBOARD_RICH_CONTENT_FILENAME;
+}
+
+/**
+ * Converts clipboard payload into upload-ready files.
+ *
+ * @private Internal utility of `BookEditorMonaco`.
+ */
+async function resolveClipboardUploadFiles(dataTransfer: DataTransfer): Promise<File[]> {
+    const files = getDataTransferFiles(dataTransfer);
+    if (files.length > 0) {
+        return files;
+    }
+
+    const richTextItem = getRichClipboardTextItem(dataTransfer);
+    if (!richTextItem) {
+        return [];
+    }
+
+    const content = await getClipboardItemString(richTextItem);
+    const mimeType = richTextItem.type || 'text/plain';
+    if (!content.trim()) {
+        return [];
+    }
+
+    return [new File([content], getClipboardRichContentFilename(mimeType), { type: mimeType })];
+}
+
+/**
  * @private Internal component used by `BookEditor`
  */
 export function BookEditorMonaco(props: BookEditorProps) {
@@ -148,7 +318,7 @@ export function BookEditorMonaco(props: BookEditorProps) {
             event.preventDefault();
             setIsDragOver(false);
 
-            const files = Array.from(event.dataTransfer.files);
+            const files = getDataTransferFiles(event.dataTransfer);
             await handleFiles(files);
         },
         [handleFiles],
@@ -156,15 +326,15 @@ export function BookEditorMonaco(props: BookEditorProps) {
 
     const handlePaste = useCallback(
         async (event: ClipboardEvent<HTMLDivElement>) => {
-            const files = Array.from(event.clipboardData.files);
-
-            if (files.length === 0) {
+            const clipboardData = event.clipboardData;
+            if (!hasUploadableClipboardContent(clipboardData)) {
                 return;
             }
 
             event.preventDefault();
             event.stopPropagation();
 
+            const files = await resolveClipboardUploadFiles(clipboardData);
             await handleFiles(files);
         },
         [handleFiles],
