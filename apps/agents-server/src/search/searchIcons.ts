@@ -5,7 +5,6 @@ import {
     Globe2,
     ImageIcon,
     MessageSquareText,
-    Search,
     Settings2,
     UserRound,
     type LucideIcon,

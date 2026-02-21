@@ -1,11 +1,11 @@
 'use client';
 
-import { Search } from 'lucide-react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { HeadlessLink, pushWithHeadless, useIsHeadless } from '@/src/components/_utils/headlessParam';
 import { SEARCH_RESULT_ICON_BY_TYPE, SEARCH_RESULT_ICON_LABELS } from '@/src/search/searchIcons';
 import type { ServerSearchResponse, ServerSearchResultItem } from '@/src/search/ServerSearchResultItem';
+import { Search } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
 
 /**
  * Number of items requested per search page.
@@ -56,7 +56,7 @@ export default function SearchPage() {
     const trimmedQueryParam = queryParam.trim();
     const hasSearchQuery = trimmedQueryParam.length >= MIN_SEARCH_QUERY_LENGTH;
 
-    const selectedTypes = useMemo(() => {
+    const { selectedTypes, selectedTypesKey } = useMemo(() => {
         const filters = new Set<string>();
         for (const type of searchParams.getAll('type')) {
             const trimmed = type.trim();
@@ -75,8 +75,13 @@ export default function SearchPage() {
             }
         }
 
-        return Array.from(filters).sort();
-    }, [searchParams.toString()]);
+        const selectedTypes = Array.from(filters).sort();
+
+        return {
+            selectedTypes,
+            selectedTypesKey: selectedTypes.join(','),
+        };
+    }, [searchParams]);
 
     const [queryInput, setQueryInput] = useState(queryParam);
     useEffect(() => {
@@ -105,8 +110,8 @@ export default function SearchPage() {
         params.set('q', trimmedQueryParam);
         params.set('limit', String(PAGE_SIZE));
         params.set('offset', String((currentPage - 1) * PAGE_SIZE));
-        if (selectedTypes.length > 0) {
-            params.set('types', selectedTypes.join(','));
+        if (selectedTypesKey) {
+            params.set('types', selectedTypesKey);
         }
 
         fetch(`/api/search?${params.toString()}`, {
@@ -143,7 +148,7 @@ export default function SearchPage() {
             });
 
         return () => controller.abort();
-    }, [trimmedQueryParam, currentPage, selectedTypes.join(',')]);
+    }, [hasSearchQuery, trimmedQueryParam, currentPage, selectedTypesKey]);
 
     const updateSearchParams = (overrides: Record<string, string | null>) => {
         const params = new URLSearchParams(searchParams.toString());
@@ -202,8 +207,8 @@ export default function SearchPage() {
                     <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">Search</p>
                     <h1 className="text-2xl font-semibold text-slate-900">Search the Agents Server</h1>
                     <p className="text-sm text-slate-500">
-                        Type at least {MIN_SEARCH_QUERY_LENGTH} characters and press Enter to view all matching agents, folders,
-                        docs, conversations, metadata entries, messages, files, and more.
+                        Type at least {MIN_SEARCH_QUERY_LENGTH} characters and press Enter to view all matching agents,
+                        folders, docs, conversations, metadata entries, messages, files, and more.
                     </p>
                 </header>
 
@@ -298,12 +303,7 @@ export default function SearchPage() {
                             return (
                                 <li key={item.id}>
                                     {isExternal ? (
-                                        <a
-                                            href={item.href}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            className="block"
-                                        >
+                                        <a href={item.href} target="_blank" rel="noreferrer" className="block">
                                             {ResultContent}
                                         </a>
                                     ) : (
