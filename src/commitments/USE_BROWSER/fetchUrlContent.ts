@@ -1,6 +1,8 @@
 import { spaceTrim } from 'spacetrim';
+import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import type { ScraperSourceHandler } from '../../scrapers/_common/Scraper';
 import { promptbookFetch } from '../../scrapers/_common/utils/promptbookFetch';
-import { scrapeWebsiteContentToMarkdown } from '../../scrapers/website/utils/scrapeWebsiteContentToMarkdown';
+import { WebsiteScraper } from '../../scrapers/website/WebsiteScraper';
 
 /**
  * Fetches and scrapes content from a URL (SERVER-SIDE ONLY)
@@ -62,11 +64,37 @@ export async function fetchUrlContent(url: string): Promise<string> {
 
         // Handle HTML/websites
         if (mimeType === 'text/html' || mimeType === 'application/xhtml+xml' || !mimeType.includes('/')) {
-            const markdown = await scrapeWebsiteContentToMarkdown({
+            // Create a scraper source handler
+            const sourceHandler: ScraperSourceHandler = {
+                source: url,
+                filename: null,
                 url,
-                html: content,
-                isVerbose: false,
-            });
+                mimeType: 'text/html',
+                asText: () => content,
+                asJson: () => {
+                    throw new Error('JSON conversion not supported for HTML content');
+                },
+            };
+
+            // Use WebsiteScraper to convert HTML to markdown
+            // Note: We need minimal tools for the scraper
+            const scraper = new WebsiteScraper( // <- TODO: !!!!! Things marked with [🟢] should never be never released in packages that could be imported into browser environment
+                {
+                    // Minimal tools - fs and llm are optional for basic scraping
+                    fs: undefined,
+                    llm: undefined as LlmExecutionTools | undefined,
+                },
+                {
+                    isVerbose: false,
+                },
+            );
+
+            // Convert to markdown
+            const intermediateSource = await scraper.$convert(sourceHandler);
+            const markdown = intermediateSource.markdown;
+
+            // Clean up intermediate files
+            await intermediateSource.destroy();
 
             // Add URL header to the content
             return spaceTrim(`
