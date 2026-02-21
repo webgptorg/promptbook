@@ -463,7 +463,9 @@ export async function handleChatCompletion(
                             },
                         });
 
-                        const result = await agent.callChatModelStream(prompt, handleStreamChunk);
+                        const result = await agent.callChatModelStream(prompt, handleStreamChunk, {
+                            signal: request.signal,
+                        });
 
                         const normalizedResponse = ensureNonEmptyChatContent({
                             content: result.content,

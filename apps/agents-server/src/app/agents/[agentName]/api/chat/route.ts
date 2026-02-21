@@ -46,6 +46,11 @@ type ChatRequestBody = {
 };
 
 /**
+ * Error name used when a chat stream is cancelled by the client.
+ */
+const CHAT_STREAM_ABORTED_ERROR_NAME = 'ChatStreamAbortedError';
+
+/**
  * Extracts safe user message content from request payload.
  */
 function resolveUserMessageContent(rawMessage: unknown): string {
@@ -77,6 +82,43 @@ function createAssistantPreparationToolCall(phase: string): ToolCall {
  */
 function createToolCallsStreamFrame(toolCalls: ReadonlyArray<ToolCall>): string {
     return `\n${JSON.stringify({ toolCalls })}\n`;
+}
+
+/**
+ * Creates a normalized cancellation error for chat streaming.
+ */
+function createChatStreamAbortedError(): Error {
+    const error = new Error('Chat stream aborted by the client.');
+    error.name = CHAT_STREAM_ABORTED_ERROR_NAME;
+    return error;
+}
+
+/**
+ * Detects runtime abort errors thrown by web streams/fetch when the client disconnects.
+ */
+function isAbortLikeError(error: unknown): boolean {
+    if (!error || typeof error !== 'object') {
+        return false;
+    }
+
+    const errorLike = error as { name?: unknown };
+    return errorLike.name === 'AbortError';
+}
+
+/**
+ * Detects whether a stream failure was caused by client-side cancellation.
+ */
+function isChatStreamCancellationError(error: unknown, signal: AbortSignal): boolean {
+    if (signal.aborted) {
+        return true;
+    }
+
+    if (!error || typeof error !== 'object') {
+        return false;
+    }
+
+    const errorLike = error as { name?: unknown };
+    return errorLike.name === CHAT_STREAM_ABORTED_ERROR_NAME || isAbortLikeError(error);
 }
 
 export async function OPTIONS(request: Request) {
@@ -216,9 +258,87 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                 let hasMeaningfulDelta = false;
                 let keepAliveInterval: ReturnType<typeof setInterval> | undefined;
                 let lastToolCallsFrame: string | null = null;
+                let isStreamClosed = false;
+
+                /**
+                 * Clears keep-alive timers and prevents additional writes to the response stream.
+                 */
+                const markStreamClosed = (): void => {
+                    if (isStreamClosed) {
+                        return;
+                    }
+
+                    isStreamClosed = true;
+
+                    if (keepAliveInterval) {
+                        clearInterval(keepAliveInterval);
+                        keepAliveInterval = undefined;
+                    }
+                };
+
+                /**
+                 * Returns true when streaming should stop due to closed connection or aborted request.
+                 */
+                const isStreamCancelled = (): boolean => {
+                    return isStreamClosed || request.signal.aborted;
+                };
+
+                /**
+                 * Enqueues one markdown chunk while normalizing client disconnects to cancellation errors.
+                 */
+                const enqueueChunk = (chunk: string): void => {
+                    if (isStreamCancelled()) {
+                        throw createChatStreamAbortedError();
+                    }
+
+                    try {
+                        controller.enqueue(encoder.encode(chunk));
+                    } catch (error) {
+                        if (isAbortLikeError(error) || request.signal.aborted) {
+                            markStreamClosed();
+                            throw createChatStreamAbortedError();
+                        }
+                        throw error;
+                    }
+                };
+
+                /**
+                 * Closes the outgoing stream once when still writable.
+                 */
+                const closeStream = (): void => {
+                    if (isStreamClosed) {
+                        return;
+                    }
+
+                    markStreamClosed();
+                    try {
+                        controller.close();
+                    } catch {
+                        // Stream may already be closed by the runtime when client disconnects.
+                    }
+                };
+
+                /**
+                 * Tracks request aborts so long-running model execution can stop quickly.
+                 */
+                const handleRequestAbort = (): void => {
+                    markStreamClosed();
+                };
+
+                request.signal.addEventListener('abort', handleRequestAbort, { once: true });
 
                 const sendKeepAlivePing = () => {
-                    controller.enqueue(encoder.encode(`\n${CHAT_STREAM_KEEP_ALIVE_TOKEN}\n`));
+                    try {
+                        enqueueChunk(`\n${CHAT_STREAM_KEEP_ALIVE_TOKEN}\n`);
+                    } catch (error) {
+                        if (isChatStreamCancellationError(error, request.signal)) {
+                            markStreamClosed();
+                            return;
+                        }
+
+                        console.error('[Agent chat stream] Keep-alive failed', error);
+                        markStreamClosed();
+                    }
                 };
 
                 /**
@@ -235,8 +355,12 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                     }
 
                     lastToolCallsFrame = frame;
-                    controller.enqueue(encoder.encode(frame));
+                    enqueueChunk(frame);
                 };
+
+                if (isStreamCancelled()) {
+                    return;
+                }
 
                 sendKeepAlivePing();
                 keepAliveInterval = setInterval(sendKeepAlivePing, CHAT_STREAM_KEEP_ALIVE_INTERVAL_MS);
@@ -250,7 +374,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                         if (deltaContent.trim().length > 0) {
                             hasMeaningfulDelta = true;
                         }
-                        controller.enqueue(encoder.encode(deltaContent));
+                        enqueueChunk(deltaContent);
                     },
                     onToolCalls: (toolCalls) => {
                         emitToolCalls(toolCalls);
@@ -299,7 +423,12 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                             attachments,
                         },
                         handleStreamChunk,
+                        { signal: request.signal },
                     );
+
+                    if (isStreamCancelled()) {
+                        throw createChatStreamAbortedError();
+                    }
 
                     const normalizedResponse = ensureNonEmptyChatContent({
                         content: response.content,
@@ -307,7 +436,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                     });
 
                     if (normalizedResponse.wasEmpty && !hasMeaningfulDelta) {
-                        controller.enqueue(encoder.encode(normalizedResponse.content));
+                        enqueueChunk(normalizedResponse.content);
                     }
 
                     const messageSuffixAppendix = createMessageSuffixAppendix(
@@ -316,8 +445,12 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                     );
                     if (messageSuffixAppendix) {
                         await emulateMessageSuffixStreaming(messageSuffixAppendix, (delta) => {
-                            controller.enqueue(encoder.encode(delta));
+                            enqueueChunk(delta);
                         });
+                    }
+
+                    if (isStreamCancelled()) {
+                        throw createChatStreamAbortedError();
                     }
 
                     const responseContentWithSuffix = appendMessageSuffix(normalizedResponse.content, messageSuffix);
@@ -345,14 +478,22 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                         emitToolCalls(response.toolCalls);
                     }
 
-                    controller.close();
+                    closeStream();
                 } catch (error) {
-                    controller.error(error);
-                } finally {
-                    if (keepAliveInterval) {
-                        clearInterval(keepAliveInterval);
-                        keepAliveInterval = undefined;
+                    if (isChatStreamCancellationError(error, request.signal)) {
+                        markStreamClosed();
+                        return;
                     }
+
+                    markStreamClosed();
+                    try {
+                        controller.error(error);
+                    } catch (streamError) {
+                        console.error('[Agent chat stream] Failed to surface stream error', streamError);
+                    }
+                } finally {
+                    request.signal.removeEventListener('abort', handleRequestAbort);
+                    markStreamClosed();
                 }
             },
         });

@@ -454,6 +454,7 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
                 prompt: promptWithAgentModelRequirements,
                 onProgress,
                 responseFormatOutputType,
+                signal: options?.signal,
             });
         } else if (OpenAiAssistantExecutionTools.isOpenAiAssistantExecutionTools(this.options.llmTools)) {
             // ... deprecated path ...
