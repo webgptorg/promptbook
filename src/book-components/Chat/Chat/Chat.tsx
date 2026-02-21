@@ -256,9 +256,7 @@ export function Chat(props: ChatProps) {
     );
     const shouldShowScrollToBottom = !isAutoScrolling && !isLatestMessageInView;
     const lastMessage = postprocessedMessages[postprocessedMessages.length - 1];
-    const isStreamingAgentMessage = Boolean(
-        lastMessage && lastMessage.sender !== 'USER' && !lastMessage.isComplete,
-    );
+    const isStreamingAgentMessage = Boolean(lastMessage && lastMessage.sender !== 'USER' && !lastMessage.isComplete);
 
     const {
         state: {

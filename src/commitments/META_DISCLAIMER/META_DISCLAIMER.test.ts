@@ -21,4 +21,3 @@ describe('META DISCLAIMER commitment', () => {
         expect(result).toEqual(initialRequirements);
     });
 });
-

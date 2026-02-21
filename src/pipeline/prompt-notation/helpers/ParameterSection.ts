@@ -26,7 +26,8 @@ function formatParameterPlaceholder(name: string): string {
  */
 function formatParameterListItem(item: StructuredParameterEntry): string {
     const formattedValue: string =
-        item.jsonValue ?? JSON.stringify(ParameterEscaping.escapePromptParameterValue(item.value, { includeBraces: true }));
+        item.jsonValue ??
+        JSON.stringify(ParameterEscaping.escapePromptParameterValue(item.value, { includeBraces: true }));
     return `${item.name}) ${formattedValue}`;
 }
 

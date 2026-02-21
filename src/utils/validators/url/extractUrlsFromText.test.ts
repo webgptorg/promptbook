@@ -8,9 +8,7 @@ describe('extractUrlsFromText', () => {
 
     it('extracts multiple URLs in order', () => {
         expect(
-            extractUrlsFromText(
-                'Read https://example.com/a and https://example.org/b?x=1#frag before starting.',
-            ),
+            extractUrlsFromText('Read https://example.com/a and https://example.org/b?x=1#frag before starting.'),
         ).toEqual(['https://example.com/a', 'https://example.org/b?x=1#frag']);
     });
 

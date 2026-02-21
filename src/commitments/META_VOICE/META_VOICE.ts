@@ -62,7 +62,10 @@ export class MetaVoiceCommitmentDefinition extends BaseCommitmentDefinition<'MET
         `);
     }
 
-    public applyToAgentModelRequirements(requirements: AgentModelRequirements, content: string): AgentModelRequirements {
+    public applyToAgentModelRequirements(
+        requirements: AgentModelRequirements,
+        content: string,
+    ): AgentModelRequirements {
         TODO_USE(content);
 
         // META VOICE is metadata only and does not alter system messages or tools

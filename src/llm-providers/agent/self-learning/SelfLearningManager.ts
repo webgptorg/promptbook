@@ -8,10 +8,7 @@ import { validateBook } from '../../../book-2.0/agent-source/string_book';
 import type { ChatPromptResult } from '../../../execution/PromptResult';
 import { extractOpenTeacherInstructions } from '../../../book-2.0/agent-source/extractOpenTeacherInstructions';
 import type { Prompt } from '../../../types/Prompt';
-import type {
-    SelfLearningCommitmentTypeCounts,
-    SelfLearningTeacherSummary,
-} from '../../../types/ToolCall';
+import type { SelfLearningCommitmentTypeCounts, SelfLearningTeacherSummary } from '../../../types/ToolCall';
 import type { string_prompt } from '../../../types/typeAliases';
 import { just } from '../../../utils/organization/just';
 
@@ -68,10 +65,7 @@ export class SelfLearningManager {
      * @returns Teacher summary or null when no teacher is configured
      * @private helper of Agent
      */
-    public async runSelfLearning(
-        prompt: Prompt,
-        result: ChatPromptResult,
-    ): Promise<SelfLearningTeacherSummary | null> {
+    public async runSelfLearning(prompt: Prompt, result: ChatPromptResult): Promise<SelfLearningTeacherSummary | null> {
         if (just(false)) {
             await this.appendNonce();
         }

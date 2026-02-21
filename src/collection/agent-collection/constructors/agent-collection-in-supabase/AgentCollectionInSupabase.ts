@@ -221,9 +221,7 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
                 {
                     suffix: 'agent_agentname_key',
                     buildError: () =>
-                        new ConflictError(
-                            `Agent name "${agentName}" already exists. Pick another name and try again.`,
-                        ),
+                        new ConflictError(`Agent name "${agentName}" already exists. Pick another name and try again.`),
                 },
             ]);
 

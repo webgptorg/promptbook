@@ -502,9 +502,7 @@ export function LlmChat(props: LlmChatProps) {
                 if (streamingAbortController?.signal.aborted) {
                     setTasksProgress([]);
                     setMessages((prev) =>
-                        prev.map((msg) =>
-                            msg.id === loadingMessage.id ? { ...msg, isComplete: true } : msg,
-                        ),
+                        prev.map((msg) => (msg.id === loadingMessage.id ? { ...msg, isComplete: true } : msg)),
                     );
                     return;
                 }

@@ -42,11 +42,7 @@ function normalizeJsonString(value: string): string | null {
  * @private function of ParameterEscaping
  */
 function hideBrackets(value: string): string {
-    return value
-        .split('{')
-        .join(`${REPLACING_NONCE}beginbracket`)
-        .split('}')
-        .join(`${REPLACING_NONCE}endbracket`);
+    return value.split('{').join(`${REPLACING_NONCE}beginbracket`).split('}').join(`${REPLACING_NONCE}endbracket`);
 }
 
 /**
@@ -56,11 +52,7 @@ function hideBrackets(value: string): string {
  * @private function of ParameterEscaping
  */
 function restoreBrackets(value: string): string {
-    return value
-        .split(`${REPLACING_NONCE}beginbracket`)
-        .join('{')
-        .split(`${REPLACING_NONCE}endbracket`)
-        .join('}');
+    return value.split(`${REPLACING_NONCE}beginbracket`).join('{').split(`${REPLACING_NONCE}endbracket`).join('}');
 }
 
 /**

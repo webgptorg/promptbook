@@ -89,10 +89,7 @@ export function BookEditorMonacoUploadPanel({
                                 <span>{percent}%</span>
                             </div>
                             <div className={styles.uploadRowProgressBar}>
-                                <div
-                                    className={styles.uploadRowProgressFill}
-                                    style={{ width: `${percent}%` }}
-                                />
+                                <div className={styles.uploadRowProgressFill} style={{ width: `${percent}%` }} />
                             </div>
                             <div className={styles.uploadRowActions}>
                                 {canPause && (

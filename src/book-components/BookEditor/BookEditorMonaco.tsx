@@ -53,7 +53,10 @@ export function BookEditorMonaco(props: BookEditorProps) {
 
     const zoomLevel = zoom;
     const scaledLineHeight = Math.round(BookEditorMonacoConstants.LINE_HEIGHT * zoomLevel);
-    const scaledContentPaddingLeft = Math.max(8, Math.round(BookEditorMonacoConstants.CONTENT_PADDING_LEFT * zoomLevel));
+    const scaledContentPaddingLeft = Math.max(
+        8,
+        Math.round(BookEditorMonacoConstants.CONTENT_PADDING_LEFT * zoomLevel),
+    );
     const scaledVerticalLineLeft = Math.max(0, Math.round(BookEditorMonacoConstants.VERTICAL_LINE_LEFT * zoomLevel));
     const baseFontSize = 20;
     const scaledFontSize = Math.max(8, Math.round(baseFontSize * zoomLevel));
@@ -74,13 +77,7 @@ export function BookEditorMonaco(props: BookEditorProps) {
     const fileUploadInputRef = useRef<HTMLInputElement>(null);
     const cameraInputRef = useRef<HTMLInputElement>(null);
 
-    const {
-        activeUploadItems,
-        uploadStats,
-        pauseUpload,
-        resumeUpload,
-        handleFiles,
-    } = useBookEditorMonacoUploads({
+    const { activeUploadItems, uploadStats, pauseUpload, resumeUpload, handleFiles } = useBookEditorMonacoUploads({
         editor,
         monaco,
         onFileUpload,

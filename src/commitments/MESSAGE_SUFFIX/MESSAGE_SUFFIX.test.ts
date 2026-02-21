@@ -21,4 +21,3 @@ describe('MESSAGE SUFFIX commitment', () => {
         expect(result).toEqual(initialRequirements);
     });
 });
-

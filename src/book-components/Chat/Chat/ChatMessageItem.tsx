@@ -197,9 +197,7 @@ function StreamingFeaturePlaceholder({ kind }: StreamingFeaturePlaceholderProps)
         <div className={styles.richFeaturePlaceholder} aria-live="polite">
             <span className={styles.richFeaturePlaceholderSpinner} aria-hidden="true" />
             <div className={styles.richFeaturePlaceholderCopy}>
-                <span className={styles.richFeaturePlaceholderTitle}>
-                    {STREAMING_FEATURE_PLACEHOLDER_LABELS[kind]}
-                </span>
+                <span className={styles.richFeaturePlaceholderTitle}>{STREAMING_FEATURE_PLACEHOLDER_LABELS[kind]}</span>
                 <span className={styles.richFeaturePlaceholderStatus}>Waiting for the agent…</span>
             </div>
         </div>
@@ -1130,9 +1128,7 @@ export const ChatMessageItem = memo(
                                     return (
                                         <div key={group.key} className={styles.ongoingToolCall}>
                                             <div className={styles.ongoingToolCallSpinner} />
-                                            <span className={styles.ongoingToolCallName}>
-                                                {`${label}...`}
-                                            </span>
+                                            <span className={styles.ongoingToolCallName}>{`${label}...`}</span>
                                         </div>
                                     );
                                 })}

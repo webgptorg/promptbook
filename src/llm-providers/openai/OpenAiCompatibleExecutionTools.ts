@@ -580,14 +580,14 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
                     unsupportedParameter,
                 );
 
-                    return this.callChatModelWithRetry(
-                        prompt,
-                        modifiedModelRequirements,
-                        attemptStack,
-                        retriedUnsupportedParameters,
-                        onProgress,
-                        options,
-                    );
+                return this.callChatModelWithRetry(
+                    prompt,
+                    modifiedModelRequirements,
+                    attemptStack,
+                    retriedUnsupportedParameters,
+                    onProgress,
+                    options,
+                );
             }
         }
 

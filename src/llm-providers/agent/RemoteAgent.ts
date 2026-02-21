@@ -497,7 +497,7 @@ export class RemoteAgent extends Agent {
 
             const hasTrailingNewline = combinedChunk.endsWith('\n') || combinedChunk.endsWith('\r');
             const lines = combinedChunk.split(/\r?\n/);
-            const trailingFragment = hasTrailingNewline ? '' : (lines.pop() ?? '');
+            const trailingFragment = hasTrailingNewline ? '' : lines.pop() ?? '';
 
             let hasNonEmptyText = false;
             const textLines: Array<string> = [];

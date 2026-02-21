@@ -325,15 +325,13 @@ export class Color {
 
     public toHex(): string_color {
         if (this.alpha === 255) {
-            return `#${this.red.toString(16).padStart(2, '0')}${this.green
-                .toString(16)
-                .padStart(2, '0')}${this.blue.toString(16).padStart(2, '0')}`;
-        } else {
-            return `#${this.red.toString(16).padStart(2, '0')}${this.green
-                .toString(16)
-                .padStart(2, '0')}${this.blue.toString(16).padStart(2, '0')}${this.alpha
+            return `#${this.red.toString(16).padStart(2, '0')}${this.green.toString(16).padStart(2, '0')}${this.blue
                 .toString(16)
                 .padStart(2, '0')}`;
+        } else {
+            return `#${this.red.toString(16).padStart(2, '0')}${this.green.toString(16).padStart(2, '0')}${this.blue
+                .toString(16)
+                .padStart(2, '0')}${this.alpha.toString(16).padStart(2, '0')}`;
         }
     }
 

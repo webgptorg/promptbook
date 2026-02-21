@@ -569,10 +569,10 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
 
             if (this.options.llmTools.callChatModelStream) {
                 underlyingLlmResult = await this.options.llmTools.callChatModelStream(
-                promptWithAgentModelRequirements,
-                onProgress,
-                options,
-            );
+                    promptWithAgentModelRequirements,
+                    onProgress,
+                    options,
+                );
             } else if (this.options.llmTools.callChatModel) {
                 underlyingLlmResult = await this.options.llmTools.callChatModel(promptWithAgentModelRequirements);
                 onProgress(underlyingLlmResult as ChatPromptResult);

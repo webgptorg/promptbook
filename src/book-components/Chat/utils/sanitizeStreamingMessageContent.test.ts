@@ -1,7 +1,4 @@
-import {
-    getLatestStreamingFeatureBoundary,
-    sanitizeStreamingMessageContent,
-} from './sanitizeStreamingMessageContent';
+import { getLatestStreamingFeatureBoundary, sanitizeStreamingMessageContent } from './sanitizeStreamingMessageContent';
 
 describe('sanitizeStreamingMessageContent', () => {
     it('keeps the original content when streaming has finished', () => {
