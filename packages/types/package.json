@@ -92,9 +92,5 @@
     },
     "overrides": {
         "zod": "$zod"
-    },
-    "typings": "./esm/typings/src/_packages/types.index.d.ts",
-    "peerDependencies": {
-        "@promptbook/core": "0.111.0-8"
     }
 }

@@ -96,8 +96,5 @@
     },
     "overrides": {
         "zod": "$zod"
-    },
-    "main": "./umd/index.umd.js",
-    "module": "./esm/index.es.js",
-    "typings": "./esm/typings/src/_packages/markdown-utils.index.d.ts"
+    }
 }
