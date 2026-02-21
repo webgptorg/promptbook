@@ -298,12 +298,7 @@ export function Chat(props: ChatProps) {
         });
 
         return () => cancelAnimationFrame(animationFrame);
-    }, [
-        postprocessedMessages,
-        handleMessagesChange,
-        updateLatestMessageVisibility,
-        isStreamingAgentMessage,
-    ]);
+    }, [postprocessedMessages, handleMessagesChange, updateLatestMessageVisibility, isStreamingAgentMessage]);
 
     useEffect(() => {
         const handleResize = () => {

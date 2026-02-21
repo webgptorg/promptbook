@@ -53,7 +53,10 @@ function HookHarness({ config, onSnapshot }: HookHarnessProps) {
  *
  * @private unit-test helper
  */
-function defineScrollableMetrics(element: HTMLDivElement, initialScrollHeight: number): { setScrollHeight: (value: number) => void } {
+function defineScrollableMetrics(
+    element: HTMLDivElement,
+    initialScrollHeight: number,
+): { setScrollHeight: (value: number) => void } {
     let scrollHeight = initialScrollHeight;
 
     Object.defineProperty(element, 'clientHeight', {
