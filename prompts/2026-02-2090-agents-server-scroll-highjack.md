@@ -1,8 +1,8 @@
 [x] ~$0.09 8 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
-[✨🥴] The chat is forcibly scrolled down to the bottom. Fix it. 
+[✨🥴] The chat is forcibly scrolled down to the bottom. Fix it.
 
-- User cannot scroll up to the earlier messages. 
+-   User cannot scroll up to the earlier messages.
 -   Do a proper analysis of the current functionality of chat and scrolling before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server) with a agent chat
 
@@ -38,4 +38,3 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
