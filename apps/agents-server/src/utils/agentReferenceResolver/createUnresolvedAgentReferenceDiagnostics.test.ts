@@ -63,9 +63,19 @@ TEAM {https://remote.example/agents/visible}` as string_book;
 
         expect(missingAgentReferences).toEqual([
             {
+                reference: 'Missing Parent',
+                token: '{Missing Parent}',
+                commitmentType: 'FROM',
+            },
+            {
                 reference: 'Missing Teammate',
                 token: '{Missing Teammate}',
                 commitmentType: 'TEAM',
+            },
+            {
+                reference: 'Missing Import',
+                token: '{Missing Import}',
+                commitmentType: 'IMPORT',
             },
         ]);
     });

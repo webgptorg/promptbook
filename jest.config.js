@@ -9,6 +9,7 @@ module.exports = {
         '^@/(.*)$': '<rootDir>/apps/agents-server/$1',
         '^@common/(.*)$': '<rootDir>/apps/_common/$1',
         '^@promptbook-local/(.*)$': '<rootDir>/src/_packages/$1.index',
+        '\\.(css|less|sass|scss)$': '<rootDir>/jest.styleMock.js',
     },
     coverageDirectory: './coverage/',
     collectCoverage: true,
