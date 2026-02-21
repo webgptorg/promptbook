@@ -169,8 +169,6 @@ export function Chat(props: ChatProps) {
         handleScroll,
         handleMessagesChange,
         scrollToBottom,
-        enableAutoScroll,
-        disableAutoScroll,
         isMobile: isMobileFromHook,
     } = useChatAutoScroll();
 
@@ -290,12 +288,7 @@ export function Chat(props: ChatProps) {
 
     useEffect(() => {
         if (isStreamingAgentMessage) {
-            disableAutoScroll();
             return;
-        }
-
-        if (!isAutoScrolling && isLatestMessageInView) {
-            enableAutoScroll();
         }
 
         handleMessagesChange();
@@ -310,10 +303,6 @@ export function Chat(props: ChatProps) {
         handleMessagesChange,
         updateLatestMessageVisibility,
         isStreamingAgentMessage,
-        disableAutoScroll,
-        isAutoScrolling,
-        isLatestMessageInView,
-        enableAutoScroll,
     ]);
 
     useEffect(() => {

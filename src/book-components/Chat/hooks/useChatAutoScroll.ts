@@ -24,6 +24,11 @@ export type ChatAutoScrollConfig = {
 };
 
 /**
+ * Debounce window for synchronizing `isAutoScrolling` with the latest scroll position.
+ */
+const SCROLL_EVENT_DEBOUNCE_MS = 50;
+
+/**
  * Hook for managing auto-scroll behavior in chat components
  *
  * This hook provides:
@@ -104,6 +109,10 @@ export function useChatAutoScroll(config: ChatAutoScrollConfig = {}) {
 
             const atBottom = checkIfAtBottom(element);
             hasManualScrollRef.current = !atBottom;
+            // User scroll should take precedence over app-driven scroll intent.
+            if (!atBottom && isAutoScrolling) {
+                setIsAutoScrolling(false);
+            }
 
             // Clear any pending scroll timeout
             if (scrollTimeoutRef.current) {
@@ -113,10 +122,10 @@ export function useChatAutoScroll(config: ChatAutoScrollConfig = {}) {
             // Debounce scroll position check to avoid too frequent updates
             scrollTimeoutRef.current = setTimeout(() => {
                 const isAtBottom = checkIfAtBottom(element);
-                setIsAutoScrolling(isAtBottom);
-            }, 50);
+                setIsAutoScrolling((currentState) => (currentState === isAtBottom ? currentState : isAtBottom));
+            }, SCROLL_EVENT_DEBOUNCE_MS);
         },
-        [checkIfAtBottom],
+        [checkIfAtBottom, isAutoScrolling],
     );
 
     // Auto-scroll when messages change (if user is at bottom)
@@ -125,8 +134,11 @@ export function useChatAutoScroll(config: ChatAutoScrollConfig = {}) {
         if (!chatMessagesElement) return;
 
         // Check if this is a new message (scroll height increased)
+        const previousScrollHeight = lastScrollHeightRef.current;
         const currentScrollHeight = chatMessagesElement.scrollHeight;
-        const hasNewContent = currentScrollHeight > lastScrollHeightRef.current;
+        const hasNewContent = currentScrollHeight > previousScrollHeight;
+        const wasAtBottomBeforeNewContent =
+            chatMessagesElement.scrollTop + chatMessagesElement.clientHeight >= previousScrollHeight - bottomThreshold;
         lastScrollHeightRef.current = currentScrollHeight;
 
         if (!hasNewContent) return;
@@ -146,13 +158,17 @@ export function useChatAutoScroll(config: ChatAutoScrollConfig = {}) {
             }
         }
 
-        if (isAutoScrolling && !hasSelectionInChat && !hasManualScrollRef.current) {
+        if (isAutoScrolling && wasAtBottomBeforeNewContent && !hasSelectionInChat && !hasManualScrollRef.current) {
             // Delay scroll slightly to ensure DOM has updated
             setTimeout(() => {
+                if (hasManualScrollRef.current) {
+                    return;
+                }
+
                 scrollToBottom('smooth');
             }, scrollCheckDelay);
         }
-    }, [isAutoScrolling, scrollToBottom, scrollCheckDelay]);
+    }, [bottomThreshold, isAutoScrolling, scrollToBottom, scrollCheckDelay]);
 
     // Ref callback for chat messages container
     const chatMessagesRefCallback = useCallback(
