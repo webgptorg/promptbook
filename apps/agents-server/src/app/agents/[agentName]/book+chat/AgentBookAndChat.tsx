@@ -16,8 +16,6 @@ type AgentBookAndChatProps = {
     chatFailMessage?: string;
     areFileAttachmentsEnabled: boolean;
     isFeedbackEnabled: boolean;
-    allowDocumentUploads?: boolean;
-    allowCameraUploads?: boolean;
 };
 
 export function AgentBookAndChat(props: AgentBookAndChatProps) {
@@ -30,8 +28,6 @@ export function AgentBookAndChat(props: AgentBookAndChatProps) {
         chatFailMessage,
         areFileAttachmentsEnabled,
         isFeedbackEnabled,
-        allowDocumentUploads,
-        allowCameraUploads,
     } = props;
     const [isMobile, setIsMobile] = useState(false);
     const [activeTab, setActiveTab] = useState<'book' | 'chat'>('chat');
@@ -54,12 +50,7 @@ export function AgentBookAndChat(props: AgentBookAndChatProps) {
             <div className="flex flex-col h-full w-full bg-white">
                 <div className="flex-grow overflow-hidden relative">
                     <div className={`w-full h-full ${activeTab === 'book' ? 'block' : 'hidden'}`}>
-                        <BookEditorWrapper
-                            agentName={agentName}
-                            initialAgentSource={initialAgentSource}
-                            allowDocumentUploads={allowDocumentUploads}
-                            allowCameraUploads={allowCameraUploads}
-                        />
+                        <BookEditorWrapper agentName={agentName} initialAgentSource={initialAgentSource} />
                     </div>
                     <div className={`w-full h-full ${activeTab === 'chat' ? 'block' : 'hidden'}`}>
                         <AgentChatWrapper
@@ -99,12 +90,7 @@ export function AgentBookAndChat(props: AgentBookAndChatProps) {
 
     return (
         <ResizablePanelsAuto name={`agent-book-and-chat-${agentName}`} className="w-full h-full">
-            <BookEditorWrapper
-                agentName={agentName}
-                initialAgentSource={initialAgentSource}
-                allowDocumentUploads={allowDocumentUploads}
-                allowCameraUploads={allowCameraUploads}
-            />
+            <BookEditorWrapper agentName={agentName} initialAgentSource={initialAgentSource} />
             <AgentChatWrapper
                 agentName={agentName}
                 agentUrl={agentUrl}

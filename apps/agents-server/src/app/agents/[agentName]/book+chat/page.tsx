@@ -12,7 +12,6 @@ import { DeletedAgentBanner } from '../../../../components/DeletedAgentBanner';
 import { isAgentDeleted } from '../_utils';
 import { generateAgentMetadata } from '../generateAgentMetadata';
 import { AgentBookAndChat } from './AgentBookAndChat';
-import { loadBookConfiguration } from '@/src/utils/bookConfiguration';
 
 export const generateMetadata = generateAgentMetadata;
 
@@ -46,7 +45,6 @@ export default async function AgentBookAndChatPage({ params }: { params: Promise
         acceptLanguageHeader: requestHeaders.get('accept-language'),
     });
     const { chatFailMessage, isFileAttachmentsEnabled, isFeedbackEnabled } = await loadChatConfiguration();
-    const bookConfig = await loadBookConfiguration();
 
     return (
         <div className={`agents-server-viewport-width h-[calc(100dvh-60px)] relative`}>
@@ -59,8 +57,6 @@ export default async function AgentBookAndChatPage({ params }: { params: Promise
                 chatFailMessage={chatFailMessage ?? undefined}
                 areFileAttachmentsEnabled={isFileAttachmentsEnabled}
                 isFeedbackEnabled={isFeedbackEnabled}
-                allowDocumentUploads={bookConfig.allowDocumentUploads}
-                allowCameraUploads={bookConfig.allowCameraUploads}
             />
         </div>
     );

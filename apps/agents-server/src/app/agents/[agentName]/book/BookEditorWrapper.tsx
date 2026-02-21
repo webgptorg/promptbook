@@ -14,8 +14,6 @@ import { useUnsavedChangesGuard } from '../../../../components/utils/useUnsavedC
 type BookEditorWrapperProps = {
     agentName: string;
     initialAgentSource: string_book;
-    allowDocumentUploads?: boolean;
-    allowCameraUploads?: boolean;
 };
 
 /**
@@ -127,12 +125,7 @@ async function resolveSaveErrorMessage(response: Response): Promise<string> {
 /**
  * Wraps the BookEditor with autosave and file upload support.
  */
-export function BookEditorWrapper({
-    agentName,
-    initialAgentSource,
-    allowDocumentUploads = true,
-    allowCameraUploads = true,
-}: BookEditorWrapperProps) {
+export function BookEditorWrapper({ agentName, initialAgentSource }: BookEditorWrapperProps) {
     const [agentSource, setAgentSource] = useState<string_book>(initialAgentSource);
     const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
     const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null);
@@ -482,9 +475,7 @@ export function BookEditorWrapper({
                         height={null}
                         value={agentSource}
                         onChange={handleChange}
-                        onFileUpload={allowDocumentUploads ? bookEditorUploadHandler : undefined}
-                        isUploadButtonShown={allowDocumentUploads ? undefined : false}
-                        isCameraButtonShown={allowCameraUploads ? undefined : false}
+                        onFileUpload={bookEditorUploadHandler}
                         diagnostics={diagnostics}
                     />
                 </div>
