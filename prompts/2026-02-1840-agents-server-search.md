@@ -84,6 +84,9 @@ The menu of the agent server looks like this:
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
+![Overlaying search and menu ](prompts/screenshots/2026-02-1840-agents-server-search-1.png)
+![non-overlaying Search and Menu ](prompts/screenshots/2026-02-1840-agents-server-search-2.png)
+
 ---
 
 [ ]
