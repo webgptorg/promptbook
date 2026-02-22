@@ -1,4 +1,5 @@
 import { resolveAgentRouteTarget } from './resolveAgentRouteTarget';
+import { createBookScopedAgentIdentifier } from '../agentReferenceResolver/bookScopedAgentReferences';
 
 const PUBLIC_URL = new URL('https://local.example/');
 
@@ -48,6 +49,17 @@ describe('resolveAgentRouteTarget', () => {
             kind: 'local',
             canonicalAgentId: 'lawyer-123',
             canonicalUrl: 'https://local.example/agents/lawyer-123',
+        });
+    });
+
+    it('keeps synthetic in-book route identifiers as canonical local routes', async () => {
+        const embeddedIdentifier = createBookScopedAgentIdentifier('lawyer-123', 'Copywriter');
+        const result = await resolveAgentRouteTarget(embeddedIdentifier);
+
+        expect(result).toEqual({
+            kind: 'local',
+            canonicalAgentId: embeddedIdentifier,
+            canonicalUrl: `https://local.example/agents/${encodeURIComponent(embeddedIdentifier)}`,
         });
     });
 });

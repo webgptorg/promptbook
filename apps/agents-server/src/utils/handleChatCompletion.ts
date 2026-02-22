@@ -1,5 +1,10 @@
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideOpenAiAgentKitExecutionToolsForServer } from '@/src/tools/$provideOpenAiAgentKitExecutionToolsForServer';
+import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
+import {
+    parseBookScopedAgentIdentifier,
+    resolveBookScopedAgentContext,
+} from '@/src/utils/agentReferenceResolver/bookScopedAgentReferences';
 import { createChatHistoryRecorder } from '@/src/utils/chat/createChatHistoryRecorder';
 import { ensureNonEmptyChatContent } from '@/src/utils/chat/ensureNonEmptyChatContent';
 import {
@@ -240,8 +245,11 @@ export async function handleChatCompletion(
             );
         }
 
+        const parsedBookScopedAgentIdentifier = parseBookScopedAgentIdentifier(agentName);
+        const deletedCheckAgentIdentifier = parsedBookScopedAgentIdentifier?.parentAgentIdentifier || agentName;
+
         // Check if agent is deleted
-        if (await isAgentDeleted(agentName)) {
+        if (await isAgentDeleted(deletedCheckAgentIdentifier)) {
             return NextResponse.json(
                 {
                     error: {
@@ -254,15 +262,22 @@ export async function handleChatCompletion(
         }
 
         const collection = await $provideAgentCollectionForServer();
-        let agentSource: string_book;
+        const baseAgentReferenceResolver = await $provideAgentReferenceResolver();
+        let resolvedAgentContext: Awaited<ReturnType<typeof resolveBookScopedAgentContext>>;
         try {
-            agentSource = await collection.getAgentSource(agentName);
+            resolvedAgentContext = await resolveBookScopedAgentContext({
+                collection,
+                agentIdentifier: agentName,
+                localServerUrl: new URL(request.url).origin,
+                fallbackResolver: baseAgentReferenceResolver,
+            });
         } catch (error) {
             return NextResponse.json(
                 { error: { message: `Agent '${agentName}' not found.`, type: 'invalid_request_error' } },
                 { status: HTTP_STATUS_CODES.NOT_FOUND },
             );
         }
+        let agentSource: string_book = resolvedAgentContext.resolvedAgentSource;
 
         if (!agentSource) {
             return NextResponse.json(
@@ -295,7 +310,7 @@ export async function handleChatCompletion(
         }
 
         const agentHash = computeAgentHash(agentSource);
-        const agentId = await collection.getAgentPermanentId(agentName);
+        const agentId = resolvedAgentContext.parentAgentPermanentId;
         const currentUserIdentity = await resolveCurrentUserMemoryIdentity();
 
         // Use AgentKitCacheManager for vector store caching
@@ -307,11 +322,12 @@ export async function handleChatCompletion(
         // Set includeDynamicContext: false to enable better caching by excluding CONTEXT from cache key
         const agentKitResult = await agentKitCacheManager.getOrCreateAgentKitAgent(
             agentSource,
-            agentName,
+            resolvedAgentContext.resolvedAgentName,
             baseOpenAiTools,
             {
                 includeDynamicContext: true, // Default: strict caching (includes CONTEXT)
                 agentId,
+                agentReferenceResolver: resolvedAgentContext.scopedAgentReferenceResolver,
             },
         );
 
@@ -364,7 +380,7 @@ export async function handleChatCompletion(
         };
         const recordChatHistoryMessage = await createChatHistoryRecorder({
             request,
-            agentIdentifier: agentName,
+            agentIdentifier: agentId,
             agentHash,
             source: 'OPENAI_API_COMPATIBILITY',
             apiKey,
@@ -386,7 +402,7 @@ export async function handleChatCompletion(
             },
             currentUserIdentity,
             agentPermanentId: agentId,
-            agentName,
+            agentName: resolvedAgentContext.resolvedAgentName,
             isPrivateModeEnabled,
         });
 
@@ -501,8 +517,8 @@ export async function handleChatCompletion(
 
                         // Note: [🐱‍🚀] Save the learned data
                         const newAgentSource = agent.agentSource.value;
-                        if (newAgentSource !== agentSource) {
-                            await collection.updateAgentSource(agentName, newAgentSource);
+                        if (newAgentSource !== agentSource && !resolvedAgentContext.isBookScopedAgent) {
+                            await collection.updateAgentSource(agentId, newAgentSource);
                         }
 
                         const doneChunkData = {
@@ -560,8 +576,8 @@ export async function handleChatCompletion(
             // Note: [🐱‍🚀] Save the learned data
             if (!isPrivateModeEnabled) {
                 const newAgentSource = agent.agentSource.value;
-                if (newAgentSource !== agentSource) {
-                    await collection.updateAgentSource(agentName, newAgentSource);
+                if (newAgentSource !== agentSource && !resolvedAgentContext.isBookScopedAgent) {
+                    await collection.updateAgentSource(agentId, newAgentSource);
                 }
             }
 

@@ -1,6 +1,11 @@
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
+import { $provideServer } from '@/src/tools/$provideServer';
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
+import {
+    parseBookScopedAgentIdentifier,
+    resolveBookScopedAgentContext,
+} from '@/src/utils/agentReferenceResolver/bookScopedAgentReferences';
 import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
 import { resolveAgentProfileWithInheritance } from '@/src/utils/resolveAgentProfileWithInheritance';
 import type { AgentsServerDatabase } from '../../../database/schema';
@@ -27,9 +32,16 @@ export async function getAgentName(params: Promise<{ agentName: string }>) {
 
 export async function getAgentProfile(agentName: string) {
     const collection = await $provideAgentCollectionForServer();
-    const agentId = await collection.getAgentPermanentId(agentName);
-    const agentSource = await collection.getAgentSource(agentId);
-    const agentReferenceResolver = await $provideAgentReferenceResolver();
+    const { publicUrl } = await $provideServer();
+    const baseAgentReferenceResolver = await $provideAgentReferenceResolver();
+    const resolvedAgentContext = await resolveBookScopedAgentContext({
+        collection,
+        agentIdentifier: agentName,
+        localServerUrl: publicUrl.href,
+        fallbackResolver: baseAgentReferenceResolver,
+    });
+    const agentSource = resolvedAgentContext.resolvedAgentSource;
+    const agentReferenceResolver = resolvedAgentContext.scopedAgentReferenceResolver;
     const agentProfile = await resolveAgentProfileWithInheritance(agentSource, {
         adamAgentUrl: await getWellKnownAgentUrl('ADAM'),
         agentReferenceResolver,
@@ -40,7 +52,7 @@ export async function getAgentProfile(agentName: string) {
     const agentResult = await supabase
         .from(agentTable)
         .select('visibility')
-        .or(buildAgentNameOrIdFilter(agentName))
+        .or(buildAgentNameOrIdFilter(resolvedAgentContext.parentAgentPermanentId))
         .limit(1)
         .single();
 
@@ -53,18 +65,20 @@ export async function getAgentProfile(agentName: string) {
 
 export async function isAgentDeleted(agentName: string): Promise<boolean> {
     const supabase = $provideSupabaseForServer();
+    const parsedBookScopedAgentIdentifier = parseBookScopedAgentIdentifier(agentName);
+    const targetAgentIdentifier = parsedBookScopedAgentIdentifier?.parentAgentIdentifier || agentName;
 
     const result = await supabase
         .from(await $getTableName(`Agent`))
         .select('deletedAt')
-        .eq('agentName', agentName)
-        .single();
+        .or(buildAgentNameOrIdFilter(targetAgentIdentifier))
+        .limit(1);
 
-    if (result.error || !result.data) {
+    if (result.error || !result.data || result.data.length === 0) {
         return false; // If agent doesn't exist or error, consider not deleted
     }
 
-    return result.data.deletedAt !== null;
+    return result.data[0]!.deletedAt !== null;
 }
 
 /**
@@ -78,6 +92,8 @@ export async function getAgentFolderContext(
     agentName: string,
     isAdmin: boolean,
 ): Promise<AgentFolderContext | null> {
+    const parsedBookScopedAgentIdentifier = parseBookScopedAgentIdentifier(agentName);
+    const targetAgentIdentifier = parsedBookScopedAgentIdentifier?.parentAgentIdentifier || agentName;
     const supabase = $provideSupabaseForServer();
     const agentTable = await $getTableName('Agent');
     const folderTable = await $getTableName('AgentFolder');
@@ -85,7 +101,7 @@ export async function getAgentFolderContext(
     const agentResult = await supabase
         .from(agentTable)
         .select('folderId, visibility, deletedAt')
-        .or(buildAgentNameOrIdFilter(agentName))
+        .or(buildAgentNameOrIdFilter(targetAgentIdentifier))
         .limit(1);
 
     if (agentResult.error || !agentResult.data || agentResult.data.length === 0) {

@@ -1,4 +1,4 @@
-[ ] !
+[x] ~$0.88 an hour by OpenAI Codex `gpt-5.3-codex`
 
 [✨👆] Allow to define multiple agents in one book.
 
@@ -73,3 +73,4 @@ PERSONA Marketer is an expert in marketing, growth, SEO, content marketing, etc.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

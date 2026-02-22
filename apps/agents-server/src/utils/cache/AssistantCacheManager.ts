@@ -13,6 +13,7 @@ import { $provideAgentReferenceResolver } from '../agentReferenceResolver/$provi
 import { consumeAgentReferenceResolutionIssues } from '../agentReferenceResolver/AgentReferenceResolutionIssue';
 import { createInlineKnowledgeSourceUploader } from '@/src/utils/knowledge/createInlineKnowledgeSourceUploader';
 import { resolveWebsiteKnowledgeSourcesForServer } from '@/src/utils/knowledge/resolveWebsiteKnowledgeSourcesForServer';
+import type { AgentReferenceResolver } from '../../../../../src/book-2.0/agent-source/AgentReferenceResolver';
 
 /**
  * Result of getting or creating an assistant
@@ -100,9 +101,14 @@ export class AssistantCacheManager {
              * Optional callback invoked before creating a new assistant on cache miss.
              */
             onCacheMiss?: () => void | Promise<void>;
+
+            /**
+             * Optional resolver for compact agent references scoped to the current book.
+             */
+            agentReferenceResolver?: AgentReferenceResolver;
         } = {},
     ): Promise<AssistantCacheResult> {
-        const { includeDynamicContext = true, agentId, onCacheMiss } = options; // Default to true for backward compatibility
+        const { includeDynamicContext = true, agentId, onCacheMiss, agentReferenceResolver } = options; // Default to true for backward compatibility
 
         // Extract assistant configuration
         const configuration = extractAssistantConfiguration(agentSource, { includeDynamicContext });
@@ -150,7 +156,13 @@ export class AssistantCacheManager {
             });
         }
 
-        const newTools = await this.createAndCacheAssistant(configuration, agentName, cacheKey, baseTools);
+        const newTools = await this.createAndCacheAssistant(
+            configuration,
+            agentName,
+            cacheKey,
+            baseTools,
+            agentReferenceResolver,
+        );
 
         return {
             tools: newTools,
@@ -219,19 +231,20 @@ export class AssistantCacheManager {
         agentName: string,
         cacheKey: string,
         baseTools: OpenAiAssistantExecutionTools,
+        agentReferenceResolver?: AgentReferenceResolver,
     ): Promise<OpenAiAssistantExecutionTools> {
-        const agentReferenceResolver = await $provideAgentReferenceResolver();
+        const effectiveAgentReferenceResolver = agentReferenceResolver || (await $provideAgentReferenceResolver());
         const modelRequirements: AgentModelRequirements = await createAgentModelRequirements(
             configuration.baseAgentSource,
             undefined,
             undefined,
             undefined,
             {
-                agentReferenceResolver,
+                agentReferenceResolver: effectiveAgentReferenceResolver,
                 inlineKnowledgeSourceUploader: createInlineKnowledgeSourceUploader(),
             },
         );
-        const unresolvedAgentReferences = consumeAgentReferenceResolutionIssues(agentReferenceResolver);
+        const unresolvedAgentReferences = consumeAgentReferenceResolutionIssues(effectiveAgentReferenceResolver);
         if (unresolvedAgentReferences.length > 0) {
             console.warn('[AssistantCacheManager] Unresolved agent references detected:', unresolvedAgentReferences);
         }

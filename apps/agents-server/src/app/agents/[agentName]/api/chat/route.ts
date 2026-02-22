@@ -1,5 +1,10 @@
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideOpenAiAgentKitExecutionToolsForServer } from '@/src/tools/$provideOpenAiAgentKitExecutionToolsForServer';
+import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
+import {
+    parseBookScopedAgentIdentifier,
+    resolveBookScopedAgentContext,
+} from '@/src/utils/agentReferenceResolver/bookScopedAgentReferences';
 import { AgentKitCacheManager } from '@/src/utils/cache/AgentKitCacheManager';
 import { ensureNonEmptyChatContent } from '@/src/utils/chat/ensureNonEmptyChatContent';
 import { createChatHistoryRecorder } from '@/src/utils/chat/createChatHistoryRecorder';
@@ -137,6 +142,8 @@ export async function OPTIONS(request: Request) {
 export async function POST(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
     let { agentName } = await params;
     agentName = decodeURIComponent(agentName);
+    const parsedBookScopedAgentIdentifier = parseBookScopedAgentIdentifier(agentName);
+    const deletedCheckAgentIdentifier = parsedBookScopedAgentIdentifier?.parentAgentIdentifier || agentName;
 
     const versionMismatchResponse = respondIfClientVersionIsOutdated(request, 'stream');
     if (versionMismatchResponse) {
@@ -144,7 +151,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
     }
 
     // Check if agent is deleted
-    if (await isAgentDeleted(agentName)) {
+    if (await isAgentDeleted(deletedCheckAgentIdentifier)) {
         return new Response(
             JSON.stringify({
                 error: {
@@ -169,9 +176,17 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
 
     try {
         const collection = await $provideAgentCollectionForServer();
+        const baseAgentReferenceResolver = await $provideAgentReferenceResolver();
+        const resolvedAgentContext = await resolveBookScopedAgentContext({
+            collection,
+            agentIdentifier: agentName,
+            localServerUrl: new URL(request.url).origin,
+            fallbackResolver: baseAgentReferenceResolver,
+        });
+        const agentSource = resolvedAgentContext.resolvedAgentSource;
+        const agentId = resolvedAgentContext.parentAgentPermanentId;
+        const resolvedAgentName = resolvedAgentContext.resolvedAgentName;
         // [▶️] const executionTools = await $provideExecutionToolsForServer();
-        const agentId = await collection.getAgentPermanentId(agentName);
-        const agentSource = await collection.getAgentSource(agentName);
         const messageSuffix = resolveMessageSuffixFromAgentSource(agentSource);
         const currentUserIdentity = await resolveCurrentUserMemoryIdentity();
         const disclaimerMarkdown = resolveMetaDisclaimerMarkdownFromAgentSource(agentSource);
@@ -222,7 +237,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             baseParameters: incomingParameters,
             currentUserIdentity,
             agentPermanentId: agentId,
-            agentName,
+            agentName: resolvedAgentName,
             isPrivateModeEnabled,
         });
         const messageWithAttachmentContext = await appendChatAttachmentContextWithContent(message, attachments);
@@ -241,7 +256,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         };
         const recordChatHistoryMessage = await createChatHistoryRecorder({
             request,
-            agentIdentifier: agentName,
+            agentIdentifier: agentId,
             agentHash,
             source: 'AGENT_PAGE_CHAT',
             apiKey: null,
@@ -384,11 +399,12 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                 try {
                     const agentKitResult = await agentKitCacheManager.getOrCreateAgentKitAgent(
                         agentSource,
-                        agentName,
+                        resolvedAgentName,
                         baseOpenAiTools,
                         {
                             includeDynamicContext: true,
                             agentId,
+                            agentReferenceResolver: resolvedAgentContext.scopedAgentReferenceResolver,
                             onCacheMiss: async () => {
                                 const toolCall = createAssistantPreparationToolCall('Preparing AgentKit agent');
                                 emitToolCalls([toolCall]);
@@ -412,7 +428,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                     const response = await agent.callChatModelStream!(
                         {
                             title: `Chat with agent ${
-                                agentName /* <- TODO: [🕛] There should be `agentFullname` not `agentName` */
+                                resolvedAgentName /* <- TODO: [🕛] There should be `agentFullname` not `agentName` */
                             }`,
                             parameters: promptParameters,
                             modelRequirements: {
@@ -432,7 +448,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
 
                     const normalizedResponse = ensureNonEmptyChatContent({
                         content: response.content,
-                        context: `Agent chat ${agentName}`,
+                        context: `Agent chat ${resolvedAgentName}`,
                     });
 
                     if (normalizedResponse.wasEmpty && !hasMeaningfulDelta) {
@@ -467,10 +483,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                     });
 
                     // Note: [🐱‍🚀] Save the learned data
-                    if (!isPrivateModeEnabled) {
+                    if (!isPrivateModeEnabled && !resolvedAgentContext.isBookScopedAgent) {
                         const newAgentSource = agent.agentSource.value;
                         if (newAgentSource !== agentSource) {
-                            await collection.updateAgentSource(agentName, newAgentSource);
+                            await collection.updateAgentSource(agentId, newAgentSource);
                         }
                     }
 

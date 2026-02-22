@@ -1,6 +1,7 @@
 import { getMetadataMap } from '@/src/database/getMetadata';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
+import { resolveBookScopedAgentContext } from '@/src/utils/agentReferenceResolver/bookScopedAgentReferences';
 import { resolveTeamCapabilitiesFromAgentSource } from '@/src/utils/agentReferenceResolver/resolveTeamCapabilitiesFromAgentSource';
 import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
 import { resolveAgentProfileWithInheritance } from '@/src/utils/resolveAgentProfileWithInheritance';
@@ -66,8 +67,15 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
 
     try {
         const collection = await $provideAgentCollectionForServer();
-        const agentSource = await collection.getAgentSource(agentName);
-        const agentReferenceResolver = await $provideAgentReferenceResolver();
+        const baseAgentReferenceResolver = await $provideAgentReferenceResolver();
+        const resolvedAgentContext = await resolveBookScopedAgentContext({
+            collection,
+            agentIdentifier: agentName,
+            localServerUrl: new URL(request.url).origin,
+            fallbackResolver: baseAgentReferenceResolver,
+        });
+        const agentSource = resolvedAgentContext.resolvedAgentSource;
+        const agentReferenceResolver = resolvedAgentContext.scopedAgentReferenceResolver;
         const adamAgentUrl = await getWellKnownAgentUrl('ADAM');
         const agentProfile = await resolveAgentProfileWithInheritance(agentSource, {
             adamAgentUrl,
@@ -85,7 +93,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
         const isVoiceCallingEnabled = metadata.IS_EXPERIMENTAL_VOICE_CALLING_ENABLED === 'true';
         const isVoiceTtsSttEnabled = metadata.IS_EXPERIMENTAL_VOICE_TTS_STT_ENABLED === 'true';
 
-        if (!agentProfile.meta.image) {
+        if (!agentProfile.meta.image && !resolvedAgentContext.isBookScopedAgent) {
             agentProfile.meta.image = `/agents/${encodeURIComponent(agentName)}/images/default-avatar.png`;
         }
 

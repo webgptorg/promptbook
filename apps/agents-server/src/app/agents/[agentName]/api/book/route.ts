@@ -7,6 +7,10 @@ import spaceTrim from 'spacetrim';
 import { DEFAULT_MAX_RECURSION } from '../../../../../../../../src/config';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
+import {
+    parseBookScopedAgentIdentifier,
+    resolveBookScopedAgentContext,
+} from '@/src/utils/agentReferenceResolver/bookScopedAgentReferences';
 
 /**
  * @@@
@@ -36,9 +40,15 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
         }
 
         const collection = await $provideAgentCollectionForServer();
-        const agentId = await collection.getAgentPermanentId(agentName);
-        const agentSource = await collection.getAgentSource(agentId);
-        const agentReferenceResolver = await $provideAgentReferenceResolver();
+        const baseAgentReferenceResolver = await $provideAgentReferenceResolver();
+        const resolvedAgentContext = await resolveBookScopedAgentContext({
+            collection,
+            agentIdentifier: agentName,
+            localServerUrl: new URL(request.url).origin,
+            fallbackResolver: baseAgentReferenceResolver,
+        });
+        const agentSource = resolvedAgentContext.resolvedAgentSource;
+        const agentReferenceResolver = resolvedAgentContext.scopedAgentReferenceResolver;
         const effectiveAgentSource = await resolveInheritedAgentSource(agentSource, {
             adamAgentUrl: await getWellKnownAgentUrl('ADAM'),
             recursionLevel,
@@ -76,6 +86,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ agen
 
     try {
         const collection = await $provideAgentCollectionForServer();
+        if (parseBookScopedAgentIdentifier(agentName)) {
+            throw new Error('Embedded in-book agents cannot be updated directly. Edit the parent agent book instead.');
+        }
         let agentSourceUnchecked = await request.text();
         agentSourceUnchecked = spaceTrim(agentSourceUnchecked);
         let agentSource = validateBook(agentSourceUnchecked);

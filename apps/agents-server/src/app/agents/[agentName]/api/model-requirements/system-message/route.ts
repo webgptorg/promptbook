@@ -7,6 +7,7 @@ import { assertsError } from '../../../../../../../../../src/errors/assertsError
 import { keepUnused } from '../../../../../../../../../src/utils/organization/keepUnused';
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
 import { consumeAgentReferenceResolutionIssues } from '@/src/utils/agentReferenceResolver/AgentReferenceResolutionIssue';
+import { resolveBookScopedAgentContext } from '@/src/utils/agentReferenceResolver/bookScopedAgentReferences';
 import { createInlineKnowledgeSourceUploader } from '@/src/utils/knowledge/createInlineKnowledgeSourceUploader';
 
 export async function GET(request: Request, { params }: { params: Promise<{ agentName: string }> }) {
@@ -16,8 +17,15 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
 
     try {
         const collection = await $provideAgentCollectionForServer();
-        const agentSource = await collection.getAgentSource(agentName);
-        const agentReferenceResolver = await $provideAgentReferenceResolver();
+        const baseAgentReferenceResolver = await $provideAgentReferenceResolver();
+        const resolvedAgentContext = await resolveBookScopedAgentContext({
+            collection,
+            agentIdentifier: agentName,
+            localServerUrl: new URL(request.url).origin,
+            fallbackResolver: baseAgentReferenceResolver,
+        });
+        const agentSource = resolvedAgentContext.resolvedAgentSource;
+        const agentReferenceResolver = resolvedAgentContext.scopedAgentReferenceResolver;
         const effectiveAgentSource = await resolveInheritedAgentSource(agentSource, {
             adamAgentUrl: await getWellKnownAgentUrl('ADAM'),
             agentReferenceResolver,

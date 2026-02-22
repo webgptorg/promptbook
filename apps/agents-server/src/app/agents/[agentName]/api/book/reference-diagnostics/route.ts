@@ -1,4 +1,6 @@
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
+import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
+import { createBookScopedAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/bookScopedAgentReferences';
 import { createUnresolvedAgentReferenceDiagnostics } from '@/src/utils/agentReferenceResolver/createUnresolvedAgentReferenceDiagnostics';
 import { string_book } from '@promptbook-local/types';
 import { serializeError } from '@promptbook-local/utils';
@@ -17,7 +19,15 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
     try {
         const forceRefresh = isTruthySearchParam(new URL(request.url).searchParams.get('forceRefresh'));
         const agentSource = (await request.text()) as string_book;
-        const agentReferenceResolver = await $provideAgentReferenceResolver({ forceRefresh });
+        const collection = await $provideAgentCollectionForServer();
+        const parentAgentPermanentId = await collection.getAgentPermanentId(agentName);
+        const baseAgentReferenceResolver = await $provideAgentReferenceResolver({ forceRefresh });
+        const agentReferenceResolver = createBookScopedAgentReferenceResolver({
+            parentAgentSource: agentSource,
+            parentAgentIdentifier: parentAgentPermanentId,
+            localServerUrl: new URL(request.url).origin,
+            fallbackResolver: baseAgentReferenceResolver,
+        });
         const diagnosticsResult = await createUnresolvedAgentReferenceDiagnostics(agentSource, agentReferenceResolver);
 
         return new Response(

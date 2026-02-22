@@ -15,6 +15,7 @@ import { $provideAgentReferenceResolver } from '../agentReferenceResolver/$provi
 import { consumeAgentReferenceResolutionIssues } from '../agentReferenceResolver/AgentReferenceResolutionIssue';
 import { createInlineKnowledgeSourceUploader } from '@/src/utils/knowledge/createInlineKnowledgeSourceUploader';
 import { resolveWebsiteKnowledgeSourcesForServer } from '@/src/utils/knowledge/resolveWebsiteKnowledgeSourcesForServer';
+import type { AgentReferenceResolver } from '../../../../../src/book-2.0/agent-source/AgentReferenceResolver';
 
 const KNOWLEDGE_SOURCE_HASH_TIMEOUT_MS = 30000;
 const VECTOR_STORE_HASH_VERSION = 'vector-store-v1';
@@ -211,9 +212,14 @@ export class AgentKitCacheManager {
              * Optional callback invoked before creating a new vector store on cache miss.
              */
             onCacheMiss?: () => void | Promise<void>;
+
+            /**
+             * Optional resolver for compact agent references scoped to the current book.
+             */
+            agentReferenceResolver?: AgentReferenceResolver;
         } = {},
     ): Promise<AgentKitCacheResult> {
-        const { includeDynamicContext = true, agentId, onCacheMiss } = options;
+        const { includeDynamicContext = true, agentId, onCacheMiss, agentReferenceResolver } = options;
 
         const configuration = extractAssistantConfiguration(agentSource, { includeDynamicContext });
         const assistantCacheKey = computeAssistantCacheKey(configuration);
@@ -229,18 +235,18 @@ export class AgentKitCacheManager {
             });
         }
 
-        const agentReferenceResolver = await $provideAgentReferenceResolver();
+        const effectiveAgentReferenceResolver = agentReferenceResolver || (await $provideAgentReferenceResolver());
         const modelRequirements: AgentModelRequirements = await createAgentModelRequirements(
             configuration.baseAgentSource,
             undefined,
             undefined,
             undefined,
             {
-                agentReferenceResolver,
+                agentReferenceResolver: effectiveAgentReferenceResolver,
                 inlineKnowledgeSourceUploader: createInlineKnowledgeSourceUploader(),
             },
         );
-        const unresolvedAgentReferences = consumeAgentReferenceResolutionIssues(agentReferenceResolver);
+        const unresolvedAgentReferences = consumeAgentReferenceResolutionIssues(effectiveAgentReferenceResolver);
         if (unresolvedAgentReferences.length > 0) {
             console.warn('[AgentKitCacheManager] Unresolved agent references detected:', unresolvedAgentReferences);
         }

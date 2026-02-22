@@ -2,6 +2,7 @@ import { $provideServer } from '../../tools/$provideServer';
 import { $provideAgentCollectionForServer } from '../../tools/$provideAgentCollectionForServer';
 import { $provideAgentReferenceResolver } from '../agentReferenceResolver/$provideAgentReferenceResolver';
 import { consumeAgentReferenceResolutionIssues } from '../agentReferenceResolver/AgentReferenceResolutionIssue';
+import { parseBookScopedAgentIdentifier } from '../agentReferenceResolver/bookScopedAgentReferences';
 import { normalizeAgentName } from '../../../../../src/_packages/core.index';
 
 /**
@@ -50,6 +51,18 @@ export type AgentRouteTarget = LocalAgentRouteTarget | RemoteAgentRouteTarget;
  * @returns Canonical local/remote route target or `null` when the reference cannot be resolved.
  */
 export async function resolveAgentRouteTarget(rawReference: string): Promise<AgentRouteTarget | null> {
+    const parsedBookScopedAgentIdentifier = parseBookScopedAgentIdentifier(rawReference);
+    if (parsedBookScopedAgentIdentifier) {
+        const { publicUrl } = await $provideServer();
+        const localServerUrl = normalizeServerUrl(publicUrl.href);
+
+        return {
+            kind: 'local',
+            canonicalAgentId: rawReference,
+            canonicalUrl: `${localServerUrl}${AGENT_PATH_PREFIX}${encodeURIComponent(rawReference)}`,
+        };
+    }
+
     const normalizedReference = normalizeReference(rawReference);
     if (normalizedReference === null) {
         return null;

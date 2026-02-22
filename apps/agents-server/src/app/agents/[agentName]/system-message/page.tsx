@@ -11,6 +11,7 @@ import { createAgentModelRequirements } from '@promptbook-local/core';
 import { TODO_any } from '@promptbook-local/types';
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
 import { consumeAgentReferenceResolutionIssues } from '@/src/utils/agentReferenceResolver/AgentReferenceResolutionIssue';
+import { resolveBookScopedAgentContext } from '@/src/utils/agentReferenceResolver/bookScopedAgentReferences';
 import { createInlineKnowledgeSourceUploader } from '@/src/utils/knowledge/createInlineKnowledgeSourceUploader';
 import { FileTextIcon } from 'lucide-react';
 import { headers } from 'next/headers';
@@ -29,8 +30,15 @@ export default async function AgentSystemMessagePage({ params }: { params: Promi
     const agentName = await getAgentName(params);
 
     const collection = await $provideAgentCollectionForServer();
-    const agentSource = await collection.getAgentSource(agentName);
-    const agentReferenceResolver = await $provideAgentReferenceResolver();
+    const baseAgentReferenceResolver = await $provideAgentReferenceResolver();
+    const resolvedAgentContext = await resolveBookScopedAgentContext({
+        collection,
+        agentIdentifier: agentName,
+        localServerUrl: publicUrl.href,
+        fallbackResolver: baseAgentReferenceResolver,
+    });
+    const agentSource = resolvedAgentContext.resolvedAgentSource;
+    const agentReferenceResolver = resolvedAgentContext.scopedAgentReferenceResolver;
     const effectiveAgentSource = await resolveInheritedAgentSource(agentSource, {
         adamAgentUrl: await getWellKnownAgentUrl('ADAM'),
         agentReferenceResolver,
