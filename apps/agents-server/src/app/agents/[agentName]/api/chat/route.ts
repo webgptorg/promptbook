@@ -16,7 +16,7 @@ import {
     resolveMetaDisclaimerMarkdownFromAgentSource,
     resolveMetaDisclaimerStatusForUser,
 } from '@/src/utils/metaDisclaimer';
-import { appendChatAttachmentContext, normalizeChatAttachments } from '@/src/utils/chat/chatAttachments';
+import { appendChatAttachmentContextWithContent, normalizeChatAttachments } from '@/src/utils/chat/chatAttachments';
 import { resolveCurrentUserMemoryIdentity } from '@/src/utils/userMemory';
 import { Agent, computeAgentHash, RemoteAgent } from '@promptbook-local/core';
 import type { ChatMessage } from '@promptbook-local/components';
@@ -164,7 +164,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
     const thread = body.thread ? [...body.thread] : undefined;
     const attachments = normalizeChatAttachments(body.attachments);
     const rawParameters = body.parameters ?? {};
-    const messageWithAttachmentContext = appendChatAttachmentContext(message, attachments);
     const isPrivateModeEnabled = isPrivateModeEnabledFromRequest(request);
     //      <- TODO: [🐱‍🚀] To configuration DEFAULT_INITIAL_HIDDEN_MESSAGE
 
@@ -226,6 +225,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             agentName,
             isPrivateModeEnabled,
         });
+        const messageWithAttachmentContext = await appendChatAttachmentContextWithContent(message, attachments);
 
         // Use AgentKitCacheManager for vector store caching
         const agentKitCacheManager = new AgentKitCacheManager({ isVerbose: true });

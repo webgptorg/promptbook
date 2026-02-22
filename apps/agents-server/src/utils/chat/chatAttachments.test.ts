@@ -1,11 +1,18 @@
-import { describe, expect, it } from '@jest/globals';
+import { afterEach, describe, expect, it, jest } from '@jest/globals';
 import {
     appendChatAttachmentContext,
+    appendChatAttachmentContextWithContent,
+    formatChatAttachmentContentContext,
     formatChatAttachmentContext,
     normalizeChatAttachments,
+    resolveChatAttachmentContents,
 } from './chatAttachments';
 
 describe('chatAttachments helpers', () => {
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
     it('normalizes, filters invalid payloads, and de-duplicates URLs', () => {
         expect(
             normalizeChatAttachments([
@@ -81,5 +88,67 @@ describe('chatAttachments helpers', () => {
 
     it('returns message content unchanged when there are no attachments', () => {
         expect(appendChatAttachmentContext('Just text', [])).toBe('Just text');
+    });
+
+    it('resolves attachment content and appends it to message context', async () => {
+        const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue(
+            new Response('Quarterly revenue: 124000 USD', {
+                headers: {
+                    'content-type': 'text/plain; charset=utf-8',
+                },
+            }),
+        );
+
+        const message = await appendChatAttachmentContextWithContent('Please summarize the report.', [
+            {
+                name: 'report.txt',
+                type: 'text/plain',
+                url: 'https://cdn.acme.org/files/report.txt',
+            },
+        ]);
+
+        expect(fetchSpy).toHaveBeenCalledWith('https://cdn.acme.org/files/report.txt', expect.any(Object));
+        expect(message).toContain('Attached file contents:');
+        expect(message).toContain('Quarterly revenue: 124000 USD');
+    });
+
+    it('keeps URL metadata and reports unsupported inline content types', async () => {
+        const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue(
+            new Response('%PDF-1.7', {
+                headers: {
+                    'content-type': 'application/pdf',
+                },
+            }),
+        );
+
+        const resolvedContents = await resolveChatAttachmentContents([
+            {
+                name: 'scan.pdf',
+                type: 'application/pdf',
+                url: 'https://cdn.acme.org/files/scan.pdf',
+            },
+        ]);
+
+        const contentContext = formatChatAttachmentContentContext(resolvedContents);
+
+        expect(fetchSpy).toHaveBeenCalledTimes(1);
+        expect(contentContext).toContain('Attached file contents:');
+        expect(contentContext).toContain('unsupported content type for inline text');
+        expect(contentContext).toContain('https://cdn.acme.org/files/scan.pdf');
+    });
+
+    it('does not download private-network attachment URLs', async () => {
+        const fetchSpy = jest.spyOn(globalThis, 'fetch');
+
+        const message = await appendChatAttachmentContextWithContent('Analyze this local file.', [
+            {
+                name: 'local.txt',
+                type: 'text/plain',
+                url: 'http://localhost/private/local.txt',
+            },
+        ]);
+
+        expect(fetchSpy).not.toHaveBeenCalled();
+        expect(message).toContain('private-network URL is not allowed');
     });
 });
