@@ -4,17 +4,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { SERVERS } from '../config';
 import { $getTableName } from './database/$getTableName';
 import { RESERVED_PATHS } from './generated/reservedPaths';
+import { createCustomDomainOrFilter } from './utils/customDomainRouting';
 import { isIpAllowed } from './utils/isIpAllowed';
-
-// TODO: Use the `normalizeTo_PascalCase` from `@promptbook-local/utils`
-// Note: Re-implementing normalizeTo_PascalCase to avoid importing from @promptbook-local/utils which might have Node.js dependencies
-function normalizeTo_PascalCase(text: string): string {
-    return text
-        .replace(/(?:^\w|[A-Z]|\b\w)/g, (word) => {
-            return word.toUpperCase();
-        })
-        .replace(/\s+/g, '');
-}
 
 export async function middleware(req: NextRequest) {
     // 1. Get client IP
@@ -218,7 +209,8 @@ export async function middleware(req: NextRequest) {
     }
 
     // 4. Custom Domain Routing
-    //    If the host is not one of the configured SERVERS, try to find an agent with a matching META LINK
+    //    If the host is not one of the configured SERVERS, try to find an agent with matching META DOMAIN
+    //    (or legacy META LINK fallback).
 
     if (host && SERVERS && !SERVERS.some((server) => server === host)) {
         const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -236,23 +228,14 @@ export async function middleware(req: NextRequest) {
             // We check all configured servers because the custom domain could point to any of them
             // (or if they share the database, we need to check the relevant tables)
             const serversToCheck = SERVERS;
+            const orFilter = createCustomDomainOrFilter(host);
+
+            if (!orFilter) {
+                return NextResponse.next();
+            }
 
             // TODO: [🧠] If there are many servers, this loop might be slow. Optimize if needed.
             for (const serverHost of serversToCheck) {
-                let serverName = serverHost;
-                serverName = serverName.replace(/\.ptbk\.io$/, '');
-                serverName = normalizeTo_PascalCase(serverName);
-                // const prefix = `server_${serverName}_`;
-
-                // Search for agent with matching META LINK
-                // agentProfile->links is an array of strings
-                // We check if it contains the host, or https://host, or http://host
-
-                const searchLinks = [host, `https://${host}`, `http://${host}`];
-
-                // Construct OR filter: agentProfile.cs.{"links":["link1"]},agentProfile.cs.{"links":["link2"]},...
-                const orFilter = searchLinks.map((link) => `agentProfile.cs.{"links":["${link}"]}`).join(',');
-
                 try {
                     const { data } = await supabase
                         .from(await $getTableName(`Agent`))

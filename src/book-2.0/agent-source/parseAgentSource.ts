@@ -1,6 +1,7 @@
 import spaceTrim from 'spacetrim';
 import { TODO_any } from '../../_packages/types.index';
 import { normalizeTo_camelCase } from '../../utils/normalization/normalizeTo_camelCase';
+import { normalizeDomainForMatching } from '../../utils/validators/url/normalizeDomainForMatching';
 import { extractUrlsFromText } from '../../utils/validators/url/extractUrlsFromText';
 import type { AgentBasicInformation, AgentCapability } from './AgentBasicInformation';
 import { computeAgentHash } from './computeAgentHash';
@@ -282,6 +283,11 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
             continue;
         }
 
+        if (commitment.type === 'META DOMAIN') {
+            meta.domain = normalizeMetaDomain(commitment.content);
+            continue;
+        }
+
         if (commitment.type === 'META IMAGE') {
             meta.image = spaceTrim(commitment.content);
             continue;
@@ -369,6 +375,17 @@ function normalizeSeparator(content: string): string {
         return trimmed;
     }
     return trimmed.split(/\s+/).join(', ');
+}
+
+/**
+ * Normalizes META DOMAIN content to a hostname-like value when possible.
+ *
+ * @param content - Raw META DOMAIN content.
+ * @returns Normalized domain or a trimmed fallback.
+ */
+function normalizeMetaDomain(content: string): string {
+    const trimmed = spaceTrim(content);
+    return normalizeDomainForMatching(trimmed) || trimmed.toLowerCase();
 }
 
 /**

@@ -117,6 +117,7 @@ export type AgentBasicInformation = {
         disclaimer?: string;
         messageSuffix?: string;
         image?: string_url_image;
+        domain?: string;
         font?: string_fonts;
         color?: string_color;
         voice?: string;

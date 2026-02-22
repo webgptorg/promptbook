@@ -186,6 +186,31 @@ describe('parseAgentSource', () => {
         });
     });
 
+    it('parses META DOMAIN and normalizes hostname values', () => {
+        const agentSource = validateBook(
+            spaceTrim(`
+                AI Avatar
+                META DOMAIN https://Sub.Example.com:4440/path
+            `),
+        );
+        const result = parseAgentSource(agentSource);
+
+        expect(result.meta.domain).toBe('sub.example.com');
+    });
+
+    it('supports DOMAIN alias and last-value override', () => {
+        const agentSource = validateBook(
+            spaceTrim(`
+                AI Avatar
+                DOMAIN first.example.com
+                META DOMAIN second.example.com
+            `),
+        );
+        const result = parseAgentSource(agentSource);
+
+        expect(result.meta.domain).toBe('second.example.com');
+    });
+
     it('parses META DISCLAIMER with multiline markdown content', () => {
         const agentSource = validateBook(
             spaceTrim(`

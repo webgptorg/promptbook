@@ -9,6 +9,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * The META commitment handles all meta-information about the agent such as:
  * - META IMAGE: Sets the agent's avatar/profile image URL
  * - META LINK: Provides profile/source links for the person the agent models
+ * - META DOMAIN: Sets the canonical custom domain/host of the agent
  * - META TITLE: Sets the agent's display title
  * - META DESCRIPTION: Sets the agent's description
  * - META [ANYTHING]: Any other meta information in uppercase format
@@ -21,6 +22,7 @@ import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
  * ```book
  * META IMAGE https://example.com/avatar.jpg
  * META LINK https://twitter.com/username
+ * META DOMAIN my-agent.com
  * META TITLE Professional Assistant
  * META DESCRIPTION An AI assistant specialized in business tasks
  * META AUTHOR John Doe
@@ -61,6 +63,7 @@ export class MetaCommitmentDefinition extends BaseCommitmentDefinition<`META${st
 
             - **META IMAGE** - Sets the agent's avatar/profile image URL
             - **META LINK** - Provides profile/source links for the person the agent models
+            - **META DOMAIN** - Sets the canonical custom domain/host of the agent
             - **META TITLE** - Sets the agent's display title
             - **META DESCRIPTION** - Sets the agent's description
             - **META [ANYTHING]** - Any other meta information in uppercase format
