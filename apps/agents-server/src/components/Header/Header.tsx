@@ -2057,15 +2057,16 @@ export function Header(props: HeaderProps) {
                                 </>
                             )}
 
-                            <div className="hidden lg:block min-w-[280px] max-w-[360px] border-l border-gray-200 pl-2 sm:pl-3 md:pl-4">
-                                <HeaderSearchBox />
-                            </div>
                         </div>
                     </div>
 
                     <div className="hidden lg:flex pointer-events-none absolute inset-y-0 left-1/2 z-20 -translate-x-1/2 items-center">
-                        <nav className="pointer-events-auto flex items-center gap-6">
-                            {menuItems.map((item, index) => {
+                        <div className="pointer-events-auto flex items-center gap-5">
+                            <div className="flex-1 min-w-[220px] max-w-[360px]">
+                                <HeaderSearchBox className="w-full" />
+                            </div>
+                            <nav className="pointer-events-auto flex items-center gap-6">
+                                {menuItems.map((item, index) => {
                                 if (item.type === 'link') {
                                     return (
                                         <HeadlessLink
@@ -2339,6 +2340,7 @@ export function Header(props: HeaderProps) {
                             })}
                         </nav>
                     </div>
+                </div>
 
                     {/* CTA Button & Mobile Menu Toggle */}
                     <div className="flex items-center gap-2 sm:gap-3 md:gap-4 flex-shrink-0">
