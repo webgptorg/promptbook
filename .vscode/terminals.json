@@ -303,24 +303,34 @@
             "focus": true
         },
         {
-            "name": "⚡🚀💪 Run Coding Agent (💤)(💸)(⏳)",
+            "name": "⚡🚀 Run Coding Agent (💤)(💸)(⏳)",
             "commands": [
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
-                "npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --agent openai-codex --model gpt-5.3-codex --priority 1"
+                "npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --agent openai-codex --model gpt-5.3-codex --priority 1 --no-wait && npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --agent openai-codex --model gpt-5.1-codex-mini --no-wait &&  ./scripts/lines-to-lf.sh && npx ts-node ./scripts/prettify-all/prettify-all.ts --commit && npm version prerelease"
             ],
             "execute": false,
             "onlySingle": false,
             "focus": false
         },
         {
-            "name": "⚡🚀 Run Coding Agent (💤)(💸)(⏳)",
+            "name": "⚡🚀 Run `gpt-5.3-codex` Coding Agent (💸)(⏳)",
+            "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --agent openai-codex --model gpt-5.3-codex --priority 1"
+            ],
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "⚡🚀 Run `gpt-5.1-codex-mini` Coding Agent (💸)(⏳)",
             "commands": [
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
                 "npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --agent openai-codex --model gpt-5.1-codex-mini --no-wait"
             ],
-            "execute": false,
-            "onlySingle": false,
-            "focus": false
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
         },
         {
             "name": "⚡✔ Verify prompts done by Coding Agent (💤)",
