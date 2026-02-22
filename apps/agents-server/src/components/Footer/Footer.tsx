@@ -1,15 +1,30 @@
-import { CLAIM, NAME } from '@promptbook-local/core';
+import { CLAIM, NAME, PROMPTBOOK_ENGINE_VERSION } from '@promptbook-local/core';
 import { HeadlessLink } from '../_utils/headlessParam';
 
+/**
+ * Title/url pair used to extend the footer via metadata.
+ *
+ * @private Internal to `apps/agents-server`
+ */
 export type FooterLink = {
     title: string;
     url: string;
 };
 
+/**
+ * Configuration passed to `Footer` from the layout container.
+ *
+ * @private Internal to `apps/agents-server`
+ */
 type FooterProps = {
     extraLinks?: FooterLink[];
 };
 
+/**
+ * Footer shown on each page of the Agents Server UI, including metadata-driven links and version info.
+ *
+ * @private Internal to `apps/agents-server`
+ */
 export function Footer(props: FooterProps) {
     const { extraLinks = [] } = props;
 
@@ -151,6 +166,9 @@ export function Footer(props: FooterProps) {
                         <br />
                         Made with ❤️ in the Czech Republic.
                         {/* <- TODO: !!!!!!!! Put here Prague outline */}
+                    </p>
+                    <p className="mt-2 text-xs text-gray-400">
+                        Promptbook engine version {PROMPTBOOK_ENGINE_VERSION}
                     </p>
                 </div>
                 {/*

@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.09 3 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
 [✨💹] Add information about the version in the footer of the agent server.
 
@@ -36,3 +36,4 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
