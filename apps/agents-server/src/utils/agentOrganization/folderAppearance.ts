@@ -24,6 +24,14 @@ export const FOLDER_ICON_IDS = [
     'message-square',
     'shield',
     'sparkles',
+    'calendar',
+    'chart-line',
+    'crown',
+    'heart',
+    'palette',
+    'rocket',
+    'star',
+    'sun',
 ] as const;
 
 /**

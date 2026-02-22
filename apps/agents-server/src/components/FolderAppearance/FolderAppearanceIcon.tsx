@@ -5,14 +5,22 @@ import {
     BotIcon,
     BrainIcon,
     BriefcaseBusinessIcon,
+    CalendarIcon,
+    ChartLineIcon,
     CodeIcon,
+    CrownIcon,
     FlaskConicalIcon,
     FolderIcon,
     GlobeIcon,
+    HeartIcon,
     ImageIcon,
     MessageSquareIcon,
+    PaletteIcon,
+    RocketIcon,
     ShieldIcon,
     SparklesIcon,
+    StarIcon,
+    SunIcon,
     type LucideIcon,
 } from 'lucide-react';
 import type { CSSProperties } from 'react';
@@ -52,6 +60,14 @@ export const FOLDER_ICON_OPTIONS: ReadonlyArray<FolderIconOption> = [
     { id: 'message-square', label: 'Message', Icon: MessageSquareIcon },
     { id: 'shield', label: 'Shield', Icon: ShieldIcon },
     { id: 'sparkles', label: 'Sparkles', Icon: SparklesIcon },
+    { id: 'calendar', label: 'Calendar', Icon: CalendarIcon },
+    { id: 'chart-line', label: 'Charts', Icon: ChartLineIcon },
+    { id: 'crown', label: 'Crown', Icon: CrownIcon },
+    { id: 'heart', label: 'Heart', Icon: HeartIcon },
+    { id: 'palette', label: 'Palette', Icon: PaletteIcon },
+    { id: 'rocket', label: 'Rocket', Icon: RocketIcon },
+    { id: 'star', label: 'Star', Icon: StarIcon },
+    { id: 'sun', label: 'Sun', Icon: SunIcon },
 ];
 
 /**
