@@ -7,6 +7,11 @@ import type { string_book } from '../../../../../src/book-2.0/agent-source/strin
 const MESSAGE_SUFFIX_STREAM_DELAY_MS = 100;
 
 /**
+ * Number of line breaks required between the main response and the suffix.
+ */
+const MESSAGE_SUFFIX_MIN_LINE_BREAKS = 2;
+
+/**
  * Resolves normalized MESSAGE SUFFIX content from one agent source.
  */
 export function resolveMessageSuffixFromAgentSource(agentSource: string_book): string | null {
@@ -38,11 +43,7 @@ export function createMessageSuffixAppendix(content: string, messageSuffix: stri
         return messageSuffix;
     }
 
-    if (content.endsWith('\n')) {
-        return `\n${messageSuffix}`;
-    }
-
-    return `\n\n${messageSuffix}`;
+    return `${buildMessageSuffixSeparator(content)}${messageSuffix}`;
 }
 
 /**
@@ -93,4 +94,17 @@ function createWordLikeDeltas(content: string): Array<string> {
  */
 async function waitFor(delayMs: number): Promise<void> {
     await new Promise((resolve) => setTimeout(resolve, delayMs));
+}
+
+/**
+ * Builds newline separator so the suffix is preceded by at least `MESSAGE_SUFFIX_MIN_LINE_BREAKS`.
+ *
+ * @param content assistant response that may already end with newlines
+ * @returns string made of newline characters required to reach the minimum gap
+ */
+function buildMessageSuffixSeparator(content: string): string {
+    const trailingNewlinesMatch = content.match(/\n*$/);
+    const trailingNewlines = trailingNewlinesMatch?.[0].length ?? 0;
+    const missingNewlines = Math.max(0, MESSAGE_SUFFIX_MIN_LINE_BREAKS - trailingNewlines);
+    return '\n'.repeat(missingNewlines);
 }
