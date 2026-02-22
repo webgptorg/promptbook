@@ -8,6 +8,8 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
+![alt text](prompts/screenshots/2026-02-3370-agents-server-team-doublecalls.png)
+
 ---
 
 [-]
