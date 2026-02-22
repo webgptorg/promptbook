@@ -563,12 +563,12 @@
             "focus": true
         },
         {
-            "name": "🔪 Kill all Node.js processes",
+            "name": "🔪 Kill all Node.js processes (💤)",
             "command": "echo 🔪 && taskkill /F /IM node.exe",
             "shellPath": "C:\\Windows\\System32\\cmd.exe",
-            "execute": true,
-            "onlySingle": true,
-            "focus": true
+            "execute": false,
+            "onlySingle": false,
+            "focus": false
         },
         {
             "name": "🍴🔼 Make empty commit / Trigger deployment",
