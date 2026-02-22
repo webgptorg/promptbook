@@ -1707,6 +1707,10 @@ export function Header(props: HeaderProps) {
             href: '/admin/chat-history',
         },
         {
+            label: 'Usage analytics',
+            href: '/admin/usage',
+        },
+        {
             label: 'Messages & Emails',
             href: '/admin/messages',
         },

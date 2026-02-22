@@ -779,6 +779,14 @@ function createNavigationSearchProvider(): ServerSearchProvider {
                     adminOnly: true,
                 },
                 {
+                    id: 'nav-admin-usage',
+                    title: 'Usage analytics',
+                    href: '/admin/usage',
+                    description: 'Analyze agent usage by scope, time, and call source.',
+                    icon: 'system',
+                    adminOnly: true,
+                },
+                {
                     id: 'nav-admin-chat-feedback',
                     title: 'Chat feedback',
                     href: '/admin/chat-feedback',

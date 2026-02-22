@@ -26,6 +26,11 @@ type ChatHistoryInsertError = {
 export type ChatHistorySource = NonNullable<ChatHistoryInsert['source']>;
 
 /**
+ * Actor type value for chat-history records.
+ */
+export type ChatHistoryActorType = NonNullable<ChatHistoryInsert['actorType']>;
+
+/**
  * Configuration used to create one request-scoped chat-history recorder.
  */
 export type CreateChatHistoryRecorderOptions = {
@@ -49,6 +54,10 @@ export type CreateChatHistoryRecorderOptions = {
      * Optional API key used for OpenAI-compatible calls.
      */
     apiKey?: string | null;
+    /**
+     * Optional explicit actor type. When omitted it is inferred from API key and auth cookies.
+     */
+    actorType?: ChatHistoryActorType;
     /**
      * When false, recorder computes hashes but skips DB writes.
      */
@@ -77,7 +86,7 @@ export type RecordChatHistoryMessage = (options: RecordChatHistoryMessageOptions
 /**
  * Optional columns that may be missing on partially migrated databases.
  */
-const CHAT_HISTORY_OPTIONAL_COLUMNS = ['source', 'apiKey'] as const;
+const CHAT_HISTORY_OPTIONAL_COLUMNS = ['source', 'apiKey', 'actorType'] as const;
 
 /**
  * Creates one request-scoped recorder for `ChatHistory`.
@@ -85,13 +94,14 @@ const CHAT_HISTORY_OPTIONAL_COLUMNS = ['source', 'apiKey'] as const;
 export async function createChatHistoryRecorder(
     options: CreateChatHistoryRecorderOptions,
 ): Promise<RecordChatHistoryMessage> {
-    const { request, agentIdentifier, agentHash, source, apiKey = null, isEnabled = true } = options;
+    const { request, agentIdentifier, agentHash, source, apiKey = null, actorType, isEnabled = true } = options;
     const supabase = $provideSupabaseForServer();
     const tableName = await $getTableName('ChatHistory');
     const userAgent = request.headers.get('user-agent');
     const ip = resolveIpAddress(request);
     const language = request.headers.get('accept-language');
     const platform = resolvePlatform(userAgent);
+    const resolvedActorType = actorType ?? inferActorType({ request, apiKey });
     const canonicalAgentName = isEnabled ? await resolveCanonicalAgentName(agentIdentifier) : null;
     const agentNameForInsert = canonicalAgentName || agentIdentifier;
 
@@ -116,6 +126,7 @@ export async function createChatHistoryRecorder(
             platform,
             source,
             apiKey,
+            actorType: resolvedActorType,
         };
 
         const { error } = await supabase.from(tableName).insert(row);
@@ -124,7 +135,7 @@ export async function createChatHistoryRecorder(
         }
 
         if (isMissingOptionalColumnError(error)) {
-            const rowWithoutOptionalColumns: Omit<ChatHistoryInsert, 'source' | 'apiKey'> = {
+            const rowWithoutOptionalColumns: Omit<ChatHistoryInsert, 'source' | 'apiKey' | 'actorType'> = {
                 createdAt: row.createdAt,
                 messageHash: row.messageHash,
                 previousMessageHash: row.previousMessageHash,
@@ -154,6 +165,7 @@ export async function createChatHistoryRecorder(
             agentIdentifier,
             canonicalAgentName: agentNameForInsert,
             source,
+            actorType: resolvedActorType,
             error,
         });
         return messageHash;
@@ -184,6 +196,26 @@ function resolvePlatform(userAgent: string | null): string | null {
     }
 
     return userAgent.match(/\(([^)]+)\)/)?.[1] || null;
+}
+
+/**
+ * Infers actor type from request auth context.
+ */
+function inferActorType(options: {
+    request: Request;
+    apiKey: string | null;
+}): ChatHistoryActorType {
+    const { request, apiKey } = options;
+    if (apiKey) {
+        return 'API_KEY';
+    }
+
+    const cookieHeader = request.headers.get('cookie') || '';
+    if (/(^|;\s*)(sessionToken|adminToken)=/.test(cookieHeader)) {
+        return 'TEAM_MEMBER';
+    }
+
+    return 'ANONYMOUS';
 }
 
 /**

@@ -2,6 +2,7 @@
 
 import type { AgentBasicInformation, TODO_any, string_agent_permanent_id } from '@promptbook-local/types';
 import {
+    BarChart3Icon,
     CopyIcon,
     CopyPlusIcon,
     DownloadIcon,
@@ -564,6 +565,12 @@ function AgentContextMenuContent(props: AgentContextMenuBaseProps & { onClose: (
                       href: `/admin/chat-history?agentName=${encodeURIComponent(agentName)}`,
                       icon: MessageSquareIcon,
                       label: 'Chat History',
+                  },
+                  {
+                      type: 'link' as const,
+                      href: `/admin/usage?agentName=${encodeURIComponent(agentName)}`,
+                      icon: BarChart3Icon,
+                      label: 'Usage Analytics',
                   },
                   {
                       type: 'link' as const,
