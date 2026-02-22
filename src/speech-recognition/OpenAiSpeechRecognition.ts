@@ -6,6 +6,9 @@ import type {
     SpeechRecognitionState,
 } from '../types/SpeechRecognition';
 
+const SILENCE_TIMEOUT_MS = TIME_INTERVALS.SECOND;
+const SILENCE_THRESHOLD = 10;
+
 /**
  * Options for OpenAiSpeechRecognition
  */
@@ -26,6 +29,7 @@ export type OpenAiSpeechRecognitionOptions = {
  */
 export class OpenAiSpeechRecognition implements SpeechRecognition {
     private mediaRecorder: MediaRecorder | null = null;
+    private mediaStream: MediaStream | null = null;
     private audioContext: AudioContext | null = null;
     private analyser: AnalyserNode | null = null;
     private silenceTimeout: NodeJS.Timeout | null = null;
@@ -40,6 +44,9 @@ export class OpenAiSpeechRecognition implements SpeechRecognition {
     public constructor(private readonly options: OpenAiSpeechRecognitionOptions = {}) {}
 
     public async $start(options: SpeechRecognitionStartOptions = {}): Promise<void> {
+        if (this._state === 'ERROR') {
+            this._state = 'IDLE';
+        }
         if (this._state !== 'IDLE') {
             return;
         }
@@ -47,6 +54,7 @@ export class OpenAiSpeechRecognition implements SpeechRecognition {
         try {
             this._state = 'STARTING';
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            this.mediaStream = stream;
             this.mediaRecorder = new MediaRecorder(stream);
             this.audioChunks = [];
 
@@ -61,29 +69,27 @@ export class OpenAiSpeechRecognition implements SpeechRecognition {
             const dataArray = new Uint8Array(bufferLength);
 
             const checkSilence = () => {
-                if (this._state !== 'RECORDING') {
+                if (this.analyser === null || this._state !== 'RECORDING') {
                     return;
                 }
 
-                this.analyser!.getByteFrequencyData(dataArray);
+                this.analyser.getByteFrequencyData(dataArray);
                 let sum = 0;
                 for (let i = 0; i < bufferLength; i++) {
                     sum += dataArray[i]!;
                 }
+
                 const average = sum / bufferLength;
 
-                // Threshold for silence (can be adjusted)
-                if (average < 10) {
+                if (average < SILENCE_THRESHOLD) {
                     if (!this.silenceTimeout) {
                         this.silenceTimeout = setTimeout(() => {
                             this.$stop();
-                        }, TIME_INTERVALS.TWO_SECONDS);
+                        }, SILENCE_TIMEOUT_MS);
                     }
-                } else {
-                    if (this.silenceTimeout) {
-                        clearTimeout(this.silenceTimeout);
-                        this.silenceTimeout = null;
-                    }
+                } else if (this.silenceTimeout) {
+                    clearTimeout(this.silenceTimeout);
+                    this.silenceTimeout = null;
                 }
 
                 requestAnimationFrame(checkSilence);
@@ -95,17 +101,7 @@ export class OpenAiSpeechRecognition implements SpeechRecognition {
 
             this.mediaRecorder.onstop = async () => {
                 const audioBlob = new Blob(this.audioChunks, { type: 'audio/wav' });
-
-                // Cleanup audio context
-                if (this.audioContext) {
-                    this.audioContext.close();
-                    this.audioContext = null;
-                }
-                this.analyser = null;
-                if (this.silenceTimeout) {
-                    clearTimeout(this.silenceTimeout);
-                    this.silenceTimeout = null;
-                }
+                this.cleanupAfterRecording();
 
                 await this.transcribe(audioBlob, options.language);
             };
@@ -118,6 +114,7 @@ export class OpenAiSpeechRecognition implements SpeechRecognition {
         } catch (error) {
             this._state = 'ERROR';
             this.emit({ type: 'ERROR', message: (error as Error).message });
+            this.cleanupAfterRecording();
         }
     }
 
@@ -127,7 +124,6 @@ export class OpenAiSpeechRecognition implements SpeechRecognition {
         }
 
         this.mediaRecorder.stop();
-        // MediaRecorder stop will trigger onstop handler which does the transcription
     }
 
     private async transcribe(audioBlob: Blob, language?: string): Promise<void> {
@@ -180,6 +176,48 @@ export class OpenAiSpeechRecognition implements SpeechRecognition {
         for (const callback of this.callbacks) {
             callback(event);
         }
+    }
+
+    /**
+     * Stops any active media tracks to release the microphone resource.
+     *
+     * @private internal helper for OpenAiSpeechRecognition
+     */
+    private stopMediaTracks(): void {
+        if (!this.mediaStream) {
+            return;
+        }
+
+        for (const track of this.mediaStream.getTracks()) {
+            track.stop();
+        }
+
+        this.mediaStream = null;
+    }
+
+    /**
+     * Cleans up audio context, analyser, silence timeout, and media tracks after recording.
+     *
+     * @private internal helper for OpenAiSpeechRecognition
+     */
+    private cleanupAfterRecording(): void {
+        if (this.audioContext) {
+            this.audioContext.close().catch(() => {
+                /* ignore cleanup errors */
+            });
+            this.audioContext = null;
+        }
+
+        this.analyser = null;
+
+        if (this.silenceTimeout) {
+            clearTimeout(this.silenceTimeout);
+            this.silenceTimeout = null;
+        }
+
+        this.stopMediaTracks();
+        this.mediaRecorder = null;
+        this.audioChunks = [];
     }
 }
 
