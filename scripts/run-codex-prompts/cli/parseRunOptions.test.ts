@@ -27,7 +27,18 @@ describe('parseRunOptions', () => {
         const options = parseRunOptions(['--agent', 'gemini']);
 
         expect(options).toMatchObject({
+            dryRun: false,
             agentName: 'gemini',
+            priority: 0,
+        });
+    });
+
+    it('allows running without --agent in dry-run mode', () => {
+        const options = parseRunOptions(['--dry-run']);
+
+        expect(options).toMatchObject({
+            dryRun: true,
+            agentName: undefined,
             priority: 0,
         });
     });
@@ -45,11 +56,22 @@ describe('parseRunOptions', () => {
         ]);
 
         expect(options).toMatchObject({
+            dryRun: false,
             waitForUser: false,
             ignoreGitChanges: true,
             agentName: 'openai-codex',
             model: 'gpt-5.2-codex',
             priority: 3,
+        });
+    });
+
+    it('parses --dry-run with other flags', () => {
+        const options = parseRunOptions(['--dry-run', '--priority', '2', '--no-wait']);
+
+        expect(options).toMatchObject({
+            dryRun: true,
+            waitForUser: false,
+            priority: 2,
         });
     });
 

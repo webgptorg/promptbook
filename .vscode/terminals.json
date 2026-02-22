@@ -303,6 +303,13 @@
             "focus": true
         },
         {
+            "name": "⚡🔎 Find unwritten prompts",
+            "command": "npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --dry-run",
+            "execute": true,
+            "onlySingle": false,
+            "focus": false
+        },
+        {
             "name": "⚡🚀 Run Coding Agent (💤)(💸)(⏳)",
             "commands": [
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",

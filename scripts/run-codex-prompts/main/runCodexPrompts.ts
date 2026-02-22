@@ -5,12 +5,12 @@ import { OPENAI_MODELS } from '../../../src/llm-providers/openai/openai-models';
 import { just } from '../../../src/utils/organization/just';
 import type { RunOptions } from '../cli/RunOptions';
 import { parseRunOptions } from '../cli/parseRunOptions';
+import { CliProgressDisplay } from '../common/cliProgressDisplay';
 import { printCommitMessage } from '../common/printCommitMessage';
 import { waitForEnter } from '../common/waitForEnter';
 import { checkPause, listenForPause } from '../common/waitForPause';
 import { commitChanges } from '../git/commitChanges';
 import { ensureWorkingTreeClean } from '../git/ensureWorkingTreeClean';
-import { CliProgressDisplay } from '../common/cliProgressDisplay';
 import { buildCodexPrompt } from '../prompts/buildCodexPrompt';
 import { buildCommitMessage } from '../prompts/buildCommitMessage';
 import { buildPromptLabelForDisplay } from '../prompts/buildPromptLabelForDisplay';
@@ -36,7 +36,9 @@ const PROMPTS_DIR = join(process.cwd(), 'prompts');
 const DEFAULT_CODEX_MODEL = 'gpt-5.2-codex';
 const CLINE_MODEL = 'gemini:gemini-3-flash-preview';
 
-const RUNNER_LABELS: Record<RunOptions['agentName'], string> = {
+type RunnerAgentName = NonNullable<RunOptions['agentName']>;
+
+const RUNNER_LABELS: Record<RunnerAgentName, string> = {
     'openai-codex': 'OpenAI Codex',
     cline: 'Cline',
     'claude-code': 'Claude Code',
@@ -56,7 +58,7 @@ type RunnerMetadata = {
  * Resolves runner metadata for prompt status lines.
  */
 function getRunnerMetadata(options: RunOptions, actualModel?: string): RunnerMetadata {
-    const runnerName = RUNNER_LABELS[options.agentName] ?? 'unknown';
+    const runnerName = options.agentName ? RUNNER_LABELS[options.agentName] ?? 'unknown' : 'unknown';
     let modelName: string | undefined;
 
     if (options.agentName === 'openai-codex') {
@@ -76,15 +78,29 @@ function getRunnerMetadata(options: RunOptions, actualModel?: string): RunnerMet
 export async function runCodexPrompts(): Promise<void> {
     const options = parseRunOptions(process.argv.slice(2));
     const runStartDate = moment();
-    const progressDisplay = new CliProgressDisplay(runStartDate);
-    progressDisplay.update({ done: 0, forAgent: 0, belowMinimumPriority: 0, toBeWritten: 0 });
+    const progressDisplay = options.dryRun ? undefined : new CliProgressDisplay(runStartDate);
+    progressDisplay?.update({ done: 0, forAgent: 0, belowMinimumPriority: 0, toBeWritten: 0 });
     listenForPause();
 
     try {
+        if (options.dryRun) {
+            const promptFiles = await loadPromptFiles(PROMPTS_DIR);
+            const stats = summarizePrompts(promptFiles, options.priority);
+            printStats(stats, options.priority);
+            console.info(colors.yellow('Following prompts need to be written:'));
+            printPromptsToBeWritten(promptFiles, options.priority);
+            return;
+        }
+
         let runner: PromptRunner;
         let actualCodexModel: string | undefined;
+        const agentName = options.agentName;
 
-        if (options.agentName === 'openai-codex') {
+        if (!agentName) {
+            throw new Error('Missing --agent in non-dry run mode');
+        }
+
+        if (agentName === 'openai-codex') {
             let modelToUse: string;
             if (!options.model) {
                 console.error(colors.red('Error: --model is required when using --agent openai-codex'));
@@ -112,20 +128,20 @@ export async function runCodexPrompts(): Promise<void> {
                 sandbox: 'danger-full-access',
                 askForApproval: 'never',
             });
-        } else if (options.agentName === 'cline') {
+        } else if (agentName === 'cline') {
             runner = new ClineRunner({
                 model: CLINE_MODEL,
             });
-        } else if (options.agentName === 'claude-code') {
+        } else if (agentName === 'claude-code') {
             runner = new ClaudeCodeRunner();
-        } else if (options.agentName === 'opencode') {
+        } else if (agentName === 'opencode') {
             runner = new OpencodeRunner({
                 model: options.model,
             });
-        } else if (options.agentName === 'gemini') {
+        } else if (agentName === 'gemini') {
             runner = new GeminiRunner();
         } else {
-            throw new Error(`Unknown agent: ${options.agentName}`);
+            throw new Error(`Unknown agent: ${agentName}`);
         }
 
         console.info(colors.green(`Running prompts with ${runner.name}`));
@@ -138,7 +154,7 @@ export async function runCodexPrompts(): Promise<void> {
             await checkPause();
             const promptFiles = await loadPromptFiles(PROMPTS_DIR);
             const stats = summarizePrompts(promptFiles, options.priority);
-            progressDisplay.update(stats);
+            progressDisplay?.update(stats);
             printStats(stats, options.priority);
 
             const nextPrompt = findNextTodoPrompt(promptFiles, options.priority);
@@ -204,6 +220,6 @@ export async function runCodexPrompts(): Promise<void> {
             await commitChanges(commitMessage);
         }
     } finally {
-        progressDisplay.stop();
+        progressDisplay?.stop();
     }
 }

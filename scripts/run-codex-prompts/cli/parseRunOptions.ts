@@ -4,13 +4,15 @@ import type { RunOptions } from './RunOptions';
 /**
  * CLI usage text for this script.
  */
-const USAGE = 'Usage: run-codex-prompts --agent <agent-name> [--model <model>] [--priority <minimum-priority>] [--no-wait] [--ignore-git-changes]';
+const USAGE =
+    'Usage: run-codex-prompts [--dry-run] [--agent <agent-name>] [--model <model>] [--priority <minimum-priority>] [--no-wait] [--ignore-git-changes]';
 
 /**
  * Parses CLI arguments into runner options.
  */
 export function parseRunOptions(args: string[]): RunOptions {
     let agentName: 'openai-codex' | 'cline' | 'claude-code' | 'opencode' | 'gemini' | undefined = undefined;
+    const dryRun = args.includes('--dry-run');
 
     const agentValue = readOptionValue(args, '--agent');
     if (agentValue) {
@@ -31,11 +33,12 @@ export function parseRunOptions(args: string[]): RunOptions {
     const priority = parsePriority(readOptionValue(args, '--priority'), hasPriorityFlag);
     const ignoreGitChanges = args.includes('--ignore-git-changes');
 
-    if (!agentName) {
+    if (!agentName && !dryRun) {
         exitWithUsageError('You must choose an agent using --agent <openai-codex|cline|claude-code|opencode|gemini>');
     }
 
     return {
+        dryRun,
         waitForUser: !args.includes('--no-wait'),
         ignoreGitChanges,
         agentName,
