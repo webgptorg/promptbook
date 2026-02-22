@@ -1,4 +1,4 @@
-[-]
+[ ]
 
 [✨🔰] baz
 
@@ -36,6 +36,7 @@ Napiš odpovědi na těch 10 bodů. Pak ti řeknu konkrétně, co čekat a  jak 
 (Nečerpal jsem teď z žádného externího zdroje; potřebuji nejdřív fakta.)
 ```
 
+- @@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)

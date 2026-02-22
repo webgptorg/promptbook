@@ -1,6 +1,6 @@
 [-]
 
-[✨🆘] brr
+[✨🌍] foo
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
@@ -11,7 +11,7 @@
 
 [-]
 
-[✨🆘] brr
+[✨🌍] foo
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
@@ -22,7 +22,7 @@
 
 [-]
 
-[✨🆘] brr
+[✨🌍] foo
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
@@ -33,7 +33,7 @@
 
 [-]
 
-[✨🆘] brr
+[✨🌍] foo
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
