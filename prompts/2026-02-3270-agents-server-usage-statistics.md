@@ -1,19 +1,34 @@
 [ ] !
 
-[✨🆑] brr
+[✨🆑] Count the usage statistics for the agent.
 
--   @@@
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   There should be a separate page which is accessible for admins where you can see detailed usage of the agents.
+-   Also, there should be a global page showing an entire server or any particular folder.
+-   There must be an ability to see it granularly.
+    -   Per agent
+    -   Per folder, per entire server
+    -   Per timeframe
+    -   Type of the call - Is it from the web? The API? The compatible API, like OpenAI compatible API? Call from a team member etc...
+        -   Record also details about the disk call, like:
+        -   From what API key is it?
+        -   From what user agent is it?
+-   Put there some good looking graph to visualize the usage.
+-   Put the usage page under the agent context menu.
+-   Keep in mind the DRY _(don't repeat yourself)_ principle, Use the existing functions to do the usage counting. Do not create new ones.
+-   You are not implementing limiting of this usage. You are just implementing it to show the usage. Limiting will be implemented in the future.
 -   Do a proper analysis of the current functionality before you start implementing.
+-   Create a database migration if it is needed.
+-
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
 
-[-]
+[ ]
 
-[✨🆑] brr
+[✨🆑] Limiting the agent budget
 
+-   @@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)

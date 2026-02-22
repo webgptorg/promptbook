@@ -76,13 +76,11 @@ The menu of the agent server looks like this:
 
 [ ]
 
-[✨🤜] Search layout
+[✨🤜] Fix the search layout
 
--   @@@
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
+-   The search box is sometimes colliding with menu items on desktop on smaller screens.
+-   Make sure the search box does not collide with menu items and is properly responsive.
 -   You are working with the [Agents Server](apps/agents-server)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ![Overlaying search and menu ](prompts/screenshots/2026-02-1840-agents-server-search-1.png)
 ![non-overlaying Search and Menu ](prompts/screenshots/2026-02-1840-agents-server-search-2.png)
@@ -91,15 +89,15 @@ The menu of the agent server looks like this:
 
 [ ]
 
-[✨🤜] Enhance search filters.
+[✨🤜] Enhance search filters
 
--   @@@
 -   By default, it should search across everything.
 -   You can manually unselect some source of search.
+-   All the filters should be organized in a better way.
+-   The search query, including filters, should be persisted and debounced in the GET search URL parameter.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
+-   Do a proper analysis of the current functionality of searching before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
 

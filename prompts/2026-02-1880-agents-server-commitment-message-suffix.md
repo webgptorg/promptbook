@@ -38,11 +38,8 @@ Commitments are basic syntax elements that add specific functionalities to AI ag
 
 [✨🤌] `MESSAGE SUFFIX` Should be on a new line.
 
--   @@@
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
+-   Commitment `MESSAGE SUFFIX` It's working, but it should put the contents on a new line, separated from the previous message by two line breaks. Currently, it's just appended to the end of the message without a line break.
 -   You are working with the [Agents Server](apps/agents-server)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
 
