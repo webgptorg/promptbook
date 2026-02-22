@@ -14,6 +14,7 @@ import {
     resolveMessageSuffixFromAgentSource,
 } from '@/src/utils/chat/messageSuffix';
 import { createChatStreamHandler } from '@/src/utils/createChatStreamHandler';
+import { encodeChatStreamWhitespaceForTransport } from '@/src/utils/chat/streamWhitespaceTokens';
 import { composePromptParametersWithMemoryContext } from '@/src/utils/memoryRuntimeContext';
 import { resolveCurrentUserMemoryIdentity } from '@/src/utils/userMemory';
 import { Agent, computeAgentHash } from '@promptbook-local/core';
@@ -458,7 +459,7 @@ export async function handleChatCompletion(
                                     {
                                         index: 0,
                                         delta: {
-                                            content: deltaContent,
+                                            content: encodeChatStreamWhitespaceForTransport(deltaContent),
                                         },
                                         finish_reason: null,
                                     },

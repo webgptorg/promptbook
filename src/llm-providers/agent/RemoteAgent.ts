@@ -18,6 +18,7 @@ import { isAssistantPreparationToolCall } from '../../types/ToolCall';
 import { getToolCallIdentity } from '../../utils/toolCalls/getToolCallIdentity';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import { attachClientVersionHeader } from '../../utils/clientVersion';
+import { decodeChatStreamWhitespaceFromTransport } from '../../utils/chat/streamWhitespaceTokens';
 import { Agent } from './Agent';
 import type { AgentOptions } from './AgentOptions';
 import type { RemoteAgentOptions } from './RemoteAgentOptions';
@@ -472,7 +473,8 @@ export class RemoteAgent extends Agent {
                 return;
             }
 
-            content += textChunk;
+            const decodedChunk = decodeChatStreamWhitespaceFromTransport(textChunk);
+            content += decodedChunk;
 
             if (!hasReceivedModelOutput && content.trim().length > 0) {
                 hasReceivedModelOutput = true;

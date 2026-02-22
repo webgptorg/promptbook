@@ -22,6 +22,7 @@ import {
     resolveMetaDisclaimerStatusForUser,
 } from '@/src/utils/metaDisclaimer';
 import { appendChatAttachmentContextWithContent, normalizeChatAttachments } from '@/src/utils/chat/chatAttachments';
+import { encodeChatStreamWhitespaceForTransport } from '@/src/utils/chat/streamWhitespaceTokens';
 import { resolveCurrentUserMemoryIdentity } from '@/src/utils/userMemory';
 import { Agent, computeAgentHash, RemoteAgent } from '@promptbook-local/core';
 import type { ChatMessage } from '@promptbook-local/components';
@@ -317,6 +318,14 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                     }
                 };
 
+                const sendTextChunk = (chunk: string): void => {
+                    if (!chunk) {
+                        return;
+                    }
+
+                    enqueueChunk(encodeChatStreamWhitespaceForTransport(chunk));
+                };
+
                 /**
                  * Closes the outgoing stream once when still writable.
                  */
@@ -389,7 +398,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                         if (deltaContent.trim().length > 0) {
                             hasMeaningfulDelta = true;
                         }
-                        enqueueChunk(deltaContent);
+                        sendTextChunk(deltaContent);
                     },
                     onToolCalls: (toolCalls) => {
                         emitToolCalls(toolCalls);
@@ -452,7 +461,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                     });
 
                     if (normalizedResponse.wasEmpty && !hasMeaningfulDelta) {
-                        enqueueChunk(normalizedResponse.content);
+                        sendTextChunk(normalizedResponse.content);
                     }
 
                     const messageSuffixAppendix = createMessageSuffixAppendix(
@@ -461,7 +470,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                     );
                     if (messageSuffixAppendix) {
                         await emulateMessageSuffixStreaming(messageSuffixAppendix, (delta) => {
-                            enqueueChunk(delta);
+                            sendTextChunk(delta);
                         });
                     }
 

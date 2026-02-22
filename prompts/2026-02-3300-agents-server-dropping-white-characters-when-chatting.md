@@ -1,4 +1,4 @@
-[ ]
+[x] ~$0.17 8 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
 [✨🔰] Fix the missing white space characters in chat
 
@@ -77,3 +77,4 @@ Napiš odpovědi na těch 10 bodů. Pak ti řeknu konkrétně, co čekat a  jak 
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
