@@ -5,6 +5,7 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 
 import colors from 'colors';
+import commander from 'commander';
 import { writeFileSync } from 'fs';
 import { join } from 'path';
 import { spaceTrim } from 'spacetrim';
@@ -16,7 +17,14 @@ if (process.cwd() !== join(__dirname, '../..')) {
     process.exit(1);
 }
 
-generatePromptBoilerplate()
+const program = new commander.Command();
+program.option('--count <count>', `Number of prompt boilerplate files to generate`, '5');
+program.parse(process.argv);
+
+const { count: countOption } = program.opts<{ readonly count: string }>();
+const filesCount = parseFilesCount(countOption);
+
+generatePromptBoilerplate({ filesCount })
     .catch((error) => {
         console.error(colors.bgRed(error.name || 'NamelessError'));
         console.error(error);
@@ -29,20 +37,9 @@ generatePromptBoilerplate()
 /**
  * Generates boilerplate prompt files with unique emoji tags.
  */
-async function generatePromptBoilerplate(): Promise<void> {
+async function generatePromptBoilerplate({ filesCount }: { readonly filesCount: number }): Promise<void> {
     console.info(`🚀  Generate prompt boilerplate files`);
 
-    // Determine how many files to generate from CLI arg (default: 5)
-    const cliArg = process.argv[2];
-    const filesCount = (() => {
-        if (!cliArg) return 5;
-        const n = Number(cliArg);
-        if (!Number.isFinite(n) || n <= 0) {
-            console.info(colors.yellow(`Invalid count '${cliArg}'. Falling back to default 5.`));
-            return 5;
-        }
-        return Math.floor(n);
-    })();
     const promptNumbering = await getPromptNumbering({
         promptsDir: join(process.cwd(), 'prompts'),
         step: 10,
@@ -127,4 +124,18 @@ async function generatePromptBoilerplate(): Promise<void> {
     }
 
     console.info(colors.bgGreen(` Successfully created ${filesToCreate.length} prompt boilerplate files! `));
+}
+
+/**
+ * Parses and validates the count of boilerplate files to create.
+ */
+function parseFilesCount(countOption: string): number {
+    const filesCount = Number(countOption);
+
+    if (!Number.isFinite(filesCount) || filesCount <= 0) {
+        console.info(colors.yellow(`Invalid --count '${countOption}'. Falling back to default 5.`));
+        return 5;
+    }
+
+    return Math.floor(filesCount);
 }

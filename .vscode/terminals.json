@@ -282,7 +282,7 @@
         },
         {
             "name": "⚡🏭 Generate prompt boilerplates for Coding Agent",
-            "command": "npm run generate-prompt-boilerplates -- 5",
+            "command": "npx ts-node scripts/generate-prompt-boilerplate/generate-prompt-boilerplate.ts --count 10",
             "execute": true,
             "onlySingle": true,
             "focus": true
