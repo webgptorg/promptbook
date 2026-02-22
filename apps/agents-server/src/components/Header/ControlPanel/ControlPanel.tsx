@@ -4,6 +4,7 @@ import { ChatSoundAndVibrationPanel } from '@promptbook-local/components';
 import { ChevronDown, EyeOff, Settings2, SpeakerIcon, Sparkles } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
 import { useSoundSystem } from '../../SoundSystemProvider/SoundSystemProvider';
+import { confirmPrivateModeEnable } from '../../PrivateModePreferences/confirmPrivateModeEnable';
 import { usePrivateModePreferences } from '../../PrivateModePreferences/PrivateModePreferencesProvider';
 import { useSelfLearningPreferences } from '../../SelfLearningPreferences/SelfLearningPreferencesProvider';
 
@@ -32,9 +33,19 @@ function ControlPanelContent({
     const toggleSelfLearning = useCallback(() => {
         setIsSelfLearningEnabled((value) => !value);
     }, [setIsSelfLearningEnabled]);
-    const togglePrivateMode = useCallback(() => {
-        setIsPrivateModeEnabled((value) => !value);
-    }, [setIsPrivateModeEnabled]);
+    const togglePrivateMode = useCallback(async () => {
+        if (isPrivateModeEnabled) {
+            setIsPrivateModeEnabled(false);
+            return;
+        }
+
+        const isConfirmed = await confirmPrivateModeEnable();
+        if (!isConfirmed) {
+            return;
+        }
+
+        setIsPrivateModeEnabled(true);
+    }, [isPrivateModeEnabled, setIsPrivateModeEnabled]);
 
     const audioSection = soundSystem ? (
         <div>
@@ -134,7 +145,9 @@ function ControlPanelContent({
                     </div>
                     <button
                         type="button"
-                        onClick={togglePrivateMode}
+                        onClick={() => {
+                            void togglePrivateMode();
+                        }}
                         aria-pressed={isPrivateModeEnabled}
                         className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold transition ${
                             isPrivateModeEnabled

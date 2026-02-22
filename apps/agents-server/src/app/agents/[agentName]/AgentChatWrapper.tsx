@@ -10,6 +10,7 @@ import { OpenAiSpeechRecognition } from '../../../../../../src/speech-recognitio
 import { string_agent_url } from '../../../../../../src/types/typeAliases';
 import { useAgentBackground } from '../../../components/AgentProfile/useAgentBackground';
 import { ChatErrorDialog } from '../../../components/ChatErrorDialog';
+import { confirmPrivateModeEnable } from '../../../components/PrivateModePreferences/confirmPrivateModeEnable';
 import { usePrivateModePreferences } from '../../../components/PrivateModePreferences/PrivateModePreferencesProvider';
 import { useSelfLearningPreferences } from '../../../components/SelfLearningPreferences/SelfLearningPreferencesProvider';
 import { useSoundSystem } from '../../../components/SoundSystemProvider/SoundSystemProvider';
@@ -73,6 +74,16 @@ const USER_LOCATION_TOOL_NAME = 'get_user_location';
 const USER_LOCATION_UNAVAILABLE_STATUS = 'unavailable';
 
 /**
+ * Tool function name used by USE PRIVACY.
+ */
+const TURN_PRIVACY_ON_TOOL_NAME = 'turn_privacy_on';
+
+/**
+ * Privacy-tool status that means UI confirmation is required.
+ */
+const PRIVACY_CONFIRMATION_REQUIRED_STATUS = 'confirmation-required';
+
+/**
  * Geolocation error code for denied permissions.
  */
 const GEOLOCATION_PERMISSION_DENIED_CODE = 1;
@@ -90,15 +101,22 @@ type UserLocationToolResult = {
 };
 
 /**
- * Parses location tool result into structured object.
+ * Privacy tool result payload shape.
  */
-function parseUserLocationToolResult(result: unknown): UserLocationToolResult | null {
+type PrivacyToolResult = {
+    status?: string;
+};
+
+/**
+ * Parses a tool result payload into an object when possible.
+ */
+function parseToolResultObject(result: unknown): Record<string, unknown> | null {
     if (!result) {
         return null;
     }
 
     if (typeof result === 'object') {
-        return result as UserLocationToolResult;
+        return result as Record<string, unknown>;
     }
 
     if (typeof result !== 'string') {
@@ -111,16 +129,30 @@ function parseUserLocationToolResult(result: unknown): UserLocationToolResult | 
             return null;
         }
 
-        return parsed as UserLocationToolResult;
+        return parsed as Record<string, unknown>;
     } catch {
         return null;
     }
 }
 
 /**
- * Builds a stable marker for one location tool call so it is handled at most once.
+ * Parses location tool result into structured object.
  */
-function createLocationToolCallMarker(toolCall: ToolCall): string {
+function parseUserLocationToolResult(result: unknown): UserLocationToolResult | null {
+    return parseToolResultObject(result) as UserLocationToolResult | null;
+}
+
+/**
+ * Parses privacy tool result into structured object.
+ */
+function parsePrivacyToolResult(result: unknown): PrivacyToolResult | null {
+    return parseToolResultObject(result) as PrivacyToolResult | null;
+}
+
+/**
+ * Builds a stable marker for one tool call so it is handled at most once.
+ */
+function createToolCallMarker(toolCall: ToolCall): string {
     const resultMarker = typeof toolCall.result === 'string' ? toolCall.result : JSON.stringify(toolCall.result ?? null);
     return `${toolCall.name}|${toolCall.createdAt || ''}|${resultMarker}`;
 }
@@ -135,6 +167,46 @@ function shouldRequestBrowserUserLocation(toolCall: ToolCall): boolean {
 
     const parsedResult = parseUserLocationToolResult(toolCall.result);
     return parsedResult?.status === USER_LOCATION_UNAVAILABLE_STATUS;
+}
+
+/**
+ * Returns true when this tool call should trigger private mode confirmation in UI.
+ */
+function shouldRequestPrivateModeEnable(toolCall: ToolCall): boolean {
+    if (toolCall.name !== TURN_PRIVACY_ON_TOOL_NAME) {
+        return false;
+    }
+
+    const parsedResult = parsePrivacyToolResult(toolCall.result);
+    return parsedResult?.status === PRIVACY_CONFIRMATION_REQUIRED_STATUS;
+}
+
+/**
+ * Finds the newest tool call matching the supplied predicate.
+ */
+function findNewestMatchingToolCall(
+    messages: ReadonlyArray<ChatMessage>,
+    predicate: (toolCall: ToolCall) => boolean,
+): ToolCall | null {
+    for (let index = messages.length - 1; index >= 0; index--) {
+        const message = messages[index];
+        if (!message) {
+            continue;
+        }
+
+        const toolCalls = message.toolCalls || message.completedToolCalls;
+        if (!toolCalls || toolCalls.length === 0) {
+            continue;
+        }
+
+        for (const toolCall of toolCalls) {
+            if (predicate(toolCall)) {
+                return toolCall;
+            }
+        }
+    }
+
+    return null;
 }
 
 // TODO: [🐱‍🚀] Rename to AgentChatSomethingWrapper
@@ -193,7 +265,9 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
     const [isMetaDisclaimerAccepting, setIsMetaDisclaimerAccepting] = useState(false);
     const [metaDisclaimerError, setMetaDisclaimerError] = useState<string | null>(null);
     const isLocationRequestInFlightRef = useRef(false);
+    const isPrivacyConfirmationInFlightRef = useRef(false);
     const handledLocationToolCallMarkersRef = useRef<Set<string>>(new Set());
+    const handledPrivacyToolCallMarkersRef = useRef<Set<string>>(new Set());
     const hasReportedAutoExecuteMessageRef = useRef(false);
     const lastAutoExecuteMessageRef = useRef<string | undefined>(autoExecuteMessage);
 
@@ -332,7 +406,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
     const effectConfigs = useMemo(() => createDefaultChatEffects(), []);
     const { soundSystem } = useSoundSystem();
     const { isSelfLearningEnabled } = useSelfLearningPreferences();
-    const { isPrivateModeEnabled } = usePrivateModePreferences();
+    const { isPrivateModeEnabled, setIsPrivateModeEnabled } = usePrivateModePreferences();
     const effectiveSelfLearningEnabled = isSelfLearningEnabled && !isPrivateModeEnabled;
 
     // Handle errors from chat
@@ -415,52 +489,78 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
     }, []);
 
     /**
+     * Asks the user to confirm enabling private mode and enables it on confirmation.
+     */
+    const requestPrivateModeEnableConfirmation = useCallback(async () => {
+        if (isPrivateModeEnabled || isPrivacyConfirmationInFlightRef.current) {
+            return;
+        }
+
+        isPrivacyConfirmationInFlightRef.current = true;
+
+        try {
+            const isConfirmed = await confirmPrivateModeEnable();
+            if (!isConfirmed) {
+                return;
+            }
+
+            setIsPrivateModeEnabled(true);
+        } finally {
+            isPrivacyConfirmationInFlightRef.current = false;
+        }
+    }, [isPrivateModeEnabled, setIsPrivateModeEnabled]);
+
+    /**
      * Finds the newest location-tool call that asks for browser location.
      */
     const findPendingLocationToolCall = useCallback((messages: ReadonlyArray<ChatMessage>): ToolCall | null => {
-        for (let index = messages.length - 1; index >= 0; index--) {
-            const message = messages[index];
-            if (!message) {
-                continue;
-            }
+        return findNewestMatchingToolCall(messages, shouldRequestBrowserUserLocation);
+    }, []);
 
-            const toolCalls = message.toolCalls || message.completedToolCalls;
-            if (!toolCalls || toolCalls.length === 0) {
-                continue;
-            }
-
-            for (const toolCall of toolCalls) {
-                if (shouldRequestBrowserUserLocation(toolCall)) {
-                    return toolCall;
-                }
-            }
-        }
-
-        return null;
+    /**
+     * Finds the newest privacy-tool call that asks for private mode confirmation.
+     */
+    const findPendingPrivacyToolCall = useCallback((messages: ReadonlyArray<ChatMessage>): ToolCall | null => {
+        return findNewestMatchingToolCall(messages, shouldRequestPrivateModeEnable);
     }, []);
 
     const handleMessagesChange = useCallback(
         (messages: ReadonlyArray<ChatMessage>) => {
             onMessagesChange?.(messages);
 
-            const toolCall = findPendingLocationToolCall(messages);
-            if (!toolCall) {
+            const locationToolCall = findPendingLocationToolCall(messages);
+            if (locationToolCall) {
+                const locationMarker = createToolCallMarker(locationToolCall);
+                if (!handledLocationToolCallMarkersRef.current.has(locationMarker)) {
+                    handledLocationToolCallMarkersRef.current.add(locationMarker);
+
+                    if (!userLocationPromptParameter?.permission) {
+                        void requestBrowserUserLocation();
+                    }
+                }
+            }
+
+            const privacyToolCall = findPendingPrivacyToolCall(messages);
+            if (!privacyToolCall) {
                 return;
             }
 
-            const marker = createLocationToolCallMarker(toolCall);
-            if (handledLocationToolCallMarkersRef.current.has(marker)) {
+            const privacyMarker = createToolCallMarker(privacyToolCall);
+            if (handledPrivacyToolCallMarkersRef.current.has(privacyMarker)) {
                 return;
             }
-            handledLocationToolCallMarkersRef.current.add(marker);
+            handledPrivacyToolCallMarkersRef.current.add(privacyMarker);
 
-            if (userLocationPromptParameter?.permission) {
-                return;
-            }
-
-            void requestBrowserUserLocation();
+            void requestPrivateModeEnableConfirmation();
         },
-        [findPendingLocationToolCall, onMessagesChange, requestBrowserUserLocation, userLocationPromptParameter],
+        [
+            findPendingLocationToolCall,
+            findPendingPrivacyToolCall,
+            onMessagesChange,
+            requestBrowserUserLocation,
+            requestPrivateModeEnableConfirmation,
+            userLocationPromptParameter,
+        ],
     );
 
     const promptParameters = useMemo(() => {

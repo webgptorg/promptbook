@@ -341,6 +341,22 @@ describe('parseAgentSource', () => {
         });
     });
 
+    it('parses USE PRIVACY capability', () => {
+        const agentSource = validateBook(
+            spaceTrim(`
+                Agent Name
+                USE PRIVACY
+            `),
+        );
+        const result = parseAgentSource(agentSource);
+
+        expect(result.capabilities).toContainEqual({
+            type: 'privacy',
+            label: 'Privacy',
+            iconName: 'Shield',
+        });
+    });
+
     it('parses IMAGE and COLOR aliases', () => {
         const agentSource = validateBook(
             spaceTrim(`

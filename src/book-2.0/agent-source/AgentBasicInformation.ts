@@ -54,7 +54,8 @@ export type AgentCapability = {
         | 'import'
         | 'image-generator'
         | 'team'
-        | 'email';
+        | 'email'
+        | 'privacy';
 
     /**
      * The label to display for this capability

@@ -144,6 +144,15 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
             continue;
         }
 
+        if (commitment.type === 'USE PRIVACY') {
+            capabilities.push({
+                type: 'privacy',
+                label: 'Privacy',
+                iconName: 'Shield',
+            });
+            continue;
+        }
+
         if (commitment.type === 'FROM') {
             const content = spaceTrim(commitment.content).split(/\r?\n/)[0] || '';
 

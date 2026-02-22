@@ -8,6 +8,7 @@ import {
     Link,
     MapPin,
     Search,
+    Shield,
     ShieldAlert,
     ShieldQuestionMarkIcon,
     SquareArrowOutUpRight,
@@ -33,7 +34,7 @@ const MAX_INDIVIDUAL_KNOWLEDGE_CHIPS = 2;
 const CAPABILITY_PRIORITY_BUCKETS: ReadonlyArray<ReadonlyArray<AgentCapability['type']>> = [
     ['team'],
     ['inheritance', 'import'],
-    ['browser', 'search-engine', 'time', 'user-location', 'image-generator', 'email'],
+    ['browser', 'search-engine', 'time', 'user-location', 'image-generator', 'email', 'privacy'],
     ['knowledge'],
 ];
 
@@ -154,6 +155,7 @@ export function AgentCapabilityChips({ agent, className, maxChips, size = 'defau
                         ExternalLink,
                         Link,
                         MapPin,
+                        Shield,
                         Users,
                         // <- [??] Add icons for new capabilities here
                     }[capability.iconName] || ShieldQuestionMarkIcon;
