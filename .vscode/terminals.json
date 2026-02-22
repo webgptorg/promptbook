@@ -288,6 +288,14 @@
             "focus": true
         },
         {
+            "name": "⚡🏭 Generate Agents server prompt boilerplates for Coding Agent",
+            "command": "npx ts-node scripts/generate-prompt-boilerplate/generate-prompt-boilerplate.ts --count 10 --template agents-server",
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+
+        {
             "name": "⚡🏭 Find refactor candidates for Coding Agent",
             "command": "npx ts-node ./scripts/find-refactor-candidates/find-refactor-candidates.ts",
             "execute": true,

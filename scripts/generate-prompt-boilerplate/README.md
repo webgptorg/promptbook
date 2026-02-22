@@ -30,6 +30,19 @@ npx ts-node scripts/generate-prompt-boilerplate/generate-prompt-boilerplate.ts -
 npx ts-node scripts/generate-prompt-boilerplate/generate-prompt-boilerplate.ts --count 100
 ```
 
+### Select a template:
+
+```bash
+npx ts-node scripts/generate-prompt-boilerplate/generate-prompt-boilerplate.ts --template common
+npx ts-node scripts/generate-prompt-boilerplate/generate-prompt-boilerplate.ts --template agents-server
+```
+
+### Combine options:
+
+```bash
+npx ts-node scripts/generate-prompt-boilerplate/generate-prompt-boilerplate.ts --count 100 --template agents-server
+```
+
 ## Output
 
 The script creates 5 files with the following pattern:
@@ -41,6 +54,8 @@ The script creates 5 files with the following pattern:
 -   `2025-07-XXXX-quux.md` containing `[🔥]` (with unique emoji)
 
 Where `XXXX` is the next available sequential number.
+
+When using `--template agents-server`, generated filenames include the template prefix in slug part (for example: `2026-02-2210-agents-server-qux.md`).
 
 ## How it works
 
