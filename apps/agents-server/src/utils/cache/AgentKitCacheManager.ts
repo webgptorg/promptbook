@@ -14,6 +14,7 @@ import {
 import { $provideAgentReferenceResolver } from '../agentReferenceResolver/$provideAgentReferenceResolver';
 import { consumeAgentReferenceResolutionIssues } from '../agentReferenceResolver/AgentReferenceResolutionIssue';
 import { createInlineKnowledgeSourceUploader } from '@/src/utils/knowledge/createInlineKnowledgeSourceUploader';
+import { resolveWebsiteKnowledgeSourcesForServer } from '@/src/utils/knowledge/resolveWebsiteKnowledgeSourcesForServer';
 
 const KNOWLEDGE_SOURCE_HASH_TIMEOUT_MS = 30000;
 const VECTOR_STORE_HASH_VERSION = 'vector-store-v1';
@@ -266,12 +267,17 @@ export class AgentKitCacheManager {
             await onCacheMiss();
         }
 
+        const preparedKnowledgeSources =
+            !cachedVectorStoreId && knowledgeSources.length > 0
+                ? await resolveWebsiteKnowledgeSourcesForServer(knowledgeSources, { isVerbose: this.isVerbose })
+                : knowledgeSources;
+
         if (this.isVerbose) {
             console.info('[🤰]', 'Preparing AgentKit agent via cache manager', {
                 agentName,
                 agentKitName,
                 instructionsLength: instructions.length,
-                knowledgeSourcesCount: knowledgeSources.length,
+                knowledgeSourcesCount: preparedKnowledgeSources.length,
                 toolsCount: tools?.length ?? 0,
             });
         }
@@ -279,7 +285,7 @@ export class AgentKitCacheManager {
         const preparedAgent = await baseTools.prepareAgentKitAgent({
             name: agentKitName,
             instructions,
-            knowledgeSources,
+            knowledgeSources: preparedKnowledgeSources,
             tools,
             vectorStoreId: cachedVectorStoreId ?? undefined,
         });

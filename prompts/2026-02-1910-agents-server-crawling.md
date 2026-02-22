@@ -41,7 +41,7 @@ Commitments are basic syntax elements that add specific functionalities to AI ag
 
 ---
 
-[ ] !
+[x] ~$0.47 21 minutes by OpenAI Codex `gpt-5.3-codex`
 
 [✨🔳] Allow to specify website in `KNOWLEDGE` commitment.
 
@@ -162,3 +162,4 @@ Projekty na úrovni Evropské unie (centrálně řízené EU),EU Funding & Tende
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

@@ -12,6 +12,7 @@ import {
 import { $provideAgentReferenceResolver } from '../agentReferenceResolver/$provideAgentReferenceResolver';
 import { consumeAgentReferenceResolutionIssues } from '../agentReferenceResolver/AgentReferenceResolutionIssue';
 import { createInlineKnowledgeSourceUploader } from '@/src/utils/knowledge/createInlineKnowledgeSourceUploader';
+import { resolveWebsiteKnowledgeSourcesForServer } from '@/src/utils/knowledge/resolveWebsiteKnowledgeSourcesForServer';
 
 /**
  * Result of getting or creating an assistant
@@ -234,8 +235,11 @@ export class AssistantCacheManager {
         if (unresolvedAgentReferences.length > 0) {
             console.warn('[AssistantCacheManager] Unresolved agent references detected:', unresolvedAgentReferences);
         }
-        const knowledgeSources = modelRequirements.knowledgeSources
+        const originalKnowledgeSources = modelRequirements.knowledgeSources
             ? [...modelRequirements.knowledgeSources]
+            : undefined;
+        const knowledgeSources = originalKnowledgeSources
+            ? await resolveWebsiteKnowledgeSourcesForServer(originalKnowledgeSources, { isVerbose: this.isVerbose })
             : undefined;
         const tools = modelRequirements.tools ? [...modelRequirements.tools] : undefined;
 
