@@ -5,7 +5,7 @@ import { SEARCH_RESULT_ICON_BY_TYPE, SEARCH_RESULT_ICON_LABELS } from '@/src/sea
 import type { ServerSearchResponse, ServerSearchResultItem } from '@/src/search/ServerSearchResultItem';
 import { Search } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 
 /**
  * Number of items requested per search page.
@@ -31,6 +31,43 @@ const SEARCH_FILTER_OPTIONS = Object.entries(SEARCH_RESULT_ICON_LABELS)
     .sort((left, right) => left.label.localeCompare(right.label));
 
 /**
+ * Values that should be treated as the default searchable sources.
+ *
+ * @private Internal helper for `apps/agents-server`.
+ */
+const DEFAULT_TYPE_FILTERS = SEARCH_FILTER_OPTIONS.map((option) => option.value);
+
+/**
+ * Debounce delay (in milliseconds) for persisting the query in the URL.
+ *
+ * @private Internal helper for `apps/agents-server`.
+ */
+const QUERY_PARAM_DEBOUNCE_MS = 400;
+
+/**
+ * Shared base classes for each search source toggle.
+ *
+ * @private Internal helper for `apps/agents-server`.
+ */
+const FILTER_BUTTON_BASE_CLASSES =
+    'rounded-full border px-3 py-1 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200';
+
+/**
+ * Classes applied when a filter is active.
+ *
+ * @private Internal helper for `apps/agents-server`.
+ */
+const FILTER_BUTTON_ACTIVE_CLASSES = 'border-blue-500 bg-blue-50 text-blue-700';
+
+/**
+ * Classes applied when a filter is inactive.
+ *
+ * @private Internal helper for `apps/agents-server`.
+ */
+const FILTER_BUTTON_INACTIVE_CLASSES =
+    'border-slate-200 bg-white text-slate-600 hover:border-slate-300 focus-visible:border-slate-300';
+
+/**
  * Builds a `/search` URL with the provided search params.
  *
  * @private Internal helper for `apps/agents-server`.
@@ -48,6 +85,7 @@ const buildSearchUrl = (params: URLSearchParams): string => {
 export default function SearchPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
+    const searchParamsString = searchParams.toString();
     const isHeadless = useIsHeadless();
 
     const queryParam = searchParams.get('q') ?? '';
@@ -56,16 +94,18 @@ export default function SearchPage() {
     const trimmedQueryParam = queryParam.trim();
     const hasSearchQuery = trimmedQueryParam.length >= MIN_SEARCH_QUERY_LENGTH;
 
-    const { selectedTypes, selectedTypesKey } = useMemo(() => {
+    const { selectedTypes, selectedTypesKey, hasExplicitFilters } = useMemo(() => {
+        const params = new URLSearchParams(searchParamsString);
         const filters = new Set<string>();
-        for (const type of searchParams.getAll('type')) {
+
+        for (const type of params.getAll('type')) {
             const trimmed = type.trim();
             if (trimmed) {
                 filters.add(trimmed);
             }
         }
 
-        const typesParam = searchParams.get('types');
+        const typesParam = params.get('types');
         if (typesParam) {
             for (const value of typesParam.split(',')) {
                 const trimmed = value.trim();
@@ -75,18 +115,22 @@ export default function SearchPage() {
             }
         }
 
-        const selectedTypes = Array.from(filters).sort();
+        const sortedFilters = Array.from(filters).sort();
+        const hasFilters = sortedFilters.length > 0;
 
         return {
-            selectedTypes,
-            selectedTypesKey: selectedTypes.join(','),
+            selectedTypes: hasFilters ? sortedFilters : DEFAULT_TYPE_FILTERS,
+            selectedTypesKey: hasFilters ? sortedFilters.join(',') : '',
+            hasExplicitFilters: hasFilters,
         };
-    }, [searchParams]);
+    }, [searchParamsString]);
 
     const [queryInput, setQueryInput] = useState(queryParam);
     useEffect(() => {
         setQueryInput(queryParam);
     }, [queryParam]);
+
+    const queryDebounceTimerRef = useRef<number | null>(null);
 
     const [searchResults, setSearchResults] = useState<ReadonlyArray<ServerSearchResultItem>>([]);
     const [totalCount, setTotalCount] = useState(0);
@@ -150,8 +194,8 @@ export default function SearchPage() {
         return () => controller.abort();
     }, [hasSearchQuery, trimmedQueryParam, currentPage, selectedTypesKey]);
 
-    const updateSearchParams = (overrides: Record<string, string | null>) => {
-        const params = new URLSearchParams(searchParams.toString());
+    const updateSearchParams = useCallback((overrides: Record<string, string | null>) => {
+        const params = new URLSearchParams(searchParamsString);
         params.delete('headless');
         params.delete('type');
         params.delete('types');
@@ -165,28 +209,73 @@ export default function SearchPage() {
         }
 
         pushWithHeadless(router, buildSearchUrl(params), isHeadless);
-    };
+    }, [router, isHeadless, searchParamsString]);
 
     const handleSearchSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         const trimmedInput = queryInput.trim();
+        if (queryDebounceTimerRef.current !== null) {
+            window.clearTimeout(queryDebounceTimerRef.current);
+            queryDebounceTimerRef.current = null;
+        }
         updateSearchParams({
             q: trimmedInput || null,
-            page: '1',
+            page: trimmedInput ? '1' : null,
         });
     };
+
+    useEffect(() => {
+        const trimmedInput = queryInput.trim();
+        if (trimmedInput === trimmedQueryParam) {
+            return;
+        }
+
+        const timer = window.setTimeout(() => {
+            queryDebounceTimerRef.current = null;
+            updateSearchParams({
+                q: trimmedInput || null,
+                page: trimmedInput ? '1' : null,
+            });
+        }, QUERY_PARAM_DEBOUNCE_MS);
+
+        queryDebounceTimerRef.current = timer;
+
+        return () => {
+            window.clearTimeout(timer);
+            if (queryDebounceTimerRef.current === timer) {
+                queryDebounceTimerRef.current = null;
+            }
+        };
+    }, [queryInput, trimmedQueryParam, updateSearchParams]);
 
     const toggleFilter = (typeValue: string) => {
         const nextFilters = new Set(selectedTypes);
         if (nextFilters.has(typeValue)) {
+            if (nextFilters.size === 1) {
+                return;
+            }
             nextFilters.delete(typeValue);
         } else {
             nextFilters.add(typeValue);
         }
 
-        const nextValue = nextFilters.size > 0 ? Array.from(nextFilters).join(',') : null;
+        const nextFiltersArray = Array.from(nextFilters).sort();
+        const usesAllFilters = nextFiltersArray.length === DEFAULT_TYPE_FILTERS.length;
         updateSearchParams({
-            types: nextValue,
+            types: usesAllFilters ? null : nextFiltersArray.join(','),
+            page: '1',
+        });
+    };
+
+    /**
+     * Restores the default filter set (search everything) and updates pagination.
+     */
+    const resetFilters = () => {
+        if (!hasExplicitFilters) {
+            return;
+        }
+        updateSearchParams({
+            types: null,
             page: '1',
         });
     };
@@ -229,25 +318,52 @@ export default function SearchPage() {
                             Search
                         </button>
                     </div>
-                    <div className="flex flex-wrap gap-2">
-                        {SEARCH_FILTER_OPTIONS.map((filter) => {
-                            const isActive = selectedTypes.includes(filter.value);
-                            return (
+                    <section className="space-y-3">
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                            <div>
+                                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
+                                    Search sources
+                                </p>
+                                <p className="text-sm text-slate-500">
+                                    All sources are included by default. Untoggle any pill to exclude that source from
+                                    the results.
+                                </p>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <span className="text-xs text-slate-500">
+                                    {selectedTypes.length} of {DEFAULT_TYPE_FILTERS.length} sources active
+                                </span>
                                 <button
-                                    key={filter.value}
                                     type="button"
-                                    onClick={() => toggleFilter(filter.value)}
-                                    className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${
-                                        isActive
-                                            ? 'border-blue-500 bg-blue-50 text-blue-700'
-                                            : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                                    onClick={resetFilters}
+                                    disabled={!hasExplicitFilters}
+                                    className={`text-xs font-semibold uppercase tracking-wide transition ${
+                                        hasExplicitFilters ? 'text-blue-600 hover:text-blue-500' : 'text-slate-400'
                                     }`}
                                 >
-                                    {filter.label}
+                                    Reset filters
                                 </button>
-                            );
-                        })}
-                    </div>
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 text-left sm:grid-cols-3 lg:grid-cols-4">
+                            {SEARCH_FILTER_OPTIONS.map((filter) => {
+                                const isActive = selectedTypes.includes(filter.value);
+                                return (
+                                    <button
+                                        key={filter.value}
+                                        type="button"
+                                        onClick={() => toggleFilter(filter.value)}
+                                        aria-pressed={isActive}
+                                        className={`${FILTER_BUTTON_BASE_CLASSES} ${
+                                            isActive ? FILTER_BUTTON_ACTIVE_CLASSES : FILTER_BUTTON_INACTIVE_CLASSES
+                                        }`}
+                                    >
+                                        {filter.label}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </section>
                 </form>
 
                 <section className="space-y-3">
