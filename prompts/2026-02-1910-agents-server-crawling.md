@@ -50,8 +50,8 @@ Commitments are basic syntax elements that add specific functionalities to AI ag
 -   Do not implement full crawling for now. Just look at this one URL and shallowly scrape it.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle, Look at the existing scrapers which are implemented here in the project.
 -   Do a proper analysis of the current functionality of `KNOWLEDGE` commitment, scrapers, agents, and all related things before you start implementing.
--   @@@ Be aware browser / node - src/scrapers/website/WebsiteScraper.ts
--   @@@ Be aware of the security implications of this feature, and do not allow to specify any URL, but only from the allowed list of domains which are defined in the configuration of the Agents server.
+-   Be aware to separate the browser and server concerns. - For example, the [website scraper](src/scrapers/website/WebsiteScraper.ts) shouldn't leak to the browser.
+-   Be aware of the security implications of this feature
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
