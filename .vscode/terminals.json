@@ -29,8 +29,8 @@
             "cwd": "./apps/agents-server/",
             "command": "npx tsx ./src/database/migrate.ts --only=local0_",
             "execute": false,
-            "onlySingle": false,
-            "focus": false
+            "onlySingle": true,
+            "focus": true
         },
         {
             "name": "🎭👨‍💻🟣🏭 Generate reserved paths for Agents server",
@@ -157,11 +157,11 @@
             "focus": false
         },
         {
-            "name": "🧪 Test Books (💤)",
+            "name": "🧪 Test Books",
             "command": "npm run test-books",
-            "execute": false,
-            "onlySingle": false,
-            "focus": false
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
         },
         {
             "name": "🧪 Test Package generation (build) (💤)",
