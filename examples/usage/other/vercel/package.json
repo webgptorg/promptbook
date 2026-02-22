@@ -11,7 +11,7 @@
     "dependencies": {
         "@ai-sdk/google": "1.0.5",
         "@ai-sdk/openai": "1.0.7",
-        "ptbk": "0.111.0-9",
+        "ptbk": "0.111.0-10",
         "colors": "1.4.0",
         "dotenv": "16.4.7"
     }
