@@ -1,11 +1,15 @@
 'use client';
 
 import { usePromise } from '@common/hooks/usePromise';
-import { AgentChat, ChatMessage } from '@promptbook-local/components';
+import { AgentChat, ChatMessage, useSendMessageToLlmChat } from '@promptbook-local/components';
 import { RemoteAgent } from '@promptbook-local/core';
 import type { ToolCall } from '@promptbook-local/types';
 import { ClientVersionMismatchError } from '@promptbook-local/utils';
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import {
+    PSEUDO_AGENT_USER_URL,
+    resolvePseudoAgentKindFromUrl,
+} from '../../../../../../src/book-2.0/agent-source/pseudoAgentReferences';
 import { OpenAiSpeechRecognition } from '../../../../../../src/speech-recognition/OpenAiSpeechRecognition';
 import { string_agent_url } from '../../../../../../src/types/typeAliases';
 import { useAgentBackground } from '../../../components/AgentProfile/useAgentBackground';
@@ -30,6 +34,7 @@ import {
     type MetaDisclaimerStatus,
 } from '../../../utils/metaDisclaimerClient';
 import { MetaDisclaimerDialog } from './MetaDisclaimerDialog';
+import { PseudoUserChatDialog } from './PseudoUserChatDialog';
 
 type AgentChatWrapperProps = {
     agentName: string;
@@ -84,6 +89,11 @@ const TURN_PRIVACY_ON_TOOL_NAME = 'turn_privacy_on';
 const PRIVACY_CONFIRMATION_REQUIRED_STATUS = 'confirmation-required';
 
 /**
+ * TEAM pseudo-user interaction marker emitted by TEAM commitment tools.
+ */
+const PSEUDO_USER_SINGLE_MESSAGE_INTERACTION_KIND = 'PSEUDO_USER_SINGLE_MESSAGE';
+
+/**
  * Geolocation error code for denied permissions.
  */
 const GEOLOCATION_PERMISSION_DENIED_CODE = 1;
@@ -105,6 +115,21 @@ type UserLocationToolResult = {
  */
 type PrivacyToolResult = {
     status?: string;
+};
+
+/**
+ * TEAM tool payload shape used to detect pseudo-user prompts.
+ */
+type TeamToolResult = {
+    teammate?: {
+        url?: string;
+        label?: string;
+    };
+    request?: string;
+    interaction?: {
+        kind?: string;
+        prompt?: string;
+    };
 };
 
 /**
@@ -150,6 +175,13 @@ function parsePrivacyToolResult(result: unknown): PrivacyToolResult | null {
 }
 
 /**
+ * Parses TEAM tool result into structured object.
+ */
+function parseTeamToolResult(result: unknown): TeamToolResult | null {
+    return parseToolResultObject(result) as TeamToolResult | null;
+}
+
+/**
  * Builds a stable marker for one tool call so it is handled at most once.
  */
 function createToolCallMarker(toolCall: ToolCall): string {
@@ -182,6 +214,53 @@ function shouldRequestPrivateModeEnable(toolCall: ToolCall): boolean {
 }
 
 /**
+ * Returns true when this tool call asks the real user for one pseudo-team reply.
+ */
+function shouldRequestPseudoUserReply(toolCall: ToolCall): boolean {
+    if (!toolCall.name.startsWith('team_chat_')) {
+        return false;
+    }
+
+    const parsedResult = parseTeamToolResult(toolCall.result);
+    if (!parsedResult?.teammate?.url) {
+        return false;
+    }
+
+    const pseudoAgentKind = resolvePseudoAgentKindFromUrl(parsedResult.teammate.url);
+    if (pseudoAgentKind !== 'USER' && parsedResult.teammate.url !== PSEUDO_AGENT_USER_URL) {
+        return false;
+    }
+
+    return parsedResult.interaction?.kind === PSEUDO_USER_SINGLE_MESSAGE_INTERACTION_KIND;
+}
+
+/**
+ * Extracts pseudo-user prompt text from TEAM tool result.
+ */
+function getPseudoUserPromptText(toolCall: ToolCall): string {
+    const parsedResult = parseTeamToolResult(toolCall.result);
+    const interactionPrompt = parsedResult?.interaction?.prompt?.trim();
+    if (interactionPrompt) {
+        return interactionPrompt;
+    }
+
+    const requestPrompt = parsedResult?.request?.trim();
+    if (requestPrompt) {
+        return requestPrompt;
+    }
+
+    return 'The agent is asking for additional details.';
+}
+
+/**
+ * Extracts pseudo-user teammate label from TEAM tool result.
+ */
+function getPseudoUserLabel(toolCall: ToolCall): string {
+    const parsedResult = parseTeamToolResult(toolCall.result);
+    return parsedResult?.teammate?.label?.trim() || 'User';
+}
+
+/**
  * Finds the newest tool call matching the supplied predicate.
  */
 function findNewestMatchingToolCall(
@@ -208,6 +287,28 @@ function findNewestMatchingToolCall(
 
     return null;
 }
+
+/**
+ * Pending pseudo-user interaction extracted from TEAM tool result.
+ */
+type PendingPseudoUserInteraction = {
+    /**
+     * Stable tool-call marker used for deduplication.
+     */
+    marker: string;
+    /**
+     * Prompt text shown inside the modal.
+     */
+    prompt: string;
+    /**
+     * Display name of the speaking agent.
+     */
+    agentName: string;
+    /**
+     * Display label of the pseudo teammate (`User`).
+     */
+    teammateLabel: string;
+};
 
 // TODO: [🐱‍🚀] Rename to AgentChatSomethingWrapper
 
@@ -264,10 +365,14 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
     const [isMetaDisclaimerLoading, setIsMetaDisclaimerLoading] = useState(true);
     const [isMetaDisclaimerAccepting, setIsMetaDisclaimerAccepting] = useState(false);
     const [metaDisclaimerError, setMetaDisclaimerError] = useState<string | null>(null);
+    const sendMessage = useSendMessageToLlmChat();
     const isLocationRequestInFlightRef = useRef(false);
     const isPrivacyConfirmationInFlightRef = useRef(false);
     const handledLocationToolCallMarkersRef = useRef<Set<string>>(new Set());
     const handledPrivacyToolCallMarkersRef = useRef<Set<string>>(new Set());
+    const handledPseudoUserToolCallMarkersRef = useRef<Set<string>>(new Set());
+    const [pendingPseudoUserInteraction, setPendingPseudoUserInteraction] =
+        useState<PendingPseudoUserInteraction | null>(null);
     const hasReportedAutoExecuteMessageRef = useRef(false);
     const lastAutoExecuteMessageRef = useRef<string | undefined>(autoExecuteMessage);
 
@@ -524,6 +629,13 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
         return findNewestMatchingToolCall(messages, shouldRequestPrivateModeEnable);
     }, []);
 
+    /**
+     * Finds the newest pseudo-user TEAM tool call that requests one user reply.
+     */
+    const findPendingPseudoUserToolCall = useCallback((messages: ReadonlyArray<ChatMessage>): ToolCall | null => {
+        return findNewestMatchingToolCall(messages, shouldRequestPseudoUserReply);
+    }, []);
+
     const handleMessagesChange = useCallback(
         (messages: ReadonlyArray<ChatMessage>) => {
             onMessagesChange?.(messages);
@@ -541,27 +653,62 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
             }
 
             const privacyToolCall = findPendingPrivacyToolCall(messages);
-            if (!privacyToolCall) {
+            if (privacyToolCall) {
+                const privacyMarker = createToolCallMarker(privacyToolCall);
+                if (!handledPrivacyToolCallMarkersRef.current.has(privacyMarker)) {
+                    handledPrivacyToolCallMarkersRef.current.add(privacyMarker);
+                    void requestPrivateModeEnableConfirmation();
+                }
+            }
+
+            const pseudoUserToolCall = findPendingPseudoUserToolCall(messages);
+            if (!pseudoUserToolCall) {
                 return;
             }
 
-            const privacyMarker = createToolCallMarker(privacyToolCall);
-            if (handledPrivacyToolCallMarkersRef.current.has(privacyMarker)) {
+            const pseudoUserMarker = createToolCallMarker(pseudoUserToolCall);
+            if (handledPseudoUserToolCallMarkersRef.current.has(pseudoUserMarker)) {
                 return;
             }
-            handledPrivacyToolCallMarkersRef.current.add(privacyMarker);
+            handledPseudoUserToolCallMarkersRef.current.add(pseudoUserMarker);
 
-            void requestPrivateModeEnableConfirmation();
+            setPendingPseudoUserInteraction({
+                marker: pseudoUserMarker,
+                prompt: getPseudoUserPromptText(pseudoUserToolCall),
+                agentName: agent?.meta.fullname || agent?.agentName || 'Agent',
+                teammateLabel: getPseudoUserLabel(pseudoUserToolCall),
+            });
         },
         [
+            agent?.agentName,
+            agent?.meta.fullname,
             findPendingLocationToolCall,
             findPendingPrivacyToolCall,
+            findPendingPseudoUserToolCall,
             onMessagesChange,
             requestBrowserUserLocation,
             requestPrivateModeEnableConfirmation,
             userLocationPromptParameter,
         ],
     );
+
+    /**
+     * Sends one pseudo-user reply back to the main chat and closes the modal.
+     */
+    const handlePseudoUserReplySubmit = useCallback(
+        async (reply: string) => {
+            setPendingPseudoUserInteraction(null);
+            sendMessage(reply);
+        },
+        [sendMessage],
+    );
+
+    /**
+     * Dismisses the pseudo-user reply modal without sending a message.
+     */
+    const handlePseudoUserReplyClose = useCallback(() => {
+        setPendingPseudoUserInteraction(null);
+    }, []);
 
     const promptParameters = useMemo(() => {
         const parameters: Record<string, unknown> = {
@@ -594,6 +741,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
                 autoExecuteMessage={effectiveAutoExecuteMessage}
                 persistenceKey={persistenceKey}
                 onChange={handleMessagesChange}
+                sendMessage={sendMessage}
                 speechRecognition={speechRecognition}
                 visual="FULL_PAGE"
                 effectConfigs={effectConfigs}
@@ -605,6 +753,14 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
                 promptParameters={promptParameters}
                 onReset={onStartNewChat}
                 resetMode={onStartNewChat ? 'delegate' : undefined}
+            />
+            <PseudoUserChatDialog
+                isOpen={pendingPseudoUserInteraction !== null}
+                prompt={pendingPseudoUserInteraction?.prompt || ''}
+                agentName={pendingPseudoUserInteraction?.agentName || 'Agent'}
+                userName={pendingPseudoUserInteraction?.teammateLabel || 'User'}
+                onSubmit={handlePseudoUserReplySubmit}
+                onClose={handlePseudoUserReplyClose}
             />
             <ChatErrorDialog
                 error={currentError}

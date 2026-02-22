@@ -640,9 +640,23 @@ describe('parseAgentSource', () => {
             const result = parseAgentSource(agentSource);
             expect(result.capabilities).toContainEqual({
                 type: 'inheritance',
-                label: 'VOID',
+                label: '{Void}',
                 iconName: 'ShieldAlert',
                 agentUrl: 'VOID',
+            });
+        });
+
+        it('handles `{Void}` pseudo-agent in FROM commitment', () => {
+            const agentSource = validateBook(`
+                Agent Name
+                FROM {vOiD}
+            `);
+            const result = parseAgentSource(agentSource);
+            expect(result.capabilities).toContainEqual({
+                type: 'inheritance',
+                label: '{Void}',
+                iconName: 'ShieldAlert',
+                agentUrl: '{vOiD}',
             });
         });
     });

@@ -51,9 +51,14 @@ export type TeamToolResult = {
         label?: string;
         instructions?: string;
         toolName?: string;
+        pseudoAgentKind?: 'USER' | 'VOID';
     };
     request?: string;
     response?: string;
+    interaction?: {
+        kind?: string;
+        prompt?: string;
+    };
     /**
      * Tool calls executed by the teammate while answering.
      */

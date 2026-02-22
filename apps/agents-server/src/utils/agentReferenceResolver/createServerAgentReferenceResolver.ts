@@ -1,4 +1,10 @@
 import { normalizeAgentName } from '../../../../../src/book-2.0/agent-source/normalizeAgentName';
+import {
+    VOID_PSEUDO_AGENT_REFERENCE,
+    createPseudoAgentUrl,
+    isPseudoAgentAllowedInCommitment,
+    resolvePseudoAgentKindFromReference,
+} from '../../../../../src/book-2.0/agent-source/pseudoAgentReferences';
 import type { AgentCollection } from '../../../../../src/collection/agent-collection/AgentCollection';
 import type { AgentReferenceResolver } from '../../../../../src/book-2.0/agent-source/AgentReferenceResolver';
 import type { BookCommitment } from '../../../../../src/commitments/_base/BookCommitment';
@@ -124,6 +130,24 @@ class ServerAgentReferenceResolver implements IssueTrackingAgentReferenceResolve
                 continue;
             }
 
+            const pseudoAgentReplacement = this.resolvePseudoAgentReference(commitmentType, tokenValue);
+            if (pseudoAgentReplacement.status === 'resolved') {
+                parts.push(pseudoAgentReplacement.content);
+                continue;
+            }
+
+            if (pseudoAgentReplacement.status === 'disallowed') {
+                hasMissingReference = true;
+                this.trackResolutionIssue({
+                    commitmentType,
+                    token,
+                    reference: tokenValue,
+                    message: pseudoAgentReplacement.message,
+                });
+                parts.push(this.getMissingReferenceReplacement(commitmentType));
+                continue;
+            }
+
             const resolved = await this.resolveReferenceUrl(tokenValue);
             if (resolved) {
                 parts.push(resolved);
@@ -160,6 +184,56 @@ class ServerAgentReferenceResolver implements IssueTrackingAgentReferenceResolve
         }
 
         return resolvedContent;
+    }
+
+    /**
+     * Resolves pseudo-agent compact references (`{User}`, `{Void}`, `@user`, ...) for one commitment.
+     */
+    private resolvePseudoAgentReference(
+        commitmentType: BookCommitment,
+        tokenValue: string,
+    ):
+        | {
+              status: 'resolved';
+              content: string;
+          }
+        | {
+              status: 'disallowed';
+              message: string;
+          }
+        | {
+              status: 'not-pseudo';
+          } {
+        const pseudoAgentKind = resolvePseudoAgentKindFromReference(tokenValue);
+        if (!pseudoAgentKind) {
+            return { status: 'not-pseudo' };
+        }
+
+        if (!isPseudoAgentAllowedInCommitment(pseudoAgentKind, commitmentType)) {
+            return {
+                status: 'disallowed',
+                message: `Pseudo-agent "${tokenValue}" cannot be used in ${commitmentType} commitment.`,
+            };
+        }
+
+        if (pseudoAgentKind === 'VOID' && commitmentType === 'FROM') {
+            return {
+                status: 'resolved',
+                content: VOID_PSEUDO_AGENT_REFERENCE,
+            };
+        }
+
+        if (pseudoAgentKind === 'VOID' && (commitmentType === 'IMPORT' || commitmentType === 'IMPORTS')) {
+            return {
+                status: 'resolved',
+                content: '',
+            };
+        }
+
+        return {
+            status: 'resolved',
+            content: createPseudoAgentUrl(pseudoAgentKind),
+        };
     }
 
     /**

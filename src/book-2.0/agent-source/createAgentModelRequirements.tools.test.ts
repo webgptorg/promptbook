@@ -47,6 +47,16 @@ describe('USE SEARCH ENGINE and USE BROWSER commitments', () => {
         expect(requirements.systemMessage).toContain('Teammates:');
     });
 
+    it('should treat `FROM {Void}` as explicit no-parent inheritance', async () => {
+        const agentSource = validateBook(`
+            Test Agent
+            FROM {VoId}
+        `);
+
+        const requirements = await createAgentModelRequirements(agentSource);
+        expect(requirements.parentAgentUrl).toBeNull();
+    });
+
     /* TODO: [🔰] Uncomment this test
     it('should add both tools when both commitments are used', async () => {
         const agentSource = validateBook(`

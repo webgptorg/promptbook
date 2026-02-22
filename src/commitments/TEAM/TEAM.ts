@@ -2,6 +2,10 @@ import { spaceTrim } from 'spacetrim';
 import { string_javascript_name } from '../../_packages/types.index';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import { parseTeamCommitmentContent, type TeamTeammate } from '../../book-2.0/agent-source/parseTeamCommitment';
+import {
+    resolvePseudoAgentKindFromUrl,
+    type PseudoAgentKind,
+} from '../../book-2.0/agent-source/pseudoAgentReferences';
 import type { PromptResult } from '../../execution/PromptResult';
 import type { RemoteAgent } from '../../llm-providers/agent/RemoteAgent';
 import { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
@@ -40,9 +44,17 @@ type TeamToolResult = {
         label: string;
         instructions?: string;
         toolName: string;
+        pseudoAgentKind?: PseudoAgentKind;
     };
     request: string;
     response: string;
+    /**
+     * Additional UI hints for pseudo-agent conversations.
+     */
+    interaction?: {
+        kind: 'PSEUDO_USER_SINGLE_MESSAGE';
+        prompt: string;
+    };
     /**
      * Tool calls executed by the teammate while answering.
      */
@@ -157,15 +169,13 @@ export class TeamCommitmentDefinition extends BaseCommitmentDefinition<'TEAM'> {
                 continue;
             }
 
-            const instructionSuffix = entry.teammate.instructions
-                ? `Use when: ${entry.teammate.instructions}`
-                : 'Use when their expertise is needed.';
+            const whenToConsult = resolveWhenToConsultTeammate(entry);
 
             updatedTools.push({
                 name: entry.toolName,
                 description: spaceTrim(`
                     Consult teammate ${entry.teammate.label} (${entry.teammate.url}).
-                    ${instructionSuffix}
+                    Use when: ${whenToConsult}
                 `),
                 parameters: {
                     type: 'object',
@@ -224,8 +234,7 @@ export class TeamCommitmentDefinition extends BaseCommitmentDefinition<'TEAM'> {
                 ${block(
                     teamEntries
                         .map((entry: TeamToolEntry) => {
-                            const whenToConsult: string =
-                                entry.teammate.instructions || 'Use when their expertise is needed.';
+                            const whenToConsult: string = resolveWhenToConsultTeammate(entry);
                             return spaceTrim(
                                 () => `
                                     - ${entry.teammate.label} (${entry.teammate.url})
@@ -292,6 +301,7 @@ function buildTeammateMetadata(entry: TeamToolEntry): TeamToolResult['teammate']
         label: entry.teammate.label,
         instructions: entry.teammate.instructions,
         toolName: entry.toolName,
+        pseudoAgentKind: resolvePseudoAgentKindFromUrl(entry.teammate.url) || undefined,
     };
 }
 
@@ -300,6 +310,23 @@ function buildTeammateMetadata(entry: TeamToolEntry): TeamToolResult['teammate']
  */
 function buildTeammateRequest(message: string, context?: string): string {
     return context ? `${message}\n\nContext:\n${context}` : message;
+}
+
+/**
+ * Resolves "when to consult" guidance shown in tool metadata and system message.
+ */
+function resolveWhenToConsultTeammate(entry: TeamToolEntry): string {
+    const pseudoAgentKind = resolvePseudoAgentKindFromUrl(entry.teammate.url);
+
+    if (pseudoAgentKind === 'USER') {
+        return 'Use when you need one direct response from the current user.';
+    }
+
+    if (pseudoAgentKind === 'VOID') {
+        return 'Use when you intentionally consult the void (no concrete answer expected).';
+    }
+
+    return entry.teammate.instructions || 'Use when their expertise is needed.';
 }
 
 /**
@@ -331,6 +358,60 @@ function createTeamConversationRuntimeContext(value: unknown): ToolRuntimeContex
             enabled: false,
             isTeamConversation: true,
         },
+    };
+}
+
+/**
+ * Builds a synthetic TEAM result for `{User}` pseudo-agent calls.
+ */
+function createPseudoUserTeamToolResult(entry: TeamToolEntry, request: string): TeamToolResult {
+    const teammateMetadata = buildTeammateMetadata(entry);
+
+    return {
+        teammate: teammateMetadata,
+        request,
+        response: 'User response is pending in the UI modal.',
+        interaction: {
+            kind: 'PSEUDO_USER_SINGLE_MESSAGE',
+            prompt: request,
+        },
+        conversation: [
+            {
+                sender: 'AGENT',
+                name: entry.agentName,
+                content: request,
+            },
+            {
+                sender: 'TEAMMATE',
+                name: entry.teammate.label,
+                content: 'Waiting for one user reply.',
+            },
+        ],
+    };
+}
+
+/**
+ * Builds a synthetic TEAM result for `{Void}` pseudo-agent calls.
+ */
+function createPseudoVoidTeamToolResult(entry: TeamToolEntry, request: string): TeamToolResult {
+    const teammateMetadata = buildTeammateMetadata(entry);
+
+    return {
+        teammate: teammateMetadata,
+        request,
+        response: 'The void remained silent.',
+        conversation: [
+            {
+                sender: 'AGENT',
+                name: entry.agentName,
+                content: request,
+            },
+            {
+                sender: 'TEAMMATE',
+                name: entry.teammate.label,
+                content: '...',
+            },
+        ],
     };
 }
 
@@ -374,6 +455,16 @@ function createTeamToolFunction(entry: TeamToolEntry): ToolFunction {
         }
 
         const request: string = buildTeammateRequest(message, args.context);
+        const pseudoAgentKind = resolvePseudoAgentKindFromUrl(entry.teammate.url);
+
+        if (pseudoAgentKind === 'USER') {
+            return JSON.stringify(createPseudoUserTeamToolResult(entry, request));
+        }
+
+        if (pseudoAgentKind === 'VOID') {
+            return JSON.stringify(createPseudoVoidTeamToolResult(entry, request));
+        }
+
         let response: string = '';
         let error: string | null = null;
         let toolCalls: ReadonlyArray<ToolCall> | undefined;

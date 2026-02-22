@@ -2,6 +2,7 @@
 
 import moment from 'moment';
 import { useEffect, useMemo, useState, type ReactElement } from 'react';
+import { isPseudoAgentUrl } from '../../../book-2.0/agent-source/pseudoAgentReferences';
 import { validateBook } from '../../../book-2.0/agent-source/string_book';
 import type { string_date_iso8601 } from '../../../types/typeAliases';
 import { Color } from '../../../utils/color/Color';
@@ -71,7 +72,7 @@ export function ChatToolCallModal(props: ChatToolCallModalProps) {
 
         const teammateUrl = teamResult?.teammate?.url;
 
-        if (!teammateUrl || teammateUrl === 'VOID') {
+        if (!teammateUrl || teammateUrl === 'VOID' || isPseudoAgentUrl(teammateUrl)) {
             return;
         }
 
@@ -187,7 +188,8 @@ export function ChatToolCallModal(props: ChatToolCallModalProps) {
                   teammateFallbackProfile.label,
               );
               const resolvedTeammateAvatar = teammateProfile?.imageUrl || teammateFallbackProfile.imageUrl || null;
-              const teammateLink = teammateUrl && teammateUrl !== 'VOID' ? teammateUrl : undefined;
+              const teammateLink =
+                  teammateUrl && teammateUrl !== 'VOID' && !isPseudoAgentUrl(teammateUrl) ? teammateUrl : undefined;
 
               const participants = [
                   {

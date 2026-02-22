@@ -1,6 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import type { AgentReferenceResolver } from '../../../../../src/book-2.0/agent-source/AgentReferenceResolver';
 import type { string_book } from '../../../../../src/book-2.0/agent-source/string_book';
+import { PSEUDO_AGENT_USER_URL } from '../../../../../src/book-2.0/agent-source/pseudoAgentReferences';
 import { createUnresolvedAgentReferenceDiagnostics } from './createUnresolvedAgentReferenceDiagnostics';
 
 /**
@@ -17,6 +18,14 @@ function createMockResolver(): AgentReferenceResolver {
 
             if (content === '{https://remote.example/agents/visible}') {
                 return 'https://remote.example/agents/visible';
+            }
+
+            if (content === '{Void}') {
+                return '{Void}';
+            }
+
+            if (content === '{User}') {
+                return PSEUDO_AGENT_USER_URL;
             }
 
             if (commitmentType === 'FROM') {
@@ -85,6 +94,20 @@ TEAM {https://remote.example/agents/visible}` as string_book;
         const agentSource = `Editor Test Agent
 RULE Everything is explicit
 KNOWLEDGE https://example.com/doc.txt` as string_book;
+
+        const result = await createUnresolvedAgentReferenceDiagnostics(agentSource, resolver);
+
+        expect(result).toEqual({
+            diagnostics: [],
+            missingAgentReferences: [],
+        });
+    });
+
+    it('does not report pseudo-agent references as unresolved', async () => {
+        const resolver = createMockResolver();
+        const agentSource = `Editor Test Agent
+FROM {Void}
+TEAM {User}` as string_book;
 
         const result = await createUnresolvedAgentReferenceDiagnostics(agentSource, resolver);
 

@@ -1,6 +1,7 @@
 import { spaceTrim } from 'spacetrim';
 import { isValidAgentUrl } from '../../_packages/utils.index';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
+import { isVoidPseudoAgentReference } from '../../book-2.0/agent-source/pseudoAgentReferences';
 import type { string_agent_url } from '../../types/typeAliases';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 
@@ -63,12 +64,7 @@ export class FromCommitmentDefinition extends BaseCommitmentDefinition<'FROM'> {
             return requirements;
         }
 
-        if (
-            trimmedContent.toUpperCase() === 'VOID' ||
-            trimmedContent.toUpperCase() === 'NULL' ||
-            trimmedContent.toUpperCase() === 'NONE' ||
-            trimmedContent.toUpperCase() === 'NIL'
-        ) {
+        if (isVoidPseudoAgentReference(trimmedContent)) {
             return {
                 ...requirements,
                 parentAgentUrl: null,

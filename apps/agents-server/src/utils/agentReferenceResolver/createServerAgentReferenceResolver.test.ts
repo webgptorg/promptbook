@@ -1,5 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import type { AgentCollection } from '../../../../../src/collection/agent-collection/AgentCollection';
+import { PSEUDO_AGENT_USER_URL } from '../../../../../src/book-2.0/agent-source/pseudoAgentReferences';
 import {
     consumeAgentReferenceResolutionIssues,
     type IssueTrackingAgentReferenceResolver,
@@ -48,5 +49,48 @@ describe('createServerAgentReferenceResolver', () => {
             }),
         ]);
         expect(consumeAgentReferenceResolutionIssues(resolver)).toEqual([]);
+    });
+
+    it('resolves `{Void}` in FROM without unresolved issues', async () => {
+        const resolver = (await createServerAgentReferenceResolver({
+            agentCollection: createMockAgentCollection([]),
+            localServerUrl: 'https://local.example',
+        })) as IssueTrackingAgentReferenceResolver;
+
+        const resolved = await resolver.resolveCommitmentContent('FROM', '{VoId}');
+
+        expect(resolved).toBe('{Void}');
+        expect(consumeAgentReferenceResolutionIssues(resolver)).toEqual([]);
+    });
+
+    it('resolves `{User}` in TEAM to pseudo-user URL', async () => {
+        const resolver = (await createServerAgentReferenceResolver({
+            agentCollection: createMockAgentCollection([]),
+            localServerUrl: 'https://local.example',
+        })) as IssueTrackingAgentReferenceResolver;
+
+        const resolved = await resolver.resolveCommitmentContent('TEAM', '{UsEr}');
+
+        expect(resolved).toBe(PSEUDO_AGENT_USER_URL);
+        expect(consumeAgentReferenceResolutionIssues(resolver)).toEqual([]);
+    });
+
+    it('rejects `{User}` in FROM and records an issue', async () => {
+        const resolver = (await createServerAgentReferenceResolver({
+            agentCollection: createMockAgentCollection([]),
+            localServerUrl: 'https://local.example',
+        })) as IssueTrackingAgentReferenceResolver;
+
+        const resolved = await resolver.resolveCommitmentContent('FROM', '{User}');
+        const issues = consumeAgentReferenceResolutionIssues(resolver);
+
+        expect(resolved).toBe('VOID');
+        expect(issues).toEqual([
+            expect.objectContaining({
+                commitmentType: 'FROM',
+                reference: 'User',
+                message: 'Pseudo-agent "User" cannot be used in FROM commitment.',
+            }),
+        ]);
     });
 });

@@ -10,6 +10,7 @@ import { normalizeAgentName } from './normalizeAgentName';
 import { parseAgentSourceWithCommitments } from './parseAgentSourceWithCommitments';
 import { parseParameters } from './parseParameters';
 import { parseTeamCommitmentContent } from './parseTeamCommitment';
+import { VOID_PSEUDO_AGENT_REFERENCE, isVoidPseudoAgentReference } from './pseudoAgentReferences';
 import type { string_book } from './string_book';
 
 /**
@@ -167,8 +168,8 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
                 iconName = 'SquareArrowUpRight'; // Inheritance local
             }
 
-            if (content === 'VOID') {
-                label = 'VOID';
+            if (isVoidPseudoAgentReference(content)) {
+                label = VOID_PSEUDO_AGENT_REFERENCE;
                 iconName = 'ShieldAlert'; // [🧠] Or some other icon for VOID
             }
 
