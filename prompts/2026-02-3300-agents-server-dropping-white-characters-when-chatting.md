@@ -1,6 +1,10 @@
 [ ]
 
-[✨🔰] baz
+[✨🔰] Fix the missing white space characters in chat
+
+-   When chatting it sometimes drops a white character, white space or new line.
+
+**For example:**
 
 ```
 Potřebuju z tebe dostat fakta. Podle nich ti řeknu, jestli řešíš přestupek, trestný čin (typicky ublížení na zdraví z nedbalosti) a  co dělat hned teď.
@@ -36,11 +40,10 @@ Napiš odpovědi na těch 10 bodů. Pak ti řeknu konkrétně, co čekat a  jak 
 (Nečerpal jsem teď z žádného externího zdroje; potřebuji nejdřív fakta.)
 ```
 
-- @@@
+-   When transmitting a chat stream replace the white spaces with special tokens, for example `[SPACE]`, `[NEWLINE]`, etc. and when rendering the chat stream on the frontend, replace these tokens back to white spaces.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
+-   Do a proper analysis of the current functionality of chat streaming before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
 
