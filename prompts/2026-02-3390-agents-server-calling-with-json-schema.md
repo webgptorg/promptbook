@@ -16,7 +16,7 @@
 
 ---
 
-[ ]
+[x] ~$0.39 12 minutes by OpenAI Codex `gpt-5.2-codex`
 
 [✨🪗] In the agent integration page, there is the section OpenAI Compatible Mode with `response_format` type `json_schema` sample, do some modifications to it
 
@@ -97,3 +97,4 @@ Do theese modifications:
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

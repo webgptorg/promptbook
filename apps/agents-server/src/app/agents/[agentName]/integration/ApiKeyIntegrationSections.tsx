@@ -3,11 +3,9 @@
 import { Plus, ServerIcon, TerminalIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
-import spaceTrim from 'spacetrim';
 import { createApiToken } from '@/src/utils/apiTokensClient';
 import { CopyField } from '../CopyField';
-import { SdkCodeTabs } from './SdkCodeTabs';
-import { CodePreview } from '../../../../../../_common/components/CodePreview/CodePreview';
+import { OpenAiCompatibleCodeTabs } from './OpenAiCompatibleCodeTabs';
 import { useAgentNaming } from '@/src/components/AgentNaming/AgentNamingContext';
 
 /**
@@ -83,86 +81,6 @@ export function ApiKeyIntegrationSections({
         </div>
     );
 
-    const curlCode = spaceTrim(`
-        curl ${agentApiBase}/api/openai/v1/chat/completions \\
-          -H "Content-Type: application/json" \\
-          -H "Authorization: Bearer ${apiKeyValue}" \\
-          -d '{
-            "model": "agent:${agentName}",
-            "messages": [
-              {"role": "user", "content": "Hello!"}
-            ]
-          }'
-    `);
-
-    const pythonCode = spaceTrim(`
-        from openai import OpenAI
-
-        client = OpenAI(
-            base_url="${agentApiBase}/api/openai/v1",
-            api_key="${apiKeyValue}",
-        )
-
-        response = client.chat.completions.create(
-            model="agent:${agentName}",
-            messages=[
-                {"role": "user", "content": "Hello!"}
-            ]
-        )
-
-        print(response.choices[0].message.content)
-    `);
-
-    const jsCode = spaceTrim(`
-        import OpenAI from 'openai';
-
-        const client = new OpenAI({
-            baseURL: '${agentApiBase}/api/openai/v1',
-            apiKey: '${apiKeyValue}',
-        });
-
-        async function main() {
-            const response = await client.chat.completions.create({
-                model: 'agent:${agentName}',
-                messages: [{ role: 'user', content: 'Hello!' }],
-            });
-
-            console.log(response.choices[0].message.content);
-        }
-
-        main();
-    `);
-
-    /**
-     * Example payload showing the use of the json_schema response format.
-     */
-    const responseFormatSchemaExample = spaceTrim(`
-        {
-          "model": "agent:${agentName}",
-          "messages": [
-            {
-              "role": "user",
-              "content": "Share a short summary and a confidence metric about your answer."
-            }
-          ],
-          "response_format": {
-            "type": "json_schema",
-            "json_schema": {
-              "type": "object",
-              "properties": {
-                "summary": {
-                  "type": "string"
-                },
-                "confidence": {
-                  "type": "number"
-                }
-              },
-              "required": ["summary", "confidence"]
-            }
-          }
-        }
-    `);
-
     return (
         <>
             <div className="p-6 rounded-xl border-2 border-blue-200 bg-blue-50/30 shadow-sm">
@@ -211,17 +129,20 @@ export function ApiKeyIntegrationSections({
                     </div>
                 </div>
 
-                <SdkCodeTabs curlCode={curlCode} pythonCode={pythonCode} jsCode={jsCode} />
+                <OpenAiCompatibleCodeTabs
+                    agentName={agentName}
+                    agentApiBase={agentApiBase}
+                    apiKeyValue={apiKeyValue}
+                />
 
                 <div className="mt-6 rounded-xl border border-dashed border-gray-200 bg-white/70 p-4 space-y-2">
                     <p className="text-sm text-gray-600">
                         Set <code className="font-mono">response_format.type</code> to{' '}
                         <code className="font-mono text-xs">json_schema</code> and describe the expected
                         structure. Promptbook validates the agent response against this schema and asks
-                        the agent to try again if the payload is invalid.
+                        the agent to try again if the payload is invalid. This works alongside the default
+                        text response, so you can switch between formats using the tabs above.
                     </p>
-                    <p className="text-sm text-gray-500">Example request body:</p>
-                    <CodePreview code={responseFormatSchemaExample} language="json" />
                 </div>
             </div>
 
