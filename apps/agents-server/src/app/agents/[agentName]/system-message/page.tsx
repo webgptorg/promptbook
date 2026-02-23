@@ -1,5 +1,6 @@
 'use server';
 
+import { BackToAgentButton } from '@/src/components/BackToAgentButton/BackToAgentButton';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideServer } from '@/src/tools/$provideServer';
 import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
@@ -86,6 +87,7 @@ export default async function AgentSystemMessagePage({ params }: { params: Promi
                             Generated paraemeters for model and AI tools
                         </p>
                     </div>
+                    <BackToAgentButton agentName={agentName} />
                 </div>
 
                 <div className="p-6">

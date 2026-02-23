@@ -1,3 +1,4 @@
+import { BackToAgentButton } from '@/src/components/BackToAgentButton/BackToAgentButton';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { formatAgentNamingText } from '@/src/utils/agentNaming';
 import { getAgentNaming } from '@/src/utils/getAgentNaming';
@@ -35,6 +36,7 @@ export default async function AgentHistoryPage({ params }: { params: Promise<{ a
                         {formatAgentNamingText('Previous versions of this agent.', agentNaming)}
                     </p>
                 </div>
+                <BackToAgentButton agentName={agentName} />
             </header>
 
             {history.length === 0 ? (

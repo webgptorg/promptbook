@@ -12,7 +12,6 @@ import {
     LogIn,
     LogOut,
     MessageSquareIcon,
-    MoreHorizontalIcon,
     NotebookPenIcon,
 } from 'lucide-react';
 import Image from 'next/image';
@@ -1193,13 +1192,11 @@ export function Header(props: HeaderProps) {
     const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
     const [isAgentsOpen, setIsAgentsOpen] = useState(false);
     const [isAgentViewOpen, setIsAgentViewOpen] = useState(false);
-    const [isMoreOpen, setIsMoreOpen] = useState(false);
     const [isDocsOpen, setIsDocsOpen] = useState(false);
     const [isSystemOpen, setIsSystemOpen] = useState(false);
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [isMobileAgentsOpen, setIsMobileAgentsOpen] = useState(false);
     const [isMobileAgentViewOpen, setIsMobileAgentViewOpen] = useState(false);
-    const [isMobileMoreOpen, setIsMobileMoreOpen] = useState(false);
     const [isMobileDocsOpen, setIsMobileDocsOpen] = useState(false);
     const [isMobileSystemOpen, setIsMobileSystemOpen] = useState(false);
     const [mobileOpenSubMenus, setMobileOpenSubMenus] = useState<Record<string, boolean>>({});
@@ -1221,7 +1218,6 @@ export function Header(props: HeaderProps) {
             setMobileOpenSubMenus({});
             setIsMobileAgentsOpen(false);
             setIsMobileAgentViewOpen(false);
-            setIsMobileMoreOpen(false);
             setIsMobileDocsOpen(false);
             setIsMobileSystemOpen(false);
         }
@@ -1503,46 +1499,12 @@ export function Header(props: HeaderProps) {
                   : []),
           ]
         : [];
-    const derivedAgentName = activeAgent?.agentName ?? null;
-    const agentFolderContext = useMemo(
-        () => (activeAgent ? buildAgentFolderContext(activeAgent.folderId, agentFolderById) : null),
-        [activeAgent, agentFolderById],
-    );
-    const agentNavigationEntries = useMemo(
-        () =>
-            buildAgentNavigationEntries({
-                agentNavigationId: activeAgentNavigationId,
-                derivedAgentName,
-                folderContext: agentFolderContext,
-                formatText,
-                isAdmin,
-            }),
-        [activeAgentNavigationId, derivedAgentName, agentFolderContext, formatText, isAdmin],
-    );
-    const agentNavigationMoreItems = useMemo(() => {
-        const items: SubMenuItem[] = [];
-        agentNavigationEntries.general.forEach((entry) => {
-            items.push({ label: entry.label, href: entry.href });
-        });
-        agentNavigationEntries.admin.forEach((entry, index) => {
-            items.push({
-                label: entry.label,
-                href: entry.href,
-                isBordered: agentNavigationEntries.general.length > 0 && index === 0,
-            });
-        });
-        return items;
-    }, [agentNavigationEntries.general, agentNavigationEntries.admin]);
     const closeAgentsDropdown = () => {
         setIsAgentsOpen(false);
         setIsMenuOpen(false);
     };
     const closeAgentViewDropdown = () => {
         setIsAgentViewOpen(false);
-        setIsMenuOpen(false);
-    };
-    const closeAgentMoreDropdown = () => {
-        setIsMoreOpen(false);
         setIsMenuOpen(false);
     };
 
@@ -2097,62 +2059,6 @@ export function Header(props: HeaderProps) {
                                                         onClick={closeAgentViewDropdown}
                                                     >
                                                         {viewItem.label}
-                                                    </HeadlessLink>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
-                                </>
-                            )}
-                            {agentNavigationMoreItems.length > 0 && (
-                                <>
-                                    <ChevronRight className="hidden sm:block h-4 w-4 text-gray-300" />
-                                    <div
-                                        className="relative hidden sm:block"
-                                        onMouseEnter={() => {
-                                            cancelMenuClose('agent-more');
-                                            if (!isTouchInput) {
-                                                setIsMoreOpen(true);
-                                            }
-                                        }}
-                                        onMouseLeave={() => scheduleMenuClose('agent-more', () => setIsMoreOpen(false))}
-                                    >
-                                        <button
-                                            className="flex items-center gap-2 rounded-full px-2 sm:px-3 py-1 text-xs sm:text-sm font-semibold text-gray-700 hover:bg-gray-100 transition"
-                                            onClick={() => {
-                                                cancelMenuClose('agent-more');
-                                                setIsMoreOpen(!isMoreOpen);
-                                            }}
-                                            onMouseEnter={() => {
-                                                cancelMenuClose('agent-more');
-                                                if (!isTouchInput) {
-                                                    setIsMoreOpen(true);
-                                                }
-                                            }}
-                                            onBlur={() => scheduleMenuClose('agent-more', () => setIsMoreOpen(false))}
-                                        >
-                                            <span className="flex items-center gap-1">
-                                                <MoreHorizontalIcon className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
-                                                <span>{formatText('More')}</span>
-                                            </span>
-                                            <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
-                                        </button>
-                                        {isMoreOpen && (
-                                            <div
-                                                className="absolute left-0 top-full z-50 mt-2 min-w-[200px] rounded-xl border border-gray-100 bg-white/95 py-1.5 shadow-xl shadow-slate-900/10 animate-in fade-in zoom-in-95 duration-200 backdrop-blur"
-                                                onMouseEnter={() => cancelMenuClose('agent-more')}
-                                                onMouseLeave={() =>
-                                                    scheduleMenuClose('agent-more', () => setIsMoreOpen(false))
-                                                }
-                                            >
-                                                {agentNavigationMoreItems.map((item, index) => (
-                                                    <HeadlessLink
-                                                        key={`more-${index}`}
-                                                        href={item.href!}
-                                                        className="mx-1 block rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-                                                        onClick={closeAgentMoreDropdown}
-                                                    >
-                                                        {item.label}
                                                     </HeadlessLink>
                                                 ))}
                                             </div>
@@ -2755,41 +2661,6 @@ export function Header(props: HeaderProps) {
                                                             onClick={() => setIsMenuOpen(false)}
                                                         >
                                                             {viewItem.label}
-                                                        </HeadlessLink>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-                                    {agentNavigationMoreItems.length > 0 && (
-                                        <div className="w-full max-w-[90vw] flex flex-col gap-1">
-                                            <div className="flex items-center justify-center gap-2 text-sm font-medium text-gray-700">
-                                                <ChevronRight className="h-4 w-4 text-gray-300" />
-                                                <button
-                                                    className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold text-gray-900 hover:bg-gray-100 transition"
-                                                    onClick={() => setIsMobileMoreOpen(!isMobileMoreOpen)}
-                                                >
-                                                    <span className="flex items-center gap-1">
-                                                        <MoreHorizontalIcon className="h-3 w-3 text-gray-400" />
-                                                        {formatText('More')}
-                                                    </span>
-                                                    <ChevronDown
-                                                        className={`h-4 w-4 transition-transform duration-200 ${
-                                                            isMobileMoreOpen ? 'rotate-180' : ''
-                                                        }`}
-                                                    />
-                                                </button>
-                                            </div>
-                                            {isMobileMoreOpen && (
-                                                <div className="flex flex-col gap-1 rounded-lg border border-gray-200 bg-gradient-to-b from-gray-50 to-white p-3 shadow-sm animate-in fade-in-0 slide-in-from-top-2 duration-200">
-                                                    {agentNavigationMoreItems.map((item, index) => (
-                                                        <HeadlessLink
-                                                            key={`mobile-more-item-${index}`}
-                                                            href={item.href || '/agents'}
-                                                            className="block rounded-md px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-gray-900 hover:shadow-sm active:scale-98 transition-all duration-150"
-                                                            onClick={() => setIsMenuOpen(false)}
-                                                        >
-                                                            {item.label}
                                                         </HeadlessLink>
                                                     ))}
                                                 </div>

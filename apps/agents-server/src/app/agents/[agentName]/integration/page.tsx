@@ -1,5 +1,6 @@
 'use server';
 
+import { BackToAgentButton } from '@/src/components/BackToAgentButton/BackToAgentButton';
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabase } from '@/src/database/$provideSupabase';
 import { $provideServer } from '@/src/tools/$provideServer';
@@ -223,6 +224,7 @@ export default async function AgentIntegrationPage({ params }: AgentIntegrationP
                             Integration Options
                         </p>
                     </div>
+                    <BackToAgentButton agentName={agentName} />
                 </div>
 
                 <div className="p-6 space-y-6">

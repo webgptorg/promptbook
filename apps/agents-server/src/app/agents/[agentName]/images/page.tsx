@@ -2,6 +2,7 @@
 
 import { saturate } from '@promptbook-local/color';
 import { PROMPTBOOK_COLOR } from '@promptbook-local/core';
+import { BackToAgentButton } from '@/src/components/BackToAgentButton/BackToAgentButton';
 import Link from 'next/link';
 import { Color } from '../../../../../../../src/utils/color/Color';
 import { formatAgentNamingText } from '@/src/utils/agentNaming';
@@ -112,6 +113,7 @@ export default async function AgentImagesPage({ params }: { params: Promise<{ ag
                                 Assets for <strong>{fullname}</strong>
                             </h1>
                         </div>
+                        <BackToAgentButton agentName={agentName} />
                     </div>
                     <p style={{ margin: 0, color: 'rgba(255,255,255,0.8)', fontSize: '1rem' }}>
                         {formatAgentNamingText(
