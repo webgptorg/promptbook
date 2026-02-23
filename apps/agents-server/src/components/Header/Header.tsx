@@ -24,8 +24,6 @@ import { useMenuHoisting } from '../../../../../src/book-components/_common/Menu
 import { resolveAgentAvatarImageUrl } from '../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 import { just } from '../../../../../src/utils/organization/just';
 import { RESERVED_PATHS } from '../../generated/reservedPaths';
-import { buildAgentNavigationEntries } from '../../utils/agentNavigationLinks';
-import { buildAgentFolderContext } from '../../utils/agentOrganization/agentFolderContext';
 import { buildFolderPath, getFolderPathSegments } from '../../utils/agentOrganization/folderPath';
 import type { AgentOrganizationAgent, AgentOrganizationFolder } from '../../utils/agentOrganization/types';
 import type { UserInfo } from '../../utils/getCurrentUser';
