@@ -32,7 +32,7 @@ import { $getCurrentDate } from '@promptbook-local/utils';
 import { NextRequest, NextResponse } from 'next/server';
 import type OpenAI from 'openai';
 import { computeUsageCounts } from '../../../../src/execution/utils/computeUsageCounts';
-import { encodeChatStreamWhitespaceForTransport } from '../../../../src/utils/chat/constants';
+import { encodeChatStreamWhitespaceForTransport } from '../../../../src/utils/chat/encodeChatStreamWhitespaceForTransport';
 import { isAgentDeleted } from '../app/agents/[agentName]/_utils';
 import { HTTP_STATUS_CODES } from '../constants';
 import { AgentKitCacheManager } from './cache/AgentKitCacheManager';
