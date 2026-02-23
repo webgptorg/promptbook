@@ -18,7 +18,6 @@
 -   You are not implementing limiting of this usage. You are just implementing it to show the usage. Limiting will be implemented in the future.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   Create a database migration if it is needed.
--
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
@@ -40,11 +39,14 @@
 
 [✨🆑] Record full usage, not only the count.
 
--   @@@
+-   There are good usage statistics, but we are collecting or showing just how many times the agent was asked to aggregate [full usage](src/execution/Usage.ts).
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
+-   Create a database migration if it is needed.
+    -   Migrations are located in `/apps/agents-server/src/database/migrations`
+    -   Be aware that table names in migrations have prefix `prefix_` _(look at existing migrations for reference)_
+    -   When using table names in supabase queries, use the `$getTableName` utility function to get the correct table name with prefix, for example: `await supabase.from(await $getTableName('Agent')).select('...')`
+-   Do a proper analysis of the current functionality usage before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
 
@@ -79,4 +81,3 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-

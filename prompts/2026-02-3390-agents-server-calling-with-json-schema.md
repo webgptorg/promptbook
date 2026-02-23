@@ -78,14 +78,70 @@ Do theese modifications:
 
 ---
 
-[-]
+[ ]
 
-[✨🪗] bar
+[✨🪗] Fix the proper indentation in the samples in OpenAI Compatible API.
 
+**Now it produces such a code samples:**
+
+```
+        curl https://pavol-hejny.ptbk.io/agents/NFR94UDUAHzmAX/api/openai/v1/chat/completions \
+          -H "Content-Type: application/json" \
+          -H "Authorization: Bearer ptbk_05f950e8b3164aa2a5f040ae9c1c3889" \
+          -d '{
+  "model": "agent:NFR94UDUAHzmAX",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Hello!"
+    }
+  ]
+}'
+```
+
+**Or:**
+
+```
+        curl https://pavol-hejny.ptbk.io/agents/NFR94UDUAHzmAX/api/openai/v1/chat/completions \
+          -H "Content-Type: application/json" \
+          -H "Authorization: Bearer ptbk_05f950e8b3164aa2a5f040ae9c1c3889" \
+          -d '{
+  "model": "agent:NFR94UDUAHzmAX",
+  "messages": [
+    {
+      "role": "user",
+      "content": "List the key topics and include a short message about them."
+    }
+  ],
+  "response_format": {
+    "type": "json_schema",
+    "json_schema": {
+      "type": "object",
+      "properties": {
+        "topics": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "topics",
+        "message"
+      ]
+    }
+  }
+}'
+```
+
+-   These are technically correct, but not properly indented.
+-   Use the `spaceTrim` utility to fix it.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
--   You are working with the [Agents Server](apps/agents-server)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
+-   You are working with the [Agents Server](apps/agents-server) with page for example https://pavol-hejny.ptbk.io/agents/NFR94UDUAHzmAX/integration
 
 ---
 
@@ -95,6 +151,4 @@ Do theese modifications:
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
--   You are working with the [Agents Server](apps/agents-server)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
-
+-   You are working with the [Agents Server](apps/agents-server) with page for example https://pavol-hejny.ptbk.io/agents/NFR94UDUAHzmAX/integration
