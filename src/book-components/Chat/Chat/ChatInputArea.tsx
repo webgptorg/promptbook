@@ -484,13 +484,13 @@ export function ChatInputArea(props: ChatInputAreaProps) {
                         backgroundColor: buttonColor.toHex(),
                         color: buttonColor.then(textColor).toHex(),
                     }}
-                onClick={onButtonClick((event) => {
-                    event.preventDefault();
-                    /* not await */ handleSend();
-                })}
-            >
-                <SendIcon size={25} />
-            </button>
+                    onClick={onButtonClick((event) => {
+                        event.preventDefault();
+                        /* not await */ handleSend();
+                    })}
+                >
+                    <SendIcon size={25} />
+                </button>
             </div>
             {voiceStatusMessage && (
                 <div className={styles.voiceStatus} aria-live="polite">

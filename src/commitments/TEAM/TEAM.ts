@@ -2,10 +2,7 @@ import { spaceTrim } from 'spacetrim';
 import { string_javascript_name } from '../../_packages/types.index';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
 import { parseTeamCommitmentContent, type TeamTeammate } from '../../book-2.0/agent-source/parseTeamCommitment';
-import {
-    resolvePseudoAgentKindFromUrl,
-    type PseudoAgentKind,
-} from '../../book-2.0/agent-source/pseudoAgentReferences';
+import { resolvePseudoAgentKindFromUrl, type PseudoAgentKind } from '../../book-2.0/agent-source/pseudoAgentReferences';
 import type { PromptResult } from '../../execution/PromptResult';
 import type { RemoteAgent } from '../../llm-providers/agent/RemoteAgent';
 import { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
