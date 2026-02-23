@@ -26,19 +26,19 @@ import { useMenuHoisting } from '../../../../../src/book-components/_common/Menu
 import { resolveAgentAvatarImageUrl } from '../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 import { just } from '../../../../../src/utils/organization/just';
 import { RESERVED_PATHS } from '../../generated/reservedPaths';
-import { buildFolderPath, getFolderPathSegments } from '../../utils/agentOrganization/folderPath';
 import { buildAgentFolderContext } from '../../utils/agentOrganization/agentFolderContext';
+import { buildFolderPath, getFolderPathSegments } from '../../utils/agentOrganization/folderPath';
 import type { AgentOrganizationAgent, AgentOrganizationFolder } from '../../utils/agentOrganization/types';
 import type { UserInfo } from '../../utils/getCurrentUser';
 import { getVisibleCommitmentDefinitions } from '../../utils/getVisibleCommitmentDefinitions';
-import { QrCodeModal } from '../AgentProfile/QrCodeModal';
+import { HeadlessLink, pushWithHeadless, useIsHeadless } from '../_utils/headlessParam';
 import {
     useAgentContextMenuItems,
     useInstallPromptState,
     type AgentContextMenuRenamePayload,
 } from '../AgentContextMenu/AgentContextMenu';
-import { HeadlessLink, pushWithHeadless, useIsHeadless } from '../_utils/headlessParam';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
+import { QrCodeModal } from '../AgentProfile/QrCodeModal';
 import { showAlert, showLoginDialog } from '../AsyncDialogs/asyncDialogs';
 import { ChangePasswordDialog } from '../ChangePasswordDialog/ChangePasswordDialog';
 import type { ContextMenuItem } from '../ContextMenu/ContextMenuPanel';
@@ -407,10 +407,7 @@ function buildDocumentationDropdownItems(groups: ReadonlyArray<DocumentationComm
 /**
  * Agent data required for the folder-organized header menu.
  */
-type HeaderAgentMenuAgent = Pick<
-    AgentOrganizationAgent,
-    'agentName' | 'permanentId' | 'meta' | 'folderId' | 'sortOrder'
->;
+type HeaderAgentMenuAgent = AgentOrganizationAgent;
 
 /**
  * Folder data required for the folder-organized header menu.
@@ -1510,11 +1507,7 @@ export function Header(props: HeaderProps) {
     /**
      * Renders agent view dropdown items with nested "More" sections.
      */
-    const renderAgentViewDropdownItems = (
-        items: ReadonlyArray<SubMenuItem>,
-        keyPrefix: string,
-        depth = 0,
-    ): ReactNode =>
+    const renderAgentViewDropdownItems = (items: ReadonlyArray<SubMenuItem>, keyPrefix: string, depth = 0): ReactNode =>
         items.map((item, index) => {
             const itemKey = `${keyPrefix}-${index}`;
             const hasChildren = Boolean(item.items && item.items.length > 0);
@@ -1618,10 +1611,7 @@ export function Header(props: HeaderProps) {
         ? createAgentHierarchyLabel(activeAgent, agentFolderById)
         : activeAgentIdentifier || formatText('Agents');
     const activeAgentView = activeAgentNavigation.view;
-    const activeAgentFallback = useMemo(
-        () => createFallbackAgent(activeAgentNavigationId),
-        [activeAgentNavigationId],
-    );
+    const activeAgentFallback = useMemo(() => createFallbackAgent(activeAgentNavigationId), [activeAgentNavigationId]);
     const activeAgentMenuAgent = activeAgent || activeAgentFallback;
     const activeAgentFolderContext = useMemo(
         () => buildAgentFolderContext(activeAgentMenuAgent.folderId, agentFolderById),
@@ -1677,7 +1667,7 @@ export function Header(props: HeaderProps) {
             }
 
             const usesPermanentId =
-                Boolean(activeAgent?.permanentId) && activeAgentNavigationId === activeAgent.permanentId;
+                Boolean(activeAgent?.permanentId) && activeAgentNavigationId === activeAgent?.permanentId;
 
             if (usesPermanentId) {
                 router.refresh();
@@ -2066,7 +2056,7 @@ export function Header(props: HeaderProps) {
                     personaDescription={activeAgent.personaDescription || ''}
                     agentUrl={activeAgentUrl}
                     agentEmail={activeAgentEmail}
-                    brandColorHex={activeAgent.meta.color || PROMPTBOOK_COLOR}
+                    brandColorHex={activeAgent.meta.color || PROMPTBOOK_COLOR.toHex()}
                 />
             )}
             <div className="relative w-full px-4 h-full">
