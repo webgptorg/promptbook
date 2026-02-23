@@ -26,7 +26,6 @@ import { useRouter } from 'next/navigation';
 import type { CSSProperties } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { just } from '../../../../../src/utils/organization/just';
-import type { AgentProfile } from '../../app/agents/[agentName]/AgentProfileWrapper';
 import { getAgentLinks } from '../../app/agents/[agentName]/agentLinks';
 import { deleteAgent } from '../../app/recycle-bin/actions';
 import type { AgentFolderContext } from '../../utils/agentOrganization/agentFolderContext';
@@ -44,6 +43,16 @@ import { useMetadataFlags } from '../MetadataFlags/MetadataFlagsContext';
 type BeforeInstallPromptEvent = Event & {
     prompt: () => Promise<void>;
     userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
+};
+
+/**
+ * Agent data required to populate agent menu actions.
+ */
+type AgentContextMenuAgent = AgentBasicInformation & {
+    /**
+     * Visibility of the agent (PUBLIC or PRIVATE) when known.
+     */
+    readonly visibility?: 'PUBLIC' | 'PRIVATE';
 };
 
 /**
@@ -67,7 +76,7 @@ type AgentContextMenuBaseProps = {
     /**
      * Agent profile with visibility status.
      */
-    readonly agent: AgentProfile;
+    readonly agent: AgentContextMenuAgent;
     /**
      * Agent name used in the current route or list context.
      */
@@ -154,7 +163,7 @@ type AgentContextMenuPopoverProps = AgentContextMenuBaseProps & {
  *
  * @returns Install prompt event, install status, and installer callback.
  */
-function useInstallPromptState() {
+export function useInstallPromptState() {
     const [installPromptEvent, setInstallPromptEvent] = useState<BeforeInstallPromptEvent | null>(null);
     const [isInstalled, setIsInstalled] = useState(false);
 
@@ -210,9 +219,12 @@ function useInstallPromptState() {
 }
 
 /**
- * Shared menu content for agent menus.
+ * Builds the menu item list for agent menus.
+ *
+ * @param props - Agent menu configuration.
+ * @returns Ordered list of context menu items.
  */
-function AgentContextMenuContent(props: AgentContextMenuBaseProps & { onClose: () => void }) {
+export function useAgentContextMenuItems(props: AgentContextMenuBaseProps): ContextMenuItem[] {
     const {
         agent,
         agentName,
@@ -229,7 +241,6 @@ function AgentContextMenuContent(props: AgentContextMenuBaseProps & { onClose: (
         isInstalled = false,
         onInstallApp,
         fromDirectoryListing,
-        onClose,
     } = props;
 
     const { isExperimentalPwaAppEnabled } = useMetadataFlags();
@@ -443,6 +454,7 @@ function AgentContextMenuContent(props: AgentContextMenuBaseProps & { onClose: (
         [agentName, formatText, permanentId],
     );
 
+    const shouldShowVisibilityToggle = Boolean(isAdmin && agent.visibility);
     const menuItems: ContextMenuItem[] = [
         ...(fromDirectoryListing
             ? [
@@ -556,20 +568,24 @@ function AgentContextMenuContent(props: AgentContextMenuBaseProps & { onClose: (
         ...(isAdmin
             ? [
                   { type: 'divider' as const },
-                  agent.visibility === 'PRIVATE'
-                      ? {
-                            type: 'action' as const,
-                            icon: GlobeIcon,
-                            label: formatText('Make Public'),
-                            onClick: () => handleSetVisibility('PUBLIC'),
-                        }
-                      : {
-                            type: 'action' as const,
-                            icon: LockIcon,
-                            label: formatText('Make Private'),
-                            onClick: () => handleSetVisibility('PRIVATE'),
-                        },
-                  { type: 'divider' as const },
+                  ...(shouldShowVisibilityToggle
+                      ? [
+                            agent.visibility === 'PRIVATE'
+                                ? {
+                                      type: 'action' as const,
+                                      icon: GlobeIcon,
+                                      label: formatText('Make Public'),
+                                      onClick: () => handleSetVisibility('PUBLIC'),
+                                  }
+                                : {
+                                      type: 'action' as const,
+                                      icon: LockIcon,
+                                      label: formatText('Make Private'),
+                                      onClick: () => handleSetVisibility('PRIVATE'),
+                                  },
+                            { type: 'divider' as const },
+                        ]
+                      : []),
                   {
                       type: 'link' as const,
                       href: `/admin/chat-history?agentName=${encodeURIComponent(agentName)}`,
@@ -612,9 +628,17 @@ function AgentContextMenuContent(props: AgentContextMenuBaseProps & { onClose: (
             : []),
     ];
 
-    return (
-        <ContextMenuPanel menuItems={menuItems} onClose={onClose} />
-    );
+    return menuItems;
+}
+
+/**
+ * Shared menu content for agent menus.
+ */
+function AgentContextMenuContent(props: AgentContextMenuBaseProps & { onClose: () => void }) {
+    const { onClose } = props;
+    const menuItems = useAgentContextMenuItems(props);
+
+    return <ContextMenuPanel menuItems={menuItems} onClose={onClose} />;
 }
 
 /**

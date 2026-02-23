@@ -1,6 +1,5 @@
 'use client';
 
-import { BackToAgentButton } from '@/src/components/BackToAgentButton/BackToAgentButton';
 import Editor from '@monaco-editor/react';
 import { AgentBasicInformation, string_url } from '@promptbook-local/types';
 import { ChevronDownIcon, CodeIcon } from 'lucide-react';
@@ -147,7 +146,6 @@ export function AgentCodePageClient({ agentName, publicUrl }: AgentCodePageClien
                             Generated Code
                         </p>
                     </div>
-                    <BackToAgentButton agentName={agentName} />
                 </div>
 
                 <div className="p-6">

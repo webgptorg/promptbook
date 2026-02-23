@@ -2,6 +2,7 @@
 
 import promptbookLogoBlueTransparent from '@/public/logo-blue-white-256.png';
 import { $createAgentAction, logoutAction } from '@/src/app/actions';
+import { PROMPTBOOK_COLOR } from '@promptbook-local/core';
 import {
     ArrowRight,
     ChevronDown,
@@ -12,12 +13,13 @@ import {
     LogIn,
     LogOut,
     MessageSquareIcon,
+    MoreHorizontalIcon,
     NotebookPenIcon,
 } from 'lucide-react';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import type { CSSProperties, MouseEvent, ReactNode } from 'react';
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { HamburgerMenu } from '../../../../../src/book-components/_common/HamburgerMenu/HamburgerMenu';
 import { useMenuHoisting } from '../../../../../src/book-components/_common/MenuHoisting/MenuHoistingContext';
@@ -25,13 +27,21 @@ import { resolveAgentAvatarImageUrl } from '../../../../../src/utils/agents/reso
 import { just } from '../../../../../src/utils/organization/just';
 import { RESERVED_PATHS } from '../../generated/reservedPaths';
 import { buildFolderPath, getFolderPathSegments } from '../../utils/agentOrganization/folderPath';
+import { buildAgentFolderContext } from '../../utils/agentOrganization/agentFolderContext';
 import type { AgentOrganizationAgent, AgentOrganizationFolder } from '../../utils/agentOrganization/types';
 import type { UserInfo } from '../../utils/getCurrentUser';
 import { getVisibleCommitmentDefinitions } from '../../utils/getVisibleCommitmentDefinitions';
+import { QrCodeModal } from '../AgentProfile/QrCodeModal';
+import {
+    useAgentContextMenuItems,
+    useInstallPromptState,
+    type AgentContextMenuRenamePayload,
+} from '../AgentContextMenu/AgentContextMenu';
 import { HeadlessLink, pushWithHeadless, useIsHeadless } from '../_utils/headlessParam';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 import { showAlert, showLoginDialog } from '../AsyncDialogs/asyncDialogs';
 import { ChangePasswordDialog } from '../ChangePasswordDialog/ChangePasswordDialog';
+import type { ContextMenuItem } from '../ContextMenu/ContextMenuPanel';
 import { FolderAppearanceIcon } from '../FolderAppearance/FolderAppearanceIcon';
 import { useUsersAdmin } from '../UsersList/useUsersAdmin';
 import { HeaderControlPanelDropdown } from './ControlPanel/ControlPanel';
@@ -436,7 +446,7 @@ const AGENT_MENU_MAX_WIDTH_CLASS = 'max-w-[220px]';
 /**
  * Views that can be selected for one active agent in the hierarchy.
  */
-type AgentHierarchyView = 'Profile' | 'Chat' | 'Book';
+type AgentHierarchyView = 'Profile' | 'Chat' | 'Book' | 'More';
 
 /**
  * Icon displayed next to each hierarchy view label.
@@ -447,6 +457,7 @@ const AGENT_VIEW_ICON_MAP: Record<AgentHierarchyView, typeof FileTextIcon> = {
     Profile: FileTextIcon,
     Chat: MessageSquareIcon,
     Book: NotebookPenIcon,
+    More: MoreHorizontalIcon,
 };
 
 /**
@@ -544,6 +555,66 @@ function createAgentViewLabel(view: AgentHierarchyView, formatText: (value: stri
 }
 
 /**
+ * Converts context menu items into submenu entries for the agent view dropdown.
+ *
+ * @param menuItems - Context menu entries to map.
+ * @returns View submenu items with divider boundaries preserved as borders.
+ */
+function mapContextMenuItemsToSubMenuItems(menuItems: ReadonlyArray<ContextMenuItem>): SubMenuItem[] {
+    const items: SubMenuItem[] = [];
+    let lastItemIndex = -1;
+
+    menuItems.forEach((item) => {
+        if (item.type === 'divider') {
+            if (lastItemIndex >= 0) {
+                items[lastItemIndex] = { ...items[lastItemIndex], isBordered: true };
+            }
+            return;
+        }
+
+        const mappedItem: SubMenuItem =
+            item.type === 'link'
+                ? {
+                      label: item.label,
+                      href: item.href,
+                  }
+                : {
+                      label: item.label,
+                      onClick: item.onClick,
+                  };
+
+        items.push(mappedItem);
+        lastItemIndex = items.length - 1;
+    });
+
+    return items;
+}
+
+/**
+ * Builds a minimal agent payload for menu rendering fallback scenarios.
+ *
+ * @param agentIdentifier - Active agent identifier when available.
+ * @returns Placeholder agent data to satisfy menu helpers.
+ */
+function createFallbackAgent(agentIdentifier: string | null): AgentOrganizationAgent {
+    return {
+        agentName: agentIdentifier || 'Agent',
+        agentHash: '',
+        personaDescription: null,
+        initialMessage: null,
+        meta: {},
+        links: [],
+        parameters: [],
+        capabilities: [],
+        samples: [],
+        knowledgeSources: [],
+        visibility: 'PRIVATE',
+        folderId: null,
+        sortOrder: 0,
+    };
+}
+
+/**
  * Resolved route context used to render hierarchy crumbs.
  */
 type ActiveAgentNavigation = {
@@ -585,7 +656,7 @@ function resolveAgentHierarchyView(segment: string | undefined): AgentHierarchyV
         return 'Book';
     }
 
-    return null;
+    return 'More';
 }
 
 /**
@@ -1210,6 +1281,8 @@ export function Header(props: HeaderProps) {
     const menuHoisting = useMenuHoisting();
     const { formatText } = useAgentNaming();
     const [desktopExpandedSubMenus, setDesktopExpandedSubMenus] = useState<Record<string, boolean>>({});
+    const [isAgentQrCodeOpen, setIsAgentQrCodeOpen] = useState(false);
+    const { installPromptEvent, isInstalled, handleInstallApp } = useInstallPromptState();
 
     useEffect(() => {
         if (!isMenuOpen) {
@@ -1434,6 +1507,84 @@ export function Header(props: HeaderProps) {
         );
     };
 
+    /**
+     * Renders agent view dropdown items with nested "More" sections.
+     */
+    const renderAgentViewDropdownItems = (
+        items: ReadonlyArray<SubMenuItem>,
+        keyPrefix: string,
+        depth = 0,
+    ): ReactNode =>
+        items.map((item, index) => {
+            const itemKey = `${keyPrefix}-${index}`;
+            const hasChildren = Boolean(item.items && item.items.length > 0);
+            const borderClass = item.isBordered ? 'border-b border-gray-100' : '';
+            const paddingClass = depth > 0 ? 'pl-4' : '';
+            const baseClassName = `mx-1 block rounded-lg px-3 py-2 text-sm transition-colors ${paddingClass} ${
+                item.isBold ? 'font-medium text-gray-900' : 'text-gray-700'
+            } hover:bg-gray-50 hover:text-gray-900 ${borderClass}`.trim();
+
+            if (!hasChildren) {
+                if (item.onClick) {
+                    return (
+                        <button
+                            key={itemKey}
+                            className={`${baseClassName} w-full text-left`}
+                            onClick={() => {
+                                void item.onClick?.();
+                                closeAgentViewDropdown();
+                            }}
+                        >
+                            {item.label}
+                        </button>
+                    );
+                }
+
+                if (item.href) {
+                    return (
+                        <HeadlessLink
+                            key={itemKey}
+                            href={item.href}
+                            className={baseClassName}
+                            onClick={closeAgentViewDropdown}
+                        >
+                            {item.label}
+                        </HeadlessLink>
+                    );
+                }
+
+                return (
+                    <span key={itemKey} className={baseClassName}>
+                        {item.label}
+                    </span>
+                );
+            }
+
+            const isSubMenuOpen = Boolean(desktopExpandedSubMenus[itemKey]);
+
+            return (
+                <div key={itemKey} className={`mx-1 ${borderClass}`}>
+                    <button
+                        type="button"
+                        className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900 ${paddingClass}`}
+                        onClick={() => toggleDesktopSubMenu(itemKey)}
+                    >
+                        <span>{item.label}</span>
+                        <ChevronDown
+                            className={`h-3 w-3 text-gray-400 transition-transform ${
+                                isSubMenuOpen ? 'rotate-180' : ''
+                            }`}
+                        />
+                    </button>
+                    {isSubMenuOpen && (
+                        <div className="mt-1 border-l border-gray-100 pl-2">
+                            {renderAgentViewDropdownItems(item.items || [], itemKey, depth + 1)}
+                        </div>
+                    )}
+                </div>
+            );
+        });
+
     const { users: adminUsers } = useUsersAdmin();
     const agentMenuStructure = useMemo(() => buildAgentMenuStructure(agents, agentFolders), [agents, agentFolders]);
     const agentMenuTree = agentMenuStructure.tree;
@@ -1467,6 +1618,20 @@ export function Header(props: HeaderProps) {
         ? createAgentHierarchyLabel(activeAgent, agentFolderById)
         : activeAgentIdentifier || formatText('Agents');
     const activeAgentView = activeAgentNavigation.view;
+    const activeAgentFallback = useMemo(
+        () => createFallbackAgent(activeAgentNavigationId),
+        [activeAgentNavigationId],
+    );
+    const activeAgentMenuAgent = activeAgent || activeAgentFallback;
+    const activeAgentFolderContext = useMemo(
+        () => buildAgentFolderContext(activeAgentMenuAgent.folderId, agentFolderById),
+        [activeAgentMenuAgent.folderId, agentFolderById],
+    );
+    const activeAgentOrigin = typeof window !== 'undefined' ? window.location.origin : '';
+    const activeAgentHostname = typeof window !== 'undefined' ? window.location.hostname : '';
+    const activeAgentUrl = activeAgentNavigationId ? `${activeAgentOrigin}${activeAgentHref}` : '';
+    const activeAgentEmail =
+        activeAgentNavigationId && activeAgentHostname ? `${activeAgentNavigationId}@${activeAgentHostname}` : '';
     const activeAgentAvatarUrl = useMemo(() => {
         if (!activeAgent) {
             return null;
@@ -1477,6 +1642,95 @@ export function Header(props: HeaderProps) {
     const currentUserDisplayName = currentUser?.username || 'Admin';
     const currentUserAvatarLabel = currentUserDisplayName.slice(0, 1).toUpperCase();
     const currentUserProfileImageUrl = currentUser?.profileImageUrl?.trim() || null;
+    /**
+     * Opens the active agent QR code modal.
+     */
+    const handleShowAgentQrCode = useCallback(() => {
+        setIsAgentQrCodeOpen(true);
+    }, []);
+
+    /**
+     * Closes the active agent QR code modal.
+     */
+    const handleCloseAgentQrCode = useCallback(() => {
+        setIsAgentQrCodeOpen(false);
+    }, []);
+
+    /**
+     * Closes the agent view dropdown after a selection.
+     */
+    const closeAgentViewDropdown = () => {
+        setIsAgentViewOpen(false);
+        setIsMenuOpen(false);
+    };
+
+    /**
+     * Updates the current route after a rename initiated from the header menu.
+     *
+     * @param payload - Rename payload from the agent menu.
+     */
+    const handleAgentRenamedFromHeader = useCallback(
+        (payload: AgentContextMenuRenamePayload) => {
+            const nextAgentName = payload.agent.agentName;
+            if (!nextAgentName) {
+                return;
+            }
+
+            const usesPermanentId =
+                Boolean(activeAgent?.permanentId) && activeAgentNavigationId === activeAgent.permanentId;
+
+            if (usesPermanentId) {
+                router.refresh();
+                return;
+            }
+
+            if (!pathname) {
+                router.refresh();
+                return;
+            }
+
+            const pathSegments = pathname.split('/').filter(Boolean);
+            if (pathSegments.length === 0) {
+                router.refresh();
+                return;
+            }
+
+            if (pathSegments[0] === 'agents' && pathSegments[1]) {
+                pathSegments[1] = encodeURIComponent(nextAgentName);
+            } else if (!RESERVED_PATH_SET.has(pathSegments[0])) {
+                pathSegments[0] = encodeURIComponent(nextAgentName);
+            } else {
+                router.refresh();
+                return;
+            }
+
+            const search = typeof window !== 'undefined' ? window.location.search : '';
+            router.replace(`/${pathSegments.join('/')}${search}`);
+        },
+        [activeAgent?.permanentId, activeAgentNavigationId, pathname, router],
+    );
+
+    const agentContextMenuItems = useAgentContextMenuItems({
+        agent: activeAgentMenuAgent,
+        agentName: activeAgentNavigationId || activeAgentMenuAgent.agentName,
+        derivedAgentName: activeAgent?.agentName || activeAgentNavigationId || activeAgentMenuAgent.agentName,
+        permanentId: activeAgent?.permanentId,
+        agentUrl: activeAgentUrl,
+        agentEmail: activeAgentEmail,
+        folderContext: activeAgentFolderContext,
+        isAdmin,
+        onShowQrCode: handleShowAgentQrCode,
+        onAgentRenamed: handleAgentRenamedFromHeader,
+        onRequestClose: closeAgentViewDropdown,
+        installPromptEvent,
+        isInstalled,
+        onInstallApp: handleInstallApp,
+    });
+    const agentMoreViewItems = useMemo(
+        () => mapContextMenuItemsToSubMenuItems(agentContextMenuItems),
+        [agentContextMenuItems],
+    );
+
     const activeAgentViewItems: SubMenuItem[] = activeAgentNavigationId
         ? [
               {
@@ -1495,14 +1749,19 @@ export function Header(props: HeaderProps) {
                         } as SubMenuItem,
                     ]
                   : []),
+              ...(agentMoreViewItems.length > 0
+                  ? [
+                        {
+                            label: createAgentViewLabel('More', formatText),
+                            items: agentMoreViewItems,
+                        } as SubMenuItem,
+                    ]
+                  : []),
           ]
         : [];
+
     const closeAgentsDropdown = () => {
         setIsAgentsOpen(false);
-        setIsMenuOpen(false);
-    };
-    const closeAgentViewDropdown = () => {
-        setIsAgentViewOpen(false);
         setIsMenuOpen(false);
     };
 
@@ -1799,6 +2058,17 @@ export function Header(props: HeaderProps) {
     return (
         <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200 h-16">
             {isChangePasswordOpen && <ChangePasswordDialog onClose={() => setIsChangePasswordOpen(false)} />}
+            {isAgentQrCodeOpen && activeAgent && (
+                <QrCodeModal
+                    onClose={handleCloseAgentQrCode}
+                    agentName={activeAgentNavigationId || activeAgent.agentName}
+                    meta={activeAgent.meta}
+                    personaDescription={activeAgent.personaDescription || ''}
+                    agentUrl={activeAgentUrl}
+                    agentEmail={activeAgentEmail}
+                    brandColorHex={activeAgent.meta.color || PROMPTBOOK_COLOR}
+                />
+            )}
             <div className="relative w-full px-4 h-full">
                 <div className="flex items-center justify-between h-full gap-2 sm:gap-4 lg:gap-6">
                     <div className="flex-shrink min-w-0 flex-1 lg:flex-initial">
@@ -2049,16 +2319,10 @@ export function Header(props: HeaderProps) {
                                                     scheduleMenuClose('agent-view', () => setIsAgentViewOpen(false))
                                                 }
                                             >
-                                                {activeAgentViewItems.map((viewItem, index) => (
-                                                    <HeadlessLink
-                                                        key={`view-${index}`}
-                                                        href={viewItem.href!}
-                                                        className="mx-1 block rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-                                                        onClick={closeAgentViewDropdown}
-                                                    >
-                                                        {viewItem.label}
-                                                    </HeadlessLink>
-                                                ))}
+                                                {renderAgentViewDropdownItems(
+                                                    activeAgentViewItems,
+                                                    'agent-view-dropdown',
+                                                )}
                                             </div>
                                         )}
                                     </div>
@@ -2651,16 +2915,10 @@ export function Header(props: HeaderProps) {
                                             </div>
                                             {isMobileAgentViewOpen && (
                                                 <div className="flex flex-col gap-1 rounded-lg border border-gray-200 bg-gradient-to-b from-gray-50 to-white p-3 shadow-sm animate-in fade-in-0 slide-in-from-top-2 duration-200">
-                                                    {activeAgentViewItems.map((viewItem, index) => (
-                                                        <HeadlessLink
-                                                            key={`mobile-view-item-${index}`}
-                                                            href={viewItem.href || '/agents'}
-                                                            className="block rounded-md px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-gray-900 hover:shadow-sm active:scale-98 transition-all duration-150"
-                                                            onClick={() => setIsMenuOpen(false)}
-                                                        >
-                                                            {viewItem.label}
-                                                        </HeadlessLink>
-                                                    ))}
+                                                    {renderMobileNestedMenuItems(
+                                                        activeAgentViewItems,
+                                                        'mobile-agent-view',
+                                                    )}
                                                 </div>
                                             )}
                                         </div>

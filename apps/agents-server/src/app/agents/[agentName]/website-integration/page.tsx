@@ -1,6 +1,5 @@
 'use server';
 
-import { BackToAgentButton } from '@/src/components/BackToAgentButton/BackToAgentButton';
 import { $provideServer } from '@/src/tools/$provideServer';
 import { formatAgentNamingText } from '@/src/utils/agentNaming';
 import { getAgentNaming } from '@/src/utils/getAgentNaming';
@@ -63,7 +62,6 @@ export default async function WebsiteIntegrationAgentPage({ params }: { params: 
         <main className="agents-server-viewport-width min-h-[calc(100dvh-60px)] p-4">
             <div className="flex items-center gap-4 p-4 border-b">
                 <h1 className="text-2xl font-bold flex-1">{meta.fullname || agentName} Integration Code</h1>
-                <BackToAgentButton agentName={agentName} />
             </div>
             <p className="mt-4 mb-8 text-gray-600">
                 {formatAgentNamingText('Use the following code to integrate the', agentNaming)}{' '}
