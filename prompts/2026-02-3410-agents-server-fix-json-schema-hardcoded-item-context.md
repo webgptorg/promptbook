@@ -2,7 +2,7 @@
 
 ---
 
-[ ]
+[.] *<- Note: Maybe already working*
 
 [✨🧊] Agents is responding with json when asked, but not respecting a schema, fix it
 

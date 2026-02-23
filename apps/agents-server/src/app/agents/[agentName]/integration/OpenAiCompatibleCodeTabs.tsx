@@ -1,5 +1,6 @@
 'use client';
 
+import { TODO_any } from '@promptbook-local/types';
 import spaceTrim from 'spacetrim';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../../../../_common/components/Tabs/Tabs';
 import { SdkCodeTabs } from './SdkCodeTabs';
@@ -84,7 +85,7 @@ const DEFAULT_USER_MESSAGE = 'Hello!';
 /**
  * User prompt for JSON schema responses.
  */
-const JSON_SCHEMA_USER_MESSAGE = 'List the key topics and include a short message about them.';
+const JSON_SCHEMA_USER_MESSAGE = 'Where to go in Prague?';
 
 /**
  * JSON schema response format definition for the structured response example.
@@ -105,8 +106,9 @@ const JSON_SCHEMA_RESPONSE_FORMAT: OpenAiResponseFormat = {
             },
         },
         required: ['topics', 'message'],
+        additionalProperties: false,
     },
-};
+} as TODO_any;
 
 /**
  * Response format tab definitions for the OpenAI-compatible section.
@@ -194,11 +196,7 @@ const buildPythonCode = (
                 model="agent:${agentName}",
                 messages=[
                     {"role": "user", "content": "${message}"}
-                ],${
-                    responseFormat
-                        ? `\n            response_format=${block(formatJsonForCode(responseFormat))},`
-                        : ''
-                }
+                ],${responseFormat ? `\n            response_format=${block(formatJsonForCode(responseFormat))},` : ''}
             )
 
             print(response.choices[0].message.content)
@@ -229,10 +227,8 @@ const buildJavaScriptCode = (
                 const response = await client.chat.completions.create({
                     model: 'agent:${agentName}',
                     messages: [{ role: 'user', content: '${message}' }],${
-                        responseFormat
-                            ? `\n                response_format: ${block(formatJsonForCode(responseFormat))},`
-                            : ''
-                    }
+            responseFormat ? `\n                response_format: ${block(formatJsonForCode(responseFormat))},` : ''
+        }
                 });
 
                 console.log(response.choices[0].message.content);
@@ -265,17 +261,11 @@ const buildSdkCodeSamples = (
 /**
  * Renders OpenAI-compatible SDK code samples with response format tabs.
  */
-export function OpenAiCompatibleCodeTabs({
-    agentName,
-    agentApiBase,
-    apiKeyValue,
-}: OpenAiCompatibleCodeTabsProps) {
+export function OpenAiCompatibleCodeTabs({ agentName, agentApiBase, apiKeyValue }: OpenAiCompatibleCodeTabsProps) {
     return (
         <Tabs defaultValue={RESPONSE_FORMAT_OPTIONS[0].value} className="w-full">
             <div className="flex flex-wrap items-center gap-3">
-                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">
-                    Response format
-                </span>
+                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">Response format</span>
                 <TabsList>
                     {RESPONSE_FORMAT_OPTIONS.map((option) => (
                         <TabsTrigger key={option.value} value={option.value}>
