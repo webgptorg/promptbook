@@ -4,7 +4,7 @@
 
 -   The agent can respond with a JSON schema, and the server will validate the response against this schema. If the response is not valid, it will be rejected and the agent will be asked to try again.
 -   This option is already supported by Promptbook alongside the simple text option.
--  You are now just adding example not implementing the JSON schema format. It is already implemented.
+-   You are now just adding example not implementing the JSON schema format. It is already implemented.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Keep all the existing options, just add another one into the OpenAI Compatible API section.
 -   Do a proper analysis of the current functionality of the integration page before you start implementing.
@@ -16,14 +16,65 @@
 
 ---
 
-[-]
+[ ]
 
-[✨🪗] bar
+[✨🪗] In the agent integration page, there is the section OpenAI Compatible Mode with `response_format` type `json_schema` sample, do some modifications to it
 
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
--   You are working with the [Agents Server](apps/agents-server)
+Do theese modifications:
+
+1. There are two code samples shown at the OpenAI compatible section. The simple one with "cURL Python SDK JavaScript/TypeScript SDK tabs" and "response*format.type" one
+   Create just one code sample with all the options toggable by tabs. So you can switch between simple text response, JSON schema response and maybe in the future more options without the need to have multiple code samples. Keep in mind the DRY *(don't repeat yourself)\_ principle.
+
+2) The second code sample I have referred to in (1) is not showing full curl or other code but just the body, there should be just one code sample with all the options, and when you switch between the tabs, the code sample should change accordingly to show the correct code for that option. Each time the code sample should be 1:1 copyable. Keep in mind the DRY _(don't repeat yourself)_ principle.
+
+3. Change the requested json schema in the sample
+
+**from:**
+
+```json
+{
+    "type": "object",
+    "properties": {
+        "summary": {
+            "type": "string"
+        },
+        "confidence": {
+            "type": "number"
+        }
+    },
+    "required": ["summary", "confidence"]
+}
+```
+
+**to:**
+
+```json
+{
+    "type": "object",
+    "properties": {
+        "topics": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "message": {
+            "type": "string"
+        }
+    },
+    "required": ["topics", "message"]
+}
+```
+
+-   The agent can respond with a JSON schema, and the server will validate the response against this schema. If the response is not valid, it will be rejected and the agent will be asked to try again.
+-   This option is already supported by Promptbook alongside the simple text option.
+-   You are now just modifying the code example not implementing the JSON schema format. It is already implemented.
+-   Keep all the existing options, just add another one into the OpenAI Compatible API section.
+-   Do a proper analysis of the current functionality of the integration page before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server) For example, with page https://pavol-hejny.ptbk.io/agents/hWTMMThSpx6Yk3/integration
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+![alt text](prompts/screenshots/2026-02-3390-agents-server-calling-with-json-schema-2.png)
 
 ---
 
@@ -46,4 +97,3 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-

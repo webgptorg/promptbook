@@ -8,14 +8,14 @@
 
 ---
 
-[-]
+[ ]
 
-[✨🐠] bar
+[✨🐠] Allow folders to have more icons.
 
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
+-   In the Edit Folder menu, add the ... / + item to pick from much more icons that are in the first layer of this menu.
 -   You are working with the [Agents Server](apps/agents-server)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+![alt text](prompts/screenshots/2026-02-3290-agents-server-more-folder-icons.png)
 
 ---
 
@@ -38,4 +38,3 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
