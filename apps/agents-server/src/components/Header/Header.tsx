@@ -12,8 +12,8 @@ import {
     LogIn,
     LogOut,
     MessageSquareIcon,
-    NotebookPenIcon,
     MoreHorizontalIcon,
+    NotebookPenIcon,
 } from 'lucide-react';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
@@ -25,17 +25,17 @@ import { useMenuHoisting } from '../../../../../src/book-components/_common/Menu
 import { resolveAgentAvatarImageUrl } from '../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 import { just } from '../../../../../src/utils/organization/just';
 import { RESERVED_PATHS } from '../../generated/reservedPaths';
+import { buildAgentNavigationEntries } from '../../utils/agentNavigationLinks';
+import { buildAgentFolderContext } from '../../utils/agentOrganization/agentFolderContext';
 import { buildFolderPath, getFolderPathSegments } from '../../utils/agentOrganization/folderPath';
 import type { AgentOrganizationAgent, AgentOrganizationFolder } from '../../utils/agentOrganization/types';
 import type { UserInfo } from '../../utils/getCurrentUser';
-import { buildAgentFolderContext } from '../../utils/agentOrganization/agentFolderContext';
 import { getVisibleCommitmentDefinitions } from '../../utils/getVisibleCommitmentDefinitions';
-import { buildAgentNavigationEntries } from '../../utils/agentNavigationLinks';
 import { HeadlessLink, pushWithHeadless, useIsHeadless } from '../_utils/headlessParam';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 import { showAlert, showLoginDialog } from '../AsyncDialogs/asyncDialogs';
-import { FolderAppearanceIcon } from '../FolderAppearance/FolderAppearanceIcon';
 import { ChangePasswordDialog } from '../ChangePasswordDialog/ChangePasswordDialog';
+import { FolderAppearanceIcon } from '../FolderAppearance/FolderAppearanceIcon';
 import { useUsersAdmin } from '../UsersList/useUsersAdmin';
 import { HeaderControlPanelDropdown } from './ControlPanel/ControlPanel';
 import { HeaderSearchBox } from './HeaderSearchBox';
@@ -1055,7 +1055,9 @@ function AgentMenuColumn({
 }: AgentMenuColumnProps) {
     return (
         <div
-            className={`relative flex flex-col gap-1 px-1 py-1 ${isTouchInput && depth > 0 ? 'bg-transparent' : 'bg-white'}`}
+            className={`relative flex flex-col gap-1 px-1 py-1 ${
+                isTouchInput && depth > 0 ? 'bg-transparent' : 'bg-white'
+            }`}
             style={{ minWidth: isTouchInput ? undefined : depth === 0 ? 260 : 240 }}
         >
             {nodes.map((node) => {
@@ -1113,9 +1115,7 @@ function AgentMenuColumn({
                                         />
                                     </div>
                                 ) : (
-                                    <div
-                                        className="absolute left-full top-0 z-50 mt-0 hidden w-[260px] rounded-xl border border-gray-100 bg-white shadow-xl shadow-slate-900/10 group-hover:block"
-                                    >
+                                    <div className="absolute left-full top-0 z-50 mt-0 hidden w-[260px] rounded-xl border border-gray-100 bg-white shadow-xl shadow-slate-900/10 group-hover:block">
                                         <AgentMenuColumn
                                             nodes={node.children}
                                             onNavigate={onNavigate}
@@ -1501,7 +1501,7 @@ export function Header(props: HeaderProps) {
                         } as SubMenuItem,
                     ]
                   : []),
-        ]
+          ]
         : [];
     const derivedAgentName = activeAgent?.agentName ?? null;
     const agentFolderContext = useMemo(
@@ -1877,7 +1877,9 @@ export function Header(props: HeaderProps) {
                                         className="relative hidden lg:block"
                                         onMouseEnter={() => cancelMenuClose('federated-server-switcher')}
                                         onMouseLeave={() =>
-                                            scheduleMenuClose('federated-server-switcher', () => setIsFederatedOpen(false))
+                                            scheduleMenuClose('federated-server-switcher', () =>
+                                                setIsFederatedOpen(false),
+                                            )
                                         }
                                     >
                                         <button
@@ -1893,7 +1895,9 @@ export function Header(props: HeaderProps) {
                                                 }
                                             }}
                                             onBlur={() =>
-                                                scheduleMenuClose('federated-server-switcher', () => setIsFederatedOpen(false))
+                                                scheduleMenuClose('federated-server-switcher', () =>
+                                                    setIsFederatedOpen(false),
+                                                )
                                             }
                                             title="Switch server"
                                             aria-label="Switch server"
@@ -1967,7 +1971,9 @@ export function Header(props: HeaderProps) {
                                                 setIsAgentsOpen(true);
                                             }
                                         }}
-                                        onBlur={() => scheduleMenuClose('agents-hierarchy', () => setIsAgentsOpen(false))}
+                                        onBlur={() =>
+                                            scheduleMenuClose('agents-hierarchy', () => setIsAgentsOpen(false))
+                                        }
                                     >
                                         <AgentNameWithAvatar
                                             label={activeAgentLabel}
@@ -2068,7 +2074,9 @@ export function Header(props: HeaderProps) {
                                                     setIsAgentViewOpen(true);
                                                 }
                                             }}
-                                            onBlur={() => scheduleMenuClose('agent-view', () => setIsAgentViewOpen(false))}
+                                            onBlur={() =>
+                                                scheduleMenuClose('agent-view', () => setIsAgentViewOpen(false))
+                                            }
                                         >
                                             {createAgentViewLabel(activeAgentView, formatText)}
                                             <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
@@ -2107,9 +2115,7 @@ export function Header(props: HeaderProps) {
                                                 setIsMoreOpen(true);
                                             }
                                         }}
-                                        onMouseLeave={() =>
-                                            scheduleMenuClose('agent-more', () => setIsMoreOpen(false))
-                                        }
+                                        onMouseLeave={() => scheduleMenuClose('agent-more', () => setIsMoreOpen(false))}
                                     >
                                         <button
                                             className="flex items-center gap-2 rounded-full px-2 sm:px-3 py-1 text-xs sm:text-sm font-semibold text-gray-700 hover:bg-gray-100 transition"
@@ -2142,7 +2148,7 @@ export function Header(props: HeaderProps) {
                                                 {agentNavigationMoreItems.map((item, index) => (
                                                     <HeadlessLink
                                                         key={`more-${index}`}
-                                                        href={item.href}
+                                                        href={item.href!}
                                                         className="mx-1 block rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900"
                                                         onClick={closeAgentMoreDropdown}
                                                     >
@@ -2154,7 +2160,6 @@ export function Header(props: HeaderProps) {
                                     </div>
                                 </>
                             )}
-
                         </div>
                     </div>
 
@@ -2165,280 +2170,308 @@ export function Header(props: HeaderProps) {
                             </div>
                             <nav className="pointer-events-auto flex items-center gap-6">
                                 {menuItems.map((item, index) => {
-                                if (item.type === 'link') {
-                                    return (
-                                        <HeadlessLink
-                                            key={index}
-                                            href={item.href}
-                                            className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
-                                        >
-                                            {item.label}
-                                        </HeadlessLink>
-                                    );
-                                }
+                                    if (item.type === 'link') {
+                                        return (
+                                            <HeadlessLink
+                                                key={index}
+                                                href={item.href}
+                                                className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
+                                            >
+                                                {item.label}
+                                            </HeadlessLink>
+                                        );
+                                    }
 
-                                if (item.type === 'dropdown') {
-                                    const dropdownItems = item.items ?? [];
-                                    const closeDropdown = () => {
-                                        cancelMenuClose(item.id);
-                                        item.setIsOpen(false);
-                                        setOpenSubMenu(null);
-                                        setDesktopExpandedSubMenus({});
-                                    };
-                                    const toggleDropdown = () => {
-                                        cancelMenuClose(item.id);
-                                        item.setIsOpen(!item.isOpen);
-                                        if (item.isOpen) {
+                                    if (item.type === 'dropdown') {
+                                        const dropdownItems = item.items ?? [];
+                                        const closeDropdown = () => {
+                                            cancelMenuClose(item.id);
+                                            item.setIsOpen(false);
                                             setOpenSubMenu(null);
                                             setDesktopExpandedSubMenus({});
-                                        }
-                                    };
+                                        };
+                                        const toggleDropdown = () => {
+                                            cancelMenuClose(item.id);
+                                            item.setIsOpen(!item.isOpen);
+                                            if (item.isOpen) {
+                                                setOpenSubMenu(null);
+                                                setDesktopExpandedSubMenus({});
+                                            }
+                                        };
 
-                                    const renderDropdownLink = (
-                                        linkItem: SubMenuItem,
-                                        keySuffix: string,
-                                        className: string,
-                                    ) => {
-                                        if (linkItem.onClick) {
-                                            return (
-                                                <button
-                                                    key={keySuffix}
-                                                    onClick={linkItem.onClick}
-                                                    className={`${className} w-full text-left`}
-                                                >
-                                                    {linkItem.label}
-                                                </button>
-                                            );
-                                        }
-
-                                        if (linkItem.href) {
-                                            return (
-                                                <HeadlessLink
-                                                    key={keySuffix}
-                                                    href={linkItem.href}
-                                                    className={className}
-                                                    onClick={() => closeDropdown()}
-                                                >
-                                                    {linkItem.label}
-                                                </HeadlessLink>
-                                            );
-                                        }
-
-                                        return (
-                                            <span key={keySuffix} className={className}>
-                                                {linkItem.label}
-                                            </span>
-                                        );
-                                    };
-
-                                    /**
-                                     * Renders nested dropdown branches for touch-first desktop navigation.
-                                     */
-                                    const renderTouchNestedDropdownItems = (
-                                        nestedItems: ReadonlyArray<SubMenuItem>,
-                                        keyPrefix: string,
-                                        depth = 0,
-                                    ): ReactNode => (
-                                        <div
-                                            className={`grid auto-rows-min gap-1 ${depth > 0 ? 'mt-1 border-l border-gray-200 pl-2' : ''}`}
-                                        >
-                                            {nestedItems.map((nestedItem, nestedIndex) => {
-                                                const nestedKey = `${keyPrefix}-${nestedIndex}`;
-                                                const hasNestedChildren = Boolean(
-                                                    nestedItem.items && nestedItem.items.length > 0,
-                                                );
-                                                const borderClass = nestedItem.isBordered
-                                                    ? 'border-b border-gray-100 pb-1'
-                                                    : '';
-                                                const leafClassName = `block rounded-lg px-3 py-2 text-sm ${
-                                                    nestedItem.isBold ? 'font-medium text-gray-900' : 'text-gray-700'
-                                                } hover:bg-white hover:text-gray-900 transition-colors ${borderClass}`;
-
-                                                if (!hasNestedChildren) {
-                                                    return renderDropdownLink(nestedItem, nestedKey, leafClassName);
-                                                }
-
-                                                const isNestedOpen = Boolean(desktopExpandedSubMenus[nestedKey]);
+                                        const renderDropdownLink = (
+                                            linkItem: SubMenuItem,
+                                            keySuffix: string,
+                                            className: string,
+                                        ) => {
+                                            if (linkItem.onClick) {
                                                 return (
-                                                    <div key={nestedKey} className={borderClass}>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => toggleDesktopSubMenu(nestedKey)}
-                                                            className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm font-medium text-gray-700 transition-colors hover:bg-white hover:text-gray-900"
-                                                        >
-                                                            <span>{nestedItem.label}</span>
-                                                            <ChevronDown
-                                                                className={`h-3 w-3 text-gray-400 transition-transform ${
-                                                                    isNestedOpen ? 'rotate-180' : ''
-                                                                }`}
-                                                            />
-                                                        </button>
-                                                        {isNestedOpen &&
-                                                            renderTouchNestedDropdownItems(
-                                                                nestedItem.items || [],
-                                                                nestedKey,
-                                                                depth + 1,
-                                                            )}
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    );
-
-                                    const renderDropdownItems = () =>
-                                        dropdownItems.map((subItem, subIndex) => {
-                                            const borderClass = subItem.isBordered ? 'border-b border-gray-100' : '';
-                                            const baseClassName = `mx-1 block rounded-lg px-3 py-2.5 text-sm ${
-                                                subItem.isBold ? 'font-medium text-gray-900' : 'text-gray-600'
-                                            } hover:bg-gray-50 hover:text-gray-900 transition-colors ${borderClass}`;
-
-                                            if (subItem.items && subItem.items.length > 0) {
-                                                const submenuKey = `${item.id}-dropdown-${subIndex}`;
-                                                const isSubMenuOpen = !isTouchInput && openSubMenu?.key === submenuKey;
-                                                const isTapSubMenuOpen = Boolean(desktopExpandedSubMenus[submenuKey]);
-                                                const childItems = subItem.items!;
-                                                return (
-                                                    <div
-                                                        key={submenuKey}
-                                                        className={`relative mx-1 rounded-lg ${borderClass}`}
-                                                        onMouseEnter={(event) => {
-                                                            if (isTouchInput) {
-                                                                return;
-                                                            }
-                                                            handleSubMenuMouseEnter(submenuKey, childItems, event);
-                                                            cancelMenuClose(item.id);
-                                                        }}
-                                                        onMouseLeave={() => {
-                                                            if (isTouchInput) {
-                                                                return;
-                                                            }
-                                                            handleSubMenuMouseLeave(submenuKey);
-                                                        }}
+                                                    <button
+                                                        key={keySuffix}
+                                                        onClick={linkItem.onClick}
+                                                        className={`${className} w-full text-left`}
                                                     >
-                                                        <button
-                                                            type="button"
-                                                            className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left text-sm ${
-                                                                subItem.isBold
-                                                                    ? 'font-medium text-gray-900'
-                                                                    : 'text-gray-600'
-                                                            } hover:bg-gray-50 hover:text-gray-900 transition-colors`}
-                                                            onClick={(event) => {
-                                                                cancelMenuClose(item.id);
-                                                                if (isTouchInput) {
-                                                                    toggleDesktopSubMenu(submenuKey);
-                                                                    return;
-                                                                }
-                                                                const rect = (
-                                                                    event.currentTarget.parentElement ??
-                                                                    event.currentTarget
-                                                                ).getBoundingClientRect();
-                                                                setOpenSubMenu((current) =>
-                                                                    current?.key === submenuKey
-                                                                        ? null
-                                                                        : { key: submenuKey, rect, items: childItems },
-                                                                );
-                                                            }}
-                                                        >
-                                                            <span>{subItem.label}</span>
-                                                            <ChevronRight
-                                                                className={`h-3 w-3 text-gray-400 transition-transform ${
-                                                                    isTouchInput && isTapSubMenuOpen ? 'rotate-90' : ''
-                                                                }`}
-                                                            />
-                                                        </button>
-
-                                                        {isTouchInput && isTapSubMenuOpen && (
-                                                            <div className="mx-1 mb-2 rounded-xl border border-gray-100 bg-gradient-to-b from-white to-gray-50/80 p-2">
-                                                                {renderTouchNestedDropdownItems(childItems, submenuKey)}
-                                                            </div>
-                                                        )}
-
-                                                        {isSubMenuOpen && openSubMenu && (
-                                                            <DropdownSubMenuPortal
-                                                                anchorRect={openSubMenu.rect}
-                                                                container={dropdownPortalContainer}
-                                                                onMouseEnter={() => {
-                                                                    keepSubMenuOpen();
-                                                                    cancelMenuClose(item.id);
-                                                                }}
-                                                                onMouseLeave={() => {
-                                                                    handleSubMenuPortalLeave();
-                                                                    scheduleMenuClose(item.id, () => item.setIsOpen(false));
-                                                                }}
-                                                            >
-                                                                <div className="pointer-events-auto max-h-[70vh] w-[min(320px,calc(100vw-4rem))] overflow-y-auto rounded-xl border border-gray-100 bg-white/95 p-2 shadow-xl shadow-slate-900/10 backdrop-blur">
-                                                                    <div className="grid auto-rows-min gap-1 sm:grid-cols-2">
-                                                                        {childItems.map((child, childIndex) =>
-                                                                            renderDropdownLink(
-                                                                                child,
-                                                                                `${submenuKey}-portal-child-${childIndex}`,
-                                                                                'block rounded-lg px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors',
-                                                                            ),
-                                                                        )}
-                                                                    </div>
-                                                                </div>
-                                                            </DropdownSubMenuPortal>
-                                                        )}
-                                                    </div>
+                                                        {linkItem.label}
+                                                    </button>
                                                 );
                                             }
 
-                                            return renderDropdownLink(subItem, `dropdown-${subIndex}`, baseClassName);
-                                        });
+                                            if (linkItem.href) {
+                                                return (
+                                                    <HeadlessLink
+                                                        key={keySuffix}
+                                                        href={linkItem.href}
+                                                        className={className}
+                                                        onClick={() => closeDropdown()}
+                                                    >
+                                                        {linkItem.label}
+                                                    </HeadlessLink>
+                                                );
+                                            }
 
-                                    return (
-                                        <div
-                                            key={index}
-                                            className="relative"
-                                            onMouseEnter={() => {
-                                                cancelMenuClose(item.id);
-                                                if (!isTouchInput) {
-                                                    item.setIsOpen(true);
+                                            return (
+                                                <span key={keySuffix} className={className}>
+                                                    {linkItem.label}
+                                                </span>
+                                            );
+                                        };
+
+                                        /**
+                                         * Renders nested dropdown branches for touch-first desktop navigation.
+                                         */
+                                        const renderTouchNestedDropdownItems = (
+                                            nestedItems: ReadonlyArray<SubMenuItem>,
+                                            keyPrefix: string,
+                                            depth = 0,
+                                        ): ReactNode => (
+                                            <div
+                                                className={`grid auto-rows-min gap-1 ${
+                                                    depth > 0 ? 'mt-1 border-l border-gray-200 pl-2' : ''
+                                                }`}
+                                            >
+                                                {nestedItems.map((nestedItem, nestedIndex) => {
+                                                    const nestedKey = `${keyPrefix}-${nestedIndex}`;
+                                                    const hasNestedChildren = Boolean(
+                                                        nestedItem.items && nestedItem.items.length > 0,
+                                                    );
+                                                    const borderClass = nestedItem.isBordered
+                                                        ? 'border-b border-gray-100 pb-1'
+                                                        : '';
+                                                    const leafClassName = `block rounded-lg px-3 py-2 text-sm ${
+                                                        nestedItem.isBold
+                                                            ? 'font-medium text-gray-900'
+                                                            : 'text-gray-700'
+                                                    } hover:bg-white hover:text-gray-900 transition-colors ${borderClass}`;
+
+                                                    if (!hasNestedChildren) {
+                                                        return renderDropdownLink(nestedItem, nestedKey, leafClassName);
+                                                    }
+
+                                                    const isNestedOpen = Boolean(desktopExpandedSubMenus[nestedKey]);
+                                                    return (
+                                                        <div key={nestedKey} className={borderClass}>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => toggleDesktopSubMenu(nestedKey)}
+                                                                className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm font-medium text-gray-700 transition-colors hover:bg-white hover:text-gray-900"
+                                                            >
+                                                                <span>{nestedItem.label}</span>
+                                                                <ChevronDown
+                                                                    className={`h-3 w-3 text-gray-400 transition-transform ${
+                                                                        isNestedOpen ? 'rotate-180' : ''
+                                                                    }`}
+                                                                />
+                                                            </button>
+                                                            {isNestedOpen &&
+                                                                renderTouchNestedDropdownItems(
+                                                                    nestedItem.items || [],
+                                                                    nestedKey,
+                                                                    depth + 1,
+                                                                )}
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        );
+
+                                        const renderDropdownItems = () =>
+                                            dropdownItems.map((subItem, subIndex) => {
+                                                const borderClass = subItem.isBordered
+                                                    ? 'border-b border-gray-100'
+                                                    : '';
+                                                const baseClassName = `mx-1 block rounded-lg px-3 py-2.5 text-sm ${
+                                                    subItem.isBold ? 'font-medium text-gray-900' : 'text-gray-600'
+                                                } hover:bg-gray-50 hover:text-gray-900 transition-colors ${borderClass}`;
+
+                                                if (subItem.items && subItem.items.length > 0) {
+                                                    const submenuKey = `${item.id}-dropdown-${subIndex}`;
+                                                    const isSubMenuOpen =
+                                                        !isTouchInput && openSubMenu?.key === submenuKey;
+                                                    const isTapSubMenuOpen = Boolean(
+                                                        desktopExpandedSubMenus[submenuKey],
+                                                    );
+                                                    const childItems = subItem.items!;
+                                                    return (
+                                                        <div
+                                                            key={submenuKey}
+                                                            className={`relative mx-1 rounded-lg ${borderClass}`}
+                                                            onMouseEnter={(event) => {
+                                                                if (isTouchInput) {
+                                                                    return;
+                                                                }
+                                                                handleSubMenuMouseEnter(submenuKey, childItems, event);
+                                                                cancelMenuClose(item.id);
+                                                            }}
+                                                            onMouseLeave={() => {
+                                                                if (isTouchInput) {
+                                                                    return;
+                                                                }
+                                                                handleSubMenuMouseLeave(submenuKey);
+                                                            }}
+                                                        >
+                                                            <button
+                                                                type="button"
+                                                                className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left text-sm ${
+                                                                    subItem.isBold
+                                                                        ? 'font-medium text-gray-900'
+                                                                        : 'text-gray-600'
+                                                                } hover:bg-gray-50 hover:text-gray-900 transition-colors`}
+                                                                onClick={(event) => {
+                                                                    cancelMenuClose(item.id);
+                                                                    if (isTouchInput) {
+                                                                        toggleDesktopSubMenu(submenuKey);
+                                                                        return;
+                                                                    }
+                                                                    const rect = (
+                                                                        event.currentTarget.parentElement ??
+                                                                        event.currentTarget
+                                                                    ).getBoundingClientRect();
+                                                                    setOpenSubMenu((current) =>
+                                                                        current?.key === submenuKey
+                                                                            ? null
+                                                                            : {
+                                                                                  key: submenuKey,
+                                                                                  rect,
+                                                                                  items: childItems,
+                                                                              },
+                                                                    );
+                                                                }}
+                                                            >
+                                                                <span>{subItem.label}</span>
+                                                                <ChevronRight
+                                                                    className={`h-3 w-3 text-gray-400 transition-transform ${
+                                                                        isTouchInput && isTapSubMenuOpen
+                                                                            ? 'rotate-90'
+                                                                            : ''
+                                                                    }`}
+                                                                />
+                                                            </button>
+
+                                                            {isTouchInput && isTapSubMenuOpen && (
+                                                                <div className="mx-1 mb-2 rounded-xl border border-gray-100 bg-gradient-to-b from-white to-gray-50/80 p-2">
+                                                                    {renderTouchNestedDropdownItems(
+                                                                        childItems,
+                                                                        submenuKey,
+                                                                    )}
+                                                                </div>
+                                                            )}
+
+                                                            {isSubMenuOpen && openSubMenu && (
+                                                                <DropdownSubMenuPortal
+                                                                    anchorRect={openSubMenu.rect}
+                                                                    container={dropdownPortalContainer}
+                                                                    onMouseEnter={() => {
+                                                                        keepSubMenuOpen();
+                                                                        cancelMenuClose(item.id);
+                                                                    }}
+                                                                    onMouseLeave={() => {
+                                                                        handleSubMenuPortalLeave();
+                                                                        scheduleMenuClose(item.id, () =>
+                                                                            item.setIsOpen(false),
+                                                                        );
+                                                                    }}
+                                                                >
+                                                                    <div className="pointer-events-auto max-h-[70vh] w-[min(320px,calc(100vw-4rem))] overflow-y-auto rounded-xl border border-gray-100 bg-white/95 p-2 shadow-xl shadow-slate-900/10 backdrop-blur">
+                                                                        <div className="grid auto-rows-min gap-1 sm:grid-cols-2">
+                                                                            {childItems.map((child, childIndex) =>
+                                                                                renderDropdownLink(
+                                                                                    child,
+                                                                                    `${submenuKey}-portal-child-${childIndex}`,
+                                                                                    'block rounded-lg px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors',
+                                                                                ),
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
+                                                                </DropdownSubMenuPortal>
+                                                            )}
+                                                        </div>
+                                                    );
                                                 }
-                                            }}
-                                            onMouseLeave={() => scheduleMenuClose(item.id, () => item.setIsOpen(false))}
-                                        >
-                                            <button
-                                                className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
-                                                onClick={toggleDropdown}
+
+                                                return renderDropdownLink(
+                                                    subItem,
+                                                    `dropdown-${subIndex}`,
+                                                    baseClassName,
+                                                );
+                                            });
+
+                                        return (
+                                            <div
+                                                key={index}
+                                                className="relative"
                                                 onMouseEnter={() => {
                                                     cancelMenuClose(item.id);
                                                     if (!isTouchInput) {
                                                         item.setIsOpen(true);
                                                     }
                                                 }}
-                                                onBlur={() => scheduleMenuClose(item.id, () => item.setIsOpen(false))}
+                                                onMouseLeave={() =>
+                                                    scheduleMenuClose(item.id, () => item.setIsOpen(false))
+                                                }
                                             >
-                                                {item.label}
-                                                <ChevronDown className="w-4 h-4" />
-                                            </button>
-
-                                            {item.isOpen && (
-                                                <div
-                                                    className="absolute left-0 top-full z-50 mt-2 w-[min(420px,90vw)] rounded-2xl border border-gray-100 bg-white/95 py-1.5 shadow-xl shadow-slate-900/10 animate-in fade-in zoom-in-95 duration-200 backdrop-blur"
-                                                    onMouseEnter={() => cancelMenuClose(item.id)}
-                                                    onMouseLeave={() =>
+                                                <button
+                                                    className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
+                                                    onClick={toggleDropdown}
+                                                    onMouseEnter={() => {
+                                                        cancelMenuClose(item.id);
+                                                        if (!isTouchInput) {
+                                                            item.setIsOpen(true);
+                                                        }
+                                                    }}
+                                                    onBlur={() =>
                                                         scheduleMenuClose(item.id, () => item.setIsOpen(false))
                                                     }
                                                 >
-                                                    {item.renderMenu ? (
-                                                        <div className="relative">{item.renderMenu()}</div>
-                                                    ) : (
-                                                        <div className="max-h-[80vh] overflow-y-auto overflow-x-visible">
-                                                            {renderDropdownItems()}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
-                                        </div>
-                                    );
-                                }
+                                                    {item.label}
+                                                    <ChevronDown className="w-4 h-4" />
+                                                </button>
 
-                                return null;
-                            })}
-                        </nav>
+                                                {item.isOpen && (
+                                                    <div
+                                                        className="absolute left-0 top-full z-50 mt-2 w-[min(420px,90vw)] rounded-2xl border border-gray-100 bg-white/95 py-1.5 shadow-xl shadow-slate-900/10 animate-in fade-in zoom-in-95 duration-200 backdrop-blur"
+                                                        onMouseEnter={() => cancelMenuClose(item.id)}
+                                                        onMouseLeave={() =>
+                                                            scheduleMenuClose(item.id, () => item.setIsOpen(false))
+                                                        }
+                                                    >
+                                                        {item.renderMenu ? (
+                                                            <div className="relative">{item.renderMenu()}</div>
+                                                        ) : (
+                                                            <div className="max-h-[80vh] overflow-y-auto overflow-x-visible">
+                                                                {renderDropdownItems()}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    }
+
+                                    return null;
+                                })}
+                            </nav>
+                        </div>
                     </div>
-                </div>
 
                     {/* CTA Button & Mobile Menu Toggle */}
                     <div className="flex items-center gap-2 sm:gap-3 md:gap-4 flex-shrink-0">
@@ -2486,7 +2519,9 @@ export function Header(props: HeaderProps) {
                                 <div
                                     className="relative"
                                     onMouseEnter={() => cancelMenuClose('profile-menu')}
-                                    onMouseLeave={() => scheduleMenuClose('profile-menu', () => setIsProfileOpen(false))}
+                                    onMouseLeave={() =>
+                                        scheduleMenuClose('profile-menu', () => setIsProfileOpen(false))
+                                    }
                                 >
                                     <button
                                         onClick={() => {
@@ -2710,60 +2745,60 @@ export function Header(props: HeaderProps) {
                                                     />
                                                 </button>
                                             </div>
-                                    {isMobileAgentViewOpen && (
-                                        <div className="flex flex-col gap-1 rounded-lg border border-gray-200 bg-gradient-to-b from-gray-50 to-white p-3 shadow-sm animate-in fade-in-0 slide-in-from-top-2 duration-200">
-                                            {activeAgentViewItems.map((viewItem, index) => (
-                                                <HeadlessLink
-                                                    key={`mobile-view-item-${index}`}
-                                                    href={viewItem.href || '/agents'}
-                                                    className="block rounded-md px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-gray-900 hover:shadow-sm active:scale-98 transition-all duration-150"
-                                                    onClick={() => setIsMenuOpen(false)}
-                                                >
-                                                    {viewItem.label}
-                                                </HeadlessLink>
-                                            ))}
+                                            {isMobileAgentViewOpen && (
+                                                <div className="flex flex-col gap-1 rounded-lg border border-gray-200 bg-gradient-to-b from-gray-50 to-white p-3 shadow-sm animate-in fade-in-0 slide-in-from-top-2 duration-200">
+                                                    {activeAgentViewItems.map((viewItem, index) => (
+                                                        <HeadlessLink
+                                                            key={`mobile-view-item-${index}`}
+                                                            href={viewItem.href || '/agents'}
+                                                            className="block rounded-md px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-gray-900 hover:shadow-sm active:scale-98 transition-all duration-150"
+                                                            onClick={() => setIsMenuOpen(false)}
+                                                        >
+                                                            {viewItem.label}
+                                                        </HeadlessLink>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
                                     )}
-                                </div>
-                            )}
-                            {agentNavigationMoreItems.length > 0 && (
-                                <div className="w-full max-w-[90vw] flex flex-col gap-1">
-                                    <div className="flex items-center justify-center gap-2 text-sm font-medium text-gray-700">
-                                        <ChevronRight className="h-4 w-4 text-gray-300" />
-                                        <button
-                                            className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold text-gray-900 hover:bg-gray-100 transition"
-                                            onClick={() => setIsMobileMoreOpen(!isMobileMoreOpen)}
-                                        >
-                                            <span className="flex items-center gap-1">
-                                                <MoreHorizontalIcon className="h-3 w-3 text-gray-400" />
-                                                {formatText('More')}
-                                            </span>
-                                            <ChevronDown
-                                                className={`h-4 w-4 transition-transform duration-200 ${
-                                                    isMobileMoreOpen ? 'rotate-180' : ''
-                                                }`}
-                                            />
-                                        </button>
-                                    </div>
-                                    {isMobileMoreOpen && (
-                                        <div className="flex flex-col gap-1 rounded-lg border border-gray-200 bg-gradient-to-b from-gray-50 to-white p-3 shadow-sm animate-in fade-in-0 slide-in-from-top-2 duration-200">
-                                            {agentNavigationMoreItems.map((item, index) => (
-                                                <HeadlessLink
-                                                    key={`mobile-more-item-${index}`}
-                                                    href={item.href || '/agents'}
-                                                    className="block rounded-md px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-gray-900 hover:shadow-sm active:scale-98 transition-all duration-150"
-                                                    onClick={() => setIsMenuOpen(false)}
+                                    {agentNavigationMoreItems.length > 0 && (
+                                        <div className="w-full max-w-[90vw] flex flex-col gap-1">
+                                            <div className="flex items-center justify-center gap-2 text-sm font-medium text-gray-700">
+                                                <ChevronRight className="h-4 w-4 text-gray-300" />
+                                                <button
+                                                    className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold text-gray-900 hover:bg-gray-100 transition"
+                                                    onClick={() => setIsMobileMoreOpen(!isMobileMoreOpen)}
                                                 >
-                                                    {item.label}
-                                                </HeadlessLink>
-                                            ))}
+                                                    <span className="flex items-center gap-1">
+                                                        <MoreHorizontalIcon className="h-3 w-3 text-gray-400" />
+                                                        {formatText('More')}
+                                                    </span>
+                                                    <ChevronDown
+                                                        className={`h-4 w-4 transition-transform duration-200 ${
+                                                            isMobileMoreOpen ? 'rotate-180' : ''
+                                                        }`}
+                                                    />
+                                                </button>
+                                            </div>
+                                            {isMobileMoreOpen && (
+                                                <div className="flex flex-col gap-1 rounded-lg border border-gray-200 bg-gradient-to-b from-gray-50 to-white p-3 shadow-sm animate-in fade-in-0 slide-in-from-top-2 duration-200">
+                                                    {agentNavigationMoreItems.map((item, index) => (
+                                                        <HeadlessLink
+                                                            key={`mobile-more-item-${index}`}
+                                                            href={item.href || '/agents'}
+                                                            className="block rounded-md px-4 py-3 text-sm text-gray-700 hover:bg-white hover:text-gray-900 hover:shadow-sm active:scale-98 transition-all duration-150"
+                                                            onClick={() => setIsMenuOpen(false)}
+                                                        >
+                                                            {item.label}
+                                                        </HeadlessLink>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
                                     )}
-                                </div>
-                            )}
 
-                            <div className="w-full max-w-[90vw] pt-1">
-                                <HeaderSearchBox
+                                    <div className="w-full max-w-[90vw] pt-1">
+                                        <HeaderSearchBox
                                             placeholder="Search this server..."
                                             onNavigate={() => setIsMenuOpen(false)}
                                         />
