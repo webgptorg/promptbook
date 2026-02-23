@@ -78,7 +78,7 @@ Do theese modifications:
 
 ---
 
-[ ]
+[x] $0.00 10 minutes by Gemini CLI
 
 [✨🪗] Fix the proper indentation in the samples in OpenAI Compatible API.
 
@@ -152,3 +152,4 @@ Do theese modifications:
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server) with page for example https://pavol-hejny.ptbk.io/agents/NFR94UDUAHzmAX/integration
+

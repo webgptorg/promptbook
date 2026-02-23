@@ -58,11 +58,6 @@ type OpenAiRequestPayload = {
 };
 
 /**
- * Supported assignment styles for the response_format snippets.
- */
-type ResponseFormatAssignment = 'colon' | 'equals';
-
-/**
  * SDK code samples for a specific response format.
  */
 type SdkCodeSamples = {
@@ -85,21 +80,6 @@ type OpenAiResponseFormatOption = {
  * Default user prompt for simple text responses.
  */
 const DEFAULT_USER_MESSAGE = 'Hello!';
-
-/**
- * Base indentation size for generated code samples.
- */
-const CODE_INDENT = 4;
-
-/**
- * Indentation size for code lines nested three levels deep.
- */
-const CODE_INDENT_TRIPLE = CODE_INDENT * 3;
-
-/**
- * Indentation size for code lines nested four levels deep.
- */
-const CODE_INDENT_QUAD = CODE_INDENT * 4;
 
 /**
  * User prompt for JSON schema responses.
@@ -151,25 +131,6 @@ const RESPONSE_FORMAT_OPTIONS: OpenAiResponseFormatOption[] = [
 const formatJsonForCode = (value: unknown) => JSON.stringify(value, null, 2);
 
 /**
- * Indents multi-line JSON blocks for embedding inside code samples.
- */
-const indentJsonForCode = (value: unknown, indent: number) =>
-    formatJsonForCode(value).replace(/\n/g, `\n${' '.repeat(indent)}`);
-
-/**
- * Builds the response_format snippet for language-specific code samples.
- */
-const buildResponseFormatSnippet = (
-    responseFormat: OpenAiResponseFormat,
-    assignment: ResponseFormatAssignment,
-    indent: number,
-) => {
-    const formatted = indentJsonForCode(responseFormat, indent);
-    const prefix = assignment === 'colon' ? 'response_format: ' : 'response_format=';
-    return `${prefix}${formatted}`;
-};
-
-/**
  * Creates the OpenAI-compatible request payload for the samples.
  */
 const createRequestPayload = (
@@ -200,12 +161,14 @@ const createRequestPayload = (
 const buildCurlCode = (agentApiBase: string, apiKeyValue: string, payload: OpenAiRequestPayload) => {
     const requestBody = formatJsonForCode(payload);
 
-    return spaceTrim(`
-        curl ${agentApiBase}/api/openai/v1/chat/completions \\
-          -H "Content-Type: application/json" \\
-          -H "Authorization: Bearer ${apiKeyValue}" \\
-          -d '${requestBody}'
-    `);
+    return spaceTrim(
+        (block) => `
+            curl ${agentApiBase}/api/openai/v1/chat/completions \\
+              -H "Content-Type: application/json" \\
+              -H "Authorization: Bearer ${apiKeyValue}" \\
+              -d '${block(requestBody)}'
+        `,
+    );
 };
 
 /**
@@ -218,27 +181,29 @@ const buildPythonCode = (
     message: string,
     responseFormat?: OpenAiResponseFormat,
 ) => {
-    const responseFormatSnippet = responseFormat
-        ? `\n            ${buildResponseFormatSnippet(responseFormat, 'equals', CODE_INDENT_TRIPLE)},`
-        : '';
+    return spaceTrim(
+        (block) => `
+            from openai import OpenAI
 
-    return spaceTrim(`
-        from openai import OpenAI
+            client = OpenAI(
+                base_url="${agentApiBase}/api/openai/v1",
+                api_key="${apiKeyValue}",
+            )
 
-        client = OpenAI(
-            base_url="${agentApiBase}/api/openai/v1",
-            api_key="${apiKeyValue}",
-        )
+            response = client.chat.completions.create(
+                model="agent:${agentName}",
+                messages=[
+                    {"role": "user", "content": "${message}"}
+                ],${
+                    responseFormat
+                        ? `\n            response_format=${block(formatJsonForCode(responseFormat))},`
+                        : ''
+                }
+            )
 
-        response = client.chat.completions.create(
-            model="agent:${agentName}",
-            messages=[
-                {"role": "user", "content": "${message}"}
-            ],${responseFormatSnippet}
-        )
-
-        print(response.choices[0].message.content)
-    `);
+            print(response.choices[0].message.content)
+        `,
+    );
 };
 
 /**
@@ -251,29 +216,31 @@ const buildJavaScriptCode = (
     message: string,
     responseFormat?: OpenAiResponseFormat,
 ) => {
-    const responseFormatSnippet = responseFormat
-        ? `\n                ${buildResponseFormatSnippet(responseFormat, 'colon', CODE_INDENT_QUAD)},`
-        : '';
+    return spaceTrim(
+        (block) => `
+            import OpenAI from 'openai';
 
-    return spaceTrim(`
-        import OpenAI from 'openai';
-
-        const client = new OpenAI({
-            baseURL: '${agentApiBase}/api/openai/v1',
-            apiKey: '${apiKeyValue}',
-        });
-
-        async function main() {
-            const response = await client.chat.completions.create({
-                model: 'agent:${agentName}',
-                messages: [{ role: 'user', content: '${message}' }],${responseFormatSnippet}
+            const client = new OpenAI({
+                baseURL: '${agentApiBase}/api/openai/v1',
+                apiKey: '${apiKeyValue}',
             });
 
-            console.log(response.choices[0].message.content);
-        }
+            async function main() {
+                const response = await client.chat.completions.create({
+                    model: 'agent:${agentName}',
+                    messages: [{ role: 'user', content: '${message}' }],${
+                        responseFormat
+                            ? `\n                response_format: ${block(formatJsonForCode(responseFormat))},`
+                            : ''
+                    }
+                });
 
-        main();
-    `);
+                console.log(response.choices[0].message.content);
+            }
+
+            main();
+        `,
+    );
 };
 
 /**
