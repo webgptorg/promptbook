@@ -3,14 +3,20 @@
     "terminals": [
         {
             "name": "👨‍💻⚫ Run CLI example (💸)",
-            "command": "npx ts-node ./src/cli/test/ptbk.ts run ./book/examples/25-simple-knowledge.book.md --provider BRING_YOUR_OWN_KEYS",
+            "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/cli/test/ptbk.ts run ./book/examples/25-simple-knowledge.book.md --provider BRING_YOUR_OWN_KEYS"
+            ],
             "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🎭👨‍💻🟣 Run ptbk start-agents-server",
-            "command": "npx ts-node ./src/cli/test/ptbk.ts start-agents-server ./agents/examples --port 4440 --provider BRING_YOUR_OWN_KEYS",
+            "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/cli/test/ptbk.ts start-agents-server ./agents/examples --port 4440 --provider BRING_YOUR_OWN_KEYS"
+            ],
             "execute": true,
             "onlySingle": true,
             "focus": true
@@ -18,7 +24,10 @@
         {
             "name": "🎭👨‍💻🟣 Run ptbk start-agents-server (direct = 🧸🔠 Run Agents server app)",
             "cwd": "./apps/agents-server/",
-            "command": "npx tsc --noEmit && npx next build && npx next dev --port 4440",
+            "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx tsc --noEmit && npx next build && npx next dev --port 4440"
+            ],
             "execute": true,
             "onlySingle": false,
             "focus": false
@@ -61,35 +70,47 @@
         },
         {
             "name": "👨‍💻🟣 Run ptbk start-pipelines-server",
-            "command": "npx ts-node ./src/cli/test/ptbk.ts start-pipelines-server ./src/remote-server/testing-books --url http://localhost:4460 --provider BRING_YOUR_OWN_KEYS",
+            "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/cli/test/ptbk.ts start-pipelines-server ./src/remote-server/testing-books --url http://localhost:4460 --provider BRING_YOUR_OWN_KEYS"
+            ],
             "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "👨‍💻⚪ Run simple-script example (💸)",
-            "command": "npx ts-node ./examples/usage/simple-script/simple-script.ts",
+            "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./examples/usage/simple-script/simple-script.ts"
+            ],
             "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "👨‍💻🔴 Run logging example (💸)",
-            "command": "npx ts-node ./examples/usage/logging/logging.ts",
+            "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./examples/usage/logging/logging.ts"
+            ],
             "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "👨‍💻🔵 Run remote example (💸)",
-            "command": "npx ts-node ./examples/usage/remote/server.ts",
+            "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./examples/usage/remote/server.ts"
+            ],
             "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "👨‍💻🔵 Run CLI `ptbk about`",
-            "command": "npx ts-node ./src/cli/test/ptbk.ts about",
+            "commands": ["unset OPENAI_API_KEY && unset OPENAI_BASE_URL", "npx ts-node ./src/cli/test/ptbk.ts about"],
             "execute": true,
             "onlySingle": true,
             "focus": true
@@ -97,7 +118,7 @@
         {
             "name": "👨‍💻🔠 Run Book Components web app",
             "cwd": "./apps/book-components/",
-            "command": "npm run dev",
+            "commands": ["unset OPENAI_API_KEY && unset OPENAI_BASE_URL", "npm run dev"],
             "execute": true,
             "onlySingle": true,
             "focus": true
@@ -105,7 +126,7 @@
         {
             "name": "🧸🔠 Run Playground web app",
             "cwd": "./apps/playground/",
-            "command": "npm run dev",
+            "commands": ["unset OPENAI_API_KEY && unset OPENAI_BASE_URL", "npm run dev"],
             "execute": true,
             "onlySingle": true,
             "focus": true
@@ -113,7 +134,7 @@
         {
             "name": "🧸🔠 Run Utils web app",
             "cwd": "./apps/utils/",
-            "command": "npm run dev",
+            "commands": ["unset OPENAI_API_KEY && unset OPENAI_BASE_URL", "npm run dev"],
             "execute": true,
             "onlySingle": true,
             "focus": true
@@ -214,14 +235,20 @@
         },
         {
             "name": "🗑️ Delete OpenAI assistants",
-            "command": "npx ts-node ./scripts/delete-openai-assistants/delete-openai-assistants.ts",
+            "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./scripts/delete-openai-assistants/delete-openai-assistants.ts"
+            ],
             "execute": false,
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🗑️ Delete OpenAI resources (files + vector stores)",
-            "command": "npx ts-node ./scripts/delete-openai-resources/delete-openai-resources.ts",
+            "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./scripts/delete-openai-resources/delete-openai-resources.ts"
+            ],
             "execute": false,
             "onlySingle": true,
             "focus": true
@@ -376,21 +403,27 @@
         },
         {
             "name": "🧸 Playground (💸)",
-            "command": "npx ts-node ./src/playground/playground.ts",
+            "commands": ["unset OPENAI_API_KEY && unset OPENAI_BASE_URL", "npx ts-node ./src/playground/playground.ts"],
             "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🧸🔴 Playground error handling",
-            "command": "npx ts-node ./src/playground/permanent/error-handling-playground.ts",
+            "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/playground/permanent/error-handling-playground.ts"
+            ],
             "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🧸 Agent with browser playground (💸)",
-            "command": "npx ts-node ./src/playground/permanent/agent-with-browser-playground.ts",
+            "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/playground/permanent/agent-with-browser-playground.ts"
+            ],
             "execute": true,
             "onlySingle": true,
             "focus": true
@@ -400,63 +433,90 @@
         },
         {
             "name": "🧸 OpenAI playground (💸)",
-            "command": "npx ts-node ./src/llm-providers/openai/playground/playground.ts",
+            "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/llm-providers/openai/playground/playground.ts"
+            ],
             "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🧸 Ollama playground",
-            "command": "npx ts-node ./src/llm-providers/ollama/playground/playground.ts",
+            "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/llm-providers/ollama/playground/playground.ts"
+            ],
             "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🧸 Anthropic Claude playground (💸)",
-            "command": "npx ts-node ./src/llm-providers/anthropic-claude/playground/playground.ts",
+            "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/llm-providers/anthropic-claude/playground/playground.ts"
+            ],
             "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🧸 Vercel playground (💸)",
-            "command": "npx ts-node ./src/llm-providers/vercel/playground/playground.ts",
+            "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/llm-providers/vercel/playground/playground.ts"
+            ],
             "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🧸 Azure OpenAI playground (💸)",
-            "command": "npx ts-node ./src/llm-providers/azure-openai/playground/playground.ts",
+            "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/llm-providers/azure-openai/playground/playground.ts"
+            ],
             "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🧸 Agent LLM tools playground (with browser and search) (💸)",
-            "command": "npx ts-node ./src/llm-providers/agent/playground/playground.ts",
+            "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/llm-providers/agent/playground/playground.ts"
+            ],
             "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🧸 Langtail playground (💸)",
-            "command": "npx ts-node ./src/llm-providers/langtail/playground/playground.ts",
+            "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/llm-providers/langtail/playground/playground.ts"
+            ],
             "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🧸 Multiple LLMs playground (💸)",
-            "command": "npx ts-node ./src/llm-providers/multiple/playground/playground.ts",
+            "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/llm-providers/multiple/playground/playground.ts"
+            ],
             "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "🧸 Remote server playground",
-            "command": "npx ts-node ./src/llm-providers/remote/playground/playground.ts",
+            "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./src/llm-providers/remote/playground/playground.ts"
+            ],
             "execute": true,
             "onlySingle": true,
             "focus": true
@@ -464,6 +524,7 @@
         {
             "name": "🧸📄💡 Scrape knowledge from Markdown (playground) (💸) [🍠]",
             "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
                 "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
                 "npx ts-node ./src/scrapers/markdown/playground/markdown-scraper-playground.ts"
             ],
@@ -474,6 +535,7 @@
         {
             "name": "🧸📄💡 Scrape knowledge by Markitdown (playground) (💸) [🍠]",
             "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
                 "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
                 "npx ts-node ./src/scrapers/markitdown/playground/markitdown-scraper-playground.ts"
             ],
@@ -485,6 +547,7 @@
         {
             "name": "🧸📃💡 Scrape knowledge from .docx (playground) (💸) [🍠]",
             "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
                 "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
                 "npx ts-node ./src/scrapers/document/playground/document-scraper-playground.ts"
             ],
@@ -496,6 +559,7 @@
         {
             "name": "🧸📃💡 Scrape knowledge from (legacy) .doc (playground) (💸) [🍠]",
             "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
                 "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
                 "npx ts-node ./src/scrapers/document-legacy/playground/legacy-document-scraper-playground.ts"
             ],
@@ -507,6 +571,7 @@
         {
             "name": "🧸📃💡 Scrape knowledge from .pdf (playground) (💸) [🍠]",
             "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
                 "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
                 "npx ts-node ./src/scrapers/pdf/playground/pdf-scraper-playground.ts"
             ],
@@ -518,6 +583,7 @@
         {
             "name": "🧸🌍💡 Scrape knowledge from website (playground) (💸)[🍠]",
             "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
                 "npx ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts --verbose",
                 "npx ts-node ./src/scrapers/website/playground/website-scraper-playground.ts"
             ],
