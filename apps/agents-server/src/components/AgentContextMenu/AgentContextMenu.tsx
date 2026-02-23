@@ -2,24 +2,16 @@
 
 import type { AgentBasicInformation, TODO_any, string_agent_permanent_id } from '@promptbook-local/types';
 import {
-    BarChart3Icon,
     CopyIcon,
     CopyPlusIcon,
-    DownloadIcon,
     ExternalLinkIcon,
-    FileTextIcon,
-    FolderOpenIcon,
     GlobeIcon,
     LockIcon,
     MailIcon,
-    MessageCircleQuestionIcon,
-    MessageSquareIcon,
-    MessageSquareShareIcon,
     MoreHorizontalIcon,
     PencilIcon,
     QrCodeIcon,
     SmartphoneIcon,
-    SquareSplitHorizontalIcon,
     TrashIcon,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -27,7 +19,7 @@ import type { CSSProperties } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { just } from '../../../../../src/utils/organization/just';
 import type { AgentProfile } from '../../app/agents/[agentName]/AgentProfileWrapper';
-import { getAgentLinks } from '../../app/agents/[agentName]/agentLinks';
+import { buildAgentNavigationEntries, type AgentNavigationEntry } from '../../utils/agentNavigationLinks';
 import { deleteAgent } from '../../app/recycle-bin/actions';
 import type { AgentFolderContext } from '../../utils/agentOrganization/agentFolderContext';
 import { promptCloneAgent } from '../AgentCloning/cloneAgent';
@@ -210,6 +202,22 @@ function useInstallPromptState() {
 }
 
 /**
+ * Converts shared navigation entries into context menu link items.
+ *
+ * @param entries - Agent navigation rows.
+ * @returns Context menu representation of the entries.
+ */
+function createNavigationContextMenuItems(entries: AgentNavigationEntry[]): ContextMenuItem[] {
+    return entries.map((entry) => ({
+        type: 'link' as const,
+        href: entry.href,
+        icon: entry.icon,
+        label: entry.label,
+        target: entry.target,
+    }));
+}
+
+/**
  * Shared menu content for agent menus.
  */
 function AgentContextMenuContent(props: AgentContextMenuBaseProps & { onClose: () => void }) {
@@ -275,22 +283,25 @@ function AgentContextMenuContent(props: AgentContextMenuBaseProps & { onClose: (
         [clearCopyTimeout],
     );
 
-    const links = useMemo(
-        () => getAgentLinks(permanentId || agentName, formatText),
-        [agentName, formatText, permanentId],
+    const agentNavigationEntries = useMemo(
+        () =>
+            buildAgentNavigationEntries({
+                agentNavigationId: permanentId || agentName,
+                derivedAgentName,
+                folderContext,
+                formatText,
+                isAdmin,
+            }),
+        [permanentId, agentName, derivedAgentName, folderContext, formatText, isAdmin],
     );
-    const editBookLink = links.find((link) => link.id === 'book')!;
-    const integrationLink = links.find((link) => link.id === 'integration')!;
-    const usageFilterAgentName = derivedAgentName || agentName;
-    const usageAnalyticsHref = useMemo(() => {
-        const searchParams = new URLSearchParams();
-        if (usageFilterAgentName) {
-            searchParams.set('agentName', usageFilterAgentName);
-        }
-        searchParams.set('timeframe', '30d');
-        const query = searchParams.toString();
-        return query ? `/admin/usage?${query}` : '/admin/usage';
-    }, [usageFilterAgentName]);
+    const generalNavigationItems = useMemo(
+        () => createNavigationContextMenuItems(agentNavigationEntries.general),
+        [agentNavigationEntries.general],
+    );
+    const adminNavigationItems = useMemo(
+        () => createNavigationContextMenuItems(agentNavigationEntries.admin),
+        [agentNavigationEntries.admin],
+    );
 
     const showUpdateUrl = agentName !== derivedAgentName;
     const updateUrlHref = `/agents/${encodeURIComponent(derivedAgentName)}`;
@@ -503,36 +514,8 @@ function AgentContextMenuContent(props: AgentContextMenuBaseProps & { onClose: (
 
         { type: 'divider' as const },
 
-        ...(folderContext
-            ? [
-                  {
-                      type: 'link' as const,
-                      href: folderContext.href,
-                      icon: FolderOpenIcon,
-                      label: `${formatText('Open Folder')}: ${folderContext.label}`,
-                  },
-              ]
-            : []),
-        {
-            type: 'link' as const,
-            href: `/agents/${encodeURIComponent(agentName)}/chat`,
-            icon: MessageSquareShareIcon,
-            label: 'Standalone Chat',
-        },
-        {
-            type: 'link' as const,
-            href: `/agents/${encodeURIComponent(agentName)}/book+chat`,
-            icon: SquareSplitHorizontalIcon,
-            label: 'Edit Book & Chat',
-        },
-        {
-            type: 'link' as const,
-            href: editBookLink.href,
-            icon: editBookLink.icon,
-            label: editBookLink.title,
-        },
-
-        { type: 'divider' as const },
+        ...generalNavigationItems,
+        ...(generalNavigationItems.length > 0 ? [{ type: 'divider' as const }] : []),
 
         {
             type: 'action' as const,
@@ -570,44 +553,8 @@ function AgentContextMenuContent(props: AgentContextMenuBaseProps & { onClose: (
                             onClick: () => handleSetVisibility('PRIVATE'),
                         },
                   { type: 'divider' as const },
-                  {
-                      type: 'link' as const,
-                      href: `/admin/chat-history?agentName=${encodeURIComponent(agentName)}`,
-                      icon: MessageSquareIcon,
-                      label: 'Chat History',
-                  },
-                  {
-                      type: 'link' as const,
-                      href: usageAnalyticsHref,
-                      icon: BarChart3Icon,
-                      label: 'Usage Analytics',
-                  },
-                  {
-                      type: 'link' as const,
-                      href: `/admin/chat-feedback?agentName=${encodeURIComponent(agentName)}`,
-                      icon: MessageCircleQuestionIcon,
-                      label: 'Chat Feedback',
-                  },
-                  { type: 'divider' as const },
-                  {
-                      type: 'link' as const,
-                      href: integrationLink.href,
-                      icon: integrationLink.icon,
-                      label: integrationLink.title,
-                  },
-                  {
-                      type: 'link' as const,
-                      href: `/agents/${encodeURIComponent(agentName)}/system-message`,
-                      icon: FileTextIcon,
-                      label: 'Show System Message',
-                  },
-                  {
-                      type: 'link' as const,
-                      href: `/agents/${encodeURIComponent(agentName)}/export-as-transpiled-code`,
-                      icon: DownloadIcon,
-                      label: formatText('Export Agent'),
-                  },
-                  { type: 'divider' as const },
+                  ...adminNavigationItems,
+                  ...(adminNavigationItems.length > 0 ? [{ type: 'divider' as const }] : []),
               ]
             : []),
     ];
