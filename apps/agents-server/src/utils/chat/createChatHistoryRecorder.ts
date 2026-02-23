@@ -76,6 +76,10 @@ export type RecordChatHistoryMessageOptions = {
      * Hash of the previous message in the chat sequence.
      */
     previousMessageHash?: string | null;
+    /**
+     * Optional usage tracking statistics.
+     */
+    usage?: ChatHistoryInsert['usage'];
 };
 
 /**
@@ -86,7 +90,7 @@ export type RecordChatHistoryMessage = (options: RecordChatHistoryMessageOptions
 /**
  * Optional columns that may be missing on partially migrated databases.
  */
-const CHAT_HISTORY_OPTIONAL_COLUMNS = ['source', 'apiKey', 'actorType'] as const;
+const CHAT_HISTORY_OPTIONAL_COLUMNS = ['source', 'apiKey', 'actorType', 'usage'] as const;
 
 /**
  * Creates one request-scoped recorder for `ChatHistory`.
@@ -105,7 +109,7 @@ export async function createChatHistoryRecorder(
     const canonicalAgentName = isEnabled ? await resolveCanonicalAgentName(agentIdentifier) : null;
     const agentNameForInsert = canonicalAgentName || agentIdentifier;
 
-    return async ({ message, previousMessageHash = null }: RecordChatHistoryMessageOptions): Promise<string> => {
+    return async ({ message, previousMessageHash = null, usage = null }: RecordChatHistoryMessageOptions): Promise<string> => {
         const messageHash = computeHash(message);
         if (!isEnabled) {
             return messageHash;
@@ -127,6 +131,7 @@ export async function createChatHistoryRecorder(
             source,
             apiKey,
             actorType: resolvedActorType,
+            usage,
         };
 
         const { error } = await supabase.from(tableName).insert(row);
@@ -135,7 +140,7 @@ export async function createChatHistoryRecorder(
         }
 
         if (isMissingOptionalColumnError(error)) {
-            const rowWithoutOptionalColumns: Omit<ChatHistoryInsert, 'source' | 'apiKey' | 'actorType'> = {
+            const rowWithoutOptionalColumns: Omit<ChatHistoryInsert, 'source' | 'apiKey' | 'actorType' | 'usage'> = {
                 createdAt: row.createdAt,
                 messageHash: row.messageHash,
                 previousMessageHash: row.previousMessageHash,

@@ -185,6 +185,13 @@ export function UsageClient(props: UsageClientProps) {
 
         return [
             { label: 'Total calls', value: formatCompactNumber(data.summary.totalCalls) },
+            { label: 'Total tokens', value: formatCompactNumber(data.summary.totalTokens) },
+            {
+                label: 'Cost (USD)',
+                value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(
+                    data.summary.totalPriceUsd,
+                ),
+            },
             { label: 'Agents involved', value: formatCompactNumber(data.summary.uniqueAgents) },
             { label: 'API keys used', value: formatCompactNumber(data.summary.uniqueApiKeys) },
             { label: 'User agents', value: formatCompactNumber(data.summary.uniqueUserAgents) },
@@ -415,7 +422,12 @@ export function UsageClient(props: UsageClientProps) {
                             <h2 className="text-lg font-medium text-gray-900">Per agent</h2>
                             <SimpleCountTable
                                 emptyLabel="No agent usage for current filters."
-                                rows={data.perAgent.map((item) => ({ label: item.agentName, value: item.calls }))}
+                                rows={data.perAgent.map((item) => ({
+                                    label: item.agentName,
+                                    calls: item.calls,
+                                    tokens: item.tokens,
+                                    priceUsd: item.priceUsd,
+                                }))}
                             />
                         </Card>
 
@@ -423,7 +435,12 @@ export function UsageClient(props: UsageClientProps) {
                             <h2 className="text-lg font-medium text-gray-900">Per folder</h2>
                             <SimpleCountTable
                                 emptyLabel="No folder usage for current filters."
-                                rows={data.perFolder.map((item) => ({ label: item.folderName, value: item.calls }))}
+                                rows={data.perFolder.map((item) => ({
+                                    label: item.folderName,
+                                    calls: item.calls,
+                                    tokens: item.tokens,
+                                    priceUsd: item.priceUsd,
+                                }))}
                             />
                         </Card>
                     </div>
@@ -433,10 +450,12 @@ export function UsageClient(props: UsageClientProps) {
                             <h2 className="text-lg font-medium text-gray-900">API key details</h2>
                             <DetailsTable
                                 emptyLabel="No API key usage for current filters."
-                                headers={['API key', 'Calls', 'Last seen']}
+                                headers={['API key', 'Calls', 'Tokens', 'Cost', 'Last seen']}
                                 rows={data.apiKeys.map((item) => [
                                     `${truncateMiddle(item.apiKey, 12, 8)}${item.note ? ` (${item.note})` : ''}`,
                                     formatCompactNumber(item.calls),
+                                    formatCompactNumber(item.tokens),
+                                    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(item.priceUsd),
                                     formatDateTime(item.lastSeen),
                                 ])}
                             />
@@ -446,10 +465,12 @@ export function UsageClient(props: UsageClientProps) {
                             <h2 className="text-lg font-medium text-gray-900">User agent details</h2>
                             <DetailsTable
                                 emptyLabel="No user-agent usage for current filters."
-                                headers={['User agent', 'Calls', 'Last seen']}
+                                headers={['User agent', 'Calls', 'Tokens', 'Cost', 'Last seen']}
                                 rows={data.userAgents.map((item) => [
-                                    truncateMiddle(item.userAgent, 42, 18),
+                                    item.userAgent || 'Unknown',
                                     formatCompactNumber(item.calls),
+                                    formatCompactNumber(item.tokens),
+                                    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(item.priceUsd),
                                     formatDateTime(item.lastSeen),
                                 ])}
                             />
@@ -595,7 +616,7 @@ function BreakdownRow(props: {
  * Small two-column count table.
  */
 function SimpleCountTable(props: {
-    rows: Array<{ label: string; value: number }>;
+    rows: Array<{ label: string; calls: number; tokens: number; priceUsd: number }>;
     emptyLabel: string;
 }) {
     const { rows, emptyLabel } = props;
@@ -611,14 +632,24 @@ function SimpleCountTable(props: {
                     <tr>
                         <th className="px-3 py-2">Name</th>
                         <th className="px-3 py-2 text-right">Calls</th>
+                        <th className="px-3 py-2 text-right">Tokens</th>
+                        <th className="px-3 py-2 text-right">Cost</th>
                     </tr>
                 </thead>
                 <tbody>
                     {rows.map((row) => (
                         <tr key={row.label} className="border-t border-gray-100">
-                            <td className="px-3 py-2 text-gray-800">{row.label}</td>
-                            <td className="px-3 py-2 text-right font-medium text-gray-900">
-                                {formatCompactNumber(row.value)}
+                            <td className="px-3 py-2 font-medium text-gray-700 truncate max-w-[200px]">
+                                {row.label}
+                            </td>
+                            <td className="px-3 py-2 text-right text-gray-700 whitespace-nowrap">
+                                {formatCompactNumber(row.calls)}
+                            </td>
+                            <td className="px-3 py-2 text-right text-gray-700 whitespace-nowrap">
+                                {formatCompactNumber(row.tokens)}
+                            </td>
+                            <td className="px-3 py-2 text-right text-gray-700 whitespace-nowrap">
+                                {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(row.priceUsd)}
                             </td>
                         </tr>
                     ))}
@@ -629,11 +660,11 @@ function SimpleCountTable(props: {
 }
 
 /**
- * Generic details table with three columns.
+ * Generic details table with flexible columns.
  */
 function DetailsTable(props: {
-    headers: [string, string, string];
-    rows: Array<[string, string, string]>;
+    headers: string[];
+    rows: Array<Array<React.ReactNode>>;
     emptyLabel: string;
 }) {
     const { headers, rows, emptyLabel } = props;
@@ -647,17 +678,21 @@ function DetailsTable(props: {
             <table className="w-full text-left text-sm">
                 <thead className="sticky top-0 bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
                     <tr>
-                        <th className="px-3 py-2">{headers[0]}</th>
-                        <th className="px-3 py-2 text-right">{headers[1]}</th>
-                        <th className="px-3 py-2 text-right">{headers[2]}</th>
+                        {headers.map((header, idx) => (
+                            <th key={idx} className={`px-3 py-2 ${idx > 0 ? 'text-right' : ''}`}>
+                                {header}
+                            </th>
+                        ))}
                     </tr>
                 </thead>
                 <tbody>
-                    {rows.map((row, index) => (
-                        <tr key={`${row[0]}-${index}`} className="border-t border-gray-100">
-                            <td className="px-3 py-2 text-gray-800">{row[0]}</td>
-                            <td className="px-3 py-2 text-right font-medium text-gray-900">{row[1]}</td>
-                            <td className="px-3 py-2 text-right text-gray-700">{row[2]}</td>
+                    {rows.map((row, rowIdx) => (
+                        <tr key={rowIdx} className="border-t border-gray-100">
+                            {row.map((cell, cellIdx) => (
+                                <td key={cellIdx} className={`px-3 py-2 text-gray-700 ${cellIdx > 0 ? 'text-right whitespace-nowrap' : 'font-medium truncate max-w-[200px]'}`}>
+                                    {cell}
+                                </td>
+                            ))}
                         </tr>
                     ))}
                 </tbody>

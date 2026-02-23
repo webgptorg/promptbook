@@ -186,6 +186,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         await recordChatHistoryMessage({
             message: agentMessageContent,
             previousMessageHash: userMessageHash,
+            usage: response.usage,
         });
 
         // Learning

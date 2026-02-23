@@ -273,6 +273,7 @@ export type AgentsServerDatabase = {
                     source: 'AGENT_PAGE_CHAT' | 'OPENAI_API_COMPATIBILITY' | null;
                     apiKey: string | null;
                     actorType: 'ANONYMOUS' | 'TEAM_MEMBER' | 'API_KEY' | null;
+                    usage: Json | null;
                 };
                 Insert: {
                     id?: number;
@@ -291,6 +292,7 @@ export type AgentsServerDatabase = {
                     source?: 'AGENT_PAGE_CHAT' | 'OPENAI_API_COMPATIBILITY' | null;
                     apiKey?: string | null;
                     actorType?: 'ANONYMOUS' | 'TEAM_MEMBER' | 'API_KEY' | null;
+                    usage?: Json | null;
                 };
                 Update: {
                     id?: number;
@@ -309,6 +311,7 @@ export type AgentsServerDatabase = {
                     source?: 'AGENT_PAGE_CHAT' | 'OPENAI_API_COMPATIBILITY' | null;
                     apiKey?: string | null;
                     actorType?: 'ANONYMOUS' | 'TEAM_MEMBER' | 'API_KEY' | null;
+                    usage?: Json | null;
                 };
                 Relationships: [
                     {

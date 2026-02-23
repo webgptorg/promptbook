@@ -19,6 +19,8 @@ export type UsageActorType = 'ANONYMOUS' | 'TEAM_MEMBER' | 'API_KEY';
 export type UsageTimelinePoint = {
     bucketStart: string;
     calls: number;
+    tokens: number;
+    priceUsd: number;
 };
 
 /**
@@ -28,6 +30,8 @@ export type UsageBreakdownItem<TKey extends string> = {
     key: TKey;
     label: string;
     calls: number;
+    tokens: number;
+    priceUsd: number;
 };
 
 /**
@@ -36,6 +40,8 @@ export type UsageBreakdownItem<TKey extends string> = {
 export type UsagePerAgentItem = {
     agentName: string;
     calls: number;
+    tokens: number;
+    priceUsd: number;
 };
 
 /**
@@ -45,6 +51,8 @@ export type UsagePerFolderItem = {
     folderId: number | null;
     folderName: string;
     calls: number;
+    tokens: number;
+    priceUsd: number;
 };
 
 /**
@@ -54,6 +62,8 @@ export type UsageApiKeyItem = {
     apiKey: string;
     note: string | null;
     calls: number;
+    tokens: number;
+    priceUsd: number;
     lastSeen: string;
 };
 
@@ -63,6 +73,8 @@ export type UsageApiKeyItem = {
 export type UsageUserAgentItem = {
     userAgent: string;
     calls: number;
+    tokens: number;
+    priceUsd: number;
     lastSeen: string;
 };
 
@@ -71,6 +83,8 @@ export type UsageUserAgentItem = {
  */
 export type UsageSummary = {
     totalCalls: number;
+    totalTokens: number;
+    totalPriceUsd: number;
     uniqueAgents: number;
     uniqueApiKeys: number;
     uniqueUserAgents: number;

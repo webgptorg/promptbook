@@ -17,7 +17,7 @@ import type {
  */
 type ChatHistoryRow = Pick<
     AgentsServerDatabase['public']['Tables']['ChatHistory']['Row'],
-    'createdAt' | 'agentName' | 'message' | 'source' | 'apiKey' | 'userAgent' | 'actorType'
+    'createdAt' | 'agentName' | 'message' | 'source' | 'apiKey' | 'userAgent' | 'actorType' | 'usage'
 >;
 
 /**
@@ -86,16 +86,16 @@ export async function GET(request: NextRequest) {
                     callType: callTypeFilter,
                     actorType: actorTypeFilter,
                 },
-                summary: {
-                    totalCalls: 0,
-                    uniqueAgents: 0,
-                    uniqueApiKeys: 0,
-                    uniqueUserAgents: 0,
-                },
-                timeline: [],
-                breakdownByCallType: CALL_TYPES.map((key) => ({ key, label: callTypeLabel(key), calls: 0 })),
-                breakdownByActorType: ACTOR_TYPES.map((key) => ({ key, label: actorTypeLabel(key), calls: 0 })),
-                perAgent: [],
+                            summary: {
+                                totalCalls: 0,
+                                totalTokens: 0,
+                                totalPriceUsd: 0,
+                                uniqueAgents: 0,
+                                uniqueApiKeys: 0,
+                                uniqueUserAgents: 0,
+                            },                timeline: [],
+                            breakdownByCallType: CALL_TYPES.map((key) => ({ key, label: callTypeLabel(key), calls: 0, tokens: 0, priceUsd: 0 })),
+                            breakdownByActorType: ACTOR_TYPES.map((key) => ({ key, label: actorTypeLabel(key), calls: 0, tokens: 0, priceUsd: 0 })),                perAgent: [],
                 perFolder: [],
                 apiKeys: [],
                 userAgents: [],
@@ -117,6 +117,13 @@ export async function GET(request: NextRequest) {
                 const actorType = resolveActorType(row);
                 const userAgent = normalizeUserAgent(row.userAgent);
                 const apiKey = normalizeOptionalText(row.apiKey);
+                const usage = row.usage as {
+                    input?: { tokensCount?: { value?: number } };
+                    output?: { tokensCount?: { value?: number } };
+                    price?: { value?: number };
+                } | null;
+                const tokens = (usage?.input?.tokensCount?.value || 0) + (usage?.output?.tokensCount?.value || 0);
+                const priceUsd = usage?.price?.value || 0;
 
                 return {
                     createdAt: row.createdAt,
@@ -125,6 +132,8 @@ export async function GET(request: NextRequest) {
                     actorType,
                     apiKey,
                     userAgent,
+                    tokens,
+                    priceUsd,
                 };
             })
             .filter((call) => {
@@ -138,13 +147,13 @@ export async function GET(request: NextRequest) {
             });
 
         const bucketSizeMs = resolveTimelineBucketSizeMs(timeframe.from.getTime(), timeframe.to.getTime());
-        const timelineByBucket = new Map<number, number>();
-        const perAgentCounts = new Map<string, number>();
-        const perFolderCounts = new Map<number | null, number>();
-        const callTypeCounts = new Map<UsageCallType, number>();
-        const actorTypeCounts = new Map<UsageActorType, number>();
-        const apiKeyDetails = new Map<string, { calls: number; lastSeen: string }>();
-        const userAgentDetails = new Map<string, { calls: number; lastSeen: string }>();
+        const timelineByBucket = new Map<number, { calls: number; tokens: number; priceUsd: number }>();
+        const perAgentCounts = new Map<string, { calls: number; tokens: number; priceUsd: number }>();
+        const perFolderCounts = new Map<number | null, { calls: number; tokens: number; priceUsd: number }>();
+        const callTypeCounts = new Map<UsageCallType, { calls: number; tokens: number; priceUsd: number }>();
+        const actorTypeCounts = new Map<UsageActorType, { calls: number; tokens: number; priceUsd: number }>();
+        const apiKeyDetails = new Map<string, { calls: number; tokens: number; priceUsd: number; lastSeen: string }>();
+        const userAgentDetails = new Map<string, { calls: number; tokens: number; priceUsd: number; lastSeen: string }>();
 
         for (const call of filteredCalls) {
             const timestamp = Date.parse(call.createdAt);
@@ -153,18 +162,28 @@ export async function GET(request: NextRequest) {
             }
 
             const bucketKey = floorToBucket(timestamp, bucketSizeMs);
-            timelineByBucket.set(bucketKey, (timelineByBucket.get(bucketKey) || 0) + 1);
-            perAgentCounts.set(call.agentName, (perAgentCounts.get(call.agentName) || 0) + 1);
-            callTypeCounts.set(call.callType, (callTypeCounts.get(call.callType) || 0) + 1);
-            actorTypeCounts.set(call.actorType, (actorTypeCounts.get(call.actorType) || 0) + 1);
+            const { tokens = 0, priceUsd = 0 } = call;
+            
+            const updateCount = (current: { calls: number; tokens: number; priceUsd: number } | undefined) => ({
+                calls: (current?.calls || 0) + 1,
+                tokens: (current?.tokens || 0) + tokens,
+                priceUsd: (current?.priceUsd || 0) + priceUsd,
+            });
+
+            timelineByBucket.set(bucketKey, updateCount(timelineByBucket.get(bucketKey)));
+            perAgentCounts.set(call.agentName, updateCount(perAgentCounts.get(call.agentName)));
+            callTypeCounts.set(call.callType, updateCount(callTypeCounts.get(call.callType)));
+            actorTypeCounts.set(call.actorType, updateCount(actorTypeCounts.get(call.actorType)));
 
             const folderId = agentFolderByName.get(call.agentName) ?? null;
-            perFolderCounts.set(folderId, (perFolderCounts.get(folderId) || 0) + 1);
+            perFolderCounts.set(folderId, updateCount(perFolderCounts.get(folderId)));
 
             if (call.apiKey) {
                 const existing = apiKeyDetails.get(call.apiKey);
                 apiKeyDetails.set(call.apiKey, {
                     calls: (existing?.calls || 0) + 1,
+                    tokens: (existing?.tokens || 0) + tokens,
+                    priceUsd: (existing?.priceUsd || 0) + priceUsd,
                     lastSeen: existing?.lastSeen && existing.lastSeen > call.createdAt ? existing.lastSeen : call.createdAt,
                 });
             }
@@ -172,6 +191,8 @@ export async function GET(request: NextRequest) {
             const existingUserAgent = userAgentDetails.get(call.userAgent);
             userAgentDetails.set(call.userAgent, {
                 calls: (existingUserAgent?.calls || 0) + 1,
+                tokens: (existingUserAgent?.tokens || 0) + tokens,
+                priceUsd: (existingUserAgent?.priceUsd || 0) + priceUsd,
                 lastSeen:
                     existingUserAgent?.lastSeen && existingUserAgent.lastSeen > call.createdAt
                         ? existingUserAgent.lastSeen
@@ -189,14 +210,14 @@ export async function GET(request: NextRequest) {
         });
 
         const perAgent = [...perAgentCounts.entries()]
-            .map(([agentName, calls]) => ({ agentName, calls }))
+            .map(([agentName, stats]) => ({ agentName, ...stats }))
             .sort((a, b) => b.calls - a.calls || a.agentName.localeCompare(b.agentName));
 
         const perFolder = [...perFolderCounts.entries()]
-            .map(([folderId, calls]) => ({
+            .map(([folderId, stats]) => ({
                 folderId,
                 folderName: folderId === null ? 'Root folder' : folderById.get(folderId)?.name || `Folder #${folderId}`,
-                calls,
+                ...stats,
             }))
             .sort((a, b) => b.calls - a.calls || a.folderName.localeCompare(b.folderName));
 
@@ -205,6 +226,8 @@ export async function GET(request: NextRequest) {
                 apiKey,
                 note: apiKeyNotes.get(apiKey) || null,
                 calls: detail.calls,
+                tokens: detail.tokens,
+                priceUsd: detail.priceUsd,
                 lastSeen: detail.lastSeen,
             }))
             .sort((a, b) => b.calls - a.calls || b.lastSeen.localeCompare(a.lastSeen));
@@ -213,6 +236,8 @@ export async function GET(request: NextRequest) {
             .map(([userAgent, detail]) => ({
                 userAgent,
                 calls: detail.calls,
+                tokens: detail.tokens,
+                priceUsd: detail.priceUsd,
                 lastSeen: detail.lastSeen,
             }))
             .sort((a, b) => b.calls - a.calls || b.lastSeen.localeCompare(a.lastSeen));
@@ -227,21 +252,29 @@ export async function GET(request: NextRequest) {
             },
             summary: {
                 totalCalls: filteredCalls.length,
+                totalTokens: filteredCalls.reduce((sum, call) => sum + (call.tokens || 0), 0),
+                totalPriceUsd: filteredCalls.reduce((sum, call) => sum + (call.priceUsd || 0), 0),
                 uniqueAgents: perAgentCounts.size,
                 uniqueApiKeys: apiKeyDetails.size,
                 uniqueUserAgents: userAgentDetails.size,
             },
             timeline,
-            breakdownByCallType: CALL_TYPES.map((key) => ({
-                key,
-                label: callTypeLabel(key),
-                calls: callTypeCounts.get(key) || 0,
-            })),
-            breakdownByActorType: ACTOR_TYPES.map((key) => ({
-                key,
-                label: actorTypeLabel(key),
-                calls: actorTypeCounts.get(key) || 0,
-            })),
+            breakdownByCallType: CALL_TYPES.map((key) => {
+                const stats = callTypeCounts.get(key) || { calls: 0, tokens: 0, priceUsd: 0 };
+                return {
+                    key,
+                    label: callTypeLabel(key),
+                    ...stats,
+                };
+            }),
+            breakdownByActorType: ACTOR_TYPES.map((key) => {
+                const stats = actorTypeCounts.get(key) || { calls: 0, tokens: 0, priceUsd: 0 };
+                return {
+                    key,
+                    label: actorTypeLabel(key),
+                    ...stats,
+                };
+            }),
             perAgent,
             perFolder,
             apiKeys: apiKeys.slice(0, 25),
@@ -297,7 +330,7 @@ async function fetchChatHistoryRows(options: {
     for (let offset = 0; ; offset += CHAT_HISTORY_PAGE_SIZE) {
         let query = supabase
             .from(tableName)
-            .select('createdAt, agentName, message, source, apiKey, userAgent, actorType')
+            .select('createdAt, agentName, message, source, apiKey, userAgent, actorType, usage')
             .gte('createdAt', fromIso)
             .lte('createdAt', toIso)
             .order('createdAt', { ascending: true });
@@ -404,7 +437,7 @@ function createTimelineSeries(options: {
     from: number;
     to: number;
     bucketSizeMs: number;
-    timelineByBucket: Map<number, number>;
+    timelineByBucket: Map<number, { calls: number; tokens: number; priceUsd: number }>;
 }): UsageAnalyticsResponse['timeline'] {
     const { from, to, bucketSizeMs, timelineByBucket } = options;
     if (to < from) {
@@ -416,9 +449,12 @@ function createTimelineSeries(options: {
     const end = floorToBucket(to, bucketSizeMs);
 
     for (let cursor = start; cursor <= end; cursor += bucketSizeMs) {
+        const bucketVal = timelineByBucket.get(cursor);
         points.push({
             bucketStart: new Date(cursor).toISOString(),
-            calls: timelineByBucket.get(cursor) || 0,
+            calls: bucketVal?.calls || 0,
+            tokens: bucketVal?.tokens || 0,
+            priceUsd: bucketVal?.priceUsd || 0,
         });
     }
 

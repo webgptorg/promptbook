@@ -35,7 +35,7 @@
 
 ---
 
-[ ]
+[x] $0.00 39 minutes by Gemini CLI
 
 [✨🆑] Record full usage, not only the count.
 
@@ -81,3 +81,4 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

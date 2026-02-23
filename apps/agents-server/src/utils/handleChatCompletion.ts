@@ -517,6 +517,7 @@ export async function handleChatCompletion(
                         await recordChatHistoryMessage({
                             message: agentMessageContent,
                             previousMessageHash: userMessageHash,
+                            usage: result.usage,
                         });
 
                         // Note: [🐱‍🚀] Save the learned data
@@ -575,6 +576,7 @@ export async function handleChatCompletion(
             await recordChatHistoryMessage({
                 message: agentMessageContent,
                 previousMessageHash: userMessageHash,
+                usage: result.usage,
             });
 
             // Note: [🐱‍🚀] Save the learned data
