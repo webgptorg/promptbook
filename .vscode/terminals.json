@@ -367,7 +367,17 @@
             "focus": true
         },
         {
-            "name": "⚡🚀 Run `promptbook-coder` Coding Agent (💸)(⏳)",
+            "name": "⚡🚀 Run `gemini-3.1` Coding Agent (💸)(⏳)",
+            "commands": [
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --agent gemini --no-wait"
+            ],
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "*(not working)* ⚡🚀 Run `promptbook-coder` Coding Agent (💸)(⏳)",
             "commands": [
                 "set -a && source .env && set +a",
                 "export OPENAI_API_KEY=$PROMPTBOOK_AGENTS_SERVER_API_KEY && export OPENAI_BASE_URL=https://pavol-hejny.ptbk.io/agents/NFR94UDUAHzmAX/api/openai/v1",
@@ -378,7 +388,7 @@
             "focus": true
         },
         {
-            "name": "⚡🚀 Run `gpt-5.1-codex-mini` via OpenAI API Coding Agent (💸)(⏳)",
+            "name": "*(not working)* ⚡🚀 Run `gpt-5.1-codex-mini` via OpenAI API Coding Agent (💸)(⏳)",
 
             "commands": [
                 "set -a && source .env && set +a",
