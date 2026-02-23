@@ -1,3 +1,4 @@
+import { CHAT_STREAM_KEEP_ALIVE_INTERVAL_MS, CHAT_STREAM_KEEP_ALIVE_TOKEN } from '@/src/constants/streaming';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideOpenAiAgentKitExecutionToolsForServer } from '@/src/tools/$provideOpenAiAgentKitExecutionToolsForServer';
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
@@ -6,38 +7,34 @@ import {
     resolveBookScopedAgentContext,
 } from '@/src/utils/agentReferenceResolver/bookScopedAgentReferences';
 import { AgentKitCacheManager } from '@/src/utils/cache/AgentKitCacheManager';
-import { ensureNonEmptyChatContent } from '@/src/utils/chat/ensureNonEmptyChatContent';
+import { appendChatAttachmentContextWithContent, normalizeChatAttachments } from '@/src/utils/chat/chatAttachments';
 import { createChatHistoryRecorder } from '@/src/utils/chat/createChatHistoryRecorder';
-import { createChatStreamHandler } from '@/src/utils/createChatStreamHandler';
-import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
-import { composePromptParametersWithMemoryContext } from '@/src/utils/memoryRuntimeContext';
+import { ensureNonEmptyChatContent } from '@/src/utils/chat/ensureNonEmptyChatContent';
 import {
     appendMessageSuffix,
     createMessageSuffixAppendix,
     emulateMessageSuffixStreaming,
     resolveMessageSuffixFromAgentSource,
 } from '@/src/utils/chat/messageSuffix';
+import { createChatStreamHandler } from '@/src/utils/createChatStreamHandler';
+import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
+import { composePromptParametersWithMemoryContext } from '@/src/utils/memoryRuntimeContext';
 import {
     resolveMetaDisclaimerMarkdownFromAgentSource,
     resolveMetaDisclaimerStatusForUser,
 } from '@/src/utils/metaDisclaimer';
-import { appendChatAttachmentContextWithContent, normalizeChatAttachments } from '@/src/utils/chat/chatAttachments';
-import { encodeChatStreamWhitespaceForTransport } from '@/src/utils/chat/streamWhitespaceTokens';
+import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
 import { resolveCurrentUserMemoryIdentity } from '@/src/utils/userMemory';
-import { Agent, computeAgentHash, RemoteAgent } from '@promptbook-local/core';
 import type { ChatMessage } from '@promptbook-local/components';
+import { Agent, computeAgentHash, RemoteAgent } from '@promptbook-local/core';
 import type { ToolCall } from '@promptbook-local/types';
 import { $getCurrentDate, serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
 import { ASSISTANT_PREPARATION_TOOL_CALL_NAME } from '../../../../../../../../src/types/ToolCall';
+import { encodeChatStreamWhitespaceForTransport } from '../../../../../../../../src/utils/chat/streamWhitespaceTokens';
 import { keepUnused } from '../../../../../../../../src/utils/organization/keepUnused';
 import { respondIfClientVersionIsOutdated } from '../../../../../utils/clientVersionGuard';
 import { isAgentDeleted } from '../../_utils';
-import {
-    CHAT_STREAM_KEEP_ALIVE_INTERVAL_MS,
-    CHAT_STREAM_KEEP_ALIVE_TOKEN,
-} from '@/src/constants/streaming';
-import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
 
 /**
  * Shape of the incoming chat API payload.

@@ -14,8 +14,8 @@ import {
     resolveMessageSuffixFromAgentSource,
 } from '@/src/utils/chat/messageSuffix';
 import { createChatStreamHandler } from '@/src/utils/createChatStreamHandler';
-import { encodeChatStreamWhitespaceForTransport } from '@/src/utils/chat/streamWhitespaceTokens';
 import { composePromptParametersWithMemoryContext } from '@/src/utils/memoryRuntimeContext';
+import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
 import { resolveCurrentUserMemoryIdentity } from '@/src/utils/userMemory';
 import { Agent, computeAgentHash } from '@promptbook-local/core';
 import type {
@@ -32,12 +32,12 @@ import { $getCurrentDate } from '@promptbook-local/utils';
 import { NextRequest, NextResponse } from 'next/server';
 import type OpenAI from 'openai';
 import { computeUsageCounts } from '../../../../src/execution/utils/computeUsageCounts';
+import { encodeChatStreamWhitespaceForTransport } from '../../../../src/utils/chat/streamWhitespaceTokens';
 import { isAgentDeleted } from '../app/agents/[agentName]/_utils';
 import { HTTP_STATUS_CODES } from '../constants';
 import { AgentKitCacheManager } from './cache/AgentKitCacheManager';
 import { respondIfClientVersionIsOutdated } from './clientVersionGuard';
 import { validateApiKey } from './validateApiKey';
-import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
 
 /**
  * Falls back to the estimated value when the original token count is unknown.
@@ -503,7 +503,10 @@ export async function handleChatCompletion(
                             });
                         }
 
-                        const responseContentWithSuffix = appendMessageSuffix(normalizedResponse.content, messageSuffix);
+                        const responseContentWithSuffix = appendMessageSuffix(
+                            normalizedResponse.content,
+                            messageSuffix,
+                        );
 
                         // Note: Identify the agent message
                         const agentMessageContent = {
