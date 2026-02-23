@@ -7,6 +7,7 @@ import spaceTrim from 'spacetrim';
 import { createApiToken } from '@/src/utils/apiTokensClient';
 import { CopyField } from '../CopyField';
 import { SdkCodeTabs } from './SdkCodeTabs';
+import { CodePreview } from '../../../../../../_common/components/CodePreview/CodePreview';
 import { useAgentNaming } from '@/src/components/AgentNaming/AgentNamingContext';
 
 /**
@@ -132,6 +133,36 @@ export function ApiKeyIntegrationSections({
         main();
     `);
 
+    /**
+     * Example payload showing the use of the json_schema response format.
+     */
+    const responseFormatSchemaExample = spaceTrim(`
+        {
+          "model": "agent:${agentName}",
+          "messages": [
+            {
+              "role": "user",
+              "content": "Share a short summary and a confidence metric about your answer."
+            }
+          ],
+          "response_format": {
+            "type": "json_schema",
+            "json_schema": {
+              "type": "object",
+              "properties": {
+                "summary": {
+                  "type": "string"
+                },
+                "confidence": {
+                  "type": "number"
+                }
+              },
+              "required": ["summary", "confidence"]
+            }
+          }
+        }
+    `);
+
     return (
         <>
             <div className="p-6 rounded-xl border-2 border-blue-200 bg-blue-50/30 shadow-sm">
@@ -181,6 +212,17 @@ export function ApiKeyIntegrationSections({
                 </div>
 
                 <SdkCodeTabs curlCode={curlCode} pythonCode={pythonCode} jsCode={jsCode} />
+
+                <div className="mt-6 rounded-xl border border-dashed border-gray-200 bg-white/70 p-4 space-y-2">
+                    <p className="text-sm text-gray-600">
+                        Set <code className="font-mono">response_format.type</code> to{' '}
+                        <code className="font-mono text-xs">json_schema</code> and describe the expected
+                        structure. Promptbook validates the agent response against this schema and asks
+                        the agent to try again if the payload is invalid.
+                    </p>
+                    <p className="text-sm text-gray-500">Example request body:</p>
+                    <CodePreview code={responseFormatSchemaExample} language="json" />
+                </div>
             </div>
 
             <div className="p-6 rounded-xl border-2 border-purple-200 bg-purple-50/30 shadow-sm">
