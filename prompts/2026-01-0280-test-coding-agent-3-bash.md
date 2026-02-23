@@ -1,5 +1,9 @@
 [x] ~$0.00
 
+---
+
+[ ]
+
 [✨🛰] Create some files at root of the project
 
 -   Create file named `nonce-foo-3.txt` with content of of output of `date +%s`

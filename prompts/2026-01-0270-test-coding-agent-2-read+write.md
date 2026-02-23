@@ -1,5 +1,9 @@
 [x] ~$0.00
 
+---
+
+[ ]
+
 [✨🤶] Create some files at root of the project
 
 -   Read content of `nonce-foo-1.txt` and create a new file named `nonce-foo-2.txt` with the same content.

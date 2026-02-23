@@ -367,6 +367,29 @@
             "focus": true
         },
         {
+            "name": "⚡🚀 Run `promptbook-coder` Coding Agent (💸)(⏳)",
+            "commands": [
+                "set -a && source .env && set +a",
+                "export OPENAI_API_KEY=$PROMPTBOOK_AGENTS_SERVER_API_KEY && export OPENAI_BASE_URL=https://pavol-hejny.ptbk.io/agents/NFR94UDUAHzmAX/api/openai/v1",
+                "npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --agent openai-codex --model agent:NFR94UDUAHzmAX"
+            ],
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
+            "name": "⚡🚀 Run `gpt-5.1-codex-mini` via OpenAI API Coding Agent (💸)(⏳)",
+
+            "commands": [
+                "set -a && source .env && set +a",
+                "export OPENAI_BASE_URL=https://api.openai.com/v1",
+                "npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --agent openai-codex --model gpt-5.1-codex-mini"
+            ],
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
             "name": "⚡✔ Verify prompts done by Coding Agent (💤)",
             "command": "npx ts-node ./scripts/verify-prompts/verify-prompts.ts --reverse",
             "execute": false,
