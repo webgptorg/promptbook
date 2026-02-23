@@ -26,6 +26,7 @@
             "cwd": "./apps/agents-server/",
             "commands": [
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "rm -rf .next",
                 "npx tsc --noEmit && npx next build && npx next dev --port 4440"
             ],
             "execute": true,
