@@ -70,6 +70,28 @@ type JsonSchemaDefinition = {
     };
 };
 
+/**
+ * JSON schema inputs accepted by AgentKit normalization helpers.
+ *
+ * Supports both OpenAI's `{ name, strict, schema }` shape and shorthand schemas
+ * where the object definition is provided directly.
+ */
+type JsonSchemaDefinitionInput = {
+    name?: string;
+    strict?: boolean | null;
+    schema?: {
+        description?: string;
+        additionalProperties?: boolean;
+        properties?: Record<string, JsonSchemaDefinitionEntry>;
+        required?: Array<string>;
+    };
+    type?: string;
+    description?: string;
+    additionalProperties?: boolean;
+    properties?: Record<string, JsonSchemaDefinitionEntry>;
+    required?: Array<string>;
+};
+
 type OpenAiChatResponseFormat = OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming['response_format'];
 
 const DEFAULT_JSON_SCHEMA_NAME = 'StructuredOutput';
@@ -84,22 +106,98 @@ const EMPTY_JSON_SCHEMA: JsonSchemaDefinition['schema'] = {
 };
 */
 
-function buildJsonSchemaDefinition(jsonSchema?: {
+/**
+ * Determines whether a schema fragment includes meaningful constraints.
+ */
+function hasJsonSchemaContent(schema?: {
+    description?: string;
+    additionalProperties?: boolean;
+    properties?: Record<string, JsonSchemaDefinitionEntry>;
+    required?: Array<string>;
+}): boolean {
+    if (!schema) {
+        return false;
+    }
+
+    if (typeof schema.description === 'string' && schema.description.trim() !== '') {
+        return true;
+    }
+
+    if (schema.additionalProperties !== undefined) {
+        return true;
+    }
+
+    if (schema.properties && Object.keys(schema.properties).length > 0) {
+        return true;
+    }
+
+    if (Array.isArray(schema.required) && schema.required.length > 0) {
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * Normalizes inline OpenAI JSON schema payloads to the AgentKit structure.
+ */
+function normalizeJsonSchemaInput(jsonSchema?: JsonSchemaDefinitionInput | null): {
     name?: string;
     strict?: boolean | null;
-    schema?: {
+    schema: {
         description?: string;
         additionalProperties?: boolean;
         properties?: Record<string, JsonSchemaDefinitionEntry>;
         required?: Array<string>;
     };
-}): JsonSchemaDefinition {
-    const schema = jsonSchema?.schema ?? {};
+    hasSchema: boolean;
+} {
+    if (!jsonSchema || typeof jsonSchema !== 'object') {
+        return { schema: {}, hasSchema: false };
+    }
+
+    const explicitSchema = jsonSchema.schema;
+    if (explicitSchema && typeof explicitSchema === 'object') {
+        return {
+            name: jsonSchema.name,
+            strict: jsonSchema.strict,
+            schema: explicitSchema,
+            hasSchema: hasJsonSchemaContent(explicitSchema),
+        };
+    }
+
+    const inlineSchema = {
+        description: jsonSchema.description,
+        additionalProperties: jsonSchema.additionalProperties,
+        properties: jsonSchema.properties,
+        required: jsonSchema.required,
+    };
+    const hasInlineSchema =
+        hasJsonSchemaContent(inlineSchema) || (typeof jsonSchema.type === 'string' && jsonSchema.type === 'object');
+
+    return {
+        name: jsonSchema.name,
+        strict: jsonSchema.strict,
+        schema: hasInlineSchema ? inlineSchema : {},
+        hasSchema: hasInlineSchema,
+    };
+}
+
+/**
+ * Builds an AgentKit-compatible JSON schema definition from the supplied payload.
+ */
+function buildJsonSchemaDefinition(jsonSchema?: JsonSchemaDefinitionInput): JsonSchemaDefinition {
+    const normalizedSchema = normalizeJsonSchemaInput(jsonSchema);
+    const schema = normalizedSchema.schema ?? {};
+    const strict =
+        normalizedSchema.strict === undefined || normalizedSchema.strict === null
+            ? normalizedSchema.hasSchema
+            : Boolean(normalizedSchema.strict);
 
     return {
         type: 'json_schema',
-        name: jsonSchema?.name ?? DEFAULT_JSON_SCHEMA_NAME,
-        strict: Boolean(jsonSchema?.strict),
+        name: normalizedSchema.name ?? DEFAULT_JSON_SCHEMA_NAME,
+        strict,
         schema: {
             type: 'object',
             properties: (schema.properties ?? {}) as Record<string, JsonSchemaDefinitionEntry>,

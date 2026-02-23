@@ -1,3 +1,4 @@
+-   Fixed Agents Server OpenAI-compatible structured responses so shorthand `response_format` JSON schemas (as shown in the integration samples) are normalized for AgentKit, ensuring schema constraints are enforced.
 -   Added a “More” entry to the Agents Server agent view breadcrumb so all agent context-menu actions are accessible from the navigation hierarchy, and removed redundant back arrows from agent subpages.
 -   Unified the Agents Server OpenAI Compatible integration samples into response-format tabs with fully copyable SDK snippets, keeping simple text and JSON schema options in one place and refreshing the JSON schema example.
 -   Expanded the Agents Server folder icon picker with a More icons option in the edit dialog so folders can choose from a much larger icon set.
