@@ -2,9 +2,12 @@ import { BehaviorSubject } from 'rxjs';
 import spaceTrim from 'spacetrim';
 import type { AgentCapability } from '../../book-2.0/agent-source/AgentBasicInformation';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
+import { CHAT_STREAM_KEEP_ALIVE_TOKEN } from '../../constants/streaming';
+import type { CallChatModelStreamOptions } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
 import { book } from '../../pipeline/book-notation';
 import type { ChatPrompt, Prompt } from '../../types/Prompt';
+import { isAssistantPreparationToolCall } from '../../types/ToolCall';
 import type {
     string_agent_hash,
     string_agent_name,
@@ -14,16 +17,13 @@ import type {
     string_fonts,
     string_url_image,
 } from '../../types/typeAliases';
-import { isAssistantPreparationToolCall } from '../../types/ToolCall';
-import { getToolCallIdentity } from '../../utils/toolCalls/getToolCallIdentity';
-import type { TODO_any } from '../../utils/organization/TODO_any';
+import { decodeChatStreamWhitespaceFromTransport } from '../../utils/chat/decodeChatStreamWhitespaceFromTransport';
 import { attachClientVersionHeader } from '../../utils/clientVersion';
-import { decodeChatStreamWhitespaceFromTransport } from '../../utils/chat/streamWhitespaceTokens';
+import type { TODO_any } from '../../utils/organization/TODO_any';
+import { getToolCallIdentity } from '../../utils/toolCalls/getToolCallIdentity';
 import { Agent } from './Agent';
 import type { AgentOptions } from './AgentOptions';
 import type { RemoteAgentOptions } from './RemoteAgentOptions';
-import type { CallChatModelStreamOptions } from '../../execution/LlmExecutionTools';
-import { CHAT_STREAM_KEEP_ALIVE_TOKEN } from '../../constants/streaming';
 
 /**
  * Payload returned by remote agent profile endpoint.

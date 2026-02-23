@@ -31,7 +31,7 @@ import type { ToolCall } from '@promptbook-local/types';
 import { $getCurrentDate, serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
 import { ASSISTANT_PREPARATION_TOOL_CALL_NAME } from '../../../../../../../../src/types/ToolCall';
-import { encodeChatStreamWhitespaceForTransport } from '../../../../../../../../src/utils/chat/streamWhitespaceTokens';
+import { encodeChatStreamWhitespaceForTransport } from '../../../../../../../../src/utils/chat/constants';
 import { keepUnused } from '../../../../../../../../src/utils/organization/keepUnused';
 import { respondIfClientVersionIsOutdated } from '../../../../../utils/clientVersionGuard';
 import { isAgentDeleted } from '../../_utils';
