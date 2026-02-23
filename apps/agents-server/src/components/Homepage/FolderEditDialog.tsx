@@ -1,11 +1,12 @@
 'use client';
 
-import { CheckIcon, PaletteIcon } from 'lucide-react';
+import { CheckIcon, MoreHorizontalIcon, PaletteIcon } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { resolveFolderColor } from '../../utils/agentOrganization/folderAppearance';
 import { Dialog } from '../Portal/Dialog';
 import {
     FOLDER_ICON_OPTIONS,
+    FOLDER_ICON_PRIMARY_OPTIONS,
     FolderAppearanceIcon,
     resolveFolderIconOption,
 } from '../FolderAppearance/FolderAppearanceIcon';
@@ -71,19 +72,27 @@ export function FolderEditDialog(props: FolderEditDialogProps) {
     const [name, setName] = useState(initialValues.name);
     const [icon, setIcon] = useState<string | null>(initialValues.icon);
     const [color, setColor] = useState<string>(resolveFolderColor(initialValues.color));
+    const [isIconPickerExpanded, setIsIconPickerExpanded] = useState(false);
 
     useEffect(() => {
         if (!isOpen) {
+            setIsIconPickerExpanded(false);
             return;
         }
         setName(initialValues.name);
         setIcon(initialValues.icon);
         setColor(resolveFolderColor(initialValues.color));
+        const resolvedInitialIcon = resolveFolderIconOption(initialValues.icon);
+        const isPrimaryIcon = FOLDER_ICON_PRIMARY_OPTIONS.some((option) => option.id === resolvedInitialIcon.id);
+        setIsIconPickerExpanded(!isPrimaryIcon);
     }, [initialValues.color, initialValues.icon, initialValues.name, isOpen]);
 
     const submitLabel = mode === 'CREATE' ? 'Create folder' : 'Save changes';
     const title = mode === 'CREATE' ? 'Create folder' : 'Edit folder';
     const selectedIcon = useMemo(() => resolveFolderIconOption(icon), [icon]);
+    const iconOptions = isIconPickerExpanded ? FOLDER_ICON_OPTIONS : FOLDER_ICON_PRIMARY_OPTIONS;
+    const showMoreIconButton = !isIconPickerExpanded && FOLDER_ICON_OPTIONS.length > FOLDER_ICON_PRIMARY_OPTIONS.length;
+    const iconGridClassName = `grid grid-cols-4 gap-2 ${isIconPickerExpanded ? 'max-h-64 overflow-y-auto pr-1' : ''}`;
 
     if (!isOpen) {
         return null;
@@ -134,8 +143,8 @@ export function FolderEditDialog(props: FolderEditDialogProps) {
                             <span>{selectedIcon.label}</span>
                         </div>
                     </div>
-                    <div className="grid grid-cols-4 gap-2">
-                        {FOLDER_ICON_OPTIONS.map((option) => {
+                    <div className={iconGridClassName}>
+                        {iconOptions.map((option) => {
                             const isSelected = option.id === selectedIcon.id;
                             return (
                                 <button
@@ -159,6 +168,18 @@ export function FolderEditDialog(props: FolderEditDialogProps) {
                                 </button>
                             );
                         })}
+                        {showMoreIconButton && (
+                            <button
+                                type="button"
+                                onClick={() => setIsIconPickerExpanded(true)}
+                                disabled={isSubmitting}
+                                title="More icons"
+                                className="flex items-center justify-center rounded-md border border-dashed border-gray-300 bg-white text-gray-500 transition-colors hover:border-gray-400 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                                <MoreHorizontalIcon className="h-4 w-4" aria-hidden />
+                                <span className="sr-only">More icons</span>
+                            </button>
+                        )}
                     </div>
                 </div>
 

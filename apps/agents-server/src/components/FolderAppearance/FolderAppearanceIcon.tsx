@@ -2,26 +2,54 @@
 
 import {
     BookIcon,
+    BookOpenIcon,
     BotIcon,
     BrainIcon,
     BriefcaseBusinessIcon,
+    BoxIcon,
     CalendarIcon,
     ChartLineIcon,
     CodeIcon,
     CrownIcon,
+    FileTextIcon,
     FlaskConicalIcon,
     FolderIcon,
     GlobeIcon,
+    HashIcon,
     HeartIcon,
+    HistoryIcon,
+    HomeIcon,
     ImageIcon,
+    LinkIcon,
+    LockIcon,
+    MailIcon,
+    MessageCircleQuestionIcon,
     MessageSquareIcon,
+    MessageSquareShareIcon,
+    Network as NetworkIcon,
+    NotebookPenIcon,
     PaletteIcon,
+    PrinterIcon,
+    QrCodeIcon,
+    RefreshCcwIcon,
+    RepeatIcon,
     RocketIcon,
+    RotateCcwIcon,
+    Search as SearchIcon,
+    ServerIcon,
+    Settings2 as SettingsIcon,
+    ShieldAlert as ShieldAlertIcon,
     ShieldIcon,
+    ShoppingBagIcon,
+    SpeakerIcon,
     SparklesIcon,
     StarIcon,
     SunIcon,
+    TerminalIcon,
+    ToggleLeftIcon,
     type LucideIcon,
+    Upload as UploadIcon,
+    Users as UsersIcon,
 } from 'lucide-react';
 import type { CSSProperties } from 'react';
 import { resolveFolderColor, resolveFolderIcon, type FolderIconId } from '../../utils/agentOrganization/folderAppearance';
@@ -45,9 +73,9 @@ export type FolderIconOption = {
 };
 
 /**
- * Folder icon options exposed by the folder editor.
+ * Primary folder icon options shown in the first layer of the folder editor.
  */
-export const FOLDER_ICON_OPTIONS: ReadonlyArray<FolderIconOption> = [
+export const FOLDER_ICON_PRIMARY_OPTIONS: ReadonlyArray<FolderIconOption> = [
     { id: 'folder', label: 'Folder', Icon: FolderIcon },
     { id: 'briefcase', label: 'Briefcase', Icon: BriefcaseBusinessIcon },
     { id: 'book', label: 'Book', Icon: BookIcon },
@@ -68,6 +96,48 @@ export const FOLDER_ICON_OPTIONS: ReadonlyArray<FolderIconOption> = [
     { id: 'rocket', label: 'Rocket', Icon: RocketIcon },
     { id: 'star', label: 'Star', Icon: StarIcon },
     { id: 'sun', label: 'Sun', Icon: SunIcon },
+];
+
+/**
+ * Extended folder icon options available via the expanded picker.
+ */
+export const FOLDER_ICON_EXTENDED_OPTIONS: ReadonlyArray<FolderIconOption> = [
+    { id: 'book-open', label: 'Manual', Icon: BookOpenIcon },
+    { id: 'box', label: 'Box', Icon: BoxIcon },
+    { id: 'file-text', label: 'File', Icon: FileTextIcon },
+    { id: 'hash', label: 'Hash', Icon: HashIcon },
+    { id: 'history', label: 'History', Icon: HistoryIcon },
+    { id: 'home', label: 'Home', Icon: HomeIcon },
+    { id: 'link', label: 'Link', Icon: LinkIcon },
+    { id: 'lock', label: 'Lock', Icon: LockIcon },
+    { id: 'mail', label: 'Mail', Icon: MailIcon },
+    { id: 'message-question', label: 'Help', Icon: MessageCircleQuestionIcon },
+    { id: 'message-share', label: 'Share', Icon: MessageSquareShareIcon },
+    { id: 'network', label: 'Network', Icon: NetworkIcon },
+    { id: 'notes', label: 'Notes', Icon: NotebookPenIcon },
+    { id: 'printer', label: 'Print', Icon: PrinterIcon },
+    { id: 'qr-code', label: 'QR code', Icon: QrCodeIcon },
+    { id: 'refresh', label: 'Refresh', Icon: RefreshCcwIcon },
+    { id: 'repeat', label: 'Repeat', Icon: RepeatIcon },
+    { id: 'rotate-ccw', label: 'Undo', Icon: RotateCcwIcon },
+    { id: 'search', label: 'Search', Icon: SearchIcon },
+    { id: 'server', label: 'Server', Icon: ServerIcon },
+    { id: 'settings', label: 'Settings', Icon: SettingsIcon },
+    { id: 'shield-alert', label: 'Alert', Icon: ShieldAlertIcon },
+    { id: 'shopping-bag', label: 'Shop', Icon: ShoppingBagIcon },
+    { id: 'speaker', label: 'Audio', Icon: SpeakerIcon },
+    { id: 'terminal', label: 'Terminal', Icon: TerminalIcon },
+    { id: 'toggle', label: 'Toggle', Icon: ToggleLeftIcon },
+    { id: 'upload', label: 'Upload', Icon: UploadIcon },
+    { id: 'users', label: 'Users', Icon: UsersIcon },
+];
+
+/**
+ * Folder icon options exposed by the folder editor.
+ */
+export const FOLDER_ICON_OPTIONS: ReadonlyArray<FolderIconOption> = [
+    ...FOLDER_ICON_PRIMARY_OPTIONS,
+    ...FOLDER_ICON_EXTENDED_OPTIONS,
 ];
 
 /**

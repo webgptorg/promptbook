@@ -8,7 +8,7 @@
 
 ---
 
-[ ]
+[x] ~$0.22 7 minutes by OpenAI Codex `gpt-5.2-codex`
 
 [✨🐠] Allow folders to have more icons.
 
@@ -38,3 +38,4 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

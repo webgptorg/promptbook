@@ -1,3 +1,4 @@
+-   Expanded the Agents Server folder icon picker with a More icons option in the edit dialog so folders can choose from a much larger icon set.
 -   Added a JSON-schema `response_format` sample to the Agents Server OpenAI Compatible integration card so the docs show how to request structured replies and explain that Promptbook validates those responses before accepting them.
 -   Fixed the Agents Server agent context menu Usage Analytics link so it now filters by the derived agent name and adds a `timeframe=30d` query, matching how `/admin/usage` interprets scope filters.
 -   Fixed the Agents Server header search layout so the desktop search input now lives inside the centered navigation row, keeping it responsive and preventing it from overlapping the menu on narrower large-screen widths.
