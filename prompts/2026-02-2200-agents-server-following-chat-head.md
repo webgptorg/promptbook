@@ -1,4 +1,4 @@
-[ ]
+[x] $0.00 13 minutes by Gemini CLI
 
 [✨🦸] When the chat is writing a message and the user is already down in the latest chat head. Follow this chat head as the tokens are streamed down.
 
@@ -41,3 +41,4 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

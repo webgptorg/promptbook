@@ -128,8 +128,10 @@ export function useChatAutoScroll(config: ChatAutoScrollConfig = {}) {
         [checkIfAtBottom, isAutoScrolling],
     );
 
+    const messagesChangeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
     // Auto-scroll when messages change (if user is at bottom)
-    const handleMessagesChange = useCallback(() => {
+    const handleMessagesChange = useCallback((isStreaming: boolean = false) => {
         const chatMessagesElement = chatMessagesRef.current;
         if (!chatMessagesElement) return;
 
@@ -159,14 +161,18 @@ export function useChatAutoScroll(config: ChatAutoScrollConfig = {}) {
         }
 
         if (isAutoScrolling && wasAtBottomBeforeNewContent && !hasSelectionInChat && !hasManualScrollRef.current) {
+            if (messagesChangeTimeoutRef.current) {
+                clearTimeout(messagesChangeTimeoutRef.current);
+            }
+
             // Delay scroll slightly to ensure DOM has updated
-            setTimeout(() => {
+            messagesChangeTimeoutRef.current = setTimeout(() => {
                 if (hasManualScrollRef.current) {
                     return;
                 }
 
-                scrollToBottom('smooth');
-            }, scrollCheckDelay);
+                scrollToBottom(isStreaming ? 'auto' : 'smooth');
+            }, isStreaming ? 10 : scrollCheckDelay);
         }
     }, [bottomThreshold, isAutoScrolling, scrollToBottom, scrollCheckDelay]);
 
@@ -213,6 +219,9 @@ export function useChatAutoScroll(config: ChatAutoScrollConfig = {}) {
         return () => {
             if (scrollTimeoutRef.current) {
                 clearTimeout(scrollTimeoutRef.current);
+            }
+            if (messagesChangeTimeoutRef.current) {
+                clearTimeout(messagesChangeTimeoutRef.current);
             }
         };
     }, []);

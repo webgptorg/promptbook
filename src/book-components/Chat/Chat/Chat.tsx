@@ -287,11 +287,7 @@ export function Chat(props: ChatProps) {
     const [mode] = useState<'LIGHT' | 'DARK'>('LIGHT');
 
     useEffect(() => {
-        if (isStreamingAgentMessage) {
-            return;
-        }
-
-        handleMessagesChange();
+        handleMessagesChange(isStreamingAgentMessage);
 
         const animationFrame = requestAnimationFrame(() => {
             updateLatestMessageVisibility();
