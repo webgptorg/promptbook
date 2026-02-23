@@ -281,6 +281,16 @@ function AgentContextMenuContent(props: AgentContextMenuBaseProps & { onClose: (
     );
     const editBookLink = links.find((link) => link.id === 'book')!;
     const integrationLink = links.find((link) => link.id === 'integration')!;
+    const usageFilterAgentName = derivedAgentName || agentName;
+    const usageAnalyticsHref = useMemo(() => {
+        const searchParams = new URLSearchParams();
+        if (usageFilterAgentName) {
+            searchParams.set('agentName', usageFilterAgentName);
+        }
+        searchParams.set('timeframe', '30d');
+        const query = searchParams.toString();
+        return query ? `/admin/usage?${query}` : '/admin/usage';
+    }, [usageFilterAgentName]);
 
     const showUpdateUrl = agentName !== derivedAgentName;
     const updateUrlHref = `/agents/${encodeURIComponent(derivedAgentName)}`;
@@ -568,7 +578,7 @@ function AgentContextMenuContent(props: AgentContextMenuBaseProps & { onClose: (
                   },
                   {
                       type: 'link' as const,
-                      href: `/admin/usage?agentName=${encodeURIComponent(agentName)}`,
+                      href: usageAnalyticsHref,
                       icon: BarChart3Icon,
                       label: 'Usage Analytics',
                   },
