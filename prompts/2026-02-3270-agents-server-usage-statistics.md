@@ -26,6 +26,30 @@
 
 [ ]
 
+[✨🆑] Fix the link between the agent context menu and the usage.
+
+-   Currently the navigation from the agent context menu to the usage page is broken. It doesn't filter that agent.
+-   It navigates to _(for example)_ https://pavol-hejny.ptbk.io/admin/usage?agentName=hWTMMThSpx6Yk3
+-   But it should navigate to _(for example)_ https://pavol-hejny.ptbk.io/admin/usage?agentName=aa&timeframe=30d
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+
+---
+
+[ ]
+
+[✨🆑] Record full usage, not only the count.
+
+-   @@@
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+---
+
+[ ]
+
 [✨🆑] Limiting the agent budget
 
 -   @@@
@@ -55,4 +79,3 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
