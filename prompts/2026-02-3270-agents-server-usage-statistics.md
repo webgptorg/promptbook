@@ -62,14 +62,27 @@
 
 ---
 
-[-]
+[ ]
 
-[✨🆑] brr
+[✨🆑] Add timing into Usage object
 
+-   Add not only the token, word,... count but also the time how long the agent was running
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
--   You are working with the [Agents Server](apps/agents-server)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
+-   Do a proper analysis of the current functionality of usage and agents server chat before you start implementing.
+-   You are working with the [Usage](src/execution/Usage.ts) object and the places where is this object used.
+
+---
+
+[ ]
+
+[✨🆑] Allow to switch between cost / time / human time
+
+-   @@@
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality of usage and agents server chat before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server) with the usage statistics of the agents.
+
+![alt text](prompts/screenshots/2026-02-3270-agents-server-usage-statistics.png)
 
 ---
 
@@ -78,7 +91,25 @@
 [✨🆑] brr
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
--   You are working with the [Agents Server](apps/agents-server)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
+-   Do a proper analysis of the current functionality of usage and agents server chat before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server) with the usage statistics of the agents.
 
+---
+
+[-]
+
+[✨🆑] brr
+
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality of usage and agents server chat before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server) with the usage statistics of the agents.
+
+---
+
+[-]
+
+[✨🆑] brr
+
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality of usage and agents server chat before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server) with the usage statistics of the agents.
