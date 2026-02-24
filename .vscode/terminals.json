@@ -370,7 +370,6 @@
         {
             "name": "⚡🚀 Run `gemini-3-flash` Coding Agent (💸)(⏳)",
             "commands": [
-                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
                 "npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --agent gemini --model gemini-3-flash-preview --no-wait"
             ],
             "execute": true,
@@ -380,7 +379,6 @@
         {
             "name": "⚡🚀 Run `gemini-3.1` Coding Agent (💸)(⏳)",
             "commands": [
-                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
                 "npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --agent gemini --model gemini-3.1-pro-preview --no-wait"
             ],
             "execute": true,
