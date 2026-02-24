@@ -650,3 +650,8 @@ export async function appendChatAttachmentContextWithContent(
         return appendChatContextSections(messageContent, [attachmentMetadataContext]);
     }
 }
+
+
+/**
+ * Note: [💞] Ignore a discrepancy between file name and entity name
+ */
