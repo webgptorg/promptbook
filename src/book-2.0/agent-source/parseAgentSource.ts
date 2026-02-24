@@ -136,6 +136,15 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
             continue;
         }
 
+        if (commitment.type === 'USE POPUP') {
+            capabilities.push({
+                type: 'popup',
+                label: 'Popup',
+                iconName: 'SquareArrowOutUpRight',
+            });
+            continue;
+        }
+
         if (commitment.type === 'USE IMAGE GENERATOR') {
             capabilities.push({
                 type: 'image-generator',

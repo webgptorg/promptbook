@@ -55,6 +55,7 @@ export type AgentCapability = {
         | 'image-generator'
         | 'team'
         | 'email'
+        | 'popup'
         | 'privacy';
 
     /**

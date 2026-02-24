@@ -6,6 +6,7 @@ import { isPseudoAgentUrl } from '../../../book-2.0/agent-source/pseudoAgentRefe
 import { validateBook } from '../../../book-2.0/agent-source/string_book';
 import type { string_date_iso8601 } from '../../../types/typeAliases';
 import { Color } from '../../../utils/color/Color';
+import { textColor } from '../../../utils/color/operators/furthest';
 import type { TODO_any } from '../../../utils/organization/TODO_any';
 import type { WithTake } from '../../../utils/take/interfaces/ITakeChain';
 import { classNames } from '../../_common/react-utils/classNames';
@@ -815,11 +816,78 @@ function renderToolCallDetails(options: ToolCallDetailsOptions): ReactElement {
         toolCall.name === 'web_search' || toolCall.name === 'useSearchEngine' || toolCall.name === 'search';
     const isTime = toolCall.name === 'get_current_time' || toolCall.name === 'useTime';
     const isEmail = toolCall.name === 'send_email' || toolCall.name === 'useEmail';
+    const isPopup = toolCall.name === 'open_popup' || toolCall.name === 'usePopup' || toolCall.name === 'popup';
     const isSelfLearning = toolCall.name === 'self-learning';
 
     const { results, rawText } = extractSearchResults(resultRaw);
     const hasResults = results.length > 0;
     const hasRawText = !hasResults && !!rawText && rawText.trim().length > 0;
+
+    if (isPopup) {
+        const url = args.url || (typeof resultRaw === 'string' && resultRaw.includes('http') ? resultRaw : null);
+
+        return (
+            <>
+                <div className={classNames(styles.searchModalHeader, styles.emailModalHeader)}>
+                    <span className={styles.searchModalIcon}>🪟</span>
+                    <div className={styles.emailHeaderText}>
+                        <span className={styles.emailHeaderLabel}>Popup</span>
+                        <h3 className={styles.searchModalQuery}>Open Website</h3>
+                    </div>
+                </div>
+
+                <div className={styles.searchModalContent}>
+                    <div className={styles.emailContainer}>
+                        <div className={styles.emailMetadata}>
+                            <div className={styles.emailField}>
+                                <strong>URL:</strong>
+                                <span className={styles.emailRecipients}>
+                                    {url ? (
+                                        <a href={url} target="_blank" rel="noreferrer">
+                                            {url}
+                                        </a>
+                                    ) : (
+                                        'No URL provided'
+                                    )}
+                                </span>
+                            </div>
+                        </div>
+                        <div className={styles.emailBody}>
+                            <p>The agent wants to open a popup window with the URL above.</p>
+                            {url && (
+                                <div style={{ marginTop: '20px' }}>
+                                    <button
+                                        type="button"
+                                        className={styles.messageButton}
+                                        onClick={() => window.open(url, '_blank')}
+                                        style={{
+                                            backgroundColor: buttonColor.toHex(),
+                                            color: buttonColor.then(textColor).toHex(),
+                                            padding: '10px 20px',
+                                            borderRadius: '8px',
+                                            fontWeight: 'bold',
+                                        }}
+                                    >
+                                        Open Popup Now
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                    <div className={styles.toolCallDetails}>
+                        <p>
+                            <strong>Result:</strong>
+                        </p>
+                        <div className={styles.toolCallDataContainer}>
+                            <pre className={styles.toolCallData}>
+                                {typeof resultRaw === 'object' ? JSON.stringify(resultRaw, null, 2) : String(resultRaw)}
+                            </pre>
+                        </div>
+                    </div>
+                </div>
+            </>
+        );
+    }
 
     if (isSelfLearning) {
         const summary = buildSelfLearningSummary(toolCall, resultRaw);

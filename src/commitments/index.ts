@@ -41,6 +41,7 @@ import { UseBrowserCommitmentDefinition } from './USE_BROWSER/USE_BROWSER';
 import { UseEmailCommitmentDefinition } from './USE_EMAIL/USE_EMAIL';
 import { UseImageGeneratorCommitmentDefinition } from './USE_IMAGE_GENERATOR/USE_IMAGE_GENERATOR';
 import { UseMcpCommitmentDefinition } from './USE_MCP/USE_MCP';
+import { UsePopupCommitmentDefinition } from './USE_POPUP/USE_POPUP';
 import { UsePrivacyCommitmentDefinition } from './USE_PRIVACY/USE_PRIVACY';
 import { UseSearchEngineCommitmentDefinition } from './USE_SEARCH_ENGINE/USE_SEARCH_ENGINE';
 import { UseTimeCommitmentDefinition } from './USE_TIME/USE_TIME';
@@ -117,6 +118,7 @@ export const COMMITMENT_REGISTRY = [
     new UseTimeCommitmentDefinition(),
     new UseUserLocationCommitmentDefinition(),
     new UseEmailCommitmentDefinition(),
+    new UsePopupCommitmentDefinition(),
     new UseImageGeneratorCommitmentDefinition('USE IMAGE GENERATOR'),
     new UseMcpCommitmentDefinition(),
     new UsePrivacyCommitmentDefinition(),
