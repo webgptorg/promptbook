@@ -40,6 +40,9 @@ export function parseOpencodeJsonOutput(output: string): Usage {
             const totalOutputTokens = parsed.usage.output_tokens || 0;
 
             return {
+                duration: {
+                    value: 0 /* <- TODO: [🚍] Duration is recorded through side channel, pass it through Usage */,
+                },
                 price: {
                     value: parsed.total_cost_usd || 0,
                     ...(parsed.total_cost_usd === undefined && { isUncertain: true }),
