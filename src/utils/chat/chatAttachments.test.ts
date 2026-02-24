@@ -137,7 +137,7 @@ describe('chatAttachments helpers', () => {
         expect(contentContext).toContain('https://cdn.acme.org/files/scan.pdf');
     });
 
-    it('does not download private-network attachment URLs', async () => {
+    it('does not download private-network attachment URLs by default', async () => {
         const fetchSpy = jest.spyOn(globalThis, 'fetch');
 
         const message = await appendChatAttachmentContextWithContent('Analyze this local file.', [
@@ -150,5 +150,30 @@ describe('chatAttachments helpers', () => {
 
         expect(fetchSpy).not.toHaveBeenCalled();
         expect(message).toContain('private-network URL is not allowed');
+    });
+
+    it('allows downloading localhost attachment URLs when requested', async () => {
+        const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue(
+            new Response('Local content', {
+                headers: {
+                    'content-type': 'text/plain',
+                },
+            }) as any,
+        );
+
+        const message = await appendChatAttachmentContextWithContent(
+            'Analyze this local file.',
+            [
+                {
+                    name: 'local.txt',
+                    type: 'text/plain',
+                    url: 'http://localhost/private/local.txt',
+                },
+            ],
+            { allowLocalhost: true },
+        );
+
+        expect(fetchSpy).toHaveBeenCalled();
+        expect(message).toContain('Local content');
     });
 });

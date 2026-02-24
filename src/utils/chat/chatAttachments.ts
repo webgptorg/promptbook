@@ -1,7 +1,9 @@
-import { isUrlOnPrivateNetwork } from '../../../../../src/utils/validators/url/isUrlOnPrivateNetwork';
+import { isUrlOnPrivateNetwork } from '../validators/url/isUrlOnPrivateNetwork';
 
 /**
  * Attachment payload expected by chat routes and prompt formatting helpers.
+ *
+ * @public exported from `@promptbook/core`
  */
 export type ChatAttachment = {
     readonly name: string;
@@ -156,12 +158,28 @@ const TEXT_ATTACHMENT_EXTENSIONS = new Set<string>([
 
 /**
  * Resolved inline content of one chat attachment.
+ *
+ * @public exported from `@promptbook/core`
  */
 export type ResolvedChatAttachmentContent = {
     readonly attachment: ChatAttachment;
     readonly content: string | null;
     readonly isTruncated: boolean;
     readonly reason: string | null;
+};
+
+/**
+ * Options for resolving chat attachment contents.
+ *
+ * @public exported from `@promptbook/core`
+ */
+export type ResolveChatAttachmentOptions = {
+    /**
+     * Whether to allow localhost URLs.
+     *
+     * @default false
+     */
+    readonly allowLocalhost?: boolean;
 };
 
 /**
@@ -338,17 +356,24 @@ function createAttachmentContentFailure(
 /**
  * Downloads and resolves one attachment into inline text context when possible.
  *
- * @private
+ * @param {ChatAttachment} attachment - The attachment to resolve.
+ * @param {number} maxInlineCharacters - Maximum number of characters to inline.
+ * @param {ResolveChatAttachmentOptions} options - Options for resolution.
+ * @returns {Promise<ResolvedChatAttachmentContent>} The resolved content.
+ * @private internal utility of Promptbook
  */
-async function resolveChatAttachmentContent(
+export async function resolveChatAttachmentContent(
     attachment: ChatAttachment,
     maxInlineCharacters: number,
+    options: ResolveChatAttachmentOptions = {},
 ): Promise<ResolvedChatAttachmentContent> {
+    const { allowLocalhost = false } = options;
+
     if (maxInlineCharacters <= 0) {
         return createAttachmentContentFailure(attachment, 'inline content limit reached');
     }
 
-    if (isUrlOnPrivateNetwork(attachment.url)) {
+    if (isUrlOnPrivateNetwork(attachment.url, { allowLocalhost })) {
         return createAttachmentContentFailure(attachment, 'private-network URL is not allowed');
     }
 
@@ -436,6 +461,10 @@ function normalizeChatAttachment(rawAttachment: unknown): ChatAttachment | null 
  * Normalizes a potentially invalid attachments payload from the client request.
  *
  * Invalid items are skipped and duplicate URLs are de-duplicated.
+ *
+ * @param {unknown} rawAttachments - The raw attachments to normalize.
+ * @returns {Array<ChatAttachment>} The normalized attachments.
+ * @public exported from `@promptbook/core`
  */
 export function normalizeChatAttachments(rawAttachments: unknown): Array<ChatAttachment> {
     if (!Array.isArray(rawAttachments)) {
@@ -485,6 +514,10 @@ function appendChatContextSections(messageContent: string, contextSections: Read
 
 /**
  * Builds a markdown section that lists attachment URLs for the model.
+ *
+ * @param {ReadonlyArray<ChatAttachment>} attachments - The attachments to format.
+ * @returns {string} The formatted context.
+ * @public exported from `@promptbook/core`
  */
 export function formatChatAttachmentContext(attachments: ReadonlyArray<ChatAttachment>): string {
     if (attachments.length === 0) {
@@ -500,9 +533,15 @@ export function formatChatAttachmentContext(attachments: ReadonlyArray<ChatAttac
 
 /**
  * Resolves inline content previews for each attachment while enforcing global prompt-size limits.
+ *
+ * @param {ReadonlyArray<ChatAttachment>} attachments - The attachments to resolve.
+ * @param {ResolveChatAttachmentOptions} options - Options for resolution.
+ * @returns {Promise<Array<ResolvedChatAttachmentContent>>} The resolved contents.
+ * @public exported from `@promptbook/core`
  */
 export async function resolveChatAttachmentContents(
     attachments: ReadonlyArray<ChatAttachment>,
+    options: ResolveChatAttachmentOptions = {},
 ): Promise<Array<ResolvedChatAttachmentContent>> {
     const resolvedContents: Array<ResolvedChatAttachmentContent> = [];
     let remainingInlineCharacters = CHAT_ATTACHMENT_MAX_INLINE_CHARACTERS_TOTAL;
@@ -513,7 +552,7 @@ export async function resolveChatAttachmentContents(
             remainingInlineCharacters,
         );
 
-        const resolvedContent = await resolveChatAttachmentContent(attachment, maxInlineCharacters);
+        const resolvedContent = await resolveChatAttachmentContent(attachment, maxInlineCharacters, options);
         resolvedContents.push(resolvedContent);
 
         if (resolvedContent.content) {
@@ -549,6 +588,10 @@ function formatResolvedChatAttachmentContent(contentResolution: ResolvedChatAtta
 
 /**
  * Formats inline attachment-content context section for the model.
+ *
+ * @param {ReadonlyArray<ResolvedChatAttachmentContent>} resolvedContents - The resolved contents to format.
+ * @returns {string} The formatted context.
+ * @public exported from `@promptbook/core`
  */
 export function formatChatAttachmentContentContext(
     resolvedContents: ReadonlyArray<ResolvedChatAttachmentContent>,
@@ -566,6 +609,11 @@ export function formatChatAttachmentContentContext(
 
 /**
  * Appends attachment metadata context to message content so chat models can see uploaded file URLs.
+ *
+ * @param {string} messageContent - The original message content.
+ * @param {ReadonlyArray<ChatAttachment>} attachments - The attachments to append.
+ * @returns {string} The updated message content.
+ * @public exported from `@promptbook/core`
  */
 export function appendChatAttachmentContext(messageContent: string, attachments: ReadonlyArray<ChatAttachment>): string {
     const attachmentContext = formatChatAttachmentContext(attachments);
@@ -577,10 +625,17 @@ export function appendChatAttachmentContext(messageContent: string, attachments:
  *
  * The helper never throws because attachment downloads are best-effort and should
  * not block chat requests.
+ *
+ * @param {string} messageContent - The original message content.
+ * @param {ReadonlyArray<ChatAttachment>} attachments - The attachments to append.
+ * @param {ResolveChatAttachmentOptions} options - Options for resolution.
+ * @returns {Promise<string>} The updated message content.
+ * @public exported from `@promptbook/core`
  */
 export async function appendChatAttachmentContextWithContent(
     messageContent: string,
     attachments: ReadonlyArray<ChatAttachment>,
+    options: ResolveChatAttachmentOptions = {},
 ): Promise<string> {
     const attachmentMetadataContext = formatChatAttachmentContext(attachments);
     if (attachmentMetadataContext === '') {
@@ -588,7 +643,7 @@ export async function appendChatAttachmentContextWithContent(
     }
 
     try {
-        const resolvedContents = await resolveChatAttachmentContents(attachments);
+        const resolvedContents = await resolveChatAttachmentContents(attachments, options);
         const attachmentContentContext = formatChatAttachmentContentContext(resolvedContents);
         return appendChatContextSections(messageContent, [attachmentMetadataContext, attachmentContentContext]);
     } catch {

@@ -1,6 +1,18 @@
 import type { string_hostname } from '../../../types/typeAliases';
 
 /**
+ * Options for `isHostnameOnPrivateNetwork`
+ */
+export type IsHostnameOnPrivateNetworkOptions = {
+    /**
+     * Whether to allow localhost
+     *
+     * @default false
+     */
+    readonly allowLocalhost?: boolean;
+};
+
+/**
  * Checks if an URL is reserved for private networks or localhost.
  *
  * Note: There are two similar functions:
@@ -9,7 +21,12 @@ import type { string_hostname } from '../../../types/typeAliases';
  *
  * @public exported from `@promptbook/utils`
  */
-export function isHostnameOnPrivateNetwork(hostname: string_hostname): boolean {
+export function isHostnameOnPrivateNetwork(
+    hostname: string_hostname,
+    options: IsHostnameOnPrivateNetworkOptions = {},
+): boolean {
+    const { allowLocalhost = false } = options;
+
     if (
         hostname === 'example.com' ||
         hostname === 'localhost' ||
@@ -19,7 +36,7 @@ export function isHostnameOnPrivateNetwork(hostname: string_hostname): boolean {
         hostname === '127.0.0.1' ||
         hostname === '::1'
     ) {
-        return true;
+        return !allowLocalhost;
     }
     if (hostname.includes(':')) {
         // IPv6

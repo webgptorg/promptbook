@@ -7,26 +7,9 @@ import {
     resolveBookScopedAgentContext,
 } from '@/src/utils/agentReferenceResolver/bookScopedAgentReferences';
 import { AgentKitCacheManager } from '@/src/utils/cache/AgentKitCacheManager';
-import { appendChatAttachmentContextWithContent, normalizeChatAttachments } from '@/src/utils/chat/chatAttachments';
-import { createChatHistoryRecorder } from '@/src/utils/chat/createChatHistoryRecorder';
-import { ensureNonEmptyChatContent } from '@/src/utils/chat/ensureNonEmptyChatContent';
-import {
-    appendMessageSuffix,
-    createMessageSuffixAppendix,
-    emulateMessageSuffixStreaming,
-    resolveMessageSuffixFromAgentSource,
-} from '@/src/utils/chat/messageSuffix';
-import { createChatStreamHandler } from '@/src/utils/createChatStreamHandler';
-import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
-import { composePromptParametersWithMemoryContext } from '@/src/utils/memoryRuntimeContext';
-import {
-    resolveMetaDisclaimerMarkdownFromAgentSource,
-    resolveMetaDisclaimerStatusForUser,
-} from '@/src/utils/metaDisclaimer';
-import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
 import { resolveCurrentUserMemoryIdentity } from '@/src/utils/userMemory';
 import type { ChatMessage } from '@promptbook-local/components';
-import { Agent, computeAgentHash, RemoteAgent } from '@promptbook-local/core';
+import { Agent, computeAgentHash, RemoteAgent, normalizeChatAttachments } from '@promptbook-local/core';
 import type { ToolCall } from '@promptbook-local/types';
 import { $getCurrentDate, serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
@@ -238,7 +221,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             agentName: resolvedAgentName,
             isPrivateModeEnabled,
         });
-        const messageWithAttachmentContext = await appendChatAttachmentContextWithContent(message, attachments);
 
         // Use AgentKitCacheManager for vector store caching
         const agentKitCacheManager = new AgentKitCacheManager({ isVerbose: true });
@@ -440,7 +422,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                             modelRequirements: {
                                 modelVariant: 'CHAT',
                             },
-                            content: messageWithAttachmentContext,
+                            content: message,
                             thread,
                             attachments,
                         },

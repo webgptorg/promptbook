@@ -2,7 +2,7 @@
 
 ---
 
-[ ]
+[x]
 
 [✨🧰] When you add a file attachment, the chat agent can see only the metadata of the file, like the filename.
 

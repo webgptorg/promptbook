@@ -19,6 +19,7 @@ import type {
     string_prompt,
     string_title,
 } from '../../types/typeAliases';
+import { appendChatAttachmentContextWithContent, normalizeChatAttachments } from '../../utils/chat/chatAttachments';
 import { humanizeAiText } from '../../utils/markdown/humanizeAiText';
 import { promptbookifyAiText } from '../../utils/markdown/promptbookifyAiText';
 import { $getCurrentDate } from '../../utils/misc/$getCurrentDate';
@@ -319,12 +320,14 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
         keepUnused(_metadata);
 
         const chatPrompt = prompt as ChatPrompt;
-        const attachmentUrls =
-            Array.isArray(chatPrompt.attachments) && chatPrompt.attachments.length > 0
-                ? chatPrompt.attachments
-                      .map((attachment) => (typeof attachment?.url === 'string' ? attachment.url.trim() : ''))
-                      .filter((url): url is string => url !== '')
-                : [];
+        const attachments = normalizeChatAttachments(chatPrompt.attachments);
+        const attachmentUrls = attachments.map((attachment) => attachment.url);
+        const chatPromptContentWithAttachments = await appendChatAttachmentContextWithContent(
+            chatPrompt.content,
+            attachments,
+            { allowLocalhost: true },
+        );
+
         const knowledgeSourcesForAgentList = mergeKnowledgeSourcesWithAttachments(
             sanitizedRequirements.knowledgeSources,
             attachmentUrls,
@@ -335,8 +338,8 @@ export class AgentLlmExecutionTools implements LlmExecutionTools {
         let underlyingLlmResult: CommonPromptResult;
 
         const chatPromptContentWithSuffix: string_prompt = promptSuffix
-            ? (`${chatPrompt.content}\n\n${promptSuffix}` as string_prompt)
-            : (chatPrompt.content as string_prompt);
+            ? (`${chatPromptContentWithAttachments}\n\n${promptSuffix}` as string_prompt)
+            : (chatPromptContentWithAttachments as string_prompt);
 
         const promptWithAgentModelRequirements: ChatPrompt = {
             ...chatPrompt,
