@@ -26,10 +26,72 @@ TEAM You can talk with a {lawyer} or {User}.
 
 ---
 
-[-]
+[ ]
 
-[✨🆘] brr
+[✨🆘] Pass extra instructions from `TEAM`
 
+**The Book:**
+
+```book
+Interacting with User
+
+
+LANGUAGE Čeština
+TEAM Ask {User} for everything. Always asks him in English
+
+CLOSED
+```
+
+**Creates a system message:**
+
+```
+You are Interacting with User
+
+Language:
+Čeština
+<- You are speaking theese languages in your responses to the user.
+
+Teammates:
+- User (https://pseudo-agent.invalid/user)
+  - Tool: "team_chat_422743b849"
+  - When to consult: Use when you need one direct response from the current user.
+```
+
+**With tools:**
+
+```json
+{
+    // ...
+    "tools": [
+        {
+            "name": "team_chat_422743b849",
+            "description": "Consult teammate User (https://pseudo-agent.invalid/user).\nUse when: Use when you need one direct response from the current user.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "description": "Question or request to send to the teammate."
+                    },
+                    "context": {
+                        "type": "string",
+                        "description": "Optional background context for the teammate."
+                    }
+                },
+                "required": ["message"]
+            }
+        }
+    ]
+}
+```
+
+@@@
+@@@
+@@@
+
+-   @@@
+-   Also change "pseudo-agent.invalid"
+-   Hide that the `{User}` is "User" - use deterministic english name generator (which already exists in the codebase) to generate a random name _(use rest if the `TEAM` commitment content as seed)_, so the agent will talk to "Alice White" instead of "User", "Bob Green" instead of "User", etc. This will make the experience more natural.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
@@ -56,4 +118,3 @@ TEAM You can talk with a {lawyer} or {User}.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
