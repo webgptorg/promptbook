@@ -26,6 +26,7 @@
 
 -   @@@
 -   Add icons alongside the items in "... more"
+-   Open just on hover, not on click, because it is just a menu, not a page.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
