@@ -36,7 +36,7 @@ export class GeminiRunner implements PromptRunner {
             scriptContent,
         });
 
-        const usage = parseGeminiUsageFromOutput(output, options.prompt);
+        const usage = parseGeminiUsageFromOutput(output, options.prompt, this.options.model);
 
         return { usage };
     }
