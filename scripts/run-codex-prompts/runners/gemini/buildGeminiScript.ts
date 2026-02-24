@@ -10,7 +10,7 @@ export function buildGeminiScript(options: GeminiScriptOptions): string {
 
     return spaceTrim(
         (block) => `
-            gemini -y -m gemini-3.1-pro-preview -p "$(cat <<'${delimiter}'
+            gemini -y -m ${options.model} -p "$(cat <<'${delimiter}'
 
             ${block(options.prompt)}
 

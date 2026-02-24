@@ -27,7 +27,7 @@ import { waitForPromptStart } from '../prompts/waitForPromptStart';
 import { writePromptFile } from '../prompts/writePromptFile';
 import { ClaudeCodeRunner } from '../runners/claude-code/ClaudeCodeRunner';
 import { ClineRunner } from '../runners/cline/ClineRunner';
-import { GeminiRunner } from '../runners/gemini/GeminiRunner';
+import { DEFAULT_GEMINI_MODEL, GeminiRunner } from '../runners/gemini/GeminiRunner';
 import { OpenAiCodexRunner } from '../runners/openai-codex/OpenAiCodexRunner';
 import { OpencodeRunner } from '../runners/opencode/OpencodeRunner';
 import type { PromptRunner } from '../runners/types/PromptRunner';
@@ -63,6 +63,8 @@ function getRunnerMetadata(options: RunOptions, actualModel?: string): RunnerMet
 
     if (options.agentName === 'openai-codex') {
         modelName = actualModel;
+    } else if (options.agentName === 'gemini') {
+        modelName = actualModel;
     } else if (options.agentName === 'cline') {
         modelName = CLINE_MODEL;
     } else if (options.agentName === 'opencode') {
@@ -94,6 +96,7 @@ export async function runCodexPrompts(): Promise<void> {
 
         let runner: PromptRunner;
         let actualCodexModel: string | undefined;
+        let actualGeminiModel: string | undefined;
         const agentName = options.agentName;
 
         if (!agentName) {
@@ -139,13 +142,30 @@ export async function runCodexPrompts(): Promise<void> {
                 model: options.model,
             });
         } else if (agentName === 'gemini') {
-            runner = new GeminiRunner();
+            let modelToUse: string;
+            if (!options.model) {
+                console.error(colors.red('Error: --model is required when using --agent gemini'));
+                console.error('');
+                console.error(colors.cyan('Example usage:'));
+                console.error(colors.gray(`  --agent gemini --model ${DEFAULT_GEMINI_MODEL}`));
+                console.error(colors.gray('  --agent gemini --model default'));
+                process.exit(1);
+            } else if (options.model === 'default') {
+                modelToUse = DEFAULT_GEMINI_MODEL;
+            } else {
+                modelToUse = options.model;
+            }
+
+            actualGeminiModel = modelToUse;
+            runner = new GeminiRunner({
+                model: modelToUse,
+            });
         } else {
             throw new Error(`Unknown agent: ${agentName}`);
         }
 
         console.info(colors.green(`Running prompts with ${runner.name}`));
-        const runnerMetadata = getRunnerMetadata(options, actualCodexModel);
+        const runnerMetadata = getRunnerMetadata(options, actualCodexModel ?? actualGeminiModel);
 
         let hasShownUpcomingTasks = false;
         let hasWaitedForStart = false;
