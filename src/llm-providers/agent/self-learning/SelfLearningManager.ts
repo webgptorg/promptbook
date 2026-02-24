@@ -2,11 +2,11 @@ import colors from 'colors';
 import spaceTrim from 'spacetrim';
 import { forTime } from 'waitasecond';
 import { linguisticHash, unwrapResult } from '../../../_packages/utils.index';
+import { extractOpenTeacherInstructions } from '../../../book-2.0/agent-source/extractOpenTeacherInstructions';
 import { padBook } from '../../../book-2.0/agent-source/padBook';
 import type { string_book } from '../../../book-2.0/agent-source/string_book';
 import { validateBook } from '../../../book-2.0/agent-source/string_book';
 import type { ChatPromptResult } from '../../../execution/PromptResult';
-import { extractOpenTeacherInstructions } from '../../../book-2.0/agent-source/extractOpenTeacherInstructions';
 import type { Prompt } from '../../../types/Prompt';
 import type { SelfLearningCommitmentTypeCounts, SelfLearningTeacherSummary } from '../../../types/ToolCall';
 import type { string_prompt } from '../../../types/typeAliases';
@@ -106,11 +106,45 @@ export class SelfLearningManager {
     private appendSample(prompt: Prompt, result: ChatPromptResult): void {
         console.info(colors.bgCyan('[Self-learning]') + colors.cyan(' Sampling'));
 
+        // Extract response format info if available (for JSON schema)
+        // Note: responseFormat is only available on ChatModelRequirements and similar, not on CompletionModelRequirements
+        const modelRequirements = prompt.modelRequirements as {
+            responseFormat?: {
+                type?: string;
+                json_schema?: { schema?: unknown; name?: string };
+            };
+        };
+        const responseFormat = modelRequirements.responseFormat;
+        const hasJsonSchema =
+            responseFormat &&
+            typeof responseFormat === 'object' &&
+            'type' in responseFormat &&
+            responseFormat.type === 'json_schema';
+
+        let userMessageContent = prompt.content;
+
+        // If response_format with json_schema was requested, include that info in the sample
+        if (hasJsonSchema) {
+            const jsonSchema = responseFormat.json_schema;
+            const schemaJson = JSON.stringify(jsonSchema, null, 4);
+
+            userMessageContent = spaceTrim(
+                (block) => `
+                    ${block(prompt.content)}
+
+                    NOTE Request was made through OpenAI Compatible API with \`response_format\` of type \`json_schema\` with the following schema:
+                    \`\`\`json
+                    ${block(schemaJson)}
+                    \`\`\`
+                `,
+            );
+        }
+
         const learningExample = spaceTrim(
             (block) => `
 
                 USER MESSAGE
-                ${block(prompt.content)}
+                ${block(userMessageContent)}
 
                 AGENT MESSAGE
                 ${block(result.content)}
