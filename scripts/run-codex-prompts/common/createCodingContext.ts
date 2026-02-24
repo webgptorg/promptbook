@@ -68,6 +68,32 @@ export function createCodingContext(): string_prompt {
         -   There is a table called \`Metadata\`
         -   It has \`key\` and \`value\` fields
         -   It is a similar concept to configuration, but this configuration can be changed by the administrators in the Agents server website.
+
+        ### Book language *(as additional context)*
+
+        Book language is a domain-specific language used for defining AI agents in the Promptbook Engine and Agents server.
+        It has lightweight syntax and keywords (the commitments) that allow you to define the "soul" of the agent.
+        The book language is designed to be human-readable and easy to write, while also being powerful enough to express complex agent behaviors.
+
+        Every agent has its source defined in the book language, which is called "agent source". The agent source is parsed and processed by the Promptbook Engine to create the actual AI agent that can interact with users and perform tasks.
+        This agent source is internaly converted to a structured format called "agent model requirements" which are the actual raw technical instructions for the AI model to run the agent.
+
+
+        ### Commitments *(as additional context)*
+
+        Commitments are basic syntax elements that add specific functionalities to AI agents written in \`book\` language.
+
+        -   They are used in \`agentSource\`, there are commitments like \`PERSONA\`, \`RULE\`, \`KNOWLEDGE\`, \`USE BROWSER\`, \`USE SEARCH ENGINE\`, \`META IMAGE\`, \`CLOSED\`, etc.
+        -   Commitments are in the folder \`/src/commitments\`
+        -   Each commitment starts with a keyword, e.g., \`PERSONA\`, \`KNOWLEDGE\`, \`USE SEARCH ENGINE\`, etc. on a begining of the line and end by new commitment or end of the book.
+        -   There is a general pattern that commitment keyword is followed by a space and then by the content of the commitment which adds specific human-readable free text information or instructions associated with that commitment, for example:
+            -   \`PERSONA You are a helpful assistant that helps with cooking recipes.\` - \`PERSONA\` is the commitment keyword, and "You are a helpful assistant that helps with cooking recipes." is the content of the commitment which gives specific instructions
+            -   \`USE SEARCH ENGINE Search only in French.\` - \`USE SEARCH ENGINE\` is the commitment keyword, and "Search only in French." are the specific instructions for the searching.
+        -   In the commitment context, you can reference external agents, for example:
+            -   \`TEAM You can talk to {Criminal lawyer} and {Financial advisor}\`
+        -   Agent source with commitments is parsed by two functions:
+            -   \`parseAgentSource\` which is a lightweight parser for agent source, it parses basic information and its purpose is to be quick and synchronous. The commitments there are hardcoded.
+            -   \`createAgentModelRequirements\` which is an asynchronous function that creates model requirements it applies each commitment one by one and works asynchronously.
          
         
     `.toString();
