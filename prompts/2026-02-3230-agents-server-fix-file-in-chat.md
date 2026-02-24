@@ -6,7 +6,6 @@
 
 [✨🧰] When you add a file attachment, the chat agent can see only the metadata of the file, like the filename.
 
-- @@@
 -   Fix it so the agent can see the content of the file in the message, not only the metadata.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.

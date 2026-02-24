@@ -1,6 +1,15 @@
-[-]
+[ ]
 
-[✨⏩] qux
+[✨⏩] Make commitment `USE FILESYSTEM`
+
+**For example:**
+
+```
+John the Copywriter
+
+PERSONA You are a professional copywriter writing about CNC machines.
+USE FILESYSTEM Edit files in @@@
+```
 
 -   @@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
