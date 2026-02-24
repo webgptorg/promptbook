@@ -1,4 +1,4 @@
-[ ]
+[x] <$0.01 3 minutes by Gemini CLI `gemini-3-flash-preview`
 
 [✨🐼] Enhance the estimate in the [coding script](scripts/run-codex-prompts/run-codex-prompts.ts).
 
@@ -46,3 +46,4 @@ Changes to:
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   Add the changes into the [changelog](./changelog/_current-preversion.md)
+

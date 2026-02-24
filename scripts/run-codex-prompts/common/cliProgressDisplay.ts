@@ -23,11 +23,21 @@ const ESTIMATED_DONE_CALENDAR_FORMATS = {
  * Computed values used when rendering the progress header.
  */
 type ProgressSnapshot = {
+    /** Total number of prompts in the project. */
     totalPrompts: number;
+    /** Total number of completed prompts in the project. */
     completedPrompts: number;
+    /** Number of prompts completed in the current session. */
+    sessionDone: number;
+    /** Total number of prompts to be processed in the current session. */
+    sessionTotal: number;
+    /** Percentage of total prompts completed. */
     percentage: number;
+    /** Formatted elapsed time. */
     elapsedText: string;
+    /** Formatted estimated total time. */
     estimatedTotalText: string;
+    /** Formatted estimated completion time. */
     estimatedLabel: string;
 };
 
@@ -36,6 +46,13 @@ type ProgressSnapshot = {
  */
 export class CliProgressDisplay {
     private stats: PromptStats = { done: 0, forAgent: 0, belowMinimumPriority: 0, toBeWritten: 0 };
+
+    /**
+     * Initial number of completed prompts when the session started.
+     * Used to calculate session progress.
+     */
+    private initialDone: number | undefined;
+
     private readonly isInteractive: boolean;
     private isHeaderReserved = false;
     private interval: NodeJS.Timeout | undefined;
@@ -58,6 +75,13 @@ export class CliProgressDisplay {
      * Updates the progress statistics shown in the header.
      */
     public update(stats: PromptStats): void {
+        if (
+            this.initialDone === undefined &&
+            (stats.done > 0 || stats.forAgent > 0 || stats.toBeWritten > 0)
+        ) {
+            this.initialDone = stats.done;
+        }
+
         this.stats = stats;
         this.render();
     }
@@ -110,9 +134,10 @@ export class CliProgressDisplay {
      * Builds the coloured progress text padded to the terminal width.
      */
     private buildProgressLine(): string {
-        const snapshot = buildProgressSnapshot(this.stats, this.startTime);
-        const totalLabel = `${snapshot.completedPrompts}/${snapshot.totalPrompts} Prompts`;
-        const baseLine = `${totalLabel} | ${snapshot.percentage}% | ${snapshot.elapsedText}/${snapshot.estimatedTotalText} | Estimated done ${snapshot.estimatedLabel}`;
+        const snapshot = buildProgressSnapshot(this.stats, this.startTime, this.initialDone ?? this.stats.done);
+        const sessionLabel = `${snapshot.sessionDone}/${snapshot.sessionTotal} Prompts`;
+        const totalLabel = `(${snapshot.totalPrompts} total)`;
+        const baseLine = `${sessionLabel} ${totalLabel} | ${snapshot.percentage}% | ${snapshot.elapsedText}/${snapshot.estimatedTotalText} | Estimated done ${snapshot.estimatedLabel}`;
         const columns = process.stdout.columns ?? baseLine.length;
         const padded = baseLine.padEnd(columns > baseLine.length ? columns : baseLine.length);
         return colors.bgWhite(colors.black(padded));
@@ -122,9 +147,15 @@ export class CliProgressDisplay {
 /**
  * Calculates progress metrics shown in the sticky header.
  */
-function buildProgressSnapshot(stats: PromptStats, startTime: moment.Moment): ProgressSnapshot {
+function buildProgressSnapshot(
+    stats: PromptStats,
+    startTime: moment.Moment,
+    initialDone: number,
+): ProgressSnapshot {
     const totalPrompts = stats.done + stats.forAgent + stats.toBeWritten;
     const completedPrompts = stats.done;
+    const sessionDone = Math.max(0, completedPrompts - initialDone);
+    const sessionTotal = sessionDone + stats.forAgent;
     const percentage = totalPrompts > 0 ? Math.round((completedPrompts / totalPrompts) * 100) : 0;
     const elapsedDuration = moment.duration(moment().diff(startTime));
     const elapsedText = formatDurationBrief(elapsedDuration);
@@ -144,6 +175,8 @@ function buildProgressSnapshot(stats: PromptStats, startTime: moment.Moment): Pr
     return {
         totalPrompts,
         completedPrompts,
+        sessionDone,
+        sessionTotal,
         percentage,
         elapsedText,
         estimatedTotalText,

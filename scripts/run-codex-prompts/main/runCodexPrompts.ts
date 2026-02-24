@@ -81,7 +81,6 @@ export async function runCodexPrompts(): Promise<void> {
     const options = parseRunOptions(process.argv.slice(2));
     const runStartDate = moment();
     const progressDisplay = options.dryRun ? undefined : new CliProgressDisplay(runStartDate);
-    progressDisplay?.update({ done: 0, forAgent: 0, belowMinimumPriority: 0, toBeWritten: 0 });
     listenForPause();
 
     try {
