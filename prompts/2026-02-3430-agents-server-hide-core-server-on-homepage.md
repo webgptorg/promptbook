@@ -1,6 +1,6 @@
-[-]
+[ ]
 
-[✨🍀] foo
+[✨🍀] Create metadata `IS_CORE_SERVER_HIDDEN` by default false
 
 -   @@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
