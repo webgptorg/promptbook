@@ -9,6 +9,8 @@ import { NotYetImplementedError } from '../../errors/NotYetImplementedError';
 import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import type { CallChatModelStreamOptions, LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
+import type { Usage } from '../../execution/Usage';
+import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import { UNCERTAIN_USAGE } from '../../execution/utils/usage-constants';
 import type { ModelRequirements } from '../../types/ModelRequirements';
 import type { Prompt } from '../../types/Prompt';
@@ -358,8 +360,14 @@ export class OpenAiAssistantExecutionTools extends OpenAiVectorStoreHandler impl
             }
 
             complete = $getCurrentDate();
+            const duration = uncertainNumber(
+                (new Date(complete).getTime() - new Date(start).getTime()) / 1000,
+            );
             const resultContent = textContent.text.value;
-            const usage = UNCERTAIN_USAGE;
+            const usage: Usage = {
+                ...UNCERTAIN_USAGE,
+                duration,
+            };
 
             // Progress callback with final result
             const finalChunk: ChatPromptResult = {
@@ -514,7 +522,13 @@ export class OpenAiAssistantExecutionTools extends OpenAiVectorStoreHandler impl
 
         // eslint-disable-next-line prefer-const
         complete = $getCurrentDate();
-        const usage = UNCERTAIN_USAGE;
+        const duration = uncertainNumber(
+            (new Date(complete).getTime() - new Date(start).getTime()) / 1000,
+        );
+        const usage: Usage = {
+            ...UNCERTAIN_USAGE,
+            duration,
+        };
         // <- TODO: [🥘] Compute real usage for assistant
         //       ?> const usage = computeOpenAiUsage(content, resultContent || '', rawResponse);
 

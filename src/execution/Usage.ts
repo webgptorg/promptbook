@@ -16,6 +16,11 @@ export type Usage = {
     readonly price: UncertainNumber;
 
     /**
+     * Time how long the agent was running in seconds
+     */
+    readonly duration: UncertainNumber;
+
+    /**
      * Number of whatever used in the input aka. `prompt_tokens`
      */
     readonly input: UsageCounts;

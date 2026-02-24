@@ -95,6 +95,7 @@ function createCompatibilityUsage(
         total_tokens: promptTokens + completionTokens,
         details: {
             price: usage.price,
+            duration: usage.duration,
             input: inputUsage,
             output: outputUsage,
         },

@@ -232,6 +232,10 @@ export const createGoogleExecutionTools = Object.assign(
 
                 const complete: string_date_iso8601 = $getCurrentDate();
 
+                const duration = uncertainNumber(
+                    (new Date(complete).getTime() - new Date(start).getTime()) / 1000,
+                );
+
                 const usageMetadata = rawResponse.usageMetadata;
 
                 return exportJson({
@@ -247,6 +251,7 @@ export const createGoogleExecutionTools = Object.assign(
                         },
                         usage: {
                             price: uncertainNumber(),
+                            duration,
                             input: {
                                 tokensCount: uncertainNumber(usageMetadata?.promptTokenCount),
                                 ...computeUsageCounts(rawPromptContent),

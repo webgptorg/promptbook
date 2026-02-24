@@ -11,6 +11,7 @@ import { UnexpectedError } from '../../errors/UnexpectedError';
 import type { AvailableModel } from '../../execution/AvailableModel';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
+import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import type { Prompt } from '../../types/Prompt';
 import type {
     string_date_iso8601,
@@ -181,7 +182,10 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools /* <- TO
         const resultContent = contentBlock.text;
 
         const complete = $getCurrentDate();
-        const usage = computeAnthropicClaudeUsage(rawPromptContent || '', resultContent || '', rawResponse);
+        const duration = uncertainNumber(
+            (new Date(complete).getTime() - new Date(start).getTime()) / 1000,
+        );
+        const usage = computeAnthropicClaudeUsage(rawPromptContent || '', resultContent || '', rawResponse, duration);
 
         return exportJson({
             name: 'promptResult',

@@ -90,12 +90,13 @@ export async function GET(request: NextRequest) {
                                 totalCalls: 0,
                                 totalTokens: 0,
                                 totalPriceUsd: 0,
+                                totalDuration: 0,
                                 uniqueAgents: 0,
                                 uniqueApiKeys: 0,
                                 uniqueUserAgents: 0,
                             },                timeline: [],
-                            breakdownByCallType: CALL_TYPES.map((key) => ({ key, label: callTypeLabel(key), calls: 0, tokens: 0, priceUsd: 0 })),
-                            breakdownByActorType: ACTOR_TYPES.map((key) => ({ key, label: actorTypeLabel(key), calls: 0, tokens: 0, priceUsd: 0 })),                perAgent: [],
+                            breakdownByCallType: CALL_TYPES.map((key) => ({ key, label: callTypeLabel(key), calls: 0, tokens: 0, priceUsd: 0, duration: 0 })),
+                            breakdownByActorType: ACTOR_TYPES.map((key) => ({ key, label: actorTypeLabel(key), calls: 0, tokens: 0, priceUsd: 0, duration: 0 })),                perAgent: [],
                 perFolder: [],
                 apiKeys: [],
                 userAgents: [],
@@ -121,9 +122,11 @@ export async function GET(request: NextRequest) {
                     input?: { tokensCount?: { value?: number } };
                     output?: { tokensCount?: { value?: number } };
                     price?: { value?: number };
+                    duration?: { value?: number };
                 } | null;
                 const tokens = (usage?.input?.tokensCount?.value || 0) + (usage?.output?.tokensCount?.value || 0);
                 const priceUsd = usage?.price?.value || 0;
+                const duration = usage?.duration?.value || 0;
 
                 return {
                     createdAt: row.createdAt,
@@ -134,6 +137,7 @@ export async function GET(request: NextRequest) {
                     userAgent,
                     tokens,
                     priceUsd,
+                    duration,
                 };
             })
             .filter((call) => {
@@ -147,13 +151,13 @@ export async function GET(request: NextRequest) {
             });
 
         const bucketSizeMs = resolveTimelineBucketSizeMs(timeframe.from.getTime(), timeframe.to.getTime());
-        const timelineByBucket = new Map<number, { calls: number; tokens: number; priceUsd: number }>();
-        const perAgentCounts = new Map<string, { calls: number; tokens: number; priceUsd: number }>();
-        const perFolderCounts = new Map<number | null, { calls: number; tokens: number; priceUsd: number }>();
-        const callTypeCounts = new Map<UsageCallType, { calls: number; tokens: number; priceUsd: number }>();
-        const actorTypeCounts = new Map<UsageActorType, { calls: number; tokens: number; priceUsd: number }>();
-        const apiKeyDetails = new Map<string, { calls: number; tokens: number; priceUsd: number; lastSeen: string }>();
-        const userAgentDetails = new Map<string, { calls: number; tokens: number; priceUsd: number; lastSeen: string }>();
+        const timelineByBucket = new Map<number, { calls: number; tokens: number; priceUsd: number; duration: number }>();
+        const perAgentCounts = new Map<string, { calls: number; tokens: number; priceUsd: number; duration: number }>();
+        const perFolderCounts = new Map<number | null, { calls: number; tokens: number; priceUsd: number; duration: number }>();
+        const callTypeCounts = new Map<UsageCallType, { calls: number; tokens: number; priceUsd: number; duration: number }>();
+        const actorTypeCounts = new Map<UsageActorType, { calls: number; tokens: number; priceUsd: number; duration: number }>();
+        const apiKeyDetails = new Map<string, { calls: number; tokens: number; priceUsd: number; duration: number; lastSeen: string }>();
+        const userAgentDetails = new Map<string, { calls: number; tokens: number; priceUsd: number; duration: number; lastSeen: string }>();
 
         for (const call of filteredCalls) {
             const timestamp = Date.parse(call.createdAt);
@@ -162,12 +166,13 @@ export async function GET(request: NextRequest) {
             }
 
             const bucketKey = floorToBucket(timestamp, bucketSizeMs);
-            const { tokens = 0, priceUsd = 0 } = call;
+            const { tokens = 0, priceUsd = 0, duration = 0 } = call;
             
-            const updateCount = (current: { calls: number; tokens: number; priceUsd: number } | undefined) => ({
+            const updateCount = (current: { calls: number; tokens: number; priceUsd: number; duration: number } | undefined) => ({
                 calls: (current?.calls || 0) + 1,
                 tokens: (current?.tokens || 0) + tokens,
                 priceUsd: (current?.priceUsd || 0) + priceUsd,
+                duration: (current?.duration || 0) + duration,
             });
 
             timelineByBucket.set(bucketKey, updateCount(timelineByBucket.get(bucketKey)));
@@ -184,6 +189,7 @@ export async function GET(request: NextRequest) {
                     calls: (existing?.calls || 0) + 1,
                     tokens: (existing?.tokens || 0) + tokens,
                     priceUsd: (existing?.priceUsd || 0) + priceUsd,
+                    duration: (existing?.duration || 0) + duration,
                     lastSeen: existing?.lastSeen && existing.lastSeen > call.createdAt ? existing.lastSeen : call.createdAt,
                 });
             }
@@ -193,6 +199,7 @@ export async function GET(request: NextRequest) {
                 calls: (existingUserAgent?.calls || 0) + 1,
                 tokens: (existingUserAgent?.tokens || 0) + tokens,
                 priceUsd: (existingUserAgent?.priceUsd || 0) + priceUsd,
+                duration: (existingUserAgent?.duration || 0) + duration,
                 lastSeen:
                     existingUserAgent?.lastSeen && existingUserAgent.lastSeen > call.createdAt
                         ? existingUserAgent.lastSeen
@@ -254,13 +261,14 @@ export async function GET(request: NextRequest) {
                 totalCalls: filteredCalls.length,
                 totalTokens: filteredCalls.reduce((sum, call) => sum + (call.tokens || 0), 0),
                 totalPriceUsd: filteredCalls.reduce((sum, call) => sum + (call.priceUsd || 0), 0),
+                totalDuration: filteredCalls.reduce((sum, call) => sum + (call.duration || 0), 0),
                 uniqueAgents: perAgentCounts.size,
                 uniqueApiKeys: apiKeyDetails.size,
                 uniqueUserAgents: userAgentDetails.size,
             },
             timeline,
             breakdownByCallType: CALL_TYPES.map((key) => {
-                const stats = callTypeCounts.get(key) || { calls: 0, tokens: 0, priceUsd: 0 };
+                const stats = callTypeCounts.get(key) || { calls: 0, tokens: 0, priceUsd: 0, duration: 0 };
                 return {
                     key,
                     label: callTypeLabel(key),
@@ -268,7 +276,7 @@ export async function GET(request: NextRequest) {
                 };
             }),
             breakdownByActorType: ACTOR_TYPES.map((key) => {
-                const stats = actorTypeCounts.get(key) || { calls: 0, tokens: 0, priceUsd: 0 };
+                const stats = actorTypeCounts.get(key) || { calls: 0, tokens: 0, priceUsd: 0, duration: 0 };
                 return {
                     key,
                     label: actorTypeLabel(key),
@@ -437,7 +445,7 @@ function createTimelineSeries(options: {
     from: number;
     to: number;
     bucketSizeMs: number;
-    timelineByBucket: Map<number, { calls: number; tokens: number; priceUsd: number }>;
+    timelineByBucket: Map<number, { calls: number; tokens: number; priceUsd: number; duration: number }>;
 }): UsageAnalyticsResponse['timeline'] {
     const { from, to, bucketSizeMs, timelineByBucket } = options;
     if (to < from) {
@@ -455,6 +463,7 @@ function createTimelineSeries(options: {
             calls: bucketVal?.calls || 0,
             tokens: bucketVal?.tokens || 0,
             priceUsd: bucketVal?.priceUsd || 0,
+            duration: bucketVal?.duration || 0,
         });
     }
 

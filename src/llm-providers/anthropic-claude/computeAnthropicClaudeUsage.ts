@@ -5,6 +5,7 @@ import type { UncertainNumber } from '../../execution/UncertainNumber';
 import type { Usage } from '../../execution/Usage';
 import { computeUsageCounts } from '../../execution/utils/computeUsageCounts';
 import { uncertainNumber } from '../../execution/utils/uncertainNumber';
+import { ZERO_VALUE } from '../../execution/utils/usage-constants';
 import type { Prompt } from '../../types/Prompt';
 import { ANTHROPIC_CLAUDE_MODELS } from './anthropic-claude-models';
 
@@ -14,6 +15,7 @@ import { ANTHROPIC_CLAUDE_MODELS } from './anthropic-claude-models';
  * @param promptContent The content of the prompt
  * @param resultContent The content of the result (for embedding prompts or failed prompts pass empty string)
  * @param rawResponse The raw response from Anthropic Claude API
+ * @param duration The duration of the execution
  * @throws {PipelineExecutionError} If the usage is not defined in the response from Anthropic Claude
  * @private internal utility of `AnthropicClaudeExecutionTools`
  */
@@ -21,6 +23,7 @@ export function computeAnthropicClaudeUsage(
     promptContent: Prompt['content'], // <- Note: Intentionally using [] to access type properties to bring jsdoc from Prompt/PromptResult to consumer
     resultContent: string,
     rawResponse: PartialDeep<Pick<Anthropic.Messages.Message, 'model' | 'usage'>>,
+    duration: UncertainNumber = ZERO_VALUE,
 ): Usage {
     if (rawResponse.usage === undefined) {
         throw new PipelineExecutionError('The usage is not defined in the response from Anthropic Claude');
@@ -45,6 +48,7 @@ export function computeAnthropicClaudeUsage(
 
     return {
         price,
+        duration,
         input: {
             tokensCount: uncertainNumber(rawResponse.usage.input_tokens),
             ...computeUsageCounts(

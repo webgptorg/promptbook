@@ -7,6 +7,7 @@ describe('how addUsage works', () => {
     it('should create void usage with 0 items', () =>
         expect(addUsage()).toEqual({
             price: ZERO_VALUE,
+            duration: ZERO_VALUE,
             input: {
                 tokensCount: ZERO_VALUE,
                 charactersCount: ZERO_VALUE,
@@ -40,6 +41,7 @@ describe('how addUsage works', () => {
         expect(
             addUsage({
                 price: { value: 1 },
+                duration: { value: 10 },
                 input: {
                     tokensCount: { value: 20 },
                     charactersCount: { value: 1 },
@@ -61,6 +63,7 @@ describe('how addUsage works', () => {
             }),
         ).toEqual({
             price: { value: 1 },
+            duration: { value: 10 },
             input: {
                 tokensCount: { value: 20 },
                 charactersCount: { value: 1 },
@@ -86,6 +89,7 @@ describe('how addUsage works', () => {
             addUsage(
                 {
                     price: { value: 1 },
+                    duration: { value: 5 },
                     input: {
                         tokensCount: { value: 10 },
                         charactersCount: { value: 5 },
@@ -107,6 +111,7 @@ describe('how addUsage works', () => {
                 },
                 {
                     price: { value: 2 },
+                    duration: { value: 10 },
                     input: {
                         tokensCount: { value: 15 },
                         charactersCount: { value: 10 },
@@ -129,6 +134,7 @@ describe('how addUsage works', () => {
             ),
         ).toEqual({
             price: { value: 3 },
+            duration: { value: 15 },
             input: {
                 tokensCount: { value: 25 },
                 charactersCount: { value: 15 },
@@ -154,6 +160,7 @@ describe('how addUsage works', () => {
             addUsage(
                 {
                     price: { value: 1 },
+                    duration: { value: 5 },
                     input: {
                         tokensCount: { value: 10 },
                         charactersCount: { value: 5 },
@@ -175,6 +182,7 @@ describe('how addUsage works', () => {
                 },
                 {
                     price: { value: 2 },
+                    duration: { value: 10 },
                     input: {
                         tokensCount: { value: 15 },
                         charactersCount: { value: 10 },
@@ -196,6 +204,7 @@ describe('how addUsage works', () => {
                 },
                 {
                     price: { value: 3 },
+                    duration: { value: 15 },
                     input: {
                         tokensCount: { value: 5 },
                         charactersCount: { value: 2 },
@@ -218,6 +227,7 @@ describe('how addUsage works', () => {
             ),
         ).toEqual({
             price: { value: 6 },
+            duration: { value: 30 },
             input: {
                 tokensCount: { value: 30 },
                 charactersCount: { value: 17 },

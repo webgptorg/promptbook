@@ -62,7 +62,7 @@
 
 ---
 
-[ ]
+[x] <$0.01 16 minutes by Gemini CLI `gemini-3-flash-preview`
 
 [✨🆑] Add timing into Usage object
 
@@ -113,3 +113,4 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality of usage and agents server chat before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server) with the usage statistics of the agents.
+

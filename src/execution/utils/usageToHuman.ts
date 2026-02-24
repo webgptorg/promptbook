@@ -9,6 +9,7 @@ import { usageToWorktime } from './usageToWorktime';
  */
 type PartialUsage = Partial<Usage> & {
     price: UncertainNumber;
+    duration: UncertainNumber;
     input: Pick<Usage['input'], 'wordsCount'>;
     output: Pick<Usage['output'], 'wordsCount' | 'charactersCount'>;
 };
@@ -33,6 +34,10 @@ export function usageToHuman(usage: PartialUsage): string_markdown {
         reportItems.push(`Cost ${uncertainNumberToHuman(usage.price)} USD`);
     } else {
         reportItems.push(`Negligible cost`);
+    }
+
+    if (usage.duration.value !== 0) {
+        reportItems.push(`Duration ${uncertainNumberToHuman(usage.duration)} seconds`);
     }
 
     const hoursCount = usageToWorktime(usage);

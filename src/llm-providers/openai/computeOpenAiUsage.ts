@@ -6,6 +6,7 @@ import type { UncertainNumber } from '../../execution/UncertainNumber';
 import type { Usage } from '../../execution/Usage';
 import { computeUsageCounts } from '../../execution/utils/computeUsageCounts';
 import { uncertainNumber } from '../../execution/utils/uncertainNumber';
+import { ZERO_VALUE } from '../../execution/utils/usage-constants';
 import type { Prompt } from '../../types/Prompt';
 import { OPENAI_MODELS } from './openai-models';
 
@@ -15,6 +16,7 @@ import { OPENAI_MODELS } from './openai-models';
  * @param promptContent The content of the prompt
  * @param resultContent The content of the result (for embedding prompts or failed prompts pass empty string)
  * @param rawResponse The raw response from OpenAI API
+ * @param duration The duration of the execution
  * @throws {PipelineExecutionError} If the usage is not defined in the response from OpenAI
  * @private internal utility of `OpenAiExecutionTools`
  */
@@ -30,6 +32,7 @@ export function computeOpenAiUsage(
             'model' | 'usage'
         >
     >,
+    duration: UncertainNumber = ZERO_VALUE,
 ): Usage {
     if (rawResponse.usage === undefined) {
         throw new PipelineExecutionError('The usage is not defined in the response from OpenAI');
@@ -66,6 +69,7 @@ export function computeOpenAiUsage(
 
     return {
         price,
+        duration,
         input: {
             tokensCount: uncertainNumber(rawResponse.usage.prompt_tokens),
             ...computeUsageCounts(

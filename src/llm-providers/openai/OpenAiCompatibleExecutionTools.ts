@@ -312,6 +312,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
 
         let totalUsage: Usage = {
             price: uncertainNumber(0),
+            duration: uncertainNumber(0),
             input: {
                 tokensCount: uncertainNumber(0),
                 charactersCount: uncertainNumber(0),
@@ -352,6 +353,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
             }
 
             try {
+                const turnStart: string_date_iso8601 = $getCurrentDate();
                 const rawResponse: OpenAI.Chat.Completions.ChatCompletion = await this.limiter
                     .schedule(() => this.makeRequestWithNetworkRetry(() => client.chat.completions.create(rawRequest)))
                     .catch((error: Error) => {
@@ -361,6 +363,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
                         }
                         throw error;
                     });
+                const turnComplete: string_date_iso8601 = $getCurrentDate();
 
                 if (this.options.isVerbose) {
                     console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
@@ -373,7 +376,10 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
                 const responseMessage = rawResponse.choices[0].message;
                 messages.push(responseMessage);
 
-                const usage: Usage = this.computeUsage(content || '', responseMessage.content || '', rawResponse);
+                const duration = uncertainNumber(
+                    (new Date(turnComplete).getTime() - new Date(turnStart).getTime()) / 1000,
+                );
+                const usage: Usage = this.computeUsage(content || '', responseMessage.content || '', rawResponse, duration);
                 totalUsage = addUsage(totalUsage, usage);
 
                 if (responseMessage.tool_calls && responseMessage.tool_calls.length > 0) {
@@ -382,7 +388,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
                         onProgress({
                             content: responseMessage.content || '',
                             modelName: rawResponse.model || modelName,
-                            timing: { start, complete: $getCurrentDate() },
+                            timing: { start, complete: turnComplete },
                             usage: totalUsage,
                             toolCalls: responseMessage.tool_calls.map((toolCall) => {
                                 const calledAt = $getCurrentDate();
@@ -661,6 +667,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
         }
 
         try {
+            const turnStart: string_date_iso8601 = $getCurrentDate();
             const rawResponse = await this.limiter
                 .schedule(() => this.makeRequestWithNetworkRetry(() => client.completions.create(rawRequest)))
                 .catch((error) => {
@@ -670,11 +677,11 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
                     }
                     throw error;
                 });
+            const turnComplete: string_date_iso8601 = $getCurrentDate();
 
             if (this.options.isVerbose) {
                 console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
             }
-            const complete: string_date_iso8601 = $getCurrentDate();
 
             if (!rawResponse.choices[0]) {
                 throw new PipelineExecutionError(`No choises from ${this.title}`);
@@ -685,7 +692,10 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
             }
 
             const resultContent = rawResponse.choices[0].text;
-            const usage = this.computeUsage(content || '', resultContent || '', rawResponse);
+            const duration = uncertainNumber(
+                (new Date(turnComplete).getTime() - new Date(turnStart).getTime()) / 1000,
+            );
+            const usage = this.computeUsage(content || '', resultContent || '', rawResponse, duration);
 
             return exportJson({
                 name: 'promptResult',
@@ -696,7 +706,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
                     modelName: rawResponse.model || modelName,
                     timing: {
                         start,
-                        complete,
+                        complete: turnComplete,
                     },
                     usage,
                     rawPromptContent,
@@ -851,6 +861,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
         }
 
         try {
+            const turnStart: string_date_iso8601 = $getCurrentDate();
             const rawResponse = await this.limiter
                 .schedule(() => this.makeRequestWithNetworkRetry(() => client.embeddings.create(rawRequest)))
                 .catch((error) => {
@@ -860,12 +871,11 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
                     }
                     throw error;
                 });
+            const turnComplete: string_date_iso8601 = $getCurrentDate();
 
             if (this.options.isVerbose) {
                 console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
             }
-            const complete: string_date_iso8601 = $getCurrentDate();
-
             if (rawResponse.data.length !== 1) {
                 throw new PipelineExecutionError(
                     `Expected exactly 1 data item in response, got ${rawResponse.data.length}`,
@@ -874,7 +884,10 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
 
             const resultContent = rawResponse.data[0]!.embedding;
 
-            const usage = this.computeUsage(content || '', '', rawResponse);
+            const duration = uncertainNumber(
+                (new Date(turnComplete).getTime() - new Date(turnStart).getTime()) / 1000,
+            );
+            const usage = this.computeUsage(content || '', '', rawResponse, duration);
 
             return exportJson({
                 name: 'promptResult',
@@ -885,7 +898,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
                     modelName: rawResponse.model || modelName,
                     timing: {
                         start,
-                        complete,
+                        complete: turnComplete,
                     },
                     usage,
                     rawPromptContent,
@@ -1054,6 +1067,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
         }
 
         try {
+            const turnStart: string_date_iso8601 = $getCurrentDate();
             const rawResponse = await this.limiter
                 .schedule(() => this.makeRequestWithNetworkRetry(() => client.images.generate(rawRequest)))
                 .catch((error) => {
@@ -1063,11 +1077,11 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
                     }
                     throw error;
                 });
+            const turnComplete: string_date_iso8601 = $getCurrentDate();
 
             if (this.options.isVerbose) {
                 console.info(colors.bgWhite('rawResponse'), JSON.stringify(rawResponse, null, 4));
             }
-            const complete: string_date_iso8601 = $getCurrentDate();
 
             if (!(rawResponse as TODO_any).data[0]) {
                 throw new PipelineExecutionError(`No choises from ${this.title}`);
@@ -1082,6 +1096,10 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
             const modelInfo = this.HARDCODED_MODELS.find((model) => model.modelName === modelName);
             const price = modelInfo?.pricing?.output ? uncertainNumber(modelInfo.pricing.output) : uncertainNumber();
 
+            const duration = uncertainNumber(
+                (new Date(turnComplete).getTime() - new Date(turnStart).getTime()) / 1000,
+            );
+
             return exportJson({
                 name: 'promptResult',
                 message: `Result of \`OpenAiCompatibleExecutionTools.callImageGenerationModel\``,
@@ -1091,10 +1109,11 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
                     modelName: modelName,
                     timing: {
                         start,
-                        complete,
+                        complete: turnComplete,
                     },
                     usage: {
                         price,
+                        duration,
                         input: {
                             tokensCount: uncertainNumber(0),
                             ...computeUsageCounts(rawPromptContent),

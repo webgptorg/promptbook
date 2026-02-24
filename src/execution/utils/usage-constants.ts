@@ -22,6 +22,7 @@ export const UNCERTAIN_ZERO_VALUE = $deepFreeze({ value: 0, isUncertain: true } 
  */
 export const ZERO_USAGE = $deepFreeze({
     price: ZERO_VALUE,
+    duration: ZERO_VALUE,
     input: {
         tokensCount: ZERO_VALUE,
         charactersCount: ZERO_VALUE,
@@ -49,6 +50,7 @@ export const ZERO_USAGE = $deepFreeze({
  */
 export const UNCERTAIN_USAGE = $deepFreeze({
     price: UNCERTAIN_ZERO_VALUE,
+    duration: UNCERTAIN_ZERO_VALUE,
     input: {
         tokensCount: UNCERTAIN_ZERO_VALUE,
         charactersCount: UNCERTAIN_ZERO_VALUE,

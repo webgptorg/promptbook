@@ -79,12 +79,20 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools /* <- TODO
             console.info('💬 Mocked callChatModel call');
         }
 
+        const start = $getCurrentDate();
+
         await forTime((1 + Math.random() * 4) * 1000);
+
+        const complete = $getCurrentDate();
 
         const modelName = 'mocked-echo';
         const rawPromptContent = templateParameters(prompt.content, { ...prompt.parameters, modelName });
 
-        const usage = ZERO_USAGE;
+        const duration = {
+            value: (new Date(complete).getTime() - new Date(start).getTime()) / 1000,
+        };
+
+        const usage = { ...ZERO_USAGE, duration };
         //      <- TODO: [🧠] Compute here at least words, characters,... etc
 
         const thread = (prompt as ChatPrompt) /* <- [🩱] */.thread;
@@ -107,8 +115,8 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools /* <- TODO
                 ),
                 modelName,
                 timing: {
-                    start: $getCurrentDate(),
-                    complete: $getCurrentDate(),
+                    start,
+                    complete,
                 },
                 usage,
                 rawPromptContent,
@@ -131,10 +139,20 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools /* <- TODO
             console.info('🖋 Mocked callCompletionModel call');
         }
 
+        const start = $getCurrentDate();
+
+        await forTime((1 + Math.random() * 4) * 1000);
+
+        const complete = $getCurrentDate();
+
         const modelName = 'mocked-echo';
         const rawPromptContent = templateParameters(prompt.content, { ...prompt.parameters, modelName });
 
-        const usage = ZERO_USAGE;
+        const duration = {
+            value: (new Date(complete).getTime() - new Date(start).getTime()) / 1000,
+        };
+
+        const usage = { ...ZERO_USAGE, duration };
         //      <- TODO: [🧠] Compute here at least words, characters,... etc
 
         return exportJson({
@@ -150,8 +168,8 @@ export class MockedEchoLlmExecutionTools implements LlmExecutionTools /* <- TODO
                 ),
                 modelName,
                 timing: {
-                    start: $getCurrentDate(),
-                    complete: $getCurrentDate(),
+                    start,
+                    complete,
                 },
                 usage,
                 rawPromptContent,

@@ -233,6 +233,7 @@ export class Agent extends AgentLlmExecutionTools implements LlmExecutionTools, 
                     },
                     usage: {
                         price: { value: 0, isUncertain: true },
+                        duration: { value: 0, isUncertain: true },
                         input: {
                             tokensCount: { value: 0, isUncertain: true },
                             charactersCount: { value: 0, isUncertain: true },

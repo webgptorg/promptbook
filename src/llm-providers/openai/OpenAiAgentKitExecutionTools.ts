@@ -17,6 +17,7 @@ import { PipelineExecutionError } from '../../errors/PipelineExecutionError';
 import type { CallChatModelStreamOptions, LlmExecutionTools } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
 import type { ScriptExecutionTools } from '../../execution/ScriptExecutionTools';
+import { uncertainNumber } from '../../execution/utils/uncertainNumber';
 import { UNCERTAIN_USAGE } from '../../execution/utils/usage-constants';
 import type { ModelRequirements } from '../../types/ModelRequirements';
 import type { Prompt } from '../../types/Prompt';
@@ -671,13 +672,19 @@ export class OpenAiAgentKitExecutionTools extends OpenAiVectorStoreHandler imple
         await streamResult.completed;
 
         const complete: string_date_iso8601 = $getCurrentDate();
+        const duration = uncertainNumber(
+            (new Date(complete).getTime() - new Date(start).getTime()) / 1000,
+        );
         const finalContent = (streamResult.finalOutput ?? latestContent) as string_markdown;
 
         const finalResult: ChatPromptResult = {
             content: finalContent,
             modelName: this.agentKitModelName,
             timing: { start, complete },
-            usage: UNCERTAIN_USAGE,
+            usage: {
+                ...UNCERTAIN_USAGE,
+                duration,
+            },
             rawPromptContent: rawPromptContent as string_prompt,
             rawRequest,
             rawResponse: { runResult: streamResult },

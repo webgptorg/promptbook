@@ -192,6 +192,7 @@ export function UsageClient(props: UsageClientProps) {
                     data.summary.totalPriceUsd,
                 ),
             },
+            { label: 'Total duration', value: `${formatCompactNumber(data.summary.totalDuration)}s` },
             { label: 'Agents involved', value: formatCompactNumber(data.summary.uniqueAgents) },
             { label: 'API keys used', value: formatCompactNumber(data.summary.uniqueApiKeys) },
             { label: 'User agents', value: formatCompactNumber(data.summary.uniqueUserAgents) },
@@ -427,6 +428,7 @@ export function UsageClient(props: UsageClientProps) {
                                     calls: item.calls,
                                     tokens: item.tokens,
                                     priceUsd: item.priceUsd,
+                                    duration: item.duration,
                                 }))}
                             />
                         </Card>
@@ -440,6 +442,7 @@ export function UsageClient(props: UsageClientProps) {
                                     calls: item.calls,
                                     tokens: item.tokens,
                                     priceUsd: item.priceUsd,
+                                    duration: item.duration,
                                 }))}
                             />
                         </Card>
@@ -450,12 +453,13 @@ export function UsageClient(props: UsageClientProps) {
                             <h2 className="text-lg font-medium text-gray-900">API key details</h2>
                             <DetailsTable
                                 emptyLabel="No API key usage for current filters."
-                                headers={['API key', 'Calls', 'Tokens', 'Cost', 'Last seen']}
+                                headers={['API key', 'Calls', 'Tokens', 'Cost', 'Duration', 'Last seen']}
                                 rows={data.apiKeys.map((item) => [
                                     `${truncateMiddle(item.apiKey, 12, 8)}${item.note ? ` (${item.note})` : ''}`,
                                     formatCompactNumber(item.calls),
                                     formatCompactNumber(item.tokens),
                                     new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(item.priceUsd),
+                                    `${formatCompactNumber(item.duration)}s`,
                                     formatDateTime(item.lastSeen),
                                 ])}
                             />
@@ -465,12 +469,13 @@ export function UsageClient(props: UsageClientProps) {
                             <h2 className="text-lg font-medium text-gray-900">User agent details</h2>
                             <DetailsTable
                                 emptyLabel="No user-agent usage for current filters."
-                                headers={['User agent', 'Calls', 'Tokens', 'Cost', 'Last seen']}
+                                headers={['User agent', 'Calls', 'Tokens', 'Cost', 'Duration', 'Last seen']}
                                 rows={data.userAgents.map((item) => [
                                     item.userAgent || 'Unknown',
                                     formatCompactNumber(item.calls),
                                     formatCompactNumber(item.tokens),
                                     new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(item.priceUsd),
+                                    `${formatCompactNumber(item.duration)}s`,
                                     formatDateTime(item.lastSeen),
                                 ])}
                             />
@@ -616,7 +621,7 @@ function BreakdownRow(props: {
  * Small two-column count table.
  */
 function SimpleCountTable(props: {
-    rows: Array<{ label: string; calls: number; tokens: number; priceUsd: number }>;
+    rows: Array<{ label: string; calls: number; tokens: number; priceUsd: number; duration: number }>;
     emptyLabel: string;
 }) {
     const { rows, emptyLabel } = props;
@@ -634,6 +639,7 @@ function SimpleCountTable(props: {
                         <th className="px-3 py-2 text-right">Calls</th>
                         <th className="px-3 py-2 text-right">Tokens</th>
                         <th className="px-3 py-2 text-right">Cost</th>
+                        <th className="px-3 py-2 text-right">Duration</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -650,6 +656,9 @@ function SimpleCountTable(props: {
                             </td>
                             <td className="px-3 py-2 text-right text-gray-700 whitespace-nowrap">
                                 {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(row.priceUsd)}
+                            </td>
+                            <td className="px-3 py-2 text-right text-gray-700 whitespace-nowrap">
+                                {`${formatCompactNumber(row.duration)}s`}
                             </td>
                         </tr>
                     ))}

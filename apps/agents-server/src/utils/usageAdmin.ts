@@ -21,6 +21,7 @@ export type UsageTimelinePoint = {
     calls: number;
     tokens: number;
     priceUsd: number;
+    duration: number;
 };
 
 /**
@@ -32,6 +33,7 @@ export type UsageBreakdownItem<TKey extends string> = {
     calls: number;
     tokens: number;
     priceUsd: number;
+    duration: number;
 };
 
 /**
@@ -42,6 +44,7 @@ export type UsagePerAgentItem = {
     calls: number;
     tokens: number;
     priceUsd: number;
+    duration: number;
 };
 
 /**
@@ -53,6 +56,7 @@ export type UsagePerFolderItem = {
     calls: number;
     tokens: number;
     priceUsd: number;
+    duration: number;
 };
 
 /**
@@ -64,6 +68,7 @@ export type UsageApiKeyItem = {
     calls: number;
     tokens: number;
     priceUsd: number;
+    duration: number;
     lastSeen: string;
 };
 
@@ -75,6 +80,7 @@ export type UsageUserAgentItem = {
     calls: number;
     tokens: number;
     priceUsd: number;
+    duration: number;
     lastSeen: string;
 };
 
@@ -85,6 +91,7 @@ export type UsageSummary = {
     totalCalls: number;
     totalTokens: number;
     totalPriceUsd: number;
+    totalDuration: number;
     uniqueAgents: number;
     uniqueApiKeys: number;
     uniqueUserAgents: number;
