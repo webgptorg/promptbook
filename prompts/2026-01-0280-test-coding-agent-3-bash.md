@@ -1,8 +1,10 @@
 [x] ~$0.00
+[x] $0.00 5 minutes by Gemini CLI
 
 ---
 
-[x] $0.00 5 minutes by Gemini CLI
+[ ]
+
 
 [✨🛰] Create some files at root of the project
 
