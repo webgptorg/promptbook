@@ -155,7 +155,7 @@ export class SelfLearningManager {
             `,
         );
 
-        this.appendToAgentSource('\n\n---\n\n' + learningExample);
+        this.appendToAgentSource('\n\n' + learningExample);
     }
 
     /**
