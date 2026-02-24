@@ -4,6 +4,7 @@ import { forTime } from 'waitasecond';
 import { linguisticHash, unwrapResult } from '../../../_packages/utils.index';
 import { extractOpenTeacherInstructions } from '../../../book-2.0/agent-source/extractOpenTeacherInstructions';
 import { padBook } from '../../../book-2.0/agent-source/padBook';
+import { parseAgentSource } from '../../../book-2.0/agent-source/parseAgentSource';
 import type { string_book } from '../../../book-2.0/agent-source/string_book';
 import { validateBook } from '../../../book-2.0/agent-source/string_book';
 import type { ChatPromptResult } from '../../../execution/PromptResult';
@@ -166,13 +167,17 @@ export class SelfLearningManager {
     private async callTeacher(prompt: Prompt, result: ChatPromptResult): Promise<SelfLearningTeacherSummary> {
         console.info(colors.bgCyan('[Self-learning]') + colors.cyan(' Teacher'));
 
+        const agentSource = this.options.getAgentSource();
+        const { initialMessage } = parseAgentSource(agentSource);
+        const isInitialMessageMissing = initialMessage === null;
+
         const modelRequirements = prompt.modelRequirements as {
             responseFormat?: JsonModeResponseFormat;
         };
         const usesJsonSchemaMode = isJsonSchemaResponseFormat(modelRequirements.responseFormat);
         const formattedAgentMessage = formatAgentMessageForJsonMode(result.content, usesJsonSchemaMode);
 
-        const teacherInstructions = extractOpenTeacherInstructions(this.options.getAgentSource());
+        const teacherInstructions = extractOpenTeacherInstructions(agentSource);
         const teacherInstructionsSection = teacherInstructions
             ? spaceTrim(
                   (block) => `
@@ -190,7 +195,7 @@ export class SelfLearningManager {
                 Here is your current client which you are teaching:
 
                 \`\`\`book
-                ${block(this.options.getAgentSource())}
+                ${block(agentSource)}
                 \`\`\`
 
                 **And here is the latest interaction:**
@@ -213,6 +218,14 @@ export class SelfLearningManager {
                 - Do not explain anything, just return the commitments wrapped in a book code block.
                 - Write the learned commitments in the same style and language as in the original agent source.
                 ${usesJsonSchemaMode ? '- This interaction used JSON mode, so the agent answer should stay as a formatted JSON code block.' : ''}
+                ${
+                    isInitialMessageMissing
+                        ? spaceTrim(`
+                - The agent source does not have an INITIAL MESSAGE defined, generate one.
+                - The INITIAL MESSAGE should be welcoming, informative about the agent capabilities and also should give some quick options to start the conversation with the agent.
+                `)
+                        : ''
+                }
 
 
                 This is how book code block looks like:
