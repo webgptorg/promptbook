@@ -75,7 +75,7 @@ export class LanguageCommitmentDefinition extends BaseCommitmentDefinition<'LANG
             (block) => `
                 Language:
                 ${block(trimmedContent)}
-                <- You are speaking theese languages in your responses to the user.
+                <- You are speaking these languages in your responses to the user.
             
             `,
         );
