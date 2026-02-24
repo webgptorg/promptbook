@@ -39,6 +39,13 @@ export type AgentReferenceDiagnostic = {
      * Optional source label shown by Monaco.
      */
     readonly source?: string;
+
+    /**
+     * Marker severity used for color coding in Monaco.
+     *
+     * @default 'error'
+     */
+    readonly severity?: 'error' | 'warning' | 'info' | 'hint';
 };
 
 export type MissingAgentReference = {
@@ -85,22 +92,68 @@ const AGENT_REFERENCE_COMMITMENT_TYPES: ReadonlySet<BookCommitment> = new Set<Bo
  */
 const AGENT_REFERENCE_DIAGNOSTIC_SOURCE = 'agent-reference';
 
+import type { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
+import { parseAgentSource } from '../../../../../src/_packages/core.index';
+import { normalizeAgentName } from '../../../../../src/book-2.0/agent-source/normalizeAgentName';
+
 /**
  * Creates unresolved-reference diagnostics for FROM/IMPORT/TEAM compact references.
  *
  * @param agentSource - Agent source currently edited in BookEditor.
  * @param agentReferenceResolver - Resolver configured for local/federated agent lookup.
+ * @param allAgents - Optional list of all agents to check for name collisions.
+ * @param currentAgentPermanentId - Optional permanent ID of the agent currently being edited.
  * @returns Diagnostics with precise ranges for unresolved compact references.
  */
 export async function createUnresolvedAgentReferenceDiagnostics(
     agentSource: string_book,
     agentReferenceResolver: AgentReferenceResolver,
+    allAgents?: ReadonlyArray<AgentBasicInformation>,
+    currentAgentPermanentId?: string,
 ): Promise<AgentReferenceDiagnosticsResult> {
+    const diagnostics: Array<AgentReferenceDiagnostic> = [];
+    const missingAgentReferenceByNormalized = new Map<string, MissingAgentReference>();
+
+    // 1. Check for agent name collision
+    if (allAgents && currentAgentPermanentId) {
+        const parsed = parseAgentSource(agentSource);
+        const currentAgentName = parsed.agentName;
+
+        if (currentAgentName) {
+            const normalizedCurrentName = normalizeAgentName(currentAgentName);
+            const otherAgentWithName = allAgents.find(
+                (agent) =>
+                    agent.permanentId !== currentAgentPermanentId &&
+                    (normalizeAgentName(agent.agentName) === normalizedCurrentName ||
+                        agent.agentName === currentAgentName),
+            );
+
+            if (otherAgentWithName) {
+                const sourceLines = agentSource.split(/\r?\n/);
+                const firstLine = sourceLines[0] || '';
+                const nameIndex = firstLine.indexOf(currentAgentName);
+
+                if (nameIndex !== -1) {
+                    diagnostics.push({
+                        startLineNumber: 1,
+                        startColumn: nameIndex + 1,
+                        endLineNumber: 1,
+                        endColumn: nameIndex + currentAgentName.length + 1,
+                        message: `The name "${currentAgentName}" is already used by another agent. You can still use it, but this agent will only be referenceable by its ID.`,
+                        source: AGENT_REFERENCE_DIAGNOSTIC_SOURCE,
+                        severity: 'warning',
+                    });
+                }
+            }
+        }
+    }
+
+    // 2. Check for unresolved compact references
     const tokenLocations = collectAgentReferenceTokenLocations(agentSource);
     if (tokenLocations.length === 0) {
         consumeAgentReferenceResolutionIssues(agentReferenceResolver);
         return {
-            diagnostics: [],
+            diagnostics,
             missingAgentReferences: [],
         };
     }
@@ -124,16 +177,6 @@ export async function createUnresolvedAgentReferenceDiagnostics(
     }
 
     consumeAgentReferenceResolutionIssues(agentReferenceResolver);
-
-    if (unresolvedKeys.size === 0) {
-        return {
-            diagnostics: [],
-            missingAgentReferences: [],
-        };
-    }
-
-    const diagnostics: Array<AgentReferenceDiagnostic> = [];
-    const missingAgentReferenceByNormalized = new Map<string, MissingAgentReference>();
 
     for (const location of tokenLocations) {
         const locationKey = createLocationKey(location);

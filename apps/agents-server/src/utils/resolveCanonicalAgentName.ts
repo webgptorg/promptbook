@@ -22,8 +22,9 @@ export async function resolveCanonicalAgentName(agentIdentifier: string): Promis
         .from(agentTable)
         .select('agentName')
         .or(buildAgentNameOrIdFilter(agentIdentifier))
+        .order('createdAt', { ascending: true })
         .limit(1)
-        .single();
+        .maybeSingle();
 
     if (error || !data) {
         return null;

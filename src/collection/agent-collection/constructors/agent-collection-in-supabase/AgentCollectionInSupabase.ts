@@ -4,7 +4,6 @@ import { parseAgentSource } from '../../../../book-2.0/agent-source/parseAgentSo
 import type { string_book } from '../../../../book-2.0/agent-source/string_book';
 import { DEFAULT_IS_VERBOSE } from '../../../../config';
 import { DatabaseError } from '../../../../errors/DatabaseError';
-import { ConflictError } from '../../../../errors/ConflictError';
 import { NotFoundError } from '../../../../errors/NotFoundError';
 import { UnexpectedError } from '../../../../errors/UnexpectedError';
 import { ZERO_USAGE } from '../../../../execution/utils/usage-constants';
@@ -16,7 +15,6 @@ import { $randomBase58 } from '../../../../utils/random/$randomBase58';
 import { PROMPTBOOK_ENGINE_VERSION } from '../../../../version';
 import { AgentCollectionInSupabaseOptions } from './AgentCollectionInSupabaseOptions';
 import type { AgentsDatabaseSchema } from './AgentsDatabaseSchema';
-import { translateSupabaseUniqueConstraintError } from '../../../../utils/database/uniqueConstraint';
 
 // import { getTableName } from '../../../../../apps/agents-server/src/database/getTableName';
 // <- TODO: [🐱‍🚀] Prevent imports from `/apps` -> `/src`
@@ -73,7 +71,8 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
         const selectResult = await this.supabaseClient
             .from(this.getTableName('Agent'))
             .select('agentName,agentProfile,permanentId')
-            .is('deletedAt', null);
+            .is('deletedAt', null)
+            .order('createdAt', { ascending: true });
 
         if (selectResult.error) {
             throw new DatabaseError(
@@ -122,12 +121,13 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
             .from(this.getTableName('Agent'))
             .select('permanentId')
             .or(`agentName.eq.${agentNameOrPermanentId},permanentId.eq.${agentNameOrPermanentId}`)
-            .single();
+            .order('createdAt', { ascending: true })
+            .limit(1);
 
-        if (selectResult.error || !selectResult.data) {
-            throw new NotFoundError(`Agent with name not id "${agentNameOrPermanentId}" not found`);
+        if (selectResult.error || !selectResult.data || selectResult.data.length === 0) {
+            throw new NotFoundError(`Agent with name or id "${agentNameOrPermanentId}" not found`);
         }
-        return selectResult.data.permanentId as string_agent_permanent_id;
+        return selectResult.data[0]!.permanentId as string_agent_permanent_id;
     }
 
     /**
@@ -140,12 +140,11 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
             .from(this.getTableName('Agent'))
             .select('agentSource')
             .or(`agentName.eq.${agentNameOrPermanentId},permanentId.eq.${agentNameOrPermanentId}`)
-            .is('deletedAt', null);
+            .is('deletedAt', null)
+            .order('createdAt', { ascending: true });
 
         if (selectResult.data && selectResult.data.length === 0) {
             throw new NotFoundError(`Agent "${agentNameOrPermanentId}" not found`);
-        } else if (selectResult.data && selectResult.data.length > 1) {
-            throw new UnexpectedError(`More agents with name or id "${agentNameOrPermanentId}" found`);
         } else if (selectResult.error) {
             throw new DatabaseError(
                 spaceTrim(
@@ -217,18 +216,6 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
         const insertAgentResult = await this.supabaseClient.from(this.getTableName('Agent')).insert(insertPayload);
 
         if (insertAgentResult.error) {
-            const conflictError = translateSupabaseUniqueConstraintError(insertAgentResult.error, [
-                {
-                    suffix: 'agent_agentname_key',
-                    buildError: () =>
-                        new ConflictError(`Agent name "${agentName}" already exists. Pick another name and try again.`),
-                },
-            ]);
-
-            if (conflictError) {
-                throw conflictError;
-            }
-
             throw new DatabaseError(
                 spaceTrim(
                     (block) => `
