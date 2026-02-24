@@ -32,12 +32,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         let newAgentName: string;
         if (hasCustomName) {
             newAgentName = providedName;
-            if (await doesAgentNameExist(newAgentName)) {
-                return NextResponse.json(
-                    { success: false, error: `Agent name "${newAgentName}" already exists.` },
-                    { status: 409 },
-                );
-            }
         } else {
             let counter = 1;
             newAgentName = `${agentName} (Copy)`;

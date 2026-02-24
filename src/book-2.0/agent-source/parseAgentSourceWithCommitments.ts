@@ -212,6 +212,7 @@ export function parseAgentSourceWithCommitments(agentSource: string_book): Omit<
 
     return {
         agentName,
+        agentNameLineNumber: agentNameLineIndex >= 0 ? agentNameLineIndex + 1 : undefined,
         commitments,
         nonCommitmentLines,
     };

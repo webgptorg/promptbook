@@ -2,6 +2,7 @@ import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolv
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { createBookScopedAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/bookScopedAgentReferences';
 import { createUnresolvedAgentReferenceDiagnostics } from '@/src/utils/agentReferenceResolver/createUnresolvedAgentReferenceDiagnostics';
+import { createAgentNameCollisionDiagnostics } from '@/src/utils/agentReferenceResolver/createAgentNameCollisionDiagnostics';
 import { string_book } from '@promptbook-local/types';
 import { serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../../src/errors/assertsError';
@@ -28,14 +29,18 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             localServerUrl: new URL(request.url).origin,
             fallbackResolver: baseAgentReferenceResolver,
         });
-        const diagnosticsResult = await createUnresolvedAgentReferenceDiagnostics(agentSource, agentReferenceResolver);
+
+        const [referenceDiagnostics, nameCollisionDiagnostics] = await Promise.all([
+            createUnresolvedAgentReferenceDiagnostics(agentSource, agentReferenceResolver),
+            createAgentNameCollisionDiagnostics(agentSource, parentAgentPermanentId, collection),
+        ]);
 
         return new Response(
             JSON.stringify({
                 isSuccessful: true,
                 agentName,
-                diagnostics: diagnosticsResult.diagnostics,
-                missingAgentReferences: diagnosticsResult.missingAgentReferences,
+                diagnostics: [...referenceDiagnostics.diagnostics, ...nameCollisionDiagnostics],
+                missingAgentReferences: referenceDiagnostics.missingAgentReferences,
             }),
             {
                 status: 200,

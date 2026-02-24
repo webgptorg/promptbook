@@ -1,4 +1,4 @@
-[ ] !
+[x] <$0.01 17 minutes by Gemini CLI `gemini-3-flash-preview`
 
 [✨📓] When you are editing agent on the Agents server and you name it with the same name, it shouldn't fail.
 
@@ -43,3 +43,4 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

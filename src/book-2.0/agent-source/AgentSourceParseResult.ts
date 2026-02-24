@@ -13,6 +13,11 @@ export type AgentSourceParseResult = {
     agentName: string_agent_name | null;
 
     /**
+     * The line number where the agent name was found (1-based)
+     */
+    agentNameLineNumber?: number;
+
+    /**
      * All parsed commitments
      */
     commitments: ParsedCommitment[];
