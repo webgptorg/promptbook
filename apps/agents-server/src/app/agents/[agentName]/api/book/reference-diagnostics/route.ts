@@ -21,7 +21,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         const agentSource = (await request.text()) as string_book;
         const collection = await $provideAgentCollectionForServer();
         const parentAgentPermanentId = await collection.getAgentPermanentId(agentName);
-        const allAgents = await collection.listAgents();
         const baseAgentReferenceResolver = await $provideAgentReferenceResolver({ forceRefresh });
         const agentReferenceResolver = createBookScopedAgentReferenceResolver({
             parentAgentSource: agentSource,
@@ -29,12 +28,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             localServerUrl: new URL(request.url).origin,
             fallbackResolver: baseAgentReferenceResolver,
         });
-        const diagnosticsResult = await createUnresolvedAgentReferenceDiagnostics(
-            agentSource,
-            agentReferenceResolver,
-            allAgents,
-            parentAgentPermanentId,
-        );
+        const diagnosticsResult = await createUnresolvedAgentReferenceDiagnostics(agentSource, agentReferenceResolver);
 
         return new Response(
             JSON.stringify({

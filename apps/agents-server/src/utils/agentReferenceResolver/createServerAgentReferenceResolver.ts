@@ -86,15 +86,8 @@ class ServerAgentReferenceResolver implements IssueTrackingAgentReferenceResolve
         const agents = await this.agentCollection.listAgents();
         for (const agent of agents) {
             const url = this.buildLocalAgentUrl(agent.permanentId || agent.agentName);
-            const normalizedName = normalizeAgentName(agent.agentName);
-
-            if (!this.localNameToUrl.has(normalizedName)) {
-                this.localNameToUrl.set(normalizedName, url);
-            }
-            if (!this.localNameToUrl.has(agent.agentName)) {
-                this.localNameToUrl.set(agent.agentName, url);
-            }
-
+            this.localNameToUrl.set(normalizeAgentName(agent.agentName), url);
+            this.localNameToUrl.set(agent.agentName, url);
             if (agent.permanentId) {
                 this.localIdToUrl.set(agent.permanentId, url);
             }

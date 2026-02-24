@@ -1,4 +1,4 @@
-[x] !
+[ ] !
 
 [✨📓] When you are editing agent on the Agents server and you name it with the same name, it shouldn't fail.
 
