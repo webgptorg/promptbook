@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
+import type { really_any } from '../organization/really_any';
 import {
     appendChatAttachmentContext,
     appendChatAttachmentContextWithContent,
@@ -158,7 +159,7 @@ describe('chatAttachments helpers', () => {
                 headers: {
                     'content-type': 'text/plain',
                 },
-            }) as any,
+            }) as really_any,
         );
 
         const message = await appendChatAttachmentContextWithContent(

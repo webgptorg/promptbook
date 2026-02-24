@@ -31,6 +31,7 @@ subvalues
 unhardcoded
 sideeffects
 ptbkurl
+apikey
 promptbool
 llms
 subresult

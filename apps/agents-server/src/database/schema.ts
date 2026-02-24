@@ -611,6 +611,7 @@ export type AgentsServerDatabase = {
                     purpose: string;
                     status: string;
                     agentId: number | null;
+                    securityResult: Json | null;
                 };
                 Insert: {
                     id?: number;
@@ -624,6 +625,7 @@ export type AgentsServerDatabase = {
                     purpose: string;
                     status?: string;
                     agentId?: number | null;
+                    securityResult?: Json | null;
                 };
                 Update: {
                     id?: number;
@@ -637,6 +639,7 @@ export type AgentsServerDatabase = {
                     purpose?: string;
                     status?: string;
                     agentId?: number | null;
+                    securityResult?: Json | null;
                 };
                 Relationships: [
                     {

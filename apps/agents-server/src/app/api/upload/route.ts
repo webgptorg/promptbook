@@ -8,6 +8,7 @@ import { assertsError } from '../../../../../../src/errors/assertsError';
 import { getUserIdFromRequest } from '../../../../src/utils/getUserIdFromRequest';
 import { getMetadata } from '../../../database/getMetadata';
 import type { AgentsServerDatabase } from '../../../database/schema';
+import { FILE_SECURITY_CHECKERS } from '../../../file-security-checkers';
 
 /**
  * Additional metadata accepted from the client-side upload helper.
@@ -201,6 +202,26 @@ export async function POST(request: NextRequest) {
                     // Create fresh supabase client for this webhook context
                     const supabase = $provideSupabase();
 
+                    // Security checks
+                    const securityResults: Record<string, any> = {};
+                    for (const checkerId in FILE_SECURITY_CHECKERS) {
+                        try {
+                            const checker = FILE_SECURITY_CHECKERS[checkerId]!;
+                            console.info(`🛡️ Checking file security with ${checker.title} (${blob.url})...`);
+                            const result = await checker.checkFile(blob.url);
+                            securityResults[checkerId] = result;
+                            console.info(`🛡️ Security check result from ${checker.title}:`, result.status);
+                        } catch (error) {
+                            console.error(`🛡️ Security check failed for ${checkerId}:`, error);
+                            securityResults[checkerId] = {
+                                isSafe: false,
+                                status: 'ERROR',
+                                confidence: 0,
+                                message: error instanceof Error ? error.message : String(error),
+                            };
+                        }
+                    }
+
                     if (fileId) {
                         // Update the existing record by ID
                         const { error: updateError } = await supabase
@@ -213,6 +234,7 @@ export async function POST(request: NextRequest) {
                                 // <- TODO: !!!! Split between storageUrl and shortUrl
                                 purpose: tokenPurpose,
                                 status: 'COMPLETED',
+                                securityResult: securityResults,
                             })
                             .eq('id', fileId);
 
@@ -230,6 +252,7 @@ export async function POST(request: NextRequest) {
                                 fileType: blob.contentType,
                                 storageUrl: blob.url,
                                 status: 'COMPLETED',
+                                securityResult: securityResults,
                             })
                             .eq('fileName', uploadPath)
                             .eq('status', 'UPLOADING');
