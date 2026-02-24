@@ -19,11 +19,13 @@ import { findNextTodoPrompt } from '../prompts/findNextTodoPrompt';
 import { listUpcomingTasks } from '../prompts/listUpcomingTasks';
 import { loadPromptFiles } from '../prompts/loadPromptFiles';
 import { markPromptDone } from '../prompts/markPromptDone';
+import { markPromptFailed } from '../prompts/markPromptFailed';
 import { printPromptsToBeWritten } from '../prompts/printPromptsToBeWritten';
 import { printStats } from '../prompts/printStats';
 import { printUpcomingTasks } from '../prompts/printUpcomingTasks';
 import { summarizePrompts } from '../prompts/summarizePrompts';
 import { waitForPromptStart } from '../prompts/waitForPromptStart';
+import { writePromptErrorLog } from '../prompts/writePromptErrorLog';
 import { writePromptFile } from '../prompts/writePromptFile';
 import { ClaudeCodeRunner } from '../runners/claude-code/ClaudeCodeRunner';
 import { ClineRunner } from '../runners/cline/ClineRunner';
@@ -215,28 +217,48 @@ export async function runCodexPrompts(): Promise<void> {
             console.info(colors.blue(`Processing ${promptLabel}`));
 
             const promptExecutionStartedDate = moment();
-            const result = await runner.runPrompt({
-                prompt: codexPrompt,
-                scriptPath,
-                projectPath: process.cwd(),
-            });
+            try {
+                const result = await runner.runPrompt({
+                    prompt: codexPrompt,
+                    scriptPath,
+                    projectPath: process.cwd(),
+                });
 
-            markPromptDone(
-                nextPrompt.file,
-                nextPrompt.section,
-                result.usage,
-                runnerMetadata.runnerName,
-                runnerMetadata.modelName,
-                promptExecutionStartedDate,
-            );
-            await writePromptFile(nextPrompt.file);
+                markPromptDone(
+                    nextPrompt.file,
+                    nextPrompt.section,
+                    result.usage,
+                    runnerMetadata.runnerName,
+                    runnerMetadata.modelName,
+                    promptExecutionStartedDate,
+                );
+                await writePromptFile(nextPrompt.file);
 
-            if (options.waitForUser) {
-                printCommitMessage(commitMessage);
-                await waitForEnter(colors.bgWhite('Press Enter to commit and continue...'));
+                if (options.waitForUser) {
+                    printCommitMessage(commitMessage);
+                    await waitForEnter(colors.bgWhite('Press Enter to commit and continue...'));
+                }
+
+                await commitChanges(commitMessage);
+            } catch (error) {
+                markPromptFailed(
+                    nextPrompt.file,
+                    nextPrompt.section,
+                    runnerMetadata.runnerName,
+                    runnerMetadata.modelName,
+                    promptExecutionStartedDate,
+                );
+                await writePromptFile(nextPrompt.file);
+                await writePromptErrorLog({
+                    file: nextPrompt.file,
+                    section: nextPrompt.section,
+                    runnerName: runnerMetadata.runnerName,
+                    modelName: runnerMetadata.modelName,
+                    error,
+                });
+
+                throw error;
             }
-
-            await commitChanges(commitMessage);
         }
     } finally {
         progressDisplay?.stop();

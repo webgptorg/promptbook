@@ -70,4 +70,25 @@ describe('priority filtering', () => {
             toBeWritten: 1,
         });
     });
+
+    it('parses failed prompts and excludes them from runnable tasks', () => {
+        const file = parsePromptFile(
+            'prompts/failed-test.md',
+            [
+                '[!] failed after 1 minute by Gemini CLI `gemini-3-flash`',
+                'Already attempted task',
+                '',
+                '---',
+                '',
+                '[ ] !!',
+                'Runnable task',
+            ].join('\n'),
+        );
+
+        const runnable = listRunnablePrompts([file], 0);
+
+        expect(file.sections[0]?.status).toBe('failed');
+        expect(runnable).toHaveLength(1);
+        expect(runnable[0]?.section.index).toBe(1);
+    });
 });

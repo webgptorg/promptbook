@@ -57,13 +57,19 @@ export function parsePromptFile(filePath: string, content: string): PromptFile {
 
 /**
  * Parses a status line like "[ ] !!" or "[-]" or "[x] ~$0.65 21 minutes..." into status and priority.
- * For [x] done prompts, allow metadata after the status marker.
+ * For [x] done and [!] failed prompts, allow metadata after the status marker.
  */
 function parseStatusLine(line: string): { status: PromptStatus; priority: number } | undefined {
     // For done prompts [x], allow any content after (for cost/time metadata)
     const doneMatch = line.match(/^\[(?<status>[xX])\]/);
     if (doneMatch) {
         return { status: 'done', priority: 0 };
+    }
+
+    // For failed prompts [!], allow any content after (for failure metadata)
+    const failedMatch = line.match(/^\[(?<status>!)\]/);
+    if (failedMatch) {
+        return { status: 'failed', priority: 0 };
     }
 
     // For todo [ ] and not-ready [-], require clean end with optional priority markers
