@@ -46,6 +46,16 @@ type SelfLearningManagerOptions = {
 };
 
 /**
+ * Narrow shape used to read OpenAI-compatible `response_format` from prompt requirements.
+ *
+ * @private type of Agent
+ */
+type JsonModeResponseFormat = {
+    type?: string;
+    json_schema?: { schema?: unknown; name?: string };
+};
+
+/**
  * Coordinates the Agent self-learning workflow that was extracted from the main class.
  *
  * @private helper for Agent
@@ -109,22 +119,15 @@ export class SelfLearningManager {
         // Extract response format info if available (for JSON schema)
         // Note: responseFormat is only available on ChatModelRequirements and similar, not on CompletionModelRequirements
         const modelRequirements = prompt.modelRequirements as {
-            responseFormat?: {
-                type?: string;
-                json_schema?: { schema?: unknown; name?: string };
-            };
+            responseFormat?: JsonModeResponseFormat;
         };
         const responseFormat = modelRequirements.responseFormat;
-        const hasJsonSchema =
-            responseFormat &&
-            typeof responseFormat === 'object' &&
-            'type' in responseFormat &&
-            responseFormat.type === 'json_schema';
+        const hasJsonSchema = isJsonSchemaResponseFormat(responseFormat);
 
         let userMessageContent = prompt.content;
 
         // If response_format with json_schema was requested, include that info in the sample
-        if (hasJsonSchema) {
+        if (isJsonSchemaResponseFormat(responseFormat)) {
             const jsonSchema = responseFormat.json_schema;
             const schemaJson = JSON.stringify(jsonSchema, null, 4);
 
@@ -147,7 +150,7 @@ export class SelfLearningManager {
                 ${block(userMessageContent)}
 
                 AGENT MESSAGE
-                ${block(result.content)}
+                ${block(formatAgentMessageForJsonMode(result.content, hasJsonSchema))}
 
             `,
         );
@@ -162,6 +165,12 @@ export class SelfLearningManager {
      */
     private async callTeacher(prompt: Prompt, result: ChatPromptResult): Promise<SelfLearningTeacherSummary> {
         console.info(colors.bgCyan('[Self-learning]') + colors.cyan(' Teacher'));
+
+        const modelRequirements = prompt.modelRequirements as {
+            responseFormat?: JsonModeResponseFormat;
+        };
+        const usesJsonSchemaMode = isJsonSchemaResponseFormat(modelRequirements.responseFormat);
+        const formattedAgentMessage = formatAgentMessageForJsonMode(result.content, usesJsonSchemaMode);
 
         const teacherInstructions = extractOpenTeacherInstructions(this.options.getAgentSource());
         const teacherInstructionsSection = teacherInstructions
@@ -190,7 +199,7 @@ export class SelfLearningManager {
                 ${block(prompt.content)}
 
                 **Agent:**
-                ${block(result.content)}
+                ${block(formattedAgentMessage)}
 
                 ${teacherInstructionsSection ? `\n${teacherInstructionsSection}` : ''}
 
@@ -203,6 +212,7 @@ export class SelfLearningManager {
                 - Wrap the commitments in a book code block.
                 - Do not explain anything, just return the commitments wrapped in a book code block.
                 - Write the learned commitments in the same style and language as in the original agent source.
+                ${usesJsonSchemaMode ? '- This interaction used JSON mode, so the agent answer should stay as a formatted JSON code block.' : ''}
 
 
                 This is how book code block looks like:
@@ -250,6 +260,71 @@ export class SelfLearningManager {
         const currentSource = this.options.getAgentSource();
         const newSource = padBook(validateBook(spaceTrim(currentSource) + section));
         this.options.updateAgentSource(newSource as string_book);
+    }
+}
+
+/**
+ * Determines whether the interaction runs in OpenAI-compatible JSON schema mode.
+ *
+ * @param responseFormat Prompt response format requirements
+ * @returns True when JSON schema mode is active
+ * @private function of Agent
+ */
+function isJsonSchemaResponseFormat(
+    responseFormat: JsonModeResponseFormat | undefined,
+): responseFormat is JsonModeResponseFormat & { type: 'json_schema' } {
+    return (
+        responseFormat !== undefined &&
+        typeof responseFormat === 'object' &&
+        responseFormat.type === 'json_schema'
+    );
+}
+
+/**
+ * Formats the agent answer for self-learning snapshots in JSON mode.
+ *
+ * @param content Original agent answer content
+ * @param isJsonMode Whether the interaction requested JSON schema output
+ * @returns Agent answer, wrapped in a formatted JSON code block when possible
+ * @private function of Agent
+ */
+function formatAgentMessageForJsonMode(content: string, isJsonMode: boolean): string {
+    if (!isJsonMode) {
+        return content;
+    }
+
+    const parsedJson = tryParseJson(content);
+    if (parsedJson === null) {
+        return spaceTrim(
+            (block) => `
+                \`\`\`json
+                ${block(content)}
+                \`\`\`
+            `,
+        );
+    }
+
+    return spaceTrim(
+        (block) => `
+            \`\`\`json
+            ${block(JSON.stringify(parsedJson, null, 4))}
+            \`\`\`
+        `,
+    );
+}
+
+/**
+ * Tries to parse JSON content and returns null when invalid.
+ *
+ * @param content Text to parse as JSON
+ * @returns Parsed JSON value or null when parsing fails
+ * @private function of Agent
+ */
+function tryParseJson(content: string): unknown | null {
+    try {
+        return JSON.parse(content);
+    } catch {
+        return null;
     }
 }
 

@@ -1,3 +1,4 @@
+-   Improved self-learning JSON-mode context so when OpenAI-compatible `response_format` uses `json_schema`, the latest agent answer is now preserved as a formatted `json` code block (including pretty-print when valid JSON), helping teacher-based learning keep structured-output interactions clear.
 -   Enhanced self-learning samples to include JSON schema information when `response_format` of type `json_schema` is requested through the OpenAI Compatible API, so the agent learns about structured output requirements.
 -   Fixed Agents Server OpenAI-compatible structured responses so shorthand `response_format` JSON schemas (as shown in the integration samples) are normalized for AgentKit, ensuring schema constraints are enforced.
 -   Added a “More” entry to the Agents Server agent view breadcrumb so all agent context-menu actions are accessible from the navigation hierarchy, and removed redundant back arrows from agent subpages.
