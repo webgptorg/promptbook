@@ -1,12 +1,29 @@
-[-]
+[ ] !
 
 [✨🌔] baz
+
+```book
+Noah Brown
+
+
+PERSONA Curious and inquisitive AI explorer.
+RULE Respond in a friendly and approachable manner.
+TEAM
+{a}
+@b
+https://example.com/c
+{https://example.com/d}
+
+CLOSED
+```
 
 -   @@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+![alt text](prompts/screenshots/2026-02-3550-agents-server-referencing-syntax.png)
 
 ---
 

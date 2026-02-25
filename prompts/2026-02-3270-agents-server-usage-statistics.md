@@ -73,6 +73,18 @@
 
 ---
 
+[ ] !
+
+[✨🆑] Record Usage per user
+
+-   Both logged user and ad-hoc user (anonymous user identified by the browser session)
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality of usage and agents server chat before you start implementing.
+-   If you need to do the database migration, do it
+-   You are working with the [Agents Server](apps/agents-server) with the usage statistics of the agents.
+
+---
+
 [ ]
 
 [✨🆑] Allow to switch between cost / time / human time
@@ -80,6 +92,7 @@
 -   @@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality of usage and agents server chat before you start implementing.
+-   If you need to do the database migration, do it
 -   You are working with the [Agents Server](apps/agents-server) with the usage statistics of the agents.
 
 ![alt text](prompts/screenshots/2026-02-3270-agents-server-usage-statistics.png)
@@ -92,6 +105,18 @@
 
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality of usage and agents server chat before you start implementing.
+-   If you need to do the database migration, do it
+-   You are working with the [Agents Server](apps/agents-server) with the usage statistics of the agents.
+
+---
+
+[-]
+
+[✨🆑] brr
+
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality of usage and agents server chat before you start implementing.
+-   If you need to do the database migration, do it
 -   You are working with the [Agents Server](apps/agents-server) with the usage statistics of the agents.
 
 ---
@@ -103,14 +128,3 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality of usage and agents server chat before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server) with the usage statistics of the agents.
-
----
-
-[-]
-
-[✨🆑] brr
-
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality of usage and agents server chat before you start implementing.
--   You are working with the [Agents Server](apps/agents-server) with the usage statistics of the agents.
-

@@ -99,6 +99,21 @@ Teammates:
 
 ---
 
+[ ]
+
+[✨🆘] Do a profile page of pseudoagents
+
+-   For example
+    -   https://core.ptbk.io/agents/void
+    -   https://core.ptbk.io/agents/user
+-   The agent names are case insensitive
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+---
+
 [-]
 
 [✨🆘] brr
