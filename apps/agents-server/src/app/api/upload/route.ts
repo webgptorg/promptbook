@@ -1,7 +1,7 @@
-import type { PostgrestSingleResponse, SupabaseClient } from '@supabase/supabase-js';
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabase } from '@/src/database/$provideSupabase';
 import { serializeError } from '@promptbook-local/utils';
+import type { PostgrestSingleResponse, SupabaseClient } from '@supabase/supabase-js';
 import { handleUpload, type HandleUploadBody } from '@vercel/blob/client';
 import { NextRequest, NextResponse } from 'next/server';
 import { assertsError } from '../../../../../../src/errors/assertsError';
@@ -107,7 +107,10 @@ function normalizeUploadContentType(value: unknown): string {
  *
  * @private
  */
-function resolveUploadClientPayload(clientPayload: string | null | undefined): { purpose: string; contentType: string } {
+function resolveUploadClientPayload(clientPayload: string | null | undefined): {
+    purpose: string;
+    contentType: string;
+} {
     const payload = parseJsonRecord(clientPayload) as UploadClientPayload;
 
     return {
@@ -146,20 +149,24 @@ export async function POST(request: NextRequest) {
 
                 // Create a DB record at the start of the upload to track it
                 const uploadPurpose = purpose;
-                const { data: insertedFile, error: insertError }: PostgrestSingleResponse<Pick<AgentsServerDatabase['public']['Tables']['File']['Row'], 'id'>> = await supabase
-                    .from(await $getTableName('File'))
-                    .insert({
-                        userId: userId || null,
-                        fileName: pathname,
-                        fileSize: 0, // <- Will be updated when upload completes
-                        fileType: contentType,
-                        storageUrl: null, // <- To be updated on completion
-                        shortUrl: null, // <- To be updated on completion
-                        purpose: uploadPurpose,
-                        status: 'UPLOADING',
-                    })
-                    .select('id')
-                    .single();
+                const {
+                    data: insertedFile,
+                    error: insertError,
+                }: PostgrestSingleResponse<Pick<AgentsServerDatabase['public']['Tables']['File']['Row'], 'id'>> =
+                    await supabase
+                        .from(await $getTableName('File'))
+                        .insert({
+                            userId: userId || null,
+                            fileName: pathname,
+                            fileSize: 0, // <- Will be updated when upload completes
+                            fileType: contentType,
+                            storageUrl: null, // <- To be updated on completion
+                            shortUrl: null, // <- To be updated on completion
+                            purpose: uploadPurpose,
+                            status: 'UPLOADING',
+                        })
+                        .select('id')
+                        .single();
 
                 if (insertError) {
                     console.error('🔼 Failed to create file record:', insertError);
@@ -203,7 +210,9 @@ export async function POST(request: NextRequest) {
                     const supabase = $provideSupabase();
 
                     // Security checks
-                    const securityResults: Record<string, any> = {};
+                    const securityResults: Record<string, unknown> = {};
+                    const securityResultForDatabase =
+                        securityResults as AgentsServerDatabase['public']['Tables']['File']['Update']['securityResult'];
                     for (const checkerId in FILE_SECURITY_CHECKERS) {
                         try {
                             const checker = FILE_SECURITY_CHECKERS[checkerId]!;
@@ -234,7 +243,7 @@ export async function POST(request: NextRequest) {
                                 // <- TODO: !!!! Split between storageUrl and shortUrl
                                 purpose: tokenPurpose,
                                 status: 'COMPLETED',
-                                securityResult: securityResults,
+                                securityResult: securityResultForDatabase,
                             })
                             .eq('id', fileId);
 
@@ -252,7 +261,7 @@ export async function POST(request: NextRequest) {
                                 fileType: blob.contentType,
                                 storageUrl: blob.url,
                                 status: 'COMPLETED',
-                                securityResult: securityResults,
+                                securityResult: securityResultForDatabase,
                             })
                             .eq('fileName', uploadPath)
                             .eq('status', 'UPLOADING');
