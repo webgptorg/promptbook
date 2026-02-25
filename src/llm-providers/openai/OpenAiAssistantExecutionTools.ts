@@ -360,9 +360,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiVectorStoreHandler impl
             }
 
             complete = $getCurrentDate();
-            const duration = uncertainNumber(
-                (new Date(complete).getTime() - new Date(start).getTime()) / 1000,
-            );
+            const duration = uncertainNumber((new Date(complete).getTime() - new Date(start).getTime()) / 1000);
             const resultContent = textContent.text.value;
             const usage: Usage = {
                 ...UNCERTAIN_USAGE,
@@ -522,9 +520,7 @@ export class OpenAiAssistantExecutionTools extends OpenAiVectorStoreHandler impl
 
         // eslint-disable-next-line prefer-const
         complete = $getCurrentDate();
-        const duration = uncertainNumber(
-            (new Date(complete).getTime() - new Date(start).getTime()) / 1000,
-        );
+        const duration = uncertainNumber((new Date(complete).getTime() - new Date(start).getTime()) / 1000);
         const usage: Usage = {
             ...UNCERTAIN_USAGE,
             duration,

@@ -131,50 +131,57 @@ export function useChatAutoScroll(config: ChatAutoScrollConfig = {}) {
     const messagesChangeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     // Auto-scroll when messages change (if user is at bottom)
-    const handleMessagesChange = useCallback((isStreaming: boolean = false) => {
-        const chatMessagesElement = chatMessagesRef.current;
-        if (!chatMessagesElement) return;
+    const handleMessagesChange = useCallback(
+        (isStreaming: boolean = false) => {
+            const chatMessagesElement = chatMessagesRef.current;
+            if (!chatMessagesElement) return;
 
-        // Check if this is a new message (scroll height increased)
-        const previousScrollHeight = lastScrollHeightRef.current;
-        const currentScrollHeight = chatMessagesElement.scrollHeight;
-        const hasNewContent = currentScrollHeight > previousScrollHeight;
-        const wasAtBottomBeforeNewContent =
-            chatMessagesElement.scrollTop + chatMessagesElement.clientHeight >= previousScrollHeight - bottomThreshold;
-        lastScrollHeightRef.current = currentScrollHeight;
+            // Check if this is a new message (scroll height increased)
+            const previousScrollHeight = lastScrollHeightRef.current;
+            const currentScrollHeight = chatMessagesElement.scrollHeight;
+            const hasNewContent = currentScrollHeight > previousScrollHeight;
+            const wasAtBottomBeforeNewContent =
+                chatMessagesElement.scrollTop + chatMessagesElement.clientHeight >=
+                previousScrollHeight - bottomThreshold;
+            lastScrollHeightRef.current = currentScrollHeight;
 
-        if (!hasNewContent) return;
+            if (!hasNewContent) return;
 
-        // Only auto-scroll if user does NOT have a selection inside chat container
-        const selection = window.getSelection();
-        let hasSelectionInChat = false;
-        if (selection && selection.rangeCount > 0) {
-            const range = selection.getRangeAt(0);
-            if (
-                chatMessagesElement.contains(range.startContainer) ||
-                chatMessagesElement.contains(range.endContainer)
-            ) {
-                if (!selection.isCollapsed) {
-                    hasSelectionInChat = true;
+            // Only auto-scroll if user does NOT have a selection inside chat container
+            const selection = window.getSelection();
+            let hasSelectionInChat = false;
+            if (selection && selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                if (
+                    chatMessagesElement.contains(range.startContainer) ||
+                    chatMessagesElement.contains(range.endContainer)
+                ) {
+                    if (!selection.isCollapsed) {
+                        hasSelectionInChat = true;
+                    }
                 }
             }
-        }
 
-        if (isAutoScrolling && wasAtBottomBeforeNewContent && !hasSelectionInChat && !hasManualScrollRef.current) {
-            if (messagesChangeTimeoutRef.current) {
-                clearTimeout(messagesChangeTimeoutRef.current);
-            }
-
-            // Delay scroll slightly to ensure DOM has updated
-            messagesChangeTimeoutRef.current = setTimeout(() => {
-                if (hasManualScrollRef.current) {
-                    return;
+            if (isAutoScrolling && wasAtBottomBeforeNewContent && !hasSelectionInChat && !hasManualScrollRef.current) {
+                if (messagesChangeTimeoutRef.current) {
+                    clearTimeout(messagesChangeTimeoutRef.current);
                 }
 
-                scrollToBottom(isStreaming ? 'auto' : 'smooth');
-            }, isStreaming ? 10 : scrollCheckDelay);
-        }
-    }, [bottomThreshold, isAutoScrolling, scrollToBottom, scrollCheckDelay]);
+                // Delay scroll slightly to ensure DOM has updated
+                messagesChangeTimeoutRef.current = setTimeout(
+                    () => {
+                        if (hasManualScrollRef.current) {
+                            return;
+                        }
+
+                        scrollToBottom(isStreaming ? 'auto' : 'smooth');
+                    },
+                    isStreaming ? 10 : scrollCheckDelay,
+                );
+            }
+        },
+        [bottomThreshold, isAutoScrolling, scrollToBottom, scrollCheckDelay],
+    );
 
     // Ref callback for chat messages container
     const chatMessagesRefCallback = useCallback(

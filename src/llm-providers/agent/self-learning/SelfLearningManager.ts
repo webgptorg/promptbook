@@ -217,7 +217,11 @@ export class SelfLearningManager {
                 - Wrap the commitments in a book code block.
                 - Do not explain anything, just return the commitments wrapped in a book code block.
                 - Write the learned commitments in the same style and language as in the original agent source.
-                ${usesJsonSchemaMode ? '- This interaction used JSON mode, so the agent answer should stay as a formatted JSON code block.' : ''}
+                ${
+                    usesJsonSchemaMode
+                        ? '- This interaction used JSON mode, so the agent answer should stay as a formatted JSON code block.'
+                        : ''
+                }
                 ${
                     isInitialMessageMissing
                         ? spaceTrim(`
@@ -286,11 +290,7 @@ export class SelfLearningManager {
 function isJsonSchemaResponseFormat(
     responseFormat: JsonModeResponseFormat | undefined,
 ): responseFormat is JsonModeResponseFormat & { type: 'json_schema' } {
-    return (
-        responseFormat !== undefined &&
-        typeof responseFormat === 'object' &&
-        responseFormat.type === 'json_schema'
-    );
+    return responseFormat !== undefined && typeof responseFormat === 'object' && responseFormat.type === 'json_schema';
 }
 
 /**

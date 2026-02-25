@@ -379,7 +379,12 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
                 const duration = uncertainNumber(
                     (new Date(turnComplete).getTime() - new Date(turnStart).getTime()) / 1000,
                 );
-                const usage: Usage = this.computeUsage(content || '', responseMessage.content || '', rawResponse, duration);
+                const usage: Usage = this.computeUsage(
+                    content || '',
+                    responseMessage.content || '',
+                    rawResponse,
+                    duration,
+                );
                 totalUsage = addUsage(totalUsage, usage);
 
                 if (responseMessage.tool_calls && responseMessage.tool_calls.length > 0) {
@@ -692,9 +697,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
             }
 
             const resultContent = rawResponse.choices[0].text;
-            const duration = uncertainNumber(
-                (new Date(turnComplete).getTime() - new Date(turnStart).getTime()) / 1000,
-            );
+            const duration = uncertainNumber((new Date(turnComplete).getTime() - new Date(turnStart).getTime()) / 1000);
             const usage = this.computeUsage(content || '', resultContent || '', rawResponse, duration);
 
             return exportJson({
@@ -884,9 +887,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
 
             const resultContent = rawResponse.data[0]!.embedding;
 
-            const duration = uncertainNumber(
-                (new Date(turnComplete).getTime() - new Date(turnStart).getTime()) / 1000,
-            );
+            const duration = uncertainNumber((new Date(turnComplete).getTime() - new Date(turnStart).getTime()) / 1000);
             const usage = this.computeUsage(content || '', '', rawResponse, duration);
 
             return exportJson({
@@ -1096,9 +1097,7 @@ export abstract class OpenAiCompatibleExecutionTools implements LlmExecutionTool
             const modelInfo = this.HARDCODED_MODELS.find((model) => model.modelName === modelName);
             const price = modelInfo?.pricing?.output ? uncertainNumber(modelInfo.pricing.output) : uncertainNumber();
 
-            const duration = uncertainNumber(
-                (new Date(turnComplete).getTime() - new Date(turnStart).getTime()) / 1000,
-            );
+            const duration = uncertainNumber((new Date(turnComplete).getTime() - new Date(turnStart).getTime()) / 1000);
 
             return exportJson({
                 name: 'promptResult',

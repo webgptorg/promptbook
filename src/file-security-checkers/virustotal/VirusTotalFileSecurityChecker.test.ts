@@ -13,7 +13,7 @@ describe('VirusTotalFileSecurityChecker', () => {
 
     it('should return SAFE for a clean file', async () => {
         const checker = new VirusTotalFileSecurityChecker('fake-api-key');
-        
+
         // Mock successful report
         fetchSpy.mockResolvedValueOnce({
             ok: true,
@@ -105,6 +105,8 @@ describe('VirusTotalFileSecurityChecker', () => {
 
     it('should fail if API key is missing', async () => {
         const checker = new VirusTotalFileSecurityChecker('');
-        await expect(checker.checkFile('https://example.com/file.pdf')).rejects.toThrow('VirusTotal API key is not configured');
+        await expect(checker.checkFile('https://example.com/file.pdf')).rejects.toThrow(
+            'VirusTotal API key is not configured',
+        );
     });
 });

@@ -85,7 +85,9 @@ describe('SelfLearningManager', () => {
 
         expect(callChatModelMock).toHaveBeenCalled();
         const teacherPrompt = callChatModelMock.mock.calls[0]![0] as Prompt;
-        expect(teacherPrompt.content).toContain('The agent source does not have an INITIAL MESSAGE defined, generate one.');
+        expect(teacherPrompt.content).toContain(
+            'The agent source does not have an INITIAL MESSAGE defined, generate one.',
+        );
         expect(updatedSource).toContain('INITIAL MESSAGE Hello! I am your helpful assistant.');
     });
 
@@ -152,7 +154,9 @@ describe('SelfLearningManager', () => {
 
         expect(callChatModelMock).toHaveBeenCalled();
         const teacherPrompt = callChatModelMock.mock.calls[0]![0] as Prompt;
-        expect(teacherPrompt.content).not.toContain('The agent source does not have an INITIAL MESSAGE defined, generate one.');
+        expect(teacherPrompt.content).not.toContain(
+            'The agent source does not have an INITIAL MESSAGE defined, generate one.',
+        );
         expect(updatedSource).not.toContain('INITIAL MESSAGE Hello! I am your helpful assistant.');
         expect(updatedSource).toContain('KNOWLEDGE New info.');
     });

@@ -232,9 +232,7 @@ export const createGoogleExecutionTools = Object.assign(
 
                 const complete: string_date_iso8601 = $getCurrentDate();
 
-                const duration = uncertainNumber(
-                    (new Date(complete).getTime() - new Date(start).getTime()) / 1000,
-                );
+                const duration = uncertainNumber((new Date(complete).getTime() - new Date(start).getTime()) / 1000);
 
                 const usageMetadata = rawResponse.usageMetadata;
 

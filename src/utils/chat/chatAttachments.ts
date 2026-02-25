@@ -23,8 +23,7 @@ const CHAT_ATTACHMENTS_HEADING = 'Attached files:';
  *
  * @private
  */
-const CHAT_ATTACHMENTS_INSTRUCTION =
-    'Use these URLs when you need to inspect the attached files before answering.';
+const CHAT_ATTACHMENTS_INSTRUCTION = 'Use these URLs when you need to inspect the attached files before answering.';
 
 /**
  * Heading used for the inline attachment-content section.
@@ -322,7 +321,10 @@ function sanitizeAttachmentInlineText(content: string): string {
  *
  * @private
  */
-function truncateAttachmentInlineText(content: string, maxCharacters: number): { content: string; isTruncated: boolean } {
+function truncateAttachmentInlineText(
+    content: string,
+    maxCharacters: number,
+): { content: string; isTruncated: boolean } {
     if (content.length <= maxCharacters) {
         return {
             content,
@@ -341,10 +343,7 @@ function truncateAttachmentInlineText(content: string, maxCharacters: number): {
  *
  * @private
  */
-function createAttachmentContentFailure(
-    attachment: ChatAttachment,
-    reason: string,
-): ResolvedChatAttachmentContent {
+function createAttachmentContentFailure(attachment: ChatAttachment, reason: string): ResolvedChatAttachmentContent {
     return {
         attachment,
         content: null,
@@ -502,7 +501,9 @@ function formatChatAttachmentLine(attachment: ChatAttachment): string {
  * @private
  */
 function appendChatContextSections(messageContent: string, contextSections: ReadonlyArray<string>): string {
-    const normalizedContextSections = contextSections.map((section) => section.trim()).filter((section) => section !== '');
+    const normalizedContextSections = contextSections
+        .map((section) => section.trim())
+        .filter((section) => section !== '');
     if (normalizedContextSections.length === 0) {
         return messageContent;
     }
@@ -615,7 +616,10 @@ export function formatChatAttachmentContentContext(
  * @returns {string} The updated message content.
  * @public exported from `@promptbook/core`
  */
-export function appendChatAttachmentContext(messageContent: string, attachments: ReadonlyArray<ChatAttachment>): string {
+export function appendChatAttachmentContext(
+    messageContent: string,
+    attachments: ReadonlyArray<ChatAttachment>,
+): string {
     const attachmentContext = formatChatAttachmentContext(attachments);
     return appendChatContextSections(messageContent, [attachmentContext]);
 }
@@ -650,7 +654,6 @@ export async function appendChatAttachmentContextWithContent(
         return appendChatContextSections(messageContent, [attachmentMetadataContext]);
     }
 }
-
 
 /**
  * Note: [💞] Ignore a discrepancy between file name and entity name

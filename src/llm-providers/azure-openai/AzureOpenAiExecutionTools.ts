@@ -200,9 +200,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools /* <- TODO: 
             // eslint-disable-next-line prefer-const
             complete = $getCurrentDate();
 
-            const duration = uncertainNumber(
-                (new Date(complete).getTime() - new Date(start).getTime()) / 1000,
-            );
+            const duration = uncertainNumber((new Date(complete).getTime() - new Date(start).getTime()) / 1000);
 
             const usage = {
                 price: uncertainNumber() /* <- TODO: [🐞] Compute usage */,
@@ -318,9 +316,7 @@ export class AzureOpenAiExecutionTools implements LlmExecutionTools /* <- TODO: 
             // eslint-disable-next-line prefer-const
             complete = $getCurrentDate();
 
-            const duration = uncertainNumber(
-                (new Date(complete).getTime() - new Date(start).getTime()) / 1000,
-            );
+            const duration = uncertainNumber((new Date(complete).getTime() - new Date(start).getTime()) / 1000);
 
             const usage = {
                 price: uncertainNumber() /* <- TODO: [🐞] Compute usage */,

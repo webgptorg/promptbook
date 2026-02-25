@@ -182,9 +182,7 @@ export class AnthropicClaudeExecutionTools implements LlmExecutionTools /* <- TO
         const resultContent = contentBlock.text;
 
         const complete = $getCurrentDate();
-        const duration = uncertainNumber(
-            (new Date(complete).getTime() - new Date(start).getTime()) / 1000,
-        );
+        const duration = uncertainNumber((new Date(complete).getTime() - new Date(start).getTime()) / 1000);
         const usage = computeAnthropicClaudeUsage(rawPromptContent || '', resultContent || '', rawResponse, duration);
 
         return exportJson({
