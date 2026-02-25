@@ -85,6 +85,19 @@ export type UsageUserAgentItem = {
 };
 
 /**
+ * Per-user usage detail item.
+ */
+export type UsagePerUserItem = {
+    userId: number | null;
+    username: string;
+    calls: number;
+    tokens: number;
+    priceUsd: number;
+    duration: number;
+    lastSeen: string;
+};
+
+/**
  * Summary metrics for the selected usage filters.
  */
 export type UsageSummary = {
@@ -93,6 +106,7 @@ export type UsageSummary = {
     totalPriceUsd: number;
     totalDuration: number;
     uniqueAgents: number;
+    uniqueUsers: number;
     uniqueApiKeys: number;
     uniqueUserAgents: number;
 };
@@ -118,6 +132,7 @@ export type UsageAnalyticsResponse = {
     breakdownByActorType: UsageBreakdownItem<UsageActorType>[];
     perAgent: UsagePerAgentItem[];
     perFolder: UsagePerFolderItem[];
+    perUser: UsagePerUserItem[];
     apiKeys: UsageApiKeyItem[];
     userAgents: UsageUserAgentItem[];
 };

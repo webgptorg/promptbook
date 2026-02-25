@@ -194,6 +194,7 @@ export function UsageClient(props: UsageClientProps) {
             },
             { label: 'Total duration', value: `${formatCompactNumber(data.summary.totalDuration)}s` },
             { label: 'Agents involved', value: formatCompactNumber(data.summary.uniqueAgents) },
+            { label: 'Users involved', value: formatCompactNumber(data.summary.uniqueUsers) },
             { label: 'API keys used', value: formatCompactNumber(data.summary.uniqueApiKeys) },
             { label: 'User agents', value: formatCompactNumber(data.summary.uniqueUserAgents) },
         ];
@@ -418,13 +419,27 @@ export function UsageClient(props: UsageClientProps) {
                         </Card>
                     </div>
 
-                    <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+                    <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
                         <Card>
                             <h2 className="text-lg font-medium text-gray-900">Per agent</h2>
                             <SimpleCountTable
                                 emptyLabel="No agent usage for current filters."
                                 rows={data.perAgent.map((item) => ({
                                     label: item.agentName,
+                                    calls: item.calls,
+                                    tokens: item.tokens,
+                                    priceUsd: item.priceUsd,
+                                    duration: item.duration,
+                                }))}
+                            />
+                        </Card>
+
+                        <Card>
+                            <h2 className="text-lg font-medium text-gray-900">Per user</h2>
+                            <SimpleCountTable
+                                emptyLabel="No user usage for current filters."
+                                rows={data.perUser.map((item) => ({
+                                    label: formatUsageUserLabel(item.username),
                                     calls: item.calls,
                                     tokens: item.tokens,
                                     priceUsd: item.priceUsd,
@@ -782,6 +797,17 @@ function truncateMiddle(value: string, head: number, tail: number): string {
         return value;
     }
     return `${value.slice(0, head)}...${value.slice(-tail)}`;
+}
+
+/**
+ * Formats user labels in usage tables and shortens anonymous usernames.
+ */
+function formatUsageUserLabel(username: string): string {
+    if (username.startsWith('anonymous-')) {
+        return `Anonymous (${truncateMiddle(username, 10, 6)})`;
+    }
+
+    return username;
 }
 
 /**

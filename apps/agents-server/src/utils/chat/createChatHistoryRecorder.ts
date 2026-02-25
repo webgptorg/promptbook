@@ -59,6 +59,10 @@ export type CreateChatHistoryRecorderOptions = {
      */
     actorType?: ChatHistoryActorType;
     /**
+     * Optional database user id responsible for the call.
+     */
+    userId?: number | null;
+    /**
      * When false, recorder computes hashes but skips DB writes.
      */
     isEnabled?: boolean;
@@ -90,7 +94,12 @@ export type RecordChatHistoryMessage = (options: RecordChatHistoryMessageOptions
 /**
  * Optional columns that may be missing on partially migrated databases.
  */
-const CHAT_HISTORY_OPTIONAL_COLUMNS = ['source', 'apiKey', 'actorType', 'usage'] as const;
+const CHAT_HISTORY_OPTIONAL_COLUMNS = ['source', 'apiKey', 'actorType', 'usage', 'userId'] as const;
+
+/**
+ * Optional chat-history columns that may be unavailable before migrations are applied.
+ */
+type ChatHistoryOptionalColumn = (typeof CHAT_HISTORY_OPTIONAL_COLUMNS)[number];
 
 /**
  * Creates one request-scoped recorder for `ChatHistory`.
@@ -98,7 +107,16 @@ const CHAT_HISTORY_OPTIONAL_COLUMNS = ['source', 'apiKey', 'actorType', 'usage']
 export async function createChatHistoryRecorder(
     options: CreateChatHistoryRecorderOptions,
 ): Promise<RecordChatHistoryMessage> {
-    const { request, agentIdentifier, agentHash, source, apiKey = null, actorType, isEnabled = true } = options;
+    const {
+        request,
+        agentIdentifier,
+        agentHash,
+        source,
+        apiKey = null,
+        actorType,
+        userId = null,
+        isEnabled = true,
+    } = options;
     const supabase = $provideSupabaseForServer();
     const tableName = await $getTableName('ChatHistory');
     const userAgent = request.headers.get('user-agent');
@@ -132,6 +150,7 @@ export async function createChatHistoryRecorder(
             apiKey,
             actorType: resolvedActorType,
             usage,
+            userId,
         };
 
         const { error } = await supabase.from(tableName).insert(row);
@@ -140,20 +159,7 @@ export async function createChatHistoryRecorder(
         }
 
         if (isMissingOptionalColumnError(error)) {
-            const rowWithoutOptionalColumns: Omit<ChatHistoryInsert, 'source' | 'apiKey' | 'actorType' | 'usage'> = {
-                createdAt: row.createdAt,
-                messageHash: row.messageHash,
-                previousMessageHash: row.previousMessageHash,
-                agentName: row.agentName,
-                agentHash: row.agentHash,
-                message: row.message,
-                promptbookEngineVersion: row.promptbookEngineVersion,
-                url: row.url,
-                ip: row.ip,
-                userAgent: row.userAgent,
-                language: row.language,
-                platform: row.platform,
-            };
+            const rowWithoutOptionalColumns = omitOptionalColumnsForFallback(row);
 
             const retryResult = await supabase.from(tableName).insert(rowWithoutOptionalColumns);
             if (!retryResult.error) {
@@ -171,10 +177,28 @@ export async function createChatHistoryRecorder(
             canonicalAgentName: agentNameForInsert,
             source,
             actorType: resolvedActorType,
+            userId,
             error,
         });
         return messageHash;
     };
+}
+
+/**
+ * Removes optional columns so inserts can succeed on partially migrated databases.
+ */
+function omitOptionalColumnsForFallback(
+    row: ChatHistoryInsert,
+): Omit<ChatHistoryInsert, ChatHistoryOptionalColumn> {
+    const rowWithoutOptionalColumns = {
+        ...row,
+    } as ChatHistoryInsert & Partial<Record<ChatHistoryOptionalColumn, unknown>>;
+
+    for (const optionalColumn of CHAT_HISTORY_OPTIONAL_COLUMNS) {
+        delete rowWithoutOptionalColumns[optionalColumn];
+    }
+
+    return rowWithoutOptionalColumns as Omit<ChatHistoryInsert, ChatHistoryOptionalColumn>;
 }
 
 /**

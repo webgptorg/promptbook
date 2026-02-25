@@ -256,6 +256,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             agentHash,
             source: 'AGENT_PAGE_CHAT',
             apiKey: null,
+            userId: currentUserIdentity?.userId ?? null,
             isEnabled: !isPrivateModeEnabled,
         });
         const userMessageHash = await recordChatHistoryMessage({

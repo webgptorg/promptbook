@@ -274,6 +274,7 @@ export type AgentsServerDatabase = {
                     apiKey: string | null;
                     actorType: 'ANONYMOUS' | 'TEAM_MEMBER' | 'API_KEY' | null;
                     usage: Json | null;
+                    userId: number | null;
                 };
                 Insert: {
                     id?: number;
@@ -293,6 +294,7 @@ export type AgentsServerDatabase = {
                     apiKey?: string | null;
                     actorType?: 'ANONYMOUS' | 'TEAM_MEMBER' | 'API_KEY' | null;
                     usage?: Json | null;
+                    userId?: number | null;
                 };
                 Update: {
                     id?: number;
@@ -312,6 +314,7 @@ export type AgentsServerDatabase = {
                     apiKey?: string | null;
                     actorType?: 'ANONYMOUS' | 'TEAM_MEMBER' | 'API_KEY' | null;
                     usage?: Json | null;
+                    userId?: number | null;
                 };
                 Relationships: [
                     {
@@ -319,6 +322,12 @@ export type AgentsServerDatabase = {
                         columns: ['agentName'];
                         referencedRelation: 'Agent';
                         referencedColumns: ['agentName'];
+                    },
+                    {
+                        foreignKeyName: 'ChatHistory_userId_fkey';
+                        columns: ['userId'];
+                        referencedRelation: 'User';
+                        referencedColumns: ['id'];
                     },
                 ];
             };

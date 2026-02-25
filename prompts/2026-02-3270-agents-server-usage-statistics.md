@@ -73,7 +73,7 @@
 
 ---
 
-[ ] !
+[x] ~$0.5185 11 minutes by OpenAI Codex `gpt-5.3-codex`
 
 [✨🆑] Record Usage per user
 
@@ -128,3 +128,4 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality of usage and agents server chat before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server) with the usage statistics of the agents.
+

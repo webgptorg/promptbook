@@ -386,6 +386,7 @@ export async function handleChatCompletion(
             agentHash,
             source: 'OPENAI_API_COMPATIBILITY',
             apiKey,
+            userId: currentUserIdentity?.userId ?? null,
             isEnabled: !isPrivateModeEnabled,
         });
         const userMessageHash = await recordChatHistoryMessage({

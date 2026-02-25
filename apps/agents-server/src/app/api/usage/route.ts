@@ -17,7 +17,7 @@ import type {
  */
 type ChatHistoryRow = Pick<
     AgentsServerDatabase['public']['Tables']['ChatHistory']['Row'],
-    'createdAt' | 'agentName' | 'message' | 'source' | 'apiKey' | 'userAgent' | 'actorType' | 'usage'
+    'createdAt' | 'agentName' | 'message' | 'source' | 'apiKey' | 'userAgent' | 'actorType' | 'usage' | 'userId'
 >;
 
 /**
@@ -92,6 +92,7 @@ export async function GET(request: NextRequest) {
                     totalPriceUsd: 0,
                     totalDuration: 0,
                     uniqueAgents: 0,
+                    uniqueUsers: 0,
                     uniqueApiKeys: 0,
                     uniqueUserAgents: 0,
                 },
@@ -114,6 +115,7 @@ export async function GET(request: NextRequest) {
                 })),
                 perAgent: [],
                 perFolder: [],
+                perUser: [],
                 apiKeys: [],
                 userAgents: [],
             };
@@ -149,6 +151,7 @@ export async function GET(request: NextRequest) {
                     agentName: row.agentName,
                     callType,
                     actorType,
+                    userId: row.userId,
                     apiKey,
                     userAgent,
                     tokens,
@@ -183,6 +186,10 @@ export async function GET(request: NextRequest) {
         const actorTypeCounts = new Map<
             UsageActorType,
             { calls: number; tokens: number; priceUsd: number; duration: number }
+        >();
+        const perUserCounts = new Map<
+            number | null,
+            { calls: number; tokens: number; priceUsd: number; duration: number; lastSeen: string }
         >();
         const apiKeyDetails = new Map<
             string,
@@ -219,6 +226,18 @@ export async function GET(request: NextRequest) {
             const folderId = agentFolderByName.get(call.agentName) ?? null;
             perFolderCounts.set(folderId, updateCount(perFolderCounts.get(folderId)));
 
+            const existingUser = perUserCounts.get(call.userId);
+            perUserCounts.set(call.userId, {
+                calls: (existingUser?.calls || 0) + 1,
+                tokens: (existingUser?.tokens || 0) + tokens,
+                priceUsd: (existingUser?.priceUsd || 0) + priceUsd,
+                duration: (existingUser?.duration || 0) + duration,
+                lastSeen:
+                    existingUser?.lastSeen && existingUser.lastSeen > call.createdAt
+                        ? existingUser.lastSeen
+                        : call.createdAt,
+            });
+
             if (call.apiKey) {
                 const existing = apiKeyDetails.get(call.apiKey);
                 apiKeyDetails.set(call.apiKey, {
@@ -244,6 +263,9 @@ export async function GET(request: NextRequest) {
             });
         }
 
+        const usernamesById = await resolveUsernamesForIds(
+            [...perUserCounts.keys()].filter((userId): userId is number => typeof userId === 'number'),
+        );
         const apiKeyNotes = await resolveApiKeyNotes([...apiKeyDetails.keys()]);
 
         const timeline = createTimelineSeries({
@@ -264,6 +286,18 @@ export async function GET(request: NextRequest) {
                 ...stats,
             }))
             .sort((a, b) => b.calls - a.calls || a.folderName.localeCompare(b.folderName));
+
+        const perUser = [...perUserCounts.entries()]
+            .map(([userId, stats]) => ({
+                userId,
+                username: resolveUsageUsername(userId, usernamesById),
+                ...stats,
+            }))
+            .sort((a, b) => b.calls - a.calls || b.lastSeen.localeCompare(a.lastSeen));
+
+        const uniqueUserIds = new Set(
+            [...perUserCounts.keys()].filter((userId): userId is number => typeof userId === 'number'),
+        );
 
         const apiKeys = [...apiKeyDetails.entries()]
             .map(([apiKey, detail]) => ({
@@ -302,6 +336,7 @@ export async function GET(request: NextRequest) {
                 totalPriceUsd: filteredCalls.reduce((sum, call) => sum + (call.priceUsd || 0), 0),
                 totalDuration: filteredCalls.reduce((sum, call) => sum + (call.duration || 0), 0),
                 uniqueAgents: perAgentCounts.size,
+                uniqueUsers: uniqueUserIds.size,
                 uniqueApiKeys: apiKeyDetails.size,
                 uniqueUserAgents: userAgentDetails.size,
             },
@@ -324,6 +359,7 @@ export async function GET(request: NextRequest) {
             }),
             perAgent,
             perFolder,
+            perUser: perUser.slice(0, 25),
             apiKeys: apiKeys.slice(0, 25),
             userAgents: userAgents.slice(0, 25),
         };
@@ -377,7 +413,7 @@ async function fetchChatHistoryRows(options: {
     for (let offset = 0; ; offset += CHAT_HISTORY_PAGE_SIZE) {
         let query = supabase
             .from(tableName)
-            .select('createdAt, agentName, message, source, apiKey, userAgent, actorType, usage')
+            .select('createdAt, agentName, message, source, apiKey, userAgent, actorType, usage, userId')
             .gte('createdAt', fromIso)
             .lte('createdAt', toIso)
             .order('createdAt', { ascending: true });
@@ -425,6 +461,42 @@ async function resolveApiKeyNotes(apiKeys: string[]): Promise<Map<string, string
     }
 
     return notes;
+}
+
+/**
+ * Resolves usernames for a set of user ids.
+ */
+async function resolveUsernamesForIds(userIds: number[]): Promise<Map<number, string>> {
+    const usernames = new Map<number, string>();
+    if (userIds.length === 0) {
+        return usernames;
+    }
+
+    const supabase = $provideSupabase();
+    const tableName = await $getTableName('User');
+    const { data, error } = await supabase.from(tableName).select('id, username').in('id', userIds);
+
+    if (error) {
+        console.warn('Usage analytics: failed to resolve usernames for usage rows.', error);
+        return usernames;
+    }
+
+    for (const row of (data || []) as Array<{ id: number; username: string }>) {
+        usernames.set(row.id, row.username);
+    }
+
+    return usernames;
+}
+
+/**
+ * Resolves the display name used for one usage user bucket.
+ */
+function resolveUsageUsername(userId: number | null, usernamesById: Map<number, string>): string {
+    if (userId === null) {
+        return '(unattributed user)';
+    }
+
+    return usernamesById.get(userId) || `User #${userId}`;
 }
 
 /**
