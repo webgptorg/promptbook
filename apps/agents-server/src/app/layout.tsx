@@ -2,6 +2,7 @@ import faviconLogoImage from '@/public/favicon.ico';
 import { LayoutWrapper } from '@/src/components/LayoutWrapper/LayoutWrapper';
 import type { Metadata } from 'next';
 import { Barlow_Condensed, Poppins } from 'next/font/google';
+import { getCurrentCustomStylesheetCss } from '../database/customStylesheet';
 import { getMetadataMap } from '../database/getMetadata';
 import { $provideServer } from '../tools/$provideServer';
 import { loadAgentOrganizationState } from '../utils/agentOrganization/loadAgentOrganizationState';
@@ -148,11 +149,19 @@ export default async function RootLayout({
     const isExperimental = (layoutMetadata.IS_EXPERIMENTAL_APP ?? 'false') === 'true';
     const isFeedbackEnabled = (layoutMetadata.IS_FEEDBACK_ENABLED ?? 'true') === 'true';
     const isExperimentalPwaAppEnabled = (layoutMetadata.IS_EXPERIMENTAL_PWA_APP_ENABLED ?? 'true') === 'true';
+    let customStylesheetCss = '';
+
+    try {
+        customStylesheetCss = await getCurrentCustomStylesheetCss();
+    } catch (error) {
+        console.error('Failed to load custom stylesheet CSS', error);
+    }
 
     return (
         <html lang="en">
             {/* Note: Icon is set via metadata to allow agent-page specific icons to override it */}
             <body className={`${barlowCondensed.variable} ${poppins.variable} antialiased bg-white text-gray-900`}>
+                {customStylesheetCss && <style id="agents-server-custom-css">{customStylesheetCss}</style>}
                 <LayoutWrapper
                     isAdmin={isAdmin}
                     currentUser={currentUser}

@@ -1952,6 +1952,10 @@ export function Header(props: HeaderProps) {
             href: '/admin/metadata',
         },
         {
+            label: 'Custom CSS',
+            href: '/admin/custom-css',
+        },
+        {
             label: 'Chat history',
             href: '/admin/chat-history',
         },

@@ -43,6 +43,7 @@ import {
     sanitizeStreamingMessageContent,
     type StreamingFeatureBoundary,
 } from '../utils/sanitizeStreamingMessageContent';
+import { chatCssClassNames } from './chatCssClassNames';
 
 /**
  * Props for the `ChatMessageItem` component
@@ -774,6 +775,8 @@ export const ChatMessageItem = memo(
                     isMe && styles.isMe,
                     !isComplete && styles.isNotCompleteMessage,
                     hasMapSegment && styles.messageWithMap,
+                    chatCssClassNames.chatMessage,
+                    isMe ? chatCssClassNames.userMessage : chatCssClassNames.agentResponse,
                 )}
                 onClick={() => {
                     console.group('💬', message.content);
@@ -788,7 +791,11 @@ export const ChatMessageItem = memo(
                 {avatarSrc && (
                     <div
                         ref={avatarRef}
-                        className={styles.avatar}
+                        className={classNames(
+                            styles.avatar,
+                            chatCssClassNames.messageAvatar,
+                            isMe ? chatCssClassNames.userAvatar : chatCssClassNames.agentAvatar,
+                        )}
                         onMouseEnter={handleMouseEnter}
                         onMouseLeave={handleMouseLeave}
                         onClick={showTooltip}
@@ -821,12 +828,12 @@ export const ChatMessageItem = memo(
                     </div>
                 )}
 
-                <div className={styles.messageStack}>
+                <div className={classNames(styles.messageStack, chatCssClassNames.messageStack)}>
                     {shouldShowParticipantLabel && participantLabel && (
                         <div className={styles.participantLabel}>{participantLabel}</div>
                     )}
                     <div
-                        className={styles.messageText}
+                        className={classNames(styles.messageText, chatCssClassNames.messageContent)}
                         style={
                             {
                                 '--message-bg-color': color.toHex(),

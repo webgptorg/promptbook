@@ -1,0 +1,14 @@
+Timestamp: 2026-02-25T21:16:22.331Z
+Prompt: prompts/2026-02-3520-agents-server-custom-css.md#1
+Prompt file: C:\Users\me\work\ai\promptbook\prompts\2026-02-3520-agents-server-custom-css.md
+Prompt section: 1
+Prompt summary: Allow to set custom styles
+Runner: OpenAI Codex (gpt-5.3-codex)
+
+CLI output and error:
+Error: Missing required environment variable CODEX_AGENT_GIT_NAME. Set CODEX_AGENT_GIT_NAME, CODEX_AGENT_GIT_EMAIL, and CODEX_AGENT_GIT_SIGNING_KEY before running the coding agent.
+    at readRequiredEnvValue (C:\Users\me\work\ai\promptbook\scripts\run-codex-prompts\git\agentGitIdentity.ts:68:15)
+    at getAgentGitIdentity (C:\Users\me\work\ai\promptbook\scripts\run-codex-prompts\git\agentGitIdentity.ts:35:18)
+    at buildAgentGitEnv (C:\Users\me\work\ai\promptbook\scripts\run-codex-prompts\git\agentGitIdentity.ts:46:45)
+    at commitChanges (C:\Users\me\work\ai\promptbook\scripts\run-codex-prompts\git\commitChanges.ts:15:42)
+    at async runCodexPrompts (C:\Users\me\work\ai\promptbook\scripts\run-codex-prompts\main\runCodexPrompts.ts:242:17)

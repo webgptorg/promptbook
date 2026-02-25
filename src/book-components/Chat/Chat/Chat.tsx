@@ -24,6 +24,7 @@ import { ChatMessageList } from './ChatMessageList';
 import type { ChatProps } from './ChatProps';
 import { ChatRatingModal } from './ChatRatingModal';
 import { ChatToolCallModal } from './ChatToolCallModal';
+import { chatCssClassNames, getChatCssClassName } from './chatCssClassNames';
 import styles from './Chat.module.css';
 
 /**
@@ -305,8 +306,7 @@ export function Chat(props: ChatProps) {
         return () => window.removeEventListener('resize', handleResize);
     }, [updateLatestMessageVisibility]);
 
-    const useChatCssClassName = (suffix: string) => `chat-${suffix}`;
-    const scrollToBottomCssClassName = useChatCssClassName('scrollToBottom');
+    const scrollToBottomCssClassName = getChatCssClassName('scrollToBottom');
 
     const handleButtonClick = useCallback(
         (originalHandler?: (event: MouseEvent<HTMLButtonElement>) => void) => {
@@ -428,11 +428,19 @@ export function Chat(props: ChatProps) {
                     styles.Chat,
                     visual === 'STANDALONE' && styles.standaloneVisual,
                     visual === 'FULL_PAGE' && styles.fullPageVisual,
-                    useChatCssClassName('Chat'),
+                    getChatCssClassName('Chat'),
+                    chatCssClassNames.chat,
                 )}
                 {...{ style }}
             >
-                <div className={classNames(className, styles.chatMainFlow, useChatCssClassName('chatMainFlow'))}>
+                <div
+                    className={classNames(
+                        className,
+                        styles.chatMainFlow,
+                        getChatCssClassName('chatMainFlow'),
+                        chatCssClassNames.chatMainFlow,
+                    )}
+                >
                     {children && <div className={classNames(styles.chatChildren)}>{children}</div>}
 
                     {shouldShowScrollToBottom && (
@@ -512,7 +520,10 @@ export function Chat(props: ChatProps) {
                         onScroll={handleChatScroll}
                         isSpeechPlaybackEnabled={isSpeechPlaybackEnabled}
                         elevenLabsVoiceId={elevenLabsVoiceId}
-                        chatMessagesClassName={useChatCssClassName('chatMessages')}
+                        chatMessagesClassName={classNames(
+                            getChatCssClassName('chatMessages'),
+                            chatCssClassNames.chatMessages,
+                        )}
                         hasActions={hasActions}
                     />
 
@@ -532,7 +543,10 @@ export function Chat(props: ChatProps) {
                             buttonColor={buttonColor}
                             soundSystem={soundSystem}
                             onButtonClick={handleButtonClick}
-                            chatInputClassName={useChatCssClassName('chatInput')}
+                            chatInputClassName={classNames(
+                                getChatCssClassName('chatInput'),
+                                chatCssClassNames.chatInput,
+                            )}
                         />
                     )}
                 </div>
