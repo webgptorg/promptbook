@@ -714,8 +714,15 @@
             "focus": true
         },
         {
+            "name": "🏭🩹 Prettify all files (no commit)(⏳)",
+            "commands": ["./scripts/lines-to-lf.sh", "npx ts-node ./scripts/prettify-all/prettify-all.ts"],
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
             "name": "🏭🩹 Prettify all files (+commit)(⏳)",
-            "command": "npx ts-node ./scripts/prettify-all/prettify-all.ts --commit",
+            "commands": ["./scripts/lines-to-lf.sh", "npx ts-node ./scripts/prettify-all/prettify-all.ts --commit"],
             "execute": true,
             "onlySingle": true,
             "focus": true
