@@ -16,6 +16,7 @@ import {
 import { createChatStreamHandler } from '@/src/utils/createChatStreamHandler';
 import { composePromptParametersWithMemoryContext } from '@/src/utils/memoryRuntimeContext';
 import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
+import { extractProjectRepositoriesFromAgentSource } from '@/src/utils/projects/extractProjectRepositoriesFromAgentSource';
 import { resolveCurrentUserMemoryIdentity } from '@/src/utils/userMemory';
 import { Agent, computeAgentHash } from '@promptbook-local/core';
 import type {
@@ -280,6 +281,7 @@ export async function handleChatCompletion(
             );
         }
         let agentSource: string_book = resolvedAgentContext.resolvedAgentSource;
+        const projectRepositories = extractProjectRepositoriesFromAgentSource(resolvedAgentContext.resolvedAgentSource);
 
         if (!agentSource) {
             return NextResponse.json(
@@ -407,6 +409,7 @@ export async function handleChatCompletion(
             agentPermanentId: agentId,
             agentName: resolvedAgentContext.resolvedAgentName,
             isPrivateModeEnabled,
+            projectRepositories,
         });
 
         const prompt: ChatPrompt = {

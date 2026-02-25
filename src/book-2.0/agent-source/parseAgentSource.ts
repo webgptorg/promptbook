@@ -1,5 +1,6 @@
 import spaceTrim from 'spacetrim';
 import { TODO_any } from '../../_packages/types.index';
+import { parseUseProjectCommitmentContent } from '../../commitments/USE_PROJECT/projectReference';
 import { normalizeTo_camelCase } from '../../utils/normalization/normalizeTo_camelCase';
 import { normalizeDomainForMatching } from '../../utils/validators/url/normalizeDomainForMatching';
 import { extractUrlsFromText } from '../../utils/validators/url/extractUrlsFromText';
@@ -159,6 +160,18 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
                 type: 'privacy',
                 label: 'Privacy',
                 iconName: 'Shield',
+            });
+            continue;
+        }
+
+        if (commitment.type === 'USE PROJECT') {
+            const parsedProjectCommitment = parseUseProjectCommitmentContent(commitment.content);
+            const projectLabel = parsedProjectCommitment.repository?.slug || 'Project';
+
+            capabilities.push({
+                type: 'project',
+                label: projectLabel,
+                iconName: 'Code',
             });
             continue;
         }

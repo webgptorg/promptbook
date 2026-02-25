@@ -46,6 +46,10 @@ export type ToolRuntimeContext = {
         isPrivateMode?: boolean;
     };
     userLocation?: UserLocationRuntimeContext;
+    projects?: {
+        githubToken?: string;
+        repositories?: string[];
+    };
 };
 
 /**

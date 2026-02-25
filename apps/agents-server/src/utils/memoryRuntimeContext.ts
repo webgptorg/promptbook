@@ -4,6 +4,10 @@ import {
     TOOL_RUNTIME_CONTEXT_PARAMETER,
     type ToolRuntimeContext,
 } from '../../../../src/commitments/_common/toolRuntimeContext';
+import {
+    parseProjectGithubTokenPromptParameter,
+    PROJECT_GITHUB_TOKEN_PROMPT_PARAMETER,
+} from './githubTokenPromptParameter';
 import type { ResolvedCurrentUserMemoryIdentity } from './userMemory';
 import {
     parseUserLocationPromptParameter,
@@ -19,6 +23,7 @@ export type ComposePromptParametersWithMemoryContextOptions = {
     agentPermanentId?: string;
     agentName: string;
     isPrivateModeEnabled?: boolean;
+    projectRepositories?: string[];
 };
 
 /**
@@ -27,18 +32,37 @@ export type ComposePromptParametersWithMemoryContextOptions = {
 export function composePromptParametersWithMemoryContext(
     options: ComposePromptParametersWithMemoryContextOptions,
 ): Record<string, string> {
-    const { baseParameters, currentUserIdentity, agentPermanentId, agentName, isPrivateModeEnabled } = options;
+    const {
+        baseParameters,
+        currentUserIdentity,
+        agentPermanentId,
+        agentName,
+        isPrivateModeEnabled,
+        projectRepositories,
+    } = options;
     const normalizedBaseParameters = normalizePromptParameters(baseParameters);
     const runtimeLocationContext = parseUserLocationPromptParameter(
         normalizedBaseParameters[USER_LOCATION_PROMPT_PARAMETER],
+    );
+    const projectGithubToken = parseProjectGithubTokenPromptParameter(
+        normalizedBaseParameters[PROJECT_GITHUB_TOKEN_PROMPT_PARAMETER],
     );
     const filteredBaseParameters = excludeInternalRuntimeParameters(normalizedBaseParameters);
 
     const existingRuntimeContext =
         parseToolRuntimeContext(filteredBaseParameters[TOOL_RUNTIME_CONTEXT_PARAMETER]) || {};
+    const resolvedProjectRepositories =
+        projectRepositories === undefined
+            ? normalizeProjectRepositories(existingRuntimeContext.projects?.repositories)
+            : normalizeProjectRepositories(projectRepositories);
     const isTeamConversation = existingRuntimeContext.memory?.isTeamConversation === true;
     const isPrivateMode = isPrivateModeEnabled === true;
     const isMemoryEnabled = Boolean(currentUserIdentity && !isTeamConversation && !isPrivateMode);
+    const projectsRuntimeContext = {
+        ...(existingRuntimeContext.projects || {}),
+        ...(projectGithubToken ? { githubToken: projectGithubToken } : {}),
+        ...(resolvedProjectRepositories.length > 0 ? { repositories: resolvedProjectRepositories } : {}),
+    };
 
     const mergedRuntimeContext: ToolRuntimeContext = {
         ...existingRuntimeContext,
@@ -53,6 +77,10 @@ export function composePromptParametersWithMemoryContext(
             isPrivateMode,
         },
         userLocation: runtimeLocationContext ?? existingRuntimeContext.userLocation,
+        projects:
+            projectsRuntimeContext.githubToken || projectsRuntimeContext.repositories
+                ? projectsRuntimeContext
+                : undefined,
     };
 
     return {
@@ -87,6 +115,36 @@ function normalizePromptParameters(parameters: Record<string, unknown>): Record<
  * Removes internal prompt parameters that are meant only for runtime-context transport.
  */
 function excludeInternalRuntimeParameters(parameters: Record<string, string>): Record<string, string> {
-    const filteredEntries = Object.entries(parameters).filter(([key]) => key !== USER_LOCATION_PROMPT_PARAMETER);
+    const filteredEntries = Object.entries(parameters).filter(
+        ([key]) => key !== USER_LOCATION_PROMPT_PARAMETER && key !== PROJECT_GITHUB_TOKEN_PROMPT_PARAMETER,
+    );
     return Object.fromEntries(filteredEntries);
+}
+
+/**
+ * Normalizes configured project repository references while preserving declaration order.
+ */
+function normalizeProjectRepositories(rawRepositories: unknown): string[] {
+    if (!Array.isArray(rawRepositories)) {
+        return [];
+    }
+
+    const repositories: string[] = [];
+    const seenRepositories = new Set<string>();
+
+    for (const rawRepository of rawRepositories) {
+        if (typeof rawRepository !== 'string') {
+            continue;
+        }
+
+        const repository = rawRepository.trim();
+        if (!repository || seenRepositories.has(repository)) {
+            continue;
+        }
+
+        repositories.push(repository);
+        seenRepositories.add(repository);
+    }
+
+    return repositories;
 }

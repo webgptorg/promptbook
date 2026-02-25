@@ -357,6 +357,22 @@ describe('parseAgentSource', () => {
         });
     });
 
+    it('parses USE PROJECT capability', () => {
+        const agentSource = validateBook(
+            spaceTrim(`
+                Agent Name
+                USE PROJECT https://github.com/example/project
+            `),
+        );
+        const result = parseAgentSource(agentSource);
+
+        expect(result.capabilities).toContainEqual({
+            type: 'project',
+            label: 'example/project',
+            iconName: 'Code',
+        });
+    });
+
     it('parses IMAGE and COLOR aliases', () => {
         const agentSource = validateBook(
             spaceTrim(`

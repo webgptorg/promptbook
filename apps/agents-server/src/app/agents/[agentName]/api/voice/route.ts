@@ -7,6 +7,7 @@ import {
     resolveMetaDisclaimerMarkdownFromAgentSource,
     resolveMetaDisclaimerStatusForUser,
 } from '@/src/utils/metaDisclaimer';
+import { extractProjectRepositoriesFromAgentSource } from '@/src/utils/projects/extractProjectRepositoriesFromAgentSource';
 import { resolveCurrentUserMemoryIdentity } from '@/src/utils/userMemory';
 import { Agent, computeAgentHash } from '@promptbook-local/core';
 import { serializeError } from '@promptbook-local/utils';
@@ -84,6 +85,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         const agentPermanentId = await collection.getAgentPermanentId(agentName);
         const currentUserIdentity = await resolveCurrentUserMemoryIdentity();
         const agentSource = await collection.getAgentSource(agentName);
+        const projectRepositories = extractProjectRepositoriesFromAgentSource(agentSource);
         const disclaimerMarkdown = resolveMetaDisclaimerMarkdownFromAgentSource(agentSource);
 
         if (disclaimerMarkdown) {
@@ -124,6 +126,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             agentPermanentId,
             agentName,
             isPrivateModeEnabled,
+            projectRepositories,
         });
         const openAiAgentKitExecutionTools = await $provideOpenAiAgentKitExecutionToolsForServer();
         const agent = new Agent({

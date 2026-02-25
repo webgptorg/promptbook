@@ -22,6 +22,7 @@ import { createDefaultChatEffects } from '../../../utils/chat/createDefaultChatE
 import { reportClientVersionMismatch } from '../../../utils/clientVersionClient';
 import type { FriendlyErrorMessage } from '../../../utils/errorMessages';
 import { handleChatError } from '../../../utils/errorMessages';
+import { PROJECT_GITHUB_TOKEN_PROMPT_PARAMETER } from '../../../utils/githubTokenPromptParameter';
 import {
     serializeUserLocationPromptParameter,
     USER_LOCATION_PROMPT_PARAMETER,
@@ -102,6 +103,7 @@ const GEOLOCATION_PERMISSION_DENIED_CODE = 1;
  * Timeout used for browser geolocation lookup.
  */
 const GEOLOCATION_REQUEST_TIMEOUT_MS = 15_000;
+const PROJECT_GITHUB_TOKEN_STORAGE_KEY_PREFIX = 'promptbook-project-github-token';
 
 /**
  * Location tool result payload shape.
@@ -361,6 +363,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
     const [userLocationPromptParameter, setUserLocationPromptParameter] = useState<UserLocationPromptParameter | null>(
         null,
     );
+    const [projectGithubToken, setProjectGithubToken] = useState('');
     const [metaDisclaimerStatus, setMetaDisclaimerStatus] = useState<MetaDisclaimerStatus | null>(null);
     const [isMetaDisclaimerLoading, setIsMetaDisclaimerLoading] = useState(true);
     const [isMetaDisclaimerAccepting, setIsMetaDisclaimerAccepting] = useState(false);
@@ -419,7 +422,43 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
     const isMetaDisclaimerBlockingChat =
         isMetaDisclaimerLoading || metaDisclaimerError !== null || (isMetaDisclaimerEnabled && !hasAcceptedMetaDisclaimer);
     const metaDisclaimerMarkdown = metaDisclaimerStatus?.markdown || null;
+    const isProjectCapabilityEnabled =
+        agent?.capabilities?.some((capability) => capability.type === 'project') === true;
+    const projectGithubTokenStorageKey = useMemo(
+        () => `${PROJECT_GITHUB_TOKEN_STORAGE_KEY_PREFIX}:${agentName}`,
+        [agentName],
+    );
     const effectiveAutoExecuteMessage = isMetaDisclaimerBlockingChat ? undefined : autoExecuteMessage;
+
+    useEffect(() => {
+        if (!isProjectCapabilityEnabled || typeof window === 'undefined') {
+            return;
+        }
+
+        const storedToken = window.localStorage.getItem(projectGithubTokenStorageKey);
+        if (storedToken !== null) {
+            setProjectGithubToken(storedToken);
+        }
+    }, [isProjectCapabilityEnabled, projectGithubTokenStorageKey]);
+
+    const handleProjectGithubTokenChange = useCallback(
+        (nextToken: string) => {
+            setProjectGithubToken(nextToken);
+
+            if (typeof window === 'undefined') {
+                return;
+            }
+
+            const normalizedToken = nextToken.trim();
+            if (!isProjectCapabilityEnabled || !normalizedToken) {
+                window.localStorage.removeItem(projectGithubTokenStorageKey);
+                return;
+            }
+
+            window.localStorage.setItem(projectGithubTokenStorageKey, normalizedToken);
+        },
+        [isProjectCapabilityEnabled, projectGithubTokenStorageKey],
+    );
 
     useEffect(() => {
         if (lastAutoExecuteMessageRef.current === autoExecuteMessage) {
@@ -714,14 +753,19 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
         const parameters: Record<string, unknown> = {
             selfLearningEnabled: effectiveSelfLearningEnabled,
         };
+        const normalizedProjectGithubToken = projectGithubToken.trim();
 
         if (userLocationPromptParameter) {
             parameters[USER_LOCATION_PROMPT_PARAMETER] =
                 serializeUserLocationPromptParameter(userLocationPromptParameter);
         }
 
+        if (isProjectCapabilityEnabled && normalizedProjectGithubToken) {
+            parameters[PROJECT_GITHUB_TOKEN_PROMPT_PARAMETER] = normalizedProjectGithubToken;
+        }
+
         return parameters;
-    }, [effectiveSelfLearningEnabled, userLocationPromptParameter]);
+    }, [effectiveSelfLearningEnabled, isProjectCapabilityEnabled, projectGithubToken, userLocationPromptParameter]);
 
     if (!agent) {
         return <>{/* <- TODO: [🐱‍🚀] <PromptbookLoading /> */}</>;
@@ -729,6 +773,28 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
 
     return (
         <>
+            {isProjectCapabilityEnabled && (
+                <section className="mb-3 rounded-2xl border border-slate-200/80 bg-white/90 px-4 py-3 shadow-sm">
+                    <label htmlFor="project-github-token" className="text-xs font-semibold uppercase tracking-wide text-slate-700">
+                        GitHub token for USE PROJECT
+                    </label>
+                    <input
+                        id="project-github-token"
+                        type="password"
+                        value={projectGithubToken}
+                        onChange={(event) => {
+                            handleProjectGithubTokenChange(event.target.value);
+                        }}
+                        placeholder="ghp_..."
+                        autoComplete="off"
+                        spellCheck={false}
+                        className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
+                    />
+                    <p className="mt-2 text-xs text-slate-500">
+                        Stored only in this browser for this agent. Use a token with repository read/write access.
+                    </p>
+                </section>
+            )}
             <AgentChat
                 key={chatKey}
                 className={`w-full h-full`}

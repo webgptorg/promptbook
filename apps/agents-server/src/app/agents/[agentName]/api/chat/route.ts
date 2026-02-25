@@ -22,6 +22,7 @@ import {
     resolveMetaDisclaimerMarkdownFromAgentSource,
     resolveMetaDisclaimerStatusForUser,
 } from '@/src/utils/metaDisclaimer';
+import { extractProjectRepositoriesFromAgentSource } from '@/src/utils/projects/extractProjectRepositoriesFromAgentSource';
 import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
 import { resolveCurrentUserMemoryIdentity } from '@/src/utils/userMemory';
 import type { ChatMessage } from '@promptbook-local/components';
@@ -183,6 +184,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         const agentSource = resolvedAgentContext.resolvedAgentSource;
         const agentId = resolvedAgentContext.parentAgentPermanentId;
         const resolvedAgentName = resolvedAgentContext.resolvedAgentName;
+        const projectRepositories = extractProjectRepositoriesFromAgentSource(agentSource);
         // [▶️] const executionTools = await $provideExecutionToolsForServer();
         const messageSuffix = resolveMessageSuffixFromAgentSource(agentSource);
         const currentUserIdentity = await resolveCurrentUserMemoryIdentity();
@@ -236,6 +238,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             agentPermanentId: agentId,
             agentName: resolvedAgentName,
             isPrivateModeEnabled,
+            projectRepositories,
         });
 
         // Use AgentKitCacheManager for vector store caching

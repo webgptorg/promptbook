@@ -347,9 +347,11 @@ function buildTeammatePrompt(request: string, runtimeContext: ToolRuntimeContext
  */
 function createTeamConversationRuntimeContext(value: unknown): ToolRuntimeContext {
     const runtimeContext = parseToolRuntimeContext(value) || {};
+    const { projects: _ignoredProjects, ...runtimeContextWithoutProjects } = runtimeContext;
+    void _ignoredProjects;
 
     return {
-        ...runtimeContext,
+        ...runtimeContextWithoutProjects,
         memory: {
             ...(runtimeContext.memory || {}),
             enabled: false,

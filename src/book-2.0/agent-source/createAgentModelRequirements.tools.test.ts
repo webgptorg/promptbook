@@ -47,6 +47,35 @@ describe('USE SEARCH ENGINE and USE BROWSER commitments', () => {
         expect(requirements.systemMessage).toContain('Teammates:');
     });
 
+    it('should add project tools when USE PROJECT is used', async () => {
+        const agentSource = validateBook(`
+            Test Agent
+            USE PROJECT https://github.com/example/project
+        `);
+        const requirements = await createAgentModelRequirements(agentSource);
+
+        expect(requirements.tools).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({ name: 'project_list_files' }),
+                expect.objectContaining({ name: 'project_read_file' }),
+                expect.objectContaining({ name: 'project_upsert_file' }),
+                expect.objectContaining({ name: 'project_delete_file' }),
+                expect.objectContaining({ name: 'project_create_branch' }),
+                expect.objectContaining({ name: 'project_create_pull_request' }),
+            ]),
+        );
+
+        expect(requirements._metadata?.useProject).toBe(true);
+        expect(requirements._metadata?.useProjects).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    url: 'https://github.com/example/project',
+                    slug: 'example/project',
+                }),
+            ]),
+        );
+    });
+
     it('should treat `FROM {Void}` as explicit no-parent inheritance', async () => {
         const agentSource = validateBook(`
             Test Agent

@@ -1,6 +1,7 @@
 import { AgentBasicInformation, AgentCapability } from '@promptbook-local/types';
 import {
     Book,
+    Code,
     Clock8Icon,
     ExternalLink,
     FileText,
@@ -34,7 +35,7 @@ const MAX_INDIVIDUAL_KNOWLEDGE_CHIPS = 2;
 const CAPABILITY_PRIORITY_BUCKETS: ReadonlyArray<ReadonlyArray<AgentCapability['type']>> = [
     ['team'],
     ['inheritance', 'import'],
-    ['browser', 'search-engine', 'time', 'user-location', 'image-generator', 'email', 'privacy'],
+    ['browser', 'search-engine', 'time', 'user-location', 'image-generator', 'email', 'privacy', 'project'],
     ['knowledge'],
 ];
 
@@ -157,6 +158,7 @@ export function AgentCapabilityChips({ agent, className, maxChips, size = 'defau
                         MapPin,
                         Shield,
                         Users,
+                        Code,
                         // <- [??] Add icons for new capabilities here
                     }[capability.iconName] || ShieldQuestionMarkIcon;
 
