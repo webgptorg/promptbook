@@ -1,4 +1,4 @@
-[ ] !
+[x] ~$0.7653 11 minutes by OpenAI Codex `gpt-5.3-codex`
 
 [✨🌔] Fix syntax highlighting of referencing agents
 
@@ -61,3 +61,4 @@ CLOSED
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

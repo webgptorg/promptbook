@@ -31,20 +31,32 @@ export function useBookEditorMonacoLanguage({ monaco }: UseBookEditorMonacoLangu
                 .map((type) => (type === 'META' ? 'META\\s+\\w+' : type.replace(/\s+/, '\\s+')))
                 .join('|')})(?=\\s|$)`,
         );
+        const agentReferenceCommitmentRegex = /^\s*(FROM|IMPORT|IMPORTS|TEAM)(?=\s|$)/;
 
         const parameterRegex = /@([a-zA-Z0-9_á-žÁ-Žč-řČ-Řš-žŠ-Žа-яА-ЯёЁ]+)/;
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const bookRules: any = [
+        const defaultBodyRules: any = [
             [/^---[-]*$/, ''],
             [/^```.*$/, 'code-block', '@codeblock'],
+            [agentReferenceCommitmentRegex, 'commitment', '@agent-reference-body'],
+            [commitmentRegex, 'commitment'],
+            [parameterRegex, 'parameter'],
+            [/\{[^}]+\}/, 'parameter'],
+        ];
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const agentReferenceBodyRules: any = [
+            [/^---[-]*$/, '', '@body'],
+            [/^```.*$/, 'code-block', '@codeblock'],
+            [agentReferenceCommitmentRegex, 'commitment', '@agent-reference-body'],
+            [commitmentRegex, 'commitment', '@body'],
             ...BookEditorMonacoTokenization.AGENT_REFERENCE_HIGHLIGHT_REGEXES.map((regex) => [
                 regex,
                 'agent-reference',
             ]),
             [parameterRegex, 'parameter'],
             [/\{[^}]+\}/, 'parameter'],
-            [commitmentRegex, 'commitment'],
         ];
 
         const tokenProvider = monaco.languages.setMonarchTokensProvider(BookEditorMonacoConstants.BOOK_LANGUAGE_ID, {
@@ -55,9 +67,9 @@ export function useBookEditorMonacoLanguage({ monaco }: UseBookEditorMonacoLangu
                     [/^-*$/, 'line'],
                     [/^```.*$/, 'code-block', '@codeblock'],
                     [/^.*$/, 'title', '@body'],
-                    [commitmentRegex, 'commitment'],
                 ],
-                body: bookRules,
+                body: defaultBodyRules,
+                'agent-reference-body': agentReferenceBodyRules,
                 codeblock: [
                     [/^```.*$/, 'code-block', '@pop'],
                     [/^.*$/, 'code-block'],
