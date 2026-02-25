@@ -6,7 +6,11 @@ import type { LlmToolDefinition } from '../../types/LlmToolDefinition';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 import { formatOptionalInstructionBlock } from '../_base/formatOptionalInstructionBlock';
 import { readToolRuntimeContextFromToolArgs } from '../_common/toolRuntimeContext';
-import { parseGitHubRepositoryReference, parseUseProjectCommitmentContent, type GitHubRepositoryReference } from './projectReference';
+import {
+    parseGitHubRepositoryReference,
+    parseUseProjectCommitmentContent,
+    type GitHubRepositoryReference,
+} from './projectReference';
 
 /**
  * Base GitHub API URL.
@@ -389,9 +393,9 @@ export class UseProjectCommitmentDefinition extends BaseCommitmentDefinition<'US
 
                 const payload = await callGitHubApi<GitHubContentsItem>(token, {
                     method: 'GET',
-                    path: `/repos/${repositoryReference.owner}/${repositoryReference.repository}/contents/${encodeGitHubPath(
-                        normalizedPath,
-                    )}`,
+                    path: `/repos/${repositoryReference.owner}/${
+                        repositoryReference.repository
+                    }/contents/${encodeGitHubPath(normalizedPath)}`,
                     query,
                 });
 
@@ -435,9 +439,9 @@ export class UseProjectCommitmentDefinition extends BaseCommitmentDefinition<'US
 
                 const existingFile = await callGitHubApi<GitHubContentsItem>(token, {
                     method: 'GET',
-                    path: `/repos/${repositoryReference.owner}/${repositoryReference.repository}/contents/${encodeGitHubPath(
-                        normalizedPath,
-                    )}`,
+                    path: `/repos/${repositoryReference.owner}/${
+                        repositoryReference.repository
+                    }/contents/${encodeGitHubPath(normalizedPath)}`,
                     query,
                     allowNotFound: true,
                 });
@@ -460,9 +464,9 @@ export class UseProjectCommitmentDefinition extends BaseCommitmentDefinition<'US
                     commit?: { sha?: string; html_url?: string };
                 }>(token, {
                     method: 'PUT',
-                    path: `/repos/${repositoryReference.owner}/${repositoryReference.repository}/contents/${encodeGitHubPath(
-                        normalizedPath,
-                    )}`,
+                    path: `/repos/${repositoryReference.owner}/${
+                        repositoryReference.repository
+                    }/contents/${encodeGitHubPath(normalizedPath)}`,
                     body: requestBody,
                 });
 
@@ -493,9 +497,9 @@ export class UseProjectCommitmentDefinition extends BaseCommitmentDefinition<'US
 
                 const existingFile = await callGitHubApi<GitHubContentsItem>(token, {
                     method: 'GET',
-                    path: `/repos/${repositoryReference.owner}/${repositoryReference.repository}/contents/${encodeGitHubPath(
-                        normalizedPath,
-                    )}`,
+                    path: `/repos/${repositoryReference.owner}/${
+                        repositoryReference.repository
+                    }/contents/${encodeGitHubPath(normalizedPath)}`,
                     query,
                     allowNotFound: true,
                 });
@@ -514,9 +518,9 @@ export class UseProjectCommitmentDefinition extends BaseCommitmentDefinition<'US
 
                 const payload = await callGitHubApi<{ commit?: { sha?: string; html_url?: string } }>(token, {
                     method: 'DELETE',
-                    path: `/repos/${repositoryReference.owner}/${repositoryReference.repository}/contents/${encodeGitHubPath(
-                        normalizedPath,
-                    )}`,
+                    path: `/repos/${repositoryReference.owner}/${
+                        repositoryReference.repository
+                    }/contents/${encodeGitHubPath(normalizedPath)}`,
                     body: requestBody,
                 });
 
@@ -547,9 +551,9 @@ export class UseProjectCommitmentDefinition extends BaseCommitmentDefinition<'US
 
                 const fromBranchReference = await callGitHubApi<GitHubGitRefResponse>(token, {
                     method: 'GET',
-                    path: `/repos/${repositoryReference.owner}/${repositoryReference.repository}/git/ref/heads/${encodeURIComponent(
-                        fromBranch,
-                    )}`,
+                    path: `/repos/${repositoryReference.owner}/${
+                        repositoryReference.repository
+                    }/git/ref/heads/${encodeURIComponent(fromBranch)}`,
                 });
 
                 const sourceSha = fromBranchReference?.object?.sha;
@@ -899,9 +903,7 @@ function resolveProjectRuntime(args: UseProjectToolArgsBase): {
         );
 
         if (!allowedSlugs.has(repositoryReference.slug)) {
-            throw new Error(
-                `Repository "${repositoryReference.url}" is not configured by USE PROJECT for this agent.`,
-            );
+            throw new Error(`Repository "${repositoryReference.url}" is not configured by USE PROJECT for this agent.`);
         }
     }
 
@@ -1070,10 +1072,7 @@ function normalizeGitHubPath(path: unknown): string {
         return '';
     }
 
-    return path
-        .trim()
-        .replace(/^\/+/, '')
-        .replace(/\/+/g, '/');
+    return path.trim().replace(/^\/+/, '').replace(/\/+/g, '/');
 }
 
 /**
