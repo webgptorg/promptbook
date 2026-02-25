@@ -86,17 +86,33 @@ export async function GET(request: NextRequest) {
                     callType: callTypeFilter,
                     actorType: actorTypeFilter,
                 },
-                            summary: {
-                                totalCalls: 0,
-                                totalTokens: 0,
-                                totalPriceUsd: 0,
-                                totalDuration: 0,
-                                uniqueAgents: 0,
-                                uniqueApiKeys: 0,
-                                uniqueUserAgents: 0,
-                            },                timeline: [],
-                            breakdownByCallType: CALL_TYPES.map((key) => ({ key, label: callTypeLabel(key), calls: 0, tokens: 0, priceUsd: 0, duration: 0 })),
-                            breakdownByActorType: ACTOR_TYPES.map((key) => ({ key, label: actorTypeLabel(key), calls: 0, tokens: 0, priceUsd: 0, duration: 0 })),                perAgent: [],
+                summary: {
+                    totalCalls: 0,
+                    totalTokens: 0,
+                    totalPriceUsd: 0,
+                    totalDuration: 0,
+                    uniqueAgents: 0,
+                    uniqueApiKeys: 0,
+                    uniqueUserAgents: 0,
+                },
+                timeline: [],
+                breakdownByCallType: CALL_TYPES.map((key) => ({
+                    key,
+                    label: callTypeLabel(key),
+                    calls: 0,
+                    tokens: 0,
+                    priceUsd: 0,
+                    duration: 0,
+                })),
+                breakdownByActorType: ACTOR_TYPES.map((key) => ({
+                    key,
+                    label: actorTypeLabel(key),
+                    calls: 0,
+                    tokens: 0,
+                    priceUsd: 0,
+                    duration: 0,
+                })),
+                perAgent: [],
                 perFolder: [],
                 apiKeys: [],
                 userAgents: [],
@@ -151,13 +167,31 @@ export async function GET(request: NextRequest) {
             });
 
         const bucketSizeMs = resolveTimelineBucketSizeMs(timeframe.from.getTime(), timeframe.to.getTime());
-        const timelineByBucket = new Map<number, { calls: number; tokens: number; priceUsd: number; duration: number }>();
+        const timelineByBucket = new Map<
+            number,
+            { calls: number; tokens: number; priceUsd: number; duration: number }
+        >();
         const perAgentCounts = new Map<string, { calls: number; tokens: number; priceUsd: number; duration: number }>();
-        const perFolderCounts = new Map<number | null, { calls: number; tokens: number; priceUsd: number; duration: number }>();
-        const callTypeCounts = new Map<UsageCallType, { calls: number; tokens: number; priceUsd: number; duration: number }>();
-        const actorTypeCounts = new Map<UsageActorType, { calls: number; tokens: number; priceUsd: number; duration: number }>();
-        const apiKeyDetails = new Map<string, { calls: number; tokens: number; priceUsd: number; duration: number; lastSeen: string }>();
-        const userAgentDetails = new Map<string, { calls: number; tokens: number; priceUsd: number; duration: number; lastSeen: string }>();
+        const perFolderCounts = new Map<
+            number | null,
+            { calls: number; tokens: number; priceUsd: number; duration: number }
+        >();
+        const callTypeCounts = new Map<
+            UsageCallType,
+            { calls: number; tokens: number; priceUsd: number; duration: number }
+        >();
+        const actorTypeCounts = new Map<
+            UsageActorType,
+            { calls: number; tokens: number; priceUsd: number; duration: number }
+        >();
+        const apiKeyDetails = new Map<
+            string,
+            { calls: number; tokens: number; priceUsd: number; duration: number; lastSeen: string }
+        >();
+        const userAgentDetails = new Map<
+            string,
+            { calls: number; tokens: number; priceUsd: number; duration: number; lastSeen: string }
+        >();
 
         for (const call of filteredCalls) {
             const timestamp = Date.parse(call.createdAt);
@@ -167,8 +201,10 @@ export async function GET(request: NextRequest) {
 
             const bucketKey = floorToBucket(timestamp, bucketSizeMs);
             const { tokens = 0, priceUsd = 0, duration = 0 } = call;
-            
-            const updateCount = (current: { calls: number; tokens: number; priceUsd: number; duration: number } | undefined) => ({
+
+            const updateCount = (
+                current: { calls: number; tokens: number; priceUsd: number; duration: number } | undefined,
+            ) => ({
                 calls: (current?.calls || 0) + 1,
                 tokens: (current?.tokens || 0) + tokens,
                 priceUsd: (current?.priceUsd || 0) + priceUsd,
@@ -190,7 +226,8 @@ export async function GET(request: NextRequest) {
                     tokens: (existing?.tokens || 0) + tokens,
                     priceUsd: (existing?.priceUsd || 0) + priceUsd,
                     duration: (existing?.duration || 0) + duration,
-                    lastSeen: existing?.lastSeen && existing.lastSeen > call.createdAt ? existing.lastSeen : call.createdAt,
+                    lastSeen:
+                        existing?.lastSeen && existing.lastSeen > call.createdAt ? existing.lastSeen : call.createdAt,
                 });
             }
 
@@ -235,6 +272,7 @@ export async function GET(request: NextRequest) {
                 calls: detail.calls,
                 tokens: detail.tokens,
                 priceUsd: detail.priceUsd,
+                duration: detail.duration,
                 lastSeen: detail.lastSeen,
             }))
             .sort((a, b) => b.calls - a.calls || b.lastSeen.localeCompare(a.lastSeen));
@@ -245,6 +283,7 @@ export async function GET(request: NextRequest) {
                 calls: detail.calls,
                 tokens: detail.tokens,
                 priceUsd: detail.priceUsd,
+                duration: detail.duration,
                 lastSeen: detail.lastSeen,
             }))
             .sort((a, b) => b.calls - a.calls || b.lastSeen.localeCompare(a.lastSeen));

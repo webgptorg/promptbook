@@ -1,7 +1,7 @@
 import { parseAgentSourceWithCommitments } from '../../../../../src/book-2.0/agent-source/parseAgentSourceWithCommitments';
 import type { string_book } from '../../../../../src/book-2.0/agent-source/string_book';
+import type { AgentCollection } from '../../../../../src/collection/agent-collection/AgentCollection';
 import type { string_agent_permanent_id } from '../../../../../src/types/typeAliases';
-import type { AgentCollection } from '../../../../src/collection/agent-collection/AgentCollection';
 import type { AgentReferenceDiagnostic } from './createUnresolvedAgentReferenceDiagnostics';
 
 /**
