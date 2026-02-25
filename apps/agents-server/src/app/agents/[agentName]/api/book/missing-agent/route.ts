@@ -8,6 +8,7 @@ import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentColle
 import { $invalidateProvidedAgentReferenceResolverCache } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
 import { isUserAdmin } from '@/src/utils/isUserAdmin';
 import { buildAgentNameOrIdFilter } from '@/src/utils/agentIdentifier';
+import { createAgentWithDefaultVisibility } from '@/src/utils/createAgentWithDefaultVisibility';
 
 /**
  * Request payload accepted by the referenced agent creation endpoint.
@@ -98,7 +99,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                 : null;
 
         const agentSource = $generateBookBoilerplate({ agentName: candidate });
-        const newAgent = await collection.createAgent(agentSource, {
+        const newAgent = await createAgentWithDefaultVisibility(collection, agentSource, {
             folderId,
         });
         $invalidateProvidedAgentReferenceResolverCache();

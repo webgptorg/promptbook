@@ -61,7 +61,7 @@ export type AgentsServerDatabase = {
                     folderId: number | null;
                     sortOrder: number;
                     deletedAt: string | null;
-                    visibility: 'PUBLIC' | 'PRIVATE';
+                    visibility: 'PUBLIC' | 'PRIVATE' | 'UNLISTED';
                 };
                 Insert: {
                     id?: number;
@@ -78,7 +78,7 @@ export type AgentsServerDatabase = {
                     folderId?: number | null;
                     sortOrder?: number;
                     deletedAt?: string | null;
-                    visibility?: 'PUBLIC' | 'PRIVATE';
+                    visibility?: 'PUBLIC' | 'PRIVATE' | 'UNLISTED';
                 };
                 Update: {
                     id?: number;
@@ -95,7 +95,7 @@ export type AgentsServerDatabase = {
                     folderId?: number | null;
                     sortOrder?: number;
                     deletedAt?: string | null;
-                    visibility?: 'PUBLIC' | 'PRIVATE';
+                    visibility?: 'PUBLIC' | 'PRIVATE' | 'UNLISTED';
                 };
                 Relationships: [
                     {

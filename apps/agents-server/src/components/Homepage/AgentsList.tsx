@@ -34,6 +34,7 @@ import type {
     AgentOrganizationFolder,
     AgentOrganizationUpdatePayload,
 } from '../../utils/agentOrganization/types';
+import { getNextAgentVisibility, type AgentVisibility } from '../../utils/agentVisibility';
 import { AgentContextMenuPopover, type AgentContextMenuRenamePayload } from '../AgentContextMenu/AgentContextMenu';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 import { QrCodeModal } from '../AgentProfile/QrCodeModal';
@@ -1433,15 +1434,15 @@ export function AgentsList(props: AgentsListProps) {
     };
 
     /**
-     * Toggles the visibility of an agent.
+     * Cycles visibility of an agent.
      *
-     * @param agentIdentifier - Agent identifier to toggle.
+     * @param agentIdentifier - Agent identifier to update.
      */
     const handleToggleVisibility = async (agentIdentifier: string) => {
         const agent = agents.find((a) => a.permanentId === agentIdentifier || a.agentName === agentIdentifier);
         if (!agent) return;
 
-        const newVisibility = agent.visibility === 'PUBLIC' ? 'PRIVATE' : 'PUBLIC';
+        const newVisibility = getNextAgentVisibility(agent.visibility);
         const confirmed = await showConfirm({
             title: 'Update visibility',
             message: `${formatText('Make agent')} "${agent.agentName}" ${newVisibility.toLowerCase()}?`,
@@ -1459,8 +1460,8 @@ export function AgentsList(props: AgentsListProps) {
         });
 
         if (response.ok) {
-            setAgents(
-                agents.map((a) =>
+            setAgents((prev) =>
+                prev.map((a) =>
                     a.permanentId === agent.permanentId || a.agentName === agent.agentName
                         ? { ...a, visibility: newVisibility }
                         : a,
@@ -1471,6 +1472,59 @@ export function AgentsList(props: AgentsListProps) {
             await showAlert({
                 title: 'Update failed',
                 message: formatText('Failed to update agent visibility'),
+            }).catch(() => undefined);
+        }
+    };
+
+    /**
+     * Applies visibility to all agents inside the selected folder subtree.
+     *
+     * @param folderId - Root folder id for the batch update.
+     * @param visibility - Visibility to apply.
+     */
+    const handleSetFolderVisibility = async (folderId: number, visibility: AgentVisibility) => {
+        const folder = folders.find((item) => item.id === folderId);
+        if (!folder) {
+            return;
+        }
+
+        const descendantIds = collectDescendantFolderIds(folderId, folderMaps.childrenByParentId);
+        const descendantSet = new Set(descendantIds);
+        const affectedAgents = agents.filter((agent) => agent.folderId !== null && descendantSet.has(agent.folderId));
+
+        const confirmed = await showConfirm({
+            title: 'Update visibility',
+            message: `${formatText('Set visibility for folder')} "${folder.name}" ${formatText('and its subtree to')} ${visibility.toLowerCase()}? ${formatText('Affected agents')}: ${affectedAgents.length}.`,
+            confirmLabel: 'Update visibility',
+            cancelLabel: 'Cancel',
+        }).catch(() => false);
+        if (!confirmed) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/agent-folders/${folderId}/visibility`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ visibility }),
+            });
+            const data = (await response.json().catch(() => ({}))) as { success?: boolean; error?: string };
+            if (!response.ok || !data.success) {
+                throw new Error(data.error || 'Failed to update folder visibility.');
+            }
+
+            setAgents((prev) =>
+                prev.map((agent) =>
+                    agent.folderId !== null && descendantSet.has(agent.folderId)
+                        ? { ...agent, visibility }
+                        : agent,
+                ),
+            );
+            router.refresh();
+        } catch (error) {
+            await showAlert({
+                title: 'Update failed',
+                message: error instanceof Error ? error.message : 'Failed to update folder visibility.',
             }).catch(() => undefined);
         }
     };
@@ -1903,6 +1957,11 @@ export function AgentsList(props: AgentsListProps) {
                     onOpenFolder={() => navigateToFolder(contextMenuFolder.id)}
                     onRenameFolder={canOrganize ? () => handleRenameFolder(contextMenuFolder.id) : undefined}
                     onDeleteFolder={canOrganize ? () => handleDeleteFolder(contextMenuFolder.id) : undefined}
+                    onSetVisibility={
+                        isAdmin
+                            ? (visibility) => handleSetFolderVisibility(contextMenuFolder.id, visibility)
+                            : undefined
+                    }
                 />
             )}
             {qrCodeAgent && (

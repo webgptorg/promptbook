@@ -5,6 +5,7 @@ import { $getTableName } from '../../database/$getTableName';
 import { $provideSupabaseForServer } from '../../database/$provideSupabaseForServer';
 import type { AgentsServerDatabase } from '../../database/schema';
 import { getCurrentUser } from '../getCurrentUser';
+import { isPublicAgentVisibility } from '../agentVisibility';
 import { buildFolderTree, collectAncestorFolderIds } from './folderTree';
 import type {
     AgentOrganizationAgent,
@@ -106,7 +107,7 @@ export async function loadAgentOrganizationState(
         return { agents, folders, currentUser };
     }
 
-    const publicAgents = agents.filter((agent) => agent.visibility === 'PUBLIC');
+    const publicAgents = agents.filter((agent) => isPublicAgentVisibility(agent.visibility));
     const { folderById } = buildFolderTree(folders);
     const visibleFolderIds = new Set<number>();
 

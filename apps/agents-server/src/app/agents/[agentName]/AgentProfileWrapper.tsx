@@ -6,15 +6,16 @@ import { useCallback } from 'react';
 import { AgentContextMenuButton, type AgentContextMenuRenamePayload } from '../../../components/AgentContextMenu/AgentContextMenu';
 import { AgentProfile } from '../../../components/AgentProfile/AgentProfile';
 import type { AgentFolderContext } from '../../../utils/agentOrganization/agentFolderContext';
+import type { AgentVisibility } from '../../../utils/agentVisibility';
 
 /**
  * Extended agent profile information, including visibility status.
  */
 export type AgentProfile = AgentBasicInformation & {
     /**
-     * Visibility of the agent (PUBLIC or PRIVATE).
+     * Visibility of the agent.
      */
-    readonly visibility: 'PUBLIC' | 'PRIVATE';
+    readonly visibility: AgentVisibility;
 };
 
 /**

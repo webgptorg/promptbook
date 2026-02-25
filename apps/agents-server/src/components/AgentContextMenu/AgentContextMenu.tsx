@@ -6,6 +6,7 @@ import {
     CopyIcon,
     CopyPlusIcon,
     DownloadIcon,
+    EyeOffIcon,
     ExternalLinkIcon,
     FileTextIcon,
     FolderOpenIcon,
@@ -29,6 +30,7 @@ import { just } from '../../../../../src/utils/organization/just';
 import { getAgentLinks } from '../../app/agents/[agentName]/agentLinks';
 import { deleteAgent } from '../../app/recycle-bin/actions';
 import type { AgentFolderContext } from '../../utils/agentOrganization/agentFolderContext';
+import { AGENT_VISIBILITY_VALUES, type AgentVisibility } from '../../utils/agentVisibility';
 import { promptCloneAgent } from '../AgentCloning/cloneAgent';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 import { showAlert, showConfirm, showPrompt } from '../AsyncDialogs/asyncDialogs';
@@ -50,9 +52,9 @@ type BeforeInstallPromptEvent = Event & {
  */
 type AgentContextMenuAgent = AgentBasicInformation & {
     /**
-     * Visibility of the agent (PUBLIC or PRIVATE) when known.
+     * Visibility of the agent when known.
      */
-    readonly visibility?: 'PUBLIC' | 'PRIVATE';
+    readonly visibility?: AgentVisibility;
 };
 
 /**
@@ -426,12 +428,12 @@ export function useAgentContextMenuItems(props: AgentContextMenuBaseProps): Cont
     }, [agentName, derivedAgentName, formatText, onRequestClose, permanentId, router]);
 
     /**
-     * Updates agent visibility (public/private) via API.
+     * Updates agent visibility via API.
      *
      * @param visibility - The new visibility state.
      */
     const handleSetVisibility = useCallback(
-        async (visibility: 'PUBLIC' | 'PRIVATE') => {
+        async (visibility: AgentVisibility) => {
             try {
                 const agentIdentifier = permanentId || agentName;
                 const response = await fetch(`/api/agents/${encodeURIComponent(agentIdentifier)}`, {
@@ -454,7 +456,35 @@ export function useAgentContextMenuItems(props: AgentContextMenuBaseProps): Cont
         [agentName, formatText, permanentId],
     );
 
-    const shouldShowVisibilityToggle = Boolean(isAdmin && agent.visibility);
+    const shouldShowVisibilityActions = Boolean(isAdmin && agent.visibility);
+    const visibilityActions: ContextMenuItem[] = shouldShowVisibilityActions
+        ? AGENT_VISIBILITY_VALUES.filter((visibility) => visibility !== agent.visibility).map((visibility) => {
+              switch (visibility) {
+                  case 'PUBLIC':
+                      return {
+                          type: 'action' as const,
+                          icon: GlobeIcon,
+                          label: formatText('Make Public'),
+                          onClick: () => handleSetVisibility('PUBLIC'),
+                      };
+                  case 'UNLISTED':
+                      return {
+                          type: 'action' as const,
+                          icon: EyeOffIcon,
+                          label: formatText('Make Unlisted'),
+                          onClick: () => handleSetVisibility('UNLISTED'),
+                      };
+                  case 'PRIVATE':
+                  default:
+                      return {
+                          type: 'action' as const,
+                          icon: LockIcon,
+                          label: formatText('Make Private'),
+                          onClick: () => handleSetVisibility('PRIVATE'),
+                      };
+              }
+          })
+        : [];
     const menuItems: ContextMenuItem[] = [
         ...(fromDirectoryListing
             ? [
@@ -568,21 +598,9 @@ export function useAgentContextMenuItems(props: AgentContextMenuBaseProps): Cont
         ...(isAdmin
             ? [
                   { type: 'divider' as const },
-                  ...(shouldShowVisibilityToggle
+                  ...(visibilityActions.length > 0
                       ? [
-                            agent.visibility === 'PRIVATE'
-                                ? {
-                                      type: 'action' as const,
-                                      icon: GlobeIcon,
-                                      label: formatText('Make Public'),
-                                      onClick: () => handleSetVisibility('PUBLIC'),
-                                  }
-                                : {
-                                      type: 'action' as const,
-                                      icon: LockIcon,
-                                      label: formatText('Make Private'),
-                                      onClick: () => handleSetVisibility('PRIVATE'),
-                                  },
+                            ...visibilityActions,
                             { type: 'divider' as const },
                         ]
                       : []),

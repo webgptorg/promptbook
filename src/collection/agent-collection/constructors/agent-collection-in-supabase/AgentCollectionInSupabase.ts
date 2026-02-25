@@ -24,6 +24,10 @@ import type { AgentsDatabaseSchema } from './AgentsDatabaseSchema';
  */
 type CreateAgentOptions = {
     /**
+     * Visibility for the new agent.
+     */
+    readonly visibility?: 'PRIVATE' | 'UNLISTED' | 'PUBLIC';
+    /**
      * Folder identifier to assign the new agent to.
      */
     readonly folderId?: number | null;
@@ -211,6 +215,9 @@ export class AgentCollectionInSupabase /* TODO: [🌈][🐱‍🚀] implements A
         }
         if (options.sortOrder !== undefined) {
             insertPayload.sortOrder = options.sortOrder;
+        }
+        if (options.visibility !== undefined) {
+            insertPayload.visibility = options.visibility;
         }
 
         const insertAgentResult = await this.supabaseClient.from(this.getTableName('Agent')).insert(insertPayload);

@@ -109,7 +109,7 @@ export async function getAgentFolderContext(
     }
 
     const agentRow = agentResult.data[0] as Pick<AgentRow, 'folderId' | 'visibility'>;
-    if (!isAdmin && agentRow.visibility !== 'PUBLIC') {
+    if (!isAdmin && agentRow.visibility === 'PRIVATE') {
         return null;
     }
 

@@ -159,9 +159,9 @@ export const metadataDefaults = [
         type: 'TEXT_SINGLE_LINE',
     },
     {
-        key: 'DEFAULT_AGENT_VISIBILITY',
-        value: 'PRIVATE',
-        note: 'Default visibility for new agents. Can be PUBLIC or PRIVATE.',
+        key: 'DEFAULT_VISIBILITY',
+        value: 'UNLISTED',
+        note: 'Default visibility for new agents. Can be PRIVATE, UNLISTED, or PUBLIC.',
         type: 'TEXT_SINGLE_LINE',
     },
 ] as const satisfies ReadonlyArray<{

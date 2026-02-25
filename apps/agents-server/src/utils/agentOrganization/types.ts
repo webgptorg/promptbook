@@ -1,5 +1,6 @@
 import type { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
 import type { UserInfo } from '../getCurrentUser';
+import type { AgentVisibility } from '../agentVisibility';
 
 /**
  * Agent payload enriched with folder organization metadata.
@@ -8,7 +9,7 @@ export type AgentOrganizationAgent = AgentBasicInformation & {
     /**
      * Visibility of the agent for the homepage list.
      */
-    visibility?: 'PUBLIC' | 'PRIVATE';
+    visibility?: AgentVisibility;
     /**
      * Folder identifier the agent belongs to, or null for root.
      */

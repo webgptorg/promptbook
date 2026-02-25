@@ -1,10 +1,11 @@
 'use client';
 
 import { string_url } from '@promptbook-local/types';
-import { EyeIcon, EyeOffIcon, RotateCcwIcon } from 'lucide-react';
+import { EyeIcon, EyeOffIcon, LockIcon, RotateCcwIcon } from 'lucide-react';
 import Link from 'next/link';
 import { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
 import { resolveAgentAvatarImageUrl } from '../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
+import type { AgentVisibility } from '../../utils/agentVisibility';
 import { AgentCapabilityChips, HOMEPAGE_CAPABILITY_CHIPS_LIMIT } from '../AgentProfile/AgentCapabilityChips';
 import { useAgentBackground } from '../AgentProfile/useAgentBackground';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
@@ -54,7 +55,7 @@ type AgentCardProps = {
     /**
      * The current visibility status of the agent
      */
-    readonly visibility?: 'PUBLIC' | 'PRIVATE';
+    readonly visibility?: AgentVisibility;
 
     /**
      * The URL of the server where the agent is hosted
@@ -82,6 +83,7 @@ export function AgentCard({
     const fullname = (meta.fullname as string) || agentName || fallbackName;
     const imageUrl = resolveAgentAvatarImageUrl({ agent, baseUrl: serverUrl || publicUrl });
     const personaDescription = agent.personaDescription || '';
+    const resolvedVisibility = visibility || 'PRIVATE';
 
     const { brandColorLightHex, brandColorDarkHex, backgroundImage } = useAgentBackground(meta.color);
 
@@ -150,17 +152,25 @@ export function AgentCard({
                 <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                     <button
                         className={`${
-                            visibility === 'PUBLIC'
+                            resolvedVisibility === 'PUBLIC'
                                 ? 'bg-green-500 hover:bg-green-600'
+                                : resolvedVisibility === 'UNLISTED'
+                                ? 'bg-amber-500 hover:bg-amber-600'
                                 : 'bg-gray-500 hover:bg-gray-600'
                         } ${FILE_ACTION_BUTTON_CLASSES}`}
                         onClick={(e) => {
                             e.preventDefault();
                             onToggleVisibility?.(agent.permanentId || agent.agentName);
                         }}
-                        title={`Make ${visibility === 'PUBLIC' ? 'private' : 'public'}`}
+                        title={`Visibility: ${resolvedVisibility.toLowerCase()}. Click to cycle.`}
                     >
-                        {visibility === 'PUBLIC' ? <EyeIcon className="w-3 h-3" /> : <EyeOffIcon className="w-3 h-3" />}
+                        {resolvedVisibility === 'PUBLIC' ? (
+                            <EyeIcon className="w-3 h-3" />
+                        ) : resolvedVisibility === 'UNLISTED' ? (
+                            <EyeOffIcon className="w-3 h-3" />
+                        ) : (
+                            <LockIcon className="w-3 h-3" />
+                        )}
                     </button>
                     <button
                         className={`bg-red-500 hover:bg-red-600 ${FILE_ACTION_BUTTON_CLASSES}`}

@@ -28,6 +28,7 @@ import { darken } from '../../../../../src/utils/color/operators/darken';
 import { textColor } from '../../../../../src/utils/color/operators/furthest';
 import { lighten } from '../../../../../src/utils/color/operators/lighten';
 import type { AgentOrganizationFolder } from '../../utils/agentOrganization/types';
+import type { AgentVisibility } from '../../utils/agentVisibility';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 import { showAlert } from '../AsyncDialogs/asyncDialogs';
 import { buildFolderMaps, getFolderPathSegments, sortBySortOrder } from './agentOrganizationUtils';
@@ -58,7 +59,7 @@ const SERVER_GAP = 64;
  * Agent metadata plus visibility, server, and folder details used by the graph UI.
  */
 type AgentWithVisibility = AgentBasicInformation & {
-    visibility?: 'PUBLIC' | 'PRIVATE';
+    visibility?: AgentVisibility;
     serverUrl?: string;
     folderId?: number | null;
     sortOrder?: number;

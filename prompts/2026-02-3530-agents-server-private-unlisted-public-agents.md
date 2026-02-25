@@ -1,4 +1,4 @@
-[ ] !
+[x] ~$0.4881 an hour by OpenAI Codex `gpt-5.3-codex`
 
 [✨👁] Allow agents to be private, public or unlisted
 
@@ -45,3 +45,4 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

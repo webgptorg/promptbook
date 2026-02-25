@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server';
 import { $provideSupabaseForServer } from '../../../database/$provideSupabaseForServer';
 import { $provideAgentCollectionForServer } from '../../../tools/$provideAgentCollectionForServer';
 import { getFederatedServers } from '../../../utils/getFederatedServers';
+import { isPublicAgentVisibility, type AgentVisibility } from '../../../utils/agentVisibility';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,7 +25,7 @@ export async function GET() {
         let publicAgents = allAgents;
         if (!visibilityResult.error) {
             const visibilityMap = new Map(
-                visibilityResult.data.map((item: { agentName: string; visibility: 'PUBLIC' | 'PRIVATE' }) => [
+                visibilityResult.data.map((item: { agentName: string; visibility: AgentVisibility }) => [
                     item.agentName,
                     item.visibility,
                 ]),
@@ -33,7 +34,7 @@ export async function GET() {
             // Only include PUBLIC agents in federated API
             publicAgents = allAgents.filter((agent) => {
                 const visibility = visibilityMap.get(agent.agentName);
-                return visibility === 'PUBLIC';
+                return isPublicAgentVisibility(visibility);
             });
         }
 

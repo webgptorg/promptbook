@@ -5,6 +5,7 @@ import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { renameAgentSource } from '@/src/utils/renameAgentSource';
+import { isAgentVisibility, type AgentVisibility } from '@/src/utils/agentVisibility';
 import { parseAgentSource } from '@promptbook-local/core';
 import { TODO_any } from '@promptbook-local/types';
 import { NextResponse } from 'next/server';
@@ -14,7 +15,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ ag
     const { agentName } = await params;
 
     try {
-        const body = (await request.json()) as { visibility?: 'PUBLIC' | 'PRIVATE'; name?: string };
+        const body = (await request.json()) as { visibility?: AgentVisibility; name?: string };
 
         if (typeof body.name === 'string') {
             const trimmedName = body.name.trim();
@@ -38,9 +39,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ ag
 
         const { visibility } = body;
 
-        if (!visibility || !['PUBLIC', 'PRIVATE'].includes(visibility)) {
+        if (!isAgentVisibility(visibility)) {
             return NextResponse.json(
-                { success: false, error: 'Invalid visibility value. Must be PUBLIC or PRIVATE.' },
+                { success: false, error: 'Invalid visibility value. Must be PRIVATE, UNLISTED, or PUBLIC.' },
                 { status: 400 },
             );
         }

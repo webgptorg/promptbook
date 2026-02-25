@@ -1,4 +1,5 @@
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
+import { createAgentWithDefaultVisibility } from '@/src/utils/createAgentWithDefaultVisibility';
 import { NotFoundError } from '@promptbook-local/core';
 import { TODO_any } from '@promptbook-local/types';
 import { NextResponse } from 'next/server';
@@ -45,7 +46,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         lines[0] = newAgentName;
         const newSource = lines.join('\n') as string_book;
 
-        const newAgent = await collection.createAgent(newSource);
+        const newAgent = await createAgentWithDefaultVisibility(collection, newSource);
 
         return NextResponse.json(newAgent);
     } catch (error) {

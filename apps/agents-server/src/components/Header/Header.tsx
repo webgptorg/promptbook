@@ -605,7 +605,7 @@ function createFallbackAgent(agentIdentifier: string | null): AgentOrganizationA
         capabilities: [],
         samples: [],
         knowledgeSources: [],
-        visibility: 'PRIVATE',
+        visibility: 'UNLISTED',
         folderId: null,
         sortOrder: 0,
     };
