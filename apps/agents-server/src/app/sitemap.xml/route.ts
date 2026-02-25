@@ -1,7 +1,7 @@
 // Dynamic sitemap.xml for Agents Server
 
-import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideServer } from '@/src/tools/$provideServer';
+import { getPublicAgentProfileSeoRecords } from '@/src/utils/seo/getPublicAgentProfileSeoRecords';
 import { spaceTrim } from '@promptbook-local/utils';
 import { NextResponse } from 'next/server';
 
@@ -9,18 +9,14 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
     const { publicUrl } = await $provideServer();
+    const publicAgents = await getPublicAgentProfileSeoRecords();
 
-    const collection = await $provideAgentCollectionForServer();
-
-    // Assume collection.listAgents() returns an array of agent names
-    const agents = await collection.listAgents();
-
-    const urls = agents
-        .map(
-            ({ permanentId, agentName }) =>
-                `<url><loc>${publicUrl.href}agents/${encodeURIComponent(permanentId || agentName)}</loc></url>`,
-        )
-        .join('\n');
+    const urls = publicAgents
+        .map(({ canonicalAgentId, lastModifiedAt }) => {
+            const profileUrl = `${publicUrl.href}agents/${encodeURIComponent(canonicalAgentId)}`;
+            return `<url><loc>${profileUrl}</loc><lastmod>${lastModifiedAt}</lastmod></url>`;
+        })
+        .join('');
 
     const xml = spaceTrim(
         (block) => `
@@ -34,6 +30,7 @@ export async function GET() {
     return new NextResponse(xml, {
         headers: {
             'Content-Type': 'application/xml',
+            'Cache-Control': 'public, max-age=0, s-maxage=3600, stale-while-revalidate=86400',
         },
     });
 }

@@ -1,10 +1,8 @@
-import { $getTableName } from '@/src/database/$getTableName';
 import { $provideServer } from '@/src/tools/$provideServer';
+import { getPublicAgentProfileSeoRecords } from '@/src/utils/seo/getPublicAgentProfileSeoRecords';
 import { NextResponse } from 'next/server';
-import { $provideSupabaseForServer } from '../../../database/$provideSupabaseForServer';
 import { $provideAgentCollectionForServer } from '../../../tools/$provideAgentCollectionForServer';
 import { getFederatedServers } from '../../../utils/getFederatedServers';
-import { isPublicAgentVisibility, type AgentVisibility } from '../../../utils/agentVisibility';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,28 +13,9 @@ export async function GET() {
         const federatedServers = await getFederatedServers();
         const { publicUrl } = await $provideServer();
 
-        // Filter to only include PUBLIC agents for federated API
-        const supabase = $provideSupabaseForServer();
-        const visibilityResult = await supabase
-            .from(await $getTableName(`Agent`))
-            .select('agentName, visibility')
-            .is('deletedAt', null);
-
-        let publicAgents = allAgents;
-        if (!visibilityResult.error) {
-            const visibilityMap = new Map(
-                visibilityResult.data.map((item: { agentName: string; visibility: AgentVisibility }) => [
-                    item.agentName,
-                    item.visibility,
-                ]),
-            );
-
-            // Only include PUBLIC agents in federated API
-            publicAgents = allAgents.filter((agent) => {
-                const visibility = visibilityMap.get(agent.agentName);
-                return isPublicAgentVisibility(visibility);
-            });
-        }
+        const publicSeoRecords = await getPublicAgentProfileSeoRecords();
+        const publicCanonicalAgentIds = new Set(publicSeoRecords.map((record) => record.canonicalAgentId));
+        const publicAgents = allAgents.filter((agent) => publicCanonicalAgentIds.has(agent.permanentId || agent.agentName));
 
         const agentsWithUrl = publicAgents.map((agent) => ({
             ...agent,

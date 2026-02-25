@@ -14,6 +14,7 @@ import { formatAgentNamingText } from '../../../utils/agentNaming';
 import { resolveAgentRouteTarget } from '../../../utils/agentRouting/resolveAgentRouteTarget';
 import { getAgentNaming } from '../../../utils/getAgentNaming';
 import { ensureChatHistoryIdentity } from '@/src/utils/currentUserIdentity';
+import { isPublicAgentVisibility } from '@/src/utils/agentVisibility';
 import { getAgentFolderContext, getAgentName, getAgentProfile, isAgentDeleted } from './_utils';
 import { getAgentLinks } from './agentLinks';
 import { AgentProfileChat } from './AgentProfileChat';
@@ -83,6 +84,76 @@ function buildCanonicalAgentChatPath(
     const query = params.toString();
     const pathname = `/agents/${encodeURIComponent(canonicalAgentId)}/chat`;
     return query ? `${pathname}?${query}` : pathname;
+}
+
+/**
+ * Structured data payload for public agent profile pages.
+ */
+type AgentProfileStructuredData = {
+    '@context': 'https://schema.org';
+    '@type': 'ProfilePage';
+    url: string;
+    name: string;
+    description?: string;
+    image?: string;
+    mainEntity: {
+        '@type': 'SoftwareApplication';
+        name: string;
+        description?: string;
+        url: string;
+        image?: string;
+        applicationCategory: string;
+    };
+};
+
+/**
+ * Normalizes one URL into an absolute string for structured-data usage.
+ *
+ * @param value - Relative or absolute URL candidate.
+ * @param baseUrl - Absolute server base URL.
+ * @returns Absolute URL string or `undefined` for invalid inputs.
+ */
+function toAbsoluteUrl(value: string, baseUrl: string): string | undefined {
+    try {
+        return new URL(value, baseUrl).href;
+    } catch {
+        return undefined;
+    }
+}
+
+/**
+ * Builds structured data for a publicly indexable agent profile page.
+ *
+ * @param options - Structured data input values.
+ * @returns JSON-LD payload or `null` when indexing should be disabled.
+ */
+function createPublicAgentProfileStructuredData(options: {
+    isPublic: boolean;
+    canonicalUrl: string;
+    title: string;
+    description?: string;
+    imageUrl?: string;
+}): AgentProfileStructuredData | null {
+    if (!options.isPublic) {
+        return null;
+    }
+
+    return {
+        '@context': 'https://schema.org',
+        '@type': 'ProfilePage',
+        url: options.canonicalUrl,
+        name: options.title,
+        description: options.description,
+        image: options.imageUrl,
+        mainEntity: {
+            '@type': 'SoftwareApplication',
+            name: options.title,
+            description: options.description,
+            url: options.canonicalUrl,
+            image: options.imageUrl,
+            applicationCategory: 'BusinessApplication',
+        },
+    };
 }
 
 /**
@@ -177,9 +248,24 @@ export default async function AgentPage({
     const fallbackName = formatAgentNamingText('Agent', agentNaming);
     const fullname = (agentProfile.meta.fullname || agentProfile.agentName || fallbackName) as string;
     const isDeleted = await isAgentDeleted(canonicalAgentId);
+    const fallbackAvatarPath = `/agents/${encodeURIComponent(agentProfile.permanentId || canonicalAgentId)}/images/default-avatar.png`;
+    const avatarSrc = resolveAgentAvatarImageUrl({ agent: agentProfile, baseUrl: publicUrl.href }) || fallbackAvatarPath;
+    const publicAgentProfileStructuredData = createPublicAgentProfileStructuredData({
+        isPublic: isPublicAgentVisibility(agentProfile.visibility) && !isDeleted,
+        canonicalUrl: routeTarget.canonicalUrl,
+        title: fullname,
+        description: agentProfile.meta.description || agentProfile.personaDescription || undefined,
+        imageUrl: toAbsoluteUrl(avatarSrc, publicUrl.href),
+    });
 
     return (
         <>
+            {publicAgentProfileStructuredData && (
+                <script
+                    type="application/ld+json"
+                    dangerouslySetInnerHTML={{ __html: JSON.stringify(publicAgentProfileStructuredData) }}
+                />
+            )}
             <ServiceWorkerRegister scope={`/agents/${encodeURIComponent(canonicalAgentId)}/`} />
             <AgentProfileWrapper
                 agent={agentProfile}
@@ -218,10 +304,7 @@ export default async function AgentPage({
                     agentName={canonicalAgentId}
                     fullname={fullname}
                     brandColorHex={brandColorHex}
-                    avatarSrc={
-                        resolveAgentAvatarImageUrl({ agent: agentProfile, baseUrl: publicUrl.href }) ||
-                        `/agents/${encodeURIComponent(agentProfile.permanentId || canonicalAgentId)}/images/default-avatar.png`
-                    }
+                    avatarSrc={avatarSrc}
                     isDeleted={isDeleted}
                     speechRecognitionLanguage={speechRecognitionLanguage}
                     isHistoryEnabled={historyIdentityAvailable}
