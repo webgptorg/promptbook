@@ -1,10 +1,9 @@
 import { mkdir, unlink, writeFile } from 'fs/promises';
 import { dirname, join } from 'path';
 import { $execCommand } from '../../../src/utils/execCommand/$execCommand';
-import { buildAgentGitEnv, buildAgentGitSigningFlag } from './agentGitIdentity';
 
 /**
- * Commits staged changes with the provided message using the configured agent identity and signing key.
+ * Commits staged changes with the provided message.
  */
 export async function commitChanges(message: string): Promise<void> {
     const commitMessagePath = join(process.cwd(), '.tmp', 'codex-prompts', `COMMIT_MESSAGE_${Date.now()}.txt`);
@@ -12,15 +11,12 @@ export async function commitChanges(message: string): Promise<void> {
     await writeFile(commitMessagePath, message, 'utf-8');
 
     try {
-        const agentEnv = buildAgentGitEnv();
         await $execCommand({
             command: 'git add .',
-            env: agentEnv,
         });
 
         await $execCommand({
-            command: `git commit ${buildAgentGitSigningFlag()} --file "${commitMessagePath}"`,
-            env: agentEnv,
+            command: `git commit --file "${commitMessagePath}"`,
         });
     } finally {
         await unlink(commitMessagePath).catch(() => undefined);
