@@ -2,9 +2,18 @@
 
 import type { Metadata } from 'next';
 import { getAgentName, getAgentProfile } from './_utils';
+import { resolvePseudoAgentDescriptor } from '../../../utils/pseudoAgents';
 
 export async function generateMetadata({ params }: { params: Promise<{ agentName: string }> }): Promise<Metadata> {
     const agentName = await getAgentName(params);
+
+    const pseudoDescriptor = resolvePseudoAgentDescriptor(agentName);
+    if (pseudoDescriptor) {
+        return {
+            title: pseudoDescriptor.descriptor.displayName,
+            description: pseudoDescriptor.descriptor.summary,
+        };
+    }
 
     try {
         const agentProfile = await getAgentProfile(agentName);

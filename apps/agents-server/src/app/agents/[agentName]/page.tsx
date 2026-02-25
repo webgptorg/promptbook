@@ -20,6 +20,8 @@ import { AgentProfileChat } from './AgentProfileChat';
 import { AgentProfileWrapper } from './AgentProfileWrapper';
 import { generateAgentMetadata } from './generateAgentMetadata';
 import { ServiceWorkerRegister } from './ServiceWorkerRegister';
+import { getPseudoAgentDescriptor } from '../../../utils/pseudoAgents';
+import { PseudoAgentProfilePage } from './PseudoAgentProfile';
 
 export const generateMetadata = generateAgentMetadata;
 
@@ -105,6 +107,22 @@ export default async function AgentPage({
     }
     if (routeTarget.kind === 'remote') {
         redirect(routeTarget.url);
+    }
+
+    if (routeTarget.kind === 'pseudo') {
+        const canonicalAgentId = routeTarget.canonicalAgentId;
+        if (agentName !== canonicalAgentId) {
+            redirect(buildCanonicalAgentPath(canonicalAgentId, currentSearchParams));
+        }
+
+        const descriptor = getPseudoAgentDescriptor(routeTarget.pseudoAgentKind);
+        return (
+            <PseudoAgentProfilePage
+                descriptor={descriptor}
+                canonicalAgentId={canonicalAgentId}
+                canonicalUrl={routeTarget.canonicalUrl}
+            />
+        );
     }
 
     const canonicalAgentId = routeTarget.canonicalAgentId;

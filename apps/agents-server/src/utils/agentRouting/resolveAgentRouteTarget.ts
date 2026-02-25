@@ -3,7 +3,9 @@ import { $provideAgentCollectionForServer } from '../../tools/$provideAgentColle
 import { $provideAgentReferenceResolver } from '../agentReferenceResolver/$provideAgentReferenceResolver';
 import { consumeAgentReferenceResolutionIssues } from '../agentReferenceResolver/AgentReferenceResolutionIssue';
 import { parseBookScopedAgentIdentifier } from '../agentReferenceResolver/bookScopedAgentReferences';
+import { resolvePseudoAgentDescriptor } from '../pseudoAgents';
 import { normalizeAgentName } from '../../../../../src/_packages/core.index';
+import type { PseudoAgentKind } from '../../../../../src/book-2.0/agent-source/pseudoAgentReferences';
 
 /**
  * Prefix used by canonical agent URLs in the application.
@@ -37,15 +39,23 @@ type RemoteAgentRouteTarget = {
     url: string;
 };
 
+type PseudoAgentRouteTarget = {
+    kind: 'pseudo';
+    pseudoAgentKind: PseudoAgentKind;
+    canonicalAgentId: string;
+    canonicalUrl: string;
+};
+
 /**
  * Target returned for an incoming `/agents/:agentId` route value.
  */
-export type AgentRouteTarget = LocalAgentRouteTarget | RemoteAgentRouteTarget;
+export type AgentRouteTarget = LocalAgentRouteTarget | RemoteAgentRouteTarget | PseudoAgentRouteTarget;
 
 /**
  * Resolves any incoming `/agents/:agentId` token into a canonical target URL.
  *
  * Supported inputs include plain IDs/names, `@name`, `{name}`, `{id}`, and absolute `/agents/...` URLs.
+ * Pseudo-agent tokens such as `{User}` or `{Void}` resolve to dedicated documentation pages.
  *
  * @param rawReference - Raw decoded route parameter value.
  * @returns Canonical local/remote route target or `null` when the reference cannot be resolved.
@@ -68,9 +78,21 @@ export async function resolveAgentRouteTarget(rawReference: string): Promise<Age
         return null;
     }
 
-    const resolver = await $provideAgentReferenceResolver();
     const { publicUrl } = await $provideServer();
     const localServerUrl = normalizeServerUrl(publicUrl.href);
+    const pseudoDescriptor = resolvePseudoAgentDescriptor(normalizedReference);
+    if (pseudoDescriptor) {
+        const canonicalAgentId = pseudoDescriptor.descriptor.canonicalName;
+
+        return {
+            kind: 'pseudo',
+            pseudoAgentKind: pseudoDescriptor.kind,
+            canonicalAgentId,
+            canonicalUrl: `${localServerUrl}${AGENT_PATH_PREFIX}${encodeURIComponent(canonicalAgentId)}`,
+        };
+    }
+
+    const resolver = await $provideAgentReferenceResolver();
     let resolvedUrlValue: string;
 
     try {

@@ -62,4 +62,15 @@ describe('resolveAgentRouteTarget', () => {
             canonicalUrl: `https://local.example/agents/${encodeURIComponent(embeddedIdentifier)}`,
         });
     });
+
+    it('resolves pseudo-agent references to dedicated pages', async () => {
+        const result = await resolveAgentRouteTarget('User');
+
+        expect(result).toEqual({
+            kind: 'pseudo',
+            pseudoAgentKind: 'USER',
+            canonicalAgentId: 'user',
+            canonicalUrl: 'https://local.example/agents/user',
+        });
+    });
 });
