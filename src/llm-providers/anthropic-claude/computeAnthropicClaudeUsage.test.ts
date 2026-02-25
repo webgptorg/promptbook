@@ -14,6 +14,9 @@ describe('how computeAnthropicClaudeUsage works', () => {
                 },
             }),
         ).toEqual({
+            duration: {
+                value: 0,
+            },
             input: {
                 charactersCount: {
                     value: 0,

@@ -14,6 +14,9 @@ describe('how computeOpenAiUsage works', () => {
                 },
             }),
         ).toEqual({
+            duration: {
+                value: 0,
+            },
             input: {
                 charactersCount: {
                     value: 0,
