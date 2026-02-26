@@ -21,10 +21,10 @@ jobs:
             - name: Install dependencies
               run: npm ci
 
-            - name: Test Lint
+            - name: Install Playwright browser
               working-directory: ./apps/agents-server
-              run: npm run lint
+              run: npx playwright install --with-deps chromium
 
-            - name: Test build
+            - name: Test Agents Server
               working-directory: ./apps/agents-server
-              run: npm run test-build
+              run: npm run test
