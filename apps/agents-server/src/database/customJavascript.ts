@@ -31,6 +31,49 @@ export type CustomJavascriptRow = {
 };
 
 /**
+ * Minimal supabase error shape used by this module.
+ * @private
+ */
+type SupabaseErrorLike = {
+    code?: string;
+    message?: string;
+};
+
+/**
+ * Dynamic query interface for `CustomJavascript` table operations.
+ *
+ * Supabase schema typing cannot express runtime-composed table names, so this
+ * local interface captures only operations used in this file.
+ * @private
+ */
+type DynamicCustomJavascriptTableQuery = {
+    select: (columns: '*') => {
+        eq: (
+            column: 'scope',
+            value: string,
+        ) => {
+            maybeSingle: () => Promise<{ data: CustomJavascriptRow | null; error: SupabaseErrorLike | null }>;
+        };
+    };
+    upsert: (
+        values: Pick<CustomJavascriptRow, 'scope' | 'javascript' | 'updatedAt'>,
+        options: { onConflict: 'scope' },
+    ) => {
+        select: (columns: '*') => {
+            single: () => Promise<{ data: CustomJavascriptRow; error: SupabaseErrorLike | null }>;
+        };
+    };
+};
+
+/**
+ * Minimal dynamic supabase client used in this file.
+ * @private
+ */
+type DynamicSupabaseClient = {
+    from: (tableName: string) => DynamicCustomJavascriptTableQuery;
+};
+
+/**
  * Resolves the prefixed table name for `CustomJavascript`.
  * @private
  */
@@ -65,7 +108,7 @@ function isMissingRelationError(error: unknown): boolean {
  */
 export async function getCurrentCustomJavascriptRow(): Promise<CustomJavascriptRow | null> {
     const table = await getCustomJavascriptTableName();
-    const supabase = $provideSupabase() as any;
+    const supabase = $provideSupabase() as unknown as DynamicSupabaseClient;
 
     const { data, error } = await supabase.from(table).select('*').eq('scope', CUSTOM_JAVASCRIPT_SCOPE).maybeSingle();
 
@@ -102,7 +145,7 @@ export async function saveCustomJavascriptText(javascript: string): Promise<Cust
     }
 
     const table = await getCustomJavascriptTableName();
-    const supabase = $provideSupabase() as any;
+    const supabase = $provideSupabase() as unknown as DynamicSupabaseClient;
     const now = new Date().toISOString();
 
     const { data, error } = await supabase
@@ -120,7 +163,9 @@ export async function saveCustomJavascriptText(javascript: string): Promise<Cust
 
     if (error) {
         if (isMissingRelationError(error)) {
-            throw new Error('CustomJavascript table is missing. Apply database migrations before saving custom JavaScript.');
+            throw new Error(
+                'CustomJavascript table is missing. Apply database migrations before saving custom JavaScript.',
+            );
         }
 
         throw new Error(`Failed to save custom JavaScript: ${error.message || String(error)}`);

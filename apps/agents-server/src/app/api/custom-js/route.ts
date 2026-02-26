@@ -41,7 +41,7 @@ export async function GET() {
     try {
         const javascriptRow = await getCurrentCustomJavascriptRow();
 
-        return NextResponse.json({
+        return NextResponse.json<CustomJavascriptReadResponse>({
             javascript: javascriptRow?.javascript ?? '',
             exists: javascriptRow !== null,
             updatedAt: javascriptRow?.updatedAt ?? null,
@@ -81,7 +81,7 @@ export async function PUT(request: NextRequest) {
 
         const savedRow = await saveCustomJavascriptText(javascript);
 
-        return NextResponse.json({
+        return NextResponse.json<CustomJavascriptWriteResponse>({
             javascript: savedRow.javascript,
             updatedAt: savedRow.updatedAt,
             maxLength: MAX_CUSTOM_JAVASCRIPT_LENGTH,

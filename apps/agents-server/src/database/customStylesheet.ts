@@ -28,6 +28,46 @@ export type CustomStylesheetRow = {
 };
 
 /**
+ * Minimal supabase error shape used by this module.
+ */
+type SupabaseErrorLike = {
+    code?: string;
+    message?: string;
+};
+
+/**
+ * Dynamic query interface for `CustomStylesheet` table operations.
+ *
+ * Supabase schema typing cannot express runtime-composed table names, so this
+ * local interface captures only operations used in this file.
+ */
+type DynamicCustomStylesheetTableQuery = {
+    select: (columns: '*') => {
+        eq: (
+            column: 'scope',
+            value: string,
+        ) => {
+            maybeSingle: () => Promise<{ data: CustomStylesheetRow | null; error: SupabaseErrorLike | null }>;
+        };
+    };
+    upsert: (
+        values: Pick<CustomStylesheetRow, 'scope' | 'css' | 'updatedAt'>,
+        options: { onConflict: 'scope' },
+    ) => {
+        select: (columns: '*') => {
+            single: () => Promise<{ data: CustomStylesheetRow; error: SupabaseErrorLike | null }>;
+        };
+    };
+};
+
+/**
+ * Minimal dynamic supabase client used in this file.
+ */
+type DynamicSupabaseClient = {
+    from: (tableName: string) => DynamicCustomStylesheetTableQuery;
+};
+
+/**
  * Resolves the prefixed table name for `CustomStylesheet`.
  */
 async function getCustomStylesheetTableName(): Promise<string> {
@@ -59,7 +99,7 @@ function isMissingRelationError(error: unknown): boolean {
  */
 export async function getCurrentCustomStylesheetRow(): Promise<CustomStylesheetRow | null> {
     const table = await getCustomStylesheetTableName();
-    const supabase = $provideSupabase() as any;
+    const supabase = $provideSupabase() as unknown as DynamicSupabaseClient;
 
     const { data, error } = await supabase.from(table).select('*').eq('scope', CUSTOM_STYLESHEET_SCOPE).maybeSingle();
 
@@ -94,7 +134,7 @@ export async function saveCustomStylesheetCss(css: string): Promise<CustomStyles
     }
 
     const table = await getCustomStylesheetTableName();
-    const supabase = $provideSupabase() as any;
+    const supabase = $provideSupabase() as unknown as DynamicSupabaseClient;
     const now = new Date().toISOString();
 
     const { data, error } = await supabase
@@ -112,9 +152,7 @@ export async function saveCustomStylesheetCss(css: string): Promise<CustomStyles
 
     if (error) {
         if (isMissingRelationError(error)) {
-            throw new Error(
-                'CustomStylesheet table is missing. Apply database migrations before saving custom CSS.',
-            );
+            throw new Error('CustomStylesheet table is missing. Apply database migrations before saving custom CSS.');
         }
 
         throw new Error(`Failed to save custom stylesheet: ${error.message || String(error)}`);
