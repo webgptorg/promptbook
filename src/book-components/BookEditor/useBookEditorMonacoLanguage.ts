@@ -78,10 +78,7 @@ export function ensureBookEditorMonacoLanguage(monaco: MonacoEditor): void {
         [/^```.*$/, 'code-block', '@codeblock'],
         [agentReferenceCommitmentRegex, 'commitment', '@agent-reference-body'],
         [commitmentRegex, 'commitment', '@body'],
-        ...BookEditorMonacoTokenization.AGENT_REFERENCE_HIGHLIGHT_REGEXES.map((regex) => [
-            regex,
-            'agent-reference',
-        ]),
+        ...BookEditorMonacoTokenization.AGENT_REFERENCE_HIGHLIGHT_REGEXES.map((regex) => [regex, 'agent-reference']),
         [parameterRegex, 'parameter'],
         [/\{[^}]+\}/, 'parameter'],
     ];

@@ -2,10 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 import { createTeamToolName } from './createTeamToolName';
 import { createAgentModelRequirements } from './createAgentModelRequirements';
 import type { AgentReferenceResolver } from './AgentReferenceResolver';
-import {
-    createPseudoUserTeammateLabel,
-    PSEUDO_AGENT_USER_URL,
-} from './pseudoAgentReferences';
+import { createPseudoUserTeammateLabel, PSEUDO_AGENT_USER_URL } from './pseudoAgentReferences';
 import { validateBook } from './string_book';
 
 describe('USE SEARCH ENGINE and USE BROWSER commitments', () => {
@@ -85,7 +82,9 @@ describe('USE SEARCH ENGINE and USE BROWSER commitments', () => {
         );
         expect(requirements.systemMessage).toContain('## Language:');
         expect(requirements.systemMessage).toContain('## Teammates:');
-        expect(requirements.systemMessage).toContain(`Ask ${pseudoUserLabel} for everything. Always asks him in English`);
+        expect(requirements.systemMessage).toContain(
+            `Ask ${pseudoUserLabel} for everything. Always asks him in English`,
+        );
         expect(requirements.systemMessage).toContain(`1) ${pseudoUserLabel} tool \`${expectedToolName}\``);
         expect(requirements.systemMessage).not.toContain('pseudo-agent.promptbook');
     });
