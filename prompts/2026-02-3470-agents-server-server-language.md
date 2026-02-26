@@ -15,15 +15,36 @@
 
 ---
 
-[-]
+[ ]
 
-[✨💕] Yaml
+[✨💕] Convert translations to YAML.
+
+-   There are Translation files in agent server
+-   These translation files are in TypeScript, but they should be in YAML.
+-   Do a proper analysis of Agents Server Translations before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+
+---
+
+[ ]
+
+[✨💕] Finish translations
+
+-   There are Translation files in agent server
+-   But a lot of them aren't finished. Please go through the agent server and write all the messages.
+-   Do a proper analysis of Agents Server Translations before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+
+---
+
+[ ]
+
+[✨💕] Change `SERVER_LANGUAGE` to `DEFAULT_SERVER_LANGUAGE`
 
 -   @@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
+-   Do a proper analysis of Agents Server Translations before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
 
@@ -36,16 +57,3 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
----
-
-[-]
-
-[✨💕] brr
-
--   @@@
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
--   You are working with the [Agents Server](apps/agents-server)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
-
