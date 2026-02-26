@@ -1,63 +1,49 @@
 /**
- * Environment variable that configures the agent commit user name.
+ * Environment variable that configures the name used for agent commits.
  */
-const ENV_GIT_NAME = 'CODING_AGENT_GIT_NAME';
+const AGENT_GIT_NAME_ENV = 'CODEX_AGENT_GIT_NAME';
 
 /**
- * Environment variable that configures the agent commit user email.
+ * Environment variable that configures the email used for agent commits.
  */
-const ENV_GIT_EMAIL = 'CODING_AGENT_GIT_EMAIL';
+const AGENT_GIT_EMAIL_ENV = 'CODEX_AGENT_GIT_EMAIL';
 
 /**
- * Environment variable that configures the agent commit signing key ID.
+ * Environment variable that configures the signing key used for agent commits.
  */
-const ENV_GPG_KEY = 'CODING_AGENT_GPG_KEY_ID';
+const AGENT_GIT_SIGNING_KEY_ENV = 'CODEX_AGENT_GIT_SIGNING_KEY';
 
 /**
- * Optional environment variable to override the GPG program that signs commits.
- */
-const ENV_GPG_PROGRAM = 'CODING_AGENT_GPG_PROGRAM';
-
-/**
- * Represents the Git identity that should be used for agent-written commits.
+ * Git identity details that must drive commits created by the coding agent.
  */
 export type AgentGitIdentity = {
-    name: string;
-    email: string;
-    signingKey: string;
-    gpgProgram?: string;
+    readonly name: string;
+    readonly email: string;
+    readonly signingKey: string;
 };
 
-/**
- * Reads an environment variable and fails if it was not configured.
- */
-function readRequiredEnvVar(envVar: string, description: string): string {
-    const value = process.env[envVar];
-    if (!value) {
-        throw new Error(
-            `Missing ${description}. Set ${envVar} when running the coding agent (for example via .env or your shell).`,
-        );
-    }
-
-    return value;
-}
+let cachedIdentity: AgentGitIdentity | undefined;
 
 /**
- * Builds the agent git identity from configured environment variables.
+ * Reads the required agent identity values from the environment and remembers them for the lifetime of the script.
  */
 export function getAgentGitIdentity(): AgentGitIdentity {
-    return {
-        name: readRequiredEnvVar(ENV_GIT_NAME, 'agent commit name'),
-        email: readRequiredEnvVar(ENV_GIT_EMAIL, 'agent commit email'),
-        signingKey: readRequiredEnvVar(ENV_GPG_KEY, 'agent GPG key ID'),
-        gpgProgram: process.env[ENV_GPG_PROGRAM],
-    };
+    if (cachedIdentity) {
+        return cachedIdentity;
+    }
+
+    const name = readRequiredEnvValue(AGENT_GIT_NAME_ENV);
+    const email = readRequiredEnvValue(AGENT_GIT_EMAIL_ENV);
+    const signingKey = readRequiredEnvValue(AGENT_GIT_SIGNING_KEY_ENV);
+
+    cachedIdentity = { name, email, signingKey };
+    return cachedIdentity;
 }
 
 /**
- * Returns the environment overrides that keep author/committer metadata aligned with the agent identity.
+ * Builds the environment overrides that ensure git commits use the agent identity instead of the primary user.
  */
-export function buildAgentGitEnv(identity: AgentGitIdentity): Record<string, string> {
+export function buildAgentGitEnv(identity = getAgentGitIdentity()): Record<string, string> {
     return {
         GIT_AUTHOR_NAME: identity.name,
         GIT_AUTHOR_EMAIL: identity.email,
@@ -67,19 +53,24 @@ export function buildAgentGitEnv(identity: AgentGitIdentity): Record<string, str
 }
 
 /**
- * Builds the git -c overrides that apply the agent identity and enable GPG signing.
+ * Produces the git commit flag that enforces signing with the configured agent key.
  */
-export function buildAgentGitConfigArgs(identity: AgentGitIdentity): string[] {
-    const configEntries: Array<[string, string]> = [
-        ['user.name', identity.name],
-        ['user.email', identity.email],
-        ['user.signingkey', identity.signingKey],
-        ['commit.gpgsign', 'true'],
-    ];
+export function buildAgentGitSigningFlag(identity = getAgentGitIdentity()): string {
+    return `--gpg-sign="${identity.signingKey}"`;
+}
 
-    if (identity.gpgProgram) {
-        configEntries.push(['gpg.program', identity.gpgProgram]);
+/**
+ * Reads a required environment variable and fails fast with a helpful message if it is missing.
+ */
+function readRequiredEnvValue(name: string): string {
+    const value = process.env[name]?.trim();
+    if (!value) {
+        throw new Error(
+            `Missing required environment variable ${name}. ` +
+                'Set CODEX_AGENT_GIT_NAME, CODEX_AGENT_GIT_EMAIL, ' +
+                'and CODEX_AGENT_GIT_SIGNING_KEY before running the coding agent.',
+        );
     }
 
-    return configEntries.flatMap(([key, value]) => ['-c', `${key}=${value}`]);
+    return value;
 }
