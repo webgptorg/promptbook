@@ -85,12 +85,13 @@
 
 ---
 
-[ ]
+[ ] !
 
-[✨🆑] Allow to switch between cost / time / human time
+[✨🆑] Allow to switch between cost / time / human time when viewing a usage
 
--   @@@
+-   When showing the usage, allow to switch between cost, agent duration (How long the prompt took), estimated human time (How long will it take for a human to do the same thing)
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
+    -   We have already implemented human estimation. Use it.
 -   Do a proper analysis of the current functionality of usage and agents server chat before you start implementing.
 -   If you need to do the database migration, do it
 -   You are working with the [Agents Server](apps/agents-server) with the usage statistics of the agents.
@@ -128,4 +129,3 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality of usage and agents server chat before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server) with the usage statistics of the agents.
-
