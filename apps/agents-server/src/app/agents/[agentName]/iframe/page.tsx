@@ -1,19 +1,26 @@
 'use server';
+
 import { loadChatConfiguration } from '@/src/utils/chatConfiguration';
 import { ensureChatHistoryIdentity } from '@/src/utils/currentUserIdentity';
 import { getThinkingMessages } from '@/src/utils/thinkingMessages';
 import { headers } from 'next/headers';
+import { notFound, redirect } from 'next/navigation';
 import { resolveSpeechRecognitionLanguage } from '../../../../../../../src/utils/language/getBrowserPreferredSpeechRecognitionLanguage';
-import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEffect';
 import { DeletedAgentBanner } from '../../../../components/DeletedAgentBanner';
-import { PrintHeader } from '../../../../components/PrintHeader/PrintHeader';
-import { getAgentProfile, isAgentDeleted, parseBooleanFlag } from '../_utils';
+import { AgentChatHistoryClient } from '../chat/AgentChatHistoryClient';
+import { getAgentName, getAgentProfile, isAgentDeleted, parseBooleanFlag } from '../_utils';
 import { generateAgentMetadata } from '../generateAgentMetadata';
-import { AgentChatHistoryClient } from './AgentChatHistoryClient';
+import { resolveAgentRouteTarget } from '../../../../utils/agentRouting/resolveAgentRouteTarget';
 
 export const generateMetadata = generateAgentMetadata;
 
-export default async function AgentChatPage({
+/**
+ * Renders the iframe-friendly chat page for embedding an agent.
+ */
+/**
+ * Serves the iframe-friendly agent chat experience for embedding on other websites.
+ */
+export default async function AgentIframePage({
     params,
     searchParams,
 }: {
@@ -21,14 +28,32 @@ export default async function AgentChatPage({
     searchParams: Promise<{ message?: string; chat?: string; newChat?: string }>;
 }) {
     const requestHeaders = await headers();
-    $sideEffect(requestHeaders);
-    let { agentName } = await params;
-    agentName = decodeURIComponent(agentName);
+    const agentName = await getAgentName(params);
+    const routeTarget = await resolveAgentRouteTarget(agentName);
+
+    if (!routeTarget) {
+        notFound();
+    }
+
+    if (routeTarget.kind === 'remote') {
+        redirect(routeTarget.url);
+    }
+
+    if (routeTarget.kind === 'pseudo') {
+        redirect(routeTarget.canonicalUrl);
+    }
+
+    const canonicalAgentId = routeTarget.canonicalAgentId;
+    if (agentName !== canonicalAgentId) {
+        redirect(`/agents/${encodeURIComponent(canonicalAgentId)}/iframe`);
+    }
+
     const { message, chat, newChat } = await searchParams;
+    const speechRecognitionLanguage = resolveSpeechRecognitionLanguage({
+        acceptLanguageHeader: requestHeaders.get('accept-language'),
+    });
 
-    const isDeleted = await isAgentDeleted(agentName);
-    const agentProfile = await getAgentProfile(agentName);
-
+    const isDeleted = await isAgentDeleted(canonicalAgentId);
     if (isDeleted) {
         return (
             <main className="agents-server-viewport-width h-full flex items-center justify-center p-8">
@@ -37,20 +62,16 @@ export default async function AgentChatPage({
         );
     }
 
-    const agentUrl = `/agents/${agentName}`;
+    const agentProfile = await getAgentProfile(canonicalAgentId);
+    const agentUrl = `/agents/${encodeURIComponent(canonicalAgentId)}`;
     const thinkingMessages = await getThinkingMessages();
-    const speechRecognitionLanguage = resolveSpeechRecognitionLanguage({
-        acceptLanguageHeader: requestHeaders.get('accept-language'),
-    });
     const historyIdentityAvailable = await ensureChatHistoryIdentity();
     const { chatFailMessage, isFileAttachmentsEnabled, isFeedbackEnabled } = await loadChatConfiguration();
-    const agentDisplayName = agentProfile.meta.fullname || agentProfile.agentName || agentName;
 
     return (
-        <main className={`w-full h-full overflow-hidden relative agent-chat-route-surface print-export-chat-surface`}>
-            <PrintHeader title={`Chat with ${agentDisplayName}`} />
+        <main className="w-full h-full overflow-hidden relative agent-chat-route-surface print-export-chat-surface">
             <AgentChatHistoryClient
-                agentName={agentName}
+                agentName={canonicalAgentId}
                 agentUrl={agentUrl}
                 initialAutoExecuteMessage={message}
                 initialChatId={chat}
@@ -66,7 +87,3 @@ export default async function AgentChatPage({
         </main>
     );
 }
-
-/**
- * TODO: [🚗] Components and pages here should be just tiny UI wraper around proper agent logic and conponents
- */

@@ -22,6 +22,7 @@ export async function middleware(req: NextRequest) {
 
     const allowedIpsEnv = process.env.RESTRICT_IP;
     let allowedIpsMetadata: string | null = null;
+    let embeddingAllowedMetadata: string | null = null;
 
     // To fetch metadata, we need to know the table name, which depends on the host
     const host = req.headers.get('host');
@@ -58,12 +59,20 @@ export async function middleware(req: NextRequest) {
 
                 const { data } = await supabase
                     .from(await $getTableName(`Metadata`))
-                    .select('value')
-                    .eq('key', 'RESTRICT_IP')
-                    .single();
+                    .select('key, value')
+                    .in('key', ['RESTRICT_IP', 'IS_EMBEDDING_ALLOWED']);
 
-                if (data && data.value) {
-                    allowedIpsMetadata = data.value;
+                if (Array.isArray(data)) {
+                    for (const row of data) {
+                        const key = row?.key;
+                        const value = row?.value;
+                        if (key === 'RESTRICT_IP' && typeof value === 'string' && value !== '') {
+                            allowedIpsMetadata = value;
+                        }
+                        if (key === 'IS_EMBEDDING_ALLOWED' && typeof value === 'string') {
+                            embeddingAllowedMetadata = value;
+                        }
+                    }
                 }
             } catch (error) {
                 console.error('Error fetching metadata in middleware:', error);
@@ -73,6 +82,7 @@ export async function middleware(req: NextRequest) {
 
     const allowedIps =
         allowedIpsMetadata !== null && allowedIpsMetadata !== undefined ? allowedIpsMetadata : allowedIpsEnv;
+    const isEmbeddingAllowed = parseBooleanMetadataValue(embeddingAllowedMetadata, true);
 
     let isValidToken = false;
     const authHeader = req.headers.get('authorization');
@@ -267,7 +277,10 @@ export async function middleware(req: NextRequest) {
         }
     }
 
-    return NextResponse.next();
+    const response = NextResponse.next();
+    applyEmbeddingHeader(response, req.nextUrl.pathname, isEmbeddingAllowed);
+
+    return response;
 
     // This part should be unreachable due to logic above, but keeping as fallback
     return new NextResponse('Forbidden', { status: 403 });
@@ -285,3 +298,53 @@ export const config = {
         '/((?!_next/static|_next/image|favicon.ico|logo-|fonts/).*)',
     ],
 };
+
+/**
+ * Pattern that matches the iframe-friendly agent route served for embedding.
+ */
+const IFRAME_PATHNAME_PATTERN = /^\/agents\/[^/]+\/iframe\/?$/;
+
+/**
+ * Parses boolean metadata values, falling back when the stored value is missing or unrecognized.
+ *
+ * @param raw - Raw metadata text.
+ * @param fallback - Value used when the metadata does not contain a usable boolean.
+ * @returns Parsed boolean setting.
+ */
+function parseBooleanMetadataValue(raw: string | null | undefined, fallback: boolean): boolean {
+    if (!raw) {
+        return fallback;
+    }
+
+    const normalized = raw.trim().toLowerCase();
+    if (['true', '1', 'yes'].includes(normalized)) {
+        return true;
+    }
+    if (['false', '0', 'no'].includes(normalized)) {
+        return false;
+    }
+
+    return fallback;
+}
+
+/**
+ * Applies framing headers for the iframe route based on whether embedding is allowed.
+ *
+ * @param response - Response object that will be sent to the browser.
+ * @param pathname - Request pathname used to check whether the iframe page was requested.
+ * @param isAllowed - When true, framing is permitted; otherwise it is denied.
+ */
+function applyEmbeddingHeader(response: NextResponse, pathname: string, isAllowed: boolean): void {
+    if (!IFRAME_PATHNAME_PATTERN.test(pathname)) {
+        return;
+    }
+
+    if (isAllowed) {
+        response.headers.set('Content-Security-Policy', 'frame-ancestors https: http:');
+        response.headers.delete('X-Frame-Options');
+        return;
+    }
+
+    response.headers.set('Content-Security-Policy', "frame-ancestors 'none'");
+    response.headers.set('X-Frame-Options', 'DENY');
+}

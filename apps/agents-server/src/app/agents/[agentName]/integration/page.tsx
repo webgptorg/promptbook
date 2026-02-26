@@ -6,6 +6,7 @@ import { $provideServer } from '@/src/tools/$provideServer';
 import { isUserAdmin } from '@/src/utils/isUserAdmin';
 import { formatAgentNamingText } from '@/src/utils/agentNaming';
 import { getAgentNaming } from '@/src/utils/getAgentNaming';
+import { getMetadata } from '@/src/database/getMetadata';
 import { PROMPTBOOK_COLOR } from '@promptbook-local/core';
 import { BoxIcon, CodeIcon, GlobeIcon } from 'lucide-react';
 import { headers } from 'next/headers';
@@ -23,6 +24,29 @@ import { generateAgentMetadata } from '../generateAgentMetadata';
 import { ApiKeyIntegrationSections } from './ApiKeyIntegrationSections';
 import { PromptbookSdkTabs } from './PromptbookSdkTabs';
 import { WebsiteIntegrationTabs } from './WebsiteIntegrationTabs';
+
+/**
+ * Parses boolean metadata values stored as strings.
+ *
+ * @param raw - Raw metadata value from the database.
+ * @param fallback - Default value when metadata is missing or invalid.
+ * @returns Parsed boolean flag.
+ */
+function parseBooleanMetadataValue(raw: string | null, fallback: boolean): boolean {
+    if (!raw) {
+        return fallback;
+    }
+
+    const normalized = raw.trim().toLowerCase();
+    if (['true', '1', 'yes'].includes(normalized)) {
+        return true;
+    }
+    if (['false', '0', 'no'].includes(normalized)) {
+        return false;
+    }
+
+    return fallback;
+}
 
 export const generateMetadata = generateAgentMetadata;
 
@@ -61,6 +85,7 @@ export default async function AgentIntegrationPage({ params }: AgentIntegrationP
     const baseUrl = `${publicUrl.href}agents/${encodeURIComponent(agentName)}`;
     const agentApiBase = `${publicUrl.href}agents/${encodeURIComponent(agentName)}`;
     const rootUrl = publicUrl.href.replace(/\/$/, '');
+    const isEmbeddingAllowed = parseBooleanMetadataValue(await getMetadata('IS_EMBEDDING_ALLOWED'), true);
 
     // Get API Key if admin
     let apiKey = 'ptbk_...';
@@ -114,6 +139,21 @@ export default async function AgentIntegrationPage({ params }: AgentIntegrationP
                 agent-url="${baseUrl}"
                 meta='${block(metaJsonString)}'
             />
+        `,
+    );
+
+    const iframeUrl = `${baseUrl}/iframe`;
+    const iframeTitle = agentProfile.meta.fullname || agentName;
+    const iframeIntegrationCode = spaceTrim(
+        (block) => `
+            <iframe
+                src="${iframeUrl}"
+                title="${block(iframeTitle)}"
+                width="100%"
+                height="640"
+                style="border: none; border-radius: 16px;"
+                allow="microphone; autoplay; clipboard-write"
+            ></iframe>
         `,
     );
 
@@ -251,6 +291,32 @@ export default async function AgentIntegrationPage({ params }: AgentIntegrationP
                             reactCode={websiteIntegrationReactCode}
                             htmlCode={websiteIntegrationHtmlCode}
                         />
+                        {isEmbeddingAllowed ? (
+                            <div className="mt-6 space-y-4 rounded-xl border border-gray-200 bg-white/60 p-5 shadow-sm">
+                                <div>
+                                    <p className="text-sm text-gray-600">
+                                        Embed the same experience by pointing your iframe to <code>{iframeUrl}</code>. This
+                                        route renders the full chat UI that is also used by the JS integration preview.
+                                    </p>
+                                </div>
+                                <CodePreview code={iframeIntegrationCode} language="xml" />
+                                <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+                                    <div className="relative h-[360px] w-full">
+                                        <iframe
+                                            src={iframeUrl}
+                                            title={`Chat with ${iframeTitle}`}
+                                            className="absolute inset-0 h-full w-full border-0"
+                                            allow="microphone; autoplay; clipboard-write"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="mt-6 rounded-xl border border-orange-200 bg-orange-50/80 p-4 text-sm text-orange-800">
+                                Embedding is disabled by the <code>IS_EMBEDDING_ALLOWED</code> metadata entry.
+                                Enable it to show the iframe preview and code snippet.
+                            </div>
+                        )}
                     </div>
 
                     {/* Promptbook SDK Integration */}

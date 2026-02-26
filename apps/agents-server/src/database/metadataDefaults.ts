@@ -124,6 +124,12 @@ export const metadataDefaults = [
         type: 'BOOLEAN',
     },
     {
+        key: 'IS_EMBEDDING_ALLOWED',
+        value: 'true',
+        note: 'Allow serving the iframe-friendly agent route so other sites can embed it.',
+        type: 'BOOLEAN',
+    },
+    {
         key: 'IS_EXPERIMENTAL_PWA_APP_ENABLED',
         value: 'true',
         note: 'Show or hide the experimental install-app option inside agent menus.',

@@ -136,5 +136,20 @@ export async function getAgentFolderContext(
 }
 
 /**
+ * Parses boolean query flags used in agent chat routes.
+ *
+ * @param value - Raw query parameter value.
+ * @returns `true` when the parameter represents a truthy value.
+ */
+export function parseBooleanFlag(value?: string | null): boolean {
+    if (!value) {
+        return false;
+    }
+
+    const normalized = value.trim().toLowerCase();
+    return normalized === '1' || normalized === 'true' || normalized === 'yes';
+}
+
+/**
  * TODO: Split to multiple files, refactor
  */
