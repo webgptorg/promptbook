@@ -13,6 +13,7 @@ import { DeletedAgentBanner } from '../../../components/DeletedAgentBanner';
 import { formatAgentNamingText } from '../../../utils/agentNaming';
 import { resolveAgentRouteTarget } from '../../../utils/agentRouting/resolveAgentRouteTarget';
 import { getAgentNaming } from '../../../utils/getAgentNaming';
+import { loadChatConfiguration } from '../../../utils/chatConfiguration';
 import { ensureChatHistoryIdentity } from '@/src/utils/currentUserIdentity';
 import { isPublicAgentVisibility } from '@/src/utils/agentVisibility';
 import { getAgentFolderContext, getAgentName, getAgentProfile, isAgentDeleted } from './_utils';
@@ -217,6 +218,7 @@ export default async function AgentPage({
     const { headless: headlessParam } = currentSearchParams;
     const isHeadless = headlessParam !== undefined;
     const { publicUrl } = await $provideServer();
+    const { isFileAttachmentsEnabled } = await loadChatConfiguration();
     const folderContext = await getAgentFolderContext(canonicalAgentId, isAdmin);
     const agentNaming = await getAgentNaming();
 
@@ -308,6 +310,7 @@ export default async function AgentPage({
                     isDeleted={isDeleted}
                     speechRecognitionLanguage={speechRecognitionLanguage}
                     isHistoryEnabled={historyIdentityAvailable}
+                    areFileAttachmentsEnabled={isFileAttachmentsEnabled}
                 />
             </AgentProfileWrapper>
         </>

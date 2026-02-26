@@ -17,6 +17,7 @@ import { useAgentNaming } from '../../../components/AgentNaming/AgentNamingConte
 import { showAlert } from '../../../components/AsyncDialogs/asyncDialogs';
 import { DeletedAgentBanner } from '../../../components/DeletedAgentBanner';
 import { usePrivateModePreferences } from '../../../components/PrivateModePreferences/PrivateModePreferencesProvider';
+import { chatFileUploadHandler } from '../../../utils/upload/createBookEditorUploadHandler';
 
 /**
  * Props for rendering the profile-page chat preview for one agent.
@@ -30,6 +31,7 @@ type AgentProfileChatProps = {
     isDeleted?: boolean;
     speechRecognitionLanguage?: string;
     isHistoryEnabled?: boolean;
+    areFileAttachmentsEnabled?: boolean;
 };
 
 /**
@@ -145,6 +147,7 @@ export function AgentProfileChat({
     isDeleted = false,
     speechRecognitionLanguage,
     isHistoryEnabled = false,
+    areFileAttachmentsEnabled = true,
 }: AgentProfileChatProps) {
     const router = useRouter();
     const [isCreatingAgent, setIsCreatingAgent] = useState(false);
@@ -152,6 +155,7 @@ export function AgentProfileChat({
     const [existingChats, setExistingChats] = useState<Array<UserChatSummary>>([]);
     const { formatText } = useAgentNaming();
     const { isPrivateModeEnabled } = usePrivateModePreferences();
+    const allowFileAttachments = areFileAttachmentsEnabled;
 
     keepUnused(isCreatingAgent);
 
@@ -286,6 +290,8 @@ export function AgentProfileChat({
         [formatText, router],
     );
 
+    const handleFileUpload = useCallback(async (file: File) => chatFileUploadHandler(file), []);
+
     const initialMessage = useMemo(() => {
         if (!agent) {
             return 'Loading...';
@@ -360,6 +366,7 @@ export function AgentProfileChat({
                         ]}
                         onMessage={handleMessage}
                         onCreateAgent={handleCreateAgent}
+                        onFileUpload={allowFileAttachments ? handleFileUpload : undefined}
                         isSaveButtonEnabled={false}
                         isCopyButtonEnabled={false}
                         className="h-full w-full rounded-[28px] bg-transparent"
