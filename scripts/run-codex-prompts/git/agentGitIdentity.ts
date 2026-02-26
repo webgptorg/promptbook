@@ -1,17 +1,17 @@
 /**
  * Environment variable that configures the name used for agent commits.
  */
-const AGENT_GIT_NAME_ENV = 'CODEX_AGENT_GIT_NAME';
+const AGENT_GIT_NAME_ENV = 'CODING_AGENT_GIT_NAME';
 
 /**
  * Environment variable that configures the email used for agent commits.
  */
-const AGENT_GIT_EMAIL_ENV = 'CODEX_AGENT_GIT_EMAIL';
+const AGENT_GIT_EMAIL_ENV = 'CODING_AGENT_GIT_EMAIL';
 
 /**
  * Environment variable that configures the signing key used for agent commits.
  */
-const AGENT_GIT_SIGNING_KEY_ENV = 'CODEX_AGENT_GIT_SIGNING_KEY';
+const AGENT_GIT_SIGNING_KEY_ENV = 'CODING_AGENT_GIT_SIGNING_KEY';
 
 /**
  * Git identity details that must drive commits created by the coding agent.
@@ -67,8 +67,8 @@ function readRequiredEnvValue(name: string): string {
     if (!value) {
         throw new Error(
             `Missing required environment variable ${name}. ` +
-                'Set CODEX_AGENT_GIT_NAME, CODEX_AGENT_GIT_EMAIL, ' +
-                'and CODEX_AGENT_GIT_SIGNING_KEY before running the coding agent.',
+                'Set CODING_AGENT_GIT_NAME, CODING_AGENT_GIT_EMAIL, ' +
+                'and CODING_AGENT_GIT_SIGNING_KEY before running the coding agent.',
         );
     }
 

@@ -340,6 +340,7 @@
         {
             "name": "⚡🚀 Run Coding Agent (💤)(💸)(⏳)",
             "commands": [
+                "set -a && source .env && set +a",
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
                 "npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --agent openai-codex --model gpt-5.3-codex --priority 1 --no-wait && npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --agent openai-codex --model gpt-5.1-codex-mini --no-wait &&  ./scripts/lines-to-lf.sh && npx ts-node ./scripts/prettify-all/prettify-all.ts --commit && npm version prerelease"
             ],
@@ -350,6 +351,7 @@
         {
             "name": "⚡🚀 Run `gpt-5.3-codex` Coding Agent (💸)(⏳)",
             "commands": [
+                "set -a && source .env && set +a",
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
                 "npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --agent openai-codex --model gpt-5.3-codex --priority 1"
             ],
@@ -360,6 +362,7 @@
         {
             "name": "⚡🚀 Run `gpt-5.1-codex-mini` Coding Agent (💸)(⏳)",
             "commands": [
+                "set -a && source .env && set +a",
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
                 "npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --agent openai-codex --model gpt-5.1-codex-mini --no-wait"
             ],
@@ -370,6 +373,7 @@
         {
             "name": "⚡🚀 Run `gemini-3-flash` Coding Agent (💸)(⏳)",
             "commands": [
+                "set -a && source .env && set +a",
                 "npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --agent gemini --model gemini-3-flash-preview --no-wait"
             ],
             "execute": true,
@@ -379,6 +383,7 @@
         {
             "name": "⚡🚀 Run `gemini-3.1` Coding Agent (💸)(⏳)",
             "commands": [
+                "set -a && source .env && set +a",
                 "npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --agent gemini --model gemini-3.1-pro-preview --no-wait"
             ],
             "execute": true,

@@ -6,7 +6,7 @@ Prompt summary: Allow to set custom styles
 Runner: OpenAI Codex (gpt-5.3-codex)
 
 CLI output and error:
-Error: Missing required environment variable CODEX_AGENT_GIT_NAME. Set CODEX_AGENT_GIT_NAME, CODEX_AGENT_GIT_EMAIL, and CODEX_AGENT_GIT_SIGNING_KEY before running the coding agent.
+Error: Missing required environment variable CODING_AGENT_GIT_NAME. Set CODING_AGENT_GIT_NAME, CODING_AGENT_GIT_EMAIL, and CODING_AGENT_GIT_SIGNING_KEY before running the coding agent.
     at readRequiredEnvValue (C:\Users\me\work\ai\promptbook\scripts\run-codex-prompts\git\agentGitIdentity.ts:68:15)
     at getAgentGitIdentity (C:\Users\me\work\ai\promptbook\scripts\run-codex-prompts\git\agentGitIdentity.ts:35:18)
     at buildAgentGitEnv (C:\Users\me\work\ai\promptbook\scripts\run-codex-prompts\git\agentGitIdentity.ts:46:45)

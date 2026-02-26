@@ -1,6 +1,5 @@
 import { mkdir, unlink, writeFile } from 'fs/promises';
 import { dirname, join } from 'path';
-import { buildAgentGitConfigArgs, buildAgentGitEnv, getAgentGitIdentity } from './agentGitIdentity';
 import { $execCommand } from '../../../src/utils/execCommand/$execCommand';
 import { buildAgentGitEnv, buildAgentGitSigningFlag } from './agentGitIdentity';
 
@@ -11,7 +10,6 @@ export async function commitChanges(message: string): Promise<void> {
     const commitMessagePath = join(process.cwd(), '.tmp', 'codex-prompts', `COMMIT_MESSAGE_${Date.now()}.txt`);
     await mkdir(dirname(commitMessagePath), { recursive: true });
     await writeFile(commitMessagePath, message, 'utf-8');
-    const agentIdentity = getAgentGitIdentity();
 
     try {
         const agentEnv = buildAgentGitEnv();
