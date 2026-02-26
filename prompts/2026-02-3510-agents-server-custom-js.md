@@ -12,7 +12,7 @@
 
 ---
 
-[ ]
+[x] ~$0.00 15 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
 [✨🍣] Use proper Monaco editor for custom JavaScript editing.
 
@@ -64,3 +64,4 @@
 -   Do a proper analysis of the current functionality of `CustomJavascript` before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
