@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react'
 import { pushWithHeadless, useIsHeadless } from '../_utils/headlessParam';
 import { SEARCH_RESULT_ICON_BY_TYPE } from '../../search/searchIcons';
 import type { ServerSearchResponse, ServerSearchResultItem } from '../../search/ServerSearchResultItem';
+import { useServerLanguage } from '../ServerLanguage/ServerLanguageProvider';
 
 /**
  * Delay between keystrokes and server fetch calls.
@@ -47,9 +48,10 @@ type HeaderSearchBoxProps = {
  */
 export function HeaderSearchBox({
     className = '',
-    placeholder = 'Search agents, folders, docs, conversations...',
+    placeholder,
     onNavigate,
 }: HeaderSearchBoxProps) {
+    const { t } = useServerLanguage();
     const router = useRouter();
     const isHeadless = useIsHeadless();
     const containerRef = useRef<HTMLDivElement | null>(null);
@@ -130,7 +132,7 @@ export function HeaderSearchBox({
                 }
                 console.error('[search] Failed to fetch results:', error);
                 setResults([]);
-                setErrorMessage('Search is temporarily unavailable.');
+                setErrorMessage(t('header.searchUnavailable'));
             })
             .finally(() => {
                 setIsLoading(false);
@@ -139,7 +141,7 @@ export function HeaderSearchBox({
         return () => {
             abortController.abort();
         };
-    }, [debouncedQuery, isOpen]);
+    }, [debouncedQuery, isOpen, t]);
 
     /**
      * Keeps active option index aligned with the current dropdown entries.
@@ -290,7 +292,7 @@ export function HeaderSearchBox({
     return (
         <div ref={containerRef} className={`relative ${className}`}>
             <label htmlFor="global-server-search" className="sr-only">
-                Global search
+                {t('header.searchGlobalLabel')}
             </label>
             <div className="relative">
                 <Search
@@ -303,7 +305,7 @@ export function HeaderSearchBox({
                     onChange={(event) => setQuery(event.target.value)}
                     onFocus={() => setIsOpen(true)}
                     onKeyDown={onInputKeyDown}
-                    placeholder={placeholder}
+                    placeholder={placeholder || t('header.searchBoxDefaultPlaceholder')}
                     className="h-10 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-9 text-sm text-slate-700 shadow-sm outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                     role="combobox"
                     aria-expanded={isOpen}
@@ -343,7 +345,7 @@ export function HeaderSearchBox({
                             >
                                 <span className="flex flex-col text-left">
                                     <span className="text-slate-700">
-                                        View all results for
+                                        {t('header.searchViewAllResultsFor')}
                                     </span>
                                     <span className="text-slate-500">&quot;{trimmedQuery}&quot;</span>
                                 </span>
@@ -358,7 +360,7 @@ export function HeaderSearchBox({
 
                     {showNoResultsMessage && (
                         <div className="rounded-xl bg-slate-50 px-3 py-3 text-sm text-slate-500">
-                            No results found for &quot;{trimmedQuery}&quot;.
+                            {t('header.searchNoResultsFor')} &quot;{trimmedQuery}&quot;.
                         </div>
                     )}
 

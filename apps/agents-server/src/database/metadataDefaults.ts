@@ -1,6 +1,7 @@
 import spaceTrim from 'spacetrim';
 import { CORE_AGENTS_SERVER } from '../../../../servers';
 import { DEFAULT_THINKING_MESSAGES } from '../../../../src/utils/DEFAULT_THINKING_MESSAGES';
+import { SERVER_LANGUAGE_METADATA_KEY } from '../languages/ServerLanguageRegistry';
 
 export type MetadataType = 'TEXT_SINGLE_LINE' | 'TEXT' | 'NUMBER' | 'BOOLEAN' | 'IMAGE_URL' | 'IP_RANGE';
 
@@ -9,6 +10,12 @@ export const metadataDefaults = [
         key: 'SERVER_NAME',
         value: 'Promptbook Agents Server',
         note: 'The name of the server displayed in the heading bar',
+        type: 'TEXT_SINGLE_LINE',
+    },
+    {
+        key: SERVER_LANGUAGE_METADATA_KEY,
+        value: 'en',
+        note: 'Default language of the server UI. Available values: en, cs.',
         type: 'TEXT_SINGLE_LINE',
     },
     {

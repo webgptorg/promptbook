@@ -3,6 +3,7 @@
 import { X } from 'lucide-react';
 import { LoginForm } from '../LoginForm/LoginForm';
 import { Dialog } from '../Portal/Dialog';
+import { useServerLanguage } from '../ServerLanguage/ServerLanguageProvider';
 
 type LoginDialogProps = {
     /**
@@ -35,8 +36,9 @@ type LoginDialogProps = {
  */
 export function LoginDialog(props: LoginDialogProps) {
     const { title, description, refreshAfterSuccess, onSuccess, onCancel } = props;
-    const dialogTitle = title ?? 'Log in';
-    const dialogDescription = description ?? 'Enter your credentials to access the admin area';
+    const { t } = useServerLanguage();
+    const dialogTitle = title ?? t('login.dialogTitle');
+    const dialogDescription = description ?? t('login.dialogDescription');
 
     return (
         <Dialog onClose={onCancel} className="w-full max-w-md p-6">
@@ -46,7 +48,7 @@ export function LoginDialog(props: LoginDialogProps) {
                 type="button"
             >
                 <X className="w-5 h-5" />
-                <span className="sr-only">Close</span>
+                <span className="sr-only">{t('common.close')}</span>
             </button>
 
             <div className="mb-6">

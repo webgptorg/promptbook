@@ -12,6 +12,7 @@ import { Footer, type FooterLink } from '../Footer/Footer';
 import { Header } from '../Header/Header';
 import { MetadataFlagsProvider } from '../MetadataFlags/MetadataFlagsContext';
 import { PrivateModePreferencesProvider } from '../PrivateModePreferences/PrivateModePreferencesProvider';
+import { ServerLanguageProvider } from '../ServerLanguage/ServerLanguageProvider';
 import { SelfLearningPreferencesProvider } from '../SelfLearningPreferences/SelfLearningPreferencesProvider';
 import { SoundSystemProvider } from '../SoundSystemProvider/SoundSystemProvider';
 
@@ -35,6 +36,7 @@ type LayoutWrapperProps = {
     readonly isExperimentalPwaAppEnabled: boolean;
     defaultIsSoundsOn: boolean;
     defaultIsVibrationOn: boolean;
+    defaultServerLanguage: string;
 };
 
 export function LayoutWrapper({
@@ -54,6 +56,7 @@ export function LayoutWrapper({
     isExperimentalPwaAppEnabled,
     defaultIsSoundsOn,
     defaultIsVibrationOn,
+    defaultServerLanguage,
 }: LayoutWrapperProps) {
     const pathname = usePathname();
     const searchParams = useSearchParams();
@@ -66,44 +69,46 @@ export function LayoutWrapper({
     const mainClassName = isChatPage ? 'h-[100dvh] pt-[60px] overflow-hidden' : 'flex-1 pt-[60px]';
 
     return (
-        <AsyncDialogsProvider>
-            <AgentNamingProvider naming={agentNaming}>
-                <PrivateModePreferencesProvider>
-                    {isHeaderHidden || isHeadless ? (
-                        <main className="pt-0">{children}</main>
-                    ) : (
-                        <SelfLearningPreferencesProvider>
-                            <SoundSystemProvider
-                                initialIsSoundsOn={defaultIsSoundsOn}
-                                initialIsVibrationOn={defaultIsVibrationOn}
-                            >
-                                <ClientVersionMismatchListener />
-                                <MenuHoistingProvider>
-                                    <MetadataFlagsProvider value={{ isExperimentalPwaAppEnabled }}>
-                                        <div className="flex min-h-screen flex-col">
-                                            <Header
-                                                isAdmin={isAdmin}
-                                                currentUser={currentUser}
-                                                serverName={serverName}
-                                                serverLogoUrl={serverLogoUrl}
-                                                agents={agents}
-                                                agentFolders={agentFolders}
-                                                federatedServers={federatedServers}
-                                                isExperimental={isExperimental}
-                                                isFeedbackEnabled={isFeedbackEnabled}
-                                            />
-                                            <main className={mainClassName}>{children}</main>
-                                            {isFooterShown && !isFooterHiddenOnPage && (
-                                                <Footer extraLinks={footerLinks} />
-                                            )}
-                                        </div>
-                                    </MetadataFlagsProvider>
-                                </MenuHoistingProvider>
-                            </SoundSystemProvider>
-                        </SelfLearningPreferencesProvider>
-                    )}
-                </PrivateModePreferencesProvider>
-            </AgentNamingProvider>
-        </AsyncDialogsProvider>
+        <ServerLanguageProvider defaultLanguage={defaultServerLanguage}>
+            <AsyncDialogsProvider>
+                <AgentNamingProvider naming={agentNaming}>
+                    <PrivateModePreferencesProvider>
+                        {isHeaderHidden || isHeadless ? (
+                            <main className="pt-0">{children}</main>
+                        ) : (
+                            <SelfLearningPreferencesProvider>
+                                <SoundSystemProvider
+                                    initialIsSoundsOn={defaultIsSoundsOn}
+                                    initialIsVibrationOn={defaultIsVibrationOn}
+                                >
+                                    <ClientVersionMismatchListener />
+                                    <MenuHoistingProvider>
+                                        <MetadataFlagsProvider value={{ isExperimentalPwaAppEnabled }}>
+                                            <div className="flex min-h-screen flex-col">
+                                                <Header
+                                                    isAdmin={isAdmin}
+                                                    currentUser={currentUser}
+                                                    serverName={serverName}
+                                                    serverLogoUrl={serverLogoUrl}
+                                                    agents={agents}
+                                                    agentFolders={agentFolders}
+                                                    federatedServers={federatedServers}
+                                                    isExperimental={isExperimental}
+                                                    isFeedbackEnabled={isFeedbackEnabled}
+                                                />
+                                                <main className={mainClassName}>{children}</main>
+                                                {isFooterShown && !isFooterHiddenOnPage && (
+                                                    <Footer extraLinks={footerLinks} />
+                                                )}
+                                            </div>
+                                        </MetadataFlagsProvider>
+                                    </MenuHoistingProvider>
+                                </SoundSystemProvider>
+                            </SelfLearningPreferencesProvider>
+                        )}
+                    </PrivateModePreferencesProvider>
+                </AgentNamingProvider>
+            </AsyncDialogsProvider>
+        </ServerLanguageProvider>
     );
 }

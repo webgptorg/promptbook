@@ -2,9 +2,15 @@ import faviconLogoImage from '@/public/favicon.ico';
 import { LayoutWrapper } from '@/src/components/LayoutWrapper/LayoutWrapper';
 import type { Metadata } from 'next';
 import { Barlow_Condensed, Poppins } from 'next/font/google';
+import { cookies } from 'next/headers';
 import { getCurrentCustomJavascriptText } from '../database/customJavascript';
 import { getCurrentCustomStylesheetCss } from '../database/customStylesheet';
 import { getMetadataMap } from '../database/getMetadata';
+import {
+    resolveServerLanguageCode,
+    SERVER_LANGUAGE_COOKIE_NAME,
+    SERVER_LANGUAGE_METADATA_KEY,
+} from '../languages/ServerLanguageRegistry';
 import { $provideServer } from '../tools/$provideServer';
 import { loadAgentOrganizationState } from '../utils/agentOrganization/loadAgentOrganizationState';
 import type { AgentOrganizationAgent, AgentOrganizationFolder } from '../utils/agentOrganization/types';
@@ -90,6 +96,7 @@ export default async function RootLayout({
         'IS_EXPERIMENTAL_APP',
         'IS_FEEDBACK_ENABLED',
         'IS_EXPERIMENTAL_PWA_APP_ENABLED',
+        SERVER_LANGUAGE_METADATA_KEY,
     ]);
     const serverName = layoutMetadata.SERVER_NAME || 'Promptbook Agents Server';
     const serverLogoUrl = layoutMetadata.SERVER_LOGO_URL || null;
@@ -166,9 +173,12 @@ export default async function RootLayout({
     }
 
     const safeCustomJavascript = customJavascript.replace(/<\/script>/gi, '<\\/script>');
+    const cookieStore = await cookies();
+    const cookieLanguage = cookieStore.get(SERVER_LANGUAGE_COOKIE_NAME)?.value || null;
+    const serverLanguage = resolveServerLanguageCode(cookieLanguage || layoutMetadata[SERVER_LANGUAGE_METADATA_KEY]);
 
     return (
-        <html lang="en">
+        <html lang={serverLanguage}>
             {/* Note: Icon is set via metadata to allow agent-page specific icons to override it */}
             <body className={`${barlowCondensed.variable} ${poppins.variable} antialiased bg-white text-gray-900`}>
                 {customStylesheetCss && <style id="agents-server-custom-css">{customStylesheetCss}</style>}
@@ -188,6 +198,7 @@ export default async function RootLayout({
                     isExperimental={isExperimental}
                     isFeedbackEnabled={isFeedbackEnabled}
                     isExperimentalPwaAppEnabled={isExperimentalPwaAppEnabled}
+                    defaultServerLanguage={serverLanguage}
                 >
                     {children}
                 </LayoutWrapper>

@@ -2,6 +2,7 @@
 
 import { Eye, EyeOff } from 'lucide-react';
 import { forwardRef, InputHTMLAttributes, ReactNode, useId, useState } from 'react';
+import { useServerLanguage } from '../ServerLanguage/ServerLanguageProvider';
 
 /**
  * Props used to configure the shared secret input field.
@@ -34,6 +35,7 @@ export const SecretInput = forwardRef<HTMLInputElement, SecretInputProps>(functi
     props,
     ref,
 ) {
+    const { t } = useServerLanguage();
     const {
         label,
         helperText,
@@ -61,7 +63,7 @@ export const SecretInput = forwardRef<HTMLInputElement, SecretInputProps>(functi
         .filter(Boolean)
         .join(' ');
 
-    const toggleLabel = isVisible ? 'Hide secret value' : 'Show secret value';
+    const toggleLabel = isVisible ? t('secretInput.hideSecret') : t('secretInput.showSecret');
     const toggleDisabled = Boolean(inputProps.disabled);
 
     return (

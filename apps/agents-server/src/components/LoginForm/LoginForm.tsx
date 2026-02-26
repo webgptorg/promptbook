@@ -4,9 +4,10 @@ import { loginAction } from '@/src/app/actions';
 import { Loader2, Lock, User } from 'lucide-react';
 import { SecretInput } from '@/src/components/SecretInput/SecretInput';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ForgottenPasswordDialog } from '../ForgottenPasswordDialog/ForgottenPasswordDialog';
 import { RegisterUserDialog } from '../RegisterUserDialog/RegisterUserDialog';
+import { useServerLanguage } from '../ServerLanguage/ServerLanguageProvider';
 
 /**
  * Props for the LoginForm component.
@@ -35,6 +36,7 @@ type LoginFormProps = {
  */
 export function LoginForm(props: LoginFormProps) {
     const { onSuccess, className, refreshAfterSuccess = true } = props;
+    const { t } = useServerLanguage();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [adminEmail, setAdminEmail] = useState<string>('support@ptbk.io');
@@ -45,13 +47,13 @@ export function LoginForm(props: LoginFormProps) {
     useEffect(() => {
         // Fetch admin email on component mount
         fetch('/api/admin-email')
-            .then(response => response.json())
-            .then(data => {
+            .then((response) => response.json())
+            .then((data) => {
                 if (data.adminEmail) {
                     setAdminEmail(data.adminEmail);
                 }
             })
-            .catch(error => {
+            .catch((error) => {
                 console.error('Failed to fetch admin email:', error);
                 // Keep default value
             });
@@ -62,32 +64,35 @@ export function LoginForm(props: LoginFormProps) {
      *
      * @param event - Form submission event.
      */
-    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        setIsLoading(true);
-        setError(null);
+    const handleSubmit = useCallback(
+        async (event: React.FormEvent<HTMLFormElement>) => {
+            event.preventDefault();
+            setIsLoading(true);
+            setError(null);
 
-        try {
-            const formData = new FormData(event.currentTarget);
-            const result = await loginAction(formData);
+            try {
+                const formData = new FormData(event.currentTarget);
+                const result = await loginAction(formData);
 
-            if (result.success) {
-                if (onSuccess) {
-                    await onSuccess();
+                if (result.success) {
+                    if (onSuccess) {
+                        await onSuccess();
+                    }
+                    if (refreshAfterSuccess) {
+                        router.refresh();
+                    }
+                } else {
+                    setError(result.message || t('login.errorOccurred'));
                 }
-                if (refreshAfterSuccess) {
-                    router.refresh();
-                }
-            } else {
-                setError(result.message || 'An error occurred');
+            } catch (error) {
+                setError(t('login.unexpectedError'));
+                console.error(error);
+            } finally {
+                setIsLoading(false);
             }
-        } catch (error) {
-            setError('An unexpected error occurred');
-            console.error(error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
+        },
+        [onSuccess, refreshAfterSuccess, router, t],
+    );
 
     return (
         <form onSubmit={handleSubmit} className={`space-y-4 ${className || ''}`}>
@@ -96,7 +101,7 @@ export function LoginForm(props: LoginFormProps) {
                     htmlFor="username"
                     className="text-sm font-medium text-gray-700 block"
                 >
-                    Username
+                    {t('login.usernameLabel')}
                 </label>
                 <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
@@ -108,7 +113,7 @@ export function LoginForm(props: LoginFormProps) {
                         type="text"
                         required
                         className="block w-full pl-10 h-10 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-promptbook-blue focus:border-transparent disabled:opacity-50"
-                        placeholder="Enter your username"
+                        placeholder={t('login.usernamePlaceholder')}
                     />
                 </div>
             </div>
@@ -117,8 +122,8 @@ export function LoginForm(props: LoginFormProps) {
                 <SecretInput
                     id="password"
                     name="password"
-                    label="Password"
-                    placeholder="Enter your password"
+                    label={t('login.passwordLabel')}
+                    placeholder={t('login.passwordPlaceholder')}
                     required
                     startIcon={<Lock className="w-4 h-4" />}
                 />
@@ -138,10 +143,10 @@ export function LoginForm(props: LoginFormProps) {
                 {isLoading ? (
                     <>
                         <Loader2 className="mr-2 w-4 h-4 animate-spin" />
-                        Logging in...
+                        {t('login.loggingIn')}
                     </>
                 ) : (
-                    'Log in'
+                    t('login.loginAction')
                 )}
             </button>
 
@@ -151,14 +156,14 @@ export function LoginForm(props: LoginFormProps) {
                     onClick={() => setIsForgottenPasswordOpen(true)}
                     className="text-promptbook-blue hover:text-promptbook-blue-dark underline focus:outline-none focus:ring-2 focus:ring-promptbook-blue focus:ring-offset-2 rounded-sm"
                 >
-                    Forgotten password?
+                    {t('login.forgottenPassword')}
                 </button>
                 <button
                     type="button"
                     onClick={() => setIsRegisterUserOpen(true)}
                     className="text-promptbook-blue hover:text-promptbook-blue-dark underline focus:outline-none focus:ring-2 focus:ring-promptbook-blue focus:ring-offset-2 rounded-sm"
                 >
-                    Register new user
+                    {t('login.registerNewUser')}
                 </button>
             </div>
 

@@ -2,6 +2,7 @@
 
 import { X } from 'lucide-react';
 import { Dialog } from '../Portal/Dialog';
+import { useServerLanguage } from '../ServerLanguage/ServerLanguageProvider';
 
 type RegisterUserDialogProps = {
     onClose: () => void;
@@ -10,6 +11,7 @@ type RegisterUserDialogProps = {
 
 export function RegisterUserDialog(props: RegisterUserDialogProps) {
     const { onClose, adminEmail } = props;
+    const { t } = useServerLanguage();
 
     return (
         <Dialog onClose={onClose} className="w-full max-w-md p-6">
@@ -18,25 +20,25 @@ export function RegisterUserDialog(props: RegisterUserDialogProps) {
                 className="absolute top-4 right-4 text-gray-400 hover:text-gray-500 transition-colors"
             >
                 <X className="w-5 h-5" />
-                <span className="sr-only">Close</span>
+                <span className="sr-only">{t('common.close')}</span>
             </button>
 
             <div className="mb-6">
-                <h2 className="text-xl font-semibold text-gray-900">Register New User</h2>
-                <p className="text-sm text-gray-500 mt-1">Create a new user account</p>
+                <h2 className="text-xl font-semibold text-gray-900">{t('registerUser.title')}</h2>
+                <p className="text-sm text-gray-500 mt-1">{t('registerUser.subtitle')}</p>
             </div>
 
             <div className="space-y-4">
                 <div className="p-4 bg-blue-50 border border-blue-200 rounded-md">
                     <p className="text-sm text-blue-800">
-                        This Promptbook server has no email capability. Please contact the administrator at{' '}
+                        {t('registerUser.noEmailPrefix')}{' '}
                         <a
                             href={`mailto:${adminEmail}`}
                             className="font-medium text-blue-900 underline hover:text-blue-800"
                         >
                             {adminEmail}
                         </a>{' '}
-                        to register new user.
+                        {t('registerUser.noEmailSuffix')}
                     </p>
                 </div>
 
@@ -44,7 +46,7 @@ export function RegisterUserDialog(props: RegisterUserDialogProps) {
                     onClick={onClose}
                     className="w-full inline-flex items-center justify-center rounded-md text-sm font-medium h-10 px-4 py-2 bg-gray-100 text-gray-900 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
                 >
-                    Close
+                    {t('common.close')}
                 </button>
             </div>
         </Dialog>

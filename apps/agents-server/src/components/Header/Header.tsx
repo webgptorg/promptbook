@@ -26,6 +26,7 @@ import { useMenuHoisting } from '../../../../../src/book-components/_common/Menu
 import { resolveAgentAvatarImageUrl } from '../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 import { just } from '../../../../../src/utils/organization/just';
 import { RESERVED_PATHS } from '../../generated/reservedPaths';
+import type { ServerTranslationKey } from '../../languages/EnglishServerLanguagePack';
 import { buildAgentFolderContext } from '../../utils/agentOrganization/agentFolderContext';
 import { buildFolderPath, getFolderPathSegments } from '../../utils/agentOrganization/folderPath';
 import type { AgentOrganizationAgent, AgentOrganizationFolder } from '../../utils/agentOrganization/types';
@@ -43,6 +44,7 @@ import { showAlert, showLoginDialog } from '../AsyncDialogs/asyncDialogs';
 import { ChangePasswordDialog } from '../ChangePasswordDialog/ChangePasswordDialog';
 import type { ContextMenuItem } from '../ContextMenu/ContextMenuPanel';
 import { FolderAppearanceIcon } from '../FolderAppearance/FolderAppearanceIcon';
+import { useServerLanguage } from '../ServerLanguage/ServerLanguageProvider';
 import { useUsersAdmin } from '../UsersList/useUsersAdmin';
 import { HeaderControlPanelDropdown } from './ControlPanel/ControlPanel';
 import { HeaderSearchBox } from './HeaderSearchBox';
@@ -366,7 +368,10 @@ function createDocumentationCommitmentItem(group: DocumentationCommitmentGroup):
  * @param groups - Visible commitment definitions.
  * @returns Ordered list of submenu items for the Documentation dropdown.
  */
-function buildDocumentationDropdownItems(groups: ReadonlyArray<DocumentationCommitmentGroup>): SubMenuItem[] {
+function buildDocumentationDropdownItems(
+    groups: ReadonlyArray<DocumentationCommitmentGroup>,
+    translate: (key: ServerTranslationKey) => string,
+): SubMenuItem[] {
     const commitmentByType = new Map<string, DocumentationCommitmentGroup>();
     groups.forEach((group) => {
         commitmentByType.set(group.primary.type, group);
@@ -380,13 +385,13 @@ function buildDocumentationDropdownItems(groups: ReadonlyArray<DocumentationComm
 
     const items: SubMenuItem[] = [
         {
-            label: 'Overview',
+            label: translate('header.documentationOverview'),
             href: '/docs',
             isBold: true,
             isBordered: true,
         },
         {
-            label: 'API Reference',
+            label: translate('header.documentationApiReference'),
             href: '/swagger',
             isBold: true,
             isBordered: true,
@@ -396,7 +401,7 @@ function buildDocumentationDropdownItems(groups: ReadonlyArray<DocumentationComm
 
     if (remainingCommitments.length > 0) {
         items.push({
-            label: 'All',
+            label: translate('header.documentationAll'),
             items: remainingCommitments.map(createDocumentationCommitmentItem),
         });
     }
@@ -541,12 +546,18 @@ function AgentNameWithAvatar({
  *
  * @private
  */
-function createAgentViewLabel(view: AgentHierarchyView, formatText: (value: string) => string) {
+function createAgentViewLabel(view: AgentHierarchyView, translate: (key: ServerTranslationKey) => string) {
     const Icon = AGENT_VIEW_ICON_MAP[view];
+    const translationKeyByView: Record<AgentHierarchyView, ServerTranslationKey> = {
+        Profile: 'common.profile',
+        Chat: 'common.chat',
+        Book: 'common.book',
+        More: 'common.more',
+    };
     return (
         <span className="flex items-center gap-2">
             <Icon className="h-4 w-4 text-gray-500" aria-hidden />
-            <span>{formatText(view)}</span>
+            <span>{translate(translationKeyByView[view])}</span>
         </span>
     );
 }
@@ -1276,7 +1287,8 @@ export function Header(props: HeaderProps) {
     const isHeadless = useIsHeadless();
     const isTouchInput = useIsTouchInput();
     const menuHoisting = useMenuHoisting();
-    const { formatText } = useAgentNaming();
+    const { naming } = useAgentNaming();
+    const { t } = useServerLanguage();
     const [desktopExpandedSubMenus, setDesktopExpandedSubMenus] = useState<Record<string, boolean>>({});
     const [isAgentQrCodeOpen, setIsAgentQrCodeOpen] = useState(false);
     const { installPromptEvent, isInstalled, handleInstallApp } = useInstallPromptState();
@@ -1380,8 +1392,8 @@ export function Header(props: HeaderProps) {
 
     const visibleDocumentationCommitments = useMemo(() => getVisibleCommitmentDefinitions(), []);
     const documentationDropdownItems = useMemo(
-        () => buildDocumentationDropdownItems(visibleDocumentationCommitments),
-        [visibleDocumentationCommitments],
+        () => buildDocumentationDropdownItems(visibleDocumentationCommitments, t),
+        [t, visibleDocumentationCommitments],
     );
 
     const toggleMobileSubMenu = (key: string) => {
@@ -1609,7 +1621,7 @@ export function Header(props: HeaderProps) {
         : '/agents';
     const activeAgentLabel = activeAgent
         ? createAgentHierarchyLabel(activeAgent, agentFolderById)
-        : activeAgentIdentifier || formatText('Agents');
+        : activeAgentIdentifier || t('header.agentsLabelFallback', { agentsPlural: naming.plural });
     const activeAgentView = activeAgentNavigation.view;
     const activeAgentFallback = useMemo(() => createFallbackAgent(activeAgentNavigationId), [activeAgentNavigationId]);
     const activeAgentMenuAgent = activeAgent || activeAgentFallback;
@@ -1629,7 +1641,7 @@ export function Header(props: HeaderProps) {
 
         return resolveAgentAvatarImageUrl({ agent: activeAgent });
     }, [activeAgent]);
-    const currentUserDisplayName = currentUser?.username || 'Admin';
+    const currentUserDisplayName = currentUser?.username || t('common.admin');
     const currentUserAvatarLabel = currentUserDisplayName.slice(0, 1).toUpperCase();
     const currentUserProfileImageUrl = currentUser?.profileImageUrl?.trim() || null;
     /**
@@ -1724,17 +1736,17 @@ export function Header(props: HeaderProps) {
     const activeAgentViewItems: SubMenuItem[] = activeAgentNavigationId
         ? [
               {
-                  label: createAgentViewLabel('Profile', formatText),
+                  label: createAgentViewLabel('Profile', t),
                   href: `/agents/${encodeURIComponent(activeAgentNavigationId)}`,
               },
               {
-                  label: createAgentViewLabel('Chat', formatText),
+                  label: createAgentViewLabel('Chat', t),
                   href: `/agents/${encodeURIComponent(activeAgentNavigationId)}/chat`,
               },
               ...(isAdmin
                   ? [
                         {
-                            label: createAgentViewLabel('Book', formatText),
+                            label: createAgentViewLabel('Book', t),
                             href: `/agents/${encodeURIComponent(activeAgentNavigationId)}/book`,
                         } as SubMenuItem,
                     ]
@@ -1742,7 +1754,7 @@ export function Header(props: HeaderProps) {
               ...(agentMoreViewItems.length > 0
                   ? [
                         {
-                            label: createAgentViewLabel('More', formatText),
+                            label: createAgentViewLabel('More', t),
                             items: agentMoreViewItems,
                         } as SubMenuItem,
                     ]
@@ -1772,9 +1784,11 @@ export function Header(props: HeaderProps) {
         } catch (error) {
             console.error('Failed to create agent:', error);
             await showAlert({
-                title: formatText('Create failed'),
+                title: t('header.createFailedTitle', { agentSingular: naming.singular }),
                 message:
-                    error instanceof Error ? error.message : formatText('Failed to create agent. Please try again.'),
+                    error instanceof Error
+                        ? error.message
+                        : t('header.createFailedMessage', { agentSingular: naming.singular }),
             }).catch(() => undefined);
         } finally {
             setIsCreatingAgent(false);
@@ -1787,7 +1801,7 @@ export function Header(props: HeaderProps) {
      */
     const hierarchyAgentActionItems: SubMenuItem[] = [
         {
-            label: formatText('View all agents'),
+            label: t('header.viewAllAgents', { agentsPlural: naming.plural }),
             href: '/agents',
             isBold: true,
             isBordered: true,
@@ -1796,10 +1810,10 @@ export function Header(props: HeaderProps) {
             label: isCreatingAgent ? (
                 <div className="flex items-center">
                     <span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
-                    {formatText('Creating agent...')}
+                    {t('header.creatingAgent', { agentSingular: naming.singular })}
                 </div>
             ) : (
-                formatText('Create new agent')
+                t('header.createNewAgent', { agentSingular: naming.singular })
             ),
             onClick: isCreatingAgent ? undefined : handleCreateAgent,
             isBold: true,
@@ -1832,7 +1846,7 @@ export function Header(props: HeaderProps) {
                               className="w-5 h-5 object-contain rounded-full"
                           />
                           <span className="font-semibold">{server.title.replace(/^Federated: /, '')}</span>
-                          <span className="ml-1 text-xs text-blue-600">(current)</span>
+                          <span className="ml-1 text-xs text-blue-600">{t('header.currentFederatedServer')}</span>
                       </span>
                   ),
                   isBold: true,
@@ -1860,17 +1874,17 @@ export function Header(props: HeaderProps) {
         ...(currentUser
             ? [
                   {
-                      label: 'Profile',
+                      label: t('common.profile'),
                       href: '/system/profile',
                   } as SubMenuItem,
                   {
-                      label: 'User Memory',
+                      label: t('header.userMemory'),
                       href: '/system/user-memory',
                   } as SubMenuItem,
               ]
             : []),
         {
-            label: 'Landing page',
+            label: t('header.landingPage'),
             href: 'https://ptbk.io/',
         },
     ];
@@ -1881,7 +1895,7 @@ export function Header(props: HeaderProps) {
     const systemDropdownBase: Omit<Extract<MenuItem, { type: 'dropdown' }>, 'items'> = {
         type: 'dropdown' as const,
         id: 'system',
-        label: 'System',
+        label: t('header.systemMenuLabel'),
         isOpen: isSystemOpen,
         setIsOpen: setIsSystemOpen,
         isMobileOpen: isMobileSystemOpen,
@@ -1908,13 +1922,13 @@ export function Header(props: HeaderProps) {
                 } as SubMenuItem),
         ),
         {
-            label: 'View all users',
+            label: t('header.viewAllUsers'),
             href: '/admin/users',
             isBold: true,
             isBordered: true,
         } as SubMenuItem,
         {
-            label: 'Create new user',
+            label: t('header.createNewUser'),
             href: '/admin/users#create-user',
             isBold: true,
         } as SubMenuItem,
@@ -1936,55 +1950,55 @@ export function Header(props: HeaderProps) {
         } as SubMenuItem,
         */
         {
-            label: 'Models',
+            label: t('header.models'),
             href: '/admin/models',
         },
         {
-            label: 'OpenAPI Documentation',
+            label: t('header.openApiDocumentation'),
             href: '/swagger',
         },
         {
-            label: 'API Tokens',
+            label: t('header.apiTokens'),
             href: '/admin/api-tokens',
         },
         {
-            label: 'Metadata',
+            label: t('header.metadata'),
             href: '/admin/metadata',
         },
         {
-            label: 'Custom CSS',
+            label: t('header.customCss'),
             href: '/admin/custom-css',
         },
         {
-            label: 'Custom JS',
+            label: t('header.customJs'),
             href: '/admin/custom-js',
         },
         {
-            label: 'Chat history',
+            label: t('header.chatHistory'),
             href: '/admin/chat-history',
         },
         {
-            label: 'Usage analytics',
+            label: t('header.usageAnalytics'),
             href: '/admin/usage',
         },
         {
-            label: 'Messages & Emails',
+            label: t('header.messagesEmails'),
             href: '/admin/messages',
         },
         ...(isFeedbackEnabled
             ? [
                   {
-                      label: 'Chat feedback',
+                      label: t('header.chatFeedback'),
                       href: '/admin/chat-feedback',
                   },
               ]
             : []),
         {
-            label: 'Browser',
+            label: t('header.browser'),
             href: '/admin/browser-test',
         },
         {
-            label: 'Voice Input Test',
+            label: t('header.voiceInputTest'),
             href: '/admin/voice-input-test',
         },
         // Note: Commented out because image generator can became a paid feature later for the clients
@@ -1993,33 +2007,33 @@ export function Header(props: HeaderProps) {
         //     href: '/admin/image-generator-test',
         // },
         {
-            label: 'Search Engine Test',
+            label: t('header.searchEngineTest'),
             href: '/admin/search-engine-test',
         },
         {
-            label: 'Images gallery',
+            label: t('header.imagesGallery'),
             href: '/admin/images',
         },
         {
-            label: 'Files',
+            label: t('header.files'),
             href: '/admin/files',
         },
         {
-            label: 'Users',
+            label: t('header.users'),
             items: adminUsersSystemItems,
             isBordered: true,
         },
         {
-            label: 'Version info',
+            label: t('header.versionInfo'),
             href: '/admin/about',
         },
         ...(isExperimental
             ? [
                   {
-                      label: 'Experiments',
+                      label: t('header.experiments'),
                       items: [
                           {
-                              label: 'Story',
+                              label: t('header.story'),
                               href: '/experiments/story',
                               isBold: true,
                           },
@@ -2041,7 +2055,7 @@ export function Header(props: HeaderProps) {
                   {
                       id: 'documentation',
                       type: 'dropdown' as const,
-                      label: 'Documentation',
+                      label: t('header.documentationMenuLabel'),
                       isOpen: isDocsOpen,
                       setIsOpen: setIsDocsOpen,
                       isMobileOpen: isMobileDocsOpen,
@@ -2127,8 +2141,8 @@ export function Header(props: HeaderProps) {
                                                     setIsFederatedOpen(false),
                                                 )
                                             }
-                                            title="Switch server"
-                                            aria-label="Switch server"
+                                            title={t('header.switchServerAria')}
+                                            aria-label={t('header.switchServerAria')}
                                         >
                                             <ChevronDown className="w-4 h-4" />
                                         </button>
@@ -2236,7 +2250,7 @@ export function Header(props: HeaderProps) {
                                                     className="block rounded-xl px-3 py-2.5 text-sm font-medium text-gray-900 hover:bg-gray-50"
                                                     onClick={closeAgentsDropdown}
                                                 >
-                                                    {formatText('View all agents')}
+                                                    {t('header.viewAllAgents', { agentsPlural: naming.plural })}
                                                 </HeadlessLink>
                                                 <button
                                                     onClick={isCreatingAgent ? undefined : handleCreateAgent}
@@ -2245,10 +2259,14 @@ export function Header(props: HeaderProps) {
                                                     {isCreatingAgent ? (
                                                         <span className="inline-flex items-center">
                                                             <span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
-                                                            {formatText('Creating agent...')}
+                                                            {t('header.creatingAgent', {
+                                                                agentSingular: naming.singular,
+                                                            })}
                                                         </span>
                                                     ) : (
-                                                        formatText('Create new agent')
+                                                        t('header.createNewAgent', {
+                                                            agentSingular: naming.singular,
+                                                        })
                                                     )}
                                                 </button>
                                             </div>
@@ -2306,7 +2324,7 @@ export function Header(props: HeaderProps) {
                                                 scheduleMenuClose('agent-view', () => setIsAgentViewOpen(false))
                                             }
                                         >
-                                            {createAgentViewLabel(activeAgentView, formatText)}
+                                            {createAgentViewLabel(activeAgentView, t)}
                                             <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
                                         </button>
                                         {isAgentViewOpen && (
@@ -2675,7 +2693,7 @@ export function Header(props: HeaderProps) {
                                 }}
                                 className="hidden lg:inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium h-10 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
                             >
-                                Log in
+                                {t('header.logIn')}
                                 <LogIn className="ml-2 w-4 h-4" />
                             </button>
                         )}
@@ -2720,9 +2738,9 @@ export function Header(props: HeaderProps) {
                                         <div className="flex flex-col items-start">
                                             <span className="leading-none">{currentUserDisplayName}</span>
                                             {(currentUser?.isAdmin || isAdmin) && (
-                                                <span className="text-xs text-blue-600">Admin</span>
-                                            )}
-                                        </div>
+                                                    <span className="text-xs text-blue-600">{t('common.admin')}</span>
+                                                )}
+                                            </div>
                                         <ChevronDown className="w-4 h-4 ml-1 opacity-50" />
                                     </button>
 
@@ -2739,7 +2757,9 @@ export function Header(props: HeaderProps) {
                                                     {currentUserDisplayName}
                                                 </p>
                                                 {(currentUser?.isAdmin || isAdmin) && (
-                                                    <p className="text-xs text-blue-600 mt-1">Administrator</p>
+                                                    <p className="text-xs text-blue-600 mt-1">
+                                                        {t('common.admin')}
+                                                    </p>
                                                 )}
                                             </div>
 
@@ -2748,7 +2768,7 @@ export function Header(props: HeaderProps) {
                                                 className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 flex items-center gap-2"
                                             >
                                                 <Lock className="w-4 h-4" />
-                                                Change Password
+                                                {t('header.changePassword')}
                                             </button>
 
                                             <button
@@ -2759,7 +2779,7 @@ export function Header(props: HeaderProps) {
                                                 className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 flex items-center gap-2"
                                             >
                                                 <LogOut className="w-4 h-4" />
-                                                Log out
+                                                {t('header.logOut')}
                                             </button>
                                         </div>
                                     )}
@@ -2798,12 +2818,12 @@ export function Header(props: HeaderProps) {
                         <nav className="mx-auto flex flex-col items-center gap-6 px-6 max-w-md pb-8">
                             <div className="w-full border-b border-gray-200 pb-6 text-center">
                                 <div className="flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-[0.3em] text-gray-400 mb-3">
-                                    <span>Menu</span>
+                                    <span>{t('header.menuLabel')}</span>
                                     {federatedServers.length > 0 && (
                                         <button
                                             className="inline-flex p-1 text-gray-500 hover:text-gray-800"
                                             onClick={() => setIsFederatedOpen(!isFederatedOpen)}
-                                            aria-label="Switch server"
+                                            aria-label={t('header.switchServerAria')}
                                         >
                                             <ChevronDown
                                                 className={`h-4 w-4 transition-transform duration-200 ${
@@ -2903,7 +2923,7 @@ export function Header(props: HeaderProps) {
                                                     className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold text-gray-900 hover:bg-gray-100 transition"
                                                     onClick={() => setIsMobileAgentViewOpen(!isMobileAgentViewOpen)}
                                                 >
-                                                    {createAgentViewLabel(activeAgentView, formatText)}
+                                                    {createAgentViewLabel(activeAgentView, t)}
                                                     <ChevronDown
                                                         className={`h-4 w-4 transition-transform duration-200 ${
                                                             isMobileAgentViewOpen ? 'rotate-180' : ''
@@ -2924,7 +2944,7 @@ export function Header(props: HeaderProps) {
 
                                     <div className="w-full max-w-[90vw] pt-1">
                                         <HeaderSearchBox
-                                            placeholder="Search this server..."
+                                            placeholder={t('header.searchThisServerPlaceholder')}
                                             onNavigate={() => setIsMenuOpen(false)}
                                         />
                                     </div>
@@ -2964,7 +2984,7 @@ export function Header(props: HeaderProps) {
                                         className="flex items-center gap-3 px-6 py-3 text-base font-semibold text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 rounded-lg shadow-md hover:shadow-lg active:scale-98 transition-all duration-150"
                                     >
                                         <LogIn className="w-4 h-4" />
-                                        Log in
+                                        {t('header.logIn')}
                                     </button>
                                 )}
 
@@ -2984,10 +3004,10 @@ export function Header(props: HeaderProps) {
                                                 )}
                                             </div>
                                             <div className="text-sm text-gray-700 font-medium">
-                                                Logged in as <strong>{currentUserDisplayName}</strong>
+                                                {t('header.loggedInAs', { username: currentUserDisplayName })}
                                                 {(currentUser?.isAdmin || isAdmin) && (
                                                     <span className="ml-2 bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full shadow-sm">
-                                                        Admin
+                                                        {t('common.admin')}
                                                     </span>
                                                 )}
                                             </div>
@@ -3000,7 +3020,7 @@ export function Header(props: HeaderProps) {
                                             className="w-full flex items-center justify-center gap-2 px-4 py-3 text-base font-semibold text-gray-700 bg-white hover:bg-gray-50 active:bg-gray-100 border border-gray-300 rounded-lg shadow-sm hover:shadow active:scale-98 transition-all duration-150"
                                         >
                                             <Lock className="w-4 h-4" />
-                                            Change Password
+                                            {t('header.changePassword')}
                                         </button>
                                         <button
                                             onClick={() => {
@@ -3010,7 +3030,7 @@ export function Header(props: HeaderProps) {
                                             className="w-full flex items-center justify-center gap-2 px-4 py-3 text-base font-semibold text-red-600 bg-red-50 hover:bg-red-100 active:bg-red-200 border border-red-200 rounded-lg shadow-sm hover:shadow active:scale-98 transition-all duration-150"
                                         >
                                             <LogOut className="w-4 h-4" />
-                                            Log out
+                                            {t('header.logOut')}
                                         </button>
                                     </div>
                                 )}

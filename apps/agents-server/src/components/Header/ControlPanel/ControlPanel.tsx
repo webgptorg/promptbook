@@ -1,12 +1,13 @@
 'use client';
 
 import { ChatSoundAndVibrationPanel } from '@promptbook-local/components';
-import { ChevronDown, EyeOff, Settings2, SpeakerIcon, Sparkles } from 'lucide-react';
+import { ChevronDown, EyeOff, Languages, Settings2, SpeakerIcon, Sparkles } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
 import { useSoundSystem } from '../../SoundSystemProvider/SoundSystemProvider';
 import { confirmPrivateModeEnable } from '../../PrivateModePreferences/confirmPrivateModeEnable';
 import { usePrivateModePreferences } from '../../PrivateModePreferences/PrivateModePreferencesProvider';
 import { useSelfLearningPreferences } from '../../SelfLearningPreferences/SelfLearningPreferencesProvider';
+import { useServerLanguage } from '../../ServerLanguage/ServerLanguageProvider';
 
 /**
  * Shared props used by every control panel presentation.
@@ -23,11 +24,12 @@ type ControlPanelContentProps = {
  * @private
  */
 function ControlPanelContent({
-    title = 'Feedback',
-    subtitle = 'Control sounds and vibration globally',
+    title,
+    subtitle,
     isMobile = false,
 }: ControlPanelContentProps) {
     const { soundSystem } = useSoundSystem();
+    const { language, setLanguage, availableLanguages, t } = useServerLanguage();
     const { isSelfLearningEnabled, setIsSelfLearningEnabled } = useSelfLearningPreferences();
     const { isPrivateModeEnabled, setIsPrivateModeEnabled } = usePrivateModePreferences();
     const toggleSelfLearning = useCallback(() => {
@@ -39,24 +41,26 @@ function ControlPanelContent({
             return;
         }
 
-        const isConfirmed = await confirmPrivateModeEnable();
+        const isConfirmed = await confirmPrivateModeEnable(t);
         if (!isConfirmed) {
             return;
         }
 
         setIsPrivateModeEnabled(true);
-    }, [isPrivateModeEnabled, setIsPrivateModeEnabled]);
+    }, [isPrivateModeEnabled, setIsPrivateModeEnabled, t]);
 
     const audioSection = soundSystem ? (
         <div>
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1 text-sm font-semibold text-gray-900">
                     <SpeakerIcon className="w-4 h-4 text-blue-600" />
-                    <span>{title}</span>
+                    <span>{title || t('controlPanel.feedbackTitle')}</span>
                 </div>
-                <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">Audio</span>
+                <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+                    {t('controlPanel.audioLabel')}
+                </span>
             </div>
-            <p className="text-xs text-gray-500 leading-snug">{subtitle}</p>
+            <p className="text-xs text-gray-500 leading-snug">{subtitle || t('controlPanel.feedbackSubtitle')}</p>
             <div className="rounded-2xl border border-gray-100 bg-gray-50/50 p-3 shadow-inner">
                 <ChatSoundAndVibrationPanel soundSystem={soundSystem} />
             </div>
@@ -65,10 +69,10 @@ function ControlPanelContent({
         <div className="space-y-2">
             <div className="flex items-center gap-1 text-sm font-semibold text-gray-900">
                 <SpeakerIcon className="w-4 h-4 text-blue-600" />
-                <span>{title}</span>
+                <span>{title || t('controlPanel.feedbackTitle')}</span>
             </div>
-            <p className="text-xs text-gray-500">{subtitle}</p>
-            <p className="text-xs text-gray-500">Loading audio settings…</p>
+            <p className="text-xs text-gray-500">{subtitle || t('controlPanel.feedbackSubtitle')}</p>
+            <p className="text-xs text-gray-500">{t('controlPanel.audioLoading')}</p>
         </div>
     );
 
@@ -79,23 +83,25 @@ function ControlPanelContent({
     }, [isPrivateModeEnabled, isSelfLearningEnabled, setIsSelfLearningEnabled]);
 
     const stateLabel = isPrivateModeEnabled
-        ? 'Disabled (Private mode)'
+        ? t('controlPanel.selfLearningStateDisabledPrivate')
         : isSelfLearningEnabled
-            ? 'Learning'
-            : 'Paused';
+            ? t('controlPanel.selfLearningStateLearning')
+            : t('controlPanel.selfLearningStatePaused');
     const description = isPrivateModeEnabled
-        ? 'Private mode keeps the book unchanged and blocks any new learning.'
+        ? t('controlPanel.selfLearningDescriptionPrivate')
         : isSelfLearningEnabled
-            ? 'Agent appends new commitments to the book after each chat.'
-            : 'Agent respects the existing book until learning is enabled again.';
+            ? t('controlPanel.selfLearningDescriptionLearning')
+            : t('controlPanel.selfLearningDescriptionPaused');
     const detail = isPrivateModeEnabled
-        ? 'No learning occurs until private mode is disabled.'
-        : 'Chats and memories still persist even when learning is paused.';
-    const privateStateLabel = isPrivateModeEnabled ? 'Private' : 'Standard';
+        ? t('controlPanel.selfLearningDetailPrivate')
+        : t('controlPanel.selfLearningDetailPaused');
+    const privateStateLabel = isPrivateModeEnabled
+        ? t('controlPanel.privateModeStatePrivate')
+        : t('controlPanel.privateModeStateStandard');
     const privateDescription = isPrivateModeEnabled
-        ? 'Chats, memories, and learning are disabled.'
-        : 'Data keeps flowing to the server when the session is standard.';
-    const privateDetail = 'Enabling private mode keeps the current chat local to your browser.';
+        ? t('controlPanel.privateModeDescriptionPrivate')
+        : t('controlPanel.privateModeDescriptionStandard');
+    const privateDetail = t('controlPanel.privateModeDetail');
 
     return (
         <div className={`space-y-3 ${isMobile ? 'pt-1' : ''}`}>
@@ -104,9 +110,11 @@ function ControlPanelContent({
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1 text-sm font-semibold text-gray-900">
                         <Sparkles className="w-4 h-4 text-blue-600" />
-                        <span>Self-learning</span>
+                        <span>{t('controlPanel.selfLearningTitle')}</span>
                     </div>
-                    <span className="text-xs font-semibold uppercase tracking-widest text-gray-400">Book</span>
+                    <span className="text-xs font-semibold uppercase tracking-widest text-gray-400">
+                        {t('controlPanel.selfLearningSection')}
+                    </span>
                 </div>
                 <p className="text-xs text-gray-500 leading-snug">{description}</p>
                 <div className="mt-4 flex items-center justify-between gap-3">
@@ -125,7 +133,9 @@ function ControlPanelContent({
                                 : 'border-gray-200 bg-gray-50 text-gray-700 hover:border-gray-300 hover:bg-gray-100'
                         } ${isPrivateModeEnabled ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
-                        {isSelfLearningEnabled ? 'Pause learning' : 'Enable learning'}
+                        {isSelfLearningEnabled
+                            ? t('controlPanel.selfLearningPauseAction')
+                            : t('controlPanel.selfLearningEnableAction')}
                     </button>
                 </div>
             </div>
@@ -133,9 +143,11 @@ function ControlPanelContent({
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1 text-sm font-semibold text-gray-900">
                         <EyeOff className="w-4 h-4 text-blue-600" />
-                        <span>Private mode</span>
+                        <span>{t('controlPanel.privateModeTitle')}</span>
                     </div>
-                    <span className="text-xs font-semibold uppercase tracking-widest text-gray-400">Privacy</span>
+                    <span className="text-xs font-semibold uppercase tracking-widest text-gray-400">
+                        {t('controlPanel.privateModeSection')}
+                    </span>
                 </div>
                 <p className="text-xs text-gray-500 leading-snug">{privateDescription}</p>
                 <div className="mt-4 flex items-center justify-between gap-3">
@@ -155,8 +167,40 @@ function ControlPanelContent({
                                 : 'border-gray-200 bg-gray-50 text-gray-700 hover:border-gray-300 hover:bg-gray-100'
                         }`}
                     >
-                        {isPrivateModeEnabled ? 'Disable private mode' : 'Enable private mode'}
+                        {isPrivateModeEnabled
+                            ? t('controlPanel.privateModeDisableAction')
+                            : t('controlPanel.privateModeEnableAction')}
                     </button>
+                </div>
+            </div>
+            <div className="rounded-2xl border border-gray-100 bg-white/80 p-3 shadow-inner">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1 text-sm font-semibold text-gray-900">
+                        <Languages className="w-4 h-4 text-blue-600" />
+                        <span>{t('controlPanel.languageTitle')}</span>
+                    </div>
+                    <span className="text-xs font-semibold uppercase tracking-widest text-gray-400">
+                        {t('controlPanel.languageSection')}
+                    </span>
+                </div>
+                <p className="text-xs text-gray-500 leading-snug">{t('controlPanel.languageSubtitle')}</p>
+                <div className="mt-3 space-y-2">
+                    <label htmlFor="control-panel-language" className="text-xs font-medium text-gray-600">
+                        {t('controlPanel.languageSelectLabel')}
+                    </label>
+                    <select
+                        id="control-panel-language"
+                        value={language}
+                        onChange={(event) => setLanguage(event.target.value as typeof language)}
+                        className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                    >
+                        {availableLanguages.map((languagePack) => (
+                            <option key={languagePack.language} value={languagePack.language}>
+                                {languagePack.nativeName} ({languagePack.englishName})
+                            </option>
+                        ))}
+                    </select>
+                    <p className="text-xs text-gray-500">{t('controlPanel.languageHelp')}</p>
                 </div>
             </div>
         </div>
@@ -207,6 +251,7 @@ function useHideOnClickOutside(
  * @private
  */
 export function HeaderControlPanelDropdown() {
+    const { t } = useServerLanguage();
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement | null>(null);
     const buttonRef = useRef<HTMLButtonElement | null>(null);
@@ -224,11 +269,11 @@ export function HeaderControlPanelDropdown() {
                 type="button"
                 onClick={() => setIsOpen((value) => !value)}
                 aria-expanded={isOpen}
-                aria-label="Open global control panel"
+                aria-label={t('controlPanel.openAriaLabel')}
                 className="p-2 rounded-full border border-transparent bg-white/70 text-gray-600 shadow-sm shadow-black/5 transition hover:bg-white hover:text-gray-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
             >
                 <Settings2 className="w-5 h-5" />
-                <span className="sr-only">Control panel</span>
+                <span className="sr-only">{t('controlPanel.label')}</span>
             </button>
 
             {isOpen && (
@@ -238,13 +283,10 @@ export function HeaderControlPanelDropdown() {
                 >
                     <div className="rounded-2xl bg-white p-3">
                         <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-widest text-gray-500">
-                            <span>Control panel</span>
+                            <span>{t('controlPanel.label')}</span>
                             <ChevronDown className="w-3 h-3 rotate-180 text-gray-400" />
                         </div>
                         <ControlPanelContent />
-                        <div className="mt-4 border-t border-gray-100 pt-3 text-xs text-gray-500">
-                            <p>More toggles (theme, language, accessibility) coming soon.</p>
-                        </div>
                     </div>
                 </div>
             )}

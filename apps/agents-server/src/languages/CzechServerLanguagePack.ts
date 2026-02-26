@@ -1,0 +1,151 @@
+import type { ServerLanguagePack } from './ServerLanguagePack';
+import type { ServerTranslationDictionary, ServerTranslationKey } from './EnglishServerLanguagePack';
+
+/**
+ * Built-in Czech translation catalog.
+ */
+const CzechServerTranslations: ServerTranslationDictionary = {
+    'common.close': 'Zavrit',
+    'common.cancel': 'Zrusit',
+    'common.confirm': 'Potvrdit',
+    'common.ok': 'OK',
+    'common.input': 'Vstup',
+    'common.admin': 'Admin',
+    'common.profile': 'Profil',
+    'common.chat': 'Chat',
+    'common.book': 'Kniha',
+    'common.more': 'Vice',
+
+    'controlPanel.label': 'Ovladaci panel',
+    'controlPanel.openAriaLabel': 'Otevrit globalni ovladaci panel',
+    'controlPanel.feedbackTitle': 'Odezva',
+    'controlPanel.feedbackSubtitle': 'Globalni nastaveni zvuku a vibraci',
+    'controlPanel.audioLabel': 'Zvuk',
+    'controlPanel.audioLoading': 'Nacitam nastaveni zvuku…',
+    'controlPanel.selfLearningTitle': 'Sebeuceni',
+    'controlPanel.selfLearningSection': 'Kniha',
+    'controlPanel.selfLearningDescriptionPrivate':
+        'Soukromy rezim ponecha knihu beze zmen a blokuje nove uceni.',
+    'controlPanel.selfLearningDescriptionLearning': 'Agent po kazdem chatu pridava nove commitmenty do knihy.',
+    'controlPanel.selfLearningDescriptionPaused':
+        'Agent respektuje existujici knihu, dokud znovu nepovolite uceni.',
+    'controlPanel.selfLearningStateDisabledPrivate': 'Vypnuto (Soukromy rezim)',
+    'controlPanel.selfLearningStateLearning': 'Uci se',
+    'controlPanel.selfLearningStatePaused': 'Pozastaveno',
+    'controlPanel.selfLearningDetailPrivate': 'Uceni je vypnute, dokud soukromy rezim nevypnete.',
+    'controlPanel.selfLearningDetailPaused':
+        'Chaty a pamet se ukladaji i kdyz je uceni pozastavene.',
+    'controlPanel.selfLearningPauseAction': 'Pozastavit uceni',
+    'controlPanel.selfLearningEnableAction': 'Povolit uceni',
+    'controlPanel.privateModeTitle': 'Soukromy rezim',
+    'controlPanel.privateModeSection': 'Soukromi',
+    'controlPanel.privateModeDescriptionPrivate': 'Chaty, pamet i uceni jsou vypnute.',
+    'controlPanel.privateModeDescriptionStandard': 'Ve standardnim rezimu data dale proudi na server.',
+    'controlPanel.privateModeStatePrivate': 'Soukromy',
+    'controlPanel.privateModeStateStandard': 'Standardni',
+    'controlPanel.privateModeDetail': 'Soukromy rezim necha aktualni chat pouze ve vasem prohlizeci.',
+    'controlPanel.privateModeDisableAction': 'Vypnout soukromy rezim',
+    'controlPanel.privateModeEnableAction': 'Zapnout soukromy rezim',
+    'controlPanel.languageTitle': 'Jazyk',
+    'controlPanel.languageSubtitle': 'Vyberte jazyk rozhrani pro tento prohlizec.',
+    'controlPanel.languageSection': 'Lokalizace',
+    'controlPanel.languageSelectLabel': 'Jazyk rozhrani serveru',
+    'controlPanel.languageHelp':
+        'Vychozi hodnota je z metadata SERVER_LANGUAGE. Tady ji muzete lokalne prepsat.',
+
+    'privateMode.confirmTitle': 'Zapnout soukromy rezim',
+    'privateMode.confirmMessage':
+        'Soukromy rezim drzi tento chat pouze ve vasem prohlizeci. Historie chatu, uzivatelska pamet a sebeuceni se pri zapnuti neukladaji. Pokracovat?',
+    'privateMode.confirmEnableLabel': 'Zapnout soukromy rezim',
+    'privateMode.confirmCancelLabel': 'Ponechat standardni rezim',
+
+    'header.documentationMenuLabel': 'Dokumentace',
+    'header.systemMenuLabel': 'System',
+    'header.switchServerAria': 'Prepnout server',
+    'header.currentFederatedServer': '(aktualni)',
+    'header.logIn': 'Prihlasit se',
+    'header.logOut': 'Odhlasit se',
+    'header.changePassword': 'Zmenit heslo',
+    'header.menuLabel': 'Menu',
+    'header.landingPage': 'Uvodni stranka',
+    'header.userMemory': 'Uzivatelska pamet',
+    'header.viewAllUsers': 'Zobrazit vsechny uzivatele',
+    'header.createNewUser': 'Vytvorit noveho uzivatele',
+    'header.models': 'Modely',
+    'header.openApiDocumentation': 'OpenAPI dokumentace',
+    'header.apiTokens': 'API tokeny',
+    'header.metadata': 'Metadata',
+    'header.customCss': 'Vlastni CSS',
+    'header.customJs': 'Vlastni JS',
+    'header.chatHistory': 'Historie chatu',
+    'header.usageAnalytics': 'Analyza pouziti',
+    'header.messagesEmails': 'Zpravy a e-maily',
+    'header.chatFeedback': 'Zpetna vazba chatu',
+    'header.browser': 'Prohlizec',
+    'header.voiceInputTest': 'Test hlasoveho vstupu',
+    'header.searchEngineTest': 'Test vyhledavace',
+    'header.imagesGallery': 'Galerie obrazku',
+    'header.files': 'Soubory',
+    'header.users': 'Uzivatele',
+    'header.versionInfo': 'Informace o verzi',
+    'header.experiments': 'Experimenty',
+    'header.story': 'Pribeh',
+    'header.documentationOverview': 'Prehled',
+    'header.documentationApiReference': 'API reference',
+    'header.documentationAll': 'Vse',
+    'header.loggedInAs': 'Prihlasen jako {username}',
+    'header.searchThisServerPlaceholder': 'Prohledat tento server...',
+    'header.searchBoxDefaultPlaceholder': 'Hledat agenty, slozky, dokumentaci, konverzace...',
+    'header.searchGlobalLabel': 'Globalni vyhledavani',
+    'header.searchViewAllResultsFor': 'Zobrazit vsechny vysledky pro',
+    'header.searchNoResultsFor': 'Pro dotaz nebyly nalezeny vysledky',
+    'header.searchUnavailable': 'Vyhledavani je docasne nedostupne.',
+    'header.agentsLabelFallback': '{agentsPlural}',
+    'header.viewAllAgents': 'Zobrazit vsechny {agentsPlural}',
+    'header.creatingAgent': 'Vytvarim {agentSingular}...',
+    'header.createNewAgent': 'Vytvorit noveho {agentSingular}',
+    'header.createFailedTitle': 'Vytvoreni {agentSingular} selhalo',
+    'header.createFailedMessage': '{agentSingular} se nepodarilo vytvorit. Zkuste to prosim znovu.',
+
+    'asyncDialog.defaultAlertTitle': 'Upozorneni',
+    'asyncDialog.defaultConfirmTitle': 'Potvrdit akci',
+    'asyncDialog.defaultPromptTitle': 'Zadejte hodnotu',
+
+    'login.dialogTitle': 'Prihlaseni',
+    'login.dialogDescription': 'Zadejte prihlasovaci udaje pro pristup do administrace',
+    'login.usernameLabel': 'Uzivatelske jmeno',
+    'login.usernamePlaceholder': 'Zadejte uzivatelske jmeno',
+    'login.passwordLabel': 'Heslo',
+    'login.passwordPlaceholder': 'Zadejte heslo',
+    'login.loggingIn': 'Prihlasuji...',
+    'login.loginAction': 'Prihlasit se',
+    'login.forgottenPassword': 'Zapomenute heslo?',
+    'login.registerNewUser': 'Registrovat noveho uzivatele',
+    'login.errorOccurred': 'Doslo k chybe',
+    'login.unexpectedError': 'Doslo k neocekavane chybe',
+
+    'forgottenPassword.title': 'Zapomenute heslo',
+    'forgottenPassword.subtitle': 'Obnovte sve heslo',
+    'forgottenPassword.noEmailPrefix':
+        'Tento Promptbook server nema e-mailovou funkcionalitu. Prosim kontaktujte administratora na',
+    'forgottenPassword.noEmailSuffix': 'pro reset hesla.',
+
+    'registerUser.title': 'Registrace noveho uzivatele',
+    'registerUser.subtitle': 'Vytvorte novy uzivatelsky ucet',
+    'registerUser.noEmailPrefix':
+        'Tento Promptbook server nema e-mailovou funkcionalitu. Prosim kontaktujte administratora na',
+    'registerUser.noEmailSuffix': 'pro registraci noveho uzivatele.',
+
+    'secretInput.hideSecret': 'Skryt tajnou hodnotu',
+    'secretInput.showSecret': 'Zobrazit tajnou hodnotu',
+};
+
+/**
+ * Built-in Czech language pack.
+ */
+export const CzechServerLanguagePack: ServerLanguagePack<ServerTranslationKey> = {
+    language: 'cs',
+    englishName: 'Czech',
+    nativeName: 'Cestina',
+    translations: CzechServerTranslations,
+};

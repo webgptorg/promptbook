@@ -6,6 +6,7 @@ import type { ReactNode } from 'react';
 import { createContext, useCallback, useContext, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { LoginDialog } from '../LoginDialog/LoginDialog';
 import { Dialog } from '../Portal/Dialog';
+import { useServerLanguage } from '../ServerLanguage/ServerLanguageProvider';
 import {
     ModalDismissedError,
     registerModalController,
@@ -51,13 +52,6 @@ type AsyncDialogsProviderProps = {
      */
     readonly children: ReactNode;
 };
-
-const DEFAULT_ALERT_TITLE = 'Notice';
-const DEFAULT_CONFIRM_TITLE = 'Confirm action';
-const DEFAULT_PROMPT_TITLE = 'Enter value';
-const DEFAULT_CONFIRM_LABEL = 'Confirm';
-const DEFAULT_CANCEL_LABEL = 'Cancel';
-const DEFAULT_OK_LABEL = 'OK';
 
 const AsyncDialogsContext = createContext<ModalController | null>(null);
 
@@ -110,6 +104,7 @@ type DialogShellProps = {
 function DialogShell(props: DialogShellProps) {
     const { title, description, onClose, children, footer, onSubmit } = props;
     const Wrapper = onSubmit ? 'form' : 'div';
+    const { t } = useServerLanguage();
 
     return (
         <Dialog onClose={onClose} className="w-full max-w-md p-6">
@@ -119,7 +114,7 @@ function DialogShell(props: DialogShellProps) {
                 type="button"
             >
                 <X className="w-5 h-5" />
-                <span className="sr-only">Close</span>
+                <span className="sr-only">{t('common.close')}</span>
             </button>
 
             <Wrapper
@@ -175,10 +170,11 @@ type AlertDialogProps = {
  */
 function AlertDialog(props: AlertDialogProps) {
     const { title, message, confirmLabel, onConfirm, onCancel } = props;
+    const { t } = useServerLanguage();
 
     return (
         <DialogShell
-            title={title || DEFAULT_ALERT_TITLE}
+            title={title || t('asyncDialog.defaultAlertTitle')}
             description={message}
             onClose={onCancel}
             footer={
@@ -187,7 +183,7 @@ function AlertDialog(props: AlertDialogProps) {
                     onClick={onConfirm}
                     className="px-4 py-2 rounded-md bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
                 >
-                    {confirmLabel || DEFAULT_OK_LABEL}
+                    {confirmLabel || t('common.ok')}
                 </button>
             }
         />
@@ -229,10 +225,11 @@ type ConfirmDialogProps = {
  */
 function ConfirmDialog(props: ConfirmDialogProps) {
     const { title, message, confirmLabel, cancelLabel, onConfirm, onCancel } = props;
+    const { t } = useServerLanguage();
 
     return (
         <DialogShell
-            title={title || DEFAULT_CONFIRM_TITLE}
+            title={title || t('asyncDialog.defaultConfirmTitle')}
             description={message}
             onClose={onCancel}
             footer={
@@ -242,14 +239,14 @@ function ConfirmDialog(props: ConfirmDialogProps) {
                         onClick={onCancel}
                         className="px-4 py-2 rounded-md bg-gray-100 text-gray-700 text-sm font-semibold hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2 transition-colors"
                     >
-                        {cancelLabel || DEFAULT_CANCEL_LABEL}
+                        {cancelLabel || t('common.cancel')}
                     </button>
                     <button
                         type="button"
                         onClick={onConfirm}
                         className="px-4 py-2 rounded-md bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
                     >
-                        {confirmLabel || DEFAULT_CONFIRM_LABEL}
+                        {confirmLabel || t('common.confirm')}
                     </button>
                 </>
             }
@@ -305,6 +302,7 @@ type PromptDialogProps = {
 function PromptDialog(props: PromptDialogProps) {
     const { title, message, confirmLabel, cancelLabel, defaultValue, placeholder, inputLabel, onConfirm, onCancel } =
         props;
+    const { t } = useServerLanguage();
     const [value, setValue] = useState(defaultValue ?? '');
     const inputId = useId();
     const inputRef = useRef<HTMLInputElement | null>(null);
@@ -315,7 +313,7 @@ function PromptDialog(props: PromptDialogProps) {
 
     return (
         <DialogShell
-            title={title || DEFAULT_PROMPT_TITLE}
+            title={title || t('asyncDialog.defaultPromptTitle')}
             description={message}
             onClose={onCancel}
             onSubmit={() => onConfirm(value)}
@@ -326,20 +324,20 @@ function PromptDialog(props: PromptDialogProps) {
                         onClick={onCancel}
                         className="px-4 py-2 rounded-md bg-gray-100 text-gray-700 text-sm font-semibold hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2 transition-colors"
                     >
-                        {cancelLabel || DEFAULT_CANCEL_LABEL}
+                        {cancelLabel || t('common.cancel')}
                     </button>
                     <button
                         type="submit"
                         className="px-4 py-2 rounded-md bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
                     >
-                        {confirmLabel || DEFAULT_CONFIRM_LABEL}
+                        {confirmLabel || t('common.confirm')}
                     </button>
                 </>
             }
         >
             <div className="space-y-2">
                 <label htmlFor={inputId} className="sr-only">
-                    {inputLabel || 'Input'}
+                    {inputLabel || t('common.input')}
                 </label>
                 <input
                     id={inputId}

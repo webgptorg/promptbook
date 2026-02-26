@@ -16,6 +16,7 @@ import { useAgentBackground } from '../../../components/AgentProfile/useAgentBac
 import { ChatErrorDialog } from '../../../components/ChatErrorDialog';
 import { confirmPrivateModeEnable } from '../../../components/PrivateModePreferences/confirmPrivateModeEnable';
 import { usePrivateModePreferences } from '../../../components/PrivateModePreferences/PrivateModePreferencesProvider';
+import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
 import { useSelfLearningPreferences } from '../../../components/SelfLearningPreferences/SelfLearningPreferencesProvider';
 import { useSoundSystem } from '../../../components/SoundSystemProvider/SoundSystemProvider';
 import { createDefaultChatEffects } from '../../../utils/chat/createDefaultChatEffects';
@@ -551,6 +552,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
     const { soundSystem } = useSoundSystem();
     const { isSelfLearningEnabled } = useSelfLearningPreferences();
     const { isPrivateModeEnabled, setIsPrivateModeEnabled } = usePrivateModePreferences();
+    const { t } = useServerLanguage();
     const effectiveSelfLearningEnabled = isSelfLearningEnabled && !isPrivateModeEnabled;
 
     // Handle errors from chat
@@ -643,7 +645,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
         isPrivacyConfirmationInFlightRef.current = true;
 
         try {
-            const isConfirmed = await confirmPrivateModeEnable();
+            const isConfirmed = await confirmPrivateModeEnable(t);
             if (!isConfirmed) {
                 return;
             }
@@ -652,7 +654,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
         } finally {
             isPrivacyConfirmationInFlightRef.current = false;
         }
-    }, [isPrivateModeEnabled, setIsPrivateModeEnabled]);
+    }, [isPrivateModeEnabled, setIsPrivateModeEnabled, t]);
 
     /**
      * Finds the newest location-tool call that asks for browser location.

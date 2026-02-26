@@ -1,33 +1,33 @@
 'use client';
 
 import { showConfirm } from '../AsyncDialogs/asyncDialogs';
+import { EnglishServerLanguagePack, type ServerTranslationKey } from '../../languages/EnglishServerLanguagePack';
 
 /**
- * Default confirmation title used when enabling private mode.
- *
- * @private shared helper for Agents Server private mode UX
+ * Translation helper used by private-mode confirmation dialogs.
  */
-const ENABLE_PRIVATE_MODE_CONFIRMATION_TITLE = 'Enable private mode';
+type PrivateModeTranslationResolver = (key: ServerTranslationKey) => string;
 
 /**
- * Default confirmation message used when enabling private mode.
- *
- * @private shared helper for Agents Server private mode UX
+ * Default English translation resolver used outside of language context.
  */
-const ENABLE_PRIVATE_MODE_CONFIRMATION_MESSAGE =
-    'Private mode keeps this chat local to your browser. Chat history, user memory, and self-learning will not be saved while it is enabled. Continue?';
+const resolvePrivateModeTranslationInEnglish: PrivateModeTranslationResolver = (key) =>
+    EnglishServerLanguagePack.translations[key];
 
 /**
  * Shows confirmation dialog before enabling private mode.
  *
+ * @param resolveTranslation - Translation resolver for dialog text.
  * @returns True when user confirms enabling private mode.
  * @private shared helper for Agents Server private mode UX
  */
-export async function confirmPrivateModeEnable(): Promise<boolean> {
+export async function confirmPrivateModeEnable(
+    resolveTranslation: PrivateModeTranslationResolver = resolvePrivateModeTranslationInEnglish,
+): Promise<boolean> {
     return showConfirm({
-        title: ENABLE_PRIVATE_MODE_CONFIRMATION_TITLE,
-        message: ENABLE_PRIVATE_MODE_CONFIRMATION_MESSAGE,
-        confirmLabel: 'Enable private mode',
-        cancelLabel: 'Keep standard mode',
+        title: resolveTranslation('privateMode.confirmTitle'),
+        message: resolveTranslation('privateMode.confirmMessage'),
+        confirmLabel: resolveTranslation('privateMode.confirmEnableLabel'),
+        cancelLabel: resolveTranslation('privateMode.confirmCancelLabel'),
     }).catch(() => false);
 }
