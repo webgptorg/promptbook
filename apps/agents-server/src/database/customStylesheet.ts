@@ -1,4 +1,4 @@
-﻿import { provideServer } from '../tools/provideServer';
+import { provideServer } from '../tools/provideServer';
 import { provideSupabase } from './provideSupabase';
 
 /**

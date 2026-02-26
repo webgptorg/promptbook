@@ -1,2 +1,2 @@
-﻿const value = '\';
+const value = '\';
 const name = '{scope}';
