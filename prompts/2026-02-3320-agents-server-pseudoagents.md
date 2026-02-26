@@ -26,7 +26,7 @@ TEAM You can talk with a {lawyer} or {User}.
 
 ---
 
-[ ]
+[ ] !
 
 [✨🆘] Pass extra instructions from `TEAM`
 
@@ -85,15 +85,59 @@ Teammates:
 }
 ```
 
-@@@
-@@@
-@@@
+**But instead it should create a system message:**
 
--   @@@
+```
+You are Interacting with User
+
+## Language:
+Čeština
+<- You are speaking theese languages in your responses to the user.
+
+## Teammates:
+
+Ask John Green for everything. Always asks him in English
+
+1) John Green toolname `team_chat_john_green_422743b849`
+```
+
+**With tools:**
+
+```json
+{
+    // ...
+    "tools": [
+        {
+            "name": "team_chat_john_green_422743b849",
+            "description": "Consult teammate John Green",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "description": "Question to ask John Green."
+                    },
+                    "context": {
+                        "type": "string",
+                        "description": "Optional background context for John Green."
+                    }
+                },
+                "required": ["message"]
+            }
+        }
+    ]
+}
+```
+
+-   DO not expose urls of reference agents; they are not important to be in the system a message.
+    -   The only thing important is to interlink the identification in the system message with the identification in the available tools.
 -   Also change "pseudo-agent.invalid"
 -   Hide that the `{User}` is "User" - use deterministic english name generator (which already exists in the codebase) to generate a random name _(use rest if the `TEAM` commitment content as seed)_, so the agent will talk to "Alice White" instead of "User", "Bob Green" instead of "User", etc. This will make the experience more natural.
+-   Remove the "Use when: Use when you n..." section from the tool description, because it is redundant, there should be an overall description taken from the `TEAM` commitment.
+-   The tool names should be based on the human-readable (pseudo)names of the team colleagues. Use existing normalization functions.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
+-   Use h2 `##` for sections in the system message, like "Language", "Teammates", etc. to make it more readable. Make this a pattern across all the commitments.
+-   Do a proper analysis of the current functionality of Referencing Agents and Commitments before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
@@ -133,4 +177,3 @@ Teammates:
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
