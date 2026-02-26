@@ -4,8 +4,6 @@ import Editor from '@monaco-editor/react';
 import type { ChangeEvent } from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useUnsavedChangesGuard } from '../../../components/utils/useUnsavedChangesGuard';
-import { createDefaultCustomJavascript } from '../../../constants/customJavascript';
-import { CUSTOM_RESOURCE_INPUT_CLASS_NAME, readJsonResponse } from '../custom-resource/shared';
 import {
     ANALYTICS_METADATA_KEYS,
     AnalyticsMetadataKey,
@@ -15,6 +13,8 @@ import {
     mapAnalyticsSettingsToMetadataPayload,
     mapMetadataToAnalyticsSettings,
 } from '../../../constants/analyticsMetadata';
+import { createDefaultCustomJavascript } from '../../../constants/customJavascript';
+import { CUSTOM_RESOURCE_INPUT_CLASS_NAME, readJsonResponse } from '../custom-resource/shared';
 
 /**
  * Serialized custom JavaScript file returned by the API.
@@ -180,9 +180,7 @@ export function CustomJsClient() {
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
     const [analyticsSettings, setAnalyticsSettings] = useState<AnalyticsSettings>(DEFAULT_ANALYTICS_SETTINGS);
     const [analyticsSnapshot, setAnalyticsSnapshot] = useState<AnalyticsSettings>(DEFAULT_ANALYTICS_SETTINGS);
-    const [persistedAnalyticsKeys, setPersistedAnalyticsKeys] = useState<Set<AnalyticsMetadataKey>>(
-        () => new Set(),
-    );
+    const [persistedAnalyticsKeys, setPersistedAnalyticsKeys] = useState<Set<AnalyticsMetadataKey>>(() => new Set());
     const [analyticsNotes, setAnalyticsNotes] = useState<AnalyticsNoteMap>({});
     const [analyticsStatus, setAnalyticsStatus] = useState<AnalyticsStatusMessage | null>(null);
     const [analyticsLoadError, setAnalyticsLoadError] = useState<string | null>(null);
@@ -230,7 +228,10 @@ export function CustomJsClient() {
 
     const currentSnapshot = currentFile ? serverSnapshotMap.get(currentFile.localId) : null;
     const hasCurrentChanges =
-        !currentFile || !currentSnapshot || currentSnapshot.scope !== currentFile.scope || currentSnapshot.javascript !== currentFile.javascript;
+        !currentFile ||
+        !currentSnapshot ||
+        currentSnapshot.scope !== currentFile.scope ||
+        currentSnapshot.javascript !== currentFile.javascript;
 
     const loadCustomJavascript = useCallback(
         async (preferredId?: number | null) => {
@@ -313,7 +314,7 @@ export function CustomJsClient() {
         } finally {
             setIsAnalyticsLoading(false);
         }
-    }, [mapMetadataToAnalyticsSettings, ANALYTICS_METADATA_KEYS]);
+    }, []);
 
     useEffect(() => {
         if (!currentFile && files.length) {
@@ -376,13 +377,7 @@ export function CustomJsClient() {
         } finally {
             setIsAnalyticsSaving(false);
         }
-    }, [
-        analyticsNotes,
-        analyticsSettings,
-        getAnalyticsMetadataDefinition,
-        mapAnalyticsSettingsToMetadataPayload,
-        persistedAnalyticsKeys,
-    ]);
+    }, [analyticsNotes, analyticsSettings, persistedAnalyticsKeys]);
 
     const addNewFile = useCallback(() => {
         const draft = createNewFileState(files, defaultJavaScript);
@@ -598,11 +593,15 @@ export function CustomJsClient() {
         <div className="w-full px-2 sm:px-4 md:px-8 py-8 max-w-screen-xl mx-auto">
             <h1 className="text-3xl font-bold mb-4">Custom JavaScript</h1>
             <p className="text-sm text-gray-600 mb-6">
-                Scripts entered here are concatenated and injected on every Agents Server page. Use them to add
-                helpers, integrations, or instrumentation, but keep them lean since runtime errors can impact the UI.
+                Scripts entered here are concatenated and injected on every Agents Server page. Use them to add helpers,
+                integrations, or instrumentation, but keep them lean since runtime errors can impact the UI.
             </p>
 
-            {error && <div className="mb-4 rounded-md border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
+            {error && (
+                <div className="mb-4 rounded-md border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+                    {error}
+                </div>
+            )}
             {successMessage && (
                 <div className="mb-4 rounded-md border border-green-300 bg-green-50 px-4 py-3 text-sm text-green-800">
                     {successMessage}
@@ -644,7 +643,9 @@ export function CustomJsClient() {
                                             : 'border-transparent bg-gray-50 hover:border-gray-300'
                                     }`}
                                 >
-                                    <div className="text-sm font-medium text-gray-900">{file.scope || 'Untitled script'}</div>
+                                    <div className="text-sm font-medium text-gray-900">
+                                        {file.scope || 'Untitled script'}
+                                    </div>
                                     <div className="text-xs text-gray-500">
                                         {file.updatedAt
                                             ? `Saved ${new Date(file.updatedAt).toLocaleString()}`
@@ -669,7 +670,10 @@ export function CustomJsClient() {
                     {currentFile ? (
                         <>
                             <div>
-                                <label htmlFor="custom-js-name" className="mb-2 block text-sm font-medium text-gray-700">
+                                <label
+                                    htmlFor="custom-js-name"
+                                    className="mb-2 block text-sm font-medium text-gray-700"
+                                >
                                     File name
                                 </label>
                                 <input
@@ -771,9 +775,7 @@ export function CustomJsClient() {
                         <button
                             type="button"
                             onClick={() => void saveAnalyticsSettings()}
-                            disabled={
-                                isAnalyticsLoading || isAnalyticsSaving || !analyticsHasChanges
-                            }
+                            disabled={isAnalyticsLoading || isAnalyticsSaving || !analyticsHasChanges}
                             className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300"
                         >
                             {isAnalyticsSaving ? 'Saving...' : 'Save analytics settings'}
@@ -813,9 +815,7 @@ export function CustomJsClient() {
                     <div className="space-y-6">
                         <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
                             <div>
-                                <h3 className="text-base font-semibold text-gray-900">
-                                    Google Analytics (gtag.js)
-                                </h3>
+                                <h3 className="text-base font-semibold text-gray-900">Google Analytics (gtag.js)</h3>
                                 <p className="text-xs text-gray-500">
                                     Inject gtag.js with your measurement ID and basic flags.
                                 </p>

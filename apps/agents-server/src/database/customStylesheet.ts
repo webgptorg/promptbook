@@ -1,5 +1,5 @@
-import { provideServer } from '../tools/provideServer';
-import { provideSupabase } from './provideSupabase';
+import { $provideServer } from '../tools/$provideServer';
+import { $provideSupabase } from './$provideSupabase';
 
 /**
  * Database table basename that stores admin-defined CSS.
@@ -43,24 +43,26 @@ type DynamicCustomStylesheetTableQuery = {
             options: { ascending: boolean },
         ) => Promise<{ data: CustomStylesheetRow[] | null; error: SupabaseErrorLike | null }>;
     };
-    insert: (
-        values: Pick<CustomStylesheetRow, 'scope' | 'css' | 'updatedAt'>,
-    ) => {
+    insert: (values: Pick<CustomStylesheetRow, 'scope' | 'css' | 'updatedAt'>) => {
         select: (columns: '*') => {
             single: () => Promise<{ data: CustomStylesheetRow; error: SupabaseErrorLike | null }>;
         };
     };
-    update: (
-        values: Partial<Pick<CustomStylesheetRow, 'scope' | 'css' | 'updatedAt'>>,
-    ) => {
-        eq: (column: 'id', value: number) => {
+    update: (values: Partial<Pick<CustomStylesheetRow, 'scope' | 'css' | 'updatedAt'>>) => {
+        eq: (
+            column: 'id',
+            value: number,
+        ) => {
             select: (columns: '*') => {
                 single: () => Promise<{ data: CustomStylesheetRow; error: SupabaseErrorLike | null }>;
             };
         };
     };
     delete: () => {
-        eq: (column: 'id', value: number) => Promise<{ data: CustomStylesheetRow | null; error: SupabaseErrorLike | null }>;
+        eq: (
+            column: 'id',
+            value: number,
+        ) => Promise<{ data: CustomStylesheetRow | null; error: SupabaseErrorLike | null }>;
     };
 };
 
@@ -73,8 +75,8 @@ type DynamicSupabaseClient = {
  * @private
  */
 async function getCustomStylesheetTableName(): Promise<string> {
-    const { tablePrefix } = await provideServer();
-    return $$\{tablePrefix}\{CUSTOM_STYLESHEET_TABLE_BASENAME};
+    const { tablePrefix } = await $provideServer();
+    return `${tablePrefix}${CUSTOM_STYLESHEET_TABLE_BASENAME}`;
 }
 
 /**
@@ -99,24 +101,38 @@ function isMissingRelationError(error: unknown): boolean {
  * Loads every custom stylesheet row in deterministic creation order.
  * @public
  */
+function getCustomStylesheetClient(): DynamicSupabaseClient {
+    return $provideSupabase() as unknown as DynamicSupabaseClient;
+}
+
+/**
+ * Loads every custom stylesheet row in deterministic creation order.
+ * @public
+ */
 export async function listCustomStylesheets(): Promise<CustomStylesheetRow[]> {
     const table = await getCustomStylesheetTableName();
-    const supabase = provideSupabase() as unknown as DynamicSupabaseClient;
+    const supabase = getCustomStylesheetClient();
 
-    const { data, error } = await supabase
-        .from(table)
-        .select('*')
-        .order('createdAt', { ascending: true });
+    const { data, error } = await supabase.from(table).select('*').order('createdAt', { ascending: true });
 
     if (error) {
         if (isMissingRelationError(error)) {
             return [];
         }
 
-        throw new Error(Failed to load custom stylesheets: );
+        throw new Error(`Failed to load custom stylesheets: ${error.message || String(error)}`);
     }
 
     return (data as CustomStylesheetRow[] | null) || [];
+}
+
+/**
+ * Returns currently configured global custom stylesheet row.
+ * @public
+ */
+export async function getCurrentCustomStylesheetRow(): Promise<CustomStylesheetRow | null> {
+    const rows = await listCustomStylesheets();
+    return rows[0] ?? null;
 }
 
 /**
@@ -124,10 +140,41 @@ export async function listCustomStylesheets(): Promise<CustomStylesheetRow[]> {
  * @public
  */
 export async function getCurrentCustomStylesheetCss(): Promise<string> {
-    const rows = await listCustomStylesheets();
-    if (rows.length === 0) {
-        return '';
+    const row = await getCurrentCustomStylesheetRow();
+    return row?.css ?? '';
+}
+
+/**
+ * Saves currently configured global custom stylesheet.
+ * @public
+ */
+export async function saveCustomStylesheetCss(css: string): Promise<CustomStylesheetRow> {
+    if (css.length > MAX_CUSTOM_STYLESHEET_LENGTH) {
+        throw new Error(`Custom CSS exceeds maximum length of ${MAX_CUSTOM_STYLESHEET_LENGTH} characters.`);
     }
 
-    return rows.map((row) => row.css).join('\\n\\n');
+    const table = await getCustomStylesheetTableName();
+    const supabase = getCustomStylesheetClient();
+    const current = await getCurrentCustomStylesheetRow();
+    const values = {
+        scope: 'global',
+        css,
+        updatedAt: new Date().toISOString(),
+    };
+
+    const query = current
+        ? supabase.from(table).update(values).eq('id', current.id)
+        : supabase.from(table).insert(values);
+
+    const { data, error } = await query.select('*').single();
+
+    if (error) {
+        if (isMissingRelationError(error)) {
+            throw new Error('CustomStylesheet table is missing. Apply database migrations before saving CSS.');
+        }
+
+        throw new Error(`Failed to save custom stylesheet: ${error.message || String(error)}`);
+    }
+
+    return data as CustomStylesheetRow;
 }

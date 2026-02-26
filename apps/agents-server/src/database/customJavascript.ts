@@ -1,6 +1,6 @@
 import { $provideServer } from '../tools/$provideServer';
-import { $provideSupabase } from './$provideSupabase';
 import { getAnalyticsCustomJavascript } from '../utils/analytics/analyticsIntegrations';
+import { $provideSupabase } from './$provideSupabase';
 
 /**
  * Upper bound for persisted custom JavaScript length.
@@ -43,6 +43,45 @@ type SupabaseErrorLike = {
 };
 
 /**
+ * Dynamic query interface for `CustomJavascript` table operations.
+ * @private
+ */
+type DynamicCustomJavascriptTableQuery = {
+    select: (columns: '*') => {
+        order: (
+            column: 'scope',
+            options: { ascending: boolean },
+        ) => Promise<{ data: CustomJavascriptRow[] | null; error: SupabaseErrorLike | null }>;
+    };
+    insert: (values: Pick<CustomJavascriptRow, 'scope' | 'javascript' | 'updatedAt'>) => {
+        select: (columns: '*') => {
+            single: () => Promise<{ data: CustomJavascriptRow; error: SupabaseErrorLike | null }>;
+        };
+    };
+    update: (values: Pick<CustomJavascriptRow, 'scope' | 'javascript' | 'updatedAt'>) => {
+        eq: (
+            column: 'id',
+            value: number,
+        ) => {
+            select: (columns: '*') => {
+                single: () => Promise<{ data: CustomJavascriptRow; error: SupabaseErrorLike | null }>;
+            };
+        };
+    };
+    delete: () => {
+        eq: (column: 'id', value: number) => Promise<{ error: SupabaseErrorLike | null }>;
+    };
+};
+
+/**
+ * Dynamic supabase interface used in this module.
+ * @private
+ */
+type DynamicSupabaseClient = {
+    from: (tableName: string) => DynamicCustomJavascriptTableQuery;
+};
+
+/**
  * Resolves the prefixed table name for `CustomJavascript`.
  * @private
  */
@@ -74,7 +113,7 @@ function isMissingRelationError(error: unknown): boolean {
  * @private
  */
 function getCustomJavascriptClient() {
-    return $provideSupabase() as unknown as { from: (tableName: string) => any };
+    return $provideSupabase() as unknown as DynamicSupabaseClient;
 }
 
 /**
@@ -160,9 +199,7 @@ export async function saveCustomJavascriptFile({
     const now = new Date().toISOString();
     const values = { scope: trimmedScope, javascript, updatedAt: now };
 
-    const query = id
-        ? supabase.from(table).update(values).eq('id', id)
-        : supabase.from(table).insert(values);
+    const query = id ? supabase.from(table).update(values).eq('id', id) : supabase.from(table).insert(values);
 
     const { data, error } = await query.select('*').single();
 
