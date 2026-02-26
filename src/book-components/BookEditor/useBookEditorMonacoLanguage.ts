@@ -22,8 +22,7 @@ export function useBookEditorMonacoLanguage({ monaco }: UseBookEditorMonacoLangu
             return;
         }
 
-        const isLanguageRegistered = monaco
-            .languages
+        const isLanguageRegistered = monaco.languages
             .getLanguages()
             .some((language) => language.id === BookEditorMonacoConstants.BOOK_LANGUAGE_ID);
 
