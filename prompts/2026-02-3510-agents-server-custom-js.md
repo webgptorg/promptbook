@@ -18,19 +18,20 @@
 
 -   @@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
+-   Do a proper analysis of the current functionality of `CustomJavascript` before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
 
-[-]
+[ ]
 
 [✨🍣] Analytics integrations
 
--   @@@
+-   Implement integration with Google Analytics and Smartsapp using the custom JavaScript functionality.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
+-   Do a proper analysis of the current functionality of `CustomJavascript` before you start implementing.
+-   If you need to do immigration, do it.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
@@ -42,7 +43,6 @@
 
 -   @@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
+-   Do a proper analysis of the current functionality of `CustomJavascript` before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
