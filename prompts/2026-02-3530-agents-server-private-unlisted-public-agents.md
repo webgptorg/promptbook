@@ -12,15 +12,17 @@
 
 ---
 
-[-]
+[ ]
 
-[✨👁] foo
+[✨👁] Always allow picking all of the visibility options - `PRIVATE`, `UNLISTED`, or `PUBLIC`
 
--   @@@
+-   In the past, there were only two visibility options `PRIVATE` and `PUBLIC`, but it was changed to three visibility options `PRIVATE`, `UNLISTED`, `PUBLIC`.
+-   But the UI for changing visibility was not updated, and it still shows only two options `PRIVATE` and `PUBLIC`, and you can only pick one of them, but you should be able to pick any of the three options.
+-   Change the buttons which say "Make public" or "Make private" to "update visibility", and there should be a separate model to change this visibility.
+-   This is relevant for both Agent Context menu, Folder Context menu and Quick Button on the Agent Card.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
 
@@ -45,4 +47,3 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
