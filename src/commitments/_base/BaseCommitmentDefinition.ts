@@ -110,6 +110,19 @@ export abstract class BaseCommitmentDefinition<TBookCommitment extends string> i
     }
 
     /**
+     * Helper method to format one system-message section with an H2 heading.
+     *
+     * @param title - Section title without markdown prefix.
+     * @param content - Section body content.
+     * @returns Formatted section text using `##` heading.
+     */
+    protected createSystemMessageSection(title: string, content: string): string {
+        const normalizedTitle = title.trim().replace(/^#+\s*/, '');
+        const normalizedContent = content.trim();
+        return normalizedContent ? `## ${normalizedTitle}\n${normalizedContent}` : `## ${normalizedTitle}`;
+    }
+
+    /**
      * Helper method to create a new requirements object with updated prompt suffix
      */
     protected updatePromptSuffix(

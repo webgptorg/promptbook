@@ -1,4 +1,6 @@
 import type { BookCommitment } from '../../commitments/_base/BookCommitment';
+import { normalizeWhitespaces } from '../../utils/normalization/normalizeWhitespaces';
+import { generateDeterministicEnglishName } from '../../utils/random/EnglishNamePool';
 
 /**
  * Supported pseudo-agent kinds.
@@ -12,14 +14,14 @@ export type PseudoAgentKind = 'USER' | 'VOID';
  *
  * @private internal utility of pseudo-agent resolution
  */
-export const PSEUDO_AGENT_USER_URL = 'https://pseudo-agent.invalid/user';
+export const PSEUDO_AGENT_USER_URL = 'https://pseudo-agent.promptbook/user';
 
 /**
  * Canonical pseudo-agent URL representing void / nothingness.
  *
  * @private internal utility of pseudo-agent resolution
  */
-export const PSEUDO_AGENT_VOID_URL = 'https://pseudo-agent.invalid/void';
+export const PSEUDO_AGENT_VOID_URL = 'https://pseudo-agent.promptbook/void';
 
 /**
  * Canonical compact token representation of the `{Void}` pseudo-agent.
@@ -142,6 +144,24 @@ export function isPseudoAgentUrl(agentUrl: string): boolean {
  */
 export function createPseudoAgentUrl(pseudoAgentKind: PseudoAgentKind): string {
     return PSEUDO_AGENT_URL_BY_KIND[pseudoAgentKind];
+}
+
+/**
+ * Creates a deterministic human-readable pseudonym for the `{User}` pseudo-agent.
+ *
+ * The seed is derived from TEAM commitment text with pseudo-user URLs removed so
+ * the remaining human instructions influence the resulting name.
+ *
+ * @param teamCommitmentContent - TEAM commitment content after reference resolution.
+ * @returns Deterministic English full name representing pseudo-user in that TEAM context.
+ * @private internal utility of TEAM commitment rendering
+ */
+export function createPseudoUserTeammateLabel(teamCommitmentContent: string): string {
+    const seedWithoutPseudoUrls = normalizeWhitespaces(
+        teamCommitmentContent.split(PSEUDO_AGENT_USER_URL).join(' ').trim(),
+    );
+    const effectiveSeed = seedWithoutPseudoUrls || teamCommitmentContent.trim() || PSEUDO_AGENT_USER_URL;
+    return generateDeterministicEnglishName(effectiveSeed).fullname;
 }
 
 /**

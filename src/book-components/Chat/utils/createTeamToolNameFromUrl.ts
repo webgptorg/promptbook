@@ -1,15 +1,17 @@
-import { computeHash } from '../../../_packages/utils.index';
+import { createTeamToolName } from '../../../book-2.0/agent-source/createTeamToolName';
 
+/**
+ * Prefix shared by all TEAM tool names.
+ */
 const TEAM_TOOL_PREFIX = 'team_chat_';
 
 /**
- * Builds a TEAM tool name from a teammate agent URL.
+ * Builds a TEAM tool name from teammate identity.
  *
  * @private utility of chat components
  */
-export function createTeamToolNameFromUrl(url: string): string {
-    const hash = computeHash(url).substring(0, 10);
-    return `${TEAM_TOOL_PREFIX}${hash}`;
+export function createTeamToolNameFromUrl(url: string, teammateLabel?: string): string {
+    return createTeamToolName(url, teammateLabel);
 }
 
 /**

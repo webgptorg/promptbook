@@ -1,7 +1,10 @@
 import { describe, expect, it } from '@jest/globals';
 import { book } from '../../../../../src/_packages/core.index';
 import type { AgentCollection } from '../../../../../src/collection/agent-collection/AgentCollection';
-import { PSEUDO_AGENT_USER_URL } from '../../../../../src/book-2.0/agent-source/pseudoAgentReferences';
+import {
+    createPseudoUserTeammateLabel,
+    PSEUDO_AGENT_USER_URL,
+} from '../../../../../src/book-2.0/agent-source/pseudoAgentReferences';
 import { createServerAgentReferenceResolver } from './createServerAgentReferenceResolver';
 import { resolveTeamCapabilitiesFromAgentSource } from './resolveTeamCapabilitiesFromAgentSource';
 
@@ -64,13 +67,14 @@ describe('resolveTeamCapabilitiesFromAgentSource', () => {
             `,
             resolver,
         );
+        const pseudoUserLabel = createPseudoUserTeammateLabel(PSEUDO_AGENT_USER_URL);
 
         expect(capabilities).toEqual(
             expect.arrayContaining([
                 expect.objectContaining({
                     type: 'team',
                     iconName: 'Users',
-                    label: 'User',
+                    label: pseudoUserLabel,
                     agentUrl: PSEUDO_AGENT_USER_URL,
                 }),
             ]),

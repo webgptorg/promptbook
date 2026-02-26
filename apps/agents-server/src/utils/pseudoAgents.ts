@@ -99,7 +99,7 @@ const PSEUDO_AGENT_DESCRIPTOR_BY_KIND: Readonly<Record<PseudoAgentKind, PseudoAg
             'Each pseudo-user reply is standalone: after you submit your answer, the agent uses that text and resumes the original conversation.',
             'The modal is intentionally brief and never stores or replays your message; treat {User} as an explicit “ask the human” switch.',
         ],
-        pseudoUrl: 'https://pseudo-agent.invalid/user',
+        pseudoUrl: createPseudoAgentUrl('USER'),
         aliasExamples: ['{User}', '@User', 'User', 'user', 'USER'],
     },
     VOID: {
@@ -119,7 +119,7 @@ const PSEUDO_AGENT_DESCRIPTOR_BY_KIND: Readonly<Record<PseudoAgentKind, PseudoAg
             'Drop into silence: mention {Void} in TEAM or other commitments to signal “nothing here” or “no teammate”. It never runs chat, it only represents the absence of context.',
             'All aliases are case insensitive—{Void}, VOID, null, none, and nil point to the same pseudo agent.',
         ],
-        pseudoUrl: 'https://pseudo-agent.invalid/void',
+        pseudoUrl: createPseudoAgentUrl('VOID'),
         aliasExamples: ['{Void}', 'Void', 'void', 'VOID', 'null', 'none', 'nil'],
     },
 };

@@ -1,15 +1,19 @@
 import { spaceTrim } from 'spacetrim';
 import { string_javascript_name } from '../../_packages/types.index';
 import type { AgentModelRequirements } from '../../book-2.0/agent-source/AgentModelRequirements';
+import { createTeamToolName } from '../../book-2.0/agent-source/createTeamToolName';
 import { parseTeamCommitmentContent, type TeamTeammate } from '../../book-2.0/agent-source/parseTeamCommitment';
-import { resolvePseudoAgentKindFromUrl, type PseudoAgentKind } from '../../book-2.0/agent-source/pseudoAgentReferences';
+import {
+    createPseudoUserTeammateLabel,
+    resolvePseudoAgentKindFromUrl,
+    type PseudoAgentKind,
+} from '../../book-2.0/agent-source/pseudoAgentReferences';
 import type { PromptResult } from '../../execution/PromptResult';
 import type { RemoteAgent } from '../../llm-providers/agent/RemoteAgent';
 import { ToolFunction } from '../../scripting/javascript/JavascriptExecutionToolsOptions';
 import type { LlmToolDefinition } from '../../types/LlmToolDefinition';
 import type { ChatPrompt } from '../../types/Prompt';
 import type { ToolCall } from '../../types/ToolCall';
-import { computeHash } from '../../utils/misc/computeHash';
 import { BaseCommitmentDefinition } from '../_base/BaseCommitmentDefinition';
 import {
     parseToolRuntimeContext,
@@ -76,7 +80,6 @@ type TeamToolArgs = {
     [TOOL_RUNTIME_CONTEXT_ARGUMENT]?: unknown;
 };
 
-const TEAM_TOOL_PREFIX = 'team_chat_';
 const teamToolFunctions: Record<string_javascript_name, ToolFunction> = {};
 const teamToolTitles: Record<string_javascript_name, string> = {};
 const remoteAgentsByUrl = new Map<string, Promise<RemoteAgent>>();
@@ -147,50 +150,6 @@ export class TeamCommitmentDefinition extends BaseCommitmentDefinition<'TEAM'> {
         }
 
         const agentName: string = (requirements._metadata?.agentName as string) || 'Agent';
-
-        const teamEntries: TeamToolEntry[] = teammates.map((teammate) => ({
-            toolName: createTeamToolName(teammate.url),
-            teammate,
-            agentName,
-        }));
-
-        for (const entry of teamEntries) {
-            registerTeamTool(entry);
-        }
-
-        const existingTools: readonly LlmToolDefinition[] = requirements.tools || [];
-        const updatedTools: LlmToolDefinition[] = [...existingTools];
-
-        for (const entry of teamEntries) {
-            if (updatedTools.some((tool) => tool.name === entry.toolName)) {
-                continue;
-            }
-
-            const whenToConsult = resolveWhenToConsultTeammate(entry);
-
-            updatedTools.push({
-                name: entry.toolName,
-                description: spaceTrim(`
-                    Consult teammate ${entry.teammate.label} (${entry.teammate.url}).
-                    Use when: ${whenToConsult}
-                `),
-                parameters: {
-                    type: 'object',
-                    properties: {
-                        message: {
-                            type: 'string',
-                            description: 'Question or request to send to the teammate.',
-                        },
-                        context: {
-                            type: 'string',
-                            description: 'Optional background context for the teammate.',
-                        },
-                    },
-                    required: ['message'],
-                },
-            });
-        }
-
         const existingTeammates: Array<{
             url: string;
             toolName: string;
@@ -205,6 +164,51 @@ export class TeamCommitmentDefinition extends BaseCommitmentDefinition<'TEAM'> {
                       instructions?: string;
                   }>
                 | undefined) || [];
+
+        const resolvedTeammates: TeamTeammate[] = resolveTeamTeammateLabels(trimmedContent, teammates);
+
+        const teamEntries: TeamToolEntry[] = resolvedTeammates.map((teammate) => {
+            const existingTeammate = existingTeammates.find((entry) => entry.url === teammate.url);
+            return {
+                toolName: (existingTeammate?.toolName ||
+                    createTeamToolName(teammate.url, teammate.label)) as string_javascript_name,
+                teammate,
+                agentName,
+            };
+        });
+
+        for (const entry of teamEntries) {
+            registerTeamTool(entry);
+        }
+
+        const existingTools: readonly LlmToolDefinition[] = requirements.tools || [];
+        const updatedTools: LlmToolDefinition[] = [...existingTools];
+
+        for (const entry of teamEntries) {
+            if (updatedTools.some((tool) => tool.name === entry.toolName)) {
+                continue;
+            }
+
+            updatedTools.push({
+                name: entry.toolName,
+                description: `Consult teammate ${entry.teammate.label}`,
+                parameters: {
+                    type: 'object',
+                    properties: {
+                        message: {
+                            type: 'string',
+                            description: `Question to ask ${entry.teammate.label}.`,
+                        },
+                        context: {
+                            type: 'string',
+                            description: `Optional background context for ${entry.teammate.label}.`,
+                        },
+                    },
+                    required: ['message'],
+                },
+            });
+        }
+
         const updatedTeammates: Array<{
             url: string;
             toolName: string;
@@ -225,24 +229,10 @@ export class TeamCommitmentDefinition extends BaseCommitmentDefinition<'TEAM'> {
             });
         }
 
-        const teamSystemMessage: string = spaceTrim(
-            (block) => `
-                Teammates:
-                ${block(
-                    teamEntries
-                        .map((entry: TeamToolEntry) => {
-                            const whenToConsult: string = resolveWhenToConsultTeammate(entry);
-                            return spaceTrim(
-                                () => `
-                                    - ${entry.teammate.label} (${entry.teammate.url})
-                                      - Tool: "${entry.toolName}"
-                                      - When to consult: ${whenToConsult}
-                                `,
-                            );
-                        })
-                        .join('\n'),
-                )}
-            `,
+        const teamOverviewText = createTeamOverviewText(trimmedContent, teamEntries);
+        const teamSystemMessage = this.createSystemMessageSection(
+            'Teammates:',
+            buildTeamSystemMessageBody(teamOverviewText, teamEntries),
         );
 
         return this.appendToSystemMessage(
@@ -274,11 +264,47 @@ export class TeamCommitmentDefinition extends BaseCommitmentDefinition<'TEAM'> {
 }
 
 /**
- * Builds a deterministic tool name for a teammate URL.
+ * Resolves teammate labels for special pseudo-agents and keeps regular teammates unchanged.
  */
-function createTeamToolName(url: string): string_javascript_name {
-    const hash: string = computeHash(url).substring(0, 10);
-    return `${TEAM_TOOL_PREFIX}${hash}` as string_javascript_name;
+function resolveTeamTeammateLabels(teamContent: string, teammates: ReadonlyArray<TeamTeammate>): TeamTeammate[] {
+    return teammates.map((teammate) => {
+        if (resolvePseudoAgentKindFromUrl(teammate.url) !== 'USER') {
+            return teammate;
+        }
+
+        return {
+            ...teammate,
+            label: createPseudoUserTeammateLabel(teamContent),
+        };
+    });
+}
+
+/**
+ * Rewrites TEAM commitment content into a URL-free teammate overview text.
+ */
+function createTeamOverviewText(teamContent: string, teamEntries: ReadonlyArray<TeamToolEntry>): string {
+    let overviewText = teamContent;
+
+    for (const entry of teamEntries) {
+        overviewText = overviewText.split(entry.teammate.url).join(entry.teammate.label);
+    }
+
+    return overviewText.trim();
+}
+
+/**
+ * Builds the textual TEAM section body for the final system message.
+ */
+function buildTeamSystemMessageBody(teamOverviewText: string, teamEntries: ReadonlyArray<TeamToolEntry>): string {
+    const teammateLines = teamEntries.map(
+        (entry, index) => `${index + 1}) ${entry.teammate.label} tool \`${entry.toolName}\``,
+    );
+
+    if (!teamOverviewText) {
+        return teammateLines.join('\n');
+    }
+
+    return `${teamOverviewText}\n\n${teammateLines.join('\n')}`;
 }
 
 /**
@@ -307,23 +333,6 @@ function buildTeammateMetadata(entry: TeamToolEntry): TeamToolResult['teammate']
  */
 function buildTeammateRequest(message: string, context?: string): string {
     return context ? `${message}\n\nContext:\n${context}` : message;
-}
-
-/**
- * Resolves "when to consult" guidance shown in tool metadata and system message.
- */
-function resolveWhenToConsultTeammate(entry: TeamToolEntry): string {
-    const pseudoAgentKind = resolvePseudoAgentKindFromUrl(entry.teammate.url);
-
-    if (pseudoAgentKind === 'USER') {
-        return 'Use when you need one direct response from the current user.';
-    }
-
-    if (pseudoAgentKind === 'VOID') {
-        return 'Use when you intentionally consult the void (no concrete answer expected).';
-    }
-
-    return entry.teammate.instructions || 'Use when their expertise is needed.';
 }
 
 /**

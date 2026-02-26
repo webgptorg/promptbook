@@ -1,5 +1,11 @@
 import { describe, expect, it } from '@jest/globals';
+import { createTeamToolName } from './createTeamToolName';
 import { createAgentModelRequirements } from './createAgentModelRequirements';
+import type { AgentReferenceResolver } from './AgentReferenceResolver';
+import {
+    createPseudoUserTeammateLabel,
+    PSEUDO_AGENT_USER_URL,
+} from './pseudoAgentReferences';
 import { validateBook } from './string_book';
 
 describe('USE SEARCH ENGINE and USE BROWSER commitments', () => {
@@ -44,7 +50,44 @@ describe('USE SEARCH ENGINE and USE BROWSER commitments', () => {
                 }),
             ]),
         );
-        expect(requirements.systemMessage).toContain('Teammates:');
+        expect(requirements.systemMessage).toContain('## Teammates:');
+        expect(requirements.systemMessage).toContain('team_chat_joe_green_');
+        expect(requirements.systemMessage).not.toContain('https://agents.ptbk.ik/agents/joe-green');
+    });
+
+    it('should rename `{User}` teammate and link section text with tool name', async () => {
+        const pseudoUserResolver: AgentReferenceResolver = {
+            resolveCommitmentContent: async (_commitmentType, rawContent) =>
+                rawContent.replace(/\{user\}/gi, PSEUDO_AGENT_USER_URL),
+        };
+
+        const teamContent = `Ask ${PSEUDO_AGENT_USER_URL} for everything. Always asks him in English`;
+        const pseudoUserLabel = createPseudoUserTeammateLabel(teamContent);
+        const expectedToolName = createTeamToolName(PSEUDO_AGENT_USER_URL, pseudoUserLabel);
+
+        const agentSource = validateBook(`
+            Interacting with User
+            LANGUAGE Czech
+            TEAM Ask {User} for everything. Always asks him in English
+            CLOSED
+        `);
+        const requirements = await createAgentModelRequirements(agentSource, undefined, undefined, undefined, {
+            agentReferenceResolver: pseudoUserResolver,
+        });
+
+        expect(requirements.tools).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    name: expectedToolName,
+                    description: `Consult teammate ${pseudoUserLabel}`,
+                }),
+            ]),
+        );
+        expect(requirements.systemMessage).toContain('## Language:');
+        expect(requirements.systemMessage).toContain('## Teammates:');
+        expect(requirements.systemMessage).toContain(`Ask ${pseudoUserLabel} for everything. Always asks him in English`);
+        expect(requirements.systemMessage).toContain(`1) ${pseudoUserLabel} tool \`${expectedToolName}\``);
+        expect(requirements.systemMessage).not.toContain('pseudo-agent.promptbook');
     });
 
     it('should add project tools when USE PROJECT is used', async () => {

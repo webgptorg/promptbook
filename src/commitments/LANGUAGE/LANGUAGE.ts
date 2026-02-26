@@ -71,13 +71,14 @@ export class LanguageCommitmentDefinition extends BaseCommitmentDefinition<'LANG
         }
 
         // Add language rule to the system message
-        const languageSection = spaceTrim(
-            (block) => `
-                Language:
-                ${block(trimmedContent)}
-                <- You are speaking these languages in your responses to the user.
-            
-            `,
+        const languageSection = this.createSystemMessageSection(
+            'Language:',
+            spaceTrim(
+                (block) => `
+                    ${block(trimmedContent)}
+                    <- You are speaking these languages in your responses to the user.
+                `,
+            ),
         );
 
         return this.appendToSystemMessage(requirements, languageSection, '\n\n');

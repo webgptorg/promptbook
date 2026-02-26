@@ -69,7 +69,7 @@ function buildTeammatesMapFromCapabilities(capabilities: Array<AgentCapability> 
         teamEntries.push({
             url: capability.agentUrl,
             label: capability.label,
-            toolName: createTeamToolNameFromUrl(capability.agentUrl),
+            toolName: createTeamToolNameFromUrl(capability.agentUrl, capability.label),
         });
     }
 

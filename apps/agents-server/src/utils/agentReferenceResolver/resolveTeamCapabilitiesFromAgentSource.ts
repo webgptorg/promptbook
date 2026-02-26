@@ -2,6 +2,10 @@ import type { AgentReferenceResolver } from '../../../../../src/book-2.0/agent-s
 import type { AgentCapability } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
 import { parseAgentSourceWithCommitments } from '../../../../../src/book-2.0/agent-source/parseAgentSourceWithCommitments';
 import { parseTeamCommitmentContent, type TeamTeammate } from '../../../../../src/book-2.0/agent-source/parseTeamCommitment';
+import {
+    createPseudoUserTeammateLabel,
+    resolvePseudoAgentKindFromUrl,
+} from '../../../../../src/book-2.0/agent-source/pseudoAgentReferences';
 import type { string_book } from '../../../../../src/book-2.0/agent-source/string_book';
 import {
     consumeAgentReferenceResolutionIssues,
@@ -21,6 +25,21 @@ function createTeamCapability(teammate: TeamTeammate): AgentCapability {
         iconName: 'Users',
         agentUrl: teammate.url,
     };
+}
+
+/**
+ * Resolves TEAM teammate label for pseudo-user entries.
+ *
+ * @param teammate - Parsed teammate entry.
+ * @param teamContent - Resolved TEAM commitment content.
+ * @returns Teammate label suitable for UI capabilities.
+ */
+function resolveTeamCapabilityLabel(teammate: TeamTeammate, teamContent: string): string {
+    if (resolvePseudoAgentKindFromUrl(teammate.url) !== 'USER') {
+        return teammate.label;
+    }
+
+    return createPseudoUserTeammateLabel(teamContent);
 }
 
 /**
@@ -91,7 +110,12 @@ export async function resolveTeamCapabilitiesFromAgentSource(
             }
 
             seenUrls.add(teammate.url);
-            resolvedCapabilities.push(createTeamCapability(teammate));
+            resolvedCapabilities.push(
+                createTeamCapability({
+                    ...teammate,
+                    label: resolveTeamCapabilityLabel(teammate, commitmentContent),
+                }),
+            );
         }
     }
 
