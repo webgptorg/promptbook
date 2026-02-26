@@ -6,6 +6,15 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useUnsavedChangesGuard } from '../../../components/utils/useUnsavedChangesGuard';
 import { createDefaultCustomJavascript } from '../../../constants/customJavascript';
 import { CUSTOM_RESOURCE_INPUT_CLASS_NAME, readJsonResponse } from '../custom-resource/shared';
+import {
+    ANALYTICS_METADATA_KEYS,
+    AnalyticsMetadataKey,
+    AnalyticsSettings,
+    DEFAULT_ANALYTICS_SETTINGS,
+    getAnalyticsMetadataDefinition,
+    mapAnalyticsSettingsToMetadataPayload,
+    mapMetadataToAnalyticsSettings,
+} from '../../../constants/analyticsMetadata';
 
 /**
  * Serialized custom JavaScript file returned by the API.
@@ -62,6 +71,43 @@ type CustomJavascriptFileState = {
 };
 
 const NEW_FILE_BASE_NAME = 'custom-script';
+
+/**
+ * Represents the UI status message shown after analytics operations.
+ * @private
+ */
+type AnalyticsStatusMessage = {
+    type: 'success' | 'error';
+    text: string;
+};
+
+type AnalyticsNoteMap = Partial<Record<AnalyticsMetadataKey, string | null>>;
+
+/**
+ * API metadata row used to populate analytics settings.
+ * @private
+ */
+type AnalyticsMetadataResponse = {
+    key: string;
+    value: string | null;
+    note: string | null;
+};
+
+/**
+ * Determines whether two analytics settings snapshots are identical.
+ * @private
+ */
+function areAnalyticsSettingsEqual(first: AnalyticsSettings, second: AnalyticsSettings): boolean {
+    return (
+        first.googleMeasurementId === second.googleMeasurementId &&
+        first.googleAutoPageView === second.googleAutoPageView &&
+        first.googleAnonymizeIp === second.googleAnonymizeIp &&
+        first.googleAdPersonalization === second.googleAdPersonalization &&
+        first.smartsappWorkspaceId === second.smartsappWorkspaceId &&
+        first.smartsappAutoPageView === second.smartsappAutoPageView &&
+        first.smartsappCaptureErrors === second.smartsappCaptureErrors
+    );
+}
 
 /**
  * Creates a short unique identifier used only for client-side tracking.
@@ -132,6 +178,16 @@ export function CustomJsClient() {
     const [isDeleting, setIsDeleting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
+    const [analyticsSettings, setAnalyticsSettings] = useState<AnalyticsSettings>(DEFAULT_ANALYTICS_SETTINGS);
+    const [analyticsSnapshot, setAnalyticsSnapshot] = useState<AnalyticsSettings>(DEFAULT_ANALYTICS_SETTINGS);
+    const [persistedAnalyticsKeys, setPersistedAnalyticsKeys] = useState<Set<AnalyticsMetadataKey>>(
+        () => new Set(),
+    );
+    const [analyticsNotes, setAnalyticsNotes] = useState<AnalyticsNoteMap>({});
+    const [analyticsStatus, setAnalyticsStatus] = useState<AnalyticsStatusMessage | null>(null);
+    const [analyticsLoadError, setAnalyticsLoadError] = useState<string | null>(null);
+    const [isAnalyticsLoading, setIsAnalyticsLoading] = useState(true);
+    const [isAnalyticsSaving, setIsAnalyticsSaving] = useState(false);
 
     const serverSnapshotMap = useMemo(() => {
         const map = new Map<string, CustomJavascriptFileState>();
@@ -141,12 +197,17 @@ export function CustomJsClient() {
         return map;
     }, [serverSnapshot]);
 
+    const analyticsHasChanges = useMemo(
+        () => !areAnalyticsSettingsEqual(analyticsSettings, analyticsSnapshot),
+        [analyticsSettings, analyticsSnapshot],
+    );
+
     const hasUnsavedChanges = useMemo(() => {
         if (files.length !== serverSnapshot.length) {
             return true;
         }
 
-        return files.some((file) => {
+        const scriptsChanged = files.some((file) => {
             const snapshot = serverSnapshotMap.get(file.localId);
             if (!snapshot) {
                 return true;
@@ -154,7 +215,9 @@ export function CustomJsClient() {
 
             return snapshot.scope !== file.scope || snapshot.javascript !== file.javascript;
         });
-    }, [files, serverSnapshot.length, serverSnapshotMap]);
+
+        return scriptsChanged || analyticsHasChanges;
+    }, [files, serverSnapshot.length, serverSnapshotMap, analyticsHasChanges]);
 
     const { confirmBeforeClose } = useUnsavedChangesGuard({
         hasUnsavedChanges,
@@ -212,11 +275,114 @@ export function CustomJsClient() {
         void loadCustomJavascript();
     }, [loadCustomJavascript]);
 
+    const loadAnalyticsSettings = useCallback(async () => {
+        setIsAnalyticsLoading(true);
+        setAnalyticsLoadError(null);
+
+        try {
+            const response = await fetch('/api/metadata');
+            if (!response.ok) {
+                throw new Error('Failed to load analytics settings.');
+            }
+
+            const data = (await response.json()) as AnalyticsMetadataResponse[];
+            const metadataMap: Record<string, string | null> = {};
+            const notes: AnalyticsNoteMap = {};
+            const persisted = new Set<AnalyticsMetadataKey>();
+
+            data.forEach((entry) => {
+                metadataMap[entry.key] = entry.value;
+
+                if (ANALYTICS_METADATA_KEYS.includes(entry.key as AnalyticsMetadataKey)) {
+                    const typedKey = entry.key as AnalyticsMetadataKey;
+                    persisted.add(typedKey);
+                    notes[typedKey] = entry.note ?? null;
+                }
+            });
+
+            const settings = mapMetadataToAnalyticsSettings(metadataMap);
+            setAnalyticsSettings(settings);
+            setAnalyticsSnapshot(settings);
+            setPersistedAnalyticsKeys(persisted);
+            setAnalyticsNotes(notes);
+            setAnalyticsStatus(null);
+        } catch (loadError) {
+            setAnalyticsLoadError(
+                loadError instanceof Error ? loadError.message : 'Failed to load analytics settings.',
+            );
+        } finally {
+            setIsAnalyticsLoading(false);
+        }
+    }, [mapMetadataToAnalyticsSettings, ANALYTICS_METADATA_KEYS]);
+
     useEffect(() => {
         if (!currentFile && files.length) {
             setSelectedFileLocalId(files[0].localId);
         }
     }, [currentFile, files]);
+
+    useEffect(() => {
+        void loadAnalyticsSettings();
+    }, [loadAnalyticsSettings]);
+
+    const updateAnalyticsSettings = useCallback((updates: Partial<AnalyticsSettings>) => {
+        setAnalyticsStatus(null);
+        setAnalyticsSettings((prev) => ({ ...prev, ...updates }));
+    }, []);
+
+    const saveAnalyticsSettings = useCallback(async () => {
+        setIsAnalyticsSaving(true);
+        setAnalyticsStatus(null);
+
+        try {
+            const payload = mapAnalyticsSettingsToMetadataPayload(analyticsSettings);
+            for (const key of ANALYTICS_METADATA_KEYS) {
+                const method = persistedAnalyticsKeys.has(key) ? 'PUT' : 'POST';
+                const note = analyticsNotes[key] ?? getAnalyticsMetadataDefinition(key).note;
+
+                const response = await fetch('/api/metadata', {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        key,
+                        value: payload[key],
+                        note,
+                    }),
+                });
+
+                if (!response.ok) {
+                    const data = await response.json().catch(() => null);
+                    throw new Error(data?.error || 'Failed to save analytics settings.');
+                }
+            }
+
+            const nextNotes: AnalyticsNoteMap = {};
+            for (const key of ANALYTICS_METADATA_KEYS) {
+                nextNotes[key] = analyticsNotes[key] ?? getAnalyticsMetadataDefinition(key).note;
+            }
+
+            setAnalyticsSnapshot(analyticsSettings);
+            setPersistedAnalyticsKeys(new Set(ANALYTICS_METADATA_KEYS));
+            setAnalyticsNotes(nextNotes);
+            setAnalyticsStatus({
+                type: 'success',
+                text: 'Analytics settings saved. Reload any open pages to apply the new integrations.',
+            });
+        } catch (saveError) {
+            setAnalyticsStatus({
+                type: 'error',
+                text: saveError instanceof Error ? saveError.message : 'Failed to save analytics settings.',
+            });
+        } finally {
+            setIsAnalyticsSaving(false);
+        }
+    }, [
+        analyticsNotes,
+        analyticsSettings,
+        getAnalyticsMetadataDefinition,
+        mapAnalyticsSettingsToMetadataPayload,
+        persistedAnalyticsKeys,
+    ]);
 
     const addNewFile = useCallback(() => {
         const draft = createNewFileState(files, defaultJavaScript);
@@ -584,6 +750,203 @@ export function CustomJsClient() {
                     )}
                 </section>
             </div>
+
+            <section className="mt-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                        <h2 className="text-lg font-semibold text-gray-900">Analytics integrations</h2>
+                        <p className="text-sm text-gray-600">
+                            Configure built-in Google Analytics and Smartsapp snippets without writing raw code.
+                        </p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                        <button
+                            type="button"
+                            onClick={() => void loadAnalyticsSettings()}
+                            disabled={isAnalyticsLoading || isAnalyticsSaving}
+                            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-60"
+                        >
+                            Reload settings
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => void saveAnalyticsSettings()}
+                            disabled={
+                                isAnalyticsLoading || isAnalyticsSaving || !analyticsHasChanges
+                            }
+                            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300"
+                        >
+                            {isAnalyticsSaving ? 'Saving...' : 'Save analytics settings'}
+                        </button>
+                    </div>
+                </div>
+
+                {analyticsLoadError && (
+                    <div className="mb-3 rounded-md border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+                        {analyticsLoadError}
+                        <button
+                            type="button"
+                            onClick={() => void loadAnalyticsSettings()}
+                            className="ml-3 text-blue-600 underline"
+                        >
+                            Retry
+                        </button>
+                    </div>
+                )}
+                {analyticsStatus && (
+                    <div
+                        className={`mb-4 rounded-md border px-4 py-3 text-sm ${
+                            analyticsStatus.type === 'error'
+                                ? 'border-red-300 bg-red-50 text-red-700'
+                                : 'border-green-300 bg-green-50 text-green-800'
+                        }`}
+                    >
+                        {analyticsStatus.text}
+                    </div>
+                )}
+
+                {isAnalyticsLoading ? (
+                    <div className="rounded border border-dashed border-gray-300 px-4 py-6 text-sm text-gray-500">
+                        Loading analytics settings...
+                    </div>
+                ) : (
+                    <div className="space-y-6">
+                        <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                            <div>
+                                <h3 className="text-base font-semibold text-gray-900">
+                                    Google Analytics (gtag.js)
+                                </h3>
+                                <p className="text-xs text-gray-500">
+                                    Inject gtag.js with your measurement ID and basic flags.
+                                </p>
+                            </div>
+                            <div className="mt-4 space-y-4">
+                                <div>
+                                    <label
+                                        htmlFor="analytics-google-id"
+                                        className="mb-1 block text-sm font-medium text-gray-700"
+                                    >
+                                        Measurement ID
+                                    </label>
+                                    <input
+                                        id="analytics-google-id"
+                                        type="text"
+                                        value={analyticsSettings.googleMeasurementId}
+                                        onChange={(event) =>
+                                            updateAnalyticsSettings({
+                                                googleMeasurementId: event.target.value,
+                                            })
+                                        }
+                                        className={`${CUSTOM_RESOURCE_INPUT_CLASS_NAME} text-sm`}
+                                        placeholder="G-XXXXXXXXXX"
+                                    />
+                                    <p className="mt-1 text-xs text-gray-500">
+                                        Leave empty to keep Google Analytics disabled.
+                                    </p>
+                                </div>
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    <label className="flex items-center gap-2 text-sm text-gray-700">
+                                        <input
+                                            type="checkbox"
+                                            checked={analyticsSettings.googleAutoPageView}
+                                            onChange={(event) =>
+                                                updateAnalyticsSettings({
+                                                    googleAutoPageView: event.target.checked,
+                                                })
+                                            }
+                                        />
+                                        <span>Record page views automatically</span>
+                                    </label>
+                                    <label className="flex items-center gap-2 text-sm text-gray-700">
+                                        <input
+                                            type="checkbox"
+                                            checked={analyticsSettings.googleAnonymizeIp}
+                                            onChange={(event) =>
+                                                updateAnalyticsSettings({
+                                                    googleAnonymizeIp: event.target.checked,
+                                                })
+                                            }
+                                        />
+                                        <span>Anonymize visitor IPs</span>
+                                    </label>
+                                    <label className="flex items-center gap-2 text-sm text-gray-700">
+                                        <input
+                                            type="checkbox"
+                                            checked={analyticsSettings.googleAdPersonalization}
+                                            onChange={(event) =>
+                                                updateAnalyticsSettings({
+                                                    googleAdPersonalization: event.target.checked,
+                                                })
+                                            }
+                                        />
+                                        <span>Allow ad personalization signals</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                            <div>
+                                <h3 className="text-base font-semibold text-gray-900">Smartsapp</h3>
+                                <p className="text-xs text-gray-500">
+                                    Load the Smartsapp SDK with your workspace and basic tracking settings.
+                                </p>
+                            </div>
+                            <div className="mt-4 space-y-4">
+                                <div>
+                                    <label
+                                        htmlFor="analytics-smartsapp-workspace"
+                                        className="mb-1 block text-sm font-medium text-gray-700"
+                                    >
+                                        Workspace ID
+                                    </label>
+                                    <input
+                                        id="analytics-smartsapp-workspace"
+                                        type="text"
+                                        value={analyticsSettings.smartsappWorkspaceId}
+                                        onChange={(event) =>
+                                            updateAnalyticsSettings({
+                                                smartsappWorkspaceId: event.target.value,
+                                            })
+                                        }
+                                        className={`${CUSTOM_RESOURCE_INPUT_CLASS_NAME} text-sm`}
+                                        placeholder="workspace-id"
+                                    />
+                                    <p className="mt-1 text-xs text-gray-500">
+                                        Leave blank to disable the Smartsapp loader.
+                                    </p>
+                                </div>
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    <label className="flex items-center gap-2 text-sm text-gray-700">
+                                        <input
+                                            type="checkbox"
+                                            checked={analyticsSettings.smartsappAutoPageView}
+                                            onChange={(event) =>
+                                                updateAnalyticsSettings({
+                                                    smartsappAutoPageView: event.target.checked,
+                                                })
+                                            }
+                                        />
+                                        <span>Track page views automatically</span>
+                                    </label>
+                                    <label className="flex items-center gap-2 text-sm text-gray-700">
+                                        <input
+                                            type="checkbox"
+                                            checked={analyticsSettings.smartsappCaptureErrors}
+                                            onChange={(event) =>
+                                                updateAnalyticsSettings({
+                                                    smartsappCaptureErrors: event.target.checked,
+                                                })
+                                            }
+                                        />
+                                        <span>Capture front-end errors</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </section>
         </div>
     );
 }

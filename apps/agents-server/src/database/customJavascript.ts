@@ -1,5 +1,6 @@
 import { $provideServer } from '../tools/$provideServer';
 import { $provideSupabase } from './$provideSupabase';
+import { getAnalyticsCustomJavascript } from '../utils/analytics/analyticsIntegrations';
 
 /**
  * Upper bound for persisted custom JavaScript length.
@@ -107,6 +108,19 @@ export async function getCurrentCustomJavascriptText(): Promise<string> {
     const rows = await getCustomJavascriptFiles();
     const snippets = rows.map((row) => row.javascript).filter(Boolean);
     return snippets.join('\n\n');
+}
+
+/**
+ * Builds the aggregated custom JavaScript combined with the analytics integrations.
+ * @private
+ */
+export async function getCustomJavascriptWithIntegrations(): Promise<string> {
+    const [customScript, analyticsScript] = await Promise.all([
+        getCurrentCustomJavascriptText(),
+        getAnalyticsCustomJavascript(),
+    ]);
+
+    return [customScript, analyticsScript].filter(Boolean).join('\n\n');
 }
 
 /**

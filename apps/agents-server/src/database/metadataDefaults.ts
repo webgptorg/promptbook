@@ -2,8 +2,22 @@ import spaceTrim from 'spacetrim';
 import { CORE_AGENTS_SERVER } from '../../../../servers';
 import { DEFAULT_THINKING_MESSAGES } from '../../../../src/utils/DEFAULT_THINKING_MESSAGES';
 import { SERVER_LANGUAGE_METADATA_KEY } from '../languages/ServerLanguageRegistry';
+import { MetadataType } from '../constants/metadataTypes';
+import { ANALYTICS_METADATA_KEYS, getAnalyticsMetadataDefinition } from '../constants/analyticsMetadata';
 
-export type MetadataType = 'TEXT_SINGLE_LINE' | 'TEXT' | 'NUMBER' | 'BOOLEAN' | 'IMAGE_URL' | 'IP_RANGE';
+/**
+ * Default metadata entries produced from the analytics configuration definitions.
+ * @private
+ */
+const analyticsMetadataDefaults = ANALYTICS_METADATA_KEYS.map((key) => {
+    const definition = getAnalyticsMetadataDefinition(key);
+    return {
+        key,
+        value: definition.defaultValue,
+        note: definition.note,
+        type: definition.type,
+    };
+});
 
 export const metadataDefaults = [
     {
@@ -183,6 +197,7 @@ export const metadataDefaults = [
         note: 'Default visibility for new agents. Can be PRIVATE, UNLISTED, or PUBLIC.',
         type: 'TEXT_SINGLE_LINE',
     },
+    ...analyticsMetadataDefaults,
 ] as const satisfies ReadonlyArray<{
     key: string;
     value: string;

@@ -4,9 +4,10 @@ import { upload } from '@vercel/blob/client';
 import { FileTextIcon, HashIcon, ImageIcon, ShieldIcon, ToggleLeftIcon, TypeIcon, Upload } from 'lucide-react';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { showConfirm } from '../../../components/AsyncDialogs/asyncDialogs';
-import { metadataDefaults, MetadataType } from '../../../database/metadataDefaults';
+import { metadataDefaults } from '../../../database/metadataDefaults';
 import { getSafeCdnPath } from '../../../utils/cdn/utils/getSafeCdnPath';
 import { normalizeUploadFilename } from '../../../utils/normalization/normalizeUploadFilename';
+import { MetadataType } from '../../../constants/metadataTypes';
 
 type MetadataEntry = {
     id: number;

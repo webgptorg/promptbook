@@ -3,7 +3,7 @@ import { LayoutWrapper } from '@/src/components/LayoutWrapper/LayoutWrapper';
 import type { Metadata } from 'next';
 import { Barlow_Condensed, Poppins } from 'next/font/google';
 import { cookies } from 'next/headers';
-import { getCurrentCustomJavascriptText } from '../database/customJavascript';
+import { getCustomJavascriptWithIntegrations } from '../database/customJavascript';
 import { getCurrentCustomStylesheetCss } from '../database/customStylesheet';
 import { getMetadataMap } from '../database/getMetadata';
 import {
@@ -167,7 +167,7 @@ export default async function RootLayout({
     }
 
     try {
-        customJavascript = await getCurrentCustomJavascriptText();
+        customJavascript = await getCustomJavascriptWithIntegrations();
     } catch (error) {
         console.error('Failed to load custom JavaScript', error);
     }
