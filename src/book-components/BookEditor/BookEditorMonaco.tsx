@@ -24,7 +24,7 @@ import { BookEditorActionbar } from './BookEditorActionbar';
 import { BookEditorMonacoConstants } from './BookEditorMonacoConstants';
 import { useBookEditorMonacoDecorations } from './useBookEditorMonacoDecorations';
 import { useBookEditorMonacoDiagnostics } from './useBookEditorMonacoDiagnostics';
-import { useBookEditorMonacoLanguage } from './useBookEditorMonacoLanguage';
+import { ensureBookEditorMonacoLanguage, useBookEditorMonacoLanguage } from './useBookEditorMonacoLanguage';
 import { useBookEditorMonacoStyles } from './useBookEditorMonacoStyles';
 import { useBookEditorMonacoUploads } from './useBookEditorMonacoUploads';
 import { BookEditorMonacoUploadPanel } from './BookEditorMonacoUploadPanel';
@@ -372,6 +372,16 @@ export function BookEditorMonaco(props: BookEditorProps) {
         [handleFiles],
     );
 
+    /**
+     * Ensures Book language/tokenizer is ready before Monaco creates the editor model.
+     */
+    const handleBeforeMonacoMount = useCallback(
+        (beforeMountMonaco: Parameters<typeof ensureBookEditorMonacoLanguage>[0]) => {
+            ensureBookEditorMonacoLanguage(beforeMountMonaco);
+        },
+        [],
+    );
+
     const handleDragOver = useCallback((event: DragEvent<HTMLDivElement>) => {
         event.preventDefault();
         setIsDragOver(true);
@@ -496,6 +506,7 @@ export function BookEditorMonaco(props: BookEditorProps) {
                 <Editor
                     language={BookEditorMonacoConstants.BOOK_LANGUAGE_ID}
                     value={value}
+                    beforeMount={handleBeforeMonacoMount}
                     onMount={(mountedEditor) => setEditor(mountedEditor)}
                     onChange={(newValue) => onChange?.(newValue as string_book)}
                     options={{
