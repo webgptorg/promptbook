@@ -22,13 +22,7 @@ export function useBookEditorMonacoLanguage({ monaco }: UseBookEditorMonacoLangu
             return;
         }
 
-        const isLanguageRegistered = monaco.languages
-            .getLanguages()
-            .some((language) => language.id === BookEditorMonacoConstants.BOOK_LANGUAGE_ID);
-
-        if (!isLanguageRegistered) {
-            monaco.languages.register({ id: BookEditorMonacoConstants.BOOK_LANGUAGE_ID });
-        }
+        monaco.languages.register({ id: BookEditorMonacoConstants.BOOK_LANGUAGE_ID });
 
         const commitmentTypes = [...new Set(getAllCommitmentDefinitions().map(({ type }) => type))];
         const commitmentRegex = new RegExp(
