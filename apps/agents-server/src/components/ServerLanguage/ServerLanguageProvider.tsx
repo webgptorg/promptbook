@@ -20,7 +20,7 @@ import {
     ServerLanguageRegistry,
     type ServerLanguageCode,
 } from '../../languages/ServerLanguageRegistry';
-import type { ServerTranslationKey } from '../../languages/EnglishServerLanguagePack';
+import type { ServerTranslationKey } from '../../languages/ServerTranslationKeys';
 import { formatServerTranslationTemplate } from '../../languages/formatServerTranslationTemplate';
 import type { ServerTranslationVariables } from '../../languages/ServerLanguagePack';
 

@@ -1,7 +1,8 @@
 'use client';
 
 import { showConfirm } from '../AsyncDialogs/asyncDialogs';
-import { EnglishServerLanguagePack, type ServerTranslationKey } from '../../languages/EnglishServerLanguagePack';
+import { EnglishServerLanguagePack } from '../../languages/EnglishServerLanguagePack';
+import type { ServerTranslationKey } from '../../languages/ServerTranslationKeys';
 
 /**
  * Translation helper used by private-mode confirmation dialogs.

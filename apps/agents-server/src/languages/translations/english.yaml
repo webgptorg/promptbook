@@ -1,0 +1,122 @@
+common.close: Close
+common.cancel: Cancel
+common.confirm: Confirm
+common.ok: OK
+common.input: Input
+common.admin: Admin
+common.profile: Profile
+common.chat: Chat
+common.book: Book
+common.more: More
+controlPanel.label: Control panel
+controlPanel.openAriaLabel: Open global control panel
+controlPanel.feedbackTitle: Feedback
+controlPanel.feedbackSubtitle: Control sounds and vibration globally
+controlPanel.audioLabel: Audio
+controlPanel.audioLoading: Loading audio settings…
+controlPanel.selfLearningTitle: Self-learning
+controlPanel.selfLearningSection: Book
+controlPanel.selfLearningDescriptionPrivate: Private mode keeps the book unchanged and blocks any new learning.
+controlPanel.selfLearningDescriptionLearning: Agent appends new commitments to the book after each chat.
+controlPanel.selfLearningDescriptionPaused: Agent respects the existing book until learning is enabled again.
+controlPanel.selfLearningStateDisabledPrivate: Disabled (Private mode)
+controlPanel.selfLearningStateLearning: Learning
+controlPanel.selfLearningStatePaused: Paused
+controlPanel.selfLearningDetailPrivate: No learning occurs until private mode is disabled.
+controlPanel.selfLearningDetailPaused: Chats and memories still persist even when learning is paused.
+controlPanel.selfLearningPauseAction: Pause learning
+controlPanel.selfLearningEnableAction: Enable learning
+controlPanel.privateModeTitle: Private mode
+controlPanel.privateModeSection: Privacy
+controlPanel.privateModeDescriptionPrivate: Chats, memories, and learning are disabled.
+controlPanel.privateModeDescriptionStandard: Data keeps flowing to the server when the session is standard.
+controlPanel.privateModeStatePrivate: Private
+controlPanel.privateModeStateStandard: Standard
+controlPanel.privateModeDetail: Enabling private mode keeps the current chat local to your browser.
+controlPanel.privateModeDisableAction: Disable private mode
+controlPanel.privateModeEnableAction: Enable private mode
+controlPanel.languageTitle: Language
+controlPanel.languageSubtitle: Choose your interface language for this browser.
+controlPanel.languageSection: Locale
+controlPanel.languageSelectLabel: Server interface language
+controlPanel.languageHelp: Default comes from metadata SERVER_LANGUAGE. You can override it locally here.
+privateMode.confirmTitle: Enable private mode
+privateMode.confirmMessage: Private mode keeps this chat local to your browser.
+  Chat history, user memory, and self-learning will not be saved while it is
+  enabled. Continue?
+privateMode.confirmEnableLabel: Enable private mode
+privateMode.confirmCancelLabel: Keep standard mode
+header.documentationMenuLabel: Documentation
+header.systemMenuLabel: System
+header.switchServerAria: Switch server
+header.currentFederatedServer: (current)
+header.logIn: Log in
+header.logOut: Log out
+header.changePassword: Change Password
+header.menuLabel: Menu
+header.landingPage: Landing page
+header.userMemory: User Memory
+header.viewAllUsers: View all users
+header.createNewUser: Create new user
+header.models: Models
+header.openApiDocumentation: OpenAPI Documentation
+header.apiTokens: API Tokens
+header.metadata: Metadata
+header.customCss: Custom CSS
+header.customJs: Custom JS
+header.chatHistory: Chat history
+header.usageAnalytics: Usage analytics
+header.messagesEmails: Messages & Emails
+header.chatFeedback: Chat feedback
+header.browser: Browser
+header.voiceInputTest: Voice Input Test
+header.searchEngineTest: Search Engine Test
+header.imagesGallery: Images gallery
+header.files: Files
+header.users: Users
+header.versionInfo: Version info
+header.experiments: Experiments
+header.story: Story
+header.documentationOverview: Overview
+header.documentationApiReference: API Reference
+header.documentationAll: All
+header.loggedInAs: Logged in as {username}
+header.searchThisServerPlaceholder: Search this server...
+header.searchBoxDefaultPlaceholder: Search agents, folders, docs, conversations...
+header.searchGlobalLabel: Global search
+header.searchViewAllResultsFor: View all results for
+header.searchNoResultsFor: No results found for
+header.searchUnavailable: Search is temporarily unavailable.
+header.agentsLabelFallback: "{agentsPlural}"
+header.viewAllAgents: View all {agentsPlural}
+header.creatingAgent: Creating {agentSingular}...
+header.createNewAgent: Create new {agentSingular}
+header.createFailedTitle: Create {agentSingular} failed
+header.createFailedMessage: Failed to create {agentSingular}. Please try again.
+asyncDialog.defaultAlertTitle: Notice
+asyncDialog.defaultConfirmTitle: Confirm action
+asyncDialog.defaultPromptTitle: Enter value
+login.dialogTitle: Log in
+login.dialogDescription: Enter your credentials to access the admin area
+login.usernameLabel: Username
+login.usernamePlaceholder: Enter your username
+login.passwordLabel: Password
+login.passwordPlaceholder: Enter your password
+login.loggingIn: Logging in...
+login.loginAction: Log in
+login.forgottenPassword: Forgotten password?
+login.registerNewUser: Register new user
+login.errorOccurred: An error occurred
+login.unexpectedError: An unexpected error occurred
+forgottenPassword.title: Forgotten Password
+forgottenPassword.subtitle: Reset your password
+forgottenPassword.noEmailPrefix: This Promptbook server has no email capability.
+  Please contact the administrator at
+forgottenPassword.noEmailSuffix: to reset your password.
+registerUser.title: Register New User
+registerUser.subtitle: Create a new user account
+registerUser.noEmailPrefix: This Promptbook server has no email capability.
+  Please contact the administrator at
+registerUser.noEmailSuffix: to register new user.
+secretInput.hideSecret: Hide secret value
+secretInput.showSecret: Show secret value

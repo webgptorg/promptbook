@@ -1,0 +1,146 @@
+/**
+ * Ordered list of translation keys understood by the Agents Server UI.
+ *
+ * @public exported from `promptbook-agents-server`
+ */
+export const SERVER_TRANSLATION_KEYS = [
+    "common.close",
+    "common.cancel",
+    "common.confirm",
+    "common.ok",
+    "common.input",
+    "common.admin",
+    "common.profile",
+    "common.chat",
+    "common.book",
+    "common.more",
+    "controlPanel.label",
+    "controlPanel.openAriaLabel",
+    "controlPanel.feedbackTitle",
+    "controlPanel.feedbackSubtitle",
+    "controlPanel.audioLabel",
+    "controlPanel.audioLoading",
+    "controlPanel.selfLearningTitle",
+    "controlPanel.selfLearningSection",
+    "controlPanel.selfLearningDescriptionPrivate",
+    "controlPanel.selfLearningDescriptionLearning",
+    "controlPanel.selfLearningDescriptionPaused",
+    "controlPanel.selfLearningStateDisabledPrivate",
+    "controlPanel.selfLearningStateLearning",
+    "controlPanel.selfLearningStatePaused",
+    "controlPanel.selfLearningDetailPrivate",
+    "controlPanel.selfLearningDetailPaused",
+    "controlPanel.selfLearningPauseAction",
+    "controlPanel.selfLearningEnableAction",
+    "controlPanel.privateModeTitle",
+    "controlPanel.privateModeSection",
+    "controlPanel.privateModeDescriptionPrivate",
+    "controlPanel.privateModeDescriptionStandard",
+    "controlPanel.privateModeStatePrivate",
+    "controlPanel.privateModeStateStandard",
+    "controlPanel.privateModeDetail",
+    "controlPanel.privateModeDisableAction",
+    "controlPanel.privateModeEnableAction",
+    "controlPanel.languageTitle",
+    "controlPanel.languageSubtitle",
+    "controlPanel.languageSection",
+    "controlPanel.languageSelectLabel",
+    "controlPanel.languageHelp",
+    "privateMode.confirmTitle",
+    "privateMode.confirmMessage",
+    "privateMode.confirmEnableLabel",
+    "privateMode.confirmCancelLabel",
+    "header.documentationMenuLabel",
+    "header.systemMenuLabel",
+    "header.switchServerAria",
+    "header.currentFederatedServer",
+    "header.logIn",
+    "header.logOut",
+    "header.changePassword",
+    "header.menuLabel",
+    "header.landingPage",
+    "header.userMemory",
+    "header.viewAllUsers",
+    "header.createNewUser",
+    "header.models",
+    "header.openApiDocumentation",
+    "header.apiTokens",
+    "header.metadata",
+    "header.customCss",
+    "header.customJs",
+    "header.chatHistory",
+    "header.usageAnalytics",
+    "header.messagesEmails",
+    "header.chatFeedback",
+    "header.browser",
+    "header.voiceInputTest",
+    "header.searchEngineTest",
+    "header.imagesGallery",
+    "header.files",
+    "header.users",
+    "header.versionInfo",
+    "header.experiments",
+    "header.story",
+    "header.documentationOverview",
+    "header.documentationApiReference",
+    "header.documentationAll",
+    "header.loggedInAs",
+    "header.searchThisServerPlaceholder",
+    "header.searchBoxDefaultPlaceholder",
+    "header.searchGlobalLabel",
+    "header.searchViewAllResultsFor",
+    "header.searchNoResultsFor",
+    "header.searchUnavailable",
+    "header.agentsLabelFallback",
+    "header.viewAllAgents",
+    "header.creatingAgent",
+    "header.createNewAgent",
+    "header.createFailedTitle",
+    "header.createFailedMessage",
+    "asyncDialog.defaultAlertTitle",
+    "asyncDialog.defaultConfirmTitle",
+    "asyncDialog.defaultPromptTitle",
+    "login.dialogTitle",
+    "login.dialogDescription",
+    "login.usernameLabel",
+    "login.usernamePlaceholder",
+    "login.passwordLabel",
+    "login.passwordPlaceholder",
+    "login.loggingIn",
+    "login.loginAction",
+    "login.forgottenPassword",
+    "login.registerNewUser",
+    "login.errorOccurred",
+    "login.unexpectedError",
+    "forgottenPassword.title",
+    "forgottenPassword.subtitle",
+    "forgottenPassword.noEmailPrefix",
+    "forgottenPassword.noEmailSuffix",
+    "registerUser.title",
+    "registerUser.subtitle",
+    "registerUser.noEmailPrefix",
+    "registerUser.noEmailSuffix",
+    "secretInput.hideSecret",
+    "secretInput.showSecret",
+] as const;
+
+/**
+ * Union of supported translation keys used inside the Agents Server UI.
+ *
+ * @public exported from `promptbook-agents-server`
+ */
+export type ServerTranslationKey = (typeof SERVER_TRANSLATION_KEYS)[number];
+
+/**
+ * Dictionary shape that every Agents Server language pack must satisfy.
+ *
+ * @public exported from `promptbook-agents-server`
+ */
+export type ServerTranslationDictionary = Readonly<Record<ServerTranslationKey, string>>;
+
+/**
+ * Fast lookup helper over the canonical key list, primarily used for validation.
+ *
+ * @private internal helper for translation validation
+ */
+export const SERVER_TRANSLATION_KEY_SET = new Set<ServerTranslationKey>(SERVER_TRANSLATION_KEYS);
