@@ -12,6 +12,20 @@
 
 ---
 
+[ ]
+
+[✨🍣] Use proper Monaco editor for custom JavaScript editing.
+
+-   When there is an unsaved change, prevent the browser from closing the page and show a warning to the user about unsaved changes.
+-   Add a button to download custom JavaScript file.
+-   Allow to create multiple JavaScript files, These JavaScript files would be applied all; this is just an organizational feature.
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality of `CustomJavascript` before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+---
+
 [-]
 
 [✨🍣] per page and user etc
@@ -29,6 +43,10 @@
 [✨🍣] Analytics integrations
 
 -   Implement integration with Google Analytics and Smartsapp using the custom JavaScript functionality.
+-   For Google Analytics, integrate the gtag.js library and provide an interface for users to input their tracking ID and configure basic tracking settings.
+-   For Smartsapp, integrate their JavaScript SDK and provide an interface for users to input their workspace ID and configure basic tracking settings.
+-   This should be effectively the same as adding full custom JavaScript, but for the user it should be much easier.
+-   It should Be together with the custom JavaScript files.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality of `CustomJavascript` before you start implementing.
 -   If you need to do immigration, do it.

@@ -14,6 +14,20 @@
 
 ---
 
+[ ]
+
+[✨💰] Use proper Monaco editor for custom CSS editing.
+
+-   When there is an unsaved change, prevent the browser from closing the page and show a warning to the user about unsaved changes.
+-  Add a button to download custom CSS file.
+- Allow to create multiple stylesheets, These style sheets would be applied all; this is just an organizational feature. 
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality of `CustomStylesheet` before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+---
+
 [-]
 
 [✨💰] per page and user etc
@@ -28,7 +42,7 @@
 
 [-]
 
-[✨💰] Dark mode via custom css
+[✨💰] ? [🧠] Dark mode via custom css
 
 -   @@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
@@ -47,4 +61,3 @@
 -   Do a proper analysis of the current functionality of `CustomStylesheet` before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
