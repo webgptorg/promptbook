@@ -1,10 +1,9 @@
 'use client';
 
-import { EyeOffIcon, FolderOpenIcon, GlobeIcon, LockIcon, PencilIcon, TrashIcon } from 'lucide-react';
+import { FolderOpenIcon, PencilIcon, SquareSplitHorizontalIcon, TrashIcon } from 'lucide-react';
 import type { CSSProperties } from 'react';
 import { useMemo, useRef } from 'react';
 import type { AgentOrganizationFolder } from '../../utils/agentOrganization/types';
-import type { AgentVisibility } from '../../utils/agentVisibility';
 import { ContextMenuPanel, type ContextMenuItem } from '../ContextMenu/ContextMenuPanel';
 import {
     type ContextMenuAnchorPoint,
@@ -45,16 +44,16 @@ type FolderContextMenuPopoverProps = {
      */
     readonly onDeleteFolder?: () => void;
     /**
-     * Optional callback used to set visibility for all agents in this folder subtree.
+     * Optional callback triggered when the visibility update action is selected.
      */
-    readonly onSetVisibility?: (visibility: AgentVisibility) => void;
+    readonly onRequestVisibilityUpdate?: () => void;
 };
 
 /**
  * Renders the folder context menu at the cursor position.
  */
 export function FolderContextMenuPopover(props: FolderContextMenuPopoverProps) {
-    const { folder, isOpen, anchorPoint, onClose, onOpenFolder, onRenameFolder, onDeleteFolder, onSetVisibility } =
+    const { folder, isOpen, anchorPoint, onClose, onOpenFolder, onRenameFolder, onDeleteFolder, onRequestVisibilityUpdate } =
         props;
     const menuRef = useRef<HTMLDivElement>(null);
     const clampedPosition = useClampedMenuPosition(anchorPoint, isOpen, menuRef);
@@ -93,34 +92,20 @@ export function FolderContextMenuPopover(props: FolderContextMenuPopoverProps) {
                       },
                   ]
                 : []),
-            ...(onSetVisibility
+            ...(onRequestVisibilityUpdate
                 ? [
                       { type: 'divider' as const },
                       {
                           type: 'action' as const,
-                          icon: LockIcon,
-                          label: 'Set Subtree Private',
-                          onClick: () => onSetVisibility('PRIVATE'),
-                          closeOnClick: true,
-                      },
-                      {
-                          type: 'action' as const,
-                          icon: EyeOffIcon,
-                          label: 'Set Subtree Unlisted',
-                          onClick: () => onSetVisibility('UNLISTED'),
-                          closeOnClick: true,
-                      },
-                      {
-                          type: 'action' as const,
-                          icon: GlobeIcon,
-                          label: 'Set Subtree Public',
-                          onClick: () => onSetVisibility('PUBLIC'),
+                          icon: SquareSplitHorizontalIcon,
+                          label: 'Update subtree visibility',
+                          onClick: onRequestVisibilityUpdate,
                           closeOnClick: true,
                       },
                   ]
                 : []),
         ],
-        [folder.name, onDeleteFolder, onOpenFolder, onRenameFolder, onSetVisibility],
+        [folder.name, onDeleteFolder, onOpenFolder, onRenameFolder, onRequestVisibilityUpdate],
     );
 
     if (!isOpen || !anchorPoint) {

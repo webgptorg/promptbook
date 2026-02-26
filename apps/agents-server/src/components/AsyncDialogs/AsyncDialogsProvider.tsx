@@ -7,6 +7,7 @@ import { createContext, useCallback, useContext, useEffect, useId, useMemo, useR
 import { LoginDialog } from '../LoginDialog/LoginDialog';
 import { Dialog } from '../Portal/Dialog';
 import { useServerLanguage } from '../ServerLanguage/ServerLanguageProvider';
+import { AGENT_VISIBILITY_VALUES, type AgentVisibility } from '../../utils/agentVisibility';
 import {
     ModalDismissedError,
     registerModalController,
@@ -353,6 +354,128 @@ function PromptDialog(props: PromptDialogProps) {
 }
 
 /**
+ * Visibility option descriptions displayed in the dialog.
+ */
+const VISIBILITY_DESCRIPTIONS: Record<AgentVisibility, string> = {
+    PRIVATE: 'Visible only to collaborators who have access to this server.',
+    UNLISTED: 'Accessible by link but omitted from catalogs and search listings.',
+    PUBLIC: 'Listed and searchable for anyone who visits this server.',
+};
+
+/**
+ * Formats a human-readable label for a visibility value.
+ *
+ * @param visibility - Visibility value to format.
+ */
+function formatVisibilityLabel(visibility: AgentVisibility): string {
+    return `${visibility.charAt(0)}${visibility.slice(1).toLowerCase()}`;
+}
+
+/**
+ * Props for the visibility selection dialog.
+ */
+type VisibilityDialogProps = {
+    /**
+     * Optional dialog title.
+     */
+    readonly title?: string;
+    /**
+     * Optional dialog description.
+     */
+    readonly description?: string;
+    /**
+     * Optional confirm label.
+     */
+    readonly confirmLabel?: string;
+    /**
+     * Optional cancel label.
+     */
+    readonly cancelLabel?: string;
+    /**
+     * Initial visibility selection for the dialog.
+     */
+    readonly initialVisibility?: AgentVisibility;
+    /**
+     * Confirm handler invoked with the selected visibility.
+     */
+    readonly onConfirm: (value: AgentVisibility) => void;
+    /**
+     * Cancel handler invoked when the dialog is dismissed.
+     */
+    readonly onCancel: () => void;
+};
+
+/**
+ * Visibility selection dialog rendered inside the async dialog shell.
+ */
+function VisibilityDialog(props: VisibilityDialogProps) {
+    const { title, description, confirmLabel, cancelLabel, initialVisibility, onConfirm, onCancel } = props;
+    const { t } = useServerLanguage();
+    const [currentVisibility, setCurrentVisibility] = useState<AgentVisibility>(
+        initialVisibility ?? AGENT_VISIBILITY_VALUES[0],
+    );
+
+    useEffect(() => {
+        setCurrentVisibility(initialVisibility ?? AGENT_VISIBILITY_VALUES[0]);
+    }, [initialVisibility]);
+
+    const footer = (
+        <>
+            <button
+                type="button"
+                onClick={onCancel}
+                className="px-4 py-2 rounded-md bg-gray-100 text-gray-700 text-sm font-semibold hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2 transition-colors"
+            >
+                {cancelLabel || t('common.cancel')}
+            </button>
+            <button
+                type="submit"
+                className="px-4 py-2 rounded-md bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+            >
+                {confirmLabel || 'Update visibility'}
+            </button>
+        </>
+    );
+
+    return (
+        <DialogShell
+            title={title || 'Update visibility'}
+            description={description}
+            onClose={onCancel}
+            onSubmit={() => onConfirm(currentVisibility)}
+            footer={footer}
+        >
+            <div className="space-y-3">
+                {AGENT_VISIBILITY_VALUES.map((visibility) => {
+                    const isSelected = visibility === currentVisibility;
+                    const optionClassNames = [
+                        'flex items-start gap-3 rounded-lg border px-3 py-2 transition-colors',
+                        isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-white hover:border-gray-300',
+                    ].join(' ');
+
+                    return (
+                        <label key={visibility} className={optionClassNames}>
+                            <input
+                                type="radio"
+                                name="agent-visibility"
+                                value={visibility}
+                                checked={isSelected}
+                                onChange={() => setCurrentVisibility(visibility)}
+                                className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500"
+                            />
+                            <div className="min-w-0">
+                                <p className="text-sm font-semibold text-gray-900">{formatVisibilityLabel(visibility)}</p>
+                                <p className="text-xs text-gray-500">{VISIBILITY_DESCRIPTIONS[visibility]}</p>
+                            </div>
+                        </label>
+                    );
+                })}
+            </div>
+        </DialogShell>
+    );
+}
+
+/**
  * Props for the async dialog renderer.
  */
 type AsyncDialogRendererProps = {
@@ -413,6 +536,20 @@ function AsyncDialogRenderer(props: AsyncDialogRendererProps) {
                 inputLabel={request.inputLabel}
                 onConfirm={(value) => onResolve(value)}
                 onCancel={() => onReject(new ModalDismissedError('prompt'))}
+            />
+        );
+    }
+
+    if (request.kind === 'visibility') {
+        return (
+            <VisibilityDialog
+                title={request.title}
+                description={request.description}
+                confirmLabel={request.confirmLabel}
+                cancelLabel={request.cancelLabel}
+                initialVisibility={request.initialVisibility}
+                onConfirm={(value) => onResolve(value)}
+                onCancel={() => onReject(new ModalDismissedError('visibility'))}
             />
         );
     }

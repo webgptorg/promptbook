@@ -34,12 +34,12 @@ import type {
     AgentOrganizationFolder,
     AgentOrganizationUpdatePayload,
 } from '../../utils/agentOrganization/types';
-import { getNextAgentVisibility, type AgentVisibility } from '../../utils/agentVisibility';
+import { DEFAULT_AGENT_VISIBILITY, type AgentVisibility } from '../../utils/agentVisibility';
 import { AgentContextMenuPopover, type AgentContextMenuRenamePayload } from '../AgentContextMenu/AgentContextMenu';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 import { QrCodeModal } from '../AgentProfile/QrCodeModal';
 import { useAgentBackground } from '../AgentProfile/useAgentBackground';
-import { showAlert, showConfirm } from '../AsyncDialogs/asyncDialogs';
+import { showAlert, showConfirm, showVisibilityDialog } from '../AsyncDialogs/asyncDialogs';
 import { FolderContextMenuPopover } from '../FolderContextMenu/FolderContextMenu';
 import { AgentCard } from './AgentCard';
 import {
@@ -365,9 +365,9 @@ type SortableAgentCardProps = {
      */
     readonly onDelete: (agentIdentifier: string) => void;
     /**
-     * Visibility toggle handler for the agent.
+     * Visibility change request handler for the agent.
      */
-    readonly onToggleVisibility: (agentIdentifier: string) => void;
+    readonly onRequestVisibilityChange: (agentIdentifier: string) => void;
     /**
      * Context menu handler for the agent.
      */
@@ -392,7 +392,7 @@ function SortableAgentCard({
     canOrganize,
     activeDragType,
     onDelete,
-    onToggleVisibility,
+    onRequestVisibilityChange,
     onContextMenu,
     dragHandleLabel,
     allowFullCardDrag,
@@ -432,7 +432,7 @@ function SortableAgentCard({
                 href={`/agents/${encodeURIComponent(agentIdentifier)}`}
                 isAdmin={isAdmin}
                 onDelete={onDelete}
-                onToggleVisibility={onToggleVisibility}
+                onRequestVisibilityChange={onRequestVisibilityChange}
                 visibility={agent.visibility}
             />
             {canOrganize && !allowFullCardDrag && (
@@ -1434,41 +1434,79 @@ export function AgentsList(props: AgentsListProps) {
     };
 
     /**
-     * Cycles visibility of an agent.
+     * Prompts to update visibility for the selected folder subtree.
      *
-     * @param agentIdentifier - Agent identifier to update.
+     * @param folderId - Folder id used for the visibility selection.
      */
-    const handleToggleVisibility = async (agentIdentifier: string) => {
-        const agent = agents.find((a) => a.permanentId === agentIdentifier || a.agentName === agentIdentifier);
-        if (!agent) return;
-
-        const newVisibility = getNextAgentVisibility(agent.visibility);
-        const confirmed = await showConfirm({
-            title: 'Update visibility',
-            message: `${formatText('Make agent')} "${agent.agentName}" ${newVisibility.toLowerCase()}?`,
-            confirmLabel: 'Update visibility',
-            cancelLabel: 'Cancel',
-        }).catch(() => false);
-        if (!confirmed) {
+    const handleRequestFolderVisibilityUpdate = async (folderId: number) => {
+        const folder = folders.find((item) => item.id === folderId);
+        if (!folder) {
             return;
         }
 
-        const response = await fetch(`/api/agents/${encodeURIComponent(agentIdentifier)}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ visibility: newVisibility }),
-        });
+        const descendantIds = collectDescendantFolderIds(folderId, folderMaps.childrenByParentId);
+        const descendantSet = new Set(descendantIds);
+        const affectedAgents = agents.filter((agent) => agent.folderId !== null && descendantSet.has(agent.folderId));
 
-        if (response.ok) {
-            setAgents((prev) =>
-                prev.map((a) =>
-                    a.permanentId === agent.permanentId || a.agentName === agent.agentName
-                        ? { ...a, visibility: newVisibility }
-                        : a,
-                ),
-            );
-            router.refresh();
-        } else {
+        const selectedVisibility = await showVisibilityDialog({
+            title: 'Update visibility',
+            description: `${formatText('Set visibility for folder')} "${folder.name}" ${formatText(
+                'and its subtree',
+            )}. ${formatText('Affected agents')}: ${affectedAgents.length}.`,
+            confirmLabel: 'Update visibility',
+            initialVisibility: DEFAULT_AGENT_VISIBILITY,
+        }).catch(() => null);
+        if (!selectedVisibility) {
+            return;
+        }
+
+        await handleSetFolderVisibility(folderId, selectedVisibility);
+    };
+
+    /**
+     * Requests a new visibility for an agent via the selection dialog and applies it.
+     *
+     * @param agentIdentifier - Agent identifier to update.
+     */
+    const handleRequestAgentVisibilityChange = async (agentIdentifier: string) => {
+        const agent = agents.find((a) => a.permanentId === agentIdentifier || a.agentName === agentIdentifier);
+        if (!agent) {
+            return;
+        }
+
+        const selectedVisibility = await showVisibilityDialog({
+            title: 'Update visibility',
+            description: `${formatText('Set visibility for agent')} "${agent.agentName}".`,
+            confirmLabel: 'Update visibility',
+            initialVisibility: agent.visibility ?? DEFAULT_AGENT_VISIBILITY,
+        }).catch(() => null);
+        if (!selectedVisibility || selectedVisibility === agent.visibility) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/agents/${encodeURIComponent(agentIdentifier)}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ visibility: selectedVisibility }),
+            });
+
+            if (response.ok) {
+                setAgents((prev) =>
+                    prev.map((a) =>
+                        a.permanentId === agent.permanentId || a.agentName === agent.agentName
+                            ? { ...a, visibility: selectedVisibility }
+                            : a,
+                    ),
+                );
+                router.refresh();
+            } else {
+                await showAlert({
+                    title: 'Update failed',
+                    message: formatText('Failed to update agent visibility'),
+                }).catch(() => undefined);
+            }
+        } catch (error) {
             await showAlert({
                 title: 'Update failed',
                 message: formatText('Failed to update agent visibility'),
@@ -1490,17 +1528,6 @@ export function AgentsList(props: AgentsListProps) {
 
         const descendantIds = collectDescendantFolderIds(folderId, folderMaps.childrenByParentId);
         const descendantSet = new Set(descendantIds);
-        const affectedAgents = agents.filter((agent) => agent.folderId !== null && descendantSet.has(agent.folderId));
-
-        const confirmed = await showConfirm({
-            title: 'Update visibility',
-            message: `${formatText('Set visibility for folder')} "${folder.name}" ${formatText('and its subtree to')} ${visibility.toLowerCase()}? ${formatText('Affected agents')}: ${affectedAgents.length}.`,
-            confirmLabel: 'Update visibility',
-            cancelLabel: 'Cancel',
-        }).catch(() => false);
-        if (!confirmed) {
-            return;
-        }
 
         try {
             const response = await fetch(`/api/agent-folders/${folderId}/visibility`, {
@@ -1864,7 +1891,7 @@ export function AgentsList(props: AgentsListProps) {
                                     canOrganize={canOrganize}
                                     activeDragType={activeDragItem?.type ?? null}
                                     onDelete={handleDelete}
-                                    onToggleVisibility={handleToggleVisibility}
+                                    onRequestVisibilityChange={handleRequestAgentVisibilityChange}
                                     onContextMenu={handleAgentContextMenu}
                                     dragHandleLabel={dragAgentLabel}
                                     allowFullCardDrag={allowFullCardDrag}
@@ -1957,10 +1984,8 @@ export function AgentsList(props: AgentsListProps) {
                     onOpenFolder={() => navigateToFolder(contextMenuFolder.id)}
                     onRenameFolder={canOrganize ? () => handleRenameFolder(contextMenuFolder.id) : undefined}
                     onDeleteFolder={canOrganize ? () => handleDeleteFolder(contextMenuFolder.id) : undefined}
-                    onSetVisibility={
-                        isAdmin
-                            ? (visibility) => handleSetFolderVisibility(contextMenuFolder.id, visibility)
-                            : undefined
+                    onRequestVisibilityUpdate={
+                        isAdmin ? () => handleRequestFolderVisibilityUpdate(contextMenuFolder.id) : undefined
                     }
                 />
             )}

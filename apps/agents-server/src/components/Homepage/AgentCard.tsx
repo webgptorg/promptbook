@@ -43,9 +43,9 @@ type AgentCardProps = {
     readonly onDelete?: (agentIdentifier: string) => void;
 
     /**
-     * Callback function to toggle the agent's visibility
+     * Callback function invoked when the visibility button is pressed.
      */
-    readonly onToggleVisibility?: (agentIdentifier: string) => void;
+    readonly onRequestVisibilityChange?: (agentIdentifier: string) => void;
 
     /**
      * Callback function to restore a deleted agent
@@ -72,7 +72,7 @@ export function AgentCard({
     isAdmin,
     publicUrl,
     onDelete,
-    onToggleVisibility,
+    onRequestVisibilityChange,
     onRestore,
     visibility,
     serverUrl,
@@ -158,11 +158,11 @@ export function AgentCard({
                                 ? 'bg-amber-500 hover:bg-amber-600'
                                 : 'bg-gray-500 hover:bg-gray-600'
                         } ${FILE_ACTION_BUTTON_CLASSES}`}
-                        onClick={(e) => {
-                            e.preventDefault();
-                            onToggleVisibility?.(agent.permanentId || agent.agentName);
-                        }}
-                        title={`Visibility: ${resolvedVisibility.toLowerCase()}. Click to cycle.`}
+                            onClick={(e) => {
+                                e.preventDefault();
+                                onRequestVisibilityChange?.(agent.permanentId || agent.agentName);
+                            }}
+                            title={`Visibility: ${resolvedVisibility.toLowerCase()}. Click to update.`}
                     >
                         {resolvedVisibility === 'PUBLIC' ? (
                             <EyeIcon className="w-3 h-3" />

@@ -1,3 +1,5 @@
+import type { AgentVisibility } from '../../utils/agentVisibility';
+
 /**
  * Configuration for an async alert dialog.
  * @private @@@
@@ -101,6 +103,33 @@ export type LoginDialogOptions = {
 };
 
 /**
+ * Configuration for an async visibility dialog.
+ * @private @@@
+ */
+export type VisibilityDialogOptions = {
+    /**
+     * Optional dialog title.
+     */
+    readonly title?: string;
+    /**
+     * Optional description shown below the title.
+     */
+    readonly description?: string;
+    /**
+     * Optional confirm label.
+     */
+    readonly confirmLabel?: string;
+    /**
+     * Optional cancel label.
+     */
+    readonly cancelLabel?: string;
+    /**
+     * Initial visibility selection inside the dialog.
+     */
+    readonly initialVisibility?: AgentVisibility;
+};
+
+/**
  * Internal modal request types used by the async dialogs system.
  * @private @@@
  */
@@ -108,7 +137,8 @@ export type ModalRequest =
     | ({ readonly kind: 'alert' } & AlertDialogOptions)
     | ({ readonly kind: 'confirm' } & ConfirmDialogOptions)
     | ({ readonly kind: 'prompt' } & PromptDialogOptions)
-    | ({ readonly kind: 'login' } & LoginDialogOptions);
+    | ({ readonly kind: 'login' } & LoginDialogOptions)
+    | ({ readonly kind: 'visibility' } & VisibilityDialogOptions);
 
 /**
  * Result map for each dialog kind.
@@ -119,6 +149,7 @@ export type ModalResultMap = {
     confirm: boolean;
     prompt: string;
     login: void;
+    visibility: AgentVisibility;
 };
 
 /**
@@ -230,4 +261,15 @@ export function showPrompt(options: PromptDialogOptions): Promise<string> {
  */
 export function showLoginDialog(options: LoginDialogOptions = {}): Promise<void> {
     return getModalController().enqueue({ kind: 'login', ...options });
+}
+
+/**
+ * Show an async visibility selection dialog.
+ *
+ * @param options - Visibility dialog options.
+ * @returns Promise that resolves with the selected visibility.
+ * @private @@@
+ */
+export function showVisibilityDialog(options: VisibilityDialogOptions): Promise<AgentVisibility> {
+    return getModalController().enqueue({ kind: 'visibility', ...options });
 }

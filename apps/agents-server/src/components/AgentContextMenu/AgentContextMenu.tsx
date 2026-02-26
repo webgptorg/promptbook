@@ -2,16 +2,14 @@
 
 import type { AgentBasicInformation, TODO_any, string_agent_permanent_id } from '@promptbook-local/types';
 import {
+    AdjustmentsHorizontalIcon,
     BarChart3Icon,
     CopyIcon,
     CopyPlusIcon,
     DownloadIcon,
-    EyeOffIcon,
     ExternalLinkIcon,
     FileTextIcon,
     FolderOpenIcon,
-    GlobeIcon,
-    LockIcon,
     MailIcon,
     MessageCircleQuestionIcon,
     MessageSquareIcon,
@@ -30,10 +28,10 @@ import { just } from '../../../../../src/utils/organization/just';
 import { getAgentLinks } from '../../app/agents/[agentName]/agentLinks';
 import { deleteAgent } from '../../app/recycle-bin/actions';
 import type { AgentFolderContext } from '../../utils/agentOrganization/agentFolderContext';
-import { AGENT_VISIBILITY_VALUES, type AgentVisibility } from '../../utils/agentVisibility';
+import { DEFAULT_AGENT_VISIBILITY, type AgentVisibility } from '../../utils/agentVisibility';
 import { promptCloneAgent } from '../AgentCloning/cloneAgent';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
-import { showAlert, showConfirm, showPrompt } from '../AsyncDialogs/asyncDialogs';
+import { showAlert, showConfirm, showPrompt, showVisibilityDialog } from '../AsyncDialogs/asyncDialogs';
 import { ContextMenuPanel, type ContextMenuItem } from '../ContextMenu/ContextMenuPanel';
 import {
     type ContextMenuAnchorPoint,
@@ -456,35 +454,20 @@ export function useAgentContextMenuItems(props: AgentContextMenuBaseProps): Cont
         [agentName, formatText, permanentId],
     );
 
-    const shouldShowVisibilityActions = Boolean(isAdmin && agent.visibility);
-    const visibilityActions: ContextMenuItem[] = shouldShowVisibilityActions
-        ? AGENT_VISIBILITY_VALUES.filter((visibility) => visibility !== agent.visibility).map((visibility) => {
-              switch (visibility) {
-                  case 'PUBLIC':
-                      return {
-                          type: 'action' as const,
-                          icon: GlobeIcon,
-                          label: formatText('Make Public'),
-                          onClick: () => handleSetVisibility('PUBLIC'),
-                      };
-                  case 'UNLISTED':
-                      return {
-                          type: 'action' as const,
-                          icon: EyeOffIcon,
-                          label: formatText('Make Unlisted'),
-                          onClick: () => handleSetVisibility('UNLISTED'),
-                      };
-                  case 'PRIVATE':
-                  default:
-                      return {
-                          type: 'action' as const,
-                          icon: LockIcon,
-                          label: formatText('Make Private'),
-                          onClick: () => handleSetVisibility('PRIVATE'),
-                      };
-              }
-          })
-        : [];
+    const shouldShowVisibilityAction = Boolean(isAdmin && agent.visibility);
+    const handleRequestVisibilityUpdate = useCallback(async () => {
+        const currentVisibility = agent.visibility ?? DEFAULT_AGENT_VISIBILITY;
+        const selectedVisibility = await showVisibilityDialog({
+            title: 'Update visibility',
+            description: `${formatText('Set visibility for agent')} "${agent.agentName}".`,
+            confirmLabel: 'Update visibility',
+            initialVisibility: currentVisibility,
+        }).catch(() => null);
+        if (!selectedVisibility || selectedVisibility === agent.visibility) {
+            return;
+        }
+        await handleSetVisibility(selectedVisibility);
+    }, [agent.agentName, agent.visibility, formatText, handleSetVisibility]);
     const menuItems: ContextMenuItem[] = [
         ...(fromDirectoryListing
             ? [
@@ -598,9 +581,14 @@ export function useAgentContextMenuItems(props: AgentContextMenuBaseProps): Cont
         ...(isAdmin
             ? [
                   { type: 'divider' as const },
-                  ...(visibilityActions.length > 0
+                  ...(shouldShowVisibilityAction
                       ? [
-                            ...visibilityActions,
+                            {
+                                type: 'action' as const,
+                                icon: AdjustmentsHorizontalIcon,
+                                label: formatText('Update visibility'),
+                                onClick: handleRequestVisibilityUpdate,
+                            },
                             { type: 'divider' as const },
                         ]
                       : []),
