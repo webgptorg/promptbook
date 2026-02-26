@@ -130,12 +130,6 @@ export const metadataDefaults = [
         type: 'BOOLEAN',
     },
     {
-        key: 'IS_EMBEDDING_ALLOWED',
-        value: 'true',
-        note: 'Allow the embed iframe to load this server’s agents. Set to false to block framing at /embed.',
-        type: 'BOOLEAN',
-    },
-    {
         key: 'DEFAULT_IS_SOUNDS_ON',
         value: 'false',
         note: 'Default state for chat sounds when a user has no saved preference. When false, sounds start muted.',

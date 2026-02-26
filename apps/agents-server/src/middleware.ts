@@ -6,7 +6,6 @@ import { $getTableName } from './database/$getTableName';
 import { RESERVED_PATHS } from './generated/reservedPaths';
 import { createCustomDomainOrFilter } from './utils/customDomainRouting';
 import { isIpAllowed } from './utils/isIpAllowed';
-import { parseBooleanMetadataFlag } from './utils/metadataFlags';
 
 export async function middleware(req: NextRequest) {
     // 1. Get client IP
@@ -23,7 +22,6 @@ export async function middleware(req: NextRequest) {
 
     const allowedIpsEnv = process.env.RESTRICT_IP;
     let allowedIpsMetadata: string | null = null;
-    let isEmbeddingAllowedMetadata: string | null = null;
 
     // To fetch metadata, we need to know the table name, which depends on the host
     const host = req.headers.get('host');
@@ -60,15 +58,12 @@ export async function middleware(req: NextRequest) {
 
                 const { data } = await supabase
                     .from(await $getTableName(`Metadata`))
-                    .select('key, value')
-                    .in('key', ['RESTRICT_IP', 'IS_EMBEDDING_ALLOWED']);
+                    .select('value')
+                    .eq('key', 'RESTRICT_IP')
+                    .single();
 
-                for (const row of data ?? []) {
-                    if (row.key === 'RESTRICT_IP') {
-                        allowedIpsMetadata = row.value;
-                    } else if (row.key === 'IS_EMBEDDING_ALLOWED') {
-                        isEmbeddingAllowedMetadata = row.value;
-                    }
+                if (data && data.value) {
+                    allowedIpsMetadata = data.value;
                 }
             } catch (error) {
                 console.error('Error fetching metadata in middleware:', error);
@@ -272,23 +267,10 @@ export async function middleware(req: NextRequest) {
         }
     }
 
-    const isEmbedPath =
-        req.nextUrl.pathname === '/embed' || req.nextUrl.pathname === '/embed/';
+    return NextResponse.next();
 
-    const response = NextResponse.next();
-
-    if (isEmbedPath) {
-        const isEmbeddingAllowed = parseBooleanMetadataFlag(isEmbeddingAllowedMetadata, true);
-        if (isEmbeddingAllowed) {
-            response.headers.delete('X-Frame-Options');
-            response.headers.set('Content-Security-Policy', 'frame-ancestors *');
-        } else {
-            response.headers.set('X-Frame-Options', 'DENY');
-            response.headers.set('Content-Security-Policy', "frame-ancestors 'none'");
-        }
-    }
-
-    return response;
+    // This part should be unreachable due to logic above, but keeping as fallback
+    return new NextResponse('Forbidden', { status: 403 });
 }
 
 export const config = {

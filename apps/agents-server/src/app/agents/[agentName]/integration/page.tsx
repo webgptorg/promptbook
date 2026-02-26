@@ -3,12 +3,11 @@
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabase } from '@/src/database/$provideSupabase';
 import { $provideServer } from '@/src/tools/$provideServer';
-import { getMetadata } from '@/src/database/getMetadata';
 import { isUserAdmin } from '@/src/utils/isUserAdmin';
 import { formatAgentNamingText } from '@/src/utils/agentNaming';
 import { getAgentNaming } from '@/src/utils/getAgentNaming';
 import { PROMPTBOOK_COLOR } from '@promptbook-local/core';
-import { Ban, BoxIcon, CodeIcon, GlobeIcon, LayoutDashboard } from 'lucide-react';
+import { BoxIcon, CodeIcon, GlobeIcon } from 'lucide-react';
 import { headers } from 'next/headers';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -24,7 +23,6 @@ import { generateAgentMetadata } from '../generateAgentMetadata';
 import { ApiKeyIntegrationSections } from './ApiKeyIntegrationSections';
 import { PromptbookSdkTabs } from './PromptbookSdkTabs';
 import { WebsiteIntegrationTabs } from './WebsiteIntegrationTabs';
-import { parseBooleanMetadataFlag } from '@/src/utils/metadataFlags';
 
 export const generateMetadata = generateAgentMetadata;
 
@@ -44,7 +42,6 @@ export default async function AgentIntegrationPage({ params }: AgentIntegrationP
     const agentName = await getAgentName(params);
     const isAdmin = await isUserAdmin();
     const agentNaming = await getAgentNaming();
-    const isEmbeddingAllowed = parseBooleanMetadataFlag(await getMetadata('IS_EMBEDDING_ALLOWED'), true);
 
     let agentProfile;
     try {
@@ -119,19 +116,6 @@ export default async function AgentIntegrationPage({ params }: AgentIntegrationP
             />
         `,
     );
-
-    const encodedMetaParam = encodeURIComponent(metaJsonString);
-    const embedPageUrl = `${publicUrl.href}embed`;
-    const embedIframeUrl = `${embedPageUrl}?agentUrl=${encodeURIComponent(baseUrl)}&meta=${encodedMetaParam}`;
-    const embedIframeCode = spaceTrim(`
-        <iframe
-            src="${embedIframeUrl}"
-            width="420"
-            height="640"
-            style="border: none; border-radius: 14px;"
-            title="Promptbook agent embed"
-        ></iframe>
-    `);
 
     // Promptbook SDK Integration Code
     const promptbookSdkNodeCode = spaceTrim(`
@@ -268,78 +252,6 @@ export default async function AgentIntegrationPage({ params }: AgentIntegrationP
                             htmlCode={websiteIntegrationHtmlCode}
                         />
                     </div>
-
-                    {/* Iframe Embedding */}
-                    {isEmbeddingAllowed ? (
-                        <div className="p-6 rounded-xl border-2 border-blue-200 bg-blue-50/30 shadow-sm">
-                            <div className="flex items-start gap-4 mb-4">
-                                <div className="p-3 rounded-xl bg-blue-100 text-blue-600 shadow-sm">
-                                    <LayoutDashboard className="w-6 h-6" />
-                                </div>
-                                <div>
-                                    <h2 className="text-xl font-bold text-gray-900">Iframe Embedding</h2>
-                                    <p className="text-gray-600">
-                                        {formatAgentNamingText(
-                                            'Embed the agent anywhere with a plain iframe that loads the embed route.',
-                                            agentNaming,
-                                        )}
-                                    </p>
-                                    <p className="text-sm text-gray-500 mt-1">
-                                        Embedding reuses this agent’s metadata so the widget matches the published style.
-                                    </p>
-                                    <p className="text-sm text-gray-500 mt-1">
-                                        {formatAgentNamingText('Keep the metadata flag', agentNaming)}{' '}
-                                        <code>IS_EMBEDDING_ALLOWED</code> {formatAgentNamingText('set to true.', agentNaming)}
-                                    </p>
-                                </div>
-                            </div>
-                            <div className="grid gap-4 md:grid-cols-[minmax(0,2fr),300px]">
-                                <div className="rounded-xl border border-gray-200 bg-white shadow-sm">
-                                    <div className="px-4 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                        Embed code
-                                    </div>
-                                    <CodePreview code={embedIframeCode} language="xml" />
-                                </div>
-                                <div className="rounded-xl border border-gray-200 bg-white shadow-sm">
-                                    <div className="px-4 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                        Live preview
-                                    </div>
-                                    <div className="p-4 flex justify-center">
-                                        <iframe
-                                            src={embedIframeUrl}
-                                            width="320"
-                                            height="520"
-                                            title="Promptbook agent embed preview"
-                                            style={{
-                                                border: '1px solid #e5e7eb',
-                                                borderRadius: '16px',
-                                                width: '100%',
-                                                height: '520px',
-                                            }}
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="p-6 rounded-xl border-2 border-red-200 bg-red-50/60 shadow-sm">
-                            <div className="flex items-start gap-4">
-                                <div className="p-3 rounded-xl bg-red-100 text-red-600 shadow-sm">
-                                    <Ban className="w-6 h-6" />
-                                </div>
-                                <div>
-                                    <h2 className="text-xl font-bold text-gray-900">Iframe embedding disabled</h2>
-                                    <p className="text-gray-600">
-                                        {formatAgentNamingText(
-                                            'Embedding is currently blocked via metadata. Toggle',
-                                            agentNaming,
-                                        )}{' '}
-                                        <code>IS_EMBEDDING_ALLOWED</code> {formatAgentNamingText('to true to show the snippet again.', agentNaming)}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    )}
 
                     {/* Promptbook SDK Integration */}
                     <div className="p-6 rounded-xl border-2 border-cyan-200 bg-cyan-50/30 shadow-sm">
