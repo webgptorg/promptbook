@@ -237,7 +237,7 @@ function createFederatedAgentsSearchProvider(): ServerSearchProvider {
 
             let federatedServers: string[] = [];
             try {
-                federatedServers = await getFederatedServers();
+                federatedServers = await getFederatedServers({ excludeHiddenCoreServer: true });
             } catch (error) {
                 console.error('[search] Failed to load federated servers:', error);
                 return [];

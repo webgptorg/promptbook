@@ -72,6 +72,12 @@ export const metadataDefaults = [
             `),
         type: 'TEXT',
     },
+    {
+        key: 'IS_CORE_SERVER_HIDDEN',
+        value: 'false',
+        note: 'Hide the core federated server from homepage, navbar, search, and footer links while keeping it available for references when true.',
+        type: 'BOOLEAN',
+    },
     // <- TODO: [🆎] Allow to set well-known agent names via Metadata
 
     {

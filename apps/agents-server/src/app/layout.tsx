@@ -111,7 +111,7 @@ export default async function RootLayout({
 
         // Only show federated servers in footer if user is authenticated or if SHOW_FEDERATED_SERVERS_PUBLICLY is true
         if (currentUser || showFederatedServersPublicly) {
-            const federatedServersUrls = await getFederatedServers();
+            const federatedServersUrls = await getFederatedServers({ excludeHiddenCoreServer: true });
             federatedServers = await Promise.all(
                 federatedServersUrls.map(async (url: string) => {
                     let logoUrl: string | null = null;
