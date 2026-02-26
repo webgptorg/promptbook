@@ -1,10 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-    createDefaultCustomStylesheetCss,
-    customStylesheetClassEntries,
-} from '../../../constants/customStylesheet';
+import { createDefaultCustomStylesheetCss, customStylesheetClassEntries } from '../../../constants/customStylesheet';
+import { CUSTOM_RESOURCE_INPUT_CLASS_NAME, readJsonResponse } from '../custom-resource/shared';
 
 /**
  * API payload returned by `GET /api/custom-css`.
@@ -26,19 +24,6 @@ type CustomCssWriteResponse = {
     maxLength: number;
     error?: string;
 };
-
-/**
- * Input styles shared by editor controls.
- */
-const CUSTOM_CSS_INPUT_CLASS_NAME =
-    'w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500';
-
-/**
- * Reads JSON body from one fetch response with a typed fallback.
- */
-async function readJsonResponse<T>(response: Response): Promise<T> {
-    return (await response.json()) as T;
-}
 
 /**
  * Renders the admin custom CSS editor and saves global stylesheet settings.
@@ -155,7 +140,7 @@ export function CustomCssClient() {
                         id="custom-css-editor"
                         value={css}
                         onChange={(event) => setCss(event.target.value)}
-                        className={`${CUSTOM_CSS_INPUT_CLASS_NAME} min-h-[520px] font-mono text-xs leading-5`}
+                        className={`${CUSTOM_RESOURCE_INPUT_CLASS_NAME} min-h-[520px] font-mono text-xs leading-5`}
                         spellCheck={false}
                         placeholder={defaultCss}
                     />

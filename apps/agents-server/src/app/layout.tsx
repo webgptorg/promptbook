@@ -2,6 +2,7 @@ import faviconLogoImage from '@/public/favicon.ico';
 import { LayoutWrapper } from '@/src/components/LayoutWrapper/LayoutWrapper';
 import type { Metadata } from 'next';
 import { Barlow_Condensed, Poppins } from 'next/font/google';
+import { getCurrentCustomJavascriptText } from '../database/customJavascript';
 import { getCurrentCustomStylesheetCss } from '../database/customStylesheet';
 import { getMetadataMap } from '../database/getMetadata';
 import { $provideServer } from '../tools/$provideServer';
@@ -150,12 +151,21 @@ export default async function RootLayout({
     const isFeedbackEnabled = (layoutMetadata.IS_FEEDBACK_ENABLED ?? 'true') === 'true';
     const isExperimentalPwaAppEnabled = (layoutMetadata.IS_EXPERIMENTAL_PWA_APP_ENABLED ?? 'true') === 'true';
     let customStylesheetCss = '';
+    let customJavascript = '';
 
     try {
         customStylesheetCss = await getCurrentCustomStylesheetCss();
     } catch (error) {
         console.error('Failed to load custom stylesheet CSS', error);
     }
+
+    try {
+        customJavascript = await getCurrentCustomJavascriptText();
+    } catch (error) {
+        console.error('Failed to load custom JavaScript', error);
+    }
+
+    const safeCustomJavascript = customJavascript.replace(/<\/script>/gi, '<\\/script>');
 
     return (
         <html lang="en">
@@ -181,6 +191,12 @@ export default async function RootLayout({
                 >
                     {children}
                 </LayoutWrapper>
+                {customJavascript && (
+                    <script
+                        id="agents-server-custom-js"
+                        dangerouslySetInnerHTML={{ __html: safeCustomJavascript }}
+                    />
+                )}
                 {/* Global portal root for modals/popups */}
                 <div id="portal-root" />
             </body>
