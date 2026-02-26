@@ -120,3 +120,10 @@ registerUser.noEmailPrefix: This Promptbook server has no email capability.
 registerUser.noEmailSuffix: to register new user.
 secretInput.hideSecret: Hide secret value
 secretInput.showSecret: Show secret value
+agentCreation.addButtonLabel: + Add New Agent
+agentCreation.preparing: Preparing...
+agentCreation.createFailedTitle: Create failed
+agentCreation.createFailedMessage: Failed to create agent. Please try again.
+agentCreation.dialogTitle: Create New Agent
+agentCreation.dialogCreateAction: Create Agent
+agentCreation.dialogCreating: Creating...

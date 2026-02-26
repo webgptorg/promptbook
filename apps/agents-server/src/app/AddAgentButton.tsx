@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { forTime } from 'waitasecond';
 import { FileCard } from '../components/Homepage/FileCard';
 import { useAgentNaming } from '../components/AgentNaming/AgentNamingContext';
+import { useServerLanguage } from '../components/ServerLanguage/ServerLanguageProvider';
 import { NewAgentDialog } from '../components/NewAgentDialog/NewAgentDialog';
 import { showAlert } from '../components/AsyncDialogs/asyncDialogs';
 import { $createAgentFromBookAction, $generateAgentBoilerplateAction } from './actions';
@@ -29,6 +30,8 @@ export function AddAgentButton({ currentFolderId }: AddAgentButtonProps) {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [agentSource, setAgentSource] = useState<string_book>('' as string_book);
     const { formatText } = useAgentNaming();
+    const { t } = useServerLanguage();
+    const addButtonLabel = formatText(t('agentCreation.addButtonLabel'));
 
     /**
      * Loads boilerplate content and opens the creation dialog.
@@ -67,11 +70,8 @@ export function AddAgentButton({ currentFolderId }: AddAgentButtonProps) {
         } catch (error) {
             console.error('Failed to create agent:', error);
             await showAlert({
-                title: 'Create failed',
-                message:
-                    error instanceof Error
-                        ? error.message
-                        : 'Failed to create agent. Please try again.',
+                title: t('agentCreation.createFailedTitle'),
+                message: error instanceof Error ? error.message : t('agentCreation.createFailedMessage'),
             }).catch(() => undefined);
         }
     };
@@ -86,10 +86,10 @@ export function AddAgentButton({ currentFolderId }: AddAgentButtonProps) {
                     {isLoading ? (
                         <>
                             <span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
-                            Preparing...
+                            {t('agentCreation.preparing')}
                         </>
                     ) : (
-                        formatText('+ Add New Agent')
+                        addButtonLabel
                     )}
                 </FileCard>
             </div>

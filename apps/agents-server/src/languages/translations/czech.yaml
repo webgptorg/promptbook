@@ -120,3 +120,10 @@ registerUser.noEmailPrefix: Tento Promptbook server nema e-mailovou
 registerUser.noEmailSuffix: pro registraci noveho uzivatele.
 secretInput.hideSecret: Skryt tajnou hodnotu
 secretInput.showSecret: Zobrazit tajnou hodnotu
+agentCreation.addButtonLabel: + Přidat nového agenta
+agentCreation.preparing: Připravuji...
+agentCreation.createFailedTitle: Vytvoření se nezdařilo
+agentCreation.createFailedMessage: Nepodařilo se vytvořit agenta. Zkuste to prosím znovu.
+agentCreation.dialogTitle: Vytvořit nového agenta
+agentCreation.dialogCreateAction: Vytvořit agenta
+agentCreation.dialogCreating: Vytvářím...

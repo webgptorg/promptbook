@@ -122,6 +122,13 @@ export const SERVER_TRANSLATION_KEYS = [
     "registerUser.noEmailSuffix",
     "secretInput.hideSecret",
     "secretInput.showSecret",
+    "agentCreation.addButtonLabel",
+    "agentCreation.preparing",
+    "agentCreation.createFailedTitle",
+    "agentCreation.createFailedMessage",
+    "agentCreation.dialogTitle",
+    "agentCreation.dialogCreateAction",
+    "agentCreation.dialogCreating",
 ] as const;
 
 /**
