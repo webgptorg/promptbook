@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { usageToWorktime } from '@promptbook-local/core';
 import { $getTableName } from '../../../database/$getTableName';
 import { $provideSupabase } from '../../../database/$provideSupabase';
 import type { AgentsServerDatabase } from '../../../database/schema';
@@ -19,6 +20,37 @@ type ChatHistoryRow = Pick<
     AgentsServerDatabase['public']['Tables']['ChatHistory']['Row'],
     'createdAt' | 'agentName' | 'message' | 'source' | 'apiKey' | 'userAgent' | 'actorType' | 'usage' | 'userId'
 >;
+
+/**
+ * Aggregated usage metrics tracked for each bucket/group.
+ */
+type UsageAggregate = {
+    calls: number;
+    tokens: number;
+    priceUsd: number;
+    duration: number;
+    humanDuration: number;
+};
+
+/**
+ * Usage detail entry with recency metadata.
+ */
+type UsageAggregateWithLastSeen = UsageAggregate & {
+    lastSeen: string;
+};
+
+/**
+ * Numeric usage counts required by `usageToWorktime`.
+ */
+type UsageCountsForWorktime = {
+    tokensCount: { value: number; isUncertain?: true };
+    charactersCount: { value: number; isUncertain?: true };
+    wordsCount: { value: number; isUncertain?: true };
+    sentencesCount: { value: number; isUncertain?: true };
+    linesCount: { value: number; isUncertain?: true };
+    paragraphsCount: { value: number; isUncertain?: true };
+    pagesCount: { value: number; isUncertain?: true };
+};
 
 /**
  * Supported call types in UI order.
@@ -91,6 +123,7 @@ export async function GET(request: NextRequest) {
                     totalTokens: 0,
                     totalPriceUsd: 0,
                     totalDuration: 0,
+                    totalHumanDuration: 0,
                     uniqueAgents: 0,
                     uniqueUsers: 0,
                     uniqueApiKeys: 0,
@@ -104,6 +137,7 @@ export async function GET(request: NextRequest) {
                     tokens: 0,
                     priceUsd: 0,
                     duration: 0,
+                    humanDuration: 0,
                 })),
                 breakdownByActorType: ACTOR_TYPES.map((key) => ({
                     key,
@@ -112,6 +146,7 @@ export async function GET(request: NextRequest) {
                     tokens: 0,
                     priceUsd: 0,
                     duration: 0,
+                    humanDuration: 0,
                 })),
                 perAgent: [],
                 perFolder: [],
@@ -136,15 +171,7 @@ export async function GET(request: NextRequest) {
                 const actorType = resolveActorType(row);
                 const userAgent = normalizeUserAgent(row.userAgent);
                 const apiKey = normalizeOptionalText(row.apiKey);
-                const usage = row.usage as {
-                    input?: { tokensCount?: { value?: number } };
-                    output?: { tokensCount?: { value?: number } };
-                    price?: { value?: number };
-                    duration?: { value?: number };
-                } | null;
-                const tokens = (usage?.input?.tokensCount?.value || 0) + (usage?.output?.tokensCount?.value || 0);
-                const priceUsd = usage?.price?.value || 0;
-                const duration = usage?.duration?.value || 0;
+                const { tokens, priceUsd, duration, humanDuration } = extractUsageMetrics(row.usage);
 
                 return {
                     createdAt: row.createdAt,
@@ -157,6 +184,7 @@ export async function GET(request: NextRequest) {
                     tokens,
                     priceUsd,
                     duration,
+                    humanDuration,
                 };
             })
             .filter((call) => {
@@ -170,35 +198,14 @@ export async function GET(request: NextRequest) {
             });
 
         const bucketSizeMs = resolveTimelineBucketSizeMs(timeframe.from.getTime(), timeframe.to.getTime());
-        const timelineByBucket = new Map<
-            number,
-            { calls: number; tokens: number; priceUsd: number; duration: number }
-        >();
-        const perAgentCounts = new Map<string, { calls: number; tokens: number; priceUsd: number; duration: number }>();
-        const perFolderCounts = new Map<
-            number | null,
-            { calls: number; tokens: number; priceUsd: number; duration: number }
-        >();
-        const callTypeCounts = new Map<
-            UsageCallType,
-            { calls: number; tokens: number; priceUsd: number; duration: number }
-        >();
-        const actorTypeCounts = new Map<
-            UsageActorType,
-            { calls: number; tokens: number; priceUsd: number; duration: number }
-        >();
-        const perUserCounts = new Map<
-            number | null,
-            { calls: number; tokens: number; priceUsd: number; duration: number; lastSeen: string }
-        >();
-        const apiKeyDetails = new Map<
-            string,
-            { calls: number; tokens: number; priceUsd: number; duration: number; lastSeen: string }
-        >();
-        const userAgentDetails = new Map<
-            string,
-            { calls: number; tokens: number; priceUsd: number; duration: number; lastSeen: string }
-        >();
+        const timelineByBucket = new Map<number, UsageAggregate>();
+        const perAgentCounts = new Map<string, UsageAggregate>();
+        const perFolderCounts = new Map<number | null, UsageAggregate>();
+        const callTypeCounts = new Map<UsageCallType, UsageAggregate>();
+        const actorTypeCounts = new Map<UsageActorType, UsageAggregate>();
+        const perUserCounts = new Map<number | null, UsageAggregateWithLastSeen>();
+        const apiKeyDetails = new Map<string, UsageAggregateWithLastSeen>();
+        const userAgentDetails = new Map<string, UsageAggregateWithLastSeen>();
 
         for (const call of filteredCalls) {
             const timestamp = Date.parse(call.createdAt);
@@ -207,31 +214,31 @@ export async function GET(request: NextRequest) {
             }
 
             const bucketKey = floorToBucket(timestamp, bucketSizeMs);
-            const { tokens = 0, priceUsd = 0, duration = 0 } = call;
+            const usageAggregate = {
+                tokens: call.tokens || 0,
+                priceUsd: call.priceUsd || 0,
+                duration: call.duration || 0,
+                humanDuration: call.humanDuration || 0,
+            };
 
-            const updateCount = (
-                current: { calls: number; tokens: number; priceUsd: number; duration: number } | undefined,
-            ) => ({
-                calls: (current?.calls || 0) + 1,
-                tokens: (current?.tokens || 0) + tokens,
-                priceUsd: (current?.priceUsd || 0) + priceUsd,
-                duration: (current?.duration || 0) + duration,
-            });
-
-            timelineByBucket.set(bucketKey, updateCount(timelineByBucket.get(bucketKey)));
-            perAgentCounts.set(call.agentName, updateCount(perAgentCounts.get(call.agentName)));
-            callTypeCounts.set(call.callType, updateCount(callTypeCounts.get(call.callType)));
-            actorTypeCounts.set(call.actorType, updateCount(actorTypeCounts.get(call.actorType)));
+            timelineByBucket.set(bucketKey, sumUsageAggregate(timelineByBucket.get(bucketKey), usageAggregate));
+            perAgentCounts.set(call.agentName, sumUsageAggregate(perAgentCounts.get(call.agentName), usageAggregate));
+            callTypeCounts.set(call.callType, sumUsageAggregate(callTypeCounts.get(call.callType), usageAggregate));
+            actorTypeCounts.set(
+                call.actorType,
+                sumUsageAggregate(actorTypeCounts.get(call.actorType), usageAggregate),
+            );
 
             const folderId = agentFolderByName.get(call.agentName) ?? null;
-            perFolderCounts.set(folderId, updateCount(perFolderCounts.get(folderId)));
+            perFolderCounts.set(folderId, sumUsageAggregate(perFolderCounts.get(folderId), usageAggregate));
 
             const existingUser = perUserCounts.get(call.userId);
             perUserCounts.set(call.userId, {
                 calls: (existingUser?.calls || 0) + 1,
-                tokens: (existingUser?.tokens || 0) + tokens,
-                priceUsd: (existingUser?.priceUsd || 0) + priceUsd,
-                duration: (existingUser?.duration || 0) + duration,
+                tokens: (existingUser?.tokens || 0) + usageAggregate.tokens,
+                priceUsd: (existingUser?.priceUsd || 0) + usageAggregate.priceUsd,
+                duration: (existingUser?.duration || 0) + usageAggregate.duration,
+                humanDuration: (existingUser?.humanDuration || 0) + usageAggregate.humanDuration,
                 lastSeen:
                     existingUser?.lastSeen && existingUser.lastSeen > call.createdAt
                         ? existingUser.lastSeen
@@ -242,9 +249,10 @@ export async function GET(request: NextRequest) {
                 const existing = apiKeyDetails.get(call.apiKey);
                 apiKeyDetails.set(call.apiKey, {
                     calls: (existing?.calls || 0) + 1,
-                    tokens: (existing?.tokens || 0) + tokens,
-                    priceUsd: (existing?.priceUsd || 0) + priceUsd,
-                    duration: (existing?.duration || 0) + duration,
+                    tokens: (existing?.tokens || 0) + usageAggregate.tokens,
+                    priceUsd: (existing?.priceUsd || 0) + usageAggregate.priceUsd,
+                    duration: (existing?.duration || 0) + usageAggregate.duration,
+                    humanDuration: (existing?.humanDuration || 0) + usageAggregate.humanDuration,
                     lastSeen:
                         existing?.lastSeen && existing.lastSeen > call.createdAt ? existing.lastSeen : call.createdAt,
                 });
@@ -253,9 +261,10 @@ export async function GET(request: NextRequest) {
             const existingUserAgent = userAgentDetails.get(call.userAgent);
             userAgentDetails.set(call.userAgent, {
                 calls: (existingUserAgent?.calls || 0) + 1,
-                tokens: (existingUserAgent?.tokens || 0) + tokens,
-                priceUsd: (existingUserAgent?.priceUsd || 0) + priceUsd,
-                duration: (existingUserAgent?.duration || 0) + duration,
+                tokens: (existingUserAgent?.tokens || 0) + usageAggregate.tokens,
+                priceUsd: (existingUserAgent?.priceUsd || 0) + usageAggregate.priceUsd,
+                duration: (existingUserAgent?.duration || 0) + usageAggregate.duration,
+                humanDuration: (existingUserAgent?.humanDuration || 0) + usageAggregate.humanDuration,
                 lastSeen:
                     existingUserAgent?.lastSeen && existingUserAgent.lastSeen > call.createdAt
                         ? existingUserAgent.lastSeen
@@ -307,6 +316,7 @@ export async function GET(request: NextRequest) {
                 tokens: detail.tokens,
                 priceUsd: detail.priceUsd,
                 duration: detail.duration,
+                humanDuration: detail.humanDuration,
                 lastSeen: detail.lastSeen,
             }))
             .sort((a, b) => b.calls - a.calls || b.lastSeen.localeCompare(a.lastSeen));
@@ -318,6 +328,7 @@ export async function GET(request: NextRequest) {
                 tokens: detail.tokens,
                 priceUsd: detail.priceUsd,
                 duration: detail.duration,
+                humanDuration: detail.humanDuration,
                 lastSeen: detail.lastSeen,
             }))
             .sort((a, b) => b.calls - a.calls || b.lastSeen.localeCompare(a.lastSeen));
@@ -335,6 +346,7 @@ export async function GET(request: NextRequest) {
                 totalTokens: filteredCalls.reduce((sum, call) => sum + (call.tokens || 0), 0),
                 totalPriceUsd: filteredCalls.reduce((sum, call) => sum + (call.priceUsd || 0), 0),
                 totalDuration: filteredCalls.reduce((sum, call) => sum + (call.duration || 0), 0),
+                totalHumanDuration: filteredCalls.reduce((sum, call) => sum + (call.humanDuration || 0), 0),
                 uniqueAgents: perAgentCounts.size,
                 uniqueUsers: uniqueUserIds.size,
                 uniqueApiKeys: apiKeyDetails.size,
@@ -342,7 +354,13 @@ export async function GET(request: NextRequest) {
             },
             timeline,
             breakdownByCallType: CALL_TYPES.map((key) => {
-                const stats = callTypeCounts.get(key) || { calls: 0, tokens: 0, priceUsd: 0, duration: 0 };
+                const stats = callTypeCounts.get(key) || {
+                    calls: 0,
+                    tokens: 0,
+                    priceUsd: 0,
+                    duration: 0,
+                    humanDuration: 0,
+                };
                 return {
                     key,
                     label: callTypeLabel(key),
@@ -350,7 +368,13 @@ export async function GET(request: NextRequest) {
                 };
             }),
             breakdownByActorType: ACTOR_TYPES.map((key) => {
-                const stats = actorTypeCounts.get(key) || { calls: 0, tokens: 0, priceUsd: 0, duration: 0 };
+                const stats = actorTypeCounts.get(key) || {
+                    calls: 0,
+                    tokens: 0,
+                    priceUsd: 0,
+                    duration: 0,
+                    humanDuration: 0,
+                };
                 return {
                     key,
                     label: actorTypeLabel(key),
@@ -556,7 +580,7 @@ function createTimelineSeries(options: {
     from: number;
     to: number;
     bucketSizeMs: number;
-    timelineByBucket: Map<number, { calls: number; tokens: number; priceUsd: number; duration: number }>;
+    timelineByBucket: Map<number, UsageAggregate>;
 }): UsageAnalyticsResponse['timeline'] {
     const { from, to, bucketSizeMs, timelineByBucket } = options;
     if (to < from) {
@@ -575,6 +599,7 @@ function createTimelineSeries(options: {
             tokens: bucketVal?.tokens || 0,
             priceUsd: bucketVal?.priceUsd || 0,
             duration: bucketVal?.duration || 0,
+            humanDuration: bucketVal?.humanDuration || 0,
         });
     }
 
@@ -714,6 +739,101 @@ function normalizeOptionalText(value: string | null | undefined): string | null 
 function normalizeUserAgent(value: string | null): string {
     const normalized = normalizeOptionalText(value);
     return normalized || '(unknown user agent)';
+}
+
+/**
+ * JSON-serializable uncertain number payload from usage records.
+ */
+type SerializedUncertainNumber = {
+    value?: number;
+    isUncertain?: boolean;
+};
+
+/**
+ * Minimal usage payload shape read from chat-history JSON.
+ */
+type SerializedUsage = {
+    input?: {
+        tokensCount?: SerializedUncertainNumber;
+        wordsCount?: SerializedUncertainNumber;
+    };
+    output?: {
+        tokensCount?: SerializedUncertainNumber;
+        wordsCount?: SerializedUncertainNumber;
+    };
+    price?: SerializedUncertainNumber;
+    duration?: SerializedUncertainNumber;
+} | null;
+
+/**
+ * Converts one usage JSON payload to normalized numeric metrics for analytics.
+ */
+function extractUsageMetrics(rawUsage: ChatHistoryRow['usage']): {
+    tokens: number;
+    priceUsd: number;
+    duration: number;
+    humanDuration: number;
+} {
+    const usage = rawUsage as SerializedUsage;
+    const inputWordsCount = readUsageUncertainNumber(usage?.input?.wordsCount);
+    const outputWordsCount = readUsageUncertainNumber(usage?.output?.wordsCount);
+
+    return {
+        tokens: readUsageNumber(usage?.input?.tokensCount) + readUsageNumber(usage?.output?.tokensCount),
+        priceUsd: readUsageNumber(usage?.price),
+        duration: readUsageNumber(usage?.duration),
+        humanDuration: usageToWorktime({
+            input: createUsageCountsForWorktime(inputWordsCount),
+            output: createUsageCountsForWorktime(outputWordsCount),
+        }).value,
+    };
+}
+
+/**
+ * Reads a finite usage numeric value with zero fallback.
+ */
+function readUsageNumber(value: SerializedUncertainNumber | undefined): number {
+    const numericValue = value?.value;
+    return typeof numericValue === 'number' && Number.isFinite(numericValue) ? numericValue : 0;
+}
+
+/**
+ * Reads one uncertain number from serialized usage payload.
+ */
+function readUsageUncertainNumber(value: SerializedUncertainNumber | undefined): { value: number; isUncertain?: true } {
+    const numericValue = readUsageNumber(value);
+    return value?.isUncertain ? { value: numericValue, isUncertain: true } : { value: numericValue };
+}
+
+/**
+ * Builds a full usage-count object while preserving uncertainty of words count.
+ */
+function createUsageCountsForWorktime(wordsCount: { value: number; isUncertain?: true }): UsageCountsForWorktime {
+    return {
+        tokensCount: { value: 0 },
+        charactersCount: { value: 0 },
+        wordsCount,
+        sentencesCount: { value: 0 },
+        linesCount: { value: 0 },
+        paragraphsCount: { value: 0 },
+        pagesCount: { value: 0 },
+    };
+}
+
+/**
+ * Adds one call into an aggregate usage bucket.
+ */
+function sumUsageAggregate(
+    current: UsageAggregate | undefined,
+    usage: Omit<UsageAggregate, 'calls'>,
+): UsageAggregate {
+    return {
+        calls: (current?.calls || 0) + 1,
+        tokens: (current?.tokens || 0) + usage.tokens,
+        priceUsd: (current?.priceUsd || 0) + usage.priceUsd,
+        duration: (current?.duration || 0) + usage.duration,
+        humanDuration: (current?.humanDuration || 0) + usage.humanDuration,
+    };
 }
 
 /**

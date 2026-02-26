@@ -9,6 +9,7 @@ import {
     type UsageAnalyticsResponse,
     type UsageCallType,
     type UsageFolderOption,
+    type UsageMetricMode,
     type UsageTimeframePreset,
 } from '@/src/utils/usageAdmin';
 import { usePathname, useRouter } from 'next/navigation';
@@ -36,6 +37,15 @@ const TIMEFRAME_OPTIONS: Array<{ value: UsageTimeframePreset; label: string }> =
 ];
 
 /**
+ * Metric options exposed in usage visualizations.
+ */
+const METRIC_OPTIONS: Array<{ value: UsageMetricMode; label: string }> = [
+    { value: 'COST', label: 'Cost' },
+    { value: 'AGENT_DURATION', label: 'Agent duration' },
+    { value: 'HUMAN_DURATION', label: 'Estimated human time' },
+];
+
+/**
  * Props for the admin usage client page.
  */
 type UsageClientProps = {
@@ -48,6 +58,7 @@ type UsageClientProps = {
     initialTo: string | null;
     initialCallType: UsageCallType | null;
     initialActorType: UsageActorType | null;
+    initialMetric: UsageMetricMode;
 };
 
 /**
@@ -72,6 +83,7 @@ export function UsageClient(props: UsageClientProps) {
         initialTo,
         initialCallType,
         initialActorType,
+        initialMetric,
     } = props;
     const router = useRouter();
     const pathname = usePathname();
@@ -84,6 +96,7 @@ export function UsageClient(props: UsageClientProps) {
     const [toDate, setToDate] = useState<string>(initialTo || '');
     const [callType, setCallType] = useState<UsageCallType | ''>(initialCallType || '');
     const [actorType, setActorType] = useState<UsageActorType | ''>(initialActorType || '');
+    const [metric, setMetric] = useState<UsageMetricMode>(initialMetric);
     const [data, setData] = useState<UsageAnalyticsResponse | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
@@ -116,10 +129,13 @@ export function UsageClient(props: UsageClientProps) {
         if (actorType) {
             searchParams.set('actorType', actorType);
         }
+        if (metric) {
+            searchParams.set('metric', metric);
+        }
 
         const query = searchParams.toString();
         router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
-    }, [agentName, folderId, timeframe, fromDate, toDate, callType, actorType, pathname, router]);
+    }, [agentName, folderId, timeframe, fromDate, toDate, callType, actorType, metric, pathname, router]);
 
     useEffect(() => {
         if (isCustomRangeInvalid) {
@@ -183,22 +199,19 @@ export function UsageClient(props: UsageClientProps) {
             return [];
         }
 
+        const primaryMetricLabel = usageMetricLabel(metric);
+        const primaryMetricValue = formatUsageMetricValue(metric, resolveSummaryMetricValue(data.summary, metric));
+
         return [
             { label: 'Total calls', value: formatCompactNumber(data.summary.totalCalls) },
             { label: 'Total tokens', value: formatCompactNumber(data.summary.totalTokens) },
-            {
-                label: 'Cost (USD)',
-                value: new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(
-                    data.summary.totalPriceUsd,
-                ),
-            },
-            { label: 'Total duration', value: `${formatCompactNumber(data.summary.totalDuration)}s` },
+            { label: `Total ${primaryMetricLabel.toLowerCase()}`, value: primaryMetricValue },
             { label: 'Agents involved', value: formatCompactNumber(data.summary.uniqueAgents) },
             { label: 'Users involved', value: formatCompactNumber(data.summary.uniqueUsers) },
             { label: 'API keys used', value: formatCompactNumber(data.summary.uniqueApiKeys) },
             { label: 'User agents', value: formatCompactNumber(data.summary.uniqueUserAgents) },
         ];
-    }, [data]);
+    }, [data, metric]);
 
     return (
         <div className="container mx-auto px-4 py-8 space-y-6">
@@ -343,6 +356,24 @@ export function UsageClient(props: UsageClientProps) {
                             <option value="API_KEY">API key</option>
                         </select>
                     </div>
+
+                    <div className="flex flex-col gap-1">
+                        <label htmlFor="usage-metric" className="text-sm font-medium text-gray-700">
+                            Metric
+                        </label>
+                        <select
+                            id="usage-metric"
+                            value={metric}
+                            onChange={(event) => setMetric(event.target.value as UsageMetricMode)}
+                            className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                        >
+                            {METRIC_OPTIONS.map((option) => (
+                                <option key={option.value} value={option.value}>
+                                    {option.label}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
                 </div>
 
                 <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-gray-500">
@@ -382,10 +413,12 @@ export function UsageClient(props: UsageClientProps) {
 
                     <Card className="overflow-hidden">
                         <div className="mb-3">
-                            <h2 className="text-xl font-medium text-gray-900">Calls over time</h2>
-                            <p className="text-sm text-gray-500">User call volume in the selected timeframe.</p>
+                            <h2 className="text-xl font-medium text-gray-900">{usageMetricLabel(metric)} over time</h2>
+                            <p className="text-sm text-gray-500">
+                                {usageMetricDescription(metric)} in the selected timeframe.
+                            </p>
                         </div>
-                        <TimelineChart points={data.timeline} />
+                        <TimelineChart points={data.timeline} metric={metric} />
                     </Card>
 
                     <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
@@ -396,8 +429,9 @@ export function UsageClient(props: UsageClientProps) {
                                     <BreakdownRow
                                         key={item.key}
                                         label={item.label}
-                                        value={item.calls}
-                                        total={data.summary.totalCalls}
+                                        value={resolveMetricValue(item, metric)}
+                                        total={resolveSummaryMetricValue(data.summary, metric)}
+                                        metric={metric}
                                         colorClass={callTypeColorClass(item.key)}
                                     />
                                 ))}
@@ -410,8 +444,9 @@ export function UsageClient(props: UsageClientProps) {
                                     <BreakdownRow
                                         key={item.key}
                                         label={item.label}
-                                        value={item.calls}
-                                        total={data.summary.totalCalls}
+                                        value={resolveMetricValue(item, metric)}
+                                        total={resolveSummaryMetricValue(data.summary, metric)}
+                                        metric={metric}
                                         colorClass={actorTypeColorClass(item.key)}
                                     />
                                 ))}
@@ -424,12 +459,14 @@ export function UsageClient(props: UsageClientProps) {
                             <h2 className="text-lg font-medium text-gray-900">Per agent</h2>
                             <SimpleCountTable
                                 emptyLabel="No agent usage for current filters."
+                                metric={metric}
                                 rows={data.perAgent.map((item) => ({
                                     label: item.agentName,
                                     calls: item.calls,
                                     tokens: item.tokens,
                                     priceUsd: item.priceUsd,
                                     duration: item.duration,
+                                    humanDuration: item.humanDuration,
                                 }))}
                             />
                         </Card>
@@ -438,12 +475,14 @@ export function UsageClient(props: UsageClientProps) {
                             <h2 className="text-lg font-medium text-gray-900">Per user</h2>
                             <SimpleCountTable
                                 emptyLabel="No user usage for current filters."
+                                metric={metric}
                                 rows={data.perUser.map((item) => ({
                                     label: formatUsageUserLabel(item.username),
                                     calls: item.calls,
                                     tokens: item.tokens,
                                     priceUsd: item.priceUsd,
                                     duration: item.duration,
+                                    humanDuration: item.humanDuration,
                                 }))}
                             />
                         </Card>
@@ -452,12 +491,14 @@ export function UsageClient(props: UsageClientProps) {
                             <h2 className="text-lg font-medium text-gray-900">Per folder</h2>
                             <SimpleCountTable
                                 emptyLabel="No folder usage for current filters."
+                                metric={metric}
                                 rows={data.perFolder.map((item) => ({
                                     label: item.folderName,
                                     calls: item.calls,
                                     tokens: item.tokens,
                                     priceUsd: item.priceUsd,
                                     duration: item.duration,
+                                    humanDuration: item.humanDuration,
                                 }))}
                             />
                         </Card>
@@ -468,13 +509,12 @@ export function UsageClient(props: UsageClientProps) {
                             <h2 className="text-lg font-medium text-gray-900">API key details</h2>
                             <DetailsTable
                                 emptyLabel="No API key usage for current filters."
-                                headers={['API key', 'Calls', 'Tokens', 'Cost', 'Duration', 'Last seen']}
+                                headers={['API key', 'Calls', 'Tokens', usageMetricLabel(metric), 'Last seen']}
                                 rows={data.apiKeys.map((item) => [
                                     `${truncateMiddle(item.apiKey, 12, 8)}${item.note ? ` (${item.note})` : ''}`,
                                     formatCompactNumber(item.calls),
                                     formatCompactNumber(item.tokens),
-                                    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(item.priceUsd),
-                                    `${formatCompactNumber(item.duration)}s`,
+                                    formatUsageMetricValue(metric, resolveMetricValue(item, metric)),
                                     formatDateTime(item.lastSeen),
                                 ])}
                             />
@@ -484,13 +524,12 @@ export function UsageClient(props: UsageClientProps) {
                             <h2 className="text-lg font-medium text-gray-900">User agent details</h2>
                             <DetailsTable
                                 emptyLabel="No user-agent usage for current filters."
-                                headers={['User agent', 'Calls', 'Tokens', 'Cost', 'Duration', 'Last seen']}
+                                headers={['User agent', 'Calls', 'Tokens', usageMetricLabel(metric), 'Last seen']}
                                 rows={data.userAgents.map((item) => [
                                     item.userAgent || 'Unknown',
                                     formatCompactNumber(item.calls),
                                     formatCompactNumber(item.tokens),
-                                    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(item.priceUsd),
-                                    `${formatCompactNumber(item.duration)}s`,
+                                    formatUsageMetricValue(metric, resolveMetricValue(item, metric)),
                                     formatDateTime(item.lastSeen),
                                 ])}
                             />
@@ -505,8 +544,11 @@ export function UsageClient(props: UsageClientProps) {
 /**
  * Usage timeline chart.
  */
-function TimelineChart(props: { points: UsageAnalyticsResponse['timeline'] }) {
-    const { points } = props;
+function TimelineChart(props: {
+    points: UsageAnalyticsResponse['timeline'];
+    metric: UsageMetricMode;
+}) {
+    const { points, metric } = props;
 
     const chartGeometry = useMemo(() => {
         const paddedWidth = TIMELINE_WIDTH;
@@ -515,30 +557,30 @@ function TimelineChart(props: { points: UsageAnalyticsResponse['timeline'] }) {
         const paddingY = 18;
         const usableWidth = paddedWidth - paddingX * 2;
         const usableHeight = paddedHeight - paddingY * 2;
-        const maxCalls = Math.max(1, ...points.map((point) => point.calls));
+        const maxMetricValue = Math.max(1, ...points.map((point) => resolveMetricValue(point, metric)));
 
         const coordinates: TimelinePoint[] = points.map((point, index) => {
             const x =
                 points.length <= 1
                     ? paddingX + usableWidth / 2
                     : paddingX + (index / (points.length - 1)) * usableWidth;
-            const y = paddingY + usableHeight - (point.calls / maxCalls) * usableHeight;
+            const y = paddingY + usableHeight - (resolveMetricValue(point, metric) / maxMetricValue) * usableHeight;
             return { x, y };
         });
 
         return {
             coordinates,
-            maxCalls,
+            maxMetricValue,
             width: paddedWidth,
             height: paddedHeight,
             paddingX,
             paddingY,
             usableHeight,
         };
-    }, [points]);
+    }, [metric, points]);
 
     if (points.length === 0) {
-        return <div className="py-10 text-sm text-gray-500">No calls in this timeframe.</div>;
+        return <div className="py-10 text-sm text-gray-500">No usage in this timeframe.</div>;
     }
 
     const linePath = toLinePath(chartGeometry.coordinates);
@@ -612,9 +654,10 @@ function BreakdownRow(props: {
     label: string;
     value: number;
     total: number;
+    metric: UsageMetricMode;
     colorClass: string;
 }) {
-    const { label, value, total, colorClass } = props;
+    const { label, value, total, metric, colorClass } = props;
     const percentage = total <= 0 ? 0 : (value / total) * 100;
 
     return (
@@ -622,7 +665,7 @@ function BreakdownRow(props: {
             <div className="mb-1 flex items-center justify-between text-sm">
                 <span className="text-gray-700">{label}</span>
                 <span className="font-medium text-gray-900">
-                    {formatCompactNumber(value)} ({percentage.toFixed(1)}%)
+                    {formatUsageMetricValue(metric, value)} ({percentage.toFixed(1)}%)
                 </span>
             </div>
             <div className="h-2.5 overflow-hidden rounded-full bg-gray-100">
@@ -636,10 +679,11 @@ function BreakdownRow(props: {
  * Small two-column count table.
  */
 function SimpleCountTable(props: {
-    rows: Array<{ label: string; calls: number; tokens: number; priceUsd: number; duration: number }>;
+    rows: Array<{ label: string; calls: number; tokens: number; priceUsd: number; duration: number; humanDuration: number }>;
+    metric: UsageMetricMode;
     emptyLabel: string;
 }) {
-    const { rows, emptyLabel } = props;
+    const { rows, metric, emptyLabel } = props;
 
     if (rows.length === 0) {
         return <p className="mt-4 text-sm text-gray-500">{emptyLabel}</p>;
@@ -653,8 +697,7 @@ function SimpleCountTable(props: {
                         <th className="px-3 py-2">Name</th>
                         <th className="px-3 py-2 text-right">Calls</th>
                         <th className="px-3 py-2 text-right">Tokens</th>
-                        <th className="px-3 py-2 text-right">Cost</th>
-                        <th className="px-3 py-2 text-right">Duration</th>
+                        <th className="px-3 py-2 text-right">{usageMetricLabel(metric)}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -670,10 +713,7 @@ function SimpleCountTable(props: {
                                 {formatCompactNumber(row.tokens)}
                             </td>
                             <td className="px-3 py-2 text-right text-gray-700 whitespace-nowrap">
-                                {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(row.priceUsd)}
-                            </td>
-                            <td className="px-3 py-2 text-right text-gray-700 whitespace-nowrap">
-                                {`${formatCompactNumber(row.duration)}s`}
+                                {formatUsageMetricValue(metric, resolveMetricValue(row, metric))}
                             </td>
                         </tr>
                     ))}
@@ -773,6 +813,100 @@ function formatShortDate(iso: string): string {
         return iso;
     }
     return date.toLocaleDateString();
+}
+
+/**
+ * Source shape with metric values used across usage widgets.
+ */
+type UsageMetricValueSource = {
+    priceUsd: number;
+    duration: number;
+    humanDuration: number;
+};
+
+/**
+ * Resolves one metric value from any usage row.
+ */
+function resolveMetricValue(source: UsageMetricValueSource, metric: UsageMetricMode): number {
+    if (metric === 'AGENT_DURATION') {
+        return source.duration;
+    }
+    if (metric === 'HUMAN_DURATION') {
+        return source.humanDuration;
+    }
+    return source.priceUsd;
+}
+
+/**
+ * Resolves one metric value from summary payload.
+ */
+function resolveSummaryMetricValue(summary: UsageAnalyticsResponse['summary'], metric: UsageMetricMode): number {
+    if (metric === 'AGENT_DURATION') {
+        return summary.totalDuration;
+    }
+    if (metric === 'HUMAN_DURATION') {
+        return summary.totalHumanDuration;
+    }
+    return summary.totalPriceUsd;
+}
+
+/**
+ * Human label for one selectable usage metric.
+ */
+function usageMetricLabel(metric: UsageMetricMode): string {
+    if (metric === 'AGENT_DURATION') {
+        return 'Agent duration';
+    }
+    if (metric === 'HUMAN_DURATION') {
+        return 'Estimated human time';
+    }
+    return 'Cost';
+}
+
+/**
+ * Supporting description for one selectable usage metric.
+ */
+function usageMetricDescription(metric: UsageMetricMode): string {
+    if (metric === 'AGENT_DURATION') {
+        return 'How long the prompts were running';
+    }
+    if (metric === 'HUMAN_DURATION') {
+        return 'How long a human would likely need to do the same work';
+    }
+    return 'Estimated spend in USD';
+}
+
+/**
+ * Formats one metric value for cards/tables/charts.
+ */
+function formatUsageMetricValue(metric: UsageMetricMode, value: number): string {
+    if (metric === 'AGENT_DURATION') {
+        return formatDurationSeconds(value);
+    }
+    if (metric === 'HUMAN_DURATION') {
+        return formatHumanDurationHours(value);
+    }
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
+}
+
+/**
+ * Formats duration value measured in seconds.
+ */
+function formatDurationSeconds(seconds: number): string {
+    return `${formatCompactNumber(seconds)}s`;
+}
+
+/**
+ * Formats estimated human duration measured in hours.
+ */
+function formatHumanDurationHours(hours: number): string {
+    if (hours < 1 / 60) {
+        return `${formatCompactNumber(hours * 3600)}s`;
+    }
+    if (hours < 1) {
+        return `${formatCompactNumber(hours * 60)}m`;
+    }
+    return `${formatCompactNumber(hours)}h`;
 }
 
 /**

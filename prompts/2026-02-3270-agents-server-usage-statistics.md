@@ -85,7 +85,7 @@
 
 ---
 
-[ ] !
+[x] ~$0.3285 14 minutes by OpenAI Codex `gpt-5.3-codex`
 
 [✨🆑] Allow to switch between cost / time / human time when viewing a usage
 
@@ -129,3 +129,4 @@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality of usage and agents server chat before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server) with the usage statistics of the agents.
+

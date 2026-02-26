@@ -4,6 +4,11 @@
 export type UsageTimeframePreset = '24h' | '7d' | '30d' | '90d' | 'custom';
 
 /**
+ * Selectable primary metric for usage visualizations.
+ */
+export type UsageMetricMode = 'COST' | 'AGENT_DURATION' | 'HUMAN_DURATION';
+
+/**
  * Derived call type used in usage analytics.
  */
 export type UsageCallType = 'WEB_CHAT' | 'VOICE_CHAT' | 'COMPATIBLE_API';
@@ -22,6 +27,7 @@ export type UsageTimelinePoint = {
     tokens: number;
     priceUsd: number;
     duration: number;
+    humanDuration: number;
 };
 
 /**
@@ -34,6 +40,7 @@ export type UsageBreakdownItem<TKey extends string> = {
     tokens: number;
     priceUsd: number;
     duration: number;
+    humanDuration: number;
 };
 
 /**
@@ -45,6 +52,7 @@ export type UsagePerAgentItem = {
     tokens: number;
     priceUsd: number;
     duration: number;
+    humanDuration: number;
 };
 
 /**
@@ -57,6 +65,7 @@ export type UsagePerFolderItem = {
     tokens: number;
     priceUsd: number;
     duration: number;
+    humanDuration: number;
 };
 
 /**
@@ -69,6 +78,7 @@ export type UsageApiKeyItem = {
     tokens: number;
     priceUsd: number;
     duration: number;
+    humanDuration: number;
     lastSeen: string;
 };
 
@@ -81,6 +91,7 @@ export type UsageUserAgentItem = {
     tokens: number;
     priceUsd: number;
     duration: number;
+    humanDuration: number;
     lastSeen: string;
 };
 
@@ -94,6 +105,7 @@ export type UsagePerUserItem = {
     tokens: number;
     priceUsd: number;
     duration: number;
+    humanDuration: number;
     lastSeen: string;
 };
 
@@ -105,6 +117,7 @@ export type UsageSummary = {
     totalTokens: number;
     totalPriceUsd: number;
     totalDuration: number;
+    totalHumanDuration: number;
     uniqueAgents: number;
     uniqueUsers: number;
     uniqueApiKeys: number;

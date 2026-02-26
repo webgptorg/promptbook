@@ -2,7 +2,14 @@ import { ForbiddenPage } from '../../../components/ForbiddenPage/ForbiddenPage';
 import { loadAgentOrganizationState } from '../../../utils/agentOrganization/loadAgentOrganizationState';
 import { getFolderPathSegments } from '../../../utils/agentOrganization/folderPath';
 import { isUserAdmin } from '../../../utils/isUserAdmin';
-import type { UsageActorType, UsageAgentOption, UsageCallType, UsageFolderOption, UsageTimeframePreset } from '../../../utils/usageAdmin';
+import type {
+    UsageActorType,
+    UsageAgentOption,
+    UsageCallType,
+    UsageFolderOption,
+    UsageMetricMode,
+    UsageTimeframePreset,
+} from '../../../utils/usageAdmin';
 import { UsageClient } from './UsageClient';
 
 /**
@@ -16,6 +23,7 @@ type AdminUsagePageSearchParams = {
     to?: string;
     callType?: string;
     actorType?: string;
+    metric?: string;
 };
 
 /**
@@ -69,6 +77,7 @@ export default async function AdminUsagePage({
             initialTo={resolveOptionalDate(resolvedSearchParams.to)}
             initialCallType={resolveCallType(resolvedSearchParams.callType)}
             initialActorType={resolveActorType(resolvedSearchParams.actorType)}
+            initialMetric={resolveMetricMode(resolvedSearchParams.metric)}
         />
     );
 }
@@ -140,4 +149,14 @@ function resolveActorType(value: string | undefined): UsageActorType | null {
         return value;
     }
     return null;
+}
+
+/**
+ * Parses optional metric mode from query.
+ */
+function resolveMetricMode(value: string | undefined): UsageMetricMode {
+    if (value === 'AGENT_DURATION' || value === 'HUMAN_DURATION') {
+        return value;
+    }
+    return 'COST';
 }
