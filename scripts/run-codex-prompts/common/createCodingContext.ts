@@ -10,7 +10,6 @@ export function createCodingContext(): string_prompt {
         ## Common rules
 
         - Always analyze the context and requirements before generating any code.
-        - Keep in mind the DRY _(don't repeat yourself)_ principle.
         - Write clear, maintainable, and well-documented code.
         - Write JSDoc comments for all entities - functions, classes, types, top-level constants, etc.
             - When this entity is exported from the file and it is under \`src\` folder *(not for example in the \`apps\` folder)*, it must be marked either as \`@public\` or \`@private\` at the end of the JSDoc comment.
@@ -41,6 +40,15 @@ export function createCodingContext(): string_prompt {
             -   Agent source with commitments is parsed by two functions:
                 -   \`parseAgentSource\` which is a lightweight parser for agent source, it parses basic information and its purpose is to be quick and synchronous. The commitments there are hardcoded.
                 -   \`createAgentModelRequirements\` which is an asynchronous function that creates model requirements it applies each commitment one by one and works asynchronously.
+
+        ## Coding rules
+
+        -   Keep in mind the DRY _(don't repeat yourself)_ principle.
+        -   Keep in mind the SOLID principles
+        -   Do a proper analysis of the current functionality before you start implementing.
+        -  Keep small responsibilities of functions and classes, avoid creating big functions or classes that do many things.
+        -  DO only the change described here above DO not add any additional features or make any additional changes that are not described in the prompt.
+            - If you find some critical issue that is not described in the prompt, report it to the file \`./AGENT_REPORT.md\` on the root of the project
 
 
         ### The Agents Server menu *(as additional context)*

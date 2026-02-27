@@ -17,14 +17,15 @@ if (process.cwd() !== join(__dirname, '../..')) {
 
 const program = new commander.Command();
 program.option('--commit', `Auto commit`, false);
+program.option('--ignore-git-changes', `Ignore dirty working tree when using --commit`, false);
 program.parse(process.argv);
 
-const { commit: isCommited } = program.opts();
+const { commit: isCommited, ignoreGitChanges } = program.opts();
 
 /**
  * Go through all files in the project and prettify them
  */
-prettifyAll({ isCommited })
+prettifyAll({ isCommited, ignoreGitChanges })
     .catch((error) => {
         assertsError(error);
         console.error(colors.bgRed(`${error.name} in ${basename(__filename)}`));
@@ -35,10 +36,16 @@ prettifyAll({ isCommited })
         process.exit(0);
     });
 
-async function prettifyAll({ isCommited }: { readonly isCommited: boolean }) {
+async function prettifyAll({
+    isCommited,
+    ignoreGitChanges,
+}: {
+    readonly isCommited: boolean;
+    readonly ignoreGitChanges: boolean;
+}) {
     console.info(`🏭🩹 Prettifying all files...`);
 
-    if (isCommited && !(await isWorkingTreeClean(process.cwd()))) {
+    if (isCommited && !ignoreGitChanges && !(await isWorkingTreeClean(process.cwd()))) {
         throw new Error(`Working tree is not clean`);
     }
 
