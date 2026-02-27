@@ -1388,6 +1388,19 @@ export function Header(props: HeaderProps) {
         }, HEADER_DROPDOWN_CLOSE_DELAY_MS);
     };
 
+    /**
+     * Schedules dropdown closing only for hover-driven interactions.
+     *
+     * Touch-first devices should keep dropdowns open while tapping nested branches,
+     * so blur and synthetic mouse-leave events must not trigger delayed close timers.
+     */
+    const scheduleHoverDrivenMenuClose = (menuId: string, close: () => void) => {
+        if (isTouchInput) {
+            return;
+        }
+        scheduleMenuClose(menuId, close);
+    };
+
     const visibleDocumentationCommitments = useMemo(() => getVisibleCommitmentDefinitions(), []);
     const documentationDropdownItems = useMemo(
         () => buildDocumentationDropdownItems(visibleDocumentationCommitments, t),
@@ -2611,9 +2624,7 @@ export function Header(props: HeaderProps) {
                                                         item.setIsOpen(true);
                                                     }
                                                 }}
-                                                onMouseLeave={() =>
-                                                    scheduleMenuClose(item.id, () => item.setIsOpen(false))
-                                                }
+                                                onMouseLeave={() => scheduleHoverDrivenMenuClose(item.id, () => item.setIsOpen(false))}
                                             >
                                                 <button
                                                     className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
@@ -2624,9 +2635,7 @@ export function Header(props: HeaderProps) {
                                                             item.setIsOpen(true);
                                                         }
                                                     }}
-                                                    onBlur={() =>
-                                                        scheduleMenuClose(item.id, () => item.setIsOpen(false))
-                                                    }
+                                                    onBlur={() => scheduleHoverDrivenMenuClose(item.id, () => item.setIsOpen(false))}
                                                 >
                                                     {item.label}
                                                     <ArrowIcon direction="DOWN" className="w-4 h-4" />
@@ -2636,9 +2645,7 @@ export function Header(props: HeaderProps) {
                                                     <div
                                                         className="absolute left-0 top-full z-50 mt-2 w-[min(420px,90vw)] rounded-2xl border border-gray-100 bg-white/95 py-1.5 shadow-xl shadow-slate-900/10 animate-in fade-in zoom-in-95 duration-200 backdrop-blur"
                                                         onMouseEnter={() => cancelMenuClose(item.id)}
-                                                        onMouseLeave={() =>
-                                                            scheduleMenuClose(item.id, () => item.setIsOpen(false))
-                                                        }
+                                                        onMouseLeave={() => scheduleHoverDrivenMenuClose(item.id, () => item.setIsOpen(false))}
                                                     >
                                                         {item.renderMenu ? (
                                                             <div className="relative">{item.renderMenu()}</div>
@@ -3095,4 +3102,3 @@ export function Header(props: HeaderProps) {
         </header>
     );
 }
-
