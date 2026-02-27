@@ -1,8 +1,9 @@
 'use client';
 
 import { ChatSoundAndVibrationPanel } from '@promptbook-local/components';
-import { EyeOff, Languages, Settings2, SpeakerIcon, Sparkles, type LucideIcon } from 'lucide-react';
-import { useCallback, useEffect, useId, useRef, useState, type ReactNode, type RefObject } from 'react';
+import { ChevronDown, EyeOff, Languages, Settings2, SpeakerIcon, Sparkles } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
+import { useSoundSystem } from '../../SoundSystemProvider/SoundSystemProvider';
 import { confirmPrivateModeEnable } from '../../PrivateModePreferences/confirmPrivateModeEnable';
 import { usePrivateModePreferences } from '../../PrivateModePreferences/PrivateModePreferencesProvider';
 import { useSelfLearningPreferences } from '../../SelfLearningPreferences/SelfLearningPreferencesProvider';
@@ -385,10 +386,7 @@ export function HeaderControlPanelDropdown() {
                     <div className="rounded-[1.35rem] bg-white/95 p-2">
                         <div className="flex items-center justify-between px-2 pb-2 pt-1 text-xs font-semibold uppercase tracking-widest text-gray-500">
                             <span>{t('controlPanel.label')}</span>
-                            <ArrowIcon direction="DOWN" className="h-3 w-3 rotate-180 text-gray-400" />
-                        </div>
-                        <div className="max-h-[min(76vh,38rem)] overflow-y-auto overscroll-contain px-2 pb-2 pr-1.5 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
-                            <ControlPanelContent />
+                            <ChevronDown className="w-3 h-3 rotate-180 text-gray-400" />
                         </div>
                     </div>
                 </div>

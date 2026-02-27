@@ -20,7 +20,7 @@ import {
 import { SortableContext, rectSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { TODO_any, string_url } from '@promptbook-local/types';
-import { FolderPlusIcon, Grid, GripVertical, Network, TrashIcon } from 'lucide-react';
+import { ArrowUp, FolderPlusIcon, Grid, GripVertical, Network, TrashIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState, type CSSProperties, type MouseEvent } from 'react';
@@ -41,7 +41,6 @@ import { QrCodeModal } from '../AgentProfile/QrCodeModal';
 import { useAgentBackground } from '../AgentProfile/useAgentBackground';
 import { showAlert, showConfirm, showVisibilityDialog } from '../AsyncDialogs/asyncDialogs';
 import { FolderContextMenuPopover } from '../FolderContextMenu/FolderContextMenu';
-import { ArrowIcon } from '../_utils/ArrowIcon';
 import { AgentCard } from './AgentCard';
 import {
     buildFolderMaps,
@@ -646,7 +645,7 @@ function ParentFolderCard({ label, folderId, onOpen, canOrganize }: ParentFolder
                 }`}
             >
                 <div className="flex h-12 w-12 items-center justify-center rounded-md bg-blue-100 border border-blue-200 text-blue-700">
-                    <ArrowIcon direction="UP" className="w-5 h-5" />
+                    <ArrowUp className="w-5 h-5" />
                 </div>
                 <div className="min-w-0 flex-1">
                     <p className="text-[11px] uppercase tracking-wide text-blue-700">Parent folder</p>

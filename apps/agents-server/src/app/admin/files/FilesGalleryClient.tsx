@@ -1,10 +1,9 @@
 'use client';
 
-import { File, Grid, LayoutList, Loader2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, File, Grid, LayoutList, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAgentNaming } from '../../../components/AgentNaming/AgentNamingContext';
-import { ArrowIcon } from '../../../components/_utils/ArrowIcon';
 import { FileWithAgent, listFiles } from './actions';
 
 type ViewMode = 'TABLE' | 'GRID';
@@ -206,14 +205,14 @@ export function FilesGalleryClient() {
                                 disabled={page === 1 || isLoading}
                                 className="p-2 border rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                <ArrowIcon direction="LEFT" className="w-4 h-4" />
+                                <ChevronLeft className="w-4 h-4" />
                             </button>
                             <button
                                 onClick={() => handlePageChange(page + 1)}
                                 disabled={page * limit >= total || isLoading}
                                 className="p-2 border rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                <ArrowIcon direction="RIGHT" className="w-4 h-4" />
+                                <ChevronRight className="w-4 h-4" />
                             </button>
                         </div>
                     </div>

@@ -2,9 +2,8 @@
 
 import Editor from '@monaco-editor/react';
 import { AgentBasicInformation, string_url } from '@promptbook-local/types';
-import { CodeIcon } from 'lucide-react';
+import { ChevronDownIcon, CodeIcon } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
-import { ArrowIcon } from '../../../../components/_utils/ArrowIcon';
 import { resolveAgentAvatarImageUrl } from '../../../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
 
 type Transpiler = {
@@ -168,10 +167,7 @@ export function AgentCodePageClient({ agentName, publicUrl }: AgentCodePageClien
                                     </option>
                                 ))}
                             </select>
-                            <ArrowIcon
-                                direction="DOWN"
-                                className="absolute right-3 top-3 w-4 h-4 text-gray-400 pointer-events-none"
-                            />
+                            <ChevronDownIcon className="absolute right-3 top-3 w-4 h-4 text-gray-400 pointer-events-none" />
                         </div>
                     </div>
 

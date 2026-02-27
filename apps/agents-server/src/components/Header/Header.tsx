@@ -4,6 +4,9 @@ import promptbookLogoBlueTransparent from '@/public/logo-blue-white-256.png';
 import { logoutAction } from '@/src/app/actions';
 import { PROMPTBOOK_COLOR } from '@promptbook-local/core';
 import {
+    ArrowRight,
+    ChevronDown,
+    ChevronRight,
     FileTextIcon,
     FolderIcon,
     Lock,
@@ -30,7 +33,6 @@ import type { AgentOrganizationAgent, AgentOrganizationFolder } from '../../util
 import type { UserInfo } from '../../utils/getCurrentUser';
 import { getVisibleCommitmentDefinitions } from '../../utils/getVisibleCommitmentDefinitions';
 import { HeadlessLink, pushWithHeadless, useIsHeadless } from '../_utils/headlessParam';
-import { ArrowIcon } from '../_utils/ArrowIcon';
 import {
     useAgentContextMenuItems,
     useInstallPromptState,
@@ -1247,7 +1249,7 @@ function AgentMenuColumn({
                                     {node.renderLabel ?? <span className="truncate">{node.label}</span>}
                                 </span>
                                 {hasChildren && (
-                                    <ArrowIcon direction="RIGHT"
+                                    <ChevronRight
                                         className={`h-4 w-4 text-gray-400 transition-transform duration-150 ${
                                             isTouchInput && isExpanded ? 'rotate-90' : ''
                                         }`}
@@ -1644,7 +1646,7 @@ export function Header(props: HeaderProps) {
                                 onClick={() => toggleMobileSubMenu(itemKey)}
                             >
                                 <span className="min-w-0 flex-1">{item.label}</span>
-                                <ArrowIcon direction="DOWN"
+                                <ChevronDown
                                     className={`w-4 h-4 flex-shrink-0 transition-transform duration-200 ${
                                         isSubMenuOpen ? 'rotate-180' : ''
                                     }`}
@@ -1717,7 +1719,7 @@ export function Header(props: HeaderProps) {
                         onClick={() => toggleDesktopSubMenu(itemKey)}
                     >
                         <span>{item.label}</span>
-                        <ArrowIcon direction="DOWN"
+                        <ChevronDown
                             className={`h-3 w-3 text-gray-400 transition-transform ${
                                 isSubMenuOpen ? 'rotate-180' : ''
                             }`}
@@ -2325,7 +2327,7 @@ export function Header(props: HeaderProps) {
                                             title={t('header.switchServerAria')}
                                             aria-label={t('header.switchServerAria')}
                                         >
-                                            <ArrowIcon direction="DOWN" className="w-4 h-4" />
+                                            <ChevronDown className="w-4 h-4" />
                                         </button>
                                         {isFederatedOpen && (
                                             <div
@@ -2367,7 +2369,7 @@ export function Header(props: HeaderProps) {
                                 )}
                             </div>
 
-                            <ArrowIcon direction="RIGHT" className="h-3 w-3 sm:h-4 sm:w-4 text-gray-300" />
+                            <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4 text-gray-300" />
 
                             {isAdmin ? (
                                 <div
@@ -2410,7 +2412,7 @@ export function Header(props: HeaderProps) {
                                                 ) : undefined
                                             }
                                         />
-                                        <ArrowIcon direction="DOWN" className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
+                                        <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
                                     </button>
                                     {isAgentsOpen && (
                                         <div
@@ -2476,7 +2478,7 @@ export function Header(props: HeaderProps) {
 
                             {activeAgentView && activeAgentViewItems.length > 0 && (
                                 <>
-                                    <ArrowIcon direction="RIGHT" className="hidden sm:block h-4 w-4 text-gray-300" />
+                                    <ChevronRight className="hidden sm:block h-4 w-4 text-gray-300" />
                                     <div
                                         className="relative hidden sm:block"
                                         onMouseEnter={() => {
@@ -2506,7 +2508,7 @@ export function Header(props: HeaderProps) {
                                             }
                                         >
                                             {createAgentViewLabel(activeAgentView, t)}
-                                            <ArrowIcon direction="DOWN" className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
+                                            <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
                                         </button>
                                         {isAgentViewOpen && (
                                             <div
@@ -2641,7 +2643,7 @@ export function Header(props: HeaderProps) {
                                                                 className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm font-medium text-gray-700 transition-colors hover:bg-white hover:text-gray-900"
                                                             >
                                                                 <span>{nestedItem.label}</span>
-                                                                <ArrowIcon direction="DOWN"
+                                                                <ChevronDown
                                                                     className={`h-3 w-3 text-gray-400 transition-transform ${
                                                                         isNestedOpen ? 'rotate-180' : ''
                                                                     }`}
@@ -2723,7 +2725,7 @@ export function Header(props: HeaderProps) {
                                                                 }}
                                                             >
                                                                 <span>{subItem.label}</span>
-                                                                <ArrowIcon direction="RIGHT"
+                                                                <ChevronRight
                                                                     className={`h-3 w-3 text-gray-400 transition-transform ${
                                                                         isTouchInput && isTapSubMenuOpen
                                                                             ? 'rotate-90'
@@ -2808,7 +2810,7 @@ export function Header(props: HeaderProps) {
                                                     }
                                                 >
                                                     {item.label}
-                                                    <ArrowIcon direction="DOWN" className="w-4 h-4" />
+                                                    <ChevronDown className="w-4 h-4" />
                                                 </button>
 
                                                 {item.isOpen && (
@@ -2861,7 +2863,7 @@ export function Header(props: HeaderProps) {
                             <a href="https://ptbk.io/?modal=get-started" target="_blank" className="hidden md:block">
                                 <button className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 bg-promptbook-blue-dark text-white hover:bg-promptbook-blue-dark/90">
                                     Get Started
-                                    <ArrowIcon direction="RIGHT" className="ml-2 w-4 h-4" />
+                                    <ArrowRight className="ml-2 w-4 h-4" />
                                 </button>
                             </a>
                         )}
@@ -2922,7 +2924,7 @@ export function Header(props: HeaderProps) {
                                                     <span className="text-xs text-blue-600">{t('common.admin')}</span>
                                                 )}
                                             </div>
-                                        <ArrowIcon direction="DOWN" className="w-4 h-4 ml-1 opacity-50" />
+                                        <ChevronDown className="w-4 h-4 ml-1 opacity-50" />
                                     </button>
 
                                     {isProfileOpen && (
@@ -3006,7 +3008,7 @@ export function Header(props: HeaderProps) {
                                             onClick={() => setIsFederatedOpen(!isFederatedOpen)}
                                             aria-label={t('header.switchServerAria')}
                                         >
-                                            <ArrowIcon direction="DOWN"
+                                            <ChevronDown
                                                 className={`h-4 w-4 transition-transform duration-200 ${
                                                     isFederatedOpen ? 'rotate-180' : ''
                                                 }`}
@@ -3044,7 +3046,7 @@ export function Header(props: HeaderProps) {
 
                                 <div className="mt-6 flex flex-col items-center gap-4 w-full">
                                     <div className="flex items-center gap-2 text-sm font-medium text-gray-600">
-                                        <ArrowIcon direction="RIGHT" className="h-4 w-4 text-gray-300" />
+                                        <ChevronRight className="h-4 w-4 text-gray-300" />
                                         {isAdmin ? (
                                             <button
                                                 className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-gray-900 hover:bg-gray-100 active:bg-gray-200 transition-all duration-150"
@@ -3062,7 +3064,7 @@ export function Header(props: HeaderProps) {
                                                         ) : undefined
                                                     }
                                                 />
-                                                <ArrowIcon direction="DOWN"
+                                                <ChevronDown
                                                     className={`h-4 w-4 transition-transform duration-200 ${
                                                         isMobileAgentsOpen ? 'rotate-180' : ''
                                                     }`}
@@ -3099,13 +3101,13 @@ export function Header(props: HeaderProps) {
                                     {activeAgentView && activeAgentViewItems.length > 0 && (
                                         <div className="w-full max-w-[90vw] flex flex-col gap-1">
                                             <div className="flex items-center justify-center gap-2 text-sm font-medium text-gray-700">
-                                                <ArrowIcon direction="RIGHT" className="h-4 w-4 text-gray-300" />
+                                                <ChevronRight className="h-4 w-4 text-gray-300" />
                                                 <button
                                                     className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold text-gray-900 hover:bg-gray-100 transition"
                                                     onClick={() => setIsMobileAgentViewOpen(!isMobileAgentViewOpen)}
                                                 >
                                                     {createAgentViewLabel(activeAgentView, t)}
-                                                    <ArrowIcon direction="DOWN"
+                                                    <ChevronDown
                                                         className={`h-4 w-4 transition-transform duration-200 ${
                                                             isMobileAgentViewOpen ? 'rotate-180' : ''
                                                         }`}
@@ -3239,7 +3241,7 @@ export function Header(props: HeaderProps) {
                                                 onClick={() => item.setIsMobileOpen(!item.isMobileOpen)}
                                             >
                                                 {item.label}
-                                                <ArrowIcon direction="DOWN"
+                                                <ChevronDown
                                                     className={`w-4 h-4 transition-transform duration-200 ${
                                                         item.isMobileOpen ? 'rotate-180' : ''
                                                     }`}
@@ -3275,4 +3277,3 @@ export function Header(props: HeaderProps) {
         </header>
     );
 }
-
