@@ -1,11 +1,11 @@
 'use client';
 
 import { useMenuHoisting } from '@/../../src/book-components/_common/MenuHoisting/MenuHoistingContext';
-import { ArrowLeftIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { FC, useCallback, useEffect } from 'react';
 import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
+import { ArrowIcon } from '../_utils/ArrowIcon';
 
 /**
  * Properties for the BackToAgentButton component
@@ -45,7 +45,7 @@ export const BackToAgentButton: FC<BackToAgentButtonProps> = ({ agentName }) => 
             {
                 key: 'back-to-agent',
                 name: formatText('Back to Agent'),
-                icon: <ArrowLeftIcon />,
+                icon: <ArrowIcon direction="LEFT" />,
                 onClick: handleBackToAgent,
             },
         ]);
@@ -65,7 +65,7 @@ export const BackToAgentButton: FC<BackToAgentButtonProps> = ({ agentName }) => 
             className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
             title={formatText('Back to Agent')}
         >
-            <ArrowLeftIcon className="w-6 h-6" />
+            <ArrowIcon direction="LEFT" className="w-6 h-6" />
         </Link>
     );
 };

@@ -1,8 +1,9 @@
 'use client';
 
 import { ChatSoundAndVibrationPanel } from '@promptbook-local/components';
-import { ChevronDown, EyeOff, Languages, Settings2, SpeakerIcon, Sparkles } from 'lucide-react';
+import { EyeOff, Languages, Settings2, SpeakerIcon, Sparkles } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
+import { ArrowIcon } from '../../_utils/ArrowIcon';
 import { useSoundSystem } from '../../SoundSystemProvider/SoundSystemProvider';
 import { confirmPrivateModeEnable } from '../../PrivateModePreferences/confirmPrivateModeEnable';
 import { usePrivateModePreferences } from '../../PrivateModePreferences/PrivateModePreferencesProvider';
@@ -284,7 +285,7 @@ export function HeaderControlPanelDropdown() {
                     <div className="rounded-2xl bg-white p-3">
                         <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-widest text-gray-500">
                             <span>{t('controlPanel.label')}</span>
-                            <ChevronDown className="w-3 h-3 rotate-180 text-gray-400" />
+                            <ArrowIcon direction="DOWN" className="w-3 h-3 rotate-180 text-gray-400" />
                         </div>
                         <ControlPanelContent />
                     </div>

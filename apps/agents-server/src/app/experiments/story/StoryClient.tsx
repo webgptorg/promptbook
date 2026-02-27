@@ -3,8 +3,9 @@
 import { CHAT_STREAM_KEEP_ALIVE_TOKEN } from '@/src/constants/streaming';
 import { BookEditor } from '@promptbook-local/components';
 import { validateBook } from '@promptbook-local/core';
-import { ChevronDown, Save } from 'lucide-react';
+import { Save } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
+import { ArrowIcon } from '../../../components/_utils/ArrowIcon';
 import { AgentsPanel } from './AgentsPanel';
 import { getStories, saveStories } from './actions';
 import {
@@ -303,7 +304,7 @@ export function StoryClient() {
                                 >
                                     <Save className="h-4 w-4" />
                                     Save
-                                    <ChevronDown className="h-4 w-4" />
+                                    <ArrowIcon direction="DOWN" className="h-4 w-4" />
                                 </button>
                                 {isSaveMenuOpen && (
                                     <div className="absolute right-0 top-full z-20 mt-1 min-w-44 rounded-md border border-gray-200 bg-white py-1 shadow-lg">

@@ -1,9 +1,10 @@
 'use client';
 
-import { Check, ChevronLeft, ChevronRight, Copy, Grid, Info, LayoutList, Loader2 } from 'lucide-react';
+import { Check, Copy, Grid, Info, LayoutList, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAgentNaming } from '../../../components/AgentNaming/AgentNamingContext';
+import { ArrowIcon } from '../../../components/_utils/ArrowIcon';
 import { extractParametersFromFilename } from '../../../utils/normalization/extractParametersFromFilename';
 import { ImageWithAgent, listImages } from './actions';
 
@@ -256,14 +257,14 @@ export function ImagesGalleryClient() {
                                 disabled={page === 1 || isLoading}
                                 className="p-2 border rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                <ChevronLeft className="w-4 h-4" />
+                                <ArrowIcon direction="LEFT" className="w-4 h-4" />
                             </button>
                             <button
                                 onClick={() => handlePageChange(page + 1)}
                                 disabled={page * limit >= total || isLoading}
                                 className="p-2 border rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                <ChevronRight className="w-4 h-4" />
+                                <ArrowIcon direction="RIGHT" className="w-4 h-4" />
                             </button>
                         </div>
                     </div>

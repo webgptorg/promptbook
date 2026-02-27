@@ -3,6 +3,7 @@
 import type { ChatMessage } from '@promptbook-local/types';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAgentNaming } from '../../../../components/AgentNaming/AgentNamingContext';
+import { ArrowIcon } from '../../../../components/_utils/ArrowIcon';
 import { showConfirm } from '../../../../components/AsyncDialogs/asyncDialogs';
 import { ChatPersistence } from '../../../../utils/chatPersistenceClient';
 import {
@@ -529,9 +530,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 aria-hidden={isMobileSidebarOpen}
                 aria-label={formatText('Open chats sidebar')}
             >
-                <span className="text-lg font-semibold leading-none" aria-hidden="true">
-                    &gt;
-                </span>
+                <ArrowIcon direction="RIGHT" className="h-5 w-5" aria-hidden="true" />
             </button>
             <section className="flex-1 min-w-0 min-h-0 flex flex-col">
                 <div className="relative flex-1 min-h-0">
