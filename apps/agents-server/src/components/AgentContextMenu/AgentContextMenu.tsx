@@ -2,7 +2,7 @@
 
 import type { AgentBasicInformation, TODO_any, string_agent_permanent_id } from '@promptbook-local/types';
 import {
-    AdjustmentsHorizontalIcon,
+    Settings2 as AdjustmentsHorizontalIcon,
     BarChart3Icon,
     CopyIcon,
     CopyPlusIcon,
@@ -34,9 +34,9 @@ import { useAgentNaming } from '../AgentNaming/AgentNamingContext';
 import { showAlert, showConfirm, showPrompt, showVisibilityDialog } from '../AsyncDialogs/asyncDialogs';
 import { ContextMenuPanel, type ContextMenuItem } from '../ContextMenu/ContextMenuPanel';
 import {
-    type ContextMenuAnchorPoint,
     useClampedMenuPosition,
     useCloseOnOutsideClick,
+    type ContextMenuAnchorPoint,
 } from '../ContextMenu/contextMenuUtils';
 import { useMetadataFlags } from '../MetadataFlags/MetadataFlagsContext';
 
