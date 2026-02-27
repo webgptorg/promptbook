@@ -1,11 +1,15 @@
+[x] ~$0.2366 15 minutes by OpenAI Codex `gpt-5.3-codex`
+
+---
+
 [ ] !
 
-[✨👀] Enhance UX of the menu on mobile / touch devices
+[✨👀] Fix UX of the menu for touch devices
 
-expanding subfolders on touchscreens
-
--   User on the mobile cannot click on the sub-item because he can open the top level item, but then, when he clicks on the sub-item, it closes the first level item menu.
--   Do a proper analysis of the current functionality of the menu before you start implementing.
+-   User on the mobile cannot click on the menu sub-item because he can open the top level item, but then, when he clicks on the sub-item, it closes the first level item menu together with the sub-item menu and he cannot click on the sub-item
+-   This occures on mobile / touch devices
+-   Do a proper analysis of the current functionality of the menu and subitems before you start implementing.
+-   After proper analysis, implement the solution which will have great UX for all devices
 -   You are working with the [Agents Server](apps/agents-server)
 
 ![alt text](prompts/screenshots/2026-02-3630-agents-server-menu-items-navigate-subitems-on-mobile.png)

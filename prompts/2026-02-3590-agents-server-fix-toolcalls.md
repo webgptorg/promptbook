@@ -1,6 +1,12 @@
+[x] ~$0.5078 an hour by OpenAI Codex `gpt-5.1-codex-mini`
+
+---
+
 [ ]
 
 [✨😲] Tool calls are broken, fix them
+
+@@@
 
 -   There are several problems which occur during the tool calls:
     1. Ongoing tool calls are not shown in the UI, so the user doesn't know that the agent is currently calling a tool, and it looks like the agent is doing nothing.
