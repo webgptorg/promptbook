@@ -1,9 +1,6 @@
 'use client';
 
-import {
-    CHAT_STREAM_KEEP_ALIVE_TOKEN,
-    CHAT_STREAM_METADATA_PREFIX,
-} from '@/src/constants/streaming';
+import { CHAT_STREAM_KEEP_ALIVE_TOKEN } from '@/src/constants/streaming';
 import { BookEditor } from '@promptbook-local/components';
 import { validateBook } from '@promptbook-local/core';
 import { Save } from 'lucide-react';
@@ -396,7 +393,6 @@ function buildStoryContinuationMessage(story: Story, agentLabel: string): string
 function sanitizeAgentResponse(rawText: string): string {
     const normalized = rawText.replace(/\r\n/g, '\n');
     const keepAliveSequence = `\n${CHAT_STREAM_KEEP_ALIVE_TOKEN}\n`;
-    const metadataSequence = `\n${CHAT_STREAM_METADATA_PREFIX}`;
     let cleaned = '';
     let index = 0;
 
@@ -406,8 +402,8 @@ function sanitizeAgentResponse(rawText: string): string {
             continue;
         }
 
-        if (normalized.startsWith(metadataSequence, index)) {
-            const nextLineIndex = normalized.indexOf('\n', index + metadataSequence.length);
+        if (normalized.startsWith('\n{"toolCalls":', index)) {
+            const nextLineIndex = normalized.indexOf('\n', index + 1);
             index = nextLineIndex === -1 ? normalized.length : nextLineIndex + 1;
             continue;
         }
