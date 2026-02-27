@@ -40,6 +40,11 @@ const nextConfig: NextConfig = {
             use: 'raw-loader',
         });
 
+        config.module.rules.push({
+            test: /\.yaml$/,
+            use: 'raw-loader',
+        });
+
         return config;
     },
     async headers() {
