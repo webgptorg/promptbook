@@ -1,12 +1,9 @@
-[ ]
+[ ] !
 
-[✨👌] qux
+[✨👌] Unite design of arrows in the Agents server app
 
--   @@@
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
+-   Keep in mind the DRY _(don't repeat yourself)_ principle. Make one reusable component for the arrows and use it everywhere.
 -   You are working with the [Agents Server](apps/agents-server)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
 

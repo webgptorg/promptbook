@@ -19,15 +19,17 @@ USE PROJECT https://github.com/example/project
 
 ---
 
-[-]
+[ ]
 
-[✨🧻] bar
+[✨🧻] Broken layout
 
 -   @@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+![alt text](prompts/screenshots/2026-02-3490-agents-server-use-project-commitment.png)
 
 ---
 
@@ -52,4 +54,3 @@ USE PROJECT https://github.com/example/project
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
