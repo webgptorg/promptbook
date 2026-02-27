@@ -1252,16 +1252,6 @@
     animation: voiceRecordingPulse 1.5s infinite;
 }
 
-.voiceStatus {
-    font-size: 11px;
-    color: #475569;
-    min-height: 16px;
-    line-height: 1.4;
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
-    padding-left: 4px;
-}
-
 @keyframes voiceRecordingPulse {
     0% {
         box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.4);

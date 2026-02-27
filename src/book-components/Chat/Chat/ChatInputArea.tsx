@@ -317,24 +317,6 @@ export function ChatInputArea(props: ChatInputAreaProps) {
     const myColor = participants.find((participant) => participant.isMe)?.color || USER_CHAT_COLOR;
     const inputBgColor = Color.from(myColor).then(lighten(0.4)).then(grayscale(0.7));
     const inputTextColor = inputBgColor.then(textColor);
-    const voiceStatusMessage = useMemo(() => {
-        if (!speechRecognition) {
-            return null;
-        }
-
-        switch (speechRecognitionState) {
-            case 'STARTING':
-                return 'Preparing microphone...';
-            case 'RECORDING':
-                return 'Listening...';
-            case 'TRANSCRIBING':
-                return 'Transcribing voice input...';
-            case 'ERROR':
-                return 'Voice input encountered an error.';
-            default:
-                return 'Voice input ready.';
-        }
-    }, [speechRecognition, speechRecognitionState]);
 
     return (
         <div
@@ -492,11 +474,6 @@ export function ChatInputArea(props: ChatInputAreaProps) {
                     <SendIcon size={25} />
                 </button>
             </div>
-            {voiceStatusMessage && (
-                <div className={styles.voiceStatus} aria-live="polite">
-                    {voiceStatusMessage}
-                </div>
-            )}
 
             {isUploading && (
                 <div className={styles.uploadProgress}>
