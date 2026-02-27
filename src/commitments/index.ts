@@ -47,6 +47,7 @@ import { UseProjectCommitmentDefinition } from './USE_PROJECT/USE_PROJECT';
 import { UseSearchEngineCommitmentDefinition } from './USE_SEARCH_ENGINE/USE_SEARCH_ENGINE';
 import { UseTimeCommitmentDefinition } from './USE_TIME/USE_TIME';
 import { UseUserLocationCommitmentDefinition } from './USE_USER_LOCATION/USE_USER_LOCATION';
+import { WalletCommitmentDefinition } from './WALLET/WALLET';
 import { NotYetImplementedCommitmentDefinition } from './_base/NotYetImplementedCommitmentDefinition';
 
 /**
@@ -63,6 +64,8 @@ export const COMMITMENT_REGISTRY = [
     new KnowledgeCommitmentDefinition(),
     new MemoryCommitmentDefinition('MEMORY'),
     new MemoryCommitmentDefinition('MEMORIES'),
+    new WalletCommitmentDefinition('WALLET'),
+    new WalletCommitmentDefinition('WALLETS'),
     new StyleCommitmentDefinition('STYLE'),
     new StyleCommitmentDefinition('STYLES'),
     new RuleCommitmentDefinition('RULES'),

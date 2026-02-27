@@ -57,7 +57,8 @@ export type AgentCapability = {
         | 'email'
         | 'popup'
         | 'privacy'
-        | 'project';
+        | 'project'
+        | 'wallet';
 
     /**
      * The label to display for this capability

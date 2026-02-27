@@ -24,6 +24,7 @@ export type ComposePromptParametersWithMemoryContextOptions = {
     agentName: string;
     isPrivateModeEnabled?: boolean;
     projectRepositories?: string[];
+    projectGithubToken?: string;
 };
 
 /**
@@ -39,14 +40,16 @@ export function composePromptParametersWithMemoryContext(
         agentName,
         isPrivateModeEnabled,
         projectRepositories,
+        projectGithubToken,
     } = options;
     const normalizedBaseParameters = normalizePromptParameters(baseParameters);
     const runtimeLocationContext = parseUserLocationPromptParameter(
         normalizedBaseParameters[USER_LOCATION_PROMPT_PARAMETER],
     );
-    const projectGithubToken = parseProjectGithubTokenPromptParameter(
+    const projectGithubTokenFromPrompt = parseProjectGithubTokenPromptParameter(
         normalizedBaseParameters[PROJECT_GITHUB_TOKEN_PROMPT_PARAMETER],
     );
+    const resolvedProjectGithubToken = projectGithubToken?.trim() || projectGithubTokenFromPrompt;
     const filteredBaseParameters = excludeInternalRuntimeParameters(normalizedBaseParameters);
 
     const existingRuntimeContext =
@@ -60,7 +63,7 @@ export function composePromptParametersWithMemoryContext(
     const isMemoryEnabled = Boolean(currentUserIdentity && !isTeamConversation && !isPrivateMode);
     const projectsRuntimeContext = {
         ...(existingRuntimeContext.projects || {}),
-        ...(projectGithubToken ? { githubToken: projectGithubToken } : {}),
+        ...(resolvedProjectGithubToken ? { githubToken: resolvedProjectGithubToken } : {}),
         ...(resolvedProjectRepositories.length > 0 ? { repositories: resolvedProjectRepositories } : {}),
     };
 

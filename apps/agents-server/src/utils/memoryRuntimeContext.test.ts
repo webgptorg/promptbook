@@ -54,4 +54,20 @@ describe('composePromptParametersWithMemoryContext', () => {
             repositories: ['https://github.com/example/project', 'example/another-project'],
         });
     });
+
+    it('prefers explicitly provided projectGithubToken over prompt parameter', () => {
+        const parameters = composePromptParametersWithMemoryContext({
+            baseParameters: {
+                [PROJECT_GITHUB_TOKEN_PROMPT_PARAMETER]: 'ghp_old_token',
+            },
+            currentUserIdentity: null,
+            agentName: 'Test Agent',
+            projectGithubToken: 'ghp_wallet_token',
+        });
+
+        const runtimeContext = JSON.parse(parameters[TOOL_RUNTIME_CONTEXT_PARAMETER]!);
+        expect(runtimeContext.projects).toEqual({
+            githubToken: 'ghp_wallet_token',
+        });
+    });
 });

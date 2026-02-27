@@ -224,6 +224,56 @@ type ConfiguredProjectReference = {
 };
 
 /**
+ * Wallet service identifier used for GitHub credentials.
+ *
+ * @private internal USE PROJECT constant
+ */
+const PROJECT_WALLET_SERVICE = 'github';
+
+/**
+ * Wallet key used for GitHub credentials required by USE PROJECT.
+ *
+ * @private internal USE PROJECT constant
+ */
+const PROJECT_WALLET_KEY = 'use-project-github-token';
+
+/**
+ * Tool result returned when USE PROJECT requires wallet credentials.
+ *
+ * @private internal USE PROJECT type
+ */
+type ProjectWalletCredentialRequiredToolResult = {
+    action: 'project-auth';
+    status: 'wallet-credential-required';
+    recordType: 'ACCESS_TOKEN';
+    service: string;
+    key: string;
+    repository?: string;
+    message: string;
+};
+
+/**
+ * Internal error used to signal missing wallet credentials.
+ *
+ * @private internal USE PROJECT type
+ */
+class ProjectWalletCredentialRequiredError extends Error {
+    public readonly service: string;
+    public readonly key: string;
+    public readonly repository?: string;
+
+    public constructor(options?: { repository?: string }) {
+        super(
+            'GitHub token is missing in wallet. Request it from user and store as ACCESS_TOKEN (service github, key use-project-github-token).',
+        );
+        this.name = 'ProjectWalletCredentialRequiredError';
+        this.service = PROJECT_WALLET_SERVICE;
+        this.key = PROJECT_WALLET_KEY;
+        this.repository = options?.repository;
+    }
+}
+
+/**
  * USE PROJECT commitment definition.
  *
  * `USE PROJECT` enables GitHub repository tooling so the agent can browse source files,
@@ -318,7 +368,8 @@ export class UseProjectCommitmentDefinition extends BaseCommitmentDefinition<'US
                     - Configured repositories:
                       ${block(repositoriesList)}
                     - When a repository is not obvious from context, pass "repository" in tool arguments explicitly.
-                    - If a GitHub token is missing or insufficient, ask the user to provide a personal access token with repository read/write permissions in the agent interface.
+                    - USE PROJECT credentials are read from wallet records (ACCESS_TOKEN, service "${PROJECT_WALLET_SERVICE}", key "${PROJECT_WALLET_KEY}").
+                    - If credentials are missing, ask the user to add them to wallet (or call "request_wallet_record" when WALLET commitment is available).
                     ${block(extraInstructions)}
                 `,
             ),
@@ -345,7 +396,11 @@ export class UseProjectCommitmentDefinition extends BaseCommitmentDefinition<'US
     getToolFunctions(): Record<string_javascript_name, ToolFunction> {
         return {
             async [PROJECT_LIST_FILES_TOOL_NAME](args: ProjectListFilesToolArgs): Promise<string> {
-                const { repositoryReference, token } = resolveProjectRuntime(args);
+                const runtime = resolveProjectRuntimeOrWalletCredentialResult(args);
+                if ('walletResult' in runtime) {
+                    return runtime.walletResult;
+                }
+                const { repositoryReference, token } = runtime;
                 const normalizedPath = normalizeGitHubPath(args.path);
                 const pathSuffix = normalizedPath ? `/${encodeGitHubPath(normalizedPath)}` : '';
 
@@ -380,7 +435,11 @@ export class UseProjectCommitmentDefinition extends BaseCommitmentDefinition<'US
             },
 
             async [PROJECT_READ_FILE_TOOL_NAME](args: ProjectReadFileToolArgs): Promise<string> {
-                const { repositoryReference, token } = resolveProjectRuntime(args);
+                const runtime = resolveProjectRuntimeOrWalletCredentialResult(args);
+                if ('walletResult' in runtime) {
+                    return runtime.walletResult;
+                }
+                const { repositoryReference, token } = runtime;
                 const normalizedPath = normalizeGitHubPath(args.path);
                 if (!normalizedPath) {
                     throw new Error('Tool "project_read_file" requires non-empty "path".');
@@ -422,7 +481,11 @@ export class UseProjectCommitmentDefinition extends BaseCommitmentDefinition<'US
             },
 
             async [PROJECT_UPSERT_FILE_TOOL_NAME](args: ProjectUpsertFileToolArgs): Promise<string> {
-                const { repositoryReference, token } = resolveProjectRuntime(args);
+                const runtime = resolveProjectRuntimeOrWalletCredentialResult(args);
+                if ('walletResult' in runtime) {
+                    return runtime.walletResult;
+                }
+                const { repositoryReference, token } = runtime;
                 const normalizedPath = normalizeGitHubPath(args.path);
                 if (!normalizedPath) {
                     throw new Error('Tool "project_upsert_file" requires non-empty "path".');
@@ -482,7 +545,11 @@ export class UseProjectCommitmentDefinition extends BaseCommitmentDefinition<'US
             },
 
             async [PROJECT_DELETE_FILE_TOOL_NAME](args: ProjectDeleteFileToolArgs): Promise<string> {
-                const { repositoryReference, token } = resolveProjectRuntime(args);
+                const runtime = resolveProjectRuntimeOrWalletCredentialResult(args);
+                if ('walletResult' in runtime) {
+                    return runtime.walletResult;
+                }
+                const { repositoryReference, token } = runtime;
                 const normalizedPath = normalizeGitHubPath(args.path);
                 if (!normalizedPath) {
                     throw new Error('Tool "project_delete_file" requires non-empty "path".');
@@ -535,7 +602,11 @@ export class UseProjectCommitmentDefinition extends BaseCommitmentDefinition<'US
             },
 
             async [PROJECT_CREATE_BRANCH_TOOL_NAME](args: ProjectCreateBranchToolArgs): Promise<string> {
-                const { repositoryReference, token } = resolveProjectRuntime(args);
+                const runtime = resolveProjectRuntimeOrWalletCredentialResult(args);
+                if ('walletResult' in runtime) {
+                    return runtime.walletResult;
+                }
+                const { repositoryReference, token } = runtime;
                 const branch = normalizeRequiredToolText(args.branch, 'branch');
 
                 const repositoryDetails = await callGitHubApi<GitHubRepositoryResponse>(token, {
@@ -580,7 +651,11 @@ export class UseProjectCommitmentDefinition extends BaseCommitmentDefinition<'US
             },
 
             async [PROJECT_CREATE_PULL_REQUEST_TOOL_NAME](args: ProjectCreatePullRequestToolArgs): Promise<string> {
-                const { repositoryReference, token } = resolveProjectRuntime(args);
+                const runtime = resolveProjectRuntimeOrWalletCredentialResult(args);
+                if ('walletResult' in runtime) {
+                    return runtime.walletResult;
+                }
+                const { repositoryReference, token } = runtime;
                 const title = normalizeRequiredToolText(args.title, 'title');
                 const head = normalizeRequiredToolText(args.head, 'head');
 
@@ -853,6 +928,46 @@ function normalizeConfiguredProjects(rawValue: unknown): Array<ConfiguredProject
 }
 
 /**
+ * Converts missing-wallet errors into structured tool result payloads.
+ *
+ * @private utility of USE PROJECT commitment
+ */
+function createProjectWalletCredentialRequiredResult(
+    error: ProjectWalletCredentialRequiredError,
+): ProjectWalletCredentialRequiredToolResult {
+    return {
+        action: 'project-auth',
+        status: 'wallet-credential-required',
+        recordType: 'ACCESS_TOKEN',
+        service: error.service,
+        key: error.key,
+        repository: error.repository,
+        message: error.message,
+    };
+}
+
+/**
+ * Resolves project runtime or returns a wallet-credential result when missing.
+ *
+ * @private utility of USE PROJECT commitment
+ */
+function resolveProjectRuntimeOrWalletCredentialResult(
+    args: UseProjectToolArgsBase,
+): { repositoryReference: GitHubRepositoryReference; token: string } | { walletResult: string } {
+    try {
+        return resolveProjectRuntime(args);
+    } catch (error) {
+        if (error instanceof ProjectWalletCredentialRequiredError) {
+            return {
+                walletResult: JSON.stringify(createProjectWalletCredentialRequiredResult(error)),
+            };
+        }
+
+        throw error;
+    }
+}
+
+/**
  * Resolves runtime repository + GitHub token for a project tool call.
  *
  * @private utility of USE PROJECT commitment
@@ -863,13 +978,6 @@ function resolveProjectRuntime(args: UseProjectToolArgsBase): {
 } {
     const runtimeContext = (readToolRuntimeContextFromToolArgs(args as Record<string, unknown>) ||
         {}) as UseProjectRuntimeContext;
-    const token = runtimeContext.projects?.githubToken?.trim() || '';
-
-    if (!token) {
-        throw new Error(
-            'GitHub token is missing. Ask the user to provide a personal access token in the agent interface.',
-        );
-    }
 
     const allowedRepositories = normalizeAllowedRepositories(runtimeContext.projects?.repositories);
     const repositoryArgument = normalizeOptionalToolText(args.repository);
@@ -892,6 +1000,14 @@ function resolveProjectRuntime(args: UseProjectToolArgsBase): {
 
     if (!repositoryReference) {
         throw new Error('Repository is required but was not resolved.');
+    }
+
+    const token = runtimeContext.projects?.githubToken?.trim() || '';
+
+    if (!token) {
+        throw new ProjectWalletCredentialRequiredError({
+            repository: repositoryReference.url,
+        });
     }
 
     if (allowedRepositories.length > 0) {

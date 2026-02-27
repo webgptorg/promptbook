@@ -176,6 +176,15 @@ export function parseAgentSource(agentSource: string_book): AgentBasicInformatio
             continue;
         }
 
+        if (commitment.type === 'WALLET' || commitment.type === 'WALLETS') {
+            capabilities.push({
+                type: 'wallet',
+                label: 'Wallet',
+                iconName: 'Shield',
+            });
+            continue;
+        }
+
         if (commitment.type === 'FROM') {
             const content = spaceTrim(commitment.content).split(/\r?\n/)[0] || '';
 

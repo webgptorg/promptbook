@@ -23,7 +23,6 @@ import { createDefaultChatEffects } from '../../../utils/chat/createDefaultChatE
 import { reportClientVersionMismatch } from '../../../utils/clientVersionClient';
 import type { FriendlyErrorMessage } from '../../../utils/errorMessages';
 import { handleChatError } from '../../../utils/errorMessages';
-import { PROJECT_GITHUB_TOKEN_PROMPT_PARAMETER } from '../../../utils/githubTokenPromptParameter';
 import {
     serializeUserLocationPromptParameter,
     USER_LOCATION_PROMPT_PARAMETER,
@@ -37,6 +36,11 @@ import {
 } from '../../../utils/metaDisclaimerClient';
 import { MetaDisclaimerDialog } from './MetaDisclaimerDialog';
 import { PseudoUserChatDialog } from './PseudoUserChatDialog';
+import {
+    WalletRecordDialog,
+    type PendingWalletRecordRequest,
+    type WalletRecordDialogSubmitPayload,
+} from './WalletRecordDialog';
 
 type AgentChatWrapperProps = {
     agentName: string;
@@ -104,7 +108,26 @@ const GEOLOCATION_PERMISSION_DENIED_CODE = 1;
  * Timeout used for browser geolocation lookup.
  */
 const GEOLOCATION_REQUEST_TIMEOUT_MS = 15_000;
-const PROJECT_GITHUB_TOKEN_STORAGE_KEY_PREFIX = 'promptbook-project-github-token';
+
+/**
+ * Wallet request status emitted by `request_wallet_record` tool.
+ */
+const WALLET_REQUESTED_STATUS = 'requested';
+
+/**
+ * Project-tool status emitted when wallet credentials are missing.
+ */
+const PROJECT_WALLET_CREDENTIAL_REQUIRED_STATUS = 'wallet-credential-required';
+
+/**
+ * Wallet service identifier for USE PROJECT credentials.
+ */
+const USE_PROJECT_GITHUB_WALLET_SERVICE = 'github';
+
+/**
+ * Wallet key identifier for USE PROJECT credentials.
+ */
+const USE_PROJECT_GITHUB_WALLET_KEY = 'use-project-github-token';
 
 /**
  * Location tool result payload shape.
@@ -133,6 +156,25 @@ type TeamToolResult = {
         kind?: string;
         prompt?: string;
     };
+};
+
+/**
+ * Wallet tool payload shape used to trigger credential popup.
+ */
+type WalletToolResult = {
+    status?: string;
+    request?: {
+        recordType?: string;
+        service?: string;
+        key?: string;
+        message?: string;
+        isGlobal?: boolean;
+    };
+    recordType?: string;
+    service?: string;
+    key?: string;
+    message?: string;
+    repository?: string;
 };
 
 /**
@@ -182,6 +224,13 @@ function parsePrivacyToolResult(result: unknown): PrivacyToolResult | null {
  */
 function parseTeamToolResult(result: unknown): TeamToolResult | null {
     return parseToolResultObject(result) as TeamToolResult | null;
+}
+
+/**
+ * Parses wallet tool result into structured object.
+ */
+function parseWalletToolResult(result: unknown): WalletToolResult | null {
+    return parseToolResultObject(result) as WalletToolResult | null;
 }
 
 /**
@@ -238,6 +287,30 @@ function shouldRequestPseudoUserReply(toolCall: ToolCall): boolean {
 }
 
 /**
+ * Returns true when wallet-request tool asks the UI to collect credentials.
+ */
+function shouldRequestWalletRecord(toolCall: ToolCall): boolean {
+    if (toolCall.name !== 'request_wallet_record') {
+        return false;
+    }
+
+    const parsedResult = parseWalletToolResult(toolCall.result);
+    return parsedResult?.status === WALLET_REQUESTED_STATUS;
+}
+
+/**
+ * Returns true when USE PROJECT reports missing wallet credentials.
+ */
+function shouldRequestWalletRecordForProject(toolCall: ToolCall): boolean {
+    if (!toolCall.name.startsWith('project_')) {
+        return false;
+    }
+
+    const parsedResult = parseWalletToolResult(toolCall.result);
+    return parsedResult?.status === PROJECT_WALLET_CREDENTIAL_REQUIRED_STATUS;
+}
+
+/**
  * Extracts pseudo-user prompt text from TEAM tool result.
  */
 function getPseudoUserPromptText(toolCall: ToolCall): string {
@@ -261,6 +334,48 @@ function getPseudoUserPromptText(toolCall: ToolCall): string {
 function getPseudoUserLabel(toolCall: ToolCall): string {
     const parsedResult = parseTeamToolResult(toolCall.result);
     return parsedResult?.teammate?.label?.trim() || 'User';
+}
+
+/**
+ * Normalizes wallet record type to one of supported UI values.
+ */
+function normalizeWalletRecordType(value: unknown): PendingWalletRecordRequest['recordType'] {
+    const normalized = typeof value === 'string' ? value.trim().toUpperCase() : '';
+    if (normalized === 'USERNAME_PASSWORD') {
+        return 'USERNAME_PASSWORD';
+    }
+    if (normalized === 'SESSION_COOKIE') {
+        return 'SESSION_COOKIE';
+    }
+    return 'ACCESS_TOKEN';
+}
+
+/**
+ * Builds pending wallet request payload from tool call result.
+ */
+function buildPendingWalletRequest(toolCall: ToolCall): PendingWalletRecordRequest {
+    const parsedResult = parseWalletToolResult(toolCall.result);
+    const requestPayload = parsedResult?.request;
+
+    const sourceService = requestPayload?.service || parsedResult?.service || USE_PROJECT_GITHUB_WALLET_SERVICE;
+    const sourceKey = requestPayload?.key || parsedResult?.key || USE_PROJECT_GITHUB_WALLET_KEY;
+    const sourceRecordType = requestPayload?.recordType || parsedResult?.recordType || 'ACCESS_TOKEN';
+    const sourceMessage = requestPayload?.message || parsedResult?.message;
+    const repositoryHint = parsedResult?.repository?.trim();
+
+    const message = repositoryHint
+        ? `${sourceMessage || 'Credential required.'}\nRepository: ${repositoryHint}`
+        : sourceMessage;
+
+    return {
+        marker: createToolCallMarker(toolCall),
+        sourceToolName: toolCall.name,
+        recordType: normalizeWalletRecordType(sourceRecordType),
+        service: sourceService,
+        key: sourceKey,
+        message,
+        isGlobal: requestPayload?.isGlobal === true,
+    };
 }
 
 /**
@@ -364,7 +479,6 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
     const [userLocationPromptParameter, setUserLocationPromptParameter] = useState<UserLocationPromptParameter | null>(
         null,
     );
-    const [projectGithubToken, setProjectGithubToken] = useState('');
     const [metaDisclaimerStatus, setMetaDisclaimerStatus] = useState<MetaDisclaimerStatus | null>(null);
     const [isMetaDisclaimerLoading, setIsMetaDisclaimerLoading] = useState(true);
     const [isMetaDisclaimerAccepting, setIsMetaDisclaimerAccepting] = useState(false);
@@ -375,8 +489,10 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
     const handledLocationToolCallMarkersRef = useRef<Set<string>>(new Set());
     const handledPrivacyToolCallMarkersRef = useRef<Set<string>>(new Set());
     const handledPseudoUserToolCallMarkersRef = useRef<Set<string>>(new Set());
+    const handledWalletToolCallMarkersRef = useRef<Set<string>>(new Set());
     const [pendingPseudoUserInteraction, setPendingPseudoUserInteraction] =
         useState<PendingPseudoUserInteraction | null>(null);
+    const [pendingWalletRequest, setPendingWalletRequest] = useState<PendingWalletRecordRequest | null>(null);
     const hasReportedAutoExecuteMessageRef = useRef(false);
     const lastAutoExecuteMessageRef = useRef<string | undefined>(autoExecuteMessage);
 
@@ -423,43 +539,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
     const isMetaDisclaimerBlockingChat =
         isMetaDisclaimerLoading || metaDisclaimerError !== null || (isMetaDisclaimerEnabled && !hasAcceptedMetaDisclaimer);
     const metaDisclaimerMarkdown = metaDisclaimerStatus?.markdown || null;
-    const isProjectCapabilityEnabled =
-        agent?.capabilities?.some((capability) => capability.type === 'project') === true;
-    const projectGithubTokenStorageKey = useMemo(
-        () => `${PROJECT_GITHUB_TOKEN_STORAGE_KEY_PREFIX}:${agentName}`,
-        [agentName],
-    );
     const effectiveAutoExecuteMessage = isMetaDisclaimerBlockingChat ? undefined : autoExecuteMessage;
-
-    useEffect(() => {
-        if (!isProjectCapabilityEnabled || typeof window === 'undefined') {
-            return;
-        }
-
-        const storedToken = window.localStorage.getItem(projectGithubTokenStorageKey);
-        if (storedToken !== null) {
-            setProjectGithubToken(storedToken);
-        }
-    }, [isProjectCapabilityEnabled, projectGithubTokenStorageKey]);
-
-    const handleProjectGithubTokenChange = useCallback(
-        (nextToken: string) => {
-            setProjectGithubToken(nextToken);
-
-            if (typeof window === 'undefined') {
-                return;
-            }
-
-            const normalizedToken = nextToken.trim();
-            if (!isProjectCapabilityEnabled || !normalizedToken) {
-                window.localStorage.removeItem(projectGithubTokenStorageKey);
-                return;
-            }
-
-            window.localStorage.setItem(projectGithubTokenStorageKey, normalizedToken);
-        },
-        [isProjectCapabilityEnabled, projectGithubTokenStorageKey],
-    );
 
     useEffect(() => {
         if (lastAutoExecuteMessageRef.current === autoExecuteMessage) {
@@ -677,6 +757,16 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
         return findNewestMatchingToolCall(messages, shouldRequestPseudoUserReply);
     }, []);
 
+    /**
+     * Finds the newest wallet-related tool call asking for credentials.
+     */
+    const findPendingWalletToolCall = useCallback((messages: ReadonlyArray<ChatMessage>): ToolCall | null => {
+        return findNewestMatchingToolCall(
+            messages,
+            (toolCall) => shouldRequestWalletRecord(toolCall) || shouldRequestWalletRecordForProject(toolCall),
+        );
+    }, []);
+
     const handleMessagesChange = useCallback(
         (messages: ReadonlyArray<ChatMessage>) => {
             onMessagesChange?.(messages);
@@ -704,6 +794,18 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
 
             const pseudoUserToolCall = findPendingPseudoUserToolCall(messages);
             if (!pseudoUserToolCall) {
+                const walletToolCall = findPendingWalletToolCall(messages);
+                if (!walletToolCall) {
+                    return;
+                }
+
+                const walletMarker = createToolCallMarker(walletToolCall);
+                if (handledWalletToolCallMarkersRef.current.has(walletMarker)) {
+                    return;
+                }
+
+                handledWalletToolCallMarkersRef.current.add(walletMarker);
+                setPendingWalletRequest(buildPendingWalletRequest(walletToolCall));
                 return;
             }
 
@@ -730,6 +832,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
             requestBrowserUserLocation,
             requestPrivateModeEnableConfirmation,
             userLocationPromptParameter,
+            findPendingWalletToolCall,
         ],
     );
 
@@ -751,23 +854,65 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
         setPendingPseudoUserInteraction(null);
     }, []);
 
+    /**
+     * Stores one wallet credential submitted from the popup and asks agent to continue.
+     */
+    const handleWalletRequestSubmit = useCallback(
+        async (payload: WalletRecordDialogSubmitPayload) => {
+            const currentAgentPermanentId =
+                typeof (agent as { permanentId?: unknown } | undefined)?.permanentId === 'string'
+                    ? ((agent as { permanentId?: string }).permanentId as string)
+                    : undefined;
+            const shouldStoreGlobally = payload.isGlobal || !currentAgentPermanentId;
+
+            const response = await fetch('/api/user-wallet', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    recordType: payload.recordType,
+                    service: payload.service,
+                    key: payload.key,
+                    username: payload.username,
+                    password: payload.password,
+                    secret: payload.secret,
+                    cookies: payload.cookies,
+                    isGlobal: shouldStoreGlobally,
+                    agentPermanentId: shouldStoreGlobally ? null : currentAgentPermanentId,
+                }),
+            });
+
+            if (!response.ok) {
+                const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+                throw new Error(payload?.error || 'Failed to store wallet record.');
+            }
+
+            setPendingWalletRequest(null);
+            sendMessage('Wallet credential saved. Continue with the previous task.');
+        },
+        [agent, sendMessage],
+    );
+
+    /**
+     * Dismisses wallet request popup without saving.
+     */
+    const handleWalletRequestClose = useCallback(() => {
+        setPendingWalletRequest(null);
+    }, []);
+
     const promptParameters = useMemo(() => {
         const parameters: Record<string, unknown> = {
             selfLearningEnabled: effectiveSelfLearningEnabled,
         };
-        const normalizedProjectGithubToken = projectGithubToken.trim();
 
         if (userLocationPromptParameter) {
             parameters[USER_LOCATION_PROMPT_PARAMETER] =
                 serializeUserLocationPromptParameter(userLocationPromptParameter);
         }
 
-        if (isProjectCapabilityEnabled && normalizedProjectGithubToken) {
-            parameters[PROJECT_GITHUB_TOKEN_PROMPT_PARAMETER] = normalizedProjectGithubToken;
-        }
-
         return parameters;
-    }, [effectiveSelfLearningEnabled, isProjectCapabilityEnabled, projectGithubToken, userLocationPromptParameter]);
+    }, [effectiveSelfLearningEnabled, userLocationPromptParameter]);
 
     if (!agent) {
         return <>{/* <- TODO: [🐱‍🚀] <PromptbookLoading /> */}</>;
@@ -775,28 +920,6 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
 
     return (
         <>
-            {isProjectCapabilityEnabled && (
-                <section className="mb-3 rounded-2xl border border-slate-200/80 bg-white/90 px-4 py-3 shadow-sm">
-                    <label htmlFor="project-github-token" className="text-xs font-semibold uppercase tracking-wide text-slate-700">
-                        GitHub token for USE PROJECT
-                    </label>
-                    <input
-                        id="project-github-token"
-                        type="password"
-                        value={projectGithubToken}
-                        onChange={(event) => {
-                            handleProjectGithubTokenChange(event.target.value);
-                        }}
-                        placeholder="ghp_..."
-                        autoComplete="off"
-                        spellCheck={false}
-                        className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
-                    />
-                    <p className="mt-2 text-xs text-slate-500">
-                        Stored only in this browser for this agent. Use a token with repository read/write access.
-                    </p>
-                </section>
-            )}
             <AgentChat
                 key={chatKey}
                 className={`w-full h-full`}
@@ -829,6 +952,12 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
                 userName={pendingPseudoUserInteraction?.teammateLabel || 'User'}
                 onSubmit={handlePseudoUserReplySubmit}
                 onClose={handlePseudoUserReplyClose}
+            />
+            <WalletRecordDialog
+                isOpen={pendingWalletRequest !== null}
+                request={pendingWalletRequest}
+                onSubmit={handleWalletRequestSubmit}
+                onClose={handleWalletRequestClose}
             />
             <ChatErrorDialog
                 error={currentError}

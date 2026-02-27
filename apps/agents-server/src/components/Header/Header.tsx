@@ -1881,6 +1881,10 @@ export function Header(props: HeaderProps) {
                       label: t('header.userMemory'),
                       href: '/system/user-memory',
                   } as SubMenuItem,
+                  {
+                      label: t('header.userWallet'),
+                      href: '/system/user-wallet',
+                  } as SubMenuItem,
               ]
             : []),
         {

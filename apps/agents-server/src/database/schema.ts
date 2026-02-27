@@ -781,6 +781,70 @@ export type AgentsServerDatabase = {
                     },
                 ];
             };
+            UserWallet: {
+                Row: {
+                    id: number;
+                    createdAt: string;
+                    updatedAt: string;
+                    userId: number;
+                    agentPermanentId: string | null;
+                    recordType: 'USERNAME_PASSWORD' | 'SESSION_COOKIE' | 'ACCESS_TOKEN';
+                    service: string;
+                    key: string;
+                    username: string | null;
+                    password: string | null;
+                    secret: string | null;
+                    cookies: string | null;
+                    isGlobal: boolean;
+                    deletedAt: string | null;
+                };
+                Insert: {
+                    id?: number;
+                    createdAt?: string;
+                    updatedAt?: string;
+                    userId: number;
+                    agentPermanentId?: string | null;
+                    recordType: 'USERNAME_PASSWORD' | 'SESSION_COOKIE' | 'ACCESS_TOKEN';
+                    service: string;
+                    key?: string;
+                    username?: string | null;
+                    password?: string | null;
+                    secret?: string | null;
+                    cookies?: string | null;
+                    isGlobal?: boolean;
+                    deletedAt?: string | null;
+                };
+                Update: {
+                    id?: number;
+                    createdAt?: string;
+                    updatedAt?: string;
+                    userId?: number;
+                    agentPermanentId?: string | null;
+                    recordType?: 'USERNAME_PASSWORD' | 'SESSION_COOKIE' | 'ACCESS_TOKEN';
+                    service?: string;
+                    key?: string;
+                    username?: string | null;
+                    password?: string | null;
+                    secret?: string | null;
+                    cookies?: string | null;
+                    isGlobal?: boolean;
+                    deletedAt?: string | null;
+                };
+                Relationships: [
+                    {
+                        foreignKeyName: 'UserWallet_userId_fkey';
+                        columns: ['userId'];
+                        referencedRelation: 'User';
+                        referencedColumns: ['id'];
+                    },
+                    {
+                        foreignKeyName: 'UserWallet_agentPermanentId_fkey';
+                        columns: ['agentPermanentId'];
+                        referencedRelation: 'Agent';
+                        referencedColumns: ['permanentId'];
+                    },
+                ];
+            };
             UserData: {
                 Row: {
                     id: number;

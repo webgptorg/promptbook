@@ -60,6 +60,7 @@ export const SERVER_TRANSLATION_KEYS = [
     "header.menuLabel",
     "header.landingPage",
     "header.userMemory",
+    "header.userWallet",
     "header.viewAllUsers",
     "header.createNewUser",
     "header.models",

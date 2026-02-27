@@ -18,6 +18,7 @@ import { composePromptParametersWithMemoryContext } from '@/src/utils/memoryRunt
 import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
 import { extractProjectRepositoriesFromAgentSource } from '@/src/utils/projects/extractProjectRepositoriesFromAgentSource';
 import { resolveCurrentUserMemoryIdentity } from '@/src/utils/userMemory';
+import { resolveUseProjectGithubTokenFromWallet } from '@/src/utils/userWallet';
 import { Agent, computeAgentHash } from '@promptbook-local/core';
 import type {
     ChatMessage,
@@ -316,6 +317,12 @@ export async function handleChatCompletion(
         const agentHash = computeAgentHash(agentSource);
         const agentId = resolvedAgentContext.parentAgentPermanentId;
         const currentUserIdentity = await resolveCurrentUserMemoryIdentity();
+        const projectGithubToken = currentUserIdentity
+            ? await resolveUseProjectGithubTokenFromWallet({
+                  userId: currentUserIdentity.userId,
+                  agentPermanentId: agentId,
+              })
+            : undefined;
 
         // Use AgentKitCacheManager for vector store caching
         const agentKitCacheManager = new AgentKitCacheManager({ isVerbose: true });
@@ -410,6 +417,7 @@ export async function handleChatCompletion(
             agentName: resolvedAgentContext.resolvedAgentName,
             isPrivateModeEnabled,
             projectRepositories,
+            projectGithubToken,
         });
 
         const prompt: ChatPrompt = {

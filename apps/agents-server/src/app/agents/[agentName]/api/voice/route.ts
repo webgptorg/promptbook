@@ -9,6 +9,7 @@ import {
 } from '@/src/utils/metaDisclaimer';
 import { extractProjectRepositoriesFromAgentSource } from '@/src/utils/projects/extractProjectRepositoriesFromAgentSource';
 import { resolveCurrentUserMemoryIdentity } from '@/src/utils/userMemory';
+import { resolveUseProjectGithubTokenFromWallet } from '@/src/utils/userWallet';
 import { Agent, computeAgentHash } from '@promptbook-local/core';
 import { serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
@@ -86,6 +87,12 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         const currentUserIdentity = await resolveCurrentUserMemoryIdentity();
         const agentSource = await collection.getAgentSource(agentName);
         const projectRepositories = extractProjectRepositoriesFromAgentSource(agentSource);
+        const projectGithubToken = currentUserIdentity
+            ? await resolveUseProjectGithubTokenFromWallet({
+                  userId: currentUserIdentity.userId,
+                  agentPermanentId,
+              })
+            : undefined;
         const disclaimerMarkdown = resolveMetaDisclaimerMarkdownFromAgentSource(agentSource);
 
         if (disclaimerMarkdown) {
@@ -127,6 +134,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             agentName,
             isPrivateModeEnabled,
             projectRepositories,
+            projectGithubToken,
         });
         const openAiAgentKitExecutionTools = await $provideOpenAiAgentKitExecutionToolsForServer();
         const agent = new Agent({

@@ -58,15 +58,24 @@ describe('USE PROJECT commitment', () => {
         expect(result.tools!.filter((tool) => tool.name === 'project_create_pull_request').length).toBe(1);
     });
 
-    it('requires GitHub token for project tools', async () => {
+    it('returns wallet-credential-required result when GitHub token is missing', async () => {
         const toolFunctions = commitment.getToolFunctions();
         const listFilesTool = toolFunctions.project_list_files!;
 
-        await expect(
-            listFilesTool({
-                repository: 'example/project',
-            }),
-        ).rejects.toThrow('GitHub token is missing');
+        const resultRaw = await listFilesTool({
+            repository: 'example/project',
+        });
+        const result = JSON.parse(resultRaw) as {
+            action?: string;
+            status?: string;
+            service?: string;
+            key?: string;
+        };
+
+        expect(result.action).toBe('project-auth');
+        expect(result.status).toBe('wallet-credential-required');
+        expect(result.service).toBe('github');
+        expect(result.key).toBe('use-project-github-token');
     });
 
     it('lists project files through GitHub API', async () => {

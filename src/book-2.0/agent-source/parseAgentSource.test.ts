@@ -373,6 +373,22 @@ describe('parseAgentSource', () => {
         });
     });
 
+    it('parses WALLET capability', () => {
+        const agentSource = validateBook(
+            spaceTrim(`
+                Agent Name
+                WALLET
+            `),
+        );
+        const result = parseAgentSource(agentSource);
+
+        expect(result.capabilities).toContainEqual({
+            type: 'wallet',
+            label: 'Wallet',
+            iconName: 'Shield',
+        });
+    });
+
     it('parses IMAGE and COLOR aliases', () => {
         const agentSource = validateBook(
             spaceTrim(`

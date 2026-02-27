@@ -118,6 +118,25 @@ describe('USE SEARCH ENGINE and USE BROWSER commitments', () => {
         );
     });
 
+    it('should add wallet tools when WALLET is used', async () => {
+        const agentSource = validateBook(`
+            Test Agent
+            WALLET Store private credentials for project access
+        `);
+        const requirements = await createAgentModelRequirements(agentSource);
+
+        expect(requirements.tools).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({ name: 'retrieve_wallet_records' }),
+                expect.objectContaining({ name: 'store_wallet_record' }),
+                expect.objectContaining({ name: 'update_wallet_record' }),
+                expect.objectContaining({ name: 'delete_wallet_record' }),
+                expect.objectContaining({ name: 'request_wallet_record' }),
+            ]),
+        );
+        expect(requirements._metadata?.useWallet).toBe('Store private credentials for project access');
+    });
+
     it('should treat `FROM {Void}` as explicit no-parent inheritance', async () => {
         const agentSource = validateBook(`
             Test Agent
