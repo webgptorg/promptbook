@@ -428,17 +428,39 @@
     transition: all 0.2s ease;
 }
 
+.completedToolCallError {
+    border-color: rgba(248, 113, 113, 0.8);
+    box-shadow: 0 0 0 1px rgba(248, 113, 113, 0.25);
+}
+
+.toolCallLabel {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.toolCallOrigin {
+    margin-left: auto;
+    font-size: 0.75em;
+    opacity: 0.85;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.teamToolCallAgentChip {
+    margin-left: auto;
+}
+
+.toolCallErrorBadge {
+    margin-left: 8px;
+    font-size: 0.9em;
+    color: #f87171;
+}
+
 .completedToolCall:hover {
     background: rgba(255, 255, 255, 0.3);
     transform: translateY(-1px);
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-}
-
-.toolCallOrigin {
-    font-size: 0.85em;
-    opacity: 0.75;
-    font-weight: 500;
-    white-space: nowrap;
 }
 
 .toolCallDetails {

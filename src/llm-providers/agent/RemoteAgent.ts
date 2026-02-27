@@ -2,7 +2,7 @@ import { BehaviorSubject } from 'rxjs';
 import spaceTrim from 'spacetrim';
 import type { AgentCapability } from '../../book-2.0/agent-source/AgentBasicInformation';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
-import { CHAT_STREAM_KEEP_ALIVE_TOKEN } from '../../constants/streaming';
+import { CHAT_STREAM_KEEP_ALIVE_TOKEN, CHAT_STREAM_METADATA_PREFIX } from '../../constants/streaming';
 import type { CallChatModelStreamOptions } from '../../execution/LlmExecutionTools';
 import type { ChatPromptResult } from '../../execution/PromptResult';
 import { book } from '../../pipeline/book-notation';
@@ -434,23 +434,41 @@ export class RemoteAgent extends Agent {
          * Attempts to parse one completed NDJSON tool-call line.
          */
         const tryParseToolCallLine = (trimmedLine: string): boolean => {
-            if (!trimmedLine.startsWith('{') || !trimmedLine.endsWith('}')) {
+            const toolCalls = extractMetadataToolCalls(trimmedLine);
+            if (!toolCalls) {
                 return false;
+            }
+
+            const normalizedToolCalls = toolCalls.map(normalizeToolCall);
+            upsertToolCalls(normalizedToolCalls);
+            emitProgress();
+            return true;
+        };
+
+        const extractMetadataToolCalls = (
+            trimmedLine: string,
+        ): ReadonlyArray<NonNullable<ChatPromptResult['toolCalls']>[number]> | null => {
+            const normalizedLine = trimmedLine.startsWith(CHAT_STREAM_METADATA_PREFIX)
+                ? trimmedLine.slice(CHAT_STREAM_METADATA_PREFIX.length).trim()
+                : trimmedLine;
+
+            if (!normalizedLine.startsWith('{') || !normalizedLine.endsWith('}')) {
+                return null;
             }
 
             try {
-                const chunk = JSON.parse(trimmedLine);
-                if (!chunk.toolCalls) {
-                    return false;
+                const chunk = JSON.parse(normalizedLine);
+                if (chunk?.kind === 'toolCalls' && Array.isArray(chunk.toolCalls)) {
+                    return chunk.toolCalls;
                 }
-
-                const normalizedToolCalls = chunk.toolCalls.map(normalizeToolCall);
-                upsertToolCalls(normalizedToolCalls);
-                emitProgress();
-                return true;
+                if (Array.isArray(chunk.toolCalls)) {
+                    return chunk.toolCalls;
+                }
             } catch {
-                return false;
+                return null;
             }
+
+            return null;
         };
 
         /**
@@ -461,9 +479,15 @@ export class RemoteAgent extends Agent {
                 return false;
             }
 
-            const toolCallPrefix = '{"toolCalls":';
-            return toolCallPrefix.startsWith(trimmedLine) || trimmedLine.startsWith(toolCallPrefix);
-        };
+        const metadataLinePrefix = `${CHAT_STREAM_METADATA_PREFIX}{`;
+        const legacyToolCallPrefix = '{"toolCalls":';
+        return (
+            metadataLinePrefix.startsWith(trimmedLine) ||
+            trimmedLine.startsWith(metadataLinePrefix) ||
+            legacyToolCallPrefix.startsWith(trimmedLine) ||
+            trimmedLine.startsWith(legacyToolCallPrefix)
+        );
+    };
 
         /**
          * Appends model text to accumulated content and emits progress.

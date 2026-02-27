@@ -20,7 +20,7 @@ import { MarkdownContent } from '../MarkdownContent/MarkdownContent';
 import { SourceChip } from '../SourceChip';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
-import { collectTeamToolCallSummary } from '../utils/collectTeamToolCallSummary';
+import { collectTeamToolCallSummary, type ToolCallOrigin } from '../utils/collectTeamToolCallSummary';
 import { isTeamToolName } from '../utils/createTeamToolNameFromUrl';
 import { getChatMessageTimingDisplay } from '../utils/getChatMessageTimingDisplay';
 import type { ToolCallChipletInfo } from '../utils/getToolCallChipletInfo';
@@ -31,7 +31,7 @@ import {
     type ParsedCitation,
 } from '../utils/parseCitationsFromContent';
 import { parseMessageButtons } from '../utils/parseMessageButtons';
-import { parseToolCallArguments } from '../utils/toolCallParsing';
+import { parseTeamToolResult, parseToolCallArguments, parseToolCallResult } from '../utils/toolCallParsing';
 import styles from './Chat.module.css';
 import type { ChatProps } from './ChatProps';
 import { LOADING_INTERACTIVE_IMAGE } from './constants';
@@ -330,6 +330,48 @@ function resolveToolCallChipLabel(
 }
 
 /**
+ * Detects whether the tool call finished with errors.
+ *
+ * @private internal helper of `<ChatMessageItem/>`
+ */
+function hasToolCallError(toolCall: ToolCall): boolean {
+    if (toolCall.errors && toolCall.errors.length > 0) {
+        return true;
+    }
+
+    const resultRaw = parseToolCallResult(toolCall.result);
+    const teamResult = parseTeamToolResult(resultRaw);
+    if (teamResult?.error) {
+        return true;
+    }
+
+    if (resultRaw && typeof resultRaw === 'object') {
+        const errorFlag = (resultRaw as Record<string, unknown>).error;
+        if (typeof errorFlag === 'string' && errorFlag.trim().length > 0) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
+ * Builds agent chip data from a tool-call origin descriptor.
+ *
+ * @private internal helper of `<ChatMessageItem/>`
+ */
+function buildAgentChipDataFromOrigin(origin: ToolCallOrigin | undefined): AgentChipData | null {
+    if (!origin?.url) {
+        return null;
+    }
+
+    return {
+        url: origin.url,
+        label: origin.label,
+    };
+}
+
+/**
  * Builds a stable participant identity for ongoing tool call grouping.
  */
 function getOngoingToolCallParticipantKey(teamAgentData: AgentChipData | null): string {
@@ -569,9 +611,8 @@ export const ChatMessageItem = memo(
             [contentSegments],
         );
         const completedToolCalls = dedupeToolCalls(
-            (message.toolCalls || message.completedToolCalls)?.filter(
-                (toolCall) => !isAssistantPreparationToolCall(toolCall),
-            ),
+            (message.toolCalls || message.completedToolCalls)
+                ?.filter((toolCall) => !isAssistantPreparationToolCall(toolCall) && !isTeamToolName(toolCall.name)),
         );
         const teamToolCallSummary = useMemo(() => collectTeamToolCallSummary(completedToolCalls), [completedToolCalls]);
         const transitiveToolCalls = teamToolCallSummary.toolCalls;
@@ -1033,29 +1074,17 @@ export const ChatMessageItem = memo(
                                     const chipletInfo = getToolCallChipletInfo(toolCall);
                                     const chipletText = resolveToolCallChipLabel(toolCall, { chipletInfo });
                                     const teamAgentData = resolveTeamAgentChipData(toolCall, teammates, chipletInfo);
+                                    const hasError = hasToolCallError(toolCall);
 
-                                    // If this is a team tool with agent data, use AgentChip
-                                    if (teamAgentData) {
-                                        return (
-                                            <AgentChip
-                                                key={index}
-                                                agent={teamAgentData}
-                                                isClickable={true}
-                                                onClick={(event) => {
-                                                    event?.stopPropagation?.();
-                                                    if (onToolCallClick) {
-                                                        onToolCallClick(toolCall);
-                                                    }
-                                                }}
-                                            />
-                                        );
-                                    }
+                                    const toolCallButtonClass = classNames(
+                                        styles.completedToolCall,
+                                        hasError ? styles.completedToolCallError : undefined,
+                                    );
 
-                                    // Otherwise, use the old button style
                                     return (
                                         <button
                                             key={index}
-                                            className={styles.completedToolCall}
+                                            className={toolCallButtonClass}
                                             onClick={(event) => {
                                                 event.stopPropagation();
                                                 if (onToolCallClick) {
@@ -1063,7 +1092,23 @@ export const ChatMessageItem = memo(
                                                 }
                                             }}
                                         >
-                                            {chipletText}
+                                            <span className={styles.toolCallLabel}>{chipletText}</span>
+                                            {teamAgentData && (
+                                                <AgentChip
+                                                    agent={teamAgentData}
+                                                    isClickable={false}
+                                                    className={styles.teamToolCallAgentChip}
+                                                />
+                                            )}
+                                            {hasError && (
+                                                <span
+                                                    className={styles.toolCallErrorBadge}
+                                                    role="img"
+                                                    aria-label="Tool call failed"
+                                                >
+                                                    ⚠️
+                                                </span>
+                                            )}
                                         </button>
                                     );
                                 })}
@@ -1072,11 +1117,17 @@ export const ChatMessageItem = memo(
                                     const chipletText = resolveToolCallChipLabel(toolCallEntry.toolCall, {
                                         chipletInfo,
                                     });
+                                    const agentData = buildAgentChipDataFromOrigin(toolCallEntry.origin);
+                                    const hasError = hasToolCallError(toolCallEntry.toolCall);
+                                    const buttonClass = classNames(
+                                        styles.completedToolCall,
+                                        hasError ? styles.completedToolCallError : undefined,
+                                    );
 
                                     return (
                                         <button
                                             key={`team-tool-${index}`}
-                                            className={styles.completedToolCall}
+                                            className={buttonClass}
                                             onClick={(event) => {
                                                 event.stopPropagation();
                                                 if (onToolCallClick) {
@@ -1084,10 +1135,27 @@ export const ChatMessageItem = memo(
                                                 }
                                             }}
                                         >
-                                            <span>{chipletText}</span>
-                                            <span className={styles.toolCallOrigin}>
-                                                by {toolCallEntry.origin.label}
-                                            </span>
+                                            <span className={styles.toolCallLabel}>{chipletText}</span>
+                                            {agentData ? (
+                                                <AgentChip
+                                                    agent={agentData}
+                                                    isClickable={false}
+                                                    className={styles.teamToolCallAgentChip}
+                                                />
+                                            ) : (
+                                                <span className={styles.toolCallOrigin}>
+                                                    by {toolCallEntry.origin.label}
+                                                </span>
+                                            )}
+                                            {hasError && (
+                                                <span
+                                                    className={styles.toolCallErrorBadge}
+                                                    role="img"
+                                                    aria-label="Tool call failed"
+                                                >
+                                                    ⚠️
+                                                </span>
+                                            )}
                                         </button>
                                     );
                                 })}

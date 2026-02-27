@@ -1,4 +1,8 @@
-import { CHAT_STREAM_KEEP_ALIVE_INTERVAL_MS, CHAT_STREAM_KEEP_ALIVE_TOKEN } from '@/src/constants/streaming';
+import {
+    CHAT_STREAM_KEEP_ALIVE_INTERVAL_MS,
+    CHAT_STREAM_KEEP_ALIVE_TOKEN,
+    CHAT_STREAM_METADATA_PREFIX,
+} from '@/src/constants/streaming';
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideOpenAiAgentKitExecutionToolsForServer } from '@/src/tools/$provideOpenAiAgentKitExecutionToolsForServer';
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
@@ -85,7 +89,7 @@ function createAssistantPreparationToolCall(phase: string): ToolCall {
  * Wraps tool calls in the NDJSON transport envelope consumed by `RemoteAgent`.
  */
 function createToolCallsStreamFrame(toolCalls: ReadonlyArray<ToolCall>): string {
-    return `\n${JSON.stringify({ toolCalls })}\n`;
+    return `\n${CHAT_STREAM_METADATA_PREFIX}${JSON.stringify({ kind: 'toolCalls', toolCalls })}\n`;
 }
 
 /**
