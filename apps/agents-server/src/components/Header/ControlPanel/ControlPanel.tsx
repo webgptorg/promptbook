@@ -1,15 +1,13 @@
 'use client';
 
 import { ChatSoundAndVibrationPanel } from '@promptbook-local/components';
-import { ChevronDown, EyeOff, Languages, Settings2, SpeakerIcon, Sparkles } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
-import { useSoundSystem } from '../../SoundSystemProvider/SoundSystemProvider';
+import { ChevronDown, EyeOff, Languages, Settings2, Sparkles, SpeakerIcon, type LucideIcon } from 'lucide-react';
+import { useCallback, useEffect, useId, useRef, useState, type ReactNode, type RefObject } from 'react';
 import { confirmPrivateModeEnable } from '../../PrivateModePreferences/confirmPrivateModeEnable';
 import { usePrivateModePreferences } from '../../PrivateModePreferences/PrivateModePreferencesProvider';
 import { useSelfLearningPreferences } from '../../SelfLearningPreferences/SelfLearningPreferencesProvider';
 import { useServerLanguage } from '../../ServerLanguage/ServerLanguageProvider';
 import { useSoundSystem } from '../../SoundSystemProvider/SoundSystemProvider';
-import { ArrowIcon } from '../../_utils/ArrowIcon';
 
 /**
  * Shared props used by every control panel presentation.
@@ -183,13 +181,13 @@ function ControlPanelContent({ title, subtitle, isMobile = false }: ControlPanel
     const selfLearningStateLabel = isPrivateModeEnabled
         ? t('controlPanel.selfLearningStateDisabledPrivate')
         : isSelfLearningEnabled
-            ? t('controlPanel.selfLearningStateLearning')
-            : t('controlPanel.selfLearningStatePaused');
+        ? t('controlPanel.selfLearningStateLearning')
+        : t('controlPanel.selfLearningStatePaused');
     const selfLearningDescription = isPrivateModeEnabled
         ? t('controlPanel.selfLearningDescriptionPrivate')
         : isSelfLearningEnabled
-            ? t('controlPanel.selfLearningDescriptionLearning')
-            : t('controlPanel.selfLearningDescriptionPaused');
+        ? t('controlPanel.selfLearningDescriptionLearning')
+        : t('controlPanel.selfLearningDescriptionPaused');
     const selfLearningDetail = isPrivateModeEnabled
         ? t('controlPanel.selfLearningDetailPrivate')
         : t('controlPanel.selfLearningDetailPaused');
@@ -206,9 +204,14 @@ function ControlPanelContent({ title, subtitle, isMobile = false }: ControlPanel
     return (
         <div className={`space-y-3 ${isMobile ? 'pt-1' : ''}`}>
             <div className="rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-slate-50 p-3">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-blue-700/80">{t('controlPanel.label')}</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-blue-700/80">
+                    {t('controlPanel.label')}
+                </p>
                 <div className="mt-2 flex flex-wrap gap-1.5">
-                    <ControlPanelStatusBadge tone={isPrivateModeEnabled ? 'danger' : 'positive'} label={privateStateLabel} />
+                    <ControlPanelStatusBadge
+                        tone={isPrivateModeEnabled ? 'danger' : 'positive'}
+                        label={privateStateLabel}
+                    />
                     <ControlPanelStatusBadge
                         tone={isPrivateModeEnabled ? 'neutral' : isSelfLearningEnabled ? 'positive' : 'informative'}
                         label={selfLearningStateLabel}
@@ -387,6 +390,9 @@ export function HeaderControlPanelDropdown() {
                         <div className="flex items-center justify-between px-2 pb-2 pt-1 text-xs font-semibold uppercase tracking-widest text-gray-500">
                             <span>{t('controlPanel.label')}</span>
                             <ChevronDown className="w-3 h-3 rotate-180 text-gray-400" />
+                        </div>
+                        <div className="max-h-[min(76vh,38rem)] overflow-y-auto overscroll-contain px-2 pb-2 pr-1.5 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+                            <ControlPanelContent />
                         </div>
                     </div>
                 </div>
