@@ -611,8 +611,9 @@ export const ChatMessageItem = memo(
             [contentSegments],
         );
         const completedToolCalls = dedupeToolCalls(
-            (message.toolCalls || message.completedToolCalls)
-                ?.filter((toolCall) => !isAssistantPreparationToolCall(toolCall) && !isTeamToolName(toolCall.name)),
+            (message.toolCalls || message.completedToolCalls)?.filter(
+                (toolCall) => !isAssistantPreparationToolCall(toolCall) && !isTeamToolName(toolCall.name),
+            ),
         );
         const teamToolCallSummary = useMemo(() => collectTeamToolCallSummary(completedToolCalls), [completedToolCalls]);
         const transitiveToolCalls = teamToolCallSummary.toolCalls;

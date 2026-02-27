@@ -3,11 +3,7 @@ import { spaceTrim } from 'spacetrim';
 import { createAgentModelRequirementsWithCommitments } from '../../book-2.0/agent-source/createAgentModelRequirementsWithCommitments';
 import type { string_book } from '../../book-2.0/agent-source/string_book';
 import { TOOL_RUNTIME_CONTEXT_ARGUMENT } from '../_common/toolRuntimeContext';
-import {
-    setWalletToolRuntimeAdapter,
-    WalletCommitmentDefinition,
-    type WalletToolRuntimeAdapter,
-} from './WALLET';
+import { setWalletToolRuntimeAdapter, WalletCommitmentDefinition, type WalletToolRuntimeAdapter } from './WALLET';
 
 /**
  * Helper to parse JSON tool results.

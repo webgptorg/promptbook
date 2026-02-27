@@ -479,15 +479,15 @@ export class RemoteAgent extends Agent {
                 return false;
             }
 
-        const metadataLinePrefix = `${CHAT_STREAM_METADATA_PREFIX}{`;
-        const legacyToolCallPrefix = '{"toolCalls":';
-        return (
-            metadataLinePrefix.startsWith(trimmedLine) ||
-            trimmedLine.startsWith(metadataLinePrefix) ||
-            legacyToolCallPrefix.startsWith(trimmedLine) ||
-            trimmedLine.startsWith(legacyToolCallPrefix)
-        );
-    };
+            const metadataLinePrefix = `${CHAT_STREAM_METADATA_PREFIX}{`;
+            const legacyToolCallPrefix = '{"toolCalls":';
+            return (
+                metadataLinePrefix.startsWith(trimmedLine) ||
+                trimmedLine.startsWith(metadataLinePrefix) ||
+                legacyToolCallPrefix.startsWith(trimmedLine) ||
+                trimmedLine.startsWith(legacyToolCallPrefix)
+            );
+        };
 
         /**
          * Appends model text to accumulated content and emits progress.

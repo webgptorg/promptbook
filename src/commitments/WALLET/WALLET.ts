@@ -505,9 +505,7 @@ function parseWalletRecordType(value: unknown, fallback?: WalletRecordType): Wal
         return fallback;
     }
 
-    throw new Error(
-        'Unsupported wallet recordType. Expected one of: USERNAME_PASSWORD, SESSION_COOKIE, ACCESS_TOKEN.',
-    );
+    throw new Error('Unsupported wallet recordType. Expected one of: USERNAME_PASSWORD, SESSION_COOKIE, ACCESS_TOKEN.');
 }
 
 /**
