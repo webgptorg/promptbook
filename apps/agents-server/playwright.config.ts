@@ -1,4 +1,5 @@
 import { defineConfig, devices } from 'playwright/test';
+import path from 'path';
 
 /**
  * Local host and port used by the mocked Supabase API during integration tests.
@@ -36,9 +37,22 @@ const APP_E2E_ENV = {
 };
 
 /**
+ * Directory under the repository root that should hold Playwright artifacts such as recorded videos.
+ */
+const E2E_ARTIFACTS_DIR = path.join(
+    __dirname,
+    '..',
+    '..',
+    'other',
+    'integration-tests',
+    'videos',
+);
+
+/**
  * Playwright configuration for Agents Server integration tests.
  */
 const config = defineConfig({
+    outputDir: E2E_ARTIFACTS_DIR,
     testDir: './tests/e2e',
     fullyParallel: false,
     workers: 1,
@@ -52,7 +66,7 @@ const config = defineConfig({
         baseURL: APP_URL,
         trace: 'on-first-retry',
         screenshot: 'only-on-failure',
-        video: 'retain-on-failure',
+        video: 'on',
     },
     projects: [
         {

@@ -11,7 +11,7 @@
 
 ---
 
-[ ]
+[x] ~$0.0843 12 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
 [✨🚿] Record videos of e2e tests into `/other/integration-tests/videos`
 
@@ -45,3 +45,4 @@ $ npm run test-e2e
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

@@ -12,3 +12,4 @@ bash.exe.stackdump
 
 .~lock.*
 *~lock~
+other/integration-tests/videos/.last-run.json
