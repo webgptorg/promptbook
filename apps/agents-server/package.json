@@ -6,7 +6,7 @@
         "prebuild": "npm run generate-reserved-paths && npx kill-port 4440 ||  exit 0",
         "predev": "npm run generate-reserved-paths && npx kill-port 4440 ||  exit 0",
         "dev": "next dev -p 4440",
-        "test": "npm run lint && npm run test-e2e",
+        "test": "npm run lint && npm run test-build && npm run test-e2e",
         "test-e2e": "playwright test",
         "pretest-build": "npx kill-port 4021",
         "test-build": "next build && node ./scripts/prerender-homepage.js",
