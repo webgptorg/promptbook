@@ -1,4 +1,4 @@
-[ ] !
+[x] ~$0.8433 21 minutes by OpenAI Codex `gpt-5.3-codex`
 
 [✨🥭] Fix "Create new agent" Button in the menu.
 
@@ -50,3 +50,4 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

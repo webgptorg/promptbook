@@ -1,7 +1,7 @@
 'use client';
 
 import promptbookLogoBlueTransparent from '@/public/logo-blue-white-256.png';
-import { $createAgentAction, logoutAction } from '@/src/app/actions';
+import { logoutAction } from '@/src/app/actions';
 import { PROMPTBOOK_COLOR } from '@promptbook-local/core';
 import {
     FileTextIcon,
@@ -42,6 +42,7 @@ import { showAlert, showLoginDialog } from '../AsyncDialogs/asyncDialogs';
 import { ChangePasswordDialog } from '../ChangePasswordDialog/ChangePasswordDialog';
 import type { ContextMenuItem } from '../ContextMenu/ContextMenuPanel';
 import { FolderAppearanceIcon } from '../FolderAppearance/FolderAppearanceIcon';
+import { useNewAgentDialog } from '../NewAgentDialog/useNewAgentDialog';
 import { useServerLanguage } from '../ServerLanguage/ServerLanguageProvider';
 import { useUsersAdmin } from '../UsersList/useUsersAdmin';
 import { HeaderControlPanelDropdown } from './ControlPanel/ControlPanel';
@@ -840,9 +841,24 @@ type AgentMenuAgentNode = {
 
 /**
  * @private
+ * Node representing a folder-level action entry inside the header menu hierarchy.
+ */
+type AgentMenuActionNode = {
+    type: 'action';
+    id: string;
+    label: string;
+    renderLabel?: ReactNode;
+    href?: string;
+    onClick?: () => void | Promise<void>;
+    isBold?: boolean;
+    isBordered?: boolean;
+};
+
+/**
+ * @private
  * Unified node type for the agent menu tree.
  */
-type AgentMenuTreeNode = AgentMenuFolderNode | AgentMenuAgentNode;
+type AgentMenuTreeNode = AgentMenuFolderNode | AgentMenuAgentNode | AgentMenuActionNode;
 
 /**
  * @private
@@ -1057,6 +1073,74 @@ function buildAgentMenuStructure(
 }
 
 /**
+ * Configuration for injecting reusable folder action nodes into each folder branch.
+ */
+type FolderActionNodeConfig = {
+    /**
+     * Label displayed for the "view all agents in this folder" action.
+     */
+    readonly viewAllLabel: string;
+    /**
+     * Text fallback displayed for the "create new agent" action.
+     */
+    readonly createLabel: string;
+    /**
+     * Optional richer node displayed for the create action.
+     */
+    readonly renderCreateLabel?: ReactNode;
+    /**
+     * Optional callback that opens the create flow scoped to a folder.
+     */
+    readonly onCreateInFolder?: (folderId: number) => void;
+};
+
+/**
+ * Appends "View all agents" and optional "Create new agent" actions to each folder branch.
+ *
+ * @param nodes - Existing folder/agent hierarchy.
+ * @param config - Labels and callbacks used for action injection.
+ * @returns New hierarchy with per-folder action nodes.
+ */
+function appendFolderActionNodes(
+    nodes: ReadonlyArray<AgentMenuTreeNode>,
+    config: FolderActionNodeConfig,
+): AgentMenuTreeNode[] {
+    return nodes.map((node) => {
+        if (node.type !== 'folder') {
+            return node;
+        }
+
+        const nestedChildren = appendFolderActionNodes(node.children, config);
+        const actionNodes: AgentMenuActionNode[] = [
+            {
+                type: 'action',
+                id: `folder-${node.id}-view-all`,
+                label: config.viewAllLabel,
+                href: node.href,
+                isBold: true,
+                isBordered: nestedChildren.length > 0,
+            },
+        ];
+
+        if (config.onCreateInFolder) {
+            actionNodes.push({
+                type: 'action',
+                id: `folder-${node.id}-create`,
+                label: config.createLabel,
+                renderLabel: config.renderCreateLabel,
+                onClick: () => config.onCreateInFolder?.(node.id),
+                isBold: true,
+            });
+        }
+
+        return {
+            ...node,
+            children: [...nestedChildren, ...actionNodes],
+        };
+    });
+}
+
+/**
  * @private
  * Props for the agent directory dropdown renderer.
  */
@@ -1205,6 +1289,57 @@ function AgentMenuColumn({
                     );
                 }
 
+                if (node.type === 'action') {
+                    const baseClassName = `flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-sm transition-colors ${
+                        node.isBold ? 'font-semibold text-gray-900' : 'text-gray-700'
+                    } ${
+                        isTouchInput
+                            ? 'hover:bg-white active:bg-gray-100'
+                            : 'hover:border-gray-200 hover:bg-gray-50 hover:text-gray-900 border border-transparent'
+                    }`.trim();
+
+                    if (node.onClick) {
+                        return (
+                            <button
+                                key={`action-${node.id}`}
+                                type="button"
+                                onClick={() => {
+                                    void node.onClick?.();
+                                    onNavigate();
+                                }}
+                                className={`${baseClassName} w-full text-left ${node.isBordered ? 'mt-1 border-t border-gray-100 pt-3' : ''}`}
+                                title={node.label}
+                            >
+                                <span className="min-w-0">{node.renderLabel ?? <span className="truncate">{node.label}</span>}</span>
+                            </button>
+                        );
+                    }
+
+                    if (node.href) {
+                        return (
+                            <HeadlessLink
+                                key={`action-${node.id}`}
+                                href={node.href}
+                                onClick={onNavigate}
+                                className={`${baseClassName} ${node.isBordered ? 'mt-1 border-t border-gray-100 pt-3' : ''}`}
+                                title={node.label}
+                            >
+                                <span className="min-w-0">{node.renderLabel ?? <span className="truncate">{node.label}</span>}</span>
+                            </HeadlessLink>
+                        );
+                    }
+
+                    return (
+                        <span
+                            key={`action-${node.id}`}
+                            className={`${baseClassName} ${node.isBordered ? 'mt-1 border-t border-gray-100 pt-3' : ''}`}
+                            title={node.label}
+                        >
+                            <span className="min-w-0">{node.renderLabel ?? <span className="truncate">{node.label}</span>}</span>
+                        </span>
+                    );
+                }
+
                 return (
                     <HeadlessLink
                         key={`agent-${node.agentName}`}
@@ -1243,6 +1378,16 @@ function createAgentHierarchyMobileItems(nodes: ReadonlyArray<AgentMenuTreeNode>
             };
         }
 
+        if (node.type === 'action') {
+            return {
+                label: node.renderLabel ?? node.label,
+                href: node.href,
+                onClick: node.onClick,
+                isBold: node.isBold,
+                isBordered: node.isBordered,
+            };
+        }
+
         return {
             label: node.renderLabel ?? node.label,
             href: node.href,
@@ -1275,7 +1420,6 @@ export function Header(props: HeaderProps) {
     const [isMobileDocsOpen, setIsMobileDocsOpen] = useState(false);
     const [isMobileSystemOpen, setIsMobileSystemOpen] = useState(false);
     const [mobileOpenSubMenus, setMobileOpenSubMenus] = useState<Record<string, boolean>>({});
-    const [isCreatingAgent, setIsCreatingAgent] = useState(false);
     const dropdownPortalContainer = useDropdownPortalContainer();
     const [openSubMenu, setOpenSubMenu] = useState<OpenSubMenuState | null>(null);
     const subMenuCloseTimer = useRef<ReturnType<typeof window.setTimeout> | null>(null);
@@ -1603,7 +1747,6 @@ export function Header(props: HeaderProps) {
 
     const { users: adminUsers } = useUsersAdmin();
     const agentMenuStructure = useMemo(() => buildAgentMenuStructure(agents, agentFolders), [agents, agentFolders]);
-    const agentMenuTree = agentMenuStructure.tree;
     const agentFolderById = useMemo(
         () => new Map(agentFolders.map((folder) => [folder.id, folder as HeaderAgentMenuFolder])),
         [agentFolders],
@@ -1782,17 +1925,11 @@ export function Header(props: HeaderProps) {
         await logoutAction();
     };
 
-    const handleCreateAgent = async () => {
-        setIsCreatingAgent(true);
-        try {
-            const agentName = await $createAgentAction();
-
-            if (agentName) {
-                pushWithHeadless(router, `/agents/${agentName}`, isHeadless);
-            } else {
-                router.refresh();
-            }
-        } catch (error) {
+    const { isPreparingDialog, openNewAgentDialog, dialog: newAgentDialog } = useNewAgentDialog({
+        onCreated: ({ permanentId }) => {
+            pushWithHeadless(router, `/agents/${encodeURIComponent(permanentId)}`, isHeadless);
+        },
+        onCreateFailed: async (error) => {
             console.error('Failed to create agent:', error);
             await showAlert({
                 title: t('header.createFailedTitle', { agentSingular: naming.singular }),
@@ -1801,24 +1938,22 @@ export function Header(props: HeaderProps) {
                         ? error.message
                         : t('header.createFailedMessage', { agentSingular: naming.singular }),
             }).catch(() => undefined);
-        } finally {
-            setIsCreatingAgent(false);
-            setIsAgentsOpen(false);
-            setIsMenuOpen(false);
-        }
-    };
-    /**
-     * Static entries appended below the dynamic hierarchy in the Agents menu.
-     */
-    const hierarchyAgentActionItems: SubMenuItem[] = [
-        {
-            label: t('header.viewAllAgents', { agentsPlural: naming.plural }),
-            href: '/agents',
-            isBold: true,
-            isBordered: true,
         },
-        {
-            label: isCreatingAgent ? (
+        onPrepareFailed: async (error) => {
+            console.error('Failed to generate agent boilerplate:', error);
+            await showAlert({
+                title: t('header.createFailedTitle', { agentSingular: naming.singular }),
+                message:
+                    error instanceof Error
+                        ? error.message
+                        : t('header.createFailedMessage', { agentSingular: naming.singular }),
+            }).catch(() => undefined);
+        },
+    });
+
+    const createNewAgentLabel = useMemo(
+        () =>
+            isPreparingDialog ? (
                 <div className="flex items-center">
                     <span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
                     {t('header.creatingAgent', { agentSingular: naming.singular })}
@@ -1826,7 +1961,51 @@ export function Header(props: HeaderProps) {
             ) : (
                 t('header.createNewAgent', { agentSingular: naming.singular })
             ),
-            onClick: isCreatingAgent ? undefined : handleCreateAgent,
+        [isPreparingDialog, naming.singular, t],
+    );
+    const createNewAgentText = t('header.createNewAgent', { agentSingular: naming.singular });
+    const viewAllAgentsLabel = t('header.viewAllAgents', { agentsPlural: naming.plural });
+
+    const handleCreateAgent = useCallback(
+        (folderId: number | null) => {
+            void openNewAgentDialog({ folderId });
+            setIsAgentsOpen(false);
+            setIsMenuOpen(false);
+        },
+        [openNewAgentDialog],
+    );
+
+    const agentMenuTree = useMemo(
+        () =>
+            appendFolderActionNodes(agentMenuStructure.tree, {
+                viewAllLabel: viewAllAgentsLabel,
+                createLabel: createNewAgentText,
+                renderCreateLabel: createNewAgentLabel,
+                onCreateInFolder: isPreparingDialog ? undefined : (folderId) => handleCreateAgent(folderId),
+            }),
+        [
+            agentMenuStructure.tree,
+            viewAllAgentsLabel,
+            createNewAgentText,
+            createNewAgentLabel,
+            isPreparingDialog,
+            handleCreateAgent,
+        ],
+    );
+
+    /**
+     * Static entries appended below the dynamic hierarchy in the Agents menu.
+     */
+    const hierarchyAgentActionItems: SubMenuItem[] = [
+        {
+            label: viewAllAgentsLabel,
+            href: '/agents',
+            isBold: true,
+            isBordered: true,
+        },
+        {
+            label: createNewAgentLabel,
+            onClick: isPreparingDialog ? undefined : () => handleCreateAgent(null),
             isBold: true,
         },
     ];
@@ -2268,10 +2447,10 @@ export function Header(props: HeaderProps) {
                                                     {t('header.viewAllAgents', { agentsPlural: naming.plural })}
                                                 </HeadlessLink>
                                                 <button
-                                                    onClick={isCreatingAgent ? undefined : handleCreateAgent}
+                                                    onClick={isPreparingDialog ? undefined : () => handleCreateAgent(null)}
                                                     className="block w-full rounded-xl px-3 py-2.5 text-left text-sm font-medium text-gray-900 hover:bg-gray-50"
                                                 >
-                                                    {isCreatingAgent ? (
+                                                    {isPreparingDialog ? (
                                                         <span className="inline-flex items-center">
                                                             <span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
                                                             {t('header.creatingAgent', {
@@ -3099,6 +3278,7 @@ export function Header(props: HeaderProps) {
                     </div>
                 )}
             </div>
+            {newAgentDialog}
         </header>
     );
 }
