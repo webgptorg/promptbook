@@ -11,15 +11,16 @@
 
 ---
 
-[-]
+[ ]
 
-[✨🚿] foo
+[✨🚿] Record videos of e2e tests into `/other/integration-tests/videos`
 
--   @@@
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
+```
+me@DESKTOP-2QD9KQQ MINGW64 ~/work/ai/promptbook/apps/agents-server (main)
+$ npm run test-e2e
+```
+
 -   You are working with the [Agents Server](apps/agents-server)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
 
@@ -44,4 +45,3 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
