@@ -1,7 +1,7 @@
 'use client';
 
 import katex from 'katex';
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useId, useMemo, useRef } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { Converter as ShowdownConverter } from 'showdown';
 import type { string_html, string_markdown } from '../../../types/typeAliases';
@@ -155,6 +155,13 @@ const INLINE_CODE_REGEX = /(`+)([\s\S]*?)(\1)/g;
 const CODE_PLACEHOLDER_PREFIX = '@@PROMPTBOOK_CODE_PLACEHOLDER__';
 const CODE_PLACEHOLDER_REGEX = new RegExp(`${CODE_PLACEHOLDER_PREFIX}(\\d+)__`, 'g');
 
+/**
+ * Captures markdown code-fence language classes such as `language-typescript`.
+ *
+ * @private utility of `MarkdownContent` component
+ */
+const CODE_LANGUAGE_CLASSNAME_PATTERN = /(?:^|\s)language-([^\s]+)/;
+
 type MaskedCodeSegmentsResult = {
     masked: string_markdown;
     restore: (value: string_markdown) => string_markdown;
@@ -192,6 +199,37 @@ function maskMarkdownCodeSegments(markdown: string_markdown): MaskedCodeSegments
             return value.replace(CODE_PLACEHOLDER_REGEX, (_match, index) => segments[Number(index)] ?? '');
         },
     };
+}
+
+/**
+ * Resolves language metadata for a rendered markdown code block from class names.
+ *
+ * @param codeElementClassName - CSS classes from the `<code>` node.
+ * @param preElementClassName - CSS classes from the parent `<pre>` node.
+ * @returns Language identifier from markdown fence info or `undefined`.
+ *
+ * @private utility of `MarkdownContent` component
+ */
+function resolveCodeBlockLanguageFromClassNames(
+    codeElementClassName: string,
+    preElementClassName: string,
+): string | undefined {
+    const codeElementLanguageMatch = codeElementClassName.match(CODE_LANGUAGE_CLASSNAME_PATTERN);
+    if (codeElementLanguageMatch?.[1]) {
+        return codeElementLanguageMatch[1];
+    }
+
+    const preElementLanguageMatch = preElementClassName.match(CODE_LANGUAGE_CLASSNAME_PATTERN);
+    if (preElementLanguageMatch?.[1]) {
+        return preElementLanguageMatch[1];
+    }
+
+    const codeElementClassTokens = codeElementClassName
+        .split(/\s+/)
+        .map((token) => token.trim())
+        .filter(Boolean);
+    const languageToken = codeElementClassTokens.find((token) => token !== 'hljs');
+    return languageToken || undefined;
 }
 
 function replaceMathDelimiter(md: string, delimiter: MathDelimiterDefinition): string {
@@ -304,6 +342,7 @@ type MarkdownContentProps = {
 export function MarkdownContent(props: MarkdownContentProps) {
     const { content, className, onCreateAgent } = props;
     const htmlContent = useMemo(() => renderMarkdown(content), [content]);
+    const markdownInstanceId = useId();
     const containerRef = useRef<HTMLDivElement>(null);
     const rootsRef = useRef<Root[]>([]);
 
@@ -318,7 +357,7 @@ export function MarkdownContent(props: MarkdownContentProps) {
 
         const preElements = containerRef.current.querySelectorAll('pre');
 
-        preElements.forEach((pre) => {
+        preElements.forEach((pre, codeBlockIndex) => {
             // Check if it is a code block (has code element)
             const codeElement = pre.querySelector('code');
             if (!codeElement) {
@@ -326,9 +365,7 @@ export function MarkdownContent(props: MarkdownContentProps) {
             }
 
             // Get language and code
-            const className = codeElement.className; // e.g. language-python
-            const match = className.match(/language-([^\s]+)/);
-            const language = match ? match[1] : undefined;
+            const language = resolveCodeBlockLanguageFromClassNames(codeElement.className, pre.className);
             const code = codeElement.textContent || '';
 
             // Clear the pre element content
@@ -345,7 +382,14 @@ export function MarkdownContent(props: MarkdownContentProps) {
 
             // Render CodeBlock
             const root = createRoot(mountPoint);
-            root.render(<CodeBlock code={code} language={language} onCreateAgent={onCreateAgent} />);
+            root.render(
+                <CodeBlock
+                    code={code}
+                    language={language}
+                    codeBlockId={`${markdownInstanceId}-${codeBlockIndex}`}
+                    onCreateAgent={onCreateAgent}
+                />,
+            );
             rootsRef.current.push(root);
         });
 
@@ -353,7 +397,7 @@ export function MarkdownContent(props: MarkdownContentProps) {
             rootsRef.current.forEach((root) => root.unmount());
             rootsRef.current = [];
         };
-    }, [htmlContent, onCreateAgent]);
+    }, [htmlContent, markdownInstanceId, onCreateAgent]);
 
     return (
         <div
