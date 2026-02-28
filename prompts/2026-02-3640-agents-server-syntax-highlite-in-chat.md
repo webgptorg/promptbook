@@ -1,8 +1,9 @@
 [x] ~$0.2641 26 minutes by OpenAI Codex `gpt-5.3-codex` - _nothing seems to happen, just a lot of files are changed, but the code is not working_
+[x] ~$0.3234 17 minutes by OpenAI Codex `gpt-5.3-codex` - _nothing seems to happen, just a lot of files are changed, but the code is not working_
 
 ---
 
-[x] ~$0.3234 17 minutes by OpenAI Codex `gpt-5.3-codex`
+[ ]
 
 [✨𓀖] Make syntax highlighting in chat
 
@@ -36,18 +37,8 @@ type foo = 'FOO';
     -   This should be a feature of the markdown rendering on the entire agent server, not only for the chat.
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
----
-
-[-]
-
-[✨𓀖] bar
-
--   @@@
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
--   You are working with the [Agents Server](apps/agents-server)
--   If you need to do the database migration, do it
--   Add the changes into the [changelog](changelog/_current-preversion.md)
+![alt text](prompts/screenshots/2026-02-3640-agents-server-syntax-highlite-in-chat.png)
+![alt text](prompts/screenshots/2026-02-3640-agents-server-syntax-highlite-in-chat-1.png)
 
 ---
 
@@ -75,3 +66,15 @@ type foo = 'FOO';
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
+---
+
+[-]
+
+[✨𓀖] bar
+
+-   @@@
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+-   If you need to do the database migration, do it
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
