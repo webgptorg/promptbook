@@ -1166,7 +1166,7 @@ function renderToolCallDetails(options: ToolCallDetailsOptions): ReactElement {
                     {headerEmoji}
                 </span>
                 <div className={styles.toolCallHeaderMeta}>
-                    <p className={styles.toolCallLabel}>Tool call</p>
+                    <p className={styles.toolCallModalLabel}>Tool call</p>
                     <h3 className={styles.toolCallTitle}>{headerTitle}</h3>
                     <p className={styles.toolCallSubtitle}>
                         {relativeTimestamp ? `Executed ${relativeTimestamp}` : 'Executed just now'} · {callTimestamp}
