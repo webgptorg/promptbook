@@ -83,9 +83,7 @@ describe('splitMessageContentIntoSegments', () => {
         const segments = splitMessageContentIntoSegments(content);
 
         expect(segments.every((segment) => segment.type === 'text')).toBe(true);
-        const rejoined = segments
-            .map((segment) => (segment.type === 'text' ? segment.content : ''))
-            .join('');
+        const rejoined = segments.map((segment) => (segment.type === 'text' ? segment.content : '')).join('');
         expect(rejoined).toBe(content);
     });
 });
