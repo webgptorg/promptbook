@@ -12,7 +12,7 @@ import type { id } from '../../../types/typeAliases';
 import { attachClientVersionHeader } from '../../../utils/clientVersion';
 import { Color } from '../../../utils/color/Color';
 import { textColor } from '../../../utils/color/operators/furthest';
-import { getToolCallIdentity } from '../../../utils/toolCalls/getToolCallIdentity';
+import { resolveToolCallIdempotencyKey } from '../../../utils/toolCalls/resolveToolCallIdempotencyKey';
 import { classNames } from '../../_common/react-utils/classNames';
 import { AvatarProfileTooltip } from '../../AvatarProfile/AvatarProfile/AvatarProfileTooltip';
 import { AgentChip, type AgentChipData } from '../AgentChip';
@@ -350,9 +350,22 @@ function getOngoingToolCallGroupKey(
     const toolKey = toolCall.idempotencyKey || toolCall.name;
     return `${toolKey}::${options.preparationPhase || ''}::${options.participantKey || ''}`;
 }
+/**
+ * Builds the stable key used to detect duplicate snapshots for a tool call.
+ *
+ * @private internal utility of `<ChatMessageItem/>`
+ */
+function getToolCallSnapshotKey(toolCall: ToolCall): string {
+    const providedIdempotencyKey =
+        typeof toolCall.idempotencyKey === 'string' ? toolCall.idempotencyKey.trim() : '';
+    const normalizedKey = providedIdempotencyKey || resolveToolCallIdempotencyKey(toolCall);
+    return `tool-snapshot:${normalizedKey}`;
+}
 
 /**
- * Deduplicates a list of tool calls by their stable identity, keeping the most recent entry.
+ * Deduplicates a list of tool calls by their idempotency key, keeping only the most recent
+ * non-error snapshot for each invocation and dropping errored snapshots once a counterpart
+ * with the same key succeeds.
  *
  * @private internal utility of `<ChatMessageItem/>`
  */
@@ -363,18 +376,18 @@ function dedupeToolCalls(toolCalls: ReadonlyArray<ToolCall> | undefined): Array<
 
     const seen = new Map<string, ToolCall>();
     for (const toolCall of toolCalls) {
-        const identity = getToolCallIdentity(toolCall);
-        const existing = seen.get(identity);
+        const key = getToolCallSnapshotKey(toolCall);
+        const existing = seen.get(key);
         if (existing) {
             const existingHasErrors = hasToolCallErrors(existing);
             const incomingHasErrors = hasToolCallErrors(toolCall);
             if (!existingHasErrors && incomingHasErrors) {
                 continue;
             }
-            seen.delete(identity);
+            seen.delete(key);
         }
 
-        seen.set(identity, toolCall);
+        seen.set(key, toolCall);
     }
 
     return Array.from(seen.values());
