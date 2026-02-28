@@ -1,3 +1,5 @@
+import type { AgentBasicInformation, string_url } from '@promptbook-local/types';
+import { AgentProfile } from '../../../components/AgentProfile/AgentProfile';
 import { PseudoAgentDescriptor } from '../../../utils/pseudoAgents';
 
 type PseudoAgentProfileProps = {
@@ -7,7 +9,38 @@ type PseudoAgentProfileProps = {
 };
 
 /**
- * Renders documentation for a pseudo agent (User/Void).
+ * Constructs a minimal agent profile that leans on the shared hero layout.
+ *
+ * @param descriptor - Source data describing the pseudo agent.
+ * @param canonicalAgentId - Permanent identifier presented in the route.
+ * @returns An object that can be rendered by `<AgentProfile />`.
+ * @private internal helper for pseudo-agent rendering
+ */
+function createPseudoAgentProfile(
+    descriptor: PseudoAgentDescriptor,
+    canonicalAgentId: string,
+): AgentBasicInformation {
+    return {
+        agentName: descriptor.displayName,
+        agentHash: `pseudo-agent-${descriptor.canonicalName}`,
+        permanentId: canonicalAgentId,
+        personaDescription: descriptor.summary,
+        initialMessage: null,
+        meta: {
+            fullname: descriptor.displayName,
+            description: descriptor.summary,
+            color: descriptor.heroColor,
+        },
+        links: [],
+        parameters: [],
+        capabilities: [],
+        samples: [],
+        knowledgeSources: [],
+    };
+}
+
+/**
+ * Renders a pseudo-agent documentation page that mirrors the regular agent profile.
  *
  * @private internal UI for pseudo-agent profile routes
  */
@@ -16,86 +49,80 @@ export function PseudoAgentProfilePage({
     canonicalAgentId,
     canonicalUrl,
 }: PseudoAgentProfileProps) {
+    const parsedUrl = new URL(canonicalUrl);
+    const canonicalPath = `/agents/${encodeURIComponent(canonicalAgentId)}`;
+    const agentEmail = `${canonicalAgentId}@${parsedUrl.hostname}`;
+    const pseudoAgentProfile = createPseudoAgentProfile(descriptor, canonicalAgentId);
+
     return (
-        <div className="min-h-screen bg-slate-950 text-white">
-            <div className="mx-auto flex max-w-5xl flex-col gap-8 px-6 py-12">
-                <section
-                    className="rounded-3xl border border-white/10 bg-gradient-to-br p-8 shadow-2xl"
-                    style={{
-                        backgroundImage: `linear-gradient(135deg, ${descriptor.heroColor}, ${descriptor.heroAccentColor})`,
-                        boxShadow: '0 25px 80px -30px rgba(15, 23, 42, 0.8)',
-                    }}
-                >
-                    <div className="flex flex-wrap items-center gap-4 text-white">
-                        <div className="text-5xl">{descriptor.emoji}</div>
-                        <div>
-                            <p className="text-xs uppercase tracking-[0.3em] text-white/70">pseudo agent</p>
-                            <h1 className="text-4xl font-bold">{descriptor.displayName}</h1>
-                            <p className="text-sm text-white/90">{descriptor.tagline}</p>
-                        </div>
-                    </div>
-                    <p className="mt-6 text-base text-white/90">{descriptor.summary}</p>
-                    <p className="mt-3 text-sm text-white/80">{descriptor.description}</p>
-                </section>
-
-                <section className="grid gap-5 md:grid-cols-2">
+        <AgentProfile
+            agent={pseudoAgentProfile}
+            agentUrl={canonicalUrl}
+            agentEmail={agentEmail}
+            publicUrl={parsedUrl.origin as string_url}
+            className="min-h-screen"
+        >
+            <div className="space-y-6 text-gray-800">
+                <div className="grid gap-4 md:grid-cols-2">
                     <InfoCard
-                        title="Local Agents Server path"
-                        value={canonicalUrl}
-                        description={`Routes to /agents/${canonicalAgentId} on this server.`}
+                        title="Local path on this server"
+                        value={canonicalPath}
+                        description="Bookmark this route to revisit the pseudo-agent documentation without leaving the server."
                     />
                     <InfoCard
-                        title="Canonical pseudo-agent URL"
+                        title="Agent reference URL"
                         value={descriptor.pseudoUrl}
-                        description="Used when agents reference {User}/{Void} in TEAM or inheritance."
+                        description="Use this identifier inside your agents to bring {User} or {Void} into play."
                     />
+                </div>
+
+                <section className="rounded-2xl border border-gray-200 bg-white/90 p-6 shadow-sm">
+                    <h2 className="text-base font-semibold text-gray-900">About {descriptor.displayName}</h2>
+                    <p className="mt-3 text-sm text-gray-700">{descriptor.description}</p>
                 </section>
 
-                <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
-                    <h2 className="text-lg font-semibold">How to use {descriptor.displayName}</h2>
-                    <ul className="mt-4 space-y-3 text-sm text-white/80">
-                        {descriptor.usageNotes.map((note) => (
-                            <li key={note} className="flex items-start gap-3">
-                                <span className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-white/80" />
+                <section className="rounded-2xl border border-gray-200 bg-white/90 p-6 shadow-sm">
+                    <h2 className="text-base font-semibold text-gray-900">Usage highlights</h2>
+                    <ul className="mt-3 space-y-2 text-sm text-gray-700">
+                        {descriptor.usageNotes.map((note, index) => (
+                            <li key={`${descriptor.canonicalName}-usage-${index}`} className="flex items-start gap-3">
+                                <span className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-gray-500" />
                                 <span>{note}</span>
                             </li>
                         ))}
                     </ul>
                 </section>
 
-                <section className="grid gap-6 md:grid-cols-2">
-                    <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-                        <p className="text-xs font-semibold uppercase tracking-[0.3em] text-white/60">
-                            Case-insensitive aliases
-                        </p>
-                        <div className="mt-3 flex flex-wrap gap-2">
-                            {descriptor.aliasExamples.map((alias) => (
-                                <span
-                                    key={alias}
-                                    className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-mono text-white/80"
-                                >
-                                    {alias}
-                                </span>
-                            ))}
-                        </div>
-                        <p className="mt-3 text-xs text-white/60">
-                            Pseudo-agent names are case insensitive and accept braces or the `@` prefix.
-                        </p>
+                <section className="rounded-2xl border border-gray-200 bg-white/90 p-6 shadow-sm">
+                    <h3 className="text-xs font-semibold uppercase tracking-[0.3em] text-gray-500">Aliases</h3>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                        {descriptor.aliasExamples.map((alias) => (
+                            <span
+                                key={alias}
+                                className="rounded-full border border-gray-300 bg-gray-100 px-3 py-1 text-xs font-mono text-gray-700"
+                            >
+                                {alias}
+                            </span>
+                        ))}
                     </div>
-                    <div className="rounded-2xl border border-white/10 bg-white/5 p-5 space-y-3">
-                        <p className="text-xs font-semibold uppercase tracking-[0.3em] text-white/60">Context</p>
-                        <p className="text-sm text-white/80">
-                            Pseudo agents only exist inside the source that references them. These pages simply
-                            explain how {descriptor.displayName} behaves; you cannot chat with them directly.
-                        </p>
-                        <p className="text-sm text-white/80">
-                            Every pseudo-agent reference runs in the same browser session as the parent agent, so
-                            any answer is immediately ignored after it is delivered.
-                        </p>
-                    </div>
+                    <p className="mt-3 text-xs uppercase tracking-[0.3em] text-gray-500">
+                        References are case insensitive and accept braces or the `@` prefix.
+                    </p>
+                </section>
+
+                <section className="rounded-2xl border border-gray-200 bg-white/90 p-6 shadow-sm">
+                    <h3 className="text-base font-semibold text-gray-900">Context</h3>
+                    <p className="mt-2 text-sm text-gray-700">
+                        Pseudo agents only exist inside the agent definition that mentions them. This page simply
+                        explains how {descriptor.displayName} behaves so you can reuse it consistently.
+                    </p>
+                    <p className="mt-2 text-sm text-gray-700">
+                        Every reply is generated inside the parent agent's session and is discarded the moment the agent
+                        continues—pseudo agents do not offer standalone chat history.
+                    </p>
                 </section>
             </div>
-        </div>
+        </AgentProfile>
     );
 }
 
@@ -106,16 +133,16 @@ type InfoCardProps = {
 };
 
 /**
- * Displays a labeled piece of information with optional explanation.
+ * Displays a labeled detail with an optional helper text.
  *
- * @private helper for pseudo-agent profile layout
+ * @private helper for pseudo-agent details
  */
 function InfoCard({ title, value, description }: InfoCardProps) {
     return (
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-5 shadow-sm">
-            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-white/60">{title}</p>
-            <div className="mt-3 text-sm font-mono text-white break-words">{value}</div>
-            {description && <p className="mt-2 text-xs text-white/60">{description}</p>}
+        <div className="rounded-2xl border border-gray-200 bg-white/90 p-5 shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-gray-500">{title}</p>
+            <div className="mt-3 text-sm font-mono text-gray-900 break-words">{value}</div>
+            {description && <p className="mt-2 text-xs text-gray-500">{description}</p>}
         </div>
     );
 }

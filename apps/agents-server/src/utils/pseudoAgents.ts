@@ -91,13 +91,13 @@ const PSEUDO_AGENT_DESCRIPTOR_BY_KIND: Readonly<Record<PseudoAgentKind, PseudoAg
         heroAccentColor: '#a855f7',
         tagline: 'The person using this agent right now.',
         summary:
-            'When an agent consults {User}, it is actually talking to the human behind the keyboard. Every {User} call opens a tiny modal that asks for exactly one message, then goes back to the agent.',
+            'When an agent consults {User}, it speaks directly to the human at the keyboard through a tiny modal that captures one reply before resuming.',
         description:
-            'Think of {User} as a real teammate that represents you. It only works inside TEAM commitments and can be written as {User}, @User, or any case-insensitive alias. Because the pseudo user has no profile, it cannot be used in FROM or IMPORT, and it never keeps history—each reply is a single, one-off message the agent then continues from.',
+            'Think of {User} as a teammate that represents you. Mention {User} inside your agent definition whenever you want the model to pause and ask for your input. Each reply is single-use, so the agent continues immediately after it arrives.',
         usageNotes: [
-            'Team-only: place {User} or @User inside your TEAM commitment to ask the current human for help. The modal collects one message before it closes.',
-            'Each pseudo-user reply is standalone: after you submit your answer, the agent uses that text and resumes the original conversation.',
-            'The modal is intentionally brief and never stores or replays your message; treat {User} as an explicit “ask the human” switch.',
+            'Mention {User} whenever you want the agent to pause and ask you something; the modal collects exactly one response.',
+            'Every {User} reply is discarded after the agent continues, so you can treat it as a temporary signal.',
+            'The modal keeps things brief and never replays earlier answers—{User} is a direct bridge to the person using the agent.',
         ],
         pseudoUrl: createPseudoAgentUrl('USER'),
         aliasExamples: ['{User}', '@User', 'User', 'user', 'USER'],
@@ -110,14 +110,13 @@ const PSEUDO_AGENT_DESCRIPTOR_BY_KIND: Readonly<Record<PseudoAgentKind, PseudoAg
         heroColor: '#020617',
         heroAccentColor: '#1f2937',
         tagline: 'Purposeful nothingness.',
-        summary:
-            '{Void} lets you drop inheritance or reference the absence of an agent. It behaves like the legacy {from void} but with consistent pseudo-agent tooling.',
+        summary: 'Use {Void} to represent a blank slate or to signal that an agent should start without leaning on any existing teammate.',
         description:
-            'Use {Void} whenever you want to talk about emptiness, silence, or to create an agent without parents. {Void} can appear in FROM, IMPORT, or any other commitment, and legacy aliases such as VOID, null, none, or nil are treated the same way.',
+            'Bring {Void} into your definitions when you want to reset context, drop inheritance, or declare intentional silence. {Void} simply marks the absence of an agent and never runs its own chat.',
         usageNotes: [
-            'Inherit from nothing: `FROM {Void}` (or legacy `FROM VOID`) creates a fresh agent with no parent or toolbox.',
-            'Drop into silence: mention {Void} in TEAM or other commitments to signal “nothing here” or “no teammate”. It never runs chat, it only represents the absence of context.',
-            'All aliases are case insensitive—{Void}, VOID, null, none, and nil point to the same pseudo agent.',
+            'Invite {Void} whenever you need a fresh agent or when a branch should stop without referencing another teammate.',
+            'Mention {Void} to signal silence—it tells the system “nothing here” before the agent continues.',
+            '{Void} never produces its own replies; it is a placeholder for emptiness and carries no history.',
         ],
         pseudoUrl: createPseudoAgentUrl('VOID'),
         aliasExamples: ['{Void}', 'Void', 'void', 'VOID', 'null', 'none', 'nil'],
