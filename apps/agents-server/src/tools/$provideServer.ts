@@ -1,6 +1,6 @@
 import { NEXT_PUBLIC_SITE_URL, SERVERS, SUPABASE_TABLE_PREFIX } from '@/config';
-import { buildServerTablePrefix } from '@/utils/serverTablePrefix';
 import { headers } from 'next/headers';
+import { buildServerTablePrefix } from '../utils/serverTablePrefix';
 
 export async function $provideServer() {
     if (!SERVERS) {

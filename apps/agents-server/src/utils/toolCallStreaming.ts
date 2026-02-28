@@ -1,5 +1,5 @@
 import type { ToolCall } from '@promptbook-local/types';
-import { resolveToolCallIdempotencyKey } from '@/src/utils/toolCalls/resolveToolCallIdempotencyKey';
+import { resolveToolCallIdempotencyKey } from '../../../../src/utils/toolCalls/resolveToolCallIdempotencyKey';
 
 /**
  * Ensures a streaming slice of a tool call carries a stable idempotency key.

@@ -1,4 +1,4 @@
-import type { AgentBasicInformation, string_url } from '@promptbook-local/types';
+import type { AgentBasicInformation, string_agent_permanent_id, string_url } from '@promptbook-local/types';
 import { AgentProfile } from '../../../components/AgentProfile/AgentProfile';
 import { PseudoAgentDescriptor } from '../../../utils/pseudoAgents';
 
@@ -16,10 +16,7 @@ type PseudoAgentProfileProps = {
  * @returns An object that can be rendered by `<AgentProfile />`.
  * @private internal helper for pseudo-agent rendering
  */
-function createPseudoAgentProfile(
-    descriptor: PseudoAgentDescriptor,
-    canonicalAgentId: string,
-): AgentBasicInformation {
+function createPseudoAgentProfile(descriptor: PseudoAgentDescriptor, canonicalAgentId: string): AgentBasicInformation {
     return {
         agentName: descriptor.displayName,
         agentHash: `pseudo-agent-${descriptor.canonicalName}`,
@@ -44,11 +41,7 @@ function createPseudoAgentProfile(
  *
  * @private internal UI for pseudo-agent profile routes
  */
-export function PseudoAgentProfilePage({
-    descriptor,
-    canonicalAgentId,
-    canonicalUrl,
-}: PseudoAgentProfileProps) {
+export function PseudoAgentProfilePage({ descriptor, canonicalAgentId, canonicalUrl }: PseudoAgentProfileProps) {
     const parsedUrl = new URL(canonicalUrl);
     const canonicalPath = `/agents/${encodeURIComponent(canonicalAgentId)}`;
     const agentEmail = `${canonicalAgentId}@${parsedUrl.hostname}`;
@@ -57,6 +50,7 @@ export function PseudoAgentProfilePage({
     return (
         <AgentProfile
             agent={pseudoAgentProfile}
+            permanentId={canonicalAgentId as string_agent_permanent_id}
             agentUrl={canonicalUrl}
             agentEmail={agentEmail}
             publicUrl={parsedUrl.origin as string_url}

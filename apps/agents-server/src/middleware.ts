@@ -4,8 +4,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { SERVERS, SUPABASE_TABLE_PREFIX } from '../config';
 import { RESERVED_PATHS } from './generated/reservedPaths';
 import { resolveCustomDomainAgent, type CustomDomainResolution } from './utils/customDomainRouting';
-import { buildServerTablePrefix } from './utils/serverTablePrefix';
 import { isIpAllowed } from './utils/isIpAllowed';
+import { buildServerTablePrefix } from './utils/serverTablePrefix';
 
 export async function middleware(req: NextRequest) {
     // 1. Get client IP
@@ -37,9 +37,10 @@ export async function middleware(req: NextRequest) {
               })
             : null;
 
-    const hasConfiguredServers = Boolean(SERVERS && SERVERS.length > 0);
+    const configuredServers = SERVERS ?? [];
+    const hasConfiguredServers = configuredServers.length > 0;
     const hostIsRegisteredServer =
-        hasConfiguredServers && host ? SERVERS.some((server) => server === host) : false;
+        hasConfiguredServers && host ? configuredServers.some((server) => server === host) : false;
     let customDomainResolution: CustomDomainResolution | null = null;
     let effectiveServerHost: string | null = null;
 
@@ -47,7 +48,7 @@ export async function middleware(req: NextRequest) {
         effectiveServerHost = host;
     } else if (host && hasConfiguredServers && supabase) {
         try {
-            customDomainResolution = await resolveCustomDomainAgent(host, supabase, SERVERS);
+            customDomainResolution = await resolveCustomDomainAgent(host, supabase, configuredServers);
             if (customDomainResolution) {
                 effectiveServerHost = customDomainResolution.serverHost;
             }
