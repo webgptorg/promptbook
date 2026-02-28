@@ -1,5 +1,6 @@
 import { spaceTrim } from 'spacetrim';
 import type { LlmExecutionTools } from '../../execution/LlmExecutionTools';
+import { $provideFilesystemForNode } from '../../scrapers/_common/register/$provideFilesystemForNode';
 import type { ScraperSourceHandler } from '../../scrapers/_common/Scraper';
 import { promptbookFetch } from '../../scrapers/_common/utils/promptbookFetch';
 import { WebsiteScraper } from '../../scrapers/website/WebsiteScraper';
@@ -77,11 +78,11 @@ export async function fetchUrlContent(url: string): Promise<string> {
             };
 
             // Use WebsiteScraper to convert HTML to markdown
-            // Note: We need minimal tools for the scraper
+            // Note: Website scraper requires filesystem tools for intermediate artifacts.
+            const fs = $provideFilesystemForNode({ isVerbose: false });
             const scraper = new WebsiteScraper( // <- TODO: !!!!! Things marked with [🟢] should never be never released in packages that could be imported into browser environment
                 {
-                    // Minimal tools - fs and llm are optional for basic scraping
-                    fs: undefined,
+                    fs,
                     llm: undefined as LlmExecutionTools | undefined,
                 },
                 {

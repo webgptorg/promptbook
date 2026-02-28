@@ -1,6 +1,7 @@
 import { $isRunningInNode, spaceTrim } from '../../_packages/utils.index';
 import { EnvironmentMismatchError } from '../../errors/EnvironmentMismatchError';
 import { fetchUrlContent } from '../USE_BROWSER/fetchUrlContent';
+import { resolveRunBrowserToolForNode } from '../USE_BROWSER/resolveRunBrowserToolForNode';
 import { resolveSendEmailToolForNode } from '../USE_EMAIL/resolveSendEmailToolForNode';
 import {
     collectCommitmentToolFunctions,
@@ -21,6 +22,13 @@ const nodeToolFunctions: CommitmentToolFunctions = {
 
         return await fetchUrlContent(url);
     },
+
+    /**
+     * @@@
+     *
+     * Note: [??] This function has implementation both for browser and node, this is the server one for node
+     */
+    run_browser: resolveRunBrowserToolForNode(),
 
     /**
      * @@@

@@ -15,7 +15,7 @@ import { fetchUrlContentViaBrowser } from './fetchUrlContentViaBrowser';
  *
  * This commitment provides two levels of browser access:
  * 1. One-shot URL fetching: Simple function to fetch and scrape URL content
- * 2. Running browser: For complex tasks like scrolling, clicking, etc. (prepared but not active yet)
+ * 2. Running browser: For complex tasks like scrolling, clicking, form filling, etc.
  *
  * The content following `USE BROWSER` is ignored (similar to NOTE).
  *
@@ -68,7 +68,7 @@ export class UseBrowserCommitmentDefinition extends BaseCommitmentDefinition<'US
             - The content following \`USE BROWSER\` is ignored (similar to NOTE)
             - Provides two levels of browser access:
               1. **One-shot URL fetching**: Simple function to fetch and scrape URL content (active)
-              2. **Running browser**: For complex tasks like scrolling, clicking, etc. (prepared but not active yet)
+              2. **Running browser**: For complex tasks like scrolling, clicking, form filling, etc. (runtime-dependent)
             - The actual browser tool usage is handled by the agent runtime
             - Allows the agent to fetch current information from websites and documents
             - Useful for research tasks, fact-checking, and accessing dynamic content
@@ -148,14 +148,14 @@ export class UseBrowserCommitmentDefinition extends BaseCommitmentDefinition<'US
             } as TODO_any);
         }
 
-        // Tool 2: Running browser (prepared but not active yet)
+        // Tool 2: Running browser for complex page interactions
         if (!existingTools.some((tool) => tool.name === 'run_browser')) {
             toolsToAdd.push({
                 name: 'run_browser',
                 description: spaceTrim(`
                     Launches a browser session for complex interactions.
                     This tool is for advanced browser automation tasks like scrolling, clicking, form filling, etc.
-                    Note: This tool is prepared but not yet active. It will be implemented in a future update.
+                    Use this when simple one-shot URL fetching is not enough.
                 `),
                 parameters: {
                     type: 'object',
@@ -205,8 +205,8 @@ export class UseBrowserCommitmentDefinition extends BaseCommitmentDefinition<'US
             },
             spaceTrim(`
                 You have access to browser tools to fetch and access content from the internet.
-                - Use "fetch_url_content" to retrieve content from specific URLs (webpages or documents)
-                - Use "run_browser" for complex browser interactions (note: not yet active)
+                - Use "fetch_url_content" to retrieve content from specific URLs (webpages or documents) using scrapers.
+                - Use "run_browser" for real interactive browser automation (navigation, clicks, typing, waiting, scrolling).
                 When you need to know information from a specific website or document, use the fetch_url_content tool.
             `),
         );
@@ -242,21 +242,15 @@ export class UseBrowserCommitmentDefinition extends BaseCommitmentDefinition<'US
 
                 const { url } = args;
 
-                // This tool is prepared but not active yet
                 return spaceTrim(`
                     # Running browser
 
-                    The running browser tool is not yet active.
+                    The running browser tool is not available in this runtime.
+
+                    This environment does not provide the server-side browser automation backend.
+                    In Agents Server Node runtime, this tool is resolved to a Playwright CLI implementation.
 
                     Requested URL: ${url}
-
-                    This feature will be implemented in a future update to support:
-                    - Complex browser interactions
-                    - Scrolling and navigation
-                    - Clicking and form filling
-                    - Taking screenshots
-
-                    For now, please use the "fetch_url_content" tool instead.
                 `);
             },
         };
