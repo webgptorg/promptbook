@@ -4,6 +4,7 @@
 
 import { Pause, Play } from 'lucide-react';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { ReactElement } from 'react';
 import { colorToDataUrl } from '../../../_packages/color.index';
 import { PROMPTBOOK_CHAT_COLOR, USER_CHAT_COLOR } from '../../../config';
 import type { ToolCall } from '../../../types/ToolCall';
@@ -21,7 +22,7 @@ import { MarkdownContent } from '../MarkdownContent/MarkdownContent';
 import { SourceChip } from '../SourceChip';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
-import { collectTeamToolCallSummary } from '../utils/collectTeamToolCallSummary';
+import { collectTeamToolCallSummary, type TransitiveToolCall } from '../utils/collectTeamToolCallSummary';
 import { isTeamToolName } from '../utils/createTeamToolNameFromUrl';
 import { getChatMessageTimingDisplay } from '../utils/getChatMessageTimingDisplay';
 import type { ToolCallChipletInfo } from '../utils/getToolCallChipletInfo';
@@ -273,104 +274,195 @@ function resolveTeamAgentChipData(
 type OngoingToolCall = NonNullable<ChatMessage['ongoingToolCalls']>[number];
 
 /**
- * Grouped ongoing tool call metadata for rendering.
+ * Status variants for tool call chips.
  */
-type OngoingToolCallGroup = {
+type ToolCallChipStatus = 'ongoing' | 'done' | 'error';
+
+/**
+ * Metadata rendered inside a single tool call chip.
+ *
+ * @private internal helper of `<ChatMessageItem/>`
+ */
+type ToolCallChipEntry = {
     /**
-     * Stable key for the grouped tool call entry.
+     * Stable key for React rendering.
      */
     key: string;
     /**
-     * Representative tool call for the group.
+     * Tool call represented by this chip.
      */
-    toolCall: OngoingToolCall;
+    toolCall: ToolCall;
     /**
-     * Number of ongoing tool calls in this group.
-     */
-    count: number;
-    /**
-     * Shared chip label used for rendering.
+     * Chip label text.
      */
     label: string;
     /**
-     * Optional agent data for TEAM tool calls.
+     * Current status of the tool call.
+     */
+    status: ToolCallChipStatus;
+    /**
+     * Optional agent metadata for TEAM or transitive tool calls.
      */
     teamAgentData: AgentChipData | null;
+    /**
+     * Marks entries built for transitive tool calls.
+     */
+    isTransitive: boolean;
 };
 
 /**
- * Appends a count suffix when multiple ongoing tool calls share the same group.
- */
-function appendOngoingToolCallCount(label: string, count: number): string {
-    if (count <= 1) {
-        return label;
-    }
-
-    return `${label} (${count}x)`;
-}
-
-/**
- * Builds the label for an ongoing tool call group.
- */
-function buildOngoingToolCallLabel(group: OngoingToolCallGroup): string {
-    return appendOngoingToolCallCount(group.label, group.count);
-}
-
-/**
- * Extracts the assistant preparation phase from one tool call, when present.
- */
-function getOngoingToolCallPreparationPhase(toolCall: ToolCall): string | undefined {
-    if (!isAssistantPreparationToolCall(toolCall)) {
-        return undefined;
-    }
-
-    const toolArguments = parseToolCallArguments(toolCall);
-    return typeof toolArguments.phase === 'string' ? toolArguments.phase : undefined;
-}
-
-/**
- * Resolves shared chip text for one tool call.
+ * Builds a stable key used for rendering a tool call chip.
  *
- * This helper is intentionally reused for both ongoing and completed tool-call chips.
+ * @private internal helper of `<ChatMessageItem/>`
  */
-function resolveToolCallChipLabel(
-    toolCall: ToolCall,
-    options: {
-        chipletInfo?: ToolCallChipletInfo;
-    } = {},
-): string {
-    const { chipletInfo } = options;
-    const preparationPhase = getOngoingToolCallPreparationPhase(toolCall);
-
-    if (preparationPhase) {
-        const toolInfo = TOOL_TITLES[toolCall.name];
-        const preparationTitle = toolInfo?.title || toolCall.name;
-        return `${preparationTitle}: ${preparationPhase}`;
+function buildToolCallChipKey(toolCall: ToolCall, options?: { originLabel?: string }): string {
+    const baseKey = getToolCallSnapshotKey(toolCall);
+    if (options?.originLabel) {
+        return `${baseKey}::${options.originLabel}`;
     }
 
-    return buildToolCallChipText(chipletInfo || getToolCallChipletInfo(toolCall));
+    return baseKey;
 }
 
 /**
- * Builds a stable participant identity for ongoing tool call grouping.
+ * Converts ongoing tool calls into chip entries consumed by the UI.
+ *
+ * @private internal helper of `<ChatMessageItem/>`
  */
-function getOngoingToolCallParticipantKey(teamAgentData: AgentChipData | null): string {
-    return teamAgentData?.url || '';
+function buildOngoingToolCallChips(
+    toolCalls: ReadonlyArray<OngoingToolCall> | undefined,
+    teammates: TeammatesMap | undefined,
+    teamAgentProfiles: ChatProps['teamAgentProfiles'] | undefined,
+): Array<ToolCallChipEntry> {
+    if (!toolCalls || toolCalls.length === 0) {
+        return [];
+    }
+
+    const entries = new Map<string, ToolCallChipEntry>();
+    for (const toolCall of toolCalls) {
+        const key = buildToolCallChipKey(toolCall);
+        const chipletInfo = getToolCallChipletInfo(toolCall);
+        const label = resolveToolCallChipLabel(toolCall, { chipletInfo });
+        const teamAgentData = resolveTeamAgentChipData(toolCall, teammates, chipletInfo, teamAgentProfiles);
+
+        entries.set(key, {
+            key,
+            toolCall,
+            label,
+            status: 'ongoing',
+            teamAgentData,
+            isTransitive: false,
+        });
+    }
+
+    return Array.from(entries.values());
 }
 
 /**
- * Builds a stable grouping key for ongoing tool calls.
+ * Builds the final tool call chips that are shown when a message completes.
+ *
+ * @private internal helper of `<ChatMessageItem/>`
  */
-function getOngoingToolCallGroupKey(
-    toolCall: OngoingToolCall,
-    options: {
-        preparationPhase?: string;
-        participantKey?: string;
-    },
-): string {
-    const toolKey = toolCall.idempotencyKey || toolCall.name;
-    return `${toolKey}::${options.preparationPhase || ''}::${options.participantKey || ''}`;
+function buildFinalToolCallChips(
+    completedToolCalls: Array<ToolCall> | undefined,
+    transitiveToolCalls: ReadonlyArray<TransitiveToolCall>,
+    teammates: TeammatesMap | undefined,
+    teamAgentProfiles: ChatProps['teamAgentProfiles'] | undefined,
+): Array<ToolCallChipEntry> {
+    const entries: Array<ToolCallChipEntry> = [];
+
+    if (completedToolCalls && completedToolCalls.length > 0) {
+        for (const toolCall of completedToolCalls) {
+            const key = buildToolCallChipKey(toolCall);
+            const chipletInfo = getToolCallChipletInfo(toolCall);
+            const label = resolveToolCallChipLabel(toolCall, { chipletInfo });
+            const teamAgentData = resolveTeamAgentChipData(toolCall, teammates, chipletInfo, teamAgentProfiles);
+
+            entries.push({
+                key,
+                toolCall,
+                label,
+                status: hasToolCallErrors(toolCall) ? 'error' : 'done',
+                teamAgentData,
+                isTransitive: false,
+            });
+        }
+    }
+
+    if (transitiveToolCalls && transitiveToolCalls.length > 0) {
+        for (const transitive of transitiveToolCalls) {
+            const key = buildToolCallChipKey(transitive.toolCall, { originLabel: transitive.origin.label });
+            const chipletInfo = getToolCallChipletInfo(transitive.toolCall);
+            const label = resolveToolCallChipLabel(transitive.toolCall, { chipletInfo });
+            const agentData: AgentChipData = {
+                url: transitive.origin.url || 'about:blank',
+                label: transitive.origin.label,
+            };
+
+            entries.push({
+                key,
+                toolCall: transitive.toolCall,
+                label,
+                status: hasToolCallErrors(transitive.toolCall) ? 'error' : 'done',
+                teamAgentData: agentData,
+                isTransitive: true,
+            });
+        }
+    }
+
+    return entries;
 }
+
+/**
+ * Renders a single tool call chip.
+ *
+ * @private internal helper of `<ChatMessageItem/>`
+ */
+function renderToolCallChip(
+    chip: ToolCallChipEntry,
+    onToolCallClick?: (toolCall: NonNullable<ChatMessage['toolCalls']>[number]) => void,
+): ReactElement {
+    const isOngoing = chip.status === 'ongoing';
+    const hasErrors = chip.status === 'error';
+
+    return (
+        <button
+            key={chip.key}
+            type="button"
+            className={classNames(
+                styles.toolCallChip,
+                chip.teamAgentData && styles.teamToolCall,
+                chip.isTransitive && styles.transitiveToolCall,
+                hasErrors && styles.toolCallWithError,
+                isOngoing && styles.toolCallChipOngoing,
+            )}
+            onClick={(event) => {
+                event.stopPropagation();
+                if (!isOngoing && onToolCallClick) {
+                    onToolCallClick(chip.toolCall);
+                }
+            }}
+            disabled={isOngoing}
+        >
+            {chip.teamAgentData && (
+                <AgentChip
+                    agent={chip.teamAgentData}
+                    className={chip.isTransitive ? styles.transitiveAgentChip : styles.teamAgentChip}
+                    isClickable={false}
+                />
+            )}
+            <span className={styles.toolCallLabel}>{chip.label}</span>
+            <span className={styles.toolCallChipStatus}>
+                {isOngoing ? (
+                    <span className={styles.toolCallChipSpinner} aria-hidden="true" />
+                ) : hasErrors ? (
+                    '⚠️'
+                ) : null}
+            </span>
+        </button>
+    );
+}
+
 /**
  * Builds the stable key used to detect duplicate snapshots for a tool call.
  *
@@ -424,53 +516,6 @@ function dedupeToolCalls(toolCalls: ReadonlyArray<ToolCall> | undefined): Array<
  */
 function hasToolCallErrors(toolCall: ToolCall): boolean {
     return Array.isArray(toolCall.errors) && toolCall.errors.length > 0;
-}
-
-/**
- * Groups ongoing tool calls by tool identity to avoid duplicate chips.
- */
-function groupOngoingToolCalls(
-    toolCalls: ReadonlyArray<OngoingToolCall> | undefined,
-    teammates: TeammatesMap | undefined,
-    teamAgentProfiles: ChatProps['teamAgentProfiles'] | undefined,
-): Array<OngoingToolCallGroup> {
-    if (!toolCalls || toolCalls.length === 0) {
-        return [];
-    }
-
-    const grouped = new Map<string, OngoingToolCallGroup>();
-    const ordered: Array<OngoingToolCallGroup> = [];
-
-    for (const toolCall of toolCalls) {
-        const chipletInfo = getToolCallChipletInfo(toolCall);
-        const label = resolveToolCallChipLabel(toolCall, { chipletInfo });
-        const preparationPhase = getOngoingToolCallPreparationPhase(toolCall);
-        const teamAgentData = resolveTeamAgentChipData(toolCall, teammates, chipletInfo, teamAgentProfiles);
-        const participantKey = getOngoingToolCallParticipantKey(teamAgentData);
-        const groupKey = getOngoingToolCallGroupKey(toolCall, {
-            preparationPhase,
-            participantKey,
-        });
-        const existing = grouped.get(groupKey);
-
-        if (existing) {
-            existing.count += 1;
-            continue;
-        }
-
-        const group: OngoingToolCallGroup = {
-            key: groupKey,
-            toolCall,
-            count: 1,
-            label,
-            teamAgentData,
-        };
-
-        grouped.set(groupKey, group);
-        ordered.push(group);
-    }
-
-    return ordered;
 }
 
 /**
@@ -648,14 +693,17 @@ export const ChatMessageItem = memo(
         const [isAudioPlaying, setIsAudioPlaying] = useState(false);
         const [audioError, setAudioError] = useState<string | null>(null);
 
-        const ongoingToolCallGroups = useMemo(
-            () => groupOngoingToolCalls(message.ongoingToolCalls, teammates, teamAgentProfiles),
+        const ongoingToolCallChips = useMemo(
+            () => buildOngoingToolCallChips(message.ongoingToolCalls, teammates, teamAgentProfiles),
             [message.ongoingToolCalls, teammates, teamAgentProfiles],
         );
-        const completedToolCallCount = completedToolCalls?.length ?? 0;
-        const transitiveToolCallCount = transitiveToolCalls.length;
-        const ongoingToolCallCount = ongoingToolCallGroups.length;
-        const toolCallChipCount = completedToolCallCount + transitiveToolCallCount + ongoingToolCallCount;
+        const finalToolCallChips = useMemo(
+            () =>
+                buildFinalToolCallChips(completedToolCalls, transitiveToolCalls, teammates, teamAgentProfiles),
+            [completedToolCalls, transitiveToolCalls, teammates, teamAgentProfiles],
+        );
+        const toolCallChips = isComplete ? finalToolCallChips : ongoingToolCallChips;
+        const toolCallChipCount = toolCallChips.length;
         const shouldShowButtons = isLastMessage && buttons.length > 0 && onMessage;
         const trimmedMessageContent = message.content.trim();
         const speechPlaybackEnabled = isSpeechPlaybackEnabled ?? true;
@@ -1095,129 +1143,9 @@ export const ChatMessageItem = memo(
                             </div>
                         )}
 
-                        {completedToolCalls && completedToolCalls.length > 0 && (
-                            <div className={styles.completedToolCalls}>
-                                {completedToolCalls.map((toolCall, index) => {
-                                    const chipletInfo = getToolCallChipletInfo(toolCall);
-                                    const chipletText = resolveToolCallChipLabel(toolCall, { chipletInfo });
-                                    const teamAgentData = resolveTeamAgentChipData(
-                                        toolCall,
-                                        teammates,
-                                        chipletInfo,
-                                        teamAgentProfiles,
-                                    );
-                                    const hasErrors = Array.isArray(toolCall.errors) && toolCall.errors.length > 0;
-                                    const toolKey = toolCall.idempotencyKey ?? `tool-${index}`;
-
-                                    if (teamAgentData) {
-                                        return (
-                                            <div
-                                                key={toolKey}
-                                                className={classNames(
-                                                    styles.completedToolCall,
-                                                    styles.teamToolCall,
-                                                    hasErrors && styles.toolCallWithError,
-                                                )}
-                                            >
-                                                <AgentChip
-                                                    agent={teamAgentData}
-                                                    className={styles.teamAgentChip}
-                                                    isClickable={true}
-                                                    onClick={(event) => {
-                                                        event?.stopPropagation?.();
-                                                        if (onToolCallClick) {
-                                                            onToolCallClick(toolCall);
-                                                        }
-                                                    }}
-                                                />
-                                                <span className={styles.toolCallLabel}>{chipletText}</span>
-                                                {hasErrors && (
-                                                    <span
-                                                        className={styles.toolCallErrorIndicator}
-                                                        role="img"
-                                                        aria-label="Tool call reported an error"
-                                                    >
-                                                        ⚠️
-                                                    </span>
-                                                )}
-                                            </div>
-                                        );
-                                    }
-
-                                    return (
-                                        <button
-                                            key={toolKey}
-                                            className={classNames(
-                                                styles.completedToolCall,
-                                                hasErrors && styles.toolCallWithError,
-                                            )}
-                                            onClick={(event) => {
-                                                event.stopPropagation();
-                                                if (onToolCallClick) {
-                                                    onToolCallClick(toolCall);
-                                                }
-                                            }}
-                                        >
-                                            <span>{chipletText}</span>
-                                            {hasErrors && (
-                                                <span
-                                                    className={styles.toolCallErrorIndicator}
-                                                    role="img"
-                                                    aria-label="Tool call reported an error"
-                                                >
-                                                    ⚠️
-                                                </span>
-                                            )}
-                                        </button>
-                                    );
-                                })}
-                                {transitiveToolCalls.map((toolCallEntry, index) => {
-                                    const chipletInfo = getToolCallChipletInfo(toolCallEntry.toolCall);
-                                    const chipletText = resolveToolCallChipLabel(toolCallEntry.toolCall, {
-                                        chipletInfo,
-                                    });
-                                    const agentData: AgentChipData = {
-                                        url: toolCallEntry.origin.url || 'about:blank',
-                                        label: toolCallEntry.origin.label,
-                                    };
-                                    const transitiveKey = toolCallEntry.toolCall.idempotencyKey ?? `team-tool-${index}`;
-                                    const transitiveHasErrors =
-                                        Array.isArray(toolCallEntry.toolCall.errors) &&
-                                        toolCallEntry.toolCall.errors.length > 0;
-
-                                    return (
-                                        <button
-                                            key={transitiveKey}
-                                            className={classNames(
-                                                styles.completedToolCall,
-                                                styles.transitiveToolCall,
-                                                transitiveHasErrors && styles.toolCallWithError,
-                                            )}
-                                            onClick={(event) => {
-                                                event.stopPropagation();
-                                                if (onToolCallClick) {
-                                                    onToolCallClick(toolCallEntry.toolCall);
-                                                }
-                                            }}
-                                        >
-                                            <AgentChip
-                                                agent={agentData}
-                                                className={styles.transitiveAgentChip}
-                                                isClickable={false}
-                                            />
-                                            <span className={styles.toolCallLabel}>{chipletText}</span>
-                                            {transitiveHasErrors && (
-                                                <span
-                                                    className={styles.toolCallErrorIndicator}
-                                                    role="img"
-                                                    aria-label="Tool call reported an error"
-                                                >
-                                                    ⚠️
-                                                </span>
-                                            )}
-                                        </button>
-                                    );
-                                })}
+                        {toolCallChips.length > 0 && (
+                            <div className={styles.toolCallChips}>
+                                {toolCallChips.map((chip) => renderToolCallChip(chip, onToolCallClick))}
                             </div>
                         )}
                         {(displayCitations.length > 0 || transitiveCitations.length > 0) && (
@@ -1237,34 +1165,6 @@ export const ChatMessageItem = memo(
                                         onClick={onCitationClick}
                                     />
                                 ))}
-                            </div>
-                        )}
-
-                        {!isComplete && ongoingToolCallGroups.length > 0 && (
-                            <div className={styles.ongoingToolCalls}>
-                                {ongoingToolCallGroups.map((group) => {
-                                    if (group.teamAgentData) {
-                                        const labelSuffix = group.count > 1 ? ` (${group.count}x)` : '';
-
-                                        return (
-                                            <AgentChip
-                                                key={group.key}
-                                                agent={group.teamAgentData}
-                                                isOngoing={true}
-                                                labelSuffix={labelSuffix}
-                                            />
-                                        );
-                                    }
-
-                                    const label = buildOngoingToolCallLabel(group);
-
-                                    return (
-                                        <div key={group.key} className={styles.ongoingToolCall}>
-                                            <div className={styles.ongoingToolCallSpinner} />
-                                            <span className={styles.ongoingToolCallName}>{`${label}...`}</span>
-                                        </div>
-                                    );
-                                })}
                             </div>
                         )}
 

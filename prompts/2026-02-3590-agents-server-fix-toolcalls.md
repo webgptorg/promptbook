@@ -66,7 +66,7 @@
 
 ---
 
-[ ]
+[x] ~$0.2176 11 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
 [✨😲] Show all ongoing toolcalls as chips as they are being streamed
 
@@ -87,5 +87,6 @@
 -   Do a proper analysis of the current functionality of toolcall chips in chat before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
 
 

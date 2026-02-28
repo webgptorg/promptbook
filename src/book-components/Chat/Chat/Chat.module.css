@@ -387,8 +387,7 @@
     animation: loadingPulse 1.5s ease-in-out infinite;
 }
 
-.ongoingToolCalls,
-.completedToolCalls {
+.toolCallChips {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
@@ -408,8 +407,7 @@
     border-top: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.ongoingToolCall,
-.completedToolCall {
+.toolCallChip {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -421,17 +419,25 @@
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     color: inherit;
     font-family: 'OpenMojiColor', 'OpenMojiBlack', Arial, Helvetica, sans-serif;
-}
-
-.completedToolCall {
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
-.completedToolCall:hover {
+.toolCallChip:hover {
     background: rgba(255, 255, 255, 0.3);
     transform: translateY(-1px);
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.toolCallChipOngoing {
+    border-color: rgba(59, 130, 246, 0.8);
+    background: rgba(14, 165, 233, 0.1);
+}
+
+.toolCallChipStatus {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
 }
 
 .teamToolCall,
@@ -451,11 +457,6 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-}
-
-.toolCallErrorIndicator {
-    margin-left: auto;
-    font-size: 1.05em;
 }
 
 .toolCallWithError {
@@ -491,17 +492,13 @@
     border: 1px solid #e2e8f0;
 }
 
-.ongoingToolCallSpinner {
+.toolCallChipSpinner {
     width: 14px;
     height: 14px;
     border: 2px solid rgba(255, 255, 255, 0.3);
     border-top-color: #fff;
     border-radius: 50%;
     animation: toolCallSpinner 0.8s linear infinite;
-}
-
-.ongoingToolCallName {
-    font-weight: 500;
 }
 
 @keyframes toolCallSpinner {

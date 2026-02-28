@@ -1,3 +1,4 @@
+-   Streaming tool calls in the Agents Server chat now render as persistent tool-call chips (spinner-animated while ongoing, flipping to done or ⚠️ error states once resolved) while still honoring TEAM agent metadata and `onToolCallClick` behavior.
 -   Added automatic Agents Server database migration execution on server runtime and unified migration logic:
     -   Refactored migration implementation into one shared runner (`apps/agents-server/src/database/runDatabaseMigrations.ts`) used by both `npm run migrate-database` and automatic server-side migration checks to keep behavior DRY.
     -   Server now automatically checks and applies pending migrations before normal database access (no manual migration command required during updates).
