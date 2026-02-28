@@ -469,8 +469,7 @@ function renderToolCallChip(
  * @private internal utility of `<ChatMessageItem/>`
  */
 function getToolCallSnapshotKey(toolCall: ToolCall): string {
-    const providedIdempotencyKey =
-        typeof toolCall.idempotencyKey === 'string' ? toolCall.idempotencyKey.trim() : '';
+    const providedIdempotencyKey = typeof toolCall.idempotencyKey === 'string' ? toolCall.idempotencyKey.trim() : '';
     const normalizedKey = providedIdempotencyKey || resolveToolCallIdempotencyKey(toolCall);
     return `tool-snapshot:${normalizedKey}`;
 }
@@ -698,8 +697,7 @@ export const ChatMessageItem = memo(
             [message.ongoingToolCalls, teammates, teamAgentProfiles],
         );
         const finalToolCallChips = useMemo(
-            () =>
-                buildFinalToolCallChips(completedToolCalls, transitiveToolCalls, teammates, teamAgentProfiles),
+            () => buildFinalToolCallChips(completedToolCalls, transitiveToolCalls, teammates, teamAgentProfiles),
             [completedToolCalls, transitiveToolCalls, teammates, teamAgentProfiles],
         );
         const toolCallChips = isComplete ? finalToolCallChips : ongoingToolCallChips;

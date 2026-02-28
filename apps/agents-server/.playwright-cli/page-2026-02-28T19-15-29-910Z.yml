@@ -1,0 +1,366 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e6]:
+        - link "⬅ AI" [ref=e8] [cursor=pointer]:
+          - /url: https://www.pavolhejny.com/gallery
+        - img "Cave of ideas foreground" [ref=e9]
+        - img "Cave of ideas background" [ref=e11]
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - generic:
+              - generic:
+                - button "◀"
+                - text: 84 / 94
+                - button "▶"
+                - button "▶"
+                - spinbutton: "450"
+                - textbox: "#0f0a05"
+                - text: "#0f0a05"
+                - spinbutton: "77"
+                - textbox: blur(0px)
+              - generic:
+                - link "Pavol_Hejn_texture_of_wall_of_the_cave_04bf2b15-68bd-4b9c-bf06-561fea6bcb7e.d8a1d5d7.png":
+                  - /url: https://www.midjourney.com/app/jobs/04bf2b15-68bd-4b9c-bf06-561fea6bcb7e
+    - main [ref=e12]:
+      - generic [ref=e13]:
+        - link "Pavol Hejny 🖊 From 0 to 1" [ref=e14] [cursor=pointer]:
+          - /url: https://www.pavolhejny.com/
+          - heading "Pavol Hejny 🖊 From 0 to 1" [level=1] [ref=e15]:
+            - img "Pavol Hejny 🖊 From 0 to 1" [ref=e16]
+        - generic [ref=e17]:
+          - paragraph [ref=e18]:
+            - text: ChatGPT, AI, ML, GPT, Anthropic Claude, Gemini, LLM, GitHub Co–pilot, Cursor, RAG, MCP, Books…
+            - img "🤯" [ref=e19]
+          - paragraph [ref=e20]:
+            - text: Are you leveraging the
+            - strong [ref=e21]: full potential of AI
+            - text: in your business?
+          - paragraph [ref=e22]:
+            - text: Technology is constantly evolving and we are currently experiencing a massive wave of the emergence of
+            - strong [ref=e23]: generative AI
+            - text: ","
+            - text: which is becoming more and more like the massive rise of the personal computer or the early days of the internet.
+          - paragraph [ref=e24]:
+            - text: It is almost certain that virtually every sector of human activity will be affected by this revolution,
+            - text: and there will be winners and losers from this massive change.
+          - paragraph [ref=e25]:
+            - text: It is virtually impossible to maintain an awareness of all that is happening in the field of technology and to filter out the key technologies from the daily noise.
+            - strong [ref=e26]: I'd be happy to help you with all of that.
+      - generic [ref=e27]:
+        - heading "Who I am?" [level=2] [ref=e28]
+        - img
+        - img "Portrait photo of Pavol Hejný" [ref=e30]
+        - img [ref=e33]
+        - generic [ref=e35]:
+          - paragraph [ref=e36]: I'm Pavol, a developer who is passionate about using new tools and technologies.
+          - paragraph [ref=e37]:
+            - text: Currently, I am focusing on the
+            - link "Promptbook" [ref=e38] [cursor=pointer]:
+              - /url: https://github.com/webgptorg/promptbook
+            - text: framework – a new way of using AI models in a more human–like way.
+          - paragraph [ref=e39]:
+            - text: I am a member of the
+            - link "Ainautes" [ref=e40] [cursor=pointer]:
+              - /url: https://www.ainautes.com
+            - text: consulting group, which supports with the deployment of generative AI around the world.
+          - paragraph [ref=e41]:
+            - text: Before the massive emergence of generative AI, I have created the first Czech virtual whiteboard,
+            - link "Collboard" [ref=e42] [cursor=pointer]:
+              - /url: https://collboard.com
+            - text: ", and electronic textbooks,"
+            - link "H-edu" [ref=e43] [cursor=pointer]:
+              - /url: https://h-edu.cz
+            - text: ", which were used by tens of thousands of children."
+          - paragraph [ref=e44]:
+            - text: I have also worked on many scientific projects for the
+            - link "Czech Ornithological Society" [ref=e45] [cursor=pointer]:
+              - /url: https://www.birdlife.cz/en/
+            - text: .
+            - text: I regularly give lectures at conferences, sit on juries, and act as a mentor in many Czech and international competitions.
+            - text: I have a special heart for this, and I love
+            - link "open–source" [ref=e46] [cursor=pointer]:
+              - /url: https://github.com/hejny
+            - text: – you can find many of my things on my GitHub.
+        - img "Pavol Hejný" [ref=e47]
+        - link "Show CV" [ref=e48] [cursor=pointer]:
+          - /url: https://docs.google.com/document/d/1M0Py3W4eul8WMfzlvlHHBs50tP2hQ1f519QomfAOhcM/edit?usp=sharing
+      - generic [ref=e49]:
+        - heading "How can I help you?" [level=2] [ref=e50]
+        - paragraph [ref=e52]:
+          - text: I specialise in building
+          - strong [ref=e53]: fully functional prototypes
+          - text: from scratch to
+          - text: proof of concept, staying ahead of the latest technologies. Let me guide you
+          - text: through the ever–changing landscape of new, emerging and disruptive
+          - text: technologies.
+        - generic [ref=e54]:
+          - link "Consult I offer expert advice on various technologies, providing cave of ideas in lightbulb with transparent look thr d3273ad0-097f-4011-b799-1c379bb05ee3" [ref=e55] [cursor=pointer]:
+            - /url: "#contact"
+            - generic [ref=e56]:
+              - generic:
+                - generic: Consult
+              - paragraph [ref=e59]: I offer expert advice on various technologies, providing
+              - img "cave of ideas in lightbulb with transparent look thr d3273ad0-097f-4011-b799-1c379bb05ee3" [ref=e61]
+          - link "Talk I provide overviews of various technologies, highlighting their pros and cons to ensure a well–rounded understanding. cave with presentation dec31ff2-3b9d-42b9-b84f-f87d02d6a391" [ref=e62] [cursor=pointer]:
+            - /url: "#contact"
+            - generic [ref=e63]:
+              - generic:
+                - generic: Talk
+              - paragraph [ref=e66]: I provide overviews of various technologies, highlighting their pros and cons to ensure a well–rounded understanding.
+              - img "cave with presentation dec31ff2-3b9d-42b9-b84f-f87d02d6a391" [ref=e68]
+          - link "Prototype I will bring your new project into the reality through effective prototyping and seamless transition from concept to implementation. cave with prototyping laboratory ca9b82b9-0ded-44a3-b7ec-344ebb539439" [ref=e69] [cursor=pointer]:
+            - /url: "#contact"
+            - generic [ref=e70]:
+              - generic:
+                - generic: Prototype
+              - paragraph [ref=e73]:
+                - text: I will bring your new project into the reality through effective
+                - text: prototyping and seamless transition from concept to implementation.
+              - img "cave with prototyping laboratory ca9b82b9-0ded-44a3-b7ec-344ebb539439" [ref=e75]
+        - link "Get in touch 🚀" [ref=e76] [cursor=pointer]:
+          - /url: https://www.pavolhejny.com/#contact
+          - paragraph [ref=e78]:
+            - text: Get in touch
+            - img "🚀" [ref=e79]
+      - generic [ref=e80]:
+        - heading "References" [level=2] [ref=e81]
+        - generic [ref=e82]:
+          - generic [ref=e83]:
+            - img "Portrait photo of Tomáš Studeník" [ref=e85]
+            - link "Tomáš Studeník" [ref=e87] [cursor=pointer]:
+              - /url: https://www.tomas-studenik.com/
+            - generic [ref=e88]: Startupper
+            - generic [ref=e90]: I've known Pavol for 6 years. Especially from hackathons and other innovation projects. If you are with his team, you can bet he'll be in the top three. And you would have right! Pavol is an innovator who knows the latest technologies and can find quick solutions to challenges in industry, education and urban development. He's capable of making a difference within 24 hours. He is one of the top 10 people in the country for rapid prototyping of applications.
+          - generic [ref=e91]:
+            - img "Portrait photo of Jan Šedo" [ref=e93]
+            - link "Jan Šedo" [ref=e95] [cursor=pointer]:
+              - /url: http://www.jansedo.cz/
+            - generic [ref=e96]: Founder of H-edu
+            - generic [ref=e98]: Pavol built a prototype of our H-edu app so that we could get immediate investment. He then designed the architecture of the system and the use of the technology, which proved to be the right choice for our purposes. In the early days of covid-19, responded very well to the teaching needs of the teachers and in record time created exactly the solution that thousands of teachers have since used.
+          - generic [ref=e99]:
+            - img "Portrait photo of Max Kozlov" [ref=e101]
+            - link "Max Kozlov" [ref=e103] [cursor=pointer]:
+              - /url: https://www.linkedin.com/in/themaxkozlov
+            - generic [ref=e104]: Founder & CEO - Undout
+            - generic [ref=e106]: Pavol is an absolute beast when it comes to creating digital products. I've seen him – literally overnight – create an integrated chatbot that won us the 1st place at Startup Weekend Prague. He learns any topic or technology quickly and builds even faster, with exceptional usability. I'd recommend Pavol to everyone who wants to see real life results in a manageable time frame. Plus he's really considerate, kind and a pleasure to work with.
+        - link "See more references" [ref=e107] [cursor=pointer]:
+          - /url: https://www.pavolhejny.com/references
+      - generic [ref=e108]:
+        - heading "What have I worked on?" [level=2] [ref=e109]
+        - paragraph [ref=e111]: "Here are some of the larger projects that I have been involved in:"
+        - generic [ref=e112]:
+          - link "Promptbook Build responsible, controlled and transparent applications on top of LLM models" [ref=e113] [cursor=pointer]:
+            - /url: https://webgpt.cz/?partner=ph&utm_medium=referral&utm_source=personal-page&utm_content=projects-section&utm_campaign=partner-ph
+            - generic [ref=e114]:
+              - generic [ref=e115]: Promptbook
+              - paragraph [ref=e117]: Build responsible, controlled and transparent applications on top of LLM models
+          - link "Collboard Collboard is a modular online virtual whiteboard for education." [ref=e120] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e121]:
+              - generic [ref=e122]: Collboard
+              - paragraph [ref=e124]: Collboard is a modular online virtual whiteboard for education.
+          - link "Ainautes A group of people who navigate you through the seas of artificial intelligence." [ref=e127] [cursor=pointer]:
+            - /url: https://www.ainautes.com/
+            - generic [ref=e128]:
+              - generic [ref=e129]: Ainautes
+              - paragraph [ref=e131]: A group of people who navigate you through the seas of artificial intelligence.
+          - link "Birds A series of citizen science projects for the Czech Society for Ornithology." [ref=e134] [cursor=pointer]:
+            - /url: "#"
+            - generic [ref=e135]:
+              - generic [ref=e136]: Birds
+              - paragraph [ref=e138]: A series of citizen science projects for the Czech Society for Ornithology.
+          - link "H-edu An online platform for schools and teachers with interactive materials and tools." [ref=e141] [cursor=pointer]:
+            - /url: https://www.h-edu.cz/
+            - generic [ref=e142]:
+              - generic [ref=e143]: H-edu
+              - paragraph [ref=e145]: An online platform for schools and teachers with interactive materials and tools.
+          - link "Your project Let's get your ideas off the ground and turn them into a reality!" [ref=e148] [cursor=pointer]:
+            - /url: /#contact
+            - generic [ref=e149]:
+              - generic [ref=e150]: Your project
+              - paragraph [ref=e152]: Let's get your ideas off the ground and turn them into a reality!
+        - link "See all my projects" [ref=e155] [cursor=pointer]:
+          - /url: https://github.com/hejny/hejny/blob/main/documents/projects.md
+      - generic [ref=e156]:
+        - heading "Get in touch!" [level=2] [ref=e157]
+        - generic [ref=e158]:
+          - img "Portrait photo of Pavol Hejný looking behind of 3D printer" [ref=e159]
+          - list [ref=e160]:
+            - listitem [ref=e161]:
+              - link "Email" [ref=e162] [cursor=pointer]:
+                - /url: mailto:pavol@hejny.org
+            - listitem [ref=e163]:
+              - link "GitHub" [ref=e164] [cursor=pointer]:
+                - /url: https://github.com/hejny/
+            - listitem [ref=e165]:
+              - link "LinkedIn" [ref=e166] [cursor=pointer]:
+                - /url: https://www.linkedin.com/in/hejny/
+            - listitem [ref=e167]:
+              - link "Messenger" [ref=e168] [cursor=pointer]:
+                - /url: https://m.me/hejny
+            - listitem [ref=e169]:
+              - link "More" [ref=e170] [cursor=pointer]:
+                - /url: https://www.pavolhejny.com/contact
+        - generic [ref=e171]:
+          - generic [ref=e172]:
+            - paragraph [ref=e173]: "Jméno:"
+            - textbox "Jméno:" [ref=e174]:
+              - /placeholder: Vaše jméno
+          - generic [ref=e175]:
+            - paragraph [ref=e176]: "Email:"
+            - textbox "Email:" [ref=e177]:
+              - /placeholder: jan.novak@seznam.cz
+          - generic [ref=e178]:
+            - paragraph [ref=e179]: "Telefonní číslo:"
+            - textbox "Telefonní číslo:" [ref=e180]:
+              - /placeholder: "+420123456789"
+          - generic [ref=e181]:
+            - paragraph [ref=e182]: "Zájem o školení na téma:"
+            - combobox "Zájem o školení na téma:" [ref=e183]:
+              - 'option "Varianta 1: Vývoj pomocí AI" [selected]'
+              - 'option "Varianta 2: Vývoj AI aplikací"'
+          - generic [ref=e184]:
+            - paragraph [ref=e185]: "Zpráva:"
+            - textbox "Zpráva:" [ref=e186]:
+              - /placeholder: Můžete nám napsat jaké jsou vaše požadavky
+          - button "Odeslat" [ref=e188]
+        - iframe [ref=e194]:
+          - generic [active] [ref=f1e1]:
+            - img
+            - main [ref=f1e2]:
+              - generic [ref=f1e3]:
+                - generic [ref=f1e4]:
+                  - generic [ref=f1e8]:
+                    - list [ref=f1e9]:
+                      - listitem [ref=f1e10]:
+                        - link "Pavol Hejný" [ref=f1e11] [cursor=pointer]:
+                          - /url: https://cal.com/hejny?redirect=false
+                          - img "Pavol Hejný" [ref=f1e13]
+                    - paragraph [ref=f1e14]: Pavol Hejný
+                    - heading "Meet Pavol" [level=1] [ref=f1e15]
+                    - generic [ref=f1e16]:
+                      - generic [ref=f1e17]:
+                        - img [ref=f1e18]
+                        - generic [ref=f1e21]:
+                          - list [ref=f1e22]:
+                            - listitem [ref=f1e23] [cursor=pointer]:
+                              - generic [ref=f1e24]: 30m
+                            - listitem [ref=f1e25] [cursor=pointer]:
+                              - generic [ref=f1e26]: 45m
+                            - listitem [ref=f1e27] [cursor=pointer]:
+                              - generic [ref=f1e28]: 1h
+                            - listitem [ref=f1e29] [cursor=pointer]:
+                              - generic [ref=f1e30]: 2h
+                          - button [ref=f1e31]:
+                            - img [ref=f1e34]
+                      - generic [ref=f1e38]:
+                        - img "map-pin" [ref=f1e39]
+                        - paragraph [ref=f1e40]: 2 location options
+                      - generic [ref=f1e41] [cursor=pointer]:
+                        - img [ref=f1e42]
+                        - generic [ref=f1e50]:
+                          - generic [ref=f1e51]:
+                            - paragraph [ref=f1e53]: Europe/Prague
+                            - combobox "Timezone Select" [ref=f1e55]
+                          - img [ref=f1e59]
+                  - generic [ref=f1e62]:
+                    - generic [ref=f1e63]:
+                      - time [ref=f1e65]:
+                        - strong [ref=f1e66]: March
+                        - text: "2026"
+                      - generic [ref=f1e68]:
+                        - button "View previous month" [ref=f1e69] [cursor=pointer]:
+                          - img [ref=f1e70]
+                        - button "View next month" [ref=f1e72] [cursor=pointer]:
+                          - img [ref=f1e73]
+                    - generic [ref=f1e75]:
+                      - generic [ref=f1e76]: Mon
+                      - generic [ref=f1e77]: Tue
+                      - generic [ref=f1e78]: Wed
+                      - generic [ref=f1e79]: Thu
+                      - generic [ref=f1e80]: Fri
+                      - generic [ref=f1e81]: Sat
+                      - generic [ref=f1e82]: Sun
+                    - generic [ref=f1e83]:
+                      - button "1" [ref=f1e91]
+                      - button "2" [ref=f1e93]
+                      - button "3" [ref=f1e95]
+                      - button "4" [disabled] [ref=f1e97]
+                      - button "5" [ref=f1e99]
+                      - button "6" [ref=f1e101]
+                      - button "7" [ref=f1e103]
+                      - button "8" [ref=f1e105]
+                      - button "9" [ref=f1e107]
+                      - button "10" [ref=f1e109]
+                      - button "11" [disabled] [ref=f1e111]
+                      - button "12" [disabled] [ref=f1e113]
+                      - button "13" [ref=f1e115]
+                      - button "14" [ref=f1e117]
+                      - button "15" [ref=f1e119]
+                      - button "16" [ref=f1e121]
+                      - button "17" [ref=f1e123]
+                      - button "18" [disabled] [ref=f1e125]
+                      - button "19" [ref=f1e127]
+                      - button "20" [ref=f1e129]
+                      - button "21" [ref=f1e131]
+                      - button "22" [ref=f1e133]
+                      - button "23" [ref=f1e135]
+                      - button "24" [ref=f1e137]
+                      - button "25" [disabled] [ref=f1e139]
+                      - button "26" [disabled] [ref=f1e141]
+                      - button "27" [ref=f1e143]
+                      - button "28" [ref=f1e145]
+                      - button "29" [ref=f1e147]
+                      - button "30" [ref=f1e149]
+                      - button "31" [ref=f1e151]
+                  - generic [ref=f1e152]:
+                    - generic [ref=f1e154]:
+                      - generic [ref=f1e155]:
+                        - text: Sun
+                        - generic [ref=f1e156]: "01"
+                      - group "Time format" [ref=f1e158]:
+                        - radio "12h" [checked] [ref=f1e159] [cursor=pointer]:
+                          - generic [ref=f1e160]: 12h
+                        - radio "24h" [ref=f1e161] [cursor=pointer]:
+                          - generic [ref=f1e162]: 24h
+                    - generic [ref=f1e166]:
+                      - button "9:00am" [ref=f1e168] [cursor=pointer]:
+                        - generic [ref=f1e170]: 9:00am
+                      - button "10:00am" [ref=f1e172] [cursor=pointer]:
+                        - generic [ref=f1e174]: 10:00am
+                      - button "11:00am" [ref=f1e176] [cursor=pointer]:
+                        - generic [ref=f1e178]: 11:00am
+                      - button "12:00pm" [ref=f1e180] [cursor=pointer]:
+                        - generic [ref=f1e182]: 12:00pm
+                      - button "1:00pm" [ref=f1e184] [cursor=pointer]:
+                        - generic [ref=f1e186]: 1:00pm
+                      - button "2:00pm" [ref=f1e188] [cursor=pointer]:
+                        - generic [ref=f1e190]: 2:00pm
+                - link "Cal.com Logo" [ref=f1e193] [cursor=pointer]:
+                  - /url: https://go.cal.com/booking
+                  - img "Cal.com Logo" [ref=f1e194]
+              - region "Notifications alt+T"
+            - alert [ref=f1e195]
+    - contentinfo [ref=e195]:
+      - list [ref=e197]:
+        - listitem [ref=e198]: © 2026
+        - listitem [ref=e199]:
+          - text: "|"
+          - link "Home" [ref=e200] [cursor=pointer]:
+            - /url: https://www.pavolhejny.com/
+        - listitem [ref=e201]:
+          - text: "|"
+          - link "Gallery" [ref=e202] [cursor=pointer]:
+            - /url: https://www.pavolhejny.com/gallery
+        - listitem [ref=e203]:
+          - text: "|"
+          - link "Contact" [ref=e204] [cursor=pointer]:
+            - /url: https://www.pavolhejny.com/contact
+        - listitem [ref=e205]:
+          - text: "|"
+          - link "Technical details" [ref=e206] [cursor=pointer]:
+            - /url: https://www.pavolhejny.com/about
+  - alert [ref=e207]

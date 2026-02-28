@@ -26,8 +26,7 @@ import type { AgentChatProps } from './AgentChatProps';
  * @public exported from `@promptbook/components`
  */
 export function AgentChat(props: AgentChatProps) {
-    const { agent, title, persistenceKey, onChange, sendMessage, toolTitles, teamAgentProfiles, ...restProps } =
-        props;
+    const { agent, title, persistenceKey, onChange, sendMessage, toolTitles, teamAgentProfiles, ...restProps } = props;
 
     const brandColor = Color.fromSafe(agent.meta.color || PROMPTBOOK_COLOR).then(saturate(-0.2));
     const agentAvatarUrl = resolveAgentAvatarImageUrl({ agent });
