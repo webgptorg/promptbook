@@ -18,7 +18,7 @@
 
 ---
 
-[ ]
+[x] ~$0.2213 11 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
 [✨💰] Use proper Monaco editor for custom CSS editing.
 
@@ -66,3 +66,4 @@
 -   Do a proper analysis of the current functionality of `CustomStylesheet` before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

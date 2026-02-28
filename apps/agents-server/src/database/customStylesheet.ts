@@ -25,6 +25,17 @@ export type CustomStylesheetRow = {
 };
 
 /**
+ * Validation error thrown when CSS payload is invalid.
+ * @public
+ */
+export class CustomStylesheetValidationError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = 'CustomStylesheetValidationError';
+    }
+}
+
+/**
  * Minimal supabase error shape used by this module.
  */
 type SupabaseErrorLike = {
@@ -80,7 +91,7 @@ async function getCustomStylesheetTableName(): Promise<string> {
 }
 
 /**
- * Returns 	rue when the Supabase error indicates a missing relation/table.
+ * Returns true when the Supabase error indicates a missing relation/table.
  * @private
  */
 function isMissingRelationError(error: unknown): boolean {
@@ -98,8 +109,8 @@ function isMissingRelationError(error: unknown): boolean {
 }
 
 /**
- * Loads every custom stylesheet row in deterministic creation order.
- * @public
+ * Returns a typed supabase client for the CustomStylesheet table.
+ * @private
  */
 function getCustomStylesheetClient(): DynamicSupabaseClient {
     return $provideSupabase() as unknown as DynamicSupabaseClient;
@@ -127,45 +138,52 @@ export async function listCustomStylesheets(): Promise<CustomStylesheetRow[]> {
 }
 
 /**
- * Returns currently configured global custom stylesheet row.
- * @public
- */
-export async function getCurrentCustomStylesheetRow(): Promise<CustomStylesheetRow | null> {
-    const rows = await listCustomStylesheets();
-    return rows[0] ?? null;
-}
-
-/**
  * Builds the aggregated custom CSS string from all saved stylesheets.
  * @public
  */
-export async function getCurrentCustomStylesheetCss(): Promise<string> {
-    const row = await getCurrentCustomStylesheetRow();
-    return row?.css ?? '';
+export async function getAggregatedCustomStylesheetCss(): Promise<string> {
+    const files = await listCustomStylesheets();
+    const snippets = files.map((file) => file.css).filter(Boolean);
+    return snippets.join('\n\n');
 }
 
 /**
- * Saves currently configured global custom stylesheet.
+ * Input payload used when saving a custom stylesheet.
  * @public
  */
-export async function saveCustomStylesheetCss(css: string): Promise<CustomStylesheetRow> {
+export type SaveCustomStylesheetFileInput = {
+    id?: number;
+    scope: string;
+    css: string;
+};
+
+/**
+ * Persists a single custom stylesheet entry.
+ * @public
+ */
+export async function saveCustomStylesheetFile({
+    id,
+    scope,
+    css,
+}: SaveCustomStylesheetFileInput): Promise<CustomStylesheetRow> {
+    const trimmedScope = scope.trim();
+
+    if (!trimmedScope) {
+        throw new CustomStylesheetValidationError('Stylesheet name is required.');
+    }
+
     if (css.length > MAX_CUSTOM_STYLESHEET_LENGTH) {
-        throw new Error(`Custom CSS exceeds maximum length of ${MAX_CUSTOM_STYLESHEET_LENGTH} characters.`);
+        throw new CustomStylesheetValidationError(
+            `Custom CSS exceeds maximum length of ${MAX_CUSTOM_STYLESHEET_LENGTH} characters.`,
+        );
     }
 
     const table = await getCustomStylesheetTableName();
     const supabase = getCustomStylesheetClient();
-    const current = await getCurrentCustomStylesheetRow();
-    const values = {
-        scope: 'global',
-        css,
-        updatedAt: new Date().toISOString(),
-    };
+    const now = new Date().toISOString();
+    const values = { scope: trimmedScope, css, updatedAt: now };
 
-    const query = current
-        ? supabase.from(table).update(values).eq('id', current.id)
-        : supabase.from(table).insert(values);
-
+    const query = id ? supabase.from(table).update(values).eq('id', id) : supabase.from(table).insert(values);
     const { data, error } = await query.select('*').single();
 
     if (error) {
@@ -173,8 +191,31 @@ export async function saveCustomStylesheetCss(css: string): Promise<CustomStyles
             throw new Error('CustomStylesheet table is missing. Apply database migrations before saving CSS.');
         }
 
+        if (error.code === '23505') {
+            throw new CustomStylesheetValidationError('A stylesheet with this name already exists.');
+        }
+
         throw new Error(`Failed to save custom stylesheet: ${error.message || String(error)}`);
     }
 
     return data as CustomStylesheetRow;
+}
+
+/**
+ * Deletes a persisted stylesheet row.
+ * @public
+ */
+export async function deleteCustomStylesheetFile(id: number): Promise<void> {
+    const table = await getCustomStylesheetTableName();
+    const supabase = getCustomStylesheetClient();
+
+    const { error } = await supabase.from(table).delete().eq('id', id);
+
+    if (error) {
+        if (isMissingRelationError(error)) {
+            throw new Error('CustomStylesheet table is missing. Apply database migrations before deleting stylesheets.');
+        }
+
+        throw new Error(`Failed to delete custom stylesheet: ${error.message || String(error)}`);
+    }
 }

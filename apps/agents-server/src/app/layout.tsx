@@ -4,7 +4,7 @@ import type { Metadata } from 'next';
 import { Barlow_Condensed, Poppins } from 'next/font/google';
 import { cookies } from 'next/headers';
 import { getCustomJavascriptWithIntegrations } from '../database/customJavascript';
-import { getCurrentCustomStylesheetCss } from '../database/customStylesheet';
+import { getAggregatedCustomStylesheetCss } from '../database/customStylesheet';
 import { getMetadataMap } from '../database/getMetadata';
 import {
     resolveServerLanguageCode,
@@ -161,7 +161,7 @@ export default async function RootLayout({
     let customJavascript = '';
 
     try {
-        customStylesheetCss = await getCurrentCustomStylesheetCss();
+        customStylesheetCss = await getAggregatedCustomStylesheetCss();
     } catch (error) {
         console.error('Failed to load custom stylesheet CSS', error);
     }
