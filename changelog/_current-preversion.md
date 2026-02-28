@@ -1,3 +1,8 @@
+-   Added automatic Agents Server database migration execution on server runtime and unified migration logic:
+    -   Refactored migration implementation into one shared runner (`apps/agents-server/src/database/runDatabaseMigrations.ts`) used by both `npm run migrate-database` and automatic server-side migration checks to keep behavior DRY.
+    -   Server now automatically checks and applies pending migrations before normal database access (no manual migration command required during updates).
+    -   Upgraded migration tracking table schema to include `appliedBy` (`AUTOMATIC` / `MANUAL`) and now records each newly applied migration with its application source.
+
 -   Integrated GitHub App authentication into Agents Server `USE PROJECT` flow:
     -   Added server-side GitHub App connect/callback/status API routes (`/api/github-app/connect`, `/api/github-app/callback`, `/api/github-app/status`) backed by signed state, user-scoped installation linking, and installation-token refresh.
     -   `USE PROJECT` token resolution in Agents Server now prefers manual wallet token and then automatically resolves GitHub App installation token, mirroring auto-issued tokens into wallet records without manual copy/paste.

@@ -1,13 +1,17 @@
 import { NEXT_PUBLIC_SITE_URL, SERVERS, SUPABASE_TABLE_PREFIX } from '@/config';
 import { headers } from 'next/headers';
+import { ensureAutomaticDatabaseMigrationsForPrefix } from '../database/ensureAutomaticDatabaseMigrations';
 import { buildServerTablePrefix } from '../utils/serverTablePrefix';
 
 export async function $provideServer() {
+    let resolvedServer: { publicUrl: URL; tablePrefix: string };
     if (!SERVERS) {
-        return {
+        resolvedServer = {
             publicUrl: NEXT_PUBLIC_SITE_URL || new URL(`https://${(await headers()).get('host') || 'localhost:4440'}`),
             tablePrefix: SUPABASE_TABLE_PREFIX,
         };
+        await ensureAutomaticDatabaseMigrationsForPrefix(resolvedServer.tablePrefix);
+        return resolvedServer;
     }
 
     const headersList = await headers();
@@ -24,17 +28,21 @@ export async function $provideServer() {
             host = xPromptbookServer;
         } else if (host.startsWith('127.0.0.1') || host.startsWith('localhost')) {
             // Allow localhost for development/prerendering
-            return {
+            resolvedServer = {
                 publicUrl: NEXT_PUBLIC_SITE_URL || new URL(`https://${host}`),
                 tablePrefix: SUPABASE_TABLE_PREFIX,
             };
+            await ensureAutomaticDatabaseMigrationsForPrefix(resolvedServer.tablePrefix);
+            return resolvedServer;
         } else {
             throw new Error(`Server with host "${host}" is not configured in SERVERS`);
         }
     }
 
-    return {
+    resolvedServer = {
         publicUrl: new URL(`https://${host}`),
         tablePrefix: buildServerTablePrefix(host),
     };
+    await ensureAutomaticDatabaseMigrationsForPrefix(resolvedServer.tablePrefix);
+    return resolvedServer;
 }
