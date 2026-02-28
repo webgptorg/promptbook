@@ -1437,6 +1437,7 @@ export function Header(props: HeaderProps) {
     const [desktopExpandedSubMenus, setDesktopExpandedSubMenus] = useState<Record<string, boolean>>({});
     const [isAgentQrCodeOpen, setIsAgentQrCodeOpen] = useState(false);
     const { installPromptEvent, isInstalled, handleInstallApp } = useInstallPromptState();
+    const headerRef = useRef<HTMLElement | null>(null);
 
     useEffect(() => {
         if (!isMenuOpen) {
@@ -1457,6 +1458,18 @@ export function Header(props: HeaderProps) {
 
     useEffect(() => {
         setDesktopExpandedSubMenus({});
+        setOpenSubMenu(null);
+
+        if (subMenuCloseTimer.current) {
+            clearTimeout(subMenuCloseTimer.current);
+            subMenuCloseTimer.current = null;
+        }
+        Object.values(menuCloseTimers.current).forEach((timer) => {
+            if (timer) {
+                clearTimeout(timer);
+            }
+        });
+        menuCloseTimers.current = {};
     }, [isTouchInput]);
 
     useEffect(() => {
@@ -1528,12 +1541,60 @@ export function Header(props: HeaderProps) {
      * @private Schedules a delayed close for a header dropdown.
      */
     const scheduleMenuClose = (menuId: string, close: () => void) => {
+        if (isTouchInput) {
+            return;
+        }
         cancelMenuClose(menuId);
         menuCloseTimers.current[menuId] = setTimeout(() => {
             close();
             menuCloseTimers.current[menuId] = null;
         }, HEADER_DROPDOWN_CLOSE_DELAY_MS);
     };
+
+    /**
+     * Closes all desktop header dropdowns and nested submenu state.
+     *
+     * @private
+     */
+    const closeAllDesktopHeaderDropdowns = useCallback(() => {
+        setIsFederatedOpen(false);
+        setIsAgentsOpen(false);
+        setIsAgentViewOpen(false);
+        setIsDocsOpen(false);
+        setIsSystemOpen(false);
+        setIsProfileOpen(false);
+        setOpenSubMenu(null);
+        setDesktopExpandedSubMenus({});
+    }, []);
+
+    /**
+     * On touch/coarse-pointer layouts, close desktop dropdowns when tapping outside
+     * the header so tap-based expansion remains predictable without hover timers.
+     *
+     * @private
+     */
+    useEffect(() => {
+        if (!isTouchInput) {
+            return;
+        }
+
+        const handlePointerDown = (event: PointerEvent) => {
+            if (!headerRef.current) {
+                return;
+            }
+
+            if (headerRef.current.contains(event.target as Node)) {
+                return;
+            }
+
+            closeAllDesktopHeaderDropdowns();
+        };
+
+        document.addEventListener('pointerdown', handlePointerDown);
+        return () => {
+            document.removeEventListener('pointerdown', handlePointerDown);
+        };
+    }, [closeAllDesktopHeaderDropdowns, isTouchInput]);
 
     const visibleDocumentationCommitments = useMemo(() => getVisibleCommitmentDefinitions(), []);
     const documentationDropdownItems = useMemo(
@@ -2252,7 +2313,10 @@ export function Header(props: HeaderProps) {
     ];
 
     return (
-        <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200 h-16">
+        <header
+            ref={headerRef}
+            className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200 h-16"
+        >
             {isChangePasswordOpen && <ChangePasswordDialog onClose={() => setIsChangePasswordOpen(false)} />}
             {isAgentQrCodeOpen && activeAgent && (
                 <QrCodeModal

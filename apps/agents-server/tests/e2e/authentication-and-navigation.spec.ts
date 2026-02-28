@@ -1,6 +1,44 @@
-import { expect, test } from 'playwright/test';
+import { expect, test, type Page } from 'playwright/test';
 import { loginAsAdmin, logoutFromHeader } from './support/auth';
 import { openHeaderMenu } from './support/navigation';
+
+/**
+ * Emulates a coarse-pointer touch environment while keeping desktop viewport width.
+ *
+ * @param page - Current Playwright page.
+ */
+async function emulateTouchInput(page: Page) {
+    await page.addInitScript(() => {
+        const originalMatchMedia = window.matchMedia.bind(window);
+
+        Object.defineProperty(navigator, 'maxTouchPoints', {
+            configurable: true,
+            get: () => 5,
+        });
+
+        Object.defineProperty(window, 'ontouchstart', {
+            configurable: true,
+            value: null,
+        });
+
+        window.matchMedia = (query: string): MediaQueryList => {
+            if (query === '(hover: none) and (pointer: coarse)') {
+                return {
+                    matches: true,
+                    media: query,
+                    onchange: null,
+                    addListener: () => void 0,
+                    removeListener: () => void 0,
+                    addEventListener: () => void 0,
+                    removeEventListener: () => void 0,
+                    dispatchEvent: () => false,
+                } as MediaQueryList;
+            }
+
+            return originalMatchMedia(query);
+        };
+    });
+}
 
 /**
  * Core authentication and navigation integration flows for Agents Server.
@@ -38,5 +76,24 @@ test.describe('Agents Server authentication and navigation', () => {
         await expect(page.getByRole('heading', { name: 'User Memory' })).toBeVisible();
 
         await logoutFromHeader(page);
+    });
+
+    test('keeps nested header submenu items tappable on touch devices', async ({ page }) => {
+        await emulateTouchInput(page);
+        await page.goto('/');
+
+        await loginAsAdmin(page);
+        await openHeaderMenu(page, 'Documentation');
+
+        const allSubmenuButton = page.getByRole('button', { name: /^All$/ });
+        await expect(allSubmenuButton).toBeVisible();
+        await allSubmenuButton.click();
+
+        const personaLink = page.getByRole('link', { name: /^PERSONA\b/ });
+        await expect(personaLink).toBeVisible();
+        await personaLink.click();
+
+        await expect(page).toHaveURL(/\/docs\/PERSONA$/);
+        await expect(page.getByRole('heading', { name: 'PERSONA', exact: true })).toBeVisible();
     });
 });
