@@ -55,7 +55,7 @@ export type AgentRouteTarget = LocalAgentRouteTarget | RemoteAgentRouteTarget | 
  * Resolves any incoming `/agents/:agentId` token into a canonical target URL.
  *
  * Supported inputs include plain IDs/names, `@name`, `{name}`, `{id}`, and absolute `/agents/...` URLs.
- * Pseudo-agent tokens such as `{User}` or `{Void}` resolve to dedicated documentation pages.
+ * Pseudo-agent tokens such as `{User}`, `{Void}`, or `{Null}` resolve to dedicated documentation pages.
  *
  * @param rawReference - Raw decoded route parameter value.
  * @returns Canonical local/remote route target or `null` when the reference cannot be resolved.

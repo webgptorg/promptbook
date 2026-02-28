@@ -72,7 +72,7 @@ export function PseudoAgentProfilePage({
                     <InfoCard
                         title="Agent reference URL"
                         value={descriptor.pseudoUrl}
-                        description="Use this identifier inside your agents to bring {User} or {Void} into play."
+                        description="Use this identifier inside your agents to bring {User}, {Void}, or {Null} into play."
                     />
                 </div>
 

@@ -31,16 +31,28 @@ export const PSEUDO_AGENT_VOID_URL = 'https://pseudo-agent.promptbook/void';
 export const VOID_PSEUDO_AGENT_REFERENCE = '{Void}';
 
 /**
+ * Normalized alias keys that should resolve to the `{Void}` pseudo-agent.
+ *
+ * @private internal utility of pseudo-agent resolution
+ */
+export const VOID_PSEUDO_AGENT_ALIAS_KEYS = ['void', 'null', 'none', 'nil'] as const;
+
+/**
  * Legacy aliases that historically behaved like `FROM VOID`.
  */
-const LEGACY_VOID_ALIASES = new Set<string>(['void', 'null', 'none', 'nil']);
+const LEGACY_VOID_ALIASES = new Set<string>(VOID_PSEUDO_AGENT_ALIAS_KEYS);
+
+const VOID_ALIAS_ENTRIES: Array<[string, PseudoAgentKind]> = VOID_PSEUDO_AGENT_ALIAS_KEYS.map((alias) => [
+    alias,
+    'VOID',
+]);
 
 /**
  * Mapping from normalized pseudo-agent names to their runtime kinds.
  */
 const PSEUDO_AGENT_REFERENCE_KIND_MAP: Readonly<Record<string, PseudoAgentKind>> = {
     user: 'USER',
-    void: 'VOID',
+    ...Object.fromEntries(VOID_ALIAS_ENTRIES),
 };
 
 /**

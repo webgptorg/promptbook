@@ -2,6 +2,7 @@ import {
     createPseudoAgentUrl,
     resolvePseudoAgentKindFromReference,
     type PseudoAgentKind,
+    VOID_PSEUDO_AGENT_ALIAS_KEYS,
 } from '../../../../src/book-2.0/agent-source/pseudoAgentReferences';
 
 /**
@@ -81,6 +82,18 @@ export type PseudoAgentDescriptor = {
     readonly aliasExamples: ReadonlyArray<string>;
 };
 
+const VOID_PSEUDO_AGENT_ALIAS_EXAMPLES: ReadonlyArray<string> = [
+    '{Void}',
+    '{Null}',
+    'Void',
+    'Null',
+    'void',
+    'null',
+    'VOID',
+    'NULL',
+    ...VOID_PSEUDO_AGENT_ALIAS_KEYS.filter((alias) => alias !== 'void' && alias !== 'null'),
+];
+
 const PSEUDO_AGENT_DESCRIPTOR_BY_KIND: Readonly<Record<PseudoAgentKind, PseudoAgentDescriptor>> = {
     USER: {
         kind: 'USER',
@@ -110,16 +123,16 @@ const PSEUDO_AGENT_DESCRIPTOR_BY_KIND: Readonly<Record<PseudoAgentKind, PseudoAg
         heroColor: '#020617',
         heroAccentColor: '#1f2937',
         tagline: 'Purposeful nothingness.',
-        summary: 'Use {Void} to represent a blank slate or to signal that an agent should start without leaning on any existing teammate.',
+        summary: 'Use {Void} (or {Null}) to represent a blank slate or to signal that an agent should start without leaning on any existing teammate.',
         description:
-            'Bring {Void} into your definitions when you want to reset context, drop inheritance, or declare intentional silence. {Void} simply marks the absence of an agent and never runs its own chat.',
+            'Bring {Void} (a.k.a. {Null}) into your definitions when you want to reset context, drop inheritance, or declare intentional silence. {Void} simply marks the absence of an agent and never runs its own chat.',
         usageNotes: [
-            'Invite {Void} whenever you need a fresh agent or when a branch should stop without referencing another teammate.',
+            'Invite {Void} (or {Null}) whenever you need a fresh agent or when a branch should stop without referencing another teammate.',
             'Mention {Void} to signal silence—it tells the system “nothing here” before the agent continues.',
             '{Void} never produces its own replies; it is a placeholder for emptiness and carries no history.',
         ],
         pseudoUrl: createPseudoAgentUrl('VOID'),
-        aliasExamples: ['{Void}', 'Void', 'void', 'VOID', 'null', 'none', 'nil'],
+        aliasExamples: VOID_PSEUDO_AGENT_ALIAS_EXAMPLES,
     },
 };
 

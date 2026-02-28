@@ -76,6 +76,24 @@ describe('how `resolveInheritedAgentSource` works', () => {
         );
     });
 
+    it('should resolve `FROM {Null}` commitment in agent', async () => {
+        await expect(
+            resolveInheritedAgentSource(book`
+                Beatrice
+
+                FROM {Null}
+                LANGUAGE Italian
+            `),
+        ).resolves.toEqual(
+            book`
+                Beatrice
+
+                FROM {Null}
+                LANGUAGE Italian
+            `,
+        );
+    });
+
     it('should keep the agent working when compact FROM reference is missing', async () => {
         const agentReferenceResolver = await createServerAgentReferenceResolver({
             agentCollection: createMockAgentCollection([]),
