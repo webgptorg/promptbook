@@ -1,5 +1,11 @@
 [x] ~$0.88 an hour by OpenAI Codex `gpt-5.3-codex`
 
+---
+
+[ ] !
+
+@@@@@@@@
+
 [✨👆] Allow to define multiple agents in one book.
 
 ```book
@@ -9,20 +15,20 @@ PERSONA Helpful assistant
 TEAM You can ask for {Copywriter} for help with copywriting tasks, {Developer} for help with development tasks, and {Marketer} for help with marketing tasks.
 
 
----
+---@@@
 
 Copywriter
 
 PERSONA Copywriter is an expert in copywriting, writing catchy and engaging texts for ads, social media, websites, etc. Copywriter is very creative and has a good understanding of marketing psychology.
 
----
+---@@@
 
 Developer
 
 PERSONA Developer is an expert in software development, programming languages, algorithms, data structures, etc. Developer can help with coding tasks, code review, debugging, etc.
 
 
----
+---@@@
 
 Marketer
 
@@ -73,4 +79,3 @@ PERSONA Marketer is an expert in marketing, growth, SEO, content marketing, etc.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
