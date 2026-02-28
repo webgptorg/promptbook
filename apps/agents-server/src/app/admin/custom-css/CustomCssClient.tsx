@@ -5,10 +5,10 @@ import type { ChangeEvent } from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useUnsavedChangesGuard } from '../../../components/utils/useUnsavedChangesGuard';
 import {
-    customStylesheetClassEntries,
     createDefaultCustomStylesheetCss,
+    customStylesheetClassEntries,
+    MAX_CUSTOM_STYLESHEET_LENGTH,
 } from '../../../constants/customStylesheet';
-import { MAX_CUSTOM_STYLESHEET_LENGTH } from '../../../database/customStylesheet';
 import { CUSTOM_RESOURCE_INPUT_CLASS_NAME, readJsonResponse } from '../custom-resource/shared';
 
 const NEW_FILE_BASE_NAME = 'custom-stylesheet';
@@ -433,7 +433,11 @@ export function CustomCssClient() {
                 separate files to keep thematic tweaks easy to edit.
             </p>
 
-            {error && <div className="mb-4 rounded-md border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
+            {error && (
+                <div className="mb-4 rounded-md border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+                    {error}
+                </div>
+            )}
             {successMessage && (
                 <div className="mb-4 rounded-md border border-green-300 bg-green-50 px-4 py-3 text-sm text-green-800">
                     {successMessage}
@@ -445,7 +449,9 @@ export function CustomCssClient() {
                     <div className="grid gap-4 lg:grid-cols-[260px_1fr]">
                         <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
                             <div className="mb-3 flex items-center justify-between gap-2">
-                                <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-700">Stylesheets</h2>
+                                <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-700">
+                                    Stylesheets
+                                </h2>
                                 <button
                                     type="button"
                                     onClick={addNewFile}
@@ -475,7 +481,9 @@ export function CustomCssClient() {
                                                     : 'border-transparent bg-white hover:border-gray-300'
                                             }`}
                                         >
-                                            <div className="text-sm font-medium text-gray-900">{file.scope || 'Untitled stylesheet'}</div>
+                                            <div className="text-sm font-medium text-gray-900">
+                                                {file.scope || 'Untitled stylesheet'}
+                                            </div>
                                             <div className="text-xs text-gray-500">
                                                 {file.updatedAt
                                                     ? `Saved ${new Date(file.updatedAt).toLocaleString()}`
@@ -500,7 +508,10 @@ export function CustomCssClient() {
                             {currentFile ? (
                                 <>
                                     <div className="mb-3">
-                                        <label htmlFor="custom-css-name" className="mb-2 block text-sm font-medium text-gray-700">
+                                        <label
+                                            htmlFor="custom-css-name"
+                                            className="mb-2 block text-sm font-medium text-gray-700"
+                                        >
                                             File name
                                         </label>
                                         <input
@@ -590,7 +601,10 @@ export function CustomCssClient() {
                     </p>
                     <ul className="mt-4 space-y-2">
                         {customStylesheetClassEntries.map((entry) => (
-                            <li key={entry.className} className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2">
+                            <li
+                                key={entry.className}
+                                className="rounded-md border border-gray-200 bg-gray-50 px-3 py-2"
+                            >
                                 <div className="font-mono text-xs text-blue-700">.{entry.className}</div>
                                 <div className="mt-1 text-xs text-gray-600">{entry.description}</div>
                             </li>

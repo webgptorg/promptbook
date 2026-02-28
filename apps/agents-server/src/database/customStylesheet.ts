@@ -1,3 +1,4 @@
+import { MAX_CUSTOM_STYLESHEET_LENGTH } from '../constants/customStylesheet';
 import { $provideServer } from '../tools/$provideServer';
 import { $provideSupabase } from './$provideSupabase';
 
@@ -5,12 +6,6 @@ import { $provideSupabase } from './$provideSupabase';
  * Database table basename that stores admin-defined CSS.
  */
 const CUSTOM_STYLESHEET_TABLE_BASENAME = 'CustomStylesheet';
-
-/**
- * Upper bound for persisted custom CSS length.
- * @public
- */
-export const MAX_CUSTOM_STYLESHEET_LENGTH = 100_000;
 
 /**
  * Stored CustomStylesheet row shape.
@@ -213,7 +208,9 @@ export async function deleteCustomStylesheetFile(id: number): Promise<void> {
 
     if (error) {
         if (isMissingRelationError(error)) {
-            throw new Error('CustomStylesheet table is missing. Apply database migrations before deleting stylesheets.');
+            throw new Error(
+                'CustomStylesheet table is missing. Apply database migrations before deleting stylesheets.',
+            );
         }
 
         throw new Error(`Failed to delete custom stylesheet: ${error.message || String(error)}`);

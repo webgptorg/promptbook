@@ -1,4 +1,12 @@
-import { chatCssClassDescriptions, chatCssClassNames } from '../../../../src/book-components/Chat/Chat/chatCssClassNames';
+import {
+    chatCssClassDescriptions,
+    chatCssClassNames,
+} from '../../../../src/book-components/Chat/Chat/chatCssClassNames';
+
+/**
+ * Upper bound for persisted custom CSS length.
+ */
+export const MAX_CUSTOM_STYLESHEET_LENGTH = 100_000;
 
 /**
  * One class-name reference exposed in the custom stylesheet admin UI.

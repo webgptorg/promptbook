@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { MAX_CUSTOM_STYLESHEET_LENGTH } from '../../../constants/customStylesheet';
 import {
     CustomStylesheetValidationError,
     deleteCustomStylesheetFile,
     listCustomStylesheets,
-    MAX_CUSTOM_STYLESHEET_LENGTH,
     saveCustomStylesheetFile,
 } from '../../../database/customStylesheet';
 import { isUserAdmin } from '../../../utils/isUserAdmin';
