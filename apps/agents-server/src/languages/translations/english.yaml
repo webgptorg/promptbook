@@ -128,3 +128,55 @@ agentCreation.createFailedMessage: Failed to create agent. Please try again.
 agentCreation.dialogTitle: Create New Agent
 agentCreation.dialogCreateAction: Create Agent
 agentCreation.dialogCreating: Creating...
+footer.productSectionTitle: Product
+footer.getStarted: Get started
+footer.manifest: Manifest
+footer.documentation: Documentation
+footer.termsOfService: Terms of Service
+footer.privacyPolicy: Privacy Policy
+footer.companySectionTitle: Company
+footer.aboutUs: About Us
+footer.blog: Blog
+footer.logosAndBranding: Logos & Branding
+footer.connectSectionTitle: Connect
+footer.linksSectionTitle: Links
+footer.allRightsReserved: All rights reserved.
+footer.madeInCzechRepublic: Made with ❤️ in the Czech Republic.
+footer.engineVersion: Promptbook engine version
+forbidden.title: 403 Forbidden
+forbidden.message: You do not have permission to access this page.
+users.loadingUsers: Loading users...
+users.sectionTitle: Users ({count})
+users.adminRole: Admin
+users.createdLabel: Created
+users.removeAdmin: Remove Admin
+users.makeAdmin: Make Admin
+users.delete: Delete
+users.addNewUser: Add New User
+users.usernamePlaceholder: Username
+users.passwordPlaceholder: Password
+users.passwordAriaLabel: Password
+users.isAdminCheckbox: Is Admin
+users.createUser: Create User
+users.deleteConfirmTitle: Delete user
+users.deleteConfirmMessage: Are you sure you want to delete user {username}?
+users.deleteConfirmAction: Delete user
+users.deleteConfirmCancel: Cancel
+users.errorOccurred: An error occurred
+users.errorFetchFailed: Failed to fetch users
+users.errorCreateFailed: Failed to create user
+users.errorDeleteFailed: Failed to delete user
+users.errorUpdateFailed: Failed to update user
+users.userDetailLoading: Loading user...
+users.userNotFound: User not found.
+users.backToUsers: Back to users
+users.profileTitle: "User profile: {username}"
+users.idLabel: ID
+users.createdAtLabel: Created
+users.lastUpdatedLabel: Last updated
+users.unknownValue: Unknown
+users.deleteUserAction: Delete user
+users.createdAgentsTitle: Created agents
+users.createdAgentsDescription: Listing agents created by users is not wired to the data model yet.
+users.activityTitle: Activity
+users.activityDescription: Detailed activity tracking is not implemented yet. For now, you can use the created and updated timestamps above as a basic signal of recent changes.

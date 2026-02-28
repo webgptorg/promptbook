@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useMemo } from 'react';
 import { Card } from '../../../../components/Homepage/Card';
 import { Section } from '../../../../components/Homepage/Section';
+import { useServerLanguage } from '../../../../components/ServerLanguage/ServerLanguageProvider';
 import { useUsersAdmin } from '../../../../components/UsersList/useUsersAdmin';
 
 type UserDetailClientProps = {
@@ -19,6 +20,7 @@ type UserDetailClientProps = {
 
 export function UserDetailClient({ userId }: UserDetailClientProps) {
     const router = useRouter();
+    const { t } = useServerLanguage();
     const { users, loading, error, deleteUser, toggleAdmin } = useUsersAdmin();
 
     const user = useMemo(
@@ -40,7 +42,7 @@ export function UserDetailClient({ userId }: UserDetailClientProps) {
     };
 
     if (loading && !user) {
-        return <div className="container mx-auto px-4 py-8">Loading user...</div>;
+        return <div className="container mx-auto px-4 py-8">{t('users.userDetailLoading')}</div>;
     }
 
     if (error && !user) {
@@ -54,9 +56,9 @@ export function UserDetailClient({ userId }: UserDetailClientProps) {
     if (!user) {
         return (
             <div className="container mx-auto px-4 py-8">
-                <p className="text-gray-600">User not found.</p>
+                <p className="text-gray-600">{t('users.userNotFound')}</p>
                 <Link href="/admin/users" className="mt-4 inline-block text-blue-600 hover:text-blue-800 text-sm">
-                    &larr; Back to users
+                    &larr; {t('users.backToUsers')}
                 </Link>
             </div>
         );
@@ -65,31 +67,33 @@ export function UserDetailClient({ userId }: UserDetailClientProps) {
     return (
         <div className="container mx-auto px-4 py-8 space-y-6">
             <Link href="/admin/users" className="text-sm text-blue-600 hover:text-blue-800">
-                &larr; Back to users
+                &larr; {t('users.backToUsers')}
             </Link>
 
-            <Section title={`User profile: ${user.username}`}>
+            <Section title={t('users.profileTitle', { username: user.username })}>
                 <Card>
                     <div className="flex justify-between items-start">
                         <div>
                             <h2 className="text-2xl font-semibold text-gray-900">{user.username}</h2>
                             {user.isAdmin && (
                                 <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded mt-1">
-                                    Admin
+                                    {t('users.adminRole')}
                                 </span>
                             )}
-                            <p className="text-gray-500 text-sm mt-2">ID: {user.id}</p>
-                            <p className="text-gray-500 text-sm mt-1">
-                                Created:{' '}
-                                {user.createdAt
-                                    ? new Date(user.createdAt).toLocaleString()
-                                    : 'Unknown'}
+                            <p className="text-gray-500 text-sm mt-2">
+                                {t('users.idLabel')}: {user.id}
                             </p>
                             <p className="text-gray-500 text-sm mt-1">
-                                Last updated:{' '}
+                                {t('users.createdAtLabel')}:{' '}
+                                {user.createdAt
+                                    ? new Date(user.createdAt).toLocaleString()
+                                    : t('users.unknownValue')}
+                            </p>
+                            <p className="text-gray-500 text-sm mt-1">
+                                {t('users.lastUpdatedLabel')}:{' '}
                                 {user.updatedAt
                                     ? new Date(user.updatedAt).toLocaleString()
-                                    : 'Unknown'}
+                                    : t('users.unknownValue')}
                             </p>
                         </div>
                         <div className="space-x-2">
@@ -97,31 +101,30 @@ export function UserDetailClient({ userId }: UserDetailClientProps) {
                                 onClick={handleToggleAdmin}
                                 className="text-sm text-blue-600 hover:text-blue-800"
                             >
-                                {user.isAdmin ? 'Remove admin' : 'Make admin'}
+                                {user.isAdmin ? t('users.removeAdmin') : t('users.makeAdmin')}
                             </button>
                             <button
                                 onClick={handleDelete}
                                 className="text-sm text-red-600 hover:text-red-800"
                             >
-                                Delete user
+                                {t('users.deleteUserAction')}
                             </button>
                         </div>
                     </div>
                 </Card>
 
                 <Card>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Created agents</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('users.createdAgentsTitle')}</h3>
                     <p className="text-gray-600 text-sm">
-                        Listing agents created by users is not wired to the data model yet.
+                        {t('users.createdAgentsDescription')}
                         {/* TODO: [🧠] Once agents are linked to users, show their agents here. */}
                     </p>
                 </Card>
 
                 <Card>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Activity</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('users.activityTitle')}</h3>
                     <p className="text-gray-600 text-sm">
-                        Detailed activity tracking is not implemented yet. For now, you can use the
-                        created/updated timestamps above as a basic signal of recent changes.
+                        {t('users.activityDescription')}
                         {/* TODO: [🧠] Implement user activity timeline once events are stored. */}
                     </p>
                 </Card>

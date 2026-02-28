@@ -3,6 +3,7 @@
 import { FormEvent, useState } from 'react';
 import { Card } from '../Homepage/Card';
 import { Section } from '../Homepage/Section';
+import { useServerLanguage } from '../ServerLanguage/ServerLanguageProvider';
 import { SecretInput } from '@/src/components/SecretInput/SecretInput';
 import { useUsersAdmin } from './useUsersAdmin';
 
@@ -18,6 +19,7 @@ type UsersListProps = {
 
 export function UsersList({ allowCreate = true }: UsersListProps) {
     const { users, loading, error, createUser, deleteUser, toggleAdmin } = useUsersAdmin();
+    const { t } = useServerLanguage();
 
     const [newUsername, setNewUsername] = useState('');
     const [newPassword, setNewPassword] = useState('');
@@ -49,13 +51,13 @@ export function UsersList({ allowCreate = true }: UsersListProps) {
         await toggleAdmin(username, currentIsAdmin);
     };
 
-    if (loading) return <div>Loading users...</div>;
+    if (loading) return <div>{t('users.loadingUsers')}</div>;
 
     return (
         <div className="space-y-6">
             {error && <div className="bg-red-100 text-red-700 p-3 rounded">{error}</div>}
 
-            <Section title={`Users (${users.length})`}>
+            <Section title={t('users.sectionTitle', { count: users.length })}>
                 {users.map((user) => (
                     <Card key={user.id}>
                         <div className="flex justify-between items-start">
@@ -63,11 +65,11 @@ export function UsersList({ allowCreate = true }: UsersListProps) {
                                 <h3 className="text-xl font-semibold text-gray-900">{user.username}</h3>
                                 {user.isAdmin && (
                                     <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded mt-1">
-                                        Admin
+                                        {t('users.adminRole')}
                                     </span>
                                 )}
                                 <p className="text-gray-500 text-sm mt-2">
-                                    Created: {new Date(user.createdAt).toLocaleDateString()}
+                                    {t('users.createdLabel')}: {new Date(user.createdAt).toLocaleDateString()}
                                 </p>
                             </div>
                             <div className="space-x-2">
@@ -75,13 +77,13 @@ export function UsersList({ allowCreate = true }: UsersListProps) {
                                     onClick={() => handleToggleAdmin(user.username, user.isAdmin)}
                                     className="text-sm text-blue-600 hover:text-blue-800"
                                 >
-                                    {user.isAdmin ? 'Remove Admin' : 'Make Admin'}
+                                    {user.isAdmin ? t('users.removeAdmin') : t('users.makeAdmin')}
                                 </button>
                                 <button
                                     onClick={() => handleDeleteUser(user.username)}
                                     className="text-sm text-red-600 hover:text-red-800"
                                 >
-                                    Delete
+                                    {t('users.delete')}
                                 </button>
                             </div>
                         </div>
@@ -93,12 +95,12 @@ export function UsersList({ allowCreate = true }: UsersListProps) {
                         id="create-user"
                         className="block p-6 bg-gray-50 rounded-lg border border-dashed border-gray-300"
                     >
-                        <h3 className="text-lg font-semibold text-gray-700 mb-4">Add New User</h3>
+                        <h3 className="text-lg font-semibold text-gray-700 mb-4">{t('users.addNewUser')}</h3>
                         <form onSubmit={handleCreateUser} className="space-y-3">
                             <div>
                                 <input
                                     type="text"
-                                    placeholder="Username"
+                                    placeholder={t('users.usernamePlaceholder')}
                                     value={newUsername}
                                     onChange={(e) => setNewUsername(e.target.value)}
                                     className="w-full p-2 border border-gray-300 rounded"
@@ -107,11 +109,11 @@ export function UsersList({ allowCreate = true }: UsersListProps) {
                             </div>
                             <div>
                                 <SecretInput
-                                    placeholder="Password"
+                                    placeholder={t('users.passwordPlaceholder')}
                                     value={newPassword}
                                     onChange={(e) => setNewPassword(e.target.value)}
                                     required
-                                    aria-label="Password"
+                                    aria-label={t('users.passwordAriaLabel')}
                                 />
                             </div>
                             <div className="flex items-center">
@@ -123,14 +125,14 @@ export function UsersList({ allowCreate = true }: UsersListProps) {
                                     className="mr-2"
                                 />
                                 <label htmlFor="newIsAdmin" className="text-gray-700">
-                                    Is Admin
+                                    {t('users.isAdminCheckbox')}
                                 </label>
                             </div>
                             <button
                                 type="submit"
                                 className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition-colors"
                             >
-                                Create User
+                                {t('users.createUser')}
                             </button>
                         </form>
                     </div>

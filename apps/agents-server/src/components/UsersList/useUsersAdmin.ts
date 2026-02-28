@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { showConfirm } from '../AsyncDialogs/asyncDialogs';
+import { useServerLanguage } from '../ServerLanguage/ServerLanguageProvider';
 
 export type AdminUser = {
     id: number;
@@ -22,6 +23,7 @@ type CreateUserPayload = {
  * from multiple places (homepage, admin pages, header menu, etc.).
  */
 export function useUsersAdmin() {
+    const { t } = useServerLanguage();
     const [users, setUsers] = useState<AdminUser[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -37,17 +39,17 @@ export function useUsersAdmin() {
                     // Not authorized, maybe session expired or non-admin user
                     return;
                 }
-                throw new Error('Failed to fetch users');
+                throw new Error(t('users.errorFetchFailed'));
             }
 
             const data = await response.json();
             setUsers(data);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'An error occurred');
+            setError(err instanceof Error ? err.message : t('users.errorOccurred'));
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [t]);
 
     useEffect(() => {
         fetchUsers();
@@ -70,25 +72,25 @@ export function useUsersAdmin() {
 
                 if (!response.ok) {
                     const data = await response.json().catch(() => ({}));
-                    throw new Error(data.error || 'Failed to create user');
+                    throw new Error(data.error || t('users.errorCreateFailed'));
                 }
 
                 await fetchUsers();
             } catch (err) {
-                setError(err instanceof Error ? err.message : 'An error occurred');
+                setError(err instanceof Error ? err.message : t('users.errorOccurred'));
                 throw err;
             }
         },
-        [fetchUsers],
+        [fetchUsers, t],
     );
 
     const deleteUser = useCallback(
         async (username: string) => {
             const confirmed = await showConfirm({
-                title: 'Delete user',
-                message: `Are you sure you want to delete user ${username}?`,
-                confirmLabel: 'Delete user',
-                cancelLabel: 'Cancel',
+                title: t('users.deleteConfirmTitle'),
+                message: t('users.deleteConfirmMessage', { username }),
+                confirmLabel: t('users.deleteConfirmAction'),
+                cancelLabel: t('users.deleteConfirmCancel'),
             }).catch(() => false);
 
             if (!confirmed) {
@@ -102,16 +104,16 @@ export function useUsersAdmin() {
 
                 if (!response.ok) {
                     const data = await response.json().catch(() => ({}));
-                    throw new Error(data.error || 'Failed to delete user');
+                    throw new Error(data.error || t('users.errorDeleteFailed'));
                 }
 
                 await fetchUsers();
             } catch (err) {
-                setError(err instanceof Error ? err.message : 'An error occurred');
+                setError(err instanceof Error ? err.message : t('users.errorOccurred'));
                 throw err;
             }
         },
-        [fetchUsers],
+        [fetchUsers, t],
     );
 
     const toggleAdmin = useCallback(
@@ -125,16 +127,16 @@ export function useUsersAdmin() {
 
                 if (!response.ok) {
                     const data = await response.json().catch(() => ({}));
-                    throw new Error(data.error || 'Failed to update user');
+                    throw new Error(data.error || t('users.errorUpdateFailed'));
                 }
 
                 await fetchUsers();
             } catch (err) {
-                setError(err instanceof Error ? err.message : 'An error occurred');
+                setError(err instanceof Error ? err.message : t('users.errorOccurred'));
                 throw err;
             }
         },
-        [fetchUsers],
+        [fetchUsers, t],
     );
 
     return {

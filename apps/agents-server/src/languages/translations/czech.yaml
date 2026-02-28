@@ -1,125 +1,125 @@
-common.close: Zavrit
-common.cancel: Zrusit
+common.close: Zavřít
+common.cancel: Zrušit
 common.confirm: Potvrdit
 common.ok: OK
 common.input: Vstup
-common.admin: Admin
+common.admin: Administrátor
 common.profile: Profil
 common.chat: Chat
 common.book: Kniha
-common.more: Vice
-controlPanel.label: Ovladaci panel
-controlPanel.openAriaLabel: Otevrit globalni ovladaci panel
+common.more: Více
+controlPanel.label: Ovládací panel
+controlPanel.openAriaLabel: Otevřít globální ovládací panel
 controlPanel.feedbackTitle: Odezva
-controlPanel.feedbackSubtitle: Globalni nastaveni zvuku a vibraci
+controlPanel.feedbackSubtitle: Globální nastavení zvuku a vibrací
 controlPanel.audioLabel: Zvuk
-controlPanel.audioLoading: Nacitam nastaveni zvuku…
-controlPanel.selfLearningTitle: Sebeuceni
+controlPanel.audioLoading: Načítám nastavení zvuku…
+controlPanel.selfLearningTitle: Sebeučení
 controlPanel.selfLearningSection: Kniha
-controlPanel.selfLearningDescriptionPrivate: Soukromy rezim ponecha knihu beze zmen a blokuje nove uceni.
-controlPanel.selfLearningDescriptionLearning: Agent po kazdem chatu pridava nove commitmenty do knihy.
-controlPanel.selfLearningDescriptionPaused: Agent respektuje existujici knihu, dokud znovu nepovolite uceni.
-controlPanel.selfLearningStateDisabledPrivate: Vypnuto (Soukromy rezim)
-controlPanel.selfLearningStateLearning: Uci se
+controlPanel.selfLearningDescriptionPrivate: Soukromý režim ponechá knihu beze změn a zablokuje nové učení.
+controlPanel.selfLearningDescriptionLearning: Agent po každém chatu přidá do knihy nové commitmenty.
+controlPanel.selfLearningDescriptionPaused: Agent respektuje stávající knihu, dokud znovu nepovolíte učení.
+controlPanel.selfLearningStateDisabledPrivate: Vypnuto (Soukromý režim)
+controlPanel.selfLearningStateLearning: Učení
 controlPanel.selfLearningStatePaused: Pozastaveno
-controlPanel.selfLearningDetailPrivate: Uceni je vypnute, dokud soukromy rezim nevypnete.
-controlPanel.selfLearningDetailPaused: Chaty a pamet se ukladaji i kdyz je uceni pozastavene.
-controlPanel.selfLearningPauseAction: Pozastavit uceni
-controlPanel.selfLearningEnableAction: Povolit uceni
-controlPanel.privateModeTitle: Soukromy rezim
-controlPanel.privateModeSection: Soukromi
-controlPanel.privateModeDescriptionPrivate: Chaty, pamet i uceni jsou vypnute.
-controlPanel.privateModeDescriptionStandard: Ve standardnim rezimu data dale proudi na server.
-controlPanel.privateModeStatePrivate: Soukromy
-controlPanel.privateModeStateStandard: Standardni
-controlPanel.privateModeDetail: Soukromy rezim necha aktualni chat pouze ve vasem prohlizeci.
-controlPanel.privateModeDisableAction: Vypnout soukromy rezim
-controlPanel.privateModeEnableAction: Zapnout soukromy rezim
+controlPanel.selfLearningDetailPrivate: Učení je vypnuté, dokud nevypnete soukromý režim.
+controlPanel.selfLearningDetailPaused: Chaty i paměť se ukládají, i když je učení pozastavené.
+controlPanel.selfLearningPauseAction: Pozastavit učení
+controlPanel.selfLearningEnableAction: Povolit učení
+controlPanel.privateModeTitle: Soukromý režim
+controlPanel.privateModeSection: Soukromí
+controlPanel.privateModeDescriptionPrivate: Chaty, paměť i učení jsou vypnuté.
+controlPanel.privateModeDescriptionStandard: Ve standardním režimu data dál proudí na server.
+controlPanel.privateModeStatePrivate: Soukromý
+controlPanel.privateModeStateStandard: Standardní
+controlPanel.privateModeDetail: V soukromém režimu zůstane aktuální chat pouze ve vašem prohlížeči.
+controlPanel.privateModeDisableAction: Vypnout soukromý režim
+controlPanel.privateModeEnableAction: Zapnout soukromý režim
 controlPanel.languageTitle: Jazyk
-controlPanel.languageSubtitle: Vyberte jazyk rozhrani pro tento prohlizec.
+controlPanel.languageSubtitle: Vyberte jazyk rozhraní pro tento prohlížeč.
 controlPanel.languageSection: Lokalizace
-controlPanel.languageSelectLabel: Jazyk rozhrani serveru
-controlPanel.languageHelp: Vychozi hodnota je z metadata SERVER_LANGUAGE. Tady ji muzete lokalne prepsat.
-privateMode.confirmTitle: Zapnout soukromy rezim
-privateMode.confirmMessage: Soukromy rezim drzi tento chat pouze ve vasem
-  prohlizeci. Historie chatu, uzivatelska pamet a sebeuceni se pri zapnuti
-  neukladaji. Pokracovat?
-privateMode.confirmEnableLabel: Zapnout soukromy rezim
-privateMode.confirmCancelLabel: Ponechat standardni rezim
+controlPanel.languageSelectLabel: Jazyk rozhraní serveru
+controlPanel.languageHelp: Výchozí hodnota je z metadat SERVER_LANGUAGE. Tady ji můžete lokálně přepsat.
+privateMode.confirmTitle: Zapnout soukromý režim
+privateMode.confirmMessage: Soukromý režim ponechá tento chat pouze ve vašem
+  prohlížeči. Historie chatu, uživatelská paměť a sebeučení se při zapnutí
+  neukládají. Pokračovat?
+privateMode.confirmEnableLabel: Zapnout soukromý režim
+privateMode.confirmCancelLabel: Ponechat standardní režim
 header.documentationMenuLabel: Dokumentace
-header.systemMenuLabel: System
-header.switchServerAria: Prepnout server
-header.currentFederatedServer: (aktualni)
-header.logIn: Prihlasit se
-header.logOut: Odhlasit se
-header.changePassword: Zmenit heslo
+header.systemMenuLabel: Systém
+header.switchServerAria: Přepnout server
+header.currentFederatedServer: (aktuální)
+header.logIn: Přihlásit se
+header.logOut: Odhlásit se
+header.changePassword: Změnit heslo
 header.menuLabel: Menu
-header.landingPage: Uvodni stranka
-header.userMemory: Uzivatelska pamet
-header.userWallet: Uzivatelska penezenka
-header.viewAllUsers: Zobrazit vsechny uzivatele
-header.createNewUser: Vytvorit noveho uzivatele
+header.landingPage: Úvodní stránka
+header.userMemory: Uživatelská paměť
+header.userWallet: Uživatelská peněženka
+header.viewAllUsers: Zobrazit všechny uživatele
+header.createNewUser: Vytvořit nového uživatele
 header.models: Modely
-header.openApiDocumentation: OpenAPI dokumentace
+header.openApiDocumentation: Dokumentace OpenAPI
 header.apiTokens: API tokeny
 header.metadata: Metadata
-header.customCss: Vlastni CSS
-header.customJs: Vlastni JS
-header.chatHistory: Historie chatu
-header.usageAnalytics: Analyza pouziti
-header.messagesEmails: Zpravy a e-maily
-header.chatFeedback: Zpetna vazba chatu
-header.browser: Prohlizec
-header.voiceInputTest: Test hlasoveho vstupu
-header.searchEngineTest: Test vyhledavace
-header.imagesGallery: Galerie obrazku
+header.customCss: Vlastní CSS
+header.customJs: Vlastní JS
+header.chatHistory: Historie chatů
+header.usageAnalytics: Analýza využití
+header.messagesEmails: Zprávy a e-maily
+header.chatFeedback: Zpětná vazba chatu
+header.browser: Prohlížeč
+header.voiceInputTest: Test hlasového vstupu
+header.searchEngineTest: Test vyhledávače
+header.imagesGallery: Galerie obrázků
 header.files: Soubory
-header.users: Uzivatele
+header.users: Uživatelé
 header.versionInfo: Informace o verzi
 header.experiments: Experimenty
-header.story: Pribeh
-header.documentationOverview: Prehled
+header.story: Příběh
+header.documentationOverview: Přehled
 header.documentationApiReference: API reference
-header.documentationAll: Vse
-header.loggedInAs: Prihlasen jako {username}
-header.searchThisServerPlaceholder: Prohledat tento server...
-header.searchBoxDefaultPlaceholder: Hledat agenty, slozky, dokumentaci, konverzace...
-header.searchGlobalLabel: Globalni vyhledavani
-header.searchViewAllResultsFor: Zobrazit vsechny vysledky pro
-header.searchNoResultsFor: Pro dotaz nebyly nalezeny vysledky
-header.searchUnavailable: Vyhledavani je docasne nedostupne.
+header.documentationAll: Vše
+header.loggedInAs: Přihlášen jako {username}
+header.searchThisServerPlaceholder: Prohledat tento server…
+header.searchBoxDefaultPlaceholder: Hledat agenty, složky, dokumentaci, konverzace…
+header.searchGlobalLabel: Globální vyhledávání
+header.searchViewAllResultsFor: Zobrazit všechny výsledky pro
+header.searchNoResultsFor: Pro dotaz nebyly nalezeny žádné výsledky
+header.searchUnavailable: Vyhledávání je dočasně nedostupné.
 header.agentsLabelFallback: "{agentsPlural}"
-header.viewAllAgents: Zobrazit vsechny {agentsPlural}
-header.creatingAgent: Vytvarim {agentSingular}...
-header.createNewAgent: Vytvorit noveho {agentSingular}
-header.createFailedTitle: Vytvareni {agentSingular} selhalo
-header.createFailedMessage: "{agentSingular} se nepodarilo vytvorit. Zkuste to prosim znovu."
-asyncDialog.defaultAlertTitle: Upozorneni
+header.viewAllAgents: Zobrazit všechny {agentsPlural}
+header.creatingAgent: Vytvářím {agentSingular}…
+header.createNewAgent: Vytvořit nového {agentSingular}
+header.createFailedTitle: Vytvoření {agentSingular} selhalo
+header.createFailedMessage: Nepodařilo se vytvořit {agentSingular}. Zkuste to prosím znovu.
+asyncDialog.defaultAlertTitle: Upozornění
 asyncDialog.defaultConfirmTitle: Potvrdit akci
 asyncDialog.defaultPromptTitle: Zadejte hodnotu
-login.dialogTitle: Prihlaseni
-login.dialogDescription: Zadejte prihlasovaci udaje pro pristup do administrace
-login.usernameLabel: Uzivatelske jmeno
-login.usernamePlaceholder: Zadejte uzivatelske jmeno
+login.dialogTitle: Přihlášení
+login.dialogDescription: Zadejte přihlašovací údaje pro přístup do administrace
+login.usernameLabel: Uživatelské jméno
+login.usernamePlaceholder: Zadejte uživatelské jméno
 login.passwordLabel: Heslo
 login.passwordPlaceholder: Zadejte heslo
-login.loggingIn: Prihlasuji...
-login.loginAction: Prihlasit se
-login.forgottenPassword: Zapomenute heslo?
-login.registerNewUser: Registrovat noveho uzivatele
-login.errorOccurred: Doslo k chybe
-login.unexpectedError: Doslo k neocekavane chybe
-forgottenPassword.title: Zapomenute heslo
-forgottenPassword.subtitle: Obnovte sve heslo
-forgottenPassword.noEmailPrefix: Tento Promptbook server nema e-mailovou
-  funkcionalitu. Prosim kontaktujte administratora na
+login.loggingIn: Přihlašuji...
+login.loginAction: Přihlásit se
+login.forgottenPassword: Zapomenuté heslo?
+login.registerNewUser: Registrovat nového uživatele
+login.errorOccurred: Došlo k chybě
+login.unexpectedError: Došlo k neočekávané chybě
+forgottenPassword.title: Zapomenuté heslo
+forgottenPassword.subtitle: Obnovte své heslo
+forgottenPassword.noEmailPrefix: Tento Promptbook server nemá e-mailovou funkcionalitu.
+  Kontaktujte prosím administrátora na
 forgottenPassword.noEmailSuffix: pro reset hesla.
-registerUser.title: Registrace noveho uzivatele
-registerUser.subtitle: Vytvorte novy uzivatelsky ucet
-registerUser.noEmailPrefix: Tento Promptbook server nema e-mailovou
-  funkcionalitu. Prosim kontaktujte administratora na
-registerUser.noEmailSuffix: pro registraci noveho uzivatele.
-secretInput.hideSecret: Skryt tajnou hodnotu
+registerUser.title: Registrace nového uživatele
+registerUser.subtitle: Vytvořte nový uživatelský účet
+registerUser.noEmailPrefix: Tento Promptbook server nemá e-mailovou funkcionalitu.
+  Kontaktujte prosím administrátora na
+registerUser.noEmailSuffix: pro registraci nového uživatele.
+secretInput.hideSecret: Skrýt tajnou hodnotu
 secretInput.showSecret: Zobrazit tajnou hodnotu
 agentCreation.addButtonLabel: + Přidat nového agenta
 agentCreation.preparing: Připravuji...
@@ -128,3 +128,55 @@ agentCreation.createFailedMessage: Nepodařilo se vytvořit agenta. Zkuste to pr
 agentCreation.dialogTitle: Vytvořit nového agenta
 agentCreation.dialogCreateAction: Vytvořit agenta
 agentCreation.dialogCreating: Vytvářím...
+footer.productSectionTitle: Produkt
+footer.getStarted: Začít
+footer.manifest: Manifest
+footer.documentation: Dokumentace
+footer.termsOfService: Obchodní podmínky
+footer.privacyPolicy: Zásady ochrany soukromí
+footer.companySectionTitle: Společnost
+footer.aboutUs: O nás
+footer.blog: Blog
+footer.logosAndBranding: Loga a branding
+footer.connectSectionTitle: Spojení
+footer.linksSectionTitle: Odkazy
+footer.allRightsReserved: Všechna práva vyhrazena.
+footer.madeInCzechRepublic: Vytvořeno s ❤️ v České republice.
+footer.engineVersion: Verze jádra Promptbooku
+forbidden.title: 403 Zakázáno
+forbidden.message: Nemáte oprávnění k přístupu na tuto stránku.
+users.loadingUsers: Načítám uživatele...
+users.sectionTitle: Uživatelé ({count})
+users.adminRole: Administrátor
+users.createdLabel: Vytvořeno
+users.removeAdmin: Odebrat administrátora
+users.makeAdmin: Nastavit jako administrátora
+users.delete: Smazat
+users.addNewUser: Přidat nového uživatele
+users.usernamePlaceholder: Uživatelské jméno
+users.passwordPlaceholder: Heslo
+users.passwordAriaLabel: Heslo
+users.isAdminCheckbox: Je administrátor
+users.createUser: Vytvořit uživatele
+users.deleteConfirmTitle: Smazat uživatele
+users.deleteConfirmMessage: Opravdu chcete smazat uživatele {username}?
+users.deleteConfirmAction: Smazat uživatele
+users.deleteConfirmCancel: Zrušit
+users.errorOccurred: Došlo k chybě
+users.errorFetchFailed: Nepodařilo se načíst uživatele
+users.errorCreateFailed: Nepodařilo se vytvořit uživatele
+users.errorDeleteFailed: Nepodařilo se smazat uživatele
+users.errorUpdateFailed: Nepodařilo se upravit uživatele
+users.userDetailLoading: Načítám uživatele...
+users.userNotFound: Uživatel nebyl nalezen.
+users.backToUsers: Zpět na uživatele
+users.profileTitle: "Profil uživatele: {username}"
+users.idLabel: ID
+users.createdAtLabel: Vytvořeno
+users.lastUpdatedLabel: Naposledy upraveno
+users.unknownValue: Neznámé
+users.deleteUserAction: Smazat uživatele
+users.createdAgentsTitle: Agenti vytvoření uživatelem
+users.createdAgentsDescription: Seznam agentů vytvořených tímto uživatelem zatím není napojený na datový model.
+users.activityTitle: Aktivita
+users.activityDescription: Podrobné sledování aktivity zatím není implementované. Prozatím můžete jako orientační signál změn použít výše uvedené časy vytvoření a aktualizace.

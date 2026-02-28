@@ -21,6 +21,6 @@ const CzechServerTranslations: ServerTranslationDictionary = createServerTransla
 export const CzechServerLanguagePack: ServerLanguagePack<ServerTranslationKey> = {
     language: 'cs',
     englishName: 'Czech',
-    nativeName: 'Cestina',
+    nativeName: 'Čeština',
     translations: CzechServerTranslations,
 };
