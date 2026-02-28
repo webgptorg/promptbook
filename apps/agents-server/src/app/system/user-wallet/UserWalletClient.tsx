@@ -1,7 +1,13 @@
 'use client';
 
+import { WalletRecordDialog, type PendingWalletRecordRequest, type WalletRecordDialogSubmitPayload } from '@/src/components/WalletRecordDialog/WalletRecordDialog';
 import { showConfirm } from '@/src/components/AsyncDialogs/asyncDialogs';
-import { useEffect, useMemo, useState } from 'react';
+import { fetchGithubAppStatus, type GithubAppStatusResponse } from '@/src/utils/githubAppClient';
+import {
+    USE_PROJECT_GITHUB_WALLET_KEY,
+    USE_PROJECT_GITHUB_WALLET_SERVICE,
+} from '@/src/utils/useProjectGithubWalletConstants';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 /**
  * Agent option used by user-wallet UI.
@@ -80,15 +86,30 @@ export function UserWalletClient(props: UserWalletClientProps) {
     const [editingCookies, setEditingCookies] = useState('');
     const [editingIsGlobal, setEditingIsGlobal] = useState(false);
     const [editingAgentPermanentId, setEditingAgentPermanentId] = useState('');
+    const [githubAppStatus, setGithubAppStatus] = useState<GithubAppStatusResponse | null>(null);
+    const [isGithubConnectDialogOpen, setIsGithubConnectDialogOpen] = useState(false);
 
     const agentLabelByPermanentId = useMemo(() => {
         return new Map<string, string>(agents.map((agent) => [agent.permanentId, agent.label] as const));
     }, [agents]);
+    const githubConnectWalletRequest = useMemo<PendingWalletRecordRequest>(
+        () => ({
+            marker: 'user-wallet-github-connect',
+            sourceToolName: 'user-wallet',
+            recordType: 'ACCESS_TOKEN',
+            service: USE_PROJECT_GITHUB_WALLET_SERVICE,
+            key: USE_PROJECT_GITHUB_WALLET_KEY,
+            message:
+                'Connect your GitHub App installation or add a manual token. This token is used by USE PROJECT.',
+            isGlobal: true,
+        }),
+        [],
+    );
 
     /**
      * Loads wallet records from API for selected scope and search query.
      */
-    const loadRecords = async () => {
+    const loadRecords = useCallback(async () => {
         setLoading(true);
         setError(null);
 
@@ -117,12 +138,24 @@ export function UserWalletClient(props: UserWalletClientProps) {
         } finally {
             setLoading(false);
         }
-    };
+    }, [filterScope, search]);
+
+    /**
+     * Loads GitHub App connect status for the current wallet user.
+     */
+    const loadGithubAppConnectionStatus = useCallback(async () => {
+        const status = await fetchGithubAppStatus();
+        setGithubAppStatus(status);
+    }, []);
 
     useEffect(() => {
         void loadRecords();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [filterScope]);
+
+    useEffect(() => {
+        void loadGithubAppConnectionStatus();
+    }, [loadGithubAppConnectionStatus]);
 
     /**
      * Validates wallet form payload before submission.
@@ -156,6 +189,35 @@ export function UserWalletClient(props: UserWalletClientProps) {
     };
 
     /**
+     * Creates one wallet record via API.
+     */
+    const createWalletRecord = useCallback(
+        async (payload: WalletRecordDialogSubmitPayload & { agentPermanentId: string | null }) => {
+            const response = await fetch('/api/user-wallet', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    recordType: payload.recordType,
+                    service: payload.service,
+                    key: payload.key || 'default',
+                    username: payload.recordType === 'USERNAME_PASSWORD' ? payload.username : undefined,
+                    password: payload.recordType === 'USERNAME_PASSWORD' ? payload.password : undefined,
+                    secret: payload.recordType === 'ACCESS_TOKEN' ? payload.secret : undefined,
+                    cookies: payload.recordType === 'SESSION_COOKIE' ? payload.cookies : undefined,
+                    isGlobal: payload.isGlobal,
+                    agentPermanentId: payload.isGlobal ? null : payload.agentPermanentId,
+                }),
+            });
+
+            if (!response.ok) {
+                const responsePayload = await response.json().catch(() => ({}));
+                throw new Error(responsePayload.error || 'Failed to create wallet record.');
+            }
+        },
+        [],
+    );
+
+    /**
      * Submits a new wallet record.
      */
     const createRecord = async (event: React.FormEvent) => {
@@ -179,26 +241,17 @@ export function UserWalletClient(props: UserWalletClientProps) {
 
         setSaving(true);
         try {
-            const response = await fetch('/api/user-wallet', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    recordType: newRecordType,
-                    service: newService,
-                    key: newKey || 'default',
-                    username: newRecordType === 'USERNAME_PASSWORD' ? newUsername : undefined,
-                    password: newRecordType === 'USERNAME_PASSWORD' ? newPassword : undefined,
-                    secret: newRecordType === 'ACCESS_TOKEN' ? newSecret : undefined,
-                    cookies: newRecordType === 'SESSION_COOKIE' ? newCookies : undefined,
-                    isGlobal: newIsGlobal,
-                    agentPermanentId: newIsGlobal ? null : newAgentPermanentId,
-                }),
+            await createWalletRecord({
+                recordType: newRecordType,
+                service: newService,
+                key: newKey || 'default',
+                username: newRecordType === 'USERNAME_PASSWORD' ? newUsername : undefined,
+                password: newRecordType === 'USERNAME_PASSWORD' ? newPassword : undefined,
+                secret: newRecordType === 'ACCESS_TOKEN' ? newSecret : undefined,
+                cookies: newRecordType === 'SESSION_COOKIE' ? newCookies : undefined,
+                isGlobal: newIsGlobal,
+                agentPermanentId: newIsGlobal ? null : newAgentPermanentId,
             });
-
-            if (!response.ok) {
-                const payload = await response.json().catch(() => ({}));
-                throw new Error(payload.error || 'Failed to create wallet record.');
-            }
 
             setNewUsername('');
             setNewPassword('');
@@ -211,6 +264,33 @@ export function UserWalletClient(props: UserWalletClientProps) {
             setSaving(false);
         }
     };
+
+    /**
+     * Handles wallet record submission from the shared GitHub connect dialog.
+     */
+    const handleGithubConnectDialogSubmit = useCallback(
+        async (payload: WalletRecordDialogSubmitPayload) => {
+            const resolvedAgentPermanentId = payload.isGlobal ? null : newAgentPermanentId || agents[0]?.permanentId || '';
+            if (!payload.isGlobal && !resolvedAgentPermanentId) {
+                throw new Error('Select an agent or enable global scope.');
+            }
+
+            setSaving(true);
+            setError(null);
+            try {
+                await createWalletRecord({
+                    ...payload,
+                    agentPermanentId: resolvedAgentPermanentId || null,
+                });
+                setIsGithubConnectDialogOpen(false);
+                await loadRecords();
+                await loadGithubAppConnectionStatus();
+            } finally {
+                setSaving(false);
+            }
+        },
+        [agents, createWalletRecord, loadGithubAppConnectionStatus, loadRecords, newAgentPermanentId],
+    );
 
     /**
      * Starts editing one wallet row.
@@ -412,6 +492,29 @@ export function UserWalletClient(props: UserWalletClientProps) {
             <h1 className="text-3xl font-bold mb-8">User Wallet</h1>
 
             {error && <div className="mb-6 rounded-md border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
+
+            <div className="bg-white shadow rounded-lg p-6 mb-6">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <h2 className="text-xl font-semibold">GitHub App</h2>
+                        <p className="text-sm text-gray-600 mt-1">
+                            {githubAppStatus?.isConfigured
+                                ? githubAppStatus.isConnected
+                                    ? 'Connected. USE PROJECT can obtain tokens automatically.'
+                                    : 'Not connected yet. Connect once to enable automatic USE PROJECT tokens.'
+                                : 'GitHub App is not configured on this server. You can still add tokens manually.'}
+                        </p>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => setIsGithubConnectDialogOpen(true)}
+                        disabled={githubAppStatus?.isConfigured !== true}
+                        className="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                        Connect with GitHub
+                    </button>
+                </div>
+            </div>
 
             <div className="bg-white shadow rounded-lg p-6 mb-8">
                 <h2 className="text-xl font-semibold mb-4">Create Wallet Record</h2>
@@ -648,6 +751,17 @@ export function UserWalletClient(props: UserWalletClientProps) {
                     </tbody>
                 </table>
             </div>
+            <WalletRecordDialog
+                isOpen={isGithubConnectDialogOpen}
+                request={githubConnectWalletRequest}
+                onSubmit={handleGithubConnectDialogSubmit}
+                onClose={() => setIsGithubConnectDialogOpen(false)}
+                githubApp={{
+                    isConfigured: githubAppStatus?.isConfigured === true,
+                    agentPermanentId: newAgentPermanentId,
+                    returnTo: '/system/user-wallet',
+                }}
+            />
         </div>
     );
 }

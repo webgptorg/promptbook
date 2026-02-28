@@ -18,8 +18,8 @@ import { prepareToolCallsForStreaming } from './toolCallStreaming';
 import { composePromptParametersWithMemoryContext } from '@/src/utils/memoryRuntimeContext';
 import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
 import { extractProjectRepositoriesFromAgentSource } from '@/src/utils/projects/extractProjectRepositoriesFromAgentSource';
+import { resolveUseProjectGithubToken } from '@/src/utils/resolveUseProjectGithubToken';
 import { resolveCurrentUserMemoryIdentity } from '@/src/utils/userMemory';
-import { resolveUseProjectGithubTokenFromWallet } from '@/src/utils/userWallet';
 import { Agent, computeAgentHash } from '@promptbook-local/core';
 import type {
     ChatMessage,
@@ -319,7 +319,7 @@ export async function handleChatCompletion(
         const agentId = resolvedAgentContext.parentAgentPermanentId;
         const currentUserIdentity = await resolveCurrentUserMemoryIdentity();
         const projectGithubToken = currentUserIdentity
-            ? await resolveUseProjectGithubTokenFromWallet({
+            ? await resolveUseProjectGithubToken({
                   userId: currentUserIdentity.userId,
                   agentPermanentId: agentId,
               })

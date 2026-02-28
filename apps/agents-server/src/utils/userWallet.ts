@@ -1,16 +1,16 @@
 import { $getTableName } from '@/src/database/$getTableName';
 import { $provideSupabaseForServer } from '@/src/database/$provideSupabaseForServer';
 import type { AgentsServerDatabase } from '@/src/database/schema';
+import {
+    USE_PROJECT_GITHUB_APP_WALLET_KEY,
+    USE_PROJECT_GITHUB_WALLET_KEY,
+    USE_PROJECT_GITHUB_WALLET_SERVICE,
+} from './useProjectGithubWalletConstants';
 
 /**
  * Wallet service id used by USE PROJECT for GitHub credentials.
  */
-export const USE_PROJECT_GITHUB_WALLET_SERVICE = 'github';
-
-/**
- * Wallet key used by USE PROJECT for GitHub credentials.
- */
-export const USE_PROJECT_GITHUB_WALLET_KEY = 'use-project-github-token';
+export { USE_PROJECT_GITHUB_WALLET_SERVICE, USE_PROJECT_GITHUB_WALLET_KEY, USE_PROJECT_GITHUB_APP_WALLET_KEY };
 
 /**
  * Supported wallet record types.
@@ -313,6 +313,28 @@ export async function resolveUseProjectGithubTokenFromWallet(
     return findLatestWalletAccessToken({
         userId: options.userId,
         isGlobal: true,
+    });
+}
+
+/**
+ * Stores a GitHub App-generated USE PROJECT token as a global wallet credential.
+ */
+export async function storeUseProjectGithubAppTokenInWallet(options: {
+    userId: number;
+    token: string;
+    isGlobal?: boolean;
+    agentPermanentId?: string | null;
+}): Promise<UserWalletRecord> {
+    const isGlobal = options.isGlobal !== false;
+
+    return createUserWalletRecord({
+        userId: options.userId,
+        isGlobal,
+        agentPermanentId: isGlobal ? null : options.agentPermanentId || null,
+        recordType: 'ACCESS_TOKEN',
+        service: USE_PROJECT_GITHUB_WALLET_SERVICE,
+        key: USE_PROJECT_GITHUB_APP_WALLET_KEY,
+        secret: options.token,
     });
 }
 

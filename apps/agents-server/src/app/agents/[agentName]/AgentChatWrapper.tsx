@@ -23,24 +23,25 @@ import { createDefaultChatEffects } from '../../../utils/chat/createDefaultChatE
 import { reportClientVersionMismatch } from '../../../utils/clientVersionClient';
 import type { FriendlyErrorMessage } from '../../../utils/errorMessages';
 import { handleChatError } from '../../../utils/errorMessages';
+import { fetchGithubAppStatus, type GithubAppStatusResponse } from '../../../utils/githubAppClient';
 import {
     serializeUserLocationPromptParameter,
     USER_LOCATION_PROMPT_PARAMETER,
     type UserLocationPromptParameter,
 } from '../../../utils/userLocationPromptParameter';
+import {
+    USE_PROJECT_GITHUB_WALLET_KEY,
+    USE_PROJECT_GITHUB_WALLET_SERVICE,
+} from '../../../utils/useProjectGithubWalletConstants';
 import { chatFileUploadHandler } from '../../../utils/upload/createBookEditorUploadHandler';
 import {
     acceptMetaDisclaimer,
     fetchMetaDisclaimerStatus,
     type MetaDisclaimerStatus,
 } from '../../../utils/metaDisclaimerClient';
+import { WalletRecordDialog, type PendingWalletRecordRequest, type WalletRecordDialogSubmitPayload } from '@/src/components/WalletRecordDialog/WalletRecordDialog';
 import { MetaDisclaimerDialog } from './MetaDisclaimerDialog';
 import { PseudoUserChatDialog } from './PseudoUserChatDialog';
-import {
-    WalletRecordDialog,
-    type PendingWalletRecordRequest,
-    type WalletRecordDialogSubmitPayload,
-} from './WalletRecordDialog';
 
 type AgentChatWrapperProps = {
     agentName: string;
@@ -119,16 +120,6 @@ const WALLET_REQUESTED_STATUS = 'requested';
  * Project-tool status emitted when wallet credentials are missing.
  */
 const PROJECT_WALLET_CREDENTIAL_REQUIRED_STATUS = 'wallet-credential-required';
-
-/**
- * Wallet service identifier for USE PROJECT credentials.
- */
-const USE_PROJECT_GITHUB_WALLET_SERVICE = 'github';
-
-/**
- * Wallet key identifier for USE PROJECT credentials.
- */
-const USE_PROJECT_GITHUB_WALLET_KEY = 'use-project-github-token';
 
 /**
  * Serializes the auto-execute payload for change detection.
@@ -514,10 +505,16 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
     const [pendingPseudoUserInteraction, setPendingPseudoUserInteraction] =
         useState<PendingPseudoUserInteraction | null>(null);
     const [pendingWalletRequest, setPendingWalletRequest] = useState<PendingWalletRecordRequest | null>(null);
+    const [githubAppStatus, setGithubAppStatus] = useState<GithubAppStatusResponse | null>(null);
     const hasReportedAutoExecuteMessageRef = useRef(false);
     const lastAutoExecutePayloadRef = useRef<string | undefined>(
         serializeAutoExecutePayload(autoExecuteMessage, autoExecuteMessageAttachments),
     );
+    const currentAgentPermanentId = useMemo(() => {
+        return typeof (agent as { permanentId?: unknown } | undefined)?.permanentId === 'string'
+            ? ((agent as { permanentId?: string }).permanentId as string)
+            : undefined;
+    }, [agent]);
 
     /**
      * Loads disclaimer status for the current user and agent.
@@ -539,6 +536,28 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
     useEffect(() => {
         void loadMetaDisclaimerStatus();
     }, [loadMetaDisclaimerStatus]);
+
+    /**
+     * Loads GitHub App availability so wallet popup can offer one-click connect.
+     */
+    useEffect(() => {
+        let isMounted = true;
+
+        const loadGithubAppStatus = async () => {
+            const status = await fetchGithubAppStatus();
+            if (!isMounted) {
+                return;
+            }
+
+            setGithubAppStatus(status);
+        };
+
+        void loadGithubAppStatus();
+
+        return () => {
+            isMounted = false;
+        };
+    }, []);
 
     /**
      * Persists disclaimer agreement for the current user and agent.
@@ -888,10 +907,6 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
      */
     const handleWalletRequestSubmit = useCallback(
         async (payload: WalletRecordDialogSubmitPayload) => {
-            const currentAgentPermanentId =
-                typeof (agent as { permanentId?: unknown } | undefined)?.permanentId === 'string'
-                    ? ((agent as { permanentId?: string }).permanentId as string)
-                    : undefined;
             const shouldStoreGlobally = payload.isGlobal || !currentAgentPermanentId;
 
             const response = await fetch('/api/user-wallet', {
@@ -920,7 +935,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
             setPendingWalletRequest(null);
             sendMessage('Wallet credential saved. Continue with the previous task.');
         },
-        [agent, sendMessage],
+        [currentAgentPermanentId, sendMessage],
     );
 
     /**
@@ -988,6 +1003,10 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
                 request={pendingWalletRequest}
                 onSubmit={handleWalletRequestSubmit}
                 onClose={handleWalletRequestClose}
+                githubApp={{
+                    isConfigured: githubAppStatus?.isConfigured === true,
+                    agentPermanentId: currentAgentPermanentId,
+                }}
             />
             <ChatErrorDialog
                 error={currentError}

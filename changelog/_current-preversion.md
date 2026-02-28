@@ -1,3 +1,11 @@
+-   Integrated GitHub App authentication into Agents Server `USE PROJECT` flow:
+    -   Added server-side GitHub App connect/callback/status API routes (`/api/github-app/connect`, `/api/github-app/callback`, `/api/github-app/status`) backed by signed state, user-scoped installation linking, and installation-token refresh.
+    -   `USE PROJECT` token resolution in Agents Server now prefers manual wallet token and then automatically resolves GitHub App installation token, mirroring auto-issued tokens into wallet records without manual copy/paste.
+    -   Added a shared wallet credential popup component reused by both chat and wallet pages, including a one-click “Connect with GitHub App” action when `USE PROJECT` GitHub credentials are requested.
+    -   Added “Connect with GitHub” entry on the wallet page with live GitHub App connection status while keeping manual wallet record create/edit/delete fully available.
+    -   Added GitHub App environment variables into `apps/agents-server/.env` and new setup documentation in `apps/agents-server/GITHUB_APP.md`.
+    -   Updated `USE PROJECT` commitment documentation text to reflect both manual wallet and host-managed integration token flows.
+
 -   Fixed `USE BROWSER` runtime behavior in Agents Server:
     -   `run_browser` now executes real interactive browser automation through `playwright-cli` (headed mode for debugging), including navigation/action execution and snapshot reporting.
     -   Node commitment tool resolution now maps `run_browser` to the Agents Server implementation via a lazy runtime resolver (with safe fallback outside server runtime).

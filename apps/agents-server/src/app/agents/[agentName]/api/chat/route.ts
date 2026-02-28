@@ -24,8 +24,8 @@ import {
 } from '@/src/utils/metaDisclaimer';
 import { extractProjectRepositoriesFromAgentSource } from '@/src/utils/projects/extractProjectRepositoriesFromAgentSource';
 import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
+import { resolveUseProjectGithubToken } from '@/src/utils/resolveUseProjectGithubToken';
 import { resolveCurrentUserMemoryIdentity } from '@/src/utils/userMemory';
-import { resolveUseProjectGithubTokenFromWallet } from '@/src/utils/userWallet';
 import type { ChatMessage } from '@promptbook-local/components';
 import { Agent, computeAgentHash, normalizeChatAttachments, RemoteAgent } from '@promptbook-local/core';
 import type { ToolCall } from '@promptbook-local/types';
@@ -191,7 +191,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         const messageSuffix = resolveMessageSuffixFromAgentSource(agentSource);
         const currentUserIdentity = await resolveCurrentUserMemoryIdentity();
         const projectGithubToken = currentUserIdentity
-            ? await resolveUseProjectGithubTokenFromWallet({
+            ? await resolveUseProjectGithubToken({
                   userId: currentUserIdentity.userId,
                   agentPermanentId: agentId,
               })

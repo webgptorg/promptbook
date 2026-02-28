@@ -279,8 +279,8 @@ class ProjectWalletCredentialRequiredError extends Error {
  * `USE PROJECT` enables GitHub repository tooling so the agent can browse source files,
  * edit code, and open pull requests against declared repositories.
  *
- * Authentication is expected through runtime context provided by the host app UI
- * (for Agents Server, user enters a personal access token manually).
+ * Authentication is expected through runtime context provided by the host app UI.
+ * Hosts can provide manual wallet tokens or auto-issued integration tokens (for example via GitHub App).
  *
  * @private [🪔] Maybe export the commitments through some package
  */
@@ -316,7 +316,7 @@ export class UseProjectCommitmentDefinition extends BaseCommitmentDefinition<'US
 
             - The first repository reference in the commitment should point to GitHub repository (for example \`https://github.com/owner/repo\`).
             - Optional extra instructions can follow the repository reference.
-            - The runtime provides a GitHub personal access token entered manually by the user.
+            - The runtime provides a GitHub token (manual wallet token or host-managed integration token).
             - Tools support listing files, reading files, editing files, deleting files, creating branches, and opening pull requests.
 
             ## Examples
@@ -369,7 +369,7 @@ export class UseProjectCommitmentDefinition extends BaseCommitmentDefinition<'US
                       ${block(repositoriesList)}
                     - When a repository is not obvious from context, pass "repository" in tool arguments explicitly.
                     - USE PROJECT credentials are read from wallet records (ACCESS_TOKEN, service "${PROJECT_WALLET_SERVICE}", key "${PROJECT_WALLET_KEY}").
-                    - If credentials are missing, ask the user to add them to wallet (or call "request_wallet_record" when WALLET commitment is available).
+                    - If credentials are missing, ask the user to connect credentials in host UI and/or add them to wallet (or call "request_wallet_record" when WALLET commitment is available).
                     ${block(extraInstructions)}
                 `,
             ),

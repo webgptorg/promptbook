@@ -1,8 +1,13 @@
 'use client';
 
-import { KeyRound, Lock, Save, UserRound, X } from 'lucide-react';
+import { buildGithubAppConnectUrl } from '@/src/utils/githubAppClient';
+import {
+    USE_PROJECT_GITHUB_WALLET_KEY,
+    USE_PROJECT_GITHUB_WALLET_SERVICE,
+} from '@/src/utils/useProjectGithubWalletConstants';
+import { Github, KeyRound, Lock, Save, UserRound, X } from 'lucide-react';
 import { useEffect, useId, useMemo, useState } from 'react';
-import { Dialog } from '../../../components/Portal/Dialog';
+import { Dialog } from '../Portal/Dialog';
 
 /**
  * Wallet record type supported by the dialog.
@@ -37,6 +42,15 @@ export type WalletRecordDialogSubmitPayload = {
 };
 
 /**
+ * GitHub App connect settings passed into the shared wallet dialog.
+ */
+export type WalletRecordDialogGithubAppOptions = {
+    isConfigured: boolean;
+    returnTo?: string;
+    agentPermanentId?: string | null;
+};
+
+/**
  * Props for wallet record dialog.
  */
 export type WalletRecordDialogProps = {
@@ -44,13 +58,14 @@ export type WalletRecordDialogProps = {
     request: PendingWalletRecordRequest | null;
     onSubmit: (payload: WalletRecordDialogSubmitPayload) => Promise<void> | void;
     onClose: () => void;
+    githubApp?: WalletRecordDialogGithubAppOptions;
 };
 
 /**
  * Dialog that captures one wallet credential record from user.
  */
 export function WalletRecordDialog(props: WalletRecordDialogProps) {
-    const { isOpen, request, onSubmit, onClose } = props;
+    const { isOpen, request, onSubmit, onClose, githubApp } = props;
     const serviceInputId = useId();
     const keyInputId = useId();
 
@@ -98,6 +113,9 @@ export function WalletRecordDialog(props: WalletRecordDialogProps) {
         }
         return null;
     }, [cookies, password, recordType, secret, service, username]);
+
+    const canUseGithubAppConnect =
+        githubApp?.isConfigured === true && isUseProjectGithubWalletRequest(recordType, service, key);
 
     if (!isOpen || !request) {
         return null;
@@ -236,19 +254,33 @@ export function WalletRecordDialog(props: WalletRecordDialogProps) {
                 )}
 
                 {recordType === 'ACCESS_TOKEN' && (
-                    <label className="text-sm text-gray-700">
-                        <span className="mb-1 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-gray-500">
-                            <Lock className="h-3 w-3" />
-                            Secret
-                        </span>
-                        <input
-                            type="password"
-                            value={secret}
-                            onChange={(event) => setSecret(event.target.value)}
-                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
-                            placeholder="Token / API key"
-                        />
-                    </label>
+                    <div className="space-y-3">
+                        <label className="text-sm text-gray-700">
+                            <span className="mb-1 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                <Lock className="h-3 w-3" />
+                                Secret
+                            </span>
+                            <input
+                                type="password"
+                                value={secret}
+                                onChange={(event) => setSecret(event.target.value)}
+                                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
+                                placeholder="Token / API key"
+                            />
+                        </label>
+
+                        {canUseGithubAppConnect && (
+                            <button
+                                type="button"
+                                onClick={() => redirectToGithubAppConnect({ isGlobal, githubApp })}
+                                disabled={isSubmitting}
+                                className="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                <Github className="h-4 w-4" />
+                                Connect with GitHub App
+                            </button>
+                        )}
+                    </div>
                 )}
 
                 {recordType === 'SESSION_COOKIE' && (
@@ -291,4 +323,37 @@ export function WalletRecordDialog(props: WalletRecordDialogProps) {
             </form>
         </Dialog>
     );
+}
+
+/**
+ * Returns true when dialog currently targets USE PROJECT GitHub access token.
+ */
+function isUseProjectGithubWalletRequest(recordType: WalletRecordType, service: string, key: string): boolean {
+    return (
+        recordType === 'ACCESS_TOKEN' &&
+        service.trim().toLowerCase() === USE_PROJECT_GITHUB_WALLET_SERVICE &&
+        key.trim() === USE_PROJECT_GITHUB_WALLET_KEY
+    );
+}
+
+/**
+ * Redirects browser to GitHub App connect endpoint.
+ */
+function redirectToGithubAppConnect(options: {
+    isGlobal: boolean;
+    githubApp?: WalletRecordDialogGithubAppOptions;
+}): void {
+    const effectiveIsGlobal = options.isGlobal || !options.githubApp?.agentPermanentId;
+    const returnTo =
+        options.githubApp?.returnTo ||
+        (typeof window !== 'undefined' ? `${window.location.pathname}${window.location.search}` : '/system/user-wallet');
+    const connectUrl = buildGithubAppConnectUrl({
+        returnTo,
+        isGlobal: effectiveIsGlobal,
+        agentPermanentId: options.githubApp?.agentPermanentId || null,
+    });
+
+    if (typeof window !== 'undefined') {
+        window.location.assign(connectUrl);
+    }
 }

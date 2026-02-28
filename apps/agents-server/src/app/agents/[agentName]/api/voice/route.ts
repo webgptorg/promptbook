@@ -8,8 +8,8 @@ import {
     resolveMetaDisclaimerStatusForUser,
 } from '@/src/utils/metaDisclaimer';
 import { extractProjectRepositoriesFromAgentSource } from '@/src/utils/projects/extractProjectRepositoriesFromAgentSource';
+import { resolveUseProjectGithubToken } from '@/src/utils/resolveUseProjectGithubToken';
 import { resolveCurrentUserMemoryIdentity } from '@/src/utils/userMemory';
-import { resolveUseProjectGithubTokenFromWallet } from '@/src/utils/userWallet';
 import { Agent, computeAgentHash } from '@promptbook-local/core';
 import { serializeError } from '@promptbook-local/utils';
 import { assertsError } from '../../../../../../../../src/errors/assertsError';
@@ -88,7 +88,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         const agentSource = await collection.getAgentSource(agentName);
         const projectRepositories = extractProjectRepositoriesFromAgentSource(agentSource);
         const projectGithubToken = currentUserIdentity
-            ? await resolveUseProjectGithubTokenFromWallet({
+            ? await resolveUseProjectGithubToken({
                   userId: currentUserIdentity.userId,
                   agentPermanentId,
               })
