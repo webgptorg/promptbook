@@ -1,5 +1,10 @@
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { describe, expect, it } from '@jest/globals';
-import { createCustomDomainMatchCandidates, createCustomDomainOrFilter } from './customDomainRouting';
+import {
+    createCustomDomainMatchCandidates,
+    createCustomDomainOrFilter,
+    resolveCustomDomainAgent,
+} from './customDomainRouting';
 
 describe('customDomainRouting', () => {
     it('builds normalized domain and link candidates from host header', () => {
@@ -29,4 +34,68 @@ describe('customDomainRouting', () => {
     it('returns null for invalid host values', () => {
         expect(createCustomDomainOrFilter('invalid host value')).toBe(null);
     });
+
+    describe('resolveCustomDomainAgent', () => {
+        it('returns the matching server and agent', async () => {
+            const supabase = createMockSupabase({
+                server_PavolHejny_Agent: {
+                    data: { agentName: 'my-agent' },
+                },
+            });
+
+            const resolution = await resolveCustomDomainAgent('search.ptbk.io', supabase, [
+                'pavol-hejny.ptbk.io',
+            ]);
+
+            expect(resolution).toEqual({
+                serverHost: 'pavol-hejny.ptbk.io',
+                agentName: 'my-agent',
+            });
+        });
+
+        it('skips servers that throw errors before returning the first match', async () => {
+            const supabase = createMockSupabase({
+                server_First_Agent: { shouldThrow: true },
+                server_Second_Agent: { data: { agentName: 'second-agent' } },
+            });
+
+            const resolution = await resolveCustomDomainAgent('search.ptbk.io', supabase, [
+                'first.ptbk.io',
+                'second.ptbk.io',
+            ]);
+
+            expect(resolution).toEqual({
+                serverHost: 'second.ptbk.io',
+                agentName: 'second-agent',
+            });
+        });
+    });
 });
+
+function createMockSupabase(
+    results: Record<string, { data?: { agentName: string } | null; shouldThrow?: boolean }>,
+): SupabaseClient {
+    return {
+        from(tableName: string) {
+            const builder = {
+                select() {
+                    return builder;
+                },
+                or() {
+                    return builder;
+                },
+                limit() {
+                    return builder;
+                },
+                async maybeSingle() {
+                    const entry = results[tableName];
+                    if (entry?.shouldThrow) {
+                        throw new Error('boom');
+                    }
+                    return { data: entry?.data ?? null };
+                },
+            };
+            return builder;
+        },
+    } as unknown as SupabaseClient;
+}

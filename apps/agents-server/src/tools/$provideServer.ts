@@ -1,5 +1,5 @@
 import { NEXT_PUBLIC_SITE_URL, SERVERS, SUPABASE_TABLE_PREFIX } from '@/config';
-import { normalizeTo_PascalCase } from '@promptbook-local/utils';
+import { buildServerTablePrefix } from '@/utils/serverTablePrefix';
 import { headers } from 'next/headers';
 
 export async function $provideServer() {
@@ -33,13 +33,8 @@ export async function $provideServer() {
         }
     }
 
-    let serverName = host;
-
-    serverName = serverName.replace(/\.ptbk\.io$/, '');
-    serverName = normalizeTo_PascalCase(serverName);
-
     return {
         publicUrl: new URL(`https://${host}`),
-        tablePrefix: `server_${serverName}_`,
+        tablePrefix: buildServerTablePrefix(host),
     };
 }

@@ -1,4 +1,6 @@
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { normalizeDomainForMatching } from '../../../../src/utils/validators/url/normalizeDomainForMatching';
+import { buildServerTablePrefix } from './serverTablePrefix';
 
 /**
  * Prefix used when generating HTTP URL variants for host matching.
@@ -75,6 +77,61 @@ export function createCustomDomainOrFilter(host: string): string | null {
 
     const filters = [...domainFilters, ...linkFilters];
     return filters.length > 0 ? filters.join(',') : null;
+}
+
+export type CustomDomainResolution = {
+    /**
+     * Host of the server that holds the agent matching the custom domain.
+     */
+    serverHost: string;
+
+    /**
+     * Name of the agent that should be served for the custom domain.
+     */
+    agentName: string;
+};
+
+/**
+ * Resolves a custom host to the matching agent if it is stored in one of the known servers.
+ *
+ * @param host - The incoming request host header.
+ * @param supabase - Supabase client instance.
+ * @param servers - List of configured server hosts (`SERVERS`).
+ * @returns Resolution data or `null` when no matching agent was found.
+ * @private Utility used by middleware for custom domain routing.
+ */
+export async function resolveCustomDomainAgent(
+    host: string,
+    supabase: SupabaseClient,
+    servers: readonly string[],
+): Promise<CustomDomainResolution | null> {
+    const orFilter = createCustomDomainOrFilter(host);
+    if (!orFilter) {
+        return null;
+    }
+
+    for (const serverHost of servers) {
+        try {
+            const tableName = `${buildServerTablePrefix(serverHost)}Agent`;
+            const { data } = await supabase
+                .from(tableName)
+                .select('agentName')
+                .or(orFilter)
+                .limit(1)
+                .maybeSingle();
+
+            if (data && typeof data.agentName === 'string') {
+                return {
+                    serverHost,
+                    agentName: data.agentName,
+                };
+            }
+        } catch {
+            // Ignore errors so we can try the next server host.
+        }
+    }
+
+    return null;
 }
 
 /**

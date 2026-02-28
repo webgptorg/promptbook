@@ -1,10 +1,10 @@
 import { TODO_any } from '@promptbook-local/types';
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
-import { SERVERS } from '../config';
-import { $getTableName } from './database/$getTableName';
+import { SERVERS, SUPABASE_TABLE_PREFIX } from '../config';
 import { RESERVED_PATHS } from './generated/reservedPaths';
-import { createCustomDomainOrFilter } from './utils/customDomainRouting';
+import { resolveCustomDomainAgent, type CustomDomainResolution } from './utils/customDomainRouting';
+import { buildServerTablePrefix } from './utils/serverTablePrefix';
 import { isIpAllowed } from './utils/isIpAllowed';
 
 export async function middleware(req: NextRequest) {
@@ -24,59 +24,67 @@ export async function middleware(req: NextRequest) {
     let allowedIpsMetadata: string | null = null;
     let embeddingAllowedMetadata: string | null = null;
 
-    // To fetch metadata, we need to know the table name, which depends on the host
     const host = req.headers.get('host');
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const supabase =
+        supabaseUrl && supabaseKey
+            ? createClient(supabaseUrl, supabaseKey, {
+                  auth: {
+                      persistSession: false,
+                      autoRefreshToken: false,
+                  },
+              })
+            : null;
 
-    if (host) {
-        /*
-        Note: [🐔] This code was commented out because results of it are unused
+    const hasConfiguredServers = Boolean(SERVERS && SERVERS.length > 0);
+    const hostIsRegisteredServer =
+        hasConfiguredServers && host ? SERVERS.some((server) => server === host) : false;
+    let customDomainResolution: CustomDomainResolution | null = null;
+    let effectiveServerHost: string | null = null;
 
-        let tablePrefix = SUPABASE_TABLE_PREFIX;
-
-        
-        if (SERVERS && SERVERS.length > 0) {
-            // Logic mirrored from src/tools/$provideServer.ts
-            if (SERVERS.some((server) => server === host)) {
-                let serverName = host;
-                serverName = serverName.replace(/\.ptbk\.io$/, '');
-                serverName = normalizeTo_PascalCase(serverName);
-                tablePrefix = `server_${serverName}_`;
+    if (hostIsRegisteredServer && host) {
+        effectiveServerHost = host;
+    } else if (host && hasConfiguredServers && supabase) {
+        try {
+            customDomainResolution = await resolveCustomDomainAgent(host, supabase, SERVERS);
+            if (customDomainResolution) {
+                effectiveServerHost = customDomainResolution.serverHost;
             }
+        } catch (error) {
+            console.error('Error resolving custom domain host in middleware:', error);
         }
-        */
+    } else if (!hasConfiguredServers && host) {
+        effectiveServerHost = host;
+    }
 
-        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-        const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const tablePrefixForRequest =
+        hasConfiguredServers && effectiveServerHost
+            ? buildServerTablePrefix(effectiveServerHost)
+            : SUPABASE_TABLE_PREFIX;
+    const canQueryServerTables = Boolean(supabase && (!hasConfiguredServers || effectiveServerHost));
 
-        if (supabaseUrl && supabaseKey) {
-            try {
-                const supabase = createClient(supabaseUrl, supabaseKey, {
-                    auth: {
-                        persistSession: false,
-                        autoRefreshToken: false,
-                    },
-                });
+    if (supabase && canQueryServerTables) {
+        try {
+            const { data } = await supabase
+                .from(`${tablePrefixForRequest}Metadata`)
+                .select('key, value')
+                .in('key', ['RESTRICT_IP', 'IS_EMBEDDING_ALLOWED']);
 
-                const { data } = await supabase
-                    .from(await $getTableName(`Metadata`))
-                    .select('key, value')
-                    .in('key', ['RESTRICT_IP', 'IS_EMBEDDING_ALLOWED']);
-
-                if (Array.isArray(data)) {
-                    for (const row of data) {
-                        const key = row?.key;
-                        const value = row?.value;
-                        if (key === 'RESTRICT_IP' && typeof value === 'string' && value !== '') {
-                            allowedIpsMetadata = value;
-                        }
-                        if (key === 'IS_EMBEDDING_ALLOWED' && typeof value === 'string') {
-                            embeddingAllowedMetadata = value;
-                        }
+            if (Array.isArray(data)) {
+                for (const row of data) {
+                    const key = row?.key;
+                    const value = row?.value;
+                    if (key === 'RESTRICT_IP' && typeof value === 'string' && value !== '') {
+                        allowedIpsMetadata = value;
+                    }
+                    if (key === 'IS_EMBEDDING_ALLOWED' && typeof value === 'string') {
+                        embeddingAllowedMetadata = value;
                     }
                 }
-            } catch (error) {
-                console.error('Error fetching metadata in middleware:', error);
             }
+        } catch (error) {
+            console.error('Error fetching metadata in middleware:', error);
         }
     }
 
@@ -90,48 +98,20 @@ export async function middleware(req: NextRequest) {
     if (authHeader && authHeader.startsWith('Bearer ')) {
         const token = authHeader.split(' ')[1];
 
-        if (token.startsWith('ptbk_')) {
-            /*
-            Note: [🐔] This code was commented out because results of it are unused
-            
-            const host = req.headers.get('host');
-            let tablePrefix = SUPABASE_TABLE_PREFIX;
+        if (token.startsWith('ptbk_') && supabase && canQueryServerTables) {
+            try {
+                const { data } = await supabase
+                    .from(`${tablePrefixForRequest}ApiTokens`)
+                    .select('id')
+                    .eq('token', token)
+                    .eq('isRevoked', false)
+                    .single();
 
-            if (host && SERVERS && SERVERS.length > 0) {
-                if (SERVERS.some((server) => server === host)) {
-                    let serverName = host;
-                    serverName = serverName.replace(/\.ptbk\.io$/, '');
-                    serverName = normalizeTo_PascalCase(serverName);
-                    tablePrefix = `server_${serverName}_`;
+                if (data) {
+                    isValidToken = true;
                 }
-            }
-            */
-
-            const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-            const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-            if (supabaseUrl && supabaseKey) {
-                try {
-                    const supabase = createClient(supabaseUrl, supabaseKey, {
-                        auth: {
-                            persistSession: false,
-                            autoRefreshToken: false,
-                        },
-                    });
-
-                    const { data } = await supabase
-                        .from(await $getTableName(`ApiTokens`))
-                        .select('id')
-                        .eq('token', token)
-                        .eq('isRevoked', false)
-                        .single();
-
-                    if (data) {
-                        isValidToken = true;
-                    }
-                } catch (error) {
-                    console.error('Error validating token in middleware:', error);
-                }
+            } catch (error) {
+                console.error('Error validating token in middleware:', error);
             }
         }
     }
@@ -218,63 +198,18 @@ export async function middleware(req: NextRequest) {
         return response;
     }
 
-    // 4. Custom Domain Routing
-    //    If the host is not one of the configured SERVERS, try to find an agent with matching META DOMAIN
-    //    (or legacy META LINK fallback).
+    if (customDomainResolution) {
+        const url = req.nextUrl.clone();
+        url.pathname = `/${customDomainResolution.agentName}`;
 
-    if (host && SERVERS && !SERVERS.some((server) => server === host)) {
-        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-        const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+        const requestHeaders = new Headers(req.headers);
+        requestHeaders.set('x-promptbook-server', customDomainResolution.serverHost);
 
-        if (supabaseUrl && supabaseKey) {
-            const supabase = createClient(supabaseUrl, supabaseKey, {
-                auth: {
-                    persistSession: false,
-                    autoRefreshToken: false,
-                },
-            });
-
-            // Determine prefixes to check
-            // We check all configured servers because the custom domain could point to any of them
-            // (or if they share the database, we need to check the relevant tables)
-            const serversToCheck = SERVERS;
-            const orFilter = createCustomDomainOrFilter(host);
-
-            if (!orFilter) {
-                return NextResponse.next();
-            }
-
-            // TODO: [🧠] If there are many servers, this loop might be slow. Optimize if needed.
-            for (const serverHost of serversToCheck) {
-                try {
-                    const { data } = await supabase
-                        .from(await $getTableName(`Agent`))
-                        .select('agentName')
-                        .or(orFilter)
-                        .limit(1)
-                        .single();
-
-                    if (data && data.agentName) {
-                        // Found the agent!
-                        const url = req.nextUrl.clone();
-                        url.pathname = `/${data.agentName}`;
-
-                        // Pass the server context to the app via header
-                        const requestHeaders = new Headers(req.headers);
-                        requestHeaders.set('x-promptbook-server', serverHost);
-
-                        return NextResponse.rewrite(url, {
-                            request: {
-                                headers: requestHeaders,
-                            },
-                        });
-                    }
-                } catch (error) {
-                    // Ignore error (e.g. table not found, or agent not found) and continue to next server
-                    // console.error(`Error checking server ${serverHost} for custom domain ${host}:`, error);
-                }
-            }
-        }
+        return NextResponse.rewrite(url, {
+            request: {
+                headers: requestHeaders,
+            },
+        });
     }
 
     const response = NextResponse.next();
