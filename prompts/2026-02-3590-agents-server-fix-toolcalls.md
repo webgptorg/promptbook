@@ -27,15 +27,25 @@
 
 ---
 
-[-]
+[ ]
 
-[✨😲] bar
+[✨😲] Toolcalls are duplicated
 
--   @@@
+-   When the agent calls a tool, it creates two tool call chips in the UI, but theese chips are duplicates, they have the same content, but one of them is errored and the other one is working. Remove the errored one and show only the working one by leverage the idempotency key of the tool call. **One tool call should create only one chip in the UI, not two.**
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
+-   Do a proper analysis of the current functionality of toolcall chips before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+---
+
+[ ]
+
+[✨😲] Toolcall chips contain extra spaces
+
+-   When showing chips of tool calls, it is compounded from two parts, the second part is capitalized and has extra space between the characters (or extra space at the end). Remove this extra space and capitalization and show the tool call chips in a more user friendly way.
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality of toolcall chips in chat before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
 
 ---
 
@@ -48,16 +58,3 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
----
-
-[-]
-
-[✨😲] bar
-
--   @@@
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
--   You are working with the [Agents Server](apps/agents-server)
--   Add the changes into the [changelog](changelog/_current-preversion.md)
-
