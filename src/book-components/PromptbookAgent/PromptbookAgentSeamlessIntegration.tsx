@@ -149,15 +149,17 @@ export function PromptbookAgentSeamlessIntegration(props: PromptbookAgentSeamles
                         connectionStatus === 'connected'
                             ? styles.PromptbookAgentSeamlessIntegrationStatusConnected
                             : connectionStatus === 'error'
-                              ? styles.PromptbookAgentSeamlessIntegrationStatusError
-                              : styles.PromptbookAgentSeamlessIntegrationStatusPending,
+                            ? styles.PromptbookAgentSeamlessIntegrationStatusError
+                            : styles.PromptbookAgentSeamlessIntegrationStatusPending,
                     )}
                 />
                 <div className={styles.PromptbookAgentSeamlessIntegrationText}>
                     <div className={styles.PromptbookAgentSeamlessIntegrationLabel}>Chat</div>
                     <div className={styles.PromptbookAgentSeamlessIntegrationHint}>{displayName}</div>
                 </div>
-                <span className={styles.PromptbookAgentSeamlessIntegrationScreenReaderOnly}>{connectionStatusText}</span>
+                <span className={styles.PromptbookAgentSeamlessIntegrationScreenReaderOnly}>
+                    {connectionStatusText}
+                </span>
             </button>
 
             {isOpen && (
@@ -169,7 +171,9 @@ export function PromptbookAgentSeamlessIntegration(props: PromptbookAgentSeamles
                     >
                         <div className={styles.PromptbookAgentSeamlessIntegrationTitleWrap}>
                             <div className={styles.PromptbookAgentSeamlessIntegrationTitle}>{displayName}</div>
-                            <div className={styles.PromptbookAgentSeamlessIntegrationSubtitle}>{connectionStatusText}</div>
+                            <div className={styles.PromptbookAgentSeamlessIntegrationSubtitle}>
+                                {connectionStatusText}
+                            </div>
                         </div>
                         {isIframeUsed && (
                             <button
@@ -223,7 +227,9 @@ export function PromptbookAgentSeamlessIntegration(props: PromptbookAgentSeamles
                                 <div className={styles.PromptbookAgentSeamlessIntegrationErrorTitle}>
                                     Failed to connect to the agent
                                 </div>
-                                <div className={styles.PromptbookAgentSeamlessIntegrationErrorMessage}>{error.message}</div>
+                                <div className={styles.PromptbookAgentSeamlessIntegrationErrorMessage}>
+                                    {error.message}
+                                </div>
                             </div>
                         ) : (
                             <div className={styles.PromptbookAgentSeamlessIntegrationLoading}>

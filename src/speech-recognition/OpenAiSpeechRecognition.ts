@@ -322,8 +322,7 @@ export class OpenAiSpeechRecognition implements SpeechRecognition {
      */
     private updateAmbientNoiseLevel(voiceLevel: number): void {
         this.ambientNoiseLevel =
-            this.ambientNoiseLevel * (1 - AMBIENT_NOISE_SMOOTHING_FACTOR) +
-            voiceLevel * AMBIENT_NOISE_SMOOTHING_FACTOR;
+            this.ambientNoiseLevel * (1 - AMBIENT_NOISE_SMOOTHING_FACTOR) + voiceLevel * AMBIENT_NOISE_SMOOTHING_FACTOR;
     }
 
     /**

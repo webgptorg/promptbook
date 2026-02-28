@@ -538,8 +538,7 @@ export function ChatInputArea(props: ChatInputAreaProps) {
                         }}
                         className={classNames(
                             styles.voiceButton,
-                            (isVoiceCalling ||
-                                speechRecognitionUiDescriptor.isButtonActive) &&
+                            (isVoiceCalling || speechRecognitionUiDescriptor.isButtonActive) &&
                                 styles.voiceButtonActive,
                         )}
                         onClick={onButtonClick((event) => {

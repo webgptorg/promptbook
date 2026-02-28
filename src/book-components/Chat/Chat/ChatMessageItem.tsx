@@ -1108,8 +1108,7 @@ export const ChatMessageItem = memo(
                                         url: toolCallEntry.origin.url || 'about:blank',
                                         label: toolCallEntry.origin.label,
                                     };
-                                    const transitiveKey =
-                                        toolCallEntry.toolCall.idempotencyKey ?? `team-tool-${index}`;
+                                    const transitiveKey = toolCallEntry.toolCall.idempotencyKey ?? `team-tool-${index}`;
                                     const transitiveHasErrors =
                                         Array.isArray(toolCallEntry.toolCall.errors) &&
                                         toolCallEntry.toolCall.errors.length > 0;

@@ -668,8 +668,7 @@ export function LlmChat(props: LlmChatProps) {
     // Handle autoExecuteMessage
     const hasAutoExecutedRef = useRef(false);
     useEffect(() => {
-        const shouldAutoExecute =
-            Boolean(autoExecuteMessage) || Boolean(autoExecuteMessageAttachments?.length);
+        const shouldAutoExecute = Boolean(autoExecuteMessage) || Boolean(autoExecuteMessageAttachments?.length);
 
         if (!shouldAutoExecute || hasAutoExecutedRef.current) {
             return;
