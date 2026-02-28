@@ -158,12 +158,30 @@ Ask John Green for everything. Always asks him in English
 
 ---
 
-[-]
+[ ]
 
-[✨🆘] brr
+[✨🆘] Simplify pages of Pseudo Agents.
 
+-   For example
+    -   https://core.ptbk.io/agents/void
+    -   https://core.ptbk.io/agents/user
+-   Make these pages much more similar to the normal agent profile page.
+-   There shouldn't be any deep technical knowledge about the book language; only the profile page of the pseudo agent.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+
+![alt text](prompts/screenshots/2026-02-3320-agents-server-pseudoagents.png)
+
+---
+
+[ ]
+
+[✨🆘] Make pseudo-agent `{null}`
+
+-   It is alias of `{Void}` and behaves the same way as `{Void}`. It is just another name for the same pseudo-agent.
+-   This pseudo-agent represents the null, nothingness, it can be used in `FROM` commitment to create an agent that isn't based on any other agent.
+-   Keep in mind the DRY _(don't repeat yourself)_ principle, logic for `{Void}` and `{Null}` should be the same, just with different names.
+-   Do a proper analysis of the current functionality of pseudo-agents and agent referencing in book language before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
 
@@ -177,4 +195,3 @@ Ask John Green for everything. Always asks him in English
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
