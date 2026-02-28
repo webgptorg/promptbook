@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import { RemoteAgent } from '../../llm-providers/agent/RemoteAgent';
 import { classNames } from '../_common/react-utils/classNames';
 import { AgentChat } from '../Chat/AgentChat/AgentChat';
@@ -8,6 +8,9 @@ import { CloseIcon } from '../icons/CloseIcon';
 import { PromptbookAgentIntegrationProps } from './PromptbookAgentIntegration';
 import styles from './PromptbookAgentSeamlessIntegration.module.css';
 
+/**
+ * @private props of PromptbookAgentSeamlessIntegration
+ */
 type PromptbookAgentSeamlessIntegrationProps = Omit<PromptbookAgentIntegrationProps, 'formfactor'> & {
     /**
      * Use iframe instead of implementing the chat directly
@@ -30,6 +33,7 @@ export function PromptbookAgentSeamlessIntegration(props: PromptbookAgentSeamles
     const [isOpen, setIsOpen] = useState(false);
     const [headerElement, setHeaderElement] = useState<HTMLDivElement | null>(null);
     const [isIframeLoaded, setIsIframeLoaded] = useState(false);
+    const windowId = useId();
 
     useEffect(() => {
         if (onOpenChange) {
@@ -39,6 +43,24 @@ export function PromptbookAgentSeamlessIntegration(props: PromptbookAgentSeamles
             setIsIframeLoaded(false);
         }
     }, [isOpen, onOpenChange]);
+
+    useEffect(() => {
+        if (!isOpen) {
+            return;
+        }
+
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                setIsOpen(false);
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [isOpen]);
+
     const [agent, setAgent] = useState<RemoteAgent | null>(null);
     const [error, setError] = useState<Error | null>(null);
 
@@ -90,6 +112,7 @@ export function PromptbookAgentSeamlessIntegration(props: PromptbookAgentSeamles
         // Note: [🤹] Using default avatar from the agent server
         `${agentUrl}/images/default-avatar.png`;
     const color = agent?.meta?.color || meta?.color;
+    const displayName = agent?.meta.fullname || meta?.fullname || agent?.agentName || 'Chat with Agent';
 
     let connectionStatus: 'connected' | 'pending' | 'error' = 'pending';
     if (agent) {
@@ -97,6 +120,8 @@ export function PromptbookAgentSeamlessIntegration(props: PromptbookAgentSeamles
     } else if (error) {
         connectionStatus = 'error';
     }
+    const connectionStatusText =
+        connectionStatus === 'connected' ? 'Online' : connectionStatus === 'error' ? 'Connection issue' : 'Connecting';
 
     return (
         <div
@@ -106,42 +131,52 @@ export function PromptbookAgentSeamlessIntegration(props: PromptbookAgentSeamles
             )}
             style={style}
         >
-            <div
+            <button
+                type="button"
                 className={styles.PromptbookAgentSeamlessIntegrationButton}
                 onClick={() => setIsOpen(!isOpen)}
                 style={{ backgroundColor: color }}
+                aria-expanded={isOpen}
+                aria-controls={windowId}
+                title={isOpen ? `Close chat with ${displayName}` : `Open chat with ${displayName}`}
             >
                 <div className={styles.PromptbookAgentSeamlessIntegrationAvatar}>
-                    {/* TODO: Use agent avatar if available */}
-                    <img src={image} alt="Agent" />
+                    <img src={image} alt={`${displayName} avatar`} />
                 </div>
                 <div
-                    className={`${styles.PromptbookAgentSeamlessIntegrationStatus} ${
+                    className={classNames(
+                        styles.PromptbookAgentSeamlessIntegrationStatus,
                         connectionStatus === 'connected'
                             ? styles.PromptbookAgentSeamlessIntegrationStatusConnected
                             : connectionStatus === 'error'
-                            ? styles.PromptbookAgentSeamlessIntegrationStatusError
-                            : styles.PromptbookAgentSeamlessIntegrationStatusPending
-                    }`}
+                              ? styles.PromptbookAgentSeamlessIntegrationStatusError
+                              : styles.PromptbookAgentSeamlessIntegrationStatusPending,
+                    )}
                 />
-                <div className={styles.PromptbookAgentSeamlessIntegrationLabel}>CHAT</div>
-            </div>
+                <div className={styles.PromptbookAgentSeamlessIntegrationText}>
+                    <div className={styles.PromptbookAgentSeamlessIntegrationLabel}>Chat</div>
+                    <div className={styles.PromptbookAgentSeamlessIntegrationHint}>{displayName}</div>
+                </div>
+                <span className={styles.PromptbookAgentSeamlessIntegrationScreenReaderOnly}>{connectionStatusText}</span>
+            </button>
 
             {isOpen && (
-                <div className={styles.PromptbookAgentSeamlessIntegrationWindow}>
+                <div className={styles.PromptbookAgentSeamlessIntegrationWindow} id={windowId}>
                     <div
                         className={styles.PromptbookAgentSeamlessIntegrationHeader}
                         style={{ backgroundColor: color }}
                         ref={setHeaderElement}
                     >
-                        <div className={styles.PromptbookAgentSeamlessIntegrationTitle}>
-                            {agent?.meta.fullname || meta?.fullname || agent?.agentName || 'Chat with Agent'}
+                        <div className={styles.PromptbookAgentSeamlessIntegrationTitleWrap}>
+                            <div className={styles.PromptbookAgentSeamlessIntegrationTitle}>{displayName}</div>
+                            <div className={styles.PromptbookAgentSeamlessIntegrationSubtitle}>{connectionStatusText}</div>
                         </div>
                         {isIframeUsed && (
                             <button
                                 className={styles.PromptbookAgentSeamlessIntegrationClose}
                                 onClick={() => setIsOpen(false)}
                                 title="Close"
+                                aria-label="Close chat"
                             >
                                 <CloseIcon />
                             </button>
@@ -152,7 +187,10 @@ export function PromptbookAgentSeamlessIntegration(props: PromptbookAgentSeamles
                             <>
                                 {!isIframeLoaded && (
                                     <div className={styles.PromptbookAgentSeamlessIntegrationLoading}>
-                                        Loading chat...
+                                        <div className={styles.PromptbookAgentSeamlessIntegrationLoadingSpinner} />
+                                        <div className={styles.PromptbookAgentSeamlessIntegrationLoadingText}>
+                                            Preparing chat...
+                                        </div>
                                     </div>
                                 )}
                                 <iframe
@@ -173,6 +211,7 @@ export function PromptbookAgentSeamlessIntegration(props: PromptbookAgentSeamles
                                         className={styles.PromptbookAgentSeamlessIntegrationClose}
                                         onClick={() => setIsOpen(false)}
                                         title="Close"
+                                        aria-label="Close chat"
                                     >
                                         <CloseIcon />
                                     </button>
@@ -181,12 +220,17 @@ export function PromptbookAgentSeamlessIntegration(props: PromptbookAgentSeamles
                             />
                         ) : error ? (
                             <div className={styles.PromptbookAgentSeamlessIntegrationError}>
-                                Failed to connect to agent: {error.message}
+                                <div className={styles.PromptbookAgentSeamlessIntegrationErrorTitle}>
+                                    Failed to connect to the agent
+                                </div>
+                                <div className={styles.PromptbookAgentSeamlessIntegrationErrorMessage}>{error.message}</div>
                             </div>
                         ) : (
                             <div className={styles.PromptbookAgentSeamlessIntegrationLoading}>
-                                {/* TODO: Skeleton loader */}
-                                Connecting to agent...
+                                <div className={styles.PromptbookAgentSeamlessIntegrationLoadingSpinner} />
+                                <div className={styles.PromptbookAgentSeamlessIntegrationLoadingText}>
+                                    Connecting to agent...
+                                </div>
                             </div>
                         )}
                     </div>
