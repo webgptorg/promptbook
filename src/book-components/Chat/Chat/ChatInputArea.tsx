@@ -75,6 +75,93 @@ export type ChatInputAreaProps = {
 };
 
 /**
+ * Visual tone used by the floating speech-status bubble.
+ *
+ * @private component of `<Chat/>`
+ */
+type SpeechStatusBubbleTone = 'neutral' | 'recording' | 'processing' | 'error';
+
+/**
+ * UI metadata derived from the current speech-recognition state.
+ *
+ * @private component of `<Chat/>`
+ */
+type SpeechRecognitionUiDescriptor = {
+    /**
+     * Tooltip and assistive text for the microphone button.
+     */
+    readonly buttonTitle: string;
+    /**
+     * Optional floating-bubble text shown while speech processing is active.
+     */
+    readonly bubbleText?: string;
+    /**
+     * Visual color variant for the speech-status bubble.
+     */
+    readonly bubbleTone?: SpeechStatusBubbleTone;
+    /**
+     * Whether the voice button should use active styling.
+     */
+    readonly isButtonActive: boolean;
+    /**
+     * Whether the voice button should be disabled.
+     */
+    readonly isButtonDisabled: boolean;
+};
+
+/**
+ * Shared mapping from recognizer state to the chat voice-control UI.
+ *
+ * @private component of `<Chat/>`
+ */
+const SPEECH_RECOGNITION_UI_DESCRIPTORS: Record<SpeechRecognitionState, SpeechRecognitionUiDescriptor> = {
+    IDLE: {
+        buttonTitle: 'Start voice input',
+        isButtonActive: false,
+        isButtonDisabled: false,
+    },
+    STARTING: {
+        buttonTitle: 'Starting microphone...',
+        bubbleText: 'Starting microphone...',
+        bubbleTone: 'neutral',
+        isButtonActive: true,
+        isButtonDisabled: true,
+    },
+    RECORDING: {
+        buttonTitle: 'Stop recording',
+        bubbleText: 'Listening... Speak now.',
+        bubbleTone: 'recording',
+        isButtonActive: true,
+        isButtonDisabled: false,
+    },
+    TRANSCRIBING: {
+        buttonTitle: 'Transcribing...',
+        bubbleText: 'Transcribing your speech...',
+        bubbleTone: 'processing',
+        isButtonActive: true,
+        isButtonDisabled: true,
+    },
+    ERROR: {
+        buttonTitle: 'Speech recognition failed. Tap to retry.',
+        bubbleText: 'Speech recognition failed. Tap the microphone to retry.',
+        bubbleTone: 'error',
+        isButtonActive: false,
+        isButtonDisabled: false,
+    },
+};
+
+/**
+ * Resolves voice-button and floating-bubble UI from a speech-recognition state.
+ *
+ * @param state Current speech-recognition state.
+ * @returns Voice-control UI descriptor.
+ * @private component of `<Chat/>`
+ */
+function resolveSpeechRecognitionUiDescriptor(state: SpeechRecognitionState): SpeechRecognitionUiDescriptor {
+    return SPEECH_RECOGNITION_UI_DESCRIPTORS[state];
+}
+
+/**
  * Renders the chat input area with text, file upload, and voice controls.
  *
  * @private component of `<Chat/>`
@@ -103,6 +190,10 @@ export function ChatInputArea(props: ChatInputAreaProps) {
     const [isDragOver, setIsDragOver] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const [speechRecognitionState, setSpeechRecognitionState] = useState<SpeechRecognitionState>('IDLE');
+    const speechRecognitionUiDescriptor = useMemo(
+        () => resolveSpeechRecognitionUiDescriptor(speechRecognitionState),
+        [speechRecognitionState],
+    );
     const resolvedSpeechRecognitionLanguage = useMemo(
         () => resolveSpeechRecognitionLanguage({ overrideLanguage: speechRecognitionLanguage }),
         [speechRecognitionLanguage],
@@ -131,6 +222,8 @@ export function ChatInputArea(props: ChatInputAreaProps) {
         const unsubscribe = speechRecognition.subscribe((event: SpeechRecognitionEvent) => {
             if (event.type === 'START') {
                 setSpeechRecognitionState('RECORDING');
+            } else if (event.type === 'TRANSCRIBING') {
+                setSpeechRecognitionState('TRANSCRIBING');
             } else if (event.type === 'RESULT') {
                 if (textareaRef.current) {
                     const textarea = textareaRef.current;
@@ -156,14 +249,22 @@ export function ChatInputArea(props: ChatInputAreaProps) {
         };
     }, [speechRecognition, onChange]);
 
+    useEffect(() => {
+        return () => {
+            speechRecognition?.$stop();
+        };
+    }, [speechRecognition]);
+
     const handleToggleVoiceInput = useCallback(() => {
         if (!speechRecognition) {
             return;
         }
 
         if (speechRecognition.state === 'IDLE' || speechRecognition.state === 'ERROR') {
+            setSpeechRecognitionState('STARTING');
             speechRecognition.$start({ language: resolvedSpeechRecognitionLanguage });
         } else {
+            setSpeechRecognitionState('TRANSCRIBING');
             speechRecognition.$stop();
         }
     }, [speechRecognition, resolvedSpeechRecognitionLanguage]);
@@ -426,35 +527,27 @@ export function ChatInputArea(props: ChatInputAreaProps) {
                 {speechRecognition && (
                     <button
                         data-button-type="voice"
-                        disabled={speechRecognitionState === 'STARTING' || speechRecognitionState === 'TRANSCRIBING'}
+                        disabled={speechRecognitionUiDescriptor.isButtonDisabled}
                         style={{
-                            backgroundColor:
-                                speechRecognitionState === 'RECORDING' || speechRecognitionState === 'TRANSCRIBING'
-                                    ? Color.from('#ff4444').toHex()
-                                    : buttonColor.toHex(),
-                            color:
-                                speechRecognitionState === 'RECORDING' || speechRecognitionState === 'TRANSCRIBING'
-                                    ? Color.from('#ffffff').toHex()
-                                    : buttonColor.then(textColor).toHex(),
+                            backgroundColor: speechRecognitionUiDescriptor.isButtonActive
+                                ? Color.from('#ff4444').toHex()
+                                : buttonColor.toHex(),
+                            color: speechRecognitionUiDescriptor.isButtonActive
+                                ? Color.from('#ffffff').toHex()
+                                : buttonColor.then(textColor).toHex(),
                         }}
                         className={classNames(
                             styles.voiceButton,
                             (isVoiceCalling ||
-                                speechRecognitionState === 'RECORDING' ||
-                                speechRecognitionState === 'TRANSCRIBING') &&
+                                speechRecognitionUiDescriptor.isButtonActive) &&
                                 styles.voiceButtonActive,
                         )}
                         onClick={onButtonClick((event) => {
                             event.preventDefault();
                             handleToggleVoiceInput();
                         })}
-                        title={
-                            speechRecognitionState === 'RECORDING'
-                                ? 'Stop recording'
-                                : speechRecognitionState === 'TRANSCRIBING'
-                                ? 'Transcribing...'
-                                : 'Start voice input'
-                        }
+                        title={speechRecognitionUiDescriptor.buttonTitle}
+                        aria-label={speechRecognitionUiDescriptor.buttonTitle}
                     >
                         <MicIcon size={25} />
                     </button>
@@ -474,6 +567,23 @@ export function ChatInputArea(props: ChatInputAreaProps) {
                     <SendIcon size={25} />
                 </button>
             </div>
+
+            {speechRecognition && speechRecognitionUiDescriptor.bubbleText && (
+                <div
+                    className={classNames(
+                        styles.speechStatusBubble,
+                        speechRecognitionUiDescriptor.bubbleTone === 'recording' && styles.speechStatusBubbleRecording,
+                        speechRecognitionUiDescriptor.bubbleTone === 'processing' &&
+                            styles.speechStatusBubbleProcessing,
+                        speechRecognitionUiDescriptor.bubbleTone === 'error' && styles.speechStatusBubbleError,
+                    )}
+                    aria-live="polite"
+                    role="status"
+                >
+                    <span className={styles.speechStatusBubbleDot} aria-hidden="true" />
+                    <span>{speechRecognitionUiDescriptor.bubbleText}</span>
+                </div>
+            )}
 
             {isUploading && (
                 <div className={styles.uploadProgress}>

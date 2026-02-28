@@ -57,6 +57,9 @@ export type SpeechRecognitionEvent =
           readonly type: 'START';
       }
     | {
+          readonly type: 'TRANSCRIBING';
+      }
+    | {
           readonly type: 'RESULT';
           readonly text: string;
           readonly isFinal: boolean;

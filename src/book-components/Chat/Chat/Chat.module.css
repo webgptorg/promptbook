@@ -1252,6 +1252,91 @@
     animation: voiceRecordingPulse 1.5s infinite;
 }
 
+.speechStatusBubble {
+    position: absolute;
+    right: 24px;
+    bottom: 86px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    max-width: min(320px, calc(100% - 48px));
+    padding: 8px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(15, 23, 42, 0.15);
+    background: rgba(255, 255, 255, 0.95);
+    color: #0f172a;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    pointer-events: none;
+    z-index: 25;
+    animation: speechStatusBubbleIn 0.2s ease-out;
+}
+
+.speechStatusBubbleDot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #64748b;
+    flex-shrink: 0;
+    animation: speechStatusBubbleDotPulse 1.2s ease-in-out infinite;
+}
+
+.speechStatusBubbleRecording {
+    border-color: rgba(239, 68, 68, 0.35);
+    background: rgba(254, 242, 242, 0.97);
+    color: #991b1b;
+}
+
+.speechStatusBubbleRecording .speechStatusBubbleDot {
+    background: #ef4444;
+}
+
+.speechStatusBubbleProcessing {
+    border-color: rgba(14, 116, 144, 0.35);
+    background: rgba(236, 254, 255, 0.97);
+    color: #155e75;
+}
+
+.speechStatusBubbleProcessing .speechStatusBubbleDot {
+    background: #0ea5e9;
+}
+
+.speechStatusBubbleError {
+    border-color: rgba(220, 38, 38, 0.35);
+    background: rgba(254, 242, 242, 0.98);
+    color: #991b1b;
+}
+
+.speechStatusBubbleError .speechStatusBubbleDot {
+    background: #dc2626;
+    animation: none;
+}
+
+@keyframes speechStatusBubbleIn {
+    from {
+        opacity: 0;
+        transform: translateY(6px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes speechStatusBubbleDotPulse {
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.6;
+        transform: scale(0.82);
+    }
+}
+
 @keyframes voiceRecordingPulse {
     0% {
         box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.4);
@@ -3071,6 +3156,14 @@
         gap: 10px;
     }
 
+    .speechStatusBubble {
+        right: 14px;
+        bottom: 76px;
+        max-width: calc(100% - 28px);
+        font-size: 11px;
+        padding: 7px 11px;
+    }
+
     .chatMainFlow .chatInput textarea {
         font-size: 16px;
         padding: 14px 18px;
@@ -3214,6 +3307,12 @@
     .chatMainFlow .chatInput {
         padding: 12px 8px;
         gap: 8px;
+    }
+
+    .speechStatusBubble {
+        right: 10px;
+        bottom: 72px;
+        max-width: calc(100% - 20px);
     }
 
     .chatMainFlow .chatInput textarea {
