@@ -10,6 +10,37 @@ describe('splitMessageContentIntoSegments', () => {
         });
     });
 
+    it('parses fenced code into code segments while preserving surrounding text', () => {
+        const segments = splitMessageContentIntoSegments(
+            'Here is a snippet:\n```ts\nconst foo = 123;\n```\nBack to words.',
+        );
+
+        expect(segments).toHaveLength(3);
+        expect(segments[0]).toEqual({
+            type: 'text',
+            content: 'Here is a snippet:\n',
+        });
+        expect(segments[1]).toEqual({
+            type: 'code',
+            language: 'ts',
+            code: 'const foo = 123;\n',
+        });
+        expect(segments[2]).toEqual({
+            type: 'text',
+            content: 'Back to words.',
+        });
+    });
+
+    it('supports tilde fences and language aliases for code blocks', () => {
+        const segments = splitMessageContentIntoSegments('Before\n~~~bash\nls -la\n~~~\nAfter');
+
+        expect(segments[1]).toEqual({
+            type: 'code',
+            language: 'bash',
+            code: 'ls -la\n',
+        });
+    });
+
     it('parses GeoJSON blocks into map segments while preserving surrounding text', () => {
         const segments = splitMessageContentIntoSegments(
             'Here is a map:\n```geojson\n{"type":"Feature","geometry":{"type":"Point","coordinates":[0,0]}}\n```\nSee you.',
@@ -43,6 +74,17 @@ describe('splitMessageContentIntoSegments', () => {
         const rejoined = segments
             .filter((segment): segment is { type: 'text'; content: string } => segment.type === 'text')
             .map((segment) => segment.content)
+            .join('');
+        expect(rejoined).toBe(content);
+    });
+
+    it('leaves unterminated code fences as plain text', () => {
+        const content = 'Broken code:\n```python\nprint("hi")';
+        const segments = splitMessageContentIntoSegments(content);
+
+        expect(segments.every((segment) => segment.type === 'text')).toBe(true);
+        const rejoined = segments
+            .map((segment) => (segment.type === 'text' ? segment.content : ''))
             .join('');
         expect(rejoined).toBe(content);
     });

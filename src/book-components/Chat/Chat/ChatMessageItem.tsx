@@ -16,6 +16,7 @@ import { getToolCallIdentity } from '../../../utils/toolCalls/getToolCallIdentit
 import { classNames } from '../../_common/react-utils/classNames';
 import { AvatarProfileTooltip } from '../../AvatarProfile/AvatarProfile/AvatarProfileTooltip';
 import { AgentChip, type AgentChipData } from '../AgentChip';
+import { CodeBlock } from '../CodeBlock/CodeBlock';
 import { MarkdownContent } from '../MarkdownContent/MarkdownContent';
 import { SourceChip } from '../SourceChip';
 import type { ChatMessage } from '../types/ChatMessage';
@@ -982,6 +983,17 @@ export const ChatMessageItem = memo(
                                                 <MarkdownContent
                                                     key={`text-${segmentIndex}`}
                                                     content={segment.content}
+                                                    onCreateAgent={onCreateAgent}
+                                                />
+                                            );
+                                        }
+
+                                        if (segment.type === 'code') {
+                                            return (
+                                                <CodeBlock
+                                                    key={`code-${segmentIndex}`}
+                                                    code={segment.code}
+                                                    language={segment.language}
                                                     onCreateAgent={onCreateAgent}
                                                 />
                                             );
