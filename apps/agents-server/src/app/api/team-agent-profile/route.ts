@@ -1,7 +1,16 @@
 import { NextResponse } from 'next/server';
 
-import { resolvePlaceholderImageUrl, resolveProfileImageUrl } from '../../../../../../src/book-components/Chat/utils/loadAgentProfile';
-import { isValidAgentUrl } from '@/src/utils/validators/url/isValidAgentUrl';
+import {
+    resolvePlaceholderImageUrl,
+    resolveProfileImageUrl,
+} from '../../../../../../src/book-components/Chat/utils/loadAgentProfile';
+import { isValidAgentUrl } from '../../../../../../src/utils/validators/url/isValidAgentUrl';
+
+type TeamAgentProfileResponse = {
+    url: string;
+    label?: string;
+    imageUrl?: string;
+};
 
 /**
  * Builds the profile endpoint for a teammate agent URL.
@@ -77,10 +86,7 @@ export async function GET(request: Request) {
     const profile = await fetchAgentProfile(normalizedUrl);
 
     if (!profile) {
-        return NextResponse.json(
-            { url: normalizedUrl, error: 'Failed to load teammate profile' },
-            { status: 502 },
-        );
+        return NextResponse.json({ url: normalizedUrl, error: 'Failed to load teammate profile' }, { status: 502 });
     }
 
     return NextResponse.json(profile, {

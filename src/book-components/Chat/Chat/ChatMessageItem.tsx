@@ -3,8 +3,8 @@
 //          this would not be here because the `@promptbook/components` package should be React library independent of Next.js specifics
 
 import { Pause, Play } from 'lucide-react';
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactElement } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { colorToDataUrl } from '../../../_packages/color.index';
 import { PROMPTBOOK_CHAT_COLOR, USER_CHAT_COLOR } from '../../../config';
 import type { ToolCall } from '../../../types/ToolCall';
@@ -26,26 +26,25 @@ import { collectTeamToolCallSummary, type TransitiveToolCall } from '../utils/co
 import { isTeamToolName } from '../utils/createTeamToolNameFromUrl';
 import { getChatMessageTimingDisplay } from '../utils/getChatMessageTimingDisplay';
 import type { ToolCallChipletInfo } from '../utils/getToolCallChipletInfo';
-import { buildToolCallChipText, getToolCallChipletInfo, TOOL_TITLES } from '../utils/getToolCallChipletInfo';
+import { buildToolCallChipText, getToolCallChipletInfo } from '../utils/getToolCallChipletInfo';
 import {
     dedupeCitationsBySource,
     extractCitationsFromMessage,
     type ParsedCitation,
 } from '../utils/parseCitationsFromContent';
 import { parseMessageButtons } from '../utils/parseMessageButtons';
-import { parseToolCallArguments } from '../utils/toolCallParsing';
-import styles from './Chat.module.css';
-import type { ChatProps } from './ChatProps';
-import { LOADING_INTERACTIVE_IMAGE } from './constants';
-import { ImagePromptRenderer } from './ImagePromptRenderer';
-import { ChatMessageMap } from './ChatMessageMap';
-import { splitMessageContentIntoSegments } from '../utils/splitMessageContentIntoSegments';
 import {
     getLatestStreamingFeatureBoundary,
     sanitizeStreamingMessageContent,
     type StreamingFeatureBoundary,
 } from '../utils/sanitizeStreamingMessageContent';
+import { splitMessageContentIntoSegments } from '../utils/splitMessageContentIntoSegments';
+import styles from './Chat.module.css';
 import { chatCssClassNames } from './chatCssClassNames';
+import { ChatMessageMap } from './ChatMessageMap';
+import type { ChatProps } from './ChatProps';
+import { LOADING_INTERACTIVE_IMAGE } from './constants';
+import { ImagePromptRenderer } from './ImagePromptRenderer';
 
 /**
  * Props for the `ChatMessageItem` component
@@ -342,7 +341,7 @@ function buildOngoingToolCallChips(
     for (const toolCall of toolCalls) {
         const key = buildToolCallChipKey(toolCall);
         const chipletInfo = getToolCallChipletInfo(toolCall);
-        const label = resolveToolCallChipLabel(toolCall, { chipletInfo });
+        const label = buildToolCallChipText(chipletInfo);
         const teamAgentData = resolveTeamAgentChipData(toolCall, teammates, chipletInfo, teamAgentProfiles);
 
         entries.set(key, {
@@ -375,7 +374,7 @@ function buildFinalToolCallChips(
         for (const toolCall of completedToolCalls) {
             const key = buildToolCallChipKey(toolCall);
             const chipletInfo = getToolCallChipletInfo(toolCall);
-            const label = resolveToolCallChipLabel(toolCall, { chipletInfo });
+            const label = buildToolCallChipText(chipletInfo);
             const teamAgentData = resolveTeamAgentChipData(toolCall, teammates, chipletInfo, teamAgentProfiles);
 
             entries.push({
@@ -393,7 +392,7 @@ function buildFinalToolCallChips(
         for (const transitive of transitiveToolCalls) {
             const key = buildToolCallChipKey(transitive.toolCall, { originLabel: transitive.origin.label });
             const chipletInfo = getToolCallChipletInfo(transitive.toolCall);
-            const label = resolveToolCallChipLabel(transitive.toolCall, { chipletInfo });
+            const label = buildToolCallChipText(chipletInfo);
             const agentData: AgentChipData = {
                 url: transitive.origin.url || 'about:blank',
                 label: transitive.origin.label,
