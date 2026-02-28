@@ -37,6 +37,21 @@
 
 ---
 
+[ ] !
+
+[✨💕] Enhance the Czech translations
+
+-   Make the Czech translations more context-aware.
+-   Also a lot of them aren't finished - For example in menu there are translated texts but on some admin pages not
+-   Also footer isnt translated at all
+-   Look at `apps/agents-server/src/languages/translations/czech.yaml`
+-   You are working with the [Agents Server](apps/agents-server)
+
+![alt text](prompts/screenshots/2026-02-3470-agents-server-server-language.png)
+![alt text](prompts/screenshots/2026-02-3470-agents-server-server-language-1.png)
+
+---
+
 [ ]
 
 [✨💕] Change `SERVER_LANGUAGE` to `DEFAULT_SERVER_LANGUAGE`
@@ -57,5 +72,3 @@
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
-
