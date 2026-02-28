@@ -27,11 +27,16 @@
 
 ---
 
-[x] ~$0.1416 7 minutes by OpenAI Codex `gpt-5.1-codex-mini`
+[x] ~$0.1416 7 minutes by OpenAI Codex `gpt-5.1-codex-mini` - not working
+
+---
+
+[ ]
 
 [✨😲] Toolcalls are duplicated
 
 -   When the agent calls a tool, it creates two tool call chips in the UI, but theese chips are duplicates, they have the same content, but one of them is errored and the other one is working. Remove the errored one and show only the working one by leverage the idempotency key of the tool call. **One tool call should create only one chip in the UI, not two.**
+-   Errored tool call chip should have some ⚠️ indicator in the chip to show that this tool call ended with an error or warning
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality of toolcall chips before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
@@ -49,14 +54,36 @@
 
 ---
 
+[ ]
+
+[✨😲] Team toolcall chips shouldn’t have agent ids
+
+-   When showing chips of tool calls which are made by team members, it shows the agent id in the chip, for example "xC8f8am...". This is not user friendly, tool call chips should show the name of the agent with its profile picture, not the id.
+-   Same for the id of the conversation, it should be human readable, not some random string.
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality of toolcall chips in chat before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+
+---
+
+[ ]
+
+[✨😲] Show all ongoing toolcalls as chips as they are being streamed
+
+-   When a tool call is ongoing, it should be displayed as a chip in the UI, and the chip should be updated in real-time as the tool call progresses.
+-   This chip shouldn’t disappear, just change from "ongoing" to "done" or "error" with some ⚠️ indicator.
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality of toolcall chips in chat before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+
+---
+
 [-]
 
 [✨😲] bar
 
 -   @@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
+-   Do a proper analysis of the current functionality of toolcall chips in chat before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
-
