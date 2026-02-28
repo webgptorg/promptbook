@@ -1,4 +1,4 @@
-import { normalizeTo_PascalCase } from '../../src/utils/normalization/normalizeTo_PascalCase';
+import { normalizeTo_PascalCase } from '../../../../src/utils/normalization/normalizeTo_PascalCase';
 
 /**
  * Builds a normalized server identifier derived from the host name listed in `SERVERS`.
