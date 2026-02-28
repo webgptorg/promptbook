@@ -434,6 +434,35 @@
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
+.teamToolCall,
+.transitiveToolCall {
+    justify-content: flex-start;
+    gap: 8px;
+}
+
+.teamAgentChip,
+.transitiveAgentChip {
+    flex-shrink: 0;
+}
+
+.toolCallLabel {
+    flex: 1;
+    font-size: 0.9em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.toolCallErrorIndicator {
+    margin-left: auto;
+    font-size: 1.05em;
+}
+
+.toolCallWithError {
+    border-color: rgba(249, 115, 22, 0.8);
+    background: rgba(249, 115, 22, 0.12);
+}
+
 .toolCallOrigin {
     font-size: 0.85em;
     opacity: 0.75;

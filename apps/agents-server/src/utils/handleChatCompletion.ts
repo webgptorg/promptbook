@@ -14,6 +14,7 @@ import {
     resolveMessageSuffixFromAgentSource,
 } from '@/src/utils/chat/messageSuffix';
 import { createChatStreamHandler } from '@/src/utils/createChatStreamHandler';
+import { prepareToolCallsForStreaming } from './toolCallStreaming';
 import { composePromptParametersWithMemoryContext } from '@/src/utils/memoryRuntimeContext';
 import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
 import { extractProjectRepositoriesFromAgentSource } from '@/src/utils/projects/extractProjectRepositoriesFromAgentSource';
@@ -489,7 +490,8 @@ export async function handleChatCompletion(
                                 emitDeltaChunk(deltaContent);
                             },
                             onToolCalls: (toolCalls) => {
-                                controller.enqueue(encoder.encode('\n' + JSON.stringify({ toolCalls }) + '\n'));
+                                const preparedToolCalls = prepareToolCallsForStreaming(toolCalls);
+                                controller.enqueue(encoder.encode('\n' + JSON.stringify({ toolCalls: preparedToolCalls }) + '\n'));
                             },
                         });
 

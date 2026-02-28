@@ -28,6 +28,13 @@ export type ToolCall = {
     readonly rawToolCall?: TODO_any;
 
     /**
+     * Idempotency identifier that should not change between partial updates of the same tool call.
+     *
+     * @public exported from `@promptbook/types`
+     */
+    readonly idempotencyKey?: string;
+
+    /**
      * Timestamp when the tool call was initiated.
      */
     readonly createdAt?: string_date_iso8601;

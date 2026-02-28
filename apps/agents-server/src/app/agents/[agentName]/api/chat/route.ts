@@ -36,6 +36,7 @@ import { encodeChatStreamWhitespaceForTransport } from '../../../../../../../../
 import { keepUnused } from '../../../../../../../../src/utils/organization/keepUnused';
 import { respondIfClientVersionIsOutdated } from '../../../../../utils/clientVersionGuard';
 import { isAgentDeleted } from '../../_utils';
+import { prepareToolCallsForStreaming } from '../../../../../utils/toolCallStreaming';
 
 /**
  * Shape of the incoming chat API payload.
@@ -380,7 +381,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                         return;
                     }
 
-                    const frame = createToolCallsStreamFrame(toolCalls);
+                    const preparedToolCalls = prepareToolCallsForStreaming(toolCalls);
+                    const frame = createToolCallsStreamFrame(preparedToolCalls);
                     if (frame === lastToolCallsFrame) {
                         return;
                     }

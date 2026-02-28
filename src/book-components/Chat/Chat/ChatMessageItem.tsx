@@ -346,7 +346,8 @@ function getOngoingToolCallGroupKey(
         participantKey?: string;
     },
 ): string {
-    return `${toolCall.name}::${options.preparationPhase || ''}::${options.participantKey || ''}`;
+    const toolKey = toolCall.idempotencyKey || toolCall.name;
+    return `${toolKey}::${options.preparationPhase || ''}::${options.participantKey || ''}`;
 }
 
 /**
@@ -1033,29 +1034,51 @@ export const ChatMessageItem = memo(
                                     const chipletInfo = getToolCallChipletInfo(toolCall);
                                     const chipletText = resolveToolCallChipLabel(toolCall, { chipletInfo });
                                     const teamAgentData = resolveTeamAgentChipData(toolCall, teammates, chipletInfo);
+                                    const hasErrors = Array.isArray(toolCall.errors) && toolCall.errors.length > 0;
+                                    const toolKey = toolCall.idempotencyKey ?? `tool-${index}`;
 
-                                    // If this is a team tool with agent data, use AgentChip
                                     if (teamAgentData) {
                                         return (
-                                            <AgentChip
-                                                key={index}
-                                                agent={teamAgentData}
-                                                isClickable={true}
-                                                onClick={(event) => {
-                                                    event?.stopPropagation?.();
-                                                    if (onToolCallClick) {
-                                                        onToolCallClick(toolCall);
-                                                    }
-                                                }}
-                                            />
+                                            <div
+                                                key={toolKey}
+                                                className={classNames(
+                                                    styles.completedToolCall,
+                                                    styles.teamToolCall,
+                                                    hasErrors && styles.toolCallWithError,
+                                                )}
+                                            >
+                                                <AgentChip
+                                                    agent={teamAgentData}
+                                                    className={styles.teamAgentChip}
+                                                    isClickable={true}
+                                                    onClick={(event) => {
+                                                        event?.stopPropagation?.();
+                                                        if (onToolCallClick) {
+                                                            onToolCallClick(toolCall);
+                                                        }
+                                                    }}
+                                                />
+                                                <span className={styles.toolCallLabel}>{chipletText}</span>
+                                                {hasErrors && (
+                                                    <span
+                                                        className={styles.toolCallErrorIndicator}
+                                                        role="img"
+                                                        aria-label="Tool call reported an error"
+                                                    >
+                                                        ⚠️
+                                                    </span>
+                                                )}
+                                            </div>
                                         );
                                     }
 
-                                    // Otherwise, use the old button style
                                     return (
                                         <button
-                                            key={index}
-                                            className={styles.completedToolCall}
+                                            key={toolKey}
+                                            className={classNames(
+                                                styles.completedToolCall,
+                                                hasErrors && styles.toolCallWithError,
+                                            )}
                                             onClick={(event) => {
                                                 event.stopPropagation();
                                                 if (onToolCallClick) {
@@ -1063,7 +1086,16 @@ export const ChatMessageItem = memo(
                                                 }
                                             }}
                                         >
-                                            {chipletText}
+                                            <span>{chipletText}</span>
+                                            {hasErrors && (
+                                                <span
+                                                    className={styles.toolCallErrorIndicator}
+                                                    role="img"
+                                                    aria-label="Tool call reported an error"
+                                                >
+                                                    ⚠️
+                                                </span>
+                                            )}
                                         </button>
                                     );
                                 })}
@@ -1072,11 +1104,24 @@ export const ChatMessageItem = memo(
                                     const chipletText = resolveToolCallChipLabel(toolCallEntry.toolCall, {
                                         chipletInfo,
                                     });
+                                    const agentData: AgentChipData = {
+                                        url: toolCallEntry.origin.url || 'about:blank',
+                                        label: toolCallEntry.origin.label,
+                                    };
+                                    const transitiveKey =
+                                        toolCallEntry.toolCall.idempotencyKey ?? `team-tool-${index}`;
+                                    const transitiveHasErrors =
+                                        Array.isArray(toolCallEntry.toolCall.errors) &&
+                                        toolCallEntry.toolCall.errors.length > 0;
 
                                     return (
                                         <button
-                                            key={`team-tool-${index}`}
-                                            className={styles.completedToolCall}
+                                            key={transitiveKey}
+                                            className={classNames(
+                                                styles.completedToolCall,
+                                                styles.transitiveToolCall,
+                                                transitiveHasErrors && styles.toolCallWithError,
+                                            )}
                                             onClick={(event) => {
                                                 event.stopPropagation();
                                                 if (onToolCallClick) {
@@ -1084,16 +1129,26 @@ export const ChatMessageItem = memo(
                                                 }
                                             }}
                                         >
-                                            <span>{chipletText}</span>
-                                            <span className={styles.toolCallOrigin}>
-                                                by {toolCallEntry.origin.label}
-                                            </span>
+                                            <AgentChip
+                                                agent={agentData}
+                                                className={styles.transitiveAgentChip}
+                                                isClickable={false}
+                                            />
+                                            <span className={styles.toolCallLabel}>{chipletText}</span>
+                                            {transitiveHasErrors && (
+                                                <span
+                                                    className={styles.toolCallErrorIndicator}
+                                                    role="img"
+                                                    aria-label="Tool call reported an error"
+                                                >
+                                                    ⚠️
+                                                </span>
+                                            )}
                                         </button>
                                     );
                                 })}
                             </div>
                         )}
-
                         {(displayCitations.length > 0 || transitiveCitations.length > 0) && (
                             <div className={styles.sourceCitations}>
                                 {displayCitations.map((citation) => (

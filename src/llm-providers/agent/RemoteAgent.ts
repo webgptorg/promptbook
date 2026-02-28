@@ -21,6 +21,7 @@ import { decodeChatStreamWhitespaceFromTransport } from '../../utils/chat/decode
 import { attachClientVersionHeader } from '../../utils/clientVersion';
 import type { TODO_any } from '../../utils/organization/TODO_any';
 import { getToolCallIdentity } from '../../utils/toolCalls/getToolCallIdentity';
+import { resolveToolCallIdempotencyKey } from '../../utils/toolCalls/resolveToolCallIdempotencyKey';
 import { Agent } from './Agent';
 import type { AgentOptions } from './AgentOptions';
 import type { RemoteAgentOptions } from './RemoteAgentOptions';
@@ -349,13 +350,10 @@ export class RemoteAgent extends Agent {
         const normalizeToolCall = (
             toolCall: NonNullable<ChatPromptResult['toolCalls']>[number],
         ): NonNullable<ChatPromptResult['toolCalls']>[number] => {
-            if (toolCall.createdAt) {
-                return toolCall;
-            }
-
             return {
                 ...toolCall,
-                createdAt: new Date().toISOString() as string_date_iso8601, // <- TODO: !!!! Make util $getCurrentIsoTimestamp()
+                createdAt: toolCall.createdAt ?? (new Date().toISOString() as string_date_iso8601),
+                idempotencyKey: toolCall.idempotencyKey ?? resolveToolCallIdempotencyKey(toolCall),
             };
         };
 
