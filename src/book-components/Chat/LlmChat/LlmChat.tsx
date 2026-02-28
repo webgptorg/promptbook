@@ -176,6 +176,7 @@ export function LlmChat(props: LlmChatProps) {
         autoExecuteMessageAttachments,
         buttonColor,
         toolTitles,
+        teamAgentProfiles,
         thinkingMessages,
         promptParameters,
         chatFailMessage,
@@ -696,6 +697,7 @@ export function LlmChat(props: LlmChatProps) {
             <Chat
                 {...restProps}
                 {...{ messages, onReset, tasksProgress, participants, buttonColor, toolTitles, teammates }}
+                teamAgentProfiles={teamAgentProfiles}
                 onMessage={handleMessage}
                 onReset={handleReset}
                 extraActions={streamingStopAction}

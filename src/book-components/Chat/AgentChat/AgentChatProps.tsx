@@ -4,6 +4,7 @@ import { Agent } from '../../../llm-providers/agent/Agent';
 //          this would not be here because the `@promptbook/components` package should be React library independent of Next.js specifics
 
 import type { LlmChatProps } from '../LlmChat/LlmChatProps';
+import type { AgentChipData } from '../AgentChip/AgentChip';
 
 /**
  * Props for AgentChat component, derived from LlmChatProps but with Agent-specific modifications
@@ -24,4 +25,9 @@ export type AgentChatProps = Omit<
      * e.g., { "web_search": "Searching the web..." }
      */
     readonly toolTitles?: Record<string, string>;
+
+    /**
+     * Optional pre-fetched team agent metadata to make tool call chips friendlier.
+     */
+    readonly teamAgentProfiles?: Record<string, AgentChipData>;
 };

@@ -3,7 +3,7 @@
 import { usePromise } from '@common/hooks/usePromise';
 import { AgentChat, ChatMessage, useSendMessageToLlmChat } from '@promptbook-local/components';
 import { RemoteAgent } from '@promptbook-local/core';
-import type { ToolCall } from '@promptbook-local/types';
+import type { AgentCapability, AgentChipData, ToolCall } from '@promptbook-local/types';
 import { ClientVersionMismatchError } from '@promptbook-local/utils';
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import {
@@ -12,6 +12,7 @@ import {
 } from '../../../../../../src/book-2.0/agent-source/pseudoAgentReferences';
 import { OpenAiSpeechRecognition } from '../../../../../../src/speech-recognition/OpenAiSpeechRecognition';
 import { string_agent_url } from '../../../../../../src/types/typeAliases';
+import { createTeamToolNameFromUrl } from '../../../../../../src/book-components/Chat/utils/createTeamToolNameFromUrl';
 import { useAgentBackground } from '../../../components/AgentProfile/useAgentBackground';
 import { ChatErrorDialog } from '../../../components/ChatErrorDialog';
 import { confirmPrivateModeEnable } from '../../../components/PrivateModePreferences/confirmPrivateModeEnable';
@@ -120,6 +121,161 @@ const WALLET_REQUESTED_STATUS = 'requested';
  * Project-tool status emitted when wallet credentials are missing.
  */
 const PROJECT_WALLET_CREDENTIAL_REQUIRED_STATUS = 'wallet-credential-required';
+
+const TEAM_AGENT_PROFILE_CACHE = new Map<string, AgentChipData>();
+const TEAM_AGENT_PROFILE_REQUESTS = new Map<string, Promise<AgentChipData | null>>();
+
+type TeamCapabilityDescriptor = {
+    agentUrl: string;
+    label?: string;
+    toolName: string;
+};
+
+type TeamAgentProfileDto = {
+    url: string;
+    label?: string;
+    imageUrl?: string;
+};
+
+/**
+ * Normalizes teammate URLs so caching keys are stable.
+ */
+function normalizeTeamAgentUrl(agentUrl: string): string {
+    return agentUrl.replace(/\/$/, '');
+}
+
+/**
+ * Builds a stable public base URL used for placeholder images.
+ */
+function resolveTeamAgentPublicUrl(agentUrl: string): string | undefined {
+    try {
+        const parsed = new URL(agentUrl);
+        return `${parsed.origin}/`;
+    } catch {
+        return undefined;
+    }
+}
+
+/**
+ * Fetches teammate profile metadata through the server-side proxy to avoid CORS issues.
+ */
+async function requestTeamAgentProfile(agentUrl: string): Promise<AgentChipData | null> {
+    const normalizedUrl = normalizeTeamAgentUrl(agentUrl);
+    const cached = TEAM_AGENT_PROFILE_CACHE.get(normalizedUrl);
+    if (cached) {
+        return cached;
+    }
+
+    let pending = TEAM_AGENT_PROFILE_REQUESTS.get(normalizedUrl);
+    if (!pending) {
+        const apiUrl = `/api/team-agent-profile?url=${encodeURIComponent(normalizedUrl)}`;
+        pending = (async (): Promise<AgentChipData | null> => {
+            try {
+                const response = await fetch(apiUrl);
+                if (!response.ok) {
+                    return null;
+                }
+
+                const payload = (await response.json()) as TeamAgentProfileDto;
+                const publicUrl = resolveTeamAgentPublicUrl(normalizedUrl);
+
+                return {
+                    url: payload.url || normalizedUrl,
+                    label: payload.label,
+                    imageUrl: payload.imageUrl,
+                    publicUrl,
+                };
+            } catch (error) {
+                console.warn('[AgentChatWrapper] Failed to load team agent profile', normalizedUrl, error);
+                return null;
+            }
+        })();
+
+        TEAM_AGENT_PROFILE_REQUESTS.set(normalizedUrl, pending);
+    }
+
+    const result = await pending;
+    TEAM_AGENT_PROFILE_REQUESTS.delete(normalizedUrl);
+    if (result) {
+        TEAM_AGENT_PROFILE_CACHE.set(normalizedUrl, result);
+    }
+
+    return result;
+}
+
+/**
+ * Hook that resolves team capability metadata into agent chip data used by tool call chips.
+ */
+function useTeamAgentProfiles(capabilities?: ReadonlyArray<AgentCapability>): Record<string, AgentChipData> {
+    const descriptors = useMemo<TeamCapabilityDescriptor[]>(() => {
+        if (!capabilities?.length) {
+            return [];
+        }
+
+        return capabilities
+            .filter((capability): capability is AgentCapability & { agentUrl: string } => {
+                return capability.type === 'team' && Boolean(capability.agentUrl);
+            })
+            .map((capability) => ({
+                agentUrl: capability.agentUrl,
+                label: capability.label,
+                toolName: createTeamToolNameFromUrl(capability.agentUrl, capability.label),
+            }));
+    }, [capabilities]);
+
+    const [profiles, setProfiles] = useState<Record<string, AgentChipData>>({});
+
+    useEffect(() => {
+        if (descriptors.length === 0) {
+            setProfiles({});
+            return;
+        }
+
+        const baseline: Record<string, AgentChipData> = {};
+        for (const descriptor of descriptors) {
+            baseline[descriptor.toolName] = {
+                url: normalizeTeamAgentUrl(descriptor.agentUrl),
+                label: descriptor.label,
+                publicUrl: resolveTeamAgentPublicUrl(descriptor.agentUrl),
+            };
+        }
+
+        let isActive = true;
+        setProfiles(baseline);
+
+        const loadProfiles = async () => {
+            const updated = { ...baseline };
+
+            await Promise.all(
+                descriptors.map(async (descriptor) => {
+                    const profile = await requestTeamAgentProfile(descriptor.agentUrl);
+                    if (!profile) {
+                        return;
+                    }
+
+                    updated[descriptor.toolName] = {
+                        ...profile,
+                        label: profile.label || descriptor.label,
+                        url: profile.url || normalizeTeamAgentUrl(descriptor.agentUrl),
+                        publicUrl: profile.publicUrl || resolveTeamAgentPublicUrl(descriptor.agentUrl),
+                    };
+                }),
+            );
+
+            if (isActive) {
+                setProfiles(updated);
+            }
+        };
+
+        void loadProfiles();
+
+        return () => {
+            isActive = false;
+        };
+    }, [descriptors]);
+
+    return profiles;
+}
 
 /**
  * Serializes the auto-execute payload for change detection.
@@ -483,6 +639,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
     );
 
     const { value: agent } = usePromise(agentPromise, [agentPromise]);
+    const teamAgentProfiles = useTeamAgentProfiles(agent?.capabilities);
 
     // Error state management
     const [currentError, setCurrentError] = useState<FriendlyErrorMessage | null>(null);
@@ -989,6 +1146,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
                     promptParameters={promptParameters}
                     onReset={onStartNewChat}
                     resetMode={onStartNewChat ? 'delegate' : undefined}
+                    teamAgentProfiles={teamAgentProfiles}
                 />
             <PseudoUserChatDialog
                 isOpen={pendingPseudoUserInteraction !== null}

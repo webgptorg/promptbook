@@ -31,6 +31,7 @@ export type ChatMessageListProps = {
     onCreateAgent?: (bookContent: string) => void;
     toolTitles?: Record<string, string>;
     teammates?: ChatProps['teammates'];
+    teamAgentProfiles?: ChatProps['teamAgentProfiles'];
     onToolCallClick?: (toolCall: NonNullable<ChatMessage['toolCalls']>[number]) => void;
     onCitationClick?: (citation: ParsedCitation) => void;
     soundSystem?: ChatProps['soundSystem'];
@@ -68,6 +69,7 @@ export function ChatMessageList(props: ChatMessageListProps) {
         soundSystem,
         isSpeechPlaybackEnabled,
         elevenLabsVoiceId,
+        teamAgentProfiles,
         setChatMessagesElement,
         onScroll,
         chatMessagesClassName,
@@ -116,6 +118,7 @@ export function ChatMessageList(props: ChatMessageListProps) {
                         onCreateAgent={onCreateAgent}
                         toolTitles={toolTitles}
                         teammates={teammates}
+                        teamAgentProfiles={teamAgentProfiles}
                         onToolCallClick={onToolCallClick}
                         onCitationClick={onCitationClick}
                         soundSystem={soundSystem}

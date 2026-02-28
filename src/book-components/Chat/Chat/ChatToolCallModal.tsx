@@ -23,6 +23,7 @@ import type { ChatParticipant } from '../types/ChatParticipant';
 import { collectTeamToolCallSummary, type TransitiveToolCall } from '../utils/collectTeamToolCallSummary';
 import { buildToolCallChipText, getToolCallChipletInfo, TOOL_TITLES } from '../utils/getToolCallChipletInfo';
 import type { AgentProfileData } from '../utils/loadAgentProfile';
+import type { AgentChipData } from '../AgentChip/AgentChip';
 import { loadAgentProfile, resolveAgentProfileFallback, resolvePreferredAgentLabel } from '../utils/loadAgentProfile';
 import {
     extractSearchResults,
@@ -49,6 +50,10 @@ export type ChatToolCallModalProps = {
     toolTitles?: Record<string, string>;
     agentParticipant?: ChatParticipant;
     buttonColor: WithTake<Color>;
+    /**
+     * Optional cached team agent metadata keyed by TEAM tool name.
+     */
+    teamAgentProfiles?: Record<string, AgentChipData>;
 };
 
 /**
@@ -57,7 +62,7 @@ export type ChatToolCallModalProps = {
  * @private component of `<Chat/>`
  */
 export function ChatToolCallModal(props: ChatToolCallModalProps) {
-    const { isOpen, toolCall, onClose, toolTitles, agentParticipant, buttonColor } = props;
+    const { isOpen, toolCall, onClose, toolTitles, agentParticipant, buttonColor, teamAgentProfiles } = props;
     const [teamProfiles, setTeamProfiles] = useState<Record<string, AgentProfileData>>({});
     const [selectedTeamToolCall, setSelectedTeamToolCall] = useState<TransitiveToolCall | null>(null);
 
@@ -81,34 +86,48 @@ export function ChatToolCallModal(props: ChatToolCallModalProps) {
             url: teammateUrl,
             label: teamResult.teammate?.label,
         });
+        const teammateOverride = teamAgentProfiles?.[toolCall.name];
 
         setTeamProfiles((previous) => {
-            if (previous[teammateUrl]) {
+            const nextProfile = {
+                label: teammateOverride?.label || fallbackProfile.label,
+                imageUrl: teammateOverride?.imageUrl ?? fallbackProfile.imageUrl,
+            };
+
+            const existing = previous[teammateUrl];
+            if (existing && existing.label === nextProfile.label && existing.imageUrl === nextProfile.imageUrl) {
                 return previous;
             }
-            return { ...previous, [teammateUrl]: fallbackProfile };
+
+            return { ...previous, [teammateUrl]: nextProfile };
         });
+
+        if (teammateOverride) {
+            return;
+        }
 
         let isMounted = true;
-
-        loadAgentProfile({ url: teammateUrl, label: teamResult.teammate?.label }).then((profile) => {
-            if (!isMounted) {
-                return;
-            }
-
-            setTeamProfiles((previous) => {
-                const existing = previous[teammateUrl];
-                if (existing && existing.label === profile.label && existing.imageUrl === profile.imageUrl) {
-                    return previous;
+        const profileLoader = loadAgentProfile({ url: teammateUrl, label: teamResult.teammate?.label }).then(
+            (profile) => {
+                if (!isMounted) {
+                    return;
                 }
-                return { ...previous, [teammateUrl]: profile };
-            });
-        });
+
+                setTeamProfiles((previous) => {
+                    const existing = previous[teammateUrl];
+                    if (existing && existing.label === profile.label && existing.imageUrl === profile.imageUrl) {
+                        return previous;
+                    }
+                    return { ...previous, [teammateUrl]: profile };
+                });
+            },
+        );
 
         return () => {
             isMounted = false;
+            void profileLoader;
         };
-    }, [isOpen, toolCall, teamResult]);
+    }, [isOpen, toolCall, teamResult, teamAgentProfiles]);
 
     useEffect(() => {
         if (!isOpen) {

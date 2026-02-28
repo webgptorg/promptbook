@@ -135,6 +135,7 @@ export function Chat(props: ChatProps) {
         onCreateAgent,
         toolTitles,
         teammates,
+        teamAgentProfiles,
         visual,
         effectConfigs,
         soundSystem,
@@ -507,6 +508,7 @@ export function Chat(props: ChatProps) {
                         onCreateAgent={onCreateAgent}
                         toolTitles={toolTitles}
                         teammates={teammates}
+                        teamAgentProfiles={teamAgentProfiles}
                         soundSystem={soundSystem}
                         onToolCallClick={(toolCall) => {
                             setSelectedToolCall(toolCall);
@@ -559,6 +561,7 @@ export function Chat(props: ChatProps) {
                 toolTitles={toolTitles}
                 agentParticipant={agentParticipant}
                 buttonColor={buttonColor}
+                teamAgentProfiles={teamAgentProfiles}
             />
 
             <ChatCitationModal

@@ -10,6 +10,7 @@ import { string_color } from '../../../types/typeAliases';
 import type { string_chat_format_name } from '../save/_common/string_chat_format_name';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
+import type { AgentChipData } from '../AgentChip/AgentChip';
 
 /**
  * Response data returned by the optional `onFeedback` handler.
@@ -255,6 +256,11 @@ export type ChatProps = {
             toolName: string;
         }
     >;
+
+    /**
+     * Optional cached agent metadata keyed by TEAM tool names to improve chip rendering.
+     */
+    readonly teamAgentProfiles?: Record<string, AgentChipData>;
 
     /**
      * Optional callback to create a new agent from the template.

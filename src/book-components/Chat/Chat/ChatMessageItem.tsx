@@ -87,6 +87,10 @@ type ChatMessageItemProps = Pick<ChatProps, 'onMessage' | 'participants'> & {
      */
     teammates?: TeammatesMap;
     /**
+     * Optional cached metadata keyed by TEAM tool names to enrich tool call chips.
+     */
+    teamAgentProfiles?: ChatProps['teamAgentProfiles'];
+    /**
      * Called when a tool call chiplet is clicked.
      */
     onToolCallClick?: (toolCall: NonNullable<ChatMessage['toolCalls']>[number]) => void;
@@ -224,11 +228,28 @@ function resolveTeamAgentChipData(
     toolCall: NonNullable<ChatMessage['toolCalls']>[number],
     teammates: TeammatesMap | undefined,
     chipletInfo?: ToolCallChipletInfo,
+    teamAgentProfiles?: ChatProps['teamAgentProfiles'],
 ): AgentChipData | null {
     const resolvedChipletInfo = chipletInfo || getToolCallChipletInfo(toolCall);
+    const baseAgentData = resolvedChipletInfo.agentData;
+    const profileOverride = teamAgentProfiles?.[toolCall.name];
 
-    if (resolvedChipletInfo.agentData) {
-        return resolvedChipletInfo.agentData;
+    if (profileOverride) {
+        const fallbackUrl = profileOverride.url || baseAgentData?.url;
+        if (!fallbackUrl) {
+            return null;
+        }
+
+        return {
+            url: fallbackUrl,
+            label: profileOverride.label || baseAgentData?.label,
+            imageUrl: profileOverride.imageUrl ?? baseAgentData?.imageUrl,
+            publicUrl: profileOverride.publicUrl ?? baseAgentData?.publicUrl,
+        };
+    }
+
+    if (baseAgentData) {
+        return baseAgentData;
     }
 
     if (!isTeamToolName(toolCall.name)) {
@@ -411,6 +432,7 @@ function hasToolCallErrors(toolCall: ToolCall): boolean {
 function groupOngoingToolCalls(
     toolCalls: ReadonlyArray<OngoingToolCall> | undefined,
     teammates: TeammatesMap | undefined,
+    teamAgentProfiles: ChatProps['teamAgentProfiles'] | undefined,
 ): Array<OngoingToolCallGroup> {
     if (!toolCalls || toolCalls.length === 0) {
         return [];
@@ -423,7 +445,7 @@ function groupOngoingToolCalls(
         const chipletInfo = getToolCallChipletInfo(toolCall);
         const label = resolveToolCallChipLabel(toolCall, { chipletInfo });
         const preparationPhase = getOngoingToolCallPreparationPhase(toolCall);
-        const teamAgentData = resolveTeamAgentChipData(toolCall, teammates, chipletInfo);
+        const teamAgentData = resolveTeamAgentChipData(toolCall, teammates, chipletInfo, teamAgentProfiles);
         const participantKey = getOngoingToolCallParticipantKey(teamAgentData);
         const groupKey = getOngoingToolCallGroupKey(toolCall, {
             preparationPhase,
@@ -476,6 +498,7 @@ export const ChatMessageItem = memo(
             onCopy,
             onCreateAgent,
             teammates,
+            teamAgentProfiles,
             onToolCallClick,
             onCitationClick,
             soundSystem,
@@ -626,8 +649,8 @@ export const ChatMessageItem = memo(
         const [audioError, setAudioError] = useState<string | null>(null);
 
         const ongoingToolCallGroups = useMemo(
-            () => groupOngoingToolCalls(message.ongoingToolCalls, teammates),
-            [message.ongoingToolCalls, teammates],
+            () => groupOngoingToolCalls(message.ongoingToolCalls, teammates, teamAgentProfiles),
+            [message.ongoingToolCalls, teammates, teamAgentProfiles],
         );
         const completedToolCallCount = completedToolCalls?.length ?? 0;
         const transitiveToolCallCount = transitiveToolCalls.length;
@@ -1077,7 +1100,12 @@ export const ChatMessageItem = memo(
                                 {completedToolCalls.map((toolCall, index) => {
                                     const chipletInfo = getToolCallChipletInfo(toolCall);
                                     const chipletText = resolveToolCallChipLabel(toolCall, { chipletInfo });
-                                    const teamAgentData = resolveTeamAgentChipData(toolCall, teammates, chipletInfo);
+                                    const teamAgentData = resolveTeamAgentChipData(
+                                        toolCall,
+                                        teammates,
+                                        chipletInfo,
+                                        teamAgentProfiles,
+                                    );
                                     const hasErrors = Array.isArray(toolCall.errors) && toolCall.errors.length > 0;
                                     const toolKey = toolCall.idempotencyKey ?? `tool-${index}`;
 

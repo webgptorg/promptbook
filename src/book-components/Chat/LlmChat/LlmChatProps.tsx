@@ -8,6 +8,7 @@ import type { ChatProps } from '../Chat/ChatProps';
 import type { SendMessageToLlmChatFunction } from '../hooks/useSendMessageToLlmChat';
 import type { ChatMessage } from '../types/ChatMessage';
 import type { ChatParticipant } from '../types/ChatParticipant';
+import type { AgentChipData } from '../AgentChip/AgentChip';
 
 /**
  * Determines how the chat reset action should behave when user clicks "New chat".
@@ -87,6 +88,11 @@ export type LlmChatProps = Omit<ChatProps, 'messages' | 'onMessage' | 'onChange'
      * e.g., { "web_search": "Searching the web..." }
      */
     readonly toolTitles?: Record<string, string>;
+
+    /**
+     * Optional pre-fetched team agent metadata keyed by TEAM tool name.
+     */
+    readonly teamAgentProfiles?: Record<string, AgentChipData>;
 
     /**
      * Custom variants for the placeholder thinking message shown while the agent buffers its response.
