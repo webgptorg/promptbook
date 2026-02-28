@@ -3,6 +3,8 @@
     border-radius: 5px;
     overflow: hidden;
     border: 1px solid #444; /* Dark mode border */
+    width: 100%;
+    max-width: 100%;
 }
 
 .CodeBlockHeader {
@@ -40,4 +42,9 @@
 .DownloadButton:hover,
 .CreateAgentButton:hover {
     color: #fff;
+}
+
+.CodeBlock :global(.monaco-editor),
+.CodeBlock :global(.monaco-editor .overflow-guard) {
+    max-width: 100%;
 }
