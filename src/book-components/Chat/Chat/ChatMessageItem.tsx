@@ -364,13 +364,32 @@ function dedupeToolCalls(toolCalls: ReadonlyArray<ToolCall> | undefined): Array<
     const seen = new Map<string, ToolCall>();
     for (const toolCall of toolCalls) {
         const identity = getToolCallIdentity(toolCall);
-        if (seen.has(identity)) {
+        const existing = seen.get(identity);
+        if (existing) {
+            const existingHasErrors = hasToolCallErrors(existing);
+            const incomingHasErrors = hasToolCallErrors(toolCall);
+            if (!existingHasErrors && incomingHasErrors) {
+                continue;
+            }
             seen.delete(identity);
         }
+
         seen.set(identity, toolCall);
     }
 
     return Array.from(seen.values());
+}
+
+/**
+ * Determines whether a tool call reported execution errors.
+ *
+ * @param toolCall - Tool call to inspect.
+ * @returns `true` when the tool call contains at least one error entry.
+ *
+ * @private internal helper of `<ChatMessageItem/>`
+ */
+function hasToolCallErrors(toolCall: ToolCall): boolean {
+    return Array.isArray(toolCall.errors) && toolCall.errors.length > 0;
 }
 
 /**
