@@ -222,14 +222,16 @@ export class SelfLearningManager {
                         ? '- This interaction used JSON mode, so the agent answer should stay as a formatted JSON code block.'
                         : ''
                 }
-                ${
+                ${block(
                     isInitialMessageMissing
                         ? spaceTrim(`
-                - The agent source does not have an INITIAL MESSAGE defined, generate one.
-                - The INITIAL MESSAGE should be welcoming, informative about the agent capabilities and also should give some quick options to start the conversation with the agent.
-                `)
-                        : ''
-                }
+                            - The agent source does not have an INITIAL MESSAGE defined, generate one.
+                            - The INITIAL MESSAGE should be welcoming, informative about the agent capabilities and also should give some quick options to start the conversation with the agent.
+                            - The quick option looks like \`[👋 Hello](?message=Hello, how are you?)\`
+                        `)
+                        : // <- TODO: !!!!!!!! Is this working as intended
+                          '',
+                )}
 
 
                 This is how book code block looks like:
