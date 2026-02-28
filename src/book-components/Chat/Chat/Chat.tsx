@@ -453,7 +453,7 @@ export function Chat(props: ChatProps) {
                                     aria-label={ariaLabel}
                                     title={ariaLabel}
                                 >
-                                    <ArrowIcon direction="DOWN" size={33} />
+                                    <ArrowIcon direction="down" size={33} />
                                 </button>
                                 {badgeLabel && (
                                     <span className={styles.scrollToBottomBadge} aria-live="polite" role="status">

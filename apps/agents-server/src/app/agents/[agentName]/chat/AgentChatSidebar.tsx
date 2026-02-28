@@ -1,7 +1,7 @@
 'use client';
 
 import { MessageSquarePlusIcon, Trash2Icon, XIcon } from 'lucide-react';
-import { SidebarToggleArrow } from '../../../../components/_utils/SidebarToggleArrow';
+import { ArrowIcon } from '../../../../../../../src/book-components/icons/ArrowIcon';
 import type { UserChatSummary } from '../../../../utils/userChatClient';
 
 /**
@@ -192,7 +192,7 @@ export function AgentChatSidebar({
                         className="pointer-events-auto flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white/90 text-slate-500 shadow transition hover:bg-white focus-visible:outline-offset-2 focus-visible:outline focus-visible:outline-blue-400"
                         aria-label={sidebarToggleLabel}
                     >
-                        <SidebarToggleArrow direction={isCollapsed ? 'RIGHT' : 'LEFT'} className="h-4 w-4" />
+                        <ArrowIcon direction={isCollapsed ? 'right' : 'left'} className="h-4 w-4" />
                     </button>
                 </div>
 
