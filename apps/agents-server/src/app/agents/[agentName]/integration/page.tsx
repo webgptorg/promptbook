@@ -142,12 +142,12 @@ export default async function AgentIntegrationPage({ params }: AgentIntegrationP
         `,
     );
 
-    const iframeUrl = `${baseUrl}/iframe`;
+    const headlessChatUrl = `${baseUrl}/chat?headless`;
     const iframeTitle = agentProfile.meta.fullname || agentName;
     const iframeIntegrationCode = spaceTrim(
         (block) => `
             <iframe
-                src="${iframeUrl}"
+                src="${headlessChatUrl}"
                 title="${block(iframeTitle)}"
                 width="100%"
                 height="640"
@@ -295,15 +295,16 @@ export default async function AgentIntegrationPage({ params }: AgentIntegrationP
                             <div className="mt-6 space-y-4 rounded-xl border border-gray-200 bg-white/60 p-5 shadow-sm">
                                 <div>
                                     <p className="text-sm text-gray-600">
-                                        Embed the same experience by pointing your iframe to <code>{iframeUrl}</code>. This
-                                        route renders the full chat UI that is also used by the JS integration preview.
+                                        Embed the same experience by pointing your iframe to <code>{headlessChatUrl}</code>.
+                                        This route renders the headless chat UI without the chat-selection sidebar while
+                                        keeping chat history persistence.
                                     </p>
                                 </div>
                                 <CodePreview code={iframeIntegrationCode} language="xml" />
                                 <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
                                     <div className="relative h-[360px] w-full">
                                         <iframe
-                                            src={iframeUrl}
+                                            src={headlessChatUrl}
                                             title={`Chat with ${iframeTitle}`}
                                             className="absolute inset-0 h-full w-full border-0"
                                             allow="microphone; autoplay; clipboard-write"

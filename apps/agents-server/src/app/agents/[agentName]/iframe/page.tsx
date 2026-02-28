@@ -1,24 +1,39 @@
 'use server';
 
-import { loadChatConfiguration } from '@/src/utils/chatConfiguration';
-import { ensureChatHistoryIdentity } from '@/src/utils/currentUserIdentity';
-import { getThinkingMessages } from '@/src/utils/thinkingMessages';
-import { headers } from 'next/headers';
-import { notFound, redirect } from 'next/navigation';
-import { resolveSpeechRecognitionLanguage } from '../../../../../../../src/utils/language/getBrowserPreferredSpeechRecognitionLanguage';
-import { DeletedAgentBanner } from '../../../../components/DeletedAgentBanner';
-import { AgentChatHistoryClient } from '../chat/AgentChatHistoryClient';
-import { getAgentName, getAgentProfile, isAgentDeleted, parseBooleanFlag } from '../_utils';
+import { redirect } from 'next/navigation';
+import { getAgentName } from '../_utils';
 import { generateAgentMetadata } from '../generateAgentMetadata';
-import { resolveAgentRouteTarget } from '../../../../utils/agentRouting/resolveAgentRouteTarget';
 
 export const generateMetadata = generateAgentMetadata;
 
 /**
- * Renders the iframe-friendly chat page for embedding an agent.
+ * Builds legacy `/iframe` redirect target and preserves supported query parameters.
+ *
+ * @param agentName - Agent route token from params.
+ * @param search - Supported query parameters from the iframe route.
+ * @returns Redirect target path that points to canonical embed route.
  */
+function buildLegacyIframeRedirectPath(
+    agentName: string,
+    search: { message?: string; chat?: string; newChat?: string },
+): string {
+    const params = new URLSearchParams();
+    params.set('headless', '');
+    if (search.chat !== undefined) {
+        params.set('chat', search.chat);
+    }
+    if (search.message !== undefined) {
+        params.set('message', search.message);
+    }
+    if (search.newChat !== undefined) {
+        params.set('newChat', search.newChat);
+    }
+
+    return `/agents/${encodeURIComponent(agentName)}/chat?${params.toString()}`;
+}
+
 /**
- * Serves the iframe-friendly agent chat experience for embedding on other websites.
+ * Redirects deprecated iframe route to canonical headless chat route.
  */
 export default async function AgentIframePage({
     params,
@@ -27,63 +42,7 @@ export default async function AgentIframePage({
     params: Promise<{ agentName: string }>;
     searchParams: Promise<{ message?: string; chat?: string; newChat?: string }>;
 }) {
-    const requestHeaders = await headers();
     const agentName = await getAgentName(params);
-    const routeTarget = await resolveAgentRouteTarget(agentName);
-
-    if (!routeTarget) {
-        notFound();
-    }
-
-    if (routeTarget.kind === 'remote') {
-        redirect(routeTarget.url);
-    }
-
-    if (routeTarget.kind === 'pseudo') {
-        redirect(routeTarget.canonicalUrl);
-    }
-
-    const canonicalAgentId = routeTarget.canonicalAgentId;
-    if (agentName !== canonicalAgentId) {
-        redirect(`/agents/${encodeURIComponent(canonicalAgentId)}/iframe`);
-    }
-
-    const { message, chat, newChat } = await searchParams;
-    const speechRecognitionLanguage = resolveSpeechRecognitionLanguage({
-        acceptLanguageHeader: requestHeaders.get('accept-language'),
-    });
-
-    const isDeleted = await isAgentDeleted(canonicalAgentId);
-    if (isDeleted) {
-        return (
-            <main className="agents-server-viewport-width h-full flex items-center justify-center p-8">
-                <DeletedAgentBanner />
-            </main>
-        );
-    }
-
-    const agentProfile = await getAgentProfile(canonicalAgentId);
-    const agentUrl = `/agents/${encodeURIComponent(canonicalAgentId)}`;
-    const thinkingMessages = await getThinkingMessages();
-    const historyIdentityAvailable = await ensureChatHistoryIdentity();
-    const { chatFailMessage, isFileAttachmentsEnabled, isFeedbackEnabled } = await loadChatConfiguration();
-
-    return (
-        <main className="w-full h-full overflow-hidden relative agent-chat-route-surface print-export-chat-surface">
-            <AgentChatHistoryClient
-                agentName={canonicalAgentId}
-                agentUrl={agentUrl}
-                initialAutoExecuteMessage={message}
-                initialChatId={chat}
-                initialForceNewChat={parseBooleanFlag(newChat)}
-                brandColor={agentProfile.meta.color}
-                thinkingMessages={thinkingMessages}
-                speechRecognitionLanguage={speechRecognitionLanguage}
-                isHistoryEnabled={historyIdentityAvailable}
-                chatFailMessage={chatFailMessage ?? undefined}
-                areFileAttachmentsEnabled={isFileAttachmentsEnabled}
-                isFeedbackEnabled={isFeedbackEnabled}
-            />
-        </main>
-    );
+    const currentSearchParams = await searchParams;
+    redirect(buildLegacyIframeRedirectPath(agentName, currentSearchParams));
 }

@@ -140,7 +140,7 @@ export const metadataDefaults = [
     {
         key: 'IS_EMBEDDING_ALLOWED',
         value: 'true',
-        note: 'Allow serving the iframe-friendly agent route so other sites can embed it.',
+        note: 'Allow serving the headless chat route (`/agents/:agentName/chat?headless`) so other sites can embed it.',
         type: 'BOOLEAN',
     },
     {

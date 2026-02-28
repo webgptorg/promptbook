@@ -67,23 +67,24 @@ export function LayoutWrapper({
     const isFooterHiddenOnPage = pathname ? /^\/agents\/[^/]+\/(book|chat|book\+chat)$/.test(pathname) : false;
 
     const mainClassName = isChatPage ? 'h-[100dvh] pt-[60px] overflow-hidden' : 'flex-1 pt-[60px]';
+    const shouldRenderMinimalShell = isHeaderHidden || isHeadless;
 
     return (
         <ServerLanguageProvider defaultLanguage={defaultServerLanguage}>
             <AsyncDialogsProvider>
                 <AgentNamingProvider naming={agentNaming}>
                     <PrivateModePreferencesProvider>
-                        {isHeaderHidden || isHeadless ? (
-                            <main className="pt-0">{children}</main>
-                        ) : (
-                            <SelfLearningPreferencesProvider>
-                                <SoundSystemProvider
-                                    initialIsSoundsOn={defaultIsSoundsOn}
-                                    initialIsVibrationOn={defaultIsVibrationOn}
-                                >
-                                    <ClientVersionMismatchListener />
-                                    <MenuHoistingProvider>
-                                        <MetadataFlagsProvider value={{ isExperimentalPwaAppEnabled }}>
+                        <SelfLearningPreferencesProvider>
+                            <SoundSystemProvider
+                                initialIsSoundsOn={defaultIsSoundsOn}
+                                initialIsVibrationOn={defaultIsVibrationOn}
+                            >
+                                <ClientVersionMismatchListener />
+                                <MenuHoistingProvider>
+                                    <MetadataFlagsProvider value={{ isExperimentalPwaAppEnabled }}>
+                                        {shouldRenderMinimalShell ? (
+                                            <main className="pt-0">{children}</main>
+                                        ) : (
                                             <div className="flex min-h-screen flex-col">
                                                 <Header
                                                     isAdmin={isAdmin}
@@ -101,11 +102,11 @@ export function LayoutWrapper({
                                                     <Footer extraLinks={footerLinks} />
                                                 )}
                                             </div>
-                                        </MetadataFlagsProvider>
-                                    </MenuHoistingProvider>
-                                </SoundSystemProvider>
-                            </SelfLearningPreferencesProvider>
-                        )}
+                                        )}
+                                    </MetadataFlagsProvider>
+                                </MenuHoistingProvider>
+                            </SoundSystemProvider>
+                        </SelfLearningPreferencesProvider>
                     </PrivateModePreferencesProvider>
                 </AgentNamingProvider>
             </AsyncDialogsProvider>

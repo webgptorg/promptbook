@@ -59,6 +59,10 @@ type AgentChatHistoryClientProps = {
     chatFailMessage?: string;
     areFileAttachmentsEnabled: boolean;
     isFeedbackEnabled: boolean;
+    /**
+     * Controls embed/headless mode where chat-selection sidebar is hidden.
+     */
+    isHeadlessMode?: boolean;
 };
 
 /**
@@ -78,6 +82,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
         chatFailMessage,
         areFileAttachmentsEnabled,
         isFeedbackEnabled,
+        isHeadlessMode = false,
     } = props;
     const { formatText } = useAgentNaming();
     const { isPrivateModeEnabled } = usePrivateModePreferences();
@@ -138,9 +143,13 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 params.set('message', initialAutoExecuteMessage);
             }
 
+            if (isHeadlessMode) {
+                params.set('headless', '');
+            }
+
             return `/agents/${encodeURIComponent(agentName)}/chat?${params.toString()}`;
         },
-        [agentName, initialAutoExecuteMessage],
+        [agentName, initialAutoExecuteMessage, isHeadlessMode],
     );
 
     /**
@@ -504,6 +513,48 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
         );
     }
 
+    const chatSurface = (
+        <div className="relative flex-1 min-h-0">
+            {isSwitchingChat && (
+                <div className="absolute inset-0 z-20 bg-white/60 backdrop-blur-[1px] flex items-center justify-center text-sm text-slate-700">
+                    {formatText('Loading chat...')}
+                </div>
+            )}
+
+            <AgentChatWrapper
+                key={`${activeChatId}:${activeChatMountKey}`}
+                agentName={agentName}
+                agentUrl={agentUrl}
+                autoExecuteMessage={autoExecuteMessage}
+                brandColor={brandColor}
+                thinkingMessages={thinkingMessages}
+                speechRecognitionLanguage={speechRecognitionLanguage}
+                persistenceKey={buildUserChatPersistenceKey(activeChatId)}
+                onMessagesChange={handleMessagesChange}
+                areFileAttachmentsEnabled={areFileAttachmentsEnabled}
+                isFeedbackEnabled={isFeedbackEnabled}
+                chatFailMessage={chatFailMessage}
+                onStartNewChat={handleStartNewChatFromChatSurface}
+                onAutoExecuteMessageConsumed={handleAutoExecuteMessageConsumed}
+            />
+        </div>
+    );
+
+    const errorBanner = errorMessage ? (
+        <div className="border-t border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">{errorMessage}</div>
+    ) : null;
+
+    if (isHeadlessMode) {
+        return (
+            <div className="w-full h-full flex min-h-0 bg-slate-50/80">
+                <section className="flex-1 min-w-0 min-h-0 flex flex-col">
+                    {chatSurface}
+                    {errorBanner}
+                </section>
+            </div>
+        );
+    }
+
     return (
         <div className="w-full h-full flex min-h-0 bg-slate-50/80">
             <AgentChatSidebar
@@ -534,36 +585,8 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 </span>
             </button>
             <section className="flex-1 min-w-0 min-h-0 flex flex-col">
-                <div className="relative flex-1 min-h-0">
-                    {isSwitchingChat && (
-                        <div className="absolute inset-0 z-20 bg-white/60 backdrop-blur-[1px] flex items-center justify-center text-sm text-slate-700">
-                            {formatText('Loading chat...')}
-                        </div>
-                    )}
-
-                    <AgentChatWrapper
-                        key={`${activeChatId}:${activeChatMountKey}`}
-                        agentName={agentName}
-                        agentUrl={agentUrl}
-                        autoExecuteMessage={autoExecuteMessage}
-                        brandColor={brandColor}
-                        thinkingMessages={thinkingMessages}
-                        speechRecognitionLanguage={speechRecognitionLanguage}
-                        persistenceKey={buildUserChatPersistenceKey(activeChatId)}
-                        onMessagesChange={handleMessagesChange}
-                        areFileAttachmentsEnabled={areFileAttachmentsEnabled}
-                        isFeedbackEnabled={isFeedbackEnabled}
-                        chatFailMessage={chatFailMessage}
-                        onStartNewChat={handleStartNewChatFromChatSurface}
-                        onAutoExecuteMessageConsumed={handleAutoExecuteMessageConsumed}
-                    />
-                </div>
-
-                {errorMessage && (
-                    <div className="border-t border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
-                        {errorMessage}
-                    </div>
-                )}
+                {chatSurface}
+                {errorBanner}
             </section>
         </div>
     );

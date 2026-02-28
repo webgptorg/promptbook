@@ -278,7 +278,7 @@ export async function middleware(req: NextRequest) {
     }
 
     const response = NextResponse.next();
-    applyEmbeddingHeader(response, req.nextUrl.pathname, isEmbeddingAllowed);
+    applyEmbeddingHeader(response, req.nextUrl, isEmbeddingAllowed);
 
     return response;
 
@@ -300,9 +300,9 @@ export const config = {
 };
 
 /**
- * Pattern that matches the iframe-friendly agent route served for embedding.
+ * Pattern that matches the standalone chat route used for embedding.
  */
-const IFRAME_PATHNAME_PATTERN = /^\/agents\/[^/]+\/iframe\/?$/;
+const EMBED_CHAT_PATHNAME_PATTERN = /^\/agents\/[^/]+\/chat\/?$/;
 
 /**
  * Parses boolean metadata values, falling back when the stored value is missing or unrecognized.
@@ -328,14 +328,24 @@ function parseBooleanMetadataValue(raw: string | null | undefined, fallback: boo
 }
 
 /**
- * Applies framing headers for the iframe route based on whether embedding is allowed.
+ * Checks whether request targets the headless chat route used for iframe embedding.
+ *
+ * @param url - Parsed request URL.
+ * @returns `true` when framing headers should be applied.
+ */
+function isEmbedChatRequest(url: URL): boolean {
+    return EMBED_CHAT_PATHNAME_PATTERN.test(url.pathname) && url.searchParams.has('headless');
+}
+
+/**
+ * Applies framing headers for the headless chat embedding route based on whether embedding is allowed.
  *
  * @param response - Response object that will be sent to the browser.
- * @param pathname - Request pathname used to check whether the iframe page was requested.
+ * @param url - Parsed request URL used to check whether the embedding route was requested.
  * @param isAllowed - When true, framing is permitted; otherwise it is denied.
  */
-function applyEmbeddingHeader(response: NextResponse, pathname: string, isAllowed: boolean): void {
-    if (!IFRAME_PATHNAME_PATTERN.test(pathname)) {
+function applyEmbeddingHeader(response: NextResponse, url: URL, isAllowed: boolean): void {
+    if (!isEmbedChatRequest(url)) {
         return;
     }
 
