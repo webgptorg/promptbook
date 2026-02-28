@@ -47,6 +47,7 @@ type AgentChatWrapperProps = {
     agentUrl: string_agent_url;
     defaultMessage?: string;
     autoExecuteMessage?: string;
+    autoExecuteMessageAttachments?: ChatMessage['attachments'];
     brandColor?: string;
     thinkingMessages?: ReadonlyArray<string>;
     speechRecognitionLanguage?: string;
@@ -128,6 +129,25 @@ const USE_PROJECT_GITHUB_WALLET_SERVICE = 'github';
  * Wallet key identifier for USE PROJECT credentials.
  */
 const USE_PROJECT_GITHUB_WALLET_KEY = 'use-project-github-token';
+
+/**
+ * Serializes the auto-execute payload for change detection.
+ */
+function serializeAutoExecutePayload(
+    message?: string,
+    attachments?: ChatMessage['attachments'],
+): string {
+    const normalizedMessage = message ?? '';
+    if (!attachments || attachments.length === 0) {
+        return normalizedMessage;
+    }
+
+    try {
+        return `${normalizedMessage}|${JSON.stringify(attachments)}`;
+    } catch {
+        return normalizedMessage;
+    }
+}
 
 /**
  * Location tool result payload shape.
@@ -436,6 +456,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
         agentUrl,
         defaultMessage,
         autoExecuteMessage,
+        autoExecuteMessageAttachments,
         brandColor,
         thinkingMessages,
         speechRecognitionLanguage,
@@ -494,7 +515,9 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
         useState<PendingPseudoUserInteraction | null>(null);
     const [pendingWalletRequest, setPendingWalletRequest] = useState<PendingWalletRecordRequest | null>(null);
     const hasReportedAutoExecuteMessageRef = useRef(false);
-    const lastAutoExecuteMessageRef = useRef<string | undefined>(autoExecuteMessage);
+    const lastAutoExecutePayloadRef = useRef<string | undefined>(
+        serializeAutoExecutePayload(autoExecuteMessage, autoExecuteMessageAttachments),
+    );
 
     /**
      * Loads disclaimer status for the current user and agent.
@@ -540,18 +563,24 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
         isMetaDisclaimerLoading || metaDisclaimerError !== null || (isMetaDisclaimerEnabled && !hasAcceptedMetaDisclaimer);
     const metaDisclaimerMarkdown = metaDisclaimerStatus?.markdown || null;
     const effectiveAutoExecuteMessage = isMetaDisclaimerBlockingChat ? undefined : autoExecuteMessage;
+    const effectiveAutoExecuteMessageAttachments = isMetaDisclaimerBlockingChat
+        ? undefined
+        : autoExecuteMessageAttachments;
+    const hasEffectiveAutoExecuteContent =
+        Boolean(effectiveAutoExecuteMessage) || Boolean(effectiveAutoExecuteMessageAttachments?.length);
 
     useEffect(() => {
-        if (lastAutoExecuteMessageRef.current === autoExecuteMessage) {
+        const payload = serializeAutoExecutePayload(autoExecuteMessage, autoExecuteMessageAttachments);
+        if (lastAutoExecutePayloadRef.current === payload) {
             return;
         }
 
-        lastAutoExecuteMessageRef.current = autoExecuteMessage;
+        lastAutoExecutePayloadRef.current = payload;
         hasReportedAutoExecuteMessageRef.current = false;
-    }, [autoExecuteMessage]);
+    }, [autoExecuteMessage, autoExecuteMessageAttachments]);
 
     useEffect(() => {
-        if (!effectiveAutoExecuteMessage) {
+        if (!hasEffectiveAutoExecuteContent) {
             return;
         }
 
@@ -561,7 +590,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
 
         hasReportedAutoExecuteMessageRef.current = true;
         onAutoExecuteMessageConsumed?.();
-    }, [effectiveAutoExecuteMessage, onAutoExecuteMessageConsumed]);
+    }, [hasEffectiveAutoExecuteContent, onAutoExecuteMessageConsumed]);
 
     const handleFeedback = useCallback(
         async (feedback: {
@@ -920,31 +949,32 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
 
     return (
         <>
-            <AgentChat
-                key={chatKey}
-                className={`w-full h-full`}
-                style={chatBackgroundStyle}
-                agent={agent}
-                onFeedback={shouldEnableFeedback ? handleFeedback : undefined}
-                onFileUpload={allowFileAttachments ? handleFileUpload : undefined}
-                onError={handleError}
-                defaultMessage={defaultMessage}
-                autoExecuteMessage={effectiveAutoExecuteMessage}
-                persistenceKey={persistenceKey}
-                onChange={handleMessagesChange}
-                sendMessage={sendMessage}
-                speechRecognition={speechRecognition}
-                visual="FULL_PAGE"
-                effectConfigs={effectConfigs}
-                soundSystem={soundSystem}
-                thinkingMessages={thinkingMessages}
-                speechRecognitionLanguage={speechRecognitionLanguage}
-                isSpeechPlaybackEnabled={isSpeechFeaturesEnabled}
-                chatFailMessage={chatFailMessage}
-                promptParameters={promptParameters}
-                onReset={onStartNewChat}
-                resetMode={onStartNewChat ? 'delegate' : undefined}
-            />
+                <AgentChat
+                    key={chatKey}
+                    className={`w-full h-full`}
+                    style={chatBackgroundStyle}
+                    agent={agent}
+                    onFeedback={shouldEnableFeedback ? handleFeedback : undefined}
+                    onFileUpload={allowFileAttachments ? handleFileUpload : undefined}
+                    onError={handleError}
+                    defaultMessage={defaultMessage}
+                    autoExecuteMessage={effectiveAutoExecuteMessage}
+                    autoExecuteMessageAttachments={effectiveAutoExecuteMessageAttachments}
+                    persistenceKey={persistenceKey}
+                    onChange={handleMessagesChange}
+                    sendMessage={sendMessage}
+                    speechRecognition={speechRecognition}
+                    visual="FULL_PAGE"
+                    effectConfigs={effectConfigs}
+                    soundSystem={soundSystem}
+                    thinkingMessages={thinkingMessages}
+                    speechRecognitionLanguage={speechRecognitionLanguage}
+                    isSpeechPlaybackEnabled={isSpeechFeaturesEnabled}
+                    chatFailMessage={chatFailMessage}
+                    promptParameters={promptParameters}
+                    onReset={onStartNewChat}
+                    resetMode={onStartNewChat ? 'delegate' : undefined}
+                />
             <PseudoUserChatDialog
                 isOpen={pendingPseudoUserInteraction !== null}
                 prompt={pendingPseudoUserInteraction?.prompt || ''}

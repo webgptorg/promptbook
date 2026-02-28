@@ -78,6 +78,11 @@ export type LlmChatProps = Omit<ChatProps, 'messages' | 'onMessage' | 'onChange'
     readonly autoExecuteMessage?: string;
 
     /**
+     * Optional attachments that should be sent alongside the auto-executed message.
+     */
+    readonly autoExecuteMessageAttachments?: ChatMessage['attachments'];
+
+    /**
      * Optional mapping of technical tool names to human-readable titles.
      * e.g., { "web_search": "Searching the web..." }
      */

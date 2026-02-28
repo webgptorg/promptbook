@@ -3,7 +3,7 @@
 import { usePromise } from '@common/hooks/usePromise';
 import { Chat } from '@promptbook-local/components';
 import { RemoteAgent } from '@promptbook-local/core';
-import { string_book } from '@promptbook-local/types';
+import { string_book, type ChatMessage } from '@promptbook-local/types';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import spaceTrim from 'spacetrim';
@@ -18,6 +18,7 @@ import { showAlert } from '../../../components/AsyncDialogs/asyncDialogs';
 import { DeletedAgentBanner } from '../../../components/DeletedAgentBanner';
 import { usePrivateModePreferences } from '../../../components/PrivateModePreferences/PrivateModePreferencesProvider';
 import { chatFileUploadHandler } from '../../../utils/upload/createBookEditorUploadHandler';
+import { setPendingProfileMessageAttachments } from './profileMessageCache';
 
 /**
  * Props for rendering the profile-page chat preview for one agent.
@@ -245,10 +246,11 @@ export function AgentProfileChat({
     );
 
     const handleMessage = useCallback(
-        (message: string) => {
+        (message: string, attachments?: ChatMessage['attachments']) => {
+            setPendingProfileMessageAttachments(agentName, attachments);
             return navigateToChat({ message });
         },
-        [navigateToChat],
+        [agentName, navigateToChat],
     );
 
     const handleContinueChat = useCallback(

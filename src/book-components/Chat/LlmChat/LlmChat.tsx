@@ -173,6 +173,7 @@ export function LlmChat(props: LlmChatProps) {
         userParticipantName = 'USER',
         llmParticipantName = 'ASSISTANT',
         autoExecuteMessage,
+        autoExecuteMessageAttachments,
         buttonColor,
         toolTitles,
         thinkingMessages,
@@ -667,11 +668,16 @@ export function LlmChat(props: LlmChatProps) {
     // Handle autoExecuteMessage
     const hasAutoExecutedRef = useRef(false);
     useEffect(() => {
-        if (autoExecuteMessage && !hasAutoExecutedRef.current) {
-            hasAutoExecutedRef.current = true;
-            handleMessage(autoExecuteMessage);
+        const shouldAutoExecute =
+            Boolean(autoExecuteMessage) || Boolean(autoExecuteMessageAttachments?.length);
+
+        if (!shouldAutoExecute || hasAutoExecutedRef.current) {
+            return;
         }
-    }, [autoExecuteMessage, handleMessage]);
+
+        hasAutoExecutedRef.current = true;
+        handleMessage(autoExecuteMessage ?? '', autoExecuteMessageAttachments);
+    }, [autoExecuteMessage, autoExecuteMessageAttachments, handleMessage]);
 
     const streamingStopAction = isStreaming ? (
         <button

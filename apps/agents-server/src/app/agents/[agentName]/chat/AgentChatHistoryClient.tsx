@@ -15,6 +15,7 @@ import {
 } from '../../../../utils/userChatClient';
 import { AgentChatSidebar, AGENT_CHAT_SIDEBAR_ID } from './AgentChatSidebar';
 import { AgentChatWrapper } from '../AgentChatWrapper';
+import { takePendingProfileMessageAttachments } from '../profileMessageCache';
 import { usePrivateModePreferences } from '../../../../components/PrivateModePreferences/PrivateModePreferencesProvider';
 
 /**
@@ -87,6 +88,10 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     const { formatText } = useAgentNaming();
     const { isPrivateModeEnabled } = usePrivateModePreferences();
     const shouldUseHistory = isHistoryEnabled && !isPrivateModeEnabled;
+    const pendingProfileAttachments = useMemo(
+        () => takePendingProfileMessageAttachments(agentName),
+        [agentName],
+    );
 
     const [chats, setChats] = useState<Array<UserChatSummary>>([]);
     const [activeChatId, setActiveChatId] = useState<string | null>(null);
@@ -491,6 +496,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                         agentName={agentName}
                         agentUrl={agentUrl}
                         autoExecuteMessage={initialAutoExecuteMessage}
+                        autoExecuteMessageAttachments={pendingProfileAttachments}
                         brandColor={brandColor}
                         thinkingMessages={thinkingMessages}
                         speechRecognitionLanguage={speechRecognitionLanguage}
@@ -526,6 +532,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 agentName={agentName}
                 agentUrl={agentUrl}
                 autoExecuteMessage={autoExecuteMessage}
+                autoExecuteMessageAttachments={pendingProfileAttachments}
                 brandColor={brandColor}
                 thinkingMessages={thinkingMessages}
                 speechRecognitionLanguage={speechRecognitionLanguage}
