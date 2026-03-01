@@ -26,9 +26,12 @@
 
 [✨💧] Remote browser tunnel
 
--   @@@@
+-   Browser used in `USE BROWSER` commitment is working, but it is failing on Vercel server.
+-   Implement a solution to be able to configure the remote browser tunnel, so the browser can run on another server and the Agents Server can connect to it remotely. This will allow us to run the browser on a different server than the Agents Server, for example, on a server that is not Vercel and does not have the same limitations as Vercel.
+-   Do a proper analysis of the current functionality of `USE BROWSER` and how it is implemented before you start implementing the remote browser tunnel.
+-   Do a proper cleanup of the browser instance and opended pages when using a browser, either the local one or the remote one, to avoid memory leaks and too many open pages and browser instances.
+-   When the agent finishes the task, the browser instance should be closed and all opened pages should be closed to free up resources.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
@@ -58,4 +61,3 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
