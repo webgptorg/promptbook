@@ -382,6 +382,17 @@
             "focus": true
         },
         {
+            "name": "⚡🚀 Run `claude-4.6-opus` Coding Agent (💸)(⏳)",
+            "commands": [
+                "set -a && source .env && set +a",
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --agent claude-code --model claude-4.6-opus --no-wait"
+            ],
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
             "name": "⚡🚀 Run `gemini-3-flash` Coding Agent (💸)(⏳)",
             "commands": [
                 "set -a && source .env && set +a",
