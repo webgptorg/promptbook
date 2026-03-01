@@ -1,3 +1,14 @@
+-   Extracted Promptbook Coder utilities into `ptbk coder` CLI command:
+    -   Added new `ptbk coder` command with five subcommands for automated coding workflows: `generate-boilerplates`, `find-refactor-candidates`, `run`, `verify`, and `find-fresh-emoji-tag`.
+    -   `ptbk coder generate-boilerplates` (formerly `scripts/generate-prompt-boilerplate`) generates prompt boilerplate files with unique emoji tags and sequential numbering. Supports `--count` and `--template` options.
+    -   `ptbk coder find-refactor-candidates` (formerly `scripts/find-refactor-candidates`) scans source files to identify refactoring candidates based on line count limits (500 lines per file by extension) and entity count limits (max 4 entities per file). Generates refactor prompts with guidance.
+    -   `ptbk coder run` (formerly `scripts/run-codex-prompts`) executes coding prompts through selected AI agent (OpenAI Codex, Cline, Claude Code, Opencode, Gemini). Automatically stages and commits changes with agent identity, supports GPG signing, progress tracking, interactive controls, and dry-run mode. Options: `--agent`, `--model`, `--priority`, `--no-wait`, `--dry-run`, `--ignore-git-changes`.
+    -   `ptbk coder verify` (formerly `scripts/verify-prompts`) provides interactive verification helper for completed prompts. Displays list of prompt files with status counts, guides through verification of completed prompts marked [x], archives verified files to prompts/done/ directory, and auto-appends repair prompts for incomplete work. Supports `--reverse` option.
+    -   `ptbk coder find-fresh-emoji-tag` (formerly `scripts/find-fresh-emoji-tag`) finds unused emoji tags in the codebase by scanning for emoji tags already in use (format: [emoji]) and identifying fresh (unused) emoji tags from the single-pictogram emoji set. Displays 10 random fresh emojis for quick reference.
+    -   All coding utilities now available both internally (via `npx ts-node ./src/cli/test/ptbk.ts coder <command>`) and externally when Promptbook CLI is installed globally (via `ptbk coder <command>`).
+    -   Preserved all existing functionalities including flags, auto-committing features, and agent identity configuration.
+    -   Updated all internal usage references in `.vscode/terminals.json`, `package.json` scripts, and README files to use the new `ptbk coder` commands while keeping legacy script files functional for backward compatibility.
+    -   Coding utilities maintain DRY principle by reusing shared logic from scripts folder with thin CLI wrappers in `src/cli/cli-commands/coder/`.
 -   Implemented remote browser tunnel support for Agents Server `USE BROWSER` commitment:
     -   Added `BrowserConnectionProvider` class that supports both local and remote browser connections via Playwright's `connect()` API.
     -   Introduced new `REMOTE_BROWSER_URL` metadata key to configure remote Playwright server WebSocket endpoint (e.g., `ws://browser-server:3000`).

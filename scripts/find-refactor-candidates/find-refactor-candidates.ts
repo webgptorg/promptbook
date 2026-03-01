@@ -69,8 +69,10 @@ type RefactorCandidate = {
 
 /**
  * Orchestrates scanning for refactor candidates and generating prompts.
+ *
+ * @public exported from `@promptbook/cli`
  */
-async function findRefactorCandidates(): Promise<void> {
+export async function findRefactorCandidates(): Promise<void> {
     console.info(colors.cyan('?? Find refactor candidates'));
 
     const rootDir = process.cwd();

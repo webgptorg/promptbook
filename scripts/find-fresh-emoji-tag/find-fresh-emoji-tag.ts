@@ -19,17 +19,25 @@ if (process.cwd() !== join(__dirname, '../..')) {
     process.exit(1);
 }
 
-findFreshEmojiTag()
-    .catch((error) => {
-        console.error(colors.bgRed(`${error.name} in ${basename(__filename)}`));
-        console.error(colors.red(error.stack || error.message));
-        process.exit(1);
-    })
-    .then(() => {
-        process.exit(0);
-    });
+// Note: When run as a standalone script, call the exported function
+if (require.main === module) {
+    findFreshEmojiTag()
+        .catch((error) => {
+            console.error(colors.bgRed(`${error.name} in ${basename(__filename)}`));
+            console.error(colors.red(error.stack || error.message));
+            process.exit(1);
+        })
+        .then(() => {
+            process.exit(0);
+        });
+}
 
-async function findFreshEmojiTag() {
+/**
+ * Finds fresh emoji tags that are not yet used in the codebase.
+ *
+ * @public exported from `@promptbook/cli`
+ */
+export async function findFreshEmojiTag(): Promise<void> {
     console.info(`🤪  Find fresh emoji tag`);
 
     // Do here stuff you want to test

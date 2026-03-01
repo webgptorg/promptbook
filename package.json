@@ -209,7 +209,7 @@
         "generate-examples-bookc-commit": "ts-node ./scripts/generate-examples-bookc/generate-examples-bookc.ts --commit",
         "generate-openapi-types": "npx openapi-typescript src/remote-server/openapi.yml -o src/remote-server/openapi-types.ts --immutable --export-type",
         "generate-openapi-types-commit": "npx openapi-typescript src/remote-server/openapi.yml -o src/remote-server/openapi-types.ts --immutable --export-type && git add . && git commit --allow-empty --message \"🏭 Generate OpenAPI types\" && git push",
-        "generate-prompt-boilerplates": "echo \"🚀 Generate prompt boilerplate\" && ts-node scripts/generate-prompt-boilerplate/generate-prompt-boilerplate.ts --count 10",
+        "generate-prompt-boilerplates": "echo \"🚀 Generate prompt boilerplate\" && ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --count 10",
         "import-markdowns": "npx deno --allow-env --allow-read --allow-write --allow-sys --unstable-sloppy-imports ./book/scripts/import-markdown/import-markdown.ts",
         "import-markdowns-commit": "npx deno --allow-env --allow-read --allow-write --allow-sys --unstable-sloppy-imports ./book/scripts/import-markdown/import-markdown.ts && cd ./book && git add . && git commit --allow-empty --message \"📄 Import markdowns\" && git push && cd .. && git add . && git commit --allow-empty --message \"📄 Import markdowns\"",
         "make-promptbook-collection": "ts-node ./scripts/make-promptbook-collection/make-promptbook-collection.ts",

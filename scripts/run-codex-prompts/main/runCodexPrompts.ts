@@ -78,9 +78,12 @@ function getRunnerMetadata(options: RunOptions, actualModel?: string): RunnerMet
 
 /**
  * Main entry point for running prompts with the selected agent.
+ *
+ * @param providedOptions - Optional pre-parsed options. If not provided, will parse from process.argv
+ * @public exported from `@promptbook/cli`
  */
-export async function runCodexPrompts(): Promise<void> {
-    const options = parseRunOptions(process.argv.slice(2));
+export async function runCodexPrompts(providedOptions?: RunOptions): Promise<void> {
+    const options = providedOptions ?? parseRunOptions(process.argv.slice(2));
     const runStartDate = moment();
     const progressDisplay = options.dryRun ? undefined : new CliProgressDisplay(runStartDate);
     listenForPause();

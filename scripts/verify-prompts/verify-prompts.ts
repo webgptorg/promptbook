@@ -32,14 +32,17 @@ const REVERSE_ORDER = process.argv.includes('--reverse');
 
 /**
  * Starts the verification loop and exits when no `[ ]` prompts remain.
+ *
+ * @param reverse - Process files in reverse order
+ * @public exported from `@promptbook/cli`
  */
-async function main(): Promise<void> {
+export async function verifyPrompts(reverse: boolean = REVERSE_ORDER): Promise<void> {
     console.info(colors.cyan.bold('📋 Prompt verification helper'));
-    if (REVERSE_ORDER) {
+    if (reverse) {
         console.info(colors.gray('Processing files in reverse order'));
     }
     const initialFiles = await loadPromptFiles(PROMPTS_DIR);
-    if (REVERSE_ORDER) {
+    if (reverse) {
         initialFiles.reverse();
     }
     displayTopLevelFileList(initialFiles);
@@ -485,7 +488,10 @@ function isNotFound(error: unknown): boolean {
     return (error as NodeJS.ErrnoException)?.code === 'ENOENT';
 }
 
-main().catch((error) => {
-    console.error(colors.bgRed('Prompt verification failed:'), error);
-    process.exit(1);
-});
+// Note: When run as a standalone script, call the exported function
+if (require.main === module) {
+    verifyPrompts(REVERSE_ORDER).catch((error) => {
+        console.error(colors.bgRed('Prompt verification failed:'), error);
+        process.exit(1);
+    });
+}

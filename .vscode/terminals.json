@@ -222,7 +222,7 @@
         },
         {
             "name": "🤪 Find fresh emoji tag",
-            "command": "npx ts-node ./scripts/find-fresh-emoji-tag/find-fresh-emoji-tag.ts",
+            "command": "npx ts-node ./src/cli/test/ptbk.ts coder find-fresh-emoji-tag",
             "execute": true,
             "onlySingle": false,
             "focus": false
@@ -310,14 +310,14 @@
         },
         {
             "name": "⚡🏭 Generate prompt boilerplates for Coding Agent",
-            "command": "npx ts-node scripts/generate-prompt-boilerplate/generate-prompt-boilerplate.ts --count 10",
+            "command": "npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --count 10",
             "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "⚡🏭 Generate Agents server prompt boilerplates for Coding Agent",
-            "command": "npx ts-node scripts/generate-prompt-boilerplate/generate-prompt-boilerplate.ts --count 10 --template agents-server",
+            "command": "npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --count 10 --template agents-server",
             "execute": true,
             "onlySingle": true,
             "focus": true
@@ -325,14 +325,14 @@
 
         {
             "name": "⚡🏭 Find refactor candidates for Coding Agent",
-            "command": "npx ts-node ./scripts/find-refactor-candidates/find-refactor-candidates.ts",
+            "command": "npx ts-node ./src/cli/test/ptbk.ts coder find-refactor-candidates",
             "execute": true,
             "onlySingle": true,
             "focus": true
         },
         {
             "name": "⚡🔎 Find unwritten prompts",
-            "command": "npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --dry-run",
+            "command": "npx ts-node ./src/cli/test/ptbk.ts coder run --dry-run",
             "execute": true,
             "onlySingle": false,
             "focus": false
@@ -342,7 +342,7 @@
             "commands": [
                 "set -a && source .env && set +a",
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
-                "npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --agent openai-codex --model gpt-5.3-codex --priority 1 --no-wait && npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --agent openai-codex --model gpt-5.1-codex-mini --no-wait && ./scripts/lines-to-lf.sh && npx ts-node ./scripts/prettify-all/prettify-all.ts --ignore-git-changes --commit && npm run test && npx ts-node ./scripts/generate-packages/generate-packages.ts"
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --agent openai-codex --model gpt-5.3-codex --priority 1 --no-wait && npx ts-node ./src/cli/test/ptbk.ts coder run --agent openai-codex --model gpt-5.1-codex-mini --no-wait && ./scripts/lines-to-lf.sh && npx ts-node ./scripts/prettify-all/prettify-all.ts --ignore-git-changes --commit && npm run test && npx ts-node ./scripts/generate-packages/generate-packages.ts"
             ],
             "execute": false,
             "onlySingle": false,
@@ -353,7 +353,7 @@
             "commands": [
                 "set -a && source .env && set +a",
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
-                "npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --agent openai-codex --model gpt-5.3-codex --priority 1"
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --agent openai-codex --model gpt-5.3-codex --priority 1"
             ],
             "execute": true,
             "onlySingle": true,
@@ -364,7 +364,7 @@
             "commands": [
                 "set -a && source .env && set +a",
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
-                "npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --agent openai-codex --model gpt-5.1-codex-mini --no-wait"
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --agent openai-codex --model gpt-5.1-codex-mini --no-wait"
             ],
             "execute": true,
             "onlySingle": true,
@@ -375,7 +375,7 @@
             "commands": [
                 "set -a && source .env && set +a",
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
-                "npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --agent openai-codex --model gpt-5.3-codex-spark --no-wait"
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --agent openai-codex --model gpt-5.3-codex-spark --no-wait"
             ],
             "execute": true,
             "onlySingle": true,
@@ -386,7 +386,7 @@
             "commands": [
                 "set -a && source .env && set +a",
                 "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
-                "npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --agent claude-code --model claude-4.6-opus --no-wait"
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --agent claude-code --model claude-4.6-opus --no-wait"
             ],
             "execute": true,
             "onlySingle": true,
@@ -396,7 +396,7 @@
             "name": "⚡🚀 Run `gemini-3-flash` Coding Agent (💸)(⏳)",
             "commands": [
                 "set -a && source .env && set +a",
-                "npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --agent gemini --model gemini-3-flash-preview --no-wait"
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --agent gemini --model gemini-3-flash-preview --no-wait"
             ],
             "execute": true,
             "onlySingle": true,
@@ -406,7 +406,7 @@
             "name": "⚡🚀 Run `gemini-3.1` Coding Agent (💸)(⏳)",
             "commands": [
                 "set -a && source .env && set +a",
-                "npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --agent gemini --model gemini-3.1-pro-preview --no-wait"
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --agent gemini --model gemini-3.1-pro-preview --no-wait"
             ],
             "execute": true,
             "onlySingle": true,
@@ -417,7 +417,7 @@
             "commands": [
                 "set -a && source .env && set +a",
                 "export OPENAI_API_KEY=$PROMPTBOOK_AGENTS_SERVER_API_KEY && export OPENAI_BASE_URL=https://pavol-hejny.ptbk.io/agents/NFR94UDUAHzmAX/api/openai/v1",
-                "npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --agent openai-codex --model agent:NFR94UDUAHzmAX"
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --agent openai-codex --model agent:NFR94UDUAHzmAX"
             ],
             "execute": true,
             "onlySingle": true,
@@ -429,7 +429,7 @@
             "commands": [
                 "set -a && source .env && set +a",
                 "export OPENAI_BASE_URL=https://api.openai.com/v1",
-                "npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --agent openai-codex --model gpt-5.1-codex-mini"
+                "npx ts-node ./src/cli/test/ptbk.ts coder run --agent openai-codex --model gpt-5.1-codex-mini"
             ],
             "execute": true,
             "onlySingle": true,
@@ -437,7 +437,7 @@
         },
         {
             "name": "⚡✔ Verify prompts done by Coding Agent (💤)",
-            "command": "npx ts-node ./scripts/verify-prompts/verify-prompts.ts --reverse",
+            "command": "npx ts-node ./src/cli/test/ptbk.ts coder verify --reverse",
             "execute": false,
             "onlySingle": false,
             "focus": false

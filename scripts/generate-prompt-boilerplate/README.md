@@ -18,7 +18,17 @@ This script automatically creates several markdown files with prompts for vibeco
 npm run generate-prompt-boilerplate
 ```
 
-### Direct execution:
+### Via Promptbook CLI (recommended for external users):
+
+```bash
+# External usage (when promptbook is installed globally)
+ptbk coder generate-boilerplates --count 5
+
+# Internal usage (within Promptbook repository)
+npx ts-node ./src/cli/test/ptbk.ts coder generate-boilerplates --count 5
+```
+
+### Direct execution (legacy):
 
 ```bash
 npx ts-node scripts/generate-prompt-boilerplate/generate-prompt-boilerplate.ts --count 5
@@ -27,12 +37,21 @@ npx ts-node scripts/generate-prompt-boilerplate/generate-prompt-boilerplate.ts -
 ### Generate a custom number of files:
 
 ```bash
+# Via CLI (recommended)
+ptbk coder generate-boilerplates --count 100
+
+# Direct (legacy)
 npx ts-node scripts/generate-prompt-boilerplate/generate-prompt-boilerplate.ts --count 100
 ```
 
 ### Select a template:
 
 ```bash
+# Via CLI (recommended)
+ptbk coder generate-boilerplates --template common
+ptbk coder generate-boilerplates --template agents-server
+
+# Direct (legacy)
 npx ts-node scripts/generate-prompt-boilerplate/generate-prompt-boilerplate.ts --template common
 npx ts-node scripts/generate-prompt-boilerplate/generate-prompt-boilerplate.ts --template agents-server
 ```
@@ -40,6 +59,10 @@ npx ts-node scripts/generate-prompt-boilerplate/generate-prompt-boilerplate.ts -
 ### Combine options:
 
 ```bash
+# Via CLI (recommended)
+ptbk coder generate-boilerplates --count 100 --template agents-server
+
+# Direct (legacy)
 npx ts-node scripts/generate-prompt-boilerplate/generate-prompt-boilerplate.ts --count 100 --template agents-server
 ```
 
