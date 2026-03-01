@@ -19,6 +19,9 @@
 # Promptbook
 /.promptbook/
 
+# Web browsing
+/.playwright-cli/
+
 # production
 /build
 
