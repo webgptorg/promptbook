@@ -1,5 +1,3 @@
-#!/usr/bin/env ts-node
-
 import * as dotenv from 'dotenv';
 
 dotenv.config({ path: '.env' });
@@ -38,16 +36,18 @@ if (process.cwd() !== join(__dirname, '../..')) {
     process.exit(1);
 }
 
-findRefactorCandidates()
-    .catch((error) => {
-        assertsError(error);
-        console.error(colors.bgRed(`${error.name} in ${basename(__filename)}`));
-        console.error(colors.red(error.stack || error.message));
-        process.exit(1);
-    })
-    .then(() => {
-        process.exit(0);
-    });
+if (require.main === module) {
+    findRefactorCandidates()
+        .catch((error) => {
+            assertsError(error);
+            console.error(colors.bgRed(`${error.name} in ${basename(__filename)}`));
+            console.error(colors.red(error.stack || error.message));
+            process.exit(1);
+        })
+        .then(() => {
+            process.exit(0);
+        });
+}
 
 /**
  * Details about a file that should be refactored.

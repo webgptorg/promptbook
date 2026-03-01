@@ -1,5 +1,3 @@
-#!/usr/bin/env ts-node
-
 import colors from 'colors';
 import { mkdir, rename, stat } from 'fs/promises';
 import { extname, join, relative } from 'path';
