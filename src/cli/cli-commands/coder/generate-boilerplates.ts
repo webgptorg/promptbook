@@ -192,7 +192,11 @@ function parsePromptTemplate(templateOption: string): PromptTemplate {
  * @private internal utility of `generatePromptBoilerplate` command
  */
 function loadPromptTemplate(template: PromptTemplate): string {
-    const templateFilePath = join(__dirname, '../../../../scripts/generate-prompt-boilerplate/templates', `${template}.template.md`);
+    const templateFilePath = join(
+        __dirname,
+        '../../../../scripts/generate-prompt-boilerplate/templates',
+        `${template}.template.md`,
+    );
     return readFileSync(templateFilePath, 'utf-8').trim();
 }
 

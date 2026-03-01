@@ -28,9 +28,7 @@ export function $initializeCoderFindFreshEmojiTagCommand(program: Program): $sid
     command.action(
         handleActionErrors(async () => {
             // Note: Import the function dynamically to avoid loading heavy dependencies until needed
-            const { findFreshEmojiTag } = await import(
-                '../../../../scripts/find-fresh-emoji-tag/find-fresh-emoji-tag'
-            );
+            const { findFreshEmojiTag } = await import('../../../../scripts/find-fresh-emoji-tag/find-fresh-emoji-tag');
 
             try {
                 await findFreshEmojiTag();

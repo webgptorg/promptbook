@@ -49,25 +49,13 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
             Gemini examples: gemini-3-flash-preview, default
         `),
     );
-    command.option(
-        '--priority <minimum-priority>',
-        'Filter prompts by minimum priority level',
-        parseIntOption,
-        0,
-    );
+    command.option('--priority <minimum-priority>', 'Filter prompts by minimum priority level', parseIntOption, 0);
     command.option('--no-wait', 'Skip user prompts between processing', false);
     command.option('--ignore-git-changes', 'Skip clean working tree check before running prompts', false);
 
     command.action(
         handleActionErrors(async (cliOptions) => {
-            const {
-                dryRun,
-                agent,
-                model,
-                priority,
-                wait,
-                ignoreGitChanges,
-            } = cliOptions as {
+            const { dryRun, agent, model, priority, wait, ignoreGitChanges } = cliOptions as {
                 readonly dryRun: boolean;
                 readonly agent?: string;
                 readonly model?: string;
@@ -77,13 +65,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
             };
 
             // Validate agent
-            let agentName:
-                | 'openai-codex'
-                | 'cline'
-                | 'claude-code'
-                | 'opencode'
-                | 'gemini'
-                | undefined = undefined;
+            let agentName: 'openai-codex' | 'cline' | 'claude-code' | 'opencode' | 'gemini' | undefined = undefined;
 
             if (agent) {
                 if (
@@ -124,9 +106,7 @@ export function $initializeCoderRunCommand(program: Program): $side_effect {
             };
 
             // Note: Import the function dynamically to avoid loading heavy dependencies until needed
-            const { runCodexPrompts } = await import(
-                '../../../../scripts/run-codex-prompts/main/runCodexPrompts'
-            );
+            const { runCodexPrompts } = await import('../../../../scripts/run-codex-prompts/main/runCodexPrompts');
 
             try {
                 // Override process.argv to pass options to the legacy parseRunOptions if needed
