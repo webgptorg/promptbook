@@ -18,6 +18,9 @@ export function markPromptFailed(
     }
 
     const line = file.lines[section.statusLineIndex];
+    if (line === undefined) {
+        throw new Error(`Prompt ${section.index + 1} in ${file.name} points to a missing status line.`);
+    }
     const runnerSignature = formatRunnerSignature(runnerName, modelName);
     const duration = moment().diff(promptExecutionStartedDate);
     const durationString = moment.duration(duration).humanize();

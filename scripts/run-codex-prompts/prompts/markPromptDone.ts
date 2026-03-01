@@ -21,6 +21,9 @@ export function markPromptDone(
     }
 
     const line = file.lines[section.statusLineIndex];
+    if (line === undefined) {
+        throw new Error(`Prompt ${section.index + 1} in ${file.name} points to a missing status line.`);
+    }
     const priceString = formatUsagePrice(usage);
     const runnerSignature = formatRunnerSignature(runnerName, modelName);
 

@@ -156,7 +156,11 @@ export async function findRefactorCandidates(): Promise<void> {
         const number = promptNumbering.startNumber + index * promptNumbering.step;
         const filename = buildPromptFilename(promptNumbering.datePrefix, number, slug);
         const promptPath = join(promptsDir, filename);
-        const emojiTag = formatPromptEmojiTag(selectedEmojis[index]);
+        const selectedEmoji = selectedEmojis[index];
+        if (!selectedEmoji) {
+            throw new Error(`Missing emoji for prompt candidate #${index + 1}`);
+        }
+        const emojiTag = formatPromptEmojiTag(selectedEmoji);
         const promptContent = buildPromptContent(candidate, emojiTag);
 
         await writeFile(promptPath, promptContent, 'utf-8');

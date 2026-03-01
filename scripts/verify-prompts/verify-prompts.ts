@@ -167,6 +167,9 @@ async function verifyDonePromptsInFile(file: PromptFile): Promise<boolean> {
     let lastDoneSection: PromptSection | undefined;
     for (let i = file.sections.length - 1; i >= 0; i--) {
         const section = file.sections[i];
+        if (!section) {
+            continue;
+        }
         if (section.status === 'done') {
             lastDoneSection = section;
             break;
@@ -248,6 +251,11 @@ async function changePromptStatusToTodo(file: PromptFile, section: PromptSection
     }
 
     const statusLine = file.lines[section.statusLineIndex];
+    if (statusLine === undefined) {
+        file.lines.splice(section.startLine, 0, '[ ]', '');
+        await writePromptFile(file);
+        return;
+    }
     const updatedLine = statusLine.replace(/\[(x|-)]\s*!*/i, '[ ]');
     file.lines[section.statusLineIndex] = updatedLine;
     await writePromptFile(file);
@@ -390,7 +398,8 @@ async function appendRepairPrompt(file: PromptFile, section: PromptSection): Pro
     const sanitizedTitle = previousTitle.replace(/"/g, '\\"');
     const fixTitle = `Fix "${sanitizedTitle}"`;
 
-    if (file.lines.length && file.lines[file.lines.length - 1].trim() !== '') {
+    const lastLine = file.lines[file.lines.length - 1];
+    if (file.lines.length && lastLine !== undefined && lastLine.trim() !== '') {
         file.lines.push('');
     }
 
@@ -431,7 +440,7 @@ function extractPromptHeadline(file: PromptFile, section: PromptSection): { emoj
         const match = trimmed.match(/^\[(?<emoji>[^\]]+)\]\s*(?<title>.+)$/);
         if (match?.groups?.title) {
             return {
-                emoji: match.groups.emoji.trim() || '✨',
+                emoji: match.groups.emoji?.trim() || '✨',
                 title: match.groups.title.trim(),
             };
         }
