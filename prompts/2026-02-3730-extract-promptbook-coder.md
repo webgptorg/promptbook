@@ -22,6 +22,25 @@
 
 ---
 
+[ ]
+
+[✨🌶] Cleanup old
+
+    -   `scripts/generate-prompt-boilerplate` -> `ptbk coder generate-prompt-bopilerplates`
+    -   `scripts/find-refactor-candidates` -> `ptbk coder find-refactor-candidates`
+    -   `scripts/run-codex-prompts` -> `ptbk coder run`
+    -   `scripts/verify-prompts` -> `ptbk coder verify`
+    -   `scripts/find-fresh-emoji-tag` -> `ptbk coder find-fresh-emoji-tag`
+
+-   @@@
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+-   If you need to do the database migration, do it
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+---
+
 [-]
 
 [✨🌶] foo
@@ -45,17 +64,3 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
----
-
-[-]
-
-[✨🌶] foo
-
--   @@@
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
--   You are working with the [Agents Server](apps/agents-server)
--   If you need to do the database migration, do it
--   Add the changes into the [changelog](changelog/_current-preversion.md)
-
