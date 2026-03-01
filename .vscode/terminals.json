@@ -371,6 +371,17 @@
             "focus": true
         },
         {
+            "name": "⚡🚀 Run `gpt-5.3-codex-spark` Coding Agent (💸)(⏳)",
+            "commands": [
+                "set -a && source .env && set +a",
+                "unset OPENAI_API_KEY && unset OPENAI_BASE_URL",
+                "npx ts-node ./scripts/run-codex-prompts/run-codex-prompts.ts --agent openai-codex --model gpt-5.3-codex-spark --no-wait"
+            ],
+            "execute": true,
+            "onlySingle": true,
+            "focus": true
+        },
+        {
             "name": "⚡🚀 Run `gemini-3-flash` Coding Agent (💸)(⏳)",
             "commands": [
                 "set -a && source .env && set +a",
