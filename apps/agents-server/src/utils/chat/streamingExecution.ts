@@ -1,6 +1,6 @@
 import { $provideClientSql } from '@/src/database/$provideClientSql';
-import { $getCurrentDate, randomUuid } from '@promptbook-local/utils';
 import type { ChatMessage, ToolCall } from '@promptbook-local/types';
+import { $getCurrentDate } from '@promptbook-local/utils';
 
 /**
  * Status of a streaming execution
@@ -51,7 +51,7 @@ export async function createStreamingExecution(params: {
 }): Promise<StreamingExecution> {
     const { userId, userChatId, agentPermanentId, agentName, agentHash, userMessage, userMessageHash } = params;
 
-    const executionId = randomUuid();
+    const executionId = crypto.randomUUID();
     const now = $getCurrentDate();
 
     const sql = await $provideClientSql();
@@ -87,7 +87,8 @@ export async function createStreamingExecution(params: {
 
     return {
         ...execution,
-        userMessage: typeof execution.userMessage === 'string' ? JSON.parse(execution.userMessage) : execution.userMessage,
+        userMessage:
+            typeof execution.userMessage === 'string' ? JSON.parse(execution.userMessage) : execution.userMessage,
         assistantMessage: null,
         toolCalls: null,
         usage: null,
@@ -166,13 +167,14 @@ export async function completeStreamingExecution(params: {
  *
  * @public exported from Agents Server utils
  */
-export async function failStreamingExecution(executionId: string, error: Error | Record<string, unknown>): Promise<void> {
+export async function failStreamingExecution(
+    executionId: string,
+    error: Error | Record<string, unknown>,
+): Promise<void> {
     const sql = await $provideClientSql();
     const now = $getCurrentDate();
 
-    const errorData = error instanceof Error
-        ? { name: error.name, message: error.message, stack: error.stack }
-        : error;
+    const errorData = error instanceof Error ? { name: error.name, message: error.message, stack: error.stack } : error;
 
     await sql`
         UPDATE "ChatStreamingExecution"
@@ -224,19 +226,18 @@ export async function getStreamingExecution(executionId: string): Promise<Stream
 
     return {
         ...execution,
-        userMessage: typeof execution.userMessage === 'string' ? JSON.parse(execution.userMessage) : execution.userMessage,
-        assistantMessage: execution.assistantMessage && typeof execution.assistantMessage === 'string'
-            ? JSON.parse(execution.assistantMessage)
-            : execution.assistantMessage,
-        toolCalls: execution.toolCalls && typeof execution.toolCalls === 'string'
-            ? JSON.parse(execution.toolCalls)
-            : execution.toolCalls,
-        usage: execution.usage && typeof execution.usage === 'string'
-            ? JSON.parse(execution.usage)
-            : execution.usage,
-        error: execution.error && typeof execution.error === 'string'
-            ? JSON.parse(execution.error)
-            : execution.error,
+        userMessage:
+            typeof execution.userMessage === 'string' ? JSON.parse(execution.userMessage) : execution.userMessage,
+        assistantMessage:
+            execution.assistantMessage && typeof execution.assistantMessage === 'string'
+                ? JSON.parse(execution.assistantMessage)
+                : execution.assistantMessage,
+        toolCalls:
+            execution.toolCalls && typeof execution.toolCalls === 'string'
+                ? JSON.parse(execution.toolCalls)
+                : execution.toolCalls,
+        usage: execution.usage && typeof execution.usage === 'string' ? JSON.parse(execution.usage) : execution.usage,
+        error: execution.error && typeof execution.error === 'string' ? JSON.parse(execution.error) : execution.error,
     };
 }
 
@@ -245,7 +246,9 @@ export async function getStreamingExecution(executionId: string): Promise<Stream
  *
  * @public exported from Agents Server utils
  */
-export async function getActiveStreamingExecutionsForChat(userChatId: string): Promise<ReadonlyArray<StreamingExecution>> {
+export async function getActiveStreamingExecutionsForChat(
+    userChatId: string,
+): Promise<ReadonlyArray<StreamingExecution>> {
     const sql = await $provideClientSql();
 
     const executions = await sql<StreamingExecution[]>`
@@ -255,20 +258,19 @@ export async function getActiveStreamingExecutionsForChat(userChatId: string): P
         ORDER BY "createdAt" DESC
     `;
 
-    return executions.map((execution) => ({
+    return executions.map((execution: StreamingExecution) => ({
         ...execution,
-        userMessage: typeof execution.userMessage === 'string' ? JSON.parse(execution.userMessage) : execution.userMessage,
-        assistantMessage: execution.assistantMessage && typeof execution.assistantMessage === 'string'
-            ? JSON.parse(execution.assistantMessage)
-            : execution.assistantMessage,
-        toolCalls: execution.toolCalls && typeof execution.toolCalls === 'string'
-            ? JSON.parse(execution.toolCalls)
-            : execution.toolCalls,
-        usage: execution.usage && typeof execution.usage === 'string'
-            ? JSON.parse(execution.usage)
-            : execution.usage,
-        error: execution.error && typeof execution.error === 'string'
-            ? JSON.parse(execution.error)
-            : execution.error,
+        userMessage:
+            typeof execution.userMessage === 'string' ? JSON.parse(execution.userMessage) : execution.userMessage,
+        assistantMessage:
+            execution.assistantMessage && typeof execution.assistantMessage === 'string'
+                ? JSON.parse(execution.assistantMessage)
+                : execution.assistantMessage,
+        toolCalls:
+            execution.toolCalls && typeof execution.toolCalls === 'string'
+                ? JSON.parse(execution.toolCalls)
+                : execution.toolCalls,
+        usage: execution.usage && typeof execution.usage === 'string' ? JSON.parse(execution.usage) : execution.usage,
+        error: execution.error && typeof execution.error === 'string' ? JSON.parse(execution.error) : execution.error,
     }));
 }

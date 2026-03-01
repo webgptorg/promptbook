@@ -16,11 +16,11 @@ import {
     resolveMessageSuffixFromAgentSource,
 } from '@/src/utils/chat/messageSuffix';
 import {
-    createStreamingExecution,
-    updateStreamingExecutionDelta,
-    completeStreamingExecution,
-    failStreamingExecution,
     cancelStreamingExecution,
+    completeStreamingExecution,
+    createStreamingExecution,
+    failStreamingExecution,
+    updateStreamingExecutionDelta,
 } from '@/src/utils/chat/streamingExecution';
 import { createChatStreamHandler } from '@/src/utils/createChatStreamHandler';
 import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
@@ -29,8 +29,8 @@ import {
     resolveMetaDisclaimerMarkdownFromAgentSource,
     resolveMetaDisclaimerStatusForUser,
 } from '@/src/utils/metaDisclaimer';
-import { extractProjectRepositoriesFromAgentSource } from '@/src/utils/projects/extractProjectRepositoriesFromAgentSource';
 import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
+import { extractProjectRepositoriesFromAgentSource } from '@/src/utils/projects/extractProjectRepositoriesFromAgentSource';
 import { resolveUseProjectGithubToken } from '@/src/utils/resolveUseProjectGithubToken';
 import { resolveCurrentUserMemoryIdentity } from '@/src/utils/userMemory';
 import type { ChatMessage } from '@promptbook-local/components';
@@ -42,8 +42,8 @@ import { ASSISTANT_PREPARATION_TOOL_CALL_NAME } from '../../../../../../../../sr
 import { encodeChatStreamWhitespaceForTransport } from '../../../../../../../../src/utils/chat/encodeChatStreamWhitespaceForTransport';
 import { keepUnused } from '../../../../../../../../src/utils/organization/keepUnused';
 import { respondIfClientVersionIsOutdated } from '../../../../../utils/clientVersionGuard';
-import { isAgentDeleted } from '../../_utils';
 import { prepareToolCallsForStreaming } from '../../../../../utils/toolCallStreaming';
+import { isAgentDeleted } from '../../_utils';
 
 /**
  * Shape of the incoming chat API payload.
@@ -268,6 +268,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
         // Note: Identify the user message
         const userMessageContent = {
             role: 'USER',
+            sender: 'USER',
             content: message,
             attachments,
         };
@@ -528,6 +529,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                     // Note: Identify the agent message
                     const agentMessageContent = {
                         role: 'MODEL',
+                        sender: 'MODEL',
                         content: responseContentWithSuffix,
                     };
 
