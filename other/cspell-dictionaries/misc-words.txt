@@ -465,3 +465,4 @@ agentname
 agentnames
 alive
 alives
+opencode
