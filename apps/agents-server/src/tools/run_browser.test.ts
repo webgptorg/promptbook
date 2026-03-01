@@ -28,6 +28,7 @@ describe('run_browser tool', () => {
                 '\n',
             ),
         );
+        execCommandMock.mockResolvedValueOnce('Closed browser session');
 
         const result = await run_browser({ url: 'https://example.com' });
 
@@ -40,6 +41,11 @@ describe('run_browser tool', () => {
         expect((openCall as { args?: ReadonlyArray<string> }).args).toEqual(
             expect.arrayContaining(['--no-install', '@playwright/cli', 'open', 'https://example.com', '--headed']),
         );
+
+        const closeCall = execCommandMock.mock.calls[2]?.[0];
+        expect((closeCall as { args?: ReadonlyArray<string> }).args).toEqual(
+            expect.arrayContaining(['close']),
+        );
     });
 
     it('runs actions via run-code before final snapshot', async () => {
@@ -50,6 +56,7 @@ describe('run_browser tool', () => {
                 '\n',
             ),
         );
+        execCommandMock.mockResolvedValueOnce('Closed browser session');
 
         const result = await run_browser({
             url: 'https://example.com',

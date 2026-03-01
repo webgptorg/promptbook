@@ -1,36 +1,52 @@
-import { locateChrome } from 'locate-app';
-import { join } from 'path';
-import { BrowserContext, chromium } from 'playwright';
+import { BrowserContext } from 'playwright';
+import { BrowserConnectionProvider } from './BrowserConnectionProvider';
 
 /**
- * Cache of browser instance
+ * Singleton instance of the browser connection provider.
  *
  * @private internal cache for `$provideBrowserForServer`
  */
-let browserInstance: BrowserContext | null = null;
+let browserProvider: BrowserConnectionProvider | null = null;
 
 /**
  * Provides a browser context for server-side operations, with caching to reuse instances.
+ *
+ * This function supports both local and remote browser connections based on metadata configuration.
+ * Use REMOTE_BROWSER_URL metadata key to configure a remote Playwright server.
+ *
+ * @returns Browser context instance
  */
 export async function $provideBrowserForServer(): Promise<BrowserContext> {
-    if (browserInstance !== null && browserInstance.browser() && browserInstance.browser()!.isConnected()) {
-        return browserInstance;
+    if (browserProvider === null) {
+        browserProvider = new BrowserConnectionProvider({ isVerbose: false });
     }
 
-    console.log('Launching new browser instance...');
-    browserInstance = await chromium.launchPersistentContext(
-        join(process.cwd(), '.promptbook', 'puppeteer', 'user-data'),
-        {
-            executablePath: await locateChrome(),
-            headless: false,
-            // defaultViewport: null,
-            // downloadsPath
-        },
-    );
-
-    return browserInstance;
+    return await browserProvider.getBrowserContext();
 }
 
+/**
+ * Closes all open pages in the current browser context.
+ *
+ * This function is useful for cleanup between agent tasks to avoid memory leaks.
+ * It does not close the browser instance itself, allowing it to be reused.
+ */
+export async function $closeBrowserPages(): Promise<void> {
+    if (browserProvider !== null) {
+        await browserProvider.closeAllPages();
+    }
+}
+
+/**
+ * Closes the browser context and disconnects from the browser.
+ *
+ * This should be called during server shutdown or when the browser is no longer needed.
+ */
+export async function $closeBrowser(): Promise<void> {
+    if (browserProvider !== null) {
+        await browserProvider.close();
+        browserProvider = null;
+    }
+}
 
 /**
  * TODO: [🏓] Unite `xxxForServer` and `xxxForNode` naming

@@ -1,3 +1,11 @@
+-   Implemented remote browser tunnel support for Agents Server `USE BROWSER` commitment:
+    -   Added `BrowserConnectionProvider` class that supports both local and remote browser connections via Playwright's `connect()` API.
+    -   Introduced new `REMOTE_BROWSER_URL` metadata key to configure remote Playwright server WebSocket endpoint (e.g., `ws://browser-server:3000`).
+    -   Remote mode enables browser automation in environments like Vercel where running a full browser locally is not possible due to resource constraints.
+    -   When `REMOTE_BROWSER_URL` is configured, browser tools automatically connect to the remote server; when empty, they fall back to local browser mode.
+    -   Added automatic browser cleanup lifecycle: `run_browser` tool now automatically closes Playwright CLI sessions after task completion to prevent memory leaks.
+    -   Exported `$closeBrowserPages()` and `$closeBrowser()` utility functions from `$provideBrowserForServer` for manual cleanup between agent tasks.
+    -   Updated `run_browser` success message to reflect automatic session cleanup instead of suggesting manual closure commands.
 -   Implemented browser-independent chat synchronization for Agents Server:
     -   Chat responses now stream independently of browser connection state: agent execution continues and saves progress to the database even if the user refreshes or closes the browser during streaming.
     -   Added `ChatStreamingExecution` database table with a migration to track streaming execution state server-side, including user message, assistant message deltas, tool calls, and execution status (PENDING/STREAMING/COMPLETED/FAILED/CANCELLED).

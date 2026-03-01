@@ -282,9 +282,7 @@ function formatSuccessResult(options: {
                 `,
             )}
 
-            Note: This browser session remains open for debugging.
-            If needed, close it with:
-            \`npx @playwright/cli -s=${sessionId} close\`
+            Note: Browser session has been automatically closed to free up resources.
         `,
     );
 }
@@ -330,10 +328,13 @@ export async function run_browser(args: RunBrowserArgs): Promise<string> {
         `);
     }
 
+    let sessionOpened = false;
+
     try {
         const normalizedActions = normalizeActions(args.actions);
 
         await ensureSessionAndOpenUrl(sessionId, initialUrl);
+        sessionOpened = true;
 
         for (const action of normalizedActions) {
             await executeAction(sessionId, action);
@@ -341,6 +342,9 @@ export async function run_browser(args: RunBrowserArgs): Promise<string> {
 
         const finalOutput = await runPlaywrightCli(sessionId, ['snapshot']);
         const snapshotPath = extractSnapshotPath(finalOutput);
+
+        // Clean up the browser session after successful execution
+        await cleanupBrowserSession(sessionId);
 
         return formatSuccessResult({
             initialUrl,
@@ -350,10 +354,32 @@ export async function run_browser(args: RunBrowserArgs): Promise<string> {
             snapshotPath,
         });
     } catch (error) {
+        // Only clean up if we actually opened a session
+        if (sessionOpened) {
+            await cleanupBrowserSession(sessionId);
+        }
+
         return formatErrorResult({
             url: initialUrl,
             sessionId,
             error,
+        });
+    }
+}
+
+/**
+ * Closes a Playwright CLI browser session to free up resources.
+ *
+ * @param sessionId - The session ID to close
+ */
+async function cleanupBrowserSession(sessionId: string): Promise<void> {
+    try {
+        await runPlaywrightCli(sessionId, ['close']);
+    } catch (error) {
+        // Log error but don't throw - cleanup is best effort
+        console.error('[run_browser] Failed to cleanup browser session', {
+            sessionId,
+            error: error instanceof Error ? error.message : String(error),
         });
     }
 }

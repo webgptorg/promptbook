@@ -197,6 +197,17 @@ export const metadataDefaults = [
         note: 'Default visibility for new agents. Can be PRIVATE, UNLISTED, or PUBLIC.',
         type: 'TEXT_SINGLE_LINE',
     },
+    {
+        key: 'REMOTE_BROWSER_URL',
+        value: '',
+        note: spaceTrim(`
+            WebSocket endpoint URL for remote Playwright browser server (e.g., ws://browser-server:3000).
+            When set, browser automation will connect to this remote server instead of launching a local browser.
+            This is useful for environments like Vercel where running a full browser locally is not possible.
+            Leave empty to use local browser mode.
+        `),
+        type: 'TEXT_SINGLE_LINE',
+    },
     ...analyticsMetadataDefaults,
 ] as const satisfies ReadonlyArray<{
     key: string;

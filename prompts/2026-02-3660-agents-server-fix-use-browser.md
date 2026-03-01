@@ -22,7 +22,8 @@
 
 ---
 
-[ ]
+[x] by Claude Code but stucked
+
 
 [✨💧] Remote browser tunnel
 
