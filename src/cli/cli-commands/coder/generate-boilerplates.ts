@@ -177,7 +177,7 @@ function parsePromptTemplate(templateOption: string): PromptTemplate {
     if (
         templateOption === 'common' ||
         templateOption === 'agents-server'
-        // <- TODO: Unhardcode and allow this dynamicly by the template files.
+        // <- TODO: Unhardcode and allow this dynamically by the template files.
     ) {
         return templateOption;
     }
