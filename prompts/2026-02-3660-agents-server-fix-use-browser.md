@@ -24,7 +24,6 @@
 
 [x] by Claude Code but stucked
 
-
 [✨💧] Remote browser tunnel
 
 -   Browser used in `USE BROWSER` commitment is working, but it is failing on Vercel server.
@@ -39,9 +38,9 @@
 
 ---
 
-[-]
+[ ]
 
-[✨💧] qux
+[✨💧] `REMOTE_BROWSER_URL` not as metadata but `.env`
 
 -   @@@
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
