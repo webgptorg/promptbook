@@ -99,8 +99,5 @@
     "typings": "./esm/typings/src/_packages/templates.index.d.ts",
     "peerDependencies": {
         "@promptbook/core": "0.111.0-11"
-    },
-    "dependencies": {
-        "spacetrim": "0.11.60"
     }
 }

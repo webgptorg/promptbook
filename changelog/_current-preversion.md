@@ -1,3 +1,10 @@
+-   Implemented browser-independent chat synchronization for Agents Server:
+    -   Chat responses now stream independently of browser connection state: agent execution continues and saves progress to the database even if the user refreshes or closes the browser during streaming.
+    -   Added `ChatStreamingExecution` database table with a migration to track streaming execution state server-side, including user message, assistant message deltas, tool calls, and execution status (PENDING/STREAMING/COMPLETED/FAILED/CANCELLED).
+    -   Chat API route now creates streaming execution records when a `chatId` is provided, updates them incrementally during streaming with each delta chunk, and completes them with final message and usage data.
+    -   Multiple browser windows viewing the same chat now see synchronized updates in real-time via Server-Sent Events (SSE): new `/agents/[agentName]/api/chat-updates` endpoint polls for execution deltas and broadcasts them to all connected clients.
+    -   `RemoteAgent` now supports optional `chatId` in `RemoteAgentOptions` and includes it in chat API requests, enabling the link between client-side chat sessions and server-side execution tracking.
+    -   Created `useChatSynchronization` hook for client-side SSE consumption with delta accumulation and message update handlers.
 -   Streaming tool calls in the Agents Server chat now render as persistent tool-call chips (spinner-animated while ongoing, flipping to done or ⚠️ error states once resolved) while still honoring TEAM agent metadata and `onToolCallClick` behavior.
 -   Added automatic Agents Server database migration execution on server runtime and unified migration logic:
     -   Refactored migration implementation into one shared runner (`apps/agents-server/src/database/runDatabaseMigrations.ts`) used by both `npm run migrate-database` and automatic server-side migration checks to keep behavior DRY.

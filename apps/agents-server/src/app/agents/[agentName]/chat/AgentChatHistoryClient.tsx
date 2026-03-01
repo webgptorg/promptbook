@@ -537,6 +537,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 thinkingMessages={thinkingMessages}
                 speechRecognitionLanguage={speechRecognitionLanguage}
                 persistenceKey={buildUserChatPersistenceKey(activeChatId)}
+                chatId={activeChatId}
                 onMessagesChange={handleMessagesChange}
                 areFileAttachmentsEnabled={areFileAttachmentsEnabled}
                 isFeedbackEnabled={isFeedbackEnabled}

@@ -1,4 +1,4 @@
-[ ]
+[x] by Claude Code but stucked
 
 [✨🍅] Chat should be independent of the browser.
 

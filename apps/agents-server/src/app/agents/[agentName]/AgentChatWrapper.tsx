@@ -54,6 +54,10 @@ type AgentChatWrapperProps = {
     thinkingMessages?: ReadonlyArray<string>;
     speechRecognitionLanguage?: string;
     persistenceKey?: string;
+    /**
+     * Optional chat ID for browser-independent chat synchronization.
+     */
+    chatId?: string;
     onMessagesChange?: (messages: ReadonlyArray<ChatMessage>) => void;
     /**
      * When `false`, disables the chat upload UI even if file uploads are otherwise configured.
@@ -608,6 +612,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
         thinkingMessages,
         speechRecognitionLanguage,
         persistenceKey,
+        chatId,
         onMessagesChange,
         areFileAttachmentsEnabled,
         isFeedbackEnabled,
@@ -634,8 +639,9 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
             RemoteAgent.connect({
                 agentUrl,
                 isVerbose: true,
+                chatId,
             }),
-        [agentUrl],
+        [agentUrl, chatId],
     );
 
     const { value: agent } = usePromise(agentPromise, [agentPromise]);

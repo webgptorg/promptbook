@@ -106,14 +106,5 @@
     "typings": "./esm/typings/src/_packages/openai.index.d.ts",
     "peerDependencies": {
         "@promptbook/core": "0.111.0-11"
-    },
-    "dependencies": {
-        "@openai/agents": "0.4.12",
-        "bottleneck": "2.19.5",
-        "colors": "1.4.0",
-        "crypto": "1.0.1",
-        "openai": "6.18.0",
-        "socket.io-client": "4.7.5",
-        "spacetrim": "0.11.60"
     }
 }

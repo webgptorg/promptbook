@@ -15,6 +15,13 @@ import {
     emulateMessageSuffixStreaming,
     resolveMessageSuffixFromAgentSource,
 } from '@/src/utils/chat/messageSuffix';
+import {
+    createStreamingExecution,
+    updateStreamingExecutionDelta,
+    completeStreamingExecution,
+    failStreamingExecution,
+    cancelStreamingExecution,
+} from '@/src/utils/chat/streamingExecution';
 import { createChatStreamHandler } from '@/src/utils/createChatStreamHandler';
 import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
 import { composePromptParametersWithMemoryContext } from '@/src/utils/memoryRuntimeContext';
@@ -48,6 +55,7 @@ type ChatRequestBody = {
     thread?: ReadonlyArray<ChatMessage>;
     attachments?: unknown;
     parameters?: unknown;
+    chatId?: string;
 };
 
 /**
@@ -171,6 +179,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
     const thread = body.thread ? [...body.thread] : undefined;
     const attachments = normalizeChatAttachments(body.attachments);
     const rawParameters = body.parameters ?? {};
+    const chatId = body.chatId;
     const isPrivateModeEnabled = isPrivateModeEnabledFromRequest(request);
     //      <- TODO: [🐱‍🚀] To configuration DEFAULT_INITIAL_HIDDEN_MESSAGE
 
@@ -275,6 +284,20 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             message: userMessageContent,
             previousMessageHash: null, // <- TODO: [🧠] How to handle previous message hash?
         });
+
+        // Create streaming execution record for browser-independent chat tracking
+        let streamingExecution: Awaited<ReturnType<typeof createStreamingExecution>> | null = null;
+        if (!isPrivateModeEnabled && currentUserIdentity && chatId) {
+            streamingExecution = await createStreamingExecution({
+                userId: currentUserIdentity.userId,
+                userChatId: chatId,
+                agentPermanentId: agentId,
+                agentName: resolvedAgentName,
+                agentHash,
+                userMessage: userMessageContent,
+                userMessageHash,
+            });
+        }
 
         const encoder = new TextEncoder();
         const readableStream = new ReadableStream({
@@ -402,14 +425,27 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                  * Note: Tool calls are emitted continuously while streaming and once more at the end.
                  * The shared emitter deduplicates snapshots so ongoing and final chips stay consistent.
                  */
+                let currentToolCalls: ReadonlyArray<ToolCall> | undefined;
                 const handleStreamChunk = createChatStreamHandler({
                     onDelta: (deltaContent) => {
                         if (deltaContent.trim().length > 0) {
                             hasMeaningfulDelta = true;
                         }
                         sendTextChunk(deltaContent);
+
+                        // Update streaming execution with delta (browser-independent tracking)
+                        if (streamingExecution) {
+                            void updateStreamingExecutionDelta(
+                                streamingExecution.id,
+                                deltaContent,
+                                currentToolCalls,
+                            ).catch((error) => {
+                                console.error('[Streaming execution] Failed to save delta:', error);
+                            });
+                        }
                     },
                     onToolCalls: (toolCalls) => {
+                        currentToolCalls = toolCalls;
                         emitToolCalls(toolCalls);
                     },
                 });
@@ -495,11 +531,24 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                         content: responseContentWithSuffix,
                     };
 
-                    await recordChatHistoryMessage({
+                    const assistantMessageHash = await recordChatHistoryMessage({
                         message: agentMessageContent,
                         previousMessageHash: userMessageHash,
                         usage: response.usage,
                     });
+
+                    // Complete streaming execution (browser-independent tracking)
+                    if (streamingExecution) {
+                        await completeStreamingExecution({
+                            executionId: streamingExecution.id,
+                            assistantMessage: agentMessageContent,
+                            assistantMessageHash,
+                            usage: response.usage,
+                            toolCalls: response.toolCalls,
+                        }).catch((error) => {
+                            console.error('[Streaming execution] Failed to complete:', error);
+                        });
+                    }
 
                     // Note: [🐱‍🚀] Save the learned data
                     if (!isPrivateModeEnabled && !resolvedAgentContext.isBookScopedAgent) {
@@ -516,8 +565,24 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                     closeStream();
                 } catch (error) {
                     if (isChatStreamCancellationError(error, request.signal)) {
+                        // Mark streaming execution as cancelled (browser-independent tracking)
+                        if (streamingExecution) {
+                            await cancelStreamingExecution(streamingExecution.id).catch((cancelError) => {
+                                console.error('[Streaming execution] Failed to cancel:', cancelError);
+                            });
+                        }
                         markStreamClosed();
                         return;
+                    }
+
+                    // Mark streaming execution as failed (browser-independent tracking)
+                    if (streamingExecution) {
+                        await failStreamingExecution(
+                            streamingExecution.id,
+                            error instanceof Error ? error : { message: String(error) },
+                        ).catch((failError) => {
+                            console.error('[Streaming execution] Failed to mark as failed:', failError);
+                        });
                     }
 
                     markStreamClosed();
