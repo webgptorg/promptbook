@@ -1,6 +1,5 @@
 import { NEXT_PUBLIC_SITE_URL, SERVERS, SUPABASE_TABLE_PREFIX } from '@/config';
 import { headers } from 'next/headers';
-import { ensureAutomaticDatabaseMigrationsForPrefix } from '../database/ensureAutomaticDatabaseMigrations';
 import { buildServerTablePrefix } from '../utils/serverTablePrefix';
 
 export async function $provideServer() {
@@ -10,7 +9,7 @@ export async function $provideServer() {
             publicUrl: NEXT_PUBLIC_SITE_URL || new URL(`https://${(await headers()).get('host') || 'localhost:4440'}`),
             tablePrefix: SUPABASE_TABLE_PREFIX,
         };
-        await ensureAutomaticDatabaseMigrationsForPrefix(resolvedServer.tablePrefix);
+        // !!!! await ensureAutomaticDatabaseMigrationsForPrefix(resolvedServer.tablePrefix);
         return resolvedServer;
     }
 
@@ -32,7 +31,7 @@ export async function $provideServer() {
                 publicUrl: NEXT_PUBLIC_SITE_URL || new URL(`https://${host}`),
                 tablePrefix: SUPABASE_TABLE_PREFIX,
             };
-            await ensureAutomaticDatabaseMigrationsForPrefix(resolvedServer.tablePrefix);
+            // !!!! await ensureAutomaticDatabaseMigrationsForPrefix(resolvedServer.tablePrefix);
             return resolvedServer;
         } else {
             throw new Error(`Server with host "${host}" is not configured in SERVERS`);
@@ -43,6 +42,6 @@ export async function $provideServer() {
         publicUrl: new URL(`https://${host}`),
         tablePrefix: buildServerTablePrefix(host),
     };
-    await ensureAutomaticDatabaseMigrationsForPrefix(resolvedServer.tablePrefix);
+    // !!!! await ensureAutomaticDatabaseMigrationsForPrefix(resolvedServer.tablePrefix);
     return resolvedServer;
 }
