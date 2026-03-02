@@ -2,14 +2,14 @@
 
 import { $provideAgentCollectionForServer } from '@/src/tools/$provideAgentCollectionForServer';
 import { $provideServer } from '@/src/tools/$provideServer';
-import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
-import { resolveInheritedAgentSource } from '@/src/utils/resolveInheritedAgentSource';
-import { CodePreview } from '@common/components/CodePreview/CodePreview';
-import { createAgentModelRequirements } from '@promptbook-local/core';
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
 import { consumeAgentReferenceResolutionIssues } from '@/src/utils/agentReferenceResolver/AgentReferenceResolutionIssue';
 import { resolveBookScopedAgentContext } from '@/src/utils/agentReferenceResolver/bookScopedAgentReferences';
+import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
 import { createInlineKnowledgeSourceUploader } from '@/src/utils/knowledge/createInlineKnowledgeSourceUploader';
+import { resolveInheritedAgentSource } from '@/src/utils/resolveInheritedAgentSource';
+import { CodePreview } from '@common/components/CodePreview/CodePreview';
+import { createAgentModelRequirements } from '@promptbook-local/core';
 import { FileTextIcon } from 'lucide-react';
 import { headers } from 'next/headers';
 import { resolveAgentAvatarImageUrl } from '../../../../../../../src/utils/agents/resolveAgentAvatarImageUrl';
