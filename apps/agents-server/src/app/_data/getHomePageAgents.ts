@@ -1,12 +1,7 @@
-'use server';
-
 import { getMetadata } from '../../database/getMetadata';
 import { loadAgentOrganizationState } from '../../utils/agentOrganization/loadAgentOrganizationState';
+import type { AgentOrganizationAgent, AgentOrganizationFolder } from '../../utils/agentOrganization/types';
 import { getCurrentUser } from '../../utils/getCurrentUser';
-import type {
-    AgentOrganizationAgent,
-    AgentOrganizationFolder,
-} from '../../utils/agentOrganization/types';
 
 /**
  * Agent data enriched with optional visibility information for the home/dashboard pages.

@@ -1,11 +1,9 @@
-'use server';
-
 import type { AgentBasicInformation } from '../../../../../src/book-2.0/agent-source/AgentBasicInformation';
 import { $getTableName } from '../../database/$getTableName';
 import { $provideSupabaseForServer } from '../../database/$provideSupabaseForServer';
 import type { AgentsServerDatabase } from '../../database/schema';
-import { getCurrentUser } from '../getCurrentUser';
 import { isPublicAgentVisibility } from '../agentVisibility';
+import { getCurrentUser } from '../getCurrentUser';
 import { buildFolderTree, collectAncestorFolderIds } from './folderTree';
 import type {
     AgentOrganizationAgent,
