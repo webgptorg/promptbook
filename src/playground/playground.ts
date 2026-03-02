@@ -1,11 +1,13 @@
 #!/usr/bin/env ts-node
 
 import * as dotenv from 'dotenv';
+import { chromium } from 'playwright';
 
 dotenv.config({ path: '.env' });
 
 import colors from 'colors';
 import { join } from 'path';
+import { forEver } from 'waitasecond';
 
 if (process.cwd() !== join(__dirname, '../..')) {
     console.error(colors.red(`CWD must be root of the project`));
@@ -27,6 +29,16 @@ async function playground() {
 
     // Do here stuff you want to test
     //========================================>
+
+    const browserServer = await chromium.launchServer({
+        host: '0.0.0.0',
+        port: 3000,
+        headless: false,
+    });
+
+    console.log('REMOTE_BROWSER_URL =', browserServer.wsEndpoint());
+
+    await forEver();
 
     //========================================/
 
