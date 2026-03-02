@@ -40,14 +40,11 @@
 
 [ ]
 
-[✨💧] `REMOTE_BROWSER_URL` not as metadata but `.env`
+[✨💧] `REMOTE_BROWSER_URL` not as metadata but in `.env`
 
--   @@@
--   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Configuration of the remote browser URL should be in environment, not in Metadata.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
--   If you need to do the database migration, do it
--   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
 

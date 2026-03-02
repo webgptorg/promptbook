@@ -18,16 +18,15 @@
 
 ---
 
-[-]
+[ ]
 
-[✨🐏] brr
+[✨🐏] Configuration of Github app should be in Metadata
 
--   @@@
+-   Move the configuration of the Github app from `.env` file to Metadata, so it can be configured per Server in `SERVERS`
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
--   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
 
@@ -54,4 +53,3 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
-
