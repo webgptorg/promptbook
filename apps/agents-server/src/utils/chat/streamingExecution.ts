@@ -1,4 +1,5 @@
 import { $provideClientSql } from '@/src/database/$provideClientSql';
+import { $provideServer } from '@/src/tools/$provideServer';
 import type { ChatMessage, ToolCall } from '@promptbook-local/types';
 import { $getCurrentDate } from '@promptbook-local/utils';
 
@@ -36,6 +37,25 @@ export type StreamingExecution = {
 };
 
 /**
+ * Returns properly quoted SQL identifier.
+ *
+ * @private internal utility of Agents Server chat streaming
+ */
+function quoteIdentifier(identifier: string): string {
+    return `"${identifier.replace(/"/g, '""')}"`;
+}
+
+/**
+ * Resolves fully qualified table identifier for streaming execution records.
+ *
+ * @private internal utility of Agents Server chat streaming
+ */
+async function getStreamingExecutionTableIdentifier(): Promise<string> {
+    const { tablePrefix } = await $provideServer();
+    return quoteIdentifier(`${tablePrefix}ChatStreamingExecution`);
+}
+
+/**
  * Creates a new streaming execution record
  *
  * @public exported from Agents Server utils
@@ -55,9 +75,11 @@ export async function createStreamingExecution(params: {
     const now = $getCurrentDate();
 
     const sql = await $provideClientSql();
+    const tableIdentifier = await getStreamingExecutionTableIdentifier();
 
-    const [execution] = await sql<StreamingExecution[]>`
-        INSERT INTO "ChatStreamingExecution" (
+    const [execution] = await sql.raw<StreamingExecution[]>(
+        `
+        INSERT INTO ${tableIdentifier} (
             "id",
             "createdAt",
             "updatedAt",
@@ -70,20 +92,34 @@ export async function createStreamingExecution(params: {
             "userMessage",
             "userMessageHash"
         ) VALUES (
-            ${executionId},
-            ${now},
-            ${now},
-            ${'PENDING'},
-            ${userId},
-            ${userChatId},
-            ${agentPermanentId},
-            ${agentName},
-            ${agentHash},
-            ${JSON.stringify(userMessage)},
-            ${userMessageHash}
+            $1,
+            $2,
+            $3,
+            $4,
+            $5,
+            $6,
+            $7,
+            $8,
+            $9,
+            $10,
+            $11
         )
         RETURNING *
-    `;
+    `,
+        [
+            executionId,
+            now,
+            now,
+            'PENDING',
+            userId,
+            userChatId,
+            agentPermanentId,
+            agentName,
+            agentHash,
+            JSON.stringify(userMessage),
+            userMessageHash,
+        ],
+    );
 
     return {
         ...execution,
@@ -108,26 +144,33 @@ export async function updateStreamingExecutionDelta(
 ): Promise<void> {
     const sql = await $provideClientSql();
     const now = $getCurrentDate();
+    const tableIdentifier = await getStreamingExecutionTableIdentifier();
 
     if (toolCalls) {
-        await sql`
-            UPDATE "ChatStreamingExecution"
+        await sql.raw(
+            `
+            UPDATE ${tableIdentifier}
             SET
-                "assistantMessageDelta" = "assistantMessageDelta" || ${delta},
-                "toolCalls" = ${JSON.stringify(toolCalls)},
-                "updatedAt" = ${now},
+                "assistantMessageDelta" = "assistantMessageDelta" || $1,
+                "toolCalls" = $2,
+                "updatedAt" = $3,
                 "status" = CASE WHEN "status" = 'PENDING' THEN 'STREAMING' ELSE "status" END
-            WHERE "id" = ${executionId}
-        `;
+            WHERE "id" = $4
+        `,
+            [delta, JSON.stringify(toolCalls), now, executionId],
+        );
     } else {
-        await sql`
-            UPDATE "ChatStreamingExecution"
+        await sql.raw(
+            `
+            UPDATE ${tableIdentifier}
             SET
-                "assistantMessageDelta" = "assistantMessageDelta" || ${delta},
-                "updatedAt" = ${now},
+                "assistantMessageDelta" = "assistantMessageDelta" || $1,
+                "updatedAt" = $2,
                 "status" = CASE WHEN "status" = 'PENDING' THEN 'STREAMING' ELSE "status" END
-            WHERE "id" = ${executionId}
-        `;
+            WHERE "id" = $3
+        `,
+            [delta, now, executionId],
+        );
     }
 }
 
@@ -147,19 +190,32 @@ export async function completeStreamingExecution(params: {
 
     const sql = await $provideClientSql();
     const now = $getCurrentDate();
+    const tableIdentifier = await getStreamingExecutionTableIdentifier();
 
-    await sql`
-        UPDATE "ChatStreamingExecution"
+    await sql.raw(
+        `
+        UPDATE ${tableIdentifier}
         SET
-            "assistantMessage" = ${JSON.stringify(assistantMessage)},
-            "assistantMessageHash" = ${assistantMessageHash},
-            "usage" = ${usage ? JSON.stringify(usage) : null},
-            "toolCalls" = ${toolCalls ? JSON.stringify(toolCalls) : null},
-            "status" = ${'COMPLETED'},
-            "completedAt" = ${now},
-            "updatedAt" = ${now}
-        WHERE "id" = ${executionId}
-    `;
+            "assistantMessage" = $1,
+            "assistantMessageHash" = $2,
+            "usage" = $3,
+            "toolCalls" = $4,
+            "status" = $5,
+            "completedAt" = $6,
+            "updatedAt" = $7
+        WHERE "id" = $8
+    `,
+        [
+            JSON.stringify(assistantMessage),
+            assistantMessageHash,
+            usage ? JSON.stringify(usage) : null,
+            toolCalls ? JSON.stringify(toolCalls) : null,
+            'COMPLETED',
+            now,
+            now,
+            executionId,
+        ],
+    );
 }
 
 /**
@@ -173,18 +229,22 @@ export async function failStreamingExecution(
 ): Promise<void> {
     const sql = await $provideClientSql();
     const now = $getCurrentDate();
+    const tableIdentifier = await getStreamingExecutionTableIdentifier();
 
     const errorData = error instanceof Error ? { name: error.name, message: error.message, stack: error.stack } : error;
 
-    await sql`
-        UPDATE "ChatStreamingExecution"
+    await sql.raw(
+        `
+        UPDATE ${tableIdentifier}
         SET
-            "error" = ${JSON.stringify(errorData)},
-            "status" = ${'FAILED'},
-            "completedAt" = ${now},
-            "updatedAt" = ${now}
-        WHERE "id" = ${executionId}
-    `;
+            "error" = $1,
+            "status" = $2,
+            "completedAt" = $3,
+            "updatedAt" = $4
+        WHERE "id" = $5
+    `,
+        [JSON.stringify(errorData), 'FAILED', now, now, executionId],
+    );
 }
 
 /**
@@ -195,16 +255,20 @@ export async function failStreamingExecution(
 export async function cancelStreamingExecution(executionId: string): Promise<void> {
     const sql = await $provideClientSql();
     const now = $getCurrentDate();
+    const tableIdentifier = await getStreamingExecutionTableIdentifier();
 
-    await sql`
-        UPDATE "ChatStreamingExecution"
+    await sql.raw(
+        `
+        UPDATE ${tableIdentifier}
         SET
-            "status" = ${'CANCELLED'},
-            "completedAt" = ${now},
-            "updatedAt" = ${now}
-        WHERE "id" = ${executionId}
+            "status" = $1,
+            "completedAt" = $2,
+            "updatedAt" = $3
+        WHERE "id" = $4
         AND "status" IN ('PENDING', 'STREAMING')
-    `;
+    `,
+        ['CANCELLED', now, now, executionId],
+    );
 }
 
 /**
@@ -214,11 +278,11 @@ export async function cancelStreamingExecution(executionId: string): Promise<voi
  */
 export async function getStreamingExecution(executionId: string): Promise<StreamingExecution | null> {
     const sql = await $provideClientSql();
+    const tableIdentifier = await getStreamingExecutionTableIdentifier();
 
-    const [execution] = await sql<StreamingExecution[]>`
-        SELECT * FROM "ChatStreamingExecution"
-        WHERE "id" = ${executionId}
-    `;
+    const [execution] = await sql.raw<StreamingExecution[]>(`SELECT * FROM ${tableIdentifier} WHERE "id" = $1`, [
+        executionId,
+    ]);
 
     if (!execution) {
         return null;
@@ -250,13 +314,12 @@ export async function getActiveStreamingExecutionsForChat(
     userChatId: string,
 ): Promise<ReadonlyArray<StreamingExecution>> {
     const sql = await $provideClientSql();
+    const tableIdentifier = await getStreamingExecutionTableIdentifier();
 
-    const executions = await sql<StreamingExecution[]>`
-        SELECT * FROM "ChatStreamingExecution"
-        WHERE "userChatId" = ${userChatId}
-        AND "status" IN ('PENDING', 'STREAMING')
-        ORDER BY "createdAt" DESC
-    `;
+    const executions = await sql.raw<StreamingExecution[]>(
+        `SELECT * FROM ${tableIdentifier} WHERE "userChatId" = $1 AND "status" IN ('PENDING', 'STREAMING') ORDER BY "createdAt" DESC`,
+        [userChatId],
+    );
 
     return executions.map((execution: StreamingExecution) => ({
         ...execution,

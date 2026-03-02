@@ -12,6 +12,25 @@ export type ClientSql = <TRow = Record<string, unknown>>(
 ) => Promise<TRow>;
 
 /**
+ * Raw SQL executor used when dynamic SQL identifiers (such as table names) are needed.
+ *
+ * @private internal utility of Agents Server database layer
+ */
+export type ClientSqlRaw = <TRow = Array<Record<string, unknown>>>(
+    text: string,
+    values?: ReadonlyArray<unknown>,
+) => Promise<TRow>;
+
+/**
+ * SQL executor with both tagged-template and raw-query variants.
+ *
+ * @private internal utility of Agents Server database layer
+ */
+export type ClientSqlExecutor = ClientSql & {
+    readonly raw: ClientSqlRaw;
+};
+
+/**
  * Shared PostgreSQL pool reused across all requests in the server process.
  *
  * @private internal singleton of Agents Server database layer
@@ -23,7 +42,7 @@ let clientPool: Pool | undefined;
  *
  * @private exported from Agents Server database utils
  */
-export async function $provideClientSql(): Promise<ClientSql> {
+export async function $provideClientSql(): Promise<ClientSqlExecutor> {
     if (!$isRunningInNode()) {
         throw new Error('Function `$provideClientSql` can only be used in Node.js runtime.');
     }
@@ -40,7 +59,7 @@ export async function $provideClientSql(): Promise<ClientSql> {
         });
     }
 
-    return async <TRow = Array<Record<string, unknown>>>(
+    const executeTemplate = async <TRow = Array<Record<string, unknown>>>(
         templateStrings: TemplateStringsArray,
         ...templateValues: ReadonlyArray<unknown>
     ): Promise<TRow> => {
@@ -56,4 +75,14 @@ export async function $provideClientSql(): Promise<ClientSql> {
         const result = await clientPool!.query(text, [...templateValues]);
         return result.rows as TRow;
     };
+
+    const executeRaw: ClientSqlRaw = async <TRow = Array<Record<string, unknown>>>(
+        text: string,
+        values: ReadonlyArray<unknown> = [],
+    ): Promise<TRow> => {
+        const result = await clientPool!.query(text, [...values]);
+        return result.rows as TRow;
+    };
+
+    return Object.assign(executeTemplate, { raw: executeRaw });
 }
