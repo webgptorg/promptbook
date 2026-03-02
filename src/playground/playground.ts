@@ -6,6 +6,7 @@ import { chromium } from 'playwright';
 dotenv.config({ path: '.env' });
 
 import colors from 'colors';
+import { networkInterfaces } from 'os';
 import { join } from 'path';
 import { forEver } from 'waitasecond';
 
@@ -30,19 +31,64 @@ async function playground() {
     // Do here stuff you want to test
     //========================================>
 
+    const browserHost = process.env.PLAYGROUND_BROWSER_HOST || '0.0.0.0';
+    const browserPort = Number(process.env.PLAYGROUND_BROWSER_PORT || 3000);
+    const publicHost = process.env.PLAYGROUND_BROWSER_PUBLIC_HOST;
+
     const browserServer = await chromium.launchServer({
-        host: '0.0.0.0',
-        port: 3000,
+        host: browserHost,
+        port: browserPort,
         headless: false,
     });
 
-    console.log('REMOTE_BROWSER_URL =', browserServer.wsEndpoint());
+    const wsEndpoint = browserServer.wsEndpoint();
+
+    console.log('REMOTE_BROWSER_URL(bind) =', wsEndpoint);
+
+    if (publicHost) {
+        console.log('REMOTE_BROWSER_URL(public) =', replaceWsEndpointHost(wsEndpoint, publicHost));
+    } else {
+        for (const localIpAddress of getLocalIpv4Addresses()) {
+            console.log(`REMOTE_BROWSER_URL(${localIpAddress}) =`, replaceWsEndpointHost(wsEndpoint, localIpAddress));
+        }
+    }
 
     await forEver();
 
     //========================================/
 
     console.info(`[ Done 🧸  Playground ]`);
+}
+
+/**
+ * Returns all non-internal IPv4 addresses of this machine.
+ */
+function getLocalIpv4Addresses(): Array<string> {
+    const allNetworkInterfaces = networkInterfaces();
+    const localIpv4Addresses = new Set<string>();
+
+    for (const networkInterface of Object.values(allNetworkInterfaces)) {
+        if (!networkInterface) {
+            continue;
+        }
+
+        for (const networkAddress of networkInterface) {
+            if (networkAddress.family === 'IPv4' && !networkAddress.internal) {
+                localIpv4Addresses.add(networkAddress.address);
+            }
+        }
+    }
+
+    return [...localIpv4Addresses];
+}
+
+/**
+ * Rewrites the host in a Playwright ws endpoint while preserving path/token.
+ */
+function replaceWsEndpointHost(wsEndpoint: string, host: string): string {
+    const url = new URL(wsEndpoint);
+    url.hostname = host;
+    return url.toString();
 }
 
 /**
