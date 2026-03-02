@@ -5,9 +5,7 @@ import { $provideServer } from '@/src/tools/$provideServer';
 import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
 import { resolveInheritedAgentSource } from '@/src/utils/resolveInheritedAgentSource';
 import { CodePreview } from '@common/components/CodePreview/CodePreview';
-import { BookEditor } from '@promptbook-local/components';
 import { createAgentModelRequirements } from '@promptbook-local/core';
-import { TODO_any } from '@promptbook-local/types';
 import { $provideAgentReferenceResolver } from '@/src/utils/agentReferenceResolver/$provideAgentReferenceResolver';
 import { consumeAgentReferenceResolutionIssues } from '@/src/utils/agentReferenceResolver/AgentReferenceResolutionIssue';
 import { resolveBookScopedAgentContext } from '@/src/utils/agentReferenceResolver/bookScopedAgentReferences';
@@ -19,6 +17,7 @@ import { $sideEffect } from '../../../../../../../src/utils/organization/$sideEf
 import { keepUnused } from '../../../../../../../src/utils/organization/keepUnused';
 import { getAgentName, getAgentProfile } from '../_utils';
 import { generateAgentMetadata } from '../generateAgentMetadata';
+import { SystemMessageBookEditor } from './SystemMessageBookEditor';
 
 export const generateMetadata = generateAgentMetadata;
 
@@ -93,7 +92,7 @@ export default async function AgentSystemMessagePage({ params }: { params: Promi
                         <h2 className="text-lg font-semibold text-gray-900 mb-3">
                             {agentProfile.meta.fullname} System Message
                         </h2>
-                        <BookEditor isReadonly value={systemMessage as TODO_any} />
+                        <SystemMessageBookEditor value={systemMessage} />
                         {/* <- Note: The system message should not be shown in BookEditor but in its separate component, but its ok for now */}
                     </div>
 
