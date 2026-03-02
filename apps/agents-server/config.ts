@@ -126,3 +126,12 @@ export const SERVERS = config.get('SERVERS').list().value;
  * Note: When `SERVERS` are used, this prefix will be overridden by the server `server_<server_id>_`.
  */
 export const SUPABASE_TABLE_PREFIX = config.get('SUPABASE_TABLE_PREFIX').default('').value;
+
+/**
+ * WebSocket endpoint URL for remote Playwright browser server (e.g., ws://browser-server:3000).
+ *
+ * When set, browser automation will connect to this remote server instead of launching a local browser.
+ * This is useful for environments like Vercel where running a full browser locally is not possible.
+ * Leave empty to use local browser mode.
+ */
+export const REMOTE_BROWSER_URL = config.get('REMOTE_BROWSER_URL').default('').value;

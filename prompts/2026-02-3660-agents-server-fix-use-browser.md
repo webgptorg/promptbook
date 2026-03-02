@@ -38,7 +38,9 @@
 
 ---
 
-[ ]
+[x] by Claude Code but stucked
+
+[✨💧] Add option to configure remote browser tunnel in Metadata
 
 [✨💧] `REMOTE_BROWSER_URL` not as metadata but in `.env`
 

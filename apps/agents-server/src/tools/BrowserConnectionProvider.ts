@@ -1,7 +1,7 @@
 import { BrowserContext, chromium } from 'playwright';
 import { join } from 'path';
 import { locateChrome } from 'locate-app';
-import { getMetadata } from '../database/getMetadata';
+import { REMOTE_BROWSER_URL } from '../../config';
 
 /**
  * Configuration for browser connection mode.
@@ -11,11 +11,6 @@ import { getMetadata } from '../database/getMetadata';
 type BrowserConnectionMode =
     | { readonly type: 'local' }
     | { readonly type: 'remote'; readonly wsEndpoint: string };
-
-/**
- * Metadata key for remote browser WebSocket endpoint.
- */
-const REMOTE_BROWSER_URL_METADATA_KEY = 'REMOTE_BROWSER_URL';
 
 /**
  * Provides browser context instances with support for both local and remote browser connections.
@@ -48,7 +43,7 @@ export class BrowserConnectionProvider {
      * Gets a browser context, creating a new one if needed.
      *
      * This method automatically determines whether to use local or remote browser
-     * based on the REMOTE_BROWSER_URL metadata configuration.
+     * based on the REMOTE_BROWSER_URL environment variable.
      *
      * @returns Browser context instance
      */
@@ -59,7 +54,7 @@ export class BrowserConnectionProvider {
         }
 
         // Determine connection mode from configuration
-        const mode = await this.resolveConnectionMode();
+        const mode = this.resolveConnectionMode();
         this.connectionMode = mode;
 
         if (this.isVerbose) {
@@ -157,8 +152,8 @@ export class BrowserConnectionProvider {
      *
      * @returns Connection mode configuration
      */
-    private async resolveConnectionMode(): Promise<BrowserConnectionMode> {
-        const remoteBrowserUrl = await getMetadata(REMOTE_BROWSER_URL_METADATA_KEY);
+    private resolveConnectionMode(): BrowserConnectionMode {
+        const remoteBrowserUrl = REMOTE_BROWSER_URL;
 
         if (remoteBrowserUrl && remoteBrowserUrl.trim().length > 0) {
             return {

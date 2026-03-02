@@ -11,8 +11,8 @@ let browserProvider: BrowserConnectionProvider | null = null;
 /**
  * Provides a browser context for server-side operations, with caching to reuse instances.
  *
- * This function supports both local and remote browser connections based on metadata configuration.
- * Use REMOTE_BROWSER_URL metadata key to configure a remote Playwright server.
+ * This function supports both local and remote browser connections based on environment configuration.
+ * Use REMOTE_BROWSER_URL environment variable to configure a remote Playwright server.
  *
  * @returns Browser context instance
  */
