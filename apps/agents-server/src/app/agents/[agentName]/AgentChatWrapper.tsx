@@ -1,5 +1,10 @@
 'use client';
 
+import {
+    WalletRecordDialog,
+    type PendingWalletRecordRequest,
+    type WalletRecordDialogSubmitPayload,
+} from '@/src/components/WalletRecordDialog/WalletRecordDialog';
 import { usePromise } from '@common/hooks/usePromise';
 import { AgentChat, ChatMessage, useSendMessageToLlmChat } from '@promptbook-local/components';
 import { RemoteAgent } from '@promptbook-local/core';
@@ -10,15 +15,15 @@ import {
     PSEUDO_AGENT_USER_URL,
     resolvePseudoAgentKindFromUrl,
 } from '../../../../../../src/book-2.0/agent-source/pseudoAgentReferences';
+import { createTeamToolNameFromUrl } from '../../../../../../src/book-components/Chat/utils/createTeamToolNameFromUrl';
 import { OpenAiSpeechRecognition } from '../../../../../../src/speech-recognition/OpenAiSpeechRecognition';
 import { string_agent_url } from '../../../../../../src/types/typeAliases';
-import { createTeamToolNameFromUrl } from '../../../../../../src/book-components/Chat/utils/createTeamToolNameFromUrl';
 import { useAgentBackground } from '../../../components/AgentProfile/useAgentBackground';
 import { ChatErrorDialog } from '../../../components/ChatErrorDialog';
 import { confirmPrivateModeEnable } from '../../../components/PrivateModePreferences/confirmPrivateModeEnable';
 import { usePrivateModePreferences } from '../../../components/PrivateModePreferences/PrivateModePreferencesProvider';
-import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
 import { useSelfLearningPreferences } from '../../../components/SelfLearningPreferences/SelfLearningPreferencesProvider';
+import { useServerLanguage } from '../../../components/ServerLanguage/ServerLanguageProvider';
 import { useSoundSystem } from '../../../components/SoundSystemProvider/SoundSystemProvider';
 import { createDefaultChatEffects } from '../../../utils/chat/createDefaultChatEffects';
 import { reportClientVersionMismatch } from '../../../utils/clientVersionClient';
@@ -26,21 +31,20 @@ import type { FriendlyErrorMessage } from '../../../utils/errorMessages';
 import { handleChatError } from '../../../utils/errorMessages';
 import { fetchGithubAppStatus, type GithubAppStatusResponse } from '../../../utils/githubAppClient';
 import {
-    serializeUserLocationPromptParameter,
-    USER_LOCATION_PROMPT_PARAMETER,
-    type UserLocationPromptParameter,
-} from '../../../utils/userLocationPromptParameter';
-import {
-    USE_PROJECT_GITHUB_WALLET_KEY,
-    USE_PROJECT_GITHUB_WALLET_SERVICE,
-} from '../../../utils/useProjectGithubWalletConstants';
-import { chatFileUploadHandler } from '../../../utils/upload/createBookEditorUploadHandler';
-import {
     acceptMetaDisclaimer,
     fetchMetaDisclaimerStatus,
     type MetaDisclaimerStatus,
 } from '../../../utils/metaDisclaimerClient';
-import { WalletRecordDialog, type PendingWalletRecordRequest, type WalletRecordDialogSubmitPayload } from '@/src/components/WalletRecordDialog/WalletRecordDialog';
+import { chatFileUploadHandler } from '../../../utils/upload/createBookEditorUploadHandler';
+import {
+    USE_PROJECT_GITHUB_WALLET_KEY,
+    USE_PROJECT_GITHUB_WALLET_SERVICE,
+} from '../../../utils/useProjectGithubWalletConstants';
+import {
+    serializeUserLocationPromptParameter,
+    USER_LOCATION_PROMPT_PARAMETER,
+    type UserLocationPromptParameter,
+} from '../../../utils/userLocationPromptParameter';
 import { MetaDisclaimerDialog } from './MetaDisclaimerDialog';
 import { PseudoUserChatDialog } from './PseudoUserChatDialog';
 
@@ -288,10 +292,7 @@ function useTeamAgentProfiles(capabilities?: ReadonlyArray<AgentCapability>): Re
 /**
  * Serializes the auto-execute payload for change detection.
  */
-function serializeAutoExecutePayload(
-    message?: string,
-    attachments?: ChatMessage['attachments'],
-): string {
+function serializeAutoExecutePayload(message?: string, attachments?: ChatMessage['attachments']): string {
     const normalizedMessage = message ?? '';
     if (!attachments || attachments.length === 0) {
         return normalizedMessage;
@@ -412,7 +413,8 @@ function parseWalletToolResult(result: unknown): WalletToolResult | null {
  * Builds a stable marker for one tool call so it is handled at most once.
  */
 function createToolCallMarker(toolCall: ToolCall): string {
-    const resultMarker = typeof toolCall.result === 'string' ? toolCall.result : JSON.stringify(toolCall.result ?? null);
+    const resultMarker =
+        typeof toolCall.result === 'string' ? toolCall.result : JSON.stringify(toolCall.result ?? null);
     return `${toolCall.name}|${toolCall.createdAt || ''}|${resultMarker}`;
 }
 
@@ -747,7 +749,9 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
     const isMetaDisclaimerEnabled = metaDisclaimerStatus?.enabled === true;
     const hasAcceptedMetaDisclaimer = isMetaDisclaimerEnabled ? metaDisclaimerStatus?.accepted === true : true;
     const isMetaDisclaimerBlockingChat =
-        isMetaDisclaimerLoading || metaDisclaimerError !== null || (isMetaDisclaimerEnabled && !hasAcceptedMetaDisclaimer);
+        isMetaDisclaimerLoading ||
+        metaDisclaimerError !== null ||
+        (isMetaDisclaimerEnabled && !hasAcceptedMetaDisclaimer);
     const metaDisclaimerMarkdown = metaDisclaimerStatus?.markdown || null;
     const effectiveAutoExecuteMessage = isMetaDisclaimerBlockingChat ? undefined : autoExecuteMessage;
     const effectiveAutoExecuteMessageAttachments = isMetaDisclaimerBlockingChat
@@ -1132,34 +1136,34 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
 
     return (
         <>
-                <AgentChat
-                    key={chatKey}
-                    className={`w-full h-full`}
-                    style={chatBackgroundStyle}
-                    agent={agent}
-                    onFeedback={shouldEnableFeedback ? handleFeedback : undefined}
-                    onFileUpload={allowFileAttachments ? handleFileUpload : undefined}
-                    onError={handleError}
-                    defaultMessage={defaultMessage}
-                    autoExecuteMessage={effectiveAutoExecuteMessage}
-                    autoExecuteMessageAttachments={effectiveAutoExecuteMessageAttachments}
-                    persistenceKey={persistenceKey}
-                    onChange={handleMessagesChange}
-                    onInputChange={onInputTextChange}
-                    sendMessage={sendMessage}
-                    speechRecognition={speechRecognition}
-                    visual="FULL_PAGE"
-                    effectConfigs={effectConfigs}
-                    soundSystem={soundSystem}
-                    thinkingMessages={thinkingMessages}
-                    speechRecognitionLanguage={speechRecognitionLanguage}
-                    isSpeechPlaybackEnabled={isSpeechFeaturesEnabled}
-                    chatFailMessage={chatFailMessage}
-                    promptParameters={promptParameters}
-                    onReset={onStartNewChat}
-                    resetMode={onStartNewChat ? 'delegate' : undefined}
-                    teamAgentProfiles={teamAgentProfiles}
-                />
+            <AgentChat
+                key={chatKey}
+                className={`w-full h-full`}
+                style={chatBackgroundStyle}
+                agent={agent}
+                onFeedback={shouldEnableFeedback ? handleFeedback : undefined}
+                onFileUpload={allowFileAttachments ? handleFileUpload : undefined}
+                onError={handleError}
+                defaultMessage={defaultMessage}
+                autoExecuteMessage={effectiveAutoExecuteMessage}
+                autoExecuteMessageAttachments={effectiveAutoExecuteMessageAttachments}
+                persistenceKey={persistenceKey}
+                onChange={handleMessagesChange}
+                onInputTextChange={onInputTextChange}
+                sendMessage={sendMessage}
+                speechRecognition={speechRecognition}
+                visual="FULL_PAGE"
+                effectConfigs={effectConfigs}
+                soundSystem={soundSystem}
+                thinkingMessages={thinkingMessages}
+                speechRecognitionLanguage={speechRecognitionLanguage}
+                isSpeechPlaybackEnabled={isSpeechFeaturesEnabled}
+                chatFailMessage={chatFailMessage}
+                promptParameters={promptParameters}
+                onReset={onStartNewChat}
+                resetMode={onStartNewChat ? 'delegate' : undefined}
+                teamAgentProfiles={teamAgentProfiles}
+            />
             <PseudoUserChatDialog
                 isOpen={pendingPseudoUserInteraction !== null}
                 prompt={pendingPseudoUserInteraction?.prompt || ''}
