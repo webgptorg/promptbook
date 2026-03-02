@@ -30,7 +30,7 @@
 
 ---
 
-[ ]
+[x] ~$0.0679 5 minutes by OpenAI Codex `gpt-5.1-codex-mini`
 
 [✨🐏] Popup "Wallet credential requested" should have quick Github button
 
@@ -55,4 +55,5 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
 

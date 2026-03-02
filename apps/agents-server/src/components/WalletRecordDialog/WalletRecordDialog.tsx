@@ -79,11 +79,13 @@ export function WalletRecordDialog(props: WalletRecordDialogProps) {
     const [cookies, setCookies] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [isManualTokenVisible, setIsManualTokenVisible] = useState(false);
 
     useEffect(() => {
         if (!isOpen || !request) {
             setError(null);
             setIsSubmitting(false);
+            setIsManualTokenVisible(false);
             return;
         }
 
@@ -96,9 +98,18 @@ export function WalletRecordDialog(props: WalletRecordDialogProps) {
         setSecret('');
         setCookies('');
         setError(null);
+        setIsManualTokenVisible(false);
     }, [isOpen, request]);
 
+    const canUseGithubAppConnect =
+        githubApp?.isConfigured === true && isUseProjectGithubWalletRequest(recordType, service, key);
+    const manualFieldsVisible = !canUseGithubAppConnect || isManualTokenVisible;
+
     const validationError = useMemo(() => {
+        if (!manualFieldsVisible) {
+            return null;
+        }
+
         if (!service.trim()) {
             return 'Service is required.';
         }
@@ -112,10 +123,7 @@ export function WalletRecordDialog(props: WalletRecordDialogProps) {
             return 'Secret is required.';
         }
         return null;
-    }, [cookies, password, recordType, secret, service, username]);
-
-    const canUseGithubAppConnect =
-        githubApp?.isConfigured === true && isUseProjectGithubWalletRequest(recordType, service, key);
+    }, [cookies, manualFieldsVisible, password, recordType, secret, service, username]);
 
     if (!isOpen || !request) {
         return null;
@@ -186,140 +194,159 @@ export function WalletRecordDialog(props: WalletRecordDialogProps) {
                     </div>
                 )}
 
-                {error && <div className="rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>}
-
-                <div className="grid gap-3 sm:grid-cols-3">
-                    <div>
-                        <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">Type</label>
-                        <select
-                            value={recordType}
-                            onChange={(event) => setRecordType(event.target.value as WalletRecordType)}
-                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
-                        >
-                            <option value="ACCESS_TOKEN">Access Token</option>
-                            <option value="USERNAME_PASSWORD">Username + Password</option>
-                            <option value="SESSION_COOKIE">Session Cookie</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label htmlFor={serviceInputId} className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">
-                            Service
-                        </label>
-                        <input
-                            id={serviceInputId}
-                            value={service}
-                            onChange={(event) => setService(event.target.value)}
-                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
-                        />
-                    </div>
-                    <div>
-                        <label htmlFor={keyInputId} className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">
-                            Key
-                        </label>
-                        <input
-                            id={keyInputId}
-                            value={key}
-                            onChange={(event) => setKey(event.target.value)}
-                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
-                        />
-                    </div>
-                </div>
-
-                {recordType === 'USERNAME_PASSWORD' && (
-                    <div className="grid gap-3 sm:grid-cols-2">
-                        <label className="text-sm text-gray-700">
-                            <span className="mb-1 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                <UserRound className="h-3 w-3" />
-                                Username
-                            </span>
-                            <input
-                                value={username}
-                                onChange={(event) => setUsername(event.target.value)}
-                                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
-                            />
-                        </label>
-                        <label className="text-sm text-gray-700">
-                            <span className="mb-1 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                <Lock className="h-3 w-3" />
-                                Password
-                            </span>
-                            <input
-                                type="password"
-                                value={password}
-                                onChange={(event) => setPassword(event.target.value)}
-                                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
-                            />
-                        </label>
-                    </div>
+                {error && (
+                    <div className="rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>
                 )}
 
-                {recordType === 'ACCESS_TOKEN' && (
+                {canUseGithubAppConnect && (
                     <div className="space-y-3">
-                        <label className="text-sm text-gray-700">
-                            <span className="mb-1 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                <Lock className="h-3 w-3" />
-                                Secret
-                            </span>
-                            <input
-                                type="password"
-                                value={secret}
-                                onChange={(event) => setSecret(event.target.value)}
-                                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
-                                placeholder="Token / API key"
-                            />
-                        </label>
-
-                        {canUseGithubAppConnect && (
+                        <button
+                            type="button"
+                            onClick={() => redirectToGithubAppConnect({ isGlobal, githubApp })}
+                            disabled={isSubmitting}
+                            className="w-full inline-flex items-center justify-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            <Github className="h-4 w-4" />
+                            Connect with GitHub App
+                        </button>
+                        {!isManualTokenVisible && (
                             <button
                                 type="button"
-                                onClick={() => redirectToGithubAppConnect({ isGlobal, githubApp })}
+                                onClick={() => setIsManualTokenVisible(true)}
                                 disabled={isSubmitting}
-                                className="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                                className="w-full inline-flex items-center justify-center gap-2 rounded-md border border-amber-600 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-700 transition hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-50"
                             >
-                                <Github className="h-4 w-4" />
-                                Connect with GitHub App
+                                <KeyRound className="h-4 w-4" />
+                                Add token manually
                             </button>
                         )}
                     </div>
                 )}
 
-                {recordType === 'SESSION_COOKIE' && (
-                    <label className="text-sm text-gray-700">
-                        <span className="mb-1 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-gray-500">
-                            <Lock className="h-3 w-3" />
-                            Cookies
-                        </span>
-                        <textarea
-                            value={cookies}
-                            onChange={(event) => setCookies(event.target.value)}
-                            className="min-h-[90px] w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
-                        />
-                    </label>
+                {manualFieldsVisible && (
+                    <>
+                        <div className="grid gap-3 sm:grid-cols-3">
+                            <div>
+                                <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">Type</label>
+                                <select
+                                    value={recordType}
+                                    onChange={(event) => setRecordType(event.target.value as WalletRecordType)}
+                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
+                                >
+                                    <option value="ACCESS_TOKEN">Access Token</option>
+                                    <option value="USERNAME_PASSWORD">Username + Password</option>
+                                    <option value="SESSION_COOKIE">Session Cookie</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label htmlFor={serviceInputId} className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                    Service
+                                </label>
+                                <input
+                                    id={serviceInputId}
+                                    value={service}
+                                    onChange={(event) => setService(event.target.value)}
+                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
+                                />
+                            </div>
+                            <div>
+                                <label htmlFor={keyInputId} className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                    Key
+                                </label>
+                                <input
+                                    id={keyInputId}
+                                    value={key}
+                                    onChange={(event) => setKey(event.target.value)}
+                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
+                                />
+                            </div>
+                        </div>
+
+                        {recordType === 'USERNAME_PASSWORD' && (
+                            <div className="grid gap-3 sm:grid-cols-2">
+                                <label className="text-sm text-gray-700">
+                                    <span className="mb-1 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                        <UserRound className="h-3 w-3" />
+                                        Username
+                                    </span>
+                                    <input
+                                        value={username}
+                                        onChange={(event) => setUsername(event.target.value)}
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
+                                    />
+                                </label>
+                                <label className="text-sm text-gray-700">
+                                    <span className="mb-1 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                        <Lock className="h-3 w-3" />
+                                        Password
+                                    </span>
+                                    <input
+                                        type="password"
+                                        value={password}
+                                        onChange={(event) => setPassword(event.target.value)}
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
+                                    />
+                                </label>
+                            </div>
+                        )}
+
+                        {recordType === 'ACCESS_TOKEN' && (
+                            <div className="space-y-3">
+                                <label className="text-sm text-gray-700">
+                                    <span className="mb-1 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                        <Lock className="h-3 w-3" />
+                                        Secret
+                                    </span>
+                                    <input
+                                        type="password"
+                                        value={secret}
+                                        onChange={(event) => setSecret(event.target.value)}
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
+                                        placeholder="Token / API key"
+                                    />
+                                </label>
+                            </div>
+                        )}
+
+                        {recordType === 'SESSION_COOKIE' && (
+                            <label className="text-sm text-gray-700">
+                                <span className="mb-1 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                    <Lock className="h-3 w-3" />
+                                    Cookies
+                                </span>
+                                <textarea
+                                    value={cookies}
+                                    onChange={(event) => setCookies(event.target.value)}
+                                    className="min-h-[90px] w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
+                                />
+                            </label>
+                        )}
+
+                        <label className="inline-flex items-center gap-2 text-sm text-gray-700">
+                            <input type="checkbox" checked={isGlobal} onChange={(event) => setIsGlobal(event.target.checked)} />
+                            Store as global wallet record
+                        </label>
+
+                        <div className="flex justify-end gap-2">
+                            <button
+                                type="button"
+                                onClick={onClose}
+                                disabled={isSubmitting}
+                                className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="submit"
+                                disabled={Boolean(validationError) || isSubmitting}
+                                className="inline-flex items-center gap-2 rounded-md bg-amber-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                <Save className="h-4 w-4" />
+                                Save to wallet
+                            </button>
+                        </div>
+                    </>
                 )}
-
-                <label className="inline-flex items-center gap-2 text-sm text-gray-700">
-                    <input type="checkbox" checked={isGlobal} onChange={(event) => setIsGlobal(event.target.checked)} />
-                    Store as global wallet record
-                </label>
-
-                <div className="flex justify-end gap-2">
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        disabled={isSubmitting}
-                        className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                        Cancel
-                    </button>
-                    <button
-                        type="submit"
-                        disabled={Boolean(validationError) || isSubmitting}
-                        className="inline-flex items-center gap-2 rounded-md bg-amber-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                        <Save className="h-4 w-4" />
-                        Save to wallet
-                    </button>
-                </div>
             </form>
         </Dialog>
     );
