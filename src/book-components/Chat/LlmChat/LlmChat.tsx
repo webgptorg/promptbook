@@ -166,6 +166,7 @@ export function LlmChat(props: LlmChatProps) {
         llmTools,
         persistenceKey,
         onChange,
+        onInputTextChange,
         onReset,
         onError,
         initialMessages,
@@ -699,6 +700,7 @@ export function LlmChat(props: LlmChatProps) {
                 {...{ messages, onReset, tasksProgress, participants, buttonColor, toolTitles, teammates }}
                 teamAgentProfiles={teamAgentProfiles}
                 onMessage={handleMessage}
+                onChange={onInputTextChange}
                 onReset={handleReset}
                 extraActions={streamingStopAction}
                 isVoiceCalling={isVoiceCalling}

@@ -22,6 +22,7 @@ export type UserChatsSnapshot = {
     chats: Array<UserChatSummary>;
     activeChatId: string | null;
     activeMessages: Array<ChatMessage>;
+    activeDraftMessage?: string | null;
 };
 
 /**
@@ -30,6 +31,7 @@ export type UserChatsSnapshot = {
 export type UserChatDetail = {
     chat: UserChatSummary;
     messages: Array<ChatMessage>;
+    draftMessage?: string | null;
 };
 
 /**
@@ -113,6 +115,26 @@ export async function saveUserChatMessages(
     }
 
     return (await response.json()) as UserChatDetail;
+}
+
+/**
+ * Saves the draft message for one chat without modifying messages.
+ */
+export async function saveUserChatDraft(
+    agentName: string,
+    chatId: string,
+    draftMessage: string | null,
+): Promise<void> {
+    const response = await fetch(`/agents/${encodeURIComponent(agentName)}/api/user-chats/${encodeURIComponent(chatId)}/draft`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ draftMessage }),
+    });
+
+    if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        throw new Error(payload.error || 'Failed to save chat draft.');
+    }
 }
 
 /**

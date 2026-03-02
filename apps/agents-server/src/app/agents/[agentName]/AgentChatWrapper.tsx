@@ -60,6 +60,10 @@ type AgentChatWrapperProps = {
     chatId?: string;
     onMessagesChange?: (messages: ReadonlyArray<ChatMessage>) => void;
     /**
+     * Optional handler for input field text changes (draft message persistence).
+     */
+    onInputTextChange?: (messageContent: string) => void;
+    /**
      * When `false`, disables the chat upload UI even if file uploads are otherwise configured.
      */
     areFileAttachmentsEnabled?: boolean;
@@ -614,6 +618,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
         persistenceKey,
         chatId,
         onMessagesChange,
+        onInputTextChange,
         areFileAttachmentsEnabled,
         isFeedbackEnabled,
         chatFailMessage,
@@ -1140,6 +1145,7 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
                     autoExecuteMessageAttachments={effectiveAutoExecuteMessageAttachments}
                     persistenceKey={persistenceKey}
                     onChange={handleMessagesChange}
+                    onInputChange={onInputTextChange}
                     sendMessage={sendMessage}
                     speechRecognition={speechRecognition}
                     visual="FULL_PAGE"

@@ -1,3 +1,11 @@
+-   Added draft message persistence in Agents Server chat:
+    -   Chat input field text is now automatically preserved per user per chat and restored when switching between chats.
+    -   Added `draftMessage` column to `UserChat` database table to store the unsent message text.
+    -   Created new API endpoint `/agents/[agentName]/api/user-chats/[chatId]/draft` for saving draft messages with debounced updates (600ms delay) to minimize database writes.
+    -   Integrated draft message loading in chat list and detail API responses (`UserChatsSnapshot` and `UserChatDetail` types now include `activeDraftMessage` and `draftMessage` fields).
+    -   Added `onInputTextChange` prop to `LlmChatProps` and wired it through `AgentChat` → `LlmChat` → `Chat` → `ChatInputArea` to capture every keystroke.
+    -   Draft messages are displayed via the existing `defaultMessage` prop when activating a chat, providing seamless restoration of unsent text.
+    -   Private mode respects draft persistence rules: drafts are disabled when private mode is enabled, matching the existing message history behavior.
 -   Extracted Promptbook Coder utilities into `ptbk coder` CLI command:
     -   Added new `ptbk coder` command with five subcommands for automated coding workflows: `generate-boilerplates`, `find-refactor-candidates`, `run`, `verify`, and `find-fresh-emoji-tag`.
     -   `ptbk coder generate-boilerplates` (formerly `scripts/generate-prompt-boilerplate`) generates prompt boilerplate files with unique emoji tags and sequential numbering. Supports `--count` and `--template` options.

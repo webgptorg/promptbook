@@ -47,6 +47,7 @@ export async function GET(
         return NextResponse.json({
             chat: createUserChatSummary(chat),
             messages: chat.messages,
+            draftMessage: chat.draftMessage,
         });
     } catch (error) {
         return NextResponse.json(

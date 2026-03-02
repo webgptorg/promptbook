@@ -11,6 +11,7 @@ import {
     fetchUserChats,
     removeUserChat,
     saveUserChatMessages,
+    saveUserChatDraft,
     UserChatSummary,
 } from '../../../../utils/userChatClient';
 import { AgentChatSidebar, AGENT_CHAT_SIDEBAR_ID } from './AgentChatSidebar';
@@ -122,6 +123,8 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     const chatMessagesCacheRef = useRef<Map<string, ReadonlyArray<ChatMessage>>>(new Map());
     const isSwitchingChatRef = useRef(false);
     const autoExecuteTargetChatIdRef = useRef<string | undefined>(initialForceNewChat ? undefined : initialChatId);
+    const draftSaveTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+    const [activeChatDraftMessage, setActiveChatDraftMessage] = useState<string | null>(null);
 
     const guestPersistenceKey = useMemo(
         () => `guest-chat-${encodeURIComponent(agentName)}-${Math.random().toString(36).slice(2)}`,
@@ -214,9 +217,11 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             messages: ReadonlyArray<ChatMessage>,
             options: {
                 includeInitialMessage?: boolean;
+                draftMessage?: string | null;
             } = {},
         ) => {
             prepareChatInLocalStorage(chatId, messages);
+            setActiveChatDraftMessage(options.draftMessage ?? null);
             replaceBrowserUrlWithoutNavigation(buildChatRoute(chatId, Boolean(options.includeInitialMessage)));
         },
         [buildChatRoute, prepareChatInLocalStorage],
@@ -232,6 +237,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             let nextChats = snapshot.chats;
             let resolvedActiveChatId = snapshot.activeChatId;
             let resolvedMessages = snapshot.activeMessages;
+            let resolvedDraftMessage = snapshot.activeDraftMessage ?? null;
 
             const shouldCreateFreshChatForInitialMessage =
                 !hasInitialAutoMessageBeenConsumedRef.current &&
@@ -243,6 +249,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 nextChats = [createdChat.chat, ...nextChats.filter((chat) => chat.id !== createdChat.chat.id)];
                 resolvedActiveChatId = createdChat.chat.id;
                 resolvedMessages = createdChat.messages;
+                resolvedDraftMessage = createdChat.draftMessage ?? null;
 
                 if (initialAutoExecuteMessage) {
                     autoExecuteTargetChatIdRef.current = createdChat.chat.id;
@@ -258,6 +265,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
 
             activateChat(resolvedActiveChatId, resolvedMessages, {
                 includeInitialMessage: shouldKeepInitialAutoMessage,
+                draftMessage: resolvedDraftMessage,
             });
         },
         [activateChat, agentName, initialAutoExecuteMessage, initialForceNewChat],
@@ -302,12 +310,18 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
 
     useEffect(() => {
         const activeSaveTimers = saveTimersRef.current;
+        const activeDraftSaveTimers = draftSaveTimersRef.current;
 
         return () => {
             for (const timer of activeSaveTimers.values()) {
                 clearTimeout(timer);
             }
             activeSaveTimers.clear();
+
+            for (const timer of activeDraftSaveTimers.values()) {
+                clearTimeout(timer);
+            }
+            activeDraftSaveTimers.clear();
         };
     }, []);
 
@@ -337,7 +351,9 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
 
             try {
                 const chatDetail = await fetchUserChat(agentName, chatId);
-                activateChat(chatId, chatDetail.messages);
+                activateChat(chatId, chatDetail.messages, {
+                    draftMessage: chatDetail.draftMessage ?? null,
+                });
             } catch (error) {
                 setErrorMessage(error instanceof Error ? error.message : 'Failed to load chat.');
             } finally {
@@ -377,7 +393,9 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 createdChat.chat,
                 ...previousChats.filter((existingChat) => existingChat.id !== createdChat.chat.id),
             ]);
-            activateChat(createdChat.chat.id, createdChat.messages);
+            activateChat(createdChat.chat.id, createdChat.messages, {
+                draftMessage: createdChat.draftMessage ?? null,
+            });
         } catch (error) {
             setErrorMessage(error instanceof Error ? error.message : 'Failed to create chat.');
         } finally {
@@ -467,6 +485,38 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     );
 
     /**
+     * Persists draft message using debounced save to avoid excessive API calls.
+     */
+    const handleDraftMessageChange = useCallback(
+        (draftMessage: string) => {
+            if (!shouldUseHistory || !activeChatId) {
+                return;
+            }
+
+            const chatId = activeChatId;
+            setActiveChatDraftMessage(draftMessage);
+
+            const existingTimer = draftSaveTimersRef.current.get(chatId);
+            if (existingTimer) {
+                clearTimeout(existingTimer);
+            }
+
+            const nextTimer = setTimeout(() => {
+                void saveUserChatDraft(agentName, chatId, draftMessage || null)
+                    .catch((error) => {
+                        console.error('[user-chat] Failed to persist draft message', error);
+                    })
+                    .finally(() => {
+                        draftSaveTimersRef.current.delete(chatId);
+                    });
+            }, SAVE_DEBOUNCE_MS);
+
+            draftSaveTimersRef.current.set(chatId, nextTimer);
+        },
+        [activeChatId, agentName, shouldUseHistory],
+    );
+
+    /**
      * Handles in-chat "New chat" action by creating and activating a fresh chat entry.
      */
     const handleStartNewChatFromChatSurface = useCallback(async () => {
@@ -531,6 +581,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 key={`${activeChatId}:${activeChatMountKey}`}
                 agentName={agentName}
                 agentUrl={agentUrl}
+                defaultMessage={activeChatDraftMessage ?? undefined}
                 autoExecuteMessage={autoExecuteMessage}
                 autoExecuteMessageAttachments={pendingProfileAttachments}
                 brandColor={brandColor}
@@ -539,6 +590,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                 persistenceKey={buildUserChatPersistenceKey(activeChatId)}
                 chatId={activeChatId}
                 onMessagesChange={handleMessagesChange}
+                onInputTextChange={handleDraftMessageChange}
                 areFileAttachmentsEnabled={areFileAttachmentsEnabled}
                 isFeedbackEnabled={isFeedbackEnabled}
                 chatFailMessage={chatFailMessage}

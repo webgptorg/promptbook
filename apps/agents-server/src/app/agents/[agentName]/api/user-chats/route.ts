@@ -39,6 +39,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ agen
             chats: chats.map(createUserChatSummary),
             activeChatId: activeChat?.id || null,
             activeMessages: activeChat?.messages || [],
+            activeDraftMessage: activeChat?.draftMessage || null,
         });
     } catch (error) {
         return NextResponse.json(
@@ -85,6 +86,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             {
                 chat: createUserChatSummary(chat),
                 messages: chat.messages,
+                draftMessage: chat.draftMessage,
             },
             { status: 201 },
         );

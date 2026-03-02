@@ -27,6 +27,7 @@ export type UserChatRecord = {
     userId: number;
     agentPermanentId: string;
     messages: Array<ChatMessage>;
+    draftMessage: string | null;
 };
 
 /**
@@ -77,6 +78,16 @@ export type UpdateUserChatMessagesOptions = {
     agentPermanentId: string;
     chatId: string;
     messages: ReadonlyArray<ChatMessage>;
+};
+
+/**
+ * Update options for saving chat draft message.
+ */
+export type UpdateUserChatDraftOptions = {
+    userId: number;
+    agentPermanentId: string;
+    chatId: string;
+    draftMessage: string | null;
 };
 
 /**
@@ -226,6 +237,38 @@ export async function updateUserChatMessages(options: UpdateUserChatMessagesOpti
 }
 
 /**
+ * Updates the draft message for a user chat without modifying messages or activity timestamps.
+ *
+ * @private internal utility of <AgentProfileChat/>
+ */
+export async function updateUserChatDraft(options: UpdateUserChatDraftOptions): Promise<UserChatRecord> {
+    const { userId, agentPermanentId, chatId, draftMessage } = options;
+    const tableName = await $getTableName('UserChat');
+    const supabase = $provideSupabaseForServer();
+
+    const { data, error } = await supabase
+        .from(tableName)
+        .update({
+            draftMessage,
+        })
+        .eq('id', chatId)
+        .eq('userId', userId)
+        .eq('agentPermanentId', agentPermanentId)
+        .select('*')
+        .maybeSingle();
+
+    if (error) {
+        throw new Error(`Failed to update user chat draft "${chatId}": ${error.message}`);
+    }
+
+    if (!data) {
+        throw new Error(`User chat "${chatId}" was not found.`);
+    }
+
+    return mapUserChatRow(data as UserChatRow);
+}
+
+/**
  * Deletes one user chat owned by the user.
  */
 export async function deleteUserChat(options: DeleteUserChatOptions): Promise<boolean> {
@@ -281,6 +324,7 @@ function mapUserChatRow(row: UserChatRow): UserChatRecord {
         userId: row.userId,
         agentPermanentId: row.agentPermanentId,
         messages: normalizeStoredMessages(row.messages),
+        draftMessage: row.draftMessage,
     };
 }
 

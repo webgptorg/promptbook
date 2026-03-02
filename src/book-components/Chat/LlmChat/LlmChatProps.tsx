@@ -53,6 +53,14 @@ export type LlmChatProps = Omit<ChatProps, 'messages' | 'onMessage' | 'onChange'
     // <- TODO: [🖱] `LlmChatProps.onChange` and `ChatProps.onChange` are not the same, unite them or distinct by name
 
     /**
+     * Called every time the user types in the input field (for draft message persistence).
+     * This is passed through to the underlying Chat component's onChange handler.
+     *
+     * @private internal utility of <AgentChatHistoryClient/>
+     */
+    onInputTextChange?(messageContent: string): void;
+
+    /**
      * Optional external sendMessage function produced by useSendMessageToLlmChat hook.
      * When provided, LlmChat will attach its internal handler to it (no React context needed).
      */

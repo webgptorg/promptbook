@@ -431,6 +431,7 @@ export type AgentsServerDatabase = {
                     userId: number;
                     agentPermanentId: string;
                     messages: Json;
+                    draftMessage: string | null;
                 };
                 Insert: {
                     id: string;
@@ -440,6 +441,7 @@ export type AgentsServerDatabase = {
                     userId: number;
                     agentPermanentId: string;
                     messages?: Json;
+                    draftMessage?: string | null;
                 };
                 Update: {
                     id?: string;
@@ -449,6 +451,7 @@ export type AgentsServerDatabase = {
                     userId?: number;
                     agentPermanentId?: string;
                     messages?: Json;
+                    draftMessage?: string | null;
                 };
                 Relationships: [
                     {
