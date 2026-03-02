@@ -1,6 +1,6 @@
 import {
     connectGithubAppInstallationForUser,
-    isGithubAppConfigured,
+    loadGithubAppConfiguration,
     normalizeGithubAppReturnToPath,
     parseGithubAppConnectionState,
 } from '@/src/utils/githubApp';
@@ -12,7 +12,8 @@ import { NextResponse } from 'next/server';
  * Handles GitHub App installation callback and stores generated token in wallet.
  */
 export async function GET(request: Request) {
-    if (!isGithubAppConfigured()) {
+    const configuration = await loadGithubAppConfiguration();
+    if (!configuration) {
         return NextResponse.json({ error: 'GitHub App is not configured on this server.' }, { status: 503 });
     }
 
@@ -30,7 +31,7 @@ export async function GET(request: Request) {
     }
 
     try {
-        const parsedState = parseGithubAppConnectionState({ state });
+        const parsedState = await parseGithubAppConnectionState({ state }, configuration);
         const returnTo = parsedState.returnTo;
         const identity = await resolveCurrentUserMemoryIdentity();
         if (!identity || identity.userId !== parsedState.userId) {
@@ -52,10 +53,13 @@ export async function GET(request: Request) {
             });
         }
 
-        const accessToken = await connectGithubAppInstallationForUser({
-            userId: identity.userId,
-            installationId,
-        });
+        const accessToken = await connectGithubAppInstallationForUser(
+            {
+                userId: identity.userId,
+                installationId,
+            },
+            configuration,
+        );
 
         await storeUseProjectGithubAppTokenInWallet({
             userId: identity.userId,

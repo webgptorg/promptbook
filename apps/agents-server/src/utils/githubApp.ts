@@ -1,4 +1,5 @@
 import { createHmac, createSign, randomBytes, timingSafeEqual } from 'crypto';
+import { getMetadataMap } from '@/src/database/getMetadata';
 import { getUserDataValue, upsertUserDataValue } from './userData';
 
 /**
@@ -30,6 +31,16 @@ const GITHUB_APP_TOKEN_REFRESH_BUFFER_MS = 5 * 60 * 1000;
  * Default return path used when the requested callback target is invalid.
  */
 const DEFAULT_GITHUB_APP_RETURN_TO_PATH = '/system/user-wallet';
+
+/**
+ * Metadata keys storing GitHub App configuration.
+ */
+const GITHUB_APP_METADATA_KEYS = ['GITHUB_APP_ID', 'GITHUB_APP_SLUG', 'GITHUB_APP_PRIVATE_KEY', 'GITHUB_APP_STATE_SECRET'] as const;
+
+/**
+ * One of the metadata keys that store GitHub App configuration and can be customized per server.
+ */
+type GithubAppMetadataKey = (typeof GITHUB_APP_METADATA_KEYS)[number];
 
 /**
  * Parsed GitHub App environment configuration.
@@ -116,10 +127,10 @@ export type ResolveGithubAppInstallationAccessTokenForUserOptions = {
 };
 
 /**
- * Returns true when required GitHub App environment variables are present.
+ * Returns true when GitHub App configuration metadata (or legacy env values) are present.
  */
-export function isGithubAppConfigured(): boolean {
-    return getGithubAppConfiguration() !== null;
+export async function isGithubAppConfigured(): Promise<boolean> {
+    return (await loadGithubAppConfiguration()) !== null;
 }
 
 /**
@@ -145,11 +156,11 @@ export function normalizeGithubAppReturnToPath(rawPath?: string): string {
 /**
  * Creates one signed GitHub App connect-state token.
  */
-export function createGithubAppConnectionState(options: CreateGithubAppConnectionStateOptions): string {
-    const configuration = getGithubAppConfiguration();
-    if (!configuration) {
-        throw new Error('GitHub App is not configured.');
-    }
+export async function createGithubAppConnectionState(
+    options: CreateGithubAppConnectionStateOptions,
+    configuration?: GithubAppConfiguration,
+): Promise<string> {
+    const resolvedConfiguration = configuration ?? (await ensureGithubAppConfiguration());
 
     const payload: GithubAppConnectionStatePayload = {
         userId: options.userId,
@@ -160,7 +171,7 @@ export function createGithubAppConnectionState(options: CreateGithubAppConnectio
         nonce: randomBytes(16).toString('hex'),
     };
     const encodedPayload = encodeBase64Url(JSON.stringify(payload));
-    const signature = signGithubAppState(encodedPayload, configuration.stateSecret);
+    const signature = signGithubAppState(encodedPayload, resolvedConfiguration.stateSecret);
 
     return `${encodedPayload}.${signature}`;
 }
@@ -168,18 +179,18 @@ export function createGithubAppConnectionState(options: CreateGithubAppConnectio
 /**
  * Validates and decodes one signed GitHub App connect-state token.
  */
-export function parseGithubAppConnectionState(options: ParseGithubAppConnectionStateOptions): GithubAppConnectionStatePayload {
-    const configuration = getGithubAppConfiguration();
-    if (!configuration) {
-        throw new Error('GitHub App is not configured.');
-    }
+export async function parseGithubAppConnectionState(
+    options: ParseGithubAppConnectionStateOptions,
+    configuration?: GithubAppConfiguration,
+): Promise<GithubAppConnectionStatePayload> {
+    const resolvedConfiguration = configuration ?? (await ensureGithubAppConfiguration());
 
     const [encodedPayload, providedSignature] = options.state.split('.');
     if (!encodedPayload || !providedSignature) {
         throw new Error('GitHub App state is malformed.');
     }
 
-    const expectedSignature = signGithubAppState(encodedPayload, configuration.stateSecret);
+    const expectedSignature = signGithubAppState(encodedPayload, resolvedConfiguration.stateSecret);
     assertSecureStringEquals(expectedSignature, providedSignature, 'GitHub App state signature is invalid.');
 
     const parsedPayload = parseGithubAppStatePayload(decodeBase64Url(encodedPayload));
@@ -193,13 +204,13 @@ export function parseGithubAppConnectionState(options: ParseGithubAppConnectionS
 /**
  * Builds GitHub App installation URL that starts connect/install flow.
  */
-export function buildGithubAppInstallationConnectUrl(state: string): string {
-    const configuration = getGithubAppConfiguration();
-    if (!configuration) {
-        throw new Error('GitHub App is not configured.');
-    }
+export async function buildGithubAppInstallationConnectUrl(
+    state: string,
+    configuration?: GithubAppConfiguration,
+): Promise<string> {
+    const resolvedConfiguration = configuration ?? (await ensureGithubAppConfiguration());
 
-    const url = new URL(`https://github.com/apps/${configuration.appSlug}/installations/new`);
+    const url = new URL(`https://github.com/apps/${resolvedConfiguration.appSlug}/installations/new`);
     url.searchParams.set('state', state);
 
     return url.toString();
@@ -209,7 +220,7 @@ export function buildGithubAppInstallationConnectUrl(state: string): string {
  * Resolves current GitHub App connection state for one user.
  */
 export async function getGithubAppConnectionStatusForUser(userId: number): Promise<GithubAppConnectionStatus> {
-    const configuration = getGithubAppConfiguration();
+    const configuration = await loadGithubAppConfiguration();
     if (!configuration) {
         return {
             isConfigured: false,
@@ -243,8 +254,14 @@ export async function getGithubAppConnectionStatusForUser(userId: number): Promi
  */
 export async function connectGithubAppInstallationForUser(
     options: ConnectGithubAppInstallationForUserOptions,
+    configuration?: GithubAppConfiguration,
 ): Promise<GithubAppInstallationAccessToken> {
-    const accessToken = await requestGithubAppInstallationAccessToken(options.installationId);
+    const resolvedConfiguration = configuration ?? (await ensureGithubAppConfiguration());
+
+    const accessToken = await requestGithubAppInstallationAccessToken(
+        options.installationId,
+        resolvedConfiguration,
+    );
     const now = new Date().toISOString();
 
     await upsertGithubAppUserConnectionRecord(options.userId, {
@@ -264,7 +281,8 @@ export async function connectGithubAppInstallationForUser(
 export async function resolveGithubAppInstallationAccessTokenForUser(
     options: ResolveGithubAppInstallationAccessTokenForUserOptions,
 ): Promise<GithubAppInstallationAccessToken | null> {
-    if (!isGithubAppConfigured()) {
+    const configuration = await loadGithubAppConfiguration();
+    if (!configuration) {
         return null;
     }
 
@@ -281,7 +299,10 @@ export async function resolveGithubAppInstallationAccessTokenForUser(
         };
     }
 
-    const refreshedToken = await requestGithubAppInstallationAccessToken(connection.installationId);
+    const refreshedToken = await requestGithubAppInstallationAccessToken(
+        connection.installationId,
+        configuration,
+    );
     await upsertGithubAppUserConnectionRecord(options.userId, {
         installationId: connection.installationId,
         token: refreshedToken.token,
@@ -294,13 +315,21 @@ export async function resolveGithubAppInstallationAccessTokenForUser(
 }
 
 /**
- * Reads normalized GitHub App configuration from environment variables.
+ * Loads normalized GitHub App configuration from server metadata or legacy environment values.
+ *
+ * @private Internal helper for GitHub App runtime logic.
  */
-function getGithubAppConfiguration(): GithubAppConfiguration | null {
-    const appId = process.env.GITHUB_APP_ID?.trim() || '';
-    const appSlug = process.env.GITHUB_APP_SLUG?.trim() || '';
-    const privateKeyRaw = process.env.GITHUB_APP_PRIVATE_KEY?.trim() || '';
-    const stateSecret = (process.env.GITHUB_APP_STATE_SECRET || process.env.ADMIN_PASSWORD || '').trim();
+export async function loadGithubAppConfiguration(): Promise<GithubAppConfiguration | null> {
+    const metadata = await getMetadataMap(GITHUB_APP_METADATA_KEYS);
+
+    const getValue = (key: GithubAppMetadataKey): string => (metadata[key] ?? '').trim();
+    const appId = getValue('GITHUB_APP_ID') || (process.env.GITHUB_APP_ID?.trim() || '');
+    const appSlug = getValue('GITHUB_APP_SLUG') || (process.env.GITHUB_APP_SLUG?.trim() || '');
+    const privateKeyRaw =
+        getValue('GITHUB_APP_PRIVATE_KEY') || (process.env.GITHUB_APP_PRIVATE_KEY?.trim() || '');
+    const stateSecret =
+        getValue('GITHUB_APP_STATE_SECRET') ||
+        (process.env.GITHUB_APP_STATE_SECRET || process.env.ADMIN_PASSWORD || '').trim();
 
     if (!appId || !appSlug || !privateKeyRaw || !stateSecret) {
         return null;
@@ -312,6 +341,20 @@ function getGithubAppConfiguration(): GithubAppConfiguration | null {
         privateKey: privateKeyRaw.replace(/\\n/g, '\n'),
         stateSecret,
     };
+}
+
+/**
+ * Ensures GitHub App configuration exists and throws when it does not.
+ *
+ * @private Internal helper used by GitHub App utilities.
+ */
+async function ensureGithubAppConfiguration(): Promise<GithubAppConfiguration> {
+    const configuration = await loadGithubAppConfiguration();
+    if (!configuration) {
+        throw new Error('GitHub App is not configured.');
+    }
+
+    return configuration;
 }
 
 /**
@@ -345,13 +388,11 @@ async function upsertGithubAppUserConnectionRecord(
  */
 async function requestGithubAppInstallationAccessToken(
     installationId: number,
+    configuration?: GithubAppConfiguration,
 ): Promise<GithubAppInstallationAccessToken> {
-    const configuration = getGithubAppConfiguration();
-    if (!configuration) {
-        throw new Error('GitHub App is not configured.');
-    }
+    const resolvedConfiguration = configuration ?? (await ensureGithubAppConfiguration());
 
-    const appJwt = createGithubAppJwt(configuration);
+    const appJwt = createGithubAppJwt(resolvedConfiguration);
     const response = await fetch(`${GITHUB_API_BASE_URL}/app/installations/${installationId}/access_tokens`, {
         method: 'POST',
         headers: {

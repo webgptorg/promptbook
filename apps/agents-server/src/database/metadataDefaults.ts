@@ -197,6 +197,30 @@ export const metadataDefaults = [
         note: 'Default visibility for new agents. Can be PRIVATE, UNLISTED, or PUBLIC.',
         type: 'TEXT_SINGLE_LINE',
     },
+    {
+        key: 'GITHUB_APP_ID',
+        value: '',
+        note: 'Numeric GitHub App ID (found in the app settings).',
+        type: 'TEXT_SINGLE_LINE',
+    },
+    {
+        key: 'GITHUB_APP_SLUG',
+        value: '',
+        note: 'GitHub App slug as seen in the app URL (e.g. https://github.com/apps/<slug>).',
+        type: 'TEXT_SINGLE_LINE',
+    },
+    {
+        key: 'GITHUB_APP_PRIVATE_KEY',
+        value: '',
+        note: 'GitHub App private key in PEM format. Replace actual line breaks with \\n when editing via Metadata UI.',
+        type: 'TEXT',
+    },
+    {
+        key: 'GITHUB_APP_STATE_SECRET',
+        value: '',
+        note: 'Secret used for signing GitHub App connect state. Keep it unique per deployment.',
+        type: 'TEXT_SINGLE_LINE',
+    },
     ...analyticsMetadataDefaults,
 ] as const satisfies ReadonlyArray<{
     key: string;

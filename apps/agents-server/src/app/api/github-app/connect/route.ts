@@ -1,7 +1,7 @@
 import {
     buildGithubAppInstallationConnectUrl,
     createGithubAppConnectionState,
-    isGithubAppConfigured,
+    loadGithubAppConfiguration,
     normalizeGithubAppReturnToPath,
 } from '@/src/utils/githubApp';
 import { resolveCurrentUserMemoryIdentity } from '@/src/utils/userMemory';
@@ -16,7 +16,8 @@ export async function GET(request: Request) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    if (!isGithubAppConfigured()) {
+    const configuration = await loadGithubAppConfiguration();
+    if (!configuration) {
         return NextResponse.json({ error: 'GitHub App is not configured on this server.' }, { status: 503 });
     }
 
@@ -29,13 +30,16 @@ export async function GET(request: Request) {
     const isGlobal = requestedIsGlobal || !requestedAgentId;
     const agentPermanentId = isGlobal ? null : requestedAgentId;
 
-    const state = createGithubAppConnectionState({
-        userId: identity.userId,
-        returnTo,
-        isGlobal,
-        agentPermanentId,
-    });
-    const connectUrl = buildGithubAppInstallationConnectUrl(state);
+    const state = await createGithubAppConnectionState(
+        {
+            userId: identity.userId,
+            returnTo,
+            isGlobal,
+            agentPermanentId,
+        },
+        configuration,
+    );
+    const connectUrl = await buildGithubAppInstallationConnectUrl(state, configuration);
 
     return NextResponse.redirect(connectUrl);
 }
