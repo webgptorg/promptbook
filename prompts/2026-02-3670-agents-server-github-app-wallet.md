@@ -30,16 +30,18 @@
 
 ---
 
-[-]
+[ ]
 
-[✨🐏] brr
+[✨🐏] Popup "Wallet credential requested" should have quick Github button
 
--   @@@
+-   Agent in chat can request credential from the wallet, for example Github token. When this happens, there is a popup "Wallet credential requested"
+-   This popup has currently field for api keys
+-   It should have just two buttons:
+    1. Connect with Github - when clicked, it will use the Github app integration, reuse the code from the wallet page for connecting with Github, to get the token from the Github app and add it into the wallet, and then use this token for the credential request.
+    2. Add token manually - only when clicked, it will show the field for api key
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
--   Do a proper analysis of the current functionality before you start implementing.
+-   Do a proper analysis of the current functionality of Github App and wallet before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
--   If you need to do the database migration, do it
--   Add the changes into the [changelog](changelog/_current-preversion.md)
 
 ---
 
