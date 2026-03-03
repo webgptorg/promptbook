@@ -7,15 +7,24 @@
 
 [✨🍅] Chat should be independent of the browser.
 
--   This feature is already implemented but it is not working well
-    -   When I refresh the page after I send a message but before agent replys, the chat gots stucked
--   Implement or fix and make sure that they are working theese behavior changes to make the chat independent of the browser:
-    -   When looking on the same chat from two different browser windows. This chat should be synchronized.
-    -   When user refreshes the chat during the streaming, it shouldn't matter. The agent response should be put into the chat independently whether the user is looking and is focused on the chat or not or from how many browsers windows
+-   Chat should be idependent of the focus and the browser window. It should not matter whether the user is looking on the chat or not, whether he has it opened in one or more browser windows, whether he refreshes the page during the streaming of the agent response, etc. The agent response should be put into the chat independently of all these factors.
+-   For example `https://pavol-hejny.ptbk.io/agents/WW1PUgLKjAUvge/chat?chat=zrNE5PVhizs61c`
+    -   The `WW1PUgLKjAUvge` is id of the agent
+    -   The `zrNE5PVhizs61c` is id of the chat
+    -   Each chat is flowing independently of the browser, one agent can have multiple chats and each of them are independent separatelly
+-   Consider theese scenarios:
+    -   When user refreshes the page, chat should not be lost, the agent response should be put into the chat even if the user is refreshing the page during the streaming of the response.
+        -   This should work in all stages of the agent response, during the thinking, during the streaming of the response, and after the response is finished.
+    -   When user has multiple opened windows with the same chat, the response should be put into the chat in all windows, and it should not matter whether the user is focused on one of them or not.
+    -   Same with multiple independent devices, if the user is looking on the same chat from two different devices, this chat should be synchronized and the agent response should be put into the chat in both devices independently of whether the user is focused on one of them or not.
+    -   When the user goes offline and then online again, the chat should be synchronized and the agent response should be put into the chat when the user goes online again, even if the user was offline during the streaming of the response.
+-   Agents server can run on serverless environment (like Vercel) and it should not rely on any in-memory state, all the state should be stored in the database and the chat should be flowing independently of the browser and the user connection.
+-   Also it can be impossible to use web sockets for the chat synchronization, implement this just the simple http requests from the client to the server to fetch the new messages and update the chat, without any web sockets or real-time connections, just simple polling from the client to the server to fetch the new messages and update the chat.
+-   It doesn’t need to be real-time like a game, sync interval of 5 seconds is good enough for the chat synchronization.
 -   Keep in mind the DRY _(don't repeat yourself)_ principle.
 -   Do a proper analysis of the current functionality of chats and agents before you start implementing.
 -   You are working with the [Agents Server](apps/agents-server)
--   If you need to do the database migration, do it (There is already a database migration for this but it is not working well, create a new one if you need to)
+-   If you need to do the database migration, do it
 
 ---
 
