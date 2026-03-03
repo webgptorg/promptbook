@@ -7,7 +7,6 @@ import { MarkdownContent } from '@promptbook-local/components';
  */
 type MetaDisclaimerDialogProps = {
     markdown: string | null;
-    isLoading: boolean;
     isAccepting: boolean;
     errorMessage: string | null;
     onAccept: () => void;
@@ -19,13 +18,12 @@ type MetaDisclaimerDialogProps = {
  */
 export function MetaDisclaimerDialog({
     markdown,
-    isLoading,
     isAccepting,
     errorMessage,
     onAccept,
     onRetry,
 }: MetaDisclaimerDialogProps) {
-    const isAcceptButtonDisabled = isLoading || isAccepting || Boolean(errorMessage) || !markdown;
+    const isAcceptButtonDisabled = isAccepting || Boolean(errorMessage) || !markdown;
 
     return (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-900/55 backdrop-blur-[1px]">
@@ -35,9 +33,7 @@ export function MetaDisclaimerDialog({
                 </header>
 
                 <div className="max-h-[55vh] overflow-y-auto px-6 py-5">
-                    {isLoading && <p className="text-sm text-slate-600">Loading disclaimer...</p>}
-
-                    {!isLoading && errorMessage && (
+                    {errorMessage && (
                         <div className="space-y-3">
                             <p className="text-sm text-red-700">{errorMessage}</p>
                             <button
@@ -50,7 +46,7 @@ export function MetaDisclaimerDialog({
                         </div>
                     )}
 
-                    {!isLoading && !errorMessage && markdown && (
+                    {!errorMessage && markdown && (
                         <article className="prose prose-slate max-w-none">
                             <MarkdownContent content={markdown} />
                         </article>
@@ -71,4 +67,3 @@ export function MetaDisclaimerDialog({
         </div>
     );
 }
-

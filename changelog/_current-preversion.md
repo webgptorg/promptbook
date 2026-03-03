@@ -1,3 +1,5 @@
+-   Prevented the Agents Server META DISCLAIMER modal from showing a transient “Loading disclaimer...” popup for agents without a disclaimer by only rendering the dialog once a disclaimer exists and directly showing the markdown when it does.
+
 -   Improved Agents Server website chat widget integration UX/behavior:
     -   The HTML embed script now renders a native floating launcher first and lazily creates the iframe only after the first user click.
     -   Opened widget chrome now uses a rounded framed container for a cleaner embedded appearance.

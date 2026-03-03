@@ -752,6 +752,8 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
         isMetaDisclaimerLoading ||
         metaDisclaimerError !== null ||
         (isMetaDisclaimerEnabled && !hasAcceptedMetaDisclaimer);
+    const shouldRenderMetaDisclaimerDialog =
+        metaDisclaimerError !== null || (isMetaDisclaimerEnabled && !hasAcceptedMetaDisclaimer);
     const metaDisclaimerMarkdown = metaDisclaimerStatus?.markdown || null;
     const effectiveAutoExecuteMessage = isMetaDisclaimerBlockingChat ? undefined : autoExecuteMessage;
     const effectiveAutoExecuteMessageAttachments = isMetaDisclaimerBlockingChat
@@ -1188,10 +1190,9 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
                 onReset={handleReset}
                 onDismiss={handleDismissError}
             />
-            {isMetaDisclaimerBlockingChat && (
+            {shouldRenderMetaDisclaimerDialog && (
                 <MetaDisclaimerDialog
                     markdown={metaDisclaimerMarkdown}
-                    isLoading={isMetaDisclaimerLoading}
                     isAccepting={isMetaDisclaimerAccepting}
                     errorMessage={metaDisclaimerError}
                     onAccept={() => {
