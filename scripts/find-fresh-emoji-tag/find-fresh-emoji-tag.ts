@@ -9,8 +9,8 @@ import { readFileSync } from 'fs';
 import glob from 'glob-promise'; // <- TODO: [🚰] Use just 'glob'
 import { basename, join } from 'path';
 import type { string_char_emoji } from '../../src/types/typeAliasEmoji';
+import { difference } from '../../src/utils/sets/difference';
 import { $shuffleItems } from './utils/$shuffleItems';
-import { difference } from './utils/difference';
 import { EMOJIS, EMOJIS_OF_SINGLE_PICTOGRAM } from './utils/emojis';
 
 if (process.cwd() !== join(__dirname, '../..')) {
@@ -87,5 +87,5 @@ export async function findFreshEmojiTag(): Promise<void> {
 }
 
 /**
- * Note: [⚫] Code in this file should never be published in any package
+ * Note: [🟡] Code in this file should never be published outside of `@promptbook/cli`
  */

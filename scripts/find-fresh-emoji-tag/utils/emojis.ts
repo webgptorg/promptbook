@@ -1,5 +1,5 @@
-import { TODO_any } from '../../../src/utils/organization/TODO_any';
 import type { string_char_emoji } from '../../../src/types/typeAliasEmoji';
+import { TODO_any } from '../../../src/utils/organization/TODO_any';
 /**
  * All possible emoji chars like "🍆", "🍡", "🍤"...
  * Note: this will be needed to update annually - now updated at 2022-01-19
@@ -123,6 +123,6 @@ export const EMOJIS_OF_SINGLE_PICTOGRAM: Set<string_char_emoji> = new Set(
 
 /**
  * TODO: [💴] DRY - just one version of emojis.ts
- * TODO: Mirror from Collboard or some common library
- * Note: [⚫] Code in this file should never be published in any package
+ * TODO: Mirror from Collboard or some common package
+ * Note: [💞] Ignore a discrepancy between file name and entity name
  */

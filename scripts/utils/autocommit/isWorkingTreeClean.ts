@@ -10,5 +10,5 @@ export async function isWorkingTreeClean(path: string): Promise<boolean> {
 }
 
 /**
- * Note: [⚫] Code in this file should never be published in any package
+ * Note: [🟡] Code in this file should never be published outside of `@promptbook/cli`
  */
