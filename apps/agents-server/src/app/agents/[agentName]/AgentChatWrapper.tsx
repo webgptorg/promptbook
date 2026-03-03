@@ -45,11 +45,16 @@ import {
     USER_LOCATION_PROMPT_PARAMETER,
     type UserLocationPromptParameter,
 } from '../../../utils/userLocationPromptParameter';
+import { USER_CHAT_ID_PROMPT_PARAMETER } from '../../../utils/chat/userChatSync';
 import { MetaDisclaimerDialog } from './MetaDisclaimerDialog';
 import { PseudoUserChatDialog } from './PseudoUserChatDialog';
 
 type AgentChatWrapperProps = {
     agentName: string;
+    /**
+     * Active persisted chat id used for server-side synchronization of streaming responses.
+     */
+    chatId?: string;
     agentUrl: string_agent_url;
     defaultMessage?: string;
     autoExecuteMessage?: string;
@@ -606,6 +611,7 @@ type PendingPseudoUserInteraction = {
 export function AgentChatWrapper(props: AgentChatWrapperProps) {
     const {
         agentName,
+        chatId,
         agentUrl,
         defaultMessage,
         autoExecuteMessage,
@@ -1118,13 +1124,17 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
             selfLearningEnabled: effectiveSelfLearningEnabled,
         };
 
+        if (chatId) {
+            parameters[USER_CHAT_ID_PROMPT_PARAMETER] = chatId;
+        }
+
         if (userLocationPromptParameter) {
             parameters[USER_LOCATION_PROMPT_PARAMETER] =
                 serializeUserLocationPromptParameter(userLocationPromptParameter);
         }
 
         return parameters;
-    }, [effectiveSelfLearningEnabled, userLocationPromptParameter]);
+    }, [chatId, effectiveSelfLearningEnabled, userLocationPromptParameter]);
 
     if (!agent) {
         return <>{/* <- TODO: [🐱‍🚀] <PromptbookLoading /> */}</>;

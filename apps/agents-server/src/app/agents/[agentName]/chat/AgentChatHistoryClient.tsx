@@ -10,7 +10,6 @@ import {
     fetchUserChat,
     fetchUserChats,
     removeUserChat,
-    saveUserChatMessages,
     saveUserChatDraft,
     UserChatSummary,
 } from '../../../../utils/userChatClient';
@@ -18,11 +17,12 @@ import { AgentChatSidebar, AGENT_CHAT_SIDEBAR_ID } from './AgentChatSidebar';
 import { AgentChatWrapper } from '../AgentChatWrapper';
 import { takePendingProfileMessageAttachments } from '../profileMessageCache';
 import { usePrivateModePreferences } from '../../../../components/PrivateModePreferences/PrivateModePreferencesProvider';
+import { USER_CHAT_SYNC_POLL_INTERVAL_MS } from '../../../../utils/chat/userChatSync';
 
 /**
- * Delay used before persisting chat messages to DB.
+ * Delay used before persisting draft text changes to DB.
  */
-const SAVE_DEBOUNCE_MS = 600;
+const DRAFT_SAVE_DEBOUNCE_MS = 600;
 
 /**
  * Delay before showing switching overlay to avoid flashing on fast chat switches.
@@ -118,10 +118,11 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     const effectiveIsSidebarCollapsed = isMobileSidebarOpen ? false : isSidebarCollapsed;
 
     const hasInitialAutoMessageBeenConsumedRef = useRef(false);
-    const saveTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
     const savedMessagesHashesRef = useRef<Map<string, string>>(new Map());
     const chatMessagesCacheRef = useRef<Map<string, ReadonlyArray<ChatMessage>>>(new Map());
     const isSwitchingChatRef = useRef(false);
+    const isLocalStreamActiveRef = useRef(false);
+    const isPollInFlightRef = useRef(false);
     const autoExecuteTargetChatIdRef = useRef<string | undefined>(initialForceNewChat ? undefined : initialChatId);
     const draftSaveTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
     const [activeChatDraftMessage, setActiveChatDraftMessage] = useState<string | null>(null);
@@ -309,15 +310,9 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     }, [initialChatId, initialForceNewChat]);
 
     useEffect(() => {
-        const activeSaveTimers = saveTimersRef.current;
         const activeDraftSaveTimers = draftSaveTimersRef.current;
 
         return () => {
-            for (const timer of activeSaveTimers.values()) {
-                clearTimeout(timer);
-            }
-            activeSaveTimers.clear();
-
             for (const timer of activeDraftSaveTimers.values()) {
                 clearTimeout(timer);
             }
@@ -423,11 +418,6 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
 
             try {
                 await removeUserChat(agentName, chatId);
-                const existingTimer = saveTimersRef.current.get(chatId);
-                if (existingTimer) {
-                    clearTimeout(existingTimer);
-                    saveTimersRef.current.delete(chatId);
-                }
                 savedMessagesHashesRef.current.delete(chatId);
                 chatMessagesCacheRef.current.delete(chatId);
                 await bootstrapChats(activeChatId === chatId ? undefined : activeChatId || undefined);
@@ -439,7 +429,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
     );
 
     /**
-     * Persists updated chat messages using debounced full JSON replacement.
+     * Tracks local chat changes so polling can avoid overwriting fresher in-flight streams.
      */
     const handleMessagesChange = useCallback(
         (messages: ReadonlyArray<ChatMessage>) => {
@@ -450,39 +440,104 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             const chatId = activeChatId;
             chatMessagesCacheRef.current.set(chatId, [...messages]);
             const serializedMessages = JSON.stringify(messages);
-            const lastSavedHash = savedMessagesHashesRef.current.get(chatId);
+            savedMessagesHashesRef.current.set(chatId, serializedMessages);
+            isLocalStreamActiveRef.current = isChatStreaming(messages);
+        },
+        [activeChatId, shouldUseHistory],
+    );
 
-            if (lastSavedHash === serializedMessages) {
+    /**
+     * Polls server-side chat state and hydrates local surface so all windows/devices stay synchronized.
+     */
+    const synchronizeActiveChatFromServer = useCallback(async () => {
+        if (!shouldUseHistory || !activeChatId || isSwitchingChatRef.current || isPollInFlightRef.current) {
+            return;
+        }
+
+        isPollInFlightRef.current = true;
+
+        try {
+            const snapshot = await fetchUserChats(agentName, activeChatId);
+            const resolvedActiveChatId = snapshot.activeChatId;
+            if (!resolvedActiveChatId) {
                 return;
             }
 
-            const existingTimer = saveTimersRef.current.get(chatId);
-            if (existingTimer) {
-                clearTimeout(existingTimer);
+            setChats(snapshot.chats);
+
+            if (resolvedActiveChatId !== activeChatId) {
+                activateChat(resolvedActiveChatId, snapshot.activeMessages, {
+                    draftMessage: snapshot.activeDraftMessage ?? null,
+                });
+                isLocalStreamActiveRef.current = isChatStreaming(snapshot.activeMessages);
+                return;
             }
 
-            const nextTimer = setTimeout(() => {
-                void saveUserChatMessages(agentName, chatId, messages)
-                    .then((chatDetail) => {
-                        savedMessagesHashesRef.current.set(chatId, serializedMessages);
-                        setChats((previousChats) =>
-                            moveChatToTop(previousChats, chatDetail.chat).map((chat) =>
-                                chat.id === chatDetail.chat.id ? chatDetail.chat : chat,
-                            ),
-                        );
-                    })
-                    .catch((error) => {
-                        console.error('[user-chat] Failed to persist chat messages', error);
-                    })
-                    .finally(() => {
-                        saveTimersRef.current.delete(chatId);
-                    });
-            }, SAVE_DEBOUNCE_MS);
+            const localMessages = chatMessagesCacheRef.current.get(activeChatId) || [];
+            if (shouldApplyPolledMessages(localMessages, snapshot.activeMessages, isLocalStreamActiveRef.current)) {
+                prepareChatInLocalStorage(activeChatId, snapshot.activeMessages);
+                isLocalStreamActiveRef.current = isChatStreaming(snapshot.activeMessages);
+            }
 
-            saveTimersRef.current.set(chatId, nextTimer);
-        },
-        [activeChatId, agentName, shouldUseHistory],
-    );
+            setActiveChatDraftMessage((previousDraftMessage) =>
+                previousDraftMessage === (snapshot.activeDraftMessage ?? null)
+                    ? previousDraftMessage
+                    : (snapshot.activeDraftMessage ?? null),
+            );
+        } catch (error) {
+            console.error('[user-chat] Failed to synchronize active chat', error);
+        } finally {
+            isPollInFlightRef.current = false;
+        }
+    }, [
+        activeChatId,
+        activateChat,
+        agentName,
+        prepareChatInLocalStorage,
+        shouldUseHistory,
+    ]);
+
+    useEffect(() => {
+        if (!shouldUseHistory || !activeChatId) {
+            return;
+        }
+
+        let isDisposed = false;
+
+        const runSync = async (): Promise<void> => {
+            if (isDisposed) {
+                return;
+            }
+
+            await synchronizeActiveChatFromServer();
+        };
+
+        void runSync();
+
+        const interval = setInterval(() => {
+            if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+                return;
+            }
+
+            void runSync();
+        }, USER_CHAT_SYNC_POLL_INTERVAL_MS);
+
+        const handleOnline = () => {
+            void runSync();
+        };
+
+        if (typeof window !== 'undefined') {
+            window.addEventListener('online', handleOnline);
+        }
+
+        return () => {
+            isDisposed = true;
+            clearInterval(interval);
+            if (typeof window !== 'undefined') {
+                window.removeEventListener('online', handleOnline);
+            }
+        };
+    }, [activeChatId, shouldUseHistory, synchronizeActiveChatFromServer]);
 
     /**
      * Persists draft message using debounced save to avoid excessive API calls.
@@ -509,7 +564,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
                     .finally(() => {
                         draftSaveTimersRef.current.delete(chatId);
                     });
-            }, SAVE_DEBOUNCE_MS);
+            }, DRAFT_SAVE_DEBOUNCE_MS);
 
             draftSaveTimersRef.current.set(chatId, nextTimer);
         },
@@ -580,6 +635,7 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
             <AgentChatWrapper
                 key={`${activeChatId}:${activeChatMountKey}`}
                 agentName={agentName}
+                chatId={activeChatId}
                 agentUrl={agentUrl}
                 defaultMessage={activeChatDraftMessage ?? undefined}
                 autoExecuteMessage={autoExecuteMessage}
@@ -652,11 +708,66 @@ export function AgentChatHistoryClient(props: AgentChatHistoryClientProps) {
 }
 
 /**
- * Moves one chat summary to the top of list while preserving other items.
+ * Returns true when the newest message indicates an unfinished assistant stream.
  */
-function moveChatToTop(chats: ReadonlyArray<UserChatSummary>, targetChat: UserChatSummary): Array<UserChatSummary> {
-    const remainingChats = chats.filter((chat) => chat.id !== targetChat.id);
-    return [targetChat, ...remainingChats];
+function isChatStreaming(messages: ReadonlyArray<ChatMessage>): boolean {
+    const lastMessage = messages[messages.length - 1];
+    if (!lastMessage) {
+        return false;
+    }
+
+    return !lastMessage.isComplete && !isUserMessageSender(lastMessage.sender);
+}
+
+/**
+ * Decides whether the current tab should apply server-polled messages.
+ */
+function shouldApplyPolledMessages(
+    localMessages: ReadonlyArray<ChatMessage>,
+    remoteMessages: ReadonlyArray<ChatMessage>,
+    isLocalStreamActive: boolean,
+): boolean {
+    const serializedLocalMessages = JSON.stringify(localMessages);
+    const serializedRemoteMessages = JSON.stringify(remoteMessages);
+    if (serializedLocalMessages === serializedRemoteMessages) {
+        return false;
+    }
+
+    if (!isLocalStreamActive) {
+        return true;
+    }
+
+    const localLastMessage = localMessages[localMessages.length - 1];
+    const remoteLastMessage = remoteMessages[remoteMessages.length - 1];
+    if (!remoteLastMessage) {
+        return false;
+    }
+
+    if (!localLastMessage) {
+        return true;
+    }
+
+    const isRemoteAssistantMessage = !isUserMessageSender(remoteLastMessage.sender);
+    if (!isRemoteAssistantMessage) {
+        return remoteMessages.length >= localMessages.length;
+    }
+
+    if (remoteLastMessage.isComplete && !localLastMessage.isComplete) {
+        return true;
+    }
+
+    if (remoteMessages.length > localMessages.length) {
+        return true;
+    }
+
+    return (remoteLastMessage.content || '').length >= (localLastMessage.content || '').length;
+}
+
+/**
+ * Checks whether sender id represents a user-authored message.
+ */
+function isUserMessageSender(sender: unknown): boolean {
+    return typeof sender === 'string' && sender.toUpperCase() === 'USER';
 }
 
 /**

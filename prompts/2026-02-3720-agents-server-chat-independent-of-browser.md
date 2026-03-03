@@ -3,7 +3,7 @@
 
 ---
 
-[ ] !
+[x] ~$1.45 an hour by OpenAI Codex `gpt-5.3-codex`
 
 [✨🍅] Chat should be independent of the browser.
 
@@ -64,3 +64,4 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+

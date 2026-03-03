@@ -1,3 +1,4 @@
+-   Reworked Agents Server user-chat synchronization to be server-driven and browser-independent: active chat id is now passed to `/agents/:agent/api/chat`, server streaming now persists in-progress/final assistant messages directly into `UserChat` (with throttled partial saves), and chat pages now poll every 5 seconds to hydrate messages from DB so refreshes, multiple windows/devices, and offline/online recovery keep chats synchronized without websockets.
 -   Streaming tool calls in the Agents Server chat now render as persistent tool-call chips (spinner-animated while ongoing, flipping to done or ⚠️ error states once resolved) while still honoring TEAM agent metadata and `onToolCallClick` behavior.
 -   Added automatic Agents Server database migration execution on server runtime and unified migration logic:
 
