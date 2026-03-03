@@ -1,3 +1,8 @@
+-   Improved Agents Server website chat widget integration UX/behavior:
+    -   The HTML embed script now renders a native floating launcher first and lazily creates the iframe only after the first user click.
+    -   Opened widget chrome now uses a rounded framed container for a cleaner embedded appearance.
+    -   Widget minimization now also works via outside-click (in addition to the close button), and open/close state stays synchronized between parent page and embedded widget.
+    -   Shared `PromptbookAgentIntegration` now supports controlled/default open state and outside-click closing in the seamless widget, keeping behavior DRY across integration paths.
 -   Fixed Agents Server GitHub App connection persistence so repeated/concurrent writes of `github-app-connection` no longer fail with duplicate-key errors: shared `UserData` upsert now explicitly conflicts on (`userId`, `key`) instead of relying on implicit database defaults.
 -   Fixed browser-independent chat behavior in Agents Server so active chats stay reliable across refreshes and multiple windows:
     -   Server chat execution no longer depends on an open browser connection when history tracking is enabled (`chatId` present): the model run continues even after client disconnect, and final assistant output is still persisted.

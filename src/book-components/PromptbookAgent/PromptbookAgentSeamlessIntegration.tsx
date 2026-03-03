@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useId, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { RemoteAgent } from '../../llm-providers/agent/RemoteAgent';
 import { classNames } from '../_common/react-utils/classNames';
 import { AgentChat } from '../Chat/AgentChat/AgentChat';
@@ -29,20 +29,53 @@ type PromptbookAgentSeamlessIntegrationProps = Omit<PromptbookAgentIntegrationPr
  * @private component of PromptbookAgentIntegration
  */
 export function PromptbookAgentSeamlessIntegration(props: PromptbookAgentSeamlessIntegrationProps) {
-    const { agentUrl, meta, onOpenChange, className, style, isFocusedOnLoad, isIframeUsed = false } = props;
-    const [isOpen, setIsOpen] = useState(false);
+    const {
+        agentUrl,
+        meta,
+        onOpenChange,
+        isOpen: controlledIsOpen,
+        defaultOpen = false,
+        className,
+        style,
+        isFocusedOnLoad,
+        isIframeUsed = false,
+    } = props;
+    const [internalIsOpen, setInternalIsOpen] = useState(defaultOpen);
     const [headerElement, setHeaderElement] = useState<HTMLDivElement | null>(null);
     const [isIframeLoaded, setIsIframeLoaded] = useState(false);
+    const rootElementRef = useRef<HTMLDivElement | null>(null);
     const windowId = useId();
+    const isOpen = controlledIsOpen ?? internalIsOpen;
+
+    /**
+     * Updates the widget open state and notifies integration callbacks.
+     *
+     * @param nextIsOpen - Target open state.
+     * @private internal utility of PromptbookAgentSeamlessIntegration
+     */
+    const setOpen = useCallback(
+        (nextIsOpen: boolean) => {
+            if (controlledIsOpen === undefined) {
+                setInternalIsOpen(nextIsOpen);
+            }
+            onOpenChange?.(nextIsOpen);
+        },
+        [controlledIsOpen, onOpenChange],
+    );
 
     useEffect(() => {
-        if (onOpenChange) {
-            onOpenChange(isOpen);
+        if (controlledIsOpen !== undefined) {
+            return;
         }
+
+        setInternalIsOpen(defaultOpen);
+    }, [agentUrl, controlledIsOpen, defaultOpen]);
+
+    useEffect(() => {
         if (!isOpen) {
             setIsIframeLoaded(false);
         }
-    }, [isOpen, onOpenChange]);
+    }, [isOpen]);
 
     useEffect(() => {
         if (!isOpen) {
@@ -51,15 +84,31 @@ export function PromptbookAgentSeamlessIntegration(props: PromptbookAgentSeamles
 
         const handleKeyDown = (event: KeyboardEvent) => {
             if (event.key === 'Escape') {
-                setIsOpen(false);
+                setOpen(false);
             }
         };
 
+        const handlePointerDown = (event: PointerEvent) => {
+            const rootElement = rootElementRef.current;
+            if (!rootElement) {
+                return;
+            }
+
+            const target = event.target;
+            if (target instanceof Node && rootElement.contains(target)) {
+                return;
+            }
+
+            setOpen(false);
+        };
+
         window.addEventListener('keydown', handleKeyDown);
+        window.addEventListener('pointerdown', handlePointerDown);
         return () => {
             window.removeEventListener('keydown', handleKeyDown);
+            window.removeEventListener('pointerdown', handlePointerDown);
         };
-    }, [isOpen]);
+    }, [isOpen, setOpen]);
 
     const [agent, setAgent] = useState<RemoteAgent | null>(null);
     const [error, setError] = useState<Error | null>(null);
@@ -130,11 +179,12 @@ export function PromptbookAgentSeamlessIntegration(props: PromptbookAgentSeamles
                 className,
             )}
             style={style}
+            ref={rootElementRef}
         >
             <button
                 type="button"
                 className={styles.PromptbookAgentSeamlessIntegrationButton}
-                onClick={() => setIsOpen(!isOpen)}
+                onClick={() => setOpen(!isOpen)}
                 style={{ backgroundColor: color }}
                 aria-expanded={isOpen}
                 aria-controls={windowId}
@@ -178,7 +228,7 @@ export function PromptbookAgentSeamlessIntegration(props: PromptbookAgentSeamles
                         {isIframeUsed && (
                             <button
                                 className={styles.PromptbookAgentSeamlessIntegrationClose}
-                                onClick={() => setIsOpen(false)}
+                                onClick={() => setOpen(false)}
                                 title="Close"
                                 aria-label="Close chat"
                             >
@@ -213,7 +263,7 @@ export function PromptbookAgentSeamlessIntegration(props: PromptbookAgentSeamles
                                 extraActions={
                                     <button
                                         className={styles.PromptbookAgentSeamlessIntegrationClose}
-                                        onClick={() => setIsOpen(false)}
+                                        onClick={() => setOpen(false)}
                                         title="Close"
                                         aria-label="Close chat"
                                     >
