@@ -15,8 +15,6 @@ import {
     emulateMessageSuffixStreaming,
     resolveMessageSuffixFromAgentSource,
 } from '@/src/utils/chat/messageSuffix';
-import { createUserChatStreamPersistence } from '@/src/utils/chat/createUserChatStreamPersistence';
-import { USER_CHAT_ID_PROMPT_PARAMETER } from '@/src/utils/chat/userChatSync';
 import { createChatStreamHandler } from '@/src/utils/createChatStreamHandler';
 import { getWellKnownAgentUrl } from '@/src/utils/getWellKnownAgentUrl';
 import { composePromptParametersWithMemoryContext } from '@/src/utils/memoryRuntimeContext';
@@ -69,22 +67,6 @@ function resolveUserMessageContent(rawMessage: unknown): string {
 }
 
 /**
- * Resolves one optional string prompt parameter from normalized request parameters.
- */
-function resolveOptionalPromptParameterString(
-    parameters: Record<string, unknown>,
-    parameterName: string,
-): string | undefined {
-    const rawValue = parameters[parameterName];
-    if (typeof rawValue !== 'string') {
-        return undefined;
-    }
-
-    const normalizedValue = rawValue.trim();
-    return normalizedValue === '' ? undefined : normalizedValue;
-}
-
-/**
  * Allow long-running streams: set to platform maximum (seconds)
  */
 export const maxDuration = 300;
@@ -131,12 +113,8 @@ function isAbortLikeError(error: unknown): boolean {
 /**
  * Detects whether a stream failure was caused by client-side cancellation.
  */
-function isChatStreamCancellationError(
-    error: unknown,
-    signal: AbortSignal,
-    treatRequestAbortAsCancellation: boolean,
-): boolean {
-    if (treatRequestAbortAsCancellation && signal.aborted) {
+function isChatStreamCancellationError(error: unknown, signal: AbortSignal): boolean {
+    if (signal.aborted) {
         return true;
     }
 
@@ -262,11 +240,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             rawParameters && typeof rawParameters === 'object' && !Array.isArray(rawParameters)
                 ? (rawParameters as Record<string, unknown>)
                 : {};
-        const userChatId = resolveOptionalPromptParameterString(incomingParameters, USER_CHAT_ID_PROMPT_PARAMETER);
-        const promptBaseParameters = { ...incomingParameters };
-        delete promptBaseParameters[USER_CHAT_ID_PROMPT_PARAMETER];
         const promptParameters = composePromptParametersWithMemoryContext({
-            baseParameters: promptBaseParameters,
+            baseParameters: incomingParameters,
             currentUserIdentity,
             agentPermanentId: agentId,
             agentName: resolvedAgentName,
@@ -301,20 +276,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             message: userMessageContent,
             previousMessageHash: null, // <- TODO: [🧠] How to handle previous message hash?
         });
-        const userChatStreamPersistence =
-            !isPrivateModeEnabled && userChatId && currentUserIdentity
-                ? await createUserChatStreamPersistence({
-                      userId: currentUserIdentity.userId,
-                      agentPermanentId: agentId,
-                      chatId: userChatId,
-                      thread,
-                      userMessage: message,
-                      attachments,
-                  }).catch((error) => {
-                      console.error('[Agent chat stream] Failed to initialize user-chat stream persistence', error);
-                      return null;
-                  })
-                : null;
 
         const encoder = new TextEncoder();
         const readableStream = new ReadableStream({
@@ -323,8 +284,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                 let keepAliveInterval: ReturnType<typeof setInterval> | undefined;
                 let lastToolCallsFrame: string | null = null;
                 let isStreamClosed = false;
-                const shouldCancelGenerationOnClientAbort = userChatStreamPersistence === null;
-                const generationStartedAtMs = Date.now();
 
                 /**
                  * Clears keep-alive timers and prevents additional writes to the response stream.
@@ -343,29 +302,18 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                 };
 
                 /**
-                 * Returns true when data can still be written into the HTTP response stream.
+                 * Returns true when streaming should stop due to closed connection or aborted request.
                  */
-                const isResponseWritable = (): boolean => {
-                    return !isStreamClosed && !request.signal.aborted;
-                };
-
-                /**
-                 * Returns true when generation itself should be cancelled due to client disconnect.
-                 */
-                const shouldCancelGeneration = (): boolean => {
-                    return shouldCancelGenerationOnClientAbort && request.signal.aborted;
+                const isStreamCancelled = (): boolean => {
+                    return isStreamClosed || request.signal.aborted;
                 };
 
                 /**
                  * Enqueues one markdown chunk while normalizing client disconnects to cancellation errors.
                  */
                 const enqueueChunk = (chunk: string): void => {
-                    if (!isResponseWritable()) {
-                        markStreamClosed();
-                        if (shouldCancelGenerationOnClientAbort) {
-                            throw createChatStreamAbortedError();
-                        }
-                        return;
+                    if (isStreamCancelled()) {
+                        throw createChatStreamAbortedError();
                     }
 
                     try {
@@ -373,10 +321,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                     } catch (error) {
                         if (isAbortLikeError(error) || request.signal.aborted) {
                             markStreamClosed();
-                            if (shouldCancelGenerationOnClientAbort) {
-                                throw createChatStreamAbortedError();
-                            }
-                            return;
+                            throw createChatStreamAbortedError();
                         }
                         throw error;
                     }
@@ -419,13 +364,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                     try {
                         enqueueChunk(`\n${CHAT_STREAM_KEEP_ALIVE_TOKEN}\n`);
                     } catch (error) {
-                        if (
-                            isChatStreamCancellationError(
-                                error,
-                                request.signal,
-                                shouldCancelGenerationOnClientAbort,
-                            )
-                        ) {
+                        if (isChatStreamCancellationError(error, request.signal)) {
                             markStreamClosed();
                             return;
                         }
@@ -444,7 +383,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                     }
 
                     const preparedToolCalls = prepareToolCallsForStreaming(toolCalls);
-                    userChatStreamPersistence?.setToolCalls(preparedToolCalls);
                     const frame = createToolCallsStreamFrame(preparedToolCalls);
                     if (frame === lastToolCallsFrame) {
                         return;
@@ -454,7 +392,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                     enqueueChunk(frame);
                 };
 
-                if (shouldCancelGeneration()) {
+                if (isStreamCancelled()) {
                     return;
                 }
 
@@ -471,7 +409,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                             hasMeaningfulDelta = true;
                         }
                         sendTextChunk(deltaContent);
-                        userChatStreamPersistence?.appendDelta(deltaContent);
                     },
                     onToolCalls: (toolCalls) => {
                         emitToolCalls(toolCalls);
@@ -521,10 +458,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                             attachments,
                         },
                         handleStreamChunk,
-                        shouldCancelGenerationOnClientAbort ? { signal: request.signal } : undefined,
+                        { signal: request.signal },
                     );
 
-                    if (shouldCancelGeneration()) {
+                    if (isStreamCancelled()) {
                         throw createChatStreamAbortedError();
                     }
 
@@ -535,7 +472,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
 
                     if (normalizedResponse.wasEmpty && !hasMeaningfulDelta) {
                         sendTextChunk(normalizedResponse.content);
-                        userChatStreamPersistence?.appendDelta(normalizedResponse.content);
                     }
 
                     const messageSuffixAppendix = createMessageSuffixAppendix(
@@ -545,20 +481,14 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                     if (messageSuffixAppendix) {
                         await emulateMessageSuffixStreaming(messageSuffixAppendix, (delta) => {
                             sendTextChunk(delta);
-                            userChatStreamPersistence?.appendDelta(delta);
                         });
                     }
 
-                    if (shouldCancelGeneration()) {
+                    if (isStreamCancelled()) {
                         throw createChatStreamAbortedError();
                     }
 
                     const responseContentWithSuffix = appendMessageSuffix(normalizedResponse.content, messageSuffix);
-                    await userChatStreamPersistence?.complete({
-                        content: responseContentWithSuffix,
-                        toolCalls: response.toolCalls,
-                        generationDurationMs: Date.now() - generationStartedAtMs,
-                    });
 
                     // Note: Identify the agent message
                     const agentMessageContent = {
@@ -587,32 +517,19 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
 
                     closeStream();
                 } catch (error) {
-                    if (
-                        isChatStreamCancellationError(
-                            error,
-                            request.signal,
-                            shouldCancelGenerationOnClientAbort,
-                        )
-                    ) {
+                    if (isChatStreamCancellationError(error, request.signal)) {
                         markStreamClosed();
                         return;
                     }
 
-                    await userChatStreamPersistence?.fail(error instanceof Error ? error.message : undefined);
-                    const canSurfaceError = isResponseWritable();
                     markStreamClosed();
                     try {
-                        if (canSurfaceError) {
-                            controller.error(error);
-                        }
+                        controller.error(error);
                     } catch (streamError) {
                         console.error('[Agent chat stream] Failed to surface stream error', streamError);
                     }
                 } finally {
                     request.signal.removeEventListener('abort', handleRequestAbort);
-                    await userChatStreamPersistence?.flush().catch((flushError) => {
-                        console.error('[Agent chat stream] Failed to flush user-chat stream persistence', flushError);
-                    });
                     markStreamClosed();
                 }
             },
