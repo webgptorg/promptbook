@@ -1,3 +1,4 @@
+-   Fixed Agents Server GitHub App connection persistence so repeated/concurrent writes of `github-app-connection` no longer fail with duplicate-key errors: shared `UserData` upsert now explicitly conflicts on (`userId`, `key`) instead of relying on implicit database defaults.
 -   Fixed browser-independent chat behavior in Agents Server so active chats stay reliable across refreshes and multiple windows:
     -   Server chat execution no longer depends on an open browser connection when history tracking is enabled (`chatId` present): the model run continues even after client disconnect, and final assistant output is still persisted.
     -   Chat API now upserts `UserChat.messages` directly on the server (before and after streaming) so user/assistant messages are stored even if the originating tab refreshes mid-response.

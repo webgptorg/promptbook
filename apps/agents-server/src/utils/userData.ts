@@ -55,12 +55,17 @@ export async function upsertUserDataValue(options: UpsertUserDataValueOptions): 
     const now = new Date().toISOString();
     const { data, error } = await supabase
         .from(tableName)
-        .upsert({
-            userId,
-            key,
-            value,
-            updatedAt: now,
-        })
+        .upsert(
+            {
+                userId,
+                key,
+                value,
+                updatedAt: now,
+            },
+            {
+                onConflict: 'userId,key',
+            },
+        )
         .select('*')
         .maybeSingle();
 
