@@ -1,12 +1,12 @@
 #!/usr/bin/env ts-node
 
 import * as dotenv from 'dotenv';
+import localtunnel from 'localtunnel';
 import { chromium } from 'playwright';
 
 dotenv.config({ path: '.env' });
 
 import colors from 'colors';
-import { networkInterfaces } from 'os';
 import { join } from 'path';
 import { forEver } from 'waitasecond';
 
@@ -33,7 +33,7 @@ async function playground() {
 
     const browserHost = process.env.PLAYGROUND_BROWSER_HOST || '0.0.0.0';
     const browserPort = Number(process.env.PLAYGROUND_BROWSER_PORT || 3000);
-    const publicHost = process.env.PLAYGROUND_BROWSER_PUBLIC_HOST;
+    const tunnelSubdomain = process.env.PLAYGROUND_BROWSER_TUNNEL_SUBDOMAIN;
 
     const browserServer = await chromium.launchServer({
         host: browserHost,
@@ -42,16 +42,12 @@ async function playground() {
     });
 
     const wsEndpoint = browserServer.wsEndpoint();
+    const tunnel = await localtunnel({
+        port: browserPort,
+        subdomain: tunnelSubdomain,
+    });
 
-    console.log('REMOTE_BROWSER_URL(bind) =', wsEndpoint);
-
-    if (publicHost) {
-        console.log('REMOTE_BROWSER_URL(public) =', replaceWsEndpointHost(wsEndpoint, publicHost));
-    } else {
-        for (const localIpAddress of getLocalIpv4Addresses()) {
-            console.log(`REMOTE_BROWSER_URL(${localIpAddress}) =`, replaceWsEndpointHost(wsEndpoint, localIpAddress));
-        }
-    }
+    console.log('REMOTE_BROWSER_URL =', replaceWsEndpointOrigin(wsEndpoint, tunnel.url));
 
     await forEver();
 
@@ -61,34 +57,16 @@ async function playground() {
 }
 
 /**
- * Returns all non-internal IPv4 addresses of this machine.
+ * Rewrites the origin in a Playwright ws endpoint while preserving path/token.
  */
-function getLocalIpv4Addresses(): Array<string> {
-    const allNetworkInterfaces = networkInterfaces();
-    const localIpv4Addresses = new Set<string>();
+function replaceWsEndpointOrigin(wsEndpoint: string, publicUrl: string): string {
+    const wsUrl = new URL(wsEndpoint);
+    const tunnelUrl = new URL(publicUrl);
 
-    for (const networkInterface of Object.values(allNetworkInterfaces)) {
-        if (!networkInterface) {
-            continue;
-        }
+    wsUrl.protocol = tunnelUrl.protocol === 'https:' ? 'wss:' : 'ws:';
+    wsUrl.host = tunnelUrl.host;
 
-        for (const networkAddress of networkInterface) {
-            if (networkAddress.family === 'IPv4' && !networkAddress.internal) {
-                localIpv4Addresses.add(networkAddress.address);
-            }
-        }
-    }
-
-    return [...localIpv4Addresses];
-}
-
-/**
- * Rewrites the host in a Playwright ws endpoint while preserving path/token.
- */
-function replaceWsEndpointHost(wsEndpoint: string, host: string): string {
-    const url = new URL(wsEndpoint);
-    url.hostname = host;
-    return url.toString();
+    return wsUrl.toString();
 }
 
 /**
