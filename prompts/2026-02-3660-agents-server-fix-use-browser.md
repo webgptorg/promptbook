@@ -50,6 +50,24 @@
 
 ---
 
+[ ]
+
+[✨💧] Fix the browser operations
+
+-  Agent is able to use the browser when the `REMOTE_BROWSER_URL` is configured and has `USE BROWSER` commitment, but the operations in the browser are not working well
+-   @@@
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+-   If you need to do the database migration, do it
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+
+![alt text](prompts/screenshots/2026-02-3660-agents-server-fix-use-browser-2.png)
+
+
+---
+
 [-]
 
 [✨💧] qux
@@ -60,3 +78,48 @@
 -   You are working with the [Agents Server](apps/agents-server)
 -   If you need to do the database migration, do it
 -   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+
+---
+
+[-]
+
+[✨💧] qux
+
+-   @@@
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+-   If you need to do the database migration, do it
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+
+
+---
+
+[-]
+
+[✨💧] qux
+
+-   @@@
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+-   If you need to do the database migration, do it
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
+
+
+
+---
+
+[-]
+
+[✨💧] qux
+
+-   @@@
+-   Keep in mind the DRY _(don't repeat yourself)_ principle.
+-   Do a proper analysis of the current functionality before you start implementing.
+-   You are working with the [Agents Server](apps/agents-server)
+-   If you need to do the database migration, do it
+-   Add the changes into the [changelog](changelog/_current-preversion.md)
+
