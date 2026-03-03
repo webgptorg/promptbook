@@ -79,4 +79,3 @@ export async function upsertUserDataValue(options: UpsertUserDataValueOptions): 
 
     return data as UserDataRow;
 }
-
