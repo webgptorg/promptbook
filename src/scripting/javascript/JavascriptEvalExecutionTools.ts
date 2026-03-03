@@ -204,6 +204,17 @@ export class JavascriptEvalExecutionTools implements ScriptExecutionTools {
         try {
             result = await eval(statementToEvaluate);
 
+            if (this.options.isVerbose) {
+                console.info(
+                    _spaceTrim(
+                        (block) => `
+                            🚀 Script evaluated successfully, result:   
+                            ${block(valueToString(result))}
+                        `,
+                    ),
+                );
+            }
+
             if (typeof result !== 'string') {
                 throw new PipelineExecutionError(`Script must return a string, but returned ${valueToString(result)}`);
             }
