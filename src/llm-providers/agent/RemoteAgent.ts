@@ -137,13 +137,6 @@ function buildRemoteAgentSource(profile: RemoteAgentProfile, meta: RemoteAgentPr
  * @public exported from `@promptbook/core`
  */
 export class RemoteAgent extends Agent {
-    /**
-     * Optional chat ID for browser-independent synchronization
-     *
-     * @private internal property of RemoteAgent
-     */
-    private _chatId?: string;
-
     public static async connect(options: RemoteAgentOptions) {
         const agentProfileUrl = `${options.agentUrl}/api/profile`;
         const profileResponse = await fetch(agentProfileUrl, {
@@ -244,7 +237,6 @@ export class RemoteAgent extends Agent {
     private constructor(options: AgentOptions & RemoteAgentOptions) {
         super(options);
         this.agentUrl = options.agentUrl;
-        this._chatId = options.chatId;
     }
 
     public override get agentName(): string_agent_name {
@@ -343,7 +335,6 @@ export class RemoteAgent extends Agent {
                 thread: chatPrompt.thread,
                 attachments: chatPrompt.attachments,
                 parameters: chatPrompt.parameters,
-                ...(this._chatId ? { chatId: this._chatId } : {}),
             }),
             signal: options?.signal,
         });

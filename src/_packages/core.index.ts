@@ -160,7 +160,6 @@ import { createAgentLlmExecutionTools } from '../llm-providers/agent/createAgent
 import { _AgentMetadata } from '../llm-providers/agent/register-configuration';
 import { _AgentRegistration } from '../llm-providers/agent/register-constructor';
 import { RemoteAgent } from '../llm-providers/agent/RemoteAgent';
-import type { RemoteAgentOptions } from '../llm-providers/agent/RemoteAgentOptions';
 import { _AnthropicClaudeMetadataRegistration } from '../llm-providers/anthropic-claude/register-configuration';
 import { _AzureOpenAiMetadataRegistration } from '../llm-providers/azure-openai/register-configuration';
 import { _DeepseekMetadataRegistration } from '../llm-providers/deepseek/register-configuration';
@@ -385,7 +384,6 @@ export { createAgentLlmExecutionTools };
 export { _AgentMetadata };
 export { _AgentRegistration };
 export { RemoteAgent };
-export type { RemoteAgentOptions };
 export { _AnthropicClaudeMetadataRegistration };
 export { _AzureOpenAiMetadataRegistration };
 export { _DeepseekMetadataRegistration };

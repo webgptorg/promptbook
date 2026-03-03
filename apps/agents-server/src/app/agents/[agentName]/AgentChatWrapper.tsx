@@ -58,10 +58,6 @@ type AgentChatWrapperProps = {
     thinkingMessages?: ReadonlyArray<string>;
     speechRecognitionLanguage?: string;
     persistenceKey?: string;
-    /**
-     * Optional chat ID for browser-independent chat synchronization.
-     */
-    chatId?: string;
     onMessagesChange?: (messages: ReadonlyArray<ChatMessage>) => void;
     /**
      * Optional handler for input field text changes (draft message persistence).
@@ -618,7 +614,6 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
         thinkingMessages,
         speechRecognitionLanguage,
         persistenceKey,
-        chatId,
         onMessagesChange,
         onInputTextChange,
         areFileAttachmentsEnabled,
@@ -646,9 +641,8 @@ export function AgentChatWrapper(props: AgentChatWrapperProps) {
             RemoteAgent.connect({
                 agentUrl,
                 isVerbose: true,
-                chatId,
             }),
-        [agentUrl, chatId],
+        [agentUrl],
     );
 
     const { value: agent } = usePromise(agentPromise, [agentPromise]);
