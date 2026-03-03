@@ -32,6 +32,7 @@ import {
 import { isPrivateModeEnabledFromRequest } from '@/src/utils/privateMode';
 import { extractProjectRepositoriesFromAgentSource } from '@/src/utils/projects/extractProjectRepositoriesFromAgentSource';
 import { resolveUseProjectGithubToken } from '@/src/utils/resolveUseProjectGithubToken';
+import { upsertUserChatMessages } from '@/src/utils/userChat';
 import { resolveCurrentUserMemoryIdentity } from '@/src/utils/userMemory';
 import type { ChatMessage } from '@promptbook-local/components';
 import { Agent, computeAgentHash, normalizeChatAttachments, RemoteAgent } from '@promptbook-local/core';
@@ -72,6 +73,34 @@ function resolveUserMessageContent(rawMessage: unknown): string {
     }
 
     return 'Tell me more about yourself.';
+}
+
+/**
+ * Compares two chat messages using a stable subset suitable for persistence deduplication.
+ */
+function arePersistedMessagesEquivalent(left: ChatMessage, right: ChatMessage): boolean {
+    return (
+        left.sender === right.sender &&
+        left.content === right.content &&
+        JSON.stringify(left.attachments || null) === JSON.stringify(right.attachments || null)
+    );
+}
+
+/**
+ * Builds a complete persisted thread that always includes the current user message as the tail.
+ */
+function buildPersistedChatThread(
+    thread: ReadonlyArray<ChatMessage> | undefined,
+    userMessage: ChatMessage,
+): Array<ChatMessage> {
+    const normalizedThread = thread ? [...thread] : [];
+    const lastThreadMessage = normalizedThread.at(-1);
+
+    if (!lastThreadMessage || !arePersistedMessagesEquivalent(lastThreadMessage, userMessage)) {
+        normalizedThread.push(userMessage);
+    }
+
+    return normalizedThread;
 }
 
 /**
@@ -271,7 +300,18 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
             sender: 'USER',
             content: message,
             attachments,
+            isComplete: true,
+            createdAt: $getCurrentDate(),
         };
+        const persistedChatThread = buildPersistedChatThread(thread, userMessageContent);
+        const browserIndependentChatContext =
+            !isPrivateModeEnabled && currentUserIdentity && chatId
+                ? {
+                      userId: currentUserIdentity.userId,
+                      agentPermanentId: agentId,
+                      chatId,
+                  }
+                : null;
         const recordChatHistoryMessage = await createChatHistoryRecorder({
             request,
             agentIdentifier: agentId,
@@ -288,19 +328,29 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
 
         // Create streaming execution record for browser-independent chat tracking
         let streamingExecution: Awaited<ReturnType<typeof createStreamingExecution>> | null = null;
-        if (!isPrivateModeEnabled && currentUserIdentity && chatId) {
+        if (browserIndependentChatContext) {
             streamingExecution = await createStreamingExecution({
-                userId: currentUserIdentity.userId,
-                userChatId: chatId,
+                userId: browserIndependentChatContext.userId,
+                userChatId: browserIndependentChatContext.chatId,
                 agentPermanentId: agentId,
                 agentName: resolvedAgentName,
                 agentHash,
                 userMessage: userMessageContent,
                 userMessageHash,
             });
+
+            await upsertUserChatMessages({
+                userId: browserIndependentChatContext.userId,
+                agentPermanentId: browserIndependentChatContext.agentPermanentId,
+                chatId: browserIndependentChatContext.chatId,
+                messages: persistedChatThread,
+            }).catch((error) => {
+                console.error('[User chat] Failed to persist user message thread:', error);
+            });
         }
 
         const encoder = new TextEncoder();
+        const shouldContinueExecutionAfterClientDisconnect = Boolean(browserIndependentChatContext);
         const readableStream = new ReadableStream({
             async start(controller) {
                 let hasMeaningfulDelta = false;
@@ -328,6 +378,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                  * Returns true when streaming should stop due to closed connection or aborted request.
                  */
                 const isStreamCancelled = (): boolean => {
+                    if (shouldContinueExecutionAfterClientDisconnect) {
+                        return false;
+                    }
+
                     return isStreamClosed || request.signal.aborted;
                 };
 
@@ -335,6 +389,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                  * Enqueues one markdown chunk while normalizing client disconnects to cancellation errors.
                  */
                 const enqueueChunk = (chunk: string): void => {
+                    if (isStreamClosed) {
+                        if (shouldContinueExecutionAfterClientDisconnect) {
+                            return;
+                        }
+                        throw createChatStreamAbortedError();
+                    }
+
                     if (isStreamCancelled()) {
                         throw createChatStreamAbortedError();
                     }
@@ -344,6 +405,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                     } catch (error) {
                         if (isAbortLikeError(error) || request.signal.aborted) {
                             markStreamClosed();
+                            if (shouldContinueExecutionAfterClientDisconnect) {
+                                return;
+                            }
                             throw createChatStreamAbortedError();
                         }
                         throw error;
@@ -494,7 +558,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                             attachments,
                         },
                         handleStreamChunk,
-                        { signal: request.signal },
+                        shouldContinueExecutionAfterClientDisconnect ? undefined : { signal: request.signal },
                     );
 
                     if (isStreamCancelled()) {
@@ -531,6 +595,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                         role: 'MODEL',
                         sender: 'MODEL',
                         content: responseContentWithSuffix,
+                        isComplete: true,
+                        createdAt: $getCurrentDate(),
                     };
 
                     const assistantMessageHash = await recordChatHistoryMessage({
@@ -552,6 +618,17 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
                         });
                     }
 
+                    if (browserIndependentChatContext) {
+                        await upsertUserChatMessages({
+                            userId: browserIndependentChatContext.userId,
+                            agentPermanentId: browserIndependentChatContext.agentPermanentId,
+                            chatId: browserIndependentChatContext.chatId,
+                            messages: [...persistedChatThread, agentMessageContent],
+                        }).catch((error) => {
+                            console.error('[User chat] Failed to persist completed assistant response:', error);
+                        });
+                    }
+
                     // Note: [🐱‍🚀] Save the learned data
                     if (!isPrivateModeEnabled && !resolvedAgentContext.isBookScopedAgent) {
                         const newAgentSource = agent.agentSource.value;
@@ -566,7 +643,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ age
 
                     closeStream();
                 } catch (error) {
-                    if (isChatStreamCancellationError(error, request.signal)) {
+                    if (!shouldContinueExecutionAfterClientDisconnect && isChatStreamCancellationError(error, request.signal)) {
                         // Mark streaming execution as cancelled (browser-independent tracking)
                         if (streamingExecution) {
                             await cancelStreamingExecution(streamingExecution.id).catch((cancelError) => {

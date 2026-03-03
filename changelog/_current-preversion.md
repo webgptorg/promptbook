@@ -1,3 +1,8 @@
+-   Fixed browser-independent chat behavior in Agents Server so active chats stay reliable across refreshes and multiple windows:
+    -   Server chat execution no longer depends on an open browser connection when history tracking is enabled (`chatId` present): the model run continues even after client disconnect, and final assistant output is still persisted.
+    -   Chat API now upserts `UserChat.messages` directly on the server (before and after streaming) so user/assistant messages are stored even if the originating tab refreshes mid-response.
+    -   Reworked `/agents/[agentName]/api/chat-updates` SSE endpoint to validate user/chat scope, respect private mode, and use shared prefix-safe chat/streaming utilities instead of hardcoded non-prefixed SQL table names.
+    -   Wired `useChatSynchronization` into `AgentChatHistoryClient` so the active chat surface now applies server-side `MESSAGES_UPDATED` snapshots for cross-window synchronization while avoiding interruptions during local in-progress streaming.
 -   Added draft message persistence in Agents Server chat:
     -   Chat input field text is now automatically preserved per user per chat and restored when switching between chats.
     -   Added `draftMessage` column to `UserChat` database table to store the unsent message text.
